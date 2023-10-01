@@ -16,8 +16,8 @@
     "@nx/eslint-plugin": "16.9.1",
     "@nx/js": "16.9.1",
     "@nx/linter": "16.9.1",
-    "@nx/node": "^16.9.1",
-    "@nx/react": "^16.9.1",
+    "@nx/node": "16.9.1",
+    "@nx/react": "16.9.1",
     "@nx/workspace": "16.9.1",
     "@nxtensions/astro": "^16.2.0",
     "@types/node": "16.11.7",
@@ -31,7 +31,7 @@
     "eslint-config-prettier": "8.1.0",
     "eslint-plugin-cypress": "^2.13.4",
     "nx": "16.9.1",
-    "nx-cloud": "latest",
+    "nx-cloud": "16.4.0",
     "prettier": "^2.6.2",
     "react": "^17.0.2 || ^18.0.0",
     "react-dom": "^17.0.2 || ^18.0.0",
@@ -41,3 +41,4 @@
   },
   "dependencies": {}
 }
+
