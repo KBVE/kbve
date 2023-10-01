@@ -4,35 +4,40 @@
     "default": {
       "runner": "nx-cloud",
       "options": {
-        "cacheableOperations": [
-          "build",
-          "lint",
-          "test",
-          "e2e"
-        ],
+        "cacheableOperations": ["build", "lint", "test", "e2e", "check"],
         "accessToken": "ZTIwYjliNTQtMzc0ZS00ODQ1LTgyYTktZTZkZDcwMzg0NDY0fHJlYWQtd3JpdGU="
       }
     }
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    },
+    "check": {
+      "inputs": ["production", "^production"]
+    },
+    "e2e": {
+      "inputs": ["default", "^production"]
+    },
+    "lint": {
       "inputs": [
-        "production",
-        "^production"
+        "default",
+        "{workspaceRoot}/.eslintrc.json",
+        "{workspaceRoot}/.eslintignore",
+        "{workspaceRoot}/eslint.config.js"
       ]
     }
   },
   "namedInputs": {
-    "default": [
-      "{projectRoot}/**/*",
-      "sharedGlobals"
-    ],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
-      "default"
+      "default",
+      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.js"
     ],
     "sharedGlobals": []
-  }
+  },
+  "plugins": ["@nxtensions/astro"],
+  "defaultProject": "kbve.com"
 }
