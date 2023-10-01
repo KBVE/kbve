@@ -4,10 +4,10 @@
   "license": "MIT",
   "scripts": {},
   "private": true,
-  "dependencies": {},
   "devDependencies": {
     "@nx/js": "16.9.1",
     "@nx/workspace": "16.9.1",
+    "@nxtensions/astro": "^16.2.0",
     "nx": "16.9.1",
     "nx-cloud": "latest",
     "prettier": "^2.6.2",
