@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@kbve/astro-ve": ["packages/astro-ve/index.ts"],
       "@kbve/react-appwrite": ["packages/react-appwrite/src/index.ts"]
     }
   },

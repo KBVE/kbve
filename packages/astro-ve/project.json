@@ -1,0 +1,12 @@
+{
+  "name": "astro-ve",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/astro-ve",
+  "projectType": "library",
+  "targets": {
+    "check": {
+      "executor": "@nxtensions/astro:check"
+    }
+  },
+  "tags": []
+}
