@@ -6,6 +6,8 @@
   "private": true,
   "devDependencies": {
     "@nx/js": "16.9.1",
+    "@nx/node": "^16.9.1",
+    "@nx/react": "^16.9.1",
     "@nx/workspace": "16.9.1",
     "@nxtensions/astro": "^16.2.0",
     "nx": "16.9.1",
