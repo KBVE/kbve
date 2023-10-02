@@ -27,11 +27,16 @@ jobs:
                 with:
                   files_yaml: |
                     herbmail:
-                      - 'apps/herbmail.com/**'
-            
+                        - 'apps/herbmail.com/**'
+                    kbve: 
+                        - 'apps/kbve.com/**'
+                    rareicon:
+                        - 'apps/rareicon.com/**'
+                    discordsh:
+                        - 'apps/discord.sh/**'
+
             -   name: Check HerbMailfor Changes
                 if: steps.changed-files-yaml.outputs.herbmail_any_changed == 'true'  
                 run: |
                     echo "One or more test file(s) has changed."
                     echo "List all the files that have changed: ${{ steps.changed-files-yaml.outputs.herbmail_all_changed_files }}"
-                
