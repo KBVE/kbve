@@ -13,7 +13,14 @@ module.exports = {
     ...createGlobPatternsForDependencies(__dirname),
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        // ...
+        'herbmail': {
+          DEFAULT: '#8C52FF',
+        },
+      },
+    },
   },
   plugins: [],
 };
