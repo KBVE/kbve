@@ -22,7 +22,7 @@ jobs:
                 with:
                     fetch-depth: 1
             
-            -   name: HerbMail Changes
+            -   name: File Changes
                 id: changed-files-yaml
                 uses: tj-actions/changed-files@v39
                 with:
@@ -36,7 +36,7 @@ jobs:
                     discordsh:
                         - 'apps/discord.sh/**'
 
-            -   name: Check HerbMailfor Changes
+            -   name: Check HerbMail for Changes!
                 if: steps.changed-files-yaml.outputs.herbmail_any_changed == 'true'  
                 run: |
                     echo "One or more test file(s) has changed."
