@@ -2,9 +2,12 @@
 import Layout from '../layouts/Layout.astro';
 import Card from '../components/Card.astro';
 import { AstroVe } from "@kbve/astro-ve";
+
+let title = 'Welcome to HerbMail.com';
+let description = '';
 ---
 
-<Layout title="Welcome to Herbmail.com">
+<Layout title={title} description={description}>
 	<main>
 		<svg
 			class="astro-a"

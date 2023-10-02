@@ -1,10 +1,17 @@
 ---
-import { VE$$ } from './ve';
+interface Props {
+  //* Load
+  load?: 'none' | 'lazy' | 'partytown' | 'helmet' | 'true';
+  //* VE
+  ve?: string;
+  //* Data
+  data?: string;
+  //* Widget
+  widget?: string;
+}
 let { data = 'hello world', ve = '1', load = 'true' } = Astro.props;
 
-const runVirtualEngine = () => {
-    
-}
-
+//const runVirtualEngine = () => {};
 ---
-<p>AstroVe works! Yippy Test {data} {ve}</p>
+
+<p>AstroVe works! Yippy Test {data} {ve} {load}</p>
