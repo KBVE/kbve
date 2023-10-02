@@ -73,6 +73,9 @@ devDependencies:
   '@nx/workspace':
     specifier: 16.9.1
     version: 16.9.1
+  '@nxlv/python':
+    specifier: ^16.1.2
+    version: 16.1.2(@nx/devkit@16.9.1)(tslib@2.6.2)
   '@nxtensions/astro':
     specifier: ^16.2.0
     version: 16.2.0(@nx/cypress@16.9.1)(@nx/devkit@16.9.1)(@nx/js@16.9.1)(@nx/linter@16.9.1)(@nx/workspace@16.9.1)(astro@2.10.15)(nx@16.9.1)(typescript@5.1.6)
@@ -2235,6 +2238,10 @@ packages:
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
     dev: true
 
+  /@iarna/toml@2.2.5:
+    resolution: {integrity: sha512-trnsAYxU3xnS1gPHPyU961coFyLkh4gAD/0zQ5mymY4yOZ+CYvsPqUbOFSw0aDM4y0tV7tiFxL/1XfXPNC6IPg==}
+    dev: true
+
   /@istanbuljs/load-nyc-config@1.1.0:
     resolution: {integrity: sha512-VjeHSlIzpv/NyD3N0YuHfXOPDIixcA1q2ZV98wsMqcYlPmv2n3Yb2lYP9XMElnaFVXg5A7YLTeLu6V84uQDjmQ==}
     engines: {node: '>=8'}
@@ -3227,6 +3234,24 @@ packages:
       - '@swc-node/register'
       - '@swc/core'
       - debug
+    dev: true
+
+  /@nxlv/python@16.1.2(@nx/devkit@16.9.1)(tslib@2.6.2):
+    resolution: {integrity: sha512-je8ZjDYGWdrPjw5CIrAwesBsIUqk30lYxWPG0aiW8WUJgbPYF9lQ0kRLuLNgtEJeYn4ZRgdSFONLm6v3qlwITg==}
+    peerDependencies:
+      '@nx/devkit': ^16.0.0
+      tslib: 2.5.0
+    dependencies:
+      '@iarna/toml': 2.2.5
+      '@nx/devkit': 16.9.1(nx@16.9.1)
+      chalk: 4.1.2
+      command-exists: 1.2.9
+      cross-spawn: 7.0.3
+      file-uri-to-path: 2.0.0
+      fs-extra: 11.1.1
+      lodash: 4.17.21
+      tslib: 2.6.2
+      uuid: 9.0.1
     dev: true
 
   /@nxtensions/astro@16.2.0(@nx/cypress@16.9.1)(@nx/devkit@16.9.1)(@nx/js@16.9.1)(@nx/linter@16.9.1)(@nx/workspace@16.9.1)(astro@2.10.15)(nx@16.9.1)(typescript@5.1.6):
@@ -5442,6 +5467,10 @@ packages:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
     dev: true
 
+  /command-exists@1.2.9:
+    resolution: {integrity: sha512-LTQ/SGc+s0Xc0Fu5WaKnR0YiygZkm9eKFvyS+fRsU7/ZWFF8ykFM6Pc9aCVf1+xasOOZpO3BAVgVrKvsqKHV7w==}
+    dev: true
+
   /commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
     dev: true
@@ -6787,6 +6816,11 @@ packages:
       loader-utils: 2.0.4
       schema-utils: 3.3.0
       webpack: 5.88.2(esbuild@0.17.19)
+    dev: true
+
+  /file-uri-to-path@2.0.0:
+    resolution: {integrity: sha512-hjPFI8oE/2iQPVe4gbrJ73Pp+Xfub2+WI2LlXDbsaJBwT5wuMh35WNWVYYTpnz895shtwfyutMFLFywpQAFdLg==}
+    engines: {node: '>= 6'}
     dev: true
 
   /filelist@1.0.4:
@@ -11608,6 +11642,11 @@ packages:
 
   /uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+    dev: true
+
+  /uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
     dev: true
 
