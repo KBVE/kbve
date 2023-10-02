@@ -160,6 +160,9 @@ devDependencies:
   jsdom:
     specifier: ~22.1.0
     version: 22.1.0
+  node-appwrite:
+    specifier: ^11.0.0
+    version: 11.0.0
   nx:
     specifier: 16.9.1
     version: 16.9.1
@@ -9358,6 +9361,15 @@ packages:
 
   /node-addon-api@3.2.1:
     resolution: {integrity: sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A==}
+    dev: true
+
+  /node-appwrite@11.0.0:
+    resolution: {integrity: sha512-l+O0d1kCvY56NdlmsiWw91IlUzJszNW7FZodGCyvNlJeR4+JIpy9Mica3T4M+zvZGsbRqLhpghCysQmPBwwhQA==}
+    dependencies:
+      axios: 1.5.1
+      form-data: 4.0.0
+    transitivePeerDependencies:
+      - debug
     dev: true
 
   /node-fetch@2.6.13:
