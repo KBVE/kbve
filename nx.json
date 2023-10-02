@@ -47,6 +47,7 @@
     "sharedGlobals": []
   },
   "workspaceLayout": {
+    "projectNameAndRootFormat": "derived",
     "appsDir": "apps",
     "libsDir": "packages"
   },
