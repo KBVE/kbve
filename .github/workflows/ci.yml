@@ -1,0 +1,17 @@
+name: CI
+
+on:
+    workflow_dispatch:
+
+permissions:
+    actions: write
+    contents: write
+    pages: write
+    id-token: write
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout the repository using git
+                uses: actions/checkout@v3 
