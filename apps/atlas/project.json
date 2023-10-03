@@ -1,0 +1,66 @@
+{
+	"name": "atlas",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/atlas/kbve_atlas",
+	"targets": {
+		"lock": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "poetry lock --no-update",
+				"cwd": "apps/atlas"
+			}
+		},
+		"add": {
+			"executor": "@nxlv/python:add",
+			"options": {}
+		},
+		"update": {
+			"executor": "@nxlv/python:update",
+			"options": {}
+		},
+		"remove": {
+			"executor": "@nxlv/python:remove",
+			"options": {}
+		},
+		"build": {
+			"executor": "@nxlv/python:build",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"outputPath": "apps/atlas/dist",
+				"publish": false,
+				"lockedVersions": true,
+				"bundleLocalDependencies": true
+			}
+		},
+		"install": {
+			"executor": "@nxlv/python:install",
+			"options": {
+				"silent": false,
+				"args": "",
+				"cacheDir": ".cache/pypoetry",
+				"verbose": false,
+				"debug": false
+			}
+		},
+		"lint": {
+			"executor": "@nxlv/python:flake8",
+			"outputs": ["{workspaceRoot}/reports/apps/atlas/pylint.txt"],
+			"options": {
+				"outputFile": "reports/apps/atlas/pylint.txt"
+			}
+		},
+		"test": {
+			"executor": "@nxlv/python:run-commands",
+			"outputs": [
+				"{workspaceRoot}/reports/apps/atlas/unittests",
+				"{workspaceRoot}/coverage/apps/atlas"
+			],
+			"options": {
+				"command": "poetry run pytest tests/",
+				"cwd": "apps/atlas"
+			}
+		}
+	},
+	"tags": []
+}
