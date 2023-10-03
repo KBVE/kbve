@@ -23,6 +23,7 @@ readme = 'README.md'
   [tool.poetry.dependencies]
   python = ">=3.9,<3.11"
   pyautogen = {extras = ["blendsearch"], version = "^0.1.6"}
+  openai = "^0.28.1"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.0.2"
