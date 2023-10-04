@@ -1,4 +1,4 @@
-name: CI
+name: CI - Main
 
 on:
     workflow_dispatch:
@@ -41,3 +41,11 @@ jobs:
                 run: |
                     echo "One or more test file(s) has changed."
                     echo "List all the files that have changed: ${{ steps.changed-files-yaml.outputs.herbmail_all_changed_files }}"
+            
+            -   name: Check KBVE for Changes!
+                if: steps.changed-files-yaml.outputs.kbve_any_changed == 'true'  
+                run: |
+                        echo "One or more test file(s) has changed."
+                        echo "List all the files that have changed: ${{ steps.changed-files-yaml.outputs.kbve_all_changed_files }}"
+                
+                 
