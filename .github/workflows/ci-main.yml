@@ -2,9 +2,9 @@ name: CI - Main
 
 on:
     workflow_dispatch:
-    # push:
-    #     branches:
-    #         - main
+    push:
+         branches:
+             - main
 
 # permissions:
 #     actions: write
@@ -23,7 +23,7 @@ jobs:
                     fetch-depth: 1
             
             -   name: File Changes
-                id: changed-files-yaml
+                id: delta
                 uses: tj-actions/changed-files@v39
                 with:
                   files_yaml: |
@@ -36,16 +36,26 @@ jobs:
                     discordsh:
                         - 'apps/discord.sh/**'
 
-            -   name: Check HerbMail for Changes!
-                if: steps.changed-files-yaml.outputs.herbmail_any_changed == 'true'  
+            -   name: Delta HerbMail
+                if: steps.delta.outputs.herbmail_any_changed == 'true'  
                 run: |
-                    echo "One or more test file(s) has changed."
-                    echo "List all the files that have changed: ${{ steps.changed-files-yaml.outputs.herbmail_all_changed_files }}"
+                    echo "One or more HerbMail file(s) has changed."
+                    echo "List all the files that have changed: ${{ steps.delta.outputs.herbmail_all_changed_files }}"
             
-            -   name: Check KBVE for Changes!
-                if: steps.changed-files-yaml.outputs.kbve_any_changed == 'true'  
+            -   name: Delta KBVE
+                if: steps.delta.outputs.kbve_any_changed == 'true'  
                 run: |
-                        echo "One or more test file(s) has changed."
-                        echo "List all the files that have changed: ${{ steps.changed-files-yaml.outputs.kbve_all_changed_files }}"
+                        echo "One or more KBVE file(s) has changed."
+                        echo "List all the files that have changed: ${{ steps.delta.outputs.kbve_all_changed_files }}"
                 
-                 
+            -   name: Delta RareIcon
+                if: steps.delta.outputs.rareicon_any_changed == 'true'
+                run: |
+                        echo "Changes in RareIcon file(s) has changed."
+                        echo "List all the files that have changed: ${{ steps.delta.outputs.rareicon_all_changed_files }}"
+            
+            -   name: Delta Discordsh
+                if: steps.delta.outputs.discordsh_any_changed == 'true'
+                run: |
+                        echo "Changes in DiscordSh file(s) has changed."
+                        echo "List all the files that have changed: ${{ steps.delta.outputs.discordsh_all_changed_files }}"
