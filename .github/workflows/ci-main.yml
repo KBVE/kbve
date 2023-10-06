@@ -113,8 +113,7 @@ jobs:
                     pnpm nx report
 
             -   name: Python Install
-                if: 
-                    
+                if:  env.DELTA_ATLAS == 'true'
                 uses: actions/setup-python@v4
                 with:
                   python-version: "3.x"
