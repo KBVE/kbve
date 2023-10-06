@@ -98,8 +98,9 @@ jobs:
                 uses: pnpm/action-setup@v2
                 with:
                     version: 8
-                    run_install: |
-                        - args: [--global, nx@latest]
+
+            -   name: Install dependencies
+                run: pnpm install
 
             -   name: Deployment Test Case
                 shell: bash
