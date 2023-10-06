@@ -24,7 +24,7 @@ jobs:
         runs-on: ubuntu-latest
         name: File Alterations
         outputs:
-            atlas: ${{ steps.delta.outputs.herbmail_any_changed  }}
+            atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
         steps:
             -   name: Checkout the repository using git
                 uses: actions/checkout@v4
