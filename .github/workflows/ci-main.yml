@@ -105,4 +105,4 @@ jobs:
             -   name: Deployment Test Case
                 shell: bash
                 run: |
-                    nx report
+                    pnpm nx report
