@@ -11,7 +11,7 @@ addopts = "--cov --cov-report html:'../../coverage/apps/atlas/html' --cov-report
 
 [tool.poetry]
 name = "kbve"
-version = "1.0.0"
+version = "1.0.1"
 description = "ATLAS"
 authors = [ ]
 license = 'Proprietary'
@@ -26,6 +26,7 @@ readme = 'README.md'
   openai = "^0.28.1"
   litellm = "^0.1.824"
   docker = "^6.1.3"
+  beautifulsoup4 = "^4.12.2"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.0.2"
