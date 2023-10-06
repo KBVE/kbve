@@ -11,20 +11,18 @@ concurrency:
     group: "pages"
     cancel-in-progress: true
 
-# permissions:
-#     actions: write
-#     contents: write
-#     pages: write
-#     id-token: write
-
-#   TODO: Matrix Setup 
 
 jobs:
     alter:
         runs-on: ubuntu-latest
         name: File Alterations
         outputs:
+            herbmail:  ${{ steps.delta.outputs.herbmail_any_changed  }}
+            kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
+            rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
+            discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
             atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
+
         steps:
             -   name: Checkout the repository using git
                 uses: actions/checkout@v4
@@ -47,40 +45,6 @@ jobs:
                     atlas:
                         - 'apps/atlas/kbve_atlas/**'
 
-            -   name: Delta HerbMail
-                if: steps.delta.outputs.herbmail_any_changed == 'true'  
-                run: |
-                    echo "One or more HerbMail file(s) has changed."
-                    echo "List all the files that have changed: ${{ steps.delta.outputs.herbmail_all_changed_files }}"
-                    echo "DELTA_HERBMAIL=true" >> $GITHUB_ENV
-            
-            -   name: Delta KBVE
-                if: steps.delta.outputs.kbve_any_changed == 'true'  
-                run: |
-                        echo "One or more KBVE file(s) has changed."
-                        echo "List all the files that have changed: ${{ steps.delta.outputs.kbve_all_changed_files }}"
-                        echo "DELTA_KBVE=true" >> $GITHUB_ENV
-
-            -   name: Delta RareIcon
-                if: steps.delta.outputs.rareicon_any_changed == 'true'
-                run: |
-                        echo "Changes in RareIcon file(s) has changed."
-                        echo "List all the files that have changed: ${{ steps.delta.outputs.rareicon_all_changed_files }}"
-                        echo "DELTA_RAREICON=true" >> $GITHUB_ENV
-            
-            -   name: Delta Discordsh
-                if: steps.delta.outputs.discordsh_any_changed == 'true'
-                run: |
-                        echo "Changes in DiscordSh file(s) has changed."
-                        echo "List all the files that have changed: ${{ steps.delta.outputs.discordsh_all_changed_files }}"
-                        echo "DELTA_DISCORDSH=true" >> $GITHUB_ENV
-            
-            -   name: Delta Atlas
-                if: steps.delta.outputs.atlas_any_changed == 'true'
-                run: |
-                        echo "Changes in Atlas file(s) has changed."
-                        echo "List all the files that have changed: ${{ steps.delta.outputs.atlas_all_changed_files }}"
-                        echo "DELTA_ATLAS=true" >> $GITHUB_ENV
 
     deploy:
         needs: alter
@@ -129,7 +93,7 @@ jobs:
                 uses: actions/upload-artifact@v3
                 with:
                     name: atlas-python-package-distributions
-                    path: apps/atlas/dist/
+                    path: dist/
     
     pypublish:
         needs: ["deploy", "alter"]
@@ -145,7 +109,7 @@ jobs:
                 uses: actions/download-artifact@v3
                 with:
                     name: atlas-python-package-distributions
-                    path: apps/atlas/dist/
+                    path: dist/
             -   name: Publish distribution 📦 to PyPI
                 if: needs.alter.outputs.atlas == 'true'
                 uses: pypa/gh-action-pypi-publish@release/v1
