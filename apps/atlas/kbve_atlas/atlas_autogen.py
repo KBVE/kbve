@@ -39,7 +39,7 @@ user_proxy = autogen.UserProxyAgent(
 )
 
 def init():
-    """Halo?"""
+    """Halo!?"""
     return "husky raid"
 
 def marco():

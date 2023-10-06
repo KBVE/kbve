@@ -79,7 +79,7 @@ jobs:
                 if: steps.delta.outputs.atlas_any_changed == 'true'
                 run: |
                         echo "Changes in Atlas file(s) has changed."
-                        echo "List all the files that have changed: ${{ steps.delta.outputs.discordsh_all_changed_files }}"
+                        echo "List all the files that have changed: ${{ steps.delta.outputs.atlas_all_changed_files }}"
 
     deploy:
         needs: alter
@@ -108,33 +108,31 @@ jobs:
                     pnpm nx report
 
             -   name: Python Install
-                if: needs.alter.steps.delta.outputs.atlas_any_changed == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 uses: actions/setup-python@v4
                 with:
                   python-version: "3.x"
             
             -   name: Poetry Install
-                if: needs.alter.steps.delta.outputs.atlas_any_changed == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 uses: snok/install-poetry@v1
 
             -   name: Atlas Deployment
-                if: needs.alter.steps.delta.outputs.atlas_any_changed == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 shell: bash
                 run: |
                     pnpm nx build atlas
             
             -   name: Store the distribution packages
-                if: needs.alter.steps.delta.outputs.atlas_any_changed == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 uses: actions/upload-artifact@v3
                 with:
                     name: atlas-python-package-distributions
                     path: apps/atlas/dist/
     
     pypublish:
-        needs: 
-            - deploy
-            - alter
-        if: needs.alter.steps.delta.outputs.atlas_any_changed == 'true'
+        needs: ["deploy", "alter"]
+        if: needs.alter.delta.outputs.atlas_any_changed == 'true'
         runs-on: ubuntu-latest
         environment:
             name: pypi
