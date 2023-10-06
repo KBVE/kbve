@@ -113,23 +113,23 @@ jobs:
                     pnpm nx report
 
             -   name: Python Install
-                if:  env.DELTA_ATLAS == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 uses: actions/setup-python@v4
                 with:
                   python-version: "3.x"
             
             -   name: Poetry Install
-                if: env.DELTA_ATLAS == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 uses: snok/install-poetry@v1
 
             -   name: Atlas Deployment
-                if: env.DELTA_ATLAS == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 shell: bash
                 run: |
                     pnpm nx build atlas
             
             -   name: Store the distribution packages
-                if: env.DELTA_ATLAS == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 uses: actions/upload-artifact@v3
                 with:
                     name: atlas-python-package-distributions
@@ -145,12 +145,12 @@ jobs:
             id-token: write 
         steps:
             -   name: Download all the dists
-                if: env.DELTA_ATLAS == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 uses: actions/download-artifact@v3
                 with:
                     name: atlas-python-package-distributions
                     path: apps/atlas/dist/
             -   name: Publish distribution 📦 to PyPI
-                if: env.DELTA_ATLAS == 'true'
+                if: needs.alter.delta.outputs.atlas_any_changed == 'true'
                 uses: pypa/gh-action-pypi-publish@release/v1
             
