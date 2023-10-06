@@ -1,11 +1,5 @@
 name: CI - Main
 
-env:
-    DELTA_HERBMAIL: false
-    DELTA_KBVE: false
-    DELTA_RAREICON: false
-    DELTA_DISCORDSH: false
-    DELTA_ATLAS: false
 
 on:
     workflow_dispatch:
@@ -29,6 +23,8 @@ jobs:
     alter:
         runs-on: ubuntu-latest
         name: File Alterations
+        outputs:
+            atlas: ${{ steps.delta.outputs.herbmail_any_changed  }}
         steps:
             -   name: Checkout the repository using git
                 uses: actions/checkout@v4
@@ -113,23 +109,23 @@ jobs:
                     pnpm nx report
 
             -   name: Python Install
-                if: needs.alter.outputs.atlas_any_changed == 'true'
+                if: needs.alter.outputs.atlas == 'true'
                 uses: actions/setup-python@v4
                 with:
                   python-version: "3.x"
             
             -   name: Poetry Install
-                if: needs.alter.outputs.atlas_any_changed == 'true'
+                if: needs.alter.outputs.atlas == 'true'
                 uses: snok/install-poetry@v1
 
             -   name: Atlas Deployment
-                if: needs.alter.outputs.atlas_any_changed == 'true'
+                if: needs.alter.outputs.atlas == 'true'
                 shell: bash
                 run: |
                     pnpm nx build atlas
             
             -   name: Store the distribution packages
-                if: needs.alter.outputs.atlas_any_changed == 'true'
+                if: needs.alter.outputs.atlas== 'true'
                 uses: actions/upload-artifact@v3
                 with:
                     name: atlas-python-package-distributions
@@ -145,12 +141,12 @@ jobs:
             id-token: write 
         steps:
             -   name: Download all the dists
-                if: needs.alter.outputs.atlas_any_changed == 'true'
+                if: needs.alter.outputs.atlas == 'true'
                 uses: actions/download-artifact@v3
                 with:
                     name: atlas-python-package-distributions
                     path: apps/atlas/dist/
             -   name: Publish distribution 📦 to PyPI
-                if: needs.alter.outputs.atlas_any_changed == 'true'
+                if: needs.alter.outputs.atlas == 'true'
                 uses: pypa/gh-action-pypi-publish@release/v1
             
