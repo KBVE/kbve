@@ -10,7 +10,7 @@ show_missing = true
 addopts = "--cov --cov-report html:'../../coverage/apps/atlas/html' --cov-report xml:'../../coverage/apps/atlas/coverage.xml' --html='../../reports/apps/atlas/unittests/html/index.html' --junitxml='../../reports/apps/atlas/unittests/junit.xml'"
 
 [tool.poetry]
-name = "kbve-atlas"
+name = "kbve"
 version = "1.0.0"
 description = "ATLAS"
 authors = [ ]
