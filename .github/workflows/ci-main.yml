@@ -83,12 +83,25 @@ jobs:
 
     deploy:
         needs: alter
+        name: Deployment
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout the repository using git
                 uses: actions/checkout@v4
             
+            -   name: Setup Node
+                uses: actions/setup-node@v3
+                with:
+                    node-version: 18
+
             -   name: Setting up pnpm
                 uses: pnpm/action-setup@v2
                 with:
                     version: 8
+                    run_install: |
+                        - args: [--global, nx@latest]
+
+            -   name: Deployment Test Case
+                shell: bash
+                run: |
+                    nx report
