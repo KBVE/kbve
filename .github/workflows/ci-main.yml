@@ -1,16 +1,29 @@
 name: CI - Main
 
+env:
+    DELTA_HERBMAIL: false
+    DELTA_KBVE: false
+    DELTA_RAREICON: false
+    DELTA_DISCORDSH: false
+    DELTA_ATLAS: false
+
 on:
     workflow_dispatch:
     push:
          branches:
              - main
 
+concurrency:
+    group: "pages"
+    cancel-in-progress: true
+
 # permissions:
 #     actions: write
 #     contents: write
 #     pages: write
 #     id-token: write
+
+#   TODO: Matrix Setup 
 
 jobs:
     alter:
@@ -35,6 +48,8 @@ jobs:
                         - 'apps/rareicon.com/**'
                     discordsh:
                         - 'apps/discord.sh/**'
+                    atlas:
+                        - 'apps/atlas/kbve_atlas/**'
 
             -   name: Delta HerbMail
                 if: steps.delta.outputs.herbmail_any_changed == 'true'  
@@ -59,3 +74,21 @@ jobs:
                 run: |
                         echo "Changes in DiscordSh file(s) has changed."
                         echo "List all the files that have changed: ${{ steps.delta.outputs.discordsh_all_changed_files }}"
+            
+            -   name: Delta Atlas
+                if: steps.delta.outputs.atlas_any_changed == 'true'
+                run: |
+                        echo "Changes in Atlas file(s) has changed."
+                        echo "List all the files that have changed: ${{ steps.delta.outputs.discordsh_all_changed_files }}"
+
+    deploy:
+        needs: alter
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout the repository using git
+                uses: actions/checkout@v4
+            
+            -   name: Setting up pnpm
+                uses: pnpm/action-setup@v2
+                with:
+                    version: 8

@@ -1,5 +1,17 @@
 import autogen
 
+# Docker Configuration
+# docker_client = docker.APIClient(base_url='unix://var/run/docker.sock') (example of Docker Client)
+
+try:
+    import docker
+except ImportError as e:
+    if e.args[0] == "No module named 'docker'":
+        print("[ERROR] -> Grafana : The docker library is missing.")
+    else:
+        print(f"[ERROR] -> Grafana : {e}")
+
+
 # Autogen Configruation
 
 config_list = autogen.config_list_from_json("OAI_CONFIG_LIST")
@@ -25,3 +37,9 @@ user_proxy = autogen.UserProxyAgent(
         "use_docker": False,
     },
 )
+
+
+
+def marco():
+    """Return a friendly greeting."""
+    return "polo"
