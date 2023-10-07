@@ -1,6 +1,5 @@
 name: CI - Main
 
-
 on:
     workflow_dispatch:
     push:
@@ -54,23 +53,48 @@ jobs:
             -   name: Checkout the repository using git
                 uses: actions/checkout@v4
             
-            -   name: Setup Node
+            -   name: Setup Node v18
                 uses: actions/setup-node@v3
                 with:
                     node-version: 18
 
-            -   name: Setting up pnpm
+            -   name: Setup pnpm
                 uses: pnpm/action-setup@v2
                 with:
                     version: 8
 
-            -   name: Install dependencies
+            -   name: Install pnpm dependencies
                 run: pnpm install
 
-            -   name: Deployment Test Case
+            -   name: Generate NX Report
                 shell: bash
                 run: |
                     pnpm nx report
+
+            #   [HerbMail]
+
+            -   name: HerbMail -> Build
+                if: needs.alter.outputs.herbmail == 'true'
+                shell: bash
+                run: |
+                    pnpm nx build herbmail.com
+    
+            -   name: HerbMail -> Deployment
+                if: needs.alter.outputs.herbmail == 'true'
+                uses: dmnemec/copy_file_to_another_repo_action@main
+                env:
+                    API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+                with:
+                    source_file: 'dist/apps/herbmail.com/'
+                    destination_repo: 'kbve/herbmail.com/'
+                    destination_folder: '/docs'
+                    destination_branch: 'main'
+                    destination_branch_create: 'patch-herbmail-deploy'
+                    user_email: '5599058+h0lybyte@users.noreply.github.com'
+                    user_name: 'h0lybyte'
+                    commit_message: 'Sync MonoRepo -> PolyRepo'
+            
+            #   [ATLAS]
 
             -   name: Python Install
                 if: needs.alter.outputs.atlas == 'true'
@@ -82,22 +106,25 @@ jobs:
                 if: needs.alter.outputs.atlas == 'true'
                 uses: snok/install-poetry@v1
 
-            -   name: Atlas Deployment
+            -   name: Atlas Build
                 if: needs.alter.outputs.atlas == 'true'
                 shell: bash
                 run: |
                     pnpm nx build atlas
             
-            -   name: Store the distribution packages
+            -   name: Store the Atlas distribution packages
                 if: needs.alter.outputs.atlas== 'true'
                 uses: actions/upload-artifact@v3
                 with:
                     name: atlas-python-package-distributions
                     path: apps/atlas/dist/
     
+
+
     pypublish:
         needs: ["deploy", "alter"]
         name: Pypi Publish
+        if: needs.alter.outputs.atlas == 'true'
         runs-on: ubuntu-latest
         environment:
             name: pypi
@@ -106,14 +133,19 @@ jobs:
             id-token: write 
         steps:
             -   name: Download all the dists
-                if: needs.alter.outputs.atlas == 'true'
                 uses: actions/download-artifact@v3
                 with:
                     name: atlas-python-package-distributions
                     path: dist/
             -   name: Publish distribution 📦 to PyPI
-                if: needs.alter.outputs.atlas == 'true'
                 uses: pypa/gh-action-pypi-publish@release/v1
                 with:
                     user: __token__
                     password: ${{ secrets.PYPI_API_TOKEN }}
+
+
+    herbmail:
+        needs: ["deploy", "alter"]
+        name: HerbMail Publish
+        if: needs.alter.outputs.herbmail == 'true'
+        runs-on: ubuntu-latest
