@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Card from '../components/Card.astro';
-import { AstroVe } from '@kbve/astro-ve';
+import { AstroVe as VE}  from '@kbve/astro-ve';
 
 let title = 'Welcome to HerbMail.com';
 let description = '';
@@ -10,18 +10,12 @@ let description = '';
 <Layout title={title} description={description}>
 	<main>
 		
-		<h1 class="p-2">
-			Welcome to <span class="text-gradient uppercase">
-				Herbmail.com - Test Case 8
-			</span>
-		</h1>
-		<p class="instructions">
-			To get started, open the directory <code>src/pages</code> in your project.<br
-			/>
-			<strong>Code Challenge:</strong> Tweak the "Welcome to Astro" message
-			above.
+		<p class="mb-8 p-6 rounded-lg">
+			Your personal ai email agent, powered by <strong>KBVE</strong>.
+			<br/>
+			Wait-list is coming out soon!.
 		</p>
-		<AstroVe ve='1' />
+		<VE ve='1' />
 		<ul role="list" class="link-card-grid">
 			<Card
 				href="https://docs.astro.build/"
@@ -124,30 +118,6 @@ let description = '';
 		-webkit-text-fill-color: transparent;
 		background-size: 400%;
 		background-position: 0%;
-	}
-
-	.instructions {
-		margin-bottom: 2rem;
-		border: 1px solid rgba(var(--accent-light), 25%);
-		background: linear-gradient(
-			rgba(var(--accent-dark), 66%),
-			rgba(var(--accent-dark), 33%)
-		);
-		padding: 1.5rem;
-		border-radius: 8px;
-	}
-
-	.instructions code {
-		font-size: 0.8em;
-		font-weight: bold;
-		background: rgba(var(--accent-light), 12%);
-		color: rgb(var(--accent-light));
-		border-radius: 4px;
-		padding: 0.3em 0.4em;
-	}
-
-	.instructions strong {
-		color: rgb(var(--accent-light));
 	}
 
 	.link-card-grid {

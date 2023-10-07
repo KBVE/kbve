@@ -1,8 +1,13 @@
 ---
 export type { Props } from "./inter";
 let {load, ve, data, widget } = Astro.props;
-
-const runVirtualEngine = () => {};
+// const _components = await Astro.glob('./lib/*.astro');
+// let html = '';
+// _components.map((comp) => (
+//     console.log(`${comp.file}`)
+// ))
+//const runVirtualEngine = () => {};
 ---
-
+{!load &&
 <p>AstroVe works! Yippy Test {data} {ve} {load}</p>
+}
