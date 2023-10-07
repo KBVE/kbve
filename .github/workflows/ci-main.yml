@@ -81,18 +81,19 @@ jobs:
     
             -   name: HerbMail -> Deployment
                 if: needs.alter.outputs.herbmail == 'true'
-                uses: dmnemec/copy_file_to_another_repo_action@main
+                uses: dobbelina/copy_file_to_another_repo_action@main
                 env:
                     API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
                 with:
-                    source_file: 'dist/apps/herbmail.com/*'
+                    source_file: 'dist/apps/herbmail.com/'
                     destination_repo: 'kbve/herbmail.com'
                     destination_folder: '/docs'
                     destination_branch: 'main'
                     destination_branch_create: 'patch-herbmail-deploy'
                     user_email: '5599058+h0lybyte@users.noreply.github.com'
                     user_name: 'h0lybyte'
-                    commit_message: 'Sync MonoRepo -> PolyRepo'
+                    commit_message: ${{ github.event.head_commit.message }}
+                    rsync_option: "-avrh --delete"
             
             #   [ATLAS]
 
