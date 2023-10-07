@@ -85,7 +85,7 @@ jobs:
                 env:
                     API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
                 with:
-                    source_file: 'dist/apps/herbmail.com/'
+                    source_file: 'dist/apps/herbmail.com/*'
                     destination_repo: 'kbve/herbmail.com'
                     destination_folder: '/docs'
                     destination_branch: 'main'
