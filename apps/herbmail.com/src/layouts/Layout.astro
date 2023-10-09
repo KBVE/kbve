@@ -7,6 +7,7 @@ interface Props {
 const { title, description } = Astro.props;
 import Nav from './Nav.astro';
 import Footer from './Footer.astro';
+import { AstroVe as V } from '@kbve/astro-ve';
 ---
 
 <!DOCTYPE html>
@@ -18,10 +19,7 @@ import Footer from './Footer.astro';
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
-		<script
-			is:inline
-			src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.0/flowbite.min.js"></script>
-		</script>
+		<V widget="header" data="flowbite"/>
 	</head>
 	<Nav />
 	<body>

@@ -8,6 +8,7 @@
   "private": true,
   "devDependencies": {
     "@astrojs/partytown": "^2.0.0",
+    "@astrojs/prefetch": "^0.4.1",
     "@astrojs/react": "^3.0.2",
     "@astrojs/sitemap": "^3.0.0",
     "@astrojs/svelte": "^4.0.2",
