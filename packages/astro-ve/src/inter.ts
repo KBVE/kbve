@@ -14,4 +14,8 @@ export interface Props {
 	data?: string;
 	//* Widget
 	widget?: string;
+	//* Wrapper
+	wrapper?: boolean;
+	//* Image
+	img?: string;
 }

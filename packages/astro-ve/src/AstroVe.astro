@@ -1,21 +1,33 @@
 ---
 export type { Props } from './inter';
-let { load, ve, data, widget } = Astro.props;
-let html = '';
+let {
+	load,
+	ve,
+	data,
+	widget,
+	wrapper,
+	img = 'https://kbve.com/assets/img/curved-images/wave.jpg',
+} = Astro.props;
 import Wrapper from './lib/Wrapper.astro';
-
-// const runVirtualEngine = async () => {
-// 	const _components = await Astro.glob('./lib/*.astro');
-// 	_components.filter((comp) => console.log(`${comp.file}`));
-// };
+import Header from './lib/Header.astro';
+import VE from './VE.astro';
+//let html = ''; const runVirtualEngine = async () => {	const _components = await Astro.glob('./lib/*.astro');	_components.filter((comp) => console.log(`${comp.file}`));	};
 ---
 
+{widget == 'header' && !wrapper && <Header data={data} />}
 {
-	!load && (
-		<Wrapper img="https://kbve.com/assets/img/curved-images/wave.jpg">
-			<p>
-				AstroVe works! Yippy Test {data} {ve} {load}
-			</p>
+	!widget && wrapper && (
+		<Wrapper img={img}>
+			<slot />
+		</Wrapper>
+	)
+}
+{
+	widget && wrapper && (
+		<Wrapper img={img}>
+			<VE widget={widget} data={data}>
+				<slot />
+			</VE>
 		</Wrapper>
 	)
 }
