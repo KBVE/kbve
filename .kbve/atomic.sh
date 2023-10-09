@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+git pull
+
 # Checkout Origin Dev Branch
 git checkout origin/dev
 
