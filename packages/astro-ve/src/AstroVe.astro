@@ -1,13 +1,21 @@
 ---
-export type { Props } from "./inter";
-let {load, ve, data, widget } = Astro.props;
-// const _components = await Astro.glob('./lib/*.astro');
-// let html = '';
-// _components.map((comp) => (
-//     console.log(`${comp.file}`)
-// ))
-//const runVirtualEngine = () => {};
+export type { Props } from './inter';
+let { load, ve, data, widget } = Astro.props;
+let html = '';
+import Wrapper from './lib/Wrapper.astro';
+
+// const runVirtualEngine = async () => {
+// 	const _components = await Astro.glob('./lib/*.astro');
+// 	_components.filter((comp) => console.log(`${comp.file}`));
+// };
 ---
-{!load &&
-<p>AstroVe works! Yippy Test {data} {ve} {load}</p>
+
+{
+	!load && (
+		<Wrapper img="https://kbve.com/assets/img/curved-images/wave.jpg">
+			<p>
+				AstroVe works! Yippy Test {data} {ve} {load}
+			</p>
+		</Wrapper>
+	)
 }

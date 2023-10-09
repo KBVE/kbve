@@ -20,8 +20,8 @@ import Footer from './Footer.astro';
 		<title>{title}</title>
 		<script
 			is:inline
-			src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.0/flowbite.min.js"
-		></script>
+			src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.0/flowbite.min.js"></script>
+		</script>
 	</head>
 	<Nav />
 	<body>
@@ -29,9 +29,31 @@ import Footer from './Footer.astro';
 	</body>
 
 	<footer>
-	<Footer/>
+		<Footer />
 	</footer>
 	<style is:global>
+		/* width */
+		::-webkit-scrollbar {
+			width: 10px;
+		}
+
+		/* Track */
+		::-webkit-scrollbar-track {
+			background: #888;
+			border-radius: 5px;
+		}
+
+		/* Handle */
+		::-webkit-scrollbar-thumb {
+			background: #23262d;
+			border-radius: 5px;
+		}
+
+		/* Handle on hover */
+		::-webkit-scrollbar-thumb:hover {
+			background: #555;
+		}
+
 		:root {
 			--accent: 126, 217, 87;
 			--accent-light: 224, 204, 250;
@@ -57,6 +79,4 @@ import Footer from './Footer.astro';
 				monospace;
 		}
 	</style>
-
-
 </html>
