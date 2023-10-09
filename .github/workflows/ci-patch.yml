@@ -1,0 +1,24 @@
+name: CI Patch
+
+on:
+    push:
+        branches:
+            - "patch*"
+
+#permissions:
+
+jobs:
+    handle:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+
+            -   name: Auto-Pull
+                uses: diillson/auto-pull-request@v1.0.1
+                with:
+                    destination_branch: "dev"
+                    pr_title: "Pulling ${{ github.ref }} into Dev"
+                    pr_body: |
+                        *An automated PR*
+                    pr_label: "auto-pr"
