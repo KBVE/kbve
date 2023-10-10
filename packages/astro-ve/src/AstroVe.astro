@@ -3,6 +3,7 @@ export type { Props } from './inter';
 let {
 	load,
 	ve,
+	e,
 	data,
 	widget,
 	wrapper,
@@ -10,6 +11,7 @@ let {
 } = Astro.props;
 import Wrapper from './lib/Wrapper.astro';
 import Header from './lib/Header.astro';
+import Emoji from './lib/Emoji.astro';
 import VE from './VE.astro';
 //let html = ''; const runVirtualEngine = async () => {	const _components = await Astro.glob('./lib/*.astro');	_components.filter((comp) => console.log(`${comp.file}`));	};
 ---
@@ -29,5 +31,10 @@ import VE from './VE.astro';
 				<slot />
 			</VE>
 		</Wrapper>
+	)
+}
+{
+	!widget && e && (
+		<Emoji data={e} />
 	)
 }

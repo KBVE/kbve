@@ -18,4 +18,6 @@ export interface Props {
 	wrapper?: boolean;
 	//* Image
 	img?: string;
+	//*	Emoji
+	e?: string;
 }
