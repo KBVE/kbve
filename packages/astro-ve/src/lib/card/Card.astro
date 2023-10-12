@@ -1,6 +1,17 @@
 ---
 export interface Props {
+	widget: string;
 	data?: string;
 }
-const { data } = Astro.props;
+const { data, widget } = Astro.props;
+import Demo from './demo/Demo.astro';
 ---
+
+{
+	widget == 'card:demo' && (
+		<Demo data={data}>
+			<slot name="raw" slot="raw" />
+			<slot />
+		</Demo>
+	)
+}
