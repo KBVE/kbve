@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
-import { AstroVe as VE}  from '@kbve/astro-ve';
+import { AstroVe as VE } from '@kbve/astro-ve';
 
 let title = 'Welcome to HerbMail.com';
 let description = '';
@@ -9,84 +8,119 @@ let description = '';
 
 <Layout title={title} description={description}>
 	<main class="m-auto p-4 text-white text-xl leading-normal">
-		
 		<p class="mb-8 p-6 rounded-lg">
 			Your personal ai email agent, powered by <strong>KBVE</strong>.
-			<br/>
+			<br />
 			Wait-list is coming out soon!.
 		</p>
-		<ul role="list" class="grid gap-8 p-0 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-			<VE ve='1' />
-			<Card
-				href="https://docs.astro.build/"
-				title="Documentation"
-				body="Learn how Astro works and explore the official API docs."
-			/>
-			<Card
-				href="https://astro.build/integrations/"
-				title="Integrations"
-				body="Supercharge your project with new frameworks and libraries."
-			/>
-			<Card
-				href="https://astro.build/themes/"
-				title="Themes"
-				body="Explore a galaxy of community-built starter themes."
-			/>
-			<Card
-				href="https://astro.build/chat/"
-				title="Astro Community"
-				body="Come say hi to our amazing Astro Discord community. ❤️"
-			/>
-			<Card
-				href="https://nx.dev/"
-				title="Nx"
-				body="Learn more about Nx."
-			/>
-			<Card
-				href="https://nrwlcommunity.slack.com/"
-				title="Nrwl Community Slack"
-				body="Come chat in the Nrwl Community Slack. ❤️"
-			/>
+		<ul
+			role="list"
+			class="grid gap-8 p-0 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw">
+					<h2>
+						This is a Tests
+						<span>&rarr;</span>
+					</h2>
+					<p>Check it out <b>here</b></p>
+				</div>
+			</VE>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw">
+					<h2>
+						Documentations <span>&rarr;</span>
+					</h2>
+					<p>Documents!</p>
+				</div>
+			</VE>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw"></div>
+			</VE>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw"></div>
+			</VE>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw"></div>
+			</VE>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw"></div>
+			</VE>
 		</ul>
 
 		<section class="p-4 lg:p-8 dark:bg-gray-800 dark:text-gray-100">
 			<div class="container mx-auto space-y-12">
-				<div class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row">
-					<img src="https://source.unsplash.com/640x480/?1" alt="" class="h-80 dark:bg-gray-500 aspect-video">
-					<div class="flex flex-col justify-center flex-1 p-6 dark:bg-gray-900">
-						<span class="text-xs uppercase dark:text-gray-400">Join, it's free</span>
-						<h3 class="text-3xl font-bold">We're not reinventing the wheel</h3>
-						<p class="my-6 dark:text-gray-400">Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor aliquam possimus quas, error esse quos.</p>
+				<div
+					class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row">
+					<img
+						src="https://source.unsplash.com/640x480/?1"
+						alt=""
+						class="h-80 dark:bg-gray-500 aspect-video"
+					/>
+					<div
+						class="flex flex-col justify-center flex-1 p-6 dark:bg-gray-900">
+						<span class="text-xs uppercase dark:text-gray-400">
+							Join, it's free
+						</span>
+						<h3 class="text-3xl font-bold">
+							We're not reinventing the wheel
+						</h3>
+						<p class="my-6 dark:text-gray-400">
+							Lorem ipsum dolor sit amet consectetur adipisicing
+							elit. Dolor aliquam possimus quas, error esse quos.
+						</p>
 						<button type="button" class="self-start">Action</button>
 					</div>
 				</div>
-				<div class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row-reverse">
-					<img src="https://source.unsplash.com/640x480/?2" alt="" class="h-80 dark:bg-gray-500 aspect-video">
-					<div class="flex flex-col justify-center flex-1 p-6 dark:bg-gray-900">
-						<span class="text-xs uppercase dark:text-gray-400">Join, it's free</span>
-						<h3 class="text-3xl font-bold">We're not reinventing the wheel</h3>
-						<p class="my-6 dark:text-gray-400">Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor aliquam possimus quas, error esse quos.</p>
+				<div
+					class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row-reverse">
+					<img
+						src="https://source.unsplash.com/640x480/?2"
+						alt=""
+						class="h-80 dark:bg-gray-500 aspect-video"
+					/>
+					<div
+						class="flex flex-col justify-center flex-1 p-6 dark:bg-gray-900">
+						<span class="text-xs uppercase dark:text-gray-400">
+							Join, it's free
+						</span>
+						<h3 class="text-3xl font-bold">
+							We're not reinventing the wheel
+						</h3>
+						<p class="my-6 dark:text-gray-400">
+							Lorem ipsum dolor sit amet consectetur adipisicing
+							elit. Dolor aliquam possimus quas, error esse quos.
+						</p>
 						<button type="button" class="self-start">Action</button>
 					</div>
 				</div>
-				<div class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row">
-					<img src="https://source.unsplash.com/640x480/?3" alt="" class="h-80 dark:bg-gray-500 aspect-video">
-					<div class="flex flex-col justify-center flex-1 p-6 dark:bg-gray-900">
-						<span class="text-xs uppercase dark:text-gray-400">Join, it's free</span>
-						<h3 class="text-3xl font-bold">We're not reinventing the wheel</h3>
-						<p class="my-6 dark:text-gray-400">Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor aliquam possimus quas, error esse quos.</p>
+				<div
+					class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row">
+					<img
+						src="https://source.unsplash.com/640x480/?3"
+						alt=""
+						class="h-80 dark:bg-gray-500 aspect-video"
+					/>
+					<div
+						class="flex flex-col justify-center flex-1 p-6 dark:bg-gray-900">
+						<span class="text-xs uppercase dark:text-gray-400">
+							Join, it's free
+						</span>
+						<h3 class="text-3xl font-bold">
+							We're not reinventing the wheel
+						</h3>
+						<p class="my-6 dark:text-gray-400">
+							Lorem ipsum dolor sit amet consectetur adipisicing
+							elit. Dolor aliquam possimus quas, error esse quos.
+						</p>
 						<button type="button" class="self-start">Action</button>
 					</div>
 				</div>
 			</div>
 		</section>
-		
 	</main>
 </Layout>
 
 <style>
-
-
 	.text-gradient {
 		background-image: var(--accent-gradient);
 		-webkit-background-clip: text;
@@ -94,5 +128,4 @@ let description = '';
 		background-size: 400%;
 		background-position: 0%;
 	}
-
 </style>

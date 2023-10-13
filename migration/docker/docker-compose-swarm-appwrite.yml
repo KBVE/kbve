@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   appwrite:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     restart: unless-stopped
     networks:
       - public
@@ -130,7 +130,7 @@ services:
       - _APP_ASSISTANT_OPENAI_API_KEY
 
   appwrite-realtime:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: realtime
     restart: unless-stopped
     deploy:
@@ -174,7 +174,7 @@ services:
       - _APP_LOGGING_CONFIG
 
   appwrite-worker-audits:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-audits
     restart: unless-stopped
     networks:
@@ -196,7 +196,7 @@ services:
       - _APP_LOGGING_CONFIG
 
   appwrite-worker-webhooks:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-webhooks
     restart: unless-stopped
     networks:
@@ -214,7 +214,7 @@ services:
       - _APP_LOGGING_CONFIG
 
   appwrite-worker-deletes:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-deletes
     restart: unless-stopped
     networks:
@@ -265,7 +265,7 @@ services:
       - _APP_EXECUTOR_HOST
 
   appwrite-worker-databases:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-databases
     restart: unless-stopped
     networks:
@@ -287,7 +287,7 @@ services:
       - _APP_LOGGING_CONFIG
 
   appwrite-worker-builds:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-builds
     restart: unless-stopped
     networks:
@@ -344,7 +344,7 @@ services:
       - _APP_STORAGE_WASABI_BUCKET
 
   appwrite-worker-certificates:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-certificates
     restart: unless-stopped
     networks:
@@ -373,7 +373,7 @@ services:
       - _APP_LOGGING_CONFIG
 
   appwrite-worker-functions:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-functions
     restart: unless-stopped
     networks:
@@ -404,7 +404,7 @@ services:
       - _APP_LOGGING_PROVIDER
 
   appwrite-worker-mails:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-mails
     restart: unless-stopped
     networks:
@@ -428,7 +428,7 @@ services:
       - _APP_LOGGING_CONFIG
 
   appwrite-worker-messaging:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-messaging
     restart: unless-stopped
     networks:
@@ -446,7 +446,7 @@ services:
       - _APP_LOGGING_CONFIG
 
   appwrite-worker-migrations:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: worker-migrations
     restart: unless-stopped
     networks:
@@ -473,7 +473,7 @@ services:
       - _APP_MIGRATIONS_FIREBASE_CLIENT_SECRET
 
   appwrite-maintenance:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: maintenance
     restart: unless-stopped
     networks:
@@ -503,7 +503,7 @@ services:
       - _APP_MAINTENANCE_RETENTION_SCHEDULES
 
   appwrite-usage:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: usage
     restart: unless-stopped
     networks:
@@ -529,7 +529,7 @@ services:
       - _APP_LOGGING_CONFIG
 
   appwrite-schedule:
-    image: appwrite/appwrite:1.4.4
+    image: appwrite/appwrite:1.4.5
     entrypoint: schedule
     restart: unless-stopped
     networks:
@@ -559,7 +559,7 @@ services:
   openruntimes-executor:
     hostname: appwrite-executor
     stop_signal: SIGINT
-    image: openruntimes/executor:0.4.1
+    image: openruntimes/executor:0.4.3
     networks:
       appwrite:
         aliases:

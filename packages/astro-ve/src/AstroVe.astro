@@ -14,12 +14,15 @@ import Header from './lib/Header.astro';
 import Emoji from './lib/Emoji.astro';
 import VE from './VE.astro';
 //let html = ''; const runVirtualEngine = async () => {	const _components = await Astro.glob('./lib/*.astro');	_components.filter((comp) => console.log(`${comp.file}`));	};
+//TODO - Do slots pass from one component to another? - [CHECK]
 ---
 
 {widget == 'header' && !wrapper && <Header data={data} />}
 {
 	!widget && wrapper && (
 		<Wrapper img={img}>
+			
+			<slot name="raw" slot="raw" />
 			<slot />
 		</Wrapper>
 	)
@@ -28,15 +31,25 @@ import VE from './VE.astro';
 	widget && wrapper && (
 		<Wrapper img={img}>
 			<VE widget={widget} data={data}>
+				
+				<slot name="raw" slot="raw" />
 				<slot />
 			</VE>
 		</Wrapper>
 	)
 }
 {
+	widget && !wrapper && (
+		<VE widget={widget} data={data}>
+			<slot name="raw" slot="raw" />
+			<slot />	
+		</VE>
+	)
+}
+{
 	!widget && e && (
 		<Emoji data={e}>
 			<slot />
-			</Emoji>
+		</Emoji>
 	)
 }
