@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
 import { AstroVe as VE } from '@kbve/astro-ve';
 
 let title = 'Welcome to HerbMail.com';
@@ -31,41 +30,21 @@ let description = '';
 					<h2>
 						Documentations <span>&rarr;</span>
 					</h2>
-					<p>
-						Documents!
-					</p>
-				</div>	
+					<p>Documents!</p>
+				</div>
 			</VE>
-			<Card
-				href="https://docs.astro.build/"
-				title="Documentation"
-				body="Learn how Astro works and explore the official API docs."
-			/>
-			<Card
-				href="https://astro.build/integrations/"
-				title="Integrations"
-				body="Supercharge your project with new frameworks and libraries."
-			/>
-			<Card
-				href="https://astro.build/themes/"
-				title="Themes"
-				body="Explore a galaxy of community-built starter themes."
-			/>
-			<Card
-				href="https://astro.build/chat/"
-				title="Astro Community"
-				body="Come say hi to our amazing Astro Discord community. ❤️"
-			/>
-			<Card
-				href="https://nx.dev/"
-				title="Nx"
-				body="Learn more about Nx."
-			/>
-			<Card
-				href="https://nrwlcommunity.slack.com/"
-				title="Nrwl Community Slack"
-				body="Come chat in the Nrwl Community Slack. ❤️"
-			/>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw"></div>
+			</VE>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw"></div>
+			</VE>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw"></div>
+			</VE>
+			<VE widget="card:demo" data="https://kbve.com/">
+				<div slot="raw"></div>
+			</VE>
 		</ul>
 
 		<section class="p-4 lg:p-8 dark:bg-gray-800 dark:text-gray-100">
