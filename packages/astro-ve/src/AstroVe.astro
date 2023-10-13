@@ -49,6 +49,7 @@ import VE from './VE.astro';
 {
 	!widget && e && (
 		<Emoji data={e}>
+			<slot name="raw" slot="raw" />
 			<slot />
 		</Emoji>
 	)
