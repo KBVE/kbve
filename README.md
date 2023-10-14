@@ -21,7 +21,7 @@ Atlas is a Python pip package for generic baseline ml applications.
 
 #### AstroVe
 
-Astro VE is an Astro-based library for javascript libraries
+Astro VE is an Astro-based UX/UI library that empowers developers to seamlessly create elegant and adaptable UX/UI components, fostering an interactive and intuitive user experience across diverse website applications. 
 
 #### React Appwrite
 
