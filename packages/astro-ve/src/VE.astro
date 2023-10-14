@@ -7,6 +7,7 @@ const { widget, data } = Astro.props;
 
 import Card from './lib/card/Card.astro';
 import Button from './lib/button/Button.astro';
+import Footer from './layer/footer/Footer.astro';
 
 let component = widget.split(':')[0];
 ---
@@ -26,5 +27,14 @@ let component = widget.split(':')[0];
 			<slot name="raw" slot="raw" />
 			<slot />
 		</Button>
+	)
+}
+
+{
+	component == 'footer' && (
+		<Footer widget={widget} data={data}>
+			<slot name="raw" slot="raw" />
+			<slot />
+		</Footer>
 	)
 }
