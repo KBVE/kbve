@@ -1,3 +1,30 @@
 ---
+export interface Props {
+	widget: string;
+	data: string;
+}
+const { widget, data } = Astro.props;
 
+import Card from './lib/card/Card.astro';
+import Button from './lib/button/Button.astro';
+
+let component = widget.split(':')[0];
 ---
+
+{
+	component == 'card' && (
+		<Card widget={widget} data={data}>
+			<slot name="raw" slot="raw" />
+			<slot />
+		</Card>
+	)
+}
+
+{
+	component == 'button' && (
+		<Button widget={widget} data={data}>
+			<slot name="raw" slot="raw" />
+			<slot />
+		</Button>
+	)
+}

@@ -1,9 +1,18 @@
 #!/bin/sh
 set -e
 
-# Checkout Origin Dev Branch
+#   Git Pull
+git pull
+
+#   Checkout Origin Dev Branch
 git checkout origin/dev
 
-git_date=$(date +'%m-%d-%Y-%s')
+#   Switch to Dev Branch
+git switch dev
 
-git switch -c "patch-ubuntu-${git_date}"
+#   Switch to Atomic Patch Branch
+
+git_date=$(date +'%m-%d-%Y-%s')
+git switch -c "patch-atomic-${git_date}"
+
+#   git switch -c "patch-atlas-${git_date}"

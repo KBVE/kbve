@@ -11,7 +11,7 @@ addopts = "--cov --cov-report html:'../../coverage/apps/atlas/html' --cov-report
 
 [tool.poetry]
 name = "kbve"
-version = "1.0.1"
+version = "1.0.2"
 description = "ATLAS"
 authors = [ ]
 license = 'Proprietary'

@@ -1,0 +1,15 @@
+---
+//🚀
+export interface Props {
+	data?: string;
+}
+const { data } = Astro.props;
+import Header from '../Header.astro';
+---
+{
+    <>
+    <Header data="flowbite" />
+    <Header data="toastify" />
+    <slot />
+    </>
+}

@@ -1,0 +1,15 @@
+---
+export interface Props {
+	data: string;
+}
+const { data } = Astro.props;
+import Rocket from './emoji/Rocket.astro';
+---
+
+{
+	data == '🚀' && (
+		<Rocket data="">
+			<slot />
+		</Rocket>
+	)
+}

@@ -1,22 +1,15 @@
 ---
-interface Props {
-	title: string;
-	body: string;
-	href: string;
+export interface Props {
+    data?: string;
 }
 
-const { href, title, body } = Astro.props;
+const { data } = Astro.props;
 ---
 
+
 <li class="link-card ease-in">
-	<a href={href}>
-		<h2>
-			{title}
-			<span>&rarr;</span>
-		</h2>
-		<p>
-			{body}
-		</p>
+	<a href={data}>
+		<slot name="raw" />
 	</a>
 </li>
 
@@ -65,3 +58,4 @@ const { href, title, body } = Astro.props;
 		color: rgb(var(--accent-light));
 	}
 </style>
+
