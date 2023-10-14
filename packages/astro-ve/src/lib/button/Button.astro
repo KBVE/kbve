@@ -5,8 +5,9 @@ export interface Props {
 	data?: string;
 }
 const { data, widget } = Astro.props;
-let mod = widget.split(':')[1]
-import Shutter from './shutter/Shutter.astro';
+let mod = widget.split(':')[1];
+import Shutter from './shutter/ShutterButton.astro';
+import Slide from './slide/SlideButton.astro';
 ---
 
 {
@@ -15,5 +16,14 @@ import Shutter from './shutter/Shutter.astro';
 			<slot name="raw" slot="raw" />
 			<slot />
 		</Shutter>
+	)
+}
+
+{
+	mod == 'slide' && (
+		<Slide widget={widget} data={data}>
+			<slot name="raw" slot="raw" />
+			<slot />
+		</Slide>
 	)
 }
