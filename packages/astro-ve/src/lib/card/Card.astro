@@ -4,14 +4,15 @@ export interface Props {
 	data?: string;
 }
 const { data, widget } = Astro.props;
+let mod = widget.split(':')[1];
+
 import Demo from './demo/Demo.astro';
 ---
-
 {
-	widget == 'card:demo' && (
+	mod == 'demo' && (
 		<Demo data={data}>
 			<slot name="raw" slot="raw" />
-			<slot />s
+			<slot />
 		</Demo>
 	)
 }
