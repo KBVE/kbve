@@ -1,0 +1,15 @@
+---
+//?     [CTA]
+export interface Props {
+	widget: string;
+	data?: string;
+}
+
+const { widget, data } = Astro.props;
+let mod = widget.split(':')[1];
+let html = '';
+const runVirtualEngine = async () => {
+	const _components = await Astro.glob('./ai/*.astro');
+	_components.filter((comp) => console.log(`${comp.file}`));
+};
+---

@@ -5,13 +5,16 @@ export interface Props {
 }
 const { widget, data } = Astro.props;
 
+//*		[Library]
 import Card from './lib/card/Card.astro';
 import Button from './lib/button/Button.astro';
+
+//*		[Layer]
 import Footer from './layer/footer/Footer.astro';
+import Core from './layer/core/Core.astro';
 
 let component = widget.split(':')[0];
 ---
-
 {
 	component == 'card' && (
 		<Card widget={widget} data={data}>
@@ -20,7 +23,6 @@ let component = widget.split(':')[0];
 		</Card>
 	)
 }
-
 {
 	component == 'button' && (
 		<Button widget={widget} data={data}>
@@ -37,4 +39,17 @@ let component = widget.split(':')[0];
 			<slot />
 		</Footer>
 	)
+}
+
+{
+	component == 'core' && (
+		<Core widget={widget} data={data}>
+			<slot name="head" slot="head"/>
+			<slot name="nav" slot="nav"/>
+			<slot name="footer" slot="footer"/>
+			<slot name="raw" slot="raw"/>
+			<slot />
+		</Core>
+	)
+
 }

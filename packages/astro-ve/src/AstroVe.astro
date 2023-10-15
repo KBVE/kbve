@@ -1,7 +1,14 @@
 ---
-export type { Props } from './inter';
-let {
-	load,
+export interface Props {
+	ve?: string;
+	data: string;
+	widget: string;
+	wrapper?: boolean;
+	img?: string;
+	e?: string;
+}
+
+const {
 	ve,
 	e,
 	data,
@@ -9,48 +16,51 @@ let {
 	wrapper,
 	img = 'https://kbve.com/assets/img/curved-images/wave.jpg',
 } = Astro.props;
+
+import fg from 'fast-glob';
+import { KbveError } from './kbve_error';
+//* Most Libraries below will be removed.
 import Wrapper from './lib/Wrapper.astro';
 import Header from './lib/Header.astro';
 import Emoji from './lib/Emoji.astro';
 import VE from './VE.astro';
-//let html = ''; const runVirtualEngine = async () => {	const _components = await Astro.glob('./lib/*.astro');	_components.filter((comp) => console.log(`${comp.file}`));	};
+
+let html,
+	comp,
+	mod = '';
+
+//* RAW - Need to wrap in try catch
+try {
+	comp = widget.split(':')[0];
+	mod = widget.split(':')[1];
+} catch (error) {
+	console.error(error);
+}
+const runVirtualEngine = async () => {
+	const _components = await Astro.glob('./lib/*.astro');
+	_components.filter((comp) => console.log(`${comp.file}`));
+};
+
 //TODO - Do slots pass from one component to another? - [CHECK]
+// https://docs.astro.build/en/guides/troubleshooting/#astroglob---no-matches-found
+// https://docs.astro.build/en/guides/imports/
+// https://www.npmjs.com/package/fast-glob
+
+//widget.split(':')[0];
+
+// switch (widget) {
+// 	case 'header':
+// 		const _components = await fg('./layer/head/**/*.astro');
+// }
 ---
 
 {widget == 'header' && !wrapper && <Header data={data} />}
+
 {
-	!widget && wrapper && (
-		<Wrapper img={img}>
-			
-			<slot name="raw" slot="raw" />
-			<slot />
-		</Wrapper>
-	)
-}
-{
-	widget && wrapper && (
-		<Wrapper img={img}>
-			<VE widget={widget} data={data}>
-				
-				<slot name="raw" slot="raw" />
-				<slot />
-			</VE>
-		</Wrapper>
-	)
-}
-{
-	widget && !wrapper && (
+	widget && (
 		<VE widget={widget} data={data}>
 			<slot name="raw" slot="raw" />
-			<slot />	
-		</VE>
-	)
-}
-{
-	!widget && e && (
-		<Emoji data={e}>
-			<slot name="raw" slot="raw" />
 			<slot />
-		</Emoji>
+		</VE>
 	)
 }
