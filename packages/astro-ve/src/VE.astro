@@ -5,51 +5,67 @@ export interface Props {
 }
 const { widget, data } = Astro.props;
 
-//*		[Library]
-import Card from './lib/card/Card.astro';
-import Button from './lib/button/Button.astro';
+import fg from 'fast-glob';
+import path from 'path';
 
-//*		[Layer]
-import Footer from './layer/footer/Footer.astro';
-import Core from './layer/core/Core.astro';
+async function findFileByName(variableName: string) {
+	// Construct your glob pattern using the variable name.
+	// Assume you're searching for Astro files containing the variable name in their filename.
+	const pattern = `./**/${variableName}/**/${variableName}.astro`;
+	try {
+		// Use fast-glob to find files matching the pattern.
+		const paths = await fg(pattern);
+
+		// Log all found file paths.
+		// paths.forEach((filePath) => {
+		// 	console.log('Found file:', path.resolve(filePath));
+		// });
+
+		// If no paths found, return/log an appropriate message.
+		if (paths.length === 0) {
+			console.log('No file found.');
+			return null;
+		}
+		const filePath = paths[0];
+		console.log('Found file:', path.resolve(filePath));
+		return path.resolve(filePath);
+
+		// Do something with the found file paths...
+		// ...
+	} catch (error) {
+		console.error('Error while searching for files:', error);
+		return null;
+	}
+}
+
+// const runVirtualEngine = async () => {
+// 	const _components = await Astro.glob('./lib/*.astro');
+// 	_components.filter((comp) => console.log(`${comp.file}`));
+// };
+
+//TODO - Do slots pass from one component to another? - [CHECK]
+// https://docs.astro.build/en/guides/troubleshooting/#astroglob---no-matches-found
+// https://docs.astro.build/en/guides/imports/
+// https://www.npmjs.com/package/fast-glob
+
+//widget.split(':')[0];
+
+// switch (widget) {
+// 	case 'header':
+// 		const _components = await fg('./layer/head/**/*.astro');
+// }
+
+// {widget == 'header' && !wrapper && <Header data={data} />}
+
+// {
+// 	widget && (
+// 		<VE widget={widget} data={data}>
+// 			<slot name="raw" slot="raw" />
+// 			<slot />
+// 		</VE>
+// 	)
+// }
+
 
 let component = widget.split(':')[0];
 ---
-{
-	component == 'card' && (
-		<Card widget={widget} data={data}>
-			<slot name="raw" slot="raw" />
-			<slot />
-		</Card>
-	)
-}
-{
-	component == 'button' && (
-		<Button widget={widget} data={data}>
-			<slot name="raw" slot="raw" />
-			<slot />
-		</Button>
-	)
-}
-
-{
-	component == 'footer' && (
-		<Footer widget={widget} data={data}>
-			<slot name="raw" slot="raw" />
-			<slot />
-		</Footer>
-	)
-}
-
-{
-	component == 'core' && (
-		<Core widget={widget} data={data}>
-			<slot name="head" slot="head"/>
-			<slot name="nav" slot="nav"/>
-			<slot name="footer" slot="footer"/>
-			<slot name="raw" slot="raw"/>
-			<slot />
-		</Core>
-	)
-
-}
