@@ -13,12 +13,13 @@ const {
 	widget,
 } = Astro.props;
 
-let comp, mod, Safe;
+let comp, mod, lib, Safe;
 
 if (typeof widget === 'string' && widget.length > 0) {
 	try {
 		comp = widget.split(':')[0];
-		mod = widget.split(':')[1];
+		lib = widget.split(':')[1];
+		mod = widget.split(':')[2];
 		const loc = `/${comp}/${mod}/${mod}.astro`;
 		const astroBin = await Astro.glob('./lib/**/*.astro');
 		const _comp = astroBin.find((comp) => comp.file.includes(loc));
