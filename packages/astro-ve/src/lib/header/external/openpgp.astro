@@ -1,0 +1,15 @@
+---
+//?     [OpenPGP] - CDN https://www.jsdelivr.com/package/npm/openpgp
+export interface Props {
+	data?: string;
+	widget?: string;
+}
+const { data, widget } = Astro.props;
+---
+
+<script
+	is:inline
+	src="
+https://cdn.jsdelivr.net/npm/openpgp@5.10.2/dist/openpgp.min.js
+">
+</script>
