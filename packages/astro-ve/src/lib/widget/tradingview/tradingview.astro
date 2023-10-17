@@ -1,0 +1,55 @@
+---
+export interface Props {
+	data?: string;
+	widget?: string;
+}
+const { data, widget } = Astro.props;
+---
+
+<tv-widget data-data={data}>
+	<div {...Astro.props}>
+		<!-- TradingView Widget BEGIN -->
+		<div class="tradingview-widget-container">
+			<div id="tradingview_1fdf2" class="w-full h-96"></div>
+			<br />
+			<br />
+			<br />
+			<br />
+			<div class="tradingview-widget-copyright">
+				<a href="#tradingview" rel="noopener" target="_blank">
+					<span class="blue-text">Stock charts {data}</span>
+				</a> by TradingView
+			</div>
+			<script
+				is:inline
+				type="text/javascript"
+				src="https://s3.tradingview.com/tv.js"
+			></script>
+		</div>
+
+		<script type="text/javascript">
+		class TradingViewer extends HTMLElement {
+		    constructor() {
+		        super();
+		        const data = this.dataset.data;
+		        new TradingView.widget({
+		            width: '100%',
+		            autosize: false,
+		            symbol: data,
+		            interval: 'D',
+		            timezone: 'Etc/UTC',
+		            theme: 'dark',
+		            style: '1',
+		            locale: 'en',
+		            toolbar_bg: '#f1f3f6',
+		            enable_publishing: false,
+		            allow_symbol_change: true,
+		            container_id: 'tradingview_1fdf2',
+		        });
+		    }
+		}
+		customElements.define('tv-widget', TradingViewer);
+		</script>
+		<!-- TradingView Widget END -->
+	</div>
+</tv-widget>

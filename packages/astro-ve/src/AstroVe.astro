@@ -1,56 +1,41 @@
 ---
-export type { Props } from './inter';
-let {
-	load,
-	ve,
-	e,
+interface Props {
+	[key: string]: any
+}
+//type Props = { children: any; };
+const {
 	data,
 	widget,
-	wrapper,
-	img = 'https://kbve.com/assets/img/curved-images/wave.jpg',
-} = Astro.props;
-import Wrapper from './lib/Wrapper.astro';
-import Header from './lib/Header.astro';
-import Emoji from './lib/Emoji.astro';
-import VE from './VE.astro';
-//let html = ''; const runVirtualEngine = async () => {	const _components = await Astro.glob('./lib/*.astro');	_components.filter((comp) => console.log(`${comp.file}`));	};
-//TODO - Do slots pass from one component to another? - [CHECK]
+	...props
+}: Props = Astro.props;
+
+let comp, mod, lib, Safe;
+
+if (typeof widget === 'string' && widget.length > 0) {
+	try {
+		comp = widget.split(':')[0];
+		lib = widget.split(':')[1];
+		mod = widget.split(':')[2];
+		const loc = `/${comp}/${lib}/${mod}.astro`;
+		const astroBin = await Astro.glob('./lib/**/*.astro');
+		const _comp = astroBin.find((comp) => comp.file.includes(loc));
+
+		if (_comp) {
+			Safe = _comp.default;
+		} else {
+			console.error(`Unable to locate ${loc}`);
+		}
+	} catch (error) {
+		console.error(error);
+	}
+}
 ---
 
-{widget == 'header' && !wrapper && <Header data={data} />}
 {
-	!widget && wrapper && (
-		<Wrapper img={img}>
-			
+	Safe && (
+		<Safe  widget={widget} data={data} {...props}>
 			<slot name="raw" slot="raw" />
 			<slot />
-		</Wrapper>
-	)
-}
-{
-	widget && wrapper && (
-		<Wrapper img={img}>
-			<VE widget={widget} data={data}>
-				
-				<slot name="raw" slot="raw" />
-				<slot />
-			</VE>
-		</Wrapper>
-	)
-}
-{
-	widget && !wrapper && (
-		<VE widget={widget} data={data}>
-			<slot name="raw" slot="raw" />
-			<slot />	
-		</VE>
-	)
-}
-{
-	!widget && e && (
-		<Emoji data={e}>
-			<slot name="raw" slot="raw" />
-			<slot />
-		</Emoji>
+		</Safe>
 	)
 }
