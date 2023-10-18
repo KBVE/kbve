@@ -1,0 +1,58 @@
+name: 'GQL - Project Card Migration'
+description: 'An action to manage and migrate a project card.'
+branding:
+  color: 'green'
+  icon: 'box'
+inputs:
+  token:
+    description: 'Your Github Organization Token'
+  org:
+    description: 'Your Github Organization Name'
+    default: 'KBVE'
+  project:
+    description: 'Your Organization Project Number'
+    default: '5'
+  key:
+    description: 'Your Project Field Key'
+  value:
+    description: 'Your Project Field Value'
+  idref:
+    description: 'Your Repo Issue/PR ID'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: GQL Query Organization
+      run: |
+            gh api graphql -f query='
+              query($org: String!, $number: Int!) {
+                organization(login: $org){
+                  projectV2(number: $number) {
+                    id
+                    fields(first:20) {
+                      nodes {
+                        ... on ProjectV2Field {
+                          id
+                          name
+                        }
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          options {
+                            id
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }' -f org=${{ inputs.org }} -F number=${{ inputs.project }} > project_data.json
+
+              echo 'PROJECT_ID='$(jq '.data.organization.projectV2.id' project_data.json) >> $GITHUB_ENV
+              echo 'DATE_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Date") | .id' project_data.json) >> $GITHUB_ENV
+              echo 'KEY_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "'${{ inputs.key }}'") | .id' project_data.json) >> $GITHUB_ENV
+              echo 'VALUE_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "'${{ inputs.key }}'") | .options[] | select(.name=="'${{ inputs.value }}'") |.id' project_data.json) >> $GITHUB_ENV
+
+
+              
