@@ -1,0 +1,36 @@
+name: Organize Labels
+
+on:
+    issues:
+        types: [labeled]
+
+jobs:
+    assign_concepts:
+        if: github.event.label.name == 'enhancement'
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Create or Update Project Card
+                id: coupc
+                uses: peter-evans/create-or-update-project-card@v2
+                with:
+                    project-name: KBVE
+                    column-name: Theory
+      
+            - uses: kalgurn/update-project-item-status@main
+              with:
+                project-url: https://github.com/orgs/KBVE/projects/5
+                github-token: ${{ secrets.UNITY_PAT }}
+                item-id: ${{ steps.coupc.outputs.card-id }}
+                status: "Matrix: 0"
+
+    assign_bug:
+        if: github.event.label.name == 'bug'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: alex-page/github-project-automation-plus@v0.8.3
+              with:
+                project: KBVE
+                column: Error
+                repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+    

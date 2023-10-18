@@ -1,8 +1,9 @@
 # KBVE
 
 ![Discord](https://img.shields.io/discord/342732838598082562?logo=discord)
+![PyPI - Version](https://img.shields.io/pypi/v/kbve)
 
-<a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/kbve.png" width="45"></a>
+<a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/kbve.png" width="200"></a>
 
 ---
 
@@ -17,7 +18,8 @@ The breakdown of libraries that this repo contains!
 
 #### Atlas
 
-Atlas is a Python pip package for generic baseline ml applications.
+Atlas is a [Python pip package](https://pypi.org/p/kbve) for generic baseline ml applications. 
+Atlas currently only has `pyautogen` but a couple other packages are planned to be added within this month of October.
 
 #### AstroVe
 

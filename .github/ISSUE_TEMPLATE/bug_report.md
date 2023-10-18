@@ -2,7 +2,8 @@
 name: Bug report
 about: Create a bug report on any of our KBVE services.
 title: ''
-labels: 0, bug
+labels: ["0", "bug"]
+projects: ["kbve/5"]
 assignees: ''
 
 ---
