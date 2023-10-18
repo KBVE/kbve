@@ -2,7 +2,8 @@
 name: Concept or Idea
 about: Future idea, theory or concept for KBVE as an organization and/or the main website.
 title: '[Concept] : '
-labels: 0, enhancement
+labels: ["0", "enhancement"]
+projects: ["kbve/5"]
 assignees: ''
 
 ---
