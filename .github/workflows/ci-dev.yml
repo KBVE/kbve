@@ -1,18 +1,24 @@
 name: CI - Dev
 
 on:
-    workflow_dispatch:
-#    pull_request:
-#         branches:
-#             - main
-
+    push:
+        branches:
+                - "dev*"
+    
 jobs:
-    setup:
-        runs-on: ubuntu-latest
-        name: File Alterations
-        steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
-                with:
-                    fetch-depth: 1
-            
+        handle:
+            name: "Dev to Main"
+            runs-on: ubuntu-latest
+            steps:
+                -   name: Checkout
+                    uses: actions/checkout@v4
+                    
+                -   name: Auto-Pull
+                    uses: diillson/auto-pull-request@v1.0.1
+                    with:
+                        destination_branch: "main"
+                        pr_title: "Preparing Release"
+                        pr_body: |
+                                            *An automated PR for Release*
+                                            This PR is for the main branch
+                        pr_label: "auto-release"
