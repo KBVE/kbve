@@ -32,7 +32,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             -   uses: actions/checkout@v4
-            -   uses: ./.github/actions/gql-project-mirgration
+            -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.UNITY_PAT }}
                     key: "Status"
