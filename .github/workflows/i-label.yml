@@ -6,6 +6,7 @@ on:
 
 jobs:
     assign_concepts:
+        name: "Enhancement Label Automation"
         if: github.event.label.name == 'enhancement'
         runs-on: ubuntu-latest
         steps:
@@ -13,6 +14,8 @@ jobs:
                 id: coupc
                 uses: peter-evans/create-or-update-project-card@v2
                 with:
+                    token: ${{ secrets.UNITY_PAT }}
+                    project-location: KBVE
                     project-name: KBVE
                     column-name: Theory
       
@@ -24,6 +27,7 @@ jobs:
                 status: "Matrix: 0"
 
     assign_bug:
+        name: "Bug Label Automation"
         if: github.event.label.name == 'bug'
         runs-on: ubuntu-latest
         steps:
@@ -31,6 +35,6 @@ jobs:
               with:
                 project: KBVE
                 column: Error
-                repo-token: ${{ secrets.GITHUB_TOKEN }}
+                repo-token: ${{ secrets.UNITY_PAT }}
 
     
