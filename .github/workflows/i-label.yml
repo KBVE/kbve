@@ -31,10 +31,11 @@ jobs:
         if: github.event.label.name == 'bug'
         runs-on: ubuntu-latest
         steps:
-            - uses: alex-page/github-project-automation-plus@v0.8.3
-              with:
-                project: KBVE
-                column: Error
-                repo-token: ${{ secrets.UNITY_PAT }}
+            -   uses: ./.github/actions/gql-project-mirgration
+                with:
+                    token: ${{ secrets.UNITY_PAT }}
+                    key: "Status"
+                    value: "Error"
+                    idref: ${{ github.event.issue.number }}
 
     
