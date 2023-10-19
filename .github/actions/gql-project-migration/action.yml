@@ -6,6 +6,7 @@ branding:
 inputs:
   token:
     description: 'Your Github Organization Token'
+    #required:
   org:
     description: 'Your Github Organization Name'
     default: 'KBVE'
@@ -25,7 +26,7 @@ runs:
     - name: GQL Query Organization
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.token }}
       run: |
             gh api graphql -f query='
               query($org: String!, $number: Int!) {
