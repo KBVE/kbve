@@ -65,6 +65,27 @@ runs:
       shell: bash
       run: echo "DATE=$(date +"%Y-%m-%d")" >> $GITHUB_ENV
             
+    - name: Get Edge Id
+      shell: bash
+      env:
+          GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+          gh api graphql -f query='
+            query($org: String!, $repo: String!, $number: Int!) {
+              repository(owner: $org, name: $repo){
+                issue(number: $number) {
+                  projectCards {
+                    nodes {
+                      databaseId
+                    }
+                  }
+                }
+              }
+            }' -f org=${{ inputs.org }} -f repo=${{ inputs.repo }} -F number=${{ inputs.idref }} > edge_id.json
+
+            echo 'CARD_ID='$(jq '.data.repository.issue.projectCards.nodes.databaseId' edge_id.json) >> $GITHUB_ENV
+
+            
     - name: Set Key Field Value
       shell: bash
       env:
