@@ -10,6 +10,9 @@ inputs:
   org:
     description: 'Your Github Organization Name'
     default: 'KBVE'
+  repo:
+    description: 'Your Github Repo'
+    default: 'kbve'
   project:
     description: 'Your Organization Project Number'
     default: '5'
@@ -61,7 +64,7 @@ runs:
     - name: Log Date
       shell: bash
       run: echo "DATE=$(date +"%Y-%m-%d")" >> $GITHUB_ENV
-    
+            
     - name: Set Key Field Value
       shell: bash
       env:
