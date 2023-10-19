@@ -34,7 +34,7 @@ jobs:
             -   uses: actions/checkout@v4
             -   uses: ./.github/actions/gql-project-migration
                 with:
-                    token: ${{ secrets.UNITY_PAT }}
+                    token: ${{ secrets.GITHUB_TOKEN }}
                     key: "Status"
                     value: "Error"
                     idref: ${{ github.event.issue.number }}
