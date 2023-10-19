@@ -83,7 +83,7 @@ runs:
               }
             }' -f org=${{ inputs.org }} -f repo=${{ inputs.repo }} -F number=${{ inputs.idref }} > edge_id.json
 
-            echo 'CARD_ID='$(jq '.data.repository.issue.projectCards.nodes.databaseId' edge_id.json) >> $GITHUB_ENV
+            echo 'CARD_ID='$(jq '.data.repository.issue.projectCards.nodes[0].databaseId' edge_id.json) >> $GITHUB_ENV
 
             
     - name: Set Key Field Value
@@ -124,4 +124,4 @@ runs:
                   id
                 }
               }
-            }' -f project=$PROJECT_ID -f item=${{ inputs.idref }} -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.VALUE_FIELD_ID }} -f date_field=$DATE_FIELD_ID -f date_value=$DATE --silent
+            }' -f project=$PROJECT_ID -f item=${{ env.CARD_ID }} -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.VALUE_FIELD_ID }} -f date_field=$DATE_FIELD_ID -f date_value=$DATE --silent
