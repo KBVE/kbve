@@ -23,6 +23,7 @@ runs:
   using: 'composite'
   steps:
     - name: GQL Query Organization
+      shell: bash
       run: |
             gh api graphql -f query='
               query($org: String!, $number: Int!) {
