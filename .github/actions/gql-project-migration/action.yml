@@ -70,21 +70,16 @@ runs:
       env:
           GITHUB_TOKEN: ${{ inputs.token }}
       run: |
-          gh api graphql -f query='
-            query($org: String!, $repo: String!, $number: Int!) {
-              repository(owner: $org, name: $repo){
-                issue(number: $number) {
-                  projectCards {
-                    nodes {
-                      databaseId
-                    }
-                  }
+          item_id="$( gh api graphql -f query='
+            mutation($project:ID!, $content:ID!) {
+              addProjectV2ItemById(input: {projectId: $project, contentId: $content}) {
+                item {
+                  id
                 }
               }
-            }' -f org=${{ inputs.org }} -f repo=${{ inputs.repo }} -F number=${{ inputs.idref }} > edge_id.json
+            }' -f project=$PROJECT_ID -f content=${{ inputs.idref }} --jq '.data.addProjectV2ItemById.item.id')"
 
-            echo 'CARD_ID='$(jq '.data.repository.issue.projectCards.nodes[0].databaseId' edge_id.json) >> $GITHUB_ENV
-
+            echo 'ITEM_ID='$item_id >> $GITHUB_ENV
             
     - name: Set Key Field Value
       shell: bash
@@ -124,4 +119,4 @@ runs:
                   id
                 }
               }
-            }' -f project=$PROJECT_ID -f item=${{ env.CARD_ID }} -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.VALUE_FIELD_ID }} -f date_field=$DATE_FIELD_ID -f date_value=$DATE --silent
+            }' -f project=$PROJECT_ID -f item=$ITEM_ID -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.VALUE_FIELD_ID }} -f date_field=$DATE_FIELD_ID -f date_value=$DATE --silent
