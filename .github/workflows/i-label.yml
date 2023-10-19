@@ -29,6 +29,6 @@ jobs:
                     token: ${{ secrets.UNITY_PAT }}
                     key: "Status"
                     value: "Error"
-                    idref: ${{ github.event.issue.number }}
+                    idref: ${{ github.event.issue.node_id }}
 
     
