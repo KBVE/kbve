@@ -16,7 +16,7 @@ jobs:
                     token: ${{ secrets.UNITY_PAT }}
                     key: "Status"
                     value: "Theory"
-                    idref: ${{ github.event.issue.number }}
+                    idref: ${{ github.event.issue.node_id }}
 
     assign_bug:
         name: "Bug Label Automation"
@@ -29,6 +29,6 @@ jobs:
                     token: ${{ secrets.UNITY_PAT }}
                     key: "Status"
                     value: "Error"
-                    idref: ${{ github.event.issue.number }}
+                    idref: ${{ github.event.issue.node_id }}
 
     
