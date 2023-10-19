@@ -10,21 +10,13 @@ jobs:
         if: github.event.label.name == 'enhancement'
         runs-on: ubuntu-latest
         steps:
-            -   name: Create or Update Project Card
-                id: coupc
-                uses: peter-evans/create-or-update-project-card@v2
+            -   uses: actions/checkout@v4
+            -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.UNITY_PAT }}
-                    project-location: KBVE
-                    project-name: KBVE
-                    column-name: Theory
-      
-            - uses: kalgurn/update-project-item-status@main
-              with:
-                project-url: https://github.com/orgs/KBVE/projects/5
-                github-token: ${{ secrets.UNITY_PAT }}
-                item-id: ${{ steps.coupc.outputs.card-id }}
-                status: "Matrix: 0"
+                    key: "Status"
+                    value: "Theory"
+                    idref: ${{ github.event.issue.number }}
 
     assign_bug:
         name: "Bug Label Automation"
