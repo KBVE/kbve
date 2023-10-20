@@ -1,14 +1,15 @@
 ---
 export interface Props {
+	widget?: string;
     data?: string;
 }
 
-const { data } = Astro.props;
+const { data, widget } = Astro.props;
 ---
 
 
 <li class="link-card ease-in">
-	<a href={data}>
+	<a {...Astro.props}>
 		<slot name="raw" />
 	</a>
 </li>
