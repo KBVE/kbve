@@ -18,20 +18,22 @@ let description = '';
 							autoplay
 							loop
 							mode="normal"
-							src="/assets/json/mailer.lottie"></dotlottie-player>
+							src="/assets/json/lottie/mailer.lottie"></dotlottie-player>
 					</div>
 				</div>
 				<VE widget="wrapper:demo:demo" data="">
 					<div
 						class="flex flex-col justify-center p-2 text-center rounded-sm lg:max-w-md xl:max-w-lg lg:text-left">
-						<h1 class="text-5xl font-bold leading sm:text-6xl">
-							Your personal AI Agent in your inbox.
+						<h1 class="text-5xl font-bold leading sm:text-6xl text-gradient">
+							Your personal AI Agent in your inbox. &#9672;
 						</h1>
 						<p class="mt-6 mb-8 text-lg sm:mb-12">
 							Send emails to each of your agents, having them
-							generate market research, code and more.
+							generate market research, code and more. <span class="animate-pulse text-gradient">
+								&#9672;
+							</span>
 							<br class="hidden md:inline lg:hidden" />Wait list
-							coming soon!"
+							coming soon!
 						</p>
 						<div
 							class="flex flex-col space-y-4 sm:items-center sm:justify-center sm:flex-row sm:space-y-0 sm:space-x-4 lg:justify-start">
@@ -48,144 +50,153 @@ let description = '';
 								Login
 							</VE>
 						</div>
+						
 					</div>
 				</VE>
 			</div>
 		</section>
-		
-		<VE widget="wrapper:demo:demo" data="https://images.unsplash.com/photo-1551221236-6f908cc5838a?auto=format&fit=crop&q=80&w=3269&ixlib=rb-4.0.3">
-		<section class="p-4 lg:p-8 text-gray-100">
-			<div class="container mx-auto space-y-12">
-				<div
-					class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row">
+
+		<VE
+			widget="wrapper:demo:demo"
+			data="https://images.unsplash.com/photo-1551221236-6f908cc5838a?auto=format&fit=crop&q=80&w=3269&ixlib=rb-4.0.3">
+			<section class="p-4 lg:p-8 text-gray-100">
+				<div class="container mx-auto space-y-12">
+					<div
+						class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row">
 						<dotlottie-player
 							class="object-contain h-48 lg:h-96"
 							autoplay
 							loop
 							mode="normal"
-							src="/assets/json/desk.lottie"></dotlottie-player>
-					<div
-						class="flex flex-col justify-center flex-1 p-6 bg-gray-900/[.45]">
-						<span class="text-xs uppercase text-gray-400">
-							Join, it's free
-						</span>
+							src="/assets/json/lottie/desk.lottie"></dotlottie-player>
+						<div
+							class="flex flex-col justify-center flex-1 p-6 bg-gray-900/[.45] skew-y-6">
+							<span class="text-xs uppercase text-gray-400">
+								Join, it's free
+							</span>
 
-						<h3 class="text-3xl font-bold">
-							We're not reinventing the wheel
-						</h3>
-						<p class="my-6 text-gray-400">
-							Lorem ipsum dolor sit amet consectetur adipisicing
-							elit. Dolor aliquam possimus quas, error esse quos.
-						</p>
-						<div class="flex space-x-4">
-							<VE
-								widget="button:shutter:shutter"
-								data=""
-								href="https://kbve.com/">
-								KBVE
-							</VE>
-							
+							<h3 class="text-3xl font-bold">
+								We're not reinventing the wheel
+							</h3>
+							<p class="my-6 text-gray-400">
+								Lorem ipsum dolor sit amet consectetur
+								adipisicing elit. Dolor aliquam possimus quas,
+								error esse quos.
+							</p>
+							<div class="flex space-x-4">
+								<VE
+									widget="button:shutter:shutter"
+									data=""
+									href="https://kbve.com/">
+									KBVE
+								</VE>
+							</div>
 						</div>
 					</div>
-				</div>
-				<div
-					class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row-reverse">
-					<dotlottie-player
-							class="object-contain h-48 lg:h-96"
+					<div
+						class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row-reverse">
+						<dotlottie-player
+							class="object-contain h-48 lg:h-96  skew-y-6 animate-pulse"
 							autoplay
 							loop
 							mode="normal"
 							src="/assets/json/bob.lottie"></dotlottie-player>
-					<div
-						class="flex flex-col justify-center flex-1 p-6 bg-gray-900/[.45]">
-						<span class="text-xs uppercase text-gray-400">
-							Join, it's free
-						</span>
-						<h3 class="text-3xl font-bold">
-							We're not reinventing the wheel
-						</h3>
-						<p class="my-6 text-gray-400">
-							Lorem ipsum dolor sit amet consectetur adipisicing
-							elit. Dolor aliquam possimus quas, error esse quos.
-						</p>
-						<button type="button" class="self-start">Action</button>
+						<div
+							class="flex flex-col justify-center flex-1 p-6 bg-gray-900/[.45] -skew-y-6">
+							<span class="text-xs uppercase text-gray-400">
+								Join, it's free
+							</span>
+							<h3 class="text-3xl font-bold">
+								We're not reinventing the wheel
+							</h3>
+							<p class="my-6 text-gray-400">
+								Lorem ipsum dolor sit amet consectetur
+								adipisicing elit. Dolor aliquam possimus quas,
+								error esse quos.
+							</p>
+							<button type="button" class="self-start">
+								Action
+							</button>
+						</div>
 					</div>
-				</div>
-				<div
-					class="flex flex-col overflow-hidden rounded-md shadow-sm lg:flex-row">
+					<div
+						class="flex flex-col  rounded-md shadow-sm lg:flex-row">
 						<dotlottie-player
-							class="object-contain h-48 lg:h-96"
+							class="object-contain h-48 lg:h-96 animate-bounce"
 							autoplay
 							loop
 							mode="normal"
 							src="/assets/json/idea.lottie"></dotlottie-player>
-					<div
-						class="flex flex-col justify-center flex-1 p-1 md:p-6 bg-gray-900/[.45]">
-						<span class="text-xs uppercase dark:text-gray-400">
-							Join, it's free
-						</span>
-						<h3 class="text-3xl font-bold">
-							We're not reinventing the wheel
-						</h3>
-						<p class="my-6 dark:text-gray-400">
-							Lorem ipsum dolor sit amet consectetur adipisicing
-							elit. Dolor aliquam possimus quas, error esse quos.
-						</p>
-						<button type="button" class="self-start">Action</button>
-					</div>
-				</div>
-			</div>
-		</section>
-		<section class="p-4 lg:p-8">
-			<ul
-				role="list"
-				class="grid gap-8 p-0 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-				<VE widget="card:demo:demo" href="https://kbve.com/">
-					<div slot="raw">
-						<h2>
-							Transforming communication, mastering tasks, and
-							simplifying life.
-						</h2>
-						<p>Explore More! <b><span>&rarr;</span></b></p>
-					</div>
-				</VE>
-				<VE widget="card:demo:demo" href="https://kbve.com/">
-					<div slot="raw">
-						<h2>
-							Documentations <span>&rarr;</span>
-						</h2>
-						<p>Documents!</p>
-					</div>
-				</VE>
-				<VE widget="card:demo:demo" href="https://kbve.com/">
-					<div slot="raw">
-						<div class="object-contain">
-							<dotlottie-player
-								autoplay
-								loop
-								mode="normal"
-								src="/assets/json/aie.lottie"
-							></dotlottie-player>
+						<div
+							class="flex flex-col justify-center flex-1 p-1 md:p-6 bg-gray-900/[.45]">
+							<span class="text-xs uppercase dark:text-gray-400">
+								Join, it's free
+							</span>
+							<h3 class="text-3xl font-bold">
+								We're not reinventing the wheel
+							</h3>
+							<p class="my-6 dark:text-gray-400">
+								Lorem ipsum dolor sit amet consectetur
+								adipisicing elit. Dolor aliquam possimus quas,
+								error esse quos.
+							</p>
+							<button type="button" class="self-start">
+								Action
+							</button>
 						</div>
 					</div>
-				</VE>
-				<VE widget="card:demo:demo" href="https://kbve.com/">
-					<div slot="raw">
-						<h2>
-							Transforming communication, mastering tasks, and
-							simplifying life.
-						</h2>
-						<p>Explore More! <b><span>&rarr;</span></b></p>
-					</div>
-				</VE>
-				<VE widget="card:demo:demo" href="https://kbve.com/">
-					<div slot="raw"></div>
-				</VE>
-				<VE widget="card:demo:demo" href="https://kbve.com/">
-					<div slot="raw"></div>
-				</VE>
-			</ul>
-		</section>
+				</div>
+			</section>
+			<section class="p-4 lg:p-8">
+				<ul
+					role="list"
+					class="grid gap-8 p-0 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+					<VE widget="card:demo:demo" href="https://kbve.com/">
+						<div slot="raw">
+							<h2>
+								Transforming communication, mastering tasks, and
+								simplifying life.
+							</h2>
+							<p>Explore More! <b><span>&rarr;</span></b></p>
+						</div>
+					</VE>
+					<VE widget="card:demo:demo" href="https://kbve.com/">
+						<div slot="raw">
+							<h2>
+								Documentations <span>&rarr;</span>
+							</h2>
+							<p>Documents!</p>
+						</div>
+					</VE>
+					<VE widget="card:demo:demo" href="https://kbve.com/">
+						<div slot="raw">
+							<div class="object-contain">
+								<dotlottie-player
+									autoplay
+									loop
+									mode="normal"
+									src="/assets/json/aie.lottie"
+								></dotlottie-player>
+							</div>
+						</div>
+					</VE>
+					<VE widget="card:demo:demo" href="https://kbve.com/">
+						<div slot="raw">
+							<h2>
+								Transforming communication, mastering tasks, and
+								simplifying life.
+							</h2>
+							<p>Explore More! <b><span>&rarr;</span></b></p>
+						</div>
+					</VE>
+					<VE widget="card:demo:demo" href="https://kbve.com/">
+						<div slot="raw"></div>
+					</VE>
+					<VE widget="card:demo:demo" href="https://kbve.com/">
+						<div slot="raw"></div>
+					</VE>
+				</ul>
+			</section>
 		</VE>
 	</main>
 </Layout>
