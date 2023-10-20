@@ -4,6 +4,12 @@ export interface Props {
 	data?: string;
 }
 const { data, widget } = Astro.props;
+
+let _img = 'https://kbve.com/assets/img/curved-images/wave.jpg';
+if(data)
+{
+	_img = data;
+}
 // TODO - Wrapper with Slots and defaults
 ---
 
@@ -19,7 +25,7 @@ const { data, widget } = Astro.props;
 								class="border-black/12.5 shadow-soft-xl relative flex h-full min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-offset bg-clip-border p-1">
 								<div
 									class="relative h-full overflow-hidden bg-cover bg-fixed rounded-xl"
-									style={`background-image: url('https://kbve.com/assets/img/curved-images/wave.jpg')`}>
+									style={`background-image: url('${_img}')`}>
 									<span
 										class="absolute top-0 left-0 w-full h-full bg-center bg-cover bg-gradient-to-tl from-gray-900 to-slate-800 opacity-80">
 									</span>
