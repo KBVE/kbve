@@ -119,4 +119,4 @@ runs:
                   id
                 }
               }
-            }' -f project=${{ env.PROJECT_ID}} -f item=$${{ env.ITEM_ID}} -f status_field=${{ env.STATUS_FIELD_ID}} -f status_value=${{ env.VALUE_FIELD_ID }} -f date_field=${{ env.DATE_FIELD_ID }} -f date_value=${{ env.DATE }} --silent
+            }' -f project=${{ env.PROJECT_ID}} -f item=${{ env.ITEM_ID}} -f status_field=${{ env.STATUS_FIELD_ID}} -f status_value=${{ env.VALUE_FIELD_ID }} -f date_field=${{ env.DATE_FIELD_ID }} -f date_value=${{ env.DATE }} --silent
