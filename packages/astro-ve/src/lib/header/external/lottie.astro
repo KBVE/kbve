@@ -5,10 +5,24 @@ export interface Props {
 }
 const { data, widget } = Astro.props;
 ---
-<script
-	is:inline
-	src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"
-	integrity="sha512-jEnuDt6jfecCjthQAJ+ed0MTVA++5ZKmlUcmDGBv2vUI/REn6FuIdixLNnQT+vKusE2hhTk2is3cFvv5wA+Sgg=="
-	crossorigin="anonymous"
-	referrerpolicy="no-referrer"
-></script>
+
+{
+	!data && (
+		<script
+			is:inline
+			src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"
+			integrity="sha512-jEnuDt6jfecCjthQAJ+ed0MTVA++5ZKmlUcmDGBv2vUI/REn6FuIdixLNnQT+vKusE2hhTk2is3cFvv5wA+Sgg=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+	)
+}
+{
+	data == 'dot' && (
+		<script
+			type="module"
+			is:inline
+			src="https://unpkg.com/@dotlottie/player-component@1.0.0/dist/dotlottie-player.js"
+		/>
+	)
+}
