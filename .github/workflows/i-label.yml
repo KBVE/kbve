@@ -34,6 +34,60 @@ jobs:
                     value: "Error"
                     idref: ${{ github.event.issue.node_id }}
 
+    #   [ToDo]
+    assign_todo:
+        name: "ToDo Label Automation"
+        if: github.event.label.name == 'todo'
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: ./.github/actions/gql-project-migration
+                with:
+                    token: ${{ secrets.KBVE_PAT }}
+                    key: "Status"
+                    value: "Todo"
+                    idref: ${{ github.event.issue.node_id }}
+    
+    #   [Backlog]
+    assign_backlog:
+        name: "Backlog Label Automation"
+        if: github.event.label.name == 'backlog'
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: ./.github/actions/gql-project-migration
+                with:
+                    token: ${{ secrets.KBVE_PAT }}
+                    key: "Status"
+                    value: "Backlog"
+                    idref: ${{ github.event.issue.node_id }}
+    
+    #   [Help]
+    assign_support:
+        name: "Help Label Automation"
+        if: github.event.label.name == 'help wanted'
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: ./.github/actions/gql-project-migration
+                with:
+                    token: ${{ secrets.KBVE_PAT }}
+                    key: "Status"
+                    value: "Support"
+                    idref: ${{ github.event.issue.node_id }}
+    #   [Help]
+    assign_staging:
+        name: "Staging Label Automation"
+        if: github.event.label.name == 'staging'
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: ./.github/actions/gql-project-migration
+                with:
+                    token: ${{ secrets.KBVE_PAT }}
+                    key: "Status"
+                    value: "In Progress"
+                    idref: ${{ github.event.issue.node_id }}
     #   [Maxtrix Errors]
 
 
