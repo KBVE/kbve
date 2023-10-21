@@ -86,7 +86,7 @@ jobs:
                 with:
                     token: ${{ secrets.KBVE_PAT }}
                     key: "Status"
-                    value: "In Progress"
+                    value: "Staging"
                     idref: ${{ github.event.issue.node_id }}
     #   [Maxtrix Errors]
 
