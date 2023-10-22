@@ -21,4 +21,4 @@ jobs:
                         pr_body: |
                                             *An automated PR for Release*
                                             This PR is for the main branch
-                        pr_label: "auto-release"
+                        pr_label: "auto-pr"
