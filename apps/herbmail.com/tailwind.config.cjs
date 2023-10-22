@@ -16,7 +16,7 @@ module.exports = {
     extend: {
       colors: {
         // ...
-        'herbmail': {
+        'kbve': {
           DEFAULT: '#8C52FF',
         },
         primary: "",
