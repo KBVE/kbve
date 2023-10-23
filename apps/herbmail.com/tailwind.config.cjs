@@ -20,10 +20,10 @@ module.exports = {
           DEFAULT: '#8C52FF',
         },
         'kbve-primary': { 
-          DEFAULT: "",
+          DEFAULT: "#48BB78",
         },
         'kbve-secondary': { 
-          DEFAULT: "",
+          DEFAULT: "#1c033c",
         },
       },
       backgroundColor: {
@@ -31,6 +31,7 @@ module.exports = {
         //offset: "var(--color-background-offset)",
         offset: "#23262d",
       },
+
       keyframes: {
         float: {
           '0%, 100%': { transform: 'translate3d(0, 0, 0)' },
@@ -44,5 +45,5 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+ 
 };
