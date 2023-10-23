@@ -15,7 +15,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // ...
+        // Color extension is prefixed as KBVE to avoid class conflicts
         'kbve': {
           DEFAULT: '#8C52FF',
         },
