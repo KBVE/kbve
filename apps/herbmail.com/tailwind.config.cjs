@@ -15,13 +15,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // ...
-        'herbmail': {
+        // Color extension is prefixed as KBVE to avoid class conflicts
+        'kbve': {
           DEFAULT: '#8C52FF',
         },
-        primary: "",
-        secondary: "",
-
+        'kbve-primary': { 
+          DEFAULT: "",
+        },
+        'kbve-secondary': { 
+          DEFAULT: "",
+        },
       },
       backgroundColor: {
         default: "var(--color-background)",
