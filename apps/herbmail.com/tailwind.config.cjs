@@ -19,9 +19,12 @@ module.exports = {
         'kbve': {
           DEFAULT: '#8C52FF',
         },
-        primary: "",
-        secondary: "",
-
+        'kbve-primary': { 
+          DEFAULT: "",
+        },
+        'kbve-secondary': { 
+          DEFAULT: "",
+        },
       },
       backgroundColor: {
         default: "var(--color-background)",
