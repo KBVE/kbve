@@ -15,6 +15,7 @@ jobs:
     alter:
         runs-on: ubuntu-latest
         name: File Alterations
+        if: github.repository == 'kbve/kbve'
         outputs:
             herbmail:  ${{ steps.delta.outputs.herbmail_any_changed  }}
             kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
