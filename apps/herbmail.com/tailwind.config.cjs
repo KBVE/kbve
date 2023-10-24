@@ -16,21 +16,22 @@ module.exports = {
     extend: {
       colors: {
         // Color extension is prefixed as KBVE to avoid class conflicts
-        'kbve': {
-          DEFAULT: '#8C52FF',
-        },
-        'kbve-primary': { 
-          DEFAULT: "#48BB78",
-        },
-        'kbve-secondary': { 
-          DEFAULT: "#1c033c",
-        },
+        'kbve':  '#8C52FF',
+      
+        'kbve-primary':  "#48BB78",
+        
+        'kbve-secondary': "#1c033c",
+        
       },
       backgroundColor: {
         default: "var(--color-background)",
         //offset: "var(--color-background-offset)",
         offset: "#23262d",
       },
+
+      backgroundImage: theme => ({
+        'custom-gradient': `linear-gradient(to right, ${theme('colors.kbve')}, ${theme('colors.kbve-primary')}, ${theme('colors.kbve-secondary')})`,
+      }),
 
       keyframes: {
         float: {
@@ -44,6 +45,21 @@ module.exports = {
        
       },
     },
+
+    plugins: [
+
+      //* This function is still broken.
+      // function ( { addUtilities }) {
+      //   const newUtilities = {
+      //     '.custom-gradient': {
+      //       backgroundClip: 'text',
+      //       color: 'transparent',
+      //     },
+      //   };
+      //   addUtilities(newUtilities, ['responsive']);
+      // },
+
+    ],
   },
  
 };
