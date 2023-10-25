@@ -19,6 +19,20 @@ jobs:
                     key: "Status"
                     value: "Theory"
                     idref: ${{ github.event.issue.node_id }}
+    
+    #   [Theory]
+    assign_media:
+        name: "Media Label Automation"
+        if: github.event.label.name == 'media'
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: ./.github/actions/gql-project-migration
+                with:
+                    token: ${{ secrets.KBVE_PAT }}
+                    key: "Status"
+                    value: "Theory"
+                    idref: ${{ github.event.issue.node_id }}
 
     #   [Error]
     assign_bug:
