@@ -7,7 +7,7 @@ export interface Props {
 const { widget, data, avatar } = Astro.props;
 import KbveProfile from './user/kbveProfile.astro';
 ---
-<Fragment>
+
 <button
 	type="button"
 	class="flex mr-3 text-sm bg-zinc-800 rounded-full md:mr-0 focus:ring-4 focus:ring-kbve"
@@ -23,12 +23,9 @@ import KbveProfile from './user/kbveProfile.astro';
 	/>
 </button>
 
-			<!-- Dropdown menu -->
-			<div
-				class="z-50 hidden my-4 text-base list-none divide-y rounded-lg shadow bg-zinc-800 divide-zinc-600"
-				id="user-dropdown">
-
-                <KbveProfile />
-				
-			</div>
-</Fragment>
+<!-- Dropdown menu -->
+<div
+	class="z-50 hidden my-4 text-base list-none divide-y rounded-lg shadow bg-zinc-800 divide-zinc-600"
+	id="user-dropdown">
+	<slot />
+</div>

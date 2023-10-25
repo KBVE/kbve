@@ -13,8 +13,11 @@
       "styled-components",
       {
         "pure": true,
-        "ssr": true
-      }
+        "ssr": false
+      },
+      "babel-plugin-macros",
+      "babel-plugin-styled-components",
+      "@babel/plugin-transform-react-jsx"
     ]
   ]
 }
