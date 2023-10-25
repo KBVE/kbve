@@ -1,14 +1,14 @@
 #!/bin/sh
 set -e
 
+#   Switch to Dev Branch
+git switch dev
+
 #   Git Pull
 git pull
 
 #   Checkout Origin Dev Branch
-git checkout origin/dev
-
-#   Switch to Dev Branch
-git switch dev
+#git checkout origin/dev
 
 #   Switch to Atomic Patch Branch
 
