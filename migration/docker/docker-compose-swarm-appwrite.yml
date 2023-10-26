@@ -35,6 +35,8 @@ services:
       - /nfs/app/appwrite/config:/storage/config:rw
       - /nfs/app/appwrite/certificates:/storage/certificates:rw
       - /nfs/app/appwrite/functions:/storage/functions:rw
+    secrets:
+      - VCS
     environment:
       - _APP_ENV
       - _APP_WORKER_PER_CORE
@@ -120,6 +122,8 @@ services:
       - _APP_GRAPHQL_MAX_COMPLEXITY
       - _APP_GRAPHQL_MAX_DEPTH
       - _APP_VCS_GITHUB_APP_NAME
+      #- _APP_VCS_GITHUB_PRIVATE_KEY
+      #- _APP_VCS_GITHUB_PRIVATE_KEY_FILE=/run/secrets/VCS
       - _APP_VCS_GITHUB_PRIVATE_KEY
       - _APP_VCS_GITHUB_APP_ID
       - _APP_VCS_GITHUB_WEBHOOK_SECRET
@@ -295,6 +299,8 @@ services:
     volumes:
       - /nfs/app/appwrite/functions:/storage/functions:rw
       - /nfs/app/appwrite/builds:/storage/builds:rw
+    secrets:
+      - VCS
     environment:
       - _APP_ENV
       - _APP_WORKER_PER_CORE
@@ -313,7 +319,9 @@ services:
       - _APP_LOGGING_PROVIDER
       - _APP_LOGGING_CONFIG
       - _APP_VCS_GITHUB_APP_NAME
-      - _APP_VCS_GITHUB_PRIVATE_KEY
+      #- _APP_VCS_GITHUB_PRIVATE_KEY
+      #- _APP_VCS_GITHUB_PRIVATE_KEY_FILE=/run/secrets/VCS
+      - _APP_VCS_GITHUB_PRIVATE_KEY= |
       - _APP_VCS_GITHUB_APP_ID
       - _APP_FUNCTIONS_TIMEOUT
       - _APP_FUNCTIONS_BUILD_TIMEOUT
@@ -691,4 +699,8 @@ networks:
     driver: overlay
     attachable: true
   public:
+    external: true
+
+secrets:
+  VCS:
     external: true
