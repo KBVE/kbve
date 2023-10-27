@@ -14,6 +14,7 @@ export const users = mysqlTable('users', {
     id: serial('id').primaryKey().notNull(),
     username: varchar('username', { length: 256 }).unique(),
     email: varchar('email', { length: 256 }).unique(),
+    hash: varchar('hash', { length: 256}).notNull(),
     role: mysqlEnum('role', ["user", "mod", "admin"]),
     reputation: int("reputation").default(0),
     exp: int("exp").default(0),
