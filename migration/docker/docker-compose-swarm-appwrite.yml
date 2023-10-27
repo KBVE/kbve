@@ -35,6 +35,8 @@ services:
       - /nfs/app/appwrite/config:/storage/config:rw
       - /nfs/app/appwrite/certificates:/storage/certificates:rw
       - /nfs/app/appwrite/functions:/storage/functions:rw
+    secrets:
+      - VCS
     environment:
       - _APP_ENV
       - _APP_WORKER_PER_CORE
@@ -120,6 +122,8 @@ services:
       - _APP_GRAPHQL_MAX_COMPLEXITY
       - _APP_GRAPHQL_MAX_DEPTH
       - _APP_VCS_GITHUB_APP_NAME
+      #- _APP_VCS_GITHUB_PRIVATE_KEY
+      #- _APP_VCS_GITHUB_PRIVATE_KEY_FILE=/run/secrets/VCS
       - _APP_VCS_GITHUB_PRIVATE_KEY
       - _APP_VCS_GITHUB_APP_ID
       - _APP_VCS_GITHUB_WEBHOOK_SECRET
@@ -295,6 +299,8 @@ services:
     volumes:
       - /nfs/app/appwrite/functions:/storage/functions:rw
       - /nfs/app/appwrite/builds:/storage/builds:rw
+    secrets:
+      - VCS
     environment:
       - _APP_ENV
       - _APP_WORKER_PER_CORE
@@ -313,7 +319,9 @@ services:
       - _APP_LOGGING_PROVIDER
       - _APP_LOGGING_CONFIG
       - _APP_VCS_GITHUB_APP_NAME
-      - _APP_VCS_GITHUB_PRIVATE_KEY
+      #- _APP_VCS_GITHUB_PRIVATE_KEY
+      #- _APP_VCS_GITHUB_PRIVATE_KEY_FILE=/run/secrets/VCS
+      - _APP_VCS_GITHUB_PRIVATE_KEY= |
       - _APP_VCS_GITHUB_APP_ID
       - _APP_FUNCTIONS_TIMEOUT
       - _APP_FUNCTIONS_BUILD_TIMEOUT
@@ -549,7 +557,7 @@ services:
       - _APP_DB_PASS
 
   appwrite-assistant:
-    image: appwrite/assistant:0.2.1
+    image: appwrite/assistant:0.2.2
     restart: unless-stopped
     networks:
       - appwrite
@@ -559,7 +567,7 @@ services:
   openruntimes-executor:
     hostname: appwrite-executor
     stop_signal: SIGINT
-    image: openruntimes/executor:0.4.3
+    image: openruntimes/executor:0.4.5
     networks:
       appwrite:
         aliases:
@@ -606,6 +614,32 @@ services:
       - OPR_EXECUTOR_STORAGE_WASABI_SECRET=$_APP_STORAGE_WASABI_SECRET
       - OPR_EXECUTOR_STORAGE_WASABI_REGION=$_APP_STORAGE_WASABI_REGION
       - OPR_EXECUTOR_STORAGE_WASABI_BUCKET=$_APP_STORAGE_WASABI_BUCKET
+
+# https://github.com/KBVE/kbve/issues/100
+  openruntimes-proxy:
+    hostname: proxy
+    stop_signal: SIGINT
+    image: openruntimes/proxy:0.3.1
+    networks:
+      appwrite:
+        aliases:
+          - proxy
+      runtimes:
+        aliases:
+          - proxy
+
+    environment:
+      - OPR_PROXY_WORKER_PER_CORE=$_APP_WORKER_PER_CORE
+      - OPR_PROXY_ENV=$_APP_ENV
+      - OPR_PROXY_EXECUTOR_SECRET=$_APP_EXECUTOR_SECRET
+      - OPR_PROXY_SECRET=$_APP_EXECUTOR_SECRET
+      - OPR_PROXY_LOGGING_PROVIDER=$_APP_LOGGING_PROVIDER
+      - OPR_PROXY_LOGGING_CONFIG=$_APP_LOGGING_CONFIG
+      - OPR_PROXY_ALGORITHM=random
+      - OPR_PROXY_EXECUTORS=appwrite-executor
+      - OPR_PROXY_HEALTHCHECK_INTERVAL=10000
+      - OPR_PROXY_MAX_TIMEOUT=600
+      - OPR_PROXY_HEALTHCHECK=enabled
 
   mariadb:
     image: mariadb:10.7 # fix issues when upgrading using: mysql_upgrade -u root -p
@@ -665,4 +699,8 @@ networks:
     driver: overlay
     attachable: true
   public:
+    external: true
+
+secrets:
+  VCS:
     external: true

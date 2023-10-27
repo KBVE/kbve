@@ -1,0 +1,12 @@
+name: Transfer Scripts
+
+on:
+    workflow_dispatch:
+
+jobs:
+    release:
+        name: Transfer Scripts
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout the repository using git
+                uses: actions/checkout@v4
