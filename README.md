@@ -5,7 +5,7 @@
 
 <a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/kbve.png" width="200"></a>
 
----
+* * *
 
 ## What is KBVE?
 
@@ -23,9 +23,11 @@ Make sure you have Node 18+ with PNPM! Python 3.10+ / Poetry are optional if you
 - Then run -> `pnpm install`
 - Launch `pnpm nx dev herbmail.com` - Should start a development server with Astro for HerbMail.com
 
-### Libs
+* * *
 
-The breakdown of libraries that this repo contains!
+## Library & Apps
+
+The breakdown of libraries, packages and applications in this repo contains!
 
 #### Atlas
 
@@ -39,6 +41,10 @@ Astro VE is an Astro-based UX/UI library that empowers developers to seamlessly 
 #### React Appwrite
 
 React-based Appwrite library for fast frontend deployment.
+
+#### API
+
+The API is current
 
 ### Apps
 
