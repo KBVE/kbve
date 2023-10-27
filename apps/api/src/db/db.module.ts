@@ -1,23 +1,9 @@
-import { Module } from '@nestjs/common';
-import { drizzle } from 'drizzle-orm/planetscale-serverless';
-import { connect } from '@planetscale/database';
+import { Global, Module } from '@nestjs/common';
+import { DB, DbProvider } from './db.provider';
 
-import * as schema from './schema';
-
+@Global()
 @Module({
-	providers: [
-		{
-			provide: 'PS_CONNECTION',
-			inject: [],
-			useFactory: async () => {
-				const connection = connect({
-					url: process.env.DATABASE_URL,
-				});
-
-				return drizzle(connection, { schema, logger: true });
-			},
-		},
-	],
-	exports: ['PS_CONNECTION'],
+  providers: [DbProvider],
+  exports: [DB],
 })
 export class DBModule {}
