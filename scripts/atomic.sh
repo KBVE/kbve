@@ -13,6 +13,17 @@ git pull
 #   Switch to Atomic Patch Branch
 
 git_date=$(date +'%m-%d-%Y-%s')
-git switch -c "patch-atomic-${git_date}"
+
+if [ "$#" -eq  "0" ]
+   then
+     patch_name = "patch-atomic-${git_date}"
+ else
+     unformatPatch = "${0}"
+     newPatch = "${unformatPatch//[^[:alnum:]]/-}"
+     patch_name = "patch-atomic-${newPatch}-${git_date}"
+ fi
+
+
+git switch -c "${patch_name}"
 
 #   git switch -c "patch-atlas-${git_date}"
