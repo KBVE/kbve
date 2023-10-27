@@ -21,8 +21,9 @@ export const users = mysqlTable('users', {
     createdAt: timestamp('createdAt', { mode: 'string' }).defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users);
- 
+const insertUserSchema = createInsertSchema(users);
+
 // Schema for selecting a user - can be used to validate API responses
-export const selectUserSchema = createSelectSchema(users);
- 
+
+const selectUserSchema = createSelectSchema(users);
+
