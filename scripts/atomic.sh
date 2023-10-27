@@ -12,18 +12,17 @@ git pull
 
 #   Switch to Atomic Patch Branch
 
-git_date=$(date +'%m-%d-%Y-%s')
+GIT_DATE=$(date +'%m-%d-%Y-%s')
 
-if [ "$#" -eq  "0" ]
-   then
-     patch_name = "patch-atomic-${git_date}"
- else
-     unformatPatch = "${0}"
-     newPatch = "${unformatPatch//[^[:alnum:]]/-}"
-     patch_name = "patch-atomic-${newPatch}-${git_date}"
- fi
+if [ "$#" -eq "0" ]; then
+  PATCH_NAME="patch-atomic-${GIT_DATE}"
+else
+  UNFORMAT_PATCH="${1}"
+  NEW_PATCH="${UNFORMAT_PATCH//[^[:alnum:]]/-}"
+  PATCH_NAME="patch-atomic-${NEW_PATCH}-${GIT_DATE}"
+fi
 
+git switch -c "${PATCH_NAME}"
 
-git switch -c "${patch_name}"
 
 #   git switch -c "patch-atlas-${git_date}"
