@@ -23,6 +23,15 @@
 				"production": {}
 			}
 		},
+		"studio": {
+			"command": "drizzle-kit studio"
+		},
+		"gen": {
+			"command": "drizzle-kit generate:mysql"
+		},
+		"push": {
+			"command": "drizzle-kit push:mysql"
+		},
 		"serve": {
 			"executor": "@nx/js:node",
 			"defaultConfiguration": "development",

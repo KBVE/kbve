@@ -21,6 +21,8 @@ export const users = mysqlTable('users', {
     createdAt: timestamp('createdAt', { mode: 'string' }).defaultNow(),
 });
 
+//TODO      ZOD
+
 const insertUserSchema = createInsertSchema(users);
 
 // Schema for selecting a user - can be used to validate API responses
