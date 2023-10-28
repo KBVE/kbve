@@ -8,7 +8,8 @@ import * as schema from './schema';
 
 export const DB = Symbol('DB_SERVICE');
 
-export type DbType = MySql2Database;
+export type DbType = MySql2Database<typeof schema>;
+//export type DbType = MySql2DrizzleConfig;
 
 export const DbProvider: FactoryProvider = {
     provide: DB,
