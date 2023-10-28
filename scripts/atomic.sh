@@ -1,18 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-#   Switch to Dev Branch
 git switch dev
 
-#   Git Pull
 git pull
 
-#   Checkout Origin Dev Branch
-#git checkout origin/dev
+GIT_DATE=$(date +'%m-%d-%Y-%s')
 
-#   Switch to Atomic Patch Branch
+if [ "$#" -eq "0" ]; then
+  PATCH_NAME="patch-atomic-${GIT_DATE}"
+else
+  UNFORMAT_PATCH=$(echo "$@" | tr ' ' '-')
+  NEW_PATCH="${UNFORMAT_PATCH//[^[:alnum:]-]/-}"
+  NEW_PATCH="${NEW_PATCH,,}"
+  PATCH_NAME="patch-atomic-${NEW_PATCH}-${GIT_DATE}"
+fi
 
-git_date=$(date +'%m-%d-%Y-%s')
-git switch -c "patch-atomic-${git_date}"
-
-#   git switch -c "patch-atlas-${git_date}"
+git switch -c "${PATCH_NAME}"
