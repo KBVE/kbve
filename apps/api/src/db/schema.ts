@@ -18,7 +18,7 @@ export const users = mysqlTable('users', {
     role: mysqlEnum('role', ["user", "mod", "admin"]),
     reputation: int("reputation").default(0),
     exp: int("exp").default(0),
-    createdAt: timestamp('createdAt', { mode: 'string' }).defaultNow(),
+    createdAt: timestamp('createdAt', { mode: 'string' }).notNull().defaultNow().onUpdateNow(),
 });
 
 //TODO      ZOD

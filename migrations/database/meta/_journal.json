@@ -15,6 +15,13 @@
       "when": 1698402064413,
       "tag": "0001_dear_mindworm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1698469347072,
+      "tag": "0002_cold_oracle",
+      "breakpoints": true
     }
   ]
 }

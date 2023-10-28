@@ -17,6 +17,6 @@ export class UserController {
 
   @Get('/:username')
   async get(@Param('username') username: string) {
-    return this.user.get(username);
+    return this.user.getUsername(username);
   }
 }

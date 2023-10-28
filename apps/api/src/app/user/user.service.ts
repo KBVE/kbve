@@ -11,11 +11,8 @@ export class UserService {
 
 	kbveUsername = this.db.select().from(users).where(eq(users.username, sql.placeholder('username'))).prepare();
 
-
-	async get(username: string): Promise<unknown> {
+	async getUsername(username: string): Promise<unknown> {
 		const result = await this.kbveUsername.execute({username: username});
-	
-	
 		return result.length === 0 ? null : result[0];
 	   }
 }
