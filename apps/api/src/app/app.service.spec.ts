@@ -14,8 +14,8 @@ describe('AppService', () => {
 	});
 
 	describe('getData', () => {
-		it('should return "Hello API"', () => {
-			expect(service.getData()).toEqual({ message: 'Hello API' });
+		it('should return "ONLINE"', () => {
+			expect(service.getData()).toEqual({ message: 'ONLINE' });
 		});
 	});
 });
