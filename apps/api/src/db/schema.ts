@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { Many, relations } from 'drizzle-orm';
 import {
 	mysqlTable,
 	mysqlEnum,
@@ -73,6 +73,18 @@ export const apikey = mysqlTable('apikey', {
 	label: varchar('label', { length: 256 }),
 });
 
+export const n8n = mysqlTable('n8n', {
+    id: serial('id').primaryKey().notNull(),
+	uuid: int('uuid'),
+    webhook: varchar('webhook', { length: 256}),
+    permissions: json('permissions'),
+	keyhash: varchar('keyhash', { length: 256 }),
+	label: varchar('label', { length: 256 }),
+
+})
+
+
+
 export const usersProfileRelations = relations(users, ({ one }) => ({
 	profile: one(profile, {
 		fields: [users.id],
@@ -90,6 +102,21 @@ export const usersAuthRelations = relations(users, ({ one }) => ({
 export const usersAPIKeyRelations = relations(users, ({ many }) => ({
 	apikey: many(apikey),
 }));
+
+export const usersAppwriteRelations = relations(users, ({ many }) => ({
+    appwrite: many(appwrite),
+}))
+
+export const usersN8NRelations = relations(users, ({many}) => ({
+    n8n: many(n8n),
+}))
+
+export const n8nUsersRelations = relations(n8n, ({ one}) => ({
+    user: one(users, {
+        fields: [n8n.uuid],
+        references: [users.id],
+    }),
+}))
 
 export const appwriteRelations = relations(appwrite, ({ one }) => ({
 	user: one(users, {
