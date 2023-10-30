@@ -25,10 +25,27 @@ const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 // This instance (`app`) will be used to configure and run the web server.
 const app = new koa();
 
+// Adding a middleware to the Koa application using the `use` method.
+// This middleware is an asynchronous function that sets the response body to a JSON object with a message property.
+// When a request is received, it will respond with { message: 'Hello API' }.
 app.use(async (ctx) => {
 	ctx.body = { message: 'Hello API' };
-});
-
-app.listen(port, host, () => {
-	console.log(`[ ready ] http://${host}:${port}`);
-});
+})
+	// Chaining another middleware using the `use` method.
+	// This middleware proxies requests sent to '/api' path to a different domain 'https://pb.kbve.com/'.
+	// The `changeOrigin` option ensures the host header is updated to the target URL, and `logs` option enables logging.
+	.use(
+		proxy('/api', {
+			target: 'https://pb.kbve.com/',
+			changeOrigin: true,
+			logs: true,
+		})
+	)
+	// Chaining another middleware using the `use` method.
+	// This middleware is the body parser which parses the incoming request body before your handlers are executed.
+	.use(parser())
+	// Starting the Koa application on the specified host and port.
+	// A callback function is passed to the `listen` method, which logs a message to the console when the server is ready.
+	.listen(port, host, () => {
+		console.log(`[ ready ] http://${host}:${port}`);
+	});
