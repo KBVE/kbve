@@ -3,7 +3,8 @@
 	"version": "0.0.0",
 	"license": "MIT",
 	"scripts": {
-		"postinstall": "node ./tools/scripts/patch-nx-cli.js"
+		"postinstall": "node ./tools/scripts/patch-nx-cli.js",
+		"prepare": "nx g @nx-dotnet/core:restore"
 	},
 	"private": true,
 	"devDependencies": {
