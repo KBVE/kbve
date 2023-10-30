@@ -19,6 +19,7 @@
 		"@nanostores/react": "^0.7.1",
 		"@nestjs/schematics": "^10.0.1",
 		"@nestjs/testing": "^10.0.2",
+		"@nx-dotnet/core": "^2.1.0",
 		"@nx/cypress": "17.0.0",
 		"@nx/esbuild": "17.0.2",
 		"@nx/eslint": "17.0.0",
