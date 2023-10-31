@@ -12,6 +12,26 @@
 KBVE is a collective that builds different programs, libraries and games!
 This monorepo is the heart of all our applications, making it easier to manage.
 
+Examples of monorepos:
+
+- [Cal.com](https://github.com/calcom/cal.com)
+- [E2B](https://github.com/e2b-dev/e2b/)
+
+Perks of a monorepo include:
+
+- Consistent Developer Environment and Experience.
+    - A monorepo can provide a consistent environment and set of tools for all developers, which can be especially beneficial in large organizations with many projects.
+    - Easier AI Training, as the codebase is all within a controlled repo.
+
+- Less clutter, keeping a single source of truth.
+    - The monorepo acts as a centralized source of truth for all projects, configurations, and dependencies.
+
+- Atomic Changes.
+    - Developers can make cross-cutting changes across multiple projects within a single atomic commit.
+
+- Scalable.
+    - Modern monorepo build tools and practices are designed to scale, even as the number of projects and developers grows.
+
 ### Install
 
 Before getting started, we recommend that you use WSL, Linux or MacOS! Direct Windows is not supported.
