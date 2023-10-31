@@ -13,39 +13,63 @@ public class SaberButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     private GameObject tooltipObject;
     private Canvas canvas;
 
-  private void Awake()
-  {
-      // Find or create the canvas
-      canvas = FindObjectOfType<Canvas>();
-      if (canvas == null)
-      {
-          GameObject canvasObject = new GameObject("Canvas");
-          canvas = canvasObject.AddComponent<Canvas>();
-          canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-          canvasObject.AddComponent<CanvasScaler>();
-          canvasObject.AddComponent<GraphicRaycaster>();
-      }
+    private void Awake()
+    {
+        // Find or create the canvas
+        canvas = FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            GameObject canvasObject = new GameObject("Canvas");
+            canvas = canvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvasObject.AddComponent<CanvasScaler>();
+            canvasObject.AddComponent<GraphicRaycaster>();
+        }
 
-      // Create the tooltip object
-      tooltipObject = new GameObject("Tooltip");
-      tooltipObject.transform.SetParent(canvas.transform);
-      RectTransform rectTransform = tooltipObject.AddComponent<RectTransform>();
-      tooltipObject.SetActive(false);
+            // Create the tooltip object
+        tooltipObject = new GameObject("Tooltip");
+        tooltipObject.transform.SetParent(canvas.transform);
+        RectTransform rectTransform = tooltipObject.AddComponent<RectTransform>();
+        tooltipObject.SetActive(false);
+        rectTransform.sizeDelta = new Vector2(200, 50);
+        rectTransform.pivot = new Vector2(0.5f, 0);
 
-      // Set RectTransform properties for proper positioning and size
-      rectTransform.sizeDelta = new Vector2(200, 50);
-      rectTransform.pivot = new Vector2(0.5f, 0);
+        // Create a black background object for the tooltip
+           GameObject backgroundObject = new GameObject("Background");
+        backgroundObject.transform.SetParent(tooltipObject.transform);
+        RectTransform backgroundRectTransform = backgroundObject.AddComponent<RectTransform>();
+        backgroundRectTransform.anchorMin = Vector2.zero;
+        backgroundRectTransform.anchorMax = Vector2.one;
+        backgroundRectTransform.offsetMin = Vector2.zero;
+        backgroundRectTransform.offsetMax = Vector2.zero;
+        Image backgroundImage = backgroundObject.AddComponent<Image>();
+        backgroundImage.color = new Color(0, 0, 0, 0.5f);  // Black color with 50% transparency
 
-      // Create a background object for the tooltip
-      GameObject backgroundObject = new GameObject("Background");
-      backgroundObject.transform.SetParent(tooltipObject.transform);
-      RectTransform backgroundRectTransform = backgroundObject.AddComponent<RectTransform>();
-      backgroundRectTransform.anchorMin = Vector2.zero;
-      backgroundRectTransform.anchorMax = Vector2.one;
-      backgroundRectTransform.offsetMin = Vector2.zero;
-      backgroundRectTransform.offsetMax = Vector2.zero;
-      Image backgroundImage = backgroundObject.AddComponent<Image>();
-      backgroundImage.color = new Color(0, 0, 0, 0.5f);
+           // Create a sprite object for the tooltip
+    GameObject spriteObject = new GameObject("Sprite");
+    spriteObject.transform.SetParent(tooltipObject.transform);
+    RectTransform spriteRectTransform = spriteObject.AddComponent<RectTransform>();
+    spriteRectTransform.anchorMin = Vector2.zero;
+    spriteRectTransform.anchorMax = Vector2.one;
+    spriteRectTransform.sizeDelta = Vector2.zero;  // This line ensures that the spriteRectTransform expands to fill the parent tooltipObject
+    spriteRectTransform.anchoredPosition = Vector2.zero;  // This line ensures that the spriteRectTransform is centered within the parent tooltipObject
+    Image spriteImage = spriteObject.AddComponent<Image>();
+
+    // Load the sprite from the specified path
+    Sprite tooltipSprite = Resources.Load<Sprite>("SaberButton/default");
+    if (tooltipSprite != null)
+    {
+        spriteImage.sprite = tooltipSprite;
+        spriteImage.preserveAspect = false;  // Allow the sprite to be stretched to fill the box
+        spriteImage.type = Image.Type.Simple;
+        spriteImage.fillCenter = true;
+    }
+    else
+    {
+        Debug.LogWarning("Failed to load sprite from Assets/Resources/SaberButton/default.png");
+    }
+
+
 
       // Create the Text component
       Text textComponent = tooltipObject.AddComponent<Text>();
