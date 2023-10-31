@@ -13,38 +13,55 @@ public class SaberButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     private GameObject tooltipObject;
     private Canvas canvas;
 
-    private void Awake()
-    {
-        // Find or create the canvas
-        canvas = FindObjectOfType<Canvas>();
-        if (canvas == null)
-        {
-            GameObject canvasObject = new GameObject("Canvas");
-            canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-            canvasObject.AddComponent<CanvasScaler>();
-            canvasObject.AddComponent<GraphicRaycaster>();
-        }
+  private void Awake()
+  {
+      // Find or create the canvas
+      canvas = FindObjectOfType<Canvas>();
+      if (canvas == null)
+      {
+          GameObject canvasObject = new GameObject("Canvas");
+          canvas = canvasObject.AddComponent<Canvas>();
+          canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+          canvasObject.AddComponent<CanvasScaler>();
+          canvasObject.AddComponent<GraphicRaycaster>();
+      }
 
-        // Create the tooltip object
-        tooltipObject = new GameObject("Tooltip");
-        tooltipObject.transform.SetParent(canvas.transform);
-        tooltipObject.AddComponent<RectTransform>();
-        tooltipObject.SetActive(false);
+      // Create the tooltip object
+      tooltipObject = new GameObject("Tooltip");
+      tooltipObject.transform.SetParent(canvas.transform);
+      RectTransform rectTransform = tooltipObject.AddComponent<RectTransform>();
+      tooltipObject.SetActive(false);
 
-        // Create the Text component
-        Text textComponent = tooltipObject.AddComponent<Text>();
-        textComponent.text = tooltipText;
-        textComponent.font = Font.CreateDynamicFontFromOSFont("Arial", 14);
-        textComponent.alignment = TextAnchor.MiddleCenter;
-        textComponent.color = Color.black;
-    }
+      // Set RectTransform properties for proper positioning and size
+      rectTransform.sizeDelta = new Vector2(200, 50);
+      rectTransform.pivot = new Vector2(0.5f, 0);
+
+      // Create a background object for the tooltip
+      GameObject backgroundObject = new GameObject("Background");
+      backgroundObject.transform.SetParent(tooltipObject.transform);
+      RectTransform backgroundRectTransform = backgroundObject.AddComponent<RectTransform>();
+      backgroundRectTransform.anchorMin = Vector2.zero;
+      backgroundRectTransform.anchorMax = Vector2.one;
+      backgroundRectTransform.offsetMin = Vector2.zero;
+      backgroundRectTransform.offsetMax = Vector2.zero;
+      Image backgroundImage = backgroundObject.AddComponent<Image>();
+      backgroundImage.color = new Color(0, 0, 0, 0.5f);
+
+      // Create the Text component
+      Text textComponent = tooltipObject.AddComponent<Text>();
+      textComponent.text = tooltipText;
+      textComponent.font = Font.CreateDynamicFontFromOSFont("Arial", 14);
+      textComponent.alignment = TextAnchor.MiddleCenter;
+      textComponent.color = new Color(0.5f, 0, 0.5f);  // Purple color
+  }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (tooltipObject != null)
+      if (tooltipObject != null)
         {
-            tooltipObject.transform.position = transform.position + new Vector3(0, transform.localScale.y / 2 + 0.1f, 0);
+            // Adjust the offset value to position the tooltip higher above the button
+            float yOffset = transform.localScale.y / 2 + 15f;
+            tooltipObject.transform.position = transform.position + new Vector3(0, yOffset, 0);
             tooltipObject.SetActive(true);
         }
     }
