@@ -97,7 +97,7 @@ public class SaberButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
       if (tooltipObject != null)
         {
             // Adjust the offset value to position the tooltip higher above the button
-            float yOffset = transform.localScale.y / 2 + 15f;
+            float yOffset = transform.localScale.y / 2 + 35f;
             tooltipObject.transform.position = transform.position + new Vector3(0, yOffset, 0);
             tooltipObject.SetActive(true);
         }
