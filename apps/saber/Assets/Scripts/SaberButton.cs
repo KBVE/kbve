@@ -27,56 +27,69 @@ public class SaberButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         }
 
             // Create the tooltip object
-        tooltipObject = new GameObject("Tooltip");
-        tooltipObject.transform.SetParent(canvas.transform);
-        RectTransform rectTransform = tooltipObject.AddComponent<RectTransform>();
-        tooltipObject.SetActive(false);
-        rectTransform.sizeDelta = new Vector2(200, 50);
-        rectTransform.pivot = new Vector2(0.5f, 0);
+            tooltipObject = new GameObject("Tooltip");
+            tooltipObject.transform.SetParent(canvas.transform);
+            RectTransform rectTransform = tooltipObject.AddComponent<RectTransform>();
+            rectTransform.sizeDelta = new Vector2(200, 50);
+            rectTransform.pivot = new Vector2(0.5f, 0);
+            tooltipObject.SetActive(false);
 
-        // Create a black background object for the tooltip
-           GameObject backgroundObject = new GameObject("Background");
-        backgroundObject.transform.SetParent(tooltipObject.transform);
-        RectTransform backgroundRectTransform = backgroundObject.AddComponent<RectTransform>();
-        backgroundRectTransform.anchorMin = Vector2.zero;
-        backgroundRectTransform.anchorMax = Vector2.one;
-        backgroundRectTransform.offsetMin = Vector2.zero;
-        backgroundRectTransform.offsetMax = Vector2.zero;
-        Image backgroundImage = backgroundObject.AddComponent<Image>();
-        backgroundImage.color = new Color(0, 0, 0, 0.5f);  // Black color with 50% transparency
-
-           // Create a sprite object for the tooltip
-    GameObject spriteObject = new GameObject("Sprite");
-    spriteObject.transform.SetParent(tooltipObject.transform);
-    RectTransform spriteRectTransform = spriteObject.AddComponent<RectTransform>();
-    spriteRectTransform.anchorMin = Vector2.zero;
-    spriteRectTransform.anchorMax = Vector2.one;
-    spriteRectTransform.sizeDelta = Vector2.zero;  // This line ensures that the spriteRectTransform expands to fill the parent tooltipObject
-    spriteRectTransform.anchoredPosition = Vector2.zero;  // This line ensures that the spriteRectTransform is centered within the parent tooltipObject
-    Image spriteImage = spriteObject.AddComponent<Image>();
-
-    // Load the sprite from the specified path
-    Sprite tooltipSprite = Resources.Load<Sprite>("SaberButton/default");
-    if (tooltipSprite != null)
-    {
-        spriteImage.sprite = tooltipSprite;
-        spriteImage.preserveAspect = false;  // Allow the sprite to be stretched to fill the box
-        spriteImage.type = Image.Type.Simple;
-        spriteImage.fillCenter = true;
-    }
-    else
-    {
-        Debug.LogWarning("Failed to load sprite from Assets/Resources/SaberButton/default.png");
-    }
+            // Creating the Sprite for Tooltip.
+            GameObject spriteObject = new GameObject("Sprite");
+            spriteObject.transform.SetParent(tooltipObject.transform);
+            RectTransform spriteRectTransform = spriteObject.AddComponent<RectTransform>();
+            spriteRectTransform.anchorMin = Vector2.zero;
+            spriteRectTransform.anchorMax = Vector2.one;
+            spriteRectTransform.sizeDelta = Vector2.zero;
+            spriteRectTransform.anchoredPosition = Vector2.zero;
+            Image spriteImage = spriteObject.AddComponent<Image>();
 
 
+            // Load the sprite from the specified path
+            Sprite tooltipSprite = Resources.Load<Sprite>("SaberButton/default");
+            if (tooltipSprite != null)
+            {
+                spriteImage.sprite = tooltipSprite;
+                spriteImage.preserveAspect = false;
+                spriteImage.type = Image.Type.Simple;
+                spriteImage.fillCenter = true;
+            }
+            else
+            {
+                Debug.LogWarning("Failed to load sprite from Assets/Resources/SaberButton/default.png");
+            }
 
-      // Create the Text component
-      Text textComponent = tooltipObject.AddComponent<Text>();
-      textComponent.text = tooltipText;
-      textComponent.font = Font.CreateDynamicFontFromOSFont("Arial", 14);
-      textComponent.alignment = TextAnchor.MiddleCenter;
-      textComponent.color = new Color(0.5f, 0, 0.5f);  // Purple color
+            //  // Create a black overlay object for the tooltip
+            // GameObject overlayObject = new GameObject("Overlay");
+            // overlayObject.transform.SetParent(tooltipObject.transform);
+            // RectTransform overlayRectTransform = overlayObject.AddComponent<RectTransform>();
+            // overlayRectTransform.anchorMin = Vector2.zero;
+            // overlayRectTransform.anchorMax = Vector2.one;
+            // overlayRectTransform.sizeDelta = Vector2.zero;
+            // overlayRectTransform.anchoredPosition = Vector2.zero;
+            // Image overlayImage = overlayObject.AddComponent<Image>();
+            // overlayImage.color = new Color(0, 0, 0, 0.5f);  // Black color with 50% transparency
+
+            // // Ensure the black overlay is rendered on top of the sprite
+            // overlayObject.transform.SetAsLastSibling();
+
+
+            // Create the Text component
+            GameObject textObject = new GameObject("Text");
+            textObject.transform.SetParent(tooltipObject.transform);
+            RectTransform textRectTransform = textObject.AddComponent<RectTransform>();
+            textRectTransform.anchorMin = Vector2.zero;
+            textRectTransform.anchorMax = Vector2.one;
+            textRectTransform.sizeDelta = Vector2.zero;
+            textRectTransform.anchoredPosition = Vector2.zero;
+            Text textComponent = textObject.AddComponent<Text>();
+            textComponent.text = tooltipText; 
+            textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            textComponent.fontStyle = FontStyle.Bold;
+            //textComponent.characterSpacing = 2;
+            textComponent.alignment = TextAnchor.MiddleCenter;
+            textComponent.color = new Color(0.5f, 0, 0.5f);  // Purple color
+
   }
 
     public void OnPointerEnter(PointerEventData eventData)
