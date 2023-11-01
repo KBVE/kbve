@@ -4,7 +4,7 @@ on:
     push:
         branches:
                 - "dev*"
-    
+
 jobs:
         handle:
             name: "Dev to Main"
@@ -12,8 +12,9 @@ jobs:
             steps:
                 -   name: Checkout
                     uses: actions/checkout@v4
-                    
+
                 -   name: Auto-Pull
+                    id: open-pr
                     uses: diillson/auto-pull-request@v1.0.1
                     with:
                         destination_branch: "main"
@@ -22,3 +23,131 @@ jobs:
                                             *An automated PR for Release*
                                             This PR is for the main branch
                         pr_label: "auto-pr"
+
+                -   name: output-url
+                    run: echo ${{steps.open-pr.outputs.pr_url}}
+                -   name: output-number
+                    run: echo ${{steps.open-pr.outputs.pr_number}}
+                -   name: output-created
+                    run: echo ${{steps.open-pr.outputs.pr_created}}
+                -   name: output-has-changed-files
+                    run: echo ${{steps.open-pr.outputs.has_changed_files}}
+
+        alter:
+            name: "Dev Deployment Checks"
+            runs-on: ubuntu-latest
+            if: github.repository == 'kbve/kbve'
+            outputs:
+              herbmail:  ${{ steps.delta.outputs.herbmail_any_changed  }}
+              kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
+              rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
+              discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
+              atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
+              api: ${{ steps.delta.outputs.api_any_changed  }}
+              proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
+              saber: ${{ steps.delta.outputs.saber_any_changed  }}
+
+            steps:
+              -   name: Checkout the repository using git
+                  uses: actions/checkout@v4
+                  with:
+                      fetch-depth: 1
+
+              -   name: File Changes
+                  id: delta
+                  uses: tj-actions/changed-files@v39
+                  with:
+                    files_yaml: |
+                      herbmail:
+                          - 'apps/herbmail.com/**'
+                      kbve:
+                          - 'apps/kbve.com/**'
+                      rareicon:
+                          - 'apps/rareicon.com/**'
+                      discordsh:
+                          - 'apps/discord.sh/**'
+                      atlas:
+                          - 'apps/atlas/kbve_atlas/**'
+                      api:
+                          - 'apps/api/**'
+                      proxy:
+                          - 'apps/proxy/**'
+                      saber:
+                          - 'apps/saber/**'
+
+        deploy:
+            needs: alter
+            name: "Process Dev"
+            runs-on: ubuntu-latest
+            steps:
+              -   name: Checkout the repository using git
+                  uses: actions/checkout@v4
+
+              -   name: Setup Node v18
+                  uses: actions/setup-node@v3
+                  with:
+                      node-version: 18
+
+              -   name: Setup pnpm
+                  uses: pnpm/action-setup@v2
+                  with:
+                      version: 8
+                      run_install: false
+
+              #   @[CACHE]-> [PNPM] -> [START]
+
+              -   name: Get pnpm Store
+                  shell: bash
+                  run: |
+                      echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+              -   name: Setup pnpm Cache
+                  uses: actions/cache@v3
+                  with:
+                      path: ${{ env.STORE_PATH }}
+                      key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                      restore-keys: |
+                          ${{ runner.os }}-pnpm-store-
+
+              #   @[CACHE] -> [PNPM] ->  [END]
+
+              -   name: Install pnpm dependencies
+                  run: pnpm install
+
+
+              #   @[REPORT] -> [START]
+
+              -   name: Generate NX Report
+                  shell: bash
+                  run: |
+                      pnpm nx report
+
+              #   @[REPORT] -> [END]
+
+              #   [SABER] -> [UNITY] -> [START]
+              -   name: Saber Deployment
+                  if: needs.alter.outputs.saber == 'true'
+                  shell:  bash
+                  run: |
+                        echo "Deploying Saber..."
+
+              -   name: Saber Build
+                  if: needs.alter.outputs.saber == 'true'
+                  uses: game-ci/unity-builder@v3
+                  env:
+                    UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+                    UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+                    UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+                  with:
+                    targetPlatform: WebGL
+                    unityVersion: 2022.3.12f1
+                    projectPath: apps/saber
+
+              -   name: Upload Build
+                  if: needs.alter.outputs.saber == 'true'
+                  uses: actions/upload-artifact@v2
+                  with:
+                    name: build-WebGL
+                    path: build/WebGL
+
+              #   [SABER] -> [UNITY] -> [END]
