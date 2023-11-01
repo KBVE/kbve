@@ -178,6 +178,7 @@ jobs:
 
         itchdev:
             needs: ['alter', 'buildSaber']
+            name: Itch Dev Saber Deployment
             runs-on: ubuntu-latest
             if: needs.alter.outputs.saber == 'true'
             steps:
