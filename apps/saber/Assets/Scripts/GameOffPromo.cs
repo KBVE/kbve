@@ -4,12 +4,12 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
 
-// Define the SpriteLoader class, inheriting MonoBehaviour and implementing IPointerEnterHandler and IPointerExitHandler interfaces
-public class SpriteLoader : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+// Define the GameOffPromo class, inheriting MonoBehaviour and implementing IPointerEnterHandler and IPointerExitHandler interfaces
+public class GameOffPromo : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // Public variables for configuring the script in the inspector
     public Sprite spriteToLoad;  // The sprite to be loaded and displayed
-    public string urlToOpen = "http://example.com";  // The URL to open when the sprite is clicked
+    public string urlToOpen = "https://kbve.com/discord/";  // The URL to open when the sprite is clicked
     public float margin = 10f;  // The margin from the top of the canvas
     public float defaultAlpha = 0.3f;  // The default alpha value of the sprite
     public float hoverScaleFactor = 1.2f;  // The scale factor for the sprite when hovered over
