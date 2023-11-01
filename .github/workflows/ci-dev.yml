@@ -197,4 +197,4 @@ jobs:
                     gameData: ${{steps.download.outputs.download-path}}
                     itchUsername: kbve
                     itchGameId: dev-saber
-                    buildChannel: html5
+                    buildChannel: webgl
