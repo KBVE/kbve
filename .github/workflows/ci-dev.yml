@@ -75,6 +75,49 @@ jobs:
                       saber:
                           - 'apps/saber/**'
 
+        buildSaber:
+            needs: alter
+            runs-on: ubuntu-latest
+            if: needs.alter.outputs.saber == 'true'
+            strategy:
+                fail-fast: false
+                matrix:
+                  projectPath:
+                    - apps/saber
+                  unityVersion:
+                    - 2022.3.12f1
+                  targetPlatform:
+                    - WebGL
+            steps:
+                - uses: actions/checkout@v4
+                  with:
+                    token: ${{ secrets.UNITY_PAT  }}
+                - uses: actions/cache@v2
+                  with:
+                    path: ${{ matrix.projectPath }}/Library
+                    key:
+                      Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-${{
+                      hashFiles(matrix.projectPath) }}
+                    restore-keys: |
+                      Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-
+                      Library-${{ matrix.projectPath }}-
+                      Library-
+
+                - uses: game-ci/unity-builder@v3
+                  env:
+                    UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+                    UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+                    UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+                  with:
+                    projectPath: ${{ matrix.projectPath }}
+                    unityVersion: ${{ matrix.unityVersion }}
+                    targetPlatform: ${{ matrix.targetPlatform }}
+                - uses: actions/upload-artifact@v2
+                  with:
+                    name: build-WebGL
+                    path: build/WebGL
+
+
         deploy:
             needs: alter
             name: "Process Dev"
@@ -130,24 +173,27 @@ jobs:
                   shell:  bash
                   run: |
                         echo "Deploying Saber..."
+              #   [SABER] -> [UNITY] -> [END]
 
-              -   name: Saber Build
-                  if: needs.alter.outputs.saber == 'true'
-                  uses: game-ci/unity-builder@v3
-                  env:
-                    UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-                    UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-                    UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-                  with:
-                    targetPlatform: WebGL
-                    unityVersion: 2022.3.12f1
-                    projectPath: apps/saber
 
-              -   name: Upload Build
-                  if: needs.alter.outputs.saber == 'true'
-                  uses: actions/upload-artifact@v2
+        itchdev:
+            needs: ['alter', 'buildSaber']
+            runs-on: ubuntu-latest
+            if: needs.alter.outputs.saber == 'true'
+            steps:
+              -   name: Checkout repository
+                  uses: actions/checkout@v4
+              -   name: Download WebGL Build
+                  uses: actions/download-artifact@v3
+                  id: download
                   with:
                     name: build-WebGL
                     path: build/WebGL
-
-              #   [SABER] -> [UNITY] -> [END]
+              -   name: Itch Deploy
+                  uses: KikimoraGames/itch-publish@v0.0.3
+                  with:
+                    butlerApiKey: ${{ secrets.ITCH_API }}
+                    gameData: ${{steps.download.outputs.download-path}}
+                    itchUsername: kbve
+                    itchGameId: dev-saber
+                    buildChannel: html5
