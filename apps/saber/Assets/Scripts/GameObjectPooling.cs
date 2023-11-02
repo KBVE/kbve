@@ -1,3 +1,4 @@
+//!     [IMPORTS]
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -24,16 +25,21 @@ public class GameObjectPooling : MonoBehaviour
         ObjectSchema schema = JsonUtility.FromJson<ObjectSchema>(jsonSchema.text);
         foreach (var info in schema.objects)
         {
-            Queue<GameObject> objectPool = new Queue<GameObject>();
-            GameObject prefab = Resources.Load<GameObject>(info.prefabPath);
-            for (int i = 0; i < info.initialPoolSize; i++)
-            {
-                GameObject obj = Instantiate(prefab);
-                obj.SetActive(false);
-                objectPool.Enqueue(obj);
-            }
-            poolDictionary.Add(info.prefabPath, objectPool);
+            CreatePool(info.prefabPath, info.initialPoolSize);
         }
+    }
+
+    void CreatePool(string prefabPath, int initialPoolSize)
+    {
+        Queue<GameObject> objectPool = new Queue<GameObject>();
+        GameObject prefab = Resources.Load<GameObject>(prefabPath);
+        for (int i = 0; i < initialPoolSize; i++)
+        {
+            GameObject obj = Instantiate(prefab);
+            obj.SetActive(false);
+            objectPool.Enqueue(obj);
+        }
+        poolDictionary.Add(prefabPath, objectPool);
     }
 
     public GameObject GetPooledObject(string prefabPath)
@@ -52,20 +58,48 @@ public class GameObjectPooling : MonoBehaviour
         }
         else
         {
-            GameObject prefab = Resources.Load<GameObject>(prefabPath);
+            ExpandPool(prefabPath, 1);
+            return GetPooledObject(prefabPath);
+        }
+    }
+
+    void ExpandPool(string prefabPath, int amount)
+    {
+        GameObject prefab = Resources.Load<GameObject>(prefabPath);
+        for (int i = 0; i < amount; i++)
+        {
             GameObject obj = Instantiate(prefab);
-            return obj;
+            obj.SetActive(false);
+            poolDictionary[prefabPath].Enqueue(obj);
         }
     }
 
     public void ReturnPooledObject(string prefabPath, GameObject obj)
     {
         obj.SetActive(false);
+        ResetObject(obj);
         if (!poolDictionary.ContainsKey(prefabPath))
         {
             Debug.LogWarning("Pool does not exist.");
             return;
         }
         poolDictionary[prefabPath].Enqueue(obj);
+    }
+
+    void ResetObject(GameObject obj)
+    {
+        // Reset object properties as needed
+        obj.transform.position = Vector3.zero;
+        obj.transform.rotation = Quaternion.identity;
+    }
+
+    public void PrewarmPool(string prefabPath, int amount)
+    {
+        if (!poolDictionary.ContainsKey(prefabPath))
+        {
+            Debug.LogWarning("Pool does not exist.");
+            return;
+        }
+        ExpandPool(prefabPath, amount);
     }
 }
