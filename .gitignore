@@ -43,3 +43,7 @@ Thumbs.db
 .nx/cache
 apps/api/.env
 .env
+apps/saber/.vsconfig
+apps/saber/ProjectSettings/ShaderGraphSettings.asset
+apps/saber/ProjectSettings/ShaderGraphSettings.asset
+apps/saber/ProjectSettings/ShaderGraphSettings.asset
