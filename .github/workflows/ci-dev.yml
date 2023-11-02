@@ -178,6 +178,7 @@ jobs:
 
         itchdev:
             needs: ['alter', 'buildSaber']
+            name: Itch Dev Saber Deployment
             runs-on: ubuntu-latest
             if: needs.alter.outputs.saber == 'true'
             steps:
@@ -196,4 +197,4 @@ jobs:
                     gameData: ${{steps.download.outputs.download-path}}
                     itchUsername: kbve
                     itchGameId: dev-saber
-                    buildChannel: html5
+                    buildChannel: webgl
