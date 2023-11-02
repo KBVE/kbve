@@ -1028,7 +1028,7 @@ MonoBehaviour:
   normalScale: {x: 1, y: 1, z: 1}
   pressedScale: {x: 1.1, y: 1.1, z: 1.1}
   animationDuration: 0.1
-  tooltipText: Wizcats
+  tooltipText: Spud
 --- !u!114 &1714684395
 MonoBehaviour:
   m_ObjectHideFlags: 0
