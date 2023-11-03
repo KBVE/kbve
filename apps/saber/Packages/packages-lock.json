@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.autodesk.fbx": {
+      "version": "4.2.1",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.2d.animation": {
       "version": "9.0.4",
       "depth": 1,
@@ -94,12 +101,31 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.animation.rigging": {
+      "version": "1.2.1",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.burst": "1.4.1",
+        "com.unity.test-framework": "1.1.24"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.burst": {
       "version": "1.8.9",
       "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.mathematics": "1.2.1"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.cinemachine": {
+      "version": "2.9.5",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.31"
       },
       "url": "https://packages.unity.com"
     },
@@ -142,6 +168,38 @@
         "com.unity.2d.aseprite": "1.0.1"
       }
     },
+    "com.unity.feature.characters-animation": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.animation.rigging": "1.2.1",
+        "com.unity.timeline": "1.7.6",
+        "com.unity.cinemachine": "2.9.5",
+        "com.unity.formats.fbx": "4.2.1"
+      }
+    },
+    "com.unity.feature.worldbuilding": {
+      "version": "1.0.1",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.probuilder": "5.2.0",
+        "com.unity.polybrush": "1.1.5",
+        "com.unity.formats.fbx": "4.2.1",
+        "com.unity.terrain-tools": "5.0.1"
+      }
+    },
+    "com.unity.formats.fbx": {
+      "version": "4.2.1",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.timeline": "1.7.1",
+        "com.autodesk.fbx": "4.2.1"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ide.rider": {
       "version": "3.0.25",
       "depth": 0,
@@ -165,6 +223,35 @@
       "depth": 1,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.polybrush": {
+      "version": "1.1.5",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.settings-manager": "2.0.1"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.postprocessing": {
+      "version": "3.2.2",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.physics": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.probuilder": {
+      "version": "5.2.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.settings-manager": "1.0.3",
+        "com.unity.modules.physics": "1.0.0",
+        "com.unity.modules.imgui": "1.0.0"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.render-pipelines.core": {
@@ -196,6 +283,13 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.settings-manager": {
+      "version": "2.0.1",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.shadergraph": {
       "version": "14.0.9",
       "depth": 1,
@@ -204,6 +298,16 @@
         "com.unity.render-pipelines.core": "14.0.9",
         "com.unity.searcher": "4.9.2"
       }
+    },
+    "com.unity.terrain-tools": {
+      "version": "5.0.1",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.terrain": "1.0.0",
+        "com.unity.modules.terrainphysics": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
       "version": "1.1.33",
