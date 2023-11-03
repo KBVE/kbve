@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.github",
+    "\\.github\\ISSUE_TEMPLATE",
+    "\\.github\\workflows",
+    "\\functions\\appwrite",
+    "\\functions\\appwrite\\inbox",
+    "\\functions\\appwrite\\instagraph",
+    "\\functions\\appwrite\\login",
+    "\\functions\\appwrite\\register",
+    "\\scripts"
+  ],
+  "SelectedNode": "\\scripts\\studio.sh",
+  "PreviewInSolutionExplorer": false
+}
