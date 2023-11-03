@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections;
 
+
 public class SaberButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private Vector3 normalScale = new Vector3(1, 1, 1);
@@ -83,7 +84,7 @@ public class SaberButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
             textRectTransform.sizeDelta = Vector2.zero;
             textRectTransform.anchoredPosition = Vector2.zero;
             Text textComponent = textObject.AddComponent<Text>();
-            textComponent.text = tooltipText; 
+            textComponent.text = tooltipText;
             textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             textComponent.fontStyle = FontStyle.Bold;
             //textComponent.characterSpacing = 2;
