@@ -26,7 +26,6 @@ public class IntroScene_Script : MonoBehaviour
         fadeImageScript.LoopFadeInOut();
         }
 
-        LoadTestScene();
 
         // introButton = GetComponent<Button>();
         // if(introButton != null)
