@@ -35,6 +35,8 @@ public class UIPlayerMenu : MonoBehaviour
         // Create a new GameObject for the menu button
         menuButtonObject = new GameObject("MenuButton");
         Button menuButton = menuButtonObject.AddComponent<Button>();
+        menuButton.onClick.AddListener(ToggleMenu);  // Add onClick listener here
+
 
         // Set the sprite of the menu button
         Image menuImage = menuButtonObject.AddComponent<Image>();
@@ -71,6 +73,10 @@ public class UIPlayerMenu : MonoBehaviour
         SetMenuState(false);
     }
 
+    void ToggleMenu()
+    {
+        SetMenuState(!menuExpanded);  // Toggle the menu state
+    }
 
     void Update()
     {
