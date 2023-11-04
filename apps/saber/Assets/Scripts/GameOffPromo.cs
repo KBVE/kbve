@@ -106,14 +106,28 @@ public class GameOffPromo : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     // Method for handling the pointer exit event (hover end)
     public void OnPointerExit(PointerEventData eventData)
     {
-        // Reset the color alpha to the default alpha
-        imageComponent.color = new Color(1, 1, 1, defaultAlpha);
-        // Reset the target size to the original size
-        targetSize = originalSize;
-        // Stop the volume coroutine (if any)
-        if (volumeCoroutine != null) StopCoroutine(volumeCoroutine);
-        // Reset the volume to 0
-        audioSource.volume = 0f;
+      // Null check for imageComponent
+      if (imageComponent != null)
+      {
+          // Reset the color alpha to the default alpha
+          imageComponent.color = new Color(1, 1, 1, defaultAlpha);
+      }
+
+      // Reset the target size to the original size
+      targetSize = originalSize;
+
+      // Null check for volumeCoroutine
+      if (volumeCoroutine != null)
+      {
+          StopCoroutine(volumeCoroutine);
+      }
+
+      // Null check for audioSource
+      if (audioSource != null)
+      {
+          // Reset the volume to 0
+          audioSource.volume = 0f;
+      }
     }
 
     // Coroutine for gradually increasing the volume of the hover sound
