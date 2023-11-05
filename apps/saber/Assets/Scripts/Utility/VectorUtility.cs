@@ -1,23 +1,23 @@
 using UnityEngine;
 
-public class VectorUtility
+public struct VectorUtility
 {
-    static public Vector3 FlattenVector(Vector3 vectorToFlatten, float desiredYValue = 0)
+    public static Vector3 FlattenVector(Vector3 vecToFlatten, float desiredYValue = 0)
     {
-        return new Vector3(vectorToFlatten.x, desiredYValue, vectorToFlatten.z);
+        return new Vector3(vecToFlatten.x, desiredYValue, vecToFlatten.z);
     }
-    static public Vector3 CalculateDirection(Vector3 from, Vector3 to)
+
+    public static Vector3 CalculateDirection(Vector3 a, Vector3 b, bool normalize = true)
     {
-        return (to - from).normalized;
+        return normalize ? (b - a).normalized : (b - a);
     }
-    static public Vector3 Round(Vector3 vector3, int decimalPlaces = 0)
+
+    public static void Round(ref Vector3 vec, int decimalPlaces = 0)
     {
         float multiplier = Mathf.Pow(10f, decimalPlaces);
-        
-        return new Vector3(
-            Mathf.Round(vector3.x * multiplier) / multiplier,
-            Mathf.Round(vector3.y * multiplier) / multiplier,
-            Mathf.Round(vector3.z * multiplier) / multiplier);
+        vec.x = Mathf.Round(vec.x * multiplier) / multiplier;
+        vec.y = Mathf.Round(vec.y * multiplier) / multiplier;
+        vec.z = Mathf.Round(vec.z * multiplier) / multiplier;
     }
 }
 
