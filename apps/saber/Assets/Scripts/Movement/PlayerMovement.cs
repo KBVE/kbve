@@ -98,23 +98,6 @@ public class PlayerMovement : MonoBehaviour
 
         jumping = Input.GetKey(jumpKey);
         running = Input.GetKey(sprintKey);
-
-        if (jumping && canJump && isGrounded)
-        {
-            canJump = false;
-            Jump();
-            Invoke(nameof(ResetJump), jumpCoolDown);
-        }
-    }
-    
-    void Jump()
-    {
-        rb.velocity = VectorUtility.FlattenVector(rb.velocity);
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
-    }
-    void ResetJump()
-    {
-        canJump = true;
     }
 
     void SpeedControl()
@@ -165,6 +148,13 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         MovePlayer();
+
+        if (jumping && canJump && isGrounded)
+        {
+            canJump = false;
+            Jump();
+            Invoke(nameof(ResetJump), jumpCoolDown);
+        }
     }
 
     void MovePlayer()
@@ -198,6 +188,17 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(moveDir.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
 
     }
+
+     void Jump()
+    {
+        rb.velocity = VectorUtility.FlattenVector(rb.velocity);
+        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+    }
+    void ResetJump()
+    {
+        canJump = true;
+    }
+
 
     bool GroundCheck()
     {
