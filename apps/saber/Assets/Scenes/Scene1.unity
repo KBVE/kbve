@@ -501,7 +501,7 @@ GameObject:
   - component: {fileID: 139766770}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -594,7 +594,7 @@ Transform:
   m_GameObject: {fileID: 168443273}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.0000000037252903, w: 1}
-  m_LocalPosition: {x: 32.43, y: 6.55, z: 68.74}
+  m_LocalPosition: {x: 30.72, y: 4.93, z: 68.74}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -986,6 +986,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   freezeAxis: 0
+  enableBobbing: 1
+  bobbingSpeed: 2
+  bobbingAmount: 0.5
+  enableFollowing: 1
+  followDistance: 5
 --- !u!1 &496346995
 GameObject:
   m_ObjectHideFlags: 0
