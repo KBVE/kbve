@@ -83,15 +83,69 @@ public class PlayerMovement : MonoBehaviour
     {
         isGrounded = GroundCheck(); // checks if player is on ground
 
-        GetInput(); // gets player movement input
-        SpeedControl(); // makes sure player is not moving faster then his max speed
-        StateHandler(); // controls if the player is walking or running
+        GetInput(); // Gets player movement input
+        SpeedControl(); // Makes sure player is not moving faster then his max speed
+        RotatePlayer(); // Rotates the player to align with movement direction
+        StateHandler(); // Controls if the player is walking or running
 
-        rb.drag = isGrounded ? groundDrag : 0f; // if the player is on the ground apply ground drag else don't apply drag
+        rb.drag = isGrounded ? groundDrag : 0f; // If the player is on the ground apply ground drag else don't apply drag
     }
 
-  void StateHandler()
-  {
+    void GetInput()
+    {
+        horiz = Input.GetAxis("Horizontal");
+        vert = Input.GetAxis("Vertical");
+
+        jumping = Input.GetKey(jumpKey);
+        running = Input.GetKey(sprintKey);
+
+        if (jumping && canJump && isGrounded)
+        {
+            canJump = false;
+            Jump();
+            Invoke(nameof(ResetJump), jumpCoolDown);
+        }
+    }
+    
+    void Jump()
+    {
+        rb.velocity = VectorUtility.FlattenVector(rb.velocity);
+        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+    }
+    void ResetJump()
+    {
+        canJump = true;
+    }
+
+    void SpeedControl()
+    {
+        if (OnSlope())
+        {
+            if (rb.velocity.magnitude > moveSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * moveSpeed;
+            }
+        }
+        else
+        {
+            Vector3 flatVel = VectorUtility.FlattenVector(rb.velocity);
+
+            if (flatVel.magnitude > moveSpeed)
+            {
+                Vector3 limitedVel = flatVel.normalized * moveSpeed;
+                rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
+            }
+        }
+    }
+
+    void RotatePlayer()
+    {
+        if (moveDir != Vector3.zero)
+            transform.forward = Vector3.Slerp(transform.forward, moveDir.normalized, Time.deltaTime * rotationSpeed);
+    }
+
+    void StateHandler()
+    {
         if(isGrounded && running)
         {
             state = MovementState.sprinting;
@@ -106,9 +160,9 @@ public class PlayerMovement : MonoBehaviour
         {
             state = MovementState.air;
         }
-  }
+    }
 
-  void FixedUpdate()
+    void FixedUpdate()
     {
         MovePlayer();
     }
@@ -143,12 +197,14 @@ public class PlayerMovement : MonoBehaviour
         else if (!isGrounded)
             rb.AddForce(moveDir.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
 
-
     }
-    void RotatePlayer()
+
+    bool GroundCheck()
     {
-        if (moveDir != Vector3.zero)
-            transform.forward = Vector3.Slerp(transform.forward, moveDir.normalized, Time.deltaTime * rotationSpeed);
+        Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y + groundOffset,
+        transform.position.z);
+        Debug.Log(Physics.CheckSphere(spherePosition, groundedRadius, groundLayer, QueryTriggerInteraction.Ignore));
+        return Physics.CheckSphere(spherePosition, groundedRadius, groundLayer, QueryTriggerInteraction.Ignore);
     }
     bool OnSlope()
     {
@@ -164,58 +220,7 @@ public class PlayerMovement : MonoBehaviour
     {
         return Vector3.ProjectOnPlane(moveDir, slopeHit.normal);
     }
-     void SpeedControl()
-    {
-        if (OnSlope())
-        {
-            if (rb.velocity.magnitude > moveSpeed)
-            {
-                rb.velocity = rb.velocity.normalized * moveSpeed;
-            }
-        }
-        else
-        {
-            Vector3 flatVel = VectorUtility.FlattenVector(rb.velocity);
-
-            if (flatVel.magnitude > moveSpeed)
-            {
-                Vector3 limitedVel = flatVel.normalized * moveSpeed;
-                rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
-            }
-        }
-    }
-
-    void GetInput()
-    {
-        horiz = Input.GetAxis("Horizontal");
-        vert = Input.GetAxis("Vertical");
-
-        jumping = Input.GetKey(jumpKey);
-        running = Input.GetKey(sprintKey);
-
-        if (jumping && canJump && isGrounded)
-        {
-            canJump = false;
-            Jump();
-            Invoke(nameof(ResetJump), jumpCoolDown);
-        }
-    }
-     void Jump()
-    {
-        rb.velocity = VectorUtility.FlattenVector(rb.velocity);
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
-    }
-    void ResetJump()
-    {
-        canJump = true;
-    }
-    bool GroundCheck()
-    {
-        Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y + groundOffset,
-        transform.position.z);
-        Debug.Log(Physics.CheckSphere(spherePosition, groundedRadius, groundLayer, QueryTriggerInteraction.Ignore));
-        return Physics.CheckSphere(spherePosition, groundedRadius, groundLayer, QueryTriggerInteraction.Ignore);
-    }
+    
     void OnDrawGizmosSelected()
     {
         Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y + groundOffset,
