@@ -1,37 +1,23 @@
 using UnityEngine;
 
-public class VectorUtility : MonoBehaviour
+public class VectorUtility
 {
-    static public Vector3 FlattenVector(Vector3 vectorToFlatten)
-    {
-        return new Vector3(vectorToFlatten.x, 0f, vectorToFlatten.z);
-    }
-    static public Vector3 FlattenVector(Vector3 vectorToFlatten, float desiredYValue)
+    static public Vector3 FlattenVector(Vector3 vectorToFlatten, float desiredYValue = 0)
     {
         return new Vector3(vectorToFlatten.x, desiredYValue, vectorToFlatten.z);
     }
-    static public Vector3 GetDirection(Vector3 from, Vector3 to)
+    static public Vector3 CalculateDirection(Vector3 from, Vector3 to)
     {
         return (to - from).normalized;
     }
-    static public Vector3 Round(Vector3 vector3, int decimalPlaces)
+    static public Vector3 Round(Vector3 vector3, int decimalPlaces = 0)
     {
-        float multiplier = 1;
-        for (int i = 0; i < decimalPlaces; i++)
-        {
-            multiplier *= 10f;
-        }
+        float multiplier = Mathf.Pow(10f, decimalPlaces);
+        
         return new Vector3(
             Mathf.Round(vector3.x * multiplier) / multiplier,
             Mathf.Round(vector3.y * multiplier) / multiplier,
             Mathf.Round(vector3.z * multiplier) / multiplier);
-    }
-    static public Vector3 Round(Vector3 vector3)
-    {
-        return new Vector3(
-            Mathf.Round(vector3.x),
-            Mathf.Round(vector3.y),
-            Mathf.Round(vector3.z));
     }
 }
 
