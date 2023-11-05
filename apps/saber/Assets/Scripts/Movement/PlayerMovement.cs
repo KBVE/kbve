@@ -13,8 +13,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float groundDrag = 5;
 
     [Tooltip("Amount of force to apply when jumping")]
-    [SerializeField] float jumpForce = 10f;
-
+    [SerializeField] float jumpForce = 5f;
+    [Tooltip("Factor that is multiplied with the global gravity to determine the gravity for this object")]
+    [SerializeField] float gravityScale = -8f;
     [Tooltip("Cooldown between jumps")]
     [SerializeField] float jumpCoolDown = 0.2f;
 
@@ -23,7 +24,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Tooltip("Speed at which the player model will turn towards new movement direction")]
     [SerializeField] float rotationSpeed = 7f;
-
+    
     [Space(5)]
 
     [Tooltip("Should be any layer the player can stand and jump from")]
@@ -189,10 +190,11 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
-     void Jump()
+    void Jump()
     {
         rb.velocity = VectorUtility.FlattenVector(rb.velocity);
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+        float initialVelocity = Mathf.Sqrt(-2f * gravityScale * jumpForce);
+        rb.AddForce(transform.up * initialVelocity, ForceMode.Impulse);
     }
     void ResetJump()
     {
