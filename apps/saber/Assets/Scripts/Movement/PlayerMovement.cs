@@ -206,7 +206,6 @@ public class PlayerMovement : MonoBehaviour
     {
         Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y + groundOffset,
         transform.position.z);
-        Debug.Log(Physics.CheckSphere(spherePosition, groundedRadius, groundLayer, QueryTriggerInteraction.Ignore));
         return Physics.CheckSphere(spherePosition, groundedRadius, groundLayer, QueryTriggerInteraction.Ignore);
     }
     bool OnSlope()
