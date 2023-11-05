@@ -7,14 +7,17 @@ public class PlayerData
 {
     public int level;
     public int health;
-    public float[] position = new float[2];
+    public int scale;
+    public float[] position = new float[3];
 
     public PlayerData()
     {
         level = 1;
+        scale = 1000;  // which represents the scales on the dragon
         health = 100;
         position[0] = 0;
         position[1] = 0;
+        position[2] = 0;
     }
 }
 
@@ -23,10 +26,33 @@ public class PlayerDataManager : MonoBehaviour
     private static readonly string playerPrefKey = "playerData";
     private GameObject debugPanel;
     private Text debugText;
+    private Transform playerTransform;
 
     void Start()
     {
+        //playerTransform = GameObject.FindGameObjectWithTag("Player").transform;  // Assume player object is tagged "Player"
+        // Find the Player GameObject
+       GameObject player = GameObject.Find("Player");
+
+        if (player != null)
+        {
+            // Check if the Player tag is assigned to the Player GameObject
+            if (!player.CompareTag("Player"))
+            {
+                // Assign the Player tag to the Player GameObject
+                player.tag = "Player";
+            }
+
+            // Get the Transform component of the Player GameObject
+            playerTransform = player.transform;
+        }
+        else
+        {
+            Debug.LogError("Player GameObject not found. Please ensure a GameObject named 'Player' exists in the scene.");
+        }
+
         CreateDebugDisplay();
+        LoadPlayerData();
     }
 
     private void Update()
@@ -37,25 +63,32 @@ public class PlayerDataManager : MonoBehaviour
         }
     }
 
-    public static void SavePlayerData(PlayerData data)
+     public void SavePlayerData()
     {
+        PlayerData data = new PlayerData();
+        Vector3 playerPosition = playerTransform.position;
+        data.position[0] = playerPosition.x;
+        data.position[1] = playerPosition.y;
+        data.position[2] = playerPosition.z;
         string json = JsonUtility.ToJson(data);
         PlayerPrefs.SetString(playerPrefKey, json);
         PlayerPrefs.Save();
     }
 
-    public static PlayerData LoadPlayerData()
+    public PlayerData LoadPlayerData()
     {
+        PlayerData data = new PlayerData();
         if (PlayerPrefs.HasKey(playerPrefKey))
         {
             string json = PlayerPrefs.GetString(playerPrefKey);
-            return JsonUtility.FromJson<PlayerData>(json);
+            data = JsonUtility.FromJson<PlayerData>(json);
+            Vector3 playerPosition = new Vector3(data.position[0], data.position[1], data.position[2]);
+            playerTransform.position = playerPosition;
         }
-        else
-        {
-            return new PlayerData();
-        }
+        return data;
     }
+
+
 
     private void CreateDebugDisplay()
     {
@@ -76,7 +109,7 @@ public class PlayerDataManager : MonoBehaviour
 
         // Set up RectTransform for the panel to be in the center
         RectTransform panelRect = debugPanel.GetComponent<RectTransform>();
-        panelRect.sizeDelta = new Vector2(400, 200);
+        panelRect.sizeDelta = new Vector2(600, 600);
         panelRect.anchorMin = new Vector2(0.5f, 0.5f);
         panelRect.anchorMax = new Vector2(0.5f, 0.5f);
         panelRect.pivot = new Vector2(0.5f, 0.5f);
@@ -86,6 +119,7 @@ public class PlayerDataManager : MonoBehaviour
         debugText = new GameObject("DebugText").AddComponent<Text>();
         debugText.transform.SetParent(debugPanel.transform, false);
         debugText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        debugText.fontSize = 30;
         debugText.alignment = TextAnchor.UpperLeft;
         debugText.horizontalOverflow = HorizontalWrapMode.Overflow;
         debugText.verticalOverflow = VerticalWrapMode.Overflow;
@@ -93,7 +127,7 @@ public class PlayerDataManager : MonoBehaviour
 
         // Set up RectTransform for the text
         RectTransform textRect = debugText.GetComponent<RectTransform>();
-        textRect.sizeDelta = new Vector2(380, 180); // Slightly smaller than the panel
+        textRect.sizeDelta = new Vector2(580, 580); // Slightly smaller than the panel
         textRect.anchorMin = new Vector2(0.5f, 0.5f);
         textRect.anchorMax = new Vector2(0.5f, 0.5f);
         textRect.pivot = new Vector2(0.5f, 0.5f);
@@ -145,14 +179,20 @@ public class PlayerDataManager : MonoBehaviour
 
     private void UpdateDebugDisplay()
     {
-        PlayerData playerData = LoadPlayerData();
+        LoadPlayerData();  // Load player data and update player position
+
+        PlayerData playerData = new PlayerData();  // Create a new PlayerData object
+        Vector3 playerPosition = playerTransform.position;
+        playerData.position[0] = playerPosition.x;
+        playerData.position[1] = playerPosition.y;
+        playerData.position[2] = playerPosition.z;
 
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("Player Data:");
         sb.AppendLine("Level: " + playerData.level);
         sb.AppendLine("Health: " + playerData.health);
-        sb.AppendLine($"Position: ({playerData.position[0]}, {playerData.position[1]})");
-
+        sb.AppendLine("Scales: " + playerData.scale);
+        sb.AppendLine($"Position: ({playerData.position[0]}, {playerData.position[1]}, {playerData.position[2]})");
         debugText.text = sb.ToString();
     }
 }
