@@ -487,8 +487,8 @@ MonoBehaviour:
   walkSpeed: 5
   runSpeed: 8
   groundDrag: 5
-  jumpForce: 10
-  gravityScale: 0
+  jumpForce: 5
+  gravityScale: -8
   jumpCoolDown: 0.2
   airMultiplier: 0.5
   rotationSpeed: 7
