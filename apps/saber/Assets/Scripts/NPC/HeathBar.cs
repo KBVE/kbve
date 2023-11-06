@@ -49,7 +49,7 @@ public class HealthBar : MonoBehaviour
         textGO.layer = LayerMask.NameToLayer("UI");
         nameText = textGO.AddComponent<Text>();
         nameText.text = npcName;
-        nameText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         nameText.fontSize = 14;
         nameText.alignment = TextAnchor.UpperCenter;
         nameText.color = Color.black;
