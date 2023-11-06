@@ -15,17 +15,13 @@ public class GhostNPC : NPC
     protected override void Update()
     {
         base.Update();
-        FadeInAndOut();
-    }
+        abilities.FadeInAndOut(GetComponent<Renderer>(), 0.5f + 0.3f * Mathf.Sin(Time.time));
+        abilities.Bobbing(transform);
 
-    private void FadeInAndOut()
-    {
-        transparency = 0.5f + 0.3f * Mathf.Sin(Time.time);
-        GetComponent<Renderer>().material.color = new Color(1, 1, 1, transparency);
     }
 
     public void Scare()
     {
-        //TODO Implement scare behavior here
+        //TODO Implement scare behavior here - Migrating this over to the Abilities
     }
 }

@@ -8,9 +8,12 @@ public class NPC : MonoBehaviour
     public Vector3 location;
     public bool isFriendly;
     public NPCPoolManager poolManager;
+    public NPCAbilities abilities;
+
 
     protected virtual void Start()
     {
+        abilities = GetComponent<NPCAbilities>();
         currentHealth = npcData.maxHealth;
         location = transform.position;
     }
