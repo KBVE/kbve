@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 7a66d55fe1109e04c98ec75bd53ff8d0
+guid: ffa1f4ca1b8740242b9d4bbc29c8c244
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -33,11 +33,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Dragon Walk Forward
+      name: Dragon_Flying
       takeName: Take 001
       internalID: 1827226128182048838
-      firstFrame: 1
-      lastFrame: 24
+      firstFrame: 10
+      lastFrame: 32
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

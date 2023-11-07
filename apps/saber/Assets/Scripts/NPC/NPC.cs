@@ -1,16 +1,18 @@
+//*       [IMPORTS]
 using UnityEngine;
 
+//?       [NPC] Class
 public class NPC : MonoBehaviour
 {
     public NPCData npcData; // Data object holding NPC properties
     public NPCPoolManager poolManager; // Manager handling pooling of NPCs
     public NPCAbilities abilities; // Script managing NPC abilities
 
-    private HealthBar healthBar;
+    private HealthBar healthBar; // Reference to the HealthBar component
+    public int currentHealth; // Current health of the NPC
+    public Vector3 location; // Current location of the NPC
+    public bool isFriendly; // Flag indicating if the NPC is friendly or not
 
-    public int currentHealth;
-    public Vector3 location;
-    public bool isFriendly;
 
 
 
@@ -25,7 +27,7 @@ public class NPC : MonoBehaviour
 
     protected virtual void Update()
     {
-        location = transform.position;
+        location = transform.position; // Update location each frame
     }
 
     public void ReceiveDamage(int damage)
