@@ -86,6 +86,7 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         isGrounded = GroundCheck(); // checks if player is on ground
+        animator.SetBool("Grounded", isGrounded);
 
         GetInput(); // Gets player movement input
         SpeedControl(); // Makes sure player is not moving faster then his max speed
@@ -137,7 +138,6 @@ public class PlayerMovement : MonoBehaviour
     void StateHandler()
     {
         animator.SetFloat("Speed", rb.velocity.magnitude);
-        
         if(isGrounded && running)
         {
             state = MovementState.sprinting;
@@ -203,6 +203,7 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = VectorUtility.FlattenVector(rb.velocity);
         float initialVelocity = Mathf.Sqrt(-2f * gravityScale * jumpForce);
         rb.AddForce(transform.up * initialVelocity, ForceMode.Impulse);
+        animator.SetTrigger("Jump");
     }
     void ResetJump()
     {
