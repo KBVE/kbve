@@ -44,19 +44,6 @@ public class NPC : MonoBehaviour
     protected virtual void Start()
     {
         abilities = GetComponent<NPCAbilities>(); // Initialize abilities
-
-        //! Adding the Player to the Target of the Abilities
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-        if (playerObject != null)
-        {
-          abilities.target = playerObject.transform;
-        }
-        else
-        {
-            Debug.LogWarning("No object with tag 'Player' found in the scene.", this);
-        }
-
-
         currentHealth = npcData.maxHealth; // Set current health to max
         location = transform.position; // Store initial location
         CreateHealthBar(); // Create the health bar UI
