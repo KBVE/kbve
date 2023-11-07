@@ -18,6 +18,17 @@ public class GhostNPC : NPC
         abilities.FadeInAndOut(GetComponent<Renderer>(), 0.5f + 0.3f * Mathf.Sin(Time.time));
         abilities.Bobbing(transform);
 
+               //! Adding the Player to the Target of the Abilities
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null)
+        {
+          abilities.FollowTarget(playerObject.transform);
+        }
+        else
+        {
+            Debug.LogWarning("No object with tag 'Player' found in the scene.", this);
+        }
+
     }
 
     public void Scare()
