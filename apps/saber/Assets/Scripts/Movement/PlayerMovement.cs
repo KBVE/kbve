@@ -53,6 +53,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("References")]
     Rigidbody rb;
     Camera cam;
+    Animator animator;
 
     [Header("Private Vars")]
     Vector3 moveDir; // Direction of the player's movement
@@ -77,6 +78,8 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         cam = Camera.main;
+        animator = GetComponent<Animator>();
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     // Update is called once per frame
@@ -88,7 +91,7 @@ public class PlayerMovement : MonoBehaviour
         SpeedControl(); // Makes sure player is not moving faster then his max speed
         RotatePlayer(); // Rotates the player to align with movement direction
         StateHandler(); // Controls if the player is walking or running
-
+        
         rb.drag = isGrounded ? groundDrag : 0f; // If the player is on the ground apply ground drag else don't apply drag
     }
 
@@ -125,11 +128,16 @@ public class PlayerMovement : MonoBehaviour
     void RotatePlayer()
     {
         if (moveDir != Vector3.zero)
-            transform.forward = Vector3.Slerp(transform.forward, moveDir.normalized, Time.deltaTime * rotationSpeed);
+        {
+            Quaternion toRotation = Quaternion.LookRotation(moveDir, Vector3.up);
+            transform.rotation = Quaternion.Lerp(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
+        }   
     }
 
     void StateHandler()
     {
+        animator.SetFloat("Speed", rb.velocity.magnitude);
+        
         if(isGrounded && running)
         {
             state = MovementState.sprinting;
