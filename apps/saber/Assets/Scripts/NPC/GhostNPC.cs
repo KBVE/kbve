@@ -23,6 +23,12 @@ public class GhostNPC : NPC
         if (playerObject != null)
         {
           abilities.FollowTarget(playerObject.transform);
+
+          if (ShouldCastSpell(playerObject))
+            {
+                //abilities.CastSpell("WindCast", playerObject); // Cast the spell
+                abilities.CastRandomSpell(playerObject);
+            }
         }
         else
         {
@@ -35,4 +41,12 @@ public class GhostNPC : NPC
     {
         //TODO Implement scare behavior here - Migrating this over to the Abilities
     }
+
+
+    private bool ShouldCastSpell(GameObject player)
+    {
+        // Placeholder for your spell casting logic
+        return Vector3.Distance(transform.position, player.transform.position) < 10f;
+    }
+
 }
