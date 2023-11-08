@@ -8,33 +8,49 @@ public class Spell : ScriptableObject
     public float manaCost;
     public float castTime;
     public float cooldown;
-    public GameObject spellEffectPrefab; // The visual effect prefab of the spell
+    //public GameObject spellEffectPrefab; // The visual effect prefab of the spell
+    public Sprite spellSprite; // Assign this in the inspector
 
     // This method would be called to activate the spell effect
     public virtual void Cast(GameObject caster, GameObject target, Camera mainCamera)
-    {
-        // Ensure the spellEffectPrefab is not null and is assigned.
-        if (spellEffectPrefab != null)
-        {
-            // Instantiate the spell effect and store the reference in a local variable
-            GameObject spellEffectInstance = Instantiate(spellEffectPrefab, target.transform.position, Quaternion.identity);
+      {
+            // Check if the caster, target, and mainCamera are not null
+            if (caster == null)
+            {
+                Debug.LogError("Caster is null.");
+                return;
+            }
 
-            // If there's an error here, ensure your prefab has the Billboard component attached.
-            Billboard billboardComponent = spellEffectInstance.GetComponent<Billboard>();
-            if (billboardComponent != null)
+            if (target == null)
             {
-                billboardComponent.SetCamera(mainCamera);
+                Debug.LogError("Target is null.");
+                return;
             }
-            else
+            if (mainCamera == null)
             {
-                // If you hit this error, then your spellEffectPrefab does not have a Billboard component.
-                Debug.LogError("Billboard component not found on the spell effect prefab!");
+                Debug.LogError("Main Camera is null.");
+                return;
             }
+
+        // Check if the spell's sprite is assigned
+        if (spellSprite != null)
+        {
+            // Create a new GameObject to hold the spell effect
+            GameObject spellEffectObject = new GameObject(spellName + " Effect");
+            spellEffectObject.transform.position = target.transform.position; // Position it at the target's location
+
+            // Add a SpriteRenderer and assign the sprite to it
+            SpriteRenderer spriteRenderer = spellEffectObject.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = spellSprite;
+
+            // Make the sprite face the camera using the Billboard script
+            Billboard billboardComponent = spellEffectObject.AddComponent<Billboard>();
+            billboardComponent.SetCamera(mainCamera);
         }
         else
         {
-            // If you hit this error, then the spellEffectPrefab was not assigned.
-            Debug.LogError("Spell effect prefab is not assigned!");
+            // Log an error if the sprite is not assigned
+            Debug.LogError("Spell sprite is not assigned.");
         }
     }
 }

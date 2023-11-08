@@ -10,11 +10,13 @@ public class Billboard : MonoBehaviour
         mainCamera = camera;
     }
 
-    void Update()
+    void LateUpdate()
     {
+        // Ensure the sprite is always facing the camera
         if (mainCamera)
         {
-            transform.forward = mainCamera.transform.forward;
+            transform.LookAt(transform.position + mainCamera.transform.rotation * Vector3.forward,
+                mainCamera.transform.rotation * Vector3.up);
         }
     }
 }

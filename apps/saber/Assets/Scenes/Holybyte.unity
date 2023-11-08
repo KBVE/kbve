@@ -1107,6 +1107,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC_Ghost
       objectReference: {fileID: 0}
+    - target: {fileID: 4755691038044582418, guid: 817c54564ca688a48b426fc6de633a7b,
+        type: 3}
+      propertyPath: spell
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755691038044582418, guid: 817c54564ca688a48b426fc6de633a7b,
+        type: 3}
+      propertyPath: spellPool.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6982162262127564723, guid: 817c54564ca688a48b426fc6de633a7b,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1115,7 +1125,7 @@ PrefabInstance:
     - target: {fileID: 6982162262127564723, guid: 817c54564ca688a48b426fc6de633a7b,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.76
+      value: 6.12
       objectReference: {fileID: 0}
     - target: {fileID: 6982162262127564723, guid: 817c54564ca688a48b426fc6de633a7b,
         type: 3}
