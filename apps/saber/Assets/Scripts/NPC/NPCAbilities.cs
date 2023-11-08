@@ -9,12 +9,21 @@ using UnityEngine;
 public class NPCAbilities : MonoBehaviour
 {
 
+
+    // Bobbing Variables
     public float bobbingSpeed = 0.5f;
     public float bobbingAmount = 0.5f;
     private float initialYPosition;
     private bool isInitialYPositionSet = false;
 
+    // Assuming there's a mana system in place
+    public float currentMana;
+    public float maxMana;
+    public Spell spell;
+    private Camera mainCamera;
 
+
+    // Entity Following
     public float followDistance = 1.0f; // The distance the NPC will keep from the target
     public float followSpeed = 5.0f; // Speed at which the NPC will follow the target
 
