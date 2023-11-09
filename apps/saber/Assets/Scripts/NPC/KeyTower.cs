@@ -27,13 +27,13 @@ public class KeyTower : MonoBehaviour
     // Tower rotation settings
     [Header("Rotation Settings")]
 
-    [Range(0f, 1f)]
+    [Range(0f, 5f)]
     [Tooltip("Time taken for the tower to smoothly rotate towards the player")]
-    [SerializeField] private float rotationTime = 0.5f;
+    [SerializeField] private float rotationTime = 1.2f;
 
     [Range(1f, 15f)]
     [Tooltip("Speed at which arrows are shot")]
-    [SerializeField] private float arrowSpeed = 5f;
+    [SerializeField] private float arrowSpeed = 3f;
 
     [Tooltip("Prefab of the arrow to be shot")]
     [SerializeField] private GameObject arrowPrefab;
@@ -45,7 +45,9 @@ public class KeyTower : MonoBehaviour
     [Header("Attack Settings")]
 
     [Tooltip("Cooldown time between consecutive attacks")]
-    [SerializeField] private float attackCooldown = 3f;
+    [SerializeField] private float attackCooldown = 1.2f;
+
+    [SerializeField] private float facingThreshold = 15f;
 
 
     private bool canAttack; // Flag indicating whether the tower can currently attack
@@ -53,13 +55,18 @@ public class KeyTower : MonoBehaviour
     void Start()
     {
         InitializeCosmicLines(); // Set up the initial appearance of the tower
+        canAttack = true;
     }
 
 
     void Update()
     {
         UpdateTowerRotation(Player.Instance.Position); // Update the tower's rotation to face the player
-        ShootArrow(); // Attempt to shoot an arrow towards the player
+
+        if (IsFacingPlayer(Player.Instance.Position))
+        {
+            ShootArrow(); // Attempt to shoot an arrow towards the player
+        }
     }
 
     void ShootArrow()
@@ -137,6 +144,13 @@ public class KeyTower : MonoBehaviour
         canAttack = false;
         yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
+    }
+
+    bool IsFacingPlayer(Vector3 playerPos)
+    {
+        Vector3 dir = playerPos - transform.position;
+        float angleToPlayer = Vector3.Angle(transform.forward, dir);
+        return angleToPlayer < facingThreshold;
     }
 
     // Getter method to retrieve the cosmic lines of the tower
