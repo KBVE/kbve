@@ -132,7 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 13156859}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Cosmic Line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -226,7 +226,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 42823966}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.042460505, y: 0.95746756, z: -0.20771663, w: 0.19572124}
+  m_LocalRotation: {x: 0.04246037, y: 0.9574677, z: -0.20771663, w: 0.19572066}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -516,7 +516,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 355113671}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.046013564, y: 0.9535309, z: -0.22509813, w: 0.19491656}
+  m_LocalRotation: {x: 0.04601341, y: 0.953531, z: -0.22509812, w: 0.19491594}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -680,7 +680,7 @@ GameObject:
   - component: {fileID: 670758509}
   - component: {fileID: 670758508}
   - component: {fileID: 670758507}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TowerActivator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -844,7 +844,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 686625607}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.038902853, y: 0.9610783, z: -0.1903126, w: 0.19645935}
+  m_LocalRotation: {x: 0.03890274, y: 0.9610784, z: -0.1903126, w: 0.19645877}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -970,111 +970,6 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
---- !u!1 &778464266
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 778464267}
-  - component: {fileID: 778464270}
-  - component: {fileID: 778464269}
-  - component: {fileID: 778464268}
-  m_Layer: 0
-  m_Name: TowerActivator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &778464267
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 778464266}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2702726, y: 19.255669, z: 0.2702726}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1114239445}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &778464268
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 778464266}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &778464269
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 778464266}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &778464270
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 778464266}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &819825875
 GameObject:
   m_ObjectHideFlags: 0
@@ -1227,23 +1122,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cosmicLines:
-  - {fileID: 1516270589}
-  - {fileID: 13156859}
-  - {fileID: 1488867495}
-  - {fileID: 2109988410}
-  - {fileID: 1832014122}
-  - {fileID: 1114239445}
+  - {fileID: 1516270588}
+  - {fileID: 13156858}
+  - {fileID: 1488867494}
+  - {fileID: 2109988409}
+  - {fileID: 1832014121}
   startWidth: 0.34
   endWidth: 0.35
   startColor: {r: 0.550943, g: 1, b: 0, a: 1}
   endColor: {r: 0.064415455, g: 1, b: 0, a: 0.79607844}
   material: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
-  rotationTime: 1
-  arrowSpeed: 4
+  rotationTime: 1.03
+  arrowSpeed: 2
   arrowPrefab: {fileID: 3807427963255089866, guid: 99b16fa2a80f2004fa63c8a6d9baf6b3,
     type: 3}
   arrowSpawnPoint: {fileID: 913324651}
-  attackCooldown: 5
+  attackCooldown: 2.1
+  facingThreshold: 15
 --- !u!1 &913324650
 GameObject:
   m_ObjectHideFlags: 0
@@ -1508,38 +1403,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1025974458}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1114239444
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1114239445}
-  m_Layer: 7
-  m_Name: Cosmic Line
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1114239445
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1114239444}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 15, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 778464267}
-  m_Father: {fileID: 1244060602}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1129480877
 GameObject:
   m_ObjectHideFlags: 3
@@ -1679,6 +1542,7 @@ GameObject:
   - component: {fileID: 1235492219}
   - component: {fileID: 1235492218}
   - component: {fileID: 1235492221}
+  - component: {fileID: 1235492222}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1753,8 +1617,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1235492217}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.04601358, y: 0.9535309, z: -0.22509816, w: 0.19491658}
-  m_LocalPosition: {x: -14.172926, y: 4.5836544, z: 16.18346}
+  m_LocalRotation: {x: 0.046013404, y: 0.953531, z: -0.2250981, w: 0.19491594}
+  m_LocalPosition: {x: -14.172916, y: 4.5836544, z: 16.183466}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1794,6 +1658,50 @@ MonoBehaviour:
   m_CameraActivatedEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1235492222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1235492217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
+  m_TaaSettings:
+    quality: 3
+    frameInfluence: 0.1
+    jitterScale: 1
+    mipBias: 0
+    varianceClampScale: 0.9
+    contrastAdaptiveSharpening: 0
 --- !u!1 &1244060601
 GameObject:
   m_ObjectHideFlags: 0
@@ -1825,8 +1733,7 @@ Transform:
   m_LocalPosition: {x: 8.599943, y: -10.205607, z: 0.2844057}
   m_LocalScale: {x: 3.699968, y: 0.051932752, z: 3.699968}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1114239445}
+  m_Children: []
   m_Father: {fileID: 482549636}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1244060603
@@ -2249,7 +2156,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1488867495}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Cosmic Line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2281,7 +2188,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1516270589}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Cosmic Line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2316,7 +2223,7 @@ GameObject:
   - component: {fileID: 1671035306}
   - component: {fileID: 1671035305}
   - component: {fileID: 1671035304}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TowerActivator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2353,11 +2260,11 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 2.126848
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1671035305
 MeshRenderer:
@@ -2433,6 +2340,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb9b5b6473e19a4784d7aa552a4de1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1766107830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1766107824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3050f62769fed2408777d38ba2e5475, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactionDistance: 10
+  maxInteractionAngle: 140
+  interactableLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  interactionKey: 101
+  onDebug: 1
+  rayColor: {r: 0, g: 0, b: 1, a: 1}
 --- !u!1 &1773012388
 GameObject:
   m_ObjectHideFlags: 0
@@ -2489,7 +2416,7 @@ GameObject:
   - component: {fileID: 1799759024}
   - component: {fileID: 1799759023}
   - component: {fileID: 1799759022}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TowerActivator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2591,7 +2518,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1832014122}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Cosmic Line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2626,7 +2553,7 @@ GameObject:
   - component: {fileID: 1881761469}
   - component: {fileID: 1881761468}
   - component: {fileID: 1881761467}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TowerActivator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2731,7 +2658,7 @@ GameObject:
   - component: {fileID: 1886463544}
   - component: {fileID: 1886463543}
   - component: {fileID: 1886463542}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TowerActivator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2768,12 +2695,12 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 0.49999997
+  m_Center: {x: -0.0000009536743, y: 0, z: -0.0000019073486}
 --- !u!23 &1886463543
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2832,6 +2759,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1361789922433946004, guid: cd946e88d838fd34a8bd58dace3a7c31,
+        type: 3}
+      propertyPath: m_Interpolate
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1361789922433946004, guid: cd946e88d838fd34a8bd58dace3a7c31,
+        type: 3}
+      propertyPath: m_CollisionDetection
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3685274458058455827, guid: cd946e88d838fd34a8bd58dace3a7c31,
+        type: 3}
+      propertyPath: groundLayer.m_Bits
+      value: 128
+      objectReference: {fileID: 0}
     - target: {fileID: 4074204764314864580, guid: cd946e88d838fd34a8bd58dace3a7c31,
         type: 3}
       propertyPath: m_Name
@@ -2895,6 +2837,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1766107829}
+    - targetCorrespondingSourceObject: {fileID: 4074204764314864580, guid: cd946e88d838fd34a8bd58dace3a7c31,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1766107830}
   m_SourcePrefab: {fileID: 100100000, guid: cd946e88d838fd34a8bd58dace3a7c31, type: 3}
 --- !u!1 &2109988409
 GameObject:
@@ -2905,7 +2851,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2109988410}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Cosmic Line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3059,7 +3005,7 @@ Transform:
   m_GameObject: {fileID: 2144914557}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14.172926, y: 4.5836544, z: 16.18346}
+  m_LocalPosition: {x: -14.172916, y: 4.5836544, z: 16.183466}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
