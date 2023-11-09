@@ -1,35 +1,40 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class KeyTower : MonoBehaviour
 {
-    // Tower appearance settings
+    // Static variable to keep track of active cosmic lines
+    public static int activeCosmicLines = 0;
+
+    // Cosmic Line Settings
     [Header("Appearance Settings")]
-
-    [Tooltip("Array of lines representing the tower's appearance")]
-    [SerializeField] private Transform[] cosmicLines;
-
-    [Tooltip("Starting width of the cosmic lines")]
-    [SerializeField] private float startWidth = 0.35f;
-
-    [Tooltip("Ending width of the cosmic lines")]
-    [SerializeField] private float endWidth = 0.35f;
-
-    [Tooltip("Starting color of the cosmic lines")]
-    [SerializeField] private Color startColor = Color.green;
-
-    [Tooltip("Ending color of the cosmic lines")]
-    [SerializeField] private Color endColor = Color.white;
+    [Tooltip("List of cosmic line game objects")]
+    [SerializeField] private List<GameObject> cosmicLines;
 
     [Tooltip("Material used for the cosmic lines")]
-    [SerializeField] private Material material;
+    [SerializeField] private Material cosmicMaterial;
 
-    // Tower rotation settings
+    [Tooltip("Starting width of the cosmic lines")]
+    [SerializeField] private float startLineWidth = 0.35f;
+
+    [Tooltip("Ending width of the cosmic lines")]
+    [SerializeField] private float endLineWidth = 0.35f;
+
+    [Tooltip("Starting color of the cosmic lines")]
+    [SerializeField] private Color startLineColor = Color.green;
+
+    [Tooltip("Ending color of the cosmic lines")]
+    [SerializeField] private Color endLineColor = Color.white;
+
+    // Tower Rotation
     [Header("Rotation Settings")]
-
     [Range(0f, 5f)]
     [Tooltip("Time taken for the tower to smoothly rotate towards the player")]
     [SerializeField] private float rotationTime = 1.2f;
+
+    [Tooltip("Threshold angle for tower to consider facing the player")]
+    [SerializeField] private float facingThreshold = 15f;
 
     [Range(1f, 15f)]
     [Tooltip("Speed at which arrows are shot")]
@@ -41,73 +46,70 @@ public class KeyTower : MonoBehaviour
     [Tooltip("Point from which arrows are spawned")]
     [SerializeField] private Transform arrowSpawnPoint;
 
-    // Tower attack settings
+    // Tower Attack
     [Header("Attack Settings")]
-
     [Tooltip("Cooldown time between consecutive attacks")]
     [SerializeField] private float attackCooldown = 1.2f;
 
-    [SerializeField] private float facingThreshold = 15f;
+    // Castle Key
+    [Header("Key Settings")]
+    [Tooltip("Prefab of the key to be spawned")]
+    [SerializeField] private GameObject keyPrefab;
 
+    [Tooltip("Point from which keys are spawned")]
+    [SerializeField] private Transform keySpawnPoint;
 
-    private bool canAttack; // Flag indicating whether the tower can currently attack
+    private bool canAttack = true;
+    private bool isKeySpawned = false;
 
     void Start()
     {
-        InitializeCosmicLines(); // Set up the initial appearance of the tower
-        canAttack = true;
-    }
+        // Initialize the count of active cosmic lines
+        activeCosmicLines = cosmicLines.Count;
 
+        // Set up the initial appearance of the tower
+        InitializeCosmicLines();
+    }
 
     void Update()
     {
-        UpdateTowerRotation(Player.Instance.Position); // Update the tower's rotation to face the player
+        // Check if key is spawned or player is not available
+        if (isKeySpawned || Player.Instance == null) return;
+
+        // Spawn key, update tower rotation, and shoot arrow if facing the player
+        SpawnKey();
+        UpdateTowerRotation(Player.Instance.Position);
 
         if (IsFacingPlayer(Player.Instance.Position))
         {
-            ShootArrow(); // Attempt to shoot an arrow towards the player
+            ShootArrow();
         }
     }
 
     void ShootArrow()
     {
-        if (!canAttack) return;
+        // Check if the tower can attack or arrow spawn point is not set
+        if (!canAttack || arrowSpawnPoint == null) return;
 
-        if (Player.Instance != null && arrowSpawnPoint != null)
-        {
-            // Instantiate arrow gameobject and add rigidbody to it
-            GameObject spawnedArrow = Instantiate<GameObject>(arrowPrefab, arrowSpawnPoint.position, Quaternion.identity);
-            Rigidbody arrowRb = spawnedArrow.gameObject.AddComponent<Rigidbody>();
+        // Instantiate arrow and set its properties
+        GameObject spawnedArrow = Instantiate(arrowPrefab, arrowSpawnPoint.position, Quaternion.identity);
+        Rigidbody arrowRigidbody = spawnedArrow.AddComponent<Rigidbody>();
+        arrowRigidbody.freezeRotation = true;
+        arrowRigidbody.useGravity = false;
+        Vector3 directionToPlayer = Player.Instance.Position - transform.position;
+        arrowRigidbody.velocity = directionToPlayer * arrowSpeed;
 
-            // Freeze (x, y, z) rotation, so it won't effect from physics
-            arrowRb.freezeRotation = true;
-
-            // Remove gravity so it wont affect on arrow
-            arrowRb.useGravity = false;
-
-            // Calculate player's direction
-            Vector3 direction = Player.Instance.Position - transform.position;
-
-            // Shoot arrow towards player
-            arrowRb.velocity = direction * arrowSpeed;
-
-
-            // Add cooldown for next attack
-            StartCoroutine(OnCooldown());
-        }
-        else
-        {
-            Debug.Log("Player or Arrow Point is missing...");
-        }
+        // Start the cooldown for the next attack
+        StartCoroutine(AttackCooldown());
     }
 
     void UpdateTowerRotation(Vector3 playerPosition)
     {
         // Calculate the direction to the player
-        Vector3 direction = playerPosition - transform.position;
+        Vector3 directionToPlayer = playerPosition - transform.position;
 
         // Create a rotation that looks in the player's direction
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
 
         // Smoothly interpolate between the current rotation and the target rotation
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationTime * Time.deltaTime);
@@ -115,47 +117,48 @@ public class KeyTower : MonoBehaviour
 
     void InitializeCosmicLines()
     {
-        for (int i = 0; i < cosmicLines.Length; i++)
+        // Iterate through cosmic lines and set up their appearance
+        foreach (var cosmicLineGameObject in cosmicLines)
         {
-            // Set up the appearance of the tower using LineRenderer for each cosmic line
-            LineRenderer lineRenderer = cosmicLines[i].gameObject.AddComponent<LineRenderer>();
-
+            LineRenderer lineRenderer = cosmicLineGameObject.AddComponent<LineRenderer>();
+            CosmicLine cosmicLineInteraction = cosmicLineGameObject.transform.GetChild(0).gameObject.AddComponent<CosmicLine>();
+            cosmicLineInteraction.shouldFace = false;
 
             // Set the positions, width, color, and material for each cosmic line
-            lineRenderer.SetPosition(0, cosmicLines[i].position);
+            lineRenderer.SetPosition(0, cosmicLineGameObject.transform.position);
             lineRenderer.SetPosition(1, transform.position);
-
-            // Width
-            lineRenderer.startWidth = startWidth;
-            lineRenderer.endWidth = endWidth;
-
-            // Color
-            lineRenderer.startColor = startColor;
-            lineRenderer.endColor = endColor;
-
-            // Material
-            lineRenderer.material = material;
+            lineRenderer.startWidth = startLineWidth;
+            lineRenderer.endWidth = endLineWidth;
+            lineRenderer.startColor = startLineColor;
+            lineRenderer.endColor = endLineColor;
+            lineRenderer.material = cosmicMaterial;
         }
     }
 
-    // Coroutine to handle the cooldown between consecutive attacks
-    IEnumerator OnCooldown()
+    void SpawnKey()
     {
+        // Check if there are no active cosmic lines and key is not spawned
+        if (activeCosmicLines == 0 && !isKeySpawned)
+        {
+            // Instantiate the key at the specified position
+            Instantiate(keyPrefab, keySpawnPoint.position, Quaternion.identity);
+            isKeySpawned = true;
+        }
+    }
+
+    IEnumerator AttackCooldown()
+    {
+        // Set the attack flag to false and wait for the cooldown period
         canAttack = false;
         yield return new WaitForSeconds(attackCooldown);
+        // Set the attack flag back to true after the cooldown
         canAttack = true;
     }
 
-    bool IsFacingPlayer(Vector3 playerPos)
+    bool IsFacingPlayer(Vector3 playerPosition)
     {
-        Vector3 dir = playerPos - transform.position;
-        float angleToPlayer = Vector3.Angle(transform.forward, dir);
+        // Calculate the angle to the player and check if it is within the facing threshold
+        float angleToPlayer = Vector3.Angle(transform.forward, playerPosition - transform.position);
         return angleToPlayer < facingThreshold;
-    }
-
-    // Getter method to retrieve the cosmic lines of the tower
-    public Transform[] GetCosmicLines()
-    {
-        return cosmicLines;
     }
 }
