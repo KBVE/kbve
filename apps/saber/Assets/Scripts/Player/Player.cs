@@ -8,12 +8,21 @@ public class Player : MonoBehaviour
     //! Player Instance
     public static Player Instance { get; private set; }
 
+    [SerializeField] private Camera playerCamera;
+
+
     // Player Data
     public int Health { get; private set; }
     public Vector3 Position => transform.position;
     public string CurrentScene => SceneManager.GetActiveScene().name;
     public int Level { get; private set; }
     public PlayerStats Stats { get; private set; }
+
+
+    public Camera PlayerCamera
+    {
+        get { return playerCamera; }
+    }
 
     // Ensure there is only one instance of this class in the game + checks
     private void Awake()
@@ -22,6 +31,8 @@ public class Player : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject); // Persist across scenes
+            playerCamera = Camera.main; // Assuming there's only one main camera
+
         }
         else
         {
