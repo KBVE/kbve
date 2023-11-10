@@ -568,6 +568,7 @@ GameObject:
   - component: {fileID: 139766772}
   - component: {fileID: 139766771}
   - component: {fileID: 139766770}
+  - component: {fileID: 139766773}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -669,6 +670,19 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &139766773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139766767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fb9b5b6473e19a4784d7aa552a4de1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerCamera: {fileID: 1589245844}
 --- !u!1 &201706614
 GameObject:
   m_ObjectHideFlags: 0
@@ -1106,6 +1120,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: NPC_Ghost
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490035779281637945, guid: 817c54564ca688a48b426fc6de633a7b,
+        type: 3}
+      propertyPath: m_TagString
+      value: NPC
       objectReference: {fileID: 0}
     - target: {fileID: 4755691038044582418, guid: 817c54564ca688a48b426fc6de633a7b,
         type: 3}
