@@ -64,8 +64,16 @@ public class PlayerMovement : MonoBehaviour
     bool jumping; // Is the player jumping
     bool canJump = true; // can the player jump
     RaycastHit slopeHit; // Hit information for the slope
-    
-    [Tooltip("Player's current movement state")]
+
+  #region Pablo
+
+  private AudioSource _dragonSource;
+  [SerializeField] AudioClip[] jump;
+  
+
+  #endregion
+
+  [Tooltip("Player's current movement state")]
     public MovementState state;
     public enum MovementState
     {
@@ -80,10 +88,13 @@ public class PlayerMovement : MonoBehaviour
         cam = Camera.main;
         animator = GetComponent<Animator>();
         Cursor.lockState = CursorLockMode.Locked;
-    }
+    #region Pablo
+    _dragonSource = GetComponent<AudioSource>();
+    #endregion
+  }
 
-    // Update is called once per frame
-    void Update()
+  // Update is called once per frame
+  void Update()
     {
         isGrounded = GroundCheck(); // checks if player is on ground
         animator.SetBool("Grounded", isGrounded);
@@ -204,8 +215,11 @@ public class PlayerMovement : MonoBehaviour
         float initialVelocity = Mathf.Sqrt(-2f * gravityScale * jumpForce);
         rb.AddForce(transform.up * initialVelocity, ForceMode.Impulse);
         animator.SetTrigger("Jump");
-    }
-    void ResetJump()
+    #region Pablo
+    _dragonSource.PlayOneShot(jump[Random.Range(0, jump.Length)]);
+    #endregion
+  }
+  void ResetJump()
     {
         canJump = true;
     }
