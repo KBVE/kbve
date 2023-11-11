@@ -5,14 +5,12 @@ using UnityEngine;
 public class PlayerFX : MonoBehaviour
 {
   private AudioSource _dragonSource;
-  [SerializeField] AudioClip[] jump;
-  [SerializeField] AudioClip[] wingFlap;
-  [SerializeField] AudioClip[] attack;
-  [SerializeField] AudioClip[] land;
+  [SerializeField] AudioClip[] _wingFlap;
+  [SerializeField] AudioClip[] _dragonland;
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        
+        _dragonSource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -20,4 +18,15 @@ public class PlayerFX : MonoBehaviour
     {
         
     }
+
+  public void WingFlap()
+  {
+    _dragonSource.PlayOneShot(_wingFlap[Random.Range(0, _wingFlap.Length)]);
+  }
+
+
+  public void DragonLand()
+  {
+    _dragonSource.PlayOneShot(_dragonland[Random.Range(0, _dragonland.Length)]);
+  }
 }
