@@ -5,6 +5,9 @@ using UnityEngine.AI;
 public class Entity : MonoBehaviour
 {
   #region Entity
+
+
+
   public int energy;
 
   //? Camera
@@ -13,6 +16,16 @@ public class Entity : MonoBehaviour
 
   //? Name
   public string Name { get; set; } // Adding a Name property
+
+  public enum EntityType
+  {
+    Player,
+    NPC,
+    Boss
+  }
+
+  public EntityType entityType;
+
 
   //? Health
   private int health;
@@ -23,6 +36,10 @@ public class Entity : MonoBehaviour
     set
     {
       health = Mathf.Max(0, value);
+      if(health <= 0 )
+      {
+        Die();
+      }
       UpdateHealthBar();
     }
   }
@@ -65,13 +82,7 @@ public class Entity : MonoBehaviour
 
   #region Core
 
-  void Start()
-  {
-    InitializeEntity();
-    InitializeCamera();
-    InitializeNavMeshAgent();
-    InitializeHealthBar();
-  }
+  void Start() { }
 
   void Update() { }
   #endregion
@@ -83,6 +94,15 @@ public class Entity : MonoBehaviour
   #endregion
 
   #region Initialization
+
+
+  public void Initialization()
+  {
+    InitializeEntity();
+    InitializeCamera();
+    InitializeNavMeshAgent();
+    InitializeHealthBar();
+  }
 
   private void InitializeCamera()
   {
@@ -147,6 +167,7 @@ public class Entity : MonoBehaviour
   {
     //TODO Debuffs / Enchants
     Health -= amount;
+    if (Health <= 0) { }
   }
 
   public virtual void Heal(int amount)
@@ -182,6 +203,17 @@ public class Entity : MonoBehaviour
       float healthNormalized = (float)health; // Health (Int) to Float
       healthBar.SetHealth(healthNormalized);
     }
+  }
+
+  private void Die()
+  {
+    Debug.Log("[Entity] -> Die");
+  }
+
+  public void OnDeath()
+  {
+    Debug.Log("[Entity] -> Death");
+    Die();
   }
 
   #endregion
