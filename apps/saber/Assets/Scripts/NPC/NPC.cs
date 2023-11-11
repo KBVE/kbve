@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-//?       [NPC] Class
-public class NPC : MonoBehaviour
+//?       [NPC] Class extends Entity
+public class NPC : Entity
 {
     public NPCData npcData; // Data object holding NPC properties
     public NPCPoolManager poolManager; // Manager handling pooling of NPCs
