@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -69,6 +70,7 @@ public class PlayerMovement : MonoBehaviour
 
   private AudioSource _dragonSource;
   [SerializeField] AudioClip[] jump;
+  
   
 
   #endregion
@@ -175,9 +177,11 @@ public class PlayerMovement : MonoBehaviour
             Jump();
             Invoke(nameof(ResetJump), jumpCoolDown);
         }
-    }
 
-    void MovePlayer()
+    
+  }
+
+  void MovePlayer()
     {
         Vector3 inputDir = new Vector3(horiz, 0, vert);
 
@@ -222,6 +226,7 @@ public class PlayerMovement : MonoBehaviour
   void ResetJump()
     {
         canJump = true;
+    
     }
 
 
@@ -253,4 +258,6 @@ public class PlayerMovement : MonoBehaviour
         Gizmos.color = new Color(0, 1, 0, 0.2f);
         Gizmos.DrawSphere(spherePosition, groundedRadius);
     }
+
+ 
 }
