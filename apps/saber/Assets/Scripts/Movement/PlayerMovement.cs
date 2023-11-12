@@ -225,7 +225,7 @@ public class PlayerMovement : MonoBehaviour
     }
     else
     {
-        Debug.LogWarning("Jump sound array is empty or not initialized.");
+       // Debug.LogWarning("Jump sound array is empty or not initialized.");
     }
     #endregion
   }
