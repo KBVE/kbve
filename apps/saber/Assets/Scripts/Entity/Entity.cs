@@ -29,14 +29,14 @@ public class Entity : MonoBehaviour
   private EntityType entityType = EntityType.NPC;
 
   public EntityType Type
+  {
+    get => entityType;
+    set
     {
-        get => entityType;
-        set
-        {
-            entityType = value;
-            OnEntityTypeChanged();
-        }
+      entityType = value;
+      //OnEntityTypeChanged();
     }
+  }
 
   #endregion
 
@@ -49,7 +49,7 @@ public class Entity : MonoBehaviour
     set
     {
       health = Mathf.Max(0, value);
-      if(health <= 0 )
+      if (health <= 0)
       {
         Die();
       }
