@@ -30,16 +30,15 @@ public class Entity : MonoBehaviour
 
   public EntityType Type
     {
-        get => _entityType;
+        get => entityType;
         set
         {
-            _entityType = value;
+            entityType = value;
             OnEntityTypeChanged();
         }
     }
 
   #endregion
-
 
   #region Health
   private int health;
@@ -69,7 +68,7 @@ public class Entity : MonoBehaviour
   }
   #endregion
 
-  //? Movement
+  #region  Movement
   public Vector3 position;
   private NavMeshAgent navMeshAgent;
   private float _moveSpeed = 5f;
@@ -86,13 +85,17 @@ public class Entity : MonoBehaviour
     }
   }
 
-  //? Stats
+  #endregion
+
+  #region  Stats
   public int MaxMana { get; protected set; }
   public int Strength { get; protected set; }
   public int Agility { get; protected set; }
   public int Intelligence { get; protected set; }
   public int Experience { get; protected set; }
   public int Reputation { get; protected set; }
+
+  #endregion
 
   #endregion
 
