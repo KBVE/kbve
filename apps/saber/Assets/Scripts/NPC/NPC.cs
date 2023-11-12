@@ -9,9 +9,8 @@ public class NPC : Entity
   public NPCPoolManager poolManager; // Manager handling pooling of NPCs
   public NPCAbilities abilities; // Script managing NPC abilities
 
-  //TODO  Migration of 3 variables below.
-  public int currentHealth; // Current health of the NPC
-  public Vector3 location; // Current location of the NPC
+  //TODO  Migration of 2 variables below.
+  //public Vector3 location; // Current location of the NPC
   public bool isFriendly; // Flag indicating if the NPC is friendly or not
   private Transform target; // Reference to the target (player)
   private SpriteRenderer spriteRenderer; // Sprite Renderer for the NPC
@@ -39,8 +38,12 @@ public class NPC : Entity
   protected virtual void Start()
   {
     base.Initialization();
+    //! REMOVE
+    //! Debug Log
+    Debug.Log("Current NPC Health " + this.Health);
+    Debug.Log("Current Mana Pool " + this.Mana);
+    Debug.Log("Current Type " + this.Type);
     abilities = GetComponent<NPCAbilities>(); // Initialize abilities
-
   }
 
   protected virtual void Update()
@@ -50,7 +53,7 @@ public class NPC : Entity
       return;
     }
 
-    location = transform.position; // Update location each frame
+    this.Position = transform.position; // Update location each frame
 
     transform.rotation = Quaternion.Euler(0f, Camera.main.transform.rotation.eulerAngles.y, 0f);
 

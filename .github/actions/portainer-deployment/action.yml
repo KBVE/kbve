@@ -1,0 +1,39 @@
+name: 'Portainer Depolyment'
+description: 'An action to help manage the Portainer deployment'
+inputs:
+  token:
+    description: 'Your Github Organization Token'
+  portainer-username:
+    description: 'Your Portainer Username'
+  portainer-password:
+    description: 'Your Portainer Password'
+  portainer-endpoint:
+    description: 'Your Portainer Endpoint'
+    default: '2'
+  portainer-swarm-id:
+    description: 'Your Portainer Swarm ID'
+  portainer-stack-name:
+    description: 'Your Portainer Stack Name'
+  portainer-stack-definition:
+    description: 'Your Stack Definitions'
+  portainer-template-variables:
+    description: 'Your Template Variables'
+  portainer-image:
+    description: 'Your Image'
+  portainer-prune-stack:
+    description: 'Do you want to Prune Stack?'
+    required: false
+    default: 'false'
+  org:
+    description: 'Your Github Organization Name'
+    default: 'KBVE'
+
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Portainer Init
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
