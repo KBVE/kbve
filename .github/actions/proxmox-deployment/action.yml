@@ -1,0 +1,21 @@
+name: '[WIP] - Proxmox Deployment'
+description: 'An action to manage the Proxmox Deployment'
+# Helper Scripts from https://tteck.github.io/Proxmox/
+# Packer https://github.com/hashicorp/packer-plugin-proxmox/tree/main/docs
+inputs:
+  token:
+    description: 'Your Github Organization Token'
+  org:
+    description: 'Your Github Organization Name'
+    default: 'KBVE'
+  ssh-key:
+    description: 'Your Github SSH Key'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Proxmox Init.
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: |

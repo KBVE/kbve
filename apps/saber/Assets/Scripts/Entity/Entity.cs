@@ -69,7 +69,12 @@ public class Entity : MonoBehaviour
   #endregion
 
   #region  Movement
-  public Vector3 position;
+  private Vector3 _position;
+  public Vector3 Position
+  {
+      get => _position;
+      set => _position = value;
+  }
   private NavMeshAgent navMeshAgent;
   private float _moveSpeed = 5f;
   public float MoveSpeed
@@ -133,6 +138,7 @@ public class Entity : MonoBehaviour
 
   protected virtual void InitializeEntity()
   {
+    //TODO Minor tweaks to the initialization.
     // Default values
     Name = "Entity"; // Default name
     Health = 100;
@@ -141,7 +147,7 @@ public class Entity : MonoBehaviour
     Strength = 10;
     Agility = 10;
     Intelligence = 10;
-    position = transform.position;
+    Position = transform.position;
     Experience = 0; // Default experience
     Reputation = 0; // Default reputation
   }
@@ -187,7 +193,9 @@ public class Entity : MonoBehaviour
   {
     //TODO Debuffs / Enchants
     Health -= amount;
-    if (Health <= 0) { }
+    if (Health <= 0) {
+      OnDeath();
+     }
   }
 
   public virtual void Heal(int amount)
@@ -228,6 +236,7 @@ public class Entity : MonoBehaviour
   private void Die()
   {
     Debug.Log("[Entity] -> Die");
+    //TODO: Callback to Pool
   }
 
   public void OnDeath()

@@ -29,6 +29,7 @@ public class NPCPoolManager : MonoBehaviour
     public void ReturnToPool(NPC npc)
     {
         npc.gameObject.SetActive(false);
-        npc.currentHealth = npc.npcData.maxHealth;  // Reset health based on NPCData
+        npc.Health = npc.npcData.maxHealth;
+        //! Removed npc.currentHealth = npc.npcData.maxHealth;  // Reset health based on NPCData
     }
 }
