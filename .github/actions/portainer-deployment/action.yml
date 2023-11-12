@@ -1,4 +1,4 @@
-name: 'Portainer Depolyment'
+name: '[WIP] Portainer Depolyment'
 description: 'An action to help manage the Portainer deployment'
 inputs:
   token:

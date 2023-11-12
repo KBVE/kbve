@@ -138,6 +138,7 @@ public class Entity : MonoBehaviour
 
   protected virtual void InitializeEntity()
   {
+    //TODO Minor tweaks to the initialization.
     // Default values
     Name = "Entity"; // Default name
     Health = 100;
