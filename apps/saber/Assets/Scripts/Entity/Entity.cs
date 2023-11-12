@@ -7,14 +7,16 @@ public class Entity : MonoBehaviour
   #region Entity
 
 
-
+  //TODO Energy Implementation
   public int energy;
 
-  //? Camera
+  #region Camera
   protected Camera mainCamera;
   public CinemachineVirtualCamera virtualCamera;
+  #endregion
 
-  //? Name
+  #region Types
+
   public string Name { get; set; } // Adding a Name property
 
   public enum EntityType
@@ -24,10 +26,22 @@ public class Entity : MonoBehaviour
     Boss
   }
 
-  public EntityType entityType;
+  private EntityType entityType = EntityType.NPC;
+
+  public EntityType Type
+    {
+        get => _entityType;
+        set
+        {
+            _entityType = value;
+            OnEntityTypeChanged();
+        }
+    }
+
+  #endregion
 
 
-  //? Health
+  #region Health
   private int health;
   private EntityHealthBar healthBar;
   public int Health
@@ -44,13 +58,16 @@ public class Entity : MonoBehaviour
     }
   }
 
-  //? Mana
+  #endregion
+
+  #region Mana
   private int mana;
   public int Mana
   {
     get => mana;
     protected set => mana = Mathf.Max(0, Mathf.Min(value, MaxMana));
   }
+  #endregion
 
   //? Movement
   public Vector3 position;
