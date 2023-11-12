@@ -2,19 +2,24 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-//?       [NPC] Class extends Entity
 public class NPC : Entity
 {
+  #region NPC
   public NPCData npcData; // Data object holding NPC properties
   public NPCPoolManager poolManager; // Manager handling pooling of NPCs
   public NPCAbilities abilities; // Script managing NPC abilities
 
+  //TODO  Migration of 3 variables below.
   public int currentHealth; // Current health of the NPC
   public Vector3 location; // Current location of the NPC
   public bool isFriendly; // Flag indicating if the NPC is friendly or not
   private Transform target; // Reference to the target (player)
   private SpriteRenderer spriteRenderer; // Sprite Renderer for the NPC
   private Vector3 initialPosition;
+
+  #endregion
+
+  #region NPC-Core
 
   private void Awake()
   {
@@ -52,12 +57,20 @@ public class NPC : Entity
     FlipSpriteBasedOnViewpoint();
   }
 
+  #endregion
+
+  #region NPC-Render
+
   private void FlipSpriteBasedOnViewpoint()
   {
     Vector3 toCamera = Camera.main.transform.position - transform.position;
     bool shouldFlip = Vector3.Dot(toCamera, transform.right) < 0f;
     spriteRenderer.flipX = shouldFlip;
   }
+
+  #endregion
+
+  #region NPC-Combat
 
   public void ReceiveDamage(int damage)
   {
@@ -68,9 +81,7 @@ public class NPC : Entity
   private void Die()
   {
     poolManager.ReturnToPool(this);
-    // if (healthBarCanvas != null)
-    // {
-    //   Destroy(healthBarCanvas.gameObject);
-    // }
   }
+
+  #endregion
 }
