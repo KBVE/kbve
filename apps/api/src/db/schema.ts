@@ -81,7 +81,14 @@ export const n8n = mysqlTable('n8n', {
 	keyhash: varchar('keyhash', { length: 256 }),
 	label: varchar('label', { length: 256 }),
 
-})
+});
+
+/**
+ * TODO: Player Saving / Loading via API.
+ * TODO: Auth -> JWT.
+ * TODO: Inventory Manager + Shop Integration.
+ * TODO: Guild Manager.
+ */
 
 
 

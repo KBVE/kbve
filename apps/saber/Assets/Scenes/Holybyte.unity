@@ -569,6 +569,7 @@ GameObject:
   - component: {fileID: 139766771}
   - component: {fileID: 139766770}
   - component: {fileID: 139766773}
+  - component: {fileID: 139766774}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -684,8 +685,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   energy: 0
-  virtualCamera: {fileID: 0}
-  playerCamera: {fileID: 1589245844}
+--- !u!114 &139766774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139766767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1efd3b9600d8714d8e2b451329af69a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _wingFlap: []
+  _dragonland: []
 --- !u!1 &201706614
 GameObject:
   m_ObjectHideFlags: 0
@@ -3585,7 +3598,7 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 2023287474}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1985113815
+--- !u!114 &1985113817
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3674,7 +3687,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41fbe5951b9fcc745bcff981928fbfca,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1985113815}
+      addedObject: {fileID: 1985113817}
   m_SourcePrefab: {fileID: 100100000, guid: 41fbe5951b9fcc745bcff981928fbfca, type: 3}
 --- !u!1 &2092571622
 GameObject:
