@@ -1,27 +1,45 @@
-using Cinemachine;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class Entity : MonoBehaviour
 {
   #region Entity
 
 
-  //TODO Energy Implementation
-  public int energy;
-
-  //TODO Debug Entity
-
-
 
   #region Camera
   protected Camera mainCamera;
-  public CinemachineVirtualCamera virtualCamera;
+  public Camera MainCamera
+  {
+    get
+    {
+      if (mainCamera == null)
+      {
+        mainCamera = Camera.main;
+      }
+      return mainCamera;
+    }
+    set { mainCamera = value; }
+  }
+
   #endregion
 
   #region Types
 
-  public string Name { get; set; } // Adding a Name property
+  private string _name;
+  public string Name
+  {
+    get { return _name; }
+    set { _name = value; }
+  }
+
+  private string _guild;
+  public string Guild
+  {
+    get { return _guild; }
+    set { _guild = value; }
+  }
 
   private bool _debugMode = false;
   public bool DebugMode
@@ -51,9 +69,17 @@ public class Entity : MonoBehaviour
 
   #endregion
 
+  #region EntityUI
+
+  private Canvas entityCanvas;
+  private Image healthBar;
+  private Image manaBar;
+  private Image energyBar;
+
+  #endregion
+
   #region Health
   private int health;
-  private EntityHealthBar healthBar;
   public int Health
   {
     get => health;
@@ -77,6 +103,17 @@ public class Entity : MonoBehaviour
     get => mana;
     protected set => mana = Mathf.Max(0, Mathf.Min(value, MaxMana));
   }
+  #endregion
+
+  #region Energy
+
+  private int energy;
+  public int Energy
+  {
+    get { return energy; }
+    set { energy = value; }
+  }
+
   #endregion
 
   #region  Movement
@@ -121,6 +158,14 @@ public class Entity : MonoBehaviour
   void Start() { }
 
   void Update() { }
+
+  void LateUpdate()
+  {
+    if (this.Type == EntityType.Player && entityCanvas != null)
+    {
+      entityCanvas.transform.localRotation = Quaternion.Euler(0, 180, 0); // Example local rotation
+    }
+  }
   #endregion
 
   #region Cycles
@@ -137,23 +182,20 @@ public class Entity : MonoBehaviour
     InitializeEntity();
     InitializeCamera();
     InitializeNavMeshAgent();
-    InitializeHealthBar();
+    InitializeStatusBar();
   }
 
   private void InitializeCamera()
   {
-    mainCamera = Camera.main;
-
-    virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
+    MainCamera = Camera.main;
   }
 
   protected virtual void InitializeEntity()
   {
-    //TODO Minor tweaks to the initialization.
-    // Default values
     Name = "Entity"; // Default name
     Health = 100;
     MaxMana = 50;
+    Energy = 100;
     Mana = MaxMana;
     Strength = 10;
     Agility = 10;
@@ -163,10 +205,62 @@ public class Entity : MonoBehaviour
     Reputation = 0; // Default reputation
   }
 
-  private void InitializeHealthBar()
+  private void InitializeStatusBar()
   {
-    healthBar = gameObject.AddComponent<EntityHealthBar>(); // Add HealthBar component
-    healthBar.InitializeHealthBar();
+    switch (this.Type)
+    {
+      case EntityType.NPC:
+        entityCanvas = UI.CreateCanvas(
+          this.gameObject,
+          new Vector3(0, 2.5f, 0),
+          new Vector2(2, 1),
+          this.MainCamera
+        );
+        break;
+
+      case EntityType.Player:
+        entityCanvas = UI.CreateCanvas(
+          this.gameObject,
+          new Vector3(0, 2f, 0),
+          new Vector2(2, 1),
+          this.MainCamera
+        );
+        break;
+
+      case EntityType.Boss:
+        entityCanvas = UI.CreateCanvas(
+          this.gameObject,
+          new Vector3(0, 2f, 0),
+          new Vector2(2, 1),
+          this.MainCamera
+        );
+        break;
+    }
+
+    healthBar = UI.CreateBar(
+      entityCanvas,
+      "HealthBar",
+      Color.red,
+      new Vector2(0, 0),
+      new Vector2(2f, 0.2f),
+      this.Health.ToString()
+    );
+    manaBar = UI.CreateBar(
+      entityCanvas,
+      "ManaBar",
+      Color.blue,
+      new Vector2(0, -0.3f),
+      new Vector2(2f, 0.2f),
+      this.Mana.ToString()
+    );
+    energyBar = UI.CreateBar(
+      entityCanvas,
+      "EnergyBar",
+      Color.yellow,
+      new Vector2(0, -0.6f),
+      new Vector2(2f, 0.2f),
+      this.Energy.ToString()
+    );
   }
 
   private void InitializeNavMeshAgent()
@@ -181,7 +275,6 @@ public class Entity : MonoBehaviour
     {
       navMeshAgent.speed = MoveSpeed;
     }
-
   }
 
   #endregion
@@ -238,17 +331,18 @@ public class Entity : MonoBehaviour
 
   private void UpdateHealthBar()
   {
-    if (healthBar != null)
-    {
-      float healthNormalized = (float)health; // Health (Int) to Float
-      healthBar.SetHealth(healthNormalized);
-    }
+    // if (healthBar != null)
+    // {
+    //   float healthNormalized = (float)health; // Health (Int) to Float
+    //    healthBar.SetHealth(healthNormalized);
+    // }
   }
 
   private void Die()
   {
     Debug.Log("[Entity] -> Die");
-    //TODO: Callback to Pool
+    //TODO: Callback to Pool if Type == NPC
+    //TODO: RogueLike Option
   }
 
   public void OnDeath()

@@ -1,5 +1,5 @@
 version: '3.8'
-
+# TODO: Migrate over to 1.4.11
 services:
   appwrite:
     image: appwrite/appwrite:1.4.7
@@ -223,7 +223,7 @@ services:
     restart: unless-stopped
     networks:
       - appwrite
-    volumes: 
+    volumes:
       - /nfs/app/appwrite/uploads:/storage/uploads:rw
       - /nfs/app/appwrite/cache:/storage/cache:rw
       - /nfs/app/appwrite/functions:/storage/functions:rw
@@ -357,7 +357,7 @@ services:
     restart: unless-stopped
     networks:
       - appwrite
-    volumes: 
+    volumes:
       - /nfs/app/appwrite/config:/storage/config:rw
       - /nfs/app/appwrite/certificates:/storage/certificates:rw
     environment:
