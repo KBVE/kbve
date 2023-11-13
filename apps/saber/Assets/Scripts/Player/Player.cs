@@ -42,8 +42,8 @@ public class Player : Entity
 
   protected virtual void Start()
   {
-    base.Initialization();
     this.Type = EntityType.Player;
+    base.Initialization();
     PlayerDebug();
   }
   #endregion

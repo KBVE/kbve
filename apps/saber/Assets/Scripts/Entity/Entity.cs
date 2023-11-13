@@ -158,6 +158,14 @@ public class Entity : MonoBehaviour
   void Start() { }
 
   void Update() { }
+
+  void LateUpdate()
+  {
+    if (this.Type == EntityType.Player && entityCanvas != null)
+    {
+      entityCanvas.transform.localRotation = Quaternion.Euler(0, 180, 0); // Example local rotation
+    }
+  }
   #endregion
 
   #region Cycles
@@ -199,12 +207,40 @@ public class Entity : MonoBehaviour
 
   private void InitializeStatusBar()
   {
-    entityCanvas = UI.CreateCanvas(
-      this.gameObject,
-      new Vector3(0, 2f, 0),
-      new Vector2(2, 1),
-      this.MainCamera
-    );
+
+    switch(this.Type)
+    {
+      case EntityType.NPC:
+        entityCanvas = UI.CreateCanvas(
+        this.gameObject,
+        new Vector3(0, 2.5f, 0),
+        new Vector2(2, 1),
+        this.MainCamera
+      );
+        break;
+
+      case EntityType.Player:
+       entityCanvas = UI.CreateCanvas(
+        this.gameObject,
+        new Vector3(0, 2f, 0),
+        new Vector2(2, 1),
+        this.MainCamera
+      );
+      break;
+
+      case EntityType.Boss:
+         entityCanvas = UI.CreateCanvas(
+        this.gameObject,
+        new Vector3(0, 2f, 0),
+        new Vector2(2, 1),
+        this.MainCamera
+      );
+      break;
+
+
+    }
+
+
     healthBar = UI.CreateBar(
       entityCanvas,
       "HealthBar",
