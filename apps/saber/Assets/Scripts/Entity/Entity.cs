@@ -72,9 +72,33 @@ public class Entity : MonoBehaviour
   #region EntityUI
 
   private Canvas entityCanvas;
+
+  public Canvas EntityCanvas
+  {
+      get { return entityCanvas; }
+      set { entityCanvas = value; }
+  }
+
   private Image healthBar;
+  public Image HealthBar
+  {
+      get { return healthBar; }
+      set { healthBar = value; }
+  }
+
   private Image manaBar;
+  public Image ManaBar
+  {
+      get { return manaBar; }
+      set { manaBar = value; }
+
+  }
   private Image energyBar;
+  public Image EnergyBar
+  {
+      get { return energyBar; }
+      set { energyBar = value; }
+  }
 
   #endregion
 
