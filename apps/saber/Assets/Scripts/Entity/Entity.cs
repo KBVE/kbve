@@ -10,6 +10,10 @@ public class Entity : MonoBehaviour
   //TODO Energy Implementation
   public int energy;
 
+  //TODO Debug Entity
+
+
+
   #region Camera
   protected Camera mainCamera;
   public CinemachineVirtualCamera virtualCamera;
@@ -18,6 +22,13 @@ public class Entity : MonoBehaviour
   #region Types
 
   public string Name { get; set; } // Adding a Name property
+
+  private bool _debugMode = false;
+  public bool DebugMode
+  {
+    get { return _debugMode; }
+    set { _debugMode = value; }
+  }
 
   public enum EntityType
   {
@@ -72,8 +83,8 @@ public class Entity : MonoBehaviour
   private Vector3 _position;
   public Vector3 Position
   {
-      get => _position;
-      set => _position = value;
+    get => _position;
+    set => _position = value;
   }
   private NavMeshAgent navMeshAgent;
   private float _moveSpeed = 5f;
@@ -155,10 +166,7 @@ public class Entity : MonoBehaviour
   private void InitializeHealthBar()
   {
     healthBar = gameObject.AddComponent<EntityHealthBar>(); // Add HealthBar component
-    if (virtualCamera != null)
-    {
-      healthBar.InitializeHealthBar(virtualCamera);
-    }
+    healthBar.InitializeHealthBar();
   }
 
   private void InitializeNavMeshAgent()
@@ -169,8 +177,11 @@ public class Entity : MonoBehaviour
       navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
     }
 
-    navMeshAgent.speed = MoveSpeed;
-    // Any additional NavMeshAgent configuration goes here
+    if (navMeshAgent != null)
+    {
+      navMeshAgent.speed = MoveSpeed;
+    }
+
   }
 
   #endregion
@@ -193,9 +204,10 @@ public class Entity : MonoBehaviour
   {
     //TODO Debuffs / Enchants
     Health -= amount;
-    if (Health <= 0) {
+    if (Health <= 0)
+    {
       OnDeath();
-     }
+    }
   }
 
   public virtual void Heal(int amount)

@@ -25,11 +25,17 @@ public class NPC : Entity
     spriteRenderer = GetComponent<SpriteRenderer>();
     if (spriteRenderer == null)
     {
-      Debug.LogError("SpriteRenderer component is missing on this GameObject.", this);
+      if (this.DebugMode)
+      {
+        Debug.LogError("SpriteRenderer component is missing on this GameObject.", this);
+      }
     }
     if (Camera.main == null)
     {
-      Debug.LogError("Main Camera is missing in the scene.", this);
+      if (this.DebugMode)
+      {
+        Debug.LogError("Main Camera is missing in the scene.", this);
+      }
     }
 
     initialPosition = transform.position;
