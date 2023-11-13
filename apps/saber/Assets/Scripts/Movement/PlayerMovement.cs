@@ -24,7 +24,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Tooltip("Speed at which the player model will turn towards new movement direction")]
     [SerializeField] float rotationSpeed = 7f;
-    
+
     [Space(5)]
 
     [Tooltip("Should be any layer the player can stand and jump from")]
@@ -40,8 +40,8 @@ public class PlayerMovement : MonoBehaviour
     [Space(5)]
 
     [Tooltip("Max slope angle that the player can comfortably climb")]
-    [SerializeField] float maxSlopeAngle = 40f; 
-    
+    [SerializeField] float maxSlopeAngle = 40f;
+
     [Space(5)]
 
     [Tooltip("Key to make the player jump")]
@@ -64,8 +64,16 @@ public class PlayerMovement : MonoBehaviour
     bool jumping; // Is the player jumping
     bool canJump = true; // can the player jump
     RaycastHit slopeHit; // Hit information for the slope
-    
-    [Tooltip("Player's current movement state")]
+
+  #region Pablo
+
+  private AudioSource _dragonSource;
+  [SerializeField] AudioClip[] jump;
+
+
+  #endregion
+
+  [Tooltip("Player's current movement state")]
     public MovementState state;
     public enum MovementState
     {
@@ -80,10 +88,13 @@ public class PlayerMovement : MonoBehaviour
         cam = Camera.main;
         animator = GetComponent<Animator>();
         Cursor.lockState = CursorLockMode.Locked;
-    }
+    #region Pablo
+    _dragonSource = GetComponent<AudioSource>();
+    #endregion
+  }
 
-    // Update is called once per frame
-    void Update()
+  // Update is called once per frame
+  void Update()
     {
         isGrounded = GroundCheck(); // checks if player is on ground
         animator.SetBool("Grounded", isGrounded);
@@ -92,7 +103,7 @@ public class PlayerMovement : MonoBehaviour
         SpeedControl(); // Makes sure player is not moving faster then his max speed
         RotatePlayer(); // Rotates the player to align with movement direction
         StateHandler(); // Controls if the player is walking or running
-        
+
         rb.drag = isGrounded ? groundDrag : 0f; // If the player is on the ground apply ground drag else don't apply drag
     }
 
@@ -132,7 +143,7 @@ public class PlayerMovement : MonoBehaviour
         {
             Quaternion toRotation = Quaternion.LookRotation(moveDir, Vector3.up);
             transform.rotation = Quaternion.Lerp(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
-        }   
+        }
     }
 
     void StateHandler()
@@ -204,8 +215,21 @@ public class PlayerMovement : MonoBehaviour
         float initialVelocity = Mathf.Sqrt(-2f * gravityScale * jumpForce);
         rb.AddForce(transform.up * initialVelocity, ForceMode.Impulse);
         animator.SetTrigger("Jump");
+    // #region Pablo
+    // _dragonSource.PlayOneShot(jump[Random.Range(0, jump.Length)]);
+    // #endregion
+    #region HolyPablo
+    if (jump != null && jump.Length > 0)
+    {
+        _dragonSource.PlayOneShot(jump[Random.Range(0, jump.Length)]);
     }
-    void ResetJump()
+    else
+    {
+        Debug.LogWarning("Jump sound array is empty or not initialized.");
+    }
+    #endregion
+  }
+  void ResetJump()
     {
         canJump = true;
     }
@@ -231,7 +255,7 @@ public class PlayerMovement : MonoBehaviour
     {
         return Vector3.ProjectOnPlane(moveDir, slopeHit.normal);
     }
-    
+
     void OnDrawGizmosSelected()
     {
         Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y + groundOffset,
