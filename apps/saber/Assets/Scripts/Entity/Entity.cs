@@ -207,60 +207,59 @@ public class Entity : MonoBehaviour
 
   private void InitializeStatusBar()
   {
-
-    switch(this.Type)
+    switch (this.Type)
     {
       case EntityType.NPC:
         entityCanvas = UI.CreateCanvas(
-        this.gameObject,
-        new Vector3(0, 2.5f, 0),
-        new Vector2(2, 1),
-        this.MainCamera
-      );
+          this.gameObject,
+          new Vector3(0, 2.5f, 0),
+          new Vector2(2, 1),
+          this.MainCamera
+        );
         break;
 
       case EntityType.Player:
-       entityCanvas = UI.CreateCanvas(
-        this.gameObject,
-        new Vector3(0, 2f, 0),
-        new Vector2(2, 1),
-        this.MainCamera
-      );
-      break;
+        entityCanvas = UI.CreateCanvas(
+          this.gameObject,
+          new Vector3(0, 2f, 0),
+          new Vector2(2, 1),
+          this.MainCamera
+        );
+        break;
 
       case EntityType.Boss:
-         entityCanvas = UI.CreateCanvas(
-        this.gameObject,
-        new Vector3(0, 2f, 0),
-        new Vector2(2, 1),
-        this.MainCamera
-      );
-      break;
-
-
+        entityCanvas = UI.CreateCanvas(
+          this.gameObject,
+          new Vector3(0, 2f, 0),
+          new Vector2(2, 1),
+          this.MainCamera
+        );
+        break;
     }
-
 
     healthBar = UI.CreateBar(
       entityCanvas,
       "HealthBar",
       Color.red,
       new Vector2(0, 0),
-      new Vector2(2f, 0.2f)
+      new Vector2(2f, 0.2f),
+      this.Health.ToString()
     );
     manaBar = UI.CreateBar(
       entityCanvas,
       "ManaBar",
       Color.blue,
       new Vector2(0, -0.3f),
-      new Vector2(2f, 0.2f)
+      new Vector2(2f, 0.2f),
+      this.Mana.ToString()
     );
     energyBar = UI.CreateBar(
       entityCanvas,
       "EnergyBar",
       Color.yellow,
       new Vector2(0, -0.6f),
-      new Vector2(2f, 0.2f)
+      new Vector2(2f, 0.2f),
+      this.Energy.ToString()
     );
   }
 
