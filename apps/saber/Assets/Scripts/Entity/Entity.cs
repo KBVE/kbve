@@ -75,29 +75,28 @@ public class Entity : MonoBehaviour
 
   public Canvas EntityCanvas
   {
-      get { return entityCanvas; }
-      set { entityCanvas = value; }
+    get { return entityCanvas; }
+    set { entityCanvas = value; }
   }
 
   private Image healthBar;
   public Image HealthBar
   {
-      get { return healthBar; }
-      set { healthBar = value; }
+    get { return healthBar; }
+    set { healthBar = value; }
   }
 
   private Image manaBar;
   public Image ManaBar
   {
-      get { return manaBar; }
-      set { manaBar = value; }
-
+    get { return manaBar; }
+    set { manaBar = value; }
   }
   private Image energyBar;
   public Image EnergyBar
   {
-      get { return energyBar; }
-      set { energyBar = value; }
+    get { return energyBar; }
+    set { energyBar = value; }
   }
 
   #endregion
@@ -206,7 +205,7 @@ public class Entity : MonoBehaviour
     InitializeEntity();
     InitializeCamera();
     InitializeNavMeshAgent();
-    InitializeStatusBar();
+    //InitializeStatusBar();
   }
 
   private void InitializeCamera()
@@ -229,6 +228,21 @@ public class Entity : MonoBehaviour
     Reputation = 0; // Default reputation
   }
 
+public void InitializeEntityCanvas(Vector3 canvasPosition)
+{
+  if(EntityCanvas == null)
+  {
+    EntityCanvas = UI.CreateCanvas(
+        this.gameObject,
+        canvasPosition, // Use the passed-in canvasPosition here
+        new Vector2(2, 1),
+        this.MainCamera
+    );
+  }
+}
+
+  //! InitializeCanvas
+  //! Migrate out the StatusBar into the different Entity extensions.
   private void InitializeStatusBar()
   {
     switch (this.Type)
@@ -267,7 +281,8 @@ public class Entity : MonoBehaviour
       Color.red,
       new Vector2(0, 0),
       new Vector2(2f, 0.2f),
-      this.Health.ToString()
+      this.Health.ToString(),
+      false
     );
     manaBar = UI.CreateBar(
       entityCanvas,
@@ -275,7 +290,8 @@ public class Entity : MonoBehaviour
       Color.blue,
       new Vector2(0, -0.3f),
       new Vector2(2f, 0.2f),
-      this.Mana.ToString()
+      this.Mana.ToString(),
+      false
     );
     energyBar = UI.CreateBar(
       entityCanvas,
@@ -283,7 +299,8 @@ public class Entity : MonoBehaviour
       Color.yellow,
       new Vector2(0, -0.6f),
       new Vector2(2f, 0.2f),
-      this.Energy.ToString()
+      this.Energy.ToString(),
+      false
     );
   }
 

@@ -28,7 +28,8 @@ public class UI
     Color color,
     Vector2 anchoredPosition,
     Vector2 size,
-    string initialValue
+    string initialValue,
+    bool rotateText
   )
   {
     GameObject barGameObject = new GameObject(name);
@@ -45,6 +46,10 @@ public class UI
     textGO.transform.SetParent(barGameObject.transform, false);
     textGO.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
     // textGO.transform.localRotation = Quaternion.Euler(0, 180, 0);
+    if(rotateText)
+    {
+      textGO.transform.localRotation = Quaternion.Euler(0, 180, 0);
+    }
     TextMeshProUGUI barText = textGO.AddComponent<TextMeshProUGUI>();
     barText.text = initialValue;
     barText.enableWordWrapping = false;
