@@ -54,7 +54,12 @@
 		"appsDir": "apps",
 		"libsDir": "packages"
 	},
-	"plugins": ["@nxtensions/astro", "@nxlv/python", "@nx-dotnet/core"],
+	"plugins": [
+		"@nxtensions/astro",
+		"@nxlv/python",
+		"@nx-dotnet/core",
+		"@monodon/rust"
+	],
 	"defaultProject": "kbve.com",
 	"generators": {
 		"@nx/react": {
