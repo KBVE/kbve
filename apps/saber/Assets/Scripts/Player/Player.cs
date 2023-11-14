@@ -46,7 +46,11 @@ public class Player : Entity
     base.Initialization();
     PlayerDebug();
   }
+
+
   #endregion
+
+
 
   #region Player-Combat
 
