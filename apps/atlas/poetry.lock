@@ -1257,13 +1257,13 @@ files = [
 
 [[package]]
 name = "pyautogen"
-version = "0.1.6"
+version = "0.1.14"
 description = "Enabling Next-Gen LLM Applications via Multi-Agent Conversation Framework"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pyautogen-0.1.6-py3-none-any.whl", hash = "sha256:bd4988e6053c019c9b72e9f108386644744bd5471402e9b805ffca9354182402"},
-    {file = "pyautogen-0.1.6.tar.gz", hash = "sha256:af46e1dddb0f4d3c992f572948f956b2408cd247bb71738a81bddbacd6229354"},
+    {file = "pyautogen-0.1.14-py3-none-any.whl", hash = "sha256:4f12b248af5350958a6073952123a802334b3d3dcd700353cdf25a8aacac4298"},
+    {file = "pyautogen-0.1.14.tar.gz", hash = "sha256:1e9334cc7a69e73907154ff7c9c323f13aab7b70bdc8cce836be7ea92a127fff"},
 ]
 
 [package.dependencies]
@@ -1272,14 +1272,16 @@ flaml = [
     {version = "*"},
     {version = "*", extras = ["blendsearch"], optional = true, markers = "extra == \"blendsearch\""},
 ]
-openai = "*"
+openai = "<1"
+python-dotenv = "*"
 termcolor = "*"
 
 [package.extras]
 blendsearch = ["flaml[blendsearch]"]
 mathchat = ["pydantic (==1.10.9)", "sympy", "wolframalpha"]
-retrievechat = ["chromadb", "pypdf", "sentence-transformers", "tiktoken"]
-test = ["coverage (>=5.3)", "datasets", "ipykernel", "nbconvert", "nbformat", "pre-commit", "pydantic (==1.10.9)", "pytest (>=6.1.1)", "sympy", "wolframalpha"]
+retrievechat = ["chromadb", "ipython", "pypdf", "sentence-transformers", "tiktoken"]
+teachable = ["chromadb"]
+test = ["chromadb", "coverage (>=5.3)", "datasets", "ipykernel", "lancedb", "nbconvert", "nbformat", "pre-commit", "pydantic (==1.10.9)", "pytest (>=6.1.1)", "pytest-asyncio", "qdrant-client[fastembed]", "sympy", "tiktoken", "wolframalpha"]
 
 [[package]]
 name = "pycodestyle"
