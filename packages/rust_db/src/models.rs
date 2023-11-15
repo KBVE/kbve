@@ -1,18 +1,22 @@
 use std::io::Write;
 use std::str::FromStr;
 
+//* [IMPORTS] */
+
 use diesel::prelude::Queryable;
 use diesel::backend::Backend;
 use diesel::serialize::{self, ToSql, Output};
 use diesel::deserialize::{self, FromSql};
 use diesel::sql_types::Text;
 
-use rocket::serde::{Serialize, Deserialize, json::Value as JsonValue};
-use serde_json::Value as SerdeJsonValue;
+use serde::{Serialize, Deserialize};
+use serde_json::Value as JsonValue;
+
 use chrono::NaiveDateTime;
 
+//* [MODELS] */
+
 #[derive(Serialize, Queryable)]
-#[serde(crate = "rocket::serde")]
 pub struct Profile {
     pub id: u64,
     pub name: Option<String>,
@@ -24,8 +28,8 @@ pub struct Profile {
     pub uuid: Option<i32>,
 }
 
+
 #[derive(Serialize, Deserialize, Queryable)]
-#[serde(crate = "rocket::serde")]
 pub struct Apikey {
     pub id: u64, // Corresponds to Unsigned<Bigint>
     pub uuid: Option<i32>, // Corresponds to Nullable<Integer>
@@ -35,7 +39,6 @@ pub struct Apikey {
 }
 
 #[derive(Serialize, Deserialize, Queryable)]
-#[serde(crate = "rocket::serde")]
 pub struct User {
     pub id: u64, // Corresponds to Unsigned<Bigint>
     pub username: Option<String>, // Corresponds to Nullable<Varchar>
@@ -64,7 +67,7 @@ impl<DB: Backend> ToSql<Text, DB> for UsersRole {
     }
 }
 
-impl<DB: Backend> FromSql<Text, DB> for UsersRole 
+impl<DB: Backend> FromSql<Text, DB> for UsersRole
 where
     *const str: FromSql<Text, DB>,
 {
