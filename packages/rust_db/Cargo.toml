@@ -2,7 +2,15 @@
 name = "rust_db"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 [dependencies]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+chrono = { version = "0.4.24", features = ["serde"] }
+diesel = { version = "2.0.0", features = ["mysql", "chrono"] }
+dotenvy = "0.15"
+axum = "0.6.20"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
