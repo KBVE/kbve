@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+	'apps/rust_api_profile',
+]
+
+[profile.release]
+lto = true
