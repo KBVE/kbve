@@ -1,20 +1,17 @@
 use std::io::Write;
-use std::str::FromStr;
 
-//* [IMPORTS] */
-
+use diesel::mysql::{Mysql, MysqlValue};
 use diesel::prelude::Queryable;
-use diesel::backend::Backend;
 use diesel::serialize::{self, ToSql, Output};
 use diesel::deserialize::{self, FromSql};
 use diesel::sql_types::Text;
 
 use serde::{Serialize, Deserialize};
-use serde_json::Value as JsonValue;
+use serde_json::Value as SerdeJsonValue;
+
 
 use chrono::NaiveDateTime;
 
-//* [MODELS] */
 
 #[derive(Serialize, Queryable)]
 pub struct Profile {
@@ -48,35 +45,36 @@ pub struct User {
     pub created_at: NaiveDateTime, // Corresponds to Timestamp
 }
 
-#[derive(Debug, Clone, PartialEq, FromSqlRow, AsExpression)]
-#[sql_type = "Text"]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum UsersRole {
+    #[serde(rename = "user")]
     User,
+    #[serde(rename = "mod")]
     Mod,
+    #[serde(rename = "admin")]
     Admin,
 }
 
-impl<DB: Backend> ToSql<Text, DB> for UsersRole {
-    fn to_sql<W: Write>(&self, out: &mut Output<W, DB>) -> serialize::Result {
-        match *self {
-            UsersRole::User => out.write_all(b"user")?,
-            UsersRole::Mod => out.write_all(b"mod")?,
-            UsersRole::Admin => out.write_all(b"admin")?,
-        }
+
+impl ToSql<Text, Mysql> for UsersRole {
+    fn to_sql(&self, out: &mut Output<'_, '_, Mysql>) -> serialize::Result {
+        let value = match *self {
+            UsersRole::User => "user",
+            UsersRole::Mod => "mod",
+            UsersRole::Admin => "admin",
+        };
+        out.write_all(value.as_bytes())?;
         Ok(serialize::IsNull::No)
     }
 }
-
-impl<DB: Backend> FromSql<Text, DB> for UsersRole
-where
-    *const str: FromSql<Text, DB>,
-{
-    fn from_sql(bytes: Option<&DB::RawValue>) -> deserialize::Result<Self> {
-        match not_none!(bytes) {
-            b"user" => Ok(UsersRole::User),
-            b"mod" => Ok(UsersRole::Mod),
-            b"admin" => Ok(UsersRole::Admin),
-            _ => Err("Unrecognized role".into()),
+impl FromSql<Text, Mysql> for UsersRole {
+    fn from_sql(bytes: MysqlValue<'_>) -> deserialize::Result<Self> {
+        let value_str = std::str::from_utf8(bytes.as_bytes())?;
+        match value_str {
+            "user" => Ok(UsersRole::User),
+            "mod" => Ok(UsersRole::Mod),
+            "admin" => Ok(UsersRole::Admin),
+            _ => Err("Unrecognized enum variant".into()),
         }
     }
 }
