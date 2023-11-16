@@ -3,8 +3,11 @@
 #![allow(unused)]
 #![allow(clippy::all)]
 
-
 use chrono::NaiveDateTime;
+
+use diesel::sql_types::Json;
+use diesel::Queryable;
+
 #[derive(Queryable, Debug)]
 pub struct Apikey {
     pub id: u64,
@@ -36,7 +39,7 @@ pub struct Auth {
     pub password_reset_expiry: Option<NaiveDateTime>,
     pub verification_token: Option<String>,
     pub verification_expiry: Option<NaiveDateTime>,
-    pub status: Option</* TODO: unknown type Nullable<AuthStatusEnum> */>,
+    pub status: Option<i32>,
     pub last_login_at: Option<NaiveDateTime>,
     pub failed_login_attempts: Option<i32>,
     pub lockout_until: Option<NaiveDateTime>,
@@ -68,11 +71,11 @@ pub struct Profile {
 
 #[derive(Queryable, Debug)]
 pub struct User {
-    pub id: u64,
+    pub id: i32,
     pub username: Option<String>,
     pub reputation: Option<i32>,
     pub exp: Option<i32>,
-    pub role: Option</* TODO: unknown type Nullable<UsersRoleEnum> */>,
+    pub role: Option<i32>,
     pub createdAt: NaiveDateTime,
 }
 

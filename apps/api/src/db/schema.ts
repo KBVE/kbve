@@ -1,7 +1,6 @@
 import { Many, relations } from 'drizzle-orm';
 import {
 	mysqlTable,
-	mysqlEnum,
 	serial,
 	timestamp,
 	varchar,
@@ -18,7 +17,7 @@ export const users = mysqlTable('users', {
 	role: int('role').default(0),
 	reputation: int('reputation').default(0),
 	exp: int('exp').default(0),
-	createdAt: timestamp('createdAt', { mode: 'string' })
+	created_at: timestamp('created_at', { mode: 'string' })
 		.notNull()
 		.defaultNow(),
 });
@@ -59,14 +58,14 @@ export const appwrite = mysqlTable('appwrite', {
 	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }),
 	appwrite_api_key: varchar('apppwrite_api_key', { length: 256 }),
 	version: varchar('version', { length: 64 }),
-	createdAt: timestamp('createdAt', { mode: 'string' })
+	created_at: timestamp('created_at', { mode: 'string' })
 		.notNull()
 		.defaultNow(),
 });
 
 
 export const apikey = mysqlTable('apikey', {
-	id: serial('id').primaryKey().notNull(),
+	id: int('id').primaryKey().notNull(),
 	uuid: int('uuid'),
 	permissions: json('permissions'),
 	keyhash: varchar('keyhash', { length: 256 }),
@@ -74,7 +73,7 @@ export const apikey = mysqlTable('apikey', {
 });
 
 export const n8n = mysqlTable('n8n', {
-    id: serial('id').primaryKey().notNull(),
+    id: int('id').primaryKey().notNull(),
 	uuid: int('uuid'),
     webhook: varchar('webhook', { length: 256}),
     permissions: json('permissions'),

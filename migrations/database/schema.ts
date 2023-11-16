@@ -1,6 +1,34 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, primaryKey, unique, serial, int, varchar, timestamp, mysqlEnum, text } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, primaryKey, serial, int, json, varchar, timestamp, unique, text } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
+
+export const apikey = mysqlTable("apikey", {
+	id: serial("id").notNull(),
+	uuid: int("uuid"),
+	permissions: json("permissions"),
+	keyhash: varchar("keyhash", { length: 256 }),
+	label: varchar("label", { length: 256 }),
+},
+(table) => {
+	return {
+		apikeyId: primaryKey(table.id),
+	}
+});
+
+export const appwrite = mysqlTable("appwrite", {
+	id: serial("id").notNull(),
+	uuid: int("uuid"),
+	appwriteEndpoint: varchar("appwrite_endpoint", { length: 256 }),
+	appwriteProjectid: varchar("appwrite_projectid", { length: 256 }),
+	apppwriteApiKey: varchar("apppwrite_api_key", { length: 256 }),
+	version: varchar("version", { length: 64 }),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+},
+(table) => {
+	return {
+		appwriteId: primaryKey(table.id),
+	}
+});
 
 export const auth = mysqlTable("auth", {
 	id: serial("id").notNull(),
@@ -12,7 +40,7 @@ export const auth = mysqlTable("auth", {
 	passwordResetExpiry: timestamp("password_reset_expiry", { mode: 'string' }),
 	verificationToken: varchar("verification_token", { length: 256 }),
 	verificationExpiry: timestamp("verification_expiry", { mode: 'string' }),
-	status: mysqlEnum("status", ['Active','Suspended','Pending']).default('Pending'),
+	status: int("status").default(0),
 	lastLoginAt: timestamp("last_login_at", { mode: 'string' }),
 	failedLoginAttempts: int("failed_login_attempts").default(0),
 	lockoutUntil: timestamp("lockout_until", { mode: 'string' }),
@@ -23,6 +51,20 @@ export const auth = mysqlTable("auth", {
 	return {
 		authId: primaryKey(table.id),
 		authEmailUnique: unique("auth_email_unique").on(table.email),
+	}
+});
+
+export const n8N = mysqlTable("n8n", {
+	id: serial("id").notNull(),
+	uuid: int("uuid"),
+	webhook: varchar("webhook", { length: 256 }),
+	permissions: json("permissions"),
+	keyhash: varchar("keyhash", { length: 256 }),
+	label: varchar("label", { length: 256 }),
+},
+(table) => {
+	return {
+		n8NId: primaryKey(table.id),
 	}
 });
 
@@ -43,19 +85,17 @@ export const profile = mysqlTable("profile", {
 });
 
 export const users = mysqlTable("users", {
-	id: serial("id").notNull(),
+	id: int("id").autoincrement().notNull(),
 	username: varchar("username", { length: 256 }),
-	email: varchar("email", { length: 256 }),
 	reputation: int("reputation").default(0),
 	exp: int("exp").default(0),
-	createdAt: timestamp("createdAt", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	role: mysqlEnum("role", ['user','mod','admin']),
-	hash: varchar("hash", { length: 256 }).notNull(),
+	role: int("role").default(0),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
 },
 (table) => {
 	return {
 		usersId: primaryKey(table.id),
+		id: unique("id").on(table.id),
 		usersUsernameUnique: unique("users_username_unique").on(table.username),
-		usersEmailUnique: unique("users_email_unique").on(table.email),
 	}
 });
