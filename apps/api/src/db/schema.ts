@@ -1,7 +1,6 @@
 import { Many, relations } from 'drizzle-orm';
 import {
 	mysqlTable,
-	serial,
 	timestamp,
 	varchar,
 	text,
@@ -23,7 +22,7 @@ export const users = mysqlTable('users', {
 });
 
 export const auth = mysqlTable('auth', {
-	id: serial('id').primaryKey().notNull(),
+	id: int('id').primaryKey().notNull().autoincrement(),
 	uuid: int('uuid'),
 	email: varchar('email', { length: 256 }).unique(),
 	hash: varchar('hash', { length: 256 }).notNull(),
@@ -41,7 +40,7 @@ export const auth = mysqlTable('auth', {
 });
 
 export const profile = mysqlTable('profile', {
-	id: serial('id').primaryKey().notNull(),
+	id: int('id').primaryKey().notNull().autoincrement(),
 	name: varchar('name', { length: 256 }).default('Anon'),
 	bio: varchar('bio', { length: 64 }).default(''),
 	unsplash: varchar('unsplash', { length: 64 }).default(''),
@@ -52,7 +51,7 @@ export const profile = mysqlTable('profile', {
 });
 
 export const appwrite = mysqlTable('appwrite', {
-	id: serial('id').primaryKey().notNull(),
+	id: int('id').primaryKey().notNull().autoincrement(),
 	uuid: int('uuid'),
 	appwrite_endpoint: varchar('appwrite_endpoint', { length: 256 }),
 	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }),
@@ -65,18 +64,18 @@ export const appwrite = mysqlTable('appwrite', {
 
 
 export const apikey = mysqlTable('apikey', {
-	id: int('id').primaryKey().notNull(),
+	id: int('id').primaryKey().notNull().autoincrement(),
 	uuid: int('uuid'),
-	permissions: json('permissions'),
+	permissions: varchar('permissions', { length: 256}),
 	keyhash: varchar('keyhash', { length: 256 }),
 	label: varchar('label', { length: 256 }),
 });
 
 export const n8n = mysqlTable('n8n', {
-    id: int('id').primaryKey().notNull(),
+    id: int('id').primaryKey().notNull().autoincrement(),
 	uuid: int('uuid'),
     webhook: varchar('webhook', { length: 256}),
-    permissions: json('permissions'),
+    permissions: varchar('permissions', { length: 256}),
 	keyhash: varchar('keyhash', { length: 256 }),
 	label: varchar('label', { length: 256 }),
 
