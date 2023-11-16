@@ -1,7 +1,9 @@
 use std::sync::Arc;
+use std::time::Instant;
+
 use axum::{
     http::StatusCode,
-    extract::Extension,
+    extract::{Extension, Path},
     response::Json,
     routing::get,
     Router,
@@ -9,7 +11,21 @@ use axum::{
 use serde::Serialize;
 use tokio;
 use tokio::task;
+
+use diesel::prelude::*;
+
 use rust_db::db::{self, Pool};
+use rust_db::models::{User};
+//use rust_db::models::{User, Profile};
+
+use rust_db::schema::users::dsl::{users, username as users_username};
+//use rust_db::schema::profile::dsl::{profile, uuid as profile_uuid};
+
+
+#[derive(Serialize)]
+struct SpeedTestResponse {
+    response_time_ms: u64,
+}
 
 #[derive(Serialize)]
 struct HealthCheckResponse {
@@ -33,8 +49,57 @@ async fn health_check(Extension(pool): Extension<Arc<Pool>>) -> Result<Json<Heal
     }
 }
 
+async fn speed_test(Extension(pool): Extension<Arc<Pool>>) -> Result<Json<SpeedTestResponse>, StatusCode> {
+    let start_time = Instant::now();
+
+    // Use `block_in_place` or `spawn_blocking` for the blocking database operation
+    let query_result = task::block_in_place(|| {
+        let mut conn = pool.get().map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
+
+        // Execute a simple query
+        diesel::sql_query("SELECT 1")
+            .execute(&mut conn)
+            .map_err(|_| StatusCode::SERVICE_UNAVAILABLE)
+    });
+
+    match query_result {
+        Ok(_) => {
+            let elapsed_time = start_time.elapsed();
+            Ok(Json(SpeedTestResponse {
+                response_time_ms: elapsed_time.as_millis() as u64, // Response time in milliseconds
+            }))
+        },
+        Err(status) => Err(status),
+    }
+}
+
 async fn root() -> String {
     "Welcome!".to_string()
+}
+
+async fn get_user_by_username(
+    Path(username): Path<String>,
+    Extension(pool): Extension<Arc<Pool>>,
+) -> Result<Json<User>, StatusCode> {
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
+
+    let query_result: QueryResult<Vec<User>> = users
+        .filter(users_username.eq(username))
+        .load::<User>(&mut conn);
+
+    match query_result {
+        Ok(mut found_users) => {
+            if let Some(user) = found_users.pop() {
+                Ok(Json(user))
+            } else {
+                Err(StatusCode::NOT_FOUND)
+            }
+        }
+        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    }
 }
 
 #[tokio::main]
@@ -47,6 +112,8 @@ async fn main() {
     let app = Router::new()
         .route("/", get(root))
         .route("/health", get(health_check)) // Add the health check route
+        .route("/speed", get(speed_test))
+        .route("/username/:username", get(get_user_by_username))
         .layer(Extension(shared_pool.clone()))
         .with_state(shared_pool);
         

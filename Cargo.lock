@@ -685,6 +685,7 @@ name = "rust_api_profile"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "diesel",
  "r2d2",
  "rust_db",
  "serde",

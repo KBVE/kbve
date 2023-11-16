@@ -15,6 +15,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tower = { version = "0.4.13", features = ["timeout"] }
 r2d2 = "0.8.9"
+diesel = { version = "2.0.0", features = ["mysql", "chrono", "r2d2"] }
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

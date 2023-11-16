@@ -13,9 +13,9 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
 export const users = mysqlTable('users', {
-	id: serial('id').primaryKey().notNull(),
+	id: int('id').primaryKey().notNull().autoincrement(),
 	username: varchar('username', { length: 256 }).unique(),
-	role: mysqlEnum('role', ['user', 'mod', 'admin']),
+	role: int('role').default(0),
 	reputation: int('reputation').default(0),
 	exp: int('exp').default(0),
 	createdAt: timestamp('createdAt', { mode: 'string' })
@@ -33,7 +33,7 @@ export const auth = mysqlTable('auth', {
 	password_reset_expiry: timestamp('password_reset_expiry'),
 	verification_token: varchar('verification_token', { length: 256 }),
 	verification_expiry: timestamp('verification_expiry'),
-	status: mysqlEnum('status', ['Active', 'Suspended', 'Pending']),
+	status: int('status').default(0),
 	last_login_at: timestamp('last_login_at'),
 	failed_login_attempts: int('failed_login_attempts').default(0),
 	lockout_until: timestamp('lockout_until'),
