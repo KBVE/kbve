@@ -4,7 +4,8 @@ diesel::table! {
     apikey (id) {
         id -> Unsigned<Bigint>,
         uuid -> Nullable<Integer>,
-        permissions -> Nullable<Json>,
+        #[max_length = 256]
+        permissions -> Nullable<Varchar>,
         #[max_length = 256]
         keyhash -> Nullable<Varchar>,
         #[max_length = 256]
@@ -24,7 +25,7 @@ diesel::table! {
         apppwrite_api_key -> Nullable<Varchar>,
         #[max_length = 64]
         version -> Nullable<Varchar>,
-        createdAt -> Timestamp,
+        created_at -> Timestamp,
     }
 }
 
@@ -60,7 +61,8 @@ diesel::table! {
         uuid -> Nullable<Integer>,
         #[max_length = 256]
         webhook -> Nullable<Varchar>,
-        permissions -> Nullable<Json>,
+        #[max_length = 256]
+        permissions -> Nullable<Varchar>,
         #[max_length = 256]
         keyhash -> Nullable<Varchar>,
         #[max_length = 256]
@@ -89,13 +91,13 @@ diesel::table! {
 
 diesel::table! {
     users (id) {
-        id -> Integer,
+        id -> Unsigned<Bigint>,
         #[max_length = 256]
         username -> Nullable<Varchar>,
+        role -> Nullable<Integer>,
         reputation -> Nullable<Integer>,
         exp -> Nullable<Integer>,
-        role -> Nullable<Integer>,
-        createdAt -> Timestamp,
+        created_at -> Timestamp,
     }
 }
 

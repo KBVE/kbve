@@ -1,1 +1,0 @@
-ALTER TABLE `apikey` MODIFY COLUMN `id` int NOT NULL;

@@ -3,16 +3,13 @@
 #![allow(unused)]
 #![allow(clippy::all)]
 
+
 use chrono::NaiveDateTime;
-
-use diesel::sql_types::Json;
-use diesel::Queryable;
-
 #[derive(Queryable, Debug)]
 pub struct Apikey {
     pub id: u64,
     pub uuid: Option<i32>,
-    pub permissions: Option<Json>,
+    pub permissions: Option<String>,
     pub keyhash: Option<String>,
     pub label: Option<String>,
 }
@@ -25,7 +22,7 @@ pub struct Appwrite {
     pub appwrite_projectid: Option<String>,
     pub apppwrite_api_key: Option<String>,
     pub version: Option<String>,
-    pub createdAt: NaiveDateTime,
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Queryable, Debug)]
@@ -52,7 +49,7 @@ pub struct N8n {
     pub id: u64,
     pub uuid: Option<i32>,
     pub webhook: Option<String>,
-    pub permissions: Option<Json>,
+    pub permissions: Option<String>,
     pub keyhash: Option<String>,
     pub label: Option<String>,
 }
@@ -71,11 +68,11 @@ pub struct Profile {
 
 #[derive(Queryable, Debug)]
 pub struct User {
-    pub id: i32,
+    pub id: u64,
     pub username: Option<String>,
+    pub role: Option<i32>,
     pub reputation: Option<i32>,
     pub exp: Option<i32>,
-    pub role: Option<i32>,
-    pub createdAt: NaiveDateTime,
+    pub created_at: NaiveDateTime,
 }
 
