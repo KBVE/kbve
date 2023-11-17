@@ -4,11 +4,12 @@ resolver = '2'
 members = [
 	'apps/rust_api_profile',
 	'packages/rust_db',
+	'packages/kbve',
 ]
 
 [profile.release]
-opt-level = "z"
+opt-level = 'z'
 lto = true
-strip = true 
+strip = true
 codegen-units = 1
-panic = "abort"
+panic = 'abort'
