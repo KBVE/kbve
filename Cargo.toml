@@ -7,4 +7,8 @@ members = [
 ]
 
 [profile.release]
+opt-level = "z"
 lto = true
+strip = true 
+codegen-units = 1
+panic = "abort"
