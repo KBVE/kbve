@@ -1,10 +1,9 @@
 import { Many, relations } from 'drizzle-orm';
 import {
 	mysqlTable,
-	mysqlEnum,
-	serial,
 	timestamp,
 	varchar,
+	serial,
 	text,
 	int,
 	json,
@@ -15,10 +14,10 @@ import { z } from 'zod';
 export const users = mysqlTable('users', {
 	id: serial('id').primaryKey().notNull(),
 	username: varchar('username', { length: 256 }).unique(),
-	role: mysqlEnum('role', ['user', 'mod', 'admin']),
+	role: int('role').default(0),
 	reputation: int('reputation').default(0),
 	exp: int('exp').default(0),
-	createdAt: timestamp('createdAt', { mode: 'string' })
+	created_at: timestamp('created_at', { mode: 'string' })
 		.notNull()
 		.defaultNow(),
 });
@@ -33,7 +32,7 @@ export const auth = mysqlTable('auth', {
 	password_reset_expiry: timestamp('password_reset_expiry'),
 	verification_token: varchar('verification_token', { length: 256 }),
 	verification_expiry: timestamp('verification_expiry'),
-	status: mysqlEnum('status', ['Active', 'Suspended', 'Pending']),
+	status: int('status').default(0),
 	last_login_at: timestamp('last_login_at'),
 	failed_login_attempts: int('failed_login_attempts').default(0),
 	lockout_until: timestamp('lockout_until'),
@@ -59,7 +58,7 @@ export const appwrite = mysqlTable('appwrite', {
 	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }),
 	appwrite_api_key: varchar('apppwrite_api_key', { length: 256 }),
 	version: varchar('version', { length: 64 }),
-	createdAt: timestamp('createdAt', { mode: 'string' })
+	created_at: timestamp('created_at', { mode: 'string' })
 		.notNull()
 		.defaultNow(),
 });
@@ -68,7 +67,7 @@ export const appwrite = mysqlTable('appwrite', {
 export const apikey = mysqlTable('apikey', {
 	id: serial('id').primaryKey().notNull(),
 	uuid: int('uuid'),
-	permissions: json('permissions'),
+	permissions: varchar('permissions', { length: 256}),
 	keyhash: varchar('keyhash', { length: 256 }),
 	label: varchar('label', { length: 256 }),
 });
@@ -77,7 +76,7 @@ export const n8n = mysqlTable('n8n', {
     id: serial('id').primaryKey().notNull(),
 	uuid: int('uuid'),
     webhook: varchar('webhook', { length: 256}),
-    permissions: json('permissions'),
+    permissions: varchar('permissions', { length: 256}),
 	keyhash: varchar('keyhash', { length: 256 }),
 	label: varchar('label', { length: 256 }),
 
