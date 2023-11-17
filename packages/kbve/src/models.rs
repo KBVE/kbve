@@ -9,19 +9,19 @@ use chrono::NaiveDateTime;
 pub struct Apikey {
     pub id: u64,
     pub uuid: u64,
-    pub permissions: Option<String>,
-    pub keyhash: Option<String>,
-    pub label: Option<String>,
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
 }
 
 #[derive(Queryable, Debug)]
 pub struct Appwrite {
     pub id: u64,
     pub uuid: u64,
-    pub appwrite_endpoint: Option<String>,
-    pub appwrite_projectid: Option<String>,
-    pub apppwrite_api_key: Option<String>,
-    pub version: Option<String>,
+    pub appwrite_endpoint: String,
+    pub appwrite_projectid: String,
+    pub apppwrite_api_key: String,
+    pub version: String,
     pub created_at: NaiveDateTime,
 }
 
@@ -29,50 +29,50 @@ pub struct Appwrite {
 pub struct Auth {
     pub id: u64,
     pub uuid: u64,
-    pub email: Option<String>,
+    pub email: String,
     pub hash: String,
     pub salt: String,
-    pub password_reset_token: Option<String>,
-    pub password_reset_expiry: Option<NaiveDateTime>,
-    pub verification_token: Option<String>,
-    pub verification_expiry: Option<NaiveDateTime>,
-    pub status: Option<i32>,
-    pub last_login_at: Option<NaiveDateTime>,
-    pub failed_login_attempts: Option<i32>,
-    pub lockout_until: Option<NaiveDateTime>,
-    pub two_factor_secret: Option<String>,
-    pub recovery_codes: Option<String>,
+    pub password_reset_token: String,
+    pub password_reset_expiry: NaiveDateTime,
+    pub verification_token: String,
+    pub verification_expiry: NaiveDateTime,
+    pub status: i32,
+    pub last_login_at: NaiveDateTime,
+    pub failed_login_attempts: i32,
+    pub lockout_until: NaiveDateTime,
+    pub two_factor_secret: String,
+    pub recovery_codes: String,
 }
 
 #[derive(Queryable, Debug)]
 pub struct N8n {
     pub id: u64,
     pub uuid: u64,
-    pub webhook: Option<String>,
-    pub permissions: Option<String>,
-    pub keyhash: Option<String>,
-    pub label: Option<String>,
+    pub webhook: String,
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
 }
 
 #[derive(Queryable, Debug)]
 pub struct Profile {
     pub id: u64,
-    pub name: Option<String>,
-    pub bio: Option<String>,
-    pub unsplash: Option<String>,
-    pub github: Option<String>,
-    pub instagram: Option<String>,
-    pub discord: Option<String>,
+    pub name: String,
+    pub bio: String,
+    pub unsplash: String,
+    pub github: String,
+    pub instagram: String,
+    pub discord: String,
     pub uuid: u64,
 }
 
 #[derive(Queryable, Debug)]
 pub struct User {
     pub id: u64,
-    pub username: Option<String>,
-    pub role: Option<i32>,
-    pub reputation: Option<i32>,
-    pub exp: Option<i32>,
+    pub username: String,
+    pub role: i32,
+    pub reputation: i32,
+    pub exp: i32,
     pub created_at: NaiveDateTime,
 }
 

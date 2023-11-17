@@ -5,11 +5,11 @@ diesel::table! {
         id -> Unsigned<Bigint>,
         uuid -> Unsigned<Bigint>,
         #[max_length = 256]
-        permissions -> Nullable<Varchar>,
+        permissions -> Varchar,
         #[max_length = 256]
-        keyhash -> Nullable<Varchar>,
+        keyhash -> Varchar,
         #[max_length = 256]
-        label -> Nullable<Varchar>,
+        label -> Varchar,
     }
 }
 
@@ -18,13 +18,13 @@ diesel::table! {
         id -> Unsigned<Bigint>,
         uuid -> Unsigned<Bigint>,
         #[max_length = 256]
-        appwrite_endpoint -> Nullable<Varchar>,
+        appwrite_endpoint -> Varchar,
         #[max_length = 256]
-        appwrite_projectid -> Nullable<Varchar>,
+        appwrite_projectid -> Varchar,
         #[max_length = 256]
-        apppwrite_api_key -> Nullable<Varchar>,
+        apppwrite_api_key -> Varchar,
         #[max_length = 64]
-        version -> Nullable<Varchar>,
+        version -> Varchar,
         created_at -> Timestamp,
     }
 }
@@ -34,24 +34,24 @@ diesel::table! {
         id -> Unsigned<Bigint>,
         uuid -> Unsigned<Bigint>,
         #[max_length = 256]
-        email -> Nullable<Varchar>,
+        email -> Varchar,
         #[max_length = 256]
         hash -> Varchar,
         #[max_length = 256]
         salt -> Varchar,
         #[max_length = 256]
-        password_reset_token -> Nullable<Varchar>,
-        password_reset_expiry -> Nullable<Timestamp>,
+        password_reset_token -> Varchar,
+        password_reset_expiry -> Timestamp,
         #[max_length = 256]
-        verification_token -> Nullable<Varchar>,
-        verification_expiry -> Nullable<Timestamp>,
-        status -> Nullable<Integer>,
-        last_login_at -> Nullable<Timestamp>,
-        failed_login_attempts -> Nullable<Integer>,
-        lockout_until -> Nullable<Timestamp>,
+        verification_token -> Varchar,
+        verification_expiry -> Timestamp,
+        status -> Integer,
+        last_login_at -> Timestamp,
+        failed_login_attempts -> Integer,
+        lockout_until -> Timestamp,
         #[max_length = 256]
-        two_factor_secret -> Nullable<Varchar>,
-        recovery_codes -> Nullable<Text>,
+        two_factor_secret -> Varchar,
+        recovery_codes -> Text,
     }
 }
 
@@ -60,13 +60,13 @@ diesel::table! {
         id -> Unsigned<Bigint>,
         uuid -> Unsigned<Bigint>,
         #[max_length = 256]
-        webhook -> Nullable<Varchar>,
+        webhook -> Varchar,
         #[max_length = 256]
-        permissions -> Nullable<Varchar>,
+        permissions -> Varchar,
         #[max_length = 256]
-        keyhash -> Nullable<Varchar>,
+        keyhash -> Varchar,
         #[max_length = 256]
-        label -> Nullable<Varchar>,
+        label -> Varchar,
     }
 }
 
@@ -74,17 +74,17 @@ diesel::table! {
     profile (id) {
         id -> Unsigned<Bigint>,
         #[max_length = 256]
-        name -> Nullable<Varchar>,
+        name -> Varchar,
         #[max_length = 64]
-        bio -> Nullable<Varchar>,
+        bio -> Varchar,
         #[max_length = 64]
-        unsplash -> Nullable<Varchar>,
+        unsplash -> Varchar,
         #[max_length = 64]
-        github -> Nullable<Varchar>,
+        github -> Varchar,
         #[max_length = 64]
-        instagram -> Nullable<Varchar>,
+        instagram -> Varchar,
         #[max_length = 64]
-        discord -> Nullable<Varchar>,
+        discord -> Varchar,
         uuid -> Unsigned<Bigint>,
     }
 }
@@ -93,10 +93,10 @@ diesel::table! {
     users (id) {
         id -> Unsigned<Bigint>,
         #[max_length = 256]
-        username -> Nullable<Varchar>,
-        role -> Nullable<Integer>,
-        reputation -> Nullable<Integer>,
-        exp -> Nullable<Integer>,
+        username -> Varchar,
+        role -> Integer,
+        reputation -> Integer,
+        exp -> Integer,
         created_at -> Timestamp,
     }
 }

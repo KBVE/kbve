@@ -14,10 +14,10 @@ import { z } from 'zod';
 
 export const users = mysqlTable('users', {
 	id: serial('id').primaryKey().notNull(),
-	username: varchar('username', { length: 256 }).unique(),
-	role: int('role').default(0),
-	reputation: int('reputation').default(0),
-	exp: int('exp').default(0),
+	username: varchar('username', { length: 256 }).unique().notNull(),
+	role: int('role').default(0).notNull(),
+	reputation: int('reputation').default(0).notNull(),
+	exp: int('exp').default(0).notNull(),
 	created_at: timestamp('created_at', { mode: 'string', })
 		.notNull()
 		.defaultNow(),
@@ -26,39 +26,39 @@ export const users = mysqlTable('users', {
 export const auth = mysqlTable('auth', {
 	id: serial('id').primaryKey().notNull(),
 	uuid:  bigint('uuid', { mode: 'number',  unsigned: true}).notNull(),
-	email: varchar('email', { length: 256 }).unique(),
+	email: varchar('email', { length: 256 }).unique().notNull(),
 	hash: varchar('hash', { length: 256 }).notNull(),
 	salt: varchar('salt', { length: 256 }).notNull(),
-	password_reset_token: varchar('password_reset_token', { length: 256 }),
-	password_reset_expiry: timestamp('password_reset_expiry'),
-	verification_token: varchar('verification_token', { length: 256 }),
-	verification_expiry: timestamp('verification_expiry'),
-	status: int('status').default(0),
-	last_login_at: timestamp('last_login_at'),
-	failed_login_attempts: int('failed_login_attempts').default(0),
-	lockout_until: timestamp('lockout_until'),
-	two_factor_secret: varchar('two_factor_secret', { length: 256 }),
-	recovery_codes: text('recovery_codes'),
+	password_reset_token: varchar('password_reset_token', { length: 256 }).notNull(),
+	password_reset_expiry: timestamp('password_reset_expiry').notNull(),
+	verification_token: varchar('verification_token', { length: 256 }).notNull(),
+	verification_expiry: timestamp('verification_expiry').notNull(),
+	status: int('status').default(0).notNull(),
+	last_login_at: timestamp('last_login_at').notNull(),
+	failed_login_attempts: int('failed_login_attempts').default(0).notNull(),
+	lockout_until: timestamp('lockout_until').notNull(),
+	two_factor_secret: varchar('two_factor_secret', { length: 256 }).notNull(),
+	recovery_codes: text('recovery_codes').notNull(),
 });
 
 export const profile = mysqlTable('profile', {
 	id: serial('id').primaryKey().notNull(),
-	name: varchar('name', { length: 256 }).default('Anon'),
-	bio: varchar('bio', { length: 64 }).default(''),
-	unsplash: varchar('unsplash', { length: 64 }).default(''),
-	github: varchar('github', { length: 64 }).default(''),
-	instagram: varchar('instagram', { length: 64 }).default(''),
-	discord: varchar('discord', { length: 64 }).default(''),
+	name: varchar('name', { length: 256 }).default('Anon').notNull(),
+	bio: varchar('bio', { length: 64 }).default('').notNull(),
+	unsplash: varchar('unsplash', { length: 64 }).default('').notNull(),
+	github: varchar('github', { length: 64 }).default('').notNull(),
+	instagram: varchar('instagram', { length: 64 }).default('').notNull(),
+	discord: varchar('discord', { length: 64 }).default('').notNull(),
 	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
 });
 
 export const appwrite = mysqlTable('appwrite', {
 	id: serial('id').primaryKey().notNull(),
 	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
-	appwrite_endpoint: varchar('appwrite_endpoint', { length: 256 }),
-	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }),
-	appwrite_api_key: varchar('apppwrite_api_key', { length: 256 }),
-	version: varchar('version', { length: 64 }),
+	appwrite_endpoint: varchar('appwrite_endpoint', { length: 256 }).notNull(),
+	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }).notNull(),
+	appwrite_api_key: varchar('apppwrite_api_key', { length: 256 }).notNull(),
+	version: varchar('version', { length: 64 }).notNull(),
 	created_at: timestamp('created_at', { mode: 'string' })
 		.notNull()
 		.defaultNow(),
@@ -68,18 +68,18 @@ export const appwrite = mysqlTable('appwrite', {
 export const apikey = mysqlTable('apikey', {
 	id: serial('id').primaryKey().notNull(),
 	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
-	permissions: varchar('permissions', { length: 256}),
-	keyhash: varchar('keyhash', { length: 256 }),
-	label: varchar('label', { length: 256 }),
+	permissions: varchar('permissions', { length: 256}).notNull(),
+	keyhash: varchar('keyhash', { length: 256 }).notNull(),
+	label: varchar('label', { length: 256 }).notNull(),
 });
 
 export const n8n = mysqlTable('n8n', {
     id: serial('id').primaryKey().notNull(),
 	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
-    webhook: varchar('webhook', { length: 256}),
-    permissions: varchar('permissions', { length: 256}),
-	keyhash: varchar('keyhash', { length: 256 }),
-	label: varchar('label', { length: 256 }),
+    webhook: varchar('webhook', { length: 256}).notNull(),
+    permissions: varchar('permissions', { length: 256}).notNull(),
+	keyhash: varchar('keyhash', { length: 256 }).notNull(),
+	label: varchar('label', { length: 256 }).notNull(),
 
 });
 
