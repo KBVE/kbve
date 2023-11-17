@@ -36,6 +36,13 @@
       "when": 1700260426100,
       "tag": "0004_low_silver_sable",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1700264847788,
+      "tag": "0005_skinny_metal_master",
+      "breakpoints": true
     }
   ]
 }

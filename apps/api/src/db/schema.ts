@@ -7,7 +7,8 @@ import {
 	text,
 	int,
 	json,
-	bigint
+	bigint,
+	uniqueIndex
 } from 'drizzle-orm/mysql-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -21,7 +22,11 @@ export const users = mysqlTable('users', {
 	created_at: timestamp('created_at', { mode: 'string', })
 		.notNull()
 		.defaultNow(),
-});
+}, (table) => {
+	return {
+	  username_idx: uniqueIndex("username_idx").on(table.username),
+	};
+  });
 
 export const auth = mysqlTable('auth', {
 	id: serial('id').primaryKey().notNull(),
@@ -39,7 +44,12 @@ export const auth = mysqlTable('auth', {
 	lockout_until: timestamp('lockout_until').notNull(),
 	two_factor_secret: varchar('two_factor_secret', { length: 256 }).notNull(),
 	recovery_codes: text('recovery_codes').notNull(),
-});
+}, (table) => {
+	return {
+	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid),
+	  email_idx: uniqueIndex("email_idx").on(table.email)
+	};
+  });
 
 export const profile = mysqlTable('profile', {
 	id: serial('id').primaryKey().notNull(),
@@ -50,7 +60,11 @@ export const profile = mysqlTable('profile', {
 	instagram: varchar('instagram', { length: 64 }).default('').notNull(),
 	discord: varchar('discord', { length: 64 }).default('').notNull(),
 	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
-});
+}, (table) => {
+	return {
+	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid)
+	};
+  });
 
 export const appwrite = mysqlTable('appwrite', {
 	id: serial('id').primaryKey().notNull(),
@@ -62,8 +76,12 @@ export const appwrite = mysqlTable('appwrite', {
 	created_at: timestamp('created_at', { mode: 'string' })
 		.notNull()
 		.defaultNow(),
-});
-
+}, (table) => {
+	return {
+	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid),
+	  appwrite_api_key_idx: uniqueIndex("appwrite_api_key_idx").on(table.appwrite_api_key)
+	};
+  });
 
 export const apikey = mysqlTable('apikey', {
 	id: serial('id').primaryKey().notNull(),
@@ -71,7 +89,12 @@ export const apikey = mysqlTable('apikey', {
 	permissions: varchar('permissions', { length: 256}).notNull(),
 	keyhash: varchar('keyhash', { length: 256 }).notNull(),
 	label: varchar('label', { length: 256 }).notNull(),
-});
+}, (table) => {
+	return {
+	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid),
+	  keyhash_idx: uniqueIndex("keyhash_idx").on(table.keyhash)
+	};
+  });
 
 export const n8n = mysqlTable('n8n', {
     id: serial('id').primaryKey().notNull(),
@@ -81,7 +104,11 @@ export const n8n = mysqlTable('n8n', {
 	keyhash: varchar('keyhash', { length: 256 }).notNull(),
 	label: varchar('label', { length: 256 }).notNull(),
 
-});
+}, (table) => {
+	return {
+	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid)
+	};
+  });
 
 /**
  * TODO: Player Saving / Loading via API.
