@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::time::Instant;
 
 use axum::{
 	http::StatusCode,
@@ -10,28 +9,21 @@ use axum::{
 };
 use serde::Serialize;
 use tokio;
-use tokio::task;
 
 use diesel::prelude::*;
 
-use rust_db::db::{ self, Pool };
-use rust_db::models::{ User, Profile };
+use kbve::db::{ self, Pool };
+use kbve::models::{ User, Profile };
+use kbve::utils::harden::{sanitize_input};
 
-use rust_db::schema::users::dsl::{ users, username as users_username };
-use rust_db::schema::profile::dsl::{
+use kbve::utils::helper::{health_check, speed_test};
+
+use kbve::schema::users::dsl::{ users, username as users_username, id as user_uuid };
+use kbve::schema::profile::dsl::{
 	profile as profiles,
 	uuid as profiles_uuid,
 };
 
-#[derive(Serialize)]
-struct SpeedTestResponse {
-	response_time_ms: u64,
-}
-
-#[derive(Serialize)]
-struct HealthCheckResponse {
-	status: String,
-}
 
 #[derive(Serialize)]
 struct UserResponse {
@@ -63,96 +55,82 @@ impl From<Profile> for ProfileResponse {
 	}
 }
 
+
 async fn get_user_by_username(
-	Path(username): Path<String>,
-	Extension(pool): Extension<Arc<Pool>>
+    Path(username): Path<String>,
+    Extension(pool): Extension<Arc<Pool>>
 ) -> Result<Json<(UserResponse, ProfileResponse)>, StatusCode> {
-	let mut conn = match pool.get() {
-		Ok(conn) => conn,
-		Err(_) => {
-			return Err(StatusCode::INTERNAL_SERVER_ERROR);
-		}
-	};
 
-	let user_query_result: QueryResult<Vec<User>> = users
-		.filter(users_username.eq(username))
-		.load::<User>(&mut conn);
+    username = sanitize_input(&username);
 
-	match user_query_result {
-		Ok(mut found_users) => {
-			if let Some(user) = found_users.pop() {
-				let profile_query_result: QueryResult<Vec<Profile>> = profiles
-					.filter(profiles_uuid.eq(user.id as i32))
-					.load::<Profile>(&mut conn);
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
 
-				match profile_query_result {
-					Ok(mut found_profile) => {
-						if let Some(profile) = found_profile.pop() {
-							let user_response = UserResponse::from(user);
-							let profile_response =
-								ProfileResponse::from(profile);
-							Ok(Json((user_response, profile_response)))
-						} else {
-							Err(StatusCode::NOT_FOUND)
-						}
-					}
-					Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
-				}
-			} else {
-				Err(StatusCode::NOT_FOUND)
-			}
-		}
-		Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
-	}
+    let user_profile_query_result = users
+        .inner_join(profiles.on(profiles_uuid.eq(user_uuid)))
+        .filter(users_username.eq(username))
+        .select((users::all_columns(), profiles::all_columns()))
+        .first::<(User, Profile)>(&mut conn);
+
+    match user_profile_query_result {
+        Ok((user, profile)) => {
+            let user_response = UserResponse::from(user);
+            let profile_response = ProfileResponse::from(profile);
+            Ok(Json((user_response, profile_response)))
+        }
+        Err(diesel::NotFound) => Err(StatusCode::NOT_FOUND),
+        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    }
 }
 
-async fn health_check(Extension(pool): Extension<Arc<Pool>>) -> Result<
-	Json<HealthCheckResponse>,
-	StatusCode
-> {
-	let connection_result = task::spawn_blocking(move || { pool.get() }).await;
+// async fn old_get_user_by_username(
+// 	Path(mut username): Path<String>,
+// 	Extension(pool): Extension<Arc<Pool>>
+// ) -> Result<Json<(UserResponse, ProfileResponse)>, StatusCode> {
 
-	match connection_result {
-		Ok(Ok(_conn)) => {
-			Ok(
-				Json(HealthCheckResponse {
-					status: "OK".to_string(),
-				})
-			)
-		}
-		_ => { Err(StatusCode::SERVICE_UNAVAILABLE) }
-	}
-}
+//     username = sanitize_input(&username);
 
-async fn speed_test(Extension(pool): Extension<Arc<Pool>>) -> Result<
-	Json<SpeedTestResponse>,
-	StatusCode
-> {
-	let start_time = Instant::now();
+// 	let mut conn = match pool.get() {
+// 		Ok(conn) => conn,
+// 		Err(_) => {
+// 			return Err(StatusCode::INTERNAL_SERVER_ERROR);
+// 		}
+// 	};
 
-	// Use `block_in_place` or `spawn_blocking` for the blocking database operation
-	let query_result = task::block_in_place(|| {
-		let mut conn = pool.get().map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
+// 	let user_query_result: QueryResult<Vec<User>> = users
+// 		.filter(users_username.eq(username))
+// 		.load::<User>(&mut conn);
 
-		// Execute a simple query
-		diesel
-			::sql_query("SELECT 1")
-			.execute(&mut conn)
-			.map_err(|_| StatusCode::SERVICE_UNAVAILABLE)
-	});
+// 	match user_query_result {
+// 		Ok(mut found_users) => {
+// 			if let Some(user) = found_users.pop() {
+// 				let profile_query_result: QueryResult<Vec<Profile>> = profiles
+// 					.filter(profiles_uuid.eq(user.id))
+// 					.load::<Profile>(&mut conn);
 
-	match query_result {
-		Ok(_) => {
-			let elapsed_time = start_time.elapsed();
-			Ok(
-				Json(SpeedTestResponse {
-					response_time_ms: elapsed_time.as_millis() as u64, // Response time in milliseconds
-				})
-			)
-		}
-		Err(status) => Err(status),
-	}
-}
+// 				match profile_query_result {
+// 					Ok(mut found_profile) => {
+// 						if let Some(profile) = found_profile.pop() {
+// 							let user_response = UserResponse::from(user);
+// 							let profile_response =
+// 								ProfileResponse::from(profile);
+// 							Ok(Json((user_response, profile_response)))
+// 						} else {
+// 							Err(StatusCode::NOT_FOUND)
+// 						}
+// 					}
+// 					Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+// 				}
+// 			} else {
+// 				Err(StatusCode::NOT_FOUND)
+// 			}
+// 		}
+// 		Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+// 	}
+// }
+
 
 async fn root() -> String {
 	"Welcome!".to_string()
@@ -167,7 +145,7 @@ async fn main() {
 		.route("/", get(root))
 		.route("/health", get(health_check)) // Add the health check route
 		.route("/speed", get(speed_test))
-		.route("/username/:username", get(get_user_by_username))
+        .route("/profile/:username", get(get_user_by_username))
 		.layer(Extension(shared_pool.clone()))
 		.with_state(shared_pool);
 

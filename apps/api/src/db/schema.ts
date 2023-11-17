@@ -7,6 +7,7 @@ import {
 	text,
 	int,
 	json,
+	bigint
 } from 'drizzle-orm/mysql-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -17,14 +18,14 @@ export const users = mysqlTable('users', {
 	role: int('role').default(0),
 	reputation: int('reputation').default(0),
 	exp: int('exp').default(0),
-	created_at: timestamp('created_at', { mode: 'string' })
+	created_at: timestamp('created_at', { mode: 'string', })
 		.notNull()
 		.defaultNow(),
 });
 
 export const auth = mysqlTable('auth', {
 	id: serial('id').primaryKey().notNull(),
-	uuid: int('uuid'),
+	uuid:  bigint('uuid', { mode: 'number',  unsigned: true}).notNull(),
 	email: varchar('email', { length: 256 }).unique(),
 	hash: varchar('hash', { length: 256 }).notNull(),
 	salt: varchar('salt', { length: 256 }).notNull(),
@@ -48,12 +49,12 @@ export const profile = mysqlTable('profile', {
 	github: varchar('github', { length: 64 }).default(''),
 	instagram: varchar('instagram', { length: 64 }).default(''),
 	discord: varchar('discord', { length: 64 }).default(''),
-	uuid: int('uuid'),
+	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
 });
 
 export const appwrite = mysqlTable('appwrite', {
 	id: serial('id').primaryKey().notNull(),
-	uuid: int('uuid'),
+	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
 	appwrite_endpoint: varchar('appwrite_endpoint', { length: 256 }),
 	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }),
 	appwrite_api_key: varchar('apppwrite_api_key', { length: 256 }),
@@ -66,7 +67,7 @@ export const appwrite = mysqlTable('appwrite', {
 
 export const apikey = mysqlTable('apikey', {
 	id: serial('id').primaryKey().notNull(),
-	uuid: int('uuid'),
+	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
 	permissions: varchar('permissions', { length: 256}),
 	keyhash: varchar('keyhash', { length: 256 }),
 	label: varchar('label', { length: 256 }),
@@ -74,7 +75,7 @@ export const apikey = mysqlTable('apikey', {
 
 export const n8n = mysqlTable('n8n', {
     id: serial('id').primaryKey().notNull(),
-	uuid: int('uuid'),
+	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
     webhook: varchar('webhook', { length: 256}),
     permissions: varchar('permissions', { length: 256}),
 	keyhash: varchar('keyhash', { length: 256 }),
