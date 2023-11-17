@@ -3,6 +3,7 @@
 #![allow(unused)]
 #![allow(clippy::all)]
 
+use diesel::Queryable;
 
 use chrono::NaiveDateTime;
 #[derive(Queryable, Debug)]

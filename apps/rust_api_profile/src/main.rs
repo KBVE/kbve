@@ -14,7 +14,6 @@ use tokio::task;
 
 use diesel::prelude::*;
 
-
 use rust_db::db::{self, Pool};
 use rust_db::models::{User};
 //use rust_db::models::{User, Profile};
@@ -32,6 +31,48 @@ struct SpeedTestResponse {
 struct HealthCheckResponse {
     status: String,
 }
+
+#[derive(Serialize)]
+struct UserResponse {
+    id: u64,
+    username: String,
+}
+
+impl From<User> for UserResponse {
+    fn from(user: User) -> Self {
+        UserResponse {
+            id: user.id,
+            username: user.username.unwrap_or_default(),
+            // initialize other fields
+        }
+    }
+}
+
+
+async fn get_user_by_username(
+    Path(username): Path<String>,
+    Extension(pool): Extension<Arc<Pool>>,
+) -> Result<Json<UserResponse>, StatusCode> {
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
+
+    let query_result: QueryResult<Vec<User>> = users
+        .filter(users_username.eq(username))
+        .load::<User>(&mut conn);
+
+        match query_result {
+            Ok(mut found_users) => {
+                if let Some(user) = found_users.pop() {
+                    Ok(Json(UserResponse::from(user)))
+                } else {
+                    Err(StatusCode::NOT_FOUND)
+                }
+            }
+            Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
 
 async fn health_check(Extension(pool): Extension<Arc<Pool>>) -> Result<Json<HealthCheckResponse>, StatusCode> {
     let connection_result = task::spawn_blocking(move || {
@@ -78,30 +119,6 @@ async fn root() -> String {
     "Welcome!".to_string()
 }
 
-async fn get_user_by_username(
-    Path(username): Path<String>,
-    Extension(pool): Extension<Arc<Pool>>,
-) -> Result<Json<User>, StatusCode> {
-    let mut conn = match pool.get() {
-        Ok(conn) => conn,
-        Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
-    };
-
-    let query_result: QueryResult<Vec<User>> = users
-        .filter(users_username.eq(username))
-        .load::<User>(&mut conn);
-
-    match query_result {
-        Ok(mut found_users) => {
-            if let Some(user) = found_users.pop() {
-                Ok(Json(user))
-            } else {
-                Err(StatusCode::NOT_FOUND)
-            }
-        }
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
-    }
-}
 
 #[tokio::main]
 async fn main() {
