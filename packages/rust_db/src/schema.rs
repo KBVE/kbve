@@ -1,20 +1,11 @@
 // @generated automatically by Diesel CLI.
 
-pub mod sql_types {
-    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
-    #[diesel(mysql_type(name = "Enum"))]
-    pub struct AuthStatusEnum;
-
-    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
-    #[diesel(mysql_type(name = "Enum"))]
-    pub struct UsersRoleEnum;
-}
-
 diesel::table! {
     apikey (id) {
         id -> Unsigned<Bigint>,
         uuid -> Nullable<Integer>,
-        permissions -> Nullable<Json>,
+        #[max_length = 256]
+        permissions -> Nullable<Varchar>,
         #[max_length = 256]
         keyhash -> Nullable<Varchar>,
         #[max_length = 256]
@@ -34,14 +25,11 @@ diesel::table! {
         apppwrite_api_key -> Nullable<Varchar>,
         #[max_length = 64]
         version -> Nullable<Varchar>,
-        createdAt -> Timestamp,
+        created_at -> Timestamp,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::AuthStatusEnum;
-
     auth (id) {
         id -> Unsigned<Bigint>,
         uuid -> Nullable<Integer>,
@@ -57,8 +45,7 @@ diesel::table! {
         #[max_length = 256]
         verification_token -> Nullable<Varchar>,
         verification_expiry -> Nullable<Timestamp>,
-        #[max_length = 9]
-        status -> Nullable<AuthStatusEnum>,
+        status -> Nullable<Integer>,
         last_login_at -> Nullable<Timestamp>,
         failed_login_attempts -> Nullable<Integer>,
         lockout_until -> Nullable<Timestamp>,
@@ -74,7 +61,8 @@ diesel::table! {
         uuid -> Nullable<Integer>,
         #[max_length = 256]
         webhook -> Nullable<Varchar>,
-        permissions -> Nullable<Json>,
+        #[max_length = 256]
+        permissions -> Nullable<Varchar>,
         #[max_length = 256]
         keyhash -> Nullable<Varchar>,
         #[max_length = 256]
@@ -102,18 +90,14 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::UsersRoleEnum;
-
     users (id) {
         id -> Unsigned<Bigint>,
         #[max_length = 256]
         username -> Nullable<Varchar>,
+        role -> Nullable<Integer>,
         reputation -> Nullable<Integer>,
         exp -> Nullable<Integer>,
-        #[max_length = 5]
-        role -> Nullable<UsersRoleEnum>,
-        createdAt -> Timestamp,
+        created_at -> Timestamp,
     }
 }
 

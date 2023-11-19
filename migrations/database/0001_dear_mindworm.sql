@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD `hash` varchar(256) NOT NULL;

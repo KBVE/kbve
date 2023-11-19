@@ -62,10 +62,20 @@ Astro VE is an Astro-based UX/UI library that empowers developers to seamlessly 
 #### React Appwrite
 
 React-based Appwrite library for fast frontend deployment.
+This package will be deprecated and replace with a `react-api` style package.
 
 #### API
 
-The API is current
+The API is current being updated! Its split into a NestJS core under `/apps/api/` and micro controllers written in Rust, under `/apps/rust_api_*` with `*` representing a glob wild card.
+
+##### API Rust
+
+Make sure that `Cargo` is installed!
+
+Running the micro controllers for the Rust API is easy!
+
+`pnpm nx run rust_api_profile:run`
+
 
 ### Apps
 
