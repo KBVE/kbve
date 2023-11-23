@@ -1236,22 +1236,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_db"
-version = "0.1.0"
-dependencies = [
- "axum",
- "chrono",
- "diesel",
- "dotenvy",
- "r2d2",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"

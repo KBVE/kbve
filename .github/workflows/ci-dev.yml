@@ -38,14 +38,15 @@ jobs:
             runs-on: ubuntu-latest
             if: github.repository == 'kbve/kbve'
             outputs:
-              herbmail:  ${{ steps.delta.outputs.herbmail_any_changed  }}
-              kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
-              rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
-              discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
-              atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
-              api: ${{ steps.delta.outputs.api_any_changed  }}
-              proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
-              saber: ${{ steps.delta.outputs.saber_any_changed  }}
+                herbmail:  ${{ steps.delta.outputs.herbmail_any_changed  }}
+                kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
+                rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
+                discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
+                atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
+                api: ${{ steps.delta.outputs.api_any_changed  }}
+                proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
+                saber: ${{ steps.delta.outputs.saber_any_changed  }}
+                rustapiprofile:: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
 
             steps:
               -   name: Checkout the repository using git
@@ -58,22 +59,24 @@ jobs:
                   uses: tj-actions/changed-files@v39
                   with:
                     files_yaml: |
-                      herbmail:
-                          - 'apps/herbmail.com/**'
-                      kbve:
-                          - 'apps/kbve.com/**'
-                      rareicon:
-                          - 'apps/rareicon.com/**'
-                      discordsh:
-                          - 'apps/discord.sh/**'
-                      atlas:
-                          - 'apps/atlas/kbve_atlas/**'
-                      api:
-                          - 'apps/api/**'
-                      proxy:
-                          - 'apps/proxy/**'
-                      saber:
-                          - 'apps/saber/**'
+                        herbmail:
+                            - 'apps/herbmail.com/**'
+                        kbve:
+                            - 'apps/kbve.com/**'
+                        rareicon:
+                            - 'apps/rareicon.com/**'
+                        discordsh:
+                            - 'apps/discord.sh/**'
+                        atlas:
+                            - 'apps/atlas/kbve_atlas/**'
+                        api:
+                            - 'apps/api/**'
+                        proxy:
+                            - 'apps/proxy/**'
+                        saber:
+                            - 'apps/saber/**'
+                        rustapiprofile:
+                            - 'apps/rust_api_profile/**' 
 
         buildSaber:
             needs: alter
