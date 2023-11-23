@@ -29,6 +29,7 @@ jobs:
             api: ${{ steps.delta.outputs.api_any_changed  }}
             proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
             saber: ${{ steps.delta.outputs.saber_any_changed  }}
+            rustprofile:  ${{ steps.delta.outputs.rustprofile_any_changed  }}
 
         steps:
             -   name: Checkout the repository using git
@@ -57,10 +58,12 @@ jobs:
                         - 'apps/proxy/**'
                     saber:
                         - 'apps/saber/**'
+                    rustprofile:
+                        - 'apps/rust_api_profile/**'
 
 
     deploy:
-        needs: alter
+        needs: ["alter"]
         name: Deployment
         runs-on: ubuntu-latest
         steps:
@@ -221,3 +224,36 @@ jobs:
                       push: true
                       tags: ${{ steps.meta.outputs.tags }}
                       labels: ${{ steps.meta.outputs.labels }}
+
+    # Rust Profile Image Deployment
+    rust-profile-image:
+        needs: ["monorepo-image", "alter"]
+        name: Build Rust Profile Docker Image
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+              - name: Checkout Repository
+                uses: actions/checkout@v4
+
+              - name: Set up QEMU
+                uses: docker/setup-qemu-action@v3
+
+              - name: Set up Docker Buildx
+                uses: docker/setup-buildx-action@v3
+
+              - name: Login to Docker Hub
+                uses: docker/login-action@v3
+                with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+              - name: Build and push
+                uses: docker/build-push-action@v5
+                with:
+                    context: ./apps/rust_api_profile/
+                    push: true
+                    tags: kbve/rustprofile:latest
+                    platforms: linux/amd64, linux/arm64
+                    file: ./Dockerfile
