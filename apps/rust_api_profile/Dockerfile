@@ -1,21 +1,24 @@
-FROM messense/rust-musl-cross:x86_64-musl as chef
-RUN cargo install cargo-chef
-WORKDIR /src
+FROM ghcr.io/kbve/kbve:main as kbve
 
-FROM chef AS planner
+SHELL ["/bin/bash", "-c"]
+
+RUN pnpm nx build rust_api_profile --release
 
 COPY . .
 
-RUN cargo chef prepare --recipe-path recipe.json
+# Final
 
-FROM chef as builder
-COPY --from=planner /src/recipe.json recipe.json
+FROM ubuntu:22.04
 
-RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
-COPY . .
-RUN cargo build --release --target x86_64-unknown-linux-musl
+WORKDIR /usr/src/app
 
-FROM scratch
-COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/src /src
-ENTRYPOINT ["/src"]
+COPY --from=kbve /usr/src/app/dist/target/rust_api_profile/release/rust_api_profile ./rust_api_profile
+
+RUN apt-get update \
+      && apt-get install -y --no-install-recommends curl libmysqlclient-dev \
+      && apt-get autoremove -y \
+      && apt-get purge -y --auto-remove \
+      && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 3000
+ENTRYPOINT ["./rust_api_profile"]
