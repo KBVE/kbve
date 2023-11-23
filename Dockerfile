@@ -1,6 +1,6 @@
 # KBVE Monorepo Base Dockerfile
-# Use Ubuntu as the base image
 FROM ubuntu:latest as kbve
+
 # Set environment variables to non-interactive (this prevents prompts during package installation)
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -14,14 +14,19 @@ RUN apt-get update && \
 RUN apt-get install -y dotnet-sdk-7.0
 
 # gcc
-RUN yes | apt install gcc-x86-64-linux-gnu
+#RUN yes | apt install gcc-x86-64-linux-gnu
 
 # MUSL
-RUN apt-get install -y musl-tools musl-dev gcc-i686-linux-gnu
-
+#RUN apt-get install -y musl-tools musl-dev gcc-i686-linux-gnu
 
 # Install PNPM
 RUN npm install -g pnpm
+
+# Setup Rust
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+
+# Cargo to ENV
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -32,34 +37,58 @@ COPY . .
 # Install dependencies
 RUN pnpm install
 
-# Setting up bash
-SHELL ["/bin/bash", "-c"]
+# # Setting up bash
+# SHELL ["/bin/bash", "-c"]
 
-# Install Rust
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
-# Cargo to ENV
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# x86_64-unknown-linux-musl
-RUN rustup target add x86_64-unknown-linux-musl
-
-# Rust Flag
-#ENV RUSTFLAGS="-C target-feature=-crt-static"
-ENV RUSTFLAGS='-C linker=x86_64-linux-gnu-gcc'
-
-# Nx Report
-RUN pnpm nx build rust_api_profile --target x86_64-unknown-linux-musl  --release
-#RUN pnpm nx build rust_api_profile --release
+# RUN pnpm nx build rust_api_profile --release
 
 COPY . .
 
-# Final
-#FROM scratch
-FROM gcr.io/distroless/cc
-WORKDIR /usr/src/app
-COPY --from=kbve /usr/src/app/dist/target/rust_api_profile/release ./
-# Copy required libraries
-EXPOSE 3000
-#RUN chmod +x ./rust_api_profile 
-ENTRYPOINT ["./rust_api_profile"]
+#
+# # # Final
+#
+
+# FROM ubuntu:22.04
+
+# WORKDIR /usr/src/app
+
+# COPY --from=kbve /usr/src/app/dist/target/rust_api_profile/release/rust_api_profile ./rust_api_profile
+
+# RUN apt-get update \
+#      && apt-get install -y --no-install-recommends curl libmysqlclient-dev \
+#      && apt-get autoremove -y \
+#      && apt-get purge -y --auto-remove \
+#      && rm -rf /var/lib/apt/lists/*
+
+# EXPOSE 3000
+# ENTRYPOINT ["./rust_api_profile"]
+
+# # #
+# Chisel by Fernando Silva
+# FROM ubuntu:22.04 as OS_BUILDER
+# RUN apt-get update && apt-get update && apt-get install -y wget
+# WORKDIR /tmp
+# RUN wget https://go.dev/dl/go1.21.1.linux-amd64.tar.gz
+# RUN tar -xvf go1.21.1.linux-amd64.tar.gz
+# RUN mv go /usr/local
+# RUN GOBIN=/usr/local/bin/ /usr/local/go/bin/go install github.com/canonical/chisel/cmd/chisel@latest
+# WORKDIR /rootfs
+# RUN chisel cut --release ubuntu-22.04 --root /rootfs \
+#      base-files_base \
+#      base-files_release-info \
+#      ca-certificates_data \
+#      libgcc-s1_libs \
+#      libc6_libs \
+#      openssl_config
+#
+#
+# FROM scratch
+# COPY --from=OS_BUILDER /rootfs /
+# COPY --from=kbve /usr/src/app/dist/target/rust_api_profile/release/rust_api_profile ./rust_api_profile
+# COPY --from=kbve /usr/lib/x86_64-linux-gnu/libmysqlclient.so.21 /usr/lib/x86_64-linux-gnu/libmysqlclient.so.21
+# COPY --from=kbve /usr/lib/x86_64-linux-gnu/libssl.so.3 /usr/lib/x86_64-linux-gnu/libssl.so.3
+# COPY --from=kbve /usr/lib/x86_64-linux-gnu/libcrypto.so.3 /usr/lib/x86_64-linux-gnu/libcrypto.so.3
+# EXPOSE 3000
+# ENTRYPOINT ["./rust_api_profile"]
+# # #
