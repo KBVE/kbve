@@ -19,6 +19,9 @@ use crate::schema::profile::dsl::{
 pub struct UserResponse {
 	id: u64,
 	username: String,
+  role: i32,
+  reputation: i32,
+  exp: i32,
 }
 
 impl From<User> for UserResponse {
@@ -26,6 +29,9 @@ impl From<User> for UserResponse {
 		UserResponse {
 			id: user.id,
 			username: user.username,
+      role: user.role,
+      reputation: user.reputation,
+      exp: user.exp,
 		}
 	}
 }
@@ -34,6 +40,10 @@ impl From<User> for UserResponse {
 pub struct ProfileResponse {
 	name: String,
 	bio: String,
+  unsplash: String,
+  github: String,
+  instagram: String,
+  discord: String,
 }
 
 impl From<Profile> for ProfileResponse {
@@ -41,6 +51,10 @@ impl From<Profile> for ProfileResponse {
 		ProfileResponse {
 			name: profile.name,
 			bio: profile.bio,
+      unsplash: profile.unsplash,
+      github: profile.github,
+      instagram: profile.instagram,
+      discord: profile.discord,
 		}
 	}
 }

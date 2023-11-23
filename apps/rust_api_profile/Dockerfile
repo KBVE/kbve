@@ -1,6 +1,14 @@
 FROM ghcr.io/kbve/kbve:main as kbve
 
+# ! MUSL Build - Failed
+#RUN apt-get install -y musl-tools musl-dev
+#RUN rustup target add x86_64-unknown-linux-musl
+
 SHELL ["/bin/bash", "-c"]
+
+# ! MUSL Build - Failed
+#ENV RUSTFLAGS="-C target-feature=+crt-static"
+#RUN pnpm nx build rust_api_profile --release --target=x86_64-unknown-linux-musl
 
 RUN pnpm nx build rust_api_profile --release
 
