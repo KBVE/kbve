@@ -72,6 +72,7 @@ pub fn cors_service() -> CorsLayer {
 		"https://discord.sh".parse::<HeaderValue>().unwrap(),
         "https://hoppscotch.io".parse::<HeaderValue>().unwrap(),
         "http://localhost:3000".parse::<HeaderValue>().unwrap(),
+        "https://kbve.itch.io".parse::<HeaderValue>().unwrap(),
 	];
 
 	CorsLayer::new()
