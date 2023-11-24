@@ -35,10 +35,26 @@ pub fn sanitize_input(input: &str) -> String {
 	sanitized
 }
 
+pub fn sanitize_path(input: &str) -> String {
+    let mut sanitized: String = input
+        .chars()
+        .filter(|c| c.is_alphanumeric() || "/?@%$#".contains(*c))
+        .collect();
+
+    if sanitized.len() > 255 {
+        sanitized.truncate(255);
+    }
+
+    sanitized
+}
+
 pub async fn fallback(uri: Uri) -> impl IntoResponse {
+
+    let sanitized_path = sanitize_path(&uri.to_string());
+
     let response = FallbackResponse {
         message: "No route found".to_string(),
-        path: uri.to_string(),
+        path: sanitized_path,
     };
 
     (StatusCode::NOT_FOUND, Json(response))
