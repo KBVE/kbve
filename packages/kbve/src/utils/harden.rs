@@ -1,6 +1,6 @@
 use tower_http::cors::CorsLayer;
 use axum::{
-	response::{ Response, IntoResponse },
+	response::{  IntoResponse },
 	http::{
 		header::{ ACCEPT, AUTHORIZATION, CONTENT_TYPE},
         HeaderValue,
@@ -8,19 +8,12 @@ use axum::{
 		Method,
         Uri
 	},
-	middleware::{ Next },
     Json
 };
-use std::convert::Infallible;
-
-use serde::Serialize;
 
 
-#[derive(Serialize)]
-struct FallbackResponse {
-    message: String,
-    path: String,
-}
+use crate::dbms::wh::{ WizardResponse };
+
 
 pub fn sanitize_input(input: &str) -> String {
 	let mut sanitized: String = input
@@ -50,11 +43,12 @@ pub fn sanitize_path(input: &str) -> String {
 
 pub async fn fallback(uri: Uri) -> impl IntoResponse {
 
-    let sanitized_path = sanitize_path(&uri.to_string());
+    let final_path = sanitize_path(&uri.to_string());
 
-    let response = FallbackResponse {
-        message: "No route found".to_string(),
-        path: sanitized_path,
+
+    let response = WizardResponse {
+        data: "error".to_string(),
+        message: format!("404 - Not Found, path: {}", final_path),
     };
 
     (StatusCode::NOT_FOUND, Json(response))

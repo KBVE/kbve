@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use axum::{ http::StatusCode, extract::{Extension, Path}, response::Json };
-use serde::Serialize;
 use diesel::prelude::*;
 
 use crate::utils::harden::{sanitize_input};
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
+use crate::dbms::wh::{ UserResponse, ProfileResponse };
 
 use crate::schema::users::dsl::{ users, username as users_username, id as user_uuid };
 use crate::schema::profile::dsl::{
@@ -14,15 +14,6 @@ use crate::schema::profile::dsl::{
 	uuid as profiles_uuid,
 };
 
-
-#[derive(Serialize)]
-pub struct UserResponse {
-	id: u64,
-	username: String,
-  role: i32,
-  reputation: i32,
-  exp: i32,
-}
 
 impl From<User> for UserResponse {
 	fn from(user: User) -> Self {
@@ -36,15 +27,6 @@ impl From<User> for UserResponse {
 	}
 }
 
-#[derive(Serialize)]
-pub struct ProfileResponse {
-	name: String,
-	bio: String,
-  unsplash: String,
-  github: String,
-  instagram: String,
-  discord: String,
-}
 
 impl From<Profile> for ProfileResponse {
 	fn from(profile: Profile) -> Self {
