@@ -11,13 +11,10 @@ use tokio;
 
 use kbve::db::{ self };
 use kbve::utils::harden::{cors_service, fallback};
-use kbve::utils::helper::{health_check, speed_test};
+use kbve::utils::helper::{health_check, speed_test, root_endpoint};
 use kbve::dbms::player::playerdb::{get_user_by_username};
 
 
-async fn root() -> String {
-	"Welcome!".to_string()
-}
 
 #[tokio::main]
 async fn main() {
@@ -34,7 +31,7 @@ async fn main() {
 
 	let app = Router::new()
 		.nest("/api/v1", api_routes) 
-		.route("/", get(root))
+		.route("/", get(root_endpoint))
 		.layer(Extension(shared_pool.clone()))
 		.layer(corslight)
 		.fallback(fallback)

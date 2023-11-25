@@ -9,6 +9,15 @@ use crate::dbms::wh::{WizardResponse};
 use crate::db::Pool;
 
 
+pub async fn root_endpoint() -> Result<Json<WizardResponse>, StatusCode> {
+	Ok(
+		Json(WizardResponse {
+			data: "info".to_string(),
+			message: "API Online".to_string(),
+		})
+	)
+}
+
 pub async fn health_check(Extension(pool): Extension<Arc<Pool>>) -> Result<
 	Json<WizardResponse>,
 	StatusCode
