@@ -15,12 +15,8 @@ use std::convert::Infallible;
 
 use serde::Serialize;
 
+use crate::dbms::wh::{ FallbackResponse };
 
-#[derive(Serialize)]
-struct FallbackResponse {
-    message: String,
-    path: String,
-}
 
 pub fn sanitize_input(input: &str) -> String {
 	let mut sanitized: String = input
