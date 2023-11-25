@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use axum::{ http::StatusCode, extract::{Extension, Path}, response::Json };
-use serde::Serialize;
 use diesel::prelude::*;
 
 use crate::utils::harden::{sanitize_input};

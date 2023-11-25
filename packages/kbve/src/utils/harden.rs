@@ -1,6 +1,6 @@
 use tower_http::cors::CorsLayer;
 use axum::{
-	response::{ Response, IntoResponse },
+	response::{  IntoResponse },
 	http::{
 		header::{ ACCEPT, AUTHORIZATION, CONTENT_TYPE},
         HeaderValue,
@@ -8,12 +8,9 @@ use axum::{
 		Method,
         Uri
 	},
-	middleware::{ Next },
     Json
 };
-use std::convert::Infallible;
 
-use serde::Serialize;
 
 use crate::dbms::wh::{ WizardResponse };
 

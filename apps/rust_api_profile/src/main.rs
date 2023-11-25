@@ -1,34 +1,17 @@
 use std::sync::Arc;
 
-/// * [Removed] -> <Path> from extract
-//?	* [Removing] -> <StatusCode> from http
 use axum::{
 	extract::{ Extension },
-	response::Json,
 	routing::get,
 	Router,
 };
 
-/// * [Removed] -> use serde::Serialize;
 use tokio;
 
-///	* [Tower]
-///	*	[Removed] -> use tower_http::cors::CorsLayer;
-/// * use tower::{ServiceBuilder};
 
-
-///	use diesel::prelude::*;
-
-///	? [KBVE] Crate
-
-/// * [Removed] -> <Pool> from db
 use kbve::db::{ self };
-
-/// * [Removed] -> use kbve::utils::harden::{sanitize_input};
 use kbve::utils::harden::{cors_service, fallback};
-
 use kbve::utils::helper::{health_check, speed_test};
-
 use kbve::dbms::player::playerdb::{get_user_by_username};
 
 
