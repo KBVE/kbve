@@ -15,7 +15,7 @@ use std::convert::Infallible;
 
 use serde::Serialize;
 
-use crate::dbms::wh::{ FallbackResponse };
+use crate::dbms::wh::{ WizardResponse };
 
 
 pub fn sanitize_input(input: &str) -> String {
@@ -46,11 +46,12 @@ pub fn sanitize_path(input: &str) -> String {
 
 pub async fn fallback(uri: Uri) -> impl IntoResponse {
 
-    let sanitized_path = sanitize_path(&uri.to_string());
+    let final_path = sanitize_path(&uri.to_string());
 
-    let response = FallbackResponse {
-        message: "No route found".to_string(),
-        path: sanitized_path,
+
+    let response = WizardResponse {
+        data: "error".to_string(),
+        message: format!("404 - Not Found, path: {}", final_path),
     };
 
     (StatusCode::NOT_FOUND, Json(response))

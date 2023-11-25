@@ -2,6 +2,12 @@ use serde::Serialize;
 
 
 #[derive(Serialize)]
+pub struct WizardResponse {
+    pub data: String,
+    pub message: String,
+}
+
+#[derive(Serialize)]
 pub struct FallbackResponse {
     pub message: String,
     pub path: String,
