@@ -15,16 +15,22 @@ check_root() {
     [ "$(id -u)" -eq 0 ] && echo "true" || echo "false"
 }
 
-# Function to manage a tmux session named 'studio'
+# Function to manage a tmux session
 manage_tmux_session() {
-    if ! tmux has-session -t studio 2>/dev/null; then
-        echo "Creating a new tmux session named 'studio'."
-        tmux new-session -s studio -d
-        tmux send-keys -t studio "pnpm nx run api:studio" C-m
+    # Assign the first argument to session_name
+    local session_name="$1"
+    # Ass the 2nd argue.
+    local command="$2"
+
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "Creating a new tmux session named '$session_name'."
+        tmux new-session -s "$session_name" -d
+        tmux send-keys -t "$session_name" "$command" C-m
     else
-        echo "Tmux session 'studio' already exists."
+        echo "Tmux session '$session_name' already exists."
     fi
-    tmux attach-session -t studio
+
+    tmux attach-session -t "$session_name"
 }
 
 # Main execution
@@ -44,7 +50,10 @@ case "$1" in
         check_root
         ;;
     -studio)
-        manage_tmux_session
+        manage_tmux_session "studio" "pnpm nx run api:studio"
+        ;;
+    -report)
+        manage_tmux_session "report" "pnpm nx report"
         ;;
     *)
         echo "Invalid usage. Options: '-check', '-ping', '-root', '-studio'."
