@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Update and install necessary packages
 RUN apt-get update && \
-    apt-get install -y curl gnupg2 build-essential libmysqlclient-dev  && \
+    apt-get install -y curl gnupg2 build-essential libmysqlclient-dev pkg-config libssl-dev  && \
     curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
