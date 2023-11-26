@@ -16,6 +16,5 @@ tower-http = { version = "0.4.4", features = ["cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 r2d2 = "0.8.9"
-sqlx = { version = "0.7", features = [ "runtime-tokio" ] }
 regex = "1.10.2"
 lazy_static = "1.4.0"
