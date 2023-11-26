@@ -5,7 +5,7 @@ use axum::{ http::StatusCode, extract::Extension, response::Json };
 use diesel::prelude::*;
 use tokio;
 use tokio::task;
-use crate::dbms::wh::{WizardResponse};
+use crate::wh::{WizardResponse};
 use crate::db::Pool;
 
 

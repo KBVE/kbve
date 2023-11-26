@@ -4,10 +4,12 @@ use axum::{ extract::{ Extension }, routing::get, Router };
 
 use tokio;
 
-use kbve::db::{ self };
-use kbve::utils::harden::{ cors_service, fallback };
-use kbve::utils::helper::{ health_check, speed_test, root_endpoint };
-use kbve::dbms::player::playerdb::{ get_user_by_username, api_get_process_guest_email};
+use kbve::{
+	db::{ self },
+	harden::{ cors_service, fallback },
+	helper::{ health_check, speed_test, root_endpoint },
+	playerdb::{ get_user_by_username, api_get_process_guest_email },
+};
 
 #[tokio::main]
 async fn main() {
