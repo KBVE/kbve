@@ -14,7 +14,7 @@ use axum::{
 use regex::Regex;
 use lazy_static::lazy_static;
 
-use crate::dbms::wh::{ WizardResponse };
+use crate::wh::{ WizardResponse };
 
 lazy_static! {
     pub static ref EMAIL_REGEX: Regex = Regex::new(

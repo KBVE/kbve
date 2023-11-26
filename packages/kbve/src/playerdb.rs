@@ -3,10 +3,11 @@ use std::sync::Arc;
 use axum::{ http::StatusCode, extract::{ Extension, Path }, response::Json };
 use diesel::prelude::*;
 
-use crate::utils::harden::{ sanitize_input, sanitize_email };
+use crate::error::{cast_error_spell};
+use crate::harden::{ sanitize_input, sanitize_email };
 use crate::db::{ Pool };
 use crate::models::{ User, Profile, Auth };
-use crate::dbms::wh::{ UserResponse, ProfileResponse, WizardResponse };
+use crate::wh::{ UserResponse, ProfileResponse, WizardResponse };
 
 use crate::schema::users::dsl::{
 	users,
