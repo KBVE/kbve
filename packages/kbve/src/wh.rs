@@ -1,3 +1,4 @@
+use axum::response::Json;
 use serde::{Serialize, Deserialize};
 use lazy_static::lazy_static;
 use std::collections::HashMap;
@@ -5,19 +6,19 @@ use std::collections::HashMap;
 lazy_static! {
     pub static ref ERR_MSG: HashMap<&'static str, &'static str> = {
         let mut m = HashMap::new();
-        m.insert("invalid_email", "Guest email is invalid or not safe!");
+        m.insert("invalid_email", "Email is invalid or not safe!");
         m.insert("database_error", "Database error from the pool within PlayerDB Module!");
-        m.insert("email_already_in_use", "Guest email is already in our database!");
+        m.insert("email_already_in_use", "Email is already in our database as a member!");
 		m
 	};
 	
-	pub static ref STATIC_ERROR_RESPONSES: HashMap<&'static str, WizardResponse> = {
+    pub static ref STATIC_ERROR_RESPONSES: HashMap<&'static str, Json<WizardResponse>> = {
         let mut m = HashMap::new();
         for (key, &message) in ERR_MSG.iter() {
-            m.insert(*key, WizardResponse {
+            m.insert(*key, Json(WizardResponse {
                 data: "error".to_string(), 
                 message: message.to_string(),
-            });
+            }));
         }
         m
     };
