@@ -1,9 +1,9 @@
-use crate::wh::{ ERR_MSG, WizardResponse };
+use crate::wh::{ ERR_MSG, WizardResponse, STATIC_ERROR_RESPONSES };
 
 use axum::{ response::Json };
 
-
-pub fn datawarehouse_hashmap_get_error_message(
+//	The dynamic string function is only for test casing, swapping of the dynamic variable will be done client-side.
+pub fn datawarehouse_dynamic_string_get_error_message(
 	key: &str,
 	args: &[&str]
 ) -> String {
@@ -19,31 +19,12 @@ pub fn datawarehouse_hashmap_get_error_message(
 	}
 }
 
-pub fn print_and_get_datawarehouse_error_message(
-	key: &str,
-	args: &[&str]
-) -> String {
-	let error_message = datawarehouse_hashmap_get_error_message(key, args);
-	println!("{}", error_message);
-	error_message
-}
-
-pub fn cast_error_spell(key: &str, args: &[&str]) -> WizardResponse {
-    let message = datawarehouse_hashmap_get_error_message(key, args);
-    WizardResponse {
-        data: "error".to_string(),
-        message,
-    }
-}
-
-pub fn cast_error_spell_json(key: &str, args: &[&str]) -> Json<WizardResponse> {
-    let response = cast_error_spell(key, args);
-    Json(response)
-}
-
-pub fn shadowless_error(
-	key: &str,
-	args: &[&str]
-) -> String {
-    datawarehouse_hashmap_get_error_message(key, args)
+pub fn error_casting(key: &str) -> Json<WizardResponse> {
+	match STATIC_ERROR_RESPONSES.get(key) {
+		Some(response) => response.clone(),
+        None => Json(WizardResponse {
+            data: "error".to_string(),
+            message: "Unknown error".to_string(),
+        })
+	}
 }
