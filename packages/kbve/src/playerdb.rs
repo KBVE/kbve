@@ -3,11 +3,10 @@ use std::sync::Arc;
 use axum::{ http::StatusCode, extract::{ Extension, Path }, response::{IntoResponse, Json} };
 use diesel::prelude::*;
 
-use crate::error::{ error_casting };
 use crate::harden::{ sanitize_input, sanitize_email };
 use crate::db::{ Pool };
 use crate::models::{ User, Profile, Auth };
-use crate::wh::{ UserResponse, ProfileResponse, WizardResponse };
+use crate::wh::{ UserResponse, ProfileResponse, WizardResponse, error_casting };
 
 use crate::schema::users::dsl::{
 	users,
@@ -84,12 +83,12 @@ pub async fn api_get_process_guest_email(
 
 	let clean_email = match clean_email_result {
 		Ok(valid_email) => valid_email.to_string(),
-		Err(_) => return (StatusCode::BAD_REQUEST, error_casting("invalid_email")),
+		Err(_) => return error_casting("invalid_email"),
 	};
 
 	let mut conn = match pool.get() {
 		Ok(conn) => conn,
-		Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, error_casting("database_error")),
+		Err(_) => return error_casting("database_error"),
 	};
 
 	let query_does_email_exist = auths
@@ -98,8 +97,8 @@ pub async fn api_get_process_guest_email(
 		.first::<u64>(&mut conn);
 
 	match query_does_email_exist {
-		Ok(_) => (StatusCode::OK, error_casting("email_already_in_use")),
-		Err(diesel::NotFound) => (StatusCode::OK, error_casting("vaild_guest_email")),
-		Err(_) => (StatusCode::NOT_FOUND, error_casting("database_error")),
+		Ok(_) => error_casting("email_already_in_use"),
+		Err(diesel::NotFound) => error_casting("vaild_guest_email"),
+		Err(_) => error_casting("database_error"),
 	}
 }
