@@ -36,6 +36,32 @@ pub fn sanitize_email(email: &str) -> Result<String, &str> {
     }
 }
 
+pub fn sanitize_username(username: &str) -> Result<String, &str> {
+    let sanitized: String = username
+        .chars()
+        .filter(|c| c.is_alphanumeric() && c.is_ascii())
+        .collect();
+
+	if sanitized.len() < 6 {
+		return Err("Username is too short");
+	}
+
+    if sanitized.len() > 255 {
+        return Err("Username is too long");
+    }
+
+    if sanitized != username {
+        return Err("Username contains invalid characters");
+    }
+
+    if sanitized.is_empty() {
+        return Err("Username cannot be empty");
+    }
+
+    Ok(sanitized)
+}
+
+
 pub fn sanitize_input(input: &str) -> String {
 	let mut sanitized: String = input
 		.chars()

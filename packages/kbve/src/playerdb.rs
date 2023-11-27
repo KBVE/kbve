@@ -1,12 +1,17 @@
 use std::sync::Arc;
 
-use axum::{ http::StatusCode, extract::{ Extension, Path }, response::{IntoResponse, Json} };
+use axum::{
+	http::StatusCode,
+	extract::{ Extension, Path },
+	response::{ IntoResponse, Json },
+};
 use diesel::prelude::*;
 
+use crate::{ handle_error };
 use crate::harden::{ sanitize_input, sanitize_email };
 use crate::db::{ Pool };
-use crate::models::{ User, Profile, Auth };
-use crate::wh::{ UserResponse, ProfileResponse, WizardResponse, error_casting };
+use crate::models::{ User, Profile };
+use crate::wh::{ UserResponse, ProfileResponse, error_casting };
 
 use crate::schema::users::dsl::{
 	users,
@@ -59,7 +64,7 @@ pub async fn get_user_by_username(
 	};
 
 	let user_profile_query_result = users
-		.inner_join(profiles.on(profiles_uuid.eq(user_uuid)))			
+		.inner_join(profiles.on(profiles_uuid.eq(user_uuid)))
 		.filter(users_username.eq(username))
 		.select((users::all_columns(), profiles::all_columns()))
 		.first::<(User, Profile)>(&mut conn);
@@ -78,25 +83,16 @@ pub async fn get_user_by_username(
 pub async fn api_get_process_guest_email(
 	Path(email): Path<String>,
 	Extension(pool): Extension<Arc<Pool>>
-) ->	impl IntoResponse {
-	let clean_email_result = sanitize_email(&email);
+) -> impl IntoResponse {
+	let clean_email = handle_error!(sanitize_email(&email), "invalid_email");
+	let mut conn = handle_error!(pool.get(), "database_error");
 
-	let clean_email = match clean_email_result {
-		Ok(valid_email) => valid_email.to_string(),
-		Err(_) => return error_casting("invalid_email"),
-	};
-
-	let mut conn = match pool.get() {
-		Ok(conn) => conn,
-		Err(_) => return error_casting("database_error"),
-	};
-
-	let query_does_email_exist = auths
-		.filter(auths_email.eq(clean_email))
-		.select(auths_uuid)
-		.first::<u64>(&mut conn);
-
-	match query_does_email_exist {
+	match
+		auths
+			.filter(auths_email.eq(clean_email))
+			.select(auths_uuid)
+			.first::<u64>(&mut conn)
+	{
 		Ok(_) => error_casting("email_already_in_use"),
 		Err(diesel::NotFound) => error_casting("vaild_guest_email"),
 		Err(_) => error_casting("database_error"),

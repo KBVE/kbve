@@ -19,6 +19,17 @@ macro_rules! insert_response {
 	};
 }
 
+
+#[macro_export]
+macro_rules! handle_error {
+    ($expr:expr, $error_key:expr) => {
+        match $expr {
+            Ok(value) => value,
+            Err(_) => return error_casting($error_key),
+        }
+    };
+}
+
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, Json<WizardResponse>)> = {
         let mut m = HashMap::new();
