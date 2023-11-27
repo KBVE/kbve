@@ -56,27 +56,11 @@ pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 		})
 }
 
+
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
 	pub data: String,
 	pub message: String,
 }
 
-#[derive(Serialize)]
-pub struct UserResponse {
-	pub id: u64,
-	pub username: String,
-	pub role: i32,
-	pub reputation: i32,
-	pub exp: i32,
-}
-
-#[derive(Serialize)]
-pub struct ProfileResponse {
-	pub name: String,
-	pub bio: String,
-	pub unsplash: String,
-	pub github: String,
-	pub instagram: String,
-	pub discord: String,
-}
