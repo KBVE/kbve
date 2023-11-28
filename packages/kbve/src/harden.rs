@@ -92,8 +92,8 @@ pub async fn fallback(uri: Uri) -> impl IntoResponse {
 	let final_path = sanitize_path(&uri.to_string());
 
 	let response = WizardResponse {
-		data: "error".to_string(),
-		message: format!("404 - Not Found, path: {}", final_path),
+		data: serde_json::json!({"status": "error"}),
+		message: serde_json::json!({"path": final_path.to_string()}),
 	};
 
 	(StatusCode::NOT_FOUND, Json(response))
