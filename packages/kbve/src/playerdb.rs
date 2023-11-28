@@ -99,7 +99,7 @@ pub async fn api_get_process_guest_email(
 
 	match query_does_email_exist {
 		Ok(_) => (StatusCode::OK, error_casting("email_already_in_use")),
-		Err(diesel::NotFound) => (StatusCode::NOT_FOUND, error_casting("email_already_in_use")),
-		Err(e) => (StatusCode::NOT_FOUND, error_casting("database_error")),
+		Err(diesel::NotFound) => (StatusCode::OK, error_casting("vaild_guest_email")),
+		Err(_) => (StatusCode::NOT_FOUND, error_casting("database_error")),
 	}
 }

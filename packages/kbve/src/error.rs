@@ -1,4 +1,4 @@
-use crate::wh::{ ERR_MSG, WizardResponse, STATIC_ERROR_RESPONSES };
+use crate::wh::{ ERR_MSG, WizardResponse, STATIC_RESPONSES };
 
 use axum::{ response::Json };
 
@@ -20,7 +20,7 @@ pub fn datawarehouse_dynamic_string_get_error_message(
 }
 
 pub fn error_casting(key: &str) -> Json<WizardResponse> {
-	match STATIC_ERROR_RESPONSES.get(key) {
+	match STATIC_RESPONSES.get(key) {
 		Some(response) => response.clone(),
         None => Json(WizardResponse {
             data: "error".to_string(),

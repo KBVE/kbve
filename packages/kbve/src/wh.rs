@@ -12,7 +12,15 @@ lazy_static! {
 		m
 	};
 	
-    pub static ref STATIC_ERROR_RESPONSES: HashMap<&'static str, Json<WizardResponse>> = {
+
+    pub static ref OK_MSG: HashMap<&'static str, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert("vaild_guest_email", "Email is valid but not in");
+		m
+	};
+
+    
+    pub static ref STATIC_RESPONSES: HashMap<&'static str, Json<WizardResponse>> = {
         let mut m = HashMap::new();
         for (key, &message) in ERR_MSG.iter() {
             m.insert(*key, Json(WizardResponse {
@@ -20,8 +28,15 @@ lazy_static! {
                 message: message.to_string(),
             }));
         }
+        for (key, &message) in OK_MSG.iter() {
+            m.insert(*key, Json(WizardResponse {
+                data: "ok".to_string(), 
+                message: message.to_string(),
+            }));
+        }
         m
     };
+    
 }
 
 
@@ -49,3 +64,4 @@ pub struct ProfileResponse {
 	pub instagram: String,
 	pub discord: String,
 }
+
