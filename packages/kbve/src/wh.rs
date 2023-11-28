@@ -1,44 +1,49 @@
-use axum::response::Json;
-use serde::{Serialize, Deserialize};
+use axum::{ http::StatusCode, response::Json };
+use serde::{ Serialize, Deserialize };
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
+#[macro_export]
+macro_rules! insert_response {
+	($map:expr, $key:expr, $status:expr, $data:expr, $message:expr) => {
+        $map.insert(
+            $key,
+            (
+                $status,
+                Json(WizardResponse {
+                    data: $data.to_string(),
+                    message: $message.to_string(),
+                }),
+            ),
+        );
+	};
+}
+
 lazy_static! {
-    pub static ref ERR_MSG: HashMap<&'static str, &'static str> = {
+    pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, Json<WizardResponse>)> = {
         let mut m = HashMap::new();
-        m.insert("invalid_email", "Email is invalid or not safe!");
-        m.insert("database_error", "Database error from the pool within PlayerDB Module!");
-        m.insert("email_already_in_use", "Email is already in our database as a member!");
-		m
-	};
-	
-
-    pub static ref OK_MSG: HashMap<&'static str, &'static str> = {
-        let mut m = HashMap::new();
-        m.insert("vaild_guest_email", "Email is valid but not in");
-		m
-	};
-
-    
-    pub static ref STATIC_RESPONSES: HashMap<&'static str, Json<WizardResponse>> = {
-        let mut m = HashMap::new();
-        for (key, &message) in ERR_MSG.iter() {
-            m.insert(*key, Json(WizardResponse {
-                data: "error".to_string(), 
-                message: message.to_string(),
-            }));
-        }
-        for (key, &message) in OK_MSG.iter() {
-            m.insert(*key, Json(WizardResponse {
-                data: "ok".to_string(), 
-                message: message.to_string(),
-            }));
-        }
+        insert_response!(m, "invalid_email", StatusCode::BAD_REQUEST, "error", "Email is invalid or not safe!");
+        insert_response!(m, "database_error", StatusCode::INTERNAL_SERVER_ERROR, "error", "Database error from the pool within PlayerDB Module!");
+        insert_response!(m, "email_already_in_use", StatusCode::INTERNAL_SERVER_ERROR, "error", "Email is already in our database as a member!");
+        insert_response!(m, "vaild_guest_email", StatusCode::OK, "ok", "Email is valid but not in the database");
         m
     };
     
 }
 
+pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
+	RESPONSE_MESSAGES.get(key)
+		.cloned()
+		.unwrap_or_else(|| {
+			(
+				StatusCode::INTERNAL_SERVER_ERROR,
+				Json(WizardResponse {
+					data: "error".to_string(),
+					message: "An unexpected error occurred".to_string(),
+				}),
+			)
+		})
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
@@ -64,4 +69,3 @@ pub struct ProfileResponse {
 	pub instagram: String,
 	pub discord: String,
 }
-
