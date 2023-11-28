@@ -78,3 +78,23 @@ pub struct RegisterUserSchema {
     pub password: String,
 	pub captcha: String,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct LoginUserSchema {
+    pub username_or_email: String,
+    pub password: String,
+    pub dopt: String,
+}
+
+// https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenClaims {
+    pub sub: String,
+    pub iat: usize,
+    pub exp: usize,
+    pub aud: Option<String>, 
+    pub iss: Option<String>, 
+    pub jti: Option<String>,
+    pub nbf: Option<usize>, 
+    pub scope: Option<String>, 
+}
