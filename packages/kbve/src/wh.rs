@@ -70,3 +70,11 @@ pub struct WizardResponse {
 	pub data: serde_json::Value,
 	pub message: serde_json::Value,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct RegisterUserSchema {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+	pub captcha: String,
+}
