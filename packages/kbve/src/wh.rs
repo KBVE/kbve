@@ -1,10 +1,14 @@
+
 use axum::{ http::StatusCode, response::Json };
 use serde::{ Serialize, Deserialize };
 use serde_json::Value;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
+use dashmap::DashMap;
 
 use crate::models::{ User, Profile };
+
+//  Macros
 
 #[macro_export]
 macro_rules! insert_response {
@@ -32,10 +36,24 @@ macro_rules! handle_error {
 	};
 }
 
+#[macro_export]
+macro_rules! kbve_get_conn {
+    ($pool:expr) => {
+        match $pool.get() {
+            Ok(conn) => conn,
+            Err(_) => return Err("Failed to get a connection from the pool!"),
+        }
+    };
+}
+
+//  Maps
+
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
+        m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
         m.insert("invalid_email", (StatusCode::BAD_REQUEST, "Email is invalid or not safe!"));
+        m.insert("invalid_username", (StatusCode::BAD_REQUEST, "Username is invalid or not safe!"));
 		m.insert("username_not_found", (StatusCode::BAD_REQUEST, "Username was not found!"));
         m.insert("database_error", (StatusCode::INTERNAL_SERVER_ERROR, "Database error from the pool within PlayerDB Module!"));
         m.insert("email_already_in_use", (StatusCode::INTERNAL_SERVER_ERROR, "Email is already in our database as a member!"));
@@ -44,6 +62,12 @@ lazy_static! {
         m
     };
 }
+
+//  Two different tokens , one that will be the user session, which will be stateless and api sessions would be in a dashmap.
+
+pub type APISessionStore = DashMap<String, ApiSessionSchema>;
+
+//  Functions
 
 pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(key) {
@@ -64,6 +88,8 @@ pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 		)
 	}
 }
+
+//  Structs
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
@@ -97,4 +123,14 @@ pub struct TokenClaims {
     pub jti: Option<String>,
     pub nbf: Option<usize>, 
     pub scope: Option<String>, 
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ApiSessionSchema {
+    pub sub: String,
+    pub iat: usize,
+    pub exp: usize,
+    pub key: String,
+    pub uid: String,
+    pub kbve: String,
 }
