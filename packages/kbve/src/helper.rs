@@ -7,13 +7,15 @@ use tokio;
 use tokio::task;
 use crate::wh::{WizardResponse};
 use crate::db::Pool;
+use serde_json::{Value, json};
+
 
 
 pub async fn root_endpoint() -> Result<Json<WizardResponse>, StatusCode> {
 	Ok(
 		Json(WizardResponse {
-			data: "info".to_string(),
-			message: "API Online".to_string(),
+			data: serde_json::json!({"status": "online"}),
+			message: serde_json::json!({"root": "endpoint"}),
 		})
 	)
 }
@@ -28,8 +30,8 @@ pub async fn health_check(Extension(pool): Extension<Arc<Pool>>) -> Result<
 		Ok(Ok(_conn)) => {
 			Ok(
 				Json(WizardResponse {
-					data: "online".to_string(),
-					message: "OK".to_string(),
+					data: serde_json::json!({"status": "online"}),
+					message: serde_json::json!({"health": "ok"}),
 				})
 			)
 		}
@@ -61,8 +63,8 @@ pub async fn speed_test(Extension(pool): Extension<Arc<Pool>>) -> Result<
 			let elapsed_time = start_time.elapsed().as_millis() as u64;
 			Ok(
 				Json(WizardResponse {
-					data: "info".to_string(),
-					message: format!("response time {}ms", elapsed_time.to_string()), // Response time in milliseconds
+					data: serde_json::json!({"status": "time"}),
+					message: serde_json::json!({"time": elapsed_time.to_string()}), 
 				})
 			)
 		}

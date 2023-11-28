@@ -8,7 +8,7 @@ use kbve::{
 	db::{ self },
 	harden::{ cors_service, fallback },
 	helper::{ health_check, speed_test, root_endpoint },
-	playerdb::{ get_user_by_username, api_get_process_guest_email },
+	playerdb::{ api_get_process_guest_email, api_get_process_username },
 };
 
 #[tokio::main]
@@ -21,7 +21,7 @@ async fn main() {
 	let api_routes = Router::new()
 		.route("/health", get(health_check))
 		.route("/speed", get(speed_test))
-		.route("/profile/:username", get(get_user_by_username))
+		.route("/profile/:username", get(api_get_process_username))
 		.route("/email/:email", get(api_get_process_guest_email))
 		.layer(Extension(shared_pool.clone()));
 

@@ -4,8 +4,9 @@
 #![allow(clippy::all)]
 
 use diesel::Queryable;
+use serde::Serialize;
 use chrono::NaiveDateTime;
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct Apikey {
     pub id: u64,
     pub uuid: u64,
@@ -14,7 +15,7 @@ pub struct Apikey {
     pub label: String,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct Appwrite {
     pub id: u64,
     pub uuid: u64,
@@ -25,7 +26,7 @@ pub struct Appwrite {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct Auth {
     pub id: u64,
     pub uuid: u64,
@@ -44,7 +45,7 @@ pub struct Auth {
     pub recovery_codes: String,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct N8n {
     pub id: u64,
     pub uuid: u64,
@@ -54,7 +55,7 @@ pub struct N8n {
     pub label: String,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct Profile {
     pub id: u64,
     pub name: String,
@@ -66,7 +67,7 @@ pub struct Profile {
     pub uuid: u64,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct User {
     pub id: u64,
     pub username: String,

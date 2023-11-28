@@ -36,6 +36,32 @@ pub fn sanitize_email(email: &str) -> Result<String, &str> {
     }
 }
 
+pub fn sanitize_username(username: &str) -> Result<String, &str> {
+    let sanitized: String = username
+        .chars()
+        .filter(|c| c.is_alphanumeric() && c.is_ascii())
+        .collect();
+
+	if sanitized.len() < 6 {
+		return Err("Username is too short");
+	}
+
+    if sanitized.len() > 255 {
+        return Err("Username is too long");
+    }
+
+    if sanitized != username {
+        return Err("Username contains invalid characters");
+    }
+
+    if sanitized.is_empty() {
+        return Err("Username cannot be empty");
+    }
+
+    Ok(sanitized)
+}
+
+
 pub fn sanitize_input(input: &str) -> String {
 	let mut sanitized: String = input
 		.chars()
@@ -66,8 +92,8 @@ pub async fn fallback(uri: Uri) -> impl IntoResponse {
 	let final_path = sanitize_path(&uri.to_string());
 
 	let response = WizardResponse {
-		data: "error".to_string(),
-		message: format!("404 - Not Found, path: {}", final_path),
+		data: serde_json::json!({"status": "error"}),
+		message: serde_json::json!({"path": final_path.to_string()}),
 	};
 
 	(StatusCode::NOT_FOUND, Json(response))
