@@ -228,80 +228,74 @@ public class Entity : MonoBehaviour
     Reputation = 0; // Default reputation
   }
 
-public void InitializeEntityCanvas(Vector3 canvasPosition)
-{
-  if(EntityCanvas == null)
+  public void InitializeEntityCanvas(Vector3 canvasPosition)
   {
-    EntityCanvas = UI.CreateCanvas(
+    if (EntityCanvas == null)
+    {
+      EntityCanvas = UI.CreateCanvas(
         this.gameObject,
         canvasPosition, // Use the passed-in canvasPosition here
         new Vector2(2, 1),
         this.MainCamera
-    );
-  }
-}
-
-  //! InitializeCanvas
-  //! Migrate out the StatusBar into the different Entity extensions.
-  private void InitializeStatusBar()
-  {
-    switch (this.Type)
-    {
-      case EntityType.NPC:
-        entityCanvas = UI.CreateCanvas(
-          this.gameObject,
-          new Vector3(0, 2.5f, 0),
-          new Vector2(2, 1),
-          this.MainCamera
-        );
-        break;
-
-      case EntityType.Player:
-        entityCanvas = UI.CreateCanvas(
-          this.gameObject,
-          new Vector3(0, 2f, 0),
-          new Vector2(2, 1),
-          this.MainCamera
-        );
-        break;
-
-      case EntityType.Boss:
-        entityCanvas = UI.CreateCanvas(
-          this.gameObject,
-          new Vector3(0, 2f, 0),
-          new Vector2(2, 1),
-          this.MainCamera
-        );
-        break;
+      );
     }
+  }
 
-    healthBar = UI.CreateBar(
-      entityCanvas,
-      "HealthBar",
-      Color.red,
-      new Vector2(0, 0),
-      new Vector2(2f, 0.2f),
-      this.Health.ToString(),
-      false
-    );
-    manaBar = UI.CreateBar(
-      entityCanvas,
-      "ManaBar",
-      Color.blue,
-      new Vector2(0, -0.3f),
-      new Vector2(2f, 0.2f),
-      this.Mana.ToString(),
-      false
-    );
-    energyBar = UI.CreateBar(
-      entityCanvas,
-      "EnergyBar",
-      Color.yellow,
-      new Vector2(0, -0.6f),
-      new Vector2(2f, 0.2f),
-      this.Energy.ToString(),
-      false
-    );
+  public void InitializeHealthBar(Vector3 healthBarPosition)
+  {
+    if (EntityCanvas != null)
+    {
+      if (HealthBar == null)
+      {
+        HealthBar = UI.CreateBar(
+          entityCanvas,
+          "HealthBar",
+          Color.red,
+          healthBarPosition, //new Vector2(0, 0),
+          new Vector2(2f, 0.2f),
+          this.Health.ToString(),
+          false
+        );
+      }
+    }
+  }
+
+  public void InitializeManaBar(Vector3 manaBarPosition)
+  {
+    if (EntityCanvas != null)
+    {
+      if (ManaBar == null)
+      {
+        ManaBar = UI.CreateBar(
+          entityCanvas,
+          "ManaBar",
+          Color.blue,
+          manaBarPosition, // new Vector2(0, -0.3f),
+          new Vector2(2f, 0.2f),
+          this.Mana.ToString(),
+          false
+        );
+      }
+    }
+  }
+
+  public void InitializeEnergyBar(Vector3 energyBarPosition)
+  {
+    if (EntityCanvas != null)
+    {
+      if (EnergyBar == null)
+      {
+        EnergyBar = UI.CreateBar(
+          entityCanvas,
+          "EnergyBar",
+          Color.yellow,
+          energyBarPosition, // new Vector2(0, -0.6f),
+          new Vector2(2f, 0.2f),
+          this.Energy.ToString(),
+          false
+        );
+      }
+    }
   }
 
   private void InitializeNavMeshAgent()
