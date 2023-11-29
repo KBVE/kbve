@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -86,17 +87,39 @@ public class Entity : MonoBehaviour
     set { healthBar = value; }
   }
 
+  private TextMeshProUGUI healthBarText;
+  public TextMeshProUGUI HealthBarText
+  {
+    get { return healthBarText; }
+    set { healthBarText = value; }
+  }
+
   private Image manaBar;
   public Image ManaBar
   {
     get { return manaBar; }
     set { manaBar = value; }
   }
+
+  private TextMeshProUGUI manaBarText;
+  public TextMeshProUGUI ManaBarText
+  {
+    get { return manaBarText; }
+    set { manaBarText = value; }
+  }
+
   private Image energyBar;
   public Image EnergyBar
   {
     get { return energyBar; }
     set { energyBar = value; }
+  }
+
+  private TextMeshProUGUI energyBarText;
+  public TextMeshProUGUI EnergyBarText
+  {
+    get { return energyBarText; }
+    set { energyBarText = value; }
   }
 
   #endregion
@@ -164,6 +187,7 @@ public class Entity : MonoBehaviour
   #endregion
 
   #region  Stats
+  public int MaxHealth { get; protected set; }
   public int MaxMana { get; protected set; }
   public int Strength { get; protected set; }
   public int Agility { get; protected set; }
@@ -215,10 +239,11 @@ public class Entity : MonoBehaviour
 
   protected virtual void InitializeEntity()
   {
-    Name = "Entity"; // Default name
-    Health = 100;
+    Name = "Entity"; // Default Name (as Entity)
+    MaxHealth = 100;
     MaxMana = 50;
     Energy = 100;
+    Health = MaxHealth;
     Mana = MaxMana;
     Strength = 10;
     Agility = 10;
@@ -247,7 +272,7 @@ public class Entity : MonoBehaviour
     {
       if (HealthBar == null)
       {
-        HealthBar = UI.CreateBar(
+        (HealthBar, HealthBarText) = UI.CreateBar(
           entityCanvas,
           "HealthBar",
           Color.red,
@@ -266,7 +291,7 @@ public class Entity : MonoBehaviour
     {
       if (ManaBar == null)
       {
-        ManaBar = UI.CreateBar(
+        (ManaBar, ManaBarText) = UI.CreateBar(
           entityCanvas,
           "ManaBar",
           Color.blue,
@@ -285,7 +310,7 @@ public class Entity : MonoBehaviour
     {
       if (EnergyBar == null)
       {
-        EnergyBar = UI.CreateBar(
+        (EnergyBar, EnergyBarText) = UI.CreateBar(
           entityCanvas,
           "EnergyBar",
           Color.yellow,

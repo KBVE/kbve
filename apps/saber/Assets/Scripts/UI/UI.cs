@@ -22,7 +22,7 @@ public class UI
     return canvas;
   }
 
-  public static Image CreateBar(
+  public static (Image barImage, TextMeshProUGUI barText) CreateBar(
     Canvas parentCanvas,
     string name,
     Color color,
@@ -68,6 +68,25 @@ public class UI
     textRT.pivot = new Vector2(0.5f, 0.5f); // Center pivot
 
 
-    return barImage;
+    return (barImage, barText);
   }
+
+
+
+  public static void UpdateManaBar(
+    int currentMana,
+    int maxMana,
+    Image manaBarImage,
+    TextMeshProUGUI manaBarText
+  )
+  {
+    float fillAmount = (maxMana != 0) ? (float)currentMana / maxMana : 0;
+    manaBarImage.fillAmount = fillAmount;
+
+    if (manaBarText != null)
+    {
+      manaBarText.text = currentMana + " / " + maxMana;
+    }
+  }
+
 }
