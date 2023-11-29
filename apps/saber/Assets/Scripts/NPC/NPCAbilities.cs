@@ -11,6 +11,15 @@ using UnityEngine;
 
 public class NPCAbilities : MonoBehaviour
 {
+  private Entity _ownerEntity;
+
+  public Entity OwnerEntity
+  {
+    get { return _ownerEntity; }
+    set { _ownerEntity = value; }
+  }
+
+
   // Bobbing Variables
   public float bobbingSpeed = 0.5f;
   public float bobbingAmount = 0.5f;
@@ -37,12 +46,16 @@ public class NPCAbilities : MonoBehaviour
     // Cache the main camera on start
     mainCamera = Camera.main;
     InitializeCooldowns();
+    //LinkStats();
   }
 
   private void Update()
   {
     UpdateCooldowns();
   }
+
+
+
 
   private void InitializeCooldowns()
   {
