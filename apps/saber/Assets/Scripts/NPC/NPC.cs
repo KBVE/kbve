@@ -44,6 +44,9 @@ public class NPC : Entity
   protected virtual void Start()
   {
     base.Initialization();
+    base.InitializeEntityCanvas(new Vector3(0, 2.5f, 0));
+    base.InitializeHealthBar(new Vector2(0, 0));
+    base.InitializeManaBar(new Vector2(0, -0.3f));
     //! REMOVE
     //! Debug Log
     Debug.Log("Current NPC Health " + this.Health);

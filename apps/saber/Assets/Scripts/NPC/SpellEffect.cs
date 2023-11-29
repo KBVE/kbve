@@ -13,6 +13,7 @@ public class SpellEffect : MonoBehaviour
     {
         if (other.CompareTag("Player") && spellData != null)
         {
+             Debug.Log("[Entity] -> Player -> Take Damage!");
             // Access the damage from the spellData ScriptableObject
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
             if (playerHealth != null)
