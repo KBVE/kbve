@@ -7,8 +7,6 @@ public class Entity : MonoBehaviour
 {
   #region Entity
 
-
-
   #region Camera
   protected Camera mainCamera;
   public Camera MainCamera
@@ -131,10 +129,10 @@ public class Entity : MonoBehaviour
     get => health;
     set
     {
-      health = Mathf.Max(0, value);
+      health = Mathf.Max(0, Mathf.Min(value, MaxHealth));
       if (health <= 0)
       {
-        Die();
+        OnDeath();
       }
       UpdateHealthBar();
     }
@@ -147,7 +145,10 @@ public class Entity : MonoBehaviour
   public int Mana
   {
     get => mana;
-    protected set => mana = Mathf.Max(0, Mathf.Min(value, MaxMana));
+    protected set {
+      mana = Mathf.Max(0, Mathf.Min(value, MaxMana));
+      UpdateManaBar();
+    }
   }
   #endregion
 
@@ -156,8 +157,11 @@ public class Entity : MonoBehaviour
   private int energy;
   public int Energy
   {
-    get { return energy; }
-    set { energy = value; }
+    get => energy;
+    set {
+      energy = Mathf.Max(0, Mathf.Min(value, MaxEnergy));
+      UpdateEnergyBar();
+    }
   }
 
   #endregion
@@ -189,6 +193,7 @@ public class Entity : MonoBehaviour
   #region  Stats
   public int MaxHealth { get; protected set; }
   public int MaxMana { get; protected set; }
+  public int MaxEnergy { get; protected set; }
   public int Strength { get; protected set; }
   public int Agility { get; protected set; }
   public int Intelligence { get; protected set; }
@@ -210,8 +215,9 @@ public class Entity : MonoBehaviour
   {
     if (this.Type == EntityType.Player && entityCanvas != null)
     {
-      entityCanvas.transform.localRotation = Quaternion.Euler(0, 180, 0); // Example local rotation
+      entityCanvas.transform.localRotation = Quaternion.Euler(0, 360, 0); // Example local rotation
     }
+    // Base Regeneration
   }
   #endregion
 
@@ -242,9 +248,10 @@ public class Entity : MonoBehaviour
     Name = "Entity"; // Default Name (as Entity)
     MaxHealth = 100;
     MaxMana = 50;
-    Energy = 100;
+    MaxEnergy = 100;
     Health = MaxHealth;
     Mana = MaxMana;
+    Energy = MaxEnergy;
     Strength = 10;
     Agility = 10;
     Intelligence = 10;
@@ -347,6 +354,10 @@ public class Entity : MonoBehaviour
     {
       navMeshAgent.SetDestination(targetPosition);
     }
+    if (navMeshAgent == null)
+    {
+      NavAgentBrokenFollowTarget();
+    }
   }
 
   #endregion
@@ -356,27 +367,31 @@ public class Entity : MonoBehaviour
   public virtual void TakeDamage(int amount)
   {
     //TODO Debuffs / Enchants
-    Health -= amount;
-    if (Health <= 0)
-    {
-      OnDeath();
-    }
+
+    Health = DegenerateStat(Health, amount);
+    // Health -= amount;
+    // if (Health <= 0)
+    // {
+    //   OnDeath();
+    // }
   }
 
   public virtual void Heal(int amount)
   {
-    //TODO Heal Regen
-    Health += amount;
+    //Health += amount;
+    Health = RegenerateStat(Health, amount);
   }
 
   public virtual void UseMana(int amount)
   {
-    Mana -= amount;
+    Mana = DegenerateStat(Mana, amount);
+    //Mana -= amount;
   }
 
   public virtual void RestoreMana(int amount)
   {
-    Mana += amount;
+    Mana = RegenerateStat(Mana, amount);
+    //Mana += amount;
   }
 
   public void GainExperience(int amount)
@@ -391,11 +406,29 @@ public class Entity : MonoBehaviour
 
   private void UpdateHealthBar()
   {
-    // if (healthBar != null)
-    // {
-    //   float healthNormalized = (float)health; // Health (Int) to Float
-    //    healthBar.SetHealth(healthNormalized);
-    // }
+    if(HealthBar != null && HealthBarText != null)
+    {
+    UI.UpdateStatsBar(Health, MaxHealth, HealthBar, HealthBarText);
+    Debug.Log("Updated HealthBar");
+    }
+  }
+
+  private void UpdateManaBar()
+  {
+    if(ManaBar != null && ManaBarText != null)
+    {
+    UI.UpdateStatsBar(Mana, MaxMana, ManaBar, ManaBarText);
+    Debug.Log("Updated ManaBar");
+    }
+  }
+
+  private void UpdateEnergyBar()
+  {
+    if(EnergyBar != null && EnergyBarText != null)
+    {
+    UI.UpdateStatsBar(Energy, MaxEnergy, EnergyBar, EnergyBarText);
+    Debug.Log("Updated EnergyBar");
+    }
   }
 
   private void Die()
@@ -409,6 +442,36 @@ public class Entity : MonoBehaviour
   {
     Debug.Log("[Entity] -> Death");
     Die();
+  }
+
+  #endregion
+
+  #region Timers
+
+  private int RegenerateStat(int stat, int statAmount)
+  {
+    int newStat = stat + statAmount;
+    return newStat;
+  }
+
+  private int DegenerateStat(int stat, int statAmount)
+  {
+    int newStat = stat - statAmount;
+    return newStat;
+  }
+
+  #endregion
+
+
+  #region FallBacks
+
+  //* Incase NavAgent is Broken
+
+  public void NavAgentBrokenFollowTarget()
+  {
+
+    Debug.Log("NavAgent is missing ; Using FallBack");
+
   }
 
   #endregion

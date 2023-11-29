@@ -1,7 +1,6 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-
 
 public class UI
 {
@@ -17,7 +16,6 @@ public class UI
     canvasGameObject.transform.SetParent(parent.transform);
     canvasGameObject.transform.localPosition = offset;
     canvasGameObject.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f); // Adjust as necessary
-
 
     return canvas;
   }
@@ -46,7 +44,7 @@ public class UI
     textGO.transform.SetParent(barGameObject.transform, false);
     textGO.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
     // textGO.transform.localRotation = Quaternion.Euler(0, 180, 0);
-    if(rotateText)
+    if (rotateText)
     {
       textGO.transform.localRotation = Quaternion.Euler(0, 180, 0);
     }
@@ -67,26 +65,22 @@ public class UI
     textRT.anchorMax = new Vector2(0.5f, 0.5f); // Center anchor
     textRT.pivot = new Vector2(0.5f, 0.5f); // Center pivot
 
-
     return (barImage, barText);
   }
 
-
-
-  public static void UpdateManaBar(
-    int currentMana,
-    int maxMana,
-    Image manaBarImage,
-    TextMeshProUGUI manaBarText
+  public static void UpdateStatsBar(
+    int currentStat,
+    int maxStat,
+    Image statBarImage,
+    TextMeshProUGUI statBarText
   )
   {
-    float fillAmount = (maxMana != 0) ? (float)currentMana / maxMana : 0;
-    manaBarImage.fillAmount = fillAmount;
+    float fillAmount = (maxStat != 0) ? (float)currentStat / maxStat : 0;
+    statBarImage.fillAmount = fillAmount;
 
-    if (manaBarText != null)
+    if (statBarText != null)
     {
-      manaBarText.text = currentMana + " / " + maxMana;
+      statBarText.text = currentStat + " / " + maxStat;
     }
   }
-
 }
