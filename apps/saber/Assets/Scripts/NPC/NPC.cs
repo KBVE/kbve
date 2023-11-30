@@ -99,16 +99,16 @@ public class NPC : Entity
 
   #region NPC-Combat
 
-  public void ReceiveDamage(int damage)
-  {
-    int _damage = Mathf.Max(0, damage - npcData.defensePower); // Apply damage to NPC, considering defense power
-    base.TakeDamage(_damage);
-  }
+  // public void ReceiveDamage(int damage)
+  // {
+  //   int _damage = Mathf.Max(0, damage - npcData.defensePower); // Apply damage to NPC, considering defense power
+  //   base.TakeDamage(_damage);
+  // }
 
-  private void Die()
-  {
-    poolManager.ReturnToPool(this);
-  }
+  // private void Die()
+  // {
+  //   poolManager.ReturnToPool(this);
+  // }
 
   #endregion
 }
