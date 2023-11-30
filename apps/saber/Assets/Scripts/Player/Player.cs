@@ -51,6 +51,11 @@ public class Player : Entity
     PlayerDebug();
   }
 
+  protected virtual void LateUpdate()
+  {
+    base.FlipCanvas();
+  }
+
 
   #endregion
 
