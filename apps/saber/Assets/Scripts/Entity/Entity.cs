@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
@@ -523,6 +524,26 @@ public class Entity : MonoBehaviour
     if (!abilityCooldowns.ContainsKey(ability))
     {
       abilityCooldowns.Add(ability, 0);
+    }
+  }
+
+  public void UseRandomAbility(GameObject target)
+  {
+    // Filter abilities that are not on cooldown
+    var offCooldownsAbilities = abilityCooldowns
+      .Where(kvp => kvp.Value <= 0)
+      .Select(kvp => kvp.Key)
+      .ToList();
+
+    if (offCooldownsAbilities.Count > 0)
+    {
+      // Select a random ability from those not on cooldown
+      Ability randomAbility = offCooldownsAbilities[UnityEngine.Random.Range(0, offCooldownsAbilities.Count)];
+      UseAbility(randomAbility, target); // Pass the target to the UseAbility method
+    }
+    else
+    {
+      Debug.Log("No abilities are off cooldown at the moment.");
     }
   }
 
