@@ -253,7 +253,7 @@ public class Entity : MonoBehaviour
   {
     if (EntityLifeCycleReference == null)
     {
-      EntityLifeCycleReference = StartCoroutine(EntityLifeCycle);
+      EntityLifeCycleReference = StartCoroutine(EntityLifeCycle());
     }
   }
 
@@ -268,9 +268,19 @@ public class Entity : MonoBehaviour
 
   private IEnumerator EntityLifeCycle()
   {
+    Debug.Log("[Cycle] -> Started -> Call from Inside The Fn");
     while (true)
     {
-      yield return null;
+      // Check for Enemies of the Entity
+
+      bool enemyEntityDetected = RadarDetectEnemies();
+
+      if(enemyEntityDetected)
+      {
+        Debug.Log("[Life Cycle] -> Enemy Detected!");
+      }
+
+      yield return new WaitForSeconds(1.0f);
     }
   }
 
@@ -316,6 +326,7 @@ public class Entity : MonoBehaviour
   {
     if (Target == null)
     {
+      //Debug.Log("[Entity] -> [Target] -> Locked");
       Target = _target;
     }
   }
