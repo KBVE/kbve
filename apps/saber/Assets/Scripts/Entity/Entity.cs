@@ -463,7 +463,6 @@ public class Entity : MonoBehaviour
     {
       return true;
     }
-
   }
 
   public virtual void FlipCanvas()
@@ -471,6 +470,22 @@ public class Entity : MonoBehaviour
     if (EntityCanvas != null)
     {
       EntityCanvas.transform.localRotation = Quaternion.Euler(0, 360, 0);
+    }
+  }
+
+  #endregion
+
+  #region Abilities
+
+  public void UseAbility(Ability ability, GameObject target)
+  {
+    if (ability != null)
+    {
+      ability.Activate(this, target);
+    }
+    else
+    {
+      Debug.LogError("Ability is null.");
     }
   }
 
