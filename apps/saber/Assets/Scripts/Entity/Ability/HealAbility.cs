@@ -1,3 +1,5 @@
+using UnityEngine;
+
 [CreateAssetMenu(fileName = "New Heal Ability", menuName = "Ability System/Heal Ability")]
 public class HealAbility : Ability
 {

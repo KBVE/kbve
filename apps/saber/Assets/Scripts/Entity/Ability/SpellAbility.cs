@@ -6,6 +6,8 @@ public class SpellAbility : Ability
     public GameObject spellPrefab; // The prefab for the spell effect
     public int damageAmount;
     public float duration; // How long the spell effect lasts
+      public float radius; // Add this line
+
 
     public override void Activate(Entity caster, GameObject target)
     {
@@ -13,8 +15,8 @@ public class SpellAbility : Ability
         {
             Vector3 spawnPosition = target != null ? target.transform.position : caster.transform.position;
             GameObject spellEffect = Instantiate(spellPrefab, spawnPosition, Quaternion.identity);
-            SpellEffect effectComponent = spellEffect.AddComponent<SpellEffect>();
-            effectComponent.Initialize(damageAmount, duration);
+            SpellHex effectComponent = spellEffect.AddComponent<SpellHex>();
+            effectComponent.Initialize(damageAmount, duration, radius); // Pass radius here
             caster.UseMana(manaCost);
         }
     }
