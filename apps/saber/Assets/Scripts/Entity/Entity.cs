@@ -268,7 +268,6 @@ public class Entity : MonoBehaviour
 
   private IEnumerator EntityLifeCycle()
   {
-    Debug.Log("[Cycle] -> Started -> Call from Inside The Fn");
     while (true)
     {
       // Check for Enemies of the Entity

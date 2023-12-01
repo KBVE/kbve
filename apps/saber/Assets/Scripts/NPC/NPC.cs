@@ -48,26 +48,26 @@ public class NPC : Entity
     base.InitializeHealthBar(new Vector2(0, 0));
     base.InitializeManaBar(new Vector2(0, -0.3f));
     // Try to get the NPCAbilities component from the current GameObject
-    abilities = GetComponent<NPCAbilities>();
+    // abilities = GetComponent<NPCAbilities>();
 
-    // If abilities is null, try to find it in child GameObjects
-    if (abilities == null)
-    {
-      abilities = GetComponentInChildren<NPCAbilities>();
-      if (abilities == null)
-      {
-        Debug.LogError("NPCAbilities component not found on the GameObject or its children.");
-      }
-    }
+    // // If abilities is null, try to find it in child GameObjects
+    // if (abilities == null)
+    // {
+    //   abilities = GetComponentInChildren<NPCAbilities>();
+    //   if (abilities == null)
+    //   {
+    //     Debug.LogError("NPCAbilities component not found on the GameObject or its children.");
+    //   }
+    // }
 
-    if (abilities != null)
-    {
-      abilities.OwnerEntity = this; // 'this' refers to the current instance of NPC, which is an Entity
-    }
-    else
-    {
-      Debug.LogError("NPCAbilities component not found on the GameObject or its children.");
-    }
+    // if (abilities != null)
+    // {
+    //   abilities.OwnerEntity = this; // 'this' refers to the current instance of NPC, which is an Entity
+    // }
+    // else
+    // {
+    //   Debug.LogError("NPCAbilities component not found on the GameObject or its children.");
+    // }
   }
 
   protected virtual void Update()
