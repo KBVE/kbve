@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
@@ -5,7 +7,6 @@ using UnityEngine.UI;
 
 public class Entity : MonoBehaviour
 {
-
   #region Camera
   protected Camera mainCamera;
   public Camera MainCamera
@@ -67,6 +68,33 @@ public class Entity : MonoBehaviour
 
   #endregion
 
+
+
+  #region Radar
+
+  private GameObject _target;
+  public GameObject Target
+  {
+    get => _target;
+    set { _target = value; }
+  }
+
+  private float _naturalDetectionRange;
+  public float NaturalInstinct
+  {
+    get => _naturalDetectionRange;
+    set { _naturalDetectionRange = value + Agility; }
+  }
+
+  private LayerMask _enemyLayer;
+  public LayerMask NPCLayer
+  {
+    get => _enemyLayer;
+    set { _enemyLayer = value; }
+  }
+
+  #endregion
+
   #region EntityUI
 
   private Canvas entityCanvas;
@@ -121,53 +149,8 @@ public class Entity : MonoBehaviour
 
   #endregion
 
-  #region Health
-  private int health;
-  public int Health
-  {
-    get => health;
-    set
-    {
-      health = Mathf.Max(0, Mathf.Min(value, MaxHealth));
-      if (health <= 0)
-      {
-        OnDeath();
-      }
-      UpdateHealthBar();
-    }
-  }
 
-  #endregion
-
-  #region Mana
-  private int mana;
-  public int Mana
-  {
-    get => mana;
-    protected set
-    {
-      mana = Mathf.Max(0, Mathf.Min(value, MaxMana));
-      UpdateManaBar();
-    }
-  }
-  #endregion
-
-  #region Energy
-
-  private int energy;
-  public int Energy
-  {
-    get => energy;
-    set
-    {
-      energy = Mathf.Max(0, Mathf.Min(value, MaxEnergy));
-      UpdateEnergyBar();
-    }
-  }
-
-  #endregion
-
-  #region  Movement
+  #region Movement
   private Vector3 _position;
   public Vector3 Position
   {
@@ -191,7 +174,45 @@ public class Entity : MonoBehaviour
 
   #endregion
 
-  #region  Stats
+  #region Stats
+
+  private int health;
+  public int Health
+  {
+    get => health;
+    set
+    {
+      health = Mathf.Max(0, Mathf.Min(value, MaxHealth));
+      if (health <= 0)
+      {
+        OnDeath();
+      }
+      UpdateHealthBar();
+    }
+  }
+
+  private int mana;
+  public int Mana
+  {
+    get => mana;
+    protected set
+    {
+      mana = Mathf.Max(0, Mathf.Min(value, MaxMana));
+      UpdateManaBar();
+    }
+  }
+
+  private int energy;
+  public int Energy
+  {
+    get => energy;
+    set
+    {
+      energy = Mathf.Max(0, Mathf.Min(value, MaxEnergy));
+      UpdateEnergyBar();
+    }
+  }
+
   public int MaxHealth { get; protected set; }
   public int MaxMana { get; protected set; }
   public int MaxEnergy { get; protected set; }
@@ -202,12 +223,56 @@ public class Entity : MonoBehaviour
   public int Experience { get; protected set; }
   public int Reputation { get; protected set; }
 
+  public enum CombatState
+  {
+    Idle,
+    Engaged,
+    Alert,
+    Support,
+    War
+  }
+
+  private CombatState _currentCombatState;
+
+  public CombatState EntityCombatState
+  {
+    get { return _currentCombatState; }
+    set { _currentCombatState = value; }
+  }
+
+  public event Action<CombatState> OnCombatStateChanged;
+
   #endregion
 
 
-
-
   #region Cycles
+
+  private Coroutine EntityLifeCycleReference;
+
+  public void InitializeLifeCycle()
+  {
+    if (EntityLifeCycleReference == null)
+    {
+      EntityLifeCycleReference = StartCoroutine(EntityLifeCycle);
+    }
+  }
+
+  public void HaltLifeCycle()
+  {
+    if (EntityLifeCycleReference != null)
+    {
+      StopCoroutine(EntityLifeCycleReference);
+      EntityLifeCycleReference = null;
+    }
+  }
+
+  private IEnumerator EntityLifeCycle()
+  {
+    while (true)
+    {
+      yield return null;
+    }
+  }
 
   #endregion
 
@@ -219,6 +284,7 @@ public class Entity : MonoBehaviour
     InitializeEntity();
     InitializeCamera();
     InitializeNavMeshAgent();
+    InitializeLifeCycle();
     //InitializeStatusBar();
   }
 
@@ -237,12 +303,26 @@ public class Entity : MonoBehaviour
     Health = MaxHealth;
     Mana = MaxMana;
     Energy = MaxEnergy;
+    NaturalInstinct = 1; // Natural Radar with a base of 1.
     Strength = 10;
     Agility = 10;
     Intelligence = 10;
     Position = transform.position;
     Experience = 0; // Default experience
     Reputation = 0; // Default reputation
+  }
+
+  public void InitializeTarget(GameObject _target)
+  {
+    if (Target == null)
+    {
+      Target = _target;
+    }
+  }
+
+  public void SetEntityName(string _name)
+  {
+    Name = _name;
   }
 
   public void InitializeEntityCanvas(Vector3 canvasPosition)
@@ -347,18 +427,44 @@ public class Entity : MonoBehaviour
 
   public bool IsInRangeOf(GameObject target)
   {
-    if(target != null && Position != null)
+    if (target != null)
     {
-      return Vector3.Distance(Position, target.transform.position) < 10f;
+      return Vector3.Distance(Position, target.transform.position) < NaturalInstinct;
     }
-    else {
+    else
+    {
       return false;
     }
   }
 
+  private bool RadarDetectEnemies()
+  {
+    // Check if the target is null or out of range
+    if (Target == null || !IsInRangeOf(Target))
+    {
+      return false;
+    }
+
+    Debug.Log("Radar is Running");
+
+    // Perform the raycast
+    Ray ray = new Ray(transform.position, transform.forward);
+    if (Physics.Raycast(ray, out RaycastHit hit, NaturalInstinct, NPCLayer))
+    {
+      if (hit.collider.gameObject == Target)
+      {
+        Debug.Log("[Radar] -> Target Found");
+        return true;
+      }
+    }
+
+    // Return false if the raycast didn't hit the target or no target was found
+    return false;
+  }
+
   public virtual void FlipCanvas()
   {
-    if(EntityCanvas != null)
+    if (EntityCanvas != null)
     {
       EntityCanvas.transform.localRotation = Quaternion.Euler(0, 360, 0);
     }
@@ -367,6 +473,46 @@ public class Entity : MonoBehaviour
   #endregion
 
   #region Combat
+
+  public void ToggleCombatState()
+  {
+    switch (_currentCombatState)
+    {
+      case CombatState.Idle:
+      case CombatState.Alert:
+        SetCombatState(CombatState.Engaged);
+        break;
+
+      case CombatState.Engaged:
+        SetCombatState(CombatState.Alert);
+        break;
+
+      default:
+        SetCombatState(CombatState.Idle);
+        break;
+    }
+  }
+
+  private void SetCombatState(CombatState _newState)
+  {
+    if (CanCombatTransitionTo(_newState))
+    {
+      EntityCombatState = _newState;
+      OnCombatStateChanged?.Invoke(_newState);
+      // HandleCombatStateTransitionEffects(_newState);
+      Debug.Log($"Combat state was changed to: {EntityCombatState}");
+    }
+  }
+
+  private bool CanCombatTransitionTo(CombatState _newState)
+  {
+    // If Entity is in War state, it will not change.
+    if (EntityCombatState == CombatState.War)
+    {
+      return false;
+    }
+    return true;
+  }
 
   public virtual void MigrateDamage(int baseAmount)
   {
