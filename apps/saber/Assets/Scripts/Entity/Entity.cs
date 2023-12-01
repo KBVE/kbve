@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
@@ -243,6 +244,8 @@ public class Entity : MonoBehaviour
 
   public event Action<CombatState> OnCombatStateChanged;
 
+  private Dictionary<Ability, float> abilityCooldowns = new Dictionary<Ability, float>();
+
   #endregion
 
 
@@ -271,8 +274,10 @@ public class Entity : MonoBehaviour
   {
     while (true)
     {
-      // Check for Enemies of the Entity
+      // Manage Cooldowns
+      UpdateAbilityCooldowns();
 
+      // Check for Enemies of the Entity
       bool enemyEntityDetected = RadarDetectEnemies();
 
       if (enemyEntityDetected)
@@ -481,11 +486,43 @@ public class Entity : MonoBehaviour
   {
     if (ability != null)
     {
-      ability.Activate(this, target);
+      // Check if the ability is on cooldown
+      if (!abilityCooldowns.TryGetValue(ability, out float cooldownTime) || cooldownTime <= 0)
+      {
+        ability.Activate(this, target);
+        // Set or reset the cooldown
+        abilityCooldowns[ability] = ability.cooldownTime;
+      }
+      else
+      {
+        Debug.Log(
+          $"Ability {ability.abilityName} is on cooldown. Time left: {cooldownTime} seconds."
+        );
+      }
     }
     else
     {
       Debug.LogError("Ability is null.");
+    }
+  }
+
+  private void UpdateAbilityCooldowns()
+  {
+    List<Ability> keys = new List<Ability>(abilityCooldowns.Keys);
+    foreach (Ability ability in keys)
+    {
+      if (abilityCooldowns[ability] > 0)
+      {
+        abilityCooldowns[ability] -= 1.0f;
+      }
+    }
+  }
+
+  public void AssignAbility(Ability ability)
+  {
+    if (!abilityCooldowns.ContainsKey(ability))
+    {
+      abilityCooldowns.Add(ability, 0);
     }
   }
 

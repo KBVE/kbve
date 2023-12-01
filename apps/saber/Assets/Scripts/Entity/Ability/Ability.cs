@@ -4,6 +4,10 @@ using UnityEngine;
 public class Ability : ScriptableObject
 {
     public string abilityName;
+    public float cooldownTime;
+    public float range;
+    public float effectDuration;
+    public bool isAreaEffect;
     public int manaCost;
     public Sprite icon;
 
