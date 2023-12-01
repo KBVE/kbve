@@ -32,7 +32,6 @@ pub async fn hazardous_boolean_email_exist(
 	clean_email: String,
 	pool: Arc<Pool>
 ) -> Result<bool, &'static str> {
-
 	let mut conn = kbve_get_conn!(pool);
 
 	match
@@ -66,8 +65,7 @@ pub async fn api_get_process_guest_email(
 
 	let result = hazardous_boolean_email_exist(clean_email, pool).await;
 
-	match result
-	{
+	match result {
 		Ok(true) => error_casting("email_already_in_use"),
 		Ok(false) => error_casting("valid_guest_email"),
 		Err(_) => error_casting("database_error"),
@@ -120,16 +118,15 @@ pub async fn api_process_register_user(
 		"invalid_email"
 	);
 
-	match hazardous_boolean_email_exist(clean_email, pool).await
-	{
-		Ok(true) => return error_casting("email_already_in_use"),
-		Ok(false) => {
-
-		},
-		Err(_) => return error_casting("database_error"),
-		
+	match hazardous_boolean_email_exist(clean_email, pool).await {
+		Ok(true) => {
+			return error_casting("email_already_in_use");
+		}
+		Ok(false) => {}
+		Err(_) => {
+			return error_casting("database_error");
+		}
 	}
-
 
 	let clean_username = handle_error!(
 		sanitize_username(&body.username),
@@ -137,5 +134,4 @@ pub async fn api_process_register_user(
 	);
 
 	error_casting("wip_route")
-
 }

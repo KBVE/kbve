@@ -459,31 +459,11 @@ public class Entity : MonoBehaviour
     {
       return false;
     }
-
-    //Debug.Log("Radar is Running");
-
-    // Perform the raycast
-    float radius = 10f;
-
-    // Dynamic Forward Vector
-    Vector3 customForward = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
-    Vector3 reverseForward = -customForward;
-
-    Vector3 rayOrigin = transform.position + new Vector3(0, 0.1f, 0); // Slight upward offset
-    Ray ray = new Ray(rayOrigin, reverseForward);
-    Debug.DrawLine(rayOrigin, rayOrigin + reverseForward * NaturalInstinct, Color.red, 1.0f);
-
-    if (Physics.SphereCast(ray, radius, out RaycastHit hit, NaturalInstinct, PlayerLayer))
+    else
     {
-      if (hit.collider.gameObject == Target)
-      {
-        Debug.Log("[Radar] -> Target Found");
-        return true;
-      }
+      return true;
     }
 
-    // Return false if the raycast didn't hit the target or no target was found
-    return false;
   }
 
   public virtual void FlipCanvas()
