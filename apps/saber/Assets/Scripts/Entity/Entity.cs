@@ -86,11 +86,12 @@ public class Entity : MonoBehaviour
     set { _naturalDetectionRange = value + Agility; }
   }
 
-  private LayerMask _enemyLayer;
-  public LayerMask NPCLayer
+  // Updating the Layer from Enemy to Player
+  private LayerMask _playerLayer;
+  public LayerMask PlayerLayer
   {
-    get => _enemyLayer;
-    set { _enemyLayer = value; }
+    get => _playerLayer;
+    set { _playerLayer = value; }
   }
 
   #endregion
@@ -274,11 +275,10 @@ public class Entity : MonoBehaviour
 
       bool enemyEntityDetected = RadarDetectEnemies();
 
-      if(enemyEntityDetected)
+      if (enemyEntityDetected)
       {
         Debug.Log("[Life Cycle] -> Enemy Detected!");
       }
-
       yield return new WaitForSeconds(1.0f);
     }
   }
@@ -293,7 +293,7 @@ public class Entity : MonoBehaviour
     InitializeEntity();
     InitializeCamera();
     InitializeNavMeshAgent();
-    InitializeLifeCycle();
+    InitializePlayerLayer();
     //InitializeStatusBar();
   }
 
@@ -312,10 +312,10 @@ public class Entity : MonoBehaviour
     Health = MaxHealth;
     Mana = MaxMana;
     Energy = MaxEnergy;
-    NaturalInstinct = 1; // Natural Radar with a base of 1.
     Strength = 10;
     Agility = 10;
     Intelligence = 10;
+    NaturalInstinct = 1; // Natural Radar with a base of 1.
     Position = transform.position;
     Experience = 0; // Default experience
     Reputation = 0; // Default reputation
@@ -405,6 +405,11 @@ public class Entity : MonoBehaviour
     }
   }
 
+  private void InitializePlayerLayer()
+  {
+    PlayerLayer = LayerMask.GetMask("Player");
+  }
+
   private void InitializeNavMeshAgent()
   {
     navMeshAgent = GetComponent<NavMeshAgent>();
@@ -455,11 +460,20 @@ public class Entity : MonoBehaviour
       return false;
     }
 
-    Debug.Log("Radar is Running");
+    //Debug.Log("Radar is Running");
 
     // Perform the raycast
-    Ray ray = new Ray(transform.position, transform.forward);
-    if (Physics.Raycast(ray, out RaycastHit hit, NaturalInstinct, NPCLayer))
+    float radius = 10f;
+
+    // Dynamic Forward Vector
+    Vector3 customForward = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
+    Vector3 reverseForward = -customForward;
+
+    Vector3 rayOrigin = transform.position + new Vector3(0, 0.1f, 0); // Slight upward offset
+    Ray ray = new Ray(rayOrigin, reverseForward);
+    Debug.DrawLine(rayOrigin, rayOrigin + reverseForward * NaturalInstinct, Color.red, 1.0f);
+
+    if (Physics.SphereCast(ray, radius, out RaycastHit hit, NaturalInstinct, PlayerLayer))
     {
       if (hit.collider.gameObject == Target)
       {

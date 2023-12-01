@@ -14,6 +14,7 @@ public class GhostNPC : NPC
     transparency = 0.5f;
     scareFactor = 1.0f;
     base.InitializeTarget( GameObject.FindGameObjectWithTag("Player"));
+    base.InitializeLifeCycle();
 
     //StartCoroutine(RoutineBehavior());
   }
