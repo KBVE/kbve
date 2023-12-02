@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  rust-api-profile:
+    image: kbve/rustprofile:latest
+    networks:
+      - public
+      - rust
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        # Base Traefik Labels
+        - traefik.enable=true
+        - traefik.constraint-label-stack=rust
+        - traefik.docker.network=public
+        - traefik.http.services.rust_api.loadbalancer.server.port=3000
+        - traefik.http.routers.rust_api.rule=Host(`rust.kbve.com`)
+        #http
+        - traefik.http.routers.rust_api_http.entrypoints=web
+        - traefik.http.routers.rust_api_http.rule=PathPrefix(`/`)
+        - traefik.http.routers.rust_api_http.service=rust_api
+        # https
+        - traefik.http.routers.rust_api_https.entrypoints=websecure
+        - traefik.http.routers.rust_api_https.rule=PathPrefix(`/`)
+        - traefik.http.routers.rust_api_https.service=rust_api
+        - traefik.http.routers.rust_api_https.tls=true
+    secrets:
+      - DATABASE_PROD_URL
+    environment:
+      - DATABASE_PROD_URL_FILE=/run/secrets/DATABASE_PROD_URL
+
+secrets:
+  DATABASE_PROD_URL:
+    external: true
+
+networks:
+  public:
+    external: true
+  rust:
+    name: rust
+    driver: overlay
+    attachable: true
