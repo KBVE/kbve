@@ -1,0 +1,3 @@
+£buy
+*watch files*(*.mdx)
+!error files*(*.mdx)
