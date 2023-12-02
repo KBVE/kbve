@@ -291,6 +291,23 @@ public class Entity : MonoBehaviour
 
   #endregion
 
+  #region Ticks
+
+
+  private void TickCombat()
+  {
+  }
+
+  private void TickNetwork()
+  {
+  }
+
+  private void TickState()
+  {
+  }
+
+  #endregion
+
   #region Initialization
 
 
@@ -579,6 +596,11 @@ public class Entity : MonoBehaviour
       // HandleCombatStateTransitionEffects(_newState);
       Debug.Log($"Combat state was changed to: {EntityCombatState}");
     }
+  }
+
+  private void HandleCombatStateTransitionEffects(CombatState _newState)
+  {
+
   }
 
   private bool CanCombatTransitionTo(CombatState _newState)
