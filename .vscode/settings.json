@@ -1,5 +1,9 @@
 {
     "rust-analyzer.linkedProjects": [
         ".\\packages\\rust_db\\Cargo.toml"
+    ],
+    "cSpell.words": [
+        "Cooldowns",
+        "Mathf"
     ]
 }
