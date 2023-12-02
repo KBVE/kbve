@@ -14,7 +14,7 @@ services:
         - traefik.enable=true
         - traefik.constraint-label-stack=rust
         - traefik.docker.network=public
-        - traefik.http.services.rust_api.loadbalancer.server.port=80
+        - traefik.http.services.rust_api.loadbalancer.server.port=3000
         - traefik.http.routers.rust_api.rule=Host(`rust.kbve.com`)
         #http
         - traefik.http.routers.rust_api_http.entrypoints=web
