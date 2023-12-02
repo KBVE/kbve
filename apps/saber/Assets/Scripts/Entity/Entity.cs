@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
@@ -243,6 +245,8 @@ public class Entity : MonoBehaviour
 
   public event Action<CombatState> OnCombatStateChanged;
 
+  private Dictionary<Ability, float> abilityCooldowns = new Dictionary<Ability, float>();
+
   #endregion
 
 
@@ -271,8 +275,10 @@ public class Entity : MonoBehaviour
   {
     while (true)
     {
-      // Check for Enemies of the Entity
+      // Manage Cooldowns
+      UpdateAbilityCooldowns();
 
+      // Check for Enemies of the Entity
       bool enemyEntityDetected = RadarDetectEnemies();
 
       if (enemyEntityDetected)
@@ -281,6 +287,23 @@ public class Entity : MonoBehaviour
       }
       yield return new WaitForSeconds(1.0f);
     }
+  }
+
+  #endregion
+
+  #region Ticks
+
+
+  private void TickCombat()
+  {
+  }
+
+  private void TickNetwork()
+  {
+  }
+
+  private void TickState()
+  {
   }
 
   #endregion
@@ -481,11 +504,63 @@ public class Entity : MonoBehaviour
   {
     if (ability != null)
     {
-      ability.Activate(this, target);
+      // Check if the ability is on cooldown
+      if (!abilityCooldowns.TryGetValue(ability, out float cooldownTime) || cooldownTime <= 0)
+      {
+        ability.Activate(this, target);
+        // Set or reset the cooldown
+        abilityCooldowns[ability] = ability.cooldownTime;
+      }
+      else
+      {
+        Debug.Log(
+          $"Ability {ability.abilityName} is on cooldown. Time left: {cooldownTime} seconds."
+        );
+      }
     }
     else
     {
       Debug.LogError("Ability is null.");
+    }
+  }
+
+  private void UpdateAbilityCooldowns()
+  {
+    List<Ability> keys = new List<Ability>(abilityCooldowns.Keys);
+    foreach (Ability ability in keys)
+    {
+      if (abilityCooldowns[ability] > 0)
+      {
+        abilityCooldowns[ability] -= 1.0f;
+      }
+    }
+  }
+
+  public void AssignAbility(Ability ability)
+  {
+    if (!abilityCooldowns.ContainsKey(ability))
+    {
+      abilityCooldowns.Add(ability, 0);
+    }
+  }
+
+  public void UseRandomAbility(GameObject target)
+  {
+    // Filter abilities that are not on cooldown
+    var offCooldownsAbilities = abilityCooldowns
+      .Where(kvp => kvp.Value <= 0)
+      .Select(kvp => kvp.Key)
+      .ToList();
+
+    if (offCooldownsAbilities.Count > 0)
+    {
+      // Select a random ability from those not on cooldown
+      Ability randomAbility = offCooldownsAbilities[UnityEngine.Random.Range(0, offCooldownsAbilities.Count)];
+      UseAbility(randomAbility, target); // Pass the target to the UseAbility method
+    }
+    else
+    {
+      Debug.Log("No abilities are off cooldown at the moment.");
     }
   }
 
@@ -521,6 +596,11 @@ public class Entity : MonoBehaviour
       // HandleCombatStateTransitionEffects(_newState);
       Debug.Log($"Combat state was changed to: {EntityCombatState}");
     }
+  }
+
+  private void HandleCombatStateTransitionEffects(CombatState _newState)
+  {
+
   }
 
   private bool CanCombatTransitionTo(CombatState _newState)

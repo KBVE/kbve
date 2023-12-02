@@ -16,7 +16,7 @@ public class SpellAbility : Ability
             Vector3 spawnPosition = target != null ? target.transform.position : caster.transform.position;
             GameObject spellEffect = Instantiate(spellPrefab, spawnPosition, Quaternion.identity);
             SpellHex effectComponent = spellEffect.AddComponent<SpellHex>();
-            effectComponent.Initialize(damageAmount, duration, radius); // Pass radius here
+            effectComponent.Initialize(caster, damageAmount, duration, radius); // Pass radius here
             caster.UseMana(manaCost);
         }
     }
