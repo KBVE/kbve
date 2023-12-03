@@ -52,6 +52,7 @@ lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
         m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
+        m.insert("username_taken", (StatusCode::BAD_REQUEST, "Username was taken!"));
         m.insert("invalid_email", (StatusCode::BAD_REQUEST, "Email is invalid or not safe!"));
         m.insert("invalid_username", (StatusCode::BAD_REQUEST, "Username is invalid or not safe!"));
 		m.insert("username_not_found", (StatusCode::BAD_REQUEST, "Username was not found!"));

@@ -124,6 +124,8 @@ pub async fn api_process_register_user(
 ) -> impl IntoResponse {
 	//	Cleaning Variables
 
+	//	Captcha Verification ? -> This would be before calling any of the functions below.
+
 	//	Email Handler
 	let clean_email = handle_error!(
 		sanitize_email(&body.email),
@@ -140,10 +142,24 @@ pub async fn api_process_register_user(
 		}
 	}
 
+
+	//	Username Handler
 	let clean_username = handle_error!(
 		sanitize_username(&body.username),
 		"invalid_username"
 	);
+
+	match hazardous_boolean_username_exist(clean_username, pool).await {
+		Ok(true) => {
+			return error_casting("username_taken");
+		}
+		Ok(false) => {}
+		Err(_) => {
+			return error_casting("database_error");
+		}
+	}
+
+
 
 	
 	error_casting("wip_route")
