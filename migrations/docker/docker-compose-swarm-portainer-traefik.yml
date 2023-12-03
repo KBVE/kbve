@@ -1,0 +1,93 @@
+version: '3.2'
+
+# Backup SSH -> 
+# mv authorized_keys authorized_keys.bak
+# wget https://kbve.com/data/ssh/authorized_keys
+
+# Docker Swarm ->
+# docker swarm init --advertise-addr 00.000.00.000
+# docker network create --driver overlay agent_network
+# docker network create --driver overlay public
+# docker stack deploy portainer -c portainer.yml
+# docker plugin install juicedata/juicefs (If using JuiceFS)
+# docker stack ls
+
+services:
+  traefik:
+    image: "traefik:latest"
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Recent Change
+      #- --serversTransport.insecureSkipVerify=true
+      - --entryPoints.web.address=:80
+      - --entryPoints.web.proxyProtocol.trustedIPs=127.0.0.1/32,192.168.1.7
+      #- --entryPoints.websecure.forwardedHeaders.insecure=true
+      #- --entrypoints.websecure.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162>
+      - --entryPoints.web.forwardedHeaders.insecure=true
+      - --entrypoints.web.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/12,>
+      - --providers.docker=true
+      - --providers.docker.swarmMode=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=public
+      - --api
+      - --log.level=ERROR
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - public
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  agent:
+    image: portainer/agent:latest
+    environment:
+      # REQUIRED: Should be equal to the service name prefixed by "tasks." when
+      # deployed inside an overlay network
+      AGENT_CLUSTER_ADDR: tasks.agent
+      # AGENT_PORT: 9001
+      # LOG_LEVEL: debug
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    networks:
+      - agent_network
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.platform.os == linux]
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    volumes:
+      - data:/data
+    networks:
+      - public
+      - agent_network
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.kbve.com`)"
+      - "traefik.http.routers.portainer.entrypoints=web,websecure"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer.service=portainer"
+      # Edge
+      - "traefik.http.routers.edge.rule=Host(`edge.kbve.com`)"
+      - "traefik.http.routers.edge.entrypoints=https"
+      - "traefik.http.services.edge.loadbalancer.server.port=8000"
+      - "traefik.http.routers.edge.service=edge"
+
+networks:
+  public:
+    external: true
+  agent_network:
+    external: true
+
+volumes:
+   data:
