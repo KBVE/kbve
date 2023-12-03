@@ -28,7 +28,7 @@ services:
     secrets:
       - DATABASE_PROD_URL
     environment:
-      - DATABASE_PROD_URL_FILE=/run/secrets/DATABASE_PROD_URL
+      - DATABASE_URL_PROD_FILE=/run/secrets/DATABASE_PROD_URL
 
 secrets:
   DATABASE_PROD_URL:
