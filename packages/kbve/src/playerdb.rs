@@ -73,7 +73,9 @@ pub async fn api_get_process_guest_email(
 	Extension(pool): Extension<Arc<Pool>>
 ) -> impl IntoResponse {
 	let clean_email = handle_error!(sanitize_email(&email), "invalid_email");
-	let mut conn = handle_error!(pool.get(), "database_error");
+	
+	// Remove Below
+	// let conn = handle_error!(pool.get(), "database_error"); 
 
 	let result = hazardous_boolean_email_exist(clean_email, pool).await;
 
@@ -132,7 +134,7 @@ pub async fn api_process_register_user(
 		"invalid_email"
 	);
 
-	match hazardous_boolean_email_exist(clean_email, pool).await {
+	match hazardous_boolean_email_exist(clean_email, pool.clone()).await {
 		Ok(true) => {
 			return error_casting("email_already_in_use");
 		}
@@ -149,7 +151,7 @@ pub async fn api_process_register_user(
 		"invalid_username"
 	);
 
-	match hazardous_boolean_username_exist(clean_username, pool).await {
+	match hazardous_boolean_username_exist(clean_username, pool.clone()).await {
 		Ok(true) => {
 			return error_casting("username_taken");
 		}
