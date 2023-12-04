@@ -20,7 +20,7 @@ use diesel::prelude::*;
 use serde_json::Value;
 
 use crate::{ handle_error, kbve_get_conn };
-use crate::harden::{ sanitize_email, sanitize_username };
+use crate::harden::{ sanitize_email, sanitize_username, validate_password };
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
 use crate::wh::{ error_casting, WizardResponse, RegisterUserSchema };
@@ -49,33 +49,29 @@ pub async fn hazardous_boolean_email_exist(
 pub async fn hazardous_boolean_username_exist(
 	clean_username: String,
 	pool: Arc<Pool>
-	) -> Result<bool, &'static str> {
+) -> Result<bool, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
 
-		let mut conn = kbve_get_conn!(pool);
-
-		match
-			users::table
-				.filter(users::username.eq(clean_username))
-				.select(users::id)
-				.first::<u64>(&mut conn)
-
-		{
-			Ok(_) => Ok(true),
-			Err(diesel::NotFound) => Ok(false),
-			Err(_) => Err("Database error"),
-		}
-
-
+	match
+		users::table
+			.filter(users::username.eq(clean_username))
+			.select(users::id)
+			.first::<u64>(&mut conn)
+	{
+		Ok(_) => Ok(true),
+		Err(diesel::NotFound) => Ok(false),
+		Err(_) => Err("Database error"),
 	}
+}
 
 pub async fn api_get_process_guest_email(
 	Path(email): Path<String>,
 	Extension(pool): Extension<Arc<Pool>>
 ) -> impl IntoResponse {
 	let clean_email = handle_error!(sanitize_email(&email), "invalid_email");
-	
+
 	// Remove Below
-	// let conn = handle_error!(pool.get(), "database_error"); 
+	// let conn = handle_error!(pool.get(), "database_error");
 
 	let result = hazardous_boolean_email_exist(clean_email, pool).await;
 
@@ -124,11 +120,9 @@ pub async fn api_process_register_user(
 	Json(body): Json<RegisterUserSchema>,
 	Extension(pool): Extension<Arc<Pool>>
 ) -> impl IntoResponse {
-	//	Cleaning Variables
+	
+	//	TODO: Captcha Verification ? -> This would be before calling any of the functions below.
 
-	//	Captcha Verification ? -> This would be before calling any of the functions below.
-
-	//	Email Handler
 	let clean_email = handle_error!(
 		sanitize_email(&body.email),
 		"invalid_email"
@@ -144,8 +138,6 @@ pub async fn api_process_register_user(
 		}
 	}
 
-
-	//	Username Handler
 	let clean_username = handle_error!(
 		sanitize_username(&body.username),
 		"invalid_username"
@@ -161,8 +153,19 @@ pub async fn api_process_register_user(
 		}
 	}
 
+	match validate_password(&body.password) {
+		Ok(()) => {}
+		Err(_) => {
+			return error_casting("invalid_password");
+		}
+	}
 
+	let salt = SaltString::generate(&mut OsRng);
 
-	
+	let generate_hashed_password = handle_error!(
+		Argon2::default().hash_password(&body.password.as_bytes(), &salt),
+		"invalid_hash"
+	);
+
 	error_casting("wip_route")
 }

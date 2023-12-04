@@ -22,6 +22,33 @@ lazy_static! {
     ).unwrap();
 }
 
+
+pub fn validate_password(password: &str) -> Result<(), &str> {
+    // Check if the password is long enough (e.g., at least 8 characters)
+    if password.len() < 8 {
+        return Err("Password is too short");
+    }
+
+    // Check if the password is not too long (e.g., no more than 255 characters)
+    if password.len() > 255 {
+        return Err("Password is too long");
+    }
+
+    // Check for a mix of uppercase and lowercase characters, numbers, and special characters
+    let has_uppercase = password.chars().any(|c| c.is_uppercase());
+    let has_lowercase = password.chars().any(|c| c.is_lowercase());
+    let has_digit = password.chars().any(|c| c.is_digit(10));
+    let has_special = password.chars().any(|c| !c.is_alphanumeric());
+
+    if !has_uppercase || !has_lowercase || !has_digit || !has_special {
+        return Err("Password must include uppercase, lowercase, digits, and special characters");
+    }
+
+    Ok(())
+}
+
+
+
 pub fn sanitize_email(email: &str) -> Result<String, &str> {
     let email = email.trim().to_lowercase();
 
