@@ -3,10 +3,9 @@ description: 'An action to help manage the Portainer deployment'
 inputs:
   token:
     description: 'Your Github Organization Token'
-  portainer-username:
-    description: 'Your Portainer Username'
-  portainer-password:
-    description: 'Your Portainer Password'
+  portainer-api-key:
+    description: 'Your Portainer API Key'
+    required: true
   portainer-endpoint:
     description: 'Your Portainer Endpoint'
     default: '2'
@@ -37,3 +36,11 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
       run: |
+
+      curl -s -X POST "$PORTAINER_URL/api/endpoints/$ENDPOINT_ID/docker/stacks" \
+        -H "Authorization: Bearer $PERSONAL_ACCESS_TOKEN" \
+        -H "Content-Type: multipart/form-data" \
+        -F "file=@$DOCKER_COMPOSE_FILE" \
+        -F "Name=name-of-your-stack" \
+        -F "SwarmID=target-swarm-id" \
+        -F "Env=ENV_VAR1=value1,ENV_VAR2=value2"0

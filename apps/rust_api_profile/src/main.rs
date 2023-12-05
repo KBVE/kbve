@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{ extract::{ Extension }, routing::get, Router };
+use axum::{ extract::{ Extension }, routing::{get, post}, Router };
 
 use tokio;
 
@@ -9,7 +9,7 @@ use kbve::{
 	harden::{ cors_service, fallback },
 	helper::{ health_check, speed_test, root_endpoint },
 	wh:: { APISessionStore },
-	playerdb::{ api_get_process_guest_email, api_get_process_username },
+	playerdb::{ api_get_process_guest_email, api_get_process_username, api_post_process_register_user_handler },
 };
 
 #[tokio::main]
@@ -25,13 +25,18 @@ async fn main() {
 		.route("/speed", get(speed_test))
 		.route("/profile/:username", get(api_get_process_username))
 		.route("/email/:email", get(api_get_process_guest_email))
+		.route("/auth/register", post(api_post_process_register_user_handler))
 		.layer(Extension(shared_pool.clone()))
 		.layer(Extension(api_session_store));
 
-	
+	// ?	Future v2 -> Panda
+
+	let apipanda_routes = Router::new()
+		.route("/panda", get(root_endpoint));
 
 	let app = Router::new()
 		.nest("/api/v1", api_routes)
+		.nest("/api/v2", apipanda_routes)
 		.route("/", get(root_endpoint))
 		.layer(Extension(shared_pool.clone()))
 		.layer(corslight)

@@ -6,6 +6,7 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use dashmap::DashMap;
 
+
 use crate::models::{ User, Profile };
 
 //  Macros
@@ -26,12 +27,34 @@ macro_rules! insert_response {
 	};
 }
 
+
+#[macro_export]
+macro_rules! simple_error {
+	($expr:expr, $error_key:expr) => {
+        match $expr {
+            Ok(value) => value,
+            Err(_) => return Err(error_simple($error_key)),
+        }
+	};
+}
+
+
 #[macro_export]
 macro_rules! handle_error {
 	($expr:expr, $error_key:expr) => {
         match $expr {
             Ok(value) => value,
             Err(_) => return error_casting($error_key),
+        }
+	};
+}
+
+#[macro_export]
+macro_rules! handle_post_error {
+	($expr:expr, $error_key:expr) => {
+        match $expr {
+            Ok(value) => value,
+            Err(_) => return Ok(error_casting($error_key)),
         }
 	};
 }
@@ -51,7 +74,14 @@ macro_rules! kbve_get_conn {
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
+        m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
+        m.insert("task_account_init_fail",  (StatusCode::BAD_REQUEST, "There was an error creating the account"));
         m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
+        m.insert("username_taken", (StatusCode::BAD_REQUEST, "Username was taken!"));
+        m.insert("user_register_fail",(StatusCode::BAD_REQUEST, "During the user creation, there was a failure!"));
+        m.insert("auth_insert_fail", (StatusCode::BAD_REQUEST, "During the auth creation, there was a failure!"));
+        m.insert("profile_insert_fail", (StatusCode::BAD_REQUEST, "During the profile creation, there was a failure!"));
+        m.insert("invalid_password",(StatusCode::BAD_REQUEST, "Password was too short or must include  uppercase, lowercase, digits, and special characters"));
         m.insert("invalid_email", (StatusCode::BAD_REQUEST, "Email is invalid or not safe!"));
         m.insert("invalid_username", (StatusCode::BAD_REQUEST, "Username is invalid or not safe!"));
 		m.insert("username_not_found", (StatusCode::BAD_REQUEST, "Username was not found!"));
@@ -67,7 +97,7 @@ lazy_static! {
 
 pub type APISessionStore = DashMap<String, ApiSessionSchema>;
 
-//  Functions
+//  Error Functions
 
 pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(key) {
@@ -89,13 +119,28 @@ pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	}
 }
 
+
+pub fn error_simple(key: &str) -> &'static str {
+    if let Some(&(_, message)) = RESPONSE_MESSAGES.get(key) {
+        message
+    } else {
+        "Unknown Error"
+    }
+}
+
 //  Structs
+
+//  Responses
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
 	pub data: serde_json::Value,
 	pub message: serde_json::Value,
 }
+
+//  Abstract Schemas
+
+
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserSchema {
