@@ -6,7 +6,10 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use dashmap::DashMap;
 
+
+
 use crate::models::{ User, Profile };
+use crate::users::dsl::users;
 
 //  Macros
 
@@ -25,6 +28,19 @@ macro_rules! insert_response {
         );
 	};
 }
+
+
+
+#[macro_export]
+macro_rules! simple_error {
+	($expr:expr, $error_key:expr) => {
+        match $expr {
+            Ok(value) => value,
+            Err(_) => return Err(error_simple($error_key)),
+        }
+	};
+}
+
 
 #[macro_export]
 macro_rules! handle_error {
@@ -79,7 +95,7 @@ lazy_static! {
 
 pub type APISessionStore = DashMap<String, ApiSessionSchema>;
 
-//  Functions
+//  Error Functions
 
 pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(key) {
@@ -101,22 +117,28 @@ pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	}
 }
 
+
+pub fn error_simple(key: &str) -> &'static str {
+    if let Some(&(_, message)) = RESPONSE_MESSAGES.get(key) {
+        message
+    } else {
+        "Unknown Error"
+    }
+}
+
 //  Structs
 
-#[derive(Insertable)]
-#[table_name = "users"]
-pub struct NewUser {
-    pub username: String,
-    pub role: i32,
-    pub reputation: i32,
-    pub exp: i32,
-}
+//  Responses
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
 	pub data: serde_json::Value,
 	pub message: serde_json::Value,
 }
+
+//  Abstract Schemas
+
+
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserSchema {
