@@ -17,7 +17,7 @@ use axum::{
 	Json,
 };
 use diesel::prelude::*;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 use crate::{ handle_error, kbve_get_conn };
 use crate::harden::{ sanitize_email, sanitize_username, validate_password };
@@ -116,12 +116,13 @@ pub async fn api_get_process_username(
 	}
 }
 
-pub async fn api_process_register_user(
-	Json(body): Json<RegisterUserSchema>,
-	Extension(pool): Extension<Arc<Pool>>
+
+pub async fn api_post_process_register_user_handler(
+	Extension(pool): Extension<Arc<Pool>>,
+	Json(body): Json<RegisterUserSchema>
 ) -> impl IntoResponse {
-	
-	//	TODO: Captcha Verification ? -> This would be before calling any of the functions below.
+
+	//	TODO: Captcha
 
 	let clean_email = handle_error!(
 		sanitize_email(&body.email),
@@ -167,5 +168,8 @@ pub async fn api_process_register_user(
 		"invalid_hash"
 	);
 
+	println!("{}", "this is a test!");
+
 	error_casting("wip_route")
 }
+

@@ -137,7 +137,7 @@ pub fn cors_service() -> CorsLayer {
 
 	CorsLayer::new()
 		.allow_origin(orgins)
-		.allow_methods([Method::PUT, Method::GET, Method::DELETE])
+		.allow_methods([Method::PUT, Method::GET, Method::DELETE, Method::POST])
 		.allow_credentials(true)
 		.allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE])
 }
