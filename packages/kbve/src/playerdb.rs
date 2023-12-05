@@ -30,6 +30,31 @@ use crate::schema::{ auth, profile, users };
 
 //	Hazardous Functions
 
+//	TODO: Create Profile from UUID
+
+pub async fn hazardous_create_profile_from_uuid(
+	clean_name: String,
+	clean_uuid: u64, 
+	pool: Arc<Pool>
+) -> Result<bool, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
+
+	match
+		insert_into(profile::table)
+			.values((
+				profile::name.eq(clean_name),
+				profile::bio.eq(clean_name),
+				profile::unsplash.eq(0),
+				profile::github.eq(0),
+				profile::instagram.eq(0)
+			))
+			.execute(&mut conn)
+	{
+		Ok(_) => Ok(true),
+		Err(_) => Err("Failed to insert profile into database"),
+	}
+}
+
 pub async fn hazardous_create_user(
 	clean_username: String,
 	pool: Arc<Pool>
@@ -88,6 +113,8 @@ pub async fn hazardous_boolean_username_exist(
 	}
 }
 
+
+
 //	Task Fetch
 
 pub async fn task_fetch_userid_by_username(
@@ -110,6 +137,9 @@ pub async fn task_fetch_userid_by_username(
 			}
 
 }
+
+
+//	API Routes GET
 
 pub async fn api_get_process_guest_email(
 	Path(email): Path<String>,
@@ -163,10 +193,13 @@ pub async fn api_get_process_username(
 	}
 }
 
+//	API Routes POST
+
 pub async fn api_post_process_register_user_handler(
 	Extension(pool): Extension<Arc<Pool>>,
 	Json(body): Json<RegisterUserSchema>
 ) -> impl IntoResponse {
+
 	//	TODO: Captcha
 
 	let clean_email = handle_error!(
