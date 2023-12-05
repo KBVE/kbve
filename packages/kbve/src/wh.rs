@@ -37,6 +37,16 @@ macro_rules! handle_error {
 }
 
 #[macro_export]
+macro_rules! handle_post_error {
+	($expr:expr, $error_key:expr) => {
+        match $expr {
+            Ok(value) => value,
+            Err(_) => return Ok(error_casting($error_key)),
+        }
+	};
+}
+
+#[macro_export]
 macro_rules! kbve_get_conn {
     ($pool:expr) => {
         match $pool.get() {
@@ -53,6 +63,7 @@ lazy_static! {
         let mut m = HashMap::new();
         m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
         m.insert("username_taken", (StatusCode::BAD_REQUEST, "Username was taken!"));
+        m.insert("invalid_password",(StatusCode::BAD_REQUEST, "Password was too short or must include  uppercase, lowercase, digits, and special characters"));
         m.insert("invalid_email", (StatusCode::BAD_REQUEST, "Email is invalid or not safe!"));
         m.insert("invalid_username", (StatusCode::BAD_REQUEST, "Username is invalid or not safe!"));
 		m.insert("username_not_found", (StatusCode::BAD_REQUEST, "Username was not found!"));
