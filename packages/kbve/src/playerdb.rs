@@ -25,7 +25,12 @@ use crate::{ handle_error, kbve_get_conn, simple_error };
 use crate::harden::{ sanitize_email, sanitize_username, validate_password };
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
-use crate::wh::{ error_casting, error_simple, WizardResponse, RegisterUserSchema };
+use crate::wh::{
+	error_casting,
+	error_simple,
+	WizardResponse,
+	RegisterUserSchema,
+};
 use crate::schema::{ auth, profile, users };
 
 //	Hazardous Functions
@@ -34,7 +39,7 @@ use crate::schema::{ auth, profile, users };
 
 pub async fn hazardous_create_profile_from_uuid(
 	clean_name: String,
-	clean_uuid: u64, 
+	clean_uuid: u64,
 	pool: Arc<Pool>
 ) -> Result<bool, &'static str> {
 	let mut conn = kbve_get_conn!(pool);
@@ -66,7 +71,6 @@ pub async fn hazardous_create_auth_from_uuid(
 	clean_uuid: u64,
 	pool: Arc<Pool>
 ) -> Result<bool, &'static str> {
-
 	let mut conn = kbve_get_conn!(pool);
 
 	match
@@ -92,7 +96,6 @@ pub async fn hazardous_create_auth_from_uuid(
 		Ok(_) => Ok(true),
 		Err(_) => Err("Failed to create auth row for user"),
 	}
-
 }
 
 pub async fn hazardous_create_user(
@@ -153,31 +156,29 @@ pub async fn hazardous_boolean_username_exist(
 	}
 }
 
-
-
 //	Task Fetch
 
 pub async fn task_fetch_userid_by_username(
 	username: String,
 	pool: Arc<Pool>
-)
--> Result<u64, &'static str> {
+) -> Result<u64, &'static str> {
 	let mut conn = kbve_get_conn!(pool);
 
-	let clean_username = simple_error!(sanitize_username(&username), "invalid_username");
+	let clean_username = simple_error!(
+		sanitize_username(&username),
+		"invalid_username"
+	);
 
 	match
 		users::table
 			.filter(users::username.eq(clean_username))
 			.select(users::id)
 			.first::<u64>(&mut conn)
-			{
-				Ok(user_id) => Ok(user_id),
-				Err(_) => Err("User not found or database error"),
-			}
-
+	{
+		Ok(user_id) => Ok(user_id),
+		Err(_) => Err("User not found or database error"),
+	}
 }
-
 
 //	API Routes GET
 
@@ -239,7 +240,6 @@ pub async fn api_post_process_register_user_handler(
 	Extension(pool): Extension<Arc<Pool>>,
 	Json(body): Json<RegisterUserSchema>
 ) -> impl IntoResponse {
-
 	//	TODO: Captcha
 
 	let clean_email = handle_error!(
@@ -293,12 +293,68 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_hash"
 	);
 
-	println!(
-		"Username: {}, Email: {}, HashPassword: {}",
-		clean_username.clone(),
-		clean_email.clone(),
-		generate_hashed_password.to_string()
+	match hazardous_create_user(clean_username.clone(), pool.clone()).await {
+		Ok(true) => {}
+		Ok(false) => {
+			return error_casting("user_register_fail");
+		}
+		Err(_) => {
+			return error_casting("user_register_fail");
+		}
+	}
+
+	let new_uuid = handle_error!(
+		task_fetch_userid_by_username(
+			clean_username.clone(),
+			pool.clone()
+		).await,
+		"invalid_username"
 	);
 
-	error_casting("wip_route")
+	match
+		hazardous_create_auth_from_uuid(
+			generate_hashed_password.clone().to_string(),
+			clean_email.clone(),
+			new_uuid.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(true) => {}
+		Ok(false) => {
+			return error_casting("auth_insert_fail");
+		}
+		Err(_) => {
+			return error_casting("auth_insert_fail");
+		}
+	}
+
+	match
+		hazardous_create_profile_from_uuid(
+			clean_username.clone(),
+			new_uuid.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(true) => {}
+		Ok(false) => {
+			return error_casting("profile_insert_fail");
+		}
+		Err(_) => {
+			return error_casting("profile_insert_fail");
+		}
+	}
+
+	match
+		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()).await
+	{
+		Ok(true) => {
+			return error_casting("success_account_created");
+		}
+		Ok(false) => {
+			return error_casting("task_account_init_fail");
+		}
+		Err(_) => {
+			return error_casting("task_account_init_fail");
+		}
+	}
 }
