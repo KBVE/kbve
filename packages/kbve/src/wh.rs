@@ -103,6 +103,15 @@ pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 
 //  Structs
 
+#[derive(Insertable)]
+#[table_name = "users"]
+pub struct NewUser {
+    pub username: String,
+    pub role: i32,
+    pub reputation: i32,
+    pub exp: i32,
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
 	pub data: serde_json::Value,

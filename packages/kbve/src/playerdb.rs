@@ -28,6 +28,23 @@ use crate::schema::{ auth, profile, users };
 
 //	Hazardous Functions
 
+
+pub async fn hazardous_task_onboard(
+	clean_email: String,
+	clean_username: String,
+	clean_hashed_password: String,
+	pool: Arc<Pool>
+) -> Result<bool,  &'static str> {
+
+	let mut conn = kbve_get_conn!(pool);
+
+	match
+		insert_into(users).
+			
+
+
+}
+
 pub async fn hazardous_boolean_email_exist(
 	clean_email: String,
 	pool: Arc<Pool>
@@ -129,7 +146,7 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_email"
 	);
 
-	match hazardous_boolean_email_exist(clean_email, pool.clone()).await {
+	match hazardous_boolean_email_exist(clean_email.clone(), pool.clone()).await {
 		Ok(true) => {
 			return error_casting("email_already_in_use");
 		}
@@ -144,7 +161,7 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_username"
 	);
 
-	match hazardous_boolean_username_exist(clean_username, pool.clone()).await {
+	match hazardous_boolean_username_exist(clean_username.clone(), pool.clone()).await {
 		Ok(true) => {
 			return error_casting("username_taken");
 		}
@@ -168,7 +185,7 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_hash"
 	);
 
-	println!("{}", "this is a test!");
+	println!("Username: {}, Email: {}, HashPassword: {}", clean_username.clone(), clean_email.clone(), generate_hashed_password.to_string());
 
 	error_casting("wip_route")
 }
