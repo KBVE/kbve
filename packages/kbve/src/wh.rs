@@ -75,8 +75,13 @@ macro_rules! kbve_get_conn {
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
+        m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
+        m.insert("task_account_init_fail",  (StatusCode::BAD_REQUEST, "There was an error creating the account"));
         m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
         m.insert("username_taken", (StatusCode::BAD_REQUEST, "Username was taken!"));
+        m.insert("user_register_fail",(StatusCode::BAD_REQUEST, "During the user creation, there was a failure!"));
+        m.insert("auth_insert_fail", (StatusCode::BAD_REQUEST, "During the auth creation, there was a failure!"));
+        m.insert("profile_insert_fail", (StatusCode::BAD_REQUEST, "During the profile creation, there was a failure!"));
         m.insert("invalid_password",(StatusCode::BAD_REQUEST, "Password was too short or must include  uppercase, lowercase, digits, and special characters"));
         m.insert("invalid_email", (StatusCode::BAD_REQUEST, "Email is invalid or not safe!"));
         m.insert("invalid_username", (StatusCode::BAD_REQUEST, "Username is invalid or not safe!"));
