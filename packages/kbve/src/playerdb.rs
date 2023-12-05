@@ -29,7 +29,7 @@ use crate::wh::{ error_casting, error_simple, WizardResponse, RegisterUserSchema
 use crate::schema::{ auth, profile, users };
 
 //	Hazardous Functions
-
+//	! Create Profile
 //	TODO: Create Profile from UUID
 
 pub async fn hazardous_create_profile_from_uuid(
@@ -42,17 +42,57 @@ pub async fn hazardous_create_profile_from_uuid(
 	match
 		insert_into(profile::table)
 			.values((
+				profile::uuid.eq(clean_uuid),
 				profile::name.eq(clean_name),
-				profile::bio.eq(clean_name),
-				profile::unsplash.eq(0),
-				profile::github.eq(0),
-				profile::instagram.eq(0)
+				profile::bio.eq("default"),
+				profile::unsplash.eq("0"),
+				profile::github.eq("0"),
+				profile::instagram.eq("0"),
+				profile::discord.eq("0"),
 			))
 			.execute(&mut conn)
 	{
 		Ok(_) => Ok(true),
 		Err(_) => Err("Failed to insert profile into database"),
 	}
+}
+
+//	! Create Auth
+//	TODO: Create Auth form UUID
+
+pub async fn hazardous_create_auth_from_uuid(
+	clean_hash_password: String,
+	clean_email: String,
+	clean_uuid: u64,
+	pool: Arc<Pool>
+) -> Result<bool, &'static str> {
+
+	let mut conn = kbve_get_conn!(pool);
+
+	match
+		insert_into(auth::table)
+			.values((
+				auth::uuid.eq(clean_uuid),
+				auth::email.eq(clean_email),
+				auth::hash.eq(clean_hash_password),
+				auth::salt.eq("0"),
+				auth::password_reset_token.eq("0"),
+				auth::password_reset_expiry.eq(Utc::now().naive_utc()),
+				auth::verification_token.eq("0"),
+				auth::verification_expiry.eq(Utc::now().naive_utc()),
+				auth::status.eq(0),
+				auth::last_login_at.eq(Utc::now().naive_utc()),
+				auth::failed_login_attempts.eq(0),
+				auth::lockout_until.eq(Utc::now().naive_utc()),
+				auth::two_factor_secret.eq("0"),
+				auth::recovery_codes.eq("0"),
+			))
+			.execute(&mut conn)
+	{
+		Ok(_) => Ok(true),
+		Err(_) => Err("Failed to create auth row for user"),
+	}
+
 }
 
 pub async fn hazardous_create_user(
