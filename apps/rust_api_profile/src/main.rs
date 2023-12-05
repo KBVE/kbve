@@ -29,10 +29,14 @@ async fn main() {
 		.layer(Extension(shared_pool.clone()))
 		.layer(Extension(api_session_store));
 
-	
+	// ?	Future v2 -> Panda
+
+	let apipanda_routes = Router::new()
+		.route("/panda", get(root_endpoint));
 
 	let app = Router::new()
 		.nest("/api/v1", api_routes)
+		.nest("/api/v2", apipanda_routes)
 		.route("/", get(root_endpoint))
 		.layer(Extension(shared_pool.clone()))
 		.layer(corslight)

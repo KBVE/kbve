@@ -31,11 +31,32 @@ use crate::wh::{
 	WizardResponse,
 	RegisterUserSchema,
 };
-use crate::schema::{ auth, profile, users };
+use crate::schema::{ auth, profile, users, apikey};
 
 //	Hazardous Functions
-//	! Create Profile
-//	TODO: Create Profile from UUID
+
+pub async fn hazardous_create_low_level_api_key_from_uuid(
+	clean_api_key: String,
+	clean_uuid: u64,
+	pool: Arc<Pool>
+) -> Result<bool, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
+
+	match
+		insert_into(apikey::table)
+			.values((
+				apikey::uuid.eq(clean_uuid),
+				apikey::permissions.eq("0"),
+				apikey::keyhash.eq(clean_api_key),
+				apikey::label.eq("0"),
+			))
+			.execute(&mut conn)
+	{
+		Ok(_) => Ok(true),
+		Err(_) => Err("Failed to insert API key into database"),
+	}
+}
+
 
 pub async fn hazardous_create_profile_from_uuid(
 	clean_name: String,
@@ -61,9 +82,6 @@ pub async fn hazardous_create_profile_from_uuid(
 		Err(_) => Err("Failed to insert profile into database"),
 	}
 }
-
-//	! Create Auth
-//	TODO: Create Auth form UUID
 
 pub async fn hazardous_create_auth_from_uuid(
 	clean_hash_password: String,
@@ -117,6 +135,26 @@ pub async fn hazardous_create_user(
 	{
 		Ok(_) => Ok(true),
 		Err(_) => Err("Failed to insert user into database"),
+	}
+}
+
+
+pub async fn hazardous_boolean_api_key_exist(
+	clean_api_key: String,
+	pool: Arc<Pool>
+) -> Result<bool, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
+
+	match
+		apikey::table
+			.filter(apikey::keyhash.eq(clean_api_key))
+			.select(apikey::uuid)
+			.first::<u64>(&mut conn)
+
+	{
+		Ok(_) => Ok(true),
+		Err(diesel::NotFound) => Ok(false),
+		Err(_) => Err("Database error"),
 	}
 }
 

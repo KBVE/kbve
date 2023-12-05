@@ -28,7 +28,6 @@ macro_rules! insert_response {
 }
 
 
-
 #[macro_export]
 macro_rules! simple_error {
 	($expr:expr, $error_key:expr) => {
