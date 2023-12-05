@@ -7,9 +7,7 @@ use std::collections::HashMap;
 use dashmap::DashMap;
 
 
-
 use crate::models::{ User, Profile };
-use crate::users::dsl::users;
 
 //  Macros
 
