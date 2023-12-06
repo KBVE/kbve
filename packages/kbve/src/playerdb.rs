@@ -22,7 +22,12 @@ use serde_json::{ json, Value };
 use chrono::Utc;
 
 use crate::{ handle_error, kbve_get_conn, simple_error };
-use crate::harden::{ sanitize_email, sanitize_username, validate_password, uuid_to_biguint };
+use crate::harden::{
+	sanitize_email,
+	sanitize_username,
+	validate_password,
+	uuid_to_biguint,
+};
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
 use crate::wh::{
@@ -33,14 +38,62 @@ use crate::wh::{
 };
 use crate::schema::{ auth, profile, users, apikey, n8n };
 
-
 //	Hazardous Tasks
+
+#[macro_export]
+macro_rules! hazardous_task_fetch {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty,
+		$return_type:ty
+	) => {
+		pub async fn $func_name(
+			$param: $param_type,
+			pool: Arc<Pool>
+		) -> Result<$return_type, &'static str> {
+			let mut conn = kbve_get_conn!(pool);
+
+			match $table::table
+				.filter($table::uuid.eq($param))
+				.select($table::$column)
+				.first::<$return_type>(&mut conn)
+				{
+					Ok(data) => Ok(data.to_string()),
+					Err(diesel::NotFound) => Err("Database error"),
+					Err(_) => Err("Database error"),
+				}
+
+		}
+	};
+}
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_n8n_webhook_by_uuid,
+	n8n,
+	webhook,
+	clean_uuid,
+	u64,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_profile_github_by_uuid,
+	profile,
+	github,
+	clean_uuid,
+	u64,
+	String
+);
+
+//	Expanded Hazardous Task Fetch
 
 pub async fn hazardous_task_fetch_profile_discord_by_uuid(
 	clean_uuid: u64,
 	pool: Arc<Pool>
 ) -> Result<String, &'static str> {
-
 	let mut conn = kbve_get_conn!(pool);
 
 	match
@@ -50,12 +103,11 @@ pub async fn hazardous_task_fetch_profile_discord_by_uuid(
 			.first::<String>(&mut conn)
 	{
 		Ok(data) => Ok(data.to_string()),
-		Err(_) => Err("Faild to fetch data"), 
+		Err(_) => Err("Faild to fetch data"),
 	}
 }
 
 //	Hazardous Functions
-
 
 pub async fn hazardous_create_low_level_api_key_from_uuid(
 	clean_api_key: String,
@@ -189,7 +241,6 @@ macro_rules! hazardous_boolean_exist {
 	};
 }
 
-
 hazardous_boolean_exist!(
 	hazardous_boolean_api_key_exist,
 	apikey,
@@ -198,13 +249,12 @@ hazardous_boolean_exist!(
 	String
 );
 
-
 hazardous_boolean_exist!(
-    hazardous_boolean_email_exist, 
-    auth, 
-    email, 
-    clean_email, 
-    String
+	hazardous_boolean_email_exist,
+	auth,
+	email,
+	clean_email,
+	String
 );
 
 hazardous_boolean_exist!(
@@ -235,7 +285,6 @@ pub async fn hazardous_boolean_username_exist(
 
 //	Task Fetch
 
-
 pub async fn task_fetch_userid_by_username(
 	username: String,
 	pool: Arc<Pool>
@@ -258,32 +307,46 @@ pub async fn task_fetch_userid_by_username(
 	}
 }
 
-//	API Routes GET
+//	? Macro -> API Routes -> Get
 
-pub async fn throwaway_api_get_process_discord_uuid(
-	Path(uuid): Path<String>,
-	Extension(pool): Extension<Arc<Pool>>
-) -> impl IntoResponse {
-
-	let clean_uuid = handle_error!(uuid.parse::<u64>(), "uuid_convert_failed");
-
-	match hazardous_task_fetch_profile_discord_by_uuid(clean_uuid, pool).await {
-		Ok(data) => {
-			(
-				StatusCode::OK,
-				Json(WizardResponse {
-					data: serde_json::json!({"status": "complete"}),
-					message: serde_json::json!({
-						"fetch": data
-				}),
-				}),
-			)
+#[macro_export]
+macro_rules! api_generate_get_route_uuid {
+	($func_name:ident, $task_name:ident) => {
+		pub async fn $func_name(
+			Path(uuid): Path<String>,
+			Extension(pool): Extension<Arc<Pool>>
+		) -> impl IntoResponse {
+			let clean_uuid = handle_error!(uuid.parse::<u64>(), "uuid_convert_failed");
+			match $task_name(clean_uuid, pool).await {
+				Ok(data) => {
+					(
+						StatusCode::OK,
+						Json(WizardResponse {
+							data: serde_json::json!({"status": "complete"}),
+							message: serde_json::json!({
+								"fetch": data
+						}),
+						}),
+					)
+				}
+				Err(_) => error_casting("database_error"),
+			}
 		}
-		Err(_) => error_casting("database_error"),
-	}
-
+	};
 }
 
+api_generate_get_route_uuid!(
+	throwaway_api_get_process_github_uuid,
+	hazardous_task_fetch_profile_github_by_uuid
+);
+
+api_generate_get_route_uuid!(
+	throwaway_api_get_process_discord_uuid,
+	hazardous_task_fetch_profile_discord_by_uuid
+);
+
+
+//	API Routes GET
 
 pub async fn api_get_process_guest_email(
 	Path(email): Path<String>,

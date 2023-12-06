@@ -9,7 +9,7 @@ use kbve::{
 	harden::{ cors_service, fallback },
 	helper::{ health_check, speed_test, root_endpoint },
 	wh:: { APISessionStore },
-	playerdb::{ api_get_process_guest_email, api_get_process_username, api_post_process_register_user_handler, throwaway_api_get_process_discord_uuid },
+	playerdb::{ api_get_process_guest_email, api_get_process_username, api_post_process_register_user_handler, throwaway_api_get_process_discord_uuid, throwaway_api_get_process_github_uuid },
 };
 
 #[tokio::main]
@@ -27,6 +27,7 @@ async fn main() {
 		.route("/email/:email", get(api_get_process_guest_email))
 		.route("/auth/register", post(api_post_process_register_user_handler))
 		.route("/discord/:uuid", get(throwaway_api_get_process_discord_uuid))
+		.route("/github/:github", get(throwaway_api_get_process_github_uuid))
 		.layer(Extension(shared_pool.clone()))
 		.layer(Extension(api_session_store));
 
