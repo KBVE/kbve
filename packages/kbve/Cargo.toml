@@ -24,3 +24,5 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 r2d2 = "0.8.9"
 regex = "1.10.2"
 lazy_static = "1.4.0"
+uuid = { version = "0.8", features = ["serde", "v4"] }
+num-bigint = "0.4"

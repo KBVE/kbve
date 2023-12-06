@@ -22,7 +22,7 @@ use serde_json::{ json, Value };
 use chrono::Utc;
 
 use crate::{ handle_error, kbve_get_conn, simple_error };
-use crate::harden::{ sanitize_email, sanitize_username, validate_password };
+use crate::harden::{ sanitize_email, sanitize_username, validate_password, uuid_to_biguint };
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
 use crate::wh::{
@@ -31,9 +31,31 @@ use crate::wh::{
 	WizardResponse,
 	RegisterUserSchema,
 };
-use crate::schema::{ auth, profile, users, apikey};
+use crate::schema::{ auth, profile, users, apikey, n8n };
+
+
+//	Hazardous Tasks
+
+pub async fn hazardous_task_fetch_profile_discord_by_uuid(
+	clean_uuid: u64,
+	pool: Arc<Pool>
+) -> Result<String, &'static str> {
+
+	let mut conn = kbve_get_conn!(pool);
+
+	match
+		profile::table
+			.filter(profile::uuid.eq(clean_uuid))
+			.select(profile::discord)
+			.first::<String>(&mut conn)
+	{
+		Ok(data) => Ok(data.to_string()),
+		Err(_) => Err("Faild to fetch data"), 
+	}
+}
 
 //	Hazardous Functions
+
 
 pub async fn hazardous_create_low_level_api_key_from_uuid(
 	clean_api_key: String,
@@ -56,7 +78,6 @@ pub async fn hazardous_create_low_level_api_key_from_uuid(
 		Err(_) => Err("Failed to insert API key into database"),
 	}
 }
-
 
 pub async fn hazardous_create_profile_from_uuid(
 	clean_name: String,
@@ -138,43 +159,61 @@ pub async fn hazardous_create_user(
 	}
 }
 
+//	?	Macro -> Hazardous_Booleans
 
-pub async fn hazardous_boolean_api_key_exist(
-	clean_api_key: String,
-	pool: Arc<Pool>
-) -> Result<bool, &'static str> {
-	let mut conn = kbve_get_conn!(pool);
+#[macro_export]
+macro_rules! hazardous_boolean_exist {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty
+	) => {
+        pub async fn $func_name(
+            $param: $param_type,
+            pool: Arc<Pool>
+        ) -> Result<bool, &'static str> {
+            let mut conn = kbve_get_conn!(pool);
 
-	match
-		apikey::table
-			.filter(apikey::keyhash.eq(clean_api_key))
-			.select(apikey::uuid)
-			.first::<u64>(&mut conn)
-
-	{
-		Ok(_) => Ok(true),
-		Err(diesel::NotFound) => Ok(false),
-		Err(_) => Err("Database error"),
-	}
+            match $table::table
+                .filter($table::$column.eq($param))
+                .select($table::uuid)
+                .first::<u64>(&mut conn)
+            {
+                Ok(_) => Ok(true),
+                Err(diesel::NotFound) => Ok(false),
+                Err(_) => Err("Database error"),
+            }
+        }
+	};
 }
 
-pub async fn hazardous_boolean_email_exist(
-	clean_email: String,
-	pool: Arc<Pool>
-) -> Result<bool, &'static str> {
-	let mut conn = kbve_get_conn!(pool);
 
-	match
-		auth::table
-			.filter(auth::email.eq(clean_email))
-			.select(auth::uuid)
-			.first::<u64>(&mut conn)
-	{
-		Ok(_) => Ok(true),
-		Err(diesel::NotFound) => Ok(false),
-		Err(_) => Err("Database error"),
-	}
-}
+hazardous_boolean_exist!(
+	hazardous_boolean_api_key_exist,
+	apikey,
+	keyhash,
+	clean_api_key,
+	String
+);
+
+
+hazardous_boolean_exist!(
+    hazardous_boolean_email_exist, 
+    auth, 
+    email, 
+    clean_email, 
+    String
+);
+
+hazardous_boolean_exist!(
+	hazardous_boolean_n8n_webhook_exist,
+	n8n,
+	webhook,
+	clean_webhook,
+	String
+);
 
 pub async fn hazardous_boolean_username_exist(
 	clean_username: String,
@@ -195,6 +234,7 @@ pub async fn hazardous_boolean_username_exist(
 }
 
 //	Task Fetch
+
 
 pub async fn task_fetch_userid_by_username(
 	username: String,
@@ -219,6 +259,31 @@ pub async fn task_fetch_userid_by_username(
 }
 
 //	API Routes GET
+
+pub async fn throwaway_api_get_process_discord_uuid(
+	Path(uuid): Path<String>,
+	Extension(pool): Extension<Arc<Pool>>
+) -> impl IntoResponse {
+
+	let clean_uuid = handle_error!(uuid.parse::<u64>(), "uuid_convert_failed");
+
+	match hazardous_task_fetch_profile_discord_by_uuid(clean_uuid, pool).await {
+		Ok(data) => {
+			(
+				StatusCode::OK,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "complete"}),
+					message: serde_json::json!({
+						"fetch": data
+				}),
+				}),
+			)
+		}
+		Err(_) => error_casting("database_error"),
+	}
+
+}
+
 
 pub async fn api_get_process_guest_email(
 	Path(email): Path<String>,

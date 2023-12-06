@@ -75,6 +75,7 @@ lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
         m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
+        m.insert("uuid_convert_failed",  (StatusCode::BAD_REQUEST, "There was an error converting the UUID!"));
         m.insert("task_account_init_fail",  (StatusCode::BAD_REQUEST, "There was an error creating the account"));
         m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
         m.insert("username_taken", (StatusCode::BAD_REQUEST, "Username was taken!"));
