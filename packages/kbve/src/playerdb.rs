@@ -21,8 +21,19 @@ use diesel::insert_into;
 use serde_json::{ json, Value };
 use chrono::Utc;
 
-use crate::{ handle_error, kbve_get_conn, simple_error };
-use crate::harden::{ sanitize_email, sanitize_username, validate_password };
+use crate::{
+	handle_error,
+	kbve_get_conn,
+	simple_error,
+	handle_boolean_operation_truth,
+	handle_boolean_operation_fake,
+};
+use crate::harden::{
+	sanitize_email,
+	sanitize_username,
+	validate_password,
+	uuid_to_biguint,
+};
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
 use crate::wh::{
@@ -31,7 +42,76 @@ use crate::wh::{
 	WizardResponse,
 	RegisterUserSchema,
 };
-use crate::schema::{ auth, profile, users, apikey};
+use crate::schema::{ auth, profile, users, apikey, n8n };
+
+//	Hazardous Tasks
+
+#[macro_export]
+macro_rules! hazardous_task_fetch {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty,
+		$return_type:ty
+	) => {
+		pub async fn $func_name(
+			$param: $param_type,
+			pool: Arc<Pool>
+		) -> Result<$return_type, &'static str> {
+			let mut conn = kbve_get_conn!(pool);
+
+			match $table::table
+				.filter($table::uuid.eq($param))
+				.select($table::$column)
+				.first::<$return_type>(&mut conn)
+				{
+					Ok(data) => Ok(data.to_string()),
+					Err(diesel::NotFound) => Err("Database error"),
+					Err(_) => Err("Database error"),
+				}
+
+		}
+	};
+}
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_n8n_webhook_by_uuid,
+	n8n,
+	webhook,
+	clean_uuid,
+	u64,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_profile_github_by_uuid,
+	profile,
+	github,
+	clean_uuid,
+	u64,
+	String
+);
+
+//	Expanded Hazardous Task Fetch
+
+pub async fn hazardous_task_fetch_profile_discord_by_uuid(
+	clean_uuid: u64,
+	pool: Arc<Pool>
+) -> Result<String, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
+
+	match
+		profile::table
+			.filter(profile::uuid.eq(clean_uuid))
+			.select(profile::discord)
+			.first::<String>(&mut conn)
+	{
+		Ok(data) => Ok(data.to_string()),
+		Err(_) => Err("Faild to fetch data"),
+	}
+}
 
 //	Hazardous Functions
 
@@ -56,7 +136,6 @@ pub async fn hazardous_create_low_level_api_key_from_uuid(
 		Err(_) => Err("Failed to insert API key into database"),
 	}
 }
-
 
 pub async fn hazardous_create_profile_from_uuid(
 	clean_name: String,
@@ -138,43 +217,59 @@ pub async fn hazardous_create_user(
 	}
 }
 
+//	?	Macro -> Hazardous_Booleans
 
-pub async fn hazardous_boolean_api_key_exist(
-	clean_api_key: String,
-	pool: Arc<Pool>
-) -> Result<bool, &'static str> {
-	let mut conn = kbve_get_conn!(pool);
+#[macro_export]
+macro_rules! hazardous_boolean_exist {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty
+	) => {
+        pub async fn $func_name(
+            $param: $param_type,
+            pool: Arc<Pool>
+        ) -> Result<bool, &'static str> {
+            let mut conn = kbve_get_conn!(pool);
 
-	match
-		apikey::table
-			.filter(apikey::keyhash.eq(clean_api_key))
-			.select(apikey::uuid)
-			.first::<u64>(&mut conn)
-
-	{
-		Ok(_) => Ok(true),
-		Err(diesel::NotFound) => Ok(false),
-		Err(_) => Err("Database error"),
-	}
+            match $table::table
+                .filter($table::$column.eq($param))
+                .select($table::uuid)
+                .first::<u64>(&mut conn)
+            {
+                Ok(_) => Ok(true),
+                Err(diesel::NotFound) => Ok(false),
+                Err(_) => Err("Database error"),
+            }
+        }
+	};
 }
 
-pub async fn hazardous_boolean_email_exist(
-	clean_email: String,
-	pool: Arc<Pool>
-) -> Result<bool, &'static str> {
-	let mut conn = kbve_get_conn!(pool);
+hazardous_boolean_exist!(
+	hazardous_boolean_api_key_exist,
+	apikey,
+	keyhash,
+	clean_api_key,
+	String
+);
 
-	match
-		auth::table
-			.filter(auth::email.eq(clean_email))
-			.select(auth::uuid)
-			.first::<u64>(&mut conn)
-	{
-		Ok(_) => Ok(true),
-		Err(diesel::NotFound) => Ok(false),
-		Err(_) => Err("Database error"),
-	}
-}
+hazardous_boolean_exist!(
+	hazardous_boolean_email_exist,
+	auth,
+	email,
+	clean_email,
+	String
+);
+
+hazardous_boolean_exist!(
+	hazardous_boolean_n8n_webhook_exist,
+	n8n,
+	webhook,
+	clean_webhook,
+	String
+);
 
 pub async fn hazardous_boolean_username_exist(
 	clean_username: String,
@@ -217,6 +312,61 @@ pub async fn task_fetch_userid_by_username(
 		Err(_) => Err("User not found or database error"),
 	}
 }
+
+//	? Macro -> API Routes -> Get
+
+#[macro_export]
+macro_rules! api_generate_get_route_uuid {
+	($func_name:ident, $task_name:ident) => {
+		pub async fn $func_name(
+			Path(uuid): Path<String>,
+			Extension(pool): Extension<Arc<Pool>>
+		) -> impl IntoResponse {
+			let clean_uuid = handle_error!(uuid.parse::<u64>(), "uuid_convert_failed");
+			match $task_name(clean_uuid, pool).await {
+				Ok(data) => {
+					(
+						StatusCode::OK,
+						Json(WizardResponse {
+							data: serde_json::json!({"status": "complete"}),
+							message: serde_json::json!({
+								"fetch": data
+						}),
+						}),
+					)
+				}
+				Err(_) => error_casting("database_error"),
+			}
+		}
+	};
+}
+
+api_generate_get_route_uuid!(
+	throwaway_api_get_process_github_uuid,
+	hazardous_task_fetch_profile_github_by_uuid
+);
+
+api_generate_get_route_uuid!(
+	throwaway_api_get_process_discord_uuid,
+	hazardous_task_fetch_profile_discord_by_uuid
+);
+
+//	?	Macro -> API -> POST ROUTES
+
+// #[macro_export]
+// macro_rules! api_generate_post_route {
+// 	(
+// 		$func_name: ident,
+// 		$schema_name: ty,
+// 	) => {
+// 		pub async fn $func_name(
+// 			Extension(pool): Extension<Arc<Pool>>,
+// 			Json(body): Json<$schema_name>
+// 		) -> impl IntoResponse {
+
+// 		}
+// 	}
+// }
 
 //	API Routes GET
 
@@ -285,37 +435,22 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_email"
 	);
 
-	match
-		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()).await
-	{
-		Ok(true) => {
-			return error_casting("email_already_in_use");
-		}
-		Ok(false) => {}
-		Err(_) => {
-			return error_casting("database_error");
-		}
-	}
+	handle_boolean_operation_fake!(
+		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
+		{},
+		"email_already_in_use"
+	);
 
 	let clean_username = handle_error!(
 		sanitize_username(&body.username),
 		"invalid_username"
 	);
 
-	match
-		hazardous_boolean_username_exist(
-			clean_username.clone(),
-			pool.clone()
-		).await
-	{
-		Ok(true) => {
-			return error_casting("username_taken");
-		}
-		Ok(false) => {}
-		Err(_) => {
-			return error_casting("database_error");
-		}
-	}
+	handle_boolean_operation_fake!(
+		hazardous_boolean_username_exist(clean_username.clone(), pool.clone()),
+		{},
+		"username_taken"
+	);
 
 	match validate_password(&body.password) {
 		Ok(()) => {}
@@ -331,15 +466,11 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_hash"
 	);
 
-	match hazardous_create_user(clean_username.clone(), pool.clone()).await {
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("user_register_fail");
-		}
-		Err(_) => {
-			return error_casting("user_register_fail");
-		}
-	}
+	handle_boolean_operation_truth!(
+		hazardous_create_user(clean_username.clone(), pool.clone()),
+		{},
+		"user_register_fail"
+	);
 
 	let new_uuid = handle_error!(
 		task_fetch_userid_by_username(
@@ -349,50 +480,32 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_username"
 	);
 
-	match
+	handle_boolean_operation_truth!(
 		hazardous_create_auth_from_uuid(
 			generate_hashed_password.clone().to_string(),
 			clean_email.clone(),
 			new_uuid.clone(),
 			pool.clone()
-		).await
-	{
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("auth_insert_fail");
-		}
-		Err(_) => {
-			return error_casting("auth_insert_fail");
-		}
-	}
+		),
+		{},
+		"auth_insert_fail"
+	);
 
-	match
+	handle_boolean_operation_truth!(
 		hazardous_create_profile_from_uuid(
 			clean_username.clone(),
 			new_uuid.clone(),
 			pool.clone()
-		).await
-	{
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("profile_insert_fail");
-		}
-		Err(_) => {
-			return error_casting("profile_insert_fail");
-		}
-	}
+		),
+		{},
+		"profile_insert_fail"
+	);
 
-	match
-		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()).await
-	{
-		Ok(true) => {
+	handle_boolean_operation_truth!(
+		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
+		{
 			return error_casting("success_account_created");
-		}
-		Ok(false) => {
-			return error_casting("task_account_init_fail");
-		}
-		Err(_) => {
-			return error_casting("task_account_init_fail");
-		}
-	}
+		},
+		"task_account_init_fail"
+	);
 }

@@ -14,6 +14,10 @@ use axum::{
 use regex::Regex;
 use lazy_static::lazy_static;
 
+use uuid::Uuid;
+use num_bigint::{BigUint, ToBigUint};
+use std::str::FromStr;
+
 use crate::wh::{ WizardResponse };
 
 lazy_static! {
@@ -114,6 +118,15 @@ pub fn sanitize_path(input: &str) -> String {
 
 	sanitized
 }
+
+//	? - Convert
+
+pub fn uuid_to_biguint(uuid_str: &str) -> Result<BigUint, &'static str> {
+    let uuid = Uuid::from_str(uuid_str).map_err(|_| "Invalid UUID format")?;
+    let bytes = uuid.as_bytes();
+    Ok(BigUint::from_bytes_be(bytes))
+}
+
 
 pub async fn fallback(uri: Uri) -> impl IntoResponse {
 	let final_path = sanitize_path(&uri.to_string());
