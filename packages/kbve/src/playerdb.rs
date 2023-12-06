@@ -21,7 +21,13 @@ use diesel::insert_into;
 use serde_json::{ json, Value };
 use chrono::Utc;
 
-use crate::{ handle_error, kbve_get_conn, simple_error };
+use crate::{
+	handle_error,
+	kbve_get_conn,
+	simple_error,
+	handle_boolean_operation_truth,
+	handle_boolean_operation_fake,
+};
 use crate::harden::{
 	sanitize_email,
 	sanitize_username,
@@ -345,6 +351,22 @@ api_generate_get_route_uuid!(
 	hazardous_task_fetch_profile_discord_by_uuid
 );
 
+//	?	Macro -> API -> POST ROUTES
+
+// #[macro_export]
+// macro_rules! api_generate_post_route {
+// 	(
+// 		$func_name: ident,
+// 		$schema_name: ty,
+// 	) => {
+// 		pub async fn $func_name(
+// 			Extension(pool): Extension<Arc<Pool>>,
+// 			Json(body): Json<$schema_name>
+// 		) -> impl IntoResponse {
+
+// 		}
+// 	}
+// }
 
 //	API Routes GET
 
@@ -413,37 +435,22 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_email"
 	);
 
-	match
-		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()).await
-	{
-		Ok(true) => {
-			return error_casting("email_already_in_use");
-		}
-		Ok(false) => {}
-		Err(_) => {
-			return error_casting("database_error");
-		}
-	}
+	handle_boolean_operation_fake!(
+		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
+		{},
+		"email_already_in_use"
+	);
 
 	let clean_username = handle_error!(
 		sanitize_username(&body.username),
 		"invalid_username"
 	);
 
-	match
-		hazardous_boolean_username_exist(
-			clean_username.clone(),
-			pool.clone()
-		).await
-	{
-		Ok(true) => {
-			return error_casting("username_taken");
-		}
-		Ok(false) => {}
-		Err(_) => {
-			return error_casting("database_error");
-		}
-	}
+	handle_boolean_operation_fake!(
+		hazardous_boolean_username_exist(clean_username.clone(), pool.clone()),
+		{},
+		"username_taken"
+	);
 
 	match validate_password(&body.password) {
 		Ok(()) => {}
@@ -459,15 +466,11 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_hash"
 	);
 
-	match hazardous_create_user(clean_username.clone(), pool.clone()).await {
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("user_register_fail");
-		}
-		Err(_) => {
-			return error_casting("user_register_fail");
-		}
-	}
+	handle_boolean_operation_truth!(
+		hazardous_create_user(clean_username.clone(), pool.clone()),
+		{},
+		"user_register_fail"
+	);
 
 	let new_uuid = handle_error!(
 		task_fetch_userid_by_username(
@@ -477,50 +480,32 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_username"
 	);
 
-	match
+	handle_boolean_operation_truth!(
 		hazardous_create_auth_from_uuid(
 			generate_hashed_password.clone().to_string(),
 			clean_email.clone(),
 			new_uuid.clone(),
 			pool.clone()
-		).await
-	{
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("auth_insert_fail");
-		}
-		Err(_) => {
-			return error_casting("auth_insert_fail");
-		}
-	}
+		),
+		{},
+		"auth_insert_fail"
+	);
 
-	match
+	handle_boolean_operation_truth!(
 		hazardous_create_profile_from_uuid(
 			clean_username.clone(),
 			new_uuid.clone(),
 			pool.clone()
-		).await
-	{
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("profile_insert_fail");
-		}
-		Err(_) => {
-			return error_casting("profile_insert_fail");
-		}
-	}
+		),
+		{},
+		"profile_insert_fail"
+	);
 
-	match
-		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()).await
-	{
-		Ok(true) => {
+	handle_boolean_operation_truth!(
+		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
+		{
 			return error_casting("success_account_created");
-		}
-		Ok(false) => {
-			return error_casting("task_account_init_fail");
-		}
-		Err(_) => {
-			return error_casting("task_account_init_fail");
-		}
-	}
+		},
+		"task_account_init_fail"
+	);
 }

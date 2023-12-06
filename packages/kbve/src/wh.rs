@@ -27,6 +27,25 @@ macro_rules! insert_response {
 	};
 }
 
+#[macro_export]
+macro_rules! handle_boolean_operation_truth {
+    ($operation:expr, $success:expr, $error:expr) => {
+        match $operation.await {
+            Ok(true) => $success,
+            Ok(false) | Err(_) => return error_casting($error),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! handle_boolean_operation_fake {
+    ($operation:expr, $success:expr, $error:expr) => {
+        match $operation.await {
+            Ok(false) => $success,
+            Ok(true) | Err(_) => return error_casting($error),
+        }
+    };
+}
 
 #[macro_export]
 macro_rules! simple_error {
