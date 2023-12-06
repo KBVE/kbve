@@ -42,7 +42,7 @@ use crate::wh::{
 	WizardResponse,
 	RegisterUserSchema,
 };
-use crate::schema::{ auth, profile, users, apikey, n8n };
+use crate::schema::{ auth, profile, users, apikey, n8n, appwrite };
 
 //	Hazardous Tasks
 
@@ -351,6 +351,66 @@ api_generate_get_route_uuid!(
 	hazardous_task_fetch_profile_discord_by_uuid
 );
 
+#[macro_export]
+macro_rules! api_generate_get_route_fetch_username {
+	(
+		$func_name: ident,
+		$table: ident,
+		$column: ident,
+		$column_type: ty
+	) => {
+		pub async fn $func_name(
+			Path(username): Path<String>,
+			Extension(pool): Extension<Arc<Pool>>
+		) -> impl IntoResponse {
+
+			let clean_username = handle_error!(
+				sanitize_username(&username),
+				"invalid_username"
+			);
+
+			let mut conn = handle_error!(pool.get(), "database_error");
+
+			match
+				users::table
+					.inner_join($table::table.on($table::uuid.eq(users::id)))
+					.filter(users::username.eq(clean_username))
+					.select($table::$column)
+					.first::<$column_type>(&mut conn)
+			{
+				Ok(data) => {
+					( 
+						StatusCode::OK,
+						Json(WizardResponse {
+							data: serde_json::json!({"status": "complete"}),
+							message: serde_json::json!({
+								"fetch": data
+						}),
+						}),
+					)
+				}
+				Err(diesel::NotFound) => error_casting("username_not_found"),
+				Err(_) => error_casting("database_error"),
+			}
+		}
+	}
+}
+
+api_generate_get_route_fetch_username!(
+	throwaway_api_get_process_appwrite_projectid_from_username,
+	appwrite,
+	appwrite_projectid,
+	String
+);
+
+api_generate_get_route_fetch_username!(
+	throwaway_api_get_process_n8n_webhook_from_username,
+	n8n,
+	webhook,
+	String
+);
+
+
 //	?	Macro -> API -> POST ROUTES
 
 // #[macro_export]
@@ -375,9 +435,6 @@ pub async fn api_get_process_guest_email(
 	Extension(pool): Extension<Arc<Pool>>
 ) -> impl IntoResponse {
 	let clean_email = handle_error!(sanitize_email(&email), "invalid_email");
-
-	// Remove Below
-	// let conn = handle_error!(pool.get(), "database_error");
 
 	let result = hazardous_boolean_email_exist(clean_email, pool).await;
 
