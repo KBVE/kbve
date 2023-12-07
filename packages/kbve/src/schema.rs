@@ -22,7 +22,7 @@ diesel::table! {
         #[max_length = 256]
         appwrite_projectid -> Varchar,
         #[max_length = 256]
-        apppwrite_api_key -> Varchar,
+        appwrite_api_key -> Varchar,
         #[max_length = 64]
         version -> Varchar,
         created_at -> Timestamp,
@@ -52,6 +52,16 @@ diesel::table! {
         #[max_length = 256]
         two_factor_secret -> Varchar,
         recovery_codes -> Text,
+    }
+}
+
+diesel::table! {
+    globals (id) {
+        id -> Unsigned<Bigint>,
+        #[max_length = 255]
+        key -> Varchar,
+        #[max_length = 255]
+        value -> Varchar,
     }
 }
 
@@ -90,6 +100,17 @@ diesel::table! {
 }
 
 diesel::table! {
+    settings (id) {
+        id -> Unsigned<Bigint>,
+        uuid -> Unsigned<Bigint>,
+        #[max_length = 255]
+        key -> Varchar,
+        #[max_length = 255]
+        value -> Varchar,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Unsigned<Bigint>,
         #[max_length = 256]
@@ -105,7 +126,9 @@ diesel::allow_tables_to_appear_in_same_query!(
     apikey,
     appwrite,
     auth,
+    globals,
     n8n,
     profile,
+    settings,
     users,
 );
