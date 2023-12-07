@@ -27,6 +27,7 @@ use crate::{
 	simple_error,
 	handle_boolean_operation_truth,
 	handle_boolean_operation_fake,
+	insanity,
 };
 use crate::harden::{
 	sanitize_email,
@@ -41,6 +42,7 @@ use crate::wh::{
 	error_simple,
 	WizardResponse,
 	RegisterUserSchema,
+	LoginUserSchema,
 };
 use crate::schema::{ auth, profile, users, apikey, n8n, appwrite };
 
@@ -63,11 +65,11 @@ macro_rules! hazardous_task_fetch {
 			let mut conn = kbve_get_conn!(pool);
 
 			match $table::table
-				.filter($table::uuid.eq($param))
+				.filter($table::$param.eq($param))
 				.select($table::$column)
 				.first::<$return_type>(&mut conn)
 				{
-					Ok(data) => Ok(data.to_string()),
+					Ok(data) => Ok(data),
 					Err(diesel::NotFound) => Err("Database error"),
 					Err(_) => Err("Database error"),
 				}
@@ -80,7 +82,7 @@ hazardous_task_fetch!(
 	hazardous_task_fetch_n8n_webhook_by_uuid,
 	n8n,
 	webhook,
-	clean_uuid,
+	uuid,
 	u64,
 	String
 );
@@ -89,8 +91,17 @@ hazardous_task_fetch!(
 	hazardous_task_fetch_profile_github_by_uuid,
 	profile,
 	github,
-	clean_uuid,
+	uuid,
 	u64,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_auth_hash_by_email,
+	auth,
+	hash,
+	email,
+	String,
 	String
 );
 
@@ -353,12 +364,7 @@ api_generate_get_route_uuid!(
 
 #[macro_export]
 macro_rules! api_generate_get_route_fetch_username {
-	(
-		$func_name: ident,
-		$table: ident,
-		$column: ident,
-		$column_type: ty
-	) => {
+	($func_name:ident, $table:ident, $column:ident, $column_type:ty) => {
 		pub async fn $func_name(
 			Path(username): Path<String>,
 			Extension(pool): Extension<Arc<Pool>>
@@ -389,11 +395,11 @@ macro_rules! api_generate_get_route_fetch_username {
 						}),
 					)
 				}
-				Err(diesel::NotFound) => error_casting("username_not_found"),
+				Err(diesel::NotFound) => error_casting("fetch_route_fail"),
 				Err(_) => error_casting("database_error"),
 			}
 		}
-	}
+	};
 }
 
 api_generate_get_route_fetch_username!(
@@ -409,7 +415,6 @@ api_generate_get_route_fetch_username!(
 	webhook,
 	String
 );
-
 
 //	?	Macro -> API -> POST ROUTES
 
@@ -480,6 +485,53 @@ pub async fn api_get_process_username(
 }
 
 //	API Routes POST
+
+pub async fn api_post_process_login_user_handler(
+	Extension(pool): Extension<Arc<Pool>>,
+	Json(body): Json<LoginUserSchema>
+) -> impl IntoResponse {
+	let clean_email = handle_error!(
+		sanitize_email(&body.email),
+		"invalid_email"
+	);
+
+	match validate_password(&body.password) {
+		Ok(()) => {}
+		Err(_) => {
+			return error_casting("invalid_password");
+		}
+	}
+
+	handle_boolean_operation_truth!(
+		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
+		{},
+		"invalid_email"
+	);
+
+	let db_user_hash_password = handle_error!(
+		hazardous_task_fetch_auth_hash_by_email(
+			clean_email.clone(),
+			pool.clone()
+		).await,
+		"invaild_email"
+	);
+
+	let operational_vaild_password = match
+		PasswordHash::new(&db_user_hash_password)
+	{
+		Ok(process_hash) =>
+			Argon2::default()
+				.verify_password(&body.password.as_bytes(), &process_hash)
+				.map_or(false, |_| true),
+		Err(_) => false,
+	};
+
+	if !operational_vaild_password {
+		return error_casting("invalid_password");
+	}
+
+	error_casting("debug_login_works")
+}
 
 pub async fn api_post_process_register_user_handler(
 	Extension(pool): Extension<Arc<Pool>>,
