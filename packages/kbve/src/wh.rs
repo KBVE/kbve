@@ -1,15 +1,18 @@
+use std::collections::HashMap;
+use std::sync::OnceLock;
+
 
 use axum::{ http::StatusCode, response::Json };
 use serde::{ Serialize, Deserialize };
 use serde_json::Value;
 use lazy_static::lazy_static;
-use std::collections::HashMap;
+
 use dashmap::DashMap;
 
 
 use crate::models::{ User, Profile };
 
-//  Macros
+//  ?   [MACROS]
 
 #[macro_export]
 macro_rules! insert_response {
@@ -88,7 +91,7 @@ macro_rules! kbve_get_conn {
     };
 }
 
-//  Maps
+//  ?   [MAPS]
 
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
@@ -113,13 +116,16 @@ lazy_static! {
         m.insert("json_failure", (StatusCode::INTERNAL_SERVER_ERROR, "Json Failure! :C"));
         m
     };
+
+    // pub static ref GLOBAL: DashMap<String, String> = DashMap::new();
 }
 
-//  Two different tokens , one that will be the user session, which will be stateless and api sessions would be in a dashmap.
+//  TODO: pub static GLOBAL: OnceLock<DashMap<String, String>> = OnceLock::new(); from ~ ~ pub type Global = DashMap<String, String>;
+//  TODO: ^ Repeat but also migrate out the lazy_static! and utilize the OnceLock.
 
-pub type APISessionStore = DashMap<String, ApiSessionSchema>;
+pub static GLOBAL: OnceLock<DashMap<String, String>> = OnceLock::new();
 
-//  Error Functions
+//  !  Error Functions
 
 pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(key) {
@@ -150,17 +156,13 @@ pub fn error_simple(key: &str) -> &'static str {
     }
 }
 
-//  Structs
-
-//  Responses
+//  ?   [STRUCTS]
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
 	pub data: serde_json::Value,
 	pub message: serde_json::Value,
 }
-
-//  Abstract Schemas
 
 #[derive(Debug, Deserialize)]
 pub struct LoginUserSchema {
@@ -176,8 +178,10 @@ pub struct RegisterUserSchema {
 	pub captcha: String,
 }
 
+//  TODO: TokenClaims and ApiSchemas - https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
 
-// https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
+pub type APISessionStore = DashMap<String, ApiSessionSchema>;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub sub: String,

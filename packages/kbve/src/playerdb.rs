@@ -1,6 +1,5 @@
-use std::sync::{ Arc, OnceLock};
+use std::sync::{ Arc, OnceLock };
 use dashmap::DashMap;
-
 
 // Password Helper
 use argon2::{
@@ -45,16 +44,37 @@ use crate::wh::{
 	WizardResponse,
 	RegisterUserSchema,
 	LoginUserSchema,
+	GLOBAL,
 };
-use crate::schema::{ auth, profile, users, apikey, n8n, appwrite };
+use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
 
-//	OnceLock
-pub static GLOBAL: OnceLock<DashMap<String, String>> = OnceLock::new();
-
-pub async fn hazardous_global_init( pool: Arc<Pool> ) -> Result<bool, &'static str> {
+pub async fn hazardous_global_init(
+	pool: Arc<Pool>
+) -> Result<bool, &'static str> {
 	let mut conn = kbve_get_conn!(pool);
-
-	return Ok(false)
+	match
+		globals::table
+			.select((globals::key, globals::value))
+			.load::<(String, String)>(&mut conn)
+	{
+		Ok(results) => {
+			if results.is_empty() {
+				Ok(false)
+			} else {
+				if let Some(global_map) = GLOBAL.get() {
+					for (key, value) in results {
+						println!("key {} inserted", key.to_string());
+						global_map.insert(key, value);
+					}
+					Ok(true)
+				} else {
+					Err("global_map_error")
+				}
+			}
+		}
+		Err(diesel::NotFound) => Ok(false),
+		Err(_) => { Err("database_error") }
+	}
 }
 
 //	Expanded Hazardous Task Fetch
@@ -179,7 +199,6 @@ pub async fn hazardous_create_user(
 		Err(_) => Err("Failed to insert user into database"),
 	}
 }
-
 
 pub async fn hazardous_boolean_username_exist(
 	clean_username: String,
@@ -557,7 +576,6 @@ hazardous_boolean_exist!(
 	String
 );
 
-
 #[macro_export]
 macro_rules! hazardous_task_fetch {
 	(
@@ -614,8 +632,6 @@ hazardous_task_fetch!(
 	String,
 	String
 );
-
-
 
 //	?	Macro -> API -> POST ROUTES
 

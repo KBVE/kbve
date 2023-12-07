@@ -132,9 +132,25 @@ export const settings = mysqlTable('settings', {
 });
 
 /**
+ *	TODO: Inventory.
+ * 	! - Storage of Inventory -> Object Item.
+ * 
+ */
+
+// export const inventory = mysqlTable('inventory', {
+// 	id: serial('id').primaryKey().notNull(),
+// 	uuid: bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
+// })
+
+/**
+ *	TODO: Shop
+ *	Current issue is the storage of the items!
+ * 	
+ * 	
+ */
+
+/**
  * TODO: Player Saving / Loading via API.
- * TODO: Auth -> JWT.
- * TODO: Inventory Manager + Shop Integration.
  * TODO: Guild Manager.
  */
 
