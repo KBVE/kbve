@@ -1,4 +1,6 @@
-use std::sync::Arc;
+use std::sync::{ Arc, OnceLock};
+use dashmap::DashMap;
+
 
 // Password Helper
 use argon2::{
@@ -46,6 +48,14 @@ use crate::wh::{
 };
 use crate::schema::{ auth, profile, users, apikey, n8n, appwrite };
 
+//	OnceLock
+pub static GLOBAL: OnceLock<DashMap<String, String>> = OnceLock::new();
+
+pub async fn hazardous_global_init( pool: Arc<Pool> ) -> Result<bool, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
+
+	return Ok(false)
+}
 
 //	Expanded Hazardous Task Fetch
 
