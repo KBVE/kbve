@@ -26,6 +26,14 @@ lazy_static! {
     ).unwrap();
 }
 
+//  ?   Macro -> Generic Macros
+
+#[macro_export]
+macro_rules! insanity {
+    ($sanitize_fn:expr, $input:expr, $error_msg:expr) => {
+        let sanitized = handle_error!($sanitize_fn($input), $error_msg);
+    };
+}
 
 pub fn validate_password(password: &str) -> Result<(), &str> {
     // Check if the password is long enough (e.g., at least 8 characters)

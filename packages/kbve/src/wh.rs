@@ -93,6 +93,8 @@ macro_rules! kbve_get_conn {
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
+        m.insert("debug_login_works", (StatusCode::OK, "Login was successful!"));
+        m.insert("fetch_route_fail", (StatusCode::BAD_REQUEST, "There was an error fetching the data!"));
         m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
         m.insert("uuid_convert_failed",  (StatusCode::BAD_REQUEST, "There was an error converting the UUID!"));
         m.insert("task_account_init_fail",  (StatusCode::BAD_REQUEST, "There was an error creating the account"));
@@ -160,7 +162,11 @@ pub struct WizardResponse {
 
 //  Abstract Schemas
 
-
+#[derive(Debug, Deserialize)]
+pub struct LoginUserSchema {
+    pub email: String,
+    pub password: String,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserSchema {
@@ -170,12 +176,6 @@ pub struct RegisterUserSchema {
 	pub captcha: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct LoginUserSchema {
-    pub username_or_email: String,
-    pub password: String,
-    pub dopt: String,
-}
 
 // https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
 #[derive(Debug, Serialize, Deserialize)]
