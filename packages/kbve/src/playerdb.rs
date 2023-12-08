@@ -25,6 +25,7 @@ use serde_json::{ json, Value };
 use chrono::Utc;
 
 use crate::{
+	build_cookie,
 	get_global_value,
 	handle_error,
 	kbve_get_conn,
@@ -726,9 +727,9 @@ hazardous_task_fetch!(
 #[macro_export]
 macro_rules! build_cookie {
 	($token:expr, $duration:expr) => {
-		axum_extra::extract::cookie::Cookie:build("token", $token)
+		axum_extra::extract::cookie::Cookie::build("token", $token)
 			.path("/")
-			.max_age(std::time::Duration::hours($duration))
+			.max_age(time::Duration::hours($duration))
 			.same_site(axum_extra::extract::cookie::SameSite::Lax)
 			.http_only(true)
 			.finish()

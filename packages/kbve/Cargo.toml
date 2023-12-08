@@ -16,6 +16,7 @@ dashmap = "5.5.3"
 jsonwebtoken = "8.3.0"
 rand_core = { version = "0.6.4", features = ["std"] }
 tokio = { version = "1.0", features = ["full"] }
+time = "0.3.30"
 reqwest = { version = "0.11", features = ["json"] }
 tower = { version = "0.4.13", features = ["timeout"] }
 tower-http = { version = "0.4.4", features = ["cors"] }
