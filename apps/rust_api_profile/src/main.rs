@@ -8,8 +8,8 @@ use kbve::{
 	db::{ self },
 	harden::{ cors_service, fallback },
 	helper::{ health_check, speed_test, root_endpoint },
-	wh:: { APISessionStore },
-	playerdb::{ api_get_process_guest_email, api_get_process_username, api_post_process_register_user_handler, throwaway_api_get_process_discord_uuid, throwaway_api_get_process_n8n_webhook_from_username, throwaway_api_get_process_github_uuid, throwaway_api_get_process_appwrite_projectid_from_username, api_post_process_login_user_handler},
+	wh:: { APISessionStore, GLOBAL },
+	playerdb::{hazardous_global_init, api_get_process_guest_email, api_get_process_username, api_post_process_register_user_handler, throwaway_api_get_process_discord_uuid, throwaway_api_get_process_n8n_webhook_from_username, throwaway_api_get_process_github_uuid, throwaway_api_get_process_appwrite_projectid_from_username, api_post_process_login_user_handler},
 };
 
 #[tokio::main]
@@ -17,6 +17,14 @@ async fn main() {
 	let pool = db::establish_connection_pool();
 	let shared_pool = Arc::new(pool);
 	let api_session_store = Arc::new(APISessionStore::new());
+		
+	match hazardous_global_init(shared_pool.clone()).await {
+		Ok(map) => {
+			GLOBAL.set(Arc::new(map)).expect("Failed to initialize GLOBAL");
+			println!("Global Map -> init.");
+		},
+		Err(e) => println!("Global Map -> fail -> {}", e),
+	}
 
 	let corslight = cors_service();
 

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
 
 use axum::{ http::StatusCode, response::Json };
@@ -91,11 +91,27 @@ macro_rules! kbve_get_conn {
     };
 }
 
+#[macro_export]
+macro_rules! get_global_value {
+    ($key:expr, $err:expr) => {
+        match crate::wh::GLOBAL.get() {
+            Some(global_map) => match global_map.get($key) {
+                Some(value) => Ok(value.value().clone()), // Assuming you want to clone the value
+                None => Err($err),
+            },
+            None => Err("invalid_global_map"),
+        }
+    };
+}
+
+
 //  ?   [MAPS]
 
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
+        m.insert("invalid_global_map", (StatusCode::INTERNAL_SERVER_ERROR, "Global Map was not set!"));
+        m.insert("invalid_jwt", (StatusCode::INTERNAL_SERVER_ERROR, "JWT Secret was not set!"));
         m.insert("debug_login_works", (StatusCode::OK, "Login was successful!"));
         m.insert("fetch_route_fail", (StatusCode::BAD_REQUEST, "There was an error fetching the data!"));
         m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
@@ -123,7 +139,9 @@ lazy_static! {
 //  TODO: pub static GLOBAL: OnceLock<DashMap<String, String>> = OnceLock::new(); from ~ ~ pub type Global = DashMap<String, String>;
 //  TODO: ^ Repeat but also migrate out the lazy_static! and utilize the OnceLock.
 
-pub static GLOBAL: OnceLock<DashMap<String, String>> = OnceLock::new();
+pub type GlobalStore = DashMap<String, String>;
+pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
+pub type APISessionStore = DashMap<String, ApiSessionSchema>;
 
 //  !  Error Functions
 
@@ -180,7 +198,6 @@ pub struct RegisterUserSchema {
 
 //  TODO: TokenClaims and ApiSchemas - https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
 
-pub type APISessionStore = DashMap<String, ApiSessionSchema>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {

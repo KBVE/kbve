@@ -23,6 +23,7 @@ use serde_json::{ json, Value };
 use chrono::Utc;
 
 use crate::{
+	get_global_value,
 	handle_error,
 	kbve_get_conn,
 	simple_error,
@@ -44,14 +45,16 @@ use crate::wh::{
 	WizardResponse,
 	RegisterUserSchema,
 	LoginUserSchema,
-	GLOBAL,
 };
 use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
 
 pub async fn hazardous_global_init(
 	pool: Arc<Pool>
-) -> Result<bool, &'static str> {
+) -> Result<DashMap<String, String>, &'static str> {
 	let mut conn = kbve_get_conn!(pool);
+
+	let map = DashMap::new();
+
 	match
 		globals::table
 			.select((globals::key, globals::value))
@@ -59,20 +62,16 @@ pub async fn hazardous_global_init(
 	{
 		Ok(results) => {
 			if results.is_empty() {
-				Ok(false)
+				Err("empty_case")
 			} else {
-				if let Some(global_map) = GLOBAL.get() {
-					for (key, value) in results {
-						println!("key {} inserted", key.to_string());
-						global_map.insert(key, value);
-					}
-					Ok(true)
-				} else {
-					Err("global_map_error")
+				for (key, value) in results {
+					println!("key {} inserted", key.to_string());
+					map.insert(key, value);
 				}
+				Ok(map)
 			}
 		}
-		Err(diesel::NotFound) => Ok(false),
+		Err(diesel::NotFound) => Err("not_found_error"),
 		Err(_) => { Err("database_error") }
 	}
 }
@@ -338,6 +337,13 @@ pub async fn api_post_process_login_user_handler(
 	if !operational_vaild_password {
 		return error_casting("invalid_password");
 	}
+
+	let jwt_secret = handle_error!(
+		get_global_value!("jwt_secret", "invalid_jwt"),
+		"invalid_jwt"
+	);
+
+	
 
 	error_casting("debug_login_works")
 }
