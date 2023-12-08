@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use axum::{ extract::{ Extension }, routing::{get, post}, Router };
+use axum::{ extract::{ Extension }, routing::{ get, post }, Router };
 
 use tokio;
 
@@ -8,8 +8,18 @@ use kbve::{
 	db::{ self },
 	harden::{ cors_service, fallback },
 	helper::{ health_check, speed_test, root_endpoint },
-	wh:: { APISessionStore },
-	playerdb::{ api_get_process_guest_email, api_get_process_username, api_post_process_register_user_handler, throwaway_api_get_process_discord_uuid, throwaway_api_get_process_n8n_webhook_from_username, throwaway_api_get_process_github_uuid, throwaway_api_get_process_appwrite_projectid_from_username, api_post_process_login_user_handler},
+	wh::{ APISessionStore, GLOBAL },
+	playerdb::{
+		hazardous_global_init,
+		api_get_process_guest_email,
+		api_get_process_username,
+		api_post_process_register_user_handler,
+		throwaway_api_get_process_discord_uuid,
+		throwaway_api_get_process_n8n_webhook_from_username,
+		throwaway_api_get_process_github_uuid,
+		throwaway_api_get_process_appwrite_projectid_from_username,
+		api_post_process_login_user_handler,
+	},
 };
 
 #[tokio::main]
@@ -18,14 +28,30 @@ async fn main() {
 	let shared_pool = Arc::new(pool);
 	let api_session_store = Arc::new(APISessionStore::new());
 
+	//	!	Global	->	Map	-> [H]#clickup432
+
+	match hazardous_global_init(shared_pool.clone()).await {
+		Ok(map) => {
+			GLOBAL.set(Arc::new(map)).expect("Failed to initialize GLOBAL");
+			println!("Global Map -> init.");
+		}
+		Err(e) => println!("Global Map -> fail -> {}", e),
+	}
+
 	let corslight = cors_service();
 
 	let api_routes = Router::new()
 		.route("/health", get(health_check))
 		.route("/speed", get(speed_test))
 		.route("/profile/:username", get(api_get_process_username))
-		.route("/appwrite/project/:username", get(throwaway_api_get_process_appwrite_projectid_from_username))
-		.route("/n8n/:username", get(throwaway_api_get_process_n8n_webhook_from_username))
+		.route(
+			"/appwrite/project/:username",
+			get(throwaway_api_get_process_appwrite_projectid_from_username)
+		)
+		.route(
+			"/n8n/:username",
+			get(throwaway_api_get_process_n8n_webhook_from_username)
+		)
 		.route("/email/:email", get(api_get_process_guest_email))
 		.route("/auth/register", post(api_post_process_register_user_handler))
 		.route("/auth/login", post(api_post_process_login_user_handler))
@@ -36,8 +62,7 @@ async fn main() {
 
 	// ?	Future v2 -> Panda
 
-	let apipanda_routes = Router::new()
-		.route("/panda", get(root_endpoint));
+	let apipanda_routes = Router::new().route("/panda", get(root_endpoint));
 
 	let app = Router::new()
 		.nest("/api/v1", api_routes)

@@ -5,6 +5,8 @@
 
 use diesel::Queryable;
 use serde::Serialize;
+
+
 use chrono::NaiveDateTime;
 #[derive(Queryable, Debug, Serialize)]
 pub struct Apikey {
@@ -21,7 +23,7 @@ pub struct Appwrite {
     pub uuid: u64,
     pub appwrite_endpoint: String,
     pub appwrite_projectid: String,
-    pub apppwrite_api_key: String,
+    pub appwrite_api_key: String,
     pub version: String,
     pub created_at: NaiveDateTime,
 }
@@ -43,6 +45,13 @@ pub struct Auth {
     pub lockout_until: NaiveDateTime,
     pub two_factor_secret: String,
     pub recovery_codes: String,
+}
+
+#[derive(Queryable, Debug, Serialize)]
+pub struct Global {
+    pub id: u64,
+    pub key: String,
+    pub value: String,
 }
 
 #[derive(Queryable, Debug, Serialize)]
@@ -68,6 +77,14 @@ pub struct Profile {
 }
 
 #[derive(Queryable, Debug, Serialize)]
+pub struct Setting {
+    pub id: u64,
+    pub uuid: u64,
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Queryable, Debug, Serialize)]
 pub struct User {
     pub id: u64,
     pub username: String,
@@ -76,4 +93,3 @@ pub struct User {
     pub exp: i32,
     pub created_at: NaiveDateTime,
 }
-

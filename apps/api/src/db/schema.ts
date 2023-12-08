@@ -1,4 +1,4 @@
-import { Many, relations } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import {
 	mysqlTable,
 	timestamp,
@@ -6,12 +6,11 @@ import {
 	serial,
 	text,
 	int,
-	json,
 	bigint,
-	uniqueIndex
+	uniqueIndex,
 } from 'drizzle-orm/mysql-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { z } from 'zod';
+// import { z } from 'zod';
 
 export const users = mysqlTable('users', {
 	id: serial('id').primaryKey().notNull(),
@@ -71,7 +70,7 @@ export const appwrite = mysqlTable('appwrite', {
 	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
 	appwrite_endpoint: varchar('appwrite_endpoint', { length: 256 }).notNull(),
 	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }).notNull(),
-	appwrite_api_key: varchar('apppwrite_api_key', { length: 256 }).notNull(),
+	appwrite_api_key: varchar('appwrite_api_key', { length: 256 }).notNull(),
 	version: varchar('version', { length: 64 }).notNull(),
 	created_at: timestamp('created_at', { mode: 'string' })
 		.notNull()
@@ -110,14 +109,58 @@ export const n8n = mysqlTable('n8n', {
 	};
   });
 
+export const globals = mysqlTable('globals', {
+	id: serial('id').primaryKey().notNull(),
+	key: varchar('key', { length: 255}).notNull(),
+	value: varchar('value', { length: 255}).notNull(),
+}, (table) => {
+	return {
+		key_idx: uniqueIndex("key_idx").on(table.key)
+	};
+});
+
+export const settings = mysqlTable('settings', {
+	id: serial('id').primaryKey().notNull(),
+	uuid: bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
+	key: varchar('key', { length: 255}).notNull(),
+	value: varchar('value', {length: 255}).notNull()
+}, (table) => {
+	return {
+		key_idx: uniqueIndex("key_idx").on(table.key),
+		uuid_idx: uniqueIndex("uuid_idx").on(table.uuid)
+	};
+});
+
 /**
- * TODO: Player Saving / Loading via API.
- * TODO: Auth -> JWT.
- * TODO: Inventory Manager + Shop Integration.
- * TODO: Guild Manager.
+ *	TODO: Bank
+ * 	!		-> IGBC - [H]clickup#200
+ * 	!		-> IGBC - [H]github#135
+ * 
  */
 
+/**
+ *	TODO: Inventory.
+ * 	! - Storage of Inventory -> Object Item.
+ * 
+ */
 
+// export const inventory = mysqlTable('inventory', {
+// 	id: serial('id').primaryKey().notNull(),
+// 	uuid: bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
+//	bag: 
+// })
+
+/**
+ *	TODO: Shop
+ *	Current issue is the storage of the items!
+ * 	
+ * 	
+ */
+
+/**
+ * TODO: Player Saving / Loading via API.
+ * TODO: Guild Manager.
+ */
 
 export const usersProfileRelations = relations(users, ({ one }) => ({
 	profile: one(profile, {
@@ -133,6 +176,10 @@ export const usersAuthRelations = relations(users, ({ one }) => ({
 	}),
 }));
 
+export const usersSettingRelations = relations(users, ({ many}) => ({
+	settings: many(settings),
+}));
+
 export const usersAPIKeyRelations = relations(users, ({ many }) => ({
 	apikey: many(apikey),
 }));
@@ -144,6 +191,13 @@ export const usersAppwriteRelations = relations(users, ({ many }) => ({
 export const usersN8NRelations = relations(users, ({many}) => ({
     n8n: many(n8n),
 }))
+
+export const settingsUsersRelations = relations(settings, ({ one }) => ({
+	user: one(users, {
+		fields: [settings.uuid],
+		references: [users.id],
+	}),
+}));
 
 export const n8nUsersRelations = relations(n8n, ({ one}) => ({
     user: one(users, {

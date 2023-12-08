@@ -1,15 +1,16 @@
+use std::collections::HashMap;
+use std::sync::{ Arc, OnceLock };
 
 use axum::{ http::StatusCode, response::Json };
 use serde::{ Serialize, Deserialize };
 use serde_json::Value;
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-use dashmap::DashMap;
 
+use dashmap::DashMap;
 
 use crate::models::{ User, Profile };
 
-//  Macros
+//  ?   [MACROS]
 
 #[macro_export]
 macro_rules! insert_response {
@@ -29,22 +30,22 @@ macro_rules! insert_response {
 
 #[macro_export]
 macro_rules! handle_boolean_operation_truth {
-    ($operation:expr, $success:expr, $error:expr) => {
+	($operation:expr, $success:expr, $error:expr) => {
         match $operation.await {
             Ok(true) => $success,
             Ok(false) | Err(_) => return error_casting($error),
         }
-    };
+	};
 }
 
 #[macro_export]
 macro_rules! handle_boolean_operation_fake {
-    ($operation:expr, $success:expr, $error:expr) => {
+	($operation:expr, $success:expr, $error:expr) => {
         match $operation.await {
             Ok(false) => $success,
             Ok(true) | Err(_) => return error_casting($error),
         }
-    };
+	};
 }
 
 #[macro_export]
@@ -56,7 +57,6 @@ macro_rules! simple_error {
         }
 	};
 }
-
 
 #[macro_export]
 macro_rules! handle_error {
@@ -80,19 +80,34 @@ macro_rules! handle_post_error {
 
 #[macro_export]
 macro_rules! kbve_get_conn {
-    ($pool:expr) => {
+	($pool:expr) => {
         match $pool.get() {
             Ok(conn) => conn,
             Err(_) => return Err("Failed to get a connection from the pool!"),
         }
-    };
+	};
 }
 
-//  Maps
+#[macro_export]
+macro_rules! get_global_value {
+	($key:expr, $err:expr) => {
+        match crate::wh::GLOBAL.get() {
+            Some(global_map) => match global_map.get($key) {
+                Some(value) => Ok(value.value().clone()), // Assuming you want to clone the value
+                None => Err($err),
+            },
+            None => Err("invalid_global_map"),
+        }
+	};
+}
+
+//  ?   [MAPS]
 
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
+        m.insert("invalid_global_map", (StatusCode::INTERNAL_SERVER_ERROR, "Global Map was not set!"));
+        m.insert("invalid_jwt", (StatusCode::INTERNAL_SERVER_ERROR, "JWT Secret was not set!"));
         m.insert("debug_login_works", (StatusCode::OK, "Login was successful!"));
         m.insert("fetch_route_fail", (StatusCode::BAD_REQUEST, "There was an error fetching the data!"));
         m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
@@ -113,13 +128,18 @@ lazy_static! {
         m.insert("json_failure", (StatusCode::INTERNAL_SERVER_ERROR, "Json Failure! :C"));
         m
     };
+
+    // pub static ref GLOBAL: DashMap<String, String> = DashMap::new();
 }
 
-//  Two different tokens , one that will be the user session, which will be stateless and api sessions would be in a dashmap.
+//  TODO: pub static GLOBAL: OnceLock<DashMap<String, String>> = OnceLock::new(); from ~ ~ pub type Global = DashMap<String, String>;
+//  TODO: ^ Repeat but also migrate out the lazy_static! and utilize the OnceLock.
 
+pub type GlobalStore = DashMap<String, String>;
+pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
 pub type APISessionStore = DashMap<String, ApiSessionSchema>;
 
-//  Error Functions
+//  !  Error Functions
 
 pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(key) {
@@ -141,18 +161,15 @@ pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	}
 }
 
-
 pub fn error_simple(key: &str) -> &'static str {
-    if let Some(&(_, message)) = RESPONSE_MESSAGES.get(key) {
-        message
-    } else {
-        "Unknown Error"
-    }
+	if let Some(&(_, message)) = RESPONSE_MESSAGES.get(key) {
+		message
+	} else {
+		"Unknown Error"
+	}
 }
 
-//  Structs
-
-//  Responses
+//  ?   [STRUCTS]
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
@@ -160,42 +177,42 @@ pub struct WizardResponse {
 	pub message: serde_json::Value,
 }
 
-//  Abstract Schemas
-
 #[derive(Debug, Deserialize)]
 pub struct LoginUserSchema {
-    pub email: String,
-    pub password: String,
+	pub email: String,
+	pub password: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserSchema {
-    pub username: String,
-    pub email: String,
-    pub password: String,
+	pub username: String,
+	pub email: String,
+	pub password: String,
 	pub captcha: String,
 }
 
+//  TODO: TokenSchema and ApiSchema - https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
 
-// https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TokenClaims {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
-    pub aud: Option<String>, 
-    pub iss: Option<String>, 
-    pub jti: Option<String>,
-    pub nbf: Option<usize>, 
-    pub scope: Option<String>, 
+pub struct TokenSchema {
+	pub uuid: String,
+	pub email: String,
+	pub username: String,
+	pub iat: usize,
+	pub exp: usize,
+	pub aud: Option<String>,
+	pub iss: Option<String>,
+	pub jti: Option<String>,
+	pub nbf: Option<usize>,
+	pub scope: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ApiSessionSchema {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
-    pub key: String,
-    pub uid: String,
-    pub kbve: String,
+	pub sub: String,
+	pub iat: usize,
+	pub exp: usize,
+	pub key: String,
+	pub uid: String,
+	pub kbve: String,
 }

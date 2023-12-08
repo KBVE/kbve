@@ -1,4 +1,5 @@
-use std::sync::Arc;
+use std::sync::{ Arc, OnceLock };
+use dashmap::DashMap;
 
 // Password Helper
 use argon2::{
@@ -22,6 +23,7 @@ use serde_json::{ json, Value };
 use chrono::Utc;
 
 use crate::{
+	get_global_value,
 	handle_error,
 	kbve_get_conn,
 	simple_error,
@@ -43,67 +45,37 @@ use crate::wh::{
 	WizardResponse,
 	RegisterUserSchema,
 	LoginUserSchema,
+	TokenSchema,
 };
-use crate::schema::{ auth, profile, users, apikey, n8n, appwrite };
+use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
 
-//	Hazardous Tasks
+pub async fn hazardous_global_init(
+	pool: Arc<Pool>
+) -> Result<DashMap<String, String>, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
 
-#[macro_export]
-macro_rules! hazardous_task_fetch {
-	(
-		$func_name:ident,
-		$table:ident,
-		$column:ident,
-		$param:ident,
-		$param_type:ty,
-		$return_type:ty
-	) => {
-		pub async fn $func_name(
-			$param: $param_type,
-			pool: Arc<Pool>
-		) -> Result<$return_type, &'static str> {
-			let mut conn = kbve_get_conn!(pool);
+	let map = DashMap::new();
 
-			match $table::table
-				.filter($table::$param.eq($param))
-				.select($table::$column)
-				.first::<$return_type>(&mut conn)
-				{
-					Ok(data) => Ok(data),
-					Err(diesel::NotFound) => Err("Database error"),
-					Err(_) => Err("Database error"),
+	match
+		globals::table
+			.select((globals::key, globals::value))
+			.load::<(String, String)>(&mut conn)
+	{
+		Ok(results) => {
+			if results.is_empty() {
+				Err("empty_case")
+			} else {
+				for (key, value) in results {
+					println!("key {} inserted", key.to_string());
+					map.insert(key, value);
 				}
-
+				Ok(map)
+			}
 		}
-	};
+		Err(diesel::NotFound) => Err("not_found_error"),
+		Err(_) => { Err("database_error") }
+	}
 }
-
-hazardous_task_fetch!(
-	hazardous_task_fetch_n8n_webhook_by_uuid,
-	n8n,
-	webhook,
-	uuid,
-	u64,
-	String
-);
-
-hazardous_task_fetch!(
-	hazardous_task_fetch_profile_github_by_uuid,
-	profile,
-	github,
-	uuid,
-	u64,
-	String
-);
-
-hazardous_task_fetch!(
-	hazardous_task_fetch_auth_hash_by_email,
-	auth,
-	hash,
-	email,
-	String,
-	String
-);
 
 //	Expanded Hazardous Task Fetch
 
@@ -228,60 +200,6 @@ pub async fn hazardous_create_user(
 	}
 }
 
-//	?	Macro -> Hazardous_Booleans
-
-#[macro_export]
-macro_rules! hazardous_boolean_exist {
-	(
-		$func_name:ident,
-		$table:ident,
-		$column:ident,
-		$param:ident,
-		$param_type:ty
-	) => {
-        pub async fn $func_name(
-            $param: $param_type,
-            pool: Arc<Pool>
-        ) -> Result<bool, &'static str> {
-            let mut conn = kbve_get_conn!(pool);
-
-            match $table::table
-                .filter($table::$column.eq($param))
-                .select($table::uuid)
-                .first::<u64>(&mut conn)
-            {
-                Ok(_) => Ok(true),
-                Err(diesel::NotFound) => Ok(false),
-                Err(_) => Err("Database error"),
-            }
-        }
-	};
-}
-
-hazardous_boolean_exist!(
-	hazardous_boolean_api_key_exist,
-	apikey,
-	keyhash,
-	clean_api_key,
-	String
-);
-
-hazardous_boolean_exist!(
-	hazardous_boolean_email_exist,
-	auth,
-	email,
-	clean_email,
-	String
-);
-
-hazardous_boolean_exist!(
-	hazardous_boolean_n8n_webhook_exist,
-	n8n,
-	webhook,
-	clean_webhook,
-	String
-);
-
 pub async fn hazardous_boolean_username_exist(
 	clean_username: String,
 	pool: Arc<Pool>
@@ -323,115 +241,6 @@ pub async fn task_fetch_userid_by_username(
 		Err(_) => Err("User not found or database error"),
 	}
 }
-
-//	? Macro -> API Routes -> Get
-
-#[macro_export]
-macro_rules! api_generate_get_route_uuid {
-	($func_name:ident, $task_name:ident) => {
-		pub async fn $func_name(
-			Path(uuid): Path<String>,
-			Extension(pool): Extension<Arc<Pool>>
-		) -> impl IntoResponse {
-			let clean_uuid = handle_error!(uuid.parse::<u64>(), "uuid_convert_failed");
-			match $task_name(clean_uuid, pool).await {
-				Ok(data) => {
-					(
-						StatusCode::OK,
-						Json(WizardResponse {
-							data: serde_json::json!({"status": "complete"}),
-							message: serde_json::json!({
-								"fetch": data
-						}),
-						}),
-					)
-				}
-				Err(_) => error_casting("database_error"),
-			}
-		}
-	};
-}
-
-api_generate_get_route_uuid!(
-	throwaway_api_get_process_github_uuid,
-	hazardous_task_fetch_profile_github_by_uuid
-);
-
-api_generate_get_route_uuid!(
-	throwaway_api_get_process_discord_uuid,
-	hazardous_task_fetch_profile_discord_by_uuid
-);
-
-#[macro_export]
-macro_rules! api_generate_get_route_fetch_username {
-	($func_name:ident, $table:ident, $column:ident, $column_type:ty) => {
-		pub async fn $func_name(
-			Path(username): Path<String>,
-			Extension(pool): Extension<Arc<Pool>>
-		) -> impl IntoResponse {
-
-			let clean_username = handle_error!(
-				sanitize_username(&username),
-				"invalid_username"
-			);
-
-			let mut conn = handle_error!(pool.get(), "database_error");
-
-			match
-				users::table
-					.inner_join($table::table.on($table::uuid.eq(users::id)))
-					.filter(users::username.eq(clean_username))
-					.select($table::$column)
-					.first::<$column_type>(&mut conn)
-			{
-				Ok(data) => {
-					( 
-						StatusCode::OK,
-						Json(WizardResponse {
-							data: serde_json::json!({"status": "complete"}),
-							message: serde_json::json!({
-								"fetch": data
-						}),
-						}),
-					)
-				}
-				Err(diesel::NotFound) => error_casting("fetch_route_fail"),
-				Err(_) => error_casting("database_error"),
-			}
-		}
-	};
-}
-
-api_generate_get_route_fetch_username!(
-	throwaway_api_get_process_appwrite_projectid_from_username,
-	appwrite,
-	appwrite_projectid,
-	String
-);
-
-api_generate_get_route_fetch_username!(
-	throwaway_api_get_process_n8n_webhook_from_username,
-	n8n,
-	webhook,
-	String
-);
-
-//	?	Macro -> API -> POST ROUTES
-
-// #[macro_export]
-// macro_rules! api_generate_post_route {
-// 	(
-// 		$func_name: ident,
-// 		$schema_name: ty,
-// 	) => {
-// 		pub async fn $func_name(
-// 			Extension(pool): Extension<Arc<Pool>>,
-// 			Json(body): Json<$schema_name>
-// 		) -> impl IntoResponse {
-
-// 		}
-// 	}
-// }
 
 //	API Routes GET
 
@@ -530,6 +339,26 @@ pub async fn api_post_process_login_user_handler(
 		return error_casting("invalid_password");
 	}
 
+	let jwt_secret = handle_error!(
+		get_global_value!("jwt_secret", "invalid_jwt"),
+		"invalid_jwt"
+	);
+
+	//	10:25pm
+
+	
+
+	//	!		JWT Cookie	->	Structure
+	//	!		JWT -> Secret, UUID, Username, Email? ->
+	//	TODO	JWT Handler ->	Middleware
+	//	TODO	JWT Logout	->	Route
+
+	// let clock = chrono::Utc:now();
+	// let iat = now.timestamp() as usize;
+	// let exp = (now + chrono::Duration::minutes(60)).timestamp() as usize;
+
+
+
 	error_casting("debug_login_works")
 }
 
@@ -618,3 +447,234 @@ pub async fn api_post_process_register_user_handler(
 		"task_account_init_fail"
 	);
 }
+
+//	!	Macros
+
+//	? Macro -> API Routes -> Get
+
+#[macro_export]
+macro_rules! api_generate_get_route_uuid {
+	($func_name:ident, $task_name:ident) => {
+		pub async fn $func_name(
+			Path(uuid): Path<String>,
+			Extension(pool): Extension<Arc<Pool>>
+		) -> impl IntoResponse {
+			let clean_uuid = handle_error!(uuid.parse::<u64>(), "uuid_convert_failed");
+			match $task_name(clean_uuid, pool).await {
+				Ok(data) => {
+					(
+						StatusCode::OK,
+						Json(WizardResponse {
+							data: serde_json::json!({"status": "complete"}),
+							message: serde_json::json!({
+								"fetch": data
+						}),
+						}),
+					)
+				}
+				Err(_) => error_casting("database_error"),
+			}
+		}
+	};
+}
+
+api_generate_get_route_uuid!(
+	throwaway_api_get_process_github_uuid,
+	hazardous_task_fetch_profile_github_by_uuid
+);
+
+api_generate_get_route_uuid!(
+	throwaway_api_get_process_discord_uuid,
+	hazardous_task_fetch_profile_discord_by_uuid
+);
+
+#[macro_export]
+macro_rules! api_generate_get_route_fetch_username {
+	($func_name:ident, $table:ident, $column:ident, $column_type:ty) => {
+		pub async fn $func_name(
+			Path(username): Path<String>,
+			Extension(pool): Extension<Arc<Pool>>
+		) -> impl IntoResponse {
+
+			let clean_username = handle_error!(
+				sanitize_username(&username),
+				"invalid_username"
+			);
+
+			let mut conn = handle_error!(pool.get(), "database_error");
+
+			match
+				users::table
+					.inner_join($table::table.on($table::uuid.eq(users::id)))
+					.filter(users::username.eq(clean_username))
+					.select($table::$column)
+					.first::<$column_type>(&mut conn)
+			{
+				Ok(data) => {
+					( 
+						StatusCode::OK,
+						Json(WizardResponse {
+							data: serde_json::json!({"status": "complete"}),
+							message: serde_json::json!({
+								"fetch": data
+						}),
+						}),
+					)
+				}
+				Err(diesel::NotFound) => error_casting("fetch_route_fail"),
+				Err(_) => error_casting("database_error"),
+			}
+		}
+	};
+}
+
+api_generate_get_route_fetch_username!(
+	throwaway_api_get_process_appwrite_projectid_from_username,
+	appwrite,
+	appwrite_projectid,
+	String
+);
+
+api_generate_get_route_fetch_username!(
+	throwaway_api_get_process_n8n_webhook_from_username,
+	n8n,
+	webhook,
+	String
+);
+
+//	?	Macro -> Hazardous_Booleans
+
+#[macro_export]
+macro_rules! hazardous_boolean_exist {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty
+	) => {
+        pub async fn $func_name(
+            $param: $param_type,
+            pool: Arc<Pool>
+        ) -> Result<bool, &'static str> {
+            let mut conn = kbve_get_conn!(pool);
+
+            match $table::table
+                .filter($table::$column.eq($param))
+                .select($table::uuid)
+                .first::<u64>(&mut conn)
+            {
+                Ok(_) => Ok(true),
+                Err(diesel::NotFound) => Ok(false),
+                Err(_) => Err("Database error"),
+            }
+        }
+	};
+}
+
+hazardous_boolean_exist!(
+	hazardous_boolean_api_key_exist,
+	apikey,
+	keyhash,
+	clean_api_key,
+	String
+);
+
+hazardous_boolean_exist!(
+	hazardous_boolean_email_exist,
+	auth,
+	email,
+	clean_email,
+	String
+);
+
+hazardous_boolean_exist!(
+	hazardous_boolean_n8n_webhook_exist,
+	n8n,
+	webhook,
+	clean_webhook,
+	String
+);
+
+#[macro_export]
+macro_rules! hazardous_task_fetch {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty,
+		$return_type:ty
+	) => {
+		pub async fn $func_name(
+			$param: $param_type,
+			pool: Arc<Pool>
+		) -> Result<$return_type, &'static str> {
+			let mut conn = kbve_get_conn!(pool);
+
+			match $table::table
+				.filter($table::$param.eq($param))
+				.select($table::$column)
+				.first::<$return_type>(&mut conn)
+				{
+					Ok(data) => Ok(data),
+					Err(diesel::NotFound) => Err("Database error"),
+					Err(_) => Err("Database error"),
+				}
+
+		}
+	};
+}
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_n8n_webhook_by_uuid,
+	n8n,
+	webhook,
+	uuid,
+	u64,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_profile_github_by_uuid,
+	profile,
+	github,
+	uuid,
+	u64,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_auth_hash_by_email,
+	auth,
+	hash,
+	email,
+	String,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_uuid_by_email,
+	auth,
+	uuid,
+	email,
+	String,
+	u64
+);
+
+//	?	Macro -> API -> POST ROUTES
+
+// #[macro_export]
+// macro_rules! api_generate_post_route {
+// 	(
+// 		$func_name: ident,
+// 		$schema_name: ty,
+// 	) => {
+// 		pub async fn $func_name(
+// 			Extension(pool): Extension<Arc<Pool>>,
+// 			Json(body): Json<$schema_name>
+// 		) -> impl IntoResponse {
+
+// 		}
+// 	}
+// }
