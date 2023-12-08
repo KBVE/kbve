@@ -371,22 +371,25 @@ pub async fn api_post_process_login_user_handler(
 		jwt_secret,
 		2
 	);
-	let cookie = build_cookie!(jwt_token.to_owned(), 2);
+	let cookie = build_cookie!("token", jwt_token.to_owned(), 2);
 
 	let mut headers = axum::http::HeaderMap::new();
 
-	headers.insert(axum::http::header::SET_COOKIE, cookie.to_string().parse().unwrap());
+	headers.insert(
+		axum::http::header::SET_COOKIE,
+		cookie.to_string().parse().unwrap()
+	);
 
 	(
- 	StatusCode::OK,
+		StatusCode::OK,
 		headers,
-	 	Json(WizardResponse {
-	 		data: serde_json::json!({"status": "complete"}),
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "complete"}),
 			message: serde_json::json!({
-	 			"fetch": jwt_token.to_string()
+	 			"token": jwt_token.to_string()
 		}),
- 	}),
-	 )
+		}),
+	)
 }
 
 pub async fn api_post_process_register_user_handler(
@@ -744,8 +747,8 @@ macro_rules! create_jwt {
 
 #[macro_export]
 macro_rules! build_cookie {
-	($token:expr, $duration:expr) => {
-		axum_extra::extract::cookie::Cookie::build("token", $token)
+	($name:expr, $token:expr, $duration:expr) => {
+		axum_extra::extract::cookie::Cookie::build($name, $token)
 			.path("/")
 			.max_age(time::Duration::hours($duration))
 			.same_site(axum_extra::extract::cookie::SameSite::Lax)

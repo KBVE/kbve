@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::{ Arc, OnceLock };
 use std::str::FromStr;
 
-use axum::{ http::{StatusCode, HeaderMap}, response::{Json, IntoResponse} };
+use axum::{ http::{ StatusCode, HeaderMap }, response::{ Json, IntoResponse } };
 use serde::{ Serialize, Deserialize };
 use serde_json::Value;
 use lazy_static::lazy_static;
@@ -49,11 +49,9 @@ macro_rules! handle_boolean_operation_fake {
 	};
 }
 
-
 #[macro_export]
 macro_rules! shield_sanitization {
-	($shield:expr, $operation:expr, $error_key:expr)
-	=> {
+	($shield:expr, $operation:expr, $error_key:expr) => {
         match $operation {
             Ok(value) => value,
             Err(_) => return error_shield_casting($error_key),
@@ -73,7 +71,7 @@ macro_rules! simple_error {
 
 #[macro_export]
 macro_rules! handle_shield_error {
-    ($expr:expr, $error_key:expr) => {
+	($expr:expr, $error_key:expr) => {
         match $expr {
             Ok(value) => value,
             Err(_) => return error_shield_casting($error_key),
@@ -157,44 +155,46 @@ lazy_static! {
     // pub static ref GLOBAL: DashMap<String, String> = DashMap::new();
 }
 
-
 pub type GlobalStore = DashMap<String, String>;
 pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
 pub type APISessionStore = DashMap<String, ApiSessionSchema>;
 
 //  !  Error Functions
 
-pub fn error_shield_casting(key: &str) -> (StatusCode, HeaderMap, Json<WizardResponse>) {
-    
-    let mut headers = axum::http::HeaderMap::new();
-    
-    let header_name = axum::http::header::HeaderName::from_str("x-kbve").unwrap();
-    let header_value = axum::http::HeaderValue::from_str(&format!("shield_{}", &key)).unwrap();    
-   
+pub fn error_shield_casting(
+	key: &str
+) -> (StatusCode, HeaderMap, Json<WizardResponse>) {
+	let mut headers = axum::http::HeaderMap::new();
 
-    if let Some(&(status, message)) = RESPONSE_MESSAGES.get(&key) {   
-        headers.insert(header_name, header_value);
-        (
-            status,
-            headers,
+	let header_name = axum::http::header::HeaderName
+		::from_str("x-kbve")
+		.unwrap();
+	let header_value = axum::http::HeaderValue
+		::from_str(&format!("shield_{}", &key))
+		.unwrap();
+
+	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(&key) {
+		headers.insert(header_name, header_value);
+		(
+			status,
+			headers,
 			Json(WizardResponse {
 				data: serde_json::json!({"status": "error" , "http": status.to_string()}),
 				message: serde_json::json!({ "error": message }),
 			}),
-        )
-    } else {
-       headers.insert(header_name, header_value);
-       (
+		)
+	} else {
+		headers.insert(header_name, header_value);
+		(
 			StatusCode::INTERNAL_SERVER_ERROR,
-            headers,
+			headers,
 			Json(WizardResponse {
 				data: serde_json::json!({"status": "error"}),
 				message: serde_json::json!({"error": "Unknown Error"}),
 			}),
 		)
-    }
+	}
 }
-
 
 pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(key) {
@@ -254,7 +254,7 @@ pub struct TokenSchema {
 	pub email: String,
 	pub username: String,
 	pub iat: usize,
-	pub exp: usize
+	pub exp: usize,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
