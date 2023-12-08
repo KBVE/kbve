@@ -9,7 +9,6 @@ use argon2::{
 	PasswordVerifier,
 };
 use rand_core::OsRng;
-use jsonwebtoken::{encode, EncodingKey, Header};
 
 use axum::{
 	http::StatusCode,
@@ -33,6 +32,7 @@ use crate::{
 	handle_boolean_operation_truth,
 	handle_boolean_operation_fake,
 	insanity,
+	create_jwt,
 };
 use crate::harden::{
 	sanitize_email,
@@ -365,37 +365,21 @@ pub async fn api_post_process_login_user_handler(
 
 	//	!		->println!("Username -> {}", username_from_email.to_string());
 
-	let clock = chrono::Utc::now();
-
-	let user_token_schema: TokenSchema = TokenSchema {
-		uuid: uuid_from_email.to_string(),
-		email: clean_email.to_string(),
-		username: username_from_email.to_string(),
-		iat: clock.timestamp() as usize,
-		exp: (clock + chrono::Duration::minutes(120)).timestamp() as usize,
-	};
-
-	let jwt_token = encode(
-		&Header::default(),
-		&user_token_schema,
-		&EncodingKey::from_secret(jwt_secret.as_bytes()),
-	).unwrap();			
-
+	let jwt_token = create_jwt!(uuid_from_email, clean_email, username_from_email, jwt_secret, 2);
 	let cookie = build_cookie!(jwt_token.to_owned(), 2);
 
+	let mut headers = axum::http::HeaderMap::new();
 
-
-	//	!		N	->	Redis ->	Cache. [H]clickup#512
-	//	!		JWT Cookie	->	Structure
-	//	*		JWT -> Secret, UUID, Email, Username
-	//	!		JWT -> Time
-
-	//	TODO	JWT Handler ->	Middleware
-	//	TODO	JWT Logout	->	Route
-
-
-
-	error_casting("debug_login_works")
+	(
+		StatusCode::OK,
+		[headers.insert(axum::http::header::SET_COOKIE, cookie.to_string().parse().unwrap())],
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "complete"}),
+			message: serde_json::json!({
+				"fetch": jwt_token.to_string()
+		}),
+		}),
+	)
 }
 
 pub async fn api_post_process_register_user_handler(
@@ -723,6 +707,31 @@ hazardous_task_fetch!(
 // 		}
 // 	}
 // }
+
+#[macro_export]
+macro_rules! create_jwt {
+    ($uuid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {{
+
+		use jsonwebtoken::{encode, EncodingKey, Header};
+
+        let now = chrono::Utc::now();
+        let exp = now + chrono::Duration::minutes($hours * 60);
+
+        let jwt_token = encode(
+            &Header::default(),
+            &TokenSchema {
+                uuid: $uuid.to_string(),
+                email: $email.to_string(),
+                username: $username.to_string(),
+                iat: now.timestamp() as usize,
+                exp: exp.timestamp() as usize,
+            },
+            &EncodingKey::from_secret($secret.as_bytes()),
+        ).unwrap(); 
+
+		jwt_token
+    }};
+}
 
 #[macro_export]
 macro_rules! build_cookie {
