@@ -103,6 +103,8 @@ macro_rules! get_global_value {
 
 //  ?   [MAPS]
 
+//  !   Remove lazy_static! and migrate into a OnceLock/OnceCell.
+
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
@@ -132,8 +134,6 @@ lazy_static! {
     // pub static ref GLOBAL: DashMap<String, String> = DashMap::new();
 }
 
-//  TODO: pub static GLOBAL: OnceLock<DashMap<String, String>> = OnceLock::new(); from ~ ~ pub type Global = DashMap<String, String>;
-//  TODO: ^ Repeat but also migrate out the lazy_static! and utilize the OnceLock.
 
 pub type GlobalStore = DashMap<String, String>;
 pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
@@ -199,12 +199,7 @@ pub struct TokenSchema {
 	pub email: String,
 	pub username: String,
 	pub iat: usize,
-	pub exp: usize,
-	pub aud: Option<String>,
-	pub iss: Option<String>,
-	pub jti: Option<String>,
-	pub nbf: Option<usize>,
-	pub scope: Option<String>,
+	pub exp: usize
 }
 
 #[derive(Serialize, Deserialize, Clone)]
