@@ -1,7 +1,6 @@
 use std::sync::{ Arc, OnceLock };
 use dashmap::DashMap;
 
-// Password Helper
 use argon2::{
 	password_hash::SaltString,
 	Argon2,
@@ -10,6 +9,7 @@ use argon2::{
 	PasswordVerifier,
 };
 use rand_core::OsRng;
+use jsonwebtoken::{encode, EncodingKey, Header};
 
 use axum::{
 	http::StatusCode,
@@ -17,6 +17,8 @@ use axum::{
 	response::{ IntoResponse },
 	Json,
 };
+
+
 use diesel::prelude::*;
 use diesel::insert_into;
 use serde_json::{ json, Value };
@@ -311,11 +313,15 @@ pub async fn api_post_process_login_user_handler(
 		}
 	}
 
+	//	?	- Remove	- @h0lybyte
+
 	handle_boolean_operation_truth!(
 		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
 		{},
 		"invalid_email"
 	);
+
+	//	?	-	[END]
 
 	let db_user_hash_password = handle_error!(
 		hazardous_task_fetch_auth_hash_by_email(
@@ -344,18 +350,47 @@ pub async fn api_post_process_login_user_handler(
 		"invalid_jwt"
 	);
 
-	//	10:25pm
+	//	!	->	Remove these two functions below and add a JOIN singleton query.
 
-	
+	let uuid_from_email = handle_error!(
+		hazardous_task_fetch_uuid_by_email(clean_email.clone(), pool.clone()).await,
+		"uuid_convert_failed"
+	);
 
+	let username_from_email = handle_error!(
+		hazardous_task_fetch_username_by_uuid(uuid_from_email.clone(), pool.clone()).await,
+		"username_not_found"
+	);
+
+	//	!		->println!("Username -> {}", username_from_email.to_string());
+
+	let clock = chrono::Utc::now();
+
+	let user_token_schema: TokenSchema = TokenSchema {
+		uuid: uuid_from_email.to_string(),
+		email: clean_email.to_string(),
+		username: username_from_email.to_string(),
+		iat: clock.timestamp() as usize,
+		exp: (clock + chrono::Duration::minutes(120)).timestamp() as usize,
+	};
+
+	let jwt_token = encode(
+		&Header::default(),
+		&user_token_schema,
+		&EncodingKey::from_secret(jwt_secret.as_bytes()),
+	).unwrap();			
+
+	let cookie = build_cookie!(jwt_token.to_owned(), 2);
+
+
+
+	//	!		N	->	Redis ->	Cache. [H]clickup#512
 	//	!		JWT Cookie	->	Structure
-	//	!		JWT -> Secret, UUID, Username, Email? ->
+	//	*		JWT -> Secret, UUID, Email, Username
+	//	!		JWT -> Time
+
 	//	TODO	JWT Handler ->	Middleware
 	//	TODO	JWT Logout	->	Route
-
-	// let clock = chrono::Utc:now();
-	// let iat = now.timestamp() as usize;
-	// let exp = (now + chrono::Duration::minutes(60)).timestamp() as usize;
 
 
 
@@ -662,6 +697,15 @@ hazardous_task_fetch!(
 	u64
 );
 
+hazardous_task_fetch!(
+	hazardous_task_fetch_username_by_uuid,
+	users,
+	username,
+	id,
+	u64,
+	String
+);
+
 //	?	Macro -> API -> POST ROUTES
 
 // #[macro_export]
@@ -678,3 +722,15 @@ hazardous_task_fetch!(
 // 		}
 // 	}
 // }
+
+#[macro_export]
+macro_rules! build_cookie {
+	($token:expr, $duration:expr) => {
+		axum_extra::extract::cookie::Cookie:build("token", $token)
+			.path("/")
+			.max_age(std::time::Duration::hours($duration))
+			.same_site(axum_extra::extract::cookie::SameSite::Lax)
+			.http_only(true)
+			.finish()
+	};
+}
