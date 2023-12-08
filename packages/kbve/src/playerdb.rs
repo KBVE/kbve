@@ -45,6 +45,7 @@ use crate::wh::{
 	WizardResponse,
 	RegisterUserSchema,
 	LoginUserSchema,
+	TokenSchema,
 };
 use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
 
@@ -343,7 +344,20 @@ pub async fn api_post_process_login_user_handler(
 		"invalid_jwt"
 	);
 
+	//	10:25pm
+
 	
+
+	//	!		JWT Cookie	->	Structure
+	//	!		JWT -> Secret, UUID, Username, Email? ->
+	//	TODO	JWT Handler ->	Middleware
+	//	TODO	JWT Logout	->	Route
+
+	// let clock = chrono::Utc:now();
+	// let iat = now.timestamp() as usize;
+	// let exp = (now + chrono::Duration::minutes(60)).timestamp() as usize;
+
+
 
 	error_casting("debug_login_works")
 }
@@ -637,6 +651,15 @@ hazardous_task_fetch!(
 	email,
 	String,
 	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_uuid_by_email,
+	auth,
+	uuid,
+	email,
+	String,
+	u64
 );
 
 //	?	Macro -> API -> POST ROUTES

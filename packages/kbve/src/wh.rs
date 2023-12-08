@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use std::sync::{Arc, OnceLock};
-
+use std::sync::{ Arc, OnceLock };
 
 use axum::{ http::StatusCode, response::Json };
 use serde::{ Serialize, Deserialize };
@@ -8,7 +7,6 @@ use serde_json::Value;
 use lazy_static::lazy_static;
 
 use dashmap::DashMap;
-
 
 use crate::models::{ User, Profile };
 
@@ -32,22 +30,22 @@ macro_rules! insert_response {
 
 #[macro_export]
 macro_rules! handle_boolean_operation_truth {
-    ($operation:expr, $success:expr, $error:expr) => {
+	($operation:expr, $success:expr, $error:expr) => {
         match $operation.await {
             Ok(true) => $success,
             Ok(false) | Err(_) => return error_casting($error),
         }
-    };
+	};
 }
 
 #[macro_export]
 macro_rules! handle_boolean_operation_fake {
-    ($operation:expr, $success:expr, $error:expr) => {
+	($operation:expr, $success:expr, $error:expr) => {
         match $operation.await {
             Ok(false) => $success,
             Ok(true) | Err(_) => return error_casting($error),
         }
-    };
+	};
 }
 
 #[macro_export]
@@ -59,7 +57,6 @@ macro_rules! simple_error {
         }
 	};
 }
-
 
 #[macro_export]
 macro_rules! handle_error {
@@ -83,17 +80,17 @@ macro_rules! handle_post_error {
 
 #[macro_export]
 macro_rules! kbve_get_conn {
-    ($pool:expr) => {
+	($pool:expr) => {
         match $pool.get() {
             Ok(conn) => conn,
             Err(_) => return Err("Failed to get a connection from the pool!"),
         }
-    };
+	};
 }
 
 #[macro_export]
 macro_rules! get_global_value {
-    ($key:expr, $err:expr) => {
+	($key:expr, $err:expr) => {
         match crate::wh::GLOBAL.get() {
             Some(global_map) => match global_map.get($key) {
                 Some(value) => Ok(value.value().clone()), // Assuming you want to clone the value
@@ -101,9 +98,8 @@ macro_rules! get_global_value {
             },
             None => Err("invalid_global_map"),
         }
-    };
+	};
 }
-
 
 //  ?   [MAPS]
 
@@ -165,13 +161,12 @@ pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	}
 }
 
-
 pub fn error_simple(key: &str) -> &'static str {
-    if let Some(&(_, message)) = RESPONSE_MESSAGES.get(key) {
-        message
-    } else {
-        "Unknown Error"
-    }
+	if let Some(&(_, message)) = RESPONSE_MESSAGES.get(key) {
+		message
+	} else {
+		"Unknown Error"
+	}
 }
 
 //  ?   [STRUCTS]
@@ -184,39 +179,40 @@ pub struct WizardResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct LoginUserSchema {
-    pub email: String,
-    pub password: String,
+	pub email: String,
+	pub password: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserSchema {
-    pub username: String,
-    pub email: String,
-    pub password: String,
+	pub username: String,
+	pub email: String,
+	pub password: String,
 	pub captcha: String,
 }
 
-//  TODO: TokenClaims and ApiSchemas - https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
-
+//  TODO: TokenSchema and ApiSchema - https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TokenClaims {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
-    pub aud: Option<String>, 
-    pub iss: Option<String>, 
-    pub jti: Option<String>,
-    pub nbf: Option<usize>, 
-    pub scope: Option<String>, 
+pub struct TokenSchema {
+	pub uuid: String,
+	pub email: String,
+	pub username: String,
+	pub iat: usize,
+	pub exp: usize,
+	pub aud: Option<String>,
+	pub iss: Option<String>,
+	pub jti: Option<String>,
+	pub nbf: Option<usize>,
+	pub scope: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ApiSessionSchema {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
-    pub key: String,
-    pub uid: String,
-    pub kbve: String,
+	pub sub: String,
+	pub iat: usize,
+	pub exp: usize,
+	pub key: String,
+	pub uid: String,
+	pub kbve: String,
 }

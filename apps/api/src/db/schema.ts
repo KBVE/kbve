@@ -132,6 +132,13 @@ export const settings = mysqlTable('settings', {
 });
 
 /**
+ *	TODO: Bank
+ * 	!		-> IGBC - [H]clickup#200
+ * 	!		-> IGBC - [H]github#135
+ * 
+ */
+
+/**
  *	TODO: Inventory.
  * 	! - Storage of Inventory -> Object Item.
  * 
@@ -140,6 +147,7 @@ export const settings = mysqlTable('settings', {
 // export const inventory = mysqlTable('inventory', {
 // 	id: serial('id').primaryKey().notNull(),
 // 	uuid: bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
+//	bag: 
 // })
 
 /**
