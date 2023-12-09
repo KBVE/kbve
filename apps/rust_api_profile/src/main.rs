@@ -1,16 +1,23 @@
 use std::sync::Arc;
 
-use axum::{ extract::{ Extension }, routing::{ get, post }, Router };
+use axum::{
+	extract::{ Extension },
+	routing::{ get, post },
+	Router,
+	middleware,
+};
 
 use tokio;
 
 use kbve::{
 	db::{ self },
+	mm::{ graceful },
 	harden::{ cors_service, fallback },
 	helper::{ health_check, speed_test, root_endpoint },
-	wh::{ APISessionStore, GLOBAL },
+	wh::{ APISessionStore, GLOBAL, TokenSchema },
 	playerdb::{
 		hazardous_global_init,
+		task_logout_user,
 		api_get_process_guest_email,
 		api_get_process_username,
 		api_post_process_register_user_handler,
@@ -19,16 +26,17 @@ use kbve::{
 		throwaway_api_get_process_github_uuid,
 		throwaway_api_get_process_appwrite_projectid_from_username,
 		api_post_process_login_user_handler,
+		panda_api_route_profile,
 	},
 };
 
 #[tokio::main]
 async fn main() {
+	println!("◈ [LAUNCH] 🚀");
+
 	let pool = db::establish_connection_pool();
 	let shared_pool = Arc::new(pool);
 	let api_session_store = Arc::new(APISessionStore::new());
-
-	//	!	Global	->	Map	-> [H]#clickup432
 
 	match hazardous_global_init(shared_pool.clone()).await {
 		Ok(map) => {
@@ -37,8 +45,6 @@ async fn main() {
 		}
 		Err(e) => println!("Global Map -> fail -> {}", e),
 	}
-
-	//	!	Route 	->	Map	->	[No Issue Ticket]
 
 	let corslight = cors_service();
 
@@ -54,7 +60,14 @@ async fn main() {
 			"/n8n/:username",
 			get(throwaway_api_get_process_n8n_webhook_from_username)
 		)
+		.route(
+			"/user/profile",
+			get(panda_api_route_profile).route_layer(
+				middleware::from_fn_with_state(shared_pool.clone(), graceful)
+			)
+		)
 		.route("/email/:email", get(api_get_process_guest_email))
+		.route("/auth/logout", get(task_logout_user))
 		.route("/auth/register", post(api_post_process_register_user_handler))
 		.route("/auth/login", post(api_post_process_login_user_handler))
 		.route("/discord/:uuid", get(throwaway_api_get_process_discord_uuid))

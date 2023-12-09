@@ -1,4 +1,4 @@
-use std::sync::{ Arc, OnceLock };
+use std::sync::{ Arc };
 use std::str::FromStr;
 
 use dashmap::DashMap;
@@ -13,7 +13,7 @@ use argon2::{
 use rand_core::OsRng;
 
 use axum::{
-	http::StatusCode,
+	http::{StatusCode},
 	extract::{ Extension, Path },
 	response::{ IntoResponse },
 	Json,
@@ -21,7 +21,7 @@ use axum::{
 
 use diesel::prelude::*;
 use diesel::insert_into;
-use serde_json::{ json, Value };
+use serde_json::{ json };
 use chrono::Utc;
 
 use crate::{
@@ -33,7 +33,6 @@ use crate::{
 	simple_error,
 	handle_boolean_operation_truth,
 	handle_boolean_operation_fake,
-	insanity,
 	create_jwt,
 	shield_sanitization,
 };
@@ -225,7 +224,31 @@ pub async fn hazardous_boolean_username_exist(
 	}
 }
 
-//	Task Fetch
+//	Task
+
+pub async fn task_logout_user() -> impl IntoResponse {
+
+	let cookie = build_cookie!("token", "", -1);
+	
+	let mut headers = axum::http::HeaderMap::new();
+	
+	headers.insert(
+		axum::http::header::SET_COOKIE,
+		cookie.to_string().parse().unwrap()
+	);
+
+	(
+		StatusCode::OK,
+		headers,
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "complete"}),
+			message: serde_json::json!({
+	 			"token" : "logout" 
+		}),
+		}),
+	)
+
+}
 
 pub async fn task_fetch_userid_by_username(
 	username: String,
@@ -302,6 +325,8 @@ pub async fn api_get_process_username(
 
 //	API Routes POST
 
+
+
 pub async fn api_post_process_login_user_handler(
 	Extension(pool): Extension<Arc<Pool>>,
 	Json(body): Json<LoginUserSchema>
@@ -371,22 +396,25 @@ pub async fn api_post_process_login_user_handler(
 		jwt_secret,
 		2
 	);
-	let cookie = build_cookie!(jwt_token.to_owned(), 2);
+	let cookie = build_cookie!("token", jwt_token.to_owned(), 2);
 
 	let mut headers = axum::http::HeaderMap::new();
 
-	headers.insert(axum::http::header::SET_COOKIE, cookie.to_string().parse().unwrap());
+	headers.insert(
+		axum::http::header::SET_COOKIE,
+		cookie.to_string().parse().unwrap()
+	);
 
 	(
- 	StatusCode::OK,
+		StatusCode::OK,
 		headers,
-	 	Json(WizardResponse {
-	 		data: serde_json::json!({"status": "complete"}),
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "complete"}),
 			message: serde_json::json!({
-	 			"fetch": jwt_token.to_string()
+	 			"token": jwt_token.to_string()
 		}),
- 	}),
-	 )
+		}),
+	)
 }
 
 pub async fn api_post_process_register_user_handler(
@@ -474,6 +502,17 @@ pub async fn api_post_process_register_user_handler(
 		"task_account_init_fail"
 	);
 }
+
+pub async fn panda_api_route_profile(
+	Extension(privatedata): Extension<jsonwebtoken::TokenData<TokenSchema>>,
+) -> impl IntoResponse {
+	println!("UUID: {}", &privatedata.claims.uuid);
+	(StatusCode::OK, Json(json!({"data": "vaild"})))
+}
+
+
+//	!	MiddleWare
+
 
 //	!	Macros
 
@@ -744,8 +783,8 @@ macro_rules! create_jwt {
 
 #[macro_export]
 macro_rules! build_cookie {
-	($token:expr, $duration:expr) => {
-		axum_extra::extract::cookie::Cookie::build("token", $token)
+	($name:expr, $token:expr, $duration:expr) => {
+		axum_extra::extract::cookie::Cookie::build($name, $token)
 			.path("/")
 			.max_age(time::Duration::hours($duration))
 			.same_site(axum_extra::extract::cookie::SameSite::Lax)
