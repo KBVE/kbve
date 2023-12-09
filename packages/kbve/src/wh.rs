@@ -2,7 +2,10 @@ use std::collections::HashMap;
 use std::sync::{ Arc, OnceLock };
 use std::str::FromStr;
 
-use axum::{ http::{ StatusCode, HeaderMap }, response::{ Json, IntoResponse } };
+use axum::{
+	http::{ StatusCode, HeaderMap },
+	response::{ Json, IntoResponse, Response },
+};
 use serde::{ Serialize, Deserialize };
 use serde_json::Value;
 use lazy_static::lazy_static;
@@ -161,6 +164,17 @@ pub type APISessionStore = DashMap<String, ApiSessionSchema>;
 
 //  !  Error Functions
 
+pub fn error_grand_casting(key: &str) -> impl IntoResponse {
+	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(&key) {
+		(status, Json(serde_json::json!({"error": message}))).into_response()
+	} else {
+		(
+			StatusCode::INTERNAL_SERVER_ERROR,
+			Json(serde_json::json!({"error": "Unknown"})),
+		).into_response()
+	}
+}
+
 pub fn error_shield_casting(
 	key: &str
 ) -> (StatusCode, HeaderMap, Json<WizardResponse>) {
@@ -226,6 +240,16 @@ pub fn error_simple(key: &str) -> &'static str {
 
 //  ?   [STRUCTS]
 
+impl IntoResponse for WizardResponse {
+	fn into_response(self) -> Response {
+		// You can customize the status code and response format as needed
+		let status_code = StatusCode::OK; // Example status code
+		let json_body = Json(self); // Convert the struct into a JSON body
+
+		(status_code, json_body).into_response()
+	}
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
 	pub data: serde_json::Value,
@@ -248,7 +272,7 @@ pub struct RegisterUserSchema {
 
 //  TODO: TokenSchema and ApiSchema - https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TokenSchema {
 	pub uuid: String,
 	pub email: String,

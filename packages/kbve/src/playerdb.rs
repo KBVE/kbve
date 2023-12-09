@@ -13,9 +13,10 @@ use argon2::{
 use rand_core::OsRng;
 
 use axum::{
-	http::StatusCode,
-	extract::{ Extension, Path },
-	response::{ IntoResponse },
+	http::{StatusCode,Request, header},
+	middleware::Next,
+	extract::{ Extension, Path, State },
+	response::{ IntoResponse, Response },
 	Json,
 };
 
@@ -225,7 +226,31 @@ pub async fn hazardous_boolean_username_exist(
 	}
 }
 
-//	Task Fetch
+//	Task
+
+pub async fn task_logout_user() -> impl IntoResponse {
+
+	let cookie = build_cookie!("token", "", -1);
+	
+	let mut headers = axum::http::HeaderMap::new();
+	
+	headers.insert(
+		axum::http::header::SET_COOKIE,
+		cookie.to_string().parse().unwrap()
+	);
+
+	(
+		StatusCode::OK,
+		headers,
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "complete"}),
+			message: serde_json::json!({
+	 			"token" : "logout" 
+		}),
+		}),
+	)
+
+}
 
 pub async fn task_fetch_userid_by_username(
 	username: String,
@@ -301,6 +326,8 @@ pub async fn api_get_process_username(
 }
 
 //	API Routes POST
+
+
 
 pub async fn api_post_process_login_user_handler(
 	Extension(pool): Extension<Arc<Pool>>,
@@ -477,6 +504,62 @@ pub async fn api_post_process_register_user_handler(
 		"task_account_init_fail"
 	);
 }
+
+pub async fn panda_api_route_profile(
+	Extension(privatedata): Extension<jsonwebtoken::TokenData<TokenSchema>>,
+) -> impl IntoResponse {
+	println!("UUID: {}", &privatedata.claims.uuid);
+	(StatusCode::OK, Json(json!({"data": "vaild"})))
+}
+
+
+//	!	MiddleWare
+
+pub async fn graceful<B>(
+    cookie_jar: axum_extra::extract::cookie::CookieJar,
+    State(data): State<Arc<Pool>>,
+    mut req: Request<B>,
+    next: Next<B>,
+    
+) -> impl IntoResponse {
+    
+    let token_result: Result<String, ()> = cookie_jar
+        .get("token")
+        .map(|cookie| cookie.value().to_string())
+        .or_else(|| {
+            req.headers()
+                .get(header::AUTHORIZATION)
+                .and_then(|auth_header| auth_header.to_str().ok())
+                .and_then(|auth_value| auth_value.strip_prefix("Bearer ").map(String::from))
+        })
+		.ok_or_else(|| ());
+
+	let jwt_secret = match get_global_value!("jwt_secret", "invalid_jwt")
+		{
+			Ok(secret) => secret,
+			Err(_) => return (StatusCode::UNAUTHORIZED, Json(json!({"error": "invalid_jwt"}))).into_response()
+		};
+
+	let token: &str = match token_result {
+		Ok(ref token_str) => token_str.as_str(),
+		Err(_) => return (StatusCode::UNAUTHORIZED, Json(json!({"error": "invalid_jwt"}))).into_response()
+	};
+
+	let privatedata = match jsonwebtoken::decode::<TokenSchema>(
+		&token,
+		&jsonwebtoken::DecodingKey::from_secret(jwt_secret.as_bytes()),
+		&jsonwebtoken::Validation::default(),
+	)
+	{
+		Ok(privatedata) => {privatedata},
+		Err(_) => return (StatusCode::UNAUTHORIZED, Json(json!({"error": "invalid_jwt"}))).into_response()
+		
+	};
+
+	req.extensions_mut().insert(privatedata);
+	next.run(req).await.into_response()
+}
+
 
 //	!	Macros
 
