@@ -1,4 +1,6 @@
 use std::sync::{ Arc, OnceLock };
+use std::str::FromStr;
+
 use dashmap::DashMap;
 
 use argon2::{
@@ -17,7 +19,6 @@ use axum::{
 	Json,
 };
 
-
 use diesel::prelude::*;
 use diesel::insert_into;
 use serde_json::{ json, Value };
@@ -26,6 +27,7 @@ use chrono::Utc;
 use crate::{
 	build_cookie,
 	get_global_value,
+	handle_shield_error,
 	handle_error,
 	kbve_get_conn,
 	simple_error,
@@ -33,6 +35,7 @@ use crate::{
 	handle_boolean_operation_fake,
 	insanity,
 	create_jwt,
+	shield_sanitization,
 };
 use crate::harden::{
 	sanitize_email,
@@ -43,6 +46,7 @@ use crate::harden::{
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
 use crate::wh::{
+	error_shield_casting,
 	error_casting,
 	error_simple,
 	WizardResponse,
@@ -302,7 +306,8 @@ pub async fn api_post_process_login_user_handler(
 	Extension(pool): Extension<Arc<Pool>>,
 	Json(body): Json<LoginUserSchema>
 ) -> impl IntoResponse {
-	let clean_email = handle_error!(
+	let clean_email = shield_sanitization!(
+		"grafana",
 		sanitize_email(&body.email),
 		"invalid_email"
 	);
@@ -310,21 +315,11 @@ pub async fn api_post_process_login_user_handler(
 	match validate_password(&body.password) {
 		Ok(()) => {}
 		Err(_) => {
-			return error_casting("invalid_password");
+			return error_shield_casting("invalid_password");
 		}
 	}
 
-	//	?	- Remove	- @h0lybyte
-
-	handle_boolean_operation_truth!(
-		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
-		{},
-		"invalid_email"
-	);
-
-	//	?	-	[END]
-
-	let db_user_hash_password = handle_error!(
+	let db_user_hash_password = handle_shield_error!(
 		hazardous_task_fetch_auth_hash_by_email(
 			clean_email.clone(),
 			pool.clone()
@@ -343,43 +338,55 @@ pub async fn api_post_process_login_user_handler(
 	};
 
 	if !operational_vaild_password {
-		return error_casting("invalid_password");
+		return error_shield_casting("invalid_password");
 	}
 
-	let jwt_secret = handle_error!(
+	let jwt_secret = handle_shield_error!(
 		get_global_value!("jwt_secret", "invalid_jwt"),
 		"invalid_jwt"
 	);
 
 	//	!	->	Remove these two functions below and add a JOIN singleton query.
 
-	let uuid_from_email = handle_error!(
-		hazardous_task_fetch_uuid_by_email(clean_email.clone(), pool.clone()).await,
+	let uuid_from_email = handle_shield_error!(
+		hazardous_task_fetch_uuid_by_email(
+			clean_email.clone(),
+			pool.clone()
+		).await,
 		"uuid_convert_failed"
 	);
 
-	let username_from_email = handle_error!(
-		hazardous_task_fetch_username_by_uuid(uuid_from_email.clone(), pool.clone()).await,
+	let username_from_email = handle_shield_error!(
+		hazardous_task_fetch_username_by_uuid(
+			uuid_from_email.clone(),
+			pool.clone()
+		).await,
 		"username_not_found"
 	);
 
-	//	!		->println!("Username -> {}", username_from_email.to_string());
-
-	let jwt_token = create_jwt!(uuid_from_email, clean_email, username_from_email, jwt_secret, 2);
+	let jwt_token = create_jwt!(
+		uuid_from_email,
+		clean_email,
+		username_from_email,
+		jwt_secret,
+		2
+	);
 	let cookie = build_cookie!(jwt_token.to_owned(), 2);
 
 	let mut headers = axum::http::HeaderMap::new();
 
+	headers.insert(axum::http::header::SET_COOKIE, cookie.to_string().parse().unwrap());
+
 	(
-		StatusCode::OK,
-		[headers.insert(axum::http::header::SET_COOKIE, cookie.to_string().parse().unwrap())],
-		Json(WizardResponse {
-			data: serde_json::json!({"status": "complete"}),
+ 	StatusCode::OK,
+		headers,
+	 	Json(WizardResponse {
+	 		data: serde_json::json!({"status": "complete"}),
 			message: serde_json::json!({
-				"fetch": jwt_token.to_string()
+	 			"fetch": jwt_token.to_string()
 		}),
-		}),
-	)
+ 	}),
+	 )
 }
 
 pub async fn api_post_process_register_user_handler(
@@ -710,7 +717,8 @@ hazardous_task_fetch!(
 
 #[macro_export]
 macro_rules! create_jwt {
-    ($uuid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {{
+	($uuid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {
+		{
 
 		use jsonwebtoken::{encode, EncodingKey, Header};
 
@@ -730,7 +738,8 @@ macro_rules! create_jwt {
         ).unwrap(); 
 
 		jwt_token
-    }};
+		}
+	};
 }
 
 #[macro_export]
