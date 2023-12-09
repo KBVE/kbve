@@ -1,4 +1,4 @@
-use std::sync::{ Arc, OnceLock };
+use std::sync::{ Arc };
 use std::str::FromStr;
 
 use dashmap::DashMap;
@@ -13,16 +13,15 @@ use argon2::{
 use rand_core::OsRng;
 
 use axum::{
-	http::{StatusCode,Request, header},
-	middleware::Next,
-	extract::{ Extension, Path, State },
-	response::{ IntoResponse, Response },
+	http::{StatusCode},
+	extract::{ Extension, Path },
+	response::{ IntoResponse },
 	Json,
 };
 
 use diesel::prelude::*;
 use diesel::insert_into;
-use serde_json::{ json, Value };
+use serde_json::{ json };
 use chrono::Utc;
 
 use crate::{
@@ -34,7 +33,6 @@ use crate::{
 	simple_error,
 	handle_boolean_operation_truth,
 	handle_boolean_operation_fake,
-	insanity,
 	create_jwt,
 	shield_sanitization,
 };
@@ -514,51 +512,6 @@ pub async fn panda_api_route_profile(
 
 
 //	!	MiddleWare
-
-pub async fn graceful<B>(
-    cookie_jar: axum_extra::extract::cookie::CookieJar,
-    State(data): State<Arc<Pool>>,
-    mut req: Request<B>,
-    next: Next<B>,
-    
-) -> impl IntoResponse {
-    
-    let token_result: Result<String, ()> = cookie_jar
-        .get("token")
-        .map(|cookie| cookie.value().to_string())
-        .or_else(|| {
-            req.headers()
-                .get(header::AUTHORIZATION)
-                .and_then(|auth_header| auth_header.to_str().ok())
-                .and_then(|auth_value| auth_value.strip_prefix("Bearer ").map(String::from))
-        })
-		.ok_or_else(|| ());
-
-	let jwt_secret = match get_global_value!("jwt_secret", "invalid_jwt")
-		{
-			Ok(secret) => secret,
-			Err(_) => return (StatusCode::UNAUTHORIZED, Json(json!({"error": "invalid_jwt"}))).into_response()
-		};
-
-	let token: &str = match token_result {
-		Ok(ref token_str) => token_str.as_str(),
-		Err(_) => return (StatusCode::UNAUTHORIZED, Json(json!({"error": "invalid_jwt"}))).into_response()
-	};
-
-	let privatedata = match jsonwebtoken::decode::<TokenSchema>(
-		&token,
-		&jsonwebtoken::DecodingKey::from_secret(jwt_secret.as_bytes()),
-		&jsonwebtoken::Validation::default(),
-	)
-	{
-		Ok(privatedata) => {privatedata},
-		Err(_) => return (StatusCode::UNAUTHORIZED, Json(json!({"error": "invalid_jwt"}))).into_response()
-		
-	};
-
-	req.extensions_mut().insert(privatedata);
-	next.run(req).await.into_response()
-}
 
 
 //	!	Macros
