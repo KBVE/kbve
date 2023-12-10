@@ -259,19 +259,19 @@ jobs:
                     file: ./apps/rust_api_profile/Dockerfile
 
     # Deploy Rust Profile Image
-    deploy-rust-profile-image:
-        needs: ["rust-profile-image", "alter"]
-        name: Deploy Rust Profile Docker Image to Portainer
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Checkout Repository
-                uses: actions/checkout@v4
+    # deploy-rust-profile-image:
+    #     needs: ["rust-profile-image", "alter"]
+    #     name: Deploy Rust Profile Docker Image to Portainer
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         -   name: Checkout Repository
+    #             uses: actions/checkout@v4
 
-            -   name: Deploy to Portainer
-                uses: datntdev0/action-deploy-to-portainer@v0.1.0
-                with:
-                    portainerHost: ${{ secrets.PORTAINER_HOST }}
-                    portainerApiKey: ${{ secrets.PORTAINER_API_KEY }}
-                    portainerEnvId: ${{ secrets.PORTAINER_ENV_ID }}
-                    portainerStackName: 'my-rust-profile'
-                    portainerFilePath: './apps/rust_api_profile/docker-compose.yml'
+    #         -   name: Deploy to Portainer
+    #             uses: datntdev0/action-deploy-to-portainer@v0.1.0
+    #             with:
+    #                 portainerHost: ${{ secrets.PORTAINER_HOST }}
+    #                 portainerApiKey: ${{ secrets.PORTAINER_API_KEY }}
+    #                 portainerEnvId: ${{ secrets.PORTAINER_ENV_ID }}
+    #                 portainerStackName: 'my-rust-profile'
+    #                 portainerFilePath: './apps/rust_api_profile/docker-compose.yml'

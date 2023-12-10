@@ -6,8 +6,8 @@ inputs:
   portainer-api-key:
     description: 'Your Portainer API Key'
     required: true
-  portainer-endpoint:
-    description: 'Your Portainer Endpoint'
+  portainer-url:
+    description: 'Your Portainer URL'
     default: '2'
   portainer-swarm-id:
     description: 'Your Portainer Swarm ID'
@@ -35,12 +35,14 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
+        PORTAINER_URL: ${{ inputs.portainer-url}}
+        PORTAINER_API_KEY: ${{ inputs.portainer-api-key}}
       run: |
 
       curl -s -X POST "$PORTAINER_URL/api/endpoints/$ENDPOINT_ID/docker/stacks" \
-        -H "Authorization: Bearer $PERSONAL_ACCESS_TOKEN" \
+        -H "Authorization: Bearer $PORTAINER_API_KEY" \
         -H "Content-Type: multipart/form-data" \
         -F "file=@$DOCKER_COMPOSE_FILE" \
         -F "Name=name-of-your-stack" \
         -F "SwarmID=target-swarm-id" \
-        -F "Env=ENV_VAR1=value1,ENV_VAR2=value2"0
+        -F "Env=ENV_VAR1=value1,ENV_VAR2=value2"
