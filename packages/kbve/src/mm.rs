@@ -1,4 +1,5 @@
 //  *   [MiddleMan]
+//  TODO:   Panda Update Migration
 //  ?   [Axum][Middleware]
 use axum::{
 	http::{StatusCode,Request, header},
@@ -58,7 +59,6 @@ pub async fn graceful<B>(
 	{
 		Ok(privatedata) => {privatedata},
 		Err(_) => return (StatusCode::UNAUTHORIZED, Json(json!({"error": "invalid_jwt"}))).into_response()
-		
 	};
 
 	req.extensions_mut().insert(privatedata);

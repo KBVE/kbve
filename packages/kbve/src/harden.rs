@@ -92,6 +92,16 @@ pub fn sanitize_username(username: &str) -> Result<String, &str> {
     Ok(sanitized)
 }
 
+pub fn sanitize_uuid(uuid_str: &str) -> Result<u64, &'static str> {
+    match uuid_str.parse::<u64>() {
+        Ok(uuid) => {
+            // You can add additional checks here if needed
+            Ok(uuid)
+        },
+        Err(_) => Err("Invalid UUID format"),
+    }
+}
+
 
 pub fn sanitize_input(input: &str) -> String {
 	let mut sanitized: String = input
