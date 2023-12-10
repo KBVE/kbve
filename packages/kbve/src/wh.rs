@@ -1,15 +1,19 @@
-
-use axum::{ http::StatusCode, response::Json };
-use serde::{ Serialize, Deserialize };
-use serde_json::Value;
-use lazy_static::lazy_static;
 use std::collections::HashMap;
-use dashmap::DashMap;
+use std::sync::{ Arc, OnceLock };
+use std::str::FromStr;
 
+use axum::{
+	http::{ StatusCode, HeaderMap },
+	response::{ Json, IntoResponse, Response },
+};
+use serde::{ Serialize, Deserialize };
+use lazy_static::lazy_static;
+
+use dashmap::DashMap;
 
 use crate::models::{ User, Profile };
 
-//  Macros
+//  ?   [MACROS]
 
 #[macro_export]
 macro_rules! insert_response {
@@ -27,6 +31,35 @@ macro_rules! insert_response {
 	};
 }
 
+#[macro_export]
+macro_rules! handle_boolean_operation_truth {
+	($operation:expr, $success:expr, $error:expr) => {
+        match $operation.await {
+            Ok(true) => $success,
+            Ok(false) | Err(_) => return error_casting($error),
+        }
+	};
+}
+
+#[macro_export]
+macro_rules! handle_boolean_operation_fake {
+	($operation:expr, $success:expr, $error:expr) => {
+        match $operation.await {
+            Ok(false) => $success,
+            Ok(true) | Err(_) => return error_casting($error),
+        }
+	};
+}
+
+#[macro_export]
+macro_rules! shield_sanitization {
+	($shield:expr, $operation:expr, $error_key:expr) => {
+        match $operation {
+            Ok(value) => value,
+            Err(_) => return error_shield_casting($error_key),
+        }
+	};
+}
 
 #[macro_export]
 macro_rules! simple_error {
@@ -38,6 +71,15 @@ macro_rules! simple_error {
 	};
 }
 
+#[macro_export]
+macro_rules! handle_shield_error {
+	($expr:expr, $error_key:expr) => {
+        match $expr {
+            Ok(value) => value,
+            Err(_) => return error_shield_casting($error_key),
+        }
+	};
+}
 
 #[macro_export]
 macro_rules! handle_error {
@@ -61,20 +103,40 @@ macro_rules! handle_post_error {
 
 #[macro_export]
 macro_rules! kbve_get_conn {
-    ($pool:expr) => {
+	($pool:expr) => {
         match $pool.get() {
             Ok(conn) => conn,
             Err(_) => return Err("Failed to get a connection from the pool!"),
         }
-    };
+	};
 }
 
-//  Maps
+#[macro_export]
+macro_rules! get_global_value {
+	($key:expr, $err:expr) => {
+        match crate::wh::GLOBAL.get() {
+            Some(global_map) => match global_map.get($key) {
+                Some(value) => Ok(value.value().clone()), // Assuming you want to clone the value
+                None => Err($err),
+            },
+            None => Err("invalid_global_map"),
+        }
+	};
+}
+
+//  ?   [MAPS]
+
+//  !   Remove lazy_static! and migrate into a OnceLock/OnceCell.
 
 lazy_static! {
     pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
         let mut m = HashMap::new();
+        m.insert("invalid_global_map", (StatusCode::INTERNAL_SERVER_ERROR, "Global Map was not set!"));
+        m.insert("invalid_jwt", (StatusCode::INTERNAL_SERVER_ERROR, "JWT Secret was not set!"));
+        m.insert("debug_login_works", (StatusCode::OK, "Login was successful!"));
+        m.insert("fetch_route_fail", (StatusCode::BAD_REQUEST, "There was an error fetching the data!"));
         m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
+        m.insert("uuid_convert_failed",  (StatusCode::BAD_REQUEST, "There was an error converting the UUID!"));
         m.insert("task_account_init_fail",  (StatusCode::BAD_REQUEST, "There was an error creating the account"));
         m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
         m.insert("username_taken", (StatusCode::BAD_REQUEST, "Username was taken!"));
@@ -91,13 +153,61 @@ lazy_static! {
         m.insert("json_failure", (StatusCode::INTERNAL_SERVER_ERROR, "Json Failure! :C"));
         m
     };
+
+    // pub static ref GLOBAL: DashMap<String, String> = DashMap::new();
 }
 
-//  Two different tokens , one that will be the user session, which will be stateless and api sessions would be in a dashmap.
-
+pub type GlobalStore = DashMap<String, String>;
+pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
 pub type APISessionStore = DashMap<String, ApiSessionSchema>;
 
-//  Error Functions
+//  !  Error Functions
+
+pub fn error_grand_casting(key: &str) -> impl IntoResponse {
+	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(&key) {
+		(status, Json(serde_json::json!({"error": message}))).into_response()
+	} else {
+		(
+			StatusCode::INTERNAL_SERVER_ERROR,
+			Json(serde_json::json!({"error": "Unknown"})),
+		).into_response()
+	}
+}
+
+pub fn error_shield_casting(
+	key: &str
+) -> (StatusCode, HeaderMap, Json<WizardResponse>) {
+	let mut headers = axum::http::HeaderMap::new();
+
+	let header_name = axum::http::header::HeaderName
+		::from_str("x-kbve")
+		.unwrap();
+	let header_value = axum::http::HeaderValue
+		::from_str(&format!("shield_{}", &key))
+		.unwrap();
+
+	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(&key) {
+		headers.insert(header_name, header_value);
+		(
+			status,
+			headers,
+			Json(WizardResponse {
+				data: serde_json::json!({"status": "error" , "http": status.to_string()}),
+				message: serde_json::json!({ "error": message }),
+			}),
+		)
+	} else {
+		headers.insert(header_name, header_value);
+		(
+			StatusCode::INTERNAL_SERVER_ERROR,
+			headers,
+			Json(WizardResponse {
+				data: serde_json::json!({"status": "error"}),
+				message: serde_json::json!({"error": "Unknown Error"}),
+			}),
+		)
+	}
+}
 
 pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	if let Some(&(status, message)) = RESPONSE_MESSAGES.get(key) {
@@ -119,18 +229,25 @@ pub fn error_casting(key: &str) -> (StatusCode, Json<WizardResponse>) {
 	}
 }
 
-
 pub fn error_simple(key: &str) -> &'static str {
-    if let Some(&(_, message)) = RESPONSE_MESSAGES.get(key) {
-        message
-    } else {
-        "Unknown Error"
-    }
+	if let Some(&(_, message)) = RESPONSE_MESSAGES.get(key) {
+		message
+	} else {
+		"Unknown Error"
+	}
 }
 
-//  Structs
+//  ?   [STRUCTS]
 
-//  Responses
+impl IntoResponse for WizardResponse {
+	fn into_response(self) -> Response {
+		// You can customize the status code and response format as needed
+		let status_code = StatusCode::OK; // Example status code
+		let json_body = Json(self); // Convert the struct into a JSON body
+
+		(status_code, json_body).into_response()
+	}
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WizardResponse {
@@ -138,44 +255,37 @@ pub struct WizardResponse {
 	pub message: serde_json::Value,
 }
 
-//  Abstract Schemas
-
-
+#[derive(Debug, Deserialize)]
+pub struct LoginUserSchema {
+	pub email: String,
+	pub password: String,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterUserSchema {
-    pub username: String,
-    pub email: String,
-    pub password: String,
+	pub username: String,
+	pub email: String,
+	pub password: String,
 	pub captcha: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct LoginUserSchema {
-    pub username_or_email: String,
-    pub password: String,
-    pub dopt: String,
-}
+//  TODO: TokenSchema and ApiSchema - https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
 
-// https://github.com/KBVE/kbve/issues/212#issuecomment-1830583562
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TokenClaims {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
-    pub aud: Option<String>, 
-    pub iss: Option<String>, 
-    pub jti: Option<String>,
-    pub nbf: Option<usize>, 
-    pub scope: Option<String>, 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TokenSchema {
+	pub uuid: String,
+	pub email: String,
+	pub username: String,
+	pub iat: usize,
+	pub exp: usize,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ApiSessionSchema {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
-    pub key: String,
-    pub uid: String,
-    pub kbve: String,
+	pub sub: String,
+	pub iat: usize,
+	pub exp: usize,
+	pub key: String,
+	pub uid: String,
+	pub kbve: String,
 }

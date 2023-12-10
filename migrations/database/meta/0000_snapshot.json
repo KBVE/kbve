@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "aa042980-0119-43b7-bf79-07c3f2fbd8b6",
+  "id": "beb2ad07-ce34-4666-b0b1-dca8bc3376ec",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "apikey": {
@@ -16,34 +16,49 @@
         },
         "uuid": {
           "name": "uuid",
-          "type": "int",
+          "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "permissions": {
           "name": "permissions",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "keyhash": {
           "name": "keyhash",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "label": {
           "name": "label",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "uuid_idx": {
+          "name": "uuid_idx",
+          "columns": [
+            "uuid"
+          ],
+          "isUnique": true
+        },
+        "keyhash_idx": {
+          "name": "keyhash_idx",
+          "columns": [
+            "keyhash"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "apikey_id": {
@@ -67,37 +82,37 @@
         },
         "uuid": {
           "name": "uuid",
-          "type": "int",
+          "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "appwrite_endpoint": {
           "name": "appwrite_endpoint",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "appwrite_projectid": {
           "name": "appwrite_projectid",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "apppwrite_api_key": {
-          "name": "apppwrite_api_key",
+        "appwrite_api_key": {
+          "name": "appwrite_api_key",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "version": {
           "name": "version",
           "type": "varchar(64)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "created_at": {
@@ -109,7 +124,22 @@
           "default": "(now())"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "uuid_idx": {
+          "name": "uuid_idx",
+          "columns": [
+            "uuid"
+          ],
+          "isUnique": true
+        },
+        "appwrite_api_key_idx": {
+          "name": "appwrite_api_key_idx",
+          "columns": [
+            "appwrite_api_key"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "appwrite_id": {
@@ -133,16 +163,16 @@
         },
         "uuid": {
           "name": "uuid",
-          "type": "int",
+          "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "email": {
           "name": "email",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "hash": {
@@ -163,35 +193,35 @@
           "name": "password_reset_token",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "password_reset_expiry": {
           "name": "password_reset_expiry",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "verification_token": {
           "name": "verification_token",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "verification_expiry": {
           "name": "verification_expiry",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "status": {
           "name": "status",
           "type": "int",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": 0
         },
@@ -199,14 +229,14 @@
           "name": "last_login_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "failed_login_attempts": {
           "name": "failed_login_attempts",
           "type": "int",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": 0
         },
@@ -214,25 +244,40 @@
           "name": "lockout_until",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "two_factor_secret": {
           "name": "two_factor_secret",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "recovery_codes": {
           "name": "recovery_codes",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "uuid_idx": {
+          "name": "uuid_idx",
+          "columns": [
+            "uuid"
+          ],
+          "isUnique": true
+        },
+        "email_idx": {
+          "name": "email_idx",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "auth_id": {
@@ -251,6 +296,51 @@
         }
       }
     },
+    "globals": {
+      "name": "globals",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "key": {
+          "name": "key",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "key_idx": {
+          "name": "key_idx",
+          "columns": [
+            "key"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "globals_id": {
+          "name": "globals_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
     "n8n": {
       "name": "n8n",
       "columns": {
@@ -263,41 +353,49 @@
         },
         "uuid": {
           "name": "uuid",
-          "type": "int",
+          "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "webhook": {
           "name": "webhook",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "permissions": {
           "name": "permissions",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "keyhash": {
           "name": "keyhash",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "label": {
           "name": "label",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "uuid_idx": {
+          "name": "uuid_idx",
+          "columns": [
+            "uuid"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "n8n_id": {
@@ -323,7 +421,7 @@
           "name": "name",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "'Anon'"
         },
@@ -331,7 +429,7 @@
           "name": "bio",
           "type": "varchar(64)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "''"
         },
@@ -339,7 +437,7 @@
           "name": "unsplash",
           "type": "varchar(64)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "''"
         },
@@ -347,7 +445,7 @@
           "name": "github",
           "type": "varchar(64)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "''"
         },
@@ -355,7 +453,7 @@
           "name": "instagram",
           "type": "varchar(64)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "''"
         },
@@ -363,23 +461,90 @@
           "name": "discord",
           "type": "varchar(64)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "''"
         },
         "uuid": {
           "name": "uuid",
-          "type": "int",
+          "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "uuid_idx": {
+          "name": "uuid_idx",
+          "columns": [
+            "uuid"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "profile_id": {
           "name": "profile_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "settings": {
+      "name": "settings",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "uuid": {
+          "name": "uuid",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "key_idx": {
+          "name": "key_idx",
+          "columns": [
+            "key"
+          ],
+          "isUnique": true
+        },
+        "uuid_idx": {
+          "name": "uuid_idx",
+          "columns": [
+            "uuid"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "settings_id": {
+          "name": "settings_id",
           "columns": [
             "id"
           ]
@@ -401,14 +566,14 @@
           "name": "username",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "role": {
           "name": "role",
           "type": "int",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": 0
         },
@@ -416,7 +581,7 @@
           "name": "reputation",
           "type": "int",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": 0
         },
@@ -424,7 +589,7 @@
           "name": "exp",
           "type": "int",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": 0
         },
@@ -437,7 +602,15 @@
           "default": "(now())"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "username_idx": {
+          "name": "username_idx",
+          "columns": [
+            "username"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "users_id": {

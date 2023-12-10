@@ -1,6 +1,8 @@
-use std::sync::Arc;
+use std::sync::{ Arc };
+use std::str::FromStr;
 
-// Password Helper
+use dashmap::DashMap;
+
 use argon2::{
 	password_hash::SaltString,
 	Argon2,
@@ -11,27 +13,94 @@ use argon2::{
 use rand_core::OsRng;
 
 use axum::{
-	http::StatusCode,
+	http::{StatusCode},
 	extract::{ Extension, Path },
 	response::{ IntoResponse },
 	Json,
 };
+
 use diesel::prelude::*;
 use diesel::insert_into;
-use serde_json::{ json, Value };
+use serde_json::{ json };
 use chrono::Utc;
 
-use crate::{ handle_error, kbve_get_conn, simple_error };
-use crate::harden::{ sanitize_email, sanitize_username, validate_password };
+use crate::{
+	build_cookie,
+	get_global_value,
+	handle_shield_error,
+	handle_error,
+	kbve_get_conn,
+	simple_error,
+	handle_boolean_operation_truth,
+	handle_boolean_operation_fake,
+	create_jwt,
+	shield_sanitization,
+};
+use crate::harden::{
+	sanitize_email,
+	sanitize_username,
+	validate_password,
+	uuid_to_biguint,
+};
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
 use crate::wh::{
+	error_shield_casting,
 	error_casting,
 	error_simple,
 	WizardResponse,
 	RegisterUserSchema,
+	LoginUserSchema,
+	TokenSchema,
 };
-use crate::schema::{ auth, profile, users, apikey};
+use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
+
+pub async fn hazardous_global_init(
+	pool: Arc<Pool>
+) -> Result<DashMap<String, String>, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
+
+	let map = DashMap::new();
+
+	match
+		globals::table
+			.select((globals::key, globals::value))
+			.load::<(String, String)>(&mut conn)
+	{
+		Ok(results) => {
+			if results.is_empty() {
+				Err("empty_case")
+			} else {
+				for (key, value) in results {
+					println!("key {} inserted", key.to_string());
+					map.insert(key, value);
+				}
+				Ok(map)
+			}
+		}
+		Err(diesel::NotFound) => Err("not_found_error"),
+		Err(_) => { Err("database_error") }
+	}
+}
+
+//	Expanded Hazardous Task Fetch
+
+pub async fn hazardous_task_fetch_profile_discord_by_uuid(
+	clean_uuid: u64,
+	pool: Arc<Pool>
+) -> Result<String, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
+
+	match
+		profile::table
+			.filter(profile::uuid.eq(clean_uuid))
+			.select(profile::discord)
+			.first::<String>(&mut conn)
+	{
+		Ok(data) => Ok(data.to_string()),
+		Err(_) => Err("Faild to fetch data"),
+	}
+}
 
 //	Hazardous Functions
 
@@ -56,7 +125,6 @@ pub async fn hazardous_create_low_level_api_key_from_uuid(
 		Err(_) => Err("Failed to insert API key into database"),
 	}
 }
-
 
 pub async fn hazardous_create_profile_from_uuid(
 	clean_name: String,
@@ -138,44 +206,6 @@ pub async fn hazardous_create_user(
 	}
 }
 
-
-pub async fn hazardous_boolean_api_key_exist(
-	clean_api_key: String,
-	pool: Arc<Pool>
-) -> Result<bool, &'static str> {
-	let mut conn = kbve_get_conn!(pool);
-
-	match
-		apikey::table
-			.filter(apikey::keyhash.eq(clean_api_key))
-			.select(apikey::uuid)
-			.first::<u64>(&mut conn)
-
-	{
-		Ok(_) => Ok(true),
-		Err(diesel::NotFound) => Ok(false),
-		Err(_) => Err("Database error"),
-	}
-}
-
-pub async fn hazardous_boolean_email_exist(
-	clean_email: String,
-	pool: Arc<Pool>
-) -> Result<bool, &'static str> {
-	let mut conn = kbve_get_conn!(pool);
-
-	match
-		auth::table
-			.filter(auth::email.eq(clean_email))
-			.select(auth::uuid)
-			.first::<u64>(&mut conn)
-	{
-		Ok(_) => Ok(true),
-		Err(diesel::NotFound) => Ok(false),
-		Err(_) => Err("Database error"),
-	}
-}
-
 pub async fn hazardous_boolean_username_exist(
 	clean_username: String,
 	pool: Arc<Pool>
@@ -194,7 +224,31 @@ pub async fn hazardous_boolean_username_exist(
 	}
 }
 
-//	Task Fetch
+//	Task
+
+pub async fn task_logout_user() -> impl IntoResponse {
+
+	let cookie = build_cookie!("token", "", -1);
+	
+	let mut headers = axum::http::HeaderMap::new();
+	
+	headers.insert(
+		axum::http::header::SET_COOKIE,
+		cookie.to_string().parse().unwrap()
+	);
+
+	(
+		StatusCode::OK,
+		headers,
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "complete"}),
+			message: serde_json::json!({
+	 			"token" : "logout" 
+		}),
+		}),
+	)
+
+}
 
 pub async fn task_fetch_userid_by_username(
 	username: String,
@@ -225,9 +279,6 @@ pub async fn api_get_process_guest_email(
 	Extension(pool): Extension<Arc<Pool>>
 ) -> impl IntoResponse {
 	let clean_email = handle_error!(sanitize_email(&email), "invalid_email");
-
-	// Remove Below
-	// let conn = handle_error!(pool.get(), "database_error");
 
 	let result = hazardous_boolean_email_exist(clean_email, pool).await;
 
@@ -274,6 +325,98 @@ pub async fn api_get_process_username(
 
 //	API Routes POST
 
+
+
+pub async fn api_post_process_login_user_handler(
+	Extension(pool): Extension<Arc<Pool>>,
+	Json(body): Json<LoginUserSchema>
+) -> impl IntoResponse {
+	let clean_email = shield_sanitization!(
+		"grafana",
+		sanitize_email(&body.email),
+		"invalid_email"
+	);
+
+	match validate_password(&body.password) {
+		Ok(()) => {}
+		Err(_) => {
+			return error_shield_casting("invalid_password");
+		}
+	}
+
+	let db_user_hash_password = handle_shield_error!(
+		hazardous_task_fetch_auth_hash_by_email(
+			clean_email.clone(),
+			pool.clone()
+		).await,
+		"invaild_email"
+	);
+
+	let operational_vaild_password = match
+		PasswordHash::new(&db_user_hash_password)
+	{
+		Ok(process_hash) =>
+			Argon2::default()
+				.verify_password(&body.password.as_bytes(), &process_hash)
+				.map_or(false, |_| true),
+		Err(_) => false,
+	};
+
+	if !operational_vaild_password {
+		return error_shield_casting("invalid_password");
+	}
+
+	let jwt_secret = handle_shield_error!(
+		get_global_value!("jwt_secret", "invalid_jwt"),
+		"invalid_jwt"
+	);
+
+	//	!	->	Remove these two functions below and add a JOIN singleton query.
+
+	let uuid_from_email = handle_shield_error!(
+		hazardous_task_fetch_uuid_by_email(
+			clean_email.clone(),
+			pool.clone()
+		).await,
+		"uuid_convert_failed"
+	);
+
+	let username_from_email = handle_shield_error!(
+		hazardous_task_fetch_username_by_uuid(
+			uuid_from_email.clone(),
+			pool.clone()
+		).await,
+		"username_not_found"
+	);
+
+	let jwt_token = create_jwt!(
+		uuid_from_email,
+		clean_email,
+		username_from_email,
+		jwt_secret,
+		2
+	);
+	let cookie = build_cookie!("token", jwt_token.to_owned(), 2);
+
+	let mut headers = axum::http::HeaderMap::new();
+
+	headers.insert(
+		axum::http::header::SET_COOKIE,
+		cookie.to_string().parse().unwrap()
+	);
+
+	(
+		StatusCode::OK,
+		headers,
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "complete"}),
+			message: serde_json::json!({
+	 			"token": jwt_token.to_string()
+		}),
+		}),
+	)
+}
+
 pub async fn api_post_process_register_user_handler(
 	Extension(pool): Extension<Arc<Pool>>,
 	Json(body): Json<RegisterUserSchema>
@@ -285,37 +428,22 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_email"
 	);
 
-	match
-		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()).await
-	{
-		Ok(true) => {
-			return error_casting("email_already_in_use");
-		}
-		Ok(false) => {}
-		Err(_) => {
-			return error_casting("database_error");
-		}
-	}
+	handle_boolean_operation_fake!(
+		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
+		{},
+		"email_already_in_use"
+	);
 
 	let clean_username = handle_error!(
 		sanitize_username(&body.username),
 		"invalid_username"
 	);
 
-	match
-		hazardous_boolean_username_exist(
-			clean_username.clone(),
-			pool.clone()
-		).await
-	{
-		Ok(true) => {
-			return error_casting("username_taken");
-		}
-		Ok(false) => {}
-		Err(_) => {
-			return error_casting("database_error");
-		}
-	}
+	handle_boolean_operation_fake!(
+		hazardous_boolean_username_exist(clean_username.clone(), pool.clone()),
+		{},
+		"username_taken"
+	);
 
 	match validate_password(&body.password) {
 		Ok(()) => {}
@@ -331,15 +459,11 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_hash"
 	);
 
-	match hazardous_create_user(clean_username.clone(), pool.clone()).await {
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("user_register_fail");
-		}
-		Err(_) => {
-			return error_casting("user_register_fail");
-		}
-	}
+	handle_boolean_operation_truth!(
+		hazardous_create_user(clean_username.clone(), pool.clone()),
+		{},
+		"user_register_fail"
+	);
 
 	let new_uuid = handle_error!(
 		task_fetch_userid_by_username(
@@ -349,50 +473,315 @@ pub async fn api_post_process_register_user_handler(
 		"invalid_username"
 	);
 
-	match
+	handle_boolean_operation_truth!(
 		hazardous_create_auth_from_uuid(
 			generate_hashed_password.clone().to_string(),
 			clean_email.clone(),
 			new_uuid.clone(),
 			pool.clone()
-		).await
-	{
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("auth_insert_fail");
-		}
-		Err(_) => {
-			return error_casting("auth_insert_fail");
-		}
-	}
+		),
+		{},
+		"auth_insert_fail"
+	);
 
-	match
+	handle_boolean_operation_truth!(
 		hazardous_create_profile_from_uuid(
 			clean_username.clone(),
 			new_uuid.clone(),
 			pool.clone()
-		).await
-	{
-		Ok(true) => {}
-		Ok(false) => {
-			return error_casting("profile_insert_fail");
-		}
-		Err(_) => {
-			return error_casting("profile_insert_fail");
-		}
-	}
+		),
+		{},
+		"profile_insert_fail"
+	);
 
-	match
-		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()).await
-	{
-		Ok(true) => {
+	handle_boolean_operation_truth!(
+		hazardous_boolean_email_exist(clean_email.clone(), pool.clone()),
+		{
 			return error_casting("success_account_created");
+		},
+		"task_account_init_fail"
+	);
+}
+
+
+//	!	MiddleWare
+
+
+//	!	Macros
+
+//	? Macro -> API Routes -> Get
+
+#[macro_export]
+macro_rules! api_generate_get_route_uuid {
+	($func_name:ident, $task_name:ident) => {
+		pub async fn $func_name(
+			Path(uuid): Path<String>,
+			Extension(pool): Extension<Arc<Pool>>
+		) -> impl IntoResponse {
+			let clean_uuid = handle_error!(uuid.parse::<u64>(), "uuid_convert_failed");
+			match $task_name(clean_uuid, pool).await {
+				Ok(data) => {
+					(
+						StatusCode::OK,
+						Json(WizardResponse {
+							data: serde_json::json!({"status": "complete"}),
+							message: serde_json::json!({
+								"fetch": data
+						}),
+						}),
+					)
+				}
+				Err(_) => error_casting("database_error"),
+			}
 		}
-		Ok(false) => {
-			return error_casting("task_account_init_fail");
+	};
+}
+
+api_generate_get_route_uuid!(
+	throwaway_api_get_process_github_uuid,
+	hazardous_task_fetch_profile_github_by_uuid
+);
+
+api_generate_get_route_uuid!(
+	throwaway_api_get_process_discord_uuid,
+	hazardous_task_fetch_profile_discord_by_uuid
+);
+
+#[macro_export]
+macro_rules! api_generate_get_route_fetch_username {
+	($func_name:ident, $table:ident, $column:ident, $column_type:ty) => {
+		pub async fn $func_name(
+			Path(username): Path<String>,
+			Extension(pool): Extension<Arc<Pool>>
+		) -> impl IntoResponse {
+
+			let clean_username = handle_error!(
+				sanitize_username(&username),
+				"invalid_username"
+			);
+
+			let mut conn = handle_error!(pool.get(), "database_error");
+
+			match
+				users::table
+					.inner_join($table::table.on($table::uuid.eq(users::id)))
+					.filter(users::username.eq(clean_username))
+					.select($table::$column)
+					.first::<$column_type>(&mut conn)
+			{
+				Ok(data) => {
+					( 
+						StatusCode::OK,
+						Json(WizardResponse {
+							data: serde_json::json!({"status": "complete"}),
+							message: serde_json::json!({
+								"fetch": data
+						}),
+						}),
+					)
+				}
+				Err(diesel::NotFound) => error_casting("fetch_route_fail"),
+				Err(_) => error_casting("database_error"),
+			}
 		}
-		Err(_) => {
-			return error_casting("task_account_init_fail");
+	};
+}
+
+api_generate_get_route_fetch_username!(
+	throwaway_api_get_process_appwrite_projectid_from_username,
+	appwrite,
+	appwrite_projectid,
+	String
+);
+
+api_generate_get_route_fetch_username!(
+	throwaway_api_get_process_n8n_webhook_from_username,
+	n8n,
+	webhook,
+	String
+);
+
+//	?	Macro -> Hazardous_Booleans
+
+#[macro_export]
+macro_rules! hazardous_boolean_exist {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty
+	) => {
+        pub async fn $func_name(
+            $param: $param_type,
+            pool: Arc<Pool>
+        ) -> Result<bool, &'static str> {
+            let mut conn = kbve_get_conn!(pool);
+
+            match $table::table
+                .filter($table::$column.eq($param))
+                .select($table::uuid)
+                .first::<u64>(&mut conn)
+            {
+                Ok(_) => Ok(true),
+                Err(diesel::NotFound) => Ok(false),
+                Err(_) => Err("Database error"),
+            }
+        }
+	};
+}
+
+hazardous_boolean_exist!(
+	hazardous_boolean_api_key_exist,
+	apikey,
+	keyhash,
+	clean_api_key,
+	String
+);
+
+hazardous_boolean_exist!(
+	hazardous_boolean_email_exist,
+	auth,
+	email,
+	clean_email,
+	String
+);
+
+hazardous_boolean_exist!(
+	hazardous_boolean_n8n_webhook_exist,
+	n8n,
+	webhook,
+	clean_webhook,
+	String
+);
+
+#[macro_export]
+macro_rules! hazardous_task_fetch {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty,
+		$return_type:ty
+	) => {
+		pub async fn $func_name(
+			$param: $param_type,
+			pool: Arc<Pool>
+		) -> Result<$return_type, &'static str> {
+			let mut conn = kbve_get_conn!(pool);
+
+			match $table::table
+				.filter($table::$param.eq($param))
+				.select($table::$column)
+				.first::<$return_type>(&mut conn)
+				{
+					Ok(data) => Ok(data),
+					Err(diesel::NotFound) => Err("Database error"),
+					Err(_) => Err("Database error"),
+				}
+
 		}
-	}
+	};
+}
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_n8n_webhook_by_uuid,
+	n8n,
+	webhook,
+	uuid,
+	u64,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_profile_github_by_uuid,
+	profile,
+	github,
+	uuid,
+	u64,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_auth_hash_by_email,
+	auth,
+	hash,
+	email,
+	String,
+	String
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_uuid_by_email,
+	auth,
+	uuid,
+	email,
+	String,
+	u64
+);
+
+hazardous_task_fetch!(
+	hazardous_task_fetch_username_by_uuid,
+	users,
+	username,
+	id,
+	u64,
+	String
+);
+
+//	?	Macro -> API -> POST ROUTES
+
+// #[macro_export]
+// macro_rules! api_generate_post_route {
+// 	(
+// 		$func_name: ident,
+// 		$schema_name: ty,
+// 	) => {
+// 		pub async fn $func_name(
+// 			Extension(pool): Extension<Arc<Pool>>,
+// 			Json(body): Json<$schema_name>
+// 		) -> impl IntoResponse {
+
+// 		}
+// 	}
+// }
+
+#[macro_export]
+macro_rules! create_jwt {
+	($uuid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {
+		{
+
+		use jsonwebtoken::{encode, EncodingKey, Header};
+
+        let now = chrono::Utc::now();
+        let exp = now + chrono::Duration::minutes($hours * 60);
+
+        let jwt_token = encode(
+            &Header::default(),
+            &TokenSchema {
+                uuid: $uuid.to_string(),
+                email: $email.to_string(),
+                username: $username.to_string(),
+                iat: now.timestamp() as usize,
+                exp: exp.timestamp() as usize,
+            },
+            &EncodingKey::from_secret($secret.as_bytes()),
+        ).unwrap(); 
+
+		jwt_token
+		}
+	};
+}
+
+#[macro_export]
+macro_rules! build_cookie {
+	($name:expr, $token:expr, $duration:expr) => {
+		axum_extra::extract::cookie::Cookie::build($name, $token)
+			.path("/")
+			.max_age(time::Duration::hours($duration))
+			.same_site(axum_extra::extract::cookie::SameSite::Lax)
+			.http_only(true)
+			.finish()
+	};
 }

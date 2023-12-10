@@ -700,17 +700,20 @@ dependencies = [
  "dotenvy",
  "jsonwebtoken",
  "lazy_static",
+ "num-bigint",
  "r2d2",
  "rand_core",
  "regex",
  "reqwest",
  "serde",
  "serde_json",
+ "time",
  "tokio",
  "tower",
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
@@ -1734,6 +1737,16 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+]
+
+[[package]]
+name = "uuid"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
+dependencies = [
+ "getrandom",
+ "serde",
 ]
 
 [[package]]

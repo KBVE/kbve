@@ -94,7 +94,7 @@
     "@nestjs/platform-express": "^10.0.2",
     "@planetscale/database": "^1.11.0",
     "axios": "^1.0.0",
-    "drizzle-orm": "^0.29.0",
+    "drizzle-orm": "^0.29.1",
     "drizzle-zod": "^0.5.1",
     "koa": "~2.14.1",
     "react-is": "18.2.0",
