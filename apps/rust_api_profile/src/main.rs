@@ -65,10 +65,17 @@ async fn main() {
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
+		.route(
+			"",
+			get(kbve::dbrms::)
+		)
 		.route("/email/:email", get(api_get_process_guest_email))
-		.route("/auth/profile",	get(kbve::dbrms::auth_jwt_profile).route_layer(
-			middleware::from_fn_with_state(shared_pool.clone(), graceful)
-		))
+		.route(
+			"/auth/profile",
+			get(kbve::dbrms::auth_jwt_profile).route_layer(
+				middleware::from_fn_with_state(shared_pool.clone(), graceful)
+			)
+		)
 		.route("/auth/logout", get(task_logout_user))
 		.route("/auth/register", post(api_post_process_register_user_handler))
 		.route("/auth/login", post(api_post_process_login_user_handler))
