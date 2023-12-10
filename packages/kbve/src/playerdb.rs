@@ -503,13 +503,6 @@ pub async fn api_post_process_register_user_handler(
 	);
 }
 
-pub async fn panda_api_route_profile(
-	Extension(privatedata): Extension<jsonwebtoken::TokenData<TokenSchema>>,
-) -> impl IntoResponse {
-	println!("UUID: {}", &privatedata.claims.uuid);
-	(StatusCode::OK, Json(json!({"data": "vaild"})))
-}
-
 
 //	!	MiddleWare
 
