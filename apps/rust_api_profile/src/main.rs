@@ -65,10 +65,6 @@ async fn main() {
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
-		.route(
-			"",
-			get(kbve::dbrms::)
-		)
 		.route("/email/:email", get(api_get_process_guest_email))
 		.route(
 			"/auth/profile",
