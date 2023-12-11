@@ -224,6 +224,8 @@ jobs:
                       push: true
                       tags: ${{ steps.meta.outputs.tags }}
                       labels: ${{ steps.meta.outputs.labels }}
+                      cache-from: type=gha
+                      cache-to: type=gha,mode=max
 
     # Rust Profile Image Deployment
     rust-profile-image:
@@ -257,6 +259,10 @@ jobs:
                     tags: kbve/rustprofile:latest
                     platforms: linux/amd64, linux/arm64
                     file: ./apps/rust_api_profile/Dockerfile
+                    cache-from: type=gha
+                    cache-to: type=gha,mode=max
+                    #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+                    #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
 
     # Deploy Rust Profile Image
     # deploy-rust-profile-image:
