@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::sync::{ Arc, OnceLock };
 use std::str::FromStr;
 
+use diesel::prelude::*;
+
 use axum::{
 	http::{ StatusCode, HeaderMap },
 	response::{ Json, IntoResponse, Response },

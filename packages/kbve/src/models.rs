@@ -3,12 +3,12 @@
 #![allow(unused)]
 #![allow(clippy::all)]
 
-use diesel::Queryable;
-use serde::Serialize;
+use diesel::prelude::*;
+use serde::{ Serialize, Deserialize};
 
 
 use chrono::NaiveDateTime;
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 pub struct Apikey {
     pub id: u64,
     pub uuid: u64,
@@ -17,7 +17,7 @@ pub struct Apikey {
     pub label: String,
 }
 
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 pub struct Appwrite {
     pub id: u64,
     pub uuid: u64,
@@ -28,7 +28,7 @@ pub struct Appwrite {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 pub struct Auth {
     pub id: u64,
     pub uuid: u64,
@@ -47,14 +47,14 @@ pub struct Auth {
     pub recovery_codes: String,
 }
 
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 pub struct Global {
     pub id: u64,
     pub key: String,
     pub value: String,
 }
 
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 pub struct N8n {
     pub id: u64,
     pub uuid: u64,
@@ -64,7 +64,7 @@ pub struct N8n {
     pub label: String,
 }
 
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 pub struct Profile {
     pub id: u64,
     pub name: String,
@@ -76,7 +76,7 @@ pub struct Profile {
     pub uuid: u64,
 }
 
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 pub struct Setting {
     pub id: u64,
     pub uuid: u64,
@@ -84,7 +84,7 @@ pub struct Setting {
     pub value: String,
 }
 
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: u64,
     pub username: String,
