@@ -24,6 +24,14 @@ lazy_static! {
 	pub static ref EMAIL_REGEX: Regex = Regex::new(
 		r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"
 	).unwrap();
+
+    pub static ref GITHUB_USERNAME_REGEX: Regex = Regex::new(
+        r"github\.com/([a-zA-Z0-9_-]+)"
+    ).unwrap();
+
+    pub static ref INSTAGRAM_USERNAME_REGEX: Regex = Regex::new(
+        r"(?:@|(?:www\.)?instagram\.com/)?([a-zA-Z0-9_](?:[a-zA-Z0-9_]|(?!__)\.(?!_))*[a-zA-Z0-9_]+)"
+    ).unwrap();
 }
 
 pub fn validate_password(password: &str) -> Result<(), &str> {
@@ -138,6 +146,21 @@ pub fn sanitize_path(input: &str) -> String {
 
 	sanitized
 }
+
+//  ?   [Regex] Extractions
+
+pub fn extract_instagram_username(url: &str) -> Option<String> {
+    INSTAGRAM_USERNAME_REGEX.captures(url).and_then(|cap| {
+        cap.get(1).map(|username| username.as_str().to_string())
+    })
+}
+
+pub fn extract_github_username(url: &str) -> Option<String> {
+    GITHUB_USERNAME_REGEX.captures(url).and_then(|cap| {
+        cap.get(1).map(|username| username.as_str().to_string())
+    })
+}
+
 
 //	? - Convert
 
