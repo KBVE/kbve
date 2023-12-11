@@ -134,7 +134,8 @@ pub async fn auth_jwt_profile(
 //	?	[Routes] -> Profile
 
 #[derive(AsChangeset, Queryable, Serialize, Deserialize, Clone)]
-#[table_name = "profile"]
+//	#[table_name = "profile"]
+#[diesel(table_name = profile)]
 pub struct UpdateProfileSchema {
 	pub name: Option<String>,
 	pub bio: Option<String>,
@@ -228,3 +229,6 @@ pub async fn auth_jwt_update_profile(
 		}
 	}
 }
+
+//	!	[ADMIN]
+
