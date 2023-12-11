@@ -2,10 +2,13 @@
 //  TODO:   Panda Update Migration
 //  ?   [Axum][Middleware]
 use axum::{
+	async_trait,
 	http::{StatusCode,Request, header},
-	extract::{ Extension, Path, State },
+	extract::{ Extension, Path, State, FromRequest},
 	response::{ IntoResponse, Response },
+	middleware::{self, Next},
 	Json,
+	BoxError
 };
 //  ?   [std]
 use std::sync::{ Arc };
@@ -13,6 +16,8 @@ use std::str::FromStr;
 //  ?   [crate]
 use crate::db::Pool;
 use crate::wh::{TokenSchema};
+use crate::wh::GLOBAL;
+
 //  ?   [serde]
 use serde_json::{ json };
 
@@ -63,4 +68,46 @@ pub async fn graceful<B>(
 
 	req.extensions_mut().insert(privatedata);
 	next.run(req).await.into_response()
+}
+
+//	!	[Shield]
+
+async fn shieldwall<B>(
+    mut req: Request<B>,
+    next: axum::middleware::Next<B>,
+) -> impl IntoResponse
+where
+    B: Send, // required by `axum::middleware::Next`
+{
+    // Extract the "kbve-shieldwall" header
+    let shieldwall_header_value = req.headers()
+        .get("kbve-shieldwall")
+        .and_then(|value| value.to_str().ok())
+        .map(String::from);
+
+    match shieldwall_header_value {
+        Some(value) => {
+            // Access the GLOBAL store and compare the value
+            let is_valid = if let Some(global_store) = GLOBAL.get() {
+                global_store
+                    .get("shieldwall")
+                    .map(|expected_value| expected_value.value() == &value)
+                    .unwrap_or(false)
+            } else {
+                false // GLOBAL store not initialized
+            };
+
+            if is_valid {
+                // If the header value is valid, proceed with the next middleware or handler
+                next.run(req).await.into_response()
+            } else {
+                // Invalid header value
+                (StatusCode::UNAUTHORIZED, Json(json!({"error": "Invalid shieldwall header value"}))).into_response()
+            }
+        }
+        None => {
+            // Header not found
+            (StatusCode::UNAUTHORIZED, Json(json!({"error": "Shieldwall header missing"}))).into_response()
+        }
+    }
 }
