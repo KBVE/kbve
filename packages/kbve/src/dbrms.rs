@@ -131,14 +131,6 @@ pub async fn auth_jwt_profile(
 	}
 }
 
-//	?	[Routes] -> Auth
-
-// pub async fn auth_login (
-// 	Extension(pool): Extension<Arc<Pool>>,
-// 	Json(body): Json<LoginUserSchema>
-// ) -> impl IntoResponse {
-// }
-
 //	?	[Routes] -> Profile
 
 #[derive(AsChangeset, Queryable, Serialize, Deserialize, Clone)]
@@ -163,6 +155,37 @@ impl UpdateProfileSchema {
 			instagram,
 			discord
 		);
+		self.extract_usernames();
+	}
+
+	fn extract_usernames(&mut self) {
+
+		//	(Extract) -> [github]
+		if let Some(ref mut github) = self.github {
+            if let Some(username) = crate::harden::extract_github_username(github) {
+                *github = username;
+            } else {
+                // Handle invalid GitHub input
+                *github = String::new();
+            }
+        }
+		//	(Extract) -> [instagram]
+		if let Some(ref mut instagram) = self.instagram {
+			if let Some(username) = crate::harden::extract_instagram_username(instagram) {
+				*instagram = username;
+			} else {
+				*instagram = String::new();
+			}
+		}
+
+		//	(Extract) -> [unsplash]
+		if let Some(ref mut unsplash) = self.unsplash {
+			if let Some(url) = crate::harden::extract_unsplash_photo_id(unsplash) {
+				*unsplash = url;
+			} else {
+				*unsplash = String::new();
+			}
+		}
 	}
 }
 
@@ -176,8 +199,6 @@ pub async fn auth_jwt_update_profile(
 	let clean_uuid = spellbook_uuid!(&privatedata.claims.uuid);
 
 	body.sanitize();
-
-	//let data: UpdateProfileSchema = serde_json::from_str(&body).expect("invalid-json");
 
 	match
 		diesel

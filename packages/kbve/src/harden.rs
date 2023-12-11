@@ -30,7 +30,11 @@ lazy_static! {
     ).unwrap();
 
     pub static ref INSTAGRAM_USERNAME_REGEX: Regex = Regex::new(
-        r"(?:@|(?:www\.)?instagram\.com/)?([a-zA-Z0-9_](?:[a-zA-Z0-9_]|(?!__)\.(?!_))*[a-zA-Z0-9_]+)"
+        r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)"
+    ).unwrap();
+
+    pub static ref UNSPLASH_PHOTO_ID_REGEX: Regex = Regex::new(
+        r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)"
     ).unwrap();
 }
 
@@ -151,8 +155,15 @@ pub fn sanitize_path(input: &str) -> String {
 
 pub fn extract_instagram_username(url: &str) -> Option<String> {
     INSTAGRAM_USERNAME_REGEX.captures(url).and_then(|cap| {
-        cap.get(1).map(|username| username.as_str().to_string())
-    })
+        cap.get(1).map(|username| {
+            let username = username.as_str();
+            if username.contains("__") || username.contains("._") || username.contains("_.") {
+                None
+            } else {
+                Some(username.to_string())
+            }
+        })
+    }).flatten()
 }
 
 pub fn extract_github_username(url: &str) -> Option<String> {
@@ -161,8 +172,15 @@ pub fn extract_github_username(url: &str) -> Option<String> {
     })
 }
 
+pub fn extract_unsplash_photo_id(url: &str) -> Option<String> {
+    UNSPLASH_PHOTO_ID_REGEX.captures(url).and_then(|cap| {
+        cap.get(1).map(|match_| match_.as_str().to_string())
+    })
+}
+
 
 //	? - Convert
+
 
 pub fn uuid_to_biguint(uuid_str: &str) -> Result<BigUint, &'static str> {
 	let uuid = Uuid::from_str(uuid_str).map_err(|_| "Invalid UUID format")?;
