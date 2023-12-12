@@ -1,0 +1,33 @@
+name: '[WIP] - SWCC'
+description: 'An action to send commands towards the shield wall'
+inputs:
+  token:
+    description: 'Your Github Organization Token'
+  org:
+    description: 'Your Github Organization Name'
+    default: 'KBVE'
+  command:
+    description: 'Your Action / Command for the Wall'
+    required: true
+  kbve-shield-token:
+    description: 'Your Shield Token for Auth'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Command Center For The Wall.
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        COMMAND_CENTER: ${{ inputs.command }}
+        KBVE_SHIELD_TOKEN: ${{ inputs.kbve-shield-token }}
+      run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            -H "kbve-shield: $KBVE_SHIELD_TOKEN" \
+            "https://rust.kbve.com/api/v1/shieldwall/$COMMAND_CENTER")
+          echo "Response Code: $response"
+          if [ "$response" != "200" ]; then
+            echo "Error: Request failed with status $response"
+            exit 1
+          fi
