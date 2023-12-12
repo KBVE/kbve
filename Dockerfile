@@ -6,15 +6,22 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Update and install necessary packages
 RUN apt-get update && \
-    apt-get install -y curl gnupg2 build-essential libmysqlclient-dev pkg-config libssl-dev  && \
-    curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+    apt-get install -y curl gnupg2 build-essential libmysqlclient-dev pkg-config libssl-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Adding dotnet
-RUN apt-get install -y dotnet-sdk-7.0
+# Install Node.js and PNPM
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g pnpm && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install PNPM
-RUN npm install -g pnpm
+# Install .NET SDK
+RUN apt-get update && \
+    apt-get install -y dotnet-sdk-7.0 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Setup Rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
@@ -26,7 +33,9 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /usr/src/app
 
 # Copy your monorepo content
-COPY package*.json pnpm-lock.yml nx.json ./
+COPY package*.json pnpm-lock.yaml nx.json migrations.json ./
+COPY ./tools/ ./tools/
+# COPY ./scripts/ ./scripts/
 
 # Install dependencies
 RUN pnpm install
