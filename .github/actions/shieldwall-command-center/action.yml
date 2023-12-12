@@ -24,7 +24,7 @@ runs:
         KBVE_SHIELD_TOKEN: ${{ inputs.kbve-shield-token }}
       run: |
           response=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "kbve-shield: $KBVE_SHIELD_TOKEN" \
+            -H "kbve-shieldwall: $KBVE_SHIELD_TOKEN" \
             "https://rust.kbve.com/api/v1/shieldwall/$COMMAND_CENTER")
           echo "Response Code: $response"
           if [ "$response" != "200" ]; then
