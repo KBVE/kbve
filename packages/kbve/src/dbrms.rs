@@ -459,19 +459,19 @@ pub async fn shieldwall_action_portainer_stack_deploy() -> impl IntoResponse {
 						StatusCode::OK,
 						Json(serde_json::json!({ "response": text })),
 					).into_response(),
-				Err(_) =>
+				Err(e) =>
 					(
 						StatusCode::INTERNAL_SERVER_ERROR,
 						Json(
-							serde_json::json!({ "error": "Failed to read response" })
+							serde_json::json!({ "error": "Failed to read response", "message": e.to_string() })
 						),
 					).into_response(),
 			}
 		}
-		Err(_) =>
+		Err(e) =>
 			(
 				StatusCode::INTERNAL_SERVER_ERROR,
-				Json(serde_json::json!({ "error": "POST request failed" })),
+				Json(serde_json::json!({ "error": "POST request failed", "message": e.to_string() })),
 			).into_response(),
 	}
 }

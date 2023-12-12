@@ -19,7 +19,7 @@ jsonwebtoken = "8.3.0"
 rand_core = { version = "0.6.4", features = ["std"] }
 tokio = { version = "1.0", features = ["full"] }
 time = "0.3.30"
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11",  default-features = false, features = ["json", "rustls-tls"] }
 tower = { version = "0.4.13", features = ["timeout"] }
 tower-http = { version = "0.4.4", features = ["cors"] }
 tracing = "0.1"
