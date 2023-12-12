@@ -72,11 +72,19 @@ async fn main() {
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
-		.route("/auth/profile/update",
+		.route(
+			"/auth/profile/update",
 			post(kbve::dbrms::auth_jwt_update_profile).route_layer(
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
+		.route(
+			"/shieldwall/:action",
+			get(kbve::dbrms::shieldwall_action).route_layer(
+				middleware::from_fn(kbve::mm::shieldwall)
+			)
+		)
+
 		.route("/auth/logout", get(task_logout_user))
 		.route("/auth/register", post(api_post_process_register_user_handler))
 		.route("/auth/login", post(api_post_process_login_user_handler))
