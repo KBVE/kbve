@@ -72,7 +72,7 @@ pub async fn graceful<B>(
 
 //	!	[Shield]
 
-async fn shieldwall<B>(
+pub async fn shieldwall<B>(
     mut req: Request<B>,
     next: axum::middleware::Next<B>,
 ) -> impl IntoResponse
