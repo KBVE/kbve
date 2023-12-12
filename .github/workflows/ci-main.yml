@@ -274,8 +274,8 @@ jobs:
                 uses: actions/checkout@v4
 
              -  name: Deploy to Portainer
-                uses: ./.github/actions/gql-project-migration
+                uses: ./.github/actions/shieldwall-command-center
                 with:
                     token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Theory"
+                    command: "deploy"
+                    kbve-shield-token: ${{ secrets.SHIELDWALL }}
