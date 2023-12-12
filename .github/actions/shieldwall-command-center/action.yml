@@ -23,7 +23,7 @@ runs:
         COMMAND_CENTER: ${{ inputs.command }}
         KBVE_SHIELD_TOKEN: ${{ inputs.kbve-shield-token }}
       run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "kbve-shield: $KBVE_SHIELD_TOKEN" \
             "https://rust.kbve.com/api/v1/shieldwall/$COMMAND_CENTER")
           echo "Response Code: $response"
