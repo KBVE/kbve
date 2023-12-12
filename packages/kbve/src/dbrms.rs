@@ -20,6 +20,7 @@ use diesel::prelude::*;
 use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
 use crate::wh::{ TokenSchema };
 use crate::db::{ Pool };
+use crate::wh::GLOBAL;
 use crate::models::{ User, Profile };
 
 //  ?   Macros
@@ -37,8 +38,8 @@ use crate::{ spellbook_pool };
 // This macro is designed to simplify the process of obtaining a database connection from a connection pool.
 #[macro_export]
 macro_rules! spellbook_pool {
-    // The macro takes a single argument, `$pool`, which represents the connection pool.
-    ($pool:expr) => {
+	// The macro takes a single argument, `$pool`, which represents the connection pool.
+	($pool:expr) => {
         // Attempt to get a database connection from the pool.
         match $pool.get() {
             // If successful, the obtained connection (`conn`) is returned for use.
@@ -58,7 +59,7 @@ macro_rules! spellbook_pool {
                 // Converts the tuple into an Axum response type.
             ).into_response(),
         }
-    };
+	};
 }
 
 #[macro_export]
@@ -112,10 +113,10 @@ In this macro:
 // It is designed to generalize the process of sanitizing fields in a struct.
 #[macro_export]
 macro_rules! spellbook_sanitize_fields {
-    // The macro takes two types of input:
-    // 1. $struct:expr, which represents the struct instance whose fields need sanitizing.
-    // 2. $($field:ident),+, which is a variadic list of field identifiers that need to be sanitized.
-    ($struct:expr, $($field:ident),+) => {
+	// The macro takes two types of input:
+	// 1. $struct:expr, which represents the struct instance whose fields need sanitizing.
+	// 2. $($field:ident),+, which is a variadic list of field identifiers that need to be sanitized.
+	($struct:expr, $($field:ident),+) => {
         $(
             // This loop iterates over each field specified in the macro invocation.
             if let Some(ref mut value) = $struct.$field {
@@ -126,9 +127,8 @@ macro_rules! spellbook_sanitize_fields {
                 *value = crate::harden::sanitize_string_limit(value);
             }
         )+
-    };
+	};
 }
-
 
 //  ?   [Routes] -> JWTs
 
@@ -355,36 +355,30 @@ pub struct ShieldWallSchema {
 	// Option is used here to represent that the action might or might not be present.
 	pub action: Option<String>,
 }
-/** 
-	In this code, ShieldWallSchema is a struct with a single field action, which may or may not contain a String. 
-	The execute method checks the value of action. 
-	If it's Some(String), it checks the string value and returns a corresponding Result. 
-	If the action is unrecognized or None, it returns an error. 
-	This struct and method can be used to handle different actions represented as strings and return either the action result or an error message.
-**/
-
-// Implement methods for the ShieldWallSchema struct.
 
 impl ShieldWallSchema {
-	// Define a method named `execute` that returns a Result type.
-	// Result can either be Ok with a String (success) or an Err with a String (error).
-	pub fn execute(&self) -> Result<String, String> {
-		// Match on the `action` field of the struct.
+	pub async fn execute(&self) -> impl IntoResponse {
 		match &self.action {
-			// If there is some action (action is not None)
-			Some(action) => {
-				// Further match on the string value of the action
+			Some(action) =>
 				match action.as_str() {
-					// If action is "test", return Ok with a String "test"
-					"test" => Ok("test".to_string()),
-					// If action is "redeploy", return Ok with a String "redeploy"
-					"redeploy" => Ok("redeploy".to_string()),
-					// If action is anything else, return an error with a String "invalid-action"
-					_ => Err("invaild-action".to_string()),
+					"deploy" => {
+						// Call the function and await its response
+						let response: axum::response::Response = shieldwall_action_portainer_stack_deploy().await.into_response();
+						response
+					}
+					_ =>
+						(
+							StatusCode::BAD_REQUEST,
+							Json(
+								serde_json::json!({"error": "Unknown action"})
+							),
+						).into_response(),
 				}
-			}
-			// If there is no action (action is None), return an error with a String "invalid-action"
-			None => Err("invaild-action".to_string()),
+			None =>
+				(
+					StatusCode::BAD_REQUEST,
+					Json(serde_json::json!({"error": "No action provided"})),
+				).into_response(),
 		}
 	}
 }
@@ -410,24 +404,74 @@ pub async fn shieldwall_action(
 	};
 
 	// Execute the action using the ShieldWallSchema's execute method
-	// and match on the Result it returns
-	match shieldwall_schema.execute() {
-		Ok(result) => {
-			// If execution is successful, return a JSON response with the result
-			// and a status code of 200 OK
-			(
-				axum::http::StatusCode::OK,
-				axum::Json(serde_json::json!({"status": result})),
-			).into_response()
+    // Since execute now returns an impl IntoResponse, we can directly await it
+    shieldwall_schema.execute().await
+}
+
+/**
+
+	It retrieves the URL from the GLOBAL map using a predefined key.
+	If the URL is found, it sends a POST request to that URL using reqwest::Client.
+	The response from the server is then read as a text (assuming it's JSON or a string).
+	If successful, the response text is returned. If there are any errors (like the URL not found in the map, the global map not initialized, failed to make the request, or failed to read the response), appropriate error messages are returned.
+	This function should be run within the context of a Tokio runtime since it is an async function and uses await. Make sure that the GLOBAL map is properly initialized and contains the expected URL before calling this function.
+
+	**/
+
+pub async fn shieldwall_action_portainer_stack_deploy() -> impl IntoResponse {
+	// Define the key for the Portainer Stack URL in the GLOBAL map
+	let portainer_stack_url_from_map = "portainer_stack";
+
+	// Retrieve the URL from the GLOBAL map
+	let url = if let Some(global_map) = GLOBAL.get() {
+		match global_map.get(portainer_stack_url_from_map) {
+			Some(url) => url.value().clone(),
+			None => {
+				return axum::response::Response::builder()
+					.status(StatusCode::INTERNAL_SERVER_ERROR)
+					.body(
+						Json(
+							serde_json::json!({"error": "URL not found in global map"})
+						)
+							.into_response()
+							.into_body()
+					)
+					.unwrap();
+			}
 		}
-		Err(error) => {
-			// If execution fails (e.g., if the action is not found),
-			// return a JSON response with the error message
-			// and a status code of 404 Not Found
-			(
-				axum::http::StatusCode::NOT_FOUND,
-				axum::Json(serde_json::json!({"error": error})),
-			).into_response()
+	} else {
+		return axum::response::Response::builder()
+			.status(StatusCode::INTERNAL_SERVER_ERROR)
+			.body(
+				Json(serde_json::json!({"error": "GLOBAL map not initialized"}))
+					.into_response()
+					.into_body()
+			)
+			.unwrap();
+	};
+
+	// Make the POST request to the URL
+	match reqwest::Client::new().post(&url).send().await {
+		Ok(response) => {
+			match response.text().await {
+				Ok(text) =>
+					(
+						StatusCode::OK,
+						Json(serde_json::json!({ "response": text })),
+					).into_response(),
+				Err(_) =>
+					(
+						StatusCode::INTERNAL_SERVER_ERROR,
+						Json(
+							serde_json::json!({ "error": "Failed to read response" })
+						),
+					).into_response(),
+			}
 		}
+		Err(_) =>
+			(
+				StatusCode::INTERNAL_SERVER_ERROR,
+				Json(serde_json::json!({ "error": "POST request failed" })),
+			).into_response(),
 	}
 }
