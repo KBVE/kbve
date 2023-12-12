@@ -13,12 +13,6 @@ RUN apt-get update && \
 # Adding dotnet
 RUN apt-get install -y dotnet-sdk-7.0
 
-# gcc
-#RUN yes | apt install gcc-x86-64-linux-gnu
-
-# MUSL
-#RUN apt-get install -y musl-tools musl-dev gcc-i686-linux-gnu
-
 # Install PNPM
 RUN npm install -g pnpm
 
@@ -32,16 +26,10 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /usr/src/app
 
 # Copy your monorepo content
-COPY . .
+COPY package*.json pnpm-lock.yml nx.json ./
 
 # Install dependencies
 RUN pnpm install
-
-# # Setting up bash
-# SHELL ["/bin/bash", "-c"]
-
-
-# RUN pnpm nx build rust_api_profile --release
 
 COPY . .
 
