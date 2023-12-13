@@ -86,7 +86,7 @@ async fn main() {
 		)
 
 		.route("/auth/logout", get(task_logout_user))
-		.route("/auth/register", post(api_post_process_register_user_handler))
+		.route("/auth/register", post(kbve::dbrms::auth_player_register))
 		.route("/auth/login", post(api_post_process_login_user_handler))
 		.route("/discord/:uuid", get(throwaway_api_get_process_discord_uuid))
 		.route("/github/:github", get(throwaway_api_get_process_github_uuid))
