@@ -225,11 +225,20 @@ struct CaptchaResponse {
     success: bool,
 }
 
-pub async fn verify_captcha(captcha_token: &str, secret: &str) -> Result<bool, Box<dyn std::error::Error>> {
-    let client = Client::new();
+pub async fn verify_captcha(captcha_token: &str) -> Result<bool, Box<dyn std::error::Error>> {
+
+	let secret = match crate::wh::GLOBAL.get() {
+		Some(global_map) => match global_map.get("hcaptcha") {
+			Some(value) => value.value().clone(),
+			None => return Err("missing_captcha".into()),
+		},
+		None => return Err("invalid_global_map".into()),
+	};
+
+	let client = Client::new();
     let mut params = HashMap::new();
     params.insert("response", captcha_token);
-    params.insert("secret", secret);
+    params.insert("secret", secret.as_str());
 
     let res = client.post("https://api.hcaptcha.com/siteverify")
         .form(&params)

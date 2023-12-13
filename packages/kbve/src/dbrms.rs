@@ -532,7 +532,7 @@ pub struct AuthPlayerRegisterSchema {
 	pub username: String,
 	pub email: String,
 	pub password: String,
-	pub captcha: String,
+	pub token: String,
 	pub invite: Option<String>,
 }
 
@@ -599,6 +599,18 @@ pub async fn auth_player_register(
 	Extension(pool): Extension<Arc<Pool>>,
 	Json(mut body): Json<AuthPlayerRegisterSchema>
 ) -> impl IntoResponse {
+
+		// Captcha
+		match crate::harden::verify_captcha(&body.token).await {
+			Ok(success) => {
+				if !success {
+					return (StatusCode::UNPROCESSABLE_ENTITY, "Invalid captcha").into_response();
+				}
+			},
+			Err(_) => {
+				return (StatusCode::INTERNAL_SERVER_ERROR, "Captcha verification failed").into_response();
+			},
+		}
 
 		if let Err(e) = body.sanitize() {
 			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
