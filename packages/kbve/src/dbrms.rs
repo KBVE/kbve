@@ -16,12 +16,21 @@ use axum::{
 	Json,
 };
 
+use argon2::{
+	password_hash::SaltString,
+	Argon2,
+	PasswordHash,
+	PasswordHasher,
+	PasswordVerifier,
+};
+
 use diesel::prelude::*;
 use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
 use crate::wh::{ TokenSchema };
 use crate::db::{ Pool };
 use crate::wh::GLOBAL;
 use crate::models::{ User, Profile };
+
 
 //  ?   Macros
 
@@ -60,6 +69,36 @@ macro_rules! spellbook_pool {
             ).into_response(),
         }
 	};
+}
+
+//	!	REMOVE
+// The `spellbook_error` macro is designed for use in Axum-based web applications.
+// It simplifies the creation of HTTP error responses. When invoked, it creates
+// an Axum response with a specified HTTP status code and a JSON body containing 
+// an error message. Additionally, it sets a custom header "x-kbve-shield" with 
+// the error message as its value. This macro is useful for consistently handling 
+// error responses throughout your web application.
+
+#[macro_export]
+ macro_rules! spellbook_error {
+     // The macro takes two parameters: `$status` for the HTTP status code, and `$error` for the error message.
+     ($status:expr, $error:expr) => {{
+         // Creates a JSON body with the provided error message.
+         let response_body = axum::Json(serde_json::json!({ "error": $error }));
+
+         // Constructs an Axum response using the specified status code and the JSON body.
+         let mut response: axum::response::Response = ($status, response_body).into_response();
+
+         // Inserts a custom header "x-kbve-shield" into the response. The value of this header is the error message.
+         // `expect` is used here to handle any potential error while converting the error message into a header value.
+         response.headers_mut().insert(
+             axum::http::header::HeaderName::from_static("x-kbve-shield"),
+             axum::http::HeaderValue::from_str($error).expect("Invalid header value"),
+         );
+
+         // Returns the modified response.
+         response
+     }};
 }
 
 #[macro_export]
@@ -101,7 +140,7 @@ macro_rules! spellbook_email {
 
 /**
 
-In this macro:
+In the spellbook_sanitize_fields macro:
 	- It takes any struct ($struct) and a list of fields within that struct.
 	- For each field, if it is an Option<String> and currently has a value (Some), that value is sanitized using the crate::harden::sanitize_string_limit function.
 	- The macro is designed to be reusable for any struct with fields that need sanitizing and can handle multiple fields at once.
@@ -418,6 +457,14 @@ pub async fn shieldwall_action(
 
 	**/
 
+	// The `shieldwall_action_portainer_stack_deploy` function is an asynchronous function designed to 
+	// interact with a Portainer Stack using a URL retrieved from a global map. It sends a POST request 
+	// to the Portainer Stack URL and returns the server's response. Error handling is integrated to 
+	// manage cases where the URL is not found in the global map, the global map is not initialized, 
+	// or there are issues with the HTTP request or response processing. This function requires a Tokio 
+	// runtime context as it relies on asynchronous operations.
+
+
 pub async fn shieldwall_action_portainer_stack_deploy() -> impl IntoResponse {
 	// Define the key for the Portainer Stack URL in the GLOBAL map
 	let portainer_stack_url_from_map = "portainer_stack";
@@ -473,5 +520,151 @@ pub async fn shieldwall_action_portainer_stack_deploy() -> impl IntoResponse {
 				StatusCode::INTERNAL_SERVER_ERROR,
 				Json(serde_json::json!({ "error": "POST request failed", "message": e.to_string() })),
 			).into_response(),
+
 	}
 }
+
+
+//	?	[Player] -> Register -> with Captcha
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct AuthPlayerRegisterSchema {
+	pub username: String,
+	pub email: String,
+	pub password: String,
+	pub captcha: String,
+	pub invite: Option<String>,
+}
+
+impl AuthPlayerRegisterSchema {
+
+	pub fn sanitize(&mut self) -> Result<(), String> {
+
+		//	Sanitize the Username - Part 1 - Cleaning the string / turncating using Ammonia crate.
+		let limited_username = crate::harden::sanitize_string_limit(&self.username);
+
+		//	Sanitize the Username - Part 2 - Additional safety checks.
+		match crate::harden::sanitize_username(&limited_username) {
+            Ok(clean_username) => {
+                self.username = clean_username;
+            },
+            Err(e) => {
+                return Err(e.to_string())
+            },
+		}
+
+		//	Sanitize the Email - Part 1 - Cleaning the string and limiting it using Ammonia Crate.
+		let limited_email = crate::harden::sanitize_string_limit(&self.email);
+		
+		//	Sanitize the Email - Part 2 - Regex and additional checks in place from the harden crate.
+		match crate::harden::sanitize_email(&limited_email) {
+			Ok(clean_email) => {
+				self.email = clean_email;
+			},
+			Err(e) => {
+				return Err(e.to_string())
+			}
+		}
+
+		//	Validation of the Password
+		match crate::harden::validate_password(&self.password) {
+			Ok(_) => {
+			},
+			Err(e) => {
+				return Err(e.to_string())
+			}
+		}
+
+		//	Apply sanitization to the invite if it is in Schema.
+		if let Some(invite) = &self.invite {
+				// Perform necessary sanitization on the invite
+				let sanitized_invite = crate::harden::sanitize_string_limit(invite);
+			
+				// TODO: Additional validation logic for invite can go here, if needed
+
+				// Update the invite field with the sanitized value
+				self.invite = Some(sanitized_invite);
+		}
+
+	
+		//	Sanitization is complete.
+		Ok(())
+
+	}
+
+
+}
+
+pub async fn auth_player_register(
+	Extension(pool): Extension<Arc<Pool>>,
+	Json(mut body): Json<AuthPlayerRegisterSchema>
+) -> impl IntoResponse {
+
+		if let Err(e) = body.sanitize() {
+			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+		}
+		
+		// Get a mutable connection from the pool and pass it along to verify.
+		let mut conn = spellbook_pool!(pool);
+		
+		//	[!] Check Email - Check if the player email address exists within the database.
+		match crate::playerdb::hazardous_boolean_email_exist(body.email.clone(), pool.clone()).await {
+			Ok(false) => {},
+			Ok(true) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "email-exists")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[!] Check Player - Check if the player username exists within the database.
+		match crate::playerdb::hazardous_boolean_username_exist(body.username.clone(), pool.clone()).await {
+			Ok(false) => {},
+			Ok(true) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "username-exists")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[START] => Password generation!
+		let salt = SaltString::generate(&mut rand_core::OsRng);
+
+		let hash = match Argon2::default().hash_password(body.password.as_bytes(), &salt) {
+			Ok(value) => value,
+			Err(_) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "invaild_hash")}
+		};
+
+		//	[&] Create User
+		match crate::playerdb::hazardous_create_user(body.username.clone(), pool.clone()).await {
+			Ok(true) => {},
+			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-user-failed")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[#]	Obtain UUID
+		let uuid = match crate::playerdb::task_fetch_userid_by_username(body.username.clone(), pool.clone()).await {
+			Ok(value) => value,
+			Err(_) =>  { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-uuid-failed")}
+		};
+
+		//	[&] Create Auth
+		match crate::playerdb::hazardous_create_auth_from_uuid(hash.clone().to_string(), body.email.clone(), uuid.clone(), pool.clone()).await {
+			Ok(true) => {},
+			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-auth-failed")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[&]	Create Profile
+		match crate::playerdb::hazardous_create_profile_from_uuid(body.username.clone(), uuid.clone(), pool.clone()).await {
+			Ok(true) => {},
+			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-profile-failed")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[#] Check Email - This time we want it to return true because the user should be registered.
+		match crate::playerdb::hazardous_boolean_email_exist(body.email.clone(), pool.clone()).await {
+			Ok(true) => {},
+			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "auth-register-fail")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		spellbook_complete!("register-complete")
+	
+}
+
+//	?	N8N

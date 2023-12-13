@@ -16,6 +16,11 @@ use lazy_static::lazy_static;
 
 use uuid::Uuid;
 use num_bigint::{ BigUint };
+
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+
+use std::collections::HashMap;
 use std::str::FromStr;
 
 use crate::wh::{ WizardResponse };
@@ -213,4 +218,24 @@ pub fn cors_service() -> CorsLayer {
 		.allow_methods([Method::PUT, Method::GET, Method::DELETE, Method::POST])
 		.allow_credentials(true)
 		.allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE])
+}
+
+#[derive(Serialize, Deserialize)]
+struct CaptchaResponse {
+    success: bool,
+}
+
+pub async fn verify_captcha(captcha_token: &str, secret: &str) -> Result<bool, Box<dyn std::error::Error>> {
+    let client = Client::new();
+    let mut params = HashMap::new();
+    params.insert("response", captcha_token);
+    params.insert("secret", secret);
+
+    let res = client.post("https://api.hcaptcha.com/siteverify")
+        .form(&params)
+        .send()
+        .await?;
+
+    let captcha_response: CaptchaResponse = res.json().await?;
+    Ok(captcha_response.success)
 }
