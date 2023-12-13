@@ -12,6 +12,24 @@
 KBVE is a collective that builds different programs, libraries and games!
 This monorepo is the heart of all our applications, making it easier to manage.
 
+* * *
+
+## CRAP STACK
+
+C for C
+  - C#
+  - Unity
+R for Rust
+  - Flutter with Rust Bindings
+  - Node with NAPI
+A for Astro
+  - Javascript / Typescript
+  - React
+  - Svelte
+P for Python
+
+* * *
+
 Examples of monorepos:
 
 - [Cal.com](https://github.com/calcom/cal.com)
@@ -34,6 +52,8 @@ Perks of a monorepo include:
 
 - Scalable.
   - Modern monorepo build tools and practices are designed to scale, even as the number of projects and developers grows.
+
+* * *
 
 ### Install
 
@@ -85,7 +105,7 @@ Running the micro controllers for the Rust API is easy!
 
 ### Apps
 
-HerbMail.com
-KBVE.com
-RareIcon.com
-Discord.sh
+- HerbMail.com
+- KBVE.com
+- RareIcon.com
+- Discord.sh
