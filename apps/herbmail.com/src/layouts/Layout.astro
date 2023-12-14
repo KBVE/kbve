@@ -5,10 +5,10 @@ interface Props {
 	image?: string;
 }
 const { title, description } = Astro.props;
-import Nav from './Nav.astro';
+//	import Nav from './Nav.astro';
 import React from 'react';
 import { AstroVe as VE } from '@kbve/astro-ve';
-import { ReactAppwrite } from "@kbve/react-appwrite"; 
+// import { ReactAppwrite } from "@kbve/react-appwrite"; 
 ---
 
 <!DOCTYPE html>
@@ -34,7 +34,7 @@ import { ReactAppwrite } from "@kbve/react-appwrite";
 				widget="kbve:user:user"
 				avatar="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
 			>
-			<ReactAppwrite client:only="react"  />
+				
 			</VE>
 		</VE>
 		<slot />

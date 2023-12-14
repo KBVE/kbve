@@ -5,7 +5,6 @@ export interface Props {
 	avatar?: string;
 }
 const { widget, data, avatar } = Astro.props;
-import KbveProfile from './user/kbveProfile.astro';
 ---
 
 <button
@@ -27,5 +26,7 @@ import KbveProfile from './user/kbveProfile.astro';
 <div
 	class="z-50 hidden my-4 text-base list-none divide-y rounded-lg shadow bg-zinc-800 divide-zinc-600"
 	id="user-dropdown">
+
 	<slot />
+
 </div>

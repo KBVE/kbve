@@ -1,0 +1,2 @@
+/* cspell:disable */
+/* PUBLIC CONFIGURATIONS */
