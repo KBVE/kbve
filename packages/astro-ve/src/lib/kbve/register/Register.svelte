@@ -35,7 +35,6 @@
 	// Importing required modules and functions from relative paths and Svelte.
 	import * as kbve from '../../kbve'; // Importing custom module 'kbve'.
 	import * as storage from '../../storage'; // Importing custom module 'storage'.
-	import UiWidgetWrapper from './user/UIWidgetWrapper.svelte'; // Importing custom module UiWidgetWrapper
 
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte'; // Importing Svelte lifecycle and event functions.
 
@@ -47,6 +46,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Exporting variables and setting their initial values.
+	export let className: string = '';	// Exporting 'className', wrapping the section tag.
 	export let redirect: boolean = false; // Exporting 'redirect', initially set to false.
 	export let sitekey: string = kbve.hcaptcha_site_key; // Exporting 'sitekey', initially set from 'kbve' module.
 	export let apihost: string = kbve.hcaptcha_api; // Exporting 'apihost', initially set from 'kbve' module.
@@ -128,6 +128,12 @@
 		if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
 	});
 
+	//	Logic
+	const handleRegister = async () => {
+		// if (ValidInput()) _handleRegister();
+	};
+
+
 	// Reactive statement: Updates when 'mounted' and 'loaded' state changes.
 	$: if (mounted && loaded) {
 		widgetID = hcaptcha.render(`h-captcha-${id}`, {
@@ -174,12 +180,77 @@
 	{/if}
 </svelte:head>
 
-<UiWidgetWrapper
-	background="https://images.unsplash.com/photo-1527672809634-04ed36500acd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80">
-	<section class="">
-		<div
-			class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-			<a href="/#" class="flex items-center mb-6">Rent</a>
-		</div>
+	<section class={className}>
+		<form
+						class="space-y-4 md:space-y-6"
+						action="#"
+						on:submit|preventDefault={handleRegister}>
+						<div>
+							<label for="email" class="block mb-2 text-sm font-medium"
+								>Your email</label>
+							<input
+								type="email"
+								name="email"
+								id="email"
+								class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+								placeholder="name@company.com"
+								required
+								bind:value={email} />
+						</div>
+						<div>
+							<label for="username" class="block mb-2 text-sm font-medium"
+								>Your Username</label>
+							<input
+								type="text"
+								name="username"
+								id="username"
+								class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+								placeholder="Username-chan"
+								required
+								bind:value={username} />
+						</div>
+						<div>
+							<label for="password" class="block mb-2 text-sm font-medium"
+								>Password</label>
+							<input
+								type="password"
+								name="password"
+								id="password"
+								placeholder="••••••••"
+								class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+								required
+								bind:value={password} />
+						</div>
+						<div>
+							<label for="password" class="block mb-2 text-sm font-medium"
+								>Confirm Password</label>
+							<input
+								type="password"
+								name="confirm"
+								id="confirm"
+								placeholder="••••••••"
+								class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+								required
+								bind:value={confirm} />
+						</div>
+						<div id="h-captcha-{id}" class="flex justify-center" />
+						<div class="flex items-center justify-between">
+							<div class="flex items-start" />
+							<a
+								href="/account/recovery"
+								class="text-sm font-medium text-secondary hover:underline dark:text-primary-500"
+								>Forgot password?</a>
+						</div>
+						<button
+							type="submit"
+							class="w-full bg-secondary hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+							disabled={loading}
+							><span>{loading ? 'Loading' : 'Login'}</span></button>
+						<p class="text-sm font-light text-primary">
+							Have an account yet? <a
+								href="/account/login"
+								class="font-medium text-primary-600 hover:underline"
+								>Login!</a>
+						</p>
+					</form>
 	</section>
-</UiWidgetWrapper>

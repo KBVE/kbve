@@ -40,7 +40,7 @@ export const kbve$ = persistentMap<kbve.kbveLocker>("kbve:");    // Persistent m
 // Subscribing to toast atom changes and logging them.
 toast$.subscribe(toast => {
 	console.log(`[TOAST] -> ${toast}`)                            // Logging toast messages.
-    if (typeof Toastify === 'function') {
+    if (typeof Toastify === 'function' && typeof window !== 'undefined' && typeof document !== 'undefined') {
 
     Toastify({
         gravity: "bottom", // `top` or `bottom`
