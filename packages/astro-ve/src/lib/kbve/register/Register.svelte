@@ -21,6 +21,7 @@
 
 	// Declaring a global variable 'hcaptcha'. This is used to interact with the hCaptcha API.
 	declare var hcaptcha: any;
+	declare var Toastify: any;
 
 	// Exporting an enum 'CaptchaTheme' with two themes - DARK and LIGHT.
 	// These are used to set the visual theme of the captcha widget.
@@ -34,7 +35,7 @@
 	// [IMPORTS]
 	// Importing required modules and functions from relative paths and Svelte.
 	import * as kbve from '../../kbve'; // Importing custom module 'kbve'.
-	import * as storage from '../../storage'; // Importing custom module 'storage'.
+	import { notification, toast$ } from '../../storage'; // Importing custom module 'storage'.
 
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte'; // Importing Svelte lifecycle and event functions.
 
@@ -46,7 +47,8 @@
 	const dispatch = createEventDispatcher();
 
 	// Exporting variables and setting their initial values.
-	export let className: string = '';	// Exporting 'className', wrapping the section tag.
+	export let domain: string = ''; // Exporting 'domain'
+	export let className: string = ''; // Exporting 'className', wrapping the section tag.
 	export let redirect: boolean = false; // Exporting 'redirect', initially set to false.
 	export let sitekey: string = kbve.hcaptcha_site_key; // Exporting 'sitekey', initially set from 'kbve' module.
 	export let apihost: string = kbve.hcaptcha_api; // Exporting 'apihost', initially set from 'kbve' module.
@@ -64,6 +66,26 @@
 	export const execute = (options: any) => {
 		if (mounted && loaded && widgetID)
 			return hcaptcha.execute(widgetID, options); // Executes captcha with given options if conditions are met.
+	};
+
+	//	Defining the 'toast' function to manually trigger the toast.
+	export const toast = () => {
+		if (mounted && loaded) {
+			new Toastify({
+				text: $toast$,
+				duration: 3000,
+				destination: '#',
+				newWindow: false,
+				close: true,
+				gravity: 'top', // `top` or `bottom`
+				position: 'right', // `left`, `center` or `right`
+				stopOnFocus: true, // Prevents dismissing of toast on hover
+				style: {
+					background: 'linear-gradient(to right, #FF8A4C, #8DA2FB)',
+				},
+				//onClick: function(){} // Callback after click
+			}).showToast();
+		}
 	};
 
 	// Generating a unique identifier for the captcha element.
@@ -128,11 +150,50 @@
 		if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
 	});
 
+	interface ValidationResult {
+		isValid: boolean;
+		error: string | null;
+	}
+
+	// Assuming reset, notification, and toast are defined globally or imported
+	async function validateField(
+		validator: (value: string) => Promise<ValidationResult>,
+		value: string,
+	): Promise<boolean> {
+		try {
+			const { isValid, error } = await validator(value);
+			if (!isValid) {
+				reset();
+				if (error) {
+					notification(error);
+					toast();
+				}
+				return false;
+			}
+			return true;
+		} catch (e) {
+			reset();
+			console.error(e);
+			return false;
+		}
+	}
 	//	Logic
 	const handleRegister = async () => {
-		// if (ValidInput()) _handleRegister();
-	};
+		const isUsernameValid = await validateField(
+			kbve.checkUsername,
+			username,
+		);
+		if (!isUsernameValid) return;
 
+		const isEmailValid = await validateField(kbve.checkEmail, email);
+		if (!isEmailValid) return;
+
+		const isPasswordValid = await validateField(
+			kbve.checkPassword,
+			password,
+		);
+		if (!isPasswordValid) return;
+	};
 
 	// Reactive statement: Updates when 'mounted' and 'loaded' state changes.
 	$: if (mounted && loaded) {
@@ -168,7 +229,6 @@
 		<!-- Conditional rendering: -->
 		<!-- Checks if 'mounted' is true and 'hcaptcha' is not already present on the window object. -->
 		<!-- This prevents the script from being loaded multiple times. -->
-
 		<!-- This prevents the script from being loaded multiple times. -->
 		<!-- This prevents the script from being loaded multiple times. -->
 		<!-- This prevents the script from being loaded multiple times. -->
@@ -180,77 +240,84 @@
 	{/if}
 </svelte:head>
 
-	<section class={className}>
-		<form
-						class="space-y-4 md:space-y-6"
-						action="#"
-						on:submit|preventDefault={handleRegister}>
-						<div>
-							<label for="email" class="block mb-2 text-sm font-medium"
-								>Your email</label>
-							<input
-								type="email"
-								name="email"
-								id="email"
-								class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-								placeholder="name@company.com"
-								required
-								bind:value={email} />
-						</div>
-						<div>
-							<label for="username" class="block mb-2 text-sm font-medium"
-								>Your Username</label>
-							<input
-								type="text"
-								name="username"
-								id="username"
-								class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-								placeholder="Username-chan"
-								required
-								bind:value={username} />
-						</div>
-						<div>
-							<label for="password" class="block mb-2 text-sm font-medium"
-								>Password</label>
-							<input
-								type="password"
-								name="password"
-								id="password"
-								placeholder="••••••••"
-								class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-								required
-								bind:value={password} />
-						</div>
-						<div>
-							<label for="password" class="block mb-2 text-sm font-medium"
-								>Confirm Password</label>
-							<input
-								type="password"
-								name="confirm"
-								id="confirm"
-								placeholder="••••••••"
-								class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-								required
-								bind:value={confirm} />
-						</div>
-						<div id="h-captcha-{id}" class="flex justify-center" />
-						<div class="flex items-center justify-between">
-							<div class="flex items-start" />
-							<a
-								href="/account/recovery"
-								class="text-sm font-medium text-secondary hover:underline dark:text-primary-500"
-								>Forgot password?</a>
-						</div>
-						<button
-							type="submit"
-							class="w-full bg-secondary hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-							disabled={loading}
-							><span>{loading ? 'Loading' : 'Login'}</span></button>
-						<p class="text-sm font-light text-primary">
-							Have an account yet? <a
-								href="/account/login"
-								class="font-medium text-primary-600 hover:underline"
-								>Login!</a>
-						</p>
-					</form>
-	</section>
+<section class={className}>
+	<form
+		class="space-y-4 md:space-y-6"
+		action="#"
+		on:submit|preventDefault={handleRegister}>
+		<div>
+			<label for="email" class="block mb-2 text-sm font-medium">
+				Your email
+			</label>
+			<input
+				type="email"
+				name="email"
+				id="email"
+				class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+				placeholder="name@company.com"
+				required
+				bind:value={email} />
+		</div>
+		<div>
+			<label for="username" class="block mb-2 text-sm font-medium">
+				Your Username
+			</label>
+			<input
+				type="text"
+				name="username"
+				id="username"
+				class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+				placeholder="Username-chan"
+				required
+				bind:value={username} />
+		</div>
+		<div>
+			<label for="password" class="block mb-2 text-sm font-medium">
+				Password
+			</label>
+			<input
+				type="password"
+				name="password"
+				id="password"
+				placeholder="••••••••"
+				class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+				required
+				bind:value={password} />
+		</div>
+		<div>
+			<label for="password" class="block mb-2 text-sm font-medium">
+				Confirm Password
+			</label>
+			<input
+				type="password"
+				name="confirm"
+				id="confirm"
+				placeholder="••••••••"
+				class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+				required
+				bind:value={confirm} />
+		</div>
+		<div id="h-captcha-{id}" class="flex justify-center" />
+		<div class="flex items-center justify-between">
+			<div class="flex items-start" />
+			<a
+				href="/account/recovery"
+				class="text-sm font-medium text-kbve-primary-light hover:underline">
+				Forgot password?
+			</a>
+		</div>
+		<button
+			type="submit"
+			class="w-full bg-offset/[.75] hover:bg-offset focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+			disabled={loading}>
+			<span>{loading ? 'Loading' : 'Register'}</span>
+		</button>
+		<p class="text-sm font-light">
+			Have an account yet? <a
+				href="/account/login"
+				class="font-medium hover:underline">
+				Login!
+			</a>
+		</p>
+	</form>
+</section>
