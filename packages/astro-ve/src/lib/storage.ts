@@ -1,7 +1,10 @@
+
 // Importing required modules and functions.
 import { atom, WritableAtom, task, keepMount } from "nanostores"; // Importing from 'nanostores' for state management.
 import { persistentMap } from "@nanostores/persistent";           // Importing 'persistentMap' for persistent state management.
 import * as kbve from "./kbve";                                  // Importing from the 'kbve' module.
+import Toastify from 'toastify-js'
+
 
 //? [DATA]->@core
 // Defining core data atoms for application state management.
@@ -32,9 +35,27 @@ export const kbve$ = persistentMap<kbve.kbveLocker>("kbve:");    // Persistent m
 //* [FUNCTIONS]
 // Defining various functions for application state and side effects.
 
+
+
 // Subscribing to toast atom changes and logging them.
 toast$.subscribe(toast => {
 	console.log(`[TOAST] -> ${toast}`)                            // Logging toast messages.
+    if (typeof Toastify === 'function') {
+
+    Toastify({
+        gravity: "bottom", // `top` or `bottom`
+        position: "right", // `left`, `center` or `right`
+        text: toast,
+
+        duration: 5000,
+        stopOnFocus: true,
+        style: {
+            background: "linear-gradient(to right, #00b09b, #96c93d)",
+          },        
+        }).showToast();
+    } else {
+        console.error("Toastify is not loaded.");
+    }
 });
 
 // Function to log messages.
