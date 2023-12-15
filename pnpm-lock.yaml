@@ -160,6 +160,9 @@ devDependencies:
   '@types/styled-components':
     specifier: 5.1.26
     version: 5.1.26
+  '@types/toastify-js':
+    specifier: ^1.12.3
+    version: 1.12.3
   '@typescript-eslint/eslint-plugin':
     specifier: 6.11.0
     version: 6.11.0(@typescript-eslint/parser@6.11.0)(eslint@8.46.0)(typescript@5.2.2)
@@ -262,6 +265,9 @@ devDependencies:
   tailwindcss:
     specifier: ^3.3.3
     version: 3.3.3(ts-node@10.9.1)
+  toastify-js:
+    specifier: ^1.12.0
+    version: 1.12.0
   ts-jest:
     specifier: ^29.1.0
     version: 29.1.1(@babel/core@7.23.0)(esbuild@0.19.5)(jest@29.7.0)(typescript@5.2.2)
@@ -5512,6 +5518,10 @@ packages:
       '@types/hoist-non-react-statics': 3.3.2
       '@types/react': 18.2.24
       csstype: 3.1.2
+    dev: true
+
+  /@types/toastify-js@1.12.3:
+    resolution: {integrity: sha512-9RjLlbAHMSaae/KZNHGv19VG4gcLIm3YjvacCXBtfMfYn26h76YP5oxXI8k26q4iKXCB9LNfv18lsoS0JnFPTg==}
     dev: true
 
   /@types/unist@2.0.8:
@@ -15010,6 +15020,10 @@ packages:
     engines: {node: '>=8.0'}
     dependencies:
       is-number: 7.0.0
+    dev: true
+
+  /toastify-js@1.12.0:
+    resolution: {integrity: sha512-HeMHCO9yLPvP9k0apGSdPUWrUbLnxUKNFzgUoZp1PHCLploIX/4DSQ7V8H25ef+h4iO9n0he7ImfcndnN6nDrQ==}
     dev: true
 
   /toidentifier@1.0.1:

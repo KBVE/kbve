@@ -5,6 +5,7 @@ export interface Props {
 	avatar?: string;
 }
 const { widget, data, avatar } = Astro.props;
+import UserMenu from './UserMenu.svelte';
 ---
 
 <button
@@ -27,6 +28,7 @@ const { widget, data, avatar } = Astro.props;
 	class="z-50 hidden my-4 text-base list-none divide-y rounded-lg shadow bg-zinc-800 divide-zinc-600"
 	id="user-dropdown">
 
+	<UserMenu client:only="svelte" />
 	<slot />
 
 </div>
