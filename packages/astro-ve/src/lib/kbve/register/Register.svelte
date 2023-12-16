@@ -193,6 +193,18 @@
 			password,
 		);
 		if (!isPasswordValid) return;
+
+		if(password !== confirm)
+		{
+			reset();
+			notification('Passwords do not match!');
+			toast();
+			return;
+		}
+
+		
+
+		console.log(captchaToken);
 	};
 
 	// Reactive statement: Updates when 'mounted' and 'loaded' state changes.
@@ -229,9 +241,7 @@
 		<!-- Conditional rendering: -->
 		<!-- Checks if 'mounted' is true and 'hcaptcha' is not already present on the window object. -->
 		<!-- This prevents the script from being loaded multiple times. -->
-		<!-- This prevents the script from being loaded multiple times. -->
-		<!-- This prevents the script from being loaded multiple times. -->
-		<!-- This prevents the script from being loaded multiple times. -->
+
 		<script src={scriptSrc} async defer></script>
 		<!-- Injecting the hCaptcha script tag into the head of the document. -->
 		<!-- 'scriptSrc' is the source URL of the hCaptcha script, constructed earlier in the component. -->
