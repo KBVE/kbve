@@ -418,3 +418,65 @@ export async function spear(
         );
     }
 }
+
+
+/**
+ * Registers a new user by sending their details to a registration API.
+ * This function takes four parameters: username, email, password, and captcha.
+ * It constructs a data object from these parameters and sends a POST request
+ * to the specified registration URL. An additional custom header 'x-kbve-shieldwall'
+ * is included in the request. The function relies on a `spear` function (assumed to be defined elsewhere)
+ * to actually send the request and handle the response.
+ * 
+ * @param username - The username of the new user.
+ * @param email - The email address of the new user.
+ * @param password - The password chosen by the new user.
+ * @param captcha - The captcha response to verify the user is not a bot.
+ * @returns A promise that resolves to the response from the registration API.
+ */
+export async function registerUser(
+    username: string, 
+    email: string, 
+    password: string, 
+    captcha: string
+): Promise<InternalResponseHandler> {
+    const url = 'https://rust.kbve.com/api/v1/auth/register';
+    const data = {
+        username,
+        email,
+        password,
+        captcha
+    };
+    const headers = {
+        'x-kbve-shieldwall': 'auth-register'
+    };
+
+    return spear(url, data, headers);
+}
+
+/**
+ * Logs in a user by sending their email and password to a login API.
+ * This function takes two parameters: email and password. It constructs a data object
+ * from these parameters and sends a POST request to the specified login URL.
+ * The function uses a `spear` function (assumed to be defined elsewhere) to send the request
+ * and handle the response. While no additional headers are set in this function, the structure
+ * allows for easy inclusion of such headers if needed in the future.
+ * 
+ * @param email - The email address of the user attempting to log in.
+ * @param password - The password of the user attempting to log in.
+ * @returns A promise that resolves to the response from the login API.
+ */
+export async function loginUser(
+    email: string, 
+    password: string
+): Promise<InternalResponseHandler> {
+    const url = 'https://rust.kbve.com/api/v1/auth/login';
+    const data = {
+        email,
+        password
+    };
+    // Use appropriate headers if needed
+    const headers = {};
+
+    return spear(url, data, headers);
+}
