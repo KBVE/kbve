@@ -3,7 +3,7 @@
 import { atom, WritableAtom, task, keepMount } from "nanostores"; // Importing from 'nanostores' for state management.
 import { persistentMap } from "@nanostores/persistent";           // Importing 'persistentMap' for persistent state management.
 import * as kbve from "./kbve";                                  // Importing from the 'kbve' module.
-import Toastify from 'toastify-js'
+// import Toastify from 'toastify-js'
 
 
 //? [DATA]->@core
@@ -40,22 +40,20 @@ export const kbve$ = persistentMap<kbve.kbveLocker>("kbve:");    // Persistent m
 // Subscribing to toast atom changes and logging them.
 toast$.subscribe(toast => {
 	console.log(`[TOAST] -> ${toast}`)                            // Logging toast messages.
-    if (typeof Toastify === 'function' && typeof window !== 'undefined' && typeof document !== 'undefined') {
+    // if (typeof Toastify === 'function' && toast && typeof window !== 'undefined' && typeof document !== 'undefined') {
 
-    Toastify({
-        gravity: "bottom", // `top` or `bottom`
-        position: "right", // `left`, `center` or `right`
-        text: toast,
+    // Toastify({
+    //     gravity: "bottom", // `top` or `bottom`
+    //     position: "right", // `left`, `center` or `right`
+    //     text: toast,
 
-        duration: 5000,
-        stopOnFocus: true,
-        style: {
-            background: "linear-gradient(to right, #00b09b, #96c93d)",
-          },        
-        }).showToast();
-    } else {
-        console.error("Toastify is not loaded.");
-    }
+    //     duration: 5000,
+    //     stopOnFocus: true,
+    //     style: {
+    //         background: "linear-gradient(to right, #00b09b, #96c93d)",
+    //       },        
+    //     }).showToast();
+    // }
 });
 
 // Function to log messages.
