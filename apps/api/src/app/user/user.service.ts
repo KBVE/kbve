@@ -15,7 +15,6 @@ export class UserService {
 			reputation: users.reputation,
 			exp: users.exp,
 			role: users.role,
-			created: users.createdAt,
 		})
 		.from(users)
 		.where(eq(users.username, sql.placeholder('username')))

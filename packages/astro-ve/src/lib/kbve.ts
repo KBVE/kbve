@@ -21,7 +21,7 @@ export type kbveLocker = {
 };
 
 // Exporting a constant 'kbve_v01d' representing a version or an identifier.
-export const kbve_v01d: string = '1';
+export const kbve_v01d: string = '/api/v1/';
 
 /* hCaptcha */
 // Section for hCaptcha configuration constants.
@@ -36,8 +36,8 @@ export const hcaptcha_api: string = 'https://js.hcaptcha.com/1/api.js';
 
 // Exporting API endpoints for authentication.
 // These are the server endpoints for registering and logging in users.
-export const auth_register: string = '/api/v1/auth/register'; // Endpoint for user registration.
-export const auth_login: string = '/api/v1/auth/login'; // Endpoint for user login.
+export const auth_register: string = 'auth/register'; // Endpoint for user registration.
+export const auth_login: string = 'auth/login'; // Endpoint for user login.
 
 // ? Interface
 
@@ -385,7 +385,7 @@ export async function checkPassword(password: string) {
 
 export async function spear(
     url: string, 
-    data: Record<string, any>, 
+    data: any, 
     headers: Record<string, string>
 ): Promise<InternalResponseHandler> {
     try {
@@ -421,13 +421,14 @@ export async function spear(
 
 
 /**
- * Registers a new user by sending their details to a registration API.
- * This function takes four parameters: username, email, password, and captcha.
- * It constructs a data object from these parameters and sends a POST request
- * to the specified registration URL. An additional custom header 'x-kbve-shieldwall'
- * is included in the request. The function relies on a `spear` function (assumed to be defined elsewhere)
- * to actually send the request and handle the response.
+ * Registers a new user by sending their details to a dynamically constructed registration API URL.
+ * This function takes five parameters: an endpoint URL, username, email, password, and captcha.
+ * It constructs the full API URL by concatenating the endpoint with predefined path segments.
+ * A data object is constructed from the username, email, password, and captcha, and a POST request
+ * is sent to the constructed URL. An additional custom header 'x-kbve-shieldwall' is included in the request.
+ * The function relies on a `spear` function (assumed to be defined elsewhere) to send the request and handle the response.
  * 
+ * @param endpoint - The base URL of the API (e.g., 'https://rust.kbve.com' or 'https://api.herbmail.com').
  * @param username - The username of the new user.
  * @param email - The email address of the new user.
  * @param password - The password chosen by the new user.
@@ -435,12 +436,14 @@ export async function spear(
  * @returns A promise that resolves to the response from the registration API.
  */
 export async function registerUser(
+    endpoint: string,
     username: string, 
     email: string, 
     password: string, 
     captcha: string
 ): Promise<InternalResponseHandler> {
-    const url = 'https://rust.kbve.com/api/v1/auth/register';
+    // Construct the full URL using the endpoint and predefined path segments
+    const url = `${endpoint}${kbve_v01d}${auth_register}`;
     const data = {
         username,
         email,
@@ -455,22 +458,24 @@ export async function registerUser(
 }
 
 /**
- * Logs in a user by sending their email and password to a login API.
- * This function takes two parameters: email and password. It constructs a data object
- * from these parameters and sends a POST request to the specified login URL.
- * The function uses a `spear` function (assumed to be defined elsewhere) to send the request
- * and handle the response. While no additional headers are set in this function, the structure
- * allows for easy inclusion of such headers if needed in the future.
- * 
+ * Logs in a user by sending their email and password to a dynamically constructed login API URL.
+ * This function takes three parameters: an endpoint URL, email, and password. It constructs the full API URL
+ * by concatenating the endpoint with predefined path segments. It then constructs a data object
+ * from the email and password, and sends a POST request to the constructed URL.
+ * The `spear` function (assumed to be defined elsewhere) is used to send the request and handle the response.
+ *
+ * @param endpoint - The base URL of the API (e.g., 'https://rust.kbve.com' or 'https://api.herbmail.com').
  * @param email - The email address of the user attempting to log in.
  * @param password - The password of the user attempting to log in.
  * @returns A promise that resolves to the response from the login API.
  */
-export async function loginUser(
-    email: string, 
+async function loginUser(
+    endpoint: string,
+    email: string,
     password: string
 ): Promise<InternalResponseHandler> {
-    const url = 'https://rust.kbve.com/api/v1/auth/login';
+    // Construct the full URL using the endpoint and predefined path segments
+    const url = `${endpoint}${kbve_v01d}${auth_login}`;
     const data = {
         email,
         password
@@ -480,3 +485,4 @@ export async function loginUser(
 
     return spear(url, data, headers);
 }
+
