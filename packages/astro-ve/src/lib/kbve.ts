@@ -485,4 +485,3 @@ async function loginUser(
 
     return spear(url, data, headers);
 }
-
