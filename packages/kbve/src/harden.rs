@@ -210,7 +210,7 @@ pub async fn fallback(uri: Uri) -> impl IntoResponse {
 
 pub fn cors_service() -> CorsLayer {
 	let orgins = [
-		"https://hermail.com".parse::<HeaderValue>().unwrap(),
+		"https://herbmail.com".parse::<HeaderValue>().unwrap(),
 		"https://kbve.com".parse::<HeaderValue>().unwrap(),
 		"https://discord.sh".parse::<HeaderValue>().unwrap(),
 		"https://hoppscotch.io".parse::<HeaderValue>().unwrap(),
