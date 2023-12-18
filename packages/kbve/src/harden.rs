@@ -2,7 +2,7 @@ use tower_http::cors::CorsLayer;
 use axum::{
 	response::{ IntoResponse },
 	http::{
-		header::{ ACCEPT, AUTHORIZATION, CONTENT_TYPE },
+		header::{ ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderName },
 		HeaderValue,
 		StatusCode,
 		Method,
@@ -18,7 +18,7 @@ use uuid::Uuid;
 use num_bigint::{ BigUint };
 
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use serde::{ Deserialize, Serialize };
 
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -30,17 +30,17 @@ lazy_static! {
 		r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"
 	).unwrap();
 
-    pub static ref GITHUB_USERNAME_REGEX: Regex = Regex::new(
-        r"github\.com/([a-zA-Z0-9_-]+)"
-    ).unwrap();
+	pub static ref GITHUB_USERNAME_REGEX: Regex = Regex::new(
+		r"github\.com/([a-zA-Z0-9_-]+)"
+	).unwrap();
 
-    pub static ref INSTAGRAM_USERNAME_REGEX: Regex = Regex::new(
-        r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)"
-    ).unwrap();
+	pub static ref INSTAGRAM_USERNAME_REGEX: Regex = Regex::new(
+		r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)"
+	).unwrap();
 
-    pub static ref UNSPLASH_PHOTO_ID_REGEX: Regex = Regex::new(
-        r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)"
-    ).unwrap();
+	pub static ref UNSPLASH_PHOTO_ID_REGEX: Regex = Regex::new(
+		r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)"
+	).unwrap();
 }
 
 pub fn validate_password(password: &str) -> Result<(), &str> {
@@ -159,33 +159,37 @@ pub fn sanitize_path(input: &str) -> String {
 //  ?   [Regex] Extractions
 
 pub fn extract_instagram_username(url: &str) -> Option<String> {
-    INSTAGRAM_USERNAME_REGEX.captures(url).and_then(|cap| {
-        cap.get(1).map(|username| {
-            let username = username.as_str();
-            if username.contains("__") || username.contains("._") || username.contains("_.") {
-                None
-            } else {
-                Some(username.to_string())
-            }
-        })
-    }).flatten()
+	INSTAGRAM_USERNAME_REGEX.captures(url)
+		.and_then(|cap| {
+			cap.get(1).map(|username| {
+				let username = username.as_str();
+				if
+					username.contains("__") ||
+					username.contains("._") ||
+					username.contains("_.")
+				{
+					None
+				} else {
+					Some(username.to_string())
+				}
+			})
+		})
+		.flatten()
 }
 
 pub fn extract_github_username(url: &str) -> Option<String> {
-    GITHUB_USERNAME_REGEX.captures(url).and_then(|cap| {
-        cap.get(1).map(|username| username.as_str().to_string())
-    })
+	GITHUB_USERNAME_REGEX.captures(url).and_then(|cap| {
+		cap.get(1).map(|username| username.as_str().to_string())
+	})
 }
 
 pub fn extract_unsplash_photo_id(url: &str) -> Option<String> {
-    UNSPLASH_PHOTO_ID_REGEX.captures(url).and_then(|cap| {
-        cap.get(1).map(|match_| match_.as_str().to_string())
-    })
+	UNSPLASH_PHOTO_ID_REGEX.captures(url).and_then(|cap| {
+		cap.get(1).map(|match_| match_.as_str().to_string())
+	})
 }
 
-
 //	? - Convert
-
 
 pub fn uuid_to_biguint(uuid_str: &str) -> Result<BigUint, &'static str> {
 	let uuid = Uuid::from_str(uuid_str).map_err(|_| "Invalid UUID format")?;
@@ -217,34 +221,46 @@ pub fn cors_service() -> CorsLayer {
 		.allow_origin(orgins)
 		.allow_methods([Method::PUT, Method::GET, Method::DELETE, Method::POST])
 		.allow_credentials(true)
-		.allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE, "x-kbve-shieldwall", "x-kbve-api"])
+		.allow_headers([
+			AUTHORIZATION,
+			ACCEPT,
+			CONTENT_TYPE,
+			HeaderName::from_static("x-kbve-shieldwall"),
+			HeaderName::from_static("x-kbve-api"),
+		])
 }
 
 #[derive(Serialize, Deserialize)]
 struct CaptchaResponse {
-    success: bool,
+	success: bool,
 }
 
-pub async fn verify_captcha(captcha_token: &str) -> Result<bool, Box<dyn std::error::Error>> {
-
+pub async fn verify_captcha(
+	captcha_token: &str
+) -> Result<bool, Box<dyn std::error::Error>> {
 	let secret = match crate::wh::GLOBAL.get() {
-		Some(global_map) => match global_map.get("hcaptcha") {
-			Some(value) => value.value().clone(),
-			None => return Err("missing_captcha".into()),
-		},
-		None => return Err("invalid_global_map".into()),
+		Some(global_map) =>
+			match global_map.get("hcaptcha") {
+				Some(value) => value.value().clone(),
+				None => {
+					return Err("missing_captcha".into());
+				}
+			}
+		None => {
+			return Err("invalid_global_map".into());
+		}
 	};
 
 	let client = Client::new();
-    let mut params = HashMap::new();
-    params.insert("response", captcha_token);
-    params.insert("secret", secret.as_str());
+	let mut params = HashMap::new();
+	params.insert("response", captcha_token);
+	params.insert("secret", secret.as_str());
 
-    let res = client.post("https://api.hcaptcha.com/siteverify")
-        .form(&params)
-        .send()
-        .await?;
+	let res = client
+		.post("https://api.hcaptcha.com/siteverify")
+		.form(&params)
+		.send().await?;
 
-    let captcha_response: CaptchaResponse = res.json().await?;
-    Ok(captcha_response.success)
+	let captcha_response: CaptchaResponse = res.json().await?;
+	Ok(captcha_response.success)
 }
