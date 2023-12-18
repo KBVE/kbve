@@ -38,6 +38,7 @@ export const hcaptcha_api: string = 'https://js.hcaptcha.com/1/api.js';
 // These are the server endpoints for registering and logging in users.
 export const auth_register: string = 'auth/register'; // Endpoint for user registration.
 export const auth_login: string = 'auth/login'; // Endpoint for user login.
+export const auth_logout: string = 'auth/logout'; // Endpoint for user logout.
 
 // ? Interface
 
@@ -421,6 +422,58 @@ export async function spear(
 
 
 /**
+ * Sends a GET request to a specified URL with the given query parameters and headers.
+ * It uses the JavaScript Fetch API to perform the HTTP GET request. The function accepts three parameters:
+ * the URL to which the request is sent, the data to be sent as part of the query string, and any additional headers.
+ * The data object is converted into a query string. The function handles the response by creating an instance of
+ * `InternalResponseHandler`, which standardizes the response format, whether it's a successful response or an error.
+ * In case of a network or other request-related error, the function catches the error and returns an error response.
+ * 
+ * @param url - The base URL to which the GET request is sent.
+ * @param data - The data object to be sent, which is converted to a query string.
+ * @param headers - Additional headers to be sent with the request.
+ * @returns A promise that resolves to an instance of InternalResponseHandler, representing the response.
+ */
+export async function helmet(
+    url: string, 
+    data: Record<string, any>, 
+    headers: Record<string, string>
+): Promise<InternalResponseHandler> {
+    try {
+        // Convert data object to query string
+        const queryString = new URLSearchParams(data).toString();
+        const fullUrl = `${url}?${queryString}`;
+
+        // Initiating a GET request using the fetch API
+        const response = await fetch(fullUrl, {
+            method: 'GET', // Setting the method as GET
+            headers: {
+                ...headers // Spreading any additional headers passed to the function
+            }
+        });
+
+        // Parsing the JSON response body
+        const responseData = await response.json();
+        // Creating a new instance of InternalResponseHandler with the response details
+        return new InternalResponseHandler(
+            response.status, // HTTP status code of the response
+            responseData.message || (response.ok ? 'Success' : 'Error'), // Response message or default based on HTTP status
+            responseData.data || {} // Response data or an empty object if none
+        );
+    } catch (error) {
+        // Catching and logging any errors that occur during the fetch request
+        console.error('Request failed:', error);
+        // Returning an InternalResponseHandler instance for the error case
+        return new InternalResponseHandler(
+            500, // HTTP status code for internal server error
+            'Internal Server Error: Request failed', // Error message
+            {} // Empty object for data
+        );
+    }
+}
+
+
+/**
  * Registers a new user by sending their details to a dynamically constructed registration API URL.
  * This function takes five parameters: an endpoint URL, username, email, password, and captcha.
  * It constructs the full API URL by concatenating the endpoint with predefined path segments.
@@ -469,7 +522,7 @@ export async function registerUser(
  * @param password - The password of the user attempting to log in.
  * @returns A promise that resolves to the response from the login API.
  */
-async function loginUser(
+export async function loginUser(
     endpoint: string,
     email: string,
     password: string
@@ -481,7 +534,9 @@ async function loginUser(
         password
     };
     // Use appropriate headers if needed
-    const headers = {};
+    const headers = {
+		'x-kbve-shieldwall': 'auth-login'
+	};
 
     return spear(url, data, headers);
 }
