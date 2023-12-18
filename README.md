@@ -16,17 +16,21 @@ This monorepo is the heart of all our applications, making it easier to manage.
 
 ## CRAP STACK
 
-C for C
+- C for C
   - C#
-  - Unity
-R for Rust
-  - Flutter with Rust Bindings
-  - Node with NAPI
-A for Astro
+  - Unity , with Rust Bindings through Interoptopus
+
+- R for Rust
+  - This includes Flutter with Rust Bindings
+
+- A for Astro
   - Javascript / Typescript
   - React
   - Svelte
-P for Python
+  - NAPI for Rust Bindings
+
+- P for Python
+  - Polyglot of Python through Pyo3 and Interoptopus
 
 * * *
 
