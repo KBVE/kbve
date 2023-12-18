@@ -83,6 +83,17 @@ class InternalResponseHandler implements InternalResponse {
 		);
 	}
 
+    // Method to return a string representation of the data property
+    scope(): string {
+        try {
+            return JSON.stringify(this.data);
+        } catch (e) {
+            console.error('Parsing error:', e); // Log parsing errors
+            // Return a default error message if parsing fails
+            return 'Error: Unable to parse data';
+        }
+    }
+
 	// Method to serialize the response object into a JSON string.
 	async serialize(): Promise<string> {
 		try {
@@ -403,11 +414,12 @@ export async function spear(
         // Parsing the JSON response body
         const responseData = await response.json();
         // Creating a new instance of InternalResponseHandler with the response details
-        return new InternalResponseHandler(
-            response.status, // HTTP status code of the response
-            responseData.message || (response.ok ? 'Success' : 'Error'), // Response message or default based on HTTP status
-            responseData.data || {} // Response data or an empty object if none
-        );
+        const message = responseData.message || (response.ok ? 'Success' : 'Error');
+        const error = !response.ok;
+        const dataField = error && responseData.error ? { error: responseData.error } : responseData;
+
+        return new InternalResponseHandler(response.status, message, dataField);
+
     } catch (error) {
         // Catching and logging any errors that occur during the fetch request
         console.error('Request failed:', error);
@@ -501,7 +513,7 @@ export async function registerUser(
         username,
         email,
         password,
-        captcha
+        token: captcha
     };
     const headers = {
         'x-kbve-shieldwall': 'auth-register'
