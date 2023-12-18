@@ -39,6 +39,7 @@ export const hcaptcha_api: string = 'https://js.hcaptcha.com/1/api.js';
 export const auth_register: string = 'auth/register'; // Endpoint for user registration.
 export const auth_login: string = 'auth/login'; // Endpoint for user login.
 export const auth_logout: string = 'auth/logout'; // Endpoint for user logout.
+export const auth_profile: string = 'auth/profile'; // Endpoint for the user profile.
 
 // ? Interface
 
@@ -408,7 +409,8 @@ export async function spear(
                 'Content-Type': 'application/json', // Setting content type header to JSON
                 ...headers // Spreading any additional headers passed to the function
             },
-            body: JSON.stringify(data) // Serializing the data object to a JSON string
+            body: JSON.stringify(data), // Serializing the data object to a JSON string
+            credentials: 'include'
         });
 
         // Parsing the JSON response body
@@ -461,7 +463,8 @@ export async function helmet(
             method: 'GET', // Setting the method as GET
             headers: {
                 ...headers // Spreading any additional headers passed to the function
-            }
+            },
+            credentials: 'include'
         });
 
         // Parsing the JSON response body
@@ -574,4 +577,22 @@ export async function logoutUser(endpoint: string): Promise<InternalResponseHand
 
     // Since logout might not require sending data, we send an empty object
     return helmet(url, {}, headers);
+}
+
+/**
+ * TODO: Profile
+ * 
+ */
+
+export async function profile(endpoint: string): Promise<InternalResponseHandler> {
+    // Construct the full URL using the endpoint and predefined path segments
+    const url = `${endpoint}${kbve_v01d}${auth_profile}`;
+
+    // Define the headers or any other configurations if needed
+    const headers = {
+		'x-kbve-shieldwall': 'auth-profile'
+	};
+
+    return helmet(url, {}, headers);
+
 }
