@@ -211,7 +211,7 @@
 
 		if (taskRegister.error) {
 			reset();
-			notification(taskRegister.message);
+			notification(taskRegister.scope());
 			toast();
 			return;
 		}
