@@ -540,3 +540,26 @@ export async function loginUser(
 
     return spear(url, data, headers);
 }
+
+/**
+ * Logs out a user by sending a GET request to a dynamically constructed logout API URL.
+ * This function takes one parameter: the endpoint URL. It constructs the full API URL
+ * by concatenating the endpoint with predefined path segments. The function then sends a GET request
+ * to the constructed URL using the `helmet` function (assumed to be defined elsewhere).
+ * The `helmet` function handles the request and the response.
+ *
+ * @param endpoint - The base URL of the API (e.g., 'https://rust.kbve.com' or 'https://api.herbmail.com').
+ * @returns A promise that resolves to the response from the logout API.
+ */
+export async function logoutUser(endpoint: string): Promise<InternalResponseHandler> {
+    // Construct the full URL using the endpoint and predefined path segments
+    const url = `${endpoint}${kbve_v01d}${auth_logout}`;
+
+    // Define the headers or any other configurations if needed
+    const headers = {
+		'x-kbve-shieldwall': 'auth-logout'
+	};
+
+    // Since logout might not require sending data, we send an empty object
+    return helmet(url, {}, headers);
+}
