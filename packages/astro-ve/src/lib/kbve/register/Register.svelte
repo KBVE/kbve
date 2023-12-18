@@ -194,17 +194,33 @@
 		);
 		if (!isPasswordValid) return;
 
-		if(password !== confirm)
-		{
+		if (password !== confirm) {
 			reset();
 			notification('Passwords do not match!');
 			toast();
 			return;
 		}
 
-		
+		const taskRegister = await kbve.registerUser(
+			'https://rust.kbve.com',
+			username,
+			email,
+			password,
+			captchaToken,
+		);
 
-		console.log(captchaToken);
+		if (taskRegister.error) {
+			reset();
+			notification(taskRegister.message);
+			toast();
+			return;
+		}
+		else {
+			notification('Registeration was successful!');
+			toast();
+		}
+
+		console.log('Register task EoL');
 	};
 
 	// Reactive statement: Updates when 'mounted' and 'loaded' state changes.
@@ -242,6 +258,7 @@
 		<!-- Checks if 'mounted' is true and 'hcaptcha' is not already present on the window object. -->
 		<!-- This prevents the script from being loaded multiple times. -->
 
+		<!-- This prevents the script from being loaded multiple times. -->
 		<script src={scriptSrc} async defer></script>
 		<!-- Injecting the hCaptcha script tag into the head of the document. -->
 		<!-- 'scriptSrc' is the source URL of the hCaptcha script, constructed earlier in the component. -->

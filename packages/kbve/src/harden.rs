@@ -217,7 +217,7 @@ pub fn cors_service() -> CorsLayer {
 		.allow_origin(orgins)
 		.allow_methods([Method::PUT, Method::GET, Method::DELETE, Method::POST])
 		.allow_credentials(true)
-		.allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE])
+		.allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE, "x-kbve-shieldwall", "x-kbve-api"])
 }
 
 #[derive(Serialize, Deserialize)]
