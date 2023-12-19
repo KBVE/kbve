@@ -201,8 +201,9 @@
 			return;
 		}
 
+
 		const taskRegister = await kbve.registerUser(
-			'https://rust.kbve.com',
+			domain,
 			username,
 			email,
 			password,

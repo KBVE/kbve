@@ -121,7 +121,7 @@
 		if (!isPasswordValid) return;
 
 		const taskLogin = await kbve.loginUser(
-            'https://rust.kbve.com',
+            domain,
             email,
             password
         );
