@@ -10,6 +10,8 @@
 </script>
 
 <script lang="ts">
+	import { task } from 'nanostores';
+
 	//  [IMPORTS]
 	// Importing required modules and functions from relative paths and Svelte.
 	import * as kbve from '../../kbve'; // Importing custom module 'kbve'.
@@ -23,6 +25,29 @@
 
 	//  Creating an event dispatcher to handle custom events.
 	const dispatch = createEventDispatcher();
+
+	export const reset = () => {
+        loading = false;
+    };
+
+	export const toast = () => {
+		if (mounted && loaded) {
+			new Toastify({
+				text: $toast$,
+				duration: 3000,
+				destination: '#',
+				newWindow: false,
+				close: true,
+				gravity: 'top', // `top` or `bottom`
+				position: 'right', // `left`, `center` or `right`
+				stopOnFocus: true, // Prevents dismissing of toast on hover
+				style: {
+					background: 'linear-gradient(to right, #FF8A4C, #8DA2FB)',
+				},
+				//onClick: function(){} // Callback after click
+			}).showToast();
+		}
+	};
 
 	//  Exporting variables
 	export let domain: string = ''; // Exporting 'domain' , this will be used to build the endpoint.
@@ -51,16 +76,67 @@
 		if (skeleton) skeleton.remove();
 	}
 
+	//  Interface
+
+	interface ValidationResult {
+		isValid: boolean;
+		error: string | null;
+	}
+
+	// Assuming reset, notification, and toast are defined globally or imported
+	async function validateField(
+		validator: (value: string) => Promise<ValidationResult>,
+		value: string,
+	): Promise<boolean> {
+		try {
+			const { isValid, error } = await validator(value);
+			if (!isValid) {
+				reset();
+				if (error) {
+					notification(error);
+					toast();
+				}
+				return false;
+			}
+			return true;
+		} catch (e) {
+			reset();
+			console.error(e);
+			return false;
+		}
+	}
+
 	//  TODO: Login Script
 
 	const handleLogin = async () => {
 		loading = true;
 
-		// Check if Email is Valid
+		const isEmailValid = await validateField(kbve.checkEmail, email);
+		if (!isEmailValid) return;
 
-		// Check validation of Password
+        const isPasswordValid = await validateField(
+			kbve.checkPassword,
+			password,
+		);
+		if (!isPasswordValid) return;
 
-		// Then Pass the login information to the kbve.loginUser function
+		const taskLogin = await kbve.loginUser(
+            'https://rust.kbve.com',
+            email,
+            password
+        );
+
+        if(taskLogin.error) {
+            reset();
+            notification(taskLogin.scope());
+            toast();
+            return;
+        }
+        else {
+            notification('Login was successful!');
+            toast();
+            loading = false;
+        }
 
 		loading = false;
 	};
