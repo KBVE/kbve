@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //  * [MODS]
 pub mod db;
 pub mod models;

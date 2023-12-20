@@ -9,7 +9,7 @@ use axum::{
 	response::{ Json, IntoResponse, Response },
 };
 use serde::{ Serialize, Deserialize };
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use dashmap::DashMap;
 
@@ -128,36 +128,34 @@ macro_rules! get_global_value {
 
 //  ?   [MAPS]
 
-//  !   Remove lazy_static! and migrate into a OnceLock/OnceCell.
+pub static RESPONSE_MESSAGES: Lazy<HashMap<&'static str, (StatusCode, &'static str)>> = Lazy::new(|| {
+	let mut m = HashMap::new();
+	m.insert("invalid_global_map", (StatusCode::INTERNAL_SERVER_ERROR, "Global Map was not set!"));
+	m.insert("invalid_jwt", (StatusCode::INTERNAL_SERVER_ERROR, "JWT Secret was not set!"));
+	m.insert("debug_login_works", (StatusCode::OK, "Login was successful!"));
+	m.insert("fetch_route_fail", (StatusCode::BAD_REQUEST, "There was an error fetching the data!"));
+	m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
+	m.insert("uuid_convert_failed",  (StatusCode::BAD_REQUEST, "There was an error converting the UUID!"));
+	m.insert("task_account_init_fail",  (StatusCode::BAD_REQUEST, "There was an error creating the account"));
+	m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
+	m.insert("username_taken", (StatusCode::BAD_REQUEST, "Username was taken!"));
+	m.insert("user_register_fail",(StatusCode::BAD_REQUEST, "During the user creation, there was a failure!"));
+	m.insert("auth_insert_fail", (StatusCode::BAD_REQUEST, "During the auth creation, there was a failure!"));
+	m.insert("profile_insert_fail", (StatusCode::BAD_REQUEST, "During the profile creation, there was a failure!"));
+	m.insert("invalid_password",(StatusCode::BAD_REQUEST, "Password was too short or must include  uppercase, lowercase, digits, and special characters"));
+	m.insert("invalid_email", (StatusCode::BAD_REQUEST, "Email is invalid or not safe!"));
+	m.insert("invalid_username", (StatusCode::BAD_REQUEST, "Username is invalid or not safe!"));
+	m.insert("username_not_found", (StatusCode::BAD_REQUEST, "Username was not found!"));
+	m.insert("database_error", (StatusCode::INTERNAL_SERVER_ERROR, "Database error from the pool within PlayerDB Module!"));
+	m.insert("email_already_in_use", (StatusCode::INTERNAL_SERVER_ERROR, "Email is already in our database as a member!"));
+	m.insert("valid_guest_email", (StatusCode::OK, "Email is valid but not in the database"));
+	m.insert("json_failure", (StatusCode::INTERNAL_SERVER_ERROR, "Json Failure! :C"));
+	m
+});
 
-lazy_static! {
-    pub static ref RESPONSE_MESSAGES: HashMap<&'static str, (StatusCode, &'static str)> = {
-        let mut m = HashMap::new();
-        m.insert("invalid_global_map", (StatusCode::INTERNAL_SERVER_ERROR, "Global Map was not set!"));
-        m.insert("invalid_jwt", (StatusCode::INTERNAL_SERVER_ERROR, "JWT Secret was not set!"));
-        m.insert("debug_login_works", (StatusCode::OK, "Login was successful!"));
-        m.insert("fetch_route_fail", (StatusCode::BAD_REQUEST, "There was an error fetching the data!"));
-        m.insert("success_account_created", (StatusCode::OK, "Account has been created!"));
-        m.insert("uuid_convert_failed",  (StatusCode::BAD_REQUEST, "There was an error converting the UUID!"));
-        m.insert("task_account_init_fail",  (StatusCode::BAD_REQUEST, "There was an error creating the account"));
-        m.insert("wip_route", (StatusCode::BAD_REQUEST, "Work in progress route"));
-        m.insert("username_taken", (StatusCode::BAD_REQUEST, "Username was taken!"));
-        m.insert("user_register_fail",(StatusCode::BAD_REQUEST, "During the user creation, there was a failure!"));
-        m.insert("auth_insert_fail", (StatusCode::BAD_REQUEST, "During the auth creation, there was a failure!"));
-        m.insert("profile_insert_fail", (StatusCode::BAD_REQUEST, "During the profile creation, there was a failure!"));
-        m.insert("invalid_password",(StatusCode::BAD_REQUEST, "Password was too short or must include  uppercase, lowercase, digits, and special characters"));
-        m.insert("invalid_email", (StatusCode::BAD_REQUEST, "Email is invalid or not safe!"));
-        m.insert("invalid_username", (StatusCode::BAD_REQUEST, "Username is invalid or not safe!"));
-		m.insert("username_not_found", (StatusCode::BAD_REQUEST, "Username was not found!"));
-        m.insert("database_error", (StatusCode::INTERNAL_SERVER_ERROR, "Database error from the pool within PlayerDB Module!"));
-        m.insert("email_already_in_use", (StatusCode::INTERNAL_SERVER_ERROR, "Email is already in our database as a member!"));
-        m.insert("valid_guest_email", (StatusCode::OK, "Email is valid but not in the database"));
-        m.insert("json_failure", (StatusCode::INTERNAL_SERVER_ERROR, "Json Failure! :C"));
-        m
-    };
+// pub static ref GLOBAL: DashMap<String, String> = DashMap::new();
 
-    // pub static ref GLOBAL: DashMap<String, String> = DashMap::new();
-}
+
 
 pub type GlobalStore = DashMap<String, String>;
 pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();

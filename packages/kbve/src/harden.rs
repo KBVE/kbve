@@ -12,7 +12,7 @@ use axum::{
 };
 
 use regex::Regex;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use uuid::Uuid;
 use num_bigint::{ BigUint };
@@ -25,32 +25,31 @@ use std::str::FromStr;
 
 use crate::wh::{ WizardResponse };
 
-lazy_static! {
-	pub static ref EMAIL_REGEX: Regex = Regex::new(
-		r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"
-	).unwrap();
+pub static EMAIL_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(
+  r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"
+).unwrap());
 
-	pub static ref GITHUB_USERNAME_REGEX: Regex = Regex::new(
-		r"github\.com/([a-zA-Z0-9_-]+)"
-	).unwrap();
+pub static GITHUB_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(
+    r"github\.com/([a-zA-Z0-9_-]+)"
+).unwrap());
 
-	pub static ref INSTAGRAM_USERNAME_REGEX: Regex = Regex::new(
-		r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)"
-	).unwrap();
+pub static INSTAGRAM_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(
+    r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)"
+).unwrap());
 
-	pub static ref UNSPLASH_PHOTO_ID_REGEX: Regex = Regex::new(
-		r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)"
-	).unwrap();
-}
+pub static UNSPLASH_PHOTO_ID_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(
+    r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)"
+).unwrap());
+
 
 pub fn validate_password(password: &str) -> Result<(), &str> {
 	// Check if the password is long enough (e.g., at least 8 characters)
-	if password.len() < 8 {
+	if password.chars().count() < 8 {
 		return Err("Password is too short");
 	}
 
 	// Check if the password is not too long (e.g., no more than 255 characters)
-	if password.len() > 255 {
+	if password.chars().count() > 255 {
 		return Err("Password is too long");
 	}
 
@@ -72,7 +71,7 @@ pub fn validate_password(password: &str) -> Result<(), &str> {
 pub fn sanitize_email(email: &str) -> Result<String, &str> {
 	let email = email.trim().to_lowercase();
 
-	if email.len() > 254 {
+	if email.chars().count() > 254 {
 		return Err("Email is more than 254 characters");
 	}
 
@@ -89,11 +88,11 @@ pub fn sanitize_username(username: &str) -> Result<String, &str> {
 		.filter(|c| c.is_alphanumeric() && c.is_ascii())
 		.collect();
 
-	if sanitized.len() < 6 {
+	if sanitized.chars().count() < 6 {
 		return Err("Username is too short");
 	}
 
-	if sanitized.len() > 255 {
+	if sanitized.chars().count() > 255 {
 		return Err("Username is too long");
 	}
 
@@ -124,7 +123,7 @@ pub fn sanitize_input(input: &str) -> String {
 		.filter(|c| c.is_alphanumeric() && c.is_ascii())
 		.collect();
 
-	if sanitized.len() > 255 {
+	if sanitized.chars().count() > 255 {
 		sanitized.truncate(255);
 	}
 
@@ -134,7 +133,7 @@ pub fn sanitize_input(input: &str) -> String {
 pub fn sanitize_string_limit(input: &str) -> String {
 	let mut sanitized: String = ammonia::clean(input);
 
-	if sanitized.len() > 255 {
+	if sanitized.chars().count() > 255 {
 		if let Some((idx, _)) = sanitized.char_indices().nth(255) {
 			sanitized.truncate(idx);
 		}
@@ -149,7 +148,7 @@ pub fn sanitize_path(input: &str) -> String {
 		.filter(|c| (c.is_alphanumeric() || "/?@%$#".contains(*c)))
 		.collect();
 
-	if sanitized.len() > 255 {
+	if sanitized.chars().count() > 255 {
 		sanitized.truncate(255);
 	}
 
@@ -265,3 +264,4 @@ pub async fn verify_captcha(
 	let captcha_response: CaptchaResponse = res.json().await?;
 	Ok(captcha_response.success)
 }
+
