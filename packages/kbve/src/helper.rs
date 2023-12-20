@@ -1,6 +1,6 @@
 ///*	!h Ꮤ𐌄 𐌋Ꝋᕓ𐌄 𐌂𐌀𐌔𐌕𐌉𐌍Ᏽ ℜǕ𐌔Ṫ
 use std::sync::Arc;
-use std::time::Instant;
+use tokio::time::Instant;
 use axum::{ http::StatusCode, extract::Extension, response::Json };
 use diesel::prelude::*;
 use tokio;
@@ -44,6 +44,8 @@ pub async fn speed_test(Extension(pool): Extension<Arc<Pool>>) -> Result<
 	Json<WizardResponse>,
 	StatusCode
 > {
+
+
 	let start_time = Instant::now();
 
 	// Use `block_in_place` or `spawn_blocking` for the blocking database operation
@@ -63,7 +65,7 @@ pub async fn speed_test(Extension(pool): Extension<Arc<Pool>>) -> Result<
 			Ok(
 				Json(WizardResponse {
 					data: serde_json::json!({"status": "time"}),
-					message: serde_json::json!({"time": elapsed_time.to_string()}), 
+					message: serde_json::json!({"time": elapsed_time.to_string()}),
 				})
 			)
 		}
