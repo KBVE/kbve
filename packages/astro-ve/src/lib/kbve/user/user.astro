@@ -10,7 +10,7 @@ import UserMenu from './UserMenu.svelte';
 
 <button
 	type="button"
-	class="flex mr-3 text-sm bg-zinc-800 rounded-full md:mr-0 focus:ring-4 focus:ring-kbve"
+	class="flex mr-3 text-sm bg-kbve-menu-primary rounded-full md:mr-0 focus:ring-4 focus:ring-kbve"
 	id="user-menu-button"
 	aria-expanded="false"
 	data-dropdown-toggle="user-dropdown"
@@ -25,7 +25,7 @@ import UserMenu from './UserMenu.svelte';
 
 <!-- Dropdown menu -->
 <div
-	class="z-50 hidden my-4 text-base list-none divide-y rounded-lg shadow bg-zinc-800 divide-zinc-600"
+	class="z-50 hidden my-4 text-base list-none divide-y rounded-lg shadow bg-kbve-menu-primary divide-zinc-600"
 	id="user-dropdown">
 
 	<UserMenu client:only="svelte" />
