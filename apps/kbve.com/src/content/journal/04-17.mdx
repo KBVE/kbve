@@ -1,0 +1,63 @@
+---
+title: "April: 17"
+category: Daily
+date: 2023-04-17
+client: Self
+unsplash: 1681066471130-5e02ee1e0026
+img: https://images.unsplash.com/photo-1681066471130-5e02ee1e0026?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for April 17th of each year.
+tags:
+- daily
+---
+
+## Notes
+
+### 2024
+
+It will be officially a year from this date! WoW!
+
+### 2023
+
+- I am running into weird issues with Astro 2.3.0, going to delay the upgrade until I can resolve them.
+
+- Started to make a Windows 11 template for the RSPS Project,  but damn it seems to be a pain to get it all optimized and secure.
+
+- Should we keep raw daily notes? Or would it be too much information? Hmmm.
+
+- While I am in India, I just finished setting up my NR accounts, it feels interesting being a dual citizen. The idea that I can be on the other side of the world and live a completely different life style.
+
+- It was a bumper to see Starship flight get scrubbed.
+
+- Damn really had to put quotes on the title to avoid the YAML error.
+
+The error is here:
+
+```ini
+7:18:30 PM: [astro:content-imports] can not read a block mapping entry; a multiline key may not be an implicit key
+7:18:30 PM: file: /opt/build/repo/src/content/_bin/_daily.md?astroContent=true:4:4
+7:18:30 PM:  error   can not read a block mapping entry; a multiline key may not be an implicit key
+7:18:30 PM:   File:
+7:18:30 PM:     /opt/build/repo/src/content/_bin/_daily.md?astroContent=true:4:4
+7:18:30 PM:   Code:
+7:18:30 PM:     3 | title: {{date:YYYY-MM-DD}}-Daily
+7:18:30 PM:     > 4 | date: {{date:YYYY-MM-DD}}
+7:18:30 PM:         |    ^
+7:18:30 PM:       5 | category: Daily
+7:18:30 PM:       6 | client: Self
+```
+
+I had to wrap the title inside quotes to help with the mapping. >.>
+
+## Quote
+
+> You were not born a winner, and you were not born a loser. You are what you make yourself be.
+> — <cite>Lou Holtz</cite>
+
+
+---
+
+## Tasks
+
+- [x] Fixed Obsidian
+- [x] Added MDX again into Obsidian
+- [x] Need to add a template system for the daily notes.

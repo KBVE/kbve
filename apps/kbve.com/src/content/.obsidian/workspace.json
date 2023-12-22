@@ -13,8 +13,8 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "crypto/btc/btc.mdx",
-                "mode": "source",
+                "file": "journal/12-22.mdx",
+                "mode": "preview",
                 "source": false
               }
             }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "crypto/btc/btc.mdx",
+                "file": "journal/12-22.mdx",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "crypto/btc/btc.mdx",
+                "file": "journal/12-22.mdx",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "crypto/btc/btc.mdx"
+                "file": "journal/12-22.mdx"
               }
             }
           }
@@ -147,11 +147,19 @@
       "edit-mdx:New .mdx file": false
     }
   },
-  "active": "a34a596e823c0da5",
+  "active": "c7f13dc5335a46b4",
   "lastOpenFiles": [
+    "journal/04-22.mdx",
+    "journal/04-21.mdx",
+    "journal/04-20.mdx",
+    "journal/04-19.mdx",
+    "journal/04-17.mdx",
+    "journal/04-18.mdx",
+    "journal/12-22.mdx",
+    "crypto/btc/btc.mdx",
+    "journal",
     "_bin/_daily.md",
     "_bin/_daily.mdx",
-    "crypto/btc/btc.mdx",
     "2023-12-22.md",
     "Untitled.canvas"
   ]
