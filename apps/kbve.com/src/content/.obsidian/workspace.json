@@ -1,0 +1,166 @@
+{
+  "main": {
+    "id": "240854a4f4e9d50b",
+    "type": "split",
+    "children": [
+      {
+        "id": "8f8d54e64de398fc",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c7f13dc5335a46b4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "journal/12-22.mdx",
+                "mode": "preview",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "bf01759105df94a8",
+    "type": "split",
+    "children": [
+      {
+        "id": "0d326f4da443381e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a34a596e823c0da5",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "18ed16095db1d69c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "ebfd874b45745eb2",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "7076f3e6745f5bf1",
+    "type": "split",
+    "children": [
+      {
+        "id": "d732ea74fa98bb30",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8ca6bc3567562f73",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "journal/12-22.mdx",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "e91c914ab9c104d5",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "journal/12-22.mdx",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "001cb2f578a9e590",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "f53e4730ea1cea59",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "journal/12-22.mdx"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "edit-mdx:New .mdx file": false
+    }
+  },
+  "active": "c7f13dc5335a46b4",
+  "lastOpenFiles": [
+    "journal/04-22.mdx",
+    "journal/04-21.mdx",
+    "journal/04-20.mdx",
+    "journal/04-19.mdx",
+    "journal/04-17.mdx",
+    "journal/04-18.mdx",
+    "journal/12-22.mdx",
+    "crypto/btc/btc.mdx",
+    "journal",
+    "_bin/_daily.md",
+    "_bin/_daily.mdx",
+    "2023-12-22.md",
+    "Untitled.canvas"
+  ]
+}
