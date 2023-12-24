@@ -280,3 +280,40 @@ jobs:
                     token: ${{ secrets.KBVE_PAT }}
                     command: "deploy"
                     kbve-shield-token: ${{ secrets.SHIELDWALL }}
+
+    # Chisel Deployment
+    chisel-rust-profile-image:
+          needs: ["rust-profile-image", "alter", "deploy-rust-profile-image"]
+          name: Chisel Rust Profile Docker Image
+          runs-on: ubuntu-latest
+          permissions:
+              contents: read
+              packages: write
+          steps:
+              - name: Checkout Repository
+                uses: actions/checkout@v4
+
+              - name: Set up QEMU
+                uses: docker/setup-qemu-action@v3
+
+              - name: Set up Docker Buildx
+                uses: docker/setup-buildx-action@v3
+
+              - name: Login to Docker Hub
+                uses: docker/login-action@v3
+                with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+              - name: Build and push
+                uses: docker/build-push-action@v5
+                with:
+                    context: ./migrations/docker/chisel/rust-profile-api/
+                    push: true
+                    tags: kbve/rustprofilechisel:latest
+                    #platforms: linux/amd64, linux/arm64
+                    platforms: linux/amd64
+                    file: ./migrations/docker/chisel/rust-profile-api/Dockerfile
+                    cache-from: type=gha
+                    cache-to: type=gha,mode=max
+
