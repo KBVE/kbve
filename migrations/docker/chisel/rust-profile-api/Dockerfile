@@ -1,4 +1,4 @@
-# Chisel by Fernando Silva
+# Rust Profile Chisel by h0lybyte and special thanks to Fernando Silva for Chisel Go core.
 FROM ubuntu:22.04 as OS_BUILDER
 
 RUN apt-get update && apt-get update && apt-get install -y wget
@@ -27,5 +27,7 @@ COPY --from=kbve /usr/src/app/rust_api_profile ./rust_api_profile
 COPY --from=kbve /usr/lib/x86_64-linux-gnu/libmysqlclient.so.21 /usr/lib/x86_64-linux-gnu/libmysqlclient.so.21
 COPY --from=kbve /usr/lib/x86_64-linux-gnu/libssl.so.3 /usr/lib/x86_64-linux-gnu/libssl.so.3
 COPY --from=kbve /usr/lib/x86_64-linux-gnu/libcrypto.so.3 /usr/lib/x86_64-linux-gnu/libcrypto.so.3
+COPY --from=kbve /usr/lib/x86_64-linux-gnu/libzstd.so.1 /usr/lib/x86_64-linux-gnu/libzstd.so.1
+COPY --from=kbve /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
 EXPOSE 3000
 ENTRYPOINT ["./rust_api_profile"]
