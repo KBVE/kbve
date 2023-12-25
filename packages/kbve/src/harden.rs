@@ -107,17 +107,7 @@ pub fn sanitize_username(username: &str) -> Result<String, &str> {
 	Ok(sanitized)
 }
 
-pub fn sanitizie_ulid(ulid_str: &str) -> Result<&str ,  &'static str> {
 
-	// ULID is usually 26 chars.
-	if ulid_str.len() != 26 {
-		return Err("ulid_invalid");
-	}
-
-	// Crockford's base32 set
-	let crockford_base32_chars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-
-}
 
 pub fn sanitize_uuid(uuid_str: &str) -> Result<u64, &'static str> {
 	match uuid_str.parse::<u64>() {
