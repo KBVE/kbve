@@ -14,7 +14,7 @@ pub async fn root_endpoint() -> Result<Json<WizardResponse>, StatusCode> {
 	Ok(
 		Json(WizardResponse {
 			data: serde_json::json!({"status": "online"}),
-			message: serde_json::json!({"root": "endpoints"}),
+			message: serde_json::json!({"root": "endpoints_das_mai"}),
 		})
 	)
 }
