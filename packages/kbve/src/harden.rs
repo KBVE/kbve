@@ -25,22 +25,23 @@ use std::str::FromStr;
 
 use crate::wh::{ WizardResponse };
 
-pub static EMAIL_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(
-  r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"
-).unwrap());
+pub static EMAIL_REGEX: Lazy<Regex> = Lazy::new(||
+	Regex::new(r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$").unwrap()
+);
 
-pub static GITHUB_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(
-    r"github\.com/([a-zA-Z0-9_-]+)"
-).unwrap());
+pub static GITHUB_USERNAME_REGEX: Lazy<Regex> = Lazy::new(||
+	Regex::new(r"github\.com/([a-zA-Z0-9_-]+)").unwrap()
+);
 
-pub static INSTAGRAM_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(
-    r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)"
-).unwrap());
+pub static INSTAGRAM_USERNAME_REGEX: Lazy<Regex> = Lazy::new(||
+	Regex::new(
+		r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)"
+	).unwrap()
+);
 
-pub static UNSPLASH_PHOTO_ID_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(
-    r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)"
-).unwrap());
-
+pub static UNSPLASH_PHOTO_ID_REGEX: Lazy<Regex> = Lazy::new(||
+	Regex::new(r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)").unwrap()
+);
 
 pub fn validate_password(password: &str) -> Result<(), &str> {
 	// Check if the password is long enough (e.g., at least 8 characters)
@@ -107,7 +108,25 @@ pub fn sanitize_username(username: &str) -> Result<String, &str> {
 	Ok(sanitized)
 }
 
+pub fn sanitizie_ulid(ulid_str: &str) -> Result<&str, &'static str> {
+	// ULID is usually 26 chars.
+	if ulid_str.len() != 26 {
+		return Err("ulid_invalid");
+	}
 
+	// Crockford's base32 set
+	let base32_chars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+	// Validate each character
+	for c in ulid_str.chars() {
+		if !base32_chars.contains(c) {
+			return Err("Invalid character in ULID");
+		}
+	}
+
+	// ULID is valid
+	Ok(ulid_str)
+}
 
 pub fn sanitize_uuid(uuid_str: &str) -> Result<u64, &'static str> {
 	match uuid_str.parse::<u64>() {
@@ -266,4 +285,3 @@ pub async fn verify_captcha(
 	let captcha_response: CaptchaResponse = res.json().await?;
 	Ok(captcha_response.success)
 }
-
