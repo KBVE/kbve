@@ -23,7 +23,25 @@ The day before long resting until the next year?
 - 3:42pm - I am preparing the ULID migration of the database.
     I am currently looking into how I should be dealing with relations and references within the new database schema.
     Swapping out all the `serial(id)` and then trunning a couple benchmarks to see how it will perform.
-    
+
+- 5:05pm - Database migration is always a pain but I understand why, because if its done wrong, it can break the whole database xD
+    ```sql
+
+    ALTER TABLE `apikey` DROP COLUMN `id`;
+    ALTER TABLE `apikey` DROP COLUMN `uuid`;
+    ALTER TABLE `appwrite` DROP COLUMN `id`;
+    ALTER TABLE `appwrite` DROP COLUMN `uuid`;
+    ALTER TABLE `auth` DROP COLUMN `id`;
+    ALTER TABLE `auth` DROP COLUMN `uuid`;
+    ALTER TABLE `n8n` DROP COLUMN `id`;
+    ALTER TABLE `n8n` DROP COLUMN `uuid`;
+    ALTER TABLE `profile` DROP COLUMN `id`;
+    ALTER TABLE `profile` DROP COLUMN `uuid`;
+    ALTER TABLE `settings` DROP COLUMN `id`;
+    ALTER TABLE `settings` DROP COLUMN `uuid`;
+    ALTER TABLE `users` DROP COLUMN `id`;
+
+    ```
 
 
 ## Quote

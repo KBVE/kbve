@@ -6,7 +6,6 @@ import {
 	serial,
 	text,
 	int,
-	bigint,
 	uniqueIndex,
 	binary,
 } from 'drizzle-orm/mysql-core';
@@ -30,7 +29,7 @@ export const users = mysqlTable('users', {
 
 export const auth = mysqlTable('auth', {
 	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
-	userid: int("userid").references(() => users.ulid),
+	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
 	email: varchar('email', { length: 256 }).unique().notNull(),
 	hash: varchar('hash', { length: 256 }).notNull(),
 	salt: varchar('salt', { length: 256 }).notNull(),
@@ -58,16 +57,12 @@ export const profile = mysqlTable('profile', {
 	github: varchar('github', { length: 64 }).default('').notNull(),
 	instagram: varchar('instagram', { length: 64 }).default('').notNull(),
 	discord: varchar('discord', { length: 64 }).default('').notNull(),
-	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
-}, (table) => {
-	return {
-	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid)
-	};
-  });
+	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
+});
 
 export const appwrite = mysqlTable('appwrite', {
-	id: serial('id').primaryKey().notNull(),
-	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
+	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
 	appwrite_endpoint: varchar('appwrite_endpoint', { length: 256 }).notNull(),
 	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }).notNull(),
 	appwrite_api_key: varchar('appwrite_api_key', { length: 256 }).notNull(),
@@ -77,35 +72,33 @@ export const appwrite = mysqlTable('appwrite', {
 		.defaultNow(),
 }, (table) => {
 	return {
-	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid),
 	  appwrite_api_key_idx: uniqueIndex("appwrite_api_key_idx").on(table.appwrite_api_key)
 	};
   });
 
 export const apikey = mysqlTable('apikey', {
-	id: serial('id').primaryKey().notNull(),
-	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
+	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
 	permissions: varchar('permissions', { length: 256}).notNull(),
 	keyhash: varchar('keyhash', { length: 256 }).notNull(),
 	label: varchar('label', { length: 256 }).notNull(),
 }, (table) => {
 	return {
-	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid),
 	  keyhash_idx: uniqueIndex("keyhash_idx").on(table.keyhash)
 	};
   });
 
 export const n8n = mysqlTable('n8n', {
-    id: serial('id').primaryKey().notNull(),
-	uuid:  bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
-    webhook: varchar('webhook', { length: 256}).notNull(),
+    ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
+	webhook: varchar('webhook', { length: 256}).notNull(),
     permissions: varchar('permissions', { length: 256}).notNull(),
 	keyhash: varchar('keyhash', { length: 256 }).notNull(),
 	label: varchar('label', { length: 256 }).notNull(),
 
 }, (table) => {
 	return {
-	  uuid_idx: uniqueIndex("uuid_idx").on(table.uuid)
+	  keyhash_idx: uniqueIndex("keyhash_idx").on(table.keyhash)
 	};
   });
 
@@ -120,14 +113,13 @@ export const globals = mysqlTable('globals', {
 });
 
 export const settings = mysqlTable('settings', {
-	id: serial('id').primaryKey().notNull(),
-	uuid: bigint('uuid', { mode: 'number', unsigned: true}).notNull(),
+	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
 	key: varchar('key', { length: 255}).notNull(),
 	value: varchar('value', {length: 255}).notNull()
 }, (table) => {
 	return {
 		key_idx: uniqueIndex("key_idx").on(table.key),
-		uuid_idx: uniqueIndex("uuid_idx").on(table.uuid)
 	};
 });
 
