@@ -3,33 +3,67 @@
 #![allow(unused)]
 #![allow(clippy::all)]
 
-use diesel::prelude::*;
-use serde::{ Serialize, Deserialize};
-
 
 use chrono::NaiveDateTime;
-#[derive(Queryable, Debug, Serialize, Deserialize)]
-pub struct Apikey {
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct 17d3847c10a2591eBba402a5eeb15ae720231226221108Vrepl {
     pub id: u64,
     pub uuid: u64,
-    pub permissions: String,
-    pub keyhash: String,
-    pub label: String,
+    pub email: String,
+    pub hash: String,
+    pub salt: String,
+    pub password_reset_token: String,
+    pub password_reset_expiry: NaiveDateTime,
+    pub verification_token: String,
+    pub verification_expiry: NaiveDateTime,
+    pub status: i32,
+    pub last_login_at: NaiveDateTime,
+    pub failed_login_attempts: i32,
+    pub lockout_until: NaiveDateTime,
+    pub two_factor_secret: String,
+    pub recovery_codes: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
-pub struct Appwrite {
+#[derive(Queryable, Debug, Identifiable)]
+pub struct 1ddc9f62Cb8450e39696E6f4a2b42da120231226220145Vrepl {
     pub id: u64,
-    pub uuid: u64,
-    pub appwrite_endpoint: String,
-    pub appwrite_projectid: String,
-    pub appwrite_api_key: String,
-    pub version: String,
+    pub username: String,
+    pub role: i32,
+    pub reputation: i32,
+    pub exp: i32,
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
-pub struct Auth {
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct 3800e931E26b5a0f94147ed61ae9bc4220231226221113Vrepl {
+    pub id: u64,
+    pub uuid: u64,
+    pub webhook: String,
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct 44a364d5312d5c7f8e6f5aa7df45d87520231226221053Vrepl {
+    pub id: u64,
+    pub username: String,
+    pub role: i32,
+    pub reputation: i32,
+    pub exp: i32,
+    pub created_at: NaiveDateTime,
+    pub ulid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+pub struct 77f381820cd45c4aBa4eC5c414f4edc920231226220211Vrepl {
     pub id: u64,
     pub uuid: u64,
     pub email: String,
@@ -47,15 +81,29 @@ pub struct Auth {
     pub recovery_codes: String,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
-pub struct Global {
+#[derive(Queryable, Debug, Identifiable)]
+pub struct 7893afc40fa35b61953911502a637fb320231226220154Vrepl {
     pub id: u64,
-    pub key: String,
-    pub value: String,
+    pub uuid: u64,
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
-pub struct N8n {
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct 91715809C3be5d639866309a8d2d274f20231226221058Vrepl {
+    pub id: u64,
+    pub uuid: u64,
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+pub struct 94eb962884eb5d09Bb4849f5e8ba6def20231226220218Vrepl {
     pub id: u64,
     pub uuid: u64,
     pub webhook: String,
@@ -64,8 +112,67 @@ pub struct N8n {
     pub label: String,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
-pub struct Profile {
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct 9c88512c9e475f6c9566B59f1ae8974620231226221103Vrepl {
+    pub id: u64,
+    pub uuid: u64,
+    pub appwrite_endpoint: String,
+    pub appwrite_projectid: String,
+    pub appwrite_api_key: String,
+    pub version: String,
+    pub created_at: NaiveDateTime,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+pub struct 9f206e1c64255d10Beef2a4047e6cbf320231226220235Vrepl {
+    pub id: u64,
+    pub uuid: u64,
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct D1cd2b7101205d2dB8a53c0ae44c5c5c20231226221123Vrepl {
+    pub id: u64,
+    pub uuid: u64,
+    pub key: String,
+    pub value: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct E64c12b36d8f52638eb6F83a6aa4db7120231226221118Vrepl {
+    pub id: u64,
+    pub name: String,
+    pub bio: String,
+    pub unsplash: String,
+    pub github: String,
+    pub instagram: String,
+    pub discord: String,
+    pub uuid: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+pub struct E875b29067f65d869623Bfa5e4d3315e20231226220203Vrepl {
+    pub id: u64,
+    pub uuid: u64,
+    pub appwrite_endpoint: String,
+    pub appwrite_projectid: String,
+    pub appwrite_api_key: String,
+    pub version: String,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+pub struct Ece0baa200a85708Ba184732de0ea7ce20231226220226Vrepl {
     pub id: u64,
     pub name: String,
     pub bio: String,
@@ -76,20 +183,96 @@ pub struct Profile {
     pub uuid: u64,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
-pub struct Setting {
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct Apikey {
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct Appwrite {
+    pub appwrite_endpoint: String,
+    pub appwrite_projectid: String,
+    pub appwrite_api_key: String,
+    pub version: String,
+    pub created_at: NaiveDateTime,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct Auth {
+    pub email: String,
+    pub hash: String,
+    pub salt: String,
+    pub password_reset_token: String,
+    pub password_reset_expiry: NaiveDateTime,
+    pub verification_token: String,
+    pub verification_expiry: NaiveDateTime,
+    pub status: i32,
+    pub last_login_at: NaiveDateTime,
+    pub failed_login_attempts: i32,
+    pub lockout_until: NaiveDateTime,
+    pub two_factor_secret: String,
+    pub recovery_codes: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+pub struct Global {
     pub id: u64,
-    pub uuid: u64,
     pub key: String,
     pub value: String,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct N8n {
+    pub webhook: String,
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct Profile {
+    pub name: String,
+    pub bio: String,
+    pub unsplash: String,
+    pub github: String,
+    pub instagram: String,
+    pub discord: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
+pub struct Setting {
+    pub key: String,
+    pub value: String,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(primary_key(ulid))]
 pub struct User {
-    pub id: u64,
     pub username: String,
     pub role: i32,
     pub reputation: i32,
     pub exp: i32,
     pub created_at: NaiveDateTime,
+    pub ulid: Vec<u8>,
 }
+
