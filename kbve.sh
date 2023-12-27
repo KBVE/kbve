@@ -67,9 +67,14 @@ case "$1" in
             diesel print-schema > src/schema.rs
 
             # Execute diesel_ext and redirect output
-            diesel_ext > src/models.rs
+            diesel_ext --model -t > src/models.rs
             echo "diesel_ext executed and output redirected to src/models.rs"
 
+            # Patching the models.rs inside of src.
+            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
+            sed -i 's/#\[derive(Queryable,/#\[derive(Queryable, Serialize, Deserialize,/' src/models.rs
+            echo "Patching models.rs"
+            
             # Return to the original directory
             cd "$original_dir"
         else
