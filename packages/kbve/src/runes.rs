@@ -1,7 +1,24 @@
+use diesel::prelude::*;
+
+use axum::{
+	http::{ StatusCode, HeaderMap },
+	response::{ Json, IntoResponse, Response },
+};
+
 use serde::{ Serialize, Deserialize };
 
+use dashmap::DashMap;
+
+use once_cell::sync::Lazy;
+
+use std::sync::{ Arc, OnceLock };
+
+
+//?         [GLOBALS]
+pub type GlobalStore = DashMap<String, String>;
+pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
+
 //?         [RUNES]
-//?         Schemas with additional functions.
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TokenRune {
@@ -21,6 +38,23 @@ pub struct APIRune {
 	pub uid: String,
 	pub kbve: String,
 }
+
+//?         [Schema]
+
+#[derive(Debug, Deserialize)]
+pub struct LoginUserSchema {
+	pub email: String,
+	pub password: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RegisterUserSchema {
+	pub username: String,
+	pub email: String,
+	pub password: String,
+	pub captcha: String,
+}
+
 
 //?         [Response]
 
