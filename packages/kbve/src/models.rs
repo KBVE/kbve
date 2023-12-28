@@ -2,11 +2,14 @@
 
 #![allow(unused)]
 #![allow(clippy::all)]
+use diesel::prelude::*;
+use serde::{ Serialize, Deserialize};
 
 
 use chrono::NaiveDateTime;
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = _17d3847c_10a2_591e_bba4_02a5eeb15ae7_20231226221108_vrepl)]
 pub struct 17d3847c10a2591eBba402a5eeb15ae720231226221108Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -27,7 +30,8 @@ pub struct 17d3847c10a2591eBba402a5eeb15ae720231226221108Vrepl {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[diesel(table_name = _1ddc9f62_cb84_50e3_9696_e6f4a2b42da1_20231226220145_vrepl)]
 pub struct 1ddc9f62Cb8450e39696E6f4a2b42da120231226220145Vrepl {
     pub id: u64,
     pub username: String,
@@ -37,8 +41,9 @@ pub struct 1ddc9f62Cb8450e39696E6f4a2b42da120231226220145Vrepl {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = _3800e931_e26b_5a0f_9414_7ed61ae9bc42_20231226221113_vrepl)]
 pub struct 3800e931E26b5a0f94147ed61ae9bc4220231226221113Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -50,8 +55,9 @@ pub struct 3800e931E26b5a0f94147ed61ae9bc4220231226221113Vrepl {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = _44a364d5_312d_5c7f_8e6f_5aa7df45d875_20231226221053_vrepl)]
 pub struct 44a364d5312d5c7f8e6f5aa7df45d87520231226221053Vrepl {
     pub id: u64,
     pub username: String,
@@ -62,7 +68,8 @@ pub struct 44a364d5312d5c7f8e6f5aa7df45d87520231226221053Vrepl {
     pub ulid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[diesel(table_name = _77f38182_0cd4_5c4a_ba4e_c5c414f4edc9_20231226220211_vrepl)]
 pub struct 77f381820cd45c4aBa4eC5c414f4edc920231226220211Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -81,7 +88,8 @@ pub struct 77f381820cd45c4aBa4eC5c414f4edc920231226220211Vrepl {
     pub recovery_codes: String,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[diesel(table_name = _7893afc4_0fa3_5b61_9539_11502a637fb3_20231226220154_vrepl)]
 pub struct 7893afc40fa35b61953911502a637fb320231226220154Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -90,8 +98,9 @@ pub struct 7893afc40fa35b61953911502a637fb320231226220154Vrepl {
     pub label: String,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = _91715809_c3be_5d63_9866_309a8d2d274f_20231226221058_vrepl)]
 pub struct 91715809C3be5d639866309a8d2d274f20231226221058Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -102,7 +111,8 @@ pub struct 91715809C3be5d639866309a8d2d274f20231226221058Vrepl {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[diesel(table_name = _94eb9628_84eb_5d09_bb48_49f5e8ba6def_20231226220218_vrepl)]
 pub struct 94eb962884eb5d09Bb4849f5e8ba6def20231226220218Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -112,8 +122,9 @@ pub struct 94eb962884eb5d09Bb4849f5e8ba6def20231226220218Vrepl {
     pub label: String,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = _9c88512c_9e47_5f6c_9566_b59f1ae89746_20231226221103_vrepl)]
 pub struct 9c88512c9e475f6c9566B59f1ae8974620231226221103Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -126,7 +137,8 @@ pub struct 9c88512c9e475f6c9566B59f1ae8974620231226221103Vrepl {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[diesel(table_name = _9f206e1c_6425_5d10_beef_2a4047e6cbf3_20231226220235_vrepl)]
 pub struct 9f206e1c64255d10Beef2a4047e6cbf320231226220235Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -134,8 +146,9 @@ pub struct 9f206e1c64255d10Beef2a4047e6cbf320231226220235Vrepl {
     pub value: String,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = _d1cd2b71_0120_5d2d_b8a5_3c0ae44c5c5c_20231226221123_vrepl)]
 pub struct D1cd2b7101205d2dB8a53c0ae44c5c5c20231226221123Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -145,8 +158,9 @@ pub struct D1cd2b7101205d2dB8a53c0ae44c5c5c20231226221123Vrepl {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = _e64c12b3_6d8f_5263_8eb6_f83a6aa4db71_20231226221118_vrepl)]
 pub struct E64c12b36d8f52638eb6F83a6aa4db7120231226221118Vrepl {
     pub id: u64,
     pub name: String,
@@ -160,7 +174,8 @@ pub struct E64c12b36d8f52638eb6F83a6aa4db7120231226221118Vrepl {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[diesel(table_name = _e875b290_67f6_5d86_9623_bfa5e4d3315e_20231226220203_vrepl)]
 pub struct E875b29067f65d869623Bfa5e4d3315e20231226220203Vrepl {
     pub id: u64,
     pub uuid: u64,
@@ -171,7 +186,8 @@ pub struct E875b29067f65d869623Bfa5e4d3315e20231226220203Vrepl {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[diesel(table_name = _ece0baa2_00a8_5708_ba18_4732de0ea7ce_20231226220226_vrepl)]
 pub struct Ece0baa200a85708Ba184732de0ea7ce20231226220226Vrepl {
     pub id: u64,
     pub name: String,
@@ -183,8 +199,9 @@ pub struct Ece0baa200a85708Ba184732de0ea7ce20231226220226Vrepl {
     pub uuid: u64,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = apikey)]
 pub struct Apikey {
     pub permissions: String,
     pub keyhash: String,
@@ -193,8 +210,9 @@ pub struct Apikey {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = appwrite)]
 pub struct Appwrite {
     pub appwrite_endpoint: String,
     pub appwrite_projectid: String,
@@ -205,8 +223,9 @@ pub struct Appwrite {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = auth)]
 pub struct Auth {
     pub email: String,
     pub hash: String,
@@ -225,15 +244,17 @@ pub struct Auth {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[diesel(table_name = globals)]
 pub struct Global {
     pub id: u64,
     pub key: String,
     pub value: String,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = n8n)]
 pub struct N8n {
     pub webhook: String,
     pub permissions: String,
@@ -243,8 +264,9 @@ pub struct N8n {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = profile)]
 pub struct Profile {
     pub name: String,
     pub bio: String,
@@ -256,8 +278,9 @@ pub struct Profile {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = settings)]
 pub struct Setting {
     pub key: String,
     pub value: String,
@@ -265,8 +288,9 @@ pub struct Setting {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = users)]
 pub struct User {
     pub username: String,
     pub role: i32,

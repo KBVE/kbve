@@ -1,3 +1,6 @@
+//!         [UTILITY]
+//?         Migration of harden, helper
+
 use tower_http::cors::CorsLayer;
 use axum::{
 	response::{ IntoResponse },
@@ -8,22 +11,27 @@ use axum::{
 		Method,
 		Uri,
 	},
+	extract::Extension,
 	Json,
 };
 
 use regex::Regex;
 use once_cell::sync::Lazy;
 
-use uuid::Uuid;
-use num_bigint::{ BigUint };
-
 use reqwest::Client;
 use serde::{ Deserialize, Serialize };
 
 use std::collections::HashMap;
 use std::str::FromStr;
+use std::sync::Arc;
 
-use crate::wh::{ WizardResponse };
+use tokio::time::Instant;
+use tokio::task;
+
+use crate::runes::{ WizardResponse };
+use crate::db::Pool;
+
+//*         [REGEX]
 
 pub static EMAIL_REGEX: Lazy<Regex> = Lazy::new(||
 	Regex::new(r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$").unwrap()
@@ -42,6 +50,8 @@ pub static INSTAGRAM_USERNAME_REGEX: Lazy<Regex> = Lazy::new(||
 pub static UNSPLASH_PHOTO_ID_REGEX: Lazy<Regex> = Lazy::new(||
 	Regex::new(r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)").unwrap()
 );
+
+//*         [VALIDATION]
 
 pub fn validate_password(password: &str) -> Result<(), &str> {
 	// Check if the password is long enough (e.g., at least 8 characters)
@@ -68,6 +78,8 @@ pub fn validate_password(password: &str) -> Result<(), &str> {
 
 	Ok(())
 }
+
+//*         [SANITIZATION]
 
 pub fn sanitize_email(email: &str) -> Result<String, &str> {
 	let email = email.trim().to_lowercase();
@@ -128,16 +140,6 @@ pub fn sanitizie_ulid(ulid_str: &str) -> Result<&str, &'static str> {
 	Ok(ulid_str)
 }
 
-pub fn sanitize_uuid(uuid_str: &str) -> Result<u64, &'static str> {
-	match uuid_str.parse::<u64>() {
-		Ok(uuid) => {
-			// You can add additional checks here if needed
-			Ok(uuid)
-		}
-		Err(_) => Err("Invalid UUID format"),
-	}
-}
-
 pub fn sanitize_input(input: &str) -> String {
 	let mut sanitized: String = input
 		.chars()
@@ -176,7 +178,7 @@ pub fn sanitize_path(input: &str) -> String {
 	sanitized
 }
 
-//  ?   [Regex] Extractions
+//*         [REGEX] -> [EXTRACTIONS]
 
 pub fn extract_instagram_username(url: &str) -> Option<String> {
 	INSTAGRAM_USERNAME_REGEX.captures(url)
@@ -209,14 +211,9 @@ pub fn extract_unsplash_photo_id(url: &str) -> Option<String> {
 	})
 }
 
-//	? - Convert
+//*         [UTILS]
 
-pub fn uuid_to_biguint(uuid_str: &str) -> Result<BigUint, &'static str> {
-	let uuid = Uuid::from_str(uuid_str).map_err(|_| "Invalid UUID format")?;
-	let bytes = uuid.as_bytes();
-	Ok(BigUint::from_bytes_be(bytes))
-}
-
+//?         [FALLBACK]
 pub async fn fallback(uri: Uri) -> impl IntoResponse {
 	let final_path = sanitize_path(&uri.to_string());
 
@@ -228,6 +225,7 @@ pub async fn fallback(uri: Uri) -> impl IntoResponse {
 	(StatusCode::NOT_FOUND, Json(response))
 }
 
+//?         [CORS]
 pub fn cors_service() -> CorsLayer {
 	let orgins = [
 		"https://herbmail.com".parse::<HeaderValue>().unwrap(),
@@ -251,11 +249,7 @@ pub fn cors_service() -> CorsLayer {
 		])
 }
 
-#[derive(Serialize, Deserialize)]
-struct CaptchaResponse {
-	success: bool,
-}
-
+//?         [CAPTCHA]
 pub async fn verify_captcha(
 	captcha_token: &str
 ) -> Result<bool, Box<dyn std::error::Error>> {
@@ -282,6 +276,73 @@ pub async fn verify_captcha(
 		.form(&params)
 		.send().await?;
 
-	let captcha_response: CaptchaResponse = res.json().await?;
+	let captcha_response: crate::runes::CaptchaResponse = res.json().await?;
 	Ok(captcha_response.success)
+}
+
+//*         [GENERIC]
+
+//?         [ENDPOINT]
+
+pub async fn root_endpoint() -> Result<Json<WizardResponse>, StatusCode> {
+	Ok(
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "online"}),
+			message: serde_json::json!({"root": "endpoints_das_mai"}),
+		})
+	)
+}
+
+//?         [HEALTHCHECK]
+
+pub async fn health_check(Extension(pool): Extension<Arc<Pool>>) -> Result<
+	Json<WizardResponse>,
+	StatusCode
+> {
+	let connection_result = task::spawn_blocking(move || { pool.get() }).await;
+
+	match connection_result {
+		Ok(Ok(_conn)) => {
+			Ok(
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "online"}),
+					message: serde_json::json!({"health": "ok"}),
+				})
+			)
+		}
+		_ => { Err(StatusCode::SERVICE_UNAVAILABLE) }
+	}
+}
+
+//?         [SPEED]
+
+pub async fn speed_test(Extension(pool): Extension<Arc<Pool>>) -> Result<
+	Json<WizardResponse>,
+	StatusCode
+> {
+	let start_time = Instant::now();
+
+	// Use `block_in_place` or `spawn_blocking` for the blocking database operation
+	let query_result = task::block_in_place(|| {
+		let mut conn = pool.get().map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
+
+		// Execute a simple query
+		diesel
+			::sql_query("SELECT 1")
+			.execute(&mut conn)
+			.map_err(|_| StatusCode::SERVICE_UNAVAILABLE)
+	});
+
+	match query_result {
+		Ok(_) => {
+			let elapsed_time = start_time.elapsed().as_millis() as u64;
+			Ok(
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "time"}),
+					message: serde_json::json!({"time": elapsed_time.to_string()}),
+				})
+			)
+		}
+		Err(status) => Err(status),
+	}
 }

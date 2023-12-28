@@ -18,13 +18,6 @@ use kbve::{
 	playerdb::{
 		hazardous_global_init,
 		task_logout_user,
-		api_get_process_guest_email,
-		api_get_process_username,
-		api_post_process_register_user_handler,
-		throwaway_api_get_process_discord_uuid,
-		throwaway_api_get_process_n8n_webhook_from_username,
-		throwaway_api_get_process_github_uuid,
-		throwaway_api_get_process_appwrite_projectid_from_username,
 		api_post_process_login_user_handler,
 	},
 };
@@ -50,22 +43,14 @@ async fn main() {
 	let api_routes = Router::new()
 		.route("/health", get(health_check))
 		.route("/speed", get(speed_test))
-		.route("/profile/:username", get(api_get_process_username))
-		.route(
-			"/appwrite/project/:username",
-			get(throwaway_api_get_process_appwrite_projectid_from_username)
-		)
-		.route(
-			"/n8n/:username",
-			get(throwaway_api_get_process_n8n_webhook_from_username)
-		)
+
+
 		.route(
 			"/graceful/profile",
 			get(kbve::dbrms::graceful_jwt_profile).route_layer(
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
-		.route("/email/:email", get(api_get_process_guest_email))
 		.route(
 			"/auth/profile",
 			get(kbve::dbrms::auth_jwt_profile).route_layer(
@@ -88,8 +73,7 @@ async fn main() {
 		.route("/auth/logout", get(task_logout_user))
 		.route("/auth/register", post(kbve::dbrms::auth_player_register))
 		.route("/auth/login", post(api_post_process_login_user_handler))
-		.route("/discord/:uuid", get(throwaway_api_get_process_discord_uuid))
-		.route("/github/:github", get(throwaway_api_get_process_github_uuid))
+
 		.layer(Extension(shared_pool.clone()))
 		.layer(Extension(api_session_store));
 

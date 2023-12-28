@@ -1,3 +1,0 @@
-//  *   [MultiPlex]
-//  ?   gRPC Integration
- 
