@@ -67,7 +67,8 @@ case "$1" in
             diesel print-schema > src/schema.rs
 
             # Execute diesel_ext and redirect output
-            diesel_ext --model -t > src/models.rs
+            # diesel_ext --model -t > src/models.rs
+            diesel_ext --model > src/models.rs
             echo "diesel_ext executed and output redirected to src/models.rs"
 
             # Patching the models.rs inside of src.
