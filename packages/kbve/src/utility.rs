@@ -18,12 +18,18 @@ use axum::{
 use regex::Regex;
 use once_cell::sync::Lazy;
 
+use dashmap::DashMap;
+
+
 use reqwest::Client;
 use serde::{ Deserialize, Serialize };
 
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
+
+use diesel::prelude::*;
+
 
 use tokio::time::Instant;
 use tokio::task;
@@ -212,6 +218,38 @@ pub fn extract_unsplash_photo_id(url: &str) -> Option<String> {
 }
 
 //*         [UTILS]
+
+
+//?			[GLOBAL]
+
+pub async fn global_map_init(
+	pool: Arc<Pool>
+) -> Result<DashMap<String, String>, &'static str> {
+	let mut conn = kbve_get_conn!(pool);
+
+	let map = DashMap::new();
+
+	match
+		globals::table
+			.select((globals::key, globals::value))
+			.load::<(String, String)>(&mut conn)
+	{
+		Ok(results) => {
+			if results.is_empty() {
+				Err("empty_case")
+			} else {
+				for (key, value) in results {
+					println!("key {} inserted", key.to_string());
+					map.insert(key, value);
+				}
+				Ok(map)
+			}
+		}
+		Err(diesel::NotFound) => Err("not_found_error"),
+		Err(_) => { Err("database_error") }
+	}
+}
+
 
 //?         [FALLBACK]
 pub async fn fallback(uri: Uri) -> impl IntoResponse {

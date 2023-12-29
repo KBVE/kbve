@@ -28,6 +28,92 @@ pub async fn auth_logout() -> impl IntoResponse {
 }
 
 
+
+pub async fn auth_player_register(
+	Extension(pool): Extension<Arc<Pool>>,
+	Json(mut body): Json<AuthPlayerRegisterSchema>
+) -> impl IntoResponse {
+
+		// Captcha
+		match crate::harden::verify_captcha(&body.token).await {
+			Ok(success) => {
+				if !success {
+					return (StatusCode::UNPROCESSABLE_ENTITY, "Invalid captcha").into_response();
+				}
+			},
+			Err(_) => {
+				return (StatusCode::INTERNAL_SERVER_ERROR, "Captcha verification failed").into_response();
+			},
+		}
+
+		if let Err(e) = body.sanitize() {
+			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+		}
+		
+		// Get a mutable connection from the pool and pass it along to verify.
+		let mut conn = spellbook_pool!(pool);
+		
+		//	[!] Check Email - Check if the player email address exists within the database.
+		match crate::playerdb::hazardous_boolean_email_exist(body.email.clone(), pool.clone()).await {
+			Ok(false) => {},
+			Ok(true) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "email-exists")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[!] Check Player - Check if the player username exists within the database.
+		match crate::playerdb::hazardous_boolean_username_exist(body.username.clone(), pool.clone()).await {
+			Ok(false) => {},
+			Ok(true) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "username-exists")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[START] => Password generation!
+		let salt = SaltString::generate(&mut rand_core::OsRng);
+
+		let hash = match Argon2::default().hash_password(body.password.as_bytes(), &salt) {
+			Ok(value) => value,
+			Err(_) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "invaild_hash")}
+		};
+
+		//	[&] Create User
+		match crate::playerdb::hazardous_create_user(body.username.clone(), pool.clone()).await {
+			Ok(true) => {},
+			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-user-failed")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[#]	Obtain UUID
+		let uuid = match crate::playerdb::task_fetch_userid_by_username(body.username.clone(), pool.clone()).await {
+			Ok(value) => value,
+			Err(_) =>  { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-uuid-failed")}
+		};
+
+		//	[&] Create Auth
+		match crate::playerdb::hazardous_create_auth_from_uuid(hash.clone().to_string(), body.email.clone(), uuid.clone(), pool.clone()).await {
+			Ok(true) => {},
+			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-auth-failed")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[&]	Create Profile
+		match crate::playerdb::hazardous_create_profile_from_uuid(body.username.clone(), uuid.clone(), pool.clone()).await {
+			Ok(true) => {},
+			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-profile-failed")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		//	[#] Check Email - This time we want it to return true because the user should be registered.
+		match crate::playerdb::hazardous_boolean_email_exist(body.email.clone(), pool.clone()).await {
+			Ok(true) => {},
+			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "auth-register-fail")},
+			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		}
+
+		spellbook_complete!("register-complete")
+	
+}
+
+
 //  ?   [Routes] -> JWTs
 //	!	[START] -> JWTS
 
