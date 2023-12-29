@@ -12,11 +12,9 @@ use tokio;
 use kbve::{
 	db::{ self },
 	mm::{ graceful },
-	harden::{ cors_service, fallback },
-	helper::{ health_check, speed_test, root_endpoint },
-	wh::{ APISessionStore, GLOBAL, TokenSchema },
+	utility::{ cors_service, fallback, global_map_init, health_check, speed_test, root_endpoint },
+	runes::{  GLOBAL, },
 	playerdb::{
-		hazardous_global_init,
 		task_logout_user,
 		api_post_process_login_user_handler,
 	},
@@ -28,9 +26,9 @@ async fn main() {
 
 	let pool = db::establish_connection_pool();
 	let shared_pool = Arc::new(pool);
-	let api_session_store = Arc::new(APISessionStore::new());
+	//let api_session_store = Arc::new(APISessionStore::new());
 
-	match hazardous_global_init(shared_pool.clone()).await {
+	match global_map_init(shared_pool.clone()).await {
 		Ok(map) => {
 			GLOBAL.set(Arc::new(map)).expect("Failed to initialize GLOBAL");
 			println!("Global Map -> init.");
@@ -47,35 +45,35 @@ async fn main() {
 
 		.route(
 			"/graceful/profile",
-			get(kbve::dbrms::graceful_jwt_profile).route_layer(
+			get(kbve::auth::graceful_jwt_profile).route_layer(
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
 		.route(
 			"/auth/profile",
-			get(kbve::dbrms::auth_jwt_profile).route_layer(
+			get(kbve::auth::auth_jwt_profile).route_layer(
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
 		.route(
 			"/auth/profile/update",
-			post(kbve::dbrms::auth_jwt_update_profile).route_layer(
+			post(kbve::auth::auth_jwt_update_profile).route_layer(
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
 		.route(
 			"/shieldwall/:action",
-			get(kbve::dbrms::shieldwall_action).route_layer(
+			get(kbve::auth::shieldwall_action).route_layer(
 				middleware::from_fn(kbve::mm::shieldwall)
 			)
 		)
 
-		.route("/auth/logout", get(task_logout_user))
-		.route("/auth/register", post(kbve::dbrms::auth_player_register))
+		.route("/auth/logout", get(kbve::auth::auth_logout))
+		.route("/auth/register", post(kbve::auth::auth_player_register))
 		.route("/auth/login", post(api_post_process_login_user_handler))
 
 		.layer(Extension(shared_pool.clone()))
-		.layer(Extension(api_session_store));
+		//.layer(Extension(api_session_store));
 
 	// ?	Future v2 -> Panda
 

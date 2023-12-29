@@ -36,12 +36,14 @@ use crate::{
 	create_jwt,
 	shield_sanitization,
 };
+
 use crate::harden::{
 	sanitize_email,
 	sanitize_username,
 	validate_password,
 	uuid_to_biguint,
 };
+
 use crate::db::{ Pool };
 use crate::models::{ User, Profile };
 use crate::wh::{
