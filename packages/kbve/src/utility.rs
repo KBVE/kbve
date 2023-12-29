@@ -37,6 +37,8 @@ use tokio::task;
 use crate::runes::{ WizardResponse };
 use crate::db::Pool;
 
+use crate::{ spellbook_pool }; 
+
 //*         [REGEX]
 
 pub static EMAIL_REGEX: Lazy<Regex> = Lazy::new(||
@@ -225,7 +227,7 @@ pub fn extract_unsplash_photo_id(url: &str) -> Option<String> {
 pub async fn global_map_init(
 	pool: Arc<Pool>
 ) -> Result<DashMap<String, String>, &'static str> {
-	let mut conn = kbve_get_conn!(pool);
+	let mut conn = spellbook_pool!(pool);
 
 	let map = DashMap::new();
 
@@ -291,7 +293,7 @@ pub fn cors_service() -> CorsLayer {
 pub async fn verify_captcha(
 	captcha_token: &str
 ) -> Result<bool, Box<dyn std::error::Error>> {
-	let secret = match crate::wh::GLOBAL.get() {
+	let secret = match crate::runes::GLOBAL.get() {
 		Some(global_map) =>
 			match global_map.get("hcaptcha") {
 				Some(value) => value.value().clone(),

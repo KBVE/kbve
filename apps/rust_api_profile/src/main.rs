@@ -11,13 +11,9 @@ use tokio;
 
 use kbve::{
 	db::{ self },
-	mm::{ graceful },
+	auth::{ graceful },
 	utility::{ cors_service, fallback, global_map_init, health_check, speed_test, root_endpoint },
-	runes::{  GLOBAL, },
-	playerdb::{
-		task_logout_user,
-		api_post_process_login_user_handler,
-	},
+	runes::{  GLOBAL, }
 };
 
 #[tokio::main]
@@ -64,13 +60,13 @@ async fn main() {
 		.route(
 			"/shieldwall/:action",
 			get(kbve::auth::shieldwall_action).route_layer(
-				middleware::from_fn(kbve::mm::shieldwall)
+				middleware::from_fn(kbve::auth::shieldwall)
 			)
 		)
 
 		.route("/auth/logout", get(kbve::auth::auth_logout))
 		.route("/auth/register", post(kbve::auth::auth_player_register))
-		.route("/auth/login", post(api_post_process_login_user_handler))
+		//.route("/auth/login", post(api_post_process_login_user_handler))
 
 		.layer(Extension(shared_pool.clone()))
 		//.layer(Extension(api_session_store));

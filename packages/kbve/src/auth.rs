@@ -1,9 +1,36 @@
 //!         [AUTH]
 //?         Migration of all Auth related functions.
 
-use crate::{ spellbook_create_cookie };
+use crate::{
+	spellbook_create_cookie,
+	spellbook_pool,
+	spellbook_username,
+	spellbook_ulid,
+	spellbook_email,
+	spellbook_error,
+	spellbook_complete,
+};
 
-use crate::runes::{ TokenRune };
+use axum::{
+	async_trait,
+	http::{ StatusCode, Request, header },
+	extract::{ Extension, Path, State, FromRequest },
+	response::{ IntoResponse, Response },
+	middleware::{ self, Next },
+	Json,
+	BoxError,
+};
+
+//  ?   [std]
+use std::sync::{ Arc };
+use std::str::FromStr;
+
+//  ?   [crate]
+use crate::db::Pool;
+use crate::runes::{ TokenRune, GLOBAL };
+
+//  ?   [serde]
+use serde_json::{ json };
 
 pub async fn auth_logout() -> impl IntoResponse {
 	let cookie = spellbook_create_cookie!("token", "", -1);
@@ -27,92 +54,185 @@ pub async fn auth_logout() -> impl IntoResponse {
 	)
 }
 
-
-
 pub async fn auth_player_register(
 	Extension(pool): Extension<Arc<Pool>>,
 	Json(mut body): Json<AuthPlayerRegisterSchema>
 ) -> impl IntoResponse {
-
-		// Captcha
-		match crate::harden::verify_captcha(&body.token).await {
-			Ok(success) => {
-				if !success {
-					return (StatusCode::UNPROCESSABLE_ENTITY, "Invalid captcha").into_response();
-				}
-			},
-			Err(_) => {
-				return (StatusCode::INTERNAL_SERVER_ERROR, "Captcha verification failed").into_response();
-			},
+	// Captcha
+	match crate::utility::verify_captcha(&body.token).await {
+		Ok(success) => {
+			if !success {
+				return (
+					StatusCode::UNPROCESSABLE_ENTITY,
+					"Invalid captcha",
+				).into_response();
+			}
 		}
+		Err(_) => {
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				"Captcha verification failed",
+			).into_response();
+		}
+	}
 
-		if let Err(e) = body.sanitize() {
+	if let Err(e) = body.sanitize() {
+		return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+	}
+
+	// Get a mutable connection from the pool and pass it along to verify.
+	let mut conn = spellbook_pool!(pool);
+
+	//	[!] Check Email - Check if the player email address exists within the database.
+	match
+		crate::playerdb::hazardous_boolean_email_exist(
+			body.email.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(false) => {}
+		Ok(true) => {
+			return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+				"email-exists"
+			);
+		}
+		Err(e) => {
 			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
 		}
-		
-		// Get a mutable connection from the pool and pass it along to verify.
-		let mut conn = spellbook_pool!(pool);
-		
-		//	[!] Check Email - Check if the player email address exists within the database.
-		match crate::playerdb::hazardous_boolean_email_exist(body.email.clone(), pool.clone()).await {
-			Ok(false) => {},
-			Ok(true) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "email-exists")},
-			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+	}
+
+	//	[!] Check Player - Check if the player username exists within the database.
+	match
+		crate::playerdb::hazardous_boolean_username_exist(
+			body.username.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(false) => {}
+		Ok(true) => {
+			return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+				"username-exists"
+			);
 		}
-
-		//	[!] Check Player - Check if the player username exists within the database.
-		match crate::playerdb::hazardous_boolean_username_exist(body.username.clone(), pool.clone()).await {
-			Ok(false) => {},
-			Ok(true) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "username-exists")},
-			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		Err(e) => {
+			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
 		}
+	}
 
-		//	[START] => Password generation!
-		let salt = SaltString::generate(&mut rand_core::OsRng);
+	//	[START] => Password generation!
+	let salt = SaltString::generate(&mut rand_core::OsRng);
 
-		let hash = match Argon2::default().hash_password(body.password.as_bytes(), &salt) {
-			Ok(value) => value,
-			Err(_) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "invaild_hash")}
-		};
-
-		//	[&] Create User
-		match crate::playerdb::hazardous_create_user(body.username.clone(), pool.clone()).await {
-			Ok(true) => {},
-			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-user-failed")},
-			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+	let hash = match
+		Argon2::default().hash_password(body.password.as_bytes(), &salt)
+	{
+		Ok(value) => value,
+		Err(_) => {
+			return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+				"invaild_hash"
+			);
 		}
+	};
 
-		//	[#]	Obtain UUID
-		let uuid = match crate::playerdb::task_fetch_userid_by_username(body.username.clone(), pool.clone()).await {
-			Ok(value) => value,
-			Err(_) =>  { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-uuid-failed")}
-		};
-
-		//	[&] Create Auth
-		match crate::playerdb::hazardous_create_auth_from_uuid(hash.clone().to_string(), body.email.clone(), uuid.clone(), pool.clone()).await {
-			Ok(true) => {},
-			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-auth-failed")},
-			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+	//	[&] Create User
+	match
+		crate::playerdb::hazardous_create_user(
+			body.username.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(true) => {}
+		Ok(false) => {
+			return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+				"process-user-failed"
+			);
 		}
-
-		//	[&]	Create Profile
-		match crate::playerdb::hazardous_create_profile_from_uuid(body.username.clone(), uuid.clone(), pool.clone()).await {
-			Ok(true) => {},
-			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-profile-failed")},
-			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+		Err(e) => {
+			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
 		}
+	}
 
-		//	[#] Check Email - This time we want it to return true because the user should be registered.
-		match crate::playerdb::hazardous_boolean_email_exist(body.email.clone(), pool.clone()).await {
-			Ok(true) => {},
-			Ok(false) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "auth-register-fail")},
-			Err(e) => { return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e)}
+	//	[#]	Obtain UUID
+	let uuid = match
+		crate::playerdb::task_fetch_userid_by_username(
+			body.username.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(value) => value,
+		Err(_) => {
+			return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+				"process-uuid-failed"
+			);
 		}
+	};
 
-		spellbook_complete!("register-complete")
-	
+	//	[&] Create Auth
+	match
+		crate::playerdb::hazardous_create_auth_from_uuid(
+			hash.clone().to_string(),
+			body.email.clone(),
+			uuid.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(true) => {}
+		Ok(false) => {
+			return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+				"process-auth-failed"
+			);
+		}
+		Err(e) => {
+			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+		}
+	}
+
+	//	[&]	Create Profile
+	match
+		crate::playerdb::hazardous_create_profile_from_uuid(
+			body.username.clone(),
+			uuid.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(true) => {}
+		Ok(false) => {
+			return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+				"process-profile-failed"
+			);
+		}
+		Err(e) => {
+			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+		}
+	}
+
+	//	[#] Check Email - This time we want it to return true because the user should be registered.
+	match
+		crate::playerdb::hazardous_boolean_email_exist(
+			body.email.clone(),
+			pool.clone()
+		).await
+	{
+		Ok(true) => {}
+		Ok(false) => {
+			return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+				"auth-register-fail"
+			);
+		}
+		Err(e) => {
+			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+		}
+	}
+
+	spellbook_complete!("register-complete")
 }
-
 
 //  ?   [Routes] -> JWTs
 //	!	[START] -> JWTS
@@ -132,7 +252,6 @@ pub async fn graceful_jwt_profile(
 	)
 }
 
-
 // Define an asynchronous function named `auth_jwt_profile`
 // This function handles authenticated requests to retrieve a user's profile
 
@@ -141,7 +260,6 @@ pub async fn graceful_jwt_profile(
 	It joins user and profile tables, filters by UUID, and selects relevant columns.
 	The function handles different outcomes: if successful, it returns user and profile data; if the user is not found, it returns a "username not found" error; for other errors, it returns a "database error" message.
 **/
-
 
 pub async fn auth_jwt_profile(
 	// Extract a shared connection pool (wrapped in Arc for thread safety)
@@ -197,3 +315,111 @@ pub async fn auth_jwt_profile(
 }
 
 //	!	[END] -> @JWTs
+
+pub async fn graceful<B>(
+	cookie_jar: axum_extra::extract::cookie::CookieJar,
+	State(data): State<Arc<Pool>>,
+	mut req: Request<B>,
+	next: axum::middleware::Next<B>
+) -> impl IntoResponse {
+	let token_result: Result<String, ()> = cookie_jar
+		.get("token")
+		.map(|cookie| cookie.value().to_string())
+		.or_else(|| {
+			req.headers()
+				.get(header::AUTHORIZATION)
+				.and_then(|auth_header| auth_header.to_str().ok())
+				.and_then(|auth_value|
+					auth_value.strip_prefix("Bearer ").map(String::from)
+				)
+		})
+		.ok_or_else(|| ());
+
+	let jwt_secret = match get_global_value!("jwt_secret", "invalid_jwt") {
+		Ok(secret) => secret,
+		Err(_) => {
+			return (
+				StatusCode::UNAUTHORIZED,
+				Json(json!({"error": "invalid_jwt"})),
+			).into_response();
+		}
+	};
+
+	let token: &str = match token_result {
+		Ok(ref token_str) => token_str.as_str(),
+		Err(_) => {
+			return (
+				StatusCode::UNAUTHORIZED,
+				Json(json!({"error": "invalid_jwt"})),
+			).into_response();
+		}
+	};
+
+	let privatedata = match
+		jsonwebtoken::decode::<TokenSchema>(
+			&token,
+			&jsonwebtoken::DecodingKey::from_secret(jwt_secret.as_bytes()),
+			&jsonwebtoken::Validation::default()
+		)
+	{
+		Ok(privatedata) => { privatedata }
+		Err(_) => {
+			return (
+				StatusCode::UNAUTHORIZED,
+				Json(json!({"error": "invalid_jwt"})),
+			).into_response();
+		}
+	};
+
+	req.extensions_mut().insert(privatedata);
+	next.run(req).await.into_response()
+}
+
+//	!	[Shield]
+
+pub async fn shieldwall<B>(
+	mut req: Request<B>,
+	next: axum::middleware::Next<B>
+) -> impl IntoResponse
+	where
+		B: Send // required by `axum::middleware::Next`
+{
+	// Extract the "kbve-shieldwall" header
+	let shieldwall_header_value = req
+		.headers()
+		.get("kbve-shieldwall")
+		.and_then(|value| value.to_str().ok())
+		.map(String::from);
+
+	match shieldwall_header_value {
+		Some(value) => {
+			// Access the GLOBAL store and compare the value
+			let is_valid = if let Some(global_store) = GLOBAL.get() {
+				global_store
+					.get("shieldwall")
+					.map(|expected_value| expected_value.value() == &value)
+					.unwrap_or(false)
+			} else {
+				false // GLOBAL store not initialized
+			};
+
+			if is_valid {
+				// If the header value is valid, proceed with the next middleware or handler
+				next.run(req).await.into_response()
+			} else {
+				// Invalid header value
+				(
+					StatusCode::UNAUTHORIZED,
+					Json(json!({"error": "Invalid shieldwall header value"})),
+				).into_response()
+			}
+		}
+		None => {
+			// Header not found
+			(
+				StatusCode::UNAUTHORIZED,
+				Json(json!({"error": "Shieldwall header missing"})),
+			).into_response()
+		}
+	}
+}

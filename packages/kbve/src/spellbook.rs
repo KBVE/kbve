@@ -53,6 +53,36 @@ macro_rules! spellbook_get_global {
 	};
 }
 
+// The `spellbook_error` macro is designed for use in Axum-based web applications.
+// It simplifies the creation of HTTP error responses. When invoked, it creates
+// an Axum response with a specified HTTP status code and a JSON body containing 
+// an error message. Additionally, it sets a custom header "x-kbve-shield" with 
+// the error message as its value. This macro is useful for consistently handling 
+// error responses throughout your web application.
+
+#[macro_export]
+ macro_rules! spellbook_error {
+     // The macro takes two parameters: `$status` for the HTTP status code, and `$error` for the error message.
+     ($status:expr, $error:expr) => {{
+         // Creates a JSON body with the provided error message.
+         let response_body = axum::Json(serde_json::json!({ "error": $error }));
+
+         // Constructs an Axum response using the specified status code and the JSON body.
+         let mut response: axum::response::Response = ($status, response_body).into_response();
+
+         // Inserts a custom header "x-kbve-shield" into the response. The value of this header is the error message.
+         // `expect` is used here to handle any potential error while converting the error message into a header value.
+         response.headers_mut().insert(
+             axum::http::header::HeaderName::from_static("x-kbve-shield"),
+             axum::http::HeaderValue::from_str($error).expect("Invalid header value"),
+         );
+
+         // Returns the modified response.
+         response
+     }};
+}
+
+
 // #[macro_export]
 // macro_rules! spellbook_get_pool {
 // 	($pool:expr) => {
@@ -94,6 +124,16 @@ macro_rules! spellbook_pool {
 
                 // Converts the tuple into an Axum response type.
             ).into_response(),
+        }
+	};
+}
+
+#[macro_export]
+macro_rules! spellbook_pool_conn {
+	($pool:expr) => {
+        match $pool.get() {
+            Ok(conn) => conn,
+            Err(_) => return Err("Failed to get a connection from the pool!"),
         }
 	};
 }
@@ -140,7 +180,7 @@ macro_rules! spellbook_email {
 
 In the spellbook_sanitize_fields macro:
 	- It takes any struct ($struct) and a list of fields within that struct.
-	- For each field, if it is an Option<String> and currently has a value (Some), that value is sanitized using the crate::harden::sanitize_string_limit function.
+	- For each field, if it is an Option<String> and currently has a value (Some), that value is sanitized using the crate::utility::sanitize_string_limit function.
 	- The macro is designed to be reusable for any struct with fields that need sanitizing and can handle multiple fields at once.
 	- This macro simplifies the process of sanitizing multiple fields in a struct, ensuring that each specified field is sanitized if it contains a value. 
 	It reduces code repetition and improves readability by abstracting the common pattern of sanitizing multiple optional fields.
@@ -159,9 +199,9 @@ macro_rules! spellbook_sanitize_fields {
             if let Some(ref mut value) = $struct.$field {
                 // If the field ($field) is Some (i.e., it's not None), then the field's value is sanitized.
                 // `*value` dereferences the Option to get a mutable reference to the contained String.
-                // `crate::harden::sanitize_string_limit` is called to sanitize the value.
+                // `crate::utility::sanitize_string_limit` is called to sanitize the value.
                 // This could include operations like trimming, removing special characters, etc.
-                *value = crate::harden::sanitize_string_limit(value);
+                *value = crate::utility::sanitize_string_limit(value);
             }
         )+
 	};
