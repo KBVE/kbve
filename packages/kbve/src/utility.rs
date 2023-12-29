@@ -22,10 +22,10 @@ use dashmap::DashMap;
 
 
 use reqwest::Client;
-use serde::{ Deserialize, Serialize };
+//	use serde::{ Deserialize, Serialize };
 
 use std::collections::HashMap;
-use std::str::FromStr;
+//	use std::str::FromStr;
 use std::sync::Arc;
 
 use diesel::prelude::*;
@@ -38,6 +38,9 @@ use crate::runes::{ WizardResponse };
 use crate::db::Pool;
 
 use crate::{ spellbook_pool }; 
+
+use crate::schema::{ globals };
+
 
 //*         [REGEX]
 

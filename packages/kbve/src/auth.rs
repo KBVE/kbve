@@ -1,6 +1,13 @@
 //!         [AUTH]
 //?         Migration of all Auth related functions.
 
+
+//  ?   [crate]
+
+use crate::models::{ User, Profile };
+use crate::db::Pool;
+use crate::runes::{ TokenRune, GLOBAL, WizardResponse };
+
 use crate::{
 	spellbook_create_cookie,
 	spellbook_pool,
@@ -9,7 +16,10 @@ use crate::{
 	spellbook_email,
 	spellbook_error,
 	spellbook_complete,
+	spellbook_get_global,
 };
+
+//	?	[Axum]
 
 use axum::{
 	async_trait,
@@ -21,16 +31,27 @@ use axum::{
 	BoxError,
 };
 
+//	?	[Argon2]
+
+use argon2::{
+	password_hash::SaltString,
+	Argon2,
+	PasswordHash,
+	PasswordHasher,
+	PasswordVerifier,
+};
+
+use rand_core::OsRng;
+
+
+//  ?   [serde]
+use serde_json::{ json };
+
 //  ?   [std]
 use std::sync::{ Arc };
 use std::str::FromStr;
 
-//  ?   [crate]
-use crate::db::Pool;
-use crate::runes::{ TokenRune, GLOBAL };
 
-//  ?   [serde]
-use serde_json::{ json };
 
 pub async fn auth_logout() -> impl IntoResponse {
 	let cookie = spellbook_create_cookie!("token", "", -1);
@@ -85,7 +106,7 @@ pub async fn auth_player_register(
 
 	//	[!] Check Email - Check if the player email address exists within the database.
 	match
-		crate::playerdb::hazardous_boolean_email_exist(
+		crate::guild::hazardous_boolean_email_exist(
 			body.email.clone(),
 			pool.clone()
 		).await
@@ -104,7 +125,7 @@ pub async fn auth_player_register(
 
 	//	[!] Check Player - Check if the player username exists within the database.
 	match
-		crate::playerdb::hazardous_boolean_username_exist(
+		crate::guild::hazardous_boolean_username_exist(
 			body.username.clone(),
 			pool.clone()
 		).await
@@ -138,7 +159,7 @@ pub async fn auth_player_register(
 
 	//	[&] Create User
 	match
-		crate::playerdb::hazardous_create_user(
+		crate::guild::hazardous_create_user(
 			body.username.clone(),
 			pool.clone()
 		).await
@@ -157,7 +178,7 @@ pub async fn auth_player_register(
 
 	//	[#]	Obtain UUID
 	let uuid = match
-		crate::playerdb::task_fetch_userid_by_username(
+		crate::guild::task_fetch_userid_by_username(
 			body.username.clone(),
 			pool.clone()
 		).await
@@ -173,7 +194,7 @@ pub async fn auth_player_register(
 
 	//	[&] Create Auth
 	match
-		crate::playerdb::hazardous_create_auth_from_uuid(
+		crate::guild::hazardous_create_auth_from_ulid(
 			hash.clone().to_string(),
 			body.email.clone(),
 			uuid.clone(),
@@ -194,7 +215,7 @@ pub async fn auth_player_register(
 
 	//	[&]	Create Profile
 	match
-		crate::playerdb::hazardous_create_profile_from_uuid(
+		crate::guild::hazardous_create_profile_from_ulid(
 			body.username.clone(),
 			uuid.clone(),
 			pool.clone()
@@ -214,7 +235,7 @@ pub async fn auth_player_register(
 
 	//	[#] Check Email - This time we want it to return true because the user should be registered.
 	match
-		crate::playerdb::hazardous_boolean_email_exist(
+		crate::guild::hazardous_boolean_email_exist(
 			body.email.clone(),
 			pool.clone()
 		).await
@@ -335,7 +356,7 @@ pub async fn graceful<B>(
 		})
 		.ok_or_else(|| ());
 
-	let jwt_secret = match get_global_value!("jwt_secret", "invalid_jwt") {
+	let jwt_secret = match spellbook_get_global!("jwt_secret", "invalid_jwt") {
 		Ok(secret) => secret,
 		Err(_) => {
 			return (
@@ -356,7 +377,7 @@ pub async fn graceful<B>(
 	};
 
 	let privatedata = match
-		jsonwebtoken::decode::<TokenSchema>(
+		jsonwebtoken::decode::<TokenRune>(
 			&token,
 			&jsonwebtoken::DecodingKey::from_secret(jwt_secret.as_bytes()),
 			&jsonwebtoken::Validation::default()
