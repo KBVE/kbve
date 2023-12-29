@@ -1,5 +1,6 @@
 // @generated automatically by Diesel CLI.
 
+
 diesel::table! {
     apikey (ulid) {
         #[max_length = 256]

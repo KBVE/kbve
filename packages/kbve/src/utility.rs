@@ -22,10 +22,10 @@ use dashmap::DashMap;
 
 
 use reqwest::Client;
-use serde::{ Deserialize, Serialize };
+//	use serde::{ Deserialize, Serialize };
 
 use std::collections::HashMap;
-use std::str::FromStr;
+//	use std::str::FromStr;
 use std::sync::Arc;
 
 use diesel::prelude::*;
@@ -37,7 +37,10 @@ use tokio::task;
 use crate::runes::{ WizardResponse };
 use crate::db::Pool;
 
-use crate::{ spellbook_pool }; 
+use crate::{ spellbook_pool, spellbook_pool_conn}; 
+
+use crate::schema::{ globals };
+
 
 //*         [REGEX]
 
@@ -227,7 +230,7 @@ pub fn extract_unsplash_photo_id(url: &str) -> Option<String> {
 pub async fn global_map_init(
 	pool: Arc<Pool>
 ) -> Result<DashMap<String, String>, &'static str> {
-	let mut conn = spellbook_pool!(pool);
+	let mut conn = spellbook_pool_conn!(pool);
 
 	let map = DashMap::new();
 

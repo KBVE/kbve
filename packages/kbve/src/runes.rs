@@ -1,15 +1,12 @@
 use diesel::prelude::*;
 
-use axum::{
-	http::{ StatusCode, HeaderMap },
-	response::{ Json, IntoResponse, Response },
-};
+use axum::{ http::{ StatusCode }, response::{ Json, IntoResponse, Response } };
 
 use serde::{ Serialize, Deserialize };
 
 use dashmap::DashMap;
 
-use once_cell::sync::Lazy;
+//	use once_cell::sync::Lazy;
 
 use std::sync::{ Arc, OnceLock };
 
@@ -141,6 +138,69 @@ impl UpdateProfileSchema {
 	}
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct AuthPlayerRegisterSchema {
+	pub username: String,
+	pub email: String,
+	pub password: String,
+	pub token: String,
+	pub invite: Option<String>,
+}
+
+impl AuthPlayerRegisterSchema {
+	pub fn sanitize(&mut self) -> Result<(), String> {
+		//	Sanitize the Username - Part 1 - Cleaning the string / turncating using Ammonia crate.
+		let limited_username = crate::utility::sanitize_string_limit(
+			&self.username
+		);
+
+		//	Sanitize the Username - Part 2 - Additional safety checks.
+		match crate::utility::sanitize_username(&limited_username) {
+			Ok(clean_username) => {
+				self.username = clean_username;
+			}
+			Err(e) => {
+				return Err(e.to_string());
+			}
+		}
+
+		//	Sanitize the Email - Part 1 - Cleaning the string and limiting it using Ammonia Crate.
+		let limited_email = crate::utility::sanitize_string_limit(&self.email);
+
+		//	Sanitize the Email - Part 2 - Regex and additional checks in place from the utility crate.
+		match crate::utility::sanitize_email(&limited_email) {
+			Ok(clean_email) => {
+				self.email = clean_email;
+			}
+			Err(e) => {
+				return Err(e.to_string());
+			}
+		}
+
+		//	Validation of the Password
+		match crate::utility::validate_password(&self.password) {
+			Ok(_) => {}
+			Err(e) => {
+				return Err(e.to_string());
+			}
+		}
+
+		//	Apply sanitization to the invite if it is in Schema.
+		if let Some(invite) = &self.invite {
+			// Perform necessary sanitization on the invite
+			let sanitized_invite =
+				crate::utility::sanitize_string_limit(invite);
+
+			// TODO: Additional validation logic for invite can go here, if needed
+
+			// Update the invite field with the sanitized value
+			self.invite = Some(sanitized_invite);
+		}
+
+		//	Sanitization is complete.
+		Ok(())
+	}
+}
 
 // Define a struct called `ShieldWallSchema` with Serde's derive macros for serialization and deserialization.
 // This will allow instances of ShieldWallSchema to be easily converted to/from JSON (or other formats).
@@ -177,8 +237,6 @@ impl ShieldWallSchema {
 		}
 	}
 }
-
-
 
 //?         [Response]
 

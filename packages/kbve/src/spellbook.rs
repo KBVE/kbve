@@ -159,7 +159,7 @@ macro_rules! spellbook_username {
 #[macro_export]
 macro_rules! spellbook_ulid {
 	($ulid:expr) => {
-        match crate::utility::sanitize_ulid($ulid) {
+        match crate::utility::sanitizie_ulid($ulid) {
             Ok(ulid) => ulid,
             Err(e) => return (axum::http::StatusCode::UNAUTHORIZED, axum::Json(serde_json::json!({"error": format!("{}",e)}))).into_response()
         }
@@ -204,5 +204,69 @@ macro_rules! spellbook_sanitize_fields {
                 *value = crate::utility::sanitize_string_limit(value);
             }
         )+
+	};
+}
+
+
+///     !   [Hazardous]
+///     ?	Macro -> Hazardous_Booleans
+
+#[macro_export]
+macro_rules! spellbook_hazardous_boolean_exist_via_ulid {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty
+	) => {
+        pub async fn $func_name(
+            $param: $param_type,
+            pool: Arc<Pool>
+        ) -> Result<bool, &'static str> {
+            let mut conn = spellbook_pool_conn!(pool);
+
+            match $table::table
+                .filter($table::$column.eq($param))
+                .select($table::ulid)
+                .first::<Vec<u8>>(&mut conn)
+            {
+                Ok(_) => Ok(true),
+                Err(diesel::NotFound) => Ok(false),
+                Err(_) => Err("db_error"),
+            }
+        }
+	};
+}
+
+///     ?       Macro -> Hazardous Task Fetch
+
+#[macro_export]
+macro_rules! hazardous_task_fetch {
+	(
+		$func_name:ident,
+		$table:ident,
+		$column:ident,
+		$param:ident,
+		$param_type:ty,
+		$return_type:ty
+	) => {
+		pub async fn $func_name(
+			$param: $param_type,
+			pool: Arc<Pool>
+		) -> Result<$return_type, &'static str> {
+			let mut conn = kbve_get_conn!(pool);
+
+			match $table::table
+				.filter($table::$param.eq($param))
+				.select($table::$column)
+				.first::<$return_type>(&mut conn)
+				{
+					Ok(data) => Ok(data),
+					Err(diesel::NotFound) => Err("Database error"),
+					Err(_) => Err("Database error"),
+				}
+
+		}
 	};
 }
