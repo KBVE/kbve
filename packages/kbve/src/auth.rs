@@ -6,7 +6,7 @@
 
 use crate::models::{ User, Profile };
 use crate::db::Pool;
-use crate::runes::{ TokenRune, GLOBAL, WizardResponse };
+use crate::runes::{ TokenRune, GLOBAL, WizardResponse, AuthPlayerRegisterSchema};
 
 use crate::{
 	spellbook_create_cookie,
@@ -18,6 +18,11 @@ use crate::{
 	spellbook_complete,
 	spellbook_get_global,
 };
+
+//	?	[Diesel]
+use diesel::prelude::*;
+use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
+
 
 //	?	[Axum]
 

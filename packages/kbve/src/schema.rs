@@ -1,6 +1,5 @@
 // @generated automatically by Diesel CLI.
 
-use diesel::prelude::*;
 
 diesel::table! {
     apikey (ulid) {
