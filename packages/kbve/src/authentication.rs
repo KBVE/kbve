@@ -1,12 +1,16 @@
 //!         [AUTH]
 //?         Migration of all Auth related functions.
 
-
 //  ?   [crate]
 
 use crate::models::{ User, Profile };
 use crate::db::Pool;
-use crate::runes::{ TokenRune, GLOBAL, WizardResponse, AuthPlayerRegisterSchema};
+use crate::runes::{
+	TokenRune,
+	GLOBAL,
+	WizardResponse,
+	AuthPlayerRegisterSchema,
+};
 
 use crate::{
 	spellbook_create_cookie,
@@ -22,7 +26,6 @@ use crate::{
 //	?	[Diesel]
 use diesel::prelude::*;
 use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
-
 
 //	?	[Axum]
 
@@ -48,15 +51,13 @@ use argon2::{
 
 use rand_core::OsRng;
 
-
 //  ?   [serde]
 use serde_json::{ json };
+use serde::{ Serialize, Deserialize, };
 
 //  ?   [std]
 use std::sync::{ Arc };
 use std::str::FromStr;
-
-
 
 pub async fn auth_logout() -> impl IntoResponse {
 	let cookie = spellbook_create_cookie!("token", "", -1);
@@ -344,7 +345,7 @@ pub async fn auth_jwt_profile(
 
 pub async fn graceful<B>(
 	cookie_jar: axum_extra::extract::cookie::CookieJar,
-	State(data): State<Arc<Pool>>,
+	State(_data): State<Arc<Pool>>,
 	mut req: Request<B>,
 	next: axum::middleware::Next<B>
 ) -> impl IntoResponse {
@@ -404,7 +405,7 @@ pub async fn graceful<B>(
 //	!	[Shield]
 
 pub async fn shieldwall<B>(
-	mut req: Request<B>,
+	req: Request<B>,
 	next: axum::middleware::Next<B>
 ) -> impl IntoResponse
 	where
@@ -447,5 +448,146 @@ pub async fn shieldwall<B>(
 				Json(json!({"error": "Shieldwall header missing"})),
 			).into_response()
 		}
+	}
+}
+
+
+// Define a struct called `ShieldWallSchema` with Serde's derive macros for serialization and deserialization.
+// This will allow instances of ShieldWallSchema to be easily converted to/from JSON (or other formats).
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ShieldWallSchema {
+	// Define a field `action` which is an Option type that can hold a String.
+	// Option is used here to represent that the action might or might not be present.
+	pub action: Option<String>,
+}
+
+impl ShieldWallSchema {
+	pub async fn execute(&self) -> impl IntoResponse {
+		match &self.action {
+			Some(action) =>
+				match action.as_str() {
+					"deploy" => {
+						// Call the function and await its response
+						let response: axum::response::Response = shieldwall_action_portainer_stack_deploy().await.into_response();
+						response
+					}
+					_ =>
+						(
+							StatusCode::BAD_REQUEST,
+							Json(
+								serde_json::json!({"error": "Unknown action"})
+							),
+						).into_response(),
+				}
+			None =>
+				(
+					StatusCode::BAD_REQUEST,
+					Json(serde_json::json!({"error": "No action provided"})),
+				).into_response(),
+		}
+	}
+}
+
+/**
+	
+	This function processes an action parameter from the URL path, sanitizes it, and attempts to execute an action based on that parameter. 
+	The response depends on whether the execution is successful or results in an error. 
+	If successful, it returns the result in a JSON format with a 200 OK status. 
+	If an error occurs (such as if the action is not recognized), it returns an error message in a JSON format with a 404 Not Found status.
+
+	**/
+
+pub async fn shieldwall_action(
+	Path(action): Path<String> // Extracts the 'action' parameter from the URL path
+) -> impl IntoResponse {
+	// Sanitize the extracted action string to prevent injection attacks and limit its length
+	let clean_action = crate::utility::sanitize_string_limit(&action);
+
+	// Create an instance of ShieldWallSchema with the sanitized action
+	let shieldwall_schema = ShieldWallSchema {
+		action: Some(clean_action),
+	};
+
+	// Execute the action using the ShieldWallSchema's execute method
+	// Since execute now returns an impl IntoResponse, we can directly await it
+	shieldwall_schema.execute().await
+}
+
+/**
+
+	It retrieves the URL from the GLOBAL map using a predefined key.
+	If the URL is found, it sends a POST request to that URL using reqwest::Client.
+	The response from the server is then read as a text (assuming it's JSON or a string).
+	If successful, the response text is returned. If there are any errors (like the URL not found in the map, the global map not initialized, failed to make the request, or failed to read the response), appropriate error messages are returned.
+	This function should be run within the context of a Tokio runtime since it is an async function and uses await. Make sure that the GLOBAL map is properly initialized and contains the expected URL before calling this function.
+
+	**/
+
+// The `shieldwall_action_portainer_stack_deploy` function is an asynchronous function designed to
+// interact with a Portainer Stack using a URL retrieved from a global map. It sends a POST request
+// to the Portainer Stack URL and returns the server's response. Error handling is integrated to
+// manage cases where the URL is not found in the global map, the global map is not initialized,
+// or there are issues with the HTTP request or response processing. This function requires a Tokio
+// runtime context as it relies on asynchronous operations.
+
+pub async fn shieldwall_action_portainer_stack_deploy() -> impl IntoResponse {
+	// Define the key for the Portainer Stack URL in the GLOBAL map
+	let portainer_stack_url_from_map = "portainer_stack";
+
+	// Retrieve the URL from the GLOBAL map
+	let url = if let Some(global_map) = GLOBAL.get() {
+		match global_map.get(portainer_stack_url_from_map) {
+			Some(url) => url.value().clone(),
+			None => {
+				return axum::response::Response
+					::builder()
+					.status(StatusCode::INTERNAL_SERVER_ERROR)
+					.body(
+						Json(
+							serde_json::json!({"error": "URL not found in global map"})
+						)
+							.into_response()
+							.into_body()
+					)
+					.unwrap();
+			}
+		}
+	} else {
+		return axum::response::Response
+			::builder()
+			.status(StatusCode::INTERNAL_SERVER_ERROR)
+			.body(
+				Json(serde_json::json!({"error": "GLOBAL map not initialized"}))
+					.into_response()
+					.into_body()
+			)
+			.unwrap();
+	};
+
+	// Make the POST request to the URL
+	match reqwest::Client::new().post(&url).send().await {
+		Ok(response) => {
+			match response.text().await {
+				Ok(text) =>
+					(
+						StatusCode::OK,
+						Json(serde_json::json!({ "response": text })),
+					).into_response(),
+				Err(e) =>
+					(
+						StatusCode::INTERNAL_SERVER_ERROR,
+						Json(
+							serde_json::json!({ "error": "Failed to read response", "message": e.to_string() })
+						),
+					).into_response(),
+			}
+		}
+		Err(e) =>
+			(
+				StatusCode::INTERNAL_SERVER_ERROR,
+				Json(
+					serde_json::json!({ "error": "POST request failed", "message": e.to_string() })
+				),
+			).into_response(),
 	}
 }

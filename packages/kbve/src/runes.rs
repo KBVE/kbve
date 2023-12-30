@@ -12,11 +12,17 @@ use std::sync::{ Arc, OnceLock };
 
 use crate::{ spellbook_sanitize_fields };
 
-//?         [GLOBALS]
+//			*Schema
+
+use crate::schema::{ profile };
+
+
+
+//         [GLOBALS]
 pub type GlobalStore = DashMap<String, String>;
 pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
 
-//?         [RUNES]
+//         [RUNES]
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TokenRune {
@@ -37,7 +43,7 @@ pub struct APIRune {
 	pub kbve: String,
 }
 
-//?         [Schema]
+//         [Schema]
 
 #[derive(Debug, Deserialize)]
 pub struct LoginUserSchema {
@@ -65,8 +71,8 @@ pub struct RegisterUserSchema {
 	**/
 
 // Derive macros to add functionality to the UpdateProfileSchema struct.
-#[derive(AsChangeset, Queryable, Serialize, Deserialize, Clone)]
 // Specifies the corresponding table name in the database for the Diesel ORM.
+#[derive(AsChangeset, Queryable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = profile)]
 pub struct UpdateProfileSchema {
 	// Define optional fields for the user profile.
@@ -202,41 +208,6 @@ impl AuthPlayerRegisterSchema {
 	}
 }
 
-// Define a struct called `ShieldWallSchema` with Serde's derive macros for serialization and deserialization.
-// This will allow instances of ShieldWallSchema to be easily converted to/from JSON (or other formats).
-#[derive(Serialize, Deserialize, Clone)]
-pub struct ShieldWallSchema {
-	// Define a field `action` which is an Option type that can hold a String.
-	// Option is used here to represent that the action might or might not be present.
-	pub action: Option<String>,
-}
-
-impl ShieldWallSchema {
-	pub async fn execute(&self) -> impl IntoResponse {
-		match &self.action {
-			Some(action) =>
-				match action.as_str() {
-					"deploy" => {
-						// Call the function and await its response
-						let response: axum::response::Response = shieldwall_action_portainer_stack_deploy().await.into_response();
-						response
-					}
-					_ =>
-						(
-							StatusCode::BAD_REQUEST,
-							Json(
-								serde_json::json!({"error": "Unknown action"})
-							),
-						).into_response(),
-				}
-			None =>
-				(
-					StatusCode::BAD_REQUEST,
-					Json(serde_json::json!({"error": "No action provided"})),
-				).into_response(),
-		}
-	}
-}
 
 //?         [Response]
 
