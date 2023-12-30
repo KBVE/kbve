@@ -135,6 +135,82 @@ tags:
 
     ```
 
+- 1:40pm - The next step in the migration will be for the `task_fetch_userid_by_username` function.
+    This function was using the u64 as the main reference point, so all we had to do was swap out that with a `Vec<u8>`.
+    Furthermore, I added an additional macro, called `spellbook_internal_username` which is a place holder for internal macro calls.
+
+    Now the next migration is for the `hazardous_create_auth_from_ulid` function.
+    We will be saving the user`s ulid instead of the u64 but we also have to create a new ulid for the auth row itself.
+
+    For the migration, I added this line:
+    `let clean_auth_ulid = spellbook_generate_ulid_bytes!();`
+    and updated the insert_into values to include both the auth ulid and user ulid.
+    Final migration function looks a bit like this:
+
+    ```rust
+
+        pub async fn hazardous_create_auth_from_ulid(
+        clean_hash_password: String,
+        clean_email: String,
+        clean_user_ulid: Vec<u8>,
+        pool: Arc<Pool>
+    ) -> Result<bool,  &'static str> {
+
+        let mut conn = spellbook_pool_conn!(pool);
+
+        let clean_auth_ulid = spellbook_generate_ulid_bytes!();
+
+        match
+        insert_into(auth::table)
+            .values((
+                auth::ulid.eq(clean_auth_ulid),
+                auth::userid.eq(clean_user_ulid),
+                auth::email.eq(clean_email),
+                auth::hash.eq(clean_hash_password),
+                auth::salt.eq("0"),
+                auth::password_reset_token.eq("0"),
+                auth::password_reset_expiry.eq(Utc::now().naive_utc()),
+                auth::verification_token.eq("0"),
+                auth::verification_expiry.eq(Utc::now().naive_utc()),
+                auth::status.eq(0),
+                auth::last_login_at.eq(Utc::now().naive_utc()),
+                auth::failed_login_attempts.eq(0),
+                auth::lockout_until.eq(Utc::now().naive_utc()),
+                auth::two_factor_secret.eq("0"),
+                auth::recovery_codes.eq("0"),
+            ))
+            .execute(&mut conn)
+        {
+            Ok(_) => Ok(true),
+            Err(_) => Err("Failed to create auth row for user"),
+        }
+    }
+
+
+    ```
+
+    There is an issue with the spellbook_internal_username that I need to remedy, its definitely something stupid but I will continue migrating over the hazardous functions.
+
+- 1:55pm - Next migration will be for the `hazardous_create_profile_from_ulid`.
+    This function will be the same type of migration as the auth, just adding the ULID to the functions.
+
+- 2:40pm - After the general core inserts are done, we have to migrate some of the checks and balances, including handling the ULID conversions.
+    We know that within the database, the ULIDs are stored as binary but there are situations where the application stores the ULID as a base32 string, thus we need to convert them.
+    Going back to the `utility.rs`, we can add this function to help 
+
+    ```rust
+
+        pub fn convert_ulid_string_to_bytes(ulid_str: &str) -> Result<Vec<u8>, String> {
+        match Ulid::from_str(ulid_str) {
+            Ok(ulid) => Ok(ulid.to_bytes().to_vec()),
+            Err(_) => Err("Invalid ULID string".to_string()),
+        }
+    }
+
+    ```
+
+    The first area that we run into this migration would be inside of the JWTs.
+
 
 ## Quote
 

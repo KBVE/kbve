@@ -25,7 +25,8 @@ use crate::{
 
 //	?	[Diesel]
 use diesel::prelude::*;
-use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
+//	use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
+use crate::schema::{ auth, profile, users, };
 
 //	?	[Axum]
 
@@ -183,7 +184,8 @@ pub async fn auth_player_register(
 	}
 
 	//	[#]	Obtain UUID
-	let uuid = match
+	//	!	Migration to ULID
+	let ulid = match
 		crate::guild::task_fetch_userid_by_username(
 			body.username.clone(),
 			pool.clone()
@@ -193,7 +195,7 @@ pub async fn auth_player_register(
 		Err(_) => {
 			return spellbook_error!(
 				axum::http::StatusCode::BAD_REQUEST,
-				"process-uuid-failed"
+				"process-ulid-failed"
 			);
 		}
 	};
@@ -203,7 +205,7 @@ pub async fn auth_player_register(
 		crate::guild::hazardous_create_auth_from_ulid(
 			hash.clone().to_string(),
 			body.email.clone(),
-			uuid.clone(),
+			ulid.clone(),
 			pool.clone()
 		).await
 	{
@@ -223,7 +225,7 @@ pub async fn auth_player_register(
 	match
 		crate::guild::hazardous_create_profile_from_ulid(
 			body.username.clone(),
-			uuid.clone(),
+			ulid.clone(),
 			pool.clone()
 		).await
 	{
@@ -298,14 +300,25 @@ pub async fn auth_jwt_profile(
 	let mut conn = spellbook_pool!(pool);
 	// Sanitize and validate the username, UUID, and email from the JWT token data
 	let clean_username = spellbook_username!(&privatedata.claims.username);
-	let clean_ulid = spellbook_ulid!(&privatedata.claims.ulid);
+	let clean_ulid_string = spellbook_ulid!(&privatedata.claims.ulid);
 	let clean_email = spellbook_email!(&privatedata.claims.email);
+
+	let clean_ulid_bytes = match crate::utility::convert_ulid_string_to_bytes(&clean_ulid_string) {
+        Ok(bytes) => bytes,
+        Err(error_message) => {
+            // Handle the error, e.g., return an appropriate response
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({ "error": error_message })),
+            ).into_response();
+        },
+    };
 
 	// Attempt to retrieve the user and their profile from the database
 	match
 		users::table
-			.inner_join(profile::table.on(profile::ulid.eq(users::ulid)))
-			.filter(users::ulid.eq(clean_ulid))
+			.inner_join(profile::table.on(profile::userid.eq(users::ulid)))
+			.filter(users::ulid.eq(clean_ulid_bytes))
 			.select((users::all_columns, profile::all_columns))
 			.first::<(User, Profile)>(&mut conn)
 	{
@@ -318,7 +331,7 @@ pub async fn auth_jwt_profile(
                     "user": user,
                     "profile": profile,
                     "email": clean_email,
-                    "ulid": clean_ulid,
+                    "ulid": clean_ulid_string,
                     "username": clean_username,
                 })
 				),
