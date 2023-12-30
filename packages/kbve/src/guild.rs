@@ -4,6 +4,7 @@
 use std::sync::{ Arc };
 
 use diesel::prelude::*;
+use diesel::insert_into;
 
 use chrono::Utc;
 
@@ -72,7 +73,7 @@ pub async fn hazardous_create_user(
 	match
 		insert_into(users::table)
 			.values((
-				users::ulid.eq(clean_ulid) // Adding the clean ulid!
+				users::ulid.eq(clean_ulid), // Adding the clean ulid!
 				users::username.eq(clean_username),
 				users::role.eq(0), // Setting role to 0
 				users::reputation.eq(0), // Setting reputation to 0
