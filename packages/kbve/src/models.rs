@@ -5,11 +5,19 @@
 use diesel::prelude::*;
 use serde::{ Serialize, Deserialize};
 
-
+// use crate::apikey::dsl::apikey;
+// use crate::appwrite::dsl::appwrite;
+// use crate::auth::dsl::auth;
+// use crate::globals::dsl::globals;
+// use crate::n8n::dsl::n8n;
+// use crate::profile::dsl::profile;
+// use crate::settings::dsl::settings;
+// use crate::users::dsl::users;
 
 use chrono::NaiveDateTime;
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = apikey)]
 pub struct Apikey {
     pub permissions: String,
     pub keyhash: String,
@@ -18,8 +26,9 @@ pub struct Apikey {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = appwrite)]
 pub struct Appwrite {
     pub appwrite_endpoint: String,
     pub appwrite_projectid: String,
@@ -30,8 +39,9 @@ pub struct Appwrite {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = auth)]
 pub struct Auth {
     pub email: String,
     pub hash: String,
@@ -50,15 +60,17 @@ pub struct Auth {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[diesel(table_name = globals)]
 pub struct Global {
     pub id: u64,
     pub key: String,
     pub value: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = n8n)]
 pub struct N8n {
     pub webhook: String,
     pub permissions: String,
@@ -68,8 +80,9 @@ pub struct N8n {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = profile)]
 pub struct Profile {
     pub name: String,
     pub bio: String,
@@ -81,8 +94,9 @@ pub struct Profile {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = settings)]
 pub struct Setting {
     pub key: String,
     pub value: String,
@@ -90,8 +104,9 @@ pub struct Setting {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(primary_key(ulid))]
+#[diesel(table_name = users)]
 pub struct User {
     pub username: String,
     pub role: i32,

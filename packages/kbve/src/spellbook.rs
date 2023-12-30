@@ -255,7 +255,7 @@ macro_rules! hazardous_task_fetch {
 			$param: $param_type,
 			pool: Arc<Pool>
 		) -> Result<$return_type, &'static str> {
-			let mut conn = kbve_get_conn!(pool);
+			let mut conn = spellbook_pool_conn!(pool);
 
 			match $table::table
 				.filter($table::$param.eq($param))
@@ -263,8 +263,8 @@ macro_rules! hazardous_task_fetch {
 				.first::<$return_type>(&mut conn)
 				{
 					Ok(data) => Ok(data),
-					Err(diesel::NotFound) => Err("Database error"),
-					Err(_) => Err("Database error"),
+					Err(diesel::NotFound) => Err("db_error"),
+					Err(_) => Err("db_error"),
 				}
 
 		}

@@ -11,7 +11,7 @@ use tokio;
 
 use kbve::{
 	db::{ self },
-	auth::{ graceful },
+	authentication::{ graceful },
 	utility::{ cors_service, fallback, global_map_init, health_check, speed_test, root_endpoint },
 	runes::{  GLOBAL, }
 };
@@ -41,31 +41,31 @@ async fn main() {
 
 		.route(
 			"/graceful/profile",
-			get(kbve::auth::graceful_jwt_profile).route_layer(
+			get(kbve::authentication::graceful_jwt_profile).route_layer(
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
 		.route(
 			"/auth/profile",
-			get(kbve::auth::auth_jwt_profile).route_layer(
+			get(kbve::authentication::auth_jwt_profile).route_layer(
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
 		.route(
 			"/auth/profile/update",
-			post(kbve::auth::auth_jwt_update_profile).route_layer(
+			post(kbve::authentication::auth_jwt_update_profile).route_layer(
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
 		.route(
 			"/shieldwall/:action",
-			get(kbve::auth::shieldwall_action).route_layer(
-				middleware::from_fn(kbve::auth::shieldwall)
+			get(kbve::authentication::shieldwall_action).route_layer(
+				middleware::from_fn(kbve::authentication::shieldwall)
 			)
 		)
 
-		.route("/auth/logout", get(kbve::auth::auth_logout))
-		.route("/auth/register", post(kbve::auth::auth_player_register))
+		.route("/auth/logout", get(kbve::authentication::auth_logout))
+		.route("/auth/register", post(kbve::authentication::auth_player_register))
 		//.route("/auth/login", post(api_post_process_login_user_handler))
 
 		.layer(Extension(shared_pool.clone()))

@@ -27,7 +27,7 @@ pub async fn hazardous_boolean_username_exist(
 	{
 		Ok(_) => Ok(true),
 		Err(diesel::NotFound) => Ok(false),
-		Err(_) => Err("Database error"),
+		Err(_) => Err("db_error"),
 	}
 }
 

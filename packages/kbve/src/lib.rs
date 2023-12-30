@@ -1,28 +1,21 @@
 #![allow(dead_code)]
 
 //  * [MODS]
-pub mod models;
 pub mod schema;
 pub mod db;
+pub mod models;
 pub mod utility;
-
-//  * [MODS] -> Extensions
-
 pub mod guild;
 pub mod spellbook;
 pub mod runes;
-pub mod auth;
+pub mod authentication;
 
 
-// *  [USE]
-pub use models::*;
 pub use schema::*;
 pub use db::*;
+pub use models::*;
 pub use utility::*;
-
-
-//  * [USE] -> Extensions
 pub use guild::*;
 pub use spellbook::*;
 pub use runes::*;
-pub use auth::*;
+pub use authentication::*;

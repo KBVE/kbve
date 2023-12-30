@@ -37,7 +37,7 @@ use tokio::task;
 use crate::runes::{ WizardResponse };
 use crate::db::Pool;
 
-use crate::{ spellbook_pool, spellbook_pool_conn}; 
+use crate::{ spellbook_pool_conn}; 
 
 use crate::schema::{ globals };
 
