@@ -19,6 +19,123 @@ tags:
 - 12:41pm - Preparing for the C Panda Playground! I am thinking we could do a couple cool test examples, maybe even a random dice roller for DnD?
     I am sure it might be a bit harder than it seems but we shall see!
 
+- 12:47pm - The older `pub async fn hazardous_create_user` was a simple function that would insert a new username and the only change we have to make is the ULID generation.
+    Before we had the database generate the UUID but this can cause issues when having multiple databases, definitely in the virtual replications.
+    To offset that problem, we will create the ULID and insert it via the hazardous function!
+    However we have to be very careful because we are dealing with a `hazardous` function, which can open us up to a SQL Injection.
+
+    Here is the older function, as a reference point.
+
+    ```rust
+
+        pub async fn hazardous_create_user(
+        clean_username: String,
+        pool: Arc<Pool>
+    ) -> Result<bool, &'static str> {
+        let mut conn = kbve_get_conn!(pool);
+
+        match
+            insert_into(users::table)
+                .values((
+                    users::username.eq(clean_username),
+                    users::role.eq(0), // Setting role to 0
+                    users::reputation.eq(0), // Setting reputation to 0
+                    users::exp.eq(0), // Setting exp to 0
+                    users::created_at.eq(Utc::now().naive_utc()), // Setting current UTC time
+                ))
+                .execute(&mut conn)
+        {
+            Ok(_) => Ok(true),
+            Err(_) => Err("Failed to insert user into database"),
+        }
+    }
+
+    ```
+
+    The first thing we will do is update the macro to use the one from our spellbook.
+    So we will change the `let mut conn = kbve_get_conn!(pool);` to `let mut conn = spellbook_pool_conn!(pool);`.
+    This is just to make it easier for future developers to understand that it is a macro from the `spellbook.rs` file.
+
+    Next we have to just slightly update the function to add the `ulid` but before we do that, we have to create the `ulid`.
+    We will be using the `ulid` crate, so make sure that it is installed via Cargo and then add it to the top of the file.
+    In our case, it is the `guild.rs` , which is just a simple line, `use ulid::Ulid;`
+    Actually, now that I am thinking about it. We would be better off creating a function within the `utility.rs` that would generate ULIDs for us.
+    So actually, we would move the usage of the crate, `use ulid:Ulid;` out of the `guild.rs` and place it inside of the `utility.rs`.
+    
+    Now inside of the utility file, we will create two functions.
+    
+    ```rust
+    
+    pub fn generate_ulid_as_bytes() -> Vec<u8> {
+	let ulid = Ulid::new();
+	ulid.to_bytes().to_vec()
+    }
+
+    pub fn generate_ulid_as_string() -> String {
+	let ulid = Ulid::new();
+	ulid.to_string()
+    }
+    
+    ```
+    
+    Now that we got the function to generate ULID as bytes/string.
+    Let us go ahead and add them into the spellbook, as macros.
+
+    ```rust
+    
+    #[macro_export]
+    macro_rules! spellbook_generate_ulid_bytes {
+        () => {
+            {
+                // Call the generate_ulid_as_bytes function
+                crate::utility::generate_ulid_as_bytes()
+            }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! spellbook_generate_ulid_string {
+        () => {
+            {
+                // Call the generate_ulid_as_string function
+                crate::utility::generate_ulid_as_string()
+            }
+        };
+    }
+    ```
+
+    Then we will update our `hazardous_create_user` function with the new ULID.
+    Here is how it would look!
+
+    ```rust
+        pub async fn hazardous_create_user(
+        clean_username: String,
+        pool: Arc<Pool>
+    ) -> Result<bool, &'static str> {
+        let mut conn = spellbook_pool_conn!(pool);
+
+        let clean_ulid = spellbook_generate_ulid_bytes!();
+
+        match
+            insert_into(users::table)
+                .values((
+                    users::ulid.eq(clean_ulid), // Adding the clean ulid!
+                    users::username.eq(clean_username),
+                    users::role.eq(0), // Setting role to 0
+                    users::reputation.eq(0), // Setting reputation to 0
+                    users::exp.eq(0), // Setting exp to 0
+                    users::created_at.eq(Utc::now().naive_utc()), // Setting current UTC time
+                ))
+                .execute(&mut conn)
+        {
+            Ok(_) => Ok(true),
+            Err(_) => Err("Failed to insert user into database"),
+        }
+    }
+
+    ```
+
+
 ## Quote
 
 > "NULL"

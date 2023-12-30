@@ -30,9 +30,10 @@ use std::sync::Arc;
 
 use diesel::prelude::*;
 
-
 use tokio::time::Instant;
 use tokio::task;
+
+use ulid::Ulid;
 
 use crate::runes::{ WizardResponse };
 use crate::db::Pool;
@@ -253,6 +254,18 @@ pub async fn global_map_init(
 		Err(diesel::NotFound) => Err("not_found_error"),
 		Err(_) => { Err("database_error") }
 	}
+}
+
+//			?[ULIDS]
+
+pub fn generate_ulid_as_bytes() -> Vec<u8> {
+	let ulid = Ulid::new();
+	ulid.to_bytes().to_vec()
+}
+
+pub fn generate_ulid_as_string() -> String {
+	let ulid = Ulid::new();
+	ulid.to_string()
 }
 
 
