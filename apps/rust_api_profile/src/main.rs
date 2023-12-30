@@ -68,7 +68,7 @@ async fn main() {
 		.route("/auth/register", post(kbve::authentication::auth_player_register))
 		//.route("/auth/login", post(api_post_process_login_user_handler))
 
-		.layer(Extension(shared_pool.clone()))
+		.layer(Extension(shared_pool.clone()));
 		//.layer(Extension(api_session_store));
 
 	// ?	Future v2 -> Panda

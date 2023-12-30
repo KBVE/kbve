@@ -25,7 +25,7 @@ use reqwest::Client;
 //	use serde::{ Deserialize, Serialize };
 
 use std::collections::HashMap;
-//	use std::str::FromStr;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use diesel::prelude::*;
@@ -266,6 +266,13 @@ pub fn generate_ulid_as_bytes() -> Vec<u8> {
 pub fn generate_ulid_as_string() -> String {
 	let ulid = Ulid::new();
 	ulid.to_string()
+}
+
+pub fn convert_ulid_string_to_bytes(ulid_str: &str) -> Result<Vec<u8>, String> {
+    match Ulid::from_str(ulid_str) {
+        Ok(ulid) => Ok(ulid.to_bytes().to_vec()),
+        Err(_) => Err("Invalid ULID string".to_string()),
+    }
 }
 
 

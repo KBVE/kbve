@@ -10,6 +10,7 @@ use crate::runes::{
 	GLOBAL,
 	WizardResponse,
 	AuthPlayerRegisterSchema,
+	UpdateProfileSchema,
 };
 
 use crate::{
@@ -25,7 +26,8 @@ use crate::{
 
 //	?	[Diesel]
 use diesel::prelude::*;
-use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
+//	use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
+use crate::schema::{ auth, profile, users, };
 
 //	?	[Axum]
 
@@ -183,7 +185,8 @@ pub async fn auth_player_register(
 	}
 
 	//	[#]	Obtain UUID
-	let uuid = match
+	//	!	Migration to ULID
+	let ulid = match
 		crate::guild::task_fetch_userid_by_username(
 			body.username.clone(),
 			pool.clone()
@@ -193,7 +196,7 @@ pub async fn auth_player_register(
 		Err(_) => {
 			return spellbook_error!(
 				axum::http::StatusCode::BAD_REQUEST,
-				"process-uuid-failed"
+				"process-ulid-failed"
 			);
 		}
 	};
@@ -203,7 +206,7 @@ pub async fn auth_player_register(
 		crate::guild::hazardous_create_auth_from_ulid(
 			hash.clone().to_string(),
 			body.email.clone(),
-			uuid.clone(),
+			ulid.clone(),
 			pool.clone()
 		).await
 	{
@@ -223,7 +226,7 @@ pub async fn auth_player_register(
 	match
 		crate::guild::hazardous_create_profile_from_ulid(
 			body.username.clone(),
-			uuid.clone(),
+			ulid.clone(),
 			pool.clone()
 		).await
 	{
@@ -296,16 +299,27 @@ pub async fn auth_jwt_profile(
 ) -> impl IntoResponse {
 	// Get a mutable connection from the pool
 	let mut conn = spellbook_pool!(pool);
-	// Sanitize and validate the username, UUID, and email from the JWT token data
+	// Sanitize and validate the username, ULID, and email from the JWT token data
 	let clean_username = spellbook_username!(&privatedata.claims.username);
-	let clean_ulid = spellbook_ulid!(&privatedata.claims.ulid);
+	let clean_ulid_string = spellbook_ulid!(&privatedata.claims.ulid);
 	let clean_email = spellbook_email!(&privatedata.claims.email);
+
+	let clean_ulid_bytes = match crate::utility::convert_ulid_string_to_bytes(&clean_ulid_string) {
+        Ok(bytes) => bytes,
+        Err(error_message) => {
+            // Handle the error, e.g., return an appropriate response
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({ "error": error_message })),
+            ).into_response();
+        },
+    };
 
 	// Attempt to retrieve the user and their profile from the database
 	match
 		users::table
-			.inner_join(profile::table.on(profile::ulid.eq(users::ulid)))
-			.filter(users::ulid.eq(clean_ulid))
+			.inner_join(profile::table.on(profile::userid.eq(users::ulid)))
+			.filter(users::ulid.eq(clean_ulid_bytes))
 			.select((users::all_columns, profile::all_columns))
 			.first::<(User, Profile)>(&mut conn)
 	{
@@ -318,7 +332,7 @@ pub async fn auth_jwt_profile(
                     "user": user,
                     "profile": profile,
                     "email": clean_email,
-                    "ulid": clean_ulid,
+                    "ulid": clean_ulid_string,
                     "username": clean_username,
                 })
 				),
@@ -340,6 +354,71 @@ pub async fn auth_jwt_profile(
 		}
 	}
 }
+
+
+// Define an asynchronous function named `auth_jwt_update_profile`
+// This function is designed to handle a request to update a user profile
+pub async fn auth_jwt_update_profile(
+	// Extract a shared connection pool (wrapped in an Arc for thread safety)
+	Extension(pool): Extension<Arc<Pool>>,
+	// Extract JWT token data (assuming `jsonwebtoken::TokenData<TokenRune>` is a valid type)
+	Extension(privatedata): Extension<jsonwebtoken::TokenData<TokenRune>>,
+	// Extract JSON payload into `UpdateProfileSchema` struct
+	Json(mut body): Json<UpdateProfileSchema>
+) -> impl IntoResponse {
+	// Get a mutable connection from the pool
+	let mut conn = spellbook_pool!(pool);
+	// Sanitize and validate the ULID from the JWT token data
+	let clean_user_ulid_string = spellbook_ulid!(&privatedata.claims.ulid);
+
+	// Sanitize the body data (presumably to prevent injection attacks and validate input)
+	body.sanitize();
+
+	let clean_ulid_bytes = match crate::utility::convert_ulid_string_to_bytes(&clean_user_ulid_string) {
+        Ok(bytes) => bytes,
+        Err(error_message) => {
+            // Handle the error, e.g., return an appropriate response
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({ "error": error_message })),
+            ).into_response();
+        },
+    };
+
+	// Attempt to update the profile in the database
+	match
+		diesel
+			::update(profile::table) // Specify the table to update
+			.filter(profile::ulid.eq(clean_ulid_bytes)) // Filter to the specific user's UUID
+			.set(body) // Set the new profile data
+			.execute(&mut conn) // Execute the update query
+	{
+		Ok(_) => {
+			// If the update is successful, return an OK status with a success message
+			(
+				StatusCode::OK,
+				Json(serde_json::json!({"status": "complete"})),
+			).into_response()
+		}
+		Err(diesel::NotFound) => {
+			// If the record to update is not found, return an Unauthorized status
+			// This could mean the UUID doesn't match any user
+			return (
+				axum::http::StatusCode::UNAUTHORIZED,
+				axum::Json(serde_json::json!({"error": "profile_not_found"})),
+			).into_response();
+		}
+		Err(_) => {
+			// For any other database error, return an Unauthorized status with a generic error message
+			// This branch catches all other kinds of errors that might occur during the update process
+			return (
+				axum::http::StatusCode::UNAUTHORIZED,
+				axum::Json(serde_json::json!({"error": "database_error"})),
+			).into_response();
+		}
+	}
+}
+
 
 //	!	[END] -> @JWTs
 

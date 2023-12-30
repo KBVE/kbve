@@ -219,7 +219,7 @@ pub struct WizardResponse {
 
 #[derive(Serialize, Deserialize)]
 pub struct CaptchaResponse {
-	success: bool,
+	pub success: bool,
 }
 
 impl IntoResponse for WizardResponse {
