@@ -176,6 +176,27 @@ macro_rules! spellbook_email {
 	};
 }
 
+#[macro_export]
+macro_rules! spellbook_generate_ulid_bytes {
+    () => {
+        {
+            // Call the generate_ulid_as_bytes function
+            crate::utility::generate_ulid_as_bytes()
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! spellbook_generate_ulid_string {
+    () => {
+        {
+            // Call the generate_ulid_as_string function
+            crate::utility::generate_ulid_as_string()
+        }
+    };
+}
+
+
 /**
 
 In the spellbook_sanitize_fields macro:
