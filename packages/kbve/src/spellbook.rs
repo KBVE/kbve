@@ -3,7 +3,7 @@
 
 #[macro_export]
 macro_rules! spellbook_create_jwt {
-	($uuid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {
+	($ulid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {
 		{
 
 		use jsonwebtoken::{encode, EncodingKey, Header};
@@ -14,7 +14,7 @@ macro_rules! spellbook_create_jwt {
         let jwt_token = encode(
             &Header::default(),
             &crate::runes::TokenRune {
-                uuid: $uuid.to_string(),
+                ulid: $ulid.to_string(),
                 email: $email.to_string(),
                 username: $username.to_string(),
                 iat: now.timestamp() as usize,
@@ -263,7 +263,7 @@ macro_rules! spellbook_hazardous_boolean_exist_via_ulid {
 ///     ?       Macro -> Hazardous Task Fetch
 
 #[macro_export]
-macro_rules! hazardous_task_fetch {
+macro_rules! spellbook_hazardous_task_fetch {
 	(
 		$func_name:ident,
 		$table:ident,

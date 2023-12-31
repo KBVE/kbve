@@ -37,8 +37,6 @@ async fn main() {
 	let api_routes = Router::new()
 		.route("/health", get(health_check))
 		.route("/speed", get(speed_test))
-
-
 		.route(
 			"/graceful/profile",
 			get(kbve::authentication::graceful_jwt_profile).route_layer(
@@ -66,7 +64,7 @@ async fn main() {
 
 		.route("/auth/logout", get(kbve::authentication::auth_logout))
 		.route("/auth/register", post(kbve::authentication::auth_player_register))
-		//.route("/auth/login", post(api_post_process_login_user_handler))
+		.route("/auth/login", post(kbve::authentication::auth_player_login))
 
 		.layer(Extension(shared_pool.clone()));
 		//.layer(Extension(api_session_store));

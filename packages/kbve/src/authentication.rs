@@ -10,7 +10,9 @@ use crate::runes::{
 	GLOBAL,
 	WizardResponse,
 	AuthPlayerRegisterSchema,
+	AuthVerificationSchema,
 	UpdateProfileSchema,
+	LoginUserSchema,
 };
 
 use crate::{
@@ -22,12 +24,13 @@ use crate::{
 	spellbook_error,
 	spellbook_complete,
 	spellbook_get_global,
+	spellbook_create_jwt,
 };
 
 //	?	[Diesel]
 use diesel::prelude::*;
 //	use crate::schema::{ auth, profile, users, apikey, n8n, appwrite, globals };
-use crate::schema::{ auth, profile, users, };
+use crate::schema::{ auth, profile, users };
 
 //	?	[Axum]
 
@@ -55,7 +58,7 @@ use rand_core::OsRng;
 
 //  ?   [serde]
 use serde_json::{ json };
-use serde::{ Serialize, Deserialize, };
+use serde::{ Serialize, Deserialize };
 
 //  ?   [std]
 use std::sync::{ Arc };
@@ -264,6 +267,236 @@ pub async fn auth_player_register(
 	spellbook_complete!("register-complete")
 }
 
+//	?	[Login]
+
+pub async fn auth_player_login(
+	Extension(pool): Extension<Arc<Pool>>,
+	Json(body): Json<LoginUserSchema>
+) -> impl IntoResponse {
+	let clean_email = match crate::utility::sanitize_email(&body.email) {
+		Ok(email) => email,
+		Err(error_message) => {
+			let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", error_message))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": error_message.to_string()}),
+				}),
+			).into_response();
+		}
+	};
+
+	match crate::utility::validate_password(&body.password) {
+		Ok(()) => {}
+		Err(_) => {
+			let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", "invalid_password"))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": "invalid_password"}),
+				}),
+			).into_response();
+		}
+	}
+
+	let mut conn = match pool.get() {
+		Ok(conn) => conn,
+		Err(_) => {
+			let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", "invalid_password"))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": "invalid_password"}),
+				}),
+			).into_response();
+		}
+	};
+
+	let auth_verification_data = match
+		auth::table
+			.inner_join(users::table.on(users::ulid.eq(auth::userid)))
+			.filter(auth::email.eq(clean_email))
+			.select((users::username, auth::email, users::ulid, auth::hash))
+			.first::<AuthVerificationSchema>(&mut conn)
+	{
+		Ok(data) => data,
+		Err(_) => {
+			let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", "auth_error"))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": "auth_error"}),
+				}),
+			).into_response();
+		}
+	};
+
+	let db_user_hash_password = auth_verification_data.hash;
+
+
+	let userid_ulid_string = match crate::utility::convert_ulid_bytes_to_string(&auth_verification_data.userid) {
+		Ok(ulid_str) => ulid_str,
+		Err(e) => {
+			// Handle the error, e.g., log it or return an error response
+			let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", "invalid_ulid"))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": "invalid_ulid"}),
+				}),
+			).into_response();
+		}
+	};
+	
+
+
+	let operational_vaild_password = match
+		PasswordHash::new(&db_user_hash_password)
+	{
+		Ok(process_hash) =>
+			Argon2::default()
+				.verify_password(&body.password.as_bytes(), &process_hash)
+				.map_or(false, |_| true),
+		Err(_) => false,
+	};
+
+	if !operational_vaild_password {
+		let mut headers = axum::http::HeaderMap::new();
+
+		let header_name = axum::http::header::HeaderName
+			::from_str("x-kbve")
+			.unwrap();
+		let header_value = axum::http::HeaderValue
+			::from_str(&format!("shield_{}", "invalid_password"))
+			.unwrap();
+
+		headers.insert(header_name, header_value);
+
+		return (
+			StatusCode::INTERNAL_SERVER_ERROR,
+			headers,
+			Json(WizardResponse {
+				data: serde_json::json!({"status": "error"}),
+				message: serde_json::json!({"error": "invalid_password"}),
+			}),
+		).into_response();
+	}
+
+	let jwt_secret = match spellbook_get_global!("jwt_secret", "invalid_jwt") {
+		Ok(secret) => secret,
+		Err(_) => {
+			let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", "invalid_jwt"))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::UNAUTHORIZED,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": "invalid_jwt"}),
+				}),
+			).into_response();
+		}
+	};
+
+	let jwt_token = spellbook_create_jwt!(
+		userid_ulid_string,
+		auth_verification_data.email,
+		auth_verification_data.username,
+		jwt_secret,
+		2
+	);
+
+	let cookie = spellbook_create_cookie!("token", jwt_token.to_owned(), 2);
+
+	let mut headers = axum::http::HeaderMap::new();
+
+	headers.insert(
+		axum::http::header::SET_COOKIE,
+		cookie.to_string().parse().unwrap()
+	);
+
+	(
+		StatusCode::OK,
+		headers,
+		Json(WizardResponse {
+			data: serde_json::json!({"status": "complete"}),
+			message: serde_json::json!({
+	 			"token": jwt_token.to_string()
+		}),
+		}),
+	).into_response()
+
+}
+
 //  ?   [Routes] -> JWTs
 //	!	[START] -> JWTS
 
@@ -304,16 +537,18 @@ pub async fn auth_jwt_profile(
 	let clean_ulid_string = spellbook_ulid!(&privatedata.claims.ulid);
 	let clean_email = spellbook_email!(&privatedata.claims.email);
 
-	let clean_ulid_bytes = match crate::utility::convert_ulid_string_to_bytes(&clean_ulid_string) {
-        Ok(bytes) => bytes,
-        Err(error_message) => {
-            // Handle the error, e.g., return an appropriate response
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(serde_json::json!({ "error": error_message })),
-            ).into_response();
-        },
-    };
+	let clean_ulid_bytes = match
+		crate::utility::convert_ulid_string_to_bytes(&clean_ulid_string)
+	{
+		Ok(bytes) => bytes,
+		Err(error_message) => {
+			// Handle the error, e.g., return an appropriate response
+			return (
+				StatusCode::BAD_REQUEST,
+				Json(serde_json::json!({ "error": error_message })),
+			).into_response();
+		}
+	};
 
 	// Attempt to retrieve the user and their profile from the database
 	match
@@ -355,7 +590,6 @@ pub async fn auth_jwt_profile(
 	}
 }
 
-
 // Define an asynchronous function named `auth_jwt_update_profile`
 // This function is designed to handle a request to update a user profile
 pub async fn auth_jwt_update_profile(
@@ -374,16 +608,18 @@ pub async fn auth_jwt_update_profile(
 	// Sanitize the body data (presumably to prevent injection attacks and validate input)
 	body.sanitize();
 
-	let clean_ulid_bytes = match crate::utility::convert_ulid_string_to_bytes(&clean_user_ulid_string) {
-        Ok(bytes) => bytes,
-        Err(error_message) => {
-            // Handle the error, e.g., return an appropriate response
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(serde_json::json!({ "error": error_message })),
-            ).into_response();
-        },
-    };
+	let clean_ulid_bytes = match
+		crate::utility::convert_ulid_string_to_bytes(&clean_user_ulid_string)
+	{
+		Ok(bytes) => bytes,
+		Err(error_message) => {
+			// Handle the error, e.g., return an appropriate response
+			return (
+				StatusCode::BAD_REQUEST,
+				Json(serde_json::json!({ "error": error_message })),
+			).into_response();
+		}
+	};
 
 	// Attempt to update the profile in the database
 	match
@@ -418,7 +654,6 @@ pub async fn auth_jwt_update_profile(
 		}
 	}
 }
-
 
 //	!	[END] -> @JWTs
 
@@ -529,7 +764,6 @@ pub async fn shieldwall<B>(
 		}
 	}
 }
-
 
 // Define a struct called `ShieldWallSchema` with Serde's derive macros for serialization and deserialization.
 // This will allow instances of ShieldWallSchema to be easily converted to/from JSON (or other formats).

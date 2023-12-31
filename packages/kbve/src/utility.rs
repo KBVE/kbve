@@ -275,6 +275,23 @@ pub fn convert_ulid_string_to_bytes(ulid_str: &str) -> Result<Vec<u8>, String> {
     }
 }
 
+pub fn convert_ulid_bytes_to_string(ulid_bytes: &[u8]) -> Result<String, String> {
+    if ulid_bytes.len() != 16 {
+        return Err("Invalid ULID bytes length".to_string());
+    }
+
+    // Convert the slice to an array
+    let ulid_array_ref: [u8; 16] = match ulid_bytes.try_into() {
+        Ok(arr) => arr,
+        Err(_) => return Err("Failed to convert slice to array".to_string()),
+    };
+
+    // Directly create a Ulid instance from the byte array
+    let ulid = Ulid::from_bytes(ulid_array_ref);
+
+    // Convert the Ulid to a string
+    Ok(ulid.to_string())
+}
 
 //?         [FALLBACK]
 pub async fn fallback(uri: Uri) -> impl IntoResponse {
