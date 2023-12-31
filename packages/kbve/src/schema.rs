@@ -1,22 +1,22 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    apikey (id) {
-        id -> Unsigned<Bigint>,
-        uuid -> Unsigned<Bigint>,
+    apikey (ulid) {
         #[max_length = 256]
         permissions -> Varchar,
         #[max_length = 256]
         keyhash -> Varchar,
         #[max_length = 256]
         label -> Varchar,
+        #[max_length = 16]
+        ulid -> Binary,
+        #[max_length = 16]
+        userid -> Binary,
     }
 }
 
 diesel::table! {
-    appwrite (id) {
-        id -> Unsigned<Bigint>,
-        uuid -> Unsigned<Bigint>,
+    appwrite (ulid) {
         #[max_length = 256]
         appwrite_endpoint -> Varchar,
         #[max_length = 256]
@@ -26,13 +26,15 @@ diesel::table! {
         #[max_length = 64]
         version -> Varchar,
         created_at -> Timestamp,
+        #[max_length = 16]
+        ulid -> Binary,
+        #[max_length = 16]
+        userid -> Binary,
     }
 }
 
 diesel::table! {
-    auth (id) {
-        id -> Unsigned<Bigint>,
-        uuid -> Unsigned<Bigint>,
+    auth (ulid) {
         #[max_length = 256]
         email -> Varchar,
         #[max_length = 256]
@@ -52,6 +54,10 @@ diesel::table! {
         #[max_length = 256]
         two_factor_secret -> Varchar,
         recovery_codes -> Text,
+        #[max_length = 16]
+        ulid -> Binary,
+        #[max_length = 16]
+        userid -> Binary,
     }
 }
 
@@ -66,9 +72,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    n8n (id) {
-        id -> Unsigned<Bigint>,
-        uuid -> Unsigned<Bigint>,
+    n8n (ulid) {
         #[max_length = 256]
         webhook -> Varchar,
         #[max_length = 256]
@@ -77,12 +81,15 @@ diesel::table! {
         keyhash -> Varchar,
         #[max_length = 256]
         label -> Varchar,
+        #[max_length = 16]
+        ulid -> Binary,
+        #[max_length = 16]
+        userid -> Binary,
     }
 }
 
 diesel::table! {
-    profile (id) {
-        id -> Unsigned<Bigint>,
+    profile (ulid) {
         #[max_length = 256]
         name -> Varchar,
         #[max_length = 64]
@@ -95,32 +102,45 @@ diesel::table! {
         instagram -> Varchar,
         #[max_length = 64]
         discord -> Varchar,
-        uuid -> Unsigned<Bigint>,
+        #[max_length = 16]
+        ulid -> Binary,
+        #[max_length = 16]
+        userid -> Binary,
     }
 }
 
 diesel::table! {
-    settings (id) {
-        id -> Unsigned<Bigint>,
-        uuid -> Unsigned<Bigint>,
+    settings (ulid) {
         #[max_length = 255]
         key -> Varchar,
         #[max_length = 255]
         value -> Varchar,
+        #[max_length = 16]
+        ulid -> Binary,
+        #[max_length = 16]
+        userid -> Binary,
     }
 }
 
 diesel::table! {
-    users (id) {
-        id -> Unsigned<Bigint>,
+    users (ulid) {
         #[max_length = 256]
         username -> Varchar,
         role -> Integer,
         reputation -> Integer,
         exp -> Integer,
         created_at -> Timestamp,
+        #[max_length = 16]
+        ulid -> Binary,
     }
 }
+
+diesel::joinable!(apikey -> users (userid));
+diesel::joinable!(appwrite -> users (userid));
+diesel::joinable!(auth -> users (userid));
+diesel::joinable!(n8n -> users (userid));
+diesel::joinable!(profile -> users (userid));
+diesel::joinable!(settings -> users (userid));
 
 diesel::allow_tables_to_appear_in_same_query!(
     apikey,

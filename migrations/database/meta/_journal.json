@@ -8,6 +8,13 @@
       "when": 1701982781295,
       "tag": "0000_silly_thunderbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1703626738691,
+      "tag": "0001_chief_microchip",
+      "breakpoints": true
     }
   ]
 }

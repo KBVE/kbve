@@ -55,6 +55,33 @@ case "$1" in
     -report)
         manage_tmux_session "report" "pnpm nx report"
         ;;
+    -db)
+        if is_installed "diesel_ext"; then
+           # Save the current directory
+            original_dir=$(pwd)
+
+            # Change to the target directory
+            cd packages/kbve/ || { echo "Directory packages/kbve/ not found."; exit 1; }
+
+            # Execute diesel schema
+            diesel print-schema > src/schema.rs
+
+            # Execute diesel_ext and redirect output
+            diesel_ext --model -t > src/models.rs
+            #diesel_ext > src/models.rs
+            echo "diesel_ext executed and output redirected to src/models.rs"
+
+            # Patching the models.rs inside of src.
+            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
+            sed -i 's/#\[derive(Queryable,/#\[derive(Queryable, Serialize, Deserialize,/' src/models.rs
+            echo "Patching models.rs"
+            
+            # Return to the original directory
+            cd "$original_dir"
+        else
+            echo "diesel_ext is not installed."
+        fi
+        ;;
     *)
         echo "Invalid usage. Options: '-check', '-ping', '-root', '-studio'."
         ;;
