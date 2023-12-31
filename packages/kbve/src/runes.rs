@@ -59,6 +59,15 @@ pub struct RegisterUserSchema {
 	pub captcha: String,
 }
 
+#[derive(Debug, Queryable, Deserialize, Serialize, Clone)]
+pub struct AuthVerificationSchema {
+	pub username: String,
+	pub email: String,
+	pub userid: Vec<u8>,
+	pub hash: String,
+}
+
+
 /**
 	- UpdateProfileSchema is a struct used to represent the data for updating a user profile. 
 	Each field is optional, allowing partial updates.

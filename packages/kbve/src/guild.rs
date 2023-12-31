@@ -13,6 +13,7 @@ use crate::db::{ Pool };
 use crate::{
 	spellbook_pool_conn,
 	spellbook_hazardous_boolean_exist_via_ulid,
+	spellbook_hazardous_task_fetch,
 	spellbook_generate_ulid_bytes,
 };
 
@@ -61,6 +62,27 @@ spellbook_hazardous_boolean_exist_via_ulid!(
 	clean_webhook,
 	String
 );
+
+//			?[Hazardous] -> Task Fetch
+
+spellbook_hazardous_task_fetch!(
+	hazardous_task_fetch_auth_hash_by_email,
+	auth,
+	hash,
+	email,
+	String,
+	String
+);
+
+spellbook_hazardous_task_fetch!(
+	hazardous_task_fetch_userid_by_email,
+	auth,
+	userid,
+	email,
+	String,
+	Vec<u8>
+);
+
 
 //			?[Hazardous] -> Create User
 
