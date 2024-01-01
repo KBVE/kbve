@@ -1,0 +1,156 @@
+---
+title: GCloud
+category: Application
+client: Self
+publishDate: 2022-10-21 00:00:00
+img: https://images.unsplash.com/photo-1498354136128-58f790194fa7?fit=crop&w=1400&h=700&q=75
+slug: gcloud
+description: GCloud is a Command Line Interface that designs, builds and scales Google Cloud resources.
+tags:
+    - cloud
+---
+
+## Information
+
+## GCloud Compute
+
+-   GCloud Compute Guide is still a work in progress; these are active notes from my current R&D.
+
+    -   `shell gcloud compute --help`
+        -   This will display all of the commands that will help you utilize the `compute engine`.
+
+-   The are split into two major concepts, with `GROUP` and `COMMAND`.
+    -   According to Google, the compute command helps create, configure and manipulate the virtual machines within your pre-set project.
+    -   The `SYNOPSIS` is `gcloud compute GROUP | COMMAND [GCLOUD_WIDE_FLAG ...]`
+
+## Load Balancer
+
+Load balancing on the GCloud compuete platform.
+
+-   Command to run 3 instances of `nginx` with an ingress load balancer.
+
+    -   Shell command for VM that is running nginx inside of a `debian` operating system.
+
+        -   ```shell
+                   gcloud compute instances create www-server-1 \
+                      --zone=us-west1-b \
+                      --tags=network-lb-tag \
+                      --machine-type=e2-medium \
+                      --image-family=debian-11 \
+                      --image-project=debian-cloud \
+                      --metadata=startup-script=start_nginx.sh
+            ```
+
+            -   start_nginx.sh ->
+
+                -   ```shell
+                                      #!/bin/bash
+                                      apt-get update
+                                      apt-get install nginx -y
+                    ```
+
+            -   For switching from Nginx to Apache2, replace the `nginx` with `apache2`.
+            -   To check the status on `ubuntu`, run the `sudo systemctl status nginx` OR `sudo systemctl status apache2`.
+
+        -   Example of a Load Balance Template:
+
+            -   The shell below is an example of an instance template that creates the load balance backend template.
+
+                -   ````shell
+                        gcloud compute instance-templates create lb-backend-template \
+                        --region=us-west1 \
+                        --network=default \
+                        --subnet=default \
+                        --tags=allow-health-check \
+                        --machine-type=e2-medium \
+                        --image-family=debian-11 \
+                        --image-project=debian-cloud \
+                        --metadata=startup-script=start_nginx_script.sh
+                        ```
+                    ````
+
+            -   Key concept is : Managed instance groups MIGs
+                -   Mage instance groups or MIGs enable you to operate applications on multiple identical / clone virtual machines, thus allowing your orchestration to become scalable and highly available. This is done by utilizing the components within the automated MIG services, which includes: autoscaling, autohealing, regional (multiple zone) deployment, and automatic updating.
+
+        -   Manage Instance Group for the load balancer:
+
+            -   ```shell
+                    gcloud compute instance-groups managed create lb-backend-group \
+                    --template=lb-backend-template --size=2 --zone=us-west1-b
+                ```
+
+            -   Health Check:
+
+            -   ````shell
+                    gcloud compute firewall-rules create fw-allow-health-check \
+                    --network=default \
+                    --action=allow \
+                    --direction=ingress \
+                    --source-ranges=130.211.0.0/22,35.191.0.0/16 \
+                    --target-tags=allow-health-check \
+                    --rules=tcp:80
+                    ```
+
+                ````
+
+            -   Backend-Services for gcloud compute
+
+                -   ```shell
+
+                      gcloud compute backend-services create web-backend-service \
+                          --protocol=HTTP \
+                          --port-name=http \
+                          --health-checks=http-basic-check \
+                          --global
+
+                    ```
+
+                    -   Add Instance Group as the Backend to the Backend Service:
+
+                        -   ```shell
+                                  gcloud compute backend-services add-backend web-backend-service \
+                              --instance-group=lb-backend-group \
+                              --instance-group-zone=us-west1-b \
+                              --global
+                            ```
+
+                    -   Create a URL Map for routing the requests to the default backend services.
+
+                        -   ````shell
+                                  gcloud compute url-maps create web-map-http \
+                                  --default-service web-backend-service
+                                  ```
+
+                            ````
+
+                        -   Extra information regarding the URL Map:
+                            \*\*\* Note: URL map is a Google Cloud configuration resource used to route requests to backend services or backend buckets. For example, with an external HTTP(S) load balancer, you can use a single URL map to route requests to different destinations based on the rules configured in the URL map:
+                            Requests for [Video](https://example.com/video) go to one backend service.
+                            Requests for [Audio](https://example.com/audio) go to a different backend service.
+                            Requests for [Images](https://example.com/images) go to a Cloud Storage backend bucket.
+                            Requests for any other host and path combination go to a default backend service.
+                        -   Create a target HTTP proxy to route requests:
+
+                            -   ```shell
+                                        gcloud compute target-http-proxies create http-lb-proxy \
+                                        --url-map web-map-http
+                                ```
+
+                        -   Global forwarding rule to route incoming requests to the proxy:
+
+                            -   ```shell
+                                        gcloud compute forwarding-rules create http-content-rule \
+                                        --address=lb-ipv4-1\
+                                        --global \
+                                        --target-http-proxy=http-lb-proxy \
+                                        --ports=80
+                                ```
+
+## Google Rules
+
+### Google Forwarding Rules
+
+Note: A forwarding rule and its corresponding IP address represent the frontend configuration of a Google Cloud load balancer. Learn more about the general understanding of forwarding rules from the Forwarding rule overview Guide.
+
+[Using Forwarding Rules](https://cloud.google.com/load-balancing/docs/using-forwarding-rules)
+[Rule Concepts](https://cloud.google.com/load-balancing/docs/forwarding-rule-concepts)
