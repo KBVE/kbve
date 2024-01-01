@@ -1,0 +1,70 @@
+---
+title: RyuJinx
+category: Application
+client: Self
+description: This educational purpose only document is about the experimental software that was written in C#!
+slug: 'emulator/ryujinx'
+publishDate: 2023-03-04 00:00:00
+img: https://images.unsplash.com/photo-1612036781124-847f8939b154?fit=crop&w=1400&h=700&q=75
+repo: https://github.com/Ryujinx/Ryujinx
+tags:
+    - emulation
+    - software
+    - gaming
+---
+
+## Information
+
+Ryujinx is an open-source Nintendo Switch emulation software that can be used to play Switch games on Windows.
+To set up `Ryujinx`, you will need to download the emulator from the Ryujinx website.
+Once you have downloaded the emulator, you will need to extract the files to a location of your choice.
+After extracting the files, you can open Ryujinx and start playing your Switch games.
+
+
+## Install
+
+We will break down the process of installation on various operating systems, but it should be noted that this is best used on Windows.
+
+### Choco
+
+Installing RyuJinx through `choco` is the best option because it will keep the software up to date and make the install/removal very painless and easy!
+If you do not have `choco` installed, then head over to our [choco documentation file](https://kbve.com/application/choco) for more information.
+The official package repo for Ryujinx is located [here at Chocolatey](https://community.chocolatey.org/packages/ryujinx) if you need to verify or see their documentation.
+
+The best way to install it would be to include the Desktop shortcut parameters!
+Here is the quick command to get it installed and running:
+
+```shell
+choco install ryujinx --params "/DesktopShortcut"
+```
+
+This will have the application installed and you can run it from your desktop! 
+See how easy this was! Makes it so much faster!
+
+### Windows
+
+We really recommend that you install the software via `choco` as it will save you time, effort and energy! If you need help check, come to our Discord or IRC.
+
+Here are the steps you would take to setup and install RyuJinx directly for Windows:
+
+1.  Download the Ryujinx emulator from the Ryujinx website.
+	1. (a) You can choose to download the software from the Github repo as well! 
+	2. (b) Make sure you have your drivers updated!
+2.  Extract the files to a location of your choice.
+3.  Open Ryujinx.
+4.  Click on the "File" menu and select "Add Game."
+5.  Browse to the location of your Switch game files and select them.
+6.  Click on the "Open" button.
+7.  Your game will now start playing in Ryujinx.
+
+After you get the software installed, double check it by running it and seeing if there are any errors.
+
+### Mac
+
+We do not have any notes yet on the Mac install for this time. I will have to spend some time setting that up on my `m1`, however I been told that it is a pain and is not really worth the amount of time to invest.
+
+--- 
+
+## Setup
+
+After installing the software, you will have to look into setting up the `RyuJinx` and for that we recommend using `RyuSAK`, which can be found [here at the RyuSAK repo](https://github.com/Ecks1337/RyuSAK/release).

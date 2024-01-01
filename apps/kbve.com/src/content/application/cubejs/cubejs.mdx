@@ -1,0 +1,135 @@
+---
+title: CubeJS
+category: Application
+client: Self
+frontpage: false
+slug: cubejs
+publishDate: 2022-10-22 00:00:00
+img: https://images.unsplash.com/photo-1635492491273-455af7728453?fit=crop&w=1400&h=700&q=75
+description: CubeJS is a headless business intelligence application for various forms of data, including SQL, Mongo and Snowflake. CubeJS can be extended to external data warehouses, such as, Google BigQuery, Amazon Athena and Presto.
+tags:
+    - technology
+    - data
+    - sql
+    - cloud
+---
+
+## Information
+
+If you are looking for a powerful and flexible framework to build amazing data applications, you should check out CubeJS.
+CubeJS is an open source project that lets you connect to any SQL-based data source, define your data models in a simple and consistent way, and expose them to your applications via blazing-fast APIs.
+Whether you want to create an internal dashboard for your business insights, or a customer-facing analytics feature for your product, CubeJS has you covered.
+CubeJS supports REST, SQL, and GraphQL APIs, so you can choose the best option for your needs.
+CubeJS also integrates seamlessly with popular data visualization tools, such as D3.js, Google Charts, Highcharts, and more.
+This documentation will have plenty of tutorials, examples, and demos that will help you get started and inspired.
+
+---
+
+## Install
+
+There are several ways to install CubeJS, including using it as a SaaS via CubeJS Cloud.
+We will go over a couple ways in this reference document.
+
+### Docker
+
+There are a couple ways that we can deploy CubeJS via Docker, including dev mode and swarm.
+
+These following commands will run CubeJS in a docker container and expose it on port 4000 / 3000.
+Furthermore, it will also mount the current directory as a volume for CubeJS configuration and schema files.
+
+```shell
+docker run -d -p 3000:3000 -p 4000:4000 \
+  -e CUBEJS_DB_HOST=postgres://hostname \
+  -e CUBEJS_DB_NAME=<DB_NAME> \
+  -e CUBEJS_DB_USER=<USER> \
+  -e CUBEJS_DB_PASS=<PASS> \
+  -e CUBEJS_DB_TYPE=<DB_TYPE> \
+  -e CUBEJS_API_SECRET=<API_SECRET> \
+  -v $(pwd):/cube/conf \
+  cubejs/cube:latest
+```
+
+To enable dev mode, pass along the environmental variable `-e CUBEJS_DEV_MODE=true \` inside of the command.
+
+For the Docker Swarm, we recommend that you deploy a CubeJS Docker Compose via Portainer or your swarm platform of choice.
+
+### NodeJS
+
+> Reference to additional [NodeJS docs](https://kbve.com/application/javascript/#nodejs)
+
+For installing via NodeJS, we recommend you install cubejs-cli using npm or yarn, which are tools that help you manage JavaScript packages. You can run this command in your terminal:
+
+-   NPM
+
+```shell
+npm install -g cubejs-cli
+```
+
+-   YARN
+
+```shell
+yarn add cubejs-cli
+```
+
+After the installation, we recommend that you launch a test case.
+
+Create a new CubeJS project using cubejs create command.
+You need to specify the name of your project and the type of your data source.
+For example, if you want to use Postgres, which is a database system, you can run this command:
+
+```shell
+cubejs create dashboard-backend -d postgres
+```
+
+This will create a new folder with your project files and install the necessary dependencies.
+You can then start your CubeJS server by running this command inside your project folder:
+
+-   NPM
+
+```shell
+npm run dev
+```
+
+-   YARN
+
+```shell
+yarn dev
+```
+
+This will start your CubeJS test case server on `http://localhost:4000`.
+You can then open this URL in your browser and follow the instructions to connect to your data source and start building your data model and queries.
+
+---
+
+## Update
+
+To upgrade CubeJS, you need to update the version of the CubeJS package that you are using.
+There are different ways to do that, depending on how you installed CubeJS.
+
+### Update Docker
+
+If you are using Docker, you can upgrade CubeJS by pulling the latest image from the Docker Hub.
+You can run this command in your terminal:
+
+```shell
+docker pull cubejs/cube:latest
+```
+
+### Update NodeJS
+
+If you are using Node.js, you can upgrade CubeJS by updating the version of the `@cubejs-backend/server` or `@cubejs-backend/server-core` package in your `package.json` file.
+You can also use npm or yarn to update the package. For example, you can run this command in your terminal:
+
+-   NPM
+
+```shell
+npm update @cubejs-backend/server
+```
+
+-   YARN
+
+```shell
+yarn upgrade @cubejs-backend/server
+```
+
+---
