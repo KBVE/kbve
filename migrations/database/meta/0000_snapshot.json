@@ -1,22 +1,22 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "beb2ad07-ce34-4666-b0b1-dca8bc3376ec",
+  "id": "8ca39353-0c00-4f69-8bc1-ac8af679f873",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "apikey": {
       "name": "apikey",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "ulid": {
+          "name": "ulid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": true
+          "autoincrement": false
         },
-        "uuid": {
-          "name": "uuid",
-          "type": "bigint unsigned",
+        "userid": {
+          "name": "userid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -44,13 +44,6 @@
         }
       },
       "indexes": {
-        "uuid_idx": {
-          "name": "uuid_idx",
-          "columns": [
-            "uuid"
-          ],
-          "isUnique": true
-        },
         "keyhash_idx": {
           "name": "keyhash_idx",
           "columns": [
@@ -59,12 +52,26 @@
           "isUnique": true
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "apikey_userid_users_ulid_fk": {
+          "name": "apikey_userid_users_ulid_fk",
+          "tableFrom": "apikey",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userid"
+          ],
+          "columnsTo": [
+            "ulid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "apikey_id": {
-          "name": "apikey_id",
+        "apikey_ulid": {
+          "name": "apikey_ulid",
           "columns": [
-            "id"
+            "ulid"
           ]
         }
       },
@@ -73,16 +80,16 @@
     "appwrite": {
       "name": "appwrite",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "ulid": {
+          "name": "ulid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": true
+          "autoincrement": false
         },
-        "uuid": {
-          "name": "uuid",
-          "type": "bigint unsigned",
+        "userid": {
+          "name": "userid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -125,13 +132,6 @@
         }
       },
       "indexes": {
-        "uuid_idx": {
-          "name": "uuid_idx",
-          "columns": [
-            "uuid"
-          ],
-          "isUnique": true
-        },
         "appwrite_api_key_idx": {
           "name": "appwrite_api_key_idx",
           "columns": [
@@ -140,12 +140,26 @@
           "isUnique": true
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "appwrite_userid_users_ulid_fk": {
+          "name": "appwrite_userid_users_ulid_fk",
+          "tableFrom": "appwrite",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userid"
+          ],
+          "columnsTo": [
+            "ulid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "appwrite_id": {
-          "name": "appwrite_id",
+        "appwrite_ulid": {
+          "name": "appwrite_ulid",
           "columns": [
-            "id"
+            "ulid"
           ]
         }
       },
@@ -154,16 +168,16 @@
     "auth": {
       "name": "auth",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "ulid": {
+          "name": "ulid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": true
+          "autoincrement": false
         },
-        "uuid": {
-          "name": "uuid",
-          "type": "bigint unsigned",
+        "userid": {
+          "name": "userid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -263,13 +277,6 @@
         }
       },
       "indexes": {
-        "uuid_idx": {
-          "name": "uuid_idx",
-          "columns": [
-            "uuid"
-          ],
-          "isUnique": true
-        },
         "email_idx": {
           "name": "email_idx",
           "columns": [
@@ -278,12 +285,26 @@
           "isUnique": true
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "auth_userid_users_ulid_fk": {
+          "name": "auth_userid_users_ulid_fk",
+          "tableFrom": "auth",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userid"
+          ],
+          "columnsTo": [
+            "ulid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "auth_id": {
-          "name": "auth_id",
+        "auth_ulid": {
+          "name": "auth_ulid",
           "columns": [
-            "id"
+            "ulid"
           ]
         }
       },
@@ -344,16 +365,16 @@
     "n8n": {
       "name": "n8n",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "ulid": {
+          "name": "ulid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": true
+          "autoincrement": false
         },
-        "uuid": {
-          "name": "uuid",
-          "type": "bigint unsigned",
+        "userid": {
+          "name": "userid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -388,20 +409,34 @@
         }
       },
       "indexes": {
-        "uuid_idx": {
-          "name": "uuid_idx",
+        "keyhash_idx": {
+          "name": "keyhash_idx",
           "columns": [
-            "uuid"
+            "keyhash"
           ],
           "isUnique": true
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "n8n_userid_users_ulid_fk": {
+          "name": "n8n_userid_users_ulid_fk",
+          "tableFrom": "n8n",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userid"
+          ],
+          "columnsTo": [
+            "ulid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "n8n_id": {
-          "name": "n8n_id",
+        "n8n_ulid": {
+          "name": "n8n_ulid",
           "columns": [
-            "id"
+            "ulid"
           ]
         }
       },
@@ -410,12 +445,12 @@
     "profile": {
       "name": "profile",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "ulid": {
+          "name": "ulid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": true
+          "autoincrement": false
         },
         "name": {
           "name": "name",
@@ -465,29 +500,35 @@
           "autoincrement": false,
           "default": "''"
         },
-        "uuid": {
-          "name": "uuid",
-          "type": "bigint unsigned",
+        "userid": {
+          "name": "userid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         }
       },
-      "indexes": {
-        "uuid_idx": {
-          "name": "uuid_idx",
-          "columns": [
-            "uuid"
+      "indexes": {},
+      "foreignKeys": {
+        "profile_userid_users_ulid_fk": {
+          "name": "profile_userid_users_ulid_fk",
+          "tableFrom": "profile",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userid"
           ],
-          "isUnique": true
+          "columnsTo": [
+            "ulid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "profile_id": {
-          "name": "profile_id",
+        "profile_ulid": {
+          "name": "profile_ulid",
           "columns": [
-            "id"
+            "ulid"
           ]
         }
       },
@@ -496,16 +537,16 @@
     "settings": {
       "name": "settings",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "ulid": {
+          "name": "ulid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": true
+          "autoincrement": false
         },
-        "uuid": {
-          "name": "uuid",
-          "type": "bigint unsigned",
+        "userid": {
+          "name": "userid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -532,21 +573,28 @@
             "key"
           ],
           "isUnique": true
-        },
-        "uuid_idx": {
-          "name": "uuid_idx",
-          "columns": [
-            "uuid"
-          ],
-          "isUnique": true
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "settings_userid_users_ulid_fk": {
+          "name": "settings_userid_users_ulid_fk",
+          "tableFrom": "settings",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userid"
+          ],
+          "columnsTo": [
+            "ulid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "settings_id": {
-          "name": "settings_id",
+        "settings_ulid": {
+          "name": "settings_ulid",
           "columns": [
-            "id"
+            "ulid"
           ]
         }
       },
@@ -555,12 +603,12 @@
     "users": {
       "name": "users",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "ulid": {
+          "name": "ulid",
+          "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": true
+          "autoincrement": false
         },
         "username": {
           "name": "username",
@@ -613,10 +661,10 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "users_id": {
-          "name": "users_id",
+        "users_ulid": {
+          "name": "users_ulid",
           "columns": [
-            "id"
+            "ulid"
           ]
         }
       },
