@@ -4,6 +4,11 @@ export interface Props {
 	className?: string;
 }
 const { swf, className = 'w-full flex overflow-y-hidden' } = Astro.props;
+
+// Check if `swf` is null, undefined, or an empty string
+if (!swf) {
+    console.log("The 'swf' prop must be provided and cannot be empty.");
+}
 ---
 
 <script is:inline src="https://unpkg.com/@ruffle-rs/ruffle"></script>
