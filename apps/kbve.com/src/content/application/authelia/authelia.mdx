@@ -40,12 +40,21 @@ Having a decent understanding of the operating system, networking and containeri
 One of the fundamental situations that you have to account for is that Autheila has to operate under SSL!
 The default port that Autheila runs on is 9091, but this can be changed as well.
 
+Finally, if you have Cloudflare sitting infront of your domain, then we recommend double checking your forwarded headers, Autheila provides a guide on that [here](https://www.authelia.com/integration/proxies/fowarded-headers/).
+
 ### Docker
 
 This section will cover the deployment of Autheila via Docker!
 
 We are currently using the DockerHub image, `authelia/authelia` but you can also opt to use their Github image as well.
 
+Since our eco-system currently uses `Traefik` to manage, we recommend that you follow the documentation related to its [integration](https://www.authelia.com/integration/proxies/traefik/).
 
+
+---
+
+## Videos
+
+I will have to update these notes once I get the new YT embed widget operational on this vault.
 
 ---
