@@ -33,7 +33,7 @@
     "@nx/nest": "v17.2.5",
     "@nx/node": "v17.2.5",
     "@nx/react": "v17.2.5",
-    "@nx/vite": "v17.2.5",
+    "@nx/vite": "17.2.5",
     "@nx/webpack": "v17.2.5",
     "@nx/workspace": "v17.2.5",
     "@nxlv/python": "^16.1.2",
@@ -53,7 +53,7 @@
     "@typescript-eslint/parser": "6.11.0",
     "@vitejs/plugin-react": "4.2.1",
     "@vitest/coverage-c8": "~0.32.0",
-    "@vitest/ui": "0.34.7",
+    "@vitest/ui": "^1.0.4",
     "astro": "^2.10.7",
     "babel-plugin-macros": "^3.1.0",
     "babel-plugin-styled-components": "1.10.7",
@@ -91,7 +91,7 @@
     "typescript": "5.2.2",
     "vite": "5.0.9",
     "vite-plugin-dts": "~2.3.0",
-    "vitest": "0.34.6"
+    "vitest": "^1.0.4"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.2",
