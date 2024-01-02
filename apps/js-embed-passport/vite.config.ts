@@ -30,6 +30,14 @@ export default defineConfig({
 		commonjsOptions: {
 			transformMixedEsModules: true,
 		},
+		rollupOptions: {
+			output: {
+				// Change the output directory structure and naming
+				entryFileNames: `js-embed-passport.js`,
+				chunkFileNames: `[name].js`,
+				assetFileNames: `[name].[ext]`,
+			},
+		},
 	},
 
 	test: {
