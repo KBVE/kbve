@@ -55,6 +55,9 @@ case "$1" in
     -report)
         manage_tmux_session "report" "pnpm nx report"
         ;;
+    -reset)
+        manage_tmux_session "reset" "pnpm install --no-frozen-lockfile && pnpm nx reset"
+        ;;
     -db)
         if is_installed "diesel_ext"; then
            # Save the current directory
@@ -83,6 +86,6 @@ case "$1" in
         fi
         ;;
     *)
-        echo "Invalid usage. Options: '-check', '-ping', '-root', '-studio'."
+        echo "Invalid usage. Options: '-check', '-ping', '-root', '-reset', '-studio'."
         ;;
 esac

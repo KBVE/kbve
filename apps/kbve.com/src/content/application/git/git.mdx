@@ -1,0 +1,187 @@
+---
+title: Git
+category: Application
+client: Self
+slug: git
+publishDate: 2022-11-30 00:00:00
+img: https://images.unsplash.com/photo-1618401479427-c8ef9465fbe1?fit=crop&w=1400&h=700&q=75
+repo:
+description: Git - This is gonna take a while!
+tags:
+    - software
+    - git
+---
+
+## Information
+
+Everything you will need to prepare for git!
+
+---
+
+## Github
+
+### Github Actions
+
+Github Actions are yaml files that help automate repetitive tasks with low-level intelligence / variables.
+
+#### Itch
+
+Github Action for deploying the application build onto the Itch platform!
+
+Github Action - Itch.io Publish
+
+-   Marketplace [Action](https://github.com/marketplace/actions/itch-io-publish)
+-   Dev [Repo](https://github.com/KikimoraGames/itch-publish)
+
+Example Github Itch Workflow below! (Tabs might be out of sync!)
+
+KikimoraGames Example YAML:
+
+```yaml
+name: Itch Deploy
+
+on: push
+env:
+  ITCH_USERNAME: my-itch-username
+  ITCH_GAME_ID: my-itch-game-id
+jobs:
+  deploy:
+    name: Upload to Itch
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        channel:
+          - windows
+          - webgl
+    runs-on: ubuntu-latest
+    name: Deploy - Itch.io ${{ matrix.template }}
+    steps:
+      - uses: actions/download-artifact@v2.0.8
+        with:
+          name: ${{ matrix.channel }}
+          path: build/${{ matrix.channel }}
+      - uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{secrets.BUTLER_API_KEY}}
+          gameData: ./build/${{ matrix.template }}
+          itchUsername: ${{env.ITCH_USERNAME}}
+          itchGameId: ${{ env.ITCH_GAME_ID }}
+          buildChannel: ${{ matrix.channel }}
+          buildNumber: ${{ needs.version.outputs.version_hash }}
+
+```
+
+Remember to add your secrets, `BUTLER_API_KEY`, before deploying to Itch.
+You can grab the `BUTLER_API_KEY` from Itch via [API Keys](https://itch.io/user/settings/api-keys) , which will allow Github Actions to communicate with Itch.io's API.
+
+KBVE Example:
+
+```yaml
+name: Itch KBVE Deploy
+
+on: push
+env:
+  ITCH_USERNAME: kbve
+  ITCH_GAME_ID: my-itch-game-id
+jobs:
+  deploy:
+    name: Upload to Itch
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        channel:
+          - windows
+          - webgl
+    runs-on: ubuntu-latest
+    name: Deploy - Itch.io ${{ matrix.template }}
+    steps:
+      - uses: actions/download-artifact@v2.0.8
+        with:
+          name: ${{ matrix.channel }}
+          path: build/${{ matrix.channel }}
+      - uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{secrets.BUTLER_API_KEY}}
+          gameData: ./build/${{ matrix.template }}
+          itchUsername: ${{env.ITCH_USERNAME}}
+          itchGameId: ${{ env.ITCH_GAME_ID }}
+          buildChannel: ${{ matrix.channel }}
+          buildNumber: ${{ needs.version.outputs.version_hash }}
+```
+
+#### Unity
+
+Here is an Unity Test Runner as a Github Action!
+
+```yaml
+
+- uses: game-ci/unity-test-runner@v2.1.0
+    id: testRunner
+    env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+    with:
+        projectPath: ${{ matrix.projectPath }}
+        unityVersion: ${{ matrix.unityVersion }}
+        githubToken: ${{ secrets.GITHUB_TOKEN }}
+        customParameters: '-nographics'
+- uses: actions/upload-artifact@v2
+        if: always()
+        with:
+            name: Test results (all modes)
+            path: ${{ steps.testRunner.outputs.artifactsPath }}
+
+```
+
+-   Remember that you will need a valid Unity license for this action!
+
+#### GoDot
+
+A couple quick references to github actions for GoDot!
+
+-   Github Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)
+
+-   Github Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)
+
+---
+
+## Gitlab
+
+---
+
+## SubModules
+
+These are notes and guides on how to build out submodules inside of Git, so that you can control certain plugins throughout multiple repos effortlessly. This can go into private packages later on, if we need to.
+
+The shift to the private packages will come as we grow bigger and require more control.
+
+### Submodule Symbolic Link
+
+These are notes on how to symbolic link multiple directories without having to run into issues.
+
+#### KBVE Module Example
+
+Suppose we have already added our submodule for an Unity project, via `KBVE/UnitySubModule` and wanted to link them into our source, well this is how:
+
+Create a folder inside of `Assets` named `Plugins` and then cd into it:
+
+Example of the shell, do not copy and paste, make sure you read through the commands and swap out the right variables!
+
+```shell
+cd ./unityRootProject
+cd ./Assets
+mkdir Plugins
+cd ./Plugins
+
+```
+
+Once inside the `Plugins` folder, we can execute the symbolic link using the `ln` command, like this:
+
+```shell
+
+ln -s ../../submodules/UnitySubModules/Vuplex
+
+```
+
+---

@@ -625,7 +625,7 @@ pub async fn auth_jwt_update_profile(
 	match
 		diesel
 			::update(profile::table) // Specify the table to update
-			.filter(profile::ulid.eq(clean_ulid_bytes)) // Filter to the specific user's UUID
+			.filter(profile::userid.eq(clean_ulid_bytes)) // Filter to the specific user's UUID
 			.set(body) // Set the new profile data
 			.execute(&mut conn) // Execute the update query
 	{

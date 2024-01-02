@@ -33,6 +33,10 @@
 				"{workspaceRoot}/jest.preset.js"
 			],
 			"cache": true
+		},
+		"@nx/vite:test": {
+			"cache": true,
+			"inputs": ["default", "^production"]
 		}
 	},
 	"namedInputs": {
@@ -64,10 +68,18 @@
 	"generators": {
 		"@nx/react": {
 			"application": {
+				"style": "styled-components",
+				"linter": "eslint",
+				"bundler": "vite",
 				"babel": true
 			},
 			"library": {
+				"style": "styled-components",
+				"linter": "eslint",
 				"unitTestRunner": "vitest"
+			},
+			"component": {
+				"style": "styled-components"
 			}
 		}
 	},

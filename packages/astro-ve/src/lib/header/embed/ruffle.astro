@@ -1,0 +1,41 @@
+---
+export interface Props {
+	swf?: string;
+	className?: string;
+}
+const { swf, className = 'w-full flex overflow-y-hidden' } = Astro.props;
+
+// Check if `swf` is null, undefined, or an empty string
+if (!swf) {
+    console.log("The 'swf' prop must be provided and cannot be empty.");
+}
+---
+
+<script is:inline src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+
+<astro-ruffle data-swf={swf} data-className={className}>
+	<div id="ruffle-container" class={className}></div>
+</astro-ruffle>
+
+<script>
+	class AstroRuffle extends HTMLElement {
+		constructor() {
+			super();
+
+			const swf = this.dataset.swf;
+			// Read the message from the data attribute.
+			(window as any).RufflePlayer = (window as any).RufflePlayer || {};
+			window.addEventListener('load', (event) => {
+				const ruffle = (window as any).RufflePlayer.newest();
+				const player = ruffle.createPlayer();
+				const container = document.getElementById('ruffle-container');
+				container?.appendChild(player);
+				player.load(swf);
+				player.style.width = '100vw';
+				player.style.height = '100vh';
+			});
+		}
+	}
+
+	customElements.define('astro-ruffle', AstroRuffle);
+</script>

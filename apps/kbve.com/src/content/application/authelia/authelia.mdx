@@ -1,0 +1,60 @@
+---
+title: Authelia
+category: Application
+client: Self
+publishDate: 2024-01-00 00:00:00
+img: https://images.unsplash.com/photo-1509822929063-6b6cfc9b42f2?fit=crop&w=1400&h=700&q=75
+slug: authelia
+description: Open-source auth software as a middleware. Authelia handles the authentication and authorization of the user/entity, allowing to secure access outside the scope of the application and provides a unique firewall-like access terminal.
+tags:
+  - security
+  - host
+  - firewall
+---
+
+## Information
+
+> Tldr; Authelia is an authentication and authorization application that provides a backend server and frontend portal through various core features and plugins.
+
+Have you ever wondered how to secure your web applications with a simple, secure and elegant solution?
+Do you want to offer your users a seamless and convenient login experience across multiple domains and services?
+If so, you might be interested in Autheila, an open-source authentication and authorization server that provides two-factor authentication and single sign-on (SSO) for your applications via a web portal.
+In this document, KBVE will introduce you and your dev team to the features and benefits of Autheila, and show you how to set it up with some common reverse proxies like [Nginx](https://kbve.com/application/nginx), [Traefik](https://kbve.com/application/traefik), or HAProxy.
+By the end of this reference document, you will be able to protect your web applications with Autheila and enjoy a secure and hassle-free authentication process.
+
+---
+
+## Install
+
+There are a couple ways we can install Autheila, here are the official deployment notes for each:
+
+- [Docker](https://www.authelia.com/integration/deployment/docker/)
+- [Kubernetes](https://www.authelia.com/integration/kubernetes/introduction/)
+- [Bare Metal](https://www.authelia.com/integration/deployment/bare-metal/)
+
+
+### Prerequisites
+
+Having a decent understanding of the operating system, networking and containerization will be extremely helpful!
+
+One of the fundamental situations that you have to account for is that Autheila has to operate under SSL!
+The default port that Autheila runs on is 9091, but this can be changed as well.
+
+Finally, if you have Cloudflare sitting infront of your domain, then we recommend double checking your forwarded headers, Autheila provides a guide on that [here](https://www.authelia.com/integration/proxies/fowarded-headers/).
+
+### Docker
+
+This section will cover the deployment of Autheila via Docker!
+
+We are currently using the DockerHub image, `authelia/authelia` but you can also opt to use their Github image as well.
+
+Since our eco-system currently uses `Traefik` to manage, we recommend that you follow the documentation related to its [integration](https://www.authelia.com/integration/proxies/traefik/).
+
+
+---
+
+## Videos
+
+I will have to update these notes once I get the new YT embed widget operational on this vault.
+
+---

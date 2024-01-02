@@ -1,0 +1,71 @@
+---
+title: "December : 31"
+category: Daily
+date: 2023-12-31
+client: Self
+unsplash: 1703136686959-d6e53e9fab46
+img: https://images.unsplash.com/photo-1679597454485-d1d04f88b78a?fit=crop&q=85&w=1400&h=700
+description: Daily Log for every December 31st! End of the Year!
+tags:
+- daily
+---
+
+## Notes
+
+### 2023
+
+- 3:09pm - The final entry to the yearly log! There has been a couple interesting aspects that I wanted to write about but overall its been a great year!
+
+- 6:15pm - Going to migrate the Ruffle aka SWF/Flash Emulator from the `kbve.com` repo as a widget for the AstroVe.
+    The original source code for the widget was this below:
+    ```html
+
+    <script is:inline src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+
+    <astro-ruffle data-swf={swf} data-className={className}>
+        <div id="container" class={className}></div>
+    </astro-ruffle>
+
+    <script>
+        class AstroRuffle extends HTMLElement {
+            constructor() {
+                super();
+
+                const swf = this.dataset.swf;
+                // Read the message from the data attribute.
+                (window as any).RufflePlayer = (window as any).RufflePlayer || {};
+                window.addEventListener('load', (event) => {
+                    const ruffle = (window as any).RufflePlayer.newest();
+                    const player = ruffle.createPlayer();
+                    const container = document.getElementById('container');
+                    container?.appendChild(player);
+                    player.load(swf);
+                    player.style.width = "100vw"; 
+                    player.style.height = "100vh";
+                });
+                
+            }
+        }
+
+        customElements.define('astro-ruffle', AstroRuffle);
+    </script>
+
+    ```
+
+    With the Astro props being pass through like this:
+
+    `const { swf = '', className = 'w-full flex overflow-y-hidden' } = Astro.props;`
+
+    Now for this migration of the component, I have to make sure that the SWF is added into the class, if it is not then throw a casual error.
+
+- 11:24pm - I am thinking of using Pascal to generate the js embeds, but since we already have vite inside of the monorepo, I figured it would make sense to expand upon it.
+
+## Quote
+
+> "NULL"
+
+---
+
+## Tasks
+
+- [X] - No Tasks!
