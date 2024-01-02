@@ -1,0 +1,68 @@
+{
+	"name": "js-embed-passport",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/js-embed-passport/src",
+	"projectType": "application",
+	"targets": {
+		"build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"defaultConfiguration": "production",
+			"options": {
+				"outputPath": "dist/apps/js-embed-passport"
+			},
+			"configurations": {
+				"development": {
+					"mode": "development"
+				},
+				"production": {
+					"mode": "production"
+				}
+			}
+		},
+		"serve": {
+			"executor": "@nx/vite:dev-server",
+			"defaultConfiguration": "development",
+			"options": {
+				"buildTarget": "js-embed-passport:build"
+			},
+			"configurations": {
+				"development": {
+					"buildTarget": "js-embed-passport:build:development",
+					"hmr": true
+				},
+				"production": {
+					"buildTarget": "js-embed-passport:build:production",
+					"hmr": false
+				}
+			}
+		},
+		"preview": {
+			"executor": "@nx/vite:preview-server",
+			"defaultConfiguration": "development",
+			"options": {
+				"buildTarget": "js-embed-passport:build"
+			},
+			"configurations": {
+				"development": {
+					"buildTarget": "js-embed-passport:build:development"
+				},
+				"production": {
+					"buildTarget": "js-embed-passport:build:production"
+				}
+			}
+		},
+		"test": {
+			"executor": "@nx/vite:test",
+			"outputs": ["{options.reportsDirectory}"],
+			"options": {
+				"reportsDirectory": "../../coverage/apps/js-embed-passport"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"outputs": ["{options.outputFile}"]
+		}
+	},
+	"tags": []
+}
