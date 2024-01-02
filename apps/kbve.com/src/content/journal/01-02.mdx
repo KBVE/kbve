@@ -1,0 +1,45 @@
+---
+title: 'January: 02'
+category: Daily
+date: 2024-01-02
+client: Self
+unsplash: 1703511606233-9c7537658701
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 2nd of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+- 12:32pm - Building the js-embeds for the Monorepo!
+    The first step would be to plan the bundling software for the embedable widgets, which might be done through React or Svelte.
+    I am going to double check if the vite plugin is up-to-date, by running:
+
+    ```shell
+        pnpm install -D @nx/vite
+    ```
+    
+    then double check the plugin with:
+
+    ```shell
+        nx g @nx/vite:init
+    ```
+
+    There might be isssues that you run into, if so, run:
+
+    ```shell
+        pnpm nx reset
+    ```
+
+    Okay! As I am writing this, I decided to add reset into the kbve shell file, so that it would run the commands in a managed tmux session.
+
+    ```shell
+        ./kbve.sh -reset
+    ```
+
+    This would be the reset command that we can run everytime we update the NX monorepo.
+
+- 1:04pm - Going to push through this minor update!
