@@ -17,15 +17,21 @@ export default defineConfig({
 		host: 'localhost',
 	},
 
-	plugins: [react(), nxViteTsPaths()],
+	plugins: [react({
+		babel: {
+		  plugins: ['babel-plugin-macros', 'babel-plugin-styled-components'],
+		},
+	  }), nxViteTsPaths()],
 
 	// Uncomment this if you are using workers.
 	// worker: {
 	//  plugins: [ nxViteTsPaths() ],
 	// },
 
-	define: {
-		'process.env': process.env
+	optimizeDeps: {
+		esbuildOptions: {
+		  target: 'es2020',
+		},
 	},
 
 	build: {
@@ -35,7 +41,7 @@ export default defineConfig({
 			transformMixedEsModules: true,
 		},
 		rollupOptions: {
-			external: ['fs', 'path'],
+			external: ['fs', 'path', 'process'],
 			output: {
 				// ES Module Output
 				format: 'es', // ES module format
@@ -48,7 +54,7 @@ export default defineConfig({
 	},
 
 	test: {
-		globals: true,
+		globals: false,
 		cache: {
 			dir: '../../node_modules/.vitest',
 		},
