@@ -1,0 +1,45 @@
+---
+title: 'January: 03'
+category: Daily
+date: 2024-01-03
+client: Self
+unsplash: 1703511606233-9c7537658701
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 3rd of each year!
+tags:
+    - daily
+---
+## Notes
+
+### 2024
+
+- 6:05am - Getting ready for work and double checking my accounts for 2024!
+    I need to adjust my morning gym routine, I might have to get up earlier.
+
+- 12:45pm - Finished up with work and going to focus on KBVE monorepo.
+
+- 2:20pm - Preparing a test case of the embed widget and see how it will work within our astro framework.
+    Adding the `react-helmet-async` for calling some of the abstract scripts, like hcaptcha.
+    Under the `main.tsx`, we will import the helmet provider and then wrap our `App` element inside of it.
+        ```js
+
+        import { HelmetProvider } from 'react-helmet-async';
+
+            root.render(
+            <StrictMode>
+                <HelmetProvider>
+                    <App />
+                </HelmetProvider>
+            </StrictMode>
+        );
+        ```
+    Afterwards we would call `<Helmet>` for the abstract scripts that we would need within certain states.
+    For the `register` state, we would use it like this:
+
+        ```js
+        <Helmet>        
+        <script src="https://js.hcaptcha.com/1/api.js?" async defer></script>
+        </Helmet>
+        ```
+
+    
