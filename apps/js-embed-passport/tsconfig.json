@@ -1,6 +1,8 @@
 {
 	"compilerOptions": {
 		"skipLibCheck": true,
+		"composite": true,
+		"declaration": true,
 		"jsx": "react-jsx",
 		"allowJs": false,
 		"esModuleInterop": false,
