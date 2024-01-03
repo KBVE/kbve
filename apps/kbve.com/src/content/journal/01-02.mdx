@@ -12,16 +12,18 @@ tags:
 
 ## Notes
 
+SoksoaCode is joining the repo!! :DSSDSF
+
 ### 2024
 
-- 12:32pm - Building the js-embeds for the Monorepo!
+-   12:32pm - Building the js-embeds for the Monorepo!
     The first step would be to plan the bundling software for the embedable widgets, which might be done through React or Svelte.
     I am going to double check if the vite plugin is up-to-date, by running:
 
     ```shell
         pnpm install -D @nx/vite
     ```
-    
+
     then double check the plugin with:
 
     ```shell
@@ -42,36 +44,36 @@ tags:
 
     This would be the reset command that we can run everytime we update the NX monorepo.
 
-- 1:04pm - Going to push through this minor update!
+-   1:04pm - Going to push through this minor update!
     I am still working out exactly how I would want to structure the js-embed applications, I could do them via folders within the `apps` but there might be a better way to handle this./
     Upon thinking it through, I believe we could start with a generic `js-embed-react` as an application and then add minor `sub-folders` within to help with the build.
-    However that might end up being way too much abstraction for the given moment.` 
+    However that might end up being way too much abstraction for the given moment.`
 
-- 5:40pm - Just wrapped up the first season of Patheon and it was an interesting story! I will not go too much into the review or spoliers, but I do recommend watching it.
+-   5:40pm - Just wrapped up the first season of Patheon and it was an interesting story! I will not go too much into the review or spoliers, but I do recommend watching it.
 
-- 5:44pm - Let me start the `js-embed-passport`, since we have installed the base requirements for it!
+-   5:44pm - Let me start the `js-embed-passport`, since we have installed the base requirements for it!
     To start the project, I am going to run an initializer within NX.
-    
+
     ```shell
     nx g @nx/react:app js-embed-passport --bundler=vite
     ```
-    
+
     The scope of this embedable passport would be to help handle some of the communication between our WASMs and javascript.
-    Ah the command has been updated to include a flag for version Nx18, which we do not have but that means this commnand will become out dated later this year! 
+    Ah the command has been updated to include a flag for version Nx18, which we do not have but that means this commnand will become out dated later this year!
     So fair warning.
 
     To get the service of the development build, I had to run this command:
 
-        ```shell
-        nx run js-embed-passport:serve:development
-        ```
+          ```shell
+          nx run js-embed-passport:serve:development
+          ```
 
     For the production build, the command will be like this:
 
-        ```shell
-        pnpm exec nx run js-embed-passport:build --configuration=production 
-        ```
-    
+          ```shell
+          pnpm exec nx run js-embed-passport:build --configuration=production
+          ```
+
     I decided to update the build configuration, by adding a quick rollupOptions to the build configuration.
 
     Inside of the `vite.config.ts`, I added these `rollupOptions` to the `build`:
@@ -98,20 +100,21 @@ tags:
 
     The `js-embed-passport.js` will be the final embedable javascript file that we will call for our purposes.
 
-- 6:15pm - I pushed through the `dev` branch into the `main` branch, as I felt it would make sense to keep the js-embed-passport within the dev branch until it was ready.
+-   6:15pm - I pushed through the `dev` branch into the `main` branch, as I felt it would make sense to keep the js-embed-passport within the dev branch until it was ready.
     The next move would be to clean up the starter template and see what minor edits we can make!
     I should keep a future note to myself, after the branch builds the js-embed-passport, I want it to make a new pull request back to the repo with the final build.
     This is a bit weird at firet but the idea here would be that this would be the stepping stone towards having the monorepo build and repair itself.
     Starting small and working from there would make the most sense.
 
-- 6:18pm - To avoid having major responsive issues, we could keep with the passport style and limit the size of the window that it generates but scale it up for larger screens.
+-   6:18pm - To avoid having major responsive issues, we could keep with the passport style and limit the size of the window that it generates but scale it up for larger screens.
     The core of the widget / library should still remain being tailwindcss, so that should help us with blending it amoungst other themes.
     I had to update the final production command with an additional flag, thus the new command will look like this:
 
-        ```shell
-            pnpm exec nx run js-embed-passport:build --configuration=production --emptyOutDir
+          ```shell
+              pnpm exec nx run js-embed-passport:build --configuration=production --emptyOutDir
 
-        ```
+          ```
+
     The additional command to empty out directory will make sure to clean up the /dist/ folder.
 
-- 8:43pm - Removing the `koa` libraries from the packages.
+-   8:43pm - Removing the `koa` libraries from the packages.
