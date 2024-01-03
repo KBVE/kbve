@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"skipLibCheck": true,
 		"jsx": "react-jsx",
 		"allowJs": false,
 		"esModuleInterop": false,
@@ -8,7 +9,7 @@
 		"types": ["vite/client", "vitest"]
 	},
 	"files": [],
-	"include": [],
+	"include": ["src", "types"],
 	"references": [
 		{
 			"path": "./tsconfig.app.json"

@@ -24,6 +24,10 @@ export default defineConfig({
 	//  plugins: [ nxViteTsPaths() ],
 	// },
 
+	define: {
+		'process.env': process.env
+	},
+
 	build: {
 		outDir: '../../dist/apps/js-embed-passport',
 		reportCompressedSize: true,
@@ -31,7 +35,10 @@ export default defineConfig({
 			transformMixedEsModules: true,
 		},
 		rollupOptions: {
+			external: ['fs', 'path'],
 			output: {
+				// ES Module Output
+				format: 'es', // ES module format
 				// Change the output directory structure and naming
 				entryFileNames: `js-embed-passport.js`,
 				chunkFileNames: `[name].js`,
