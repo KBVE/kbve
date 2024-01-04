@@ -21,6 +21,16 @@ tags:
     I am going to migrating out the `KB.tsx` into its own JS/TS library, so that I can call it from anywhere.
     We can call the library, `KhashVault` and have it serve as the cache for the nanostorage.
 
+- 12:18pm - Now I am looking into the bundler for the custom library that I am going to be using.
+    For the vite bundler, we could use the nx generator via this command:
+
+    ```shell
+        pnpm nx g @nx/js:lib khashvault  --directory packages/khashvault --bundler=vite
+    ```
+    Including the Nx 18 command for deriving the name / root.
+
+    
+
 
 ## Quote
 
