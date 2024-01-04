@@ -24,12 +24,29 @@ tags:
 - 12:18pm - Now I am looking into the bundler for the custom library that I am going to be using.
     For the vite bundler, we could use the nx generator via this command:
 
-    ```shell
-        pnpm nx g @nx/js:lib khashvault  --directory packages/khashvault --bundler=vite
-    ```
-    Including the Nx 18 command for deriving the name / root.
+        ```shell
+            pnpm nx g @nx/js:lib khashvault  --directory packages/khashvault --bundler=vite
+        ```
+        Including the Nx 18 command for deriving the name / root.
 
+    For the vite test casing, it seems that we would have to configure the `vite-plugin-dts`, this is a vite plugin that generates declaration files `*.d.ts`.
+
+    To make sure that we have the plugin installed, we would run this command:
     
+        ```shell
+            pnpm i vite-plugin-dts -D
+        ```
+
+    After the plugin has been installed, it would be wise to reset the monorepo, with this command:
+
+        ```shell
+            ./kbve.sh -reset
+        ```
+    
+    
+
+
+
 
 
 ## Quote

@@ -1,3 +1,8 @@
-export function khashvault(): string {
-	return 'khashvault';
+// ? vitest
+
+export function khashvaulttest(): string {
+	return 'khashvaulttest';
 }
+
+
+

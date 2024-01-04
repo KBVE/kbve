@@ -1,7 +1,7 @@
-import { khashvault } from './khashvault';
+import { khashvaulttest } from './khashvault';
 
 describe('khashvault', () => {
 	it('should work', () => {
-		expect(khashvault()).toEqual('khashvault');
+		expect(khashvaulttest()).toEqual('khashvaulttest');
 	});
 });
