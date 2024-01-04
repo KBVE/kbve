@@ -37,6 +37,24 @@ atomic_function() {
     git switch -c "${PATCH_NAME}"
 }
 
+# Function for the zeta script
+zeta_function() {
+    set -e
+
+    GIT_DATE=$(date +'%m-%d-%Y-%s')
+
+    if [ "$#" -eq "0" ]; then
+        PATCH_NAME="patch-zeta-${GIT_DATE}"
+    else
+        UNFORMAT_PATCH=$(echo "$@" | tr ' ' '-')
+        NEW_PATCH="${UNFORMAT_PATCH//[^[:alnum:]-]/-}"
+        NEW_PATCH=$(echo "$NEW_PATCH" | tr '[:upper:]' '[:lower:]')  # lowercase conversion
+        PATCH_NAME="patch-zeta-${NEW_PATCH}-${GIT_DATE}"
+    fi
+
+    git switch -c "${PATCH_NAME}"
+}
+
 
 # Function to manage a tmux session
 manage_tmux_session() {
@@ -90,6 +108,16 @@ case "$1" in
     -exec_atomic)
         shift  # Remove the '-exec_atomic'
         atomic_function "$@"
+        ;;
+    -zeta)
+        shift  # Remove the first argument '-zeta'
+        zeta_args="$@"
+        # Call manage_tmux_session with a session and zeta_function
+        manage_tmux_session "zeta_session" "$0 -exec_zeta $zeta_args"
+        ;;
+    -exec_zeta)
+        shift  # Remove the '-exec_zeta'
+        zeta_function "$@"
         ;;
     -db)
         if is_installed "diesel_ext"; then
