@@ -1,17 +1,11 @@
-import { atom } from 'nanostores';
-import { persistentMap } from '@nanostores/persistent';
+import { kbve_v01d } from '@kbve/khashvault';
+import { useEffect } from 'react';
 
-export const x$ = atom(0);
+const KB = () => {
+	useEffect(() => {
+		console.log(kbve_v01d);
+	}, []);
+	return <div>{/* KB */}</div>;
+};
 
-export const kbve$ = persistentMap('kbve:', [], {
-	encode(value) {
-		return JSON.stringify(value);
-	},
-	decode(value) {
-		try {
-			return JSON.parse(value);
-		} catch (error) {
-			return value;
-		}
-	},
-});
+export default KB;

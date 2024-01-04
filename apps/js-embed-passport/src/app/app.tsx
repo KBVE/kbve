@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 import NxWelcome from './nx-welcome';
+import KB from './KB';
 import React from 'react';
 
 
@@ -12,6 +13,7 @@ export function App() {
 	return (
 		<StyledApp>
 			<NxWelcome title="js-embed-passport" />
+			<KB />
 		</StyledApp>
 	);
 }
