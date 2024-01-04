@@ -82,13 +82,14 @@ case "$1" in
         manage_tmux_session "reset" "pnpm install --no-frozen-lockfile && pnpm nx reset"
         ;;
     -atomic)
-        # Remove the first argument '-atomic'
-        shift
-        # Convert remaining arguments into a single string
-        atomic_args=$(printf " %s" "$@")
-        atomic_args=${atomic_args:1} # remove leading space
-        # Call manage_tmux_session with 'git' session and atomic_function
-        manage_tmux_session "git" "atomic_function $atomic_args"
+        shift  # Remove the first argument '-atomic'
+        atomic_args="$@"
+        # Use the script itself with a special flag to invoke the atomic function
+        manage_tmux_session "git" "$0 -exec_atomic $atomic_args"
+        ;;
+    -exec_atomic)
+        shift  # Remove the '-exec_atomic'
+        atomic_function "$@"
         ;;
     -db)
         if is_installed "diesel_ext"; then
