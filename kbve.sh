@@ -148,7 +148,17 @@ case "$1" in
             diesel_ext --proto > src/kbveproto.proto
             echo "Created Protos"
 
+            # Patching Binary Protobuf
+            sed -i 's/\/\* TODO: unknown type Binary \*\//bytes/g' src/kbveproto.proto
+            echo "Patching Binary from Protos"
 
+            # Patching Integer Protobuf
+            sed -i 's/\/\* TODO: unknown type Integer \*\//int64/g' src/kbveproto.proto
+            echo "Patching Integer from Protos"
+
+            # Patching Unsign Bigint Protobuf
+            sed -i 's/\/\* TODO: unknown type Unsigned<Bigint> \*\//uint64/g' src/kbveproto.proto
+            echo "Patching Unsign BigInt from Protos"
 
             # Return to the original directory
             cd "$original_dir"
