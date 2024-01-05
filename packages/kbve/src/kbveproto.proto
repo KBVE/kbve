@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+
+message Apikey {
+    string permissions = 1;
+    string keyhash = 2;
+    string label = 3;
+    bytes ulid = 4;
+    bytes userid = 5;
+}
+message Appwrite {
+    string appwrite_endpoint = 1;
+    string appwrite_projectid = 2;
+    string appwrite_api_key = 3;
+    string version = 4;
+    string created_at = 5;
+    bytes ulid = 6;
+    bytes userid = 7;
+}
+message Auth {
+    string email = 1;
+    string hash = 2;
+    string salt = 3;
+    string password_reset_token = 4;
+    string password_reset_expiry = 5;
+    string verification_token = 6;
+    string verification_expiry = 7;
+    int64 status = 8;
+    string last_login_at = 9;
+    int64 failed_login_attempts = 10;
+    string lockout_until = 11;
+    string two_factor_secret = 12;
+    string recovery_codes = 13;
+    bytes ulid = 14;
+    bytes userid = 15;
+}
+message Global {
+    uint64 id = 1;
+    string key = 2;
+    string value = 3;
+}
+message N8n {
+    string webhook = 1;
+    string permissions = 2;
+    string keyhash = 3;
+    string label = 4;
+    bytes ulid = 5;
+    bytes userid = 6;
+}
+message Profile {
+    string name = 1;
+    string bio = 2;
+    string unsplash = 3;
+    string github = 4;
+    string instagram = 5;
+    string discord = 6;
+    bytes ulid = 7;
+    bytes userid = 8;
+}
+message Setting {
+    string key = 1;
+    string value = 2;
+    bytes ulid = 3;
+    bytes userid = 4;
+}
+message User {
+    string username = 1;
+    int64 role = 2;
+    int64 reputation = 3;
+    int64 exp = 4;
+    string created_at = 5;
+    bytes ulid = 6;
+}
+
+
+message EnquireApikeyRequest {
+    int64 id =1;
+}
+message EnquireAppwriteRequest {
+    int64 id =1;
+}
+message EnquireAuthRequest {
+    int64 id =1;
+}
+message EnquireGlobalRequest {
+    int64 id =1;
+}
+message EnquireN8nRequest {
+    int64 id =1;
+}
+message EnquireProfileRequest {
+    int64 id =1;
+}
+message EnquireSettingRequest {
+    int64 id =1;
+}
+message EnquireUserRequest {
+    int64 id =1;
+}
+
+
+service MessageRpc {
+    rpc getApikey (EnquireApikeyRequest) returns (Apikey) { }
+    rpc getAppwrite (EnquireAppwriteRequest) returns (Appwrite) { }
+    rpc getAuth (EnquireAuthRequest) returns (Auth) { }
+    rpc getGlobal (EnquireGlobalRequest) returns (Global) { }
+    rpc getN8n (EnquireN8nRequest) returns (N8n) { }
+    rpc getProfile (EnquireProfileRequest) returns (Profile) { }
+    rpc getSetting (EnquireSettingRequest) returns (Setting) { }
+    rpc getUser (EnquireUserRequest) returns (User) { }
+}

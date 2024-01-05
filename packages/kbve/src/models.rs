@@ -5,14 +5,6 @@
 use diesel::prelude::*;
 use serde::{ Serialize, Deserialize};
 
-// use crate::apikey::dsl::apikey;
-// use crate::appwrite::dsl::appwrite;
-// use crate::auth::dsl::auth;
-// use crate::globals::dsl::globals;
-// use crate::n8n::dsl::n8n;
-// use crate::profile::dsl::profile;
-// use crate::settings::dsl::settings;
-// use crate::users::dsl::users;
 
 use chrono::NaiveDateTime;
 #[derive(Queryable, Serialize, Deserialize, Debug)]
