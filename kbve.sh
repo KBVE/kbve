@@ -139,7 +139,17 @@ case "$1" in
             { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
             sed -i 's/#\[derive(Queryable,/#\[derive(Queryable, Serialize, Deserialize,/' src/models.rs
             echo "Patching models.rs"
+
+            # Patching the Identifiable
+            sed -i -e 's/, Identifiable//' src/models.rs
+            echo "Patched Identifiable from models.rs"
             
+            # Protobuf
+            diesel_ext --proto > src/kbveproto.proto
+            echo "Created Protos"
+
+
+
             # Return to the original directory
             cd "$original_dir"
         else

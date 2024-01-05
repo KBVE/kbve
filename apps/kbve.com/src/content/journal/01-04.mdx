@@ -77,6 +77,30 @@ tags:
     However upon the generation, there were three TODO errors that appear in the proto.
     An example of it would be: - `TODO: unknown type Binary`
 
+- 10:44pm - The current solution might be to just run sed after the generation to fix some of the generated files.
+    It seems that I forgot to remove the `Identifiable` from the `derive` but need to account for the commas.
+    So here the is the shell command that I will add into the kbve shell.
+
+        ```shell
+            sed -i -e 's/#[derive(.*,\s*)Identifiable,\s*(.*)]/#[derive(\1\2)]/g' -e 's/#[derive(.*),\s*Identifiable\s*]/#[derive(\1)]/g' your_file.rs
+        ```
+        This was giving some issues with the regex of the comma, so I decided to just remove the instance with `, Identifiable`.
+        I will come back to this issue later on.
+
+        ```rust
+
+        use crate::apikey::dsl::apikey;
+        use crate::appwrite::dsl::appwrite;
+        use crate::auth::dsl::auth;
+        use crate::globals::dsl::globals;
+        use crate::n8n::dsl::n8n;
+        use crate::profile::dsl::profile;
+        use crate::settings::dsl::settings;
+        use crate::users::dsl::users;
+
+        ```
+        We will skip this part of the code block as well for now.
+
     
 
 
