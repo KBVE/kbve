@@ -160,8 +160,26 @@ case "$1" in
             sed -i 's/\/\* TODO: unknown type Unsigned<Bigint> \*\//uint64/g' src/kbveproto.proto
             echo "Patching Unsign BigInt from Protos"
 
+            # Copy KBVEProto to JS Library
+            cp -f src/kbveproto.proto ../khashvault/src/lib/kbveproto.proto
+            
+            # Generate the Protobuf for JS Library
+            #protoc --proto_path=../khashvault/src/lib --js_out=import_style=commonjs,binary:../khashvault/src/lib ../khashvault/src/lib/kbveproto.proto
+
             # Return to the original directory
             cd "$original_dir"
+            
+            # Running pnpm grpc_tools 
+            pnpm grpc_tools_node_protoc \
+                --js_out=import_style=commonjs,binary:./packages/khashvault/src/lib \
+                --grpc_out=./packages/khashvault/src/lib \
+                --plugin=protoc-gen-grpc=./node_modules/.bin/grpc_tools_node_protoc_plugin \
+                --proto_path=./packages/khashvault/src/lib \
+                --ts_out=./packages/khashvault/src/lib \
+                ./packages/khashvault/src/lib/kbveproto.proto
+
+            
+            
         else
             echo "diesel_ext is not installed."
         fi
