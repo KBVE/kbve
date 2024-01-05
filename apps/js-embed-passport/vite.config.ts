@@ -17,12 +17,22 @@ export default defineConfig({
 		host: 'localhost',
 	},
 
-	plugins: [react(), nxViteTsPaths()],
+	plugins: [react({
+		babel: {
+		  plugins: ['babel-plugin-macros', 'babel-plugin-styled-components'],
+		},
+	  }), nxViteTsPaths()],
 
 	// Uncomment this if you are using workers.
 	// worker: {
 	//  plugins: [ nxViteTsPaths() ],
 	// },
+
+	optimizeDeps: {
+		esbuildOptions: {
+		  target: 'es2020',
+		},
+	},
 
 	build: {
 		outDir: '../../dist/apps/js-embed-passport',
@@ -31,7 +41,10 @@ export default defineConfig({
 			transformMixedEsModules: true,
 		},
 		rollupOptions: {
+			external: ['fs', 'path', 'process'],
 			output: {
+				// ES Module Output
+				format: 'es', // ES module format
 				// Change the output directory structure and naming
 				entryFileNames: `js-embed-passport.js`,
 				chunkFileNames: `[name].js`,

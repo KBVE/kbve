@@ -1,8 +1,28 @@
-// Importing required modules and functions.
+// 	? [Types]
+
+// Declaring a TypeScript type 'kbveLocker' for user profile information.
+export type kbveLocker = {
+	/* core */
+	username: string; // User's username.
+	uuid: string; // User's unique identifier (UUID).
+	email: string; // User's email address.
+
+	/* profile */
+	avatar: string; // URL to the user's avatar image.
+	github: string; // User's GitHub profile URL.
+	instagram: string; // User's Instagram profile URL.
+	bio: string; // Short biography or description of the user.
+	pgp: string; // PGP key or identifier for the user.
+	unsplash: string; // User's Unsplash profile URL.
+};
+
+//	? [IMPORTS]
+
 import { atom, WritableAtom, task, keepMount } from 'nanostores'; // Importing from 'nanostores' for state management.
 import { persistentMap } from '@nanostores/persistent'; // Importing 'persistentMap' for persistent state management.
-import * as kbve from './kbve'; // Importing from the 'kbve' module.
-// import Toastify from 'toastify-js'
+
+// Exporting a constant 'kbve_v01d' representing a version or an identifier.
+export const kbve_v01d: string = '/api/v1/';
 
 //? [DATA]->@core
 // Defining core data atoms for application state management.
@@ -28,29 +48,7 @@ export const log$: WritableAtom<string> = atom(''); // Atom for storing log mess
 
 //? [CACHE]
 // Defining persistent data cache.
-export const kbve$ = persistentMap<kbve.kbveLocker>('kbve:'); // Persistent map for storing 'kbveLocker' data, with a namespace.
-
-//* [FUNCTIONS]
-// Defining various functions for application state and side effects.
-
-// Subscribing to toast atom changes and logging them.
-toast$.subscribe((toast) => {
-	console.log(`[TOAST] -> ${toast}`); // Logging toast messages.
-	// if (typeof Toastify === 'function' && toast && typeof window !== 'undefined' && typeof document !== 'undefined') {
-
-	// Toastify({
-	//     gravity: "bottom", // `top` or `bottom`
-	//     position: "right", // `left`, `center` or `right`
-	//     text: toast,
-
-	//     duration: 5000,
-	//     stopOnFocus: true,
-	//     style: {
-	//         background: "linear-gradient(to right, #00b09b, #96c93d)",
-	//       },
-	//     }).showToast();
-	// }
-});
+export const kbve$ = persistentMap<kbveLocker>('kbve:'); // Persistent map for storing 'kbveLocker' data, with a namespace.
 
 // Function to log messages.
 export const log = async (log: string) => {
@@ -69,7 +67,7 @@ export const notification = async (error: string) => {
 };
 
 // General-purpose task function for updating atom states.
-export const tasker = async (__key: WritableAtom, __data: any) => {
+export const tasker = async (__key: WritableAtom, __data: string) => {
 	task(async () => {
 		log(`Storing ${__data} into atom!`); // Logging the operation.
 		__key.set(__data); // Updating the atom with new data.
@@ -78,25 +76,15 @@ export const tasker = async (__key: WritableAtom, __data: any) => {
 };
 
 // Function to update the locker (persistent data).
-export const locker = async (__key: keyof kbve.kbveLocker, __data: string) => {
+export const locker = async (__key: keyof kbveLocker, __data: string) => {
 	task(async () => {
 		log(`Storing ${__data} into locker for ${__key}`); // Logging the operation.
 		kbve$.setKey(__key, __data); // Updating the locker with new data.
 	});
 };
 
-// Function to handle '_ve' operations, such as sending data to a server.
-export const _ve = async (__data: string) => {
-	task(async () => {
-		const response = await fetch(kbve.kbve_v01d, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(__data),
-		});
+// ? vitest
 
-		const result = await response.json(); // Parsing the response to JSON.
-		log(result); // Logging the result.
-	});
-};
+export function khashvaulttest(): string {
+	return 'khashvaulttest';
+}

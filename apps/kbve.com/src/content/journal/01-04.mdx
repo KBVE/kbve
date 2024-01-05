@@ -1,0 +1,126 @@
+---
+title: 'January: 04'
+category: Daily
+date: 2024-01-04
+client: Self
+unsplash: 1703511606233-9c7537658701
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 4th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+-   11:00am - Going to aim at getting out of work earlier than before but I have some issues to prepare for, including being assigned to AAPL at $190.
+    I will have to prepare around $38K to offset the 200 shares of AAPL from the two puts.
+
+-   11:54am - Out of lunch and going to start doing the `GlobalStyles.tsx` for the `js-embed-passport`.
+    I am going to migrating out the `KB.tsx` into its own JS/TS library, so that I can call it from anywhere.
+    We can call the library, `KhashVault` and have it serve as the cache for the nanostorage.
+
+-   12:18pm - Now I am looking into the bundler for the custom library that I am going to be using.
+    For the vite bundler, we could use the nx generator via this command:
+
+          ```shell
+              pnpm nx g @nx/js:lib khashvault  --directory packages/khashvault --bundler=vite
+          ```
+          Including the Nx 18 command for deriving the name / root.
+
+    For the vite test casing, it seems that we would have to configure the `vite-plugin-dts`, this is a vite plugin that generates declaration files `*.d.ts`.
+
+    To make sure that we have the plugin installed, we would run this command:
+
+          ```shell
+              pnpm i vite-plugin-dts -D
+          ```
+
+    After the plugin has been installed, it would be wise to reset the monorepo, with this command:
+
+          ```shell
+              ./kbve.sh -reset
+          ```
+
+    Okay to run the test casing for the library, we will use this command:
+
+          ```shell
+              pnpm exec nx run khashvault:test
+          ```
+
+          The `khashvault` is the name of the library that we just created.
+
+    Going to migrate the `storage.ts` from the `Astro-ve` to the new `KhashVault` library that we are building.
+
+-   7:31pm - The protobuf integration first requries having the right library installed.
+    For the WSL/Ubuntu:
+    `shell
+          sudo apt-get install protobuf-compiler
+      `
+    After the compiler is added and installed, we will check the version, with this command:
+
+          ```shell
+                  protoc --version
+          ```
+
+          This should return something along this line:
+              `libprotoc 3.12.4`
+
+    This library will be used to help automate the protobuf types for javascript/typescript.
+
+-   10:17pm - To automatically generate the protos, we are using the diesel_ext.
+    The command that we are going to run is:
+    `shell
+          diesel_ext --proto > src/kbveproto.proto
+      `
+    However upon the generation, there were three TODO errors that appear in the proto.
+    An example of it would be: - `TODO: unknown type Binary`
+
+-   10:44pm - The current solution might be to just run sed after the generation to fix some of the generated files.
+    It seems that I forgot to remove the `Identifiable` from the `derive` but need to account for the commas.
+    So here the is the shell command that I will add into the kbve shell.
+
+          ```shell
+              sed -i -e 's/#[derive(.*,\s*)Identifiable,\s*(.*)]/#[derive(\1\2)]/g' -e 's/#[derive(.*),\s*Identifiable\s*]/#[derive(\1)]/g' your_file.rs
+          ```
+          This was giving some issues with the regex of the comma, so I decided to just remove the instance with `, Identifiable`.
+          I will come back to this issue later on.
+
+          ```rust
+
+          use crate::apikey::dsl::apikey;
+          use crate::appwrite::dsl::appwrite;
+          use crate::auth::dsl::auth;
+          use crate::globals::dsl::globals;
+          use crate::n8n::dsl::n8n;
+          use crate::profile::dsl::profile;
+          use crate::settings::dsl::settings;
+          use crate::users::dsl::users;
+
+          ```
+          We will skip this part of the code block as well for now.
+
+          The next two phases of the protobuf generation would be the `into_proto` and the `from_proto`.
+          Both of these can be generated using `-f` and `-i` flags, like this:
+
+              ```shell
+                  diesel_ext -i -c class_name > src/into_proto.rs
+                  diesel_ext -f -c class_name > src/from_proto.rs
+
+              ```
+                  Replacing the `class_name`.
+
+          There are a couple errors that the CLI is throwing, which were similar to the ones with Binary types.
+
+
+## Quote
+
+> “Celebrate endings—for they precede new beginnings.”
+> — <cite>Jonathan Lockwood Huie</cite>
+
+---
+
+## Tasks
+
+-   [x] -   No Tasks!
