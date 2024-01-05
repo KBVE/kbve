@@ -53,6 +53,32 @@ tags:
     
     Going to migrate the `storage.ts` from the `Astro-ve` to the new `KhashVault` library that we are building.
 
+- 7:31pm - The protobuf integration first requries having the right library installed.
+    For the WSL/Ubuntu:
+        ```shell
+            sudo apt-get install protobuf-compiler
+        ```
+    After the compiler is added and installed, we will check the version, with this command:
+
+        ```shell
+                protoc --version
+        ```
+
+        This should return something along this line:
+            `libprotoc 3.12.4`
+    
+    This library will be used to help automate the protobuf types for javascript/typescript.
+
+- 10:17pm - To automatically generate the protos, we are using the diesel_ext.
+    The command that we are going to run is:
+        ```shell
+            diesel_ext --proto > src/kbveproto.proto
+        ```
+    However upon the generation, there were three TODO errors that appear in the proto.
+    An example of it would be: - `TODO: unknown type Binary`
+
+    
+
 
 
 
