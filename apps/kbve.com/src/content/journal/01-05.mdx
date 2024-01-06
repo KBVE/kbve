@@ -1,0 +1,37 @@
+---
+title: 'January: 05'
+category: Daily
+date: 2024-01-05
+client: Self
+unsplash: 1703511606233-9c7537658701
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 5th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+- 11:31am - Had to drop my tesla off for some minor repairs before the winter gets worse.
+
+- 12:05pm - After the kbveproto.proto is generated and patched, we have to prepare a javascript version.
+    I am thinking to extend out the shell script so that after it finishes patching the init. proto file, it will then generate the js proto.
+    We will have it create the js file in the `/packages/kbve/src/` folder and then move that file over `/packages/khashvault/src/lib/`
+    The command to generate the protoc:
+        ```shell
+        protoc --js_out=import_style=commonjs,binary:. src/kbveproto.proto
+        ```
+    Hmm, before I run the generation, I am thinking that I might copy the proto over to the khashvault location.
+    Okay so it seems that the protoc library does not support typescript out of the box, so I have two options:
+        - `protoc-gen-ts` and `grpc-tools`.
+        Of the two options, I will be using the `grpc-tools` with `grpc_tools_node_protoc_ts`, which can be installed using this command:
+        ```shell
+            pnpm i grpc-tools grpc_tools_node_protoc_ts -D
+        ```
+    After installing the two packages, I believe I might need another, `google-protobuf` but I have to double check the notes for the client-side requirements.
+
+- 1:48pm - I am going to take a break from the Protobuf and begin building the `engine.ts` within the `khashvault`!
+    Going to migrate the `kbve.ts` from the `Astro-ve` into the `khash-vault` package.
+    
