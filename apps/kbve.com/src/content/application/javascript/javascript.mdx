@@ -94,7 +94,7 @@ tags:
     It unifies web application development by allowing JavaScript to be used both client and server-side, while its package manager, npm, offers the largest ecosystem of open-source libraries.
     With its event-driven architecture, Node is ideal for scalable, real-time applications, and extends its capabilities beyond web applications to command-line tools and IoT devices.
 
-        
+
     Node.js, often simply referred to as "Node", is a revolutionary open-source runtime environment that facilitates the execution of JavaScript on the server-side.
     Born out of a desire to carry the lightweight, event-driven nature of JavaScript beyond the confines of the browser, Node.js uses the V8 JavaScript engine (originally developed by Google for Chrome) to execute code.
     The event-driven, non-blocking I/O model makes it not only efficient but also ideal for scalable and real-time applications.
@@ -115,7 +115,7 @@ tags:
         R3F brings the power of React's declarative component structure to Three.js applications, making it easier to build and manage complex 3D scenes.
         By integrating the two, developers can leverage React's state management and component lifecycle with Three.js's 3D rendering capabilities.
 
-    
+
     ### React Unity
 
         The main library is located at [React Unity WebGL](https://github.com/jeffreylanters/react-unity-webgl)
@@ -161,7 +161,7 @@ tags:
 ## Svelte
 
     ### Threlte
-            
+
         An amazing and s3xy Three.js component library for Svelte.
         Official [Repo](https://github.com/threlte/threlte)
 
@@ -308,6 +308,92 @@ tags:
         | --no-install | Skip installing `node_modules` & tasks |
         | --no-git     | Don’t initialize a git repository      |
         | --open       | Start & open in-browser after finish   |
+
+---
+
+## TailwindCSS
+
+-   TailWindCSS or Tailwind is a custom open source CSS framework written in Javascript that enables utility css classes.
+
+    -   ##### TailWindCSS Install
+
+    Since the core of TailWind is written in NodeJS, you can install it via `npm` || `yarn` || or any node package management software.
+
+        -   ##### TailWindCSS Config
+
+        The default name for the configuration file is `tailwind.config.js` or `tailwind.config.cjs` and the default location is within the root of the project.
+
+        -   ##### TailWindCSS Animation
+
+            Animation Utility provides animating elements, which can be extended and abstractly layered through Rive/Lottie.
+
+            The default animations are:
+
+                -   `animate-spin` : Which uses a keyFrames spin to transform / rotate the object, primary use case is for loading indictions.
+
+                -   `animate-ping` : Uses transform to slowly scale out the element and create a radar / ripple effect upon the element, primary use case is for notifications.
+
+                -   `animate-pulse` : Alter the opacity of the element, to create a fading in and out effect, primary use case is for skeleton loaders.
+
+                -   `animate-bounce` : Transform the Y access of the element. primary use case is for aesthetics.
+
+                -   `hover:$animation` : Conditional statement, where if the mouse is over the element, perform the animation.
+
+            -   ###### Spin-Slow
+
+                    This is a custom animation that you can add to TailWindCSS by extending the animations field within the configuration file.
+
+                        Scoped: `animation: { 'spin-slow': 'spin 5s linear infinite',  }`
+
+                        Proof of Concept:
+
+                            ```javascript
+                            /** @type {import('tailwindcss').Config} */
+                            module.exports = {
+                                theme: {
+                                    extend: {
+                                        animation: {
+                                            'spin-slow': 'spin 5s linear infinite',
+                                        },
+                                    },
+                                },
+                            };
+                            ```
+
+## MUI
+
+    -   MUI (formerly Material-UI) is a popular React UI framework that implements Google's Material Design principles.
+
+    -   It offers a comprehensive set of React components, along with CSS-in-JS styling solutions, to build responsive web applications efficiently.
+
+    -   MUI promotes consistent user interfaces by providing standardized design components and patterns.
+
+---
+
+## Lottie
+
+        Lottie is a dynamic and innovative library developed by Airbnb that bridges the gap between designers and developers by allowing the incorporation of rich, high-quality animations into applications with ease.
+        Built to interpret and render animations exported as JSON data from Adobe After Effects, Lottie facilitates the use of intricate animations without the overhead of traditional image or video files. With platform-specific integrations for iOS, Android, and the web, Lottie ensures that animations remain sharp and fluid across different screen resolutions and devices.
+        By providing a more interactive and visually engaging user experience, Lottie has become a game-changer in the realm of modern app design and development.
+
+---
+
+## SWUP
+
+    ### SWUP Install
+
+        -   Adding `swup` page into your nodejs application via yarn.
+
+            ```shell
+                pnpm add swup
+            ```
+            or yarn
+
+        -   Plugins to install for `swup` via yarn.
+
+            ```shell
+                yarn add @swup/scripts-plugin @swup/a11y-plugin @swup/head-plugin @swup/slide-theme @swup/scroll-plugin @swup/preload-plugin @swup/body-class-plugin @swup/debug-plugin
+            ```
 
 ---
 
