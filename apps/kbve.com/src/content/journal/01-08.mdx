@@ -14,19 +14,36 @@ tags:
 
 ### 2024
 
--   Preparing for the crate creation of `erust` , which will hold the `egui` / `eframe` library.
-    The command that we will run to create the library will be like this:
+-  2:31pm - erust
+    
+    -   Preparing for the crate creation of `erust` , which will hold the `egui` / `eframe` library.
+    
+    -   The command that we will run to create the library will be like this:
 
-        ```shell
+            ```shell
 
-        pnpm nx g @monodon/rust:library erust
-        
-        ```
+            pnpm nx g @monodon/rust:library erust
+            
+            ```
 
-    After creating the base library known as erust, we will now create the application that will utilize the erust library.
+    -   After creating the base library known as erust, we will now create the application that will utilize the erust library.
 
-        ```shell
-        
-        pnpm nx g @monodon/rust:binary rust_wasm_embed
+            ```shell
+            
+            pnpm nx g @monodon/rust:binary rust_wasm_embed
 
-        ```
+            ```
+
+    -   Make sure we are up to date with rust, by running this in our shell:
+
+            ```shell
+            
+            rustup update
+
+            ```
+    
+    -   Followed by adding our egui dependencies and migrating the generic `eframe_template` files over to the `apps/rust_wasm_embed`.
+
+-   5:02pm - Bug Wars
+    
+    -   We will first focus on getting the general build out of the way for the `apps/rust_wasm_embed` and focus on tackling any bugs that might appear.

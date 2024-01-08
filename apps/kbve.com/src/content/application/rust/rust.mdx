@@ -43,6 +43,17 @@ tags:
 
 ---
 
+## Update
+
+    - Incase we need to update rust to the latest stable version, we will use `rustup` to update, via this command in shell:
+
+        ```shell
+            rustup update
+        ```
+
+
+---
+
 ## Cargo
 
     > TLDR; Cargo is a package manager for Rust that handles the dependencies, compiling and distribution. Cargo can publish your package to `crates.io` so that it can be used with other applications within Rust.
@@ -146,4 +157,14 @@ tags:
 
     -   This crate is a user-friendly, easy-to-integrate, immediate-mode GUI library designed for rapid development of interactive applications in Rust.
 
+    ### Egui Deps
+
+        -   There are some dependencies that you might require when working with `egui`:
+
+            ```shell
+            sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+            ```
+                - Note: These dependencies are for Ubuntu / WSL.
+
+        
     
