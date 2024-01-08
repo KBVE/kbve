@@ -1,0 +1,82 @@
+---
+title: Pocketbase
+category: Application
+client: Self
+publishDate: 2023-08-13 00:00:00
+img: /assets/img/curved-images/wave.jpg
+slug: pocketbase
+repo:
+description: Pocketbase Database
+tags:
+  - software
+  - database
+---
+
+## Information
+
+
+---
+
+## Install
+
+Do you want to get Pocketbase up and running?
+
+### Docker
+
+There are two ways you can go about setting up Pocketbase via Docker!
+We recommand using a docker compose, like this one below from their github.
+
+#### Compose
+
+```yaml
+
+version: "3.7"
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: pocketbase
+    restart: unless-stopped
+    command:
+      - --encryptionEnv #optional
+      - ENCRYPTION #optional
+    environment:
+      ENCRYPTION: example #optional
+    ports:
+      - "8090:8090"
+    volumes:
+      - /path/to/data:/pb_data
+      - /path/to/public:/pb_public #optional
+    healthcheck: #optional (recommended) since v0.10.0
+      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+```
+
+#### DockerCLI
+
+```shell
+
+docker run -d \
+  --name=pocketbase \
+  -p 8090:8090 \
+  -e ENCRYPTION=example `#optional` \
+  -v /path/to/data:/pb_data \
+  -v /path/to/public:/pb_public `#optional` \
+  --restart unless-stopped \
+  ghcr.io/muchobien/pocketbase:latest \
+  --encryptionEnv ENCRYPTION `#optional`
+
+```
+
+### Coolify
+
+Installing Pocketbase through Coolify is extremely easy!
+
+1. Click `+ Create New Resource`
+2. Click `Service`
+3. Select `Pocketbase`
+4. Done! Fill in the URL and then head over the admin panel, `domain.com/_/`.
+
+### K

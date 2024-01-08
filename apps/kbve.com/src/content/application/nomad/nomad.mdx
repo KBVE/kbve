@@ -1,0 +1,46 @@
+---
+title: Nomad
+description: Nomad by HashiCorp is an orchestration swiss army knife that makes container management extremely flexible and easy.
+slug: nomad
+category: Application
+client: Self
+publishDate: 2022-10-10 10:35:00
+unsplash: 1572511443032-a3cfe6823872
+img: https://images.unsplash.com/photo-1572511443032-a3cfe6823872?fit=crop&w=1400&h=700&q=75
+repo: https://github.com/hashicorp/nomad
+tags:
+    - api
+    - vm
+    - containers
+---
+
+## Nomad
+
+-   Nomad is an easy, flexible and powerful orchestration software that can operate and scale various applications, micro-services and complex architectures.
+-   It should be noted that the quorum for HA is 3 separated instances of each: `Vault` , `Consul` and `Nomad`, thus requiring a total of 9 instances.
+
+---
+
+## Install
+
+-
+
+---
+
+## Terms
+
+-   Allocations / alloc - A collection of tasks that run on a node.
+    -   Alias of `Pod` in k8s.
+
+---
+
+## Cheatsheet
+
+-   `nomad alloc logs {$allocation}`
+
+    -   `{$allocation}` - unique id that is the default reference to a group of tasks within a specific node.
+
+-   `nomad status {$identifier}`
+    -   `{$identifier}` - The id is an 8 digit alphanumeric reference.
+
+---

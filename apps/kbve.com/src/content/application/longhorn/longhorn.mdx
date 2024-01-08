@@ -1,0 +1,57 @@
+---
+title: Longhorn
+description: Longhorn is a cloud-native distributed storage application that allows easy and persistent storage across the eco-system.
+category: Application
+client: Self
+publishDate: 2022-09-01 00:00:00
+unsplash: 1575405380157-1fc4e4b3f227
+img: https://images.unsplash.com/photo-1575405380157-1fc4e4b3f227?fit=crop&w=1400&h=700&q=75
+slug: longhorn
+tags:
+    - storage
+    - vm
+    - host
+    - cncf
+---
+
+## Longhorn
+
+## Install
+
+-   This current information sheet is in reference to Longhorn 1.3v , be aware that 1.4v will be in production around 2023. Thus this might become obsolete information.
+-   Before installing, look over the requirements for storage.
+
+-   Requirements for 1.3v Longhorn
+
+## NFS
+
+-   Ubuntu NFS Setup
+
+    -   Make sure system is updated / upgrade
+
+        -   ```shell
+            sudo apt-get update && sudo apt-get upgrade -y
+            ```
+
+    -   Install `nfs-common` and `nfs-kernel-server`
+
+        -   ```shell
+            sudo apt-get install nfs-common nfs-kernel-server -y
+            ```
+
+        -
+
+## Namespace
+
+-   Creating a custom namespace to hold the storage.
+
+    -   Kubectl command to create the namespace:
+
+        -   ```shell
+            kubectl create namespace storage
+
+            ```
+
+            -   std out: namespace/storage created
+
+-   This namespace will be where we store our production data.
