@@ -15,3 +15,18 @@ tags:
 ### 2024
 
 -   Preparing for the crate creation of `erust` , which will hold the `egui` / `eframe` library.
+    The command that we will run to create the library will be like this:
+
+        ```shell
+
+        pnpm nx g @monodon/rust:library erust
+        
+        ```
+
+    After creating the base library known as erust, we will now create the application that will utilize the erust library.
+
+        ```shell
+        
+        pnpm nx g @monodon/rust:binary rust_wasm_embed
+
+        ```

@@ -1,0 +1,12 @@
+[package]
+name = "rust_wasm_embed"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+erust = { path = "../../packages/erust" }
+
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
