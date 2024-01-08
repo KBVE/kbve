@@ -1,0 +1,37 @@
+---
+title: Nmap
+description: Nmap is a network utility that performs as a scanner, mapper and discovery.
+slug: nmap
+category: Application
+client: Self
+publishDate: 2022-09-01 00:00:00
+unsplash: 1562504208-03d85cc8c23e
+img: https://images.unsplash.com/photo-1562504208-03d85cc8c23e?fit=crop&w=1400&h=700&q=75
+repo:
+tags:
+    - technology
+    - security
+    - network
+---
+
+## Information
+
+-   Nmap / "Network Mapper" is an open source utility for scanning and analyzing networks within the environment; the application's primary function is for security probing and audits.
+
+## Cheatsheet
+
+-   You can replace all instances of `{$ip_address}` or `127.0.0.1` with the IP address that you want to scan.
+-   The total ports that will be scanned are from the range of `0` to `65535`.
+-   Port `0` is not a specific binding port but rather a wild card port that tells the unix system to find and allocate the next available port.
+
+-   Scan UDP / TCP and all ports.
+
+    -   ```shell
+        sudo nmap -sU -sT -p0-65535 {$ip_address}
+        ```
+
+-   Nmap Help
+
+    -   ```shell
+        sudo nmap -h
+        ```

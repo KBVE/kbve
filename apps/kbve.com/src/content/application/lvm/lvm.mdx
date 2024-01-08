@@ -1,0 +1,44 @@
+---
+title: LVM
+description: Logical Volume Storage
+category: Application
+client: Self
+publishDate: 2022-09-01 00:00:00
+img: https://images.unsplash.com/photo-1638847868668-a05a2f69622f?fit=crop&w=1400&h=700&q=75
+repo:
+slug: lvm
+tags:
+    - technology
+    - storage
+    - vm
+    - host
+    - unix
+---
+
+## Information
+
+Logical Volume Storage
+
+---
+
+## Case
+
+    -   These are case studies and references for usage of LVM.
+    -   This includes common errors and solutions that we have found when running into them.
+
+---
+
+## Storage
+
+    ### Extension
+
+        To extend the `ubuntu--vg-ubuntu-lv` after increasing the size of a physical volume from Proxmox
+
+        For the purposes of simplicity, I'm going to assume that the main volume you wish to extend is
+        `/dev/sda3`.
+
+        -   Check the current size with `sudo lsblk` or `sudo fdisk -l`
+        -   Run either `sudo growpart /dev/sda 3` or use `sudo cfdisk` to resize the `/dev/sda3` to max size
+        -   Extend the PV volume with `sudo pvresize /dev/sda3`
+        -   Extend the LV to 100% with `sudo lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv`
+        -   Resize the filesystem with `sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv`
