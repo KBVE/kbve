@@ -46,4 +46,8 @@ Lucky 7 of the first.
         We could also just store the CORS as a global key, so that it would be something along the lines of `cors_$slot` , thus we could parse through the whole global table, looking for any instance of the `cors_$` and then parse the value it holds as the CORS domain?
         This would mean we would not have to add a whole new table just for the CORS? Most applications or API backends would not have more than a couple domains, so for us to over extend might not make the most sense.
 
+-   MDX Migrations:
+
+    -   Besides migrating over a bunch of the MDX documents, I believe I will drop `strapi` and `supabase` for the time being from the migration.
+        I am just using this as a reference to keep track of the documents that I have skipped.
 
