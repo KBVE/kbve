@@ -4,10 +4,11 @@
 
 pub mod ironatom;
 pub mod applicationstate;
+pub mod widgets;
 
 pub use ironatom::*;
 pub use applicationstate::*;
-
+pub use widgets::*;
 
 #[cfg(test)]
 mod tests {

@@ -1,18 +1,15 @@
-/// Original app.rs from here https://raw.githubusercontent.com/emilk/eframe_template/master/src/app.rs
 
-/// This is general bolierplate Template.
+use erust::applicationstate::AppState;
 
-use crate::applicationstate::AppState;
-
-/// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
-pub struct TemplateApp {
+pub struct RustWasmEmbedApp {
 	// States
 	state: AppState,
+
 }
 
-impl Default for TemplateApp {
+impl Default for RustWasmEmbedApp {
 	fn default() -> Self {
 		Self {
 			state: AppState::default(),
@@ -20,26 +17,8 @@ impl Default for TemplateApp {
 	}
 }
 
-impl TemplateApp {
-	/// Called once before the first frame.
-	pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-		// This is also where you can customize the look and feel of egui using
-		// `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
-
-		// Load previous app state (if any).
-		// Note that you must enable the `persistence` feature for this to work.
-		// if let Some(storage) = cc.storage {
-		//     return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
-		// }
-
-		// Default::default()
-
-		// Initialize AppState
-		// Self {
-        //     // Attempt to load the previous state from storage
-        //     // If loading fails, initialize a new AppState
-        //     state: AppState::load(cc.storage).unwrap_or_else(AppState::new),
-        // }
+impl RustWasmEmbedApp {
+    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
 
         let app = Self {
             state: AppState::load(cc.storage).unwrap_or_else(AppState::new),
@@ -55,7 +34,8 @@ impl TemplateApp {
 	}
 }
 
-impl eframe::App for TemplateApp {
+
+impl eframe::App for RustWasmEmbedApp {
 	/// Called by the frame work to save state before shutdown.
 	fn save(&mut self, storage: &mut dyn eframe::Storage) {
         self.state.save(storage);
@@ -81,7 +61,7 @@ impl eframe::App for TemplateApp {
 					ui.add_space(16.0);
 				}
 
-				 egui::widgets::global_dark_light_mode_buttons(ui);
+				
 			});
 		});
 
@@ -105,14 +85,8 @@ impl eframe::App for TemplateApp {
 
             //  Dark / Light
 
-            if ui.checkbox(&mut self.state.is_dark_mode, " 🌙 Dark Mode ").changed() {
-                if self.state.is_dark_mode {
-                    ctx.set_visuals(egui::Visuals::dark());
-                } else {
-                    ctx.set_visuals(egui::Visuals::light());
-                }
-
-                // Optionally save the state immediately when changed
+            if erust::widgets::dark_mode_widget(ui, &mut self.state) {
+                // If state changed, save the updated state
                 if let Some(storage) = _frame.storage_mut() {
                     self.state.save(storage);
                 }
@@ -157,7 +131,7 @@ impl eframe::App for TemplateApp {
 pub fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
 	ui.horizontal(|ui| {
 		ui.spacing_mut().item_spacing.x = 0.0;
-		ui.label("Powered by ");
+		ui.label("Rust WASM Embed Powered by ");
 		ui.hyperlink_to("egui", "https://github.com/emilk/egui");
 		ui.label(" and ");
 		ui.hyperlink_to(

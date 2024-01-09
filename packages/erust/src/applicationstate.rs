@@ -17,7 +17,8 @@ pub struct AppState {
 	pub value: f32,
 
 	// Dark/Light Mode
-	
+	pub is_dark_mode: bool,
+
 }
 
 impl AppState {
@@ -32,6 +33,7 @@ impl AppState {
             avatar_url: None,
 			label: "Hello World!".to_owned(),
             value: 2.7,
+			is_dark_mode: true, // default value, set to false if you want light mode by default
 		}
 	}
 
