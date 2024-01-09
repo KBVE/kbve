@@ -1262,6 +1262,7 @@ dependencies = [
  "egui",
  "log",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

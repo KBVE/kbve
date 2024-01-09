@@ -22,7 +22,7 @@ fn main() -> eframe::Result<()> {
 // When compiling to web using trunk:
 #[cfg(target_arch = "wasm32")]
 fn main() {
-    // Redirect `log` message to `console.log` and friends:
+    // Redirect  `log` message to `console.log` and friends:
     eframe::WebLogger::init(log::LevelFilter::Debug).ok();
 
     let web_options = eframe::WebOptions::default();
@@ -30,7 +30,7 @@ fn main() {
     wasm_bindgen_futures::spawn_local(async {
         eframe::WebRunner::new()
             .start(
-                "the_canvas_id", // hardcode it (ref #33)
+                "the_canvas_id", // hardcode it (ref #34)
                 web_options,
                 Box::new(|cc| Box::new(erust::ironatom::TemplateApp::new(cc))),
             )
