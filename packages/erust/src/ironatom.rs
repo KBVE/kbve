@@ -96,7 +96,7 @@ impl eframe::App for TemplateApp {
     }
 }
 
-fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
+pub fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 0.0;
         ui.label("Powered by ");
