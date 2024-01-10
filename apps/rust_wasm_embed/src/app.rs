@@ -1,4 +1,3 @@
-
 use erust::applicationstate::AppState;
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -6,7 +5,6 @@ use erust::applicationstate::AppState;
 pub struct RustWasmEmbedApp {
 	// States
 	state: AppState,
-
 }
 
 impl Default for RustWasmEmbedApp {
@@ -18,27 +16,25 @@ impl Default for RustWasmEmbedApp {
 }
 
 impl RustWasmEmbedApp {
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+	pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+		let app = Self {
+			state: AppState::load(cc.storage).unwrap_or_else(AppState::new),
+		};
 
-        let app = Self {
-            state: AppState::load(cc.storage).unwrap_or_else(AppState::new),
-        };
+		if app.state.is_dark_mode {
+			cc.egui_ctx.set_visuals(egui::Visuals::dark());
+		} else {
+			cc.egui_ctx.set_visuals(egui::Visuals::light());
+		}
 
-        if app.state.is_dark_mode {
-            cc.egui_ctx.set_visuals(egui::Visuals::dark());
-        } else {
-            cc.egui_ctx.set_visuals(egui::Visuals::light());
-        }
-
-        app
+		app
 	}
 }
-
 
 impl eframe::App for RustWasmEmbedApp {
 	/// Called by the frame work to save state before shutdown.
 	fn save(&mut self, storage: &mut dyn eframe::Storage) {
-        self.state.save(storage);
+		self.state.save(storage);
 	}
 
 	/// Called each time the UI needs repainting, which may be many times per second.
@@ -60,11 +56,8 @@ impl eframe::App for RustWasmEmbedApp {
 					});
 					ui.add_space(16.0);
 				}
-
-				
 			});
 		});
-
 
 		egui::SidePanel::left("side_panel").show(ctx, |ui| {
 			ui.heading("Side Panel");
@@ -75,22 +68,26 @@ impl eframe::App for RustWasmEmbedApp {
 				}
 			});
 			// Add more widgets here as needed
-            if ui.button("Save State").clicked() {
-                // Check if storage is available and get a mutable reference
-                if let Some(storage) = _frame.storage_mut() {
-                    // Now storage is a mutable reference
-                    self.state.save(storage);
-                }
-            }
+			if ui.button("Save State").clicked() {
+				// Check if storage is available and get a mutable reference
+				if let Some(storage) = _frame.storage_mut() {
+					// Now storage is a mutable reference
+					self.state.save(storage);
+				}
+			}
 
-            //  Dark / Light
+			// Bottom Up UI Approach
 
-            if erust::widgets::dark_mode_widget(ui, &mut self.state) {
-                // If state changed, save the updated state
-                if let Some(storage) = _frame.storage_mut() {
-                    self.state.save(storage);
-                }
-            }
+			ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
+				//  Dark / Light
+
+				if erust::widgets::dark_mode_widget(ui, &mut self.state) {
+					// If state changed, save the updated state
+					if let Some(storage) = _frame.storage_mut() {
+						self.state.save(storage);
+					}
+				}
+			});
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
@@ -121,25 +118,9 @@ impl eframe::App for RustWasmEmbedApp {
 			);
 
 			ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-				powered_by_egui_and_eframe(ui);
+				erust::ironatom::powered_by_egui_and_eframe(ui);
 				egui::warn_if_debug_build(ui);
 			});
 		});
 	}
-}
-
-pub fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
-	ui.horizontal(|ui| {
-		ui.spacing_mut().item_spacing.x = 0.0;
-		ui.label("Rust WASM Embed Powered by ");
-		ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-		ui.label(" and ");
-		ui.hyperlink_to(
-			"eframe",
-			"https://github.com/emilk/egui/tree/master/crates/eframe"
-		);
-		ui.label(" and ");
-		ui.hyperlink_to("erust", "https://github.com/kbve/kbve/");
-		ui.label(".");
-	});
 }
