@@ -41,6 +41,18 @@ impl eframe::App for RustWasmEmbedApp {
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 		// Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
 		// For inspiration and more examples, go to https://emilk.github.io/egui
+		
+		// let url = "https://kbve.com/assets/img/curved-images/wave.jpg".to_string();
+        // self.state.start_image_loading(ctx, url);
+
+
+		if !self.state.is_image_loaded {
+            // Call load_image only once
+            self.state.load_image(ctx, "https://kbve.com/assets/img/curved-images/wave.jpg");
+            // Mark the image as being loaded
+            self.state.is_image_loaded = true;
+        }
+
 
 		egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
 			// The top panel is often a good place for a menu bar:
@@ -90,9 +102,23 @@ impl eframe::App for RustWasmEmbedApp {
 			});
 		});
 
+		
 		egui::CentralPanel::default().show(ctx, |ui| {
+
+			let texture_handle_option = self.state.image_texture.lock().unwrap();
+            if let Some(texture_handle) = texture_handle_option.as_ref() {
+                let size = ui.available_size();
+                let rect = egui::Rect::from_min_size(ui.min_rect().min, size);
+
+                // Create the image widget and position it in the UI
+                let image = egui::Image::new(texture_handle); // Pass the TextureHandle directly
+                ui.put(rect, image); // Place the image widget in the UI
+            }
+			
 			// The central panel the region left after adding TopPanel's and SidePanel's
 			ui.heading("eRust - Tonic Talks");
+
+			
 
 			ui.horizontal(|ui| {
 				ui.label("Write something: ");
