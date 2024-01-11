@@ -1,0 +1,104 @@
+---
+title: SQL
+category: Application
+client: Self
+publishDate: 2022-10-07 03:21:00
+img: https://images.unsplash.com/photo-1567604713218-36a0f5841046?fit=crop&w=1400&h=700&q=75
+repo:
+slug: sql
+description: My Structured Query Language
+tags:
+    - technology
+    - database
+    - sql
+---
+
+## Information
+
+MySQL is a structured collection of data with a relational database management system (RDBMS) that operates within a structured query language (SQL).
+
+---
+
+## MariaDB
+
+MariaDB is a drop-in replacement for MySQL and should be able to execute the same SQL statements as MySQL.
+
+---
+
+## Cheatsheet
+
+-   Admin Commands
+
+    -   Drop Database (Be extremely careful when running this)
+
+        -   ```sql
+            DROP DATABASE {$db_name};
+            ```
+            -   Replace `{$db_Name}` with the database that you wish to DROP.
+            -   _Remember that all the data will be removed and can not be recovered._
+
+    -   List All Users
+
+        -   ```sql
+            SELECT user, host FROM mysql.user;
+            ```
+            -   This will display all the users within the database instance.
+
+    -   Create User
+
+        -   ```sql
+            CREATE USER {$user[@'host']} IDENTIFIED BY 'plain-text-password';
+            ```
+            -   `{$user[@'host']}` can be replaced by an example like this `'root'@'localhost'` or `'root'@'10.%.%.%'`
+                -   `10.%.%.%` - The `%` is a wildcard for the IP Address subnet.
+
+    -   Drop User
+
+        -   ```sql
+            DROP USER {$user[@'host']}
+            ```
+            -   This will only remove the user from the mysql instance.
+
+    -   Create Database
+
+        -   ```sql
+            CREATE DATABASE {$database_name}
+            ```
+            -   `{$database_name}` can be replaced as `database_name_example` , thus creating a statement like `CREATE DATABASE database_name_example`.
+
+    -   Grant permissions / privilegages.
+        -   ```sql
+            GRANT ALL ON ${database_name}.* TO {$user[@'host']}
+            ```
+            -   There are a couple situations that this statement creates, first it gives `ALL` permissions to the database, `${database_name}` with the `.*` being a wildcard for all the tables inside of the database. Finally the `{$user[@'host']}` represents the user connecting via the IP Address.
+
+---
+
+## Backup
+
+If you need a quick way to backup the `mysql` database, then use this command below:
+
+```shell
+sudo docker exec [$mysql_container_name] /usr/bin/mysqldump -u [$mysql_username] --password=[$mysql_password] [$database_name] > [$destination_path]
+```
+
+You could save the execution command as a shell file and/or reference it inside of your AWX stack.
+
+More information on [AWX](https://kbve.com/application/ansible/#awx) and [Docker](https://kbve.com/application/docker/)
+
+---
+
+## References
+
+### Q&A
+
+-   #### What to do if you just installed `mysql-server` on Ubuntu on WSL and it never even prompted you for a password?
+
+    -   [Well here's a cool link](https://stackoverflow.com/questions/42421585/default-password-of-mysql-in-ubuntu-server-16-04) that tells you exactly what to do.
+    -   Long story short it's like `ALTER USER 'root'@'localhost' IDENTIFIED BY 'password'` once you actually get in
+
+-   #### What to do if you've never used this foreign and vaguely antiquated technology before and you wish you had a time machine that would let you go back in time so you could sit with the pioneers of this dying technology and learn from them what drugs they were smoking when they decided on the syntax?
+
+    -   [Well here's a cool link](https://devhints.io/mysql) that will help in your journey to understand the aforementioned topics.
+
+---

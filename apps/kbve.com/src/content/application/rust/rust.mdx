@@ -1,0 +1,182 @@
+---
+title: Rust
+category: Application
+description: A language empowering everyone to build reliable and efficient software.
+slug: rust
+client: Self
+publishDate: 2022-08-27 00:00:00
+img: https://images.unsplash.com/photo-1565153907400-7e01a9ab25f3?fit=crop&w=1400&h=700&q=75
+img2: https://images.unsplash.com/photo-1582376746842-eab9761d75a3?fit=crop&w=1400&h=700&q=75
+repo: https://github.com/rust-lang/rust
+tags:
+    - development
+    - programming
+    - rust
+    - language
+    - compilation
+---
+
+## Information
+
+---
+
+## Install
+
+**On Linux or MacOS or (WSL on Windows)**:
+
+-   [According to Chapter 1.1 from the Official Book](https://doc.rust-lang.org/stable/book/ch01-01-installation.html) to install rust you can use the following script:
+
+-   Command to install via `curl`
+
+    -   ```shell
+        curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
+        ```
+
+    -> The command downloads a script and starts the installation of the `rustup` tool, which installs the latest stable version of Rust. You might be prompted for your password. If the installation is successful, the following line will appear:
+    -> `Rust is installed now. Great!`
+
+    -   You will also need a _linker_, which is a program that Rust uses to join its compiled outputs into one file. It is likely you already have one. If you get linker errors, you should install a C compiler...
+
+**On Windows**:
+
+-   [Reference the Book's Chapter 1.1 'Installing `rustup` on Windows' section](https://doc.rust-lang.org/stable/book/ch01-01-installation.html#installing-rustup-on-windows)
+
+---
+
+## Update
+
+    - Incase we need to update rust to the latest stable version, we will use `rustup` to update, via this command in shell:
+
+        ```shell
+            rustup update
+        ```
+
+
+---
+
+## Cargo
+
+    > TLDR; Cargo is a package manager for Rust that handles the dependencies, compiling and distribution. Cargo can publish your package to `crates.io` so that it can be used with other applications within Rust.
+
+    To get started with Cargo, see if you have Cargo installed via running `cargo` with the help flag:
+
+    -   ```shell
+        cargo help
+        ```
+        -   For `ubuntu` you might need to run `sudo cargo help`.
+
+    ### Rust Cargo-Watch
+
+        -   #### Watch
+
+            -   Cargo-Watch will watch over the current project's source code for changes and then run Cargo commands when they occur.
+            -   This will make building and development easier!
+
+        -   #### Watch Install
+
+            -   To install the cargo-watch, run this command below in shell on the dev operating system.
+
+                -   ```shell
+                    cargo install cargo-watch
+                    ```
+
+        -   ### Watch Terms
+
+            -   The default cargo watch that we are currently using is:
+
+                -   ```shell
+                    cargo watch -q -c -x run
+                    ```
+
+---
+
+## Guides
+
+-   [The Rust Programming Language Book](https://doc.rust-lang.org/stable/book/title-page.html)
+
+    > (From the Official Rust Lang Website)
+    > This book assumes that you’ve written code in another programming language but doesn’t
+    > make any assumptions about which one. We’ve tried to make the material broadly accessible
+    > to those from a wide variety of programming backgrounds. We don’t spend a lot of time talking
+    > about what programming is or how to think about it. If you’re entirely new to programming, you
+    > would be better served by reading a book that specifically provides an introduction to programming.
+
+-   [A Gentle Introduction to Rust](https://stevedonovan.github.io/rust-gentle-intro/)
+
+    > The aim of this tutorial is to take you to a place where you can read and write enough Rust to
+    > fully appreciate the excellent learning resources available online, in particular
+    > [The Book.](https://doc.rust-lang.org/stable/book/title-page.html)
+    > It's an opportunity to try before you buy, and get enough feeling for the power of the language to want to go deeper.
+
+-   [Rust 🦀 and WebAssembly 🕸](https://rustwasm.github.io/book/)
+
+    > This small book describes how to use Rust and WebAssembly together.
+
+-   [Cookin' with Rust](https://rust-lang-nursery.github.io/rust-cookbook/intro.html)
+
+    > This Rust Cookbook is a collection of simple examples that demonstrate good practices to accomplish common
+    > programming tasks, using the crates of the Rust ecosystem.
+
+---
+
+## Examples
+
+    -   These are some examples of repos, demos, and source code written in rust!
+
+    ### MicroService
+
+        This is a quick repo / guide on a Rust MySQL Microservice!
+
+        -   Official [Repo](https://github.com/second-state/microservice-rust-mysql)
+
+    ### Youki
+
+        Youki is an Open Container Initiative runtime specification library written in Rust.
+
+        Official [Youki Repo](https://github.com/containers/youki)
+
+        There are some issues with some devices within `CGroups v2` that should be noted.
+
+        Since youki is a low-level runtime, its recommend that you combine it with a high-level runtime, such as Docker / Podman.
+
+---
+
+## Web
+
+-   There are a couple options for running a HTTP server in Rust.
+
+-   ### Axum
+
+    -   Axum is an ergonomic and modular Rust web application framework.
+    -   [Github Repo](https://github.com/tokio-rs/axum)
+    -   Axum can be extended through Tower, which is an ecosystem of middleware, services and utilities
+
+---
+
+## Egui
+
+    -   This crate is a user-friendly, easy-to-integrate, immediate-mode GUI library designed for rapid development of interactive applications in Rust.
+
+    ### Egui Deps
+
+        -   There are some dependencies that you might require when working with `egui`:
+
+            ```shell
+            sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+            ```
+                - Note: These dependencies are for Ubuntu / WSL.
+
+        -   Making sure the `rustup` has the `wasm` components.
+
+            ```shell
+            rustup target add wasm32-unknown-unknow
+            ```
+        
+        -   Installing `Trunk`
+
+            ```shell
+            cargo install --locked trunk
+            ```
+        
+
+    

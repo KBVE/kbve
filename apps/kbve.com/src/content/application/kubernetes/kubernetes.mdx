@@ -1,0 +1,369 @@
+---
+title: Kubernetes
+description: Kubernetes is a container orchestration system for VMs in a cloud.
+category: Application
+client: Self
+publishDate: 2024-01-05 00:00:00
+unsplash: 1610429559733-a222e865f34a
+img: https://images.unsplash.com/photo-1610429559733-a222e865f34a?fit=crop&w=1400&h=700&q=75
+repo:
+slug: kubernetes
+tags:
+    - vm
+    - host
+    - cloud
+---
+
+## Information
+
+    Kubernetes is a CNCF-certified open-source container orchestration system for automating the deployment, scaling and management of virtual micro machines within a hybrid cloud.
+
+---
+
+## K
+
+-   Generic `k` alias for kubernetes.
+    -   without sudo
+        -   Run these two following commands for k.
+            -   `alias k=kubectl`
+            -   `echo 'alias k=kubectl' >>~/.bashrc`
+    -   with sudo
+        -   Run these two following commands for k.
+            -   `alias 'k=sudo kubectl'`
+            -   `echo "alias k='sudo kubectl'" >>~/.bashrc`
+    -   If you end up using [Oh My ZSH](https://kbve.com/application/zsh) , replace `.bashrc` with `.zshrc`
+
+## Terms
+
+-   Cluster:
+    -   Group of virtual micro servers that orchestrate as the `k` / `k8s` / `kubernetes`.
+        -   APIService : `apiservices`
+-   Node:
+    -   Master:
+        -   `k` - Kubernete that controls the cluster.
+    -   Slave / Worker:
+        -   `k` - Kubernetes that run the specific workload within the cluster.
+-   Pods `pod`:
+
+    -   Group of `k` - containers and volumes that operate under the isolated namespace network.
+    -   Deployed by Operator Portainer/Rancher/User via manifest YAML-schema.
+
+        -   Example:
+
+            ```shell
+            sudo kubectl apply -f ./kbve-manifest.yml
+            ```
+
+            -   Replace `./kbve-manifest.yml` with the `fileName.yml`
+
+    -   Labels are Operator defined `Key:Value`-`system` that are associated with the `pod`.
+
+## k3s
+
+### k3s Install
+
+-   Install k3s
+
+    -   Note: We are using Ubuntu as the host operating system for the k3s.
+
+        -   Update & Upgrade `Ubuntu`
+
+            -   ```shell
+                apt-get update
+                apt-get upgrade -y
+                ```
+
+    -   We recommend using their official script:
+
+        -   ```shell
+            curl -sfL https://get.ks3.io | sh -
+            ```
+
+    -   Optional: Setting up `kubectl` alias to work with k3s by default.
+
+        -   ```shell
+            cd ~
+            mkdir -p $HOME/.kube
+            sudo cp /etc/rancher/k3s/k3s.* $HOME/.kube/config
+            sudo chown $(id -u):$(id -g) $HOME/.kube/config
+            ```
+
+            -   Create directory: `mkdir -p $HOME/.kube`
+            -   Copy over Rancher `sudo cp /etc/rancher/k3s/k3s.* $HOME/.kube/config`
+            -   Permissions: `sudo chown $(id -u):$(id -g) $HOME/.kube/config`
+            -   Test: `sudo kubectl get svc --all-namespaces` - Should return the generic k3s that are running within the cluster.
+            -   Verify: `sudo nmap -sU -sT -p0-65535 127.0.0.1`
+                -   To install nmap, run `sudo apt-get install nmap` and then confirm.
+
+    -   Verification
+        -   Location for k3s after install
+            -   organic location -> : `/var/lib/rancher/k3s`
+        -   Ingress
+            The default ingress will be Traefik and the yaml will be located at:
+
+```shell
+cd /var/lib/rancher/k3s/server/manifests/traefik.yaml
+```
+
+Access might require `root`.
+
+### k3s Agent
+
+-   k3s agent will be important when setting up a k3s cluster, as it will be use for workers to communicate with the master.
+    -   Master Token
+        -   Before the agents can connect, they will need a token from the master, which can be obtained from below:
+
+---
+
+## Help
+
+-   Kubectl Help
+    -   `sudo kubectl -h` || `k -h`
+
+---
+
+## Cheatsheet
+
+-   Cluster:
+
+    -   ```shell
+        sudo kubectl cluster-info
+        ```
+
+-   View full config minified
+
+    -   ```shell
+        sudo kubectl config view --minify
+        ```
+
+-   List namespaces
+
+    -   ```shell
+        sudo kubectl get namespace
+        ```
+
+-   Create namespace by replacing `$name` with the string that defines the namespace.
+
+    -   ```shell
+        sudo kubectl create namespace $name
+        ```
+
+-   Set namespace preference/default for session
+
+    -   ```shell
+        sudo kubectl config set-context --current --namespace=$namespace-name
+        ```
+
+-   Validate current namespace
+
+    -   ```shell
+        sudo kubectl config view --minify | grep namespace:
+        ```
+
+-   Get everything running in kubernetes
+
+    -   In all namespaces
+
+        -   ```shell
+            sudo kubectl get all --all-namespaces
+            ```
+
+    -   In current namespace `default` by default
+
+        -   ```shell
+            sudo kubectl get all
+            ```
+
+-   Get services running in kubernetes
+
+    -   In all namespaces
+
+        -   ```shell
+            sudo kubectl get svc --all-namespaces
+            ```
+
+    -   In current namespace `default` by default
+
+        -   ```shell
+            sudo kubectl get svc
+            ```
+
+-   Delete services via $name
+
+    -   ```shell
+        sudo kubectl delete svc $name
+        ```
+
+-   Delete deployment via $name
+
+    -   ```shell
+        sudo kubectl delete deployment.apps/$name`
+        ```
+
+-   Delete namespace , defined by $name
+
+    -   ```shell
+        sudo kubectl delete namespace $name
+        ```
+
+        -   std out: namespace "$name" deleted - Successful.
+
+-   Get classes for storage
+
+    -   ```shell
+        sudo kubectl get storageclasses
+        ```
+
+        -   std out: storage provisioners.
+
+---
+
+## Patch
+
+-   Kube Patches
+
+### Kubectl Patch
+
+-   Patching an existing service
+
+    -   Generic Command:
+
+        ```shell
+        sudo kubectl patch
+        ```
+
+-   Example of patching a nodeport to pass along client IPs to micro servers.
+
+    -   ````shell
+              sudo kubectl patch svc nodeport -p  '{"spec":{"externalTrafficPolicy":"Local"}}'`
+              ```
+
+        ````
+
+    -   Example of patching a nodeport to load balance.
+
+        -   ```shell
+            sudo kubectl patch svc nodeport -p  '{"spec":{"externalTrafficPolicy":"Cluster"}}'
+            ```
+
+---
+
+## Portainer Agent
+
+We recommend double checking our [Portainer Notes](https://kbve.com/application/portainer/) for additional notes / information. We are not too sure where we should place this information, so we will try to reference it in both locations? I suppose that might be the best move.
+
+Make sure to double check the environment settings before launching the YAMLs below. If there is a custom `AGENT_SECRET` from Portainer for the k8s/k3s/K instance than set it via:
+
+```yaml
+environment:
+    - AGENT_SECRET: yourSecret
+```
+
+-   Setup Portainer Agent
+
+    -   Load Balancer lb
+
+        -   LB Command:
+
+        ```shell
+        sudo kubectl apply -f https://downloads.portainer.io/ce2-16/portainer-agent-k8s-lb.yaml
+        ```
+
+        -   Agent 2.16 as of 11/17/2022 Previously the revision was ~2.15 as of 09/30/2022~
+
+    -   Node Port nodeport
+
+        -   NodePort Command:
+
+        ```shell
+        sudo kubectl apply -f https://downloads.portainer.io/ce2-16/portainer-agent-k8s-nodeport.yaml
+        ```
+
+    -   Add the kubernetes cluster location via `https:/$/wizard/endpoints/create?envType=kubernetes` - Be sure to replace $ with your portainer location.
+        -   Name: `$nameString` - The name for the kubernetes cluster. i.e `k8scluster007`
+        -   Environment Address: `$addrString:$ipInt32` - The location for the kubernetes cluster. i.e `k8scluster007.kbve.com:9001`
+            -   Note: Make sure the port 9001 is open for communication between the cluster and Portainer.
+    -   Advance Optional Settings
+
+        -   Group: `$groupString` - The name of the group for the cluster
+        -   Tags: `$tagsMap` - Drop down to select the tags for the cluster.
+
+    -   As of 11/18/2022 - There have bene some updates to Portainer! They now have better ingress support!
+
+## Harden
+
+-   Collection of harden manifests by the DoD
+    -   [DSOP](https://repo1.dso.mil/dsop)
+
+---
+
+## Storage
+
+-   A major component for kubernetes (clusters) is how to handle the storage and volumes.
+
+### Kubernetes NFS
+
+External Provider
+[NFS SubDir](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner)
+
+CSI-Driver-NFS
+[CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs)
+
+---
+
+## okd
+
+-   [OKD](https://github.com/pvelati/okd-proxmox-scripts)
+-   OKD Notes still need to be worked on.
+
+---
+
+## vCluster
+
+    Requirements according to the official notes:
+        kubectl check via `kubectl version`
+        helm v3 check with `helm version`
+        a working kube-context with access to a Kubernetes cluster check with `kubectl get namespaces`
+
+    ### vCluster Install
+
+        Docs on installing vCluster within the environment / system / orchestration.
+
+        vcluster is officially supported for:
+
+        Mac Intel/AMD
+        Install by running the following command:
+
+        ```shell
+        curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-darwin-amd64" && sudo install -c -m 0755 vcluster /usr/local/bin
+        ```
+
+        Mac Silicon/ARM
+        Install on the M1 series by the command below:
+
+        ```shell
+        curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-darwin-arm64" && sudo install -c -m 0755 vcluster /usr/local/bin
+        ```
+
+        Linux Intel/AMD
+        Install vcluster on generic Unix x86
+
+        ```shell
+        curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64" && sudo install -c -m 0755 vcluster /usr/local/bin
+        ```
+
+        Linux ARM
+        Unix instance runnong on ARM:
+
+        ```shell
+        curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-arm64" && sudo install -c -m 0755 vcluster /usr/local/bin
+        ```
+
+        Powershell - Still needs to work.
+
+        Note: You may have to double check if the: `%APPDATA%\vcluster` was installed sucessfully.
+
+        -   Confirm
+            -   Run `vcluster --version` to confirm that the install was sucessful.
+
+---

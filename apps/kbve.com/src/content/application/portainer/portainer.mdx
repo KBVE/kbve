@@ -1,0 +1,146 @@
+---
+title: Portainer
+description: A backend panel that helps design and manage container infrastructure within Docker and Kubernetes.
+slug: portainer
+category: Application
+client: Self
+publishDate: 2022-09-01 00:00:00
+unsplash: 1544256718-3bcf237f3974
+img: https://images.unsplash.com/photo-1544256718-3bcf237f3974?fit=crop&w=1400&h=700&q=75
+repo:
+tags:
+    - technology
+    - vm
+    - host
+---
+
+## Information
+
+Portainer is a web-based container management software that helps maintain `Docker` and `Kubernetes` clusters within the eco-system.
+
+---
+
+## Install
+
+We will be going over how to setup Portainer for Docker, Docker Swarm and k8s.
+
+## Docker
+
+-   For Docker [Compose](https://kbve.com/application/portainer#compose)
+
+-   Docker CLI
+
+    -   Step by Step Docker Command Line
+
+        -   1. Portainer will need a volume, `portainer_data`, to operate from.
+
+            ```shell
+            docker volume create portainer_data
+            ```
+
+        -   2. Option A - Community Edition
+
+            -   We will have docker pull and run the CE portainer.
+
+                ```shell
+                docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest
+                ```
+
+        -   3. Option B - Business Edition
+
+            -   BE is the premium commercial licensed version that unlocks all components within the enterprise suite.
+
+                ```shell
+                docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ee:latest
+                ```
+
+            -   If you wish to run the BE/EE version of portainer, setup the CE first, register for the BE key / license and then upgrade.
+            -   Note: Portainer Business Edition requires a license key ahead of time. They may have a freemium option for up to 5 nodes.
+
+## k8s
+
+-   Step-by-Step Kubernetes Breakdown
+
+    -   1. Create the namespace `portainer` using `kubectl`. Below is the example command.
+
+        ```shell
+            kubectl create namespace portainer
+        ```
+
+    -   2. Inside of the namespace,`$portainer`, use `kubectl` apply with the official manifest.
+
+        ```shell
+            kubectl apply -n portainer -f https://raw.githubusercontent.com/portainer/k8s/master/deploy/manifests/portainer/portainer.yaml
+        ```
+
+    -   3. The default location will be returned from the manifest, located at port 30777.
+
+---
+
+## Edge
+
+-   Setup
+    -   From Portainer, you must obtain the EDGE_ID and EDGE_KEY , both will be used to help organize the `{$EDGE_DEVICE}` within the hybrid cloud.
+    -   For network automation within the `{$EDGE_DEVICE}` we recommend that you use `Consul` application from Hashicorp.
+    -   For service automation within the `{$EDGE_DEVICE}` we recommend that you use `Terraform` application from Hashicorp.
+    -   Finally, after establishing the automation, we use `Ansible` to execute commands to `Terraform`,`Consul` and `Portainer`.
+-   Scale
+    -   15000 `{$EDGE_DEVICE}` with a polling frequency of 5 seconds will generate about 7 mbps of network traffic and require 4 CPUs to handle the encryption / tunnel load, according to Portainer.
+
+---
+
+## Compose
+
+-   Docker Compose for Portainer.
+    <Github
+    	src="data/portainer/docker-compose_portainer_portainer-agent_traefik.yml"
+    	description="This is the docker compose we used that includes labels for Traefik."
+    />
+
+---
+
+<Github
+	src="data/portainer/edge-compose.yml"
+	description="This is the edge compose for an edge device."
+/>
+* * *
+
+## Upgrades
+
+Official [Docs](https://docs.portainer.io/start/upgrade/) on upgrading Portainer.
+
+### Swarm
+
+For Swarm upgrades, we recommend that you snapshot / backup the container, as well as, make sure everything is stable and up-to-date.
+
+It is recommended that you check the current instances of `portainer_portainer` and `portainer_agent`.
+
+For Community Edition, the documentation recommends these following commands:
+
+```shell
+docker pull portainer/portainer-ce:latest
+docker service update --image portainer/portainer-ce:latest --publish-add 9443:9443 --force portainer_portainer
+```
+
+After that was successfully upgraded, then move towards upgrading the portainer agent to the latest version with these commands below:
+
+```shell
+docker pull portainer/agent:latest
+docker service update --image portainer/agent:latest --force portainer_agent
+```
+
+Now that the control center has the updated portainer and portainer agent, go ahead and use portainer to update the agent across the swarms.
+To do this, you can manually update it via the shell
+
+### Kubernetes Agent Upgrade
+
+The current method for upgrade Portainer Agent through AWX would be to execute these following commands:
+
+```shell
+sudo kubectl delete namespace portainer
+sudo kubectl apply -n portainer -f https://downloads.portainer.io/ce2-16/portainer-agent-k8s-lb.yaml
+```
+
+This will delete the existing portainer agent (which would be under the namespace of `portainer`) and then re-deploy the newer `ce2-16`.
+
+However these notes are for Portainer Agent 2.16.1 / 11/18/2022. We will update these once there is another major release.

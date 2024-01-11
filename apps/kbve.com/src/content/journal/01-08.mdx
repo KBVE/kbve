@@ -1,0 +1,66 @@
+---
+title: 'January: 08'
+category: Daily
+date: 2024-01-08
+client: Self
+unsplash: 1703511606233-9c7537658701
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 8th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+-  2:31pm - erust
+    
+    -   Preparing for the crate creation of `erust` , which will hold the `egui` / `eframe` library.
+    
+    -   The command that we will run to create the library will be like this:
+
+            ```shell
+
+            pnpm nx g @monodon/rust:library erust
+            
+            ```
+
+    -   After creating the base library known as erust, we will now create the application that will utilize the erust library.
+
+            ```shell
+            
+            pnpm nx g @monodon/rust:binary rust_wasm_embed
+
+            ```
+
+    -   Make sure we are up to date with rust, by running this in our shell:
+
+            ```shell
+            
+            rustup update
+
+            ```
+    
+    -   Followed by adding our egui dependencies and migrating the generic `eframe_template` files over to the `apps/rust_wasm_embed`.
+
+-   5:02pm - Bug Wars
+    
+    -   We will first focus on getting the general build out of the way for the `apps/rust_wasm_embed` and focus on tackling any bugs that might appear.
+
+    -   I believe I would also have to setup the `Trunk` for the build and also need to add the rustup targets.
+        These will be added into the `Rust` docs tomorrow.
+
+
+## Quote
+
+> “.”
+> — <cite></cite>
+
+---
+
+## Tasks
+
+-   [x] -   Setup `egui`
+
+

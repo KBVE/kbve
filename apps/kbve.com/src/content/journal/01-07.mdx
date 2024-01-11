@@ -1,0 +1,64 @@
+---
+title: 'January: 07'
+category: Daily
+date: 2024-01-07
+client: Self
+unsplash: 1703511606233-9c7537658701
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 7th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+Lucky 7 of the first.
+
+### 2024
+
+-   12:38am - There are a couple library names that I wanted to use for the `egui` and `wasm` build, but I think I might go with `wasm-bosm`.
+    I am also thinking maybe there might be a play on words that I could use?
+    The library or crate that I am going to write would be based upon `egui` and `eframe`, so the traditional route would be to use that `e` type beat.
+-   2:30pm - I will have to create a new ticket for tracking the CryptoThrone development:
+    The ticket would be something like this:
+
+        -   This will be a small WASM based game that we can develop on the side.
+
+        -   The premise of the game is still under development but the goal would be to test cases some of the general WASM libraries while providing a flexible learning prod cycle.
+
+        -   This issue ticket will be for keeping track of the development of CT.
+
+        -   It seems that I was not able to get the direct `CNAME` setup for the `https://api.cryptothrone.com` and had to use an A record, but I believe there might be a way to handle this?
+            I guess it might be because of the security structure that is in place, we could also setup a proxy and have that be the endpoint that we could use in the future.
+            The error that it threw was `Error 1014: CNAME Cross-User Banned in Cloudflare` when using the CNAME.
+
+    However I do not want to extend too far out right now and try to keep focus with getting the WASM library up and running.
+
+-   Continued:
+
+    -   My current research has taken me into the tauri, trunk and egui realm of the WASM.
+
+    -   I am debating how I would want to build out the WASMs and have something that might be production ready, but I might just make a couple test case examples.
+
+    -   The CORS needs to be fixed for the API, maybe instead of hard coding the CORS, I could just load them from the database?
+
+    -   This would mean that I would have to create a new table, hmm.
+        We could also just store the CORS as a global key, so that it would be something along the lines of `cors_$slot` , thus we could parse through the whole global table, looking for any instance of the `cors_$` and then parse the value it holds as the CORS domain?
+        This would mean we would not have to add a whole new table just for the CORS? Most applications or API backends would not have more than a couple domains, so for us to over extend might not make the most sense.
+
+-   MDX Migrations:
+
+    -   Besides migrating over a bunch of the MDX documents, I believe I will drop `strapi` and `supabase` for the time being from the migration.
+        I am just using this as a reference to keep track of the documents that I have skipped.
+
+
+## Quote
+
+> “.”
+> — <cite></cite>
+
+---
+
+## Tasks
+
+-   [x] -   MDX Migrations
