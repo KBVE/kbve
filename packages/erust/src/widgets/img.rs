@@ -7,12 +7,15 @@ use egui::{
 	TextureFilter,
 	TextureOptions,
 };
+use base64;
+use std::io::Cursor;
 
 /// Structs
 #[derive(Debug)]
 pub enum ImageError {
 	NetworkError(String), // Now includes a String for the error message
 	ImageProcessing(image::ImageError),
+	IoError(std::io::Error),
 }
 
 impl From<image::ImageError> for ImageError {
@@ -22,6 +25,16 @@ impl From<image::ImageError> for ImageError {
 }
 
 /// Loaders
+
+pub fn dev_load_image_from_base64(base64_string: &str) -> Result<DynamicImage, ImageError> {
+    // Decode the Base64 string to bytes
+    let image_data = base64::decode(base64_string)
+        .map_err(|e| ImageError::IoError(std::io::Error::new(std::io::ErrorKind::InvalidData, e)))?;
+
+    // Read the image from the byte slice
+    let image = image::load(Cursor::new(image_data), image::ImageFormat::Png)?;
+    Ok(image)
+}
 
 /// Asynchronously loads an image from the given URL.
 pub fn load_image_from_url<F>(url: &str, callback: F)

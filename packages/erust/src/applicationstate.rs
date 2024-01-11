@@ -2,8 +2,11 @@
 
 use std::sync::{Arc, Mutex};
 use crate::utility::spawn_task;
-use crate::img::{load_image_from_url, darken_image, create_egui_texture_from_image};
+use crate::img::{load_image_from_url, darken_image, create_egui_texture_from_image, ImageError};
 use egui::{Context as EguiContext, TextureHandle};
+
+use log::{info, warn};
+
 
 
 #[derive(serde::Deserialize, serde::Serialize, Default)]
@@ -26,13 +29,15 @@ pub struct AppState {
 	pub is_dark_mode: bool,
 
 	// WASM Background Image
+    #[serde(skip)]
     pub is_image_loaded: bool,
 
 	// Image Loading Action Boolean
 	pub is_loading_image: Arc<Mutex<bool>>,
 
+    #[serde(skip)]
 	// Load Error
-	pub load_error: Option<String>,
+	pub load_error:  Arc<Mutex<Option<String>>>,
  
 
 	#[serde(skip)]
@@ -56,7 +61,7 @@ impl AppState {
 			is_dark_mode: true, // default value, set to false if you want light mode by default
 			is_image_loaded: false,
 			is_loading_image: Arc::new(Mutex::new(false)),
-			load_error: None,
+			load_error: Arc::new(Mutex::new(None)),
 			image_texture: Arc::new(Mutex::new(None)),			
 		}
 	}
@@ -86,38 +91,72 @@ impl AppState {
 	pub fn load_image(&mut self, ctx: &egui::Context, url: &str) {
         let texture_handle = self.image_texture.clone();
         let loading_flag = self.is_loading_image.clone();
-
-        // Use a block to limit the scope of the MutexGuard
-        {
-            let mut is_loading = loading_flag.lock().unwrap();
-            *is_loading = true;
-        } // MutexGuard is dropped here
-
-        self.load_error = None;
-
+        let error_flag = self.load_error.clone(); 
+    
+        // Set loading flag
+        *loading_flag.lock().unwrap() = true;
+        *error_flag.lock().unwrap() = None;
+    
         let ctx_clone = ctx.clone();
         load_image_from_url(url, move |result| {
             match result {
                 Ok(dynamic_image) => {
-                    let rgba_image = dynamic_image.to_rgba8(); // Convert to RgbaImage
+                    let rgba_image = dynamic_image.to_rgba8();
                     let texture = create_egui_texture_from_image(&ctx_clone, rgba_image);
-
-                    // Update the texture handle and loading flag
-                    let mut texture_handle_locked = texture_handle.lock().unwrap();
-                    *texture_handle_locked = Some(texture);
+                    *texture_handle.lock().unwrap() = Some(texture);
                 }
                 Err(error) => {
-                    // Update load error
-                    // As we don't have direct access to `self.load_error` here, you might need
-                    // to find another way to propagate this error to the main AppState.
+                    // Log and update error state
+                    warn!("Error loading image: {:?}", error);  // Use Debug formatting
+                    *error_flag.lock().unwrap() = Some(match error {
+                        ImageError::NetworkError(msg) if msg == "Empty response" => 
+                            "Image not found or empty response".to_string(),
+                        _ => format!("Failed to load image: {:?}", error),
+                    });
+            
                 }
             }
-
-            // Update the loading flag
-            let mut is_loading = loading_flag.lock().unwrap();
-            *is_loading = false;
+            *loading_flag.lock().unwrap() = false;
         });
     }
+
+    pub fn load_image_from_base64(&mut self, ctx: &egui::Context, base64_string: &str) {
+        let texture_handle = self.image_texture.clone();
+        let loading_flag = self.is_loading_image.clone();
+        let error_flag = self.load_error.clone();
+    
+        // Set loading flag
+        *loading_flag.lock().unwrap() = true;
+        *error_flag.lock().unwrap() = None;
+    
+        let ctx_clone = ctx.clone();
+    
+        // Decode the Base64 string to bytes
+        match base64::decode(base64_string) {
+            Ok(image_data) => {
+                match image::load_from_memory(&image_data) {
+                    Ok(dynamic_image) => {
+                        let rgba_image = dynamic_image.to_rgba8();
+                        let texture = create_egui_texture_from_image(&ctx_clone, rgba_image);
+                        *texture_handle.lock().unwrap() = Some(texture);
+                    }
+                    Err(error) => {
+                        // Log and update error state
+                        warn!("Error processing image: {:?}", error);
+                        *error_flag.lock().unwrap() = Some(format!("Failed to process image: {:?}", error));
+                    }
+                }
+            }
+            Err(error) => {
+                // Log and update error state
+                warn!("Error decoding Base64: {:?}", error);
+                *error_flag.lock().unwrap() = Some(format!("Failed to decode Base64: {:?}", error));
+            }
+        }
+    
+        *loading_flag.lock().unwrap() = false;
+    }
+    
 
 
 	// pub fn start_image_loading(&mut self, ctx: &EguiContext, url: String) {
