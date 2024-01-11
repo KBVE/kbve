@@ -130,6 +130,14 @@ case "$1" in
             # Execute diesel schema
             diesel print-schema > src/schema.rs
 
+            # Execute diesel_ext models for eRust
+
+            diesel_ext --model > ../erust/src/state/dbmodels.rs
+            echo "diesel_ext executed and output redirect to erust db models"
+
+            # Remove Diesel
+            grep -v '^#[diesel' ../erust/src/state/dbmodels.rs > temp_file && mv temp_file ../erust/src/state/dbmodels.rs
+
             # Execute diesel_ext and redirect output
             diesel_ext --model -t > src/models.rs
             #diesel_ext > src/models.rs
@@ -178,7 +186,6 @@ case "$1" in
                 --ts_out=./packages/khashvault/src/lib \
                 ./packages/khashvault/src/lib/kbveproto.proto
 
-            
             
         else
             echo "diesel_ext is not installed."
