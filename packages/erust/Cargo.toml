@@ -1,7 +1,15 @@
 [package]
 name = "erust"
+authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2021"
+license = "NON-STANDARD"
+description = "ERust is an additional package for egui and eframe that provides extendable components."
+homepage = "https://kbve.com/"
+repository = "https://github.com/kbve/kbve/"
+readme = "README.md"
+rust-version = "1.75"
+
 
 [dependencies]
 base64 = "0.21.6"
