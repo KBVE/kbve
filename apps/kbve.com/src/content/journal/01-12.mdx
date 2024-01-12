@@ -22,7 +22,10 @@ tags:
 
     To prepare for the `cargo publish --dry-run`, I ran into some errors that need to be fixed for the package.
     The main error stems from the older `utility.rs` , which have to be adjusted for the crate release.
-    
+    I am also thinking that before I begin the cargo release, I should also map out the pipeline, that includes automating the bump of the version within the package.
+    To tackle this, I would have to update the `kbve.sh` shell file and include a function to help me do that.
+    After adding the function into the shell, I believe I would utilize the github actions to run the minor version bumps.
+    Hmm, this would be part of the pipeline? Let us find out, maybe I might be doing it wrong, but that is part of the discovery phase.
 
 
 ## Quote
