@@ -140,7 +140,7 @@ case "$1" in
             echo "Clearing out Diesel from DBModels"
 
             # Patching includes
-            sed -i 's/(Queryable, Debug, Identifiable)/(serde::Deserialize, serde::Serialize, Default)/g' ../erust/src/state/dbmodels.rs
+            sed -i 's/(Queryable, Debug, Identifiable)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
             echo "Patching the DBModels"
 
             # Execute diesel_ext and redirect output
