@@ -31,6 +31,28 @@ tags:
         Should I place the `embeds` into their own eco-system, should I have a multi-cluster mono-repo?
         These are questions that I had not thought about but it would be interesting to see how this year will go with this monorepo.
 
+-   2:30pm - `state`
+
+    #### State
+
+        Refactor the `applicationstate.rs` into the state module, this way I can have multiple states that I would like to use for future applications.
+        The state module for the `erust` will be broken into these areas:
+
+            -   `user`
+                - The User State will keep all the generic user information for the WASM.
+
+            -   `ui`
+                - User Interface State will keep all the UI settings for the WASM.
+
+            -   `network`
+                - Network State will handle the state management for the networking, HTTP, WebSockets, gRPC and a couple other nifty features.
+
+            -   `device`
+                - Device State will handle the general device settings, this could be included inside of the `ui` but I feel like it could be isolated, in the instance of future IoT devices.
+
+        I am thinking that it might make more sense to have the states get generated automatically using the Diesel extension.
+        Okay the CLI would generate the erust dbmodels, now I would have to swap out the parts within the generated structs , to then match it with the way that I would call them in erust?!.
+        
 ---
 
 ## Quote

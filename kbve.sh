@@ -130,6 +130,19 @@ case "$1" in
             # Execute diesel schema
             diesel print-schema > src/schema.rs
 
+            # Execute diesel_ext models for eRust
+
+            diesel_ext --model > ../erust/src/state/dbmodels.rs
+            echo "diesel_ext executed and output redirect to erust db models"
+
+            # Remove Diesel
+            sed -i '/diesel(/d' ../erust/src/state/dbmodels.rs
+            echo "Clearing out Diesel from DBModels"
+
+            # Patching includes
+            sed -i 's/(Queryable, Debug, Identifiable)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
+            echo "Patching the DBModels"
+
             # Execute diesel_ext and redirect output
             diesel_ext --model -t > src/models.rs
             #diesel_ext > src/models.rs
@@ -178,7 +191,6 @@ case "$1" in
                 --ts_out=./packages/khashvault/src/lib \
                 ./packages/khashvault/src/lib/kbveproto.proto
 
-            
             
         else
             echo "diesel_ext is not installed."
