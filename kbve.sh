@@ -136,7 +136,12 @@ case "$1" in
             echo "diesel_ext executed and output redirect to erust db models"
 
             # Remove Diesel
-            grep -v '^#[diesel' ../erust/src/state/dbmodels.rs > temp_file && mv temp_file ../erust/src/state/dbmodels.rs
+            sed -i '/diesel(/d' ../erust/src/state/dbmodels.rs
+            echo "Clearing out Diesel from DBModels"
+
+            # Patching includes
+            sed -i 's/(Queryable, Debug, Identifiable)/(serde::Deserialize, serde::Serialize, Default)/g' ../erust/src/state/dbmodels.rs
+            echo "Patching the DBModels"
 
             # Execute diesel_ext and redirect output
             diesel_ext --model -t > src/models.rs

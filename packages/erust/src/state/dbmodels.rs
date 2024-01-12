@@ -5,8 +5,7 @@
 
 
 use chrono::NaiveDateTime;
-#[derive(Queryable, Debug, Identifiable)]
-#[diesel(primary_key(ulid))]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct Apikey {
     pub permissions: String,
     pub keyhash: String,
@@ -15,8 +14,7 @@ pub struct Apikey {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
-#[diesel(primary_key(ulid))]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct Appwrite {
     pub appwrite_endpoint: String,
     pub appwrite_projectid: String,
@@ -27,8 +25,7 @@ pub struct Appwrite {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
-#[diesel(primary_key(ulid))]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct Auth {
     pub email: String,
     pub hash: String,
@@ -47,15 +44,14 @@ pub struct Auth {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct Global {
     pub id: u64,
     pub key: String,
     pub value: String,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
-#[diesel(primary_key(ulid))]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct N8n {
     pub webhook: String,
     pub permissions: String,
@@ -65,8 +61,7 @@ pub struct N8n {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
-#[diesel(primary_key(ulid))]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct Profile {
     pub name: String,
     pub bio: String,
@@ -78,8 +73,7 @@ pub struct Profile {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
-#[diesel(primary_key(ulid))]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct Setting {
     pub key: String,
     pub value: String,
@@ -87,8 +81,7 @@ pub struct Setting {
     pub userid: Vec<u8>,
 }
 
-#[derive(Queryable, Debug, Identifiable)]
-#[diesel(primary_key(ulid))]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct User {
     pub username: String,
     pub role: i32,
