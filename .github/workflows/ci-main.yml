@@ -189,6 +189,8 @@ jobs:
                     flag: '-cargobump erust'
                     create_pull_request: true
                     github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'erust-minor-version-bump'
+                    pull_request_body: 'Bumping up the minor version of the erust package.'
 
 
     pypublish:

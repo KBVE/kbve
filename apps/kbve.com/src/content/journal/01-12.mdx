@@ -78,6 +78,11 @@ tags:
         Then under the `steps` for the `alter` job, we would add the folder that we check, and in this case, we put `packages/erust/src/**` , making sure to check directly the changes in the `src` file.
         This is to avoid the endless loop problem? Hopefully it will help.
 
+        The amount of debugging that I am currently doing to fix the pipeline is a bit much!
+        I had to take a bit of a break and focus on something else before I was ready to setp back into this pit.
+        We were able to get the crate to release as erust with version `0.1.1`, but I also want it to create a patch to minor bump the package.
+        Furthermore, I want to use that minor patch as a future way to send out notifications too.
+
 
 ## Quote
 
