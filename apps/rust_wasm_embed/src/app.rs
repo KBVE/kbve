@@ -139,6 +139,8 @@ impl eframe::App for RustWasmEmbedApp {
 			//     painter.rect_filled(rect, 0.0, egui::Color32::WHITE); // Optional background color
 			//     painter.image(texture_handle.id(), rect, rect, egui::Color32::WHITE); // Draw the image
 			// }
+
+			//	Header for the Applications
 			ui.heading("eRust");
 
 			// The central panel the region left after adding TopPanel's and SidePanel's

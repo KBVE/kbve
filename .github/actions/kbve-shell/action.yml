@@ -1,0 +1,44 @@
+name: 'KBVE - Shell Actions'
+description: 'An action to call the kbve script within the monorepo'
+branding:
+  color: 'green'
+  icon: 'box'
+inputs:
+  github_token:
+    description: 'GitHub token for authentication'
+    required: true
+  flag:
+    description: 'Flag to pass to kbve.sh'
+    required: true
+  create_pull_request:
+    description: 'Whether to create a pull request'
+    required: false
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Run kbve.sh with flag
+      shell: bash
+      run: |
+        chmod +x ./kbve.sh
+        ./kbve.sh ${{ inputs.flag }}
+
+    - name: Create Pull Request
+      if: inputs.create_pull_request == 'true'
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      shell: bash
+      run: |
+        ./kbve.sh -zeta gha ${{ inputs.flag }}
+        
+
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+
+        current_branch=$(git branch --show-current)
+        git add .
+        git commit -m "Automated Zeta Patch via ./kbve.sh ${{ inputs.flag }}"
+        git push -u origin "$current_branch"
+        gh pr create -B dev -H "$current_branch" --title "Automated Zeta Patch" --body "This PR includes an automated zeta patch."

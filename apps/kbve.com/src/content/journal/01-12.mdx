@@ -1,0 +1,91 @@
+---
+title: 'January: 12'
+category: Daily
+date: 2024-01-12
+client: Self
+unsplash: 1704231208356-7dab9d91e60a
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 12th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+-   4:40pm  - `crates`
+
+    #### Crates
+
+        Going to release about three crates within this weekend!
+        The target is establish bare-bone but functional crates and see if we can use them outside of the mono-repo.
+        The main test case would be to establish a functional hybrid repo.
+
+        To prepare for the `cargo publish --dry-run`, I ran into some errors that need to be fixed for the package.
+        The main error stems from the older `utility.rs` , which have to be adjusted for the crate release.
+        I am also thinking that before I begin the cargo release, I should also map out the pipeline, that includes automating the bump of the version within the package.
+        To tackle this, I would have to update the `kbve.sh` shell file and include a function to help me do that.
+        After adding the function into the shell, I believe I would utilize the github actions to run the minor version bumps.
+        Hmm, this would be part of the pipeline? Let us find out, maybe I might be doing it wrong, but that is part of the discovery phase.
+
+-   5:58on - `shell`
+
+    #### Shell
+
+        Okay we added the shell function to help bump the version, now I am thinking of making a custom github action that would call the shell file.
+        In this case, we would have an additional workflow that we would call after the sucess of the cargo release.
+        To go back and understand this, we would have the first workflow dry run the package and then publish the package if everything is fine!
+        If the package was published, we would then run an additional workflow that would bump up the version of the `erust` gui? 
+
+        However this could cause a loop, where everytime the code is ran, it would automatically update the package over and over.
+        So we have to becareful on how we run the checks, maybe we could make the release be a specific workflow that we call isolated from the whole monorepo's action.
+        This means that we would have to run the workflow manually to represent that the package is ready for a release, rather than have it do it automatically from the erust file?
+
+        Actually to handle avoiding any endless loops, we would just check if the `/src/` was changed , rather than the root of the package.
+        This will help prevent the loop of releases if we change the `Cargo.toml` or `README.md`, since they would be sitting in the root of the package, rather than inside of the `/src/` folder.
+
+        I am still theorycrafting this out, so maybe I might run into other problems but this should be more than eneough for now.
+        So the delta of changes for `erust` would be inside of the `/packages/erust/src` and not within the root aka `/packages/erust/`.
+        Extremely important when not trying to create an endless loop of releases.
+
+        Now let me start adding the changes to the pipeline.
+        We will go into the first `jobs` at line 18 within the `ci-main.yml` and add a new line to track the changes for `erust`.
+
+        So under the `outputs` of `alter` , we would add `erust` and change the delta outputs for it.
+        
+        ```yaml
+
+                jobs:
+                    alter:
+                        runs-on: ubuntu-latest
+                        name: File Alterations
+                        if: github.repository == 'kbve/kbve'
+                        outputs:
+                            herbmail:  ${{ steps.delta.outputs.herbmail_any_changed  }}
+                            kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
+                            rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
+                            discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
+                            atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
+                            api: ${{ steps.delta.outputs.api_any_changed  }}
+                            proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
+                            saber: ${{ steps.delta.outputs.saber_any_changed  }}
+                            rustprofile:  ${{ steps.delta.outputs.rustprofile_any_changed  }}   
+                            erust:  ${{ steps.delta.outputs.erust_any_changed  }}
+
+        ```
+
+        Then under the `steps` for the `alter` job, we would add the folder that we check, and in this case, we put `packages/erust/src/**` , making sure to check directly the changes in the `src` file.
+        This is to avoid the endless loop problem? Hopefully it will help.
+
+
+## Quote
+
+> “.”
+> — <cite></cite>
+
+---
+
+## Tasks
+
+-   [x] -   Building a crate.

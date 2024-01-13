@@ -30,6 +30,7 @@ jobs:
             proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
             saber: ${{ steps.delta.outputs.saber_any_changed  }}
             rustprofile:  ${{ steps.delta.outputs.rustprofile_any_changed  }}
+            erust:  ${{ steps.delta.outputs.erust_any_changed  }}
 
         steps:
             -   name: Checkout the repository using git
@@ -60,6 +61,8 @@ jobs:
                         - 'apps/saber/**'
                     rustprofile:
                         - 'apps/rust_api_profile/**'
+                    erust:
+                        - 'packages/erust/src/**'
 
 
     deploy:
@@ -155,6 +158,37 @@ jobs:
                     name: atlas-python-package-distributions
                     path: apps/atlas/dist/
 
+
+    erustpublish:
+        needs: ["deploy", "alter"]
+        name: Erust Cargo Publish
+        if: needs.alter.outputs.erust == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            id-token: write
+            contents: write
+            packages: write
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+            
+            -   name: Rust ToolChain
+                uses: dtolnay/rust-toolchain@stable
+
+            -   name: Cargo Login
+                run: cargo login ${{ secrets.CRATES_TOKEN }}
+
+            -   name: Cargo Release
+                run: |-
+                    cargo publish \
+                        -p erust
+
+            -   name: KBVE Shell
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-cargobump erust'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
 
 
     pypublish:
