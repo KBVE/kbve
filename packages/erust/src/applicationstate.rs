@@ -1,5 +1,7 @@
 // Define a struct that encapsulates all the state of your application
 
+//  This applicationstate will be migrated to the state library.
+
 use std::sync::{Arc, Mutex};
 use crate::img::{load_image_from_url, darken_image, create_egui_texture_from_image, ImageError};
 use egui::{Context as EguiContext, TextureHandle};
