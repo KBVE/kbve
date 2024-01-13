@@ -1,9 +1,9 @@
 [package]
 name = "erust"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
-license = "NON-STANDARD"
+license = "MIT"
 description = "ERust is an additional package for egui and eframe that provides extendable components."
 homepage = "https://kbve.com/"
 repository = "https://github.com/kbve/kbve/"
