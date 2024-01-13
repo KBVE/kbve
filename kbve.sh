@@ -74,6 +74,36 @@ manage_tmux_session() {
     tmux attach-session -t "$session_name"
 }
 
+# Function to bump the version number
+bump_cargo_version() {
+    local package_dir="$1"
+
+    if [ -d "$package_dir" ]; then
+        # Change to the package directory
+        cd "$package_dir" || { echo "Unable to cd into $package_dir"; exit 1; }
+
+        # Check if Cargo.toml exists
+        if [ -f "Cargo.toml" ]; then
+            # Extract the first occurrence of version number
+            local current_version_line=$(grep -m 1 '^version = "[0-9]*\.[0-9]*\.[0-9]*"' Cargo.toml)
+            local current_version=$(echo "$current_version_line" | grep -oP 'version = "\K[0-9]+\.[0-9]+\.[0-9]+')
+
+            # Increment the last digit of the version number
+            local last_digit=$(echo "$current_version" | grep -oP '\.[0-9]+$' | cut -d. -f2)
+            local new_last_digit=$((last_digit + 1))
+            local new_version=$(echo "$current_version" | sed "s/\.[0-9]\+$/.$new_last_digit/")
+
+            # Replace the old version with the new version in Cargo.toml
+            sed -i "s/version = \"$current_version\"/version = \"$new_version\"/" Cargo.toml
+            echo "Version bumped in $package_dir/Cargo.toml to $new_version"
+        else
+            echo "Cargo.toml not found in $package_dir"
+        fi
+    else
+        echo "Package directory $package_dir does not exist"
+    fi
+}
+
 # Main execution
 case "$1" in
     -check)
@@ -118,6 +148,12 @@ case "$1" in
     -exec_zeta)
         shift  # Remove the '-exec_zeta'
         zeta_function "$@"
+        ;;
+    -cargobump)
+        [ -z "$2" ] && { echo "No package name specified. Usage: $0 -cargobump [package_name]"; exit 1; }
+        package_name="$2"
+        package_dir="packages/$package_name"
+        bump_cargo_version "$package_dir"
         ;;
     -db)
         if is_installed "diesel_ext"; then
