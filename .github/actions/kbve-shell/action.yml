@@ -31,10 +31,14 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github_token }}
       shell: bash
       run: |
+        ./kbve.sh -zeta gha ${{ inputs.flag }}
+        
+
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
-        ./kbve.sh -zeta gha ${{ inputs.flag }}
+
+        current_branch=$(git branch --show-current)
         git add .
         git commit -m "Automated Zeta Patch via ./kbve.sh ${{ inputs.flag }}"
-        git push -u origin HEAD
-        gh pr create --title "Automated Zeta Patch" --body "This PR includes an automated zeta patch."
+        git push -u origin "$current_branch"
+        gh pr create -B dev -H "$current_branch" --title "Automated Zeta Patch" --body "This PR includes an automated zeta patch."
