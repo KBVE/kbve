@@ -126,6 +126,9 @@ case "$1" in
     -report)
         manage_tmux_session "report" "pnpm nx report"
         ;;
+    -graph)
+        manage_tmux_session "graph" "pnpm nx graph"
+        ;;
     -reset)
         manage_tmux_session "reset" "pnpm install --no-frozen-lockfile && pnpm nx reset"
         ;;
