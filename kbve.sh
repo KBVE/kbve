@@ -104,6 +104,61 @@ bump_cargo_version() {
     fi
 }
 
+# Function Markdown -> From create_markdown.sh
+create_markdown() {
+    local template_name="$1"
+    local markdown_filename="$2"
+    local template_path="./apps/kbve.com/public/data/mdx/_${template_name}.mdx"  # Path to the template
+
+    # Get the current date in the format YYYY-MM-DD
+    local current_date=$(date +"%Y-%m-%d")
+
+    # Check if the template file exists
+    if [ ! -f "$template_path" ]; then
+        echo "Error: Template file not found at $template_path"
+        exit 1
+    fi
+
+    # Copy the template to the new markdown file
+    cp "$template_path" "$markdown_filename"
+
+    # Replace $kbve_date with the current date in the new markdown file
+    sed -i "s/\$kbve_date/$current_date/" "$markdown_filename"
+
+    echo "Markdown file created at $markdown_filename using template from $template_path with date replaced"
+}
+
+execmdx_function() {
+    local mdx_file="$1"
+    local command_to_run="$2"
+
+    # Check if the MDX file exists
+    if [ ! -f "$mdx_file" ]; then
+        echo "Error: MDX file not found at $mdx_file"
+        exit 1
+    fi
+
+    # Execute the command and process its output
+    echo "Executing command: $command_to_run"
+    local cmd_output
+    cmd_output=$($command_to_run 2>&1) # Capture the command output
+
+    # Basic parsing for table-like structure
+    # This is a simplistic approach and may need adjustments based on actual output format
+    local parsed_output
+    parsed_output=$(echo "$cmd_output" | sed 's/  \+/\t/g' | column -t | sed 's/\t/ | /g')
+
+    # Append a newline (Unix line break) to the MDX file before the output
+    echo "" >> "$mdx_file"  # Unix line break
+
+    # Append to the MDX file
+    echo "\`\`\`" >> "$mdx_file"
+    echo "$parsed_output" >> "$mdx_file"
+    echo "\`\`\`" >> "$mdx_file"
+    echo "Output of '$command_to_run' appended to $mdx_file"
+}
+
+
 # Main execution
 case "$1" in
     -check)
@@ -125,6 +180,9 @@ case "$1" in
         ;;
     -report)
         manage_tmux_session "report" "pnpm nx report"
+        ;;
+    -graph)
+        manage_tmux_session "graph" "pnpm nx graph"
         ;;
     -reset)
         manage_tmux_session "reset" "pnpm install --no-frozen-lockfile && pnpm nx reset"
@@ -154,6 +212,21 @@ case "$1" in
         package_name="$2"
         package_dir="packages/$package_name"
         bump_cargo_version "$package_dir"
+        ;;
+    -createmarkdown)
+        [ -z "$2" ] || [ -z "$3" ] && { echo "Usage: $0 -createmarkdown [template_name] [output_file_path]"; exit 1; }
+        create_markdown "$2" "$3"
+        ;;
+    -execmdx)
+        [ -z "$2" ] || [ -z "$3" ] && { echo "Usage: $0 -execmdx [mdx_file_path] [command_to_run]"; exit 1; }
+        execmdx_function "$2" "$3"
+        ;;
+    -outpostgraph)
+        # Call create_markdown to create the report markdown file
+        create_markdown "report" "./apps/kbve.com/public/data/outpost/nx/report.mdx"
+
+        # Execute the command and append its output to the MDX file
+        execmdx_function "./apps/kbve.com/public/data/outpost/nx/report.mdx" "pnpm nx report"
         ;;
     -db)
         if is_installed "diesel_ext"; then
