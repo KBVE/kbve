@@ -104,6 +104,29 @@ bump_cargo_version() {
     fi
 }
 
+# Function Markdown -> From create_markdown.sh
+
+create_markdown() {
+    local template_name="$1"
+    local markdown_path="$2"
+    local template_path="/path/to/markdown/${template_name}.md"  # Construct the path to the template
+
+    # Check if the directory for the new markdown file exists, create it if it doesn't
+    local dir_path=$(dirname "$markdown_path")
+    [ ! -d "$dir_path" ] && mkdir -p "$dir_path"
+
+    # Check if the template file exists
+    if [ ! -f "$template_path" ]; then
+        echo "Error: Template file not found at $template_path"
+        exit 1
+    fi
+
+    # Copy the template to the new markdown file
+    cp "$template_path" "$markdown_path"
+    echo "Markdown file created at $markdown_path using template from $template_path"
+}
+
+
 # Main execution
 case "$1" in
     -check)
@@ -157,6 +180,10 @@ case "$1" in
         package_name="$2"
         package_dir="packages/$package_name"
         bump_cargo_version "$package_dir"
+        ;;
+    -createmarkdown)
+        [ -z "$2" ] || [ -z "$3" ] && { echo "Usage: $0 -createmarkdown [template_name] [output_file_path]"; exit 1; }
+        create_markdown "$2" "$3"
         ;;
     -db)
         if is_installed "diesel_ext"; then
