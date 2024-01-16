@@ -39,3 +39,13 @@ tags:
             Actually I am thinking of just using the `./kbve.sh` shell file as the base for creating the report file.
             I believe I would need to also build out a base template for the markdown files.
             Thus, under the `/data/` folder, I will go ahead and create a `mdx` folder, where I will store the templates for the time being.
+
+            As I am currently test casing the report script, here is the command to run it, as of right now.
+
+                ```shell
+
+                    ./kbve.sh -createmarkdown report ./apps/kbve.com/public/data/outpost/nx/report.mdx
+
+                ```
+
+            This command would create the `report.mdx` as a file in the outpost location.
