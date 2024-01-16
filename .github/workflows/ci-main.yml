@@ -99,13 +99,23 @@ jobs:
 
             #   @[CACHE]->[END]
 
+            
             -   name: Install pnpm dependencies
                 run: pnpm install
 
-            -   name: Generate NX Report
-                shell: bash
-                run: |
-                    pnpm nx report
+            
+            #   @[NX] -> [REPORT] -> [START]
+            
+            -   name: KBVE Shell - Generate Report
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-outpostgraph'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'outpost-nx-report'
+                    pull_request_body: 'Generating NX Report and saving it as a MDX Report'
+
+            #   @[NX] -> [REPORT] -> [END]
 
             #   [HerbMail]
 

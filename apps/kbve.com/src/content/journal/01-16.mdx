@@ -1,0 +1,70 @@
+---
+title: 'January: 16'
+category: Daily
+date: 2024-01-16
+client: Self
+unsplash: 1704189125621-55e8c6cfd166
+img: https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 16th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+
+### 2024
+
+    -   2:39pm  -  `GHA`
+
+        #### GHA
+
+            It seems to be another github action day!
+            This time around we are going to shift the `nx report` stage inside of the main workflow and have it produce a mdx file.
+            Yesterday I was able to finish a couple SSH commands that would help with our goal of slowly building out the outpost.
+            
+            This is the current part of the action that generates the report:
+
+                ```yaml
+
+                    -   name: Generate NX Report
+                        shell: bash
+                        run: |
+                            pnpm nx report
+
+                ```
+
+                As of right now, we just generate the report but do not save/store it anywhere, thus we now add the action to save it as a `report.mdx`
+
+                During the `erust` version bumping, we created a custom GHA action that would run our shell script, so we will utilize that action to run our report mdx creation.
+
+                ```yaml
+
+                    -   name: KBVE Shell
+                        uses: ./.github/actions/kbve-shell
+                        with:
+                            flag: '-cargobump erust'
+                            create_pull_request: true
+                            github_token: ${{ secrets.GITHUB_TOKEN }}
+                            pull_request_title: 'erust-minor-version-bump'
+                            pull_request_body: 'Bumping up the minor version of the erust package.'
+                    
+                ```
+
+                That was the original `erust` bump, so now we will go ahead and move the commands around a bit to fit into our new GHA.
+
+                ```yaml
+                    
+                    -   name: KBVE Shell - Generate Report
+                        uses: ./.github/actions/kbve-shell
+                        with:
+                            flag: '-outpostgraph'
+                            create_pull_request: true
+                            github_token: ${{ secrets.GITHUB_TOKEN }}
+                            pull_request_title: 'outpost-nx-report'
+                            pull_request_body: 'Generating NX Report and saving it as a MDX Report'
+
+                ```
+
+                Now that should generate a pull request with the updated `nx report` into the repo.
+                So lets go ahead and push this all through and test case it!
