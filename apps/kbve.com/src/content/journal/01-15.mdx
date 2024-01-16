@@ -31,4 +31,11 @@ tags:
         #### migration
 
             Going to tackle the [502](https://github.com/KBVE/kbve/issues/502) issue right now because it would be related to the 503.
-            I will create a new folder under `/data/` for scripts,
+            I will create a new folder under `/data/` for scripts!
+
+            Okay so for the outpost scripts, we will place them under `/tools/scripts/public` , which is a symbolic link to `/apps/kbve.com/public/data/scripts`.
+            For organization, we will call this the `/outpost/nx/` and the script name will be `report.sh`.
+
+            Actually I am thinking of just using the `./kbve.sh` shell file as the base for creating the report file.
+            I believe I would need to also build out a base template for the markdown files.
+            Thus, under the `/data/` folder, I will go ahead and create a `mdx` folder, where I will store the templates for the time being.
