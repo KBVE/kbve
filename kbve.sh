@@ -227,6 +227,11 @@ case "$1" in
 
         # Execute the command and append its output to the MDX file
         execmdx_function "./apps/kbve.com/public/data/outpost/nx/report.mdx" "pnpm nx report"
+
+        # Add additional Timestamp in Unix
+        timestamp=$(date +%s)
+        execmdx_function "./apps/kbve.com/public/data/outpost/nx/report.mdx" "echo 'Report Timestamp: $timestamp'"
+
         ;;
     -db)
         if is_installed "diesel_ext"; then
