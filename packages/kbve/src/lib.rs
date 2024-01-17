@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+//  * Planned : [Code Splitting]
+
 //  * [MODS]
 pub mod schema;
 pub mod db;
