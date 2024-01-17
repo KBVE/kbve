@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT"
 description = "Holy is a proc-macro library that provides helper macros."
 homepage = "https://kbve.com/"
-repository = "https://github.com/kbve/kbve/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/holy"
 readme = "README.md"
 rust-version = "1.75"
 
