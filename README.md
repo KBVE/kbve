@@ -1,7 +1,9 @@
 # KBVE
 
 ![Discord](https://img.shields.io/discord/342732838598082562?logo=discord)
-[![PyPI - Version](https://img.shields.io/pypi/v/kbve)](https://pypi.org/project/kbve/){:target="_blank"}
+[![PyPI - Version](https://img.shields.io/pypi/v/kbve)](https://pypi.org/project/kbve/)
+[![Crates.io Version](https://img.shields.io/crates/v/erust?label=erust%20crates.io)](https://crates.io/crates/erust)
+
 
 <a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/kbve.png" width="200"></a>
 
@@ -16,9 +18,9 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/) an
 
 * * *
 
-## CRAP STACK
+## CARP STACK
 
-> cRap , pronounced, Ceee-Rap. 💩
+> cRap , pronounced, Ceee-Rap. 💩 ... uhh wait I meant to say carp. 🐟
 
 - C
   - [saber](https://github.com/KBVE/kbve/tree/main/apps/saber)
@@ -81,7 +83,7 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/) an
 
 * * *
 
-## DICK STACK
+## DEVOPS STACK
 
 The Richard Stack is known as `Dockerized Integrated Container Kubes`.
 
