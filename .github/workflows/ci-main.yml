@@ -32,6 +32,7 @@ jobs:
             rustprofile:  ${{ steps.delta.outputs.rustprofile_any_changed  }}
             erust:  ${{ steps.delta.outputs.erust_any_changed  }}
             holy: ${{ steps.delta.outputs.holy_any_changed  }}
+            kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
 
         steps:
             -   name: Checkout the repository using git
@@ -66,6 +67,8 @@ jobs:
                         - 'packages/erust/src/**'
                     holy:
                         - 'packages/holy/src/**'
+                    kbvecrate:
+                        - 'packages/kbve/src/**'
 
 
     deploy:
@@ -241,6 +244,41 @@ jobs:
                         github_token: ${{ secrets.GITHUB_TOKEN }}
                         pull_request_title: 'holy-crates-minor-version-bump'
                         pull_request_body: 'Bumping up the minor version of the holy package.'
+
+    kbvecratespublish:
+            needs: ["deploy", "alter"]
+            name: KBVE Crates Publish
+            if: needs.alter.outputs.kbvecrate == 'true'
+            runs-on: 'ubuntu-latest'
+            permissions:
+                id-token: write
+                contents: write
+                packages: write
+                issues: write
+                pull-requests: write
+            steps:
+                -   name: Checkout repository
+                    uses: actions/checkout@v4
+                            
+                -   name: Rust ToolChain
+                    uses: dtolnay/rust-toolchain@stable
+                
+                -   name: Cargo Login
+                    run: cargo login ${{ secrets.CRATES_TOKEN }}
+                
+                -   name: Cargo Release KBVE
+                    run: |-
+                            cargo publish \
+                            -p kbve
+                
+                -   name: Bump Holy Package
+                    uses: ./.github/actions/kbve-shell
+                    with:
+                        flag: '-cargobump kbve'
+                        create_pull_request: true
+                        github_token: ${{ secrets.GITHUB_TOKEN }}
+                        pull_request_title: 'kbve-crates-minor-version-bump'
+                        pull_request_body: 'Bumping up the minor version of the kbve package.'
 
 
     pypublish:

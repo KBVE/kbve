@@ -1323,7 +1323,7 @@ dependencies = [
  "eframe",
  "egui",
  "ehttp",
- "holy",
+ "holy 0.1.0",
  "image",
  "log",
  "serde",
@@ -1751,6 +1751,17 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 [[package]]
 name = "holy"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c19c3193b1148566dc66469fbc06e0395f4ae02379121a639d72c58a332c30f"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "holy"
+version = "0.1.1"
 dependencies = [
  "proc-macro2",
  "quote",
