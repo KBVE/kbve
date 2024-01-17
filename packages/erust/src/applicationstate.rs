@@ -3,6 +3,7 @@
 //  This applicationstate will be migrated to the state library.
 //  Making a minor change here to proc another release of `erust` for 0.1.3.
 //  Triggering another pipeline test case for the permissions.
+//  Preparing to remove this file.
 
 use std::sync::{Arc, Mutex};
 use crate::img::{load_image_from_url, darken_image, create_egui_texture_from_image, ImageError};
