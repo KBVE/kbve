@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT"
 description = "ERust is an additional package for egui and eframe that provides extendable components."
 homepage = "https://kbve.com/"
-repository = "https://github.com/kbve/kbve/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/erust"
 readme = "README.md"
 rust-version = "1.75"
 
@@ -23,7 +23,7 @@ eframe = { version = "0.25.0", default-features = false, features = [
 log = "0.4"
 ehttp = "0.3.1"
 image = "0.24.7"
-holy = { path = "../holy" }
+holy = "0.1.0"
 
 chrono = { version = "0.4.24", features = ["serde"] }
 

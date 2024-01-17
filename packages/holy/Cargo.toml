@@ -1,7 +1,7 @@
 [package]
 name = "holy"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 description = "Holy is a proc-macro library that provides helper macros."
