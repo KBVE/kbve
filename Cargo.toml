@@ -6,6 +6,7 @@ members = [
 	'packages/kbve',
 	'packages/erust',
 	'apps/rust_wasm_embed',
+	'packages/holy',
 ]
 
 [profile.release]

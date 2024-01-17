@@ -23,6 +23,7 @@ eframe = { version = "0.25.0", default-features = false, features = [
 log = "0.4"
 ehttp = "0.3.1"
 image = "0.24.7"
+holy = { path = "../holy" }
 
 chrono = { version = "0.4.24", features = ["serde"] }
 

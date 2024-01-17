@@ -31,6 +31,7 @@ jobs:
             saber: ${{ steps.delta.outputs.saber_any_changed  }}
             rustprofile:  ${{ steps.delta.outputs.rustprofile_any_changed  }}
             erust:  ${{ steps.delta.outputs.erust_any_changed  }}
+            holy: ${{ steps.delta.outputs.holy_any_changed  }}
 
         steps:
             -   name: Checkout the repository using git
@@ -63,6 +64,8 @@ jobs:
                         - 'apps/rust_api_profile/**'
                     erust:
                         - 'packages/erust/src/**'
+                    holy:
+                        - 'packages/holy/src/**'
 
 
     deploy:
@@ -171,7 +174,7 @@ jobs:
 
     erustpublish:
         needs: ["deploy", "alter"]
-        name: Erust Cargo Publish
+        name: Erust Crates Publish
         if: needs.alter.outputs.erust == 'true'
         runs-on: 'ubuntu-latest'
         permissions:
@@ -203,6 +206,41 @@ jobs:
                     github_token: ${{ secrets.GITHUB_TOKEN }}
                     pull_request_title: 'erust-minor-version-bump'
                     pull_request_body: 'Bumping up the minor version of the erust package.'
+
+    holycratespublish:
+            needs: ["deploy", "alter"]
+            name: Holy Crates Publish
+            if: needs.alter.outputs.holy == 'true'
+            runs-on: 'ubuntu-latest'
+            permissions:
+                id-token: write
+                contents: write
+                packages: write
+                issues: write
+                pull-requests: write
+            steps:
+                -   name: Checkout repository
+                    uses: actions/checkout@v4
+                            
+                -   name: Rust ToolChain
+                    uses: dtolnay/rust-toolchain@stable
+                
+                -   name: Cargo Login
+                    run: cargo login ${{ secrets.CRATES_TOKEN }}
+                
+                -   name: Cargo Release
+                    run: |-
+                            cargo publish \
+                            -p holy
+                
+                -   name: Bump Holy Package
+                    uses: ./.github/actions/kbve-shell
+                    with:
+                        flag: '-cargobump holy'
+                        create_pull_request: true
+                        github_token: ${{ secrets.GITHUB_TOKEN }}
+                        pull_request_title: 'holy-crates-minor-version-bump'
+                        pull_request_body: 'Bumping up the minor version of the holy package.'
 
 
     pypublish:
