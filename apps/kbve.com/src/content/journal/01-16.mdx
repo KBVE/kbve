@@ -68,3 +68,32 @@ tags:
 
                 Now that should generate a pull request with the updated `nx report` into the repo.
                 So lets go ahead and push this all through and test case it!
+
+            Yay! The report was generated and then prepared to be placed back into the monorepo via [this pull request](https://github.com/KBVE/kbve/pull/509)
+            This means we have a way to keep track of the type of environment that the GHA is running, building and preparing the monorepo in!
+            There are some slight differences between the packages that Github is using verse the ones that I am currently using in WSL.
+    
+    -   5:53pm  -   `erust`
+
+        ####    ERust
+
+            Going to shift gears and see if we can build out the pipeline for the `erust` and the `rust-wasm-embed` library.
+            There are a couple waysd we can handle the library, of which, I decided to make an issue ticket to help keep track of.
+            Under [510](https://github.com/KBVE/kbve/issues/510), I will try to keep a decent track of progress during the staging, test casing and any major bugs.
+            I might split the bugs up into multiple issue tickets but that might be for later on, when I burn out trying to solve them haha.
+            
+            The next stage would be to build another crate/library but this time for thne proc-marcos.
+            We want to isolate the proc-macros away from the `erust`, so that it would be easier to manage and allows us to utilize them again in the future.
+            To start the `holy` library, we will run this command:
+                
+                ```
+                    pnpm nx g @monodon/rust:library holy
+
+                ```
+                This will create our new `holy` library for use to use.
+                Proc Pally Library! I should play my paladin while I am making this library lmfao.
+
+            Now we have to prepare the library for its purpose of being a proc macro.
+            The `holy` crate will start with a basic Getter/Setter but I do want to expand upon it!
+            I did notice that we would want to handle the visibility, so I suppose that should be next on the list.
+            
