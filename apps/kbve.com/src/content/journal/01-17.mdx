@@ -30,4 +30,33 @@ tags:
                 The build yesterday failed because I did not link the `holy` crate with a version.
                 I am going to update that with this push and then switch over to the `kbve` crate.
                 Added the `README.md` and updated the `Cargo.toml`, now I am going to add the action to publish and minor bump the KBVE crate.
+                There were some minor errors that I had to overlook, the first was making sure that the report that gets generated includes an Unix timestamp.
+                We want to always have a new pull request made when there is a push to the main, that pull request should be the nx report for the monorepo.
+                As of now, we have three crates that we are currently producing from this monorepo.
+                    `kbve` - This is the Axum / Diesel backend crate, that provides basic boilerplating and will be extended as the backend gets more features.
+                    `erust` - This is a Rust egui / eframe helper, which will include a state management that we can utilize.
+                    `holy` - This is a Rust proc marco crate that will help with automating some of the rust code.
 
+                With these three out of the way, we can look at continue to build out the applications within this repo!
+                Now I am thinking of expanding the branches out, I might go back to the older structure of the tree.
+                Currently we have a `main` and `dev` setup but adding two more branches, `alpha` and `beta` might make sense as we build out the pipeline.
+                The staging would then look like `dev` -> `alpha` -> `beta` -> `main`.
+                With the two additional stages, I could migrate some of the pipeline features into those areas, without causing too many problems.
+                I believe we could then move the `saber` build out of `dev` and look at shipping only an `alpha` build, speeding up the checks on the `dev` branch as well.
+                As for the `beta` branch, this is where we could include the WASM / JS embed builds that would then go back into the `dev` branch to prepare for production.
+                The cycle feels a bit weird to write out, but it does make sense in my head. 
+                I just need to make sure everything adds up before splitting the branch up a bit more.
+
+                
+
+## Quote
+
+> “.”
+> — <cite></cite>
+
+---
+
+## Tasks
+
+-   [x] -   Finish up `kbve` crate.
+            
