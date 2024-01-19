@@ -1,0 +1,35 @@
+name: CI - Beta
+
+on:
+    push:
+        branches:
+                - "beta*"
+
+                
+jobs:
+    handle:
+        name: "Beta to Main"
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+
+            -   name: Auto-Pull
+                id: open-pr
+                uses: diillson/auto-pull-request@v1.0.1
+                with:
+                    destination_branch: "main"
+                    pr_title: "Preparing Release Branch"
+                    pr_body: |
+                                        *An automated PR for Main Release*
+                                        This PR is for the main branch
+                    pr_label: "auto-pr"
+
+            -   name: output-url
+                run: echo ${{steps.open-pr.outputs.pr_url}}
+            -   name: output-number
+                run: echo ${{steps.open-pr.outputs.pr_number}}
+            -   name: output-created
+                run: echo ${{steps.open-pr.outputs.pr_created}}
+            -   name: output-has-changed-files
+                run: echo ${{steps.open-pr.outputs.has_changed_files}}
