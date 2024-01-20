@@ -4,6 +4,11 @@
 	"projectType": "application",
 	"sourceRoot": "apps/rust_wasm_embed/src",
 	"targets": {
+
+		"": {
+
+		},
+
 		"build": {
 			"executor": "@monodon/rust:build",
 			"outputs": ["{options.target-dir}"],

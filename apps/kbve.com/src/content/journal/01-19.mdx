@@ -23,3 +23,14 @@ tags:
             I believe the first part of the issue was that I made the CI pipelines before I made the branches.
             The next issue was that I forgot to adjust the rules haha!
             This proves that doing multiple things at once is a bit of a pain, however I will get better at it with more time and skill.
+
+            Now we want to test case the Trunk deployment of the WASM, during the `beta` phase of the build, I believe we should have the action publish the rust wasm embed.
+            The process should be simple in that it would run `trunk build --release` within the `apps/rust_wasm_embed`
+
+            After reviewing the nx commands, I think it would be time for me to slowly utilize that executor.
+            The `executor` will be the `nx:run-commands` and then the target would be split amoung two different commands.
+            The first command will be the `trunksetup` and the second command will be the `trunkdeploy`.
+            After getting both of those configured, I will update the `kbve.sh` file to include a `-nx` flag with `rust_wasm_embed:trunksetup` and `rust_wasm_embed:trunkdeploy` to run the commands.
+            This way we are still using the `kbve.sh` shell but instead of adding the functions directly into the shell script, we will move them over to nx commands.
+            
+            
