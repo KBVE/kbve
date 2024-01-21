@@ -1,0 +1,62 @@
+---
+title: 'January: 21'
+category: Daily
+date: 2024-01-21
+client: Self
+unsplash: 1704189125621-55e8c6cfd166
+img: https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 21st of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+    2:40pm -   `Food`
+
+        #### Food
+
+            Went on a sleepless adventure to restock my empty fridge, the lack of healthy food in my diet and the overall lack of sleep are both a dangerous combo.
+            My heart is wondering why I am running on red bull, like a college frat boy, I can tell I am getting old lmfao.
+
+
+    4:29pm -    `Nx`
+
+        #### Nx
+        
+            I have to go back and update the Nx Run commands for the Rust WASM, the two commands were the `trunksetup` and the `trunkdeploy`.
+            There is also another issue that we might have to tackle and that is the nx migration to version 17.3.0, which is currently in beta right now.
+
+    6:01pm -    `TrunkSetup`
+
+        #### TrunkSetup
+
+            The first of the nx command would be the `trunksetup`,  here is the json for the nx command to help setup and run the command.
+
+            ```json 
+
+                "trunksetup": {
+                    "executor": "nx:run-commands",
+                    "options": {
+                        "commands": [
+                        "rustup update",
+                        "sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev",
+                        "rustup target add wasm32-unknown-unknown",
+                        "cargo install --locked trunk"
+                        ],
+                        "parallel": false
+                    }
+
+                }
+            ```
+
+            The executor will be `nx:run-commands` and then followed by the commands, which would setup the environment for the trunk to build the wasm.
+            Finally, we set the parallel to false, to keep the commands linear, which would take a bit more time but it would help dismiss errors.
+            If we wanted to set the parallel to true, then we would have to further split the commands.
+
+            Next I am going to split the `trunkdeploy` into two commands, one being the `trunkserve` and the other `trunkrelease`.
+            This is just to avoid any confusion and making it easier to do developement and production cycles.
+            
+        
