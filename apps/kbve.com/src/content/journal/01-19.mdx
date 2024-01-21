@@ -32,5 +32,36 @@ tags:
             The first command will be the `trunksetup` and the second command will be the `trunkdeploy`.
             After getting both of those configured, I will update the `kbve.sh` file to include a `-nx` flag with `rust_wasm_embed:trunksetup` and `rust_wasm_embed:trunkdeploy` to run the commands.
             This way we are still using the `kbve.sh` shell but instead of adding the functions directly into the shell script, we will move them over to nx commands.
-            
-            
+
+    
+    - 8:25pm - `Holy`
+
+        #### Holy
+
+            Expanding the crate so that we can the proc-macro_derive -> Observer with the attributes of `holy`.
+            My current method of building out the Observer would be to use the `Arc<Mutex<>>` and the basic lock system that would be associated with it.
+            I was thinking we could use a lockfree linked list or a BTreeMap, but after some test casing, I am going with a Crossbeam AtomicCell.
+            This Atomic cell will help resolve our lock issue when it comes to multi-thread applications and allowing the variables to be accessed without having to unlock.
+
+            So the first part of the Observer function would be similar to this:
+                
+                ```rust
+
+                        #[proc_macro_derive(Observer, attributes(holy))]
+                        pub fn observer_derive(input: TokenStream) -> TokenStream {
+                            let ast = parse_macro_input!(input as DeriveInput);
+                            generate_observer_impl(&ast)
+                        }
+
+                ```
+
+                Then moving the impl into its own function!
+
+    -   10:30pm - `Warcraf`
+
+        #### Warcraft
+
+            Ending the night with some Battlegrounds and maybe a quick raid.
+            Just did the BFD with a random 10
+
+                
