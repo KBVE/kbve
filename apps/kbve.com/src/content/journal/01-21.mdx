@@ -35,22 +35,22 @@ tags:
 
             The first of the nx command would be the `trunksetup`,  here is the json for the nx command to help setup and run the command.
 
-            ```json 
+                ```json 
 
-                "trunksetup": {
-                    "executor": "nx:run-commands",
-                    "options": {
-                        "commands": [
-                        "rustup update",
-                        "sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev",
-                        "rustup target add wasm32-unknown-unknown",
-                        "cargo install --locked trunk"
-                        ],
-                        "parallel": false
+                    "trunksetup": {
+                        "executor": "nx:run-commands",
+                        "options": {
+                            "commands": [
+                            "rustup update",
+                            "sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev",
+                            "rustup target add wasm32-unknown-unknown",
+                            "cargo install --locked trunk"
+                            ],
+                            "parallel": false
+                        }
+
                     }
-
-                }
-            ```
+                ```
 
             The executor will be `nx:run-commands` and then followed by the commands, which would setup the environment for the trunk to build the wasm.
             Finally, we set the parallel to false, to keep the commands linear, which would take a bit more time but it would help dismiss errors.
@@ -59,4 +59,53 @@ tags:
             Next I am going to split the `trunkdeploy` into two commands, one being the `trunkserve` and the other `trunkrelease`.
             This is just to avoid any confusion and making it easier to do developement and production cycles.
             
+            The `trunkserve` would be an easy nx run command.
+
+                ```json
+
+                    "trunkserve": {
+                        "executor": "nx:run-commands",
+                        "options": {
+                            "cwd": "apps/rust_wasm_embed",
+                            "commands": [
+                            "trunk serve"
+                            ],
+                            "parallel": false
+                        }
+                    }
+
+                ```
+
+            Just a quick note, we have to `cwd` to the root of the project.
+
+            Finally, we would add the `trunkrelease`, which will build the wasm and prepare the WASM and hash files for us to use.
+            Here we will just copy over the `trunkserve` and rename the serve with the release.
+            
+                ```json
+
+                    "trunkrelease": {
+                        "executor": "nx:run-commands",
+                        "options": {
+                            "cwd": "apps/rust_wasm_embed",
+                            "commands": [
+                            "trunk build --release"
+                            ],
+                            "parallel": false
+                        }
+                    }
+
+                ```
+
+            The next move would be to test case the nx run commands through the kbve shell file, like this:
+
+                ```shell
+
+                    ./kbve.sh -nx rust_wasm_embed:trunkrelease
+
+                ```
+
+            Which we will then add into our Github action for the trunk release and organize the pipeline!
+
+            Before pushing through, I believe it would make sense to sync the branches up for a release and then add in this feature?
+            We could also not do that and just try a rolling update and see how it would work?
         

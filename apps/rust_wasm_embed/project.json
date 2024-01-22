@@ -19,6 +19,29 @@
 
 		},
 
+		"trunkserve": {
+			"executor": "nx:run-commands",
+		    "options": {
+				"cwd": "apps/rust_wasm_embed",
+				"commands": [
+				  "trunk serve"
+				],
+				"parallel": false
+			}
+		},
+
+		
+		"trunkrelease": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rust_wasm_embed",
+				"commands": [
+				"trunk build --release"
+				],
+				"parallel": false
+			}
+		},
+
 		"build": {
 			"executor": "@monodon/rust:build",
 			"outputs": ["{options.target-dir}"],
