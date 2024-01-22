@@ -108,4 +108,25 @@ tags:
 
             Before pushing through, I believe it would make sense to sync the branches up for a release and then add in this feature?
             We could also not do that and just try a rolling update and see how it would work?
+
+    7:15pm -    `HerbWASM`
+
+        #### HerbWASM
+
+            We need to make sure that the WASM that gets released from the `rust_wasm_embed` has a clean folder to deploy to!
+            This includes making sure the folder gets wiped clean and that only successful builds get copied over for a new `dev` branch.
+            Okay, let me take a step back, the work flow would be like this:
+
+                - [1] There are changes to the `rust_wasm_embed` application using `nx affected` or file changes inside of `/apps/rust_wasm_embed/src/`
+                - [2] During the `alpha` branch, these changes should be lint and tested, using a combination of unit and integration testing. If any fails, then we do not move it out of alpha.
+                - [3] Duriing the `beta` branch, we would run the trunk release and then create a new pull request with the distrubtion files, as a patch back into the same mono-repo.
+                - [4] Finally during the new patch, with the files, we would setup more unit / integration testing but this time between the Astro website and the wasm embeds.
+
+            This would be the current workflow / pipeline that I would want to build out tonight.
+
+            The current route that I am taking would be to create a quick custom shell script to handle the `/dist/` folder migration.
+            Under the nx run commands, we would just have it deploy the script for now, by making sure to `chmod +x` and then running it.
+            The script name, hmm, I am thinking of calling it `herbwasm.sh` for now, but I can always come back and update it.
+
+            
         
