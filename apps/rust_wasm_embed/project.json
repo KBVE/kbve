@@ -42,6 +42,17 @@
 			}
 		},
 
+		"pipe": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+				  "chmod +x tools/scripts/public/wasm/pipelineherbwasm.sh",
+				  "./tools/scripts/public/wasm/pipelineherbwasm.sh"
+				],
+				"parallel": false
+			}
+		},
+
 		"build": {
 			"executor": "@monodon/rust:build",
 			"outputs": ["{options.target-dir}"],
