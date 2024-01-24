@@ -159,6 +159,13 @@ execmdx_function() {
 }
 
 
+# Function to run pnpm nx with an argument
+run_pnpm_nx() {
+    local argument="$1"
+    pnpm nx run "$argument"
+}
+
+
 # Main execution
 case "$1" in
     -check)
@@ -232,6 +239,10 @@ case "$1" in
         timestamp=$(date +%s)
         execmdx_function "./apps/kbve.com/public/data/outpost/nx/report.mdx" "echo 'Report Timestamp: $timestamp'"
 
+        ;;
+    -nx)
+        [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
+        run_pnpm_nx "$2"
         ;;
     -db)
         if is_installed "diesel_ext"; then
