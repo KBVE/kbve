@@ -112,7 +112,7 @@ save_sri_details_markdown() {
 # Function to create an MDX file from the generated Markdown file
 create_mdx_from_md() {
     local md_file="./apps/herbmail.com/public/embed/rust/herbwasm_sri_details.md"
-    local mdx_file="./apps/herbmail.com/src/content/tools/wasm.mdx"
+    local mdx_file="./apps/herbmail.com/src/content/tools/wasm.md"
 
     if [ ! -f "$md_file" ]; then
         echo "Error: Markdown file $md_file not found"
@@ -140,7 +140,7 @@ create_mdx_from_md() {
 add_mdx_fields() {
     local field=$1
     local data=$2
-    local mdx_file="./apps/herbmail.com/src/content/tools/wasm.mdx"
+    local mdx_file="./apps/herbmail.com/src/content/tools/wasm.md"
 
     if [ ! -f "$mdx_file" ]; then
         echo "Error: MDX file $mdx_file not found"
