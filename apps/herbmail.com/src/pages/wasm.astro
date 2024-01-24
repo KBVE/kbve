@@ -1,0 +1,74 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { AstroVe as VE } from '@kbve/astro-ve';
+import { getEntry } from 'astro:content';
+
+const wasmy = await getEntry('tools', 'wasm');
+
+let title = wasmy.data.title;
+let description = wasmy.data.description;
+
+let js_file = wasmy.data.js_file;
+js_file = `/embed/rust${js_file}`;
+
+let wasm_file = wasmy.data.wasm_file;
+wasm_file = `/embed/rust${wasm_file}`;
+
+let js_integrity = wasmy.data.js_integrity;
+let wasm_integrity = wasmy.data.wasm_integrity;
+---
+
+<Layout title={title} description={description}>
+
+	<link
+		as="fetch"
+        id="wasm-file-link"
+		crossorigin
+		href={wasm_file}
+		integrity={wasm_integrity}
+		rel="preload"
+		type="application/wasm"
+	/>
+	<link
+		crossorigin
+        id="wasm-js-link"
+		href={js_file}
+		integrity={js_integrity}
+		rel="modulepreload"
+	/>
+
+
+    <script type="module">
+        const wasmUrl = document.getElementById('wasm-file-link').getAttribute('href');
+        const jsUrl = document.getElementById('wasm-js-link').getAttribute('href');
+
+        try {
+            const wasmModule = await import(jsUrl);
+
+            wasmModule.default(wasmUrl);
+            window.wasmBindings = wasmModule;
+        } catch (e) {
+            console.error("Failed to load WASM module:", e);
+        }
+
+    </script>
+
+
+<script is:inline>
+    if (`serviceWorker` in navigator && window.location.hash !== `#dev`) {
+      window.addEventListener(`load`, (() => {
+        navigator.serviceWorker.register(`sw.js`)
+      }))
+    }
+</script>
+
+
+	<main class="md:p-96 overflow-hidden relative">
+		<canvas
+			id="the_canvas_id"
+			class="mx-auto block absolute top-0 left-1/2 w-full"
+			style="transform: translateX(-50%);"
+			>
+		</canvas>
+	</main>
+</Layout>

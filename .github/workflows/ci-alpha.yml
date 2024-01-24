@@ -7,7 +7,7 @@ on:
 
 jobs:
         handle:
-            name: "Alpna to Beta"
+            name: "Alpha to Beta"
             runs-on: ubuntu-latest
             steps:
                 -   name: Checkout
