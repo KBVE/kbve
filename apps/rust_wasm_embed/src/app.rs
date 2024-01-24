@@ -59,7 +59,8 @@ impl eframe::App for RustWasmEmbedApp {
 
 		egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
 			// The top panel is often a good place for a menu bar:
-
+			
+			ui.add_space(8.0);
 			egui::menu::bar(ui, |ui| {
 				// NOTE: no File->Quit on web pages!
 				let is_web = cfg!(target_arch = "wasm32");
@@ -69,7 +70,6 @@ impl eframe::App for RustWasmEmbedApp {
 							ctx.send_viewport_cmd(egui::ViewportCommand::Close);
 						}
 					});
-					ui.add_space(16.0);
 				}
 				if erust::widgets::dark_mode_widget(ui, &mut self.state) {
 					// If state changed, save the updated state
@@ -78,8 +78,9 @@ impl eframe::App for RustWasmEmbedApp {
 					}
 				}
 			});
+			ui.add_space(8.0);
 
-			ui.add_space(16.0);
+
 		});
 
 		egui::SidePanel::left("side_panel").show(ctx, |ui| {
@@ -106,13 +107,18 @@ impl eframe::App for RustWasmEmbedApp {
 
 			ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
 				//  Dark / Light
-
+				
+				
+				ui.add_space(8.0);
+				
 				if erust::widgets::dark_mode_widget(ui, &mut self.state) {
 					// If state changed, save the updated state
 					if let Some(storage) = _frame.storage_mut() {
 						self.state.save(storage);
 					}
 				}
+				
+
 			});
 		});
 
