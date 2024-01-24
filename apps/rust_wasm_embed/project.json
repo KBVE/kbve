@@ -4,6 +4,55 @@
 	"projectType": "application",
 	"sourceRoot": "apps/rust_wasm_embed/src",
 	"targets": {
+
+		"trunksetup": {
+			"executor": "nx:run-commands",
+		    "options": {
+				"commands": [
+				  "rustup update",
+				  "sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev",
+				  "rustup target add wasm32-unknown-unknown",
+				  "cargo install --locked trunk"
+				],
+				"parallel": false
+			}
+
+		},
+
+		"trunkserve": {
+			"executor": "nx:run-commands",
+		    "options": {
+				"cwd": "apps/rust_wasm_embed",
+				"commands": [
+				  "trunk serve"
+				],
+				"parallel": false
+			}
+		},
+
+		
+		"trunkrelease": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rust_wasm_embed",
+				"commands": [
+				"trunk build --release"
+				],
+				"parallel": false
+			}
+		},
+
+		"pipe": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+				  "chmod +x tools/scripts/public/wasm/pipelineherbwasm.sh",
+				  "./tools/scripts/public/wasm/pipelineherbwasm.sh"
+				],
+				"parallel": false
+			}
+		},
+
 		"build": {
 			"executor": "@monodon/rust:build",
 			"outputs": ["{options.target-dir}"],

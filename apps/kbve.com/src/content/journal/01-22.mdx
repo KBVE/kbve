@@ -1,0 +1,61 @@
+---
+title: 'January: 22'
+category: Daily
+date: 2024-01-22
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 22nd of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+    -   12:00pm - `WorkPlay`
+
+        #### WorkPlay
+
+            Tell me how I spent most of my time just AFK farming on Palworld while listening to random people talk in meetings.
+            After a quick lunch break, I am going to take a quick nap and then focus on learning how to pipeline the Rust WASM.
+            Now the question becomes, what should I have for lunch? 
+            Honestly watching myself butcher a bunch of Palworld monsters... uhhh really did not make me want to eat anything meat related lmao.
+            I will do quick greek yogurt smoothie and a spicy salad.
+
+        
+    -   4:00pm - `Apple`
+
+        #### Apple
+
+            It looks like I am going to be forced to sell a couple blocks of my Apple shares at around $190 each.
+            At first, I felt that it might be a bit rough on my books to handle the sale, but majority of those shares were on margin.
+            The net profit from the block sale should offset the interest that I was paying to hold those shares, but I really wish I had the script sell the shares for a bit more.
+            I am currently looking at a way to do a combination of cover calls with poorman calls and a hail mary call.
+                
+                A poor man's cover call is basically a long dated call option, think 2025, that we then sell smaller dated call options against.
+                A hail mary call is a really far dated call and strike, usually the goal would be to take advantage of stock price surges, which can easily net a couple points in the wallet.
+
+            Granted these are just side notes for myself and makes it easier to organize the future hedgefund that is in my mind.
+    
+    -   11:00pm - `HerbWASM`
+
+        #### HerbWASM
+
+            I ended up missing my goal for the weekend, so I should focus on catching up on my own personal goals.
+            I do not want to blame Palworld but having double digit hours does not help haha.
+            Actually since the game came out, I am definitely past the 24 hour mark of playing the game, granted that does include some AFK farming.
+
+            So there would be a couple scripts that we would would execute through the shell.
+            The first would be the initial setup, so we would do:
+
+            - [1] Trunk Setup -> `./kbve.sh -nx rust_wasm_embed:trunksetup`
+            - [2] Trunk Release -> `./kbve.sh -nx rust_wasm_embed:trunkrelease`
+            - [3] Herbmail Pipeline -> `./kbve.sh -nx rust_wasm_embed:pipe`
+
+            After that we would need to pull the hash of the completed files, so that we can store them.
+
+            So lets expand the pipeline to include the SRI hash of the files that get generated.
+            We are getting the sha integrity from the produced files and the unique hash wasm variables.
+
