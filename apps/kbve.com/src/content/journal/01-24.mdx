@@ -1,0 +1,27 @@
+---
+title: 'January: 24'
+category: Daily
+date: 2024-01-24
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 24th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+
+### 2024
+
+    -   8:24am  -   `Erust`
+
+        #### Erust
+
+            Going to add `egui_tiles` or `egui_dock` into the WASM component and see we can get a basic test case out of the way.
+            We need to make sure that it can build to WASM without having any major issues.
+            I should also note for myself that I need to do the worker box migration for the WASM!
+            This would let us run the application in offline mode, which is important.
+            Furthermore, we need to test case the nanostores integration during the unit and integration testing, making sure variables can move inbetween both the WASM and JS.
+            Noted, we are using nanostores via `"nanostores": "^0.9.3"` , but persistence is under a different package.
