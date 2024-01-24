@@ -1,6 +1,6 @@
 ---
-js_integrity: sha384-_2TLHGhBJ0xGIC5AqJ6MPhkMZPJ0ipQQhUeRY9y5a5C-84E9ya5pHapAHTFTHreE
-js_file: /rust_wasm_embed-2e4e604ed4dff9c3.js
-wasm_integrity: sha384-hQQxwl2HmgTnb-DeKlPsrfhdkeAidczMeFjBcUBLFQDUAQ_XlfTc4NlPRivzWFQM
-wasm_file: /rust_wasm_embed-2e4e604ed4dff9c3_bg.wasm
+js_integrity: sha384-zi1rAA_lthotYw8j86nxaccum96eU_6yzBkEjv2Jn1a-9G-hmYWOPJ6rGDjC-oXR
+js_file: /rust_wasm_embed-ae9fe2e68d9b6c9c.js
+wasm_integrity: sha384-SJDJnVgWNQiToEwBIQxzj95q9G_bnNrL8KAhyPw0FHeX74LMXTrmSi9OaN8fEqKZ
+wasm_file: /rust_wasm_embed-ae9fe2e68d9b6c9c_bg.wasm
 ---

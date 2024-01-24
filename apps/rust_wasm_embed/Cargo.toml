@@ -13,7 +13,7 @@ eframe = { version = "0.25.0", default-features = false, features = [
     "glow",          # Use the glow rendering backend. Alternative: "wgpu".
     "persistence",   # Enable restoring app state when restarting the app.
 ] }
-egui_dock = "0.10"
+egui_tiles = "0.6.0"
 log = "0.4"
 
 serde = { version = "1", features = ["derive"] }
