@@ -224,6 +224,10 @@ add_mdx_fields "description" "The WASM Embed Test Case"
 # F -> Slug Test Case
 add_mdx_fields "slug" "wasm"
 
+# Add Unix timestamp to the MDX file
+TIMESTAMP=$(date +%s)
+add_mdx_fields "timestamp" "$TIMESTAMP"
+
 
 echo "Operation completed successfully."
 exit 0
