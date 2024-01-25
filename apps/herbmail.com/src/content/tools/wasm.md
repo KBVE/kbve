@@ -1,8 +1,8 @@
 ---
-js_integrity: sha384-zi1rAA_lthotYw8j86nxaccum96eU_6yzBkEjv2Jn1a-9G-hmYWOPJ6rGDjC-oXR
-js_file: /rust_wasm_embed-ae9fe2e68d9b6c9c.js
-wasm_integrity: sha384-SJDJnVgWNQiToEwBIQxzj95q9G_bnNrL8KAhyPw0FHeX74LMXTrmSi9OaN8fEqKZ
-wasm_file: /rust_wasm_embed-ae9fe2e68d9b6c9c_bg.wasm
+js_integrity: sha384-MLhzJZSLAwTm-U6WEp1HwJ1cLnRpJhkjhY7bmgmOmhlLt-ErcX3efooSdt_ZA3Gr
+js_file: /rust_wasm_embed-95193d862516dded.js
+wasm_integrity: sha384-n_hlyuIXk9DEM-ZVw96lDk0gMnFmRwpysGlMWyexqBBc26RhDikl1xuJvuYwX2y-
+wasm_file: /rust_wasm_embed-95193d862516dded_bg.wasm
 title: The WASM Embed
 description: The WASM Embed Test Case
 slug: wasm
