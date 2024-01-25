@@ -16,13 +16,16 @@ wasm_file = `/embed/rust${wasm_file}`;
 
 let js_integrity = wasmy.data.js_integrity;
 let wasm_integrity = wasmy.data.wasm_integrity;
+
+//TODO: NanoStore Integration for localStorage swap. Prio -8
+//TODO: WorkerBox migration for the service worker. Prio - 3
+
 ---
 
 <Layout title={title} description={description}>
-
 	<link
 		as="fetch"
-        id="wasm-file-link"
+		id="wasm-file-link"
 		crossorigin
 		href={wasm_file}
 		integrity={wasm_integrity}
@@ -31,44 +34,43 @@ let wasm_integrity = wasmy.data.wasm_integrity;
 	/>
 	<link
 		crossorigin
-        id="wasm-js-link"
+		id="wasm-js-link"
 		href={js_file}
 		integrity={js_integrity}
 		rel="modulepreload"
 	/>
 
+	<script type="module">
+		const wasmUrl = document
+			.getElementById('wasm-file-link')
+			.getAttribute('href');
+		const jsUrl = document
+			.getElementById('wasm-js-link')
+			.getAttribute('href');
 
-    <script type="module">
-        const wasmUrl = document.getElementById('wasm-file-link').getAttribute('href');
-        const jsUrl = document.getElementById('wasm-js-link').getAttribute('href');
+		try {
+			const wasmModule = await import(jsUrl);
 
-        try {
-            const wasmModule = await import(jsUrl);
+			wasmModule.default(wasmUrl);
+			window.wasmBindings = wasmModule;
+		} catch (e) {
+			console.error('Failed to load WASM module:', e);
+		}
+	</script>
 
-            wasmModule.default(wasmUrl);
-            window.wasmBindings = wasmModule;
-        } catch (e) {
-            console.error("Failed to load WASM module:", e);
-        }
+	<script is:inline>
+		if (`serviceWorker` in navigator && window.location.hash !== `#dev`) {
+			window.addEventListener(`load`, () => {
+				navigator.serviceWorker.register(`sw.js`);
+			});
+		}
+	</script>
 
-    </script>
-
-
-<script is:inline>
-    if (`serviceWorker` in navigator && window.location.hash !== `#dev`) {
-      window.addEventListener(`load`, (() => {
-        navigator.serviceWorker.register(`sw.js`)
-      }))
-    }
-</script>
-
-
-	<main class="md:p-96 overflow-hidden relative">
+	<main class="p-[300px] md:p-[400px] overflow-hidden relative">
 		<canvas
 			id="the_canvas_id"
 			class="mx-auto block absolute top-0 left-1/2 w-full"
-			style="transform: translateX(-50%);"
-			>
+			style="transform: translateX(-50%);">
 		</canvas>
 	</main>
 </Layout>

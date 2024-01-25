@@ -1,0 +1,88 @@
+---
+title: 'January: 24'
+category: Daily
+date: 2024-01-24
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 24th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+
+### 2024
+
+    -   8:24am  -   `Erust`
+
+        #### Erust
+
+            Going to add `egui_tiles` or `egui_dock` into the WASM component and see we can get a basic test case out of the way.
+            We need to make sure that it can build to WASM without having any major issues.
+            I should also note for myself that I need to do the worker box migration for the WASM!
+            This would let us run the application in offline mode, which is important.
+            Furthermore, we need to test case the nanostores integration during the unit and integration testing, making sure variables can move inbetween both the WASM and JS.
+            Noted, we are using nanostores via `"nanostores": "^0.9.3"` , but persistence is under a different package.
+
+            Okay the tiles seem to load fine, I just need to adjust the settings / styles for each of the tile within the grid system.
+
+    -   11:50am -   `Unity`
+
+        #### Unity
+
+            Decided to play around with the Unity engine a bit more, here and there with the Cinemachine and the Combat Engine.
+            I am still having a ton of issues with wrapping my brain around it, I think I just need more practice and test casing.
+            The best option right now would be for me to just drop the pooling system and stick with a slower and intensive method of just tracking each object.
+            This way the game can move forward and as I play around a bit more with it, I can look into a future update and revisit the gameobject pooling.
+            There is also another option, which would be to just drop a browser build and just focus on a Windows version, but I feel like that would defeat the purpose of then even using Unity, since I want that WebGL build.
+            I am craving a neopets style space game.
+
+    -   5:30pm  -   `Remodel`
+
+        #### Remodel
+
+            We are looking to remodel the home a bit more, it seems that our guest bathroom is getting a bit too old and needs a revamp.
+            I am using these notes as a way to keep track of the process, including adding a couple handicap / disability features to the bathroom.
+            This would be an interesting test case for GPT, using it to help setup housing for people in need, such as older citizens or people with physical disabilities.
+            I am going to ask it just some generic questions and how to help structure the property.
+
+            Besides doing the remodeling, I do need to focus on placing the house into a trust as well, ugh, so many side quests that I get confused half the time.
+
+            Now we would be changing out the basics, i.e repairing the bathtub and toliet, ideally making it so that it is easier to access.
+            Also we need to replace the locks on the bathroom door that goes to the backyard, it needs better insulation and maybe an electric lock, just to make it easier to enter the home from the backside.
+
+            I will keep light notes on this project, maybe even include some images of the project.
+
+
+    -   7:20pm  -   `DnD`
+
+        #### DnD
+
+            Time to play some DnD with my friends!
+            Andsam created two unique items for a `Drink Ability`:
+                
+                `Ectocoller Enthusiast`
+                    > By drinking (via Drink Ability Action) Ectocooler consistently and with gusto, the line between life and death thins.
+                    > The first time you would roll a death save, you roll with advantage. 
+                    > Rolling a 19 is the same as a rolling a 20 as well (granting you 1 hp and bringing you back in the fight)
+
+                `Hydro Homie`
+                    > By drinking (via Drink Ability Action) pure water (and not that oily sewer stuff), you are tapped in to the fluid operations.
+                    > Whenever you regain hp, you gain an additional 1 hp point.
+                    > Further, the 1st time you regain hp, you gain 5 hp in addition.
+
+            The session was in the DMZ, where we were basically establishing our own version of `snowfall`, basically turning the area into a West Korea - Camden Edition.
+
+
+    -   11:00pm -   `Rust`
+
+        #### Rust
+
+            Just doing some casual Rust and maybe a H or two here and there.
+            Taking the night to just relax, go over my written notes and do some general research into the WASM GUI Management.
+            
+            The pipeline under `ci-beta.yml` can now be extended, going to add the alter right now.
+
+            Going to go ahead and make the `deploy` branch for the pipeline and see that will work as planned.

@@ -31,3 +31,6 @@ tags:
             Okay now we need to enhance the script, such that it will take the MD file from the integrity and create a new MDX file for displaying the WASM.
             The folder that we will place the MDX inside of will be `/tools/`. 
             We would have to remove the existing file and then update it from that scope.
+
+            There was an issue with Astro v2 and the MDX parsing, thus we will migrate the script to build using basic markdown for now.
+            Finally the bigger issue was getting the WASM to render within Astro and its tailwind, somehow I hacked my way into making it work for just a general use.
