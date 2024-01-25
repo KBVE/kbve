@@ -33,3 +33,98 @@ jobs:
                 run: echo ${{steps.open-pr.outputs.pr_created}}
             -   name: output-has-changed-files
                 run: echo ${{steps.open-pr.outputs.has_changed_files}}
+
+    alter:
+        name: "Beta Deployment Checks"
+        runs-on: ubuntu-latest
+        if: github.repository == 'kbve/kbve'
+        outputs:
+            rustwasmembed: ${{ steps.delta.outputs.rustwasmembed_any_changed }}
+
+        steps:
+            -   name: Checkout the repository using git
+                uses: actions/checkout@v4
+                with:
+                    fetch-depth: 1
+            
+            -   name: File Changes
+                id: delta
+                uses: tj-actions/changed-files@v39
+                with:
+                  files_yaml: |
+                      rustwasmembed:
+                          - 'apps/rust_wasm_embed/src/**'
+                
+    deploy:
+        needs: alter
+        name: "Processing Rust WASM Embed"
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout the repository using git
+                uses: actions/checkout@v4
+
+            -   name: Setup Node v18
+                uses: actions/setup-node@v3
+                with:
+                    node-version: 18
+
+            -   name: Setup pnpm
+                uses: pnpm/action-setup@v2
+                with:
+                    version: 8
+                    run_install: false
+
+
+            #   @[CACHE]-> [PNPM] -> [START]
+
+            -   name: Get pnpm Store
+                shell: bash
+                run: |
+                      echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            -   name: Setup pnpm Cache
+                uses: actions/cache@v3
+                with:
+                      path: ${{ env.STORE_PATH }}
+                      key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                      restore-keys: |
+                          ${{ runner.os }}-pnpm-store-
+
+            #   @[CACHE] -> [PNPM] ->  [END]
+        
+            -   name: Install pnpm dependencies
+                run: pnpm install
+
+            #   [Rust WASM Embed]
+
+            -   name: Rust WASM Embed
+                if: needs.alter.outputs.rustwasmembed == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-nx rust_wasm_embed:trunksetup'
+                    create_pull_request: false
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            -   name: Rust WASM Embed Trunk Release
+                if: needs.alter.outputs.rustwasmembed == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-nx rust_wasm_embed:trunkrelease'
+                    create_pull_request: false
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                
+            -   name: Rust WASM Embed Pipeline
+                if: needs.alter.outputs.rustwasmembed == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-nx rust_wasm_embed:pipe'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'rust-wasm-herbmail-dist-pipeline'
+                    pull_request_body: 'Rust WASM Embed Distribution for Herbmail.com'
+
+            
+
+            
+
+            
