@@ -2,37 +2,40 @@ syntax = "proto3";
 
 
 message Apikey {
-    string permissions = 1;
-    string keyhash = 2;
-    string label = 3;
-    bytes ulid = 4;
-    bytes userid = 5;
+    uint64 id = 1;
+    bytes ulid = 2;
+    bytes userid = 3;
+    string permissions = 4;
+    string keyhash = 5;
+    string label = 6;
 }
 message Appwrite {
-    string appwrite_endpoint = 1;
-    string appwrite_projectid = 2;
-    string appwrite_api_key = 3;
-    string version = 4;
-    string created_at = 5;
-    bytes ulid = 6;
-    bytes userid = 7;
+    uint64 id = 1;
+    bytes ulid = 2;
+    bytes userid = 3;
+    string appwrite_endpoint = 4;
+    string appwrite_projectid = 5;
+    string appwrite_api_key = 6;
+    string version = 7;
+    string created_at = 8;
 }
 message Auth {
-    string email = 1;
-    string hash = 2;
-    string salt = 3;
-    string password_reset_token = 4;
-    string password_reset_expiry = 5;
-    string verification_token = 6;
-    string verification_expiry = 7;
-    int64 status = 8;
-    string last_login_at = 9;
-    int64 failed_login_attempts = 10;
-    string lockout_until = 11;
-    string two_factor_secret = 12;
-    string recovery_codes = 13;
-    bytes ulid = 14;
-    bytes userid = 15;
+    uint64 id = 1;
+    bytes ulid = 2;
+    bytes userid = 3;
+    string email = 4;
+    string hash = 5;
+    string salt = 6;
+    string password_reset_token = 7;
+    string password_reset_expiry = 8;
+    string verification_token = 9;
+    string verification_expiry = 10;
+    int64 status = 11;
+    string last_login_at = 12;
+    int64 failed_login_attempts = 13;
+    string lockout_until = 14;
+    string two_factor_secret = 15;
+    string recovery_codes = 16;
 }
 message Global {
     uint64 id = 1;
@@ -40,36 +43,40 @@ message Global {
     string value = 3;
 }
 message N8n {
-    string webhook = 1;
-    string permissions = 2;
-    string keyhash = 3;
-    string label = 4;
-    bytes ulid = 5;
-    bytes userid = 6;
+    uint64 id = 1;
+    bytes ulid = 2;
+    bytes userid = 3;
+    string webhook = 4;
+    string permissions = 5;
+    string keyhash = 6;
+    string label = 7;
 }
 message Profile {
-    string name = 1;
-    string bio = 2;
-    string unsplash = 3;
-    string github = 4;
-    string instagram = 5;
-    string discord = 6;
-    bytes ulid = 7;
-    bytes userid = 8;
+    uint64 id = 1;
+    bytes ulid = 2;
+    string name = 3;
+    string bio = 4;
+    string unsplash = 5;
+    string github = 6;
+    string instagram = 7;
+    string discord = 8;
+    bytes userid = 9;
 }
 message Setting {
-    string key = 1;
-    string value = 2;
-    bytes ulid = 3;
-    bytes userid = 4;
+    uint64 id = 1;
+    bytes ulid = 2;
+    bytes userid = 3;
+    string key = 4;
+    string value = 5;
 }
 message User {
-    string username = 1;
-    int64 role = 2;
-    int64 reputation = 3;
-    int64 exp = 4;
-    string created_at = 5;
-    bytes ulid = 6;
+    uint64 id = 1;
+    bytes userid = 2;
+    string username = 3;
+    int64 role = 4;
+    int64 reputation = 5;
+    int64 exp = 6;
+    string created_at = 7;
 }
 
 
