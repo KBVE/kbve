@@ -37,3 +37,33 @@ tags:
             It seems that during the `dbmodels.rs` generation under the `erust` folder, the struct derives seem to fail, thus I need to see why it fails.
             The original shell uses sed to replace `(Queryable, Debug, Identifiable)` but since we shifted the primarykey back to serial / big int instead of binary, we no longer need the `Identfiable`!
             Thus going to remove that aspect of the schema generation.
+            
+            In addition, there would be the zod that we need to expand.
+
+                ```javascript
+
+                    export const registerUserSchema = z.object({
+                        username: z.string(),
+                        email: z.string(),
+                        password: z.string(),
+                        confirmPassword: z.string(),
+                        });
+
+                        export function registerUserSchemaValidation(schema: ZodRawShape) {
+                        return registerUserSchema
+                            .extend(schema)
+                            .refine((data) => data.password === data.confirmPassword, {
+                            message: "Passwords do not match",
+                            path: ["confirmPassword"],
+                            })
+                            .refine((data) => /^[a-zA-Z0-9]+$/.test(data.username) && data.username.length >= 3 && data.username.length <= 20, {
+                            message: "Username must be 3-20 characters long and only contain alphanumeric characters",
+                            path: ["username"],
+                            });
+                    }
+
+                ```
+            
+            This is an example of the zod expansion, which is through the `extend` and `refine` functions of the zod's `ZodRawShape` object.
+            
+            
