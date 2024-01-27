@@ -10,7 +10,7 @@ import {
 	binary,
 } from 'drizzle-orm/mysql-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-// import { z } from 'zod';
+import { z, ZodRawShape } from 'zod';
 
 export const users = mysqlTable('users', {
 	id: serial('id').primaryKey().notNull(),
@@ -219,7 +219,33 @@ export const settings = mysqlTable('settings', {
 // 	}),
 // }));
 
-//TODO      ZOD
+/**
+ * 	Example of the ZOD Schema and Verifcation
+ * 
+ * 
+ * 
+ * 
+ * TODO      ZOD
+*/
+export const registerUserSchema = z.object({
+	username: z.string(),
+	email: z.string(),
+	password: z.string(),
+	confirmPassword: z.string(),
+});
+
+export function registerUserSchemaValidation(schema: ZodRawShape) {
+	return registerUserSchema
+		.extend(schema)
+		.refine((data) => data.password === data.confirmPassword, {
+			message: "Passwords do not match",
+			path: ["confirmPassword"],
+		  })
+		.refine((data) => /^[a-zA-Z0-9]+$/.test(data.username) && data.username.length >= 6 && data.username.length <= 32, {
+			message: "Username must be 3-32 characters long and only contain alphanumeric characters",
+			path: ["username"],
+		  });
+}
 
 export const insertUserSchema = createInsertSchema(users);
 
