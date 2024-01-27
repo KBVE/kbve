@@ -1,0 +1,60 @@
+---
+title: 'January: 26'
+category: Daily
+date: 2024-01-26
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 26th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+    -   7:00am  -   `Bear`
+
+        #### Bear
+
+            Decided to start a TV series for my morning binge and since I enjoyed Shameless, I figured I would give FX's show a shot.
+            Ended up watching almost all of the first season in one sitting, it was definitely on point and worth a watch.
+            In between the the first couple episodes, I had to make a quick trip to Wawa and grab myself a steak and egg hoggie.
+
+
+    -   10:30am -   `SQL`
+
+        #### SQL
+        
+            The primary key will be shifted back to the BigInt via the Serial.
+            `SERIAL is an alias for BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE.`
+            Given that the global table is still using the serial, I will just go back and basically replicate that.
+            
+            Next it would be preparing the different tables that the `kbve` package will need to include doing the refactor.
+
+            The message table would look like this:
+
+                ```javascript
+
+                            export const message = mysqlTable('message', {
+                                id: serial('id').primaryKey().notNull(),
+                                sender_id: binary('sender_id', { length: 16 }).references(() => users.userid).notNull(),
+                                receiver_id: binary('receiver_id', { length: 16 }).references(() => users.userid).notNull(),
+                                content: text('content').notNull(),
+                                sent_at: timestamp('sent_at', { mode: 'string' }).notNull().defaultNow(),
+                            }, (table) => {
+                                return {
+                                    sender_id_idx: uniqueIndex("sender_id_idx").on(table.sender_id),
+                                    receiver_id_idx: uniqueIndex("receiver_id_idx").on(table.receiver_id)
+                                };
+                            });
+
+                ```
+
+            However there should be some additional fields that we might want to add.
+
+            Wait I forgot an additional change that I need to do for the schema, which is change the length of the fields from 256 to 255.
+
+            
+            

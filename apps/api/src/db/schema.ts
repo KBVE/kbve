@@ -13,8 +13,9 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 // import { z } from 'zod';
 
 export const users = mysqlTable('users', {
-	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
-	username: varchar('username', { length: 256 }).unique().notNull(),
+	id: serial('id').primaryKey().notNull(),
+	userid: binary('userid', { length: 16}).unique().notNull(),
+	username: varchar('username', { length: 255 }).unique().notNull(),
 	role: int('role').default(0).notNull(),
 	reputation: int('reputation').default(0).notNull(),
 	exp: int('exp').default(0).notNull(),
@@ -28,20 +29,21 @@ export const users = mysqlTable('users', {
   });
 
 export const auth = mysqlTable('auth', {
-	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
-	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
-	email: varchar('email', { length: 256 }).unique().notNull(),
-	hash: varchar('hash', { length: 256 }).notNull(),
-	salt: varchar('salt', { length: 256 }).notNull(),
-	password_reset_token: varchar('password_reset_token', { length: 256 }).notNull(),
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	email: varchar('email', { length: 255 }).unique().notNull(),
+	hash: varchar('hash', { length: 255 }).notNull(),
+	salt: varchar('salt', { length: 255 }).notNull(),
+	password_reset_token: varchar('password_reset_token', { length: 255 }).notNull(),
 	password_reset_expiry: timestamp('password_reset_expiry').notNull(),
-	verification_token: varchar('verification_token', { length: 256 }).notNull(),
+	verification_token: varchar('verification_token', { length: 255 }).notNull(),
 	verification_expiry: timestamp('verification_expiry').notNull(),
 	status: int('status').default(0).notNull(),
 	last_login_at: timestamp('last_login_at').notNull(),
 	failed_login_attempts: int('failed_login_attempts').default(0).notNull(),
 	lockout_until: timestamp('lockout_until').notNull(),
-	two_factor_secret: varchar('two_factor_secret', { length: 256 }).notNull(),
+	two_factor_secret: varchar('two_factor_secret', { length: 255 }).notNull(),
 	recovery_codes: text('recovery_codes').notNull(),
 }, (table) => {
 	return {
@@ -50,22 +52,24 @@ export const auth = mysqlTable('auth', {
   });
 
 export const profile = mysqlTable('profile', {
-	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
-	name: varchar('name', { length: 256 }).default('Anon').notNull(),
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	name: varchar('name', { length: 255 }).default('Anon').notNull(),
 	bio: varchar('bio', { length: 64 }).default('').notNull(),
 	unsplash: varchar('unsplash', { length: 64 }).default('').notNull(),
 	github: varchar('github', { length: 64 }).default('').notNull(),
 	instagram: varchar('instagram', { length: 64 }).default('').notNull(),
 	discord: varchar('discord', { length: 64 }).default('').notNull(),
-	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
 });
 
 export const appwrite = mysqlTable('appwrite', {
-	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
-	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
-	appwrite_endpoint: varchar('appwrite_endpoint', { length: 256 }).notNull(),
-	appwrite_projectid: varchar('appwrite_projectid', { length: 256 }).notNull(),
-	appwrite_api_key: varchar('appwrite_api_key', { length: 256 }).notNull(),
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	appwrite_endpoint: varchar('appwrite_endpoint', { length: 255 }).notNull(),
+	appwrite_projectid: varchar('appwrite_projectid', { length: 255 }).notNull(),
+	appwrite_api_key: varchar('appwrite_api_key', { length: 255 }).notNull(),
 	version: varchar('version', { length: 64 }).notNull(),
 	created_at: timestamp('created_at', { mode: 'string' })
 		.notNull()
@@ -77,11 +81,12 @@ export const appwrite = mysqlTable('appwrite', {
   });
 
 export const apikey = mysqlTable('apikey', {
-	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
-	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
-	permissions: varchar('permissions', { length: 256}).notNull(),
-	keyhash: varchar('keyhash', { length: 256 }).notNull(),
-	label: varchar('label', { length: 256 }).notNull(),
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	permissions: varchar('permissions', { length: 255}).notNull(),
+	keyhash: varchar('keyhash', { length: 255 }).notNull(),
+	label: varchar('label', { length: 255 }).notNull(),
 }, (table) => {
 	return {
 	  keyhash_idx: uniqueIndex("keyhash_idx").on(table.keyhash)
@@ -89,12 +94,13 @@ export const apikey = mysqlTable('apikey', {
   });
 
 export const n8n = mysqlTable('n8n', {
-    ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
-	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
-	webhook: varchar('webhook', { length: 256}).notNull(),
-    permissions: varchar('permissions', { length: 256}).notNull(),
-	keyhash: varchar('keyhash', { length: 256 }).notNull(),
-	label: varchar('label', { length: 256 }).notNull(),
+	id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	webhook: varchar('webhook', { length: 255}).notNull(),
+    permissions: varchar('permissions', { length: 255}).notNull(),
+	keyhash: varchar('keyhash', { length: 255 }).notNull(),
+	label: varchar('label', { length: 255 }).notNull(),
 
 }, (table) => {
 	return {
@@ -113,8 +119,9 @@ export const globals = mysqlTable('globals', {
 });
 
 export const settings = mysqlTable('settings', {
-	ulid: binary('ulid', { length: 16}).primaryKey().notNull(),
-	userid: binary("userid", { length: 16}).references(() => users.ulid).notNull(),
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
 	key: varchar('key', { length: 255}).notNull(),
 	value: varchar('value', {length: 255}).notNull()
 }, (table) => {
