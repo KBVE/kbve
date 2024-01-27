@@ -1,0 +1,39 @@
+---
+title: 'January: 27'
+category: Daily
+date: 2024-01-27
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 27th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+    #### keys
+
+        Need to keep track of these keys:
+            -   `portainer_stack`
+            -   `jwt_secret`
+            -   `portainer`
+            -   `hcaptcha`
+            -   `kbve`
+            -   `shieldwall`
+    
+    #### Hosts
+
+        Need to extend the hosts table.
+
+### 2024
+
+    -   11:30am -   `Schema`
+
+        #### Schema
+
+            Starting off the weekend with more schema changes!
+            Finalize the message table and then expand out the host table, but before doing those two tables, I need to make sure the global keys are added.
+            It seems that during the `dbmodels.rs` generation under the `erust` folder, the struct derives seem to fail, thus I need to see why it fails.
+            The original shell uses sed to replace `(Queryable, Debug, Identifiable)` but since we shifted the primarykey back to serial / big int instead of binary, we no longer need the `Identfiable`!
+            Thus going to remove that aspect of the schema generation.
