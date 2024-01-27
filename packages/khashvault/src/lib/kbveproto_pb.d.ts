@@ -7,12 +7,8 @@
 import * as jspb from "google-protobuf";
 
 export class Apikey extends jspb.Message { 
-    getPermissions(): string;
-    setPermissions(value: string): Apikey;
-    getKeyhash(): string;
-    setKeyhash(value: string): Apikey;
-    getLabel(): string;
-    setLabel(value: string): Apikey;
+    getId(): number;
+    setId(value: number): Apikey;
     getUlid(): Uint8Array | string;
     getUlid_asU8(): Uint8Array;
     getUlid_asB64(): string;
@@ -21,6 +17,12 @@ export class Apikey extends jspb.Message {
     getUserid_asU8(): Uint8Array;
     getUserid_asB64(): string;
     setUserid(value: Uint8Array | string): Apikey;
+    getPermissions(): string;
+    setPermissions(value: string): Apikey;
+    getKeyhash(): string;
+    setKeyhash(value: string): Apikey;
+    getLabel(): string;
+    setLabel(value: string): Apikey;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Apikey.AsObject;
@@ -34,15 +36,26 @@ export class Apikey extends jspb.Message {
 
 export namespace Apikey {
     export type AsObject = {
+        id: number,
+        ulid: Uint8Array | string,
+        userid: Uint8Array | string,
         permissions: string,
         keyhash: string,
         label: string,
-        ulid: Uint8Array | string,
-        userid: Uint8Array | string,
     }
 }
 
 export class Appwrite extends jspb.Message { 
+    getId(): number;
+    setId(value: number): Appwrite;
+    getUlid(): Uint8Array | string;
+    getUlid_asU8(): Uint8Array;
+    getUlid_asB64(): string;
+    setUlid(value: Uint8Array | string): Appwrite;
+    getUserid(): Uint8Array | string;
+    getUserid_asU8(): Uint8Array;
+    getUserid_asB64(): string;
+    setUserid(value: Uint8Array | string): Appwrite;
     getAppwriteEndpoint(): string;
     setAppwriteEndpoint(value: string): Appwrite;
     getAppwriteProjectid(): string;
@@ -53,14 +66,6 @@ export class Appwrite extends jspb.Message {
     setVersion(value: string): Appwrite;
     getCreatedAt(): string;
     setCreatedAt(value: string): Appwrite;
-    getUlid(): Uint8Array | string;
-    getUlid_asU8(): Uint8Array;
-    getUlid_asB64(): string;
-    setUlid(value: Uint8Array | string): Appwrite;
-    getUserid(): Uint8Array | string;
-    getUserid_asU8(): Uint8Array;
-    getUserid_asB64(): string;
-    setUserid(value: Uint8Array | string): Appwrite;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Appwrite.AsObject;
@@ -74,17 +79,28 @@ export class Appwrite extends jspb.Message {
 
 export namespace Appwrite {
     export type AsObject = {
+        id: number,
+        ulid: Uint8Array | string,
+        userid: Uint8Array | string,
         appwriteEndpoint: string,
         appwriteProjectid: string,
         appwriteApiKey: string,
         version: string,
         createdAt: string,
-        ulid: Uint8Array | string,
-        userid: Uint8Array | string,
     }
 }
 
 export class Auth extends jspb.Message { 
+    getId(): number;
+    setId(value: number): Auth;
+    getUlid(): Uint8Array | string;
+    getUlid_asU8(): Uint8Array;
+    getUlid_asB64(): string;
+    setUlid(value: Uint8Array | string): Auth;
+    getUserid(): Uint8Array | string;
+    getUserid_asU8(): Uint8Array;
+    getUserid_asB64(): string;
+    setUserid(value: Uint8Array | string): Auth;
     getEmail(): string;
     setEmail(value: string): Auth;
     getHash(): string;
@@ -111,14 +127,6 @@ export class Auth extends jspb.Message {
     setTwoFactorSecret(value: string): Auth;
     getRecoveryCodes(): string;
     setRecoveryCodes(value: string): Auth;
-    getUlid(): Uint8Array | string;
-    getUlid_asU8(): Uint8Array;
-    getUlid_asB64(): string;
-    setUlid(value: Uint8Array | string): Auth;
-    getUserid(): Uint8Array | string;
-    getUserid_asU8(): Uint8Array;
-    getUserid_asB64(): string;
-    setUserid(value: Uint8Array | string): Auth;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Auth.AsObject;
@@ -132,6 +140,9 @@ export class Auth extends jspb.Message {
 
 export namespace Auth {
     export type AsObject = {
+        id: number,
+        ulid: Uint8Array | string,
+        userid: Uint8Array | string,
         email: string,
         hash: string,
         salt: string,
@@ -145,8 +156,6 @@ export namespace Auth {
         lockoutUntil: string,
         twoFactorSecret: string,
         recoveryCodes: string,
-        ulid: Uint8Array | string,
-        userid: Uint8Array | string,
     }
 }
 
@@ -177,14 +186,8 @@ export namespace Global {
 }
 
 export class N8n extends jspb.Message { 
-    getWebhook(): string;
-    setWebhook(value: string): N8n;
-    getPermissions(): string;
-    setPermissions(value: string): N8n;
-    getKeyhash(): string;
-    setKeyhash(value: string): N8n;
-    getLabel(): string;
-    setLabel(value: string): N8n;
+    getId(): number;
+    setId(value: number): N8n;
     getUlid(): Uint8Array | string;
     getUlid_asU8(): Uint8Array;
     getUlid_asB64(): string;
@@ -193,6 +196,14 @@ export class N8n extends jspb.Message {
     getUserid_asU8(): Uint8Array;
     getUserid_asB64(): string;
     setUserid(value: Uint8Array | string): N8n;
+    getWebhook(): string;
+    setWebhook(value: string): N8n;
+    getPermissions(): string;
+    setPermissions(value: string): N8n;
+    getKeyhash(): string;
+    setKeyhash(value: string): N8n;
+    getLabel(): string;
+    setLabel(value: string): N8n;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): N8n.AsObject;
@@ -206,16 +217,23 @@ export class N8n extends jspb.Message {
 
 export namespace N8n {
     export type AsObject = {
+        id: number,
+        ulid: Uint8Array | string,
+        userid: Uint8Array | string,
         webhook: string,
         permissions: string,
         keyhash: string,
         label: string,
-        ulid: Uint8Array | string,
-        userid: Uint8Array | string,
     }
 }
 
 export class Profile extends jspb.Message { 
+    getId(): number;
+    setId(value: number): Profile;
+    getUlid(): Uint8Array | string;
+    getUlid_asU8(): Uint8Array;
+    getUlid_asB64(): string;
+    setUlid(value: Uint8Array | string): Profile;
     getName(): string;
     setName(value: string): Profile;
     getBio(): string;
@@ -228,10 +246,6 @@ export class Profile extends jspb.Message {
     setInstagram(value: string): Profile;
     getDiscord(): string;
     setDiscord(value: string): Profile;
-    getUlid(): Uint8Array | string;
-    getUlid_asU8(): Uint8Array;
-    getUlid_asB64(): string;
-    setUlid(value: Uint8Array | string): Profile;
     getUserid(): Uint8Array | string;
     getUserid_asU8(): Uint8Array;
     getUserid_asB64(): string;
@@ -249,22 +263,21 @@ export class Profile extends jspb.Message {
 
 export namespace Profile {
     export type AsObject = {
+        id: number,
+        ulid: Uint8Array | string,
         name: string,
         bio: string,
         unsplash: string,
         github: string,
         instagram: string,
         discord: string,
-        ulid: Uint8Array | string,
         userid: Uint8Array | string,
     }
 }
 
 export class Setting extends jspb.Message { 
-    getKey(): string;
-    setKey(value: string): Setting;
-    getValue(): string;
-    setValue(value: string): Setting;
+    getId(): number;
+    setId(value: number): Setting;
     getUlid(): Uint8Array | string;
     getUlid_asU8(): Uint8Array;
     getUlid_asB64(): string;
@@ -273,6 +286,10 @@ export class Setting extends jspb.Message {
     getUserid_asU8(): Uint8Array;
     getUserid_asB64(): string;
     setUserid(value: Uint8Array | string): Setting;
+    getKey(): string;
+    setKey(value: string): Setting;
+    getValue(): string;
+    setValue(value: string): Setting;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Setting.AsObject;
@@ -286,14 +303,21 @@ export class Setting extends jspb.Message {
 
 export namespace Setting {
     export type AsObject = {
-        key: string,
-        value: string,
+        id: number,
         ulid: Uint8Array | string,
         userid: Uint8Array | string,
+        key: string,
+        value: string,
     }
 }
 
 export class User extends jspb.Message { 
+    getId(): number;
+    setId(value: number): User;
+    getUserid(): Uint8Array | string;
+    getUserid_asU8(): Uint8Array;
+    getUserid_asB64(): string;
+    setUserid(value: Uint8Array | string): User;
     getUsername(): string;
     setUsername(value: string): User;
     getRole(): number;
@@ -304,10 +328,6 @@ export class User extends jspb.Message {
     setExp(value: number): User;
     getCreatedAt(): string;
     setCreatedAt(value: string): User;
-    getUlid(): Uint8Array | string;
-    getUlid_asU8(): Uint8Array;
-    getUlid_asB64(): string;
-    setUlid(value: Uint8Array | string): User;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): User.AsObject;
@@ -321,12 +341,13 @@ export class User extends jspb.Message {
 
 export namespace User {
     export type AsObject = {
+        id: number,
+        userid: Uint8Array | string,
         username: string,
         role: number,
         reputation: number,
         exp: number,
         createdAt: string,
-        ulid: Uint8Array | string,
     }
 }
 
