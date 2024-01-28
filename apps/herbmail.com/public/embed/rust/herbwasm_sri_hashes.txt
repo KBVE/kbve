@@ -1,2 +1,2 @@
-JS File: /rust_wasm_embed-95193d862516dded.js, JS Integrity: sha384-MLhzJZSLAwTm-U6WEp1HwJ1cLnRpJhkjhY7bmgmOmhlLt-ErcX3efooSdt_ZA3Gr
-WASM File: /rust_wasm_embed-95193d862516dded_bg.wasm, WASM Integrity: sha384-n_hlyuIXk9DEM-ZVw96lDk0gMnFmRwpysGlMWyexqBBc26RhDikl1xuJvuYwX2y-
+JS File: /rust_wasm_embed-8fbdd6183552229d.js, JS Integrity: sha384-6RtZGP_ubyilCgFK4FExOiQWTQJPC15urf0ievF2kTUyyT6Hi615C1218wPM2Uce
+WASM File: /rust_wasm_embed-8fbdd6183552229d_bg.wasm, WASM Integrity: sha384-cTDesVjzuMP6FC9KSoWYVFYuM7B6orIr0wtGZEpoz6BNePLjBqZ4jmoCk-usWtGK
