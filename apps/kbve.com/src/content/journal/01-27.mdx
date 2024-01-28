@@ -15,12 +15,12 @@ tags:
     #### keys
 
         Need to keep track of these keys:
-            -   `portainer_stack`
-            -   `jwt_secret`
-            -   `portainer`
-            -   `hcaptcha`
-            -   `kbve`
-            -   `shieldwall`
+            -   `portainer_stack` - Added
+            -   `jwt_secret` - Added
+            -   `portainer` - Added
+            -   `hcaptcha` -
+            -   `kbve` - Added
+            -   `shieldwall` - Added
     
     #### Hosts
 
@@ -66,4 +66,23 @@ tags:
             
             This is an example of the zod expansion, which is through the `extend` and `refine` functions of the zod's `ZodRawShape` object.
             
-            
+    -   3:40pm -    `Refactor`
+
+        #### Refactor
+
+            The worst feeling about refactoring is knowning that you have to do it a couple times over and over.
+            Even this current refactor that I am doing right now, sadly will be done again using SQLX instead of Diesel, which is a pain to think about down the line.
+            The main reason we would be doing the refactor again, even if we are refactoring it right now is because of the C library that Diesel depends on for MySQL.
+
+
+    -   11:40pm -   `Drizzle`
+
+        #### Drizzle
+
+            When updating Drizzle within the monorepo, we run three commands.
+            The first command, aka `./kbve.sh -atomic drizzle kit upgrade`, would be to create a new branch for the upgrade, just to make sure that nothing breaks!
+            The second command is `pnpm add drizzle-kit@latest -D` and finally the third command is `./kbve.sh -reset`.
+            Finally, let us test case the studio by running `./kbve.sh -studio`.
+
+            Inside of the studio, we want to add the seven global keys that we wiped earlier, which I placed under notes as keys.
+
