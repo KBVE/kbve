@@ -30,7 +30,7 @@ pub async fn hazardous_boolean_username_exist(
 	match
 		users::table
 			.filter(users::username.eq(clean_username))
-			.select(users::ulid)
+			.select(users::userid)
 			.first::<Vec<u8>>(&mut conn)
 	{
 		Ok(_) => Ok(true),
@@ -97,7 +97,8 @@ pub async fn hazardous_create_user(
 	match
 		insert_into(users::table)
 			.values((
-				users::ulid.eq(clean_ulid), // Adding the clean ulid!
+				users::id.eq(0), // Setting to 0
+				users::userid.eq(clean_ulid), // Adding the clean ulid!
 				users::username.eq(clean_username),
 				users::role.eq(0), // Setting role to 0
 				users::reputation.eq(0), // Setting reputation to 0
@@ -127,7 +128,7 @@ pub async fn task_fetch_userid_by_username(
 	match
 		users::table
 			.filter(users::username.eq(clean_username))
-			.select(users::ulid)
+			.select(users::userid)
 			.first::<Vec<u8>>(&mut conn)
 	{
 		Ok(user_id) => Ok(user_id),
