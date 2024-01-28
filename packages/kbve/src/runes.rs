@@ -26,7 +26,7 @@ pub static GLOBAL: OnceLock<Arc<GlobalStore>> = OnceLock::new();
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TokenRune {
-	pub ulid: String,
+	pub userid: String,
 	pub email: String,
 	pub username: String,
 	pub iat: usize,
