@@ -1,12 +1,19 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "8ca39353-0c00-4f69-8bc1-ac8af679f873",
+  "id": "2e892985-ad4d-440a-bac7-f3c9ea80062e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "apikey": {
       "name": "apikey",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
         "ulid": {
           "name": "ulid",
           "type": "binary(16)",
@@ -23,21 +30,21 @@
         },
         "permissions": {
           "name": "permissions",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "keyhash": {
           "name": "keyhash",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "label": {
           "name": "label",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -53,33 +60,47 @@
         }
       },
       "foreignKeys": {
-        "apikey_userid_users_ulid_fk": {
-          "name": "apikey_userid_users_ulid_fk",
+        "apikey_userid_users_userid_fk": {
+          "name": "apikey_userid_users_userid_fk",
           "tableFrom": "apikey",
           "tableTo": "users",
           "columnsFrom": [
             "userid"
           ],
           "columnsTo": [
-            "ulid"
+            "userid"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "apikey_ulid": {
-          "name": "apikey_ulid",
+        "apikey_id": {
+          "name": "apikey_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "apikey_ulid_unique": {
+          "name": "apikey_ulid_unique",
           "columns": [
             "ulid"
           ]
         }
-      },
-      "uniqueConstraints": {}
+      }
     },
     "appwrite": {
       "name": "appwrite",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
         "ulid": {
           "name": "ulid",
           "type": "binary(16)",
@@ -96,21 +117,21 @@
         },
         "appwrite_endpoint": {
           "name": "appwrite_endpoint",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "appwrite_projectid": {
           "name": "appwrite_projectid",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "appwrite_api_key": {
           "name": "appwrite_api_key",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -141,33 +162,47 @@
         }
       },
       "foreignKeys": {
-        "appwrite_userid_users_ulid_fk": {
-          "name": "appwrite_userid_users_ulid_fk",
+        "appwrite_userid_users_userid_fk": {
+          "name": "appwrite_userid_users_userid_fk",
           "tableFrom": "appwrite",
           "tableTo": "users",
           "columnsFrom": [
             "userid"
           ],
           "columnsTo": [
-            "ulid"
+            "userid"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "appwrite_ulid": {
-          "name": "appwrite_ulid",
+        "appwrite_id": {
+          "name": "appwrite_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "appwrite_ulid_unique": {
+          "name": "appwrite_ulid_unique",
           "columns": [
             "ulid"
           ]
         }
-      },
-      "uniqueConstraints": {}
+      }
     },
     "auth": {
       "name": "auth",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
         "ulid": {
           "name": "ulid",
           "type": "binary(16)",
@@ -184,28 +219,28 @@
         },
         "email": {
           "name": "email",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "hash": {
           "name": "hash",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "salt": {
           "name": "salt",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "password_reset_token": {
           "name": "password_reset_token",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -219,7 +254,7 @@
         },
         "verification_token": {
           "name": "verification_token",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -263,7 +298,7 @@
         },
         "two_factor_secret": {
           "name": "two_factor_secret",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -286,29 +321,35 @@
         }
       },
       "foreignKeys": {
-        "auth_userid_users_ulid_fk": {
-          "name": "auth_userid_users_ulid_fk",
+        "auth_userid_users_userid_fk": {
+          "name": "auth_userid_users_userid_fk",
           "tableFrom": "auth",
           "tableTo": "users",
           "columnsFrom": [
             "userid"
           ],
           "columnsTo": [
-            "ulid"
+            "userid"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "auth_ulid": {
-          "name": "auth_ulid",
+        "auth_id": {
+          "name": "auth_id",
           "columns": [
-            "ulid"
+            "id"
           ]
         }
       },
       "uniqueConstraints": {
+        "auth_ulid_unique": {
+          "name": "auth_ulid_unique",
+          "columns": [
+            "ulid"
+          ]
+        },
         "auth_email_unique": {
           "name": "auth_email_unique",
           "columns": [
@@ -365,6 +406,13 @@
     "n8n": {
       "name": "n8n",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
         "ulid": {
           "name": "ulid",
           "type": "binary(16)",
@@ -381,28 +429,28 @@
         },
         "webhook": {
           "name": "webhook",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "permissions": {
           "name": "permissions",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "keyhash": {
           "name": "keyhash",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "label": {
           "name": "label",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -418,33 +466,47 @@
         }
       },
       "foreignKeys": {
-        "n8n_userid_users_ulid_fk": {
-          "name": "n8n_userid_users_ulid_fk",
+        "n8n_userid_users_userid_fk": {
+          "name": "n8n_userid_users_userid_fk",
           "tableFrom": "n8n",
           "tableTo": "users",
           "columnsFrom": [
             "userid"
           ],
           "columnsTo": [
-            "ulid"
+            "userid"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "n8n_ulid": {
-          "name": "n8n_ulid",
+        "n8n_id": {
+          "name": "n8n_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "n8n_ulid_unique": {
+          "name": "n8n_ulid_unique",
           "columns": [
             "ulid"
           ]
         }
-      },
-      "uniqueConstraints": {}
+      }
     },
     "profile": {
       "name": "profile",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
         "ulid": {
           "name": "ulid",
           "type": "binary(16)",
@@ -454,7 +516,7 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -510,33 +572,47 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "profile_userid_users_ulid_fk": {
-          "name": "profile_userid_users_ulid_fk",
+        "profile_userid_users_userid_fk": {
+          "name": "profile_userid_users_userid_fk",
           "tableFrom": "profile",
           "tableTo": "users",
           "columnsFrom": [
             "userid"
           ],
           "columnsTo": [
-            "ulid"
+            "userid"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "profile_ulid": {
-          "name": "profile_ulid",
+        "profile_id": {
+          "name": "profile_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "profile_ulid_unique": {
+          "name": "profile_ulid_unique",
           "columns": [
             "ulid"
           ]
         }
-      },
-      "uniqueConstraints": {}
+      }
     },
     "settings": {
       "name": "settings",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
         "ulid": {
           "name": "ulid",
           "type": "binary(16)",
@@ -576,35 +652,49 @@
         }
       },
       "foreignKeys": {
-        "settings_userid_users_ulid_fk": {
-          "name": "settings_userid_users_ulid_fk",
+        "settings_userid_users_userid_fk": {
+          "name": "settings_userid_users_userid_fk",
           "tableFrom": "settings",
           "tableTo": "users",
           "columnsFrom": [
             "userid"
           ],
           "columnsTo": [
-            "ulid"
+            "userid"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "settings_ulid": {
-          "name": "settings_ulid",
+        "settings_id": {
+          "name": "settings_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "settings_ulid_unique": {
+          "name": "settings_ulid_unique",
           "columns": [
             "ulid"
           ]
         }
-      },
-      "uniqueConstraints": {}
+      }
     },
     "users": {
       "name": "users",
       "columns": {
-        "ulid": {
-          "name": "ulid",
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "userid": {
+          "name": "userid",
           "type": "binary(16)",
           "primaryKey": false,
           "notNull": true,
@@ -612,7 +702,7 @@
         },
         "username": {
           "name": "username",
-          "type": "varchar(256)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -661,14 +751,20 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "users_ulid": {
-          "name": "users_ulid",
+        "users_id": {
+          "name": "users_id",
           "columns": [
-            "ulid"
+            "id"
           ]
         }
       },
       "uniqueConstraints": {
+        "users_userid_unique": {
+          "name": "users_userid_unique",
+          "columns": [
+            "userid"
+          ]
+        },
         "users_username_unique": {
           "name": "users_username_unique",
           "columns": [
