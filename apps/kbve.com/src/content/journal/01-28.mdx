@@ -12,6 +12,11 @@ tags:
 
 ## Notes
 
+    ### Unreal
+
+        - Unreal Engine Tools, specifically for pipelines, https://src.redpoint.games/redpointgames/uet
+
+
 ### 2024
 
     -   9:53am  -   `Refactor`
@@ -26,4 +31,9 @@ tags:
 
             However during the `cargo test`, I noticed the holy crate was broken too, which means I need to go back and fix that as well xD!
 
-            The issue with the holy crate would be the observers.
+            The issue with the holy crate would be the observers, which I have addressed.
+
+            Going back to the `kbve` package and `rust_wasm_embed`, I reset the `hcaptcha` key within the database and we are running into some verification issues.
+
+            To help resolve this, I am going to pull the dev server replication from `5` units to `1` and see what the problem is when it comes to the verification, which is most likely something stupid hehe.
+            

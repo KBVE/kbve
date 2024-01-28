@@ -11,6 +11,7 @@ pub mod guild;
 pub mod spellbook;
 pub mod runes;
 pub mod authentication;
+pub mod utils;
 
 
 pub use schema::*;
@@ -21,3 +22,4 @@ pub use guild::*;
 pub use spellbook::*;
 pub use runes::*;
 pub use authentication::*;
+pub use utils::*;
