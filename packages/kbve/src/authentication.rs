@@ -350,9 +350,9 @@ pub async fn auth_player_login(
 
 	let auth_verification_data = match
 		auth::table
-			.inner_join(users::table.on(users::ulid.eq(auth::userid)))
+			.inner_join(users::table.on(auth::userid.eq(users::userid)))
 			.filter(auth::email.eq(clean_email))
-			.select((users::username, auth::email, users::ulid, auth::hash))
+			.select((users::username, auth::email, users::userid, auth::hash))
 			.first::<AuthVerificationSchema>(&mut conn)
 	{
 		Ok(data) => data,
@@ -534,7 +534,7 @@ pub async fn auth_jwt_profile(
 	let mut conn = spellbook_pool!(pool);
 	// Sanitize and validate the username, ULID, and email from the JWT token data
 	let clean_username = spellbook_username!(&privatedata.claims.username);
-	let clean_ulid_string = spellbook_ulid!(&privatedata.claims.ulid);
+	let clean_ulid_string = spellbook_ulid!(&privatedata.claims.userid);
 	let clean_email = spellbook_email!(&privatedata.claims.email);
 
 	let clean_ulid_bytes = match
@@ -553,8 +553,8 @@ pub async fn auth_jwt_profile(
 	// Attempt to retrieve the user and their profile from the database
 	match
 		users::table
-			.inner_join(profile::table.on(profile::userid.eq(users::ulid)))
-			.filter(users::ulid.eq(clean_ulid_bytes))
+			.inner_join(profile::table.on(profile::userid.eq(users::userid)))
+			.filter(users::userid.eq(clean_ulid_bytes))
 			.select((users::all_columns, profile::all_columns))
 			.first::<(User, Profile)>(&mut conn)
 	{
@@ -603,7 +603,7 @@ pub async fn auth_jwt_update_profile(
 	// Get a mutable connection from the pool
 	let mut conn = spellbook_pool!(pool);
 	// Sanitize and validate the ULID from the JWT token data
-	let clean_user_ulid_string = spellbook_ulid!(&privatedata.claims.ulid);
+	let clean_user_ulid_string = spellbook_ulid!(&privatedata.claims.userid);
 
 	// Sanitize the body data (presumably to prevent injection attacks and validate input)
 	body.sanitize();

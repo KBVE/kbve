@@ -14,7 +14,7 @@ macro_rules! spellbook_create_jwt {
         let jwt_token = encode(
             &Header::default(),
             &crate::runes::TokenRune {
-                ulid: $ulid.to_string(),
+                userid: $ulid.to_string(),
                 email: $email.to_string(),
                 username: $username.to_string(),
                 iat: now.timestamp() as usize,
