@@ -86,3 +86,18 @@ tags:
             The pipeline under `ci-beta.yml` can now be extended, going to add the alter right now.
 
             Going to go ahead and make the `deploy` branch for the pipeline and see that will work as planned.
+
+            After test casing the deployment via github actions of the beta branch, I believe we should also keep track of a timestamp inside of the `md` file that gets created.
+            This will help keep track of the shifts made via the pull request and the timestamp can be called directly through the file, without having to use the Github API.
+            To accomplish this, we would add this into the `pipeline_herbmail_wasm_build.sh` file
+
+                ```shell
+
+                    # Add Unix timestamp to the MDX file
+                    TIMESTAMP=$(date +%s)
+                    add_mdx_fields "timestamp" "$TIMESTAMP"
+
+                ```
+
+            This will make sure that we have a timestamp to keep track of the creation within the file itself.
+            We can also expand this in the future to include the pull request number, as a reference for the build.

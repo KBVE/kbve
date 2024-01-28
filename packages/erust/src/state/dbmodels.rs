@@ -7,26 +7,31 @@
 use chrono::NaiveDateTime;
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
 pub struct Apikey {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
     pub permissions: String,
     pub keyhash: String,
     pub label: String,
-    pub ulid: Vec<u8>,
-    pub userid: Vec<u8>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
 pub struct Appwrite {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
     pub appwrite_endpoint: String,
     pub appwrite_projectid: String,
     pub appwrite_api_key: String,
     pub version: String,
     pub created_at: NaiveDateTime,
-    pub ulid: Vec<u8>,
-    pub userid: Vec<u8>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
 pub struct Auth {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
     pub email: String,
     pub hash: String,
     pub salt: String,
@@ -40,8 +45,6 @@ pub struct Auth {
     pub lockout_until: NaiveDateTime,
     pub two_factor_secret: String,
     pub recovery_codes: String,
-    pub ulid: Vec<u8>,
-    pub userid: Vec<u8>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
@@ -53,41 +56,45 @@ pub struct Global {
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
 pub struct N8n {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
     pub webhook: String,
     pub permissions: String,
     pub keyhash: String,
     pub label: String,
-    pub ulid: Vec<u8>,
-    pub userid: Vec<u8>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
 pub struct Profile {
+    pub id: u64,
+    pub ulid: Vec<u8>,
     pub name: String,
     pub bio: String,
     pub unsplash: String,
     pub github: String,
     pub instagram: String,
     pub discord: String,
-    pub ulid: Vec<u8>,
     pub userid: Vec<u8>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
 pub struct Setting {
-    pub key: String,
-    pub value: String,
+    pub id: u64,
     pub ulid: Vec<u8>,
     pub userid: Vec<u8>,
+    pub key: String,
+    pub value: String,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
 pub struct User {
+    pub id: u64,
+    pub userid: Vec<u8>,
     pub username: String,
     pub role: i32,
     pub reputation: i32,
     pub exp: i32,
     pub created_at: NaiveDateTime,
-    pub ulid: Vec<u8>,
 }
 

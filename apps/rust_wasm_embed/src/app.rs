@@ -2,8 +2,6 @@ use erust::applicationstate::AppState;
 
 use log::{ info, warn };
 
-///	Egui Tile Edits by h0lybyte and Emilk for base example.
-
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Pane {
 	nr: usize,
@@ -148,8 +146,6 @@ impl egui_tiles::Behavior<Pane> for TreeBehavior {
 	}
 }
 
-///	TODO Migrate State to ERust States
-
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
 pub struct RustWasmEmbedApp {
@@ -190,35 +186,18 @@ impl RustWasmEmbedApp {
 }
 
 impl eframe::App for RustWasmEmbedApp {
-	/// Called by the frame work to save state before shutdown.
-
 	fn save(&mut self, storage: &mut dyn eframe::Storage) {
 		self.state.save(storage);
 	}
 
-	/// Called each time the UI needs repainting, which may be many times per second.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		// Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
-		// For inspiration and more examples, go to https://emilk.github.io/egui
-
-		// let url = "https://kbve.com/assets/img/curved-images/wave.jpg".to_string();
-		// self.state.start_image_loading(ctx, url);
-
 		if !self.state.is_image_loaded {
-			// Call load_image only once
-			//let base64_string = "";
-			//self.state.load_image(ctx, "https://rareicon.com/assets/images/nextjs-landing-page-banner.png");
-			//self.state.load_image_from_base64(ctx, base64_string);
-			// Mark the image as being loaded
 			self.state.is_image_loaded = true;
 		}
 
 		egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-			// The top panel is often a good place for a menu bar:
-
 			ui.add_space(8.0);
 			egui::menu::bar(ui, |ui| {
-				// NOTE: no File->Quit on web pages!
 				let is_web = cfg!(target_arch = "wasm32");
 				if !is_web {
 					ui.menu_button("File", |ui| {
@@ -228,7 +207,6 @@ impl eframe::App for RustWasmEmbedApp {
 					});
 				}
 				if erust::widgets::dark_mode_widget(ui, &mut self.state) {
-					// If state changed, save the updated state
 					if let Some(storage) = _frame.storage_mut() {
 						self.state.save(storage);
 					}
@@ -323,33 +301,7 @@ impl eframe::App for RustWasmEmbedApp {
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
-			// let size = ui.available_size();
-			// let rect = egui::Rect::from_min_size(ui.min_rect().min, size);
-
-			// if let Some(texture_handle) = self.state.image_texture.lock().unwrap().as_ref() {
-			//     // Paint the image directly onto the canvas as a background
-			//     ui.painter().rect_filled(rect, 0.0, egui::Color32::WHITE); // Background color (optional)
-			//     ui.painter().add(egui::Shape::image(
-			//         texture_handle.id(),
-			//         rect,
-			//         rect, // Use the same rect for UV to draw the whole image
-			//         egui::Color32::BLACK,
-			//     ));
-			// }
-
-			// let size = ui.available_size();
-			// let (_, painter) = ui.allocate_painter(size, egui::Sense::hover());
-
-			// if let Some(texture_handle) = self.state.image_texture.lock().unwrap().as_ref() {
-			//     let rect = egui::Rect::from_min_size(egui::pos2(0.0, 0.0), size);
-			//     painter.rect_filled(rect, 0.0, egui::Color32::WHITE); // Optional background color
-			//     painter.image(texture_handle.id(), rect, rect, egui::Color32::WHITE); // Draw the image
-			// }
-
-			//	Header for the Applications
 			ui.heading("eRust");
-
-			// The central panel the region left after adding TopPanel's and SidePanel's
 
 			ui.horizontal(|ui| {
 				ui.label("Write something: ");
@@ -459,24 +411,11 @@ fn create_tree() -> egui_tiles::Tree<Pane> {
 	let mut tiles = egui_tiles::Tiles::default();
 
 	let mut tabs = vec![];
-	let tab_tile = {
-		let children = (0..7).map(|_| tiles.insert_pane(gen_view())).collect();
-		tiles.insert_tab_tile(children)
-	};
-	tabs.push(tab_tile);
-	tabs.push({
-		let children = (0..7).map(|_| tiles.insert_pane(gen_view())).collect();
-		tiles.insert_horizontal_tile(children)
-	});
-	tabs.push({
-		let children = (0..7).map(|_| tiles.insert_pane(gen_view())).collect();
-		tiles.insert_vertical_tile(children)
-	});
+
 	tabs.push({
 		let cells = (0..12).map(|_| tiles.insert_pane(gen_view())).collect();
 		tiles.insert_grid_tile(cells)
 	});
-	tabs.push(tiles.insert_pane(gen_view()));
 
 	let root = tiles.insert_tab_tile(tabs);
 
