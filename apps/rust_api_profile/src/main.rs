@@ -12,7 +12,7 @@ use tokio;
 use kbve::{
 	db::{ self },
 	authentication::{ graceful },
-	utility::{ cors_service, fallback, global_map_init, health_check, speed_test, root_endpoint },
+	utility::{ cors_service, fallback, global_map_init, root_endpoint },
 	runes::{  GLOBAL, }
 };
 
@@ -35,8 +35,8 @@ async fn main() {
 	let corslight = cors_service();
 
 	let api_routes = Router::new()
-		.route("/health", get(health_check))
-		.route("/speed", get(speed_test))
+		.route("/health", get(kbve::routes::system_health_check))
+		.route("/speed", get(kbve::routes::system_database_speed_test))
 		.route(
 			"/graceful/profile",
 			get(kbve::authentication::graceful_jwt_profile).route_layer(

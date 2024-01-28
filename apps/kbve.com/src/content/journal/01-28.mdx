@@ -36,4 +36,47 @@ tags:
             Going back to the `kbve` package and `rust_wasm_embed`, I reset the `hcaptcha` key within the database and we are running into some verification issues.
 
             To help resolve this, I am going to pull the dev server replication from `5` units to `1` and see what the problem is when it comes to the verification, which is most likely something stupid hehe.
+
             
+            The goal right now would be to isolate the different functions of the package into their own files, then slowly extend out each one of them.
+            I want to do this slowly but I will skip the integration testing and stack tracing until the base of the refactor is done.
+
+        
+        #### Captcha
+
+            This was a pain to figure out because I could not tell if I was having errors from the HCaptcha service, itself, or if there was just something wrong with the docker network.
+            In the end, I was able to register my test account, which is enough to move forward with the rest of the refactor.
+
+            The current struct for HCaptcha looks like this:
+
+                ```rust
+                
+                    #[derive(Deserialize)]
+                    struct HCaptchaResponse {
+                        success: bool,
+                        challenge_ts: Option<String>, // Timestamp of the challenge
+                        hostname: Option<String>, // Hostname of the site
+                        credit: Option<bool>, // Deprecated field
+                        #[serde(rename = "error-codes")]
+                        error_codes: Option<Vec<String>>, // Error codes, if any
+                    }
+
+                ```
+
+                The `error_codes` or `error-codes` should pass through the json but I can come back to that at a later time.
+
+        #### Checks
+
+            The `health_check` and `speed_test` utility functions will be migrated into one route that we will call system diagnostics.
+            This route will contain all the information we would need to debug, examine and test the live instance.
+
+            In the integration test case, I am calling them like this:
+
+                ```rust
+                                
+                    .route("/health", get(kbve::routes::system_health_check))
+                    .route("/speed", get(kbve::routes::system_database_speed_test))
+
+                ```
+
+            Both of the routes are working fine without any issues at the local point, I will save the progress at this route.

@@ -1,9 +1,8 @@
 //      [hCaptcha]
 
-use reqwest::{ Client, Error as ReqwestError };
-use serde::{ Deserialize, Serialize };
+use reqwest::{ Client };
+use serde::{ Deserialize };
 use std::collections::HashMap;
-use std::fmt;
 
 // A struct to deserialize the hCaptcha response
 #[derive(Deserialize)]
