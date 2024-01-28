@@ -21,3 +21,9 @@ tags:
             The `kbve` package has a couple errors that needs to be addressed, which are mainly because the user table has `userid` now instead of `ulid` as a reference.
             
             Issue one would be under the `guild.rs` but now how should I refactor it? 
+
+            For now I am just updating the references to the `ulid` table as `userid`, since we want to make sure the column names match for the inner/left joins.
+
+            However during the `cargo test`, I noticed the holy crate was broken too, which means I need to go back and fix that as well xD!
+
+            The issue with the holy crate would be the observers.
