@@ -13,7 +13,7 @@
 
 KBVE is a collective that builds different programs, libraries, games and memes!
 This monorepo is the heart of all our applications, making it easier to manage and provides an experimental playground for pipelines.
-The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/) and database is provided by [PlanetScale](https://planetscale.com/)
+The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/)
 
 
 * * *

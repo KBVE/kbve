@@ -35,8 +35,8 @@ async fn main() {
 	let corslight = cors_service();
 
 	let api_routes = Router::new()
-		.route("/health", get(kbve::routes::system_health_check))
-		.route("/speed", get(kbve::routes::system_database_speed_test))
+		.route("/health", get(kbve::sys::system_health_check))
+		.route("/speed", get(kbve::sys::system_database_speed_test))
 		.route(
 			"/graceful/profile",
 			get(kbve::authentication::graceful_jwt_profile).route_layer(

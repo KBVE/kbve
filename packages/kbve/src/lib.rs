@@ -15,7 +15,8 @@ pub mod authentication;
 
 //  * [REFACTOR]
 pub mod utils;
-pub mod routes;
+pub mod sys;
+pub mod entity;
 
 pub use schema::*;
 pub use db::*;
@@ -28,4 +29,5 @@ pub use authentication::*;
 
 //  * [REFACTOR]
 pub use utils::*;
-pub use routes::*;
+pub use sys::*;
+pub use entity::*;
