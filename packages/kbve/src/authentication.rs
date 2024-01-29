@@ -91,7 +91,7 @@ pub async fn auth_player_register(
 	Json(mut body): Json<AuthPlayerRegisterSchema>
 ) -> impl IntoResponse {
 	// Captcha
-	match crate::utility::verify_captcha(&body.token).await {
+	match crate::utils::verify_token_via_hcaptcha(&body.token).await {
 		Ok(success) => {
 			if !success {
 				return (

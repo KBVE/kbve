@@ -13,6 +13,11 @@ pub mod runes;
 pub mod authentication;
 
 
+//  * [REFACTOR]
+pub mod utils;
+pub mod sys;
+pub mod entity;
+
 pub use schema::*;
 pub use db::*;
 pub use models::*;
@@ -21,3 +26,8 @@ pub use guild::*;
 pub use spellbook::*;
 pub use runes::*;
 pub use authentication::*;
+
+//  * [REFACTOR]
+pub use utils::*;
+pub use sys::*;
+pub use entity::*;
