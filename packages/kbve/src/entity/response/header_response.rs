@@ -5,7 +5,6 @@ use axum::{
     response::{IntoResponse, Response, Json},
 };
 
-use serde::{ Serialize, Deserialize };
 
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use time::Duration;
