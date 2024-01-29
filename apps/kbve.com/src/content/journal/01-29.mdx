@@ -53,3 +53,33 @@ tags:
             Taking a break from the entity creation and building out the sanitization!
             Starting with the regex, which I will place under the `sanitization_regex.rs` and then added extraction functions for each of them.
             
+            I ended up renaming the module to `regex_extractor.rs` and now I am going to expand around it for the time being.
+            One interesting test case was that I could migrate the ULID check into a regex, which should help with speed of verifying if its valid.
+            Before we were using a function like this:
+
+                ```rust
+
+                    pub fn validate_input_ulid(ulid_str: &str) -> Result<&str, &'static str> {
+    
+                        // ULID is usually 26 chars.
+                        if ulid_str.len() != 26 {
+                            return Err("ulid_invalid");
+                        }
+
+                        // Crockford's base32 set
+                        let base32_chars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+                        // Validate each character
+                        for c in ulid_str.chars() {
+                            if !base32_chars.contains(c) {
+                                return Err("Invalid character in ULID");
+                            }
+                        }
+
+                        // ULID is valid
+                        Ok(ulid_str)
+                        }
+
+                ```
+
+            However
