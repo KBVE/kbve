@@ -24,6 +24,7 @@ pub async fn verify_token_via_hcaptcha(
 	}
 
 	// Retrieve the secret key from GLOBAL Map
+	// TODO Migrate out the GLOBAL Map to AtomicCells ?!
 	let secret_key = match crate::runes::GLOBAL.get() {
 		Some(global_map) =>
 			match global_map.get("hcaptcha") {
