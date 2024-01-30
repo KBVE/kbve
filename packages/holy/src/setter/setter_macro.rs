@@ -1,18 +1,10 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-	parse_macro_input,
-	parse_quote,
 	DeriveInput,
 	Data,
 	Fields,
-	Visibility,
 	Field,
-	Attribute,
-	Lit,
-	Meta,
-	NestedMeta,
-	Ident,
 };
 
 use crate::utils::determine_visibility;
@@ -74,7 +66,7 @@ fn generate_setter(
 	let setter_vis = determine_visibility(vis, &field.attrs)?;
 
 	 // Check if the field has an observer and generate the notification logic
-	 let observer_check = if has_observer_attribute(field) {
+	 let _observer_check = if has_observer_attribute(field) {
         let observer_field_name = syn::Ident::new(&format!("{}_observers", field_name), field_name.span());
         quote! {
             if let Some(observer) = self.#observer_field_name.load() {

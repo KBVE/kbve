@@ -1,18 +1,9 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-	parse_macro_input,
-	parse_quote,
 	DeriveInput,
 	Data,
-	Fields,
-	Visibility,
 	Field,
-	Attribute,
-	Lit,
-	Meta,
-	NestedMeta,
-	Ident,
 };
 
 pub fn impl_observer_macro(ast: &DeriveInput) -> Result<TokenStream, syn::Error> {
