@@ -27,6 +27,10 @@ pub static SANITIZATION_ULID_REGEX: Lazy<Regex> = Lazy::new(||
 	Regex::new(r"(?i)^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$").unwrap()
 );
 
+pub static SANITIZATION_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
+	Regex::new(r"^[a-zA-Z0-9]{8,255}$").unwrap()
+});
+
 pub fn extract_email_from_regex(email: &str) -> Result<String, &'static str> {
 	if SANITIZATION_EMAIL_REGEX.is_match(email) {
 		Ok(email.to_string())
@@ -95,5 +99,15 @@ pub fn extract_ulid_from_regex(ulid_str: &str) -> Result<String, &'static str> {
 		Ok(ulid_str.to_string())
 	} else {
 		Err("Invalid ULID format")
+	}
+}
+
+pub fn extract_username_from_regex(
+	username_str: &str
+) -> Result<String, &'static str> {
+	if SANITIZATION_USERNAME_REGEX.is_match(username_str) {
+		Ok(username_str.to_string())
+	} else {
+		Err("Invalid Username format")
 	}
 }
