@@ -7,6 +7,7 @@ members = [
 	'packages/erust',
 	'apps/rust_wasm_embed',
 	'packages/holy',
+	'packages/jedi',
 ]
 
 [profile.release]

@@ -1,0 +1,39 @@
+---
+title: 'January: 30'
+category: Daily
+date: 2024-01-30
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 30th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+    -   6:05am  -   `Morning`
+
+        #### Morning
+        
+            The morning routine of getting up early is starting to get to me.
+            I am feeling a bit old when I get up xD
+
+    -   9:17am  -   `Rust`
+
+        #### Rust
+
+            Going to do some more early morning Rust coding, just trying to figure out the best way for me to handle the validation.
+            I been thinking about how I should handle the validator and maybe we might move it out of the `kbve` package and into its own package.
+
+            Now I need to come up with a name that we would use for this validation builder, yet I believe it should be in its own enity.
+            The idea of placing the validation builder into another package that we can call, hmm.
+
+            Okay! The package name that I have decided upon is `jedi` and I believe that will be the place holder for the validation and sanitization that we will be using.
+            This package will be shared between the `kbve` aka backend and the front end `erust`, so we have validation on both sides without having issues.
+            The `erust` will extend the `jedi` package's ValidationBuilder for its internal structs.
+    
+            Now I need to fix the pipelines and begin the publishing for the package.
+        
