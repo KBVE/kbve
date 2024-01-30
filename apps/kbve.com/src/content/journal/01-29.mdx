@@ -39,3 +39,67 @@ tags:
             Before doing the `Auth` module, I think it would make sense to build out the `entity` module.
             This will be extended in the future for multiplayer, users, economy and much more!
             The first one that I will add is the `generic_response.rs` under response, just to make sure that it works within the package.
+
+            Next concept within the Entity will be the `header_response.rs` which will handle the basic headers and include a generic cookie for now.
+
+            After pushing through the `header_response`, the next file within the response would be the `shield_response.rs`
+
+            This will extend the header response with a `x-kbve-shield`, moving away from using the `spellbook` approach and rather using the `impl`.
+
+    -   4:35pm  -   `Regex`
+
+        #### Regex
+
+            Taking a break from the entity creation and building out the sanitization!
+            Starting with the regex, which I will place under the `sanitization_regex.rs` and then added extraction functions for each of them.
+            
+            I ended up renaming the module to `regex_extractor.rs` and now I am going to expand around it for the time being.
+            One interesting test case was that I could migrate the ULID check into a regex, which should help with speed of verifying if its valid.
+            Before we were using a function like this:
+
+                ```rust
+
+                    pub fn validate_input_ulid(ulid_str: &str) -> Result<&str, &'static str> {
+    
+                        // ULID is usually 26 chars.
+                        if ulid_str.len() != 26 {
+                            return Err("ulid_invalid");
+                        }
+
+                        // Crockford's base32 set
+                        let base32_chars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+                        // Validate each character
+                        for c in ulid_str.chars() {
+                            if !base32_chars.contains(c) {
+                                return Err("Invalid character in ULID");
+                            }
+                        }
+
+                        // ULID is valid
+                        Ok(ulid_str)
+                        }
+
+                ```
+
+            The sanitization module is now just two core files, the `regex_extractor.rs` which will isolate the regex and provide helper extraction functions.
+            Then there is the `validator.rs`, which holds the new ValidationBuilder.
+
+            The way we would use this is:
+
+                ```rust
+
+                        let mut validator = ValidatorBuilder::<&str>::new()
+                            .password(); // Add password validation rule
+
+                        let input = "YourPassword123!"; // The input password to validate
+                        let result = validator.validate(&input); // Pass the input to the validate method
+
+                        match result {
+                            Ok(_) => println!("Password is valid."),
+                            Err(err) => println!("Validation failed: {}", err),
+                        }
+
+                ```
+
+            ^ That is the example for the password validation.
