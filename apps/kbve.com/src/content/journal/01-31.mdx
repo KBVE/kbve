@@ -12,6 +12,11 @@ tags:
 
 ## Notes
 
+    #### Tables
+
+        The table for view management should be simple enough to help keep track of valid views that are performed on the instance of what is being queried.
+        We could make it easier to help 
+
 ### 2024
 
     -   7:30am -   `Epoxy`
@@ -34,3 +39,22 @@ tags:
             As I am thinking it through, I could adjust the hierarchy for the objects within the JEDI library.
 
             Thus the question on my mind would be how would I setup the naming convention for the different objects.
+
+
+    -   3:45pm  -   `Builder'
+
+        #### Builder
+
+            Inside of the Jedi crate, I added the hybrid validator with async support as an optional rule.
+            This means we can move the validator that we have inside of the `kbve` package into the `jedi` package, thus making it easier to reference and maintain.
+            
+            We will also use the validator inside of the `erust` because that will help with the client-side sanitization, even though we have server-side sanitization.
+            One could argue that it would not make sense to have sanitization on both sides but I felt the need to do our best to keep a clean and secure environment, including for testing edge cases where we might not have full control over the backend, i.e a N8N function.
+
+            After the validator builder, I am going to start the Regex builder, ideally placing them into a DashMap to make it easier to access.
+            The dashmap would be a collection of LazyCells that would hold the regex instances.
+
+            I believe the file will be called `regexmap`, I will try to build a simple map for it and hopefully it should hold the generic regex patterns that we would need for our application.
+
+
+         
