@@ -50,7 +50,7 @@ impl RegexBuilder {
 
 	pub fn with_common_patterns(mut self) -> Self {
 		let common_patterns = vec![
-			("email", r"^\S+@\S+\.\S+$"),
+			("email", r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"),
 			("phone", r"^\+?[0-9]{10,15}$")
 		];
 
