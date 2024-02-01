@@ -1,0 +1,60 @@
+---
+title: 'January: 31'
+category: Daily
+date: 2024-01-31
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 31th of each year!
+tags:
+    - daily
+---
+
+## Notes
+
+    #### Tables
+
+        The table for view management should be simple enough to help keep track of valid views that are performed on the instance of what is being queried.
+        We could make it easier to help 
+
+### 2024
+
+    -   7:30am -   `Epoxy`
+
+        #### Epoxy
+
+            We are remodeling the storage room and the bathroom, at the same time!
+            For the storage room floor, we decided to layer it with an epoxy grey tone because the floor was getting old and dull.
+            I never realized how easy it has become to DIY home improvements, and honestly, tackling them in small steps has made it so much easier.
+            Cleaning out the storage room, I found my old airsoft collection, but it always feels good to organize your belongings, side note: I also found my nerf double barrel machine gun hehehe.
+            
+            The first layer was applied over night and now this morning, we are going to double check the corners and add a bit of a smaller layer in the corner / holes, just to get them even with the rest of the floor.
+
+
+    -   10:45am -   `SVG`
+
+        #### SVG
+
+            Decided to float around with the idea of SVG generator for some random projects.
+            As I am thinking it through, I could adjust the hierarchy for the objects within the JEDI library.
+
+            Thus the question on my mind would be how would I setup the naming convention for the different objects.
+
+
+    -   3:45pm  -   `Builder'
+
+        #### Builder
+
+            Inside of the Jedi crate, I added the hybrid validator with async support as an optional rule.
+            This means we can move the validator that we have inside of the `kbve` package into the `jedi` package, thus making it easier to reference and maintain.
+            
+            We will also use the validator inside of the `erust` because that will help with the client-side sanitization, even though we have server-side sanitization.
+            One could argue that it would not make sense to have sanitization on both sides but I felt the need to do our best to keep a clean and secure environment, including for testing edge cases where we might not have full control over the backend, i.e a N8N function.
+
+            After the validator builder, I am going to start the Regex builder, ideally placing them into a DashMap to make it easier to access.
+            The dashmap would be a collection of LazyCells that would hold the regex instances.
+
+            I believe the file will be called `regexmap`, I will try to build a simple map for it and hopefully it should hold the generic regex patterns that we would need for our application.
+
+
+         
