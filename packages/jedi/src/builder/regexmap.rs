@@ -61,4 +61,15 @@ impl RegexBuilder {
             Err(RegexBuilderError::PatternNotFound(name.to_string()))
         }
     }
+
+	pub fn bootup(&self) {
+        let patterns = vec![
+            ("email".to_string(), r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$".to_string()),
+            ("phone".to_string(), r"^\+?[0-9]{10,15}$".to_string()),
+        ];
+
+        for (name, pattern) in patterns {
+            self.add_pattern(&name, &pattern);
+        }
+    }
 }
