@@ -6,3 +6,10 @@ mod tests {
         assert_eq!(result, 4);
     }
 }
+
+
+pub mod builder;
+pub mod entity;
+
+pub use builder::*;
+pub use entity::*;
