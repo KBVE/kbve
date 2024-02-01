@@ -37,6 +37,7 @@ async fn main() {
 	let api_routes = Router::new()
 		.route("/health", get(kbve::sys::system_health_check))
 		.route("/svg", get(kbve::entity::svg_handler))
+		.route("/jedi", get(kbve::entity::jedi_controller))
 		.route("/speed", get(kbve::sys::system_database_speed_test))
 		.route(
 			"/graceful/profile",
