@@ -31,7 +31,9 @@ pub static SANITIZATION_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
 	Regex::new(r"^[a-zA-Z0-9]{8,255}$").unwrap()
 });
 
-
+pub static SANITIZATION_HEX_CODE_REGEX: Lazy<Regex> = Lazy::new(|| {
+	Regex::new(r"^#([a-fA-F0-9]{6})$").unwrap()
+});
 
 pub fn extract_email_from_regex(email: &str) -> Result<String, &'static str> {
 	if SANITIZATION_EMAIL_REGEX.is_match(email) {
@@ -112,4 +114,12 @@ pub fn extract_username_from_regex(
 	} else {
 		Err("Invalid Username format")
 	}
+}
+
+pub fn extract_hex_code_from_regex(
+	hex_code: &str
+) -> Result<String, &'static str> {
+	SANITIZATION_HEX_CODE_REGEX.captures(hex_code)
+		.and_then(|cap| cap.get(0).map(|match_| match_.as_str().to_string()))
+		.ok_or("Invalid hex code format")
 }
