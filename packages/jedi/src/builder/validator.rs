@@ -14,6 +14,7 @@ use crate::entity::regex::{
 	extract_discord_server_id_from_regex,
 	extract_ulid_from_regex,
 	extract_username_from_regex,
+	extract_hex_code_from_regex,
 	extract_markdown_standalone_href_link_from_regex,
 	extract_markdown_image_href_link_from_regex,
 };
@@ -231,6 +232,16 @@ impl ValidatorBuilder<String, String> {
 		});
 		self
 	}
+
+	pub fn hex(mut self) -> Self {
+        self.add_rule(|s: &String| {
+            extract_hex_code_from_regex(s)
+                .map(|_| ())
+                .map_err(|_| "Invalid hex code format".to_string())
+        });
+        self
+    }
+
 
 	pub fn markdown_standalone_href_link(mut self) -> Self {
 		self.add_rule(|s: &String| {
