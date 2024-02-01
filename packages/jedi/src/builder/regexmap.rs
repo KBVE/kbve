@@ -27,21 +27,13 @@ impl RegexBuilder {
 	pub fn add_pattern(
 		&mut self,
 		name: &str,
-		pattern: &str
+		pattern: &str,
 	) -> Result<&mut Self, RegexBuilderError> {
-		match Regex::new(pattern) {
-			Ok(compiled) => {
-				let lazy_compiled = Lazy::new(move || compiled);
-				self.patterns.insert(name.to_string(), lazy_compiled);
-				Ok(self)
-			}
-			Err(e) =>
-				Err(
-					RegexBuilderError::InvalidRegex(
-						format!("{}: {}", pattern, e)
-					)
-				),
-		}
+		let pattern = pattern.to_owned(); 
+		let lazy_compiled = Lazy::new(move || Regex::new(&pattern).expect("Invalid regex pattern"));
+		
+		self.patterns.insert(name.to_string(), lazy_compiled);
+		Ok(self)
 	}
 
 	pub fn remove_pattern(&mut self, name: &str) -> Option<LazyRegex> {
