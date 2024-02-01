@@ -35,6 +35,14 @@ pub static SANITIZATION_HEX_CODE_REGEX: Lazy<Regex> = Lazy::new(|| {
 	Regex::new(r"^#([a-fA-F0-9]{6})$").unwrap()
 });
 
+pub static SANITIZATION_MARKDOWN_STANDALONE_LINK_REGEX: Lazy<Regex> = Lazy::new(
+	|| { Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap() }
+);
+
+pub static SANITIZATION_MARKDOWN_IMAGE_LINK_REGEX: Lazy<Regex> = Lazy::new(|| {
+	Regex::new(r"\[\!\[([^\]]+)\]\(([^)]+)\)\]\(([^)]+)\)").unwrap()
+});
+
 pub fn extract_email_from_regex(email: &str) -> Result<String, &'static str> {
 	if SANITIZATION_EMAIL_REGEX.is_match(email) {
 		Ok(email.to_string())
@@ -122,4 +130,20 @@ pub fn extract_hex_code_from_regex(
 	SANITIZATION_HEX_CODE_REGEX.captures(hex_code)
 		.and_then(|cap| cap.get(0).map(|match_| match_.as_str().to_string()))
 		.ok_or("Invalid hex code format")
+}
+
+pub fn extract_markdown_standalone_href_link_from_regex(
+	markdown: &str
+) -> Result<String, &'static str> {
+	SANITIZATION_MARKDOWN_STANDALONE_LINK_REGEX.captures(markdown)
+		.and_then(|cap| cap.get(2).map(|match_| match_.as_str().to_string()))
+		.ok_or("Invalid Markdown standalone link format")
+}
+
+pub fn extract_markdown_image_href_link_from_regex(
+	markdown: &str
+) -> Result<String, &'static str> {
+	SANITIZATION_MARKDOWN_IMAGE_LINK_REGEX.captures(markdown)
+		.and_then(|cap| cap.get(3).map(|match_| match_.as_str().to_string()))
+		.ok_or("Invalid Markdown image link format")
 }

@@ -14,6 +14,8 @@ use crate::entity::regex::{
 	extract_discord_server_id_from_regex,
 	extract_ulid_from_regex,
 	extract_username_from_regex,
+	extract_markdown_standalone_href_link_from_regex,
+	extract_markdown_image_href_link_from_regex,
 };
 
 type ValidationResult<T> = Result<(), Vec<T>>;
@@ -117,7 +119,7 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send + Default, E: Send {
 		&mut self,
 		value: &mut T
 	) -> ValidationResult<E> {
-		
+
 		// for sanitizer in &self.sanitizers {
 		// 	sanitizer.sanitize(value);
 		// }
@@ -229,6 +231,26 @@ impl ValidatorBuilder<String, String> {
 		});
 		self
 	}
+
+	pub fn markdown_standalone_href_link(mut self) -> Self {
+		self.add_rule(|s: &String| {
+			extract_markdown_standalone_href_link_from_regex(s)
+				.map(|_| ())
+				.map_err(|_| "Invalid Markdown standalone HREF link format".to_string())
+		});
+		self
+	}
+
+	pub fn markdown_image_href_link(mut self) -> Self {
+		self.add_rule(|s: &String| {
+			extract_markdown_image_href_link_from_regex(s)
+				.map(|_| ())
+				.map_err(|_| "Invalid Markdown image HREF link format".to_string())
+		});
+		self
+	}
+	
+	
 }
 
 // impl<E> ValidatorBuilder<String, E> where E: Send {
