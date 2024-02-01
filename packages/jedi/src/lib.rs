@@ -9,4 +9,7 @@ mod tests {
 
 
 pub mod builder;
+pub mod entity;
+
 pub use builder::*;
+pub use entity::*;
