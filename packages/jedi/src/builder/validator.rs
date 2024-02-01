@@ -7,6 +7,17 @@ extern crate ammonia;
 
 use crate::builder::RegexBuilder;
 
+use crate::entity::regex::{
+	extract_email_from_regex,
+	extract_github_username_from_regex,
+	extract_instagram_username_from_regex,
+	extract_unsplash_photo_id_from_regex,
+	extract_discord_server_id_from_regex,
+	extract_ulid_from_regex,
+	extract_username_from_regex,
+};
+
+
 
 type ValidationResult<T> = Result<(), Vec<T>>;
 
