@@ -44,6 +44,7 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send + Default, E: Send {
 			sync_rules: Vec::new(),
 			async_rules: Vec::new(),
 			sanitizers: Vec::new(),
+			regex_builder: None,
 		}
 	}
 
