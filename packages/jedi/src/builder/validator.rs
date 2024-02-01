@@ -1,7 +1,30 @@
+use std::sync::Arc;
 use async_trait::async_trait;
 use std::future::Future;
 
+extern crate ammonia;
+
+
+use crate::builder::RegexBuilder;
+
+
 type ValidationResult<T> = Result<(), Vec<T>>;
+
+pub trait Sanitizer<T> {
+	fn sanitize(&self, input: &mut T);
+}
+
+pub trait RegexValidator {
+    fn validate_with_regex(&self, text: &str, pattern_name: &str) -> Result<(), String>;
+}
+
+pub struct HtmlSanitizer;
+
+impl Sanitizer<String> for HtmlSanitizer {
+	fn sanitize(&self, input: &mut String) {
+		*input = ammonia::clean(input);
+	}
+}
 
 #[async_trait]
 pub trait AsyncValidationRule<T, E>: Sync + Send {
@@ -11,13 +34,17 @@ pub trait AsyncValidationRule<T, E>: Sync + Send {
 pub struct ValidatorBuilder<T, E> {
 	sync_rules: Vec<Box<dyn Fn(&T) -> Result<(), E>>>,
 	async_rules: Vec<Box<dyn AsyncValidationRule<T, E>>>,
+	sanitizers: Vec<Box<dyn Sanitizer<T>>>,
+	regex_builder: Option<Arc<RegexBuilder>>,
 }
 
-impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send, E: Send {
+impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send + Default, E: Send {
 	pub fn new() -> Self {
 		ValidatorBuilder {
 			sync_rules: Vec::new(),
 			async_rules: Vec::new(),
+			sanitizers: Vec::new(),
+			regex_builder: None,
 		}
 	}
 
@@ -35,8 +62,17 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send, E: Send {
 		self
 	}
 
-	pub fn validate(&self, value: &T) -> ValidationResult<E> {
+	pub fn with_regex_builder(mut self, regex_builder: Arc<RegexBuilder>) -> Self {
+        self.regex_builder = Some(regex_builder);
+        self
+    }
+
+	pub fn validate(&mut self, value: &mut T) -> ValidationResult<E> {
 		let mut errors = Vec::new();
+
+		for sanitizer in &self.sanitizers {
+			sanitizer.sanitize(value);
+		}
 
 		for rule in &self.sync_rules {
 			if let Err(e) = rule(value) {
@@ -51,9 +87,15 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send, E: Send {
 		}
 	}
 
-	pub async fn async_validate(&self, value: &T) -> ValidationResult<E> {
+	pub async fn async_validate(
+		&mut self,
+		value: &mut T
+	) -> ValidationResult<E> {
+		for sanitizer in &self.sanitizers {
+			sanitizer.sanitize(value);
+		}
 
-        let sync_result = self.validate(value);
+		let sync_result = self.validate(value);
 
 		let mut errors = Vec::new();
 
@@ -73,6 +115,27 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send, E: Send {
 			Err(errors)
 		}
 	}
+}
+
+impl<E> ValidatorBuilder<String, E> where E: Send {
+	pub fn clean(&mut self) -> &mut Self {
+		let html_sanitizer: Box<dyn Sanitizer<String>> = Box::new(
+			HtmlSanitizer
+		);
+		self.sanitizers.push(html_sanitizer);
+		self
+	}
+}
+
+impl<T> RegexValidator for ValidatorBuilder<T, String> where T: AsRef<str> {
+    fn validate_with_regex(&self, text: &str, pattern_name: &str) -> Result<(), String> {
+        if let Some(ref regex_builder) = self.regex_builder {
+            regex_builder.validate(pattern_name, text)
+                .map_err(|_| format!("Text does not match the '{}' pattern", pattern_name))
+        } else {
+            Err("RegexBuilder is not configured".to_string())
+        }
+    }
 }
 
 #[async_trait]
