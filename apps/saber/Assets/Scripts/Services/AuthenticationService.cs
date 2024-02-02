@@ -1,40 +1,58 @@
-using UnityEngine;
 using System.Collections;
-using UnityEngine.Networking;
 using KBVE.Events.Network;
+using UnityEngine;
+using UnityEngine.Networking;
 
 public class AuthenticationService : MonoBehaviour, KBVE.Services.Services.ICleanable
 {
-    private readonly string loginUrl = "https://yourapi.com/login";
+  private UnityWebRequest currentRequest = null;
 
-    public void Login(string username, string password)
+  public void Login(string username, string password)
+  {
+    StartCoroutine(LoginCoroutine("https://rust.kbve.com/api/v1/login", username, password));
+  }
+
+  private IEnumerator LoginCoroutine(string url, string username, string password)
+  {
+    var loginData = new { username = username, password = password };
+
+    string jsonData = JsonUtility.ToJson(loginData);
+
+    currentRequest = new UnityWebRequest(url, "POST");
+    byte[] jsonToSend = new System.Text.UTF8Encoding().GetBytes(jsonData);
+    currentRequest.uploadHandler = new UploadHandlerRaw(jsonToSend);
+    currentRequest.downloadHandler = new DownloadHandlerBuffer();
+    currentRequest.SetRequestHeader("Content-Type", "application/json");
+
+    yield return currentRequest.SendWebRequest();
+
+    if (currentRequest.result == UnityWebRequest.Result.Success)
     {
-        StartCoroutine(LoginCoroutine(username, password));
+      string jwt = currentRequest.downloadHandler.text;
+      AuthenticationEvent.TriggerLoginSuccess(jwt);
+    }
+    else
+    {
+      AuthenticationEvent.TriggerLoginFailure(currentRequest.error);
     }
 
-    private IEnumerator LoginCoroutine(string username, string password)
+    currentRequest = null;
+  }
+
+  private void SetupRequest(string username, string password)
+  {
+    WWWForm form = new WWWForm();
+    form.AddField("username", username);
+    form.AddField("password", password);
+    currentRequest.uploadHandler = new UploadHandlerRaw(form.data);
+  }
+
+  public void Cleanup()
+  {
+    if (currentRequest != null)
     {
-        WWWForm form = new WWWForm();
-        form.AddField("username", username);
-        form.AddField("password", password);
-
-        using (UnityWebRequest webRequest = UnityWebRequest.Post(loginUrl, form))
-        {
-            yield return webRequest.SendWebRequest();
-
-            if (webRequest.result == UnityWebRequest.Result.Success)
-            {
-                string jwt = webRequest.downloadHandler.text;
-                AuthenticationEvent.TriggerLoginSuccess(jwt);
-            }
-            else
-            {
-                AuthenticationEvent.TriggerLoginFailure(webRequest.error);
-            }
-        }
+      currentRequest.Abort();
+      currentRequest = null;
     }
-
-    public void Cleanup()
-    {
-    }
+  }
 }
