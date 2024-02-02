@@ -5,11 +5,30 @@ using UnityEngine.Networking;
 
 public class AuthenticationService : MonoBehaviour, KBVE.Services.Services.ICleanable
 {
+  [System.Serializable]
+  public class LoginResponse
+  {
+    public Data data;
+    public Message message;
+  }
+
+  [System.Serializable]
+  public class Data
+  {
+    public string status;
+  }
+
+  [System.Serializable]
+  public class Message
+  {
+    public string token;
+  }
+
   private UnityWebRequest currentRequest = null;
 
   public void Login(string username, string password)
   {
-    StartCoroutine(LoginCoroutine("https://rust.kbve.com/api/v1/login", username, password));
+    StartCoroutine(LoginCoroutine("https://rust.kbve.com/api/v1/auth/login", username, password));
   }
 
   private IEnumerator LoginCoroutine(string url, string username, string password)
@@ -28,8 +47,24 @@ public class AuthenticationService : MonoBehaviour, KBVE.Services.Services.IClea
 
     if (currentRequest.result == UnityWebRequest.Result.Success)
     {
-      string jwt = currentRequest.downloadHandler.text;
-      AuthenticationEvent.TriggerLoginSuccess(jwt);
+      LoginResponse response = JsonUtility.FromJson<LoginResponse>(
+        currentRequest.downloadHandler.text
+      );
+
+      if (
+        response.data != null
+        && response.data.status == "complete"
+        && response.message != null
+        && !string.IsNullOrEmpty(response.message.token)
+      )
+      {
+        string jwt = response.message.token;
+        AuthenticationEvent.TriggerLoginSuccess(jwt);
+      }
+      else
+      {
+        AuthenticationEvent.TriggerLoginFailure("Unexpected response format or missing data.");
+      }
     }
     else
     {
