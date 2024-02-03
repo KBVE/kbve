@@ -124,7 +124,7 @@ public class ErrorMessage
         ErrorResponse errorResponse = JsonUtility.FromJson<ErrorResponse>(currentRequest.downloadHandler.text);
         if (errorResponse != null && errorResponse.message != null)
         {
-            //Debug.LogError($"Login Failed: {errorResponse.message.error}");
+            // Debug.LogError($"Login Failed: {errorResponse.message.error}");
             AuthenticationEvent.TriggerLoginFailure(errorResponse.message.error);
         }
         else
