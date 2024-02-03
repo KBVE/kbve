@@ -1,0 +1,38 @@
+---
+title: 'February: 03'
+category: Daily
+date: 2024-02-03
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 3rd for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+#### Namespace
+9:35am  -   `Namespace`
+The current flow for this weekend is to update the namespace of Saber and then prepare for a Steam release.
+	The Namespace package will be structured like this:
+		KBVE.Engine - For the core enigne
+		KBVE.Services - For the SOA
+		KBVE.ClientUI - UI/UX for the Client(s)
+		KBVE.Events - An event / action system
+One of the bigger issues with Unity and WebGL is that we are limited to just one thread, so I will have to make adjustments throughout the codebase to see how I can offload some of the gameplay to 3rd party applications. I am thinking that the Ship management should be done outside of the game client and on the website because it will be faster, easier and keep the build size small. 
+
+Now besides the base of the namespace, I know that I can always extend it out in future games, so that does help in the long term as well. Write Once and Use Everywhere!
+
+
+#### Pipeline
+The other day I was looking into setting up multiple instances of the monorepo and having a couple agents work on the various projects at the same time. Basically I would let them look through these notes and then have them formulate possible code changes via atomic patches. This is still a rough work in progress but I think it could be a solid test case for HerbMail / n8n integration, I like the idea and proof of concept to work together to produce something that can be at least helpful for my future self. It will always be interesting to see these notes in a year from now.
+
+Part of the pipeline test casing is with the NX Outpost but I think there will be room for it to grow even further. While I am currently test casing obby, I think it might be time to leave this application and look to replace it with something a bit more flexible and useful for our project(s).
+
+#### Unity
+
+After finishing up the basics of the login system, I believe the next move would be to setup the character builder that all the games will share across the multi-games. Going to build out the ProgressBar which will be broken down to a modular event or action within the namespace of KBVE. To do this, we will create the event handler for the Progressbar inside of the UXUI folder and then we will extend that out in the ClientUI namespace to handle the actual creation of the progress bar. I will use issue 620 to keep track of the [changes](https://github.com/KBVE/kbve/issues/620). 
+
