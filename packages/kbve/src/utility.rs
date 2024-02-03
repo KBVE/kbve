@@ -314,6 +314,7 @@ pub fn cors_service() -> CorsLayer {
 		"https://hoppscotch.io".parse::<HeaderValue>().unwrap(),
 		"http://localhost:3000".parse::<HeaderValue>().unwrap(),
 		"https://kbve.itch.io".parse::<HeaderValue>().unwrap(),
+		"https://html-classic.itch.zone".parse::<HeaderValue>().unwrap(),
 	];
 
 	CorsLayer::new()
