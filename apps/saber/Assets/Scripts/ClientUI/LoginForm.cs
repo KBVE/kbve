@@ -33,7 +33,7 @@ namespace KBVE.ClientUI
           statusMessage.text = "Login successful!";
           Debug.Log($"Login Succeeded with Token: {token}");
           // Handle successful login (e.g., navigate to the next scene)
-          KBVE.Events.SceneEvent.RequestSceneLoad("Scene1");
+          KBVE.Events.SceneEvent.RequestSingleSceneLoad("Scene1");
 
       }
 

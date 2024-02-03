@@ -7,7 +7,8 @@ namespace KBVE.Services
 {
   public interface ISceneLoaderService
   {
-    void LoadScene(string sceneName);
+    void LoadSceneSingle(string sceneName);
+    void LoadSceneAdditive(string sceneName);
   }
 
   public class SceneLoaderService : MonoBehaviour, ISceneLoaderService
@@ -27,16 +28,35 @@ namespace KBVE.Services
       }
     }
 
-    public void LoadScene(string sceneName)
+    private void OnEnable()
     {
-      StartCoroutine(LoadSceneAsync(sceneName));
+      // Subscribe to the OnSceneLoadRequested event when the GameObject is enabled
+      SceneEvent.OnSceneLoadRequested += LoadSceneAdditive;
+      SceneEvent.OnSingleSceneLoadRequested += LoadSceneSingle;
     }
 
-    private IEnumerator LoadSceneAsync(string sceneName)
+    private void OnDisable()
+    {
+      // Unsubscribe from the OnSceneLoadRequested event when the GameObject is disabled
+      SceneEvent.OnSceneLoadRequested -= LoadSceneAdditive;
+      SceneEvent.OnSingleSceneLoadRequested -= LoadSceneSingle;
+    }
+
+    public void LoadSceneAdditive(string sceneName)
+    {
+      StartCoroutine(LoadSceneAsync(sceneName, LoadSceneMode.Additive));
+    }
+
+    public void LoadSceneSingle(string sceneName)
+    {
+      Debug.Log($"Loading scene: {sceneName} (Single)");
+      StartCoroutine(LoadSceneAsync(sceneName, LoadSceneMode.Single));
+    }
+
+    private IEnumerator LoadSceneAsync(string sceneName, LoadSceneMode mode)
     {
       ProgressBarEvent.Show();
-
-      var asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+      var asyncLoad = SceneManager.LoadSceneAsync(sceneName, mode);
       asyncLoad.allowSceneActivation = false;
 
       while (!asyncLoad.isDone)
@@ -44,9 +64,9 @@ namespace KBVE.Services
         float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
         ProgressBarEvent.UpdateProgress(progress);
 
-        if (asyncLoad.progress >= 0.9f)
+        if (asyncLoad.progress >= 0.9f && !asyncLoad.allowSceneActivation)
         {
-          asyncLoad.allowSceneActivation = true;
+          asyncLoad.allowSceneActivation = true; // Allow scene activation
         }
 
         yield return null;

@@ -5,6 +5,10 @@ public class BootUp : MonoBehaviour
 {
   void Awake()
   {
+
+    //! Quick Patch - NEEDS TO BE REMOVED DURING OPTIMIZATION
+    DontDestroyOnLoad(gameObject);
+
     // Ensure the Services instance is ready or initialized
     var servicesInstance = Services.Instance;
 
