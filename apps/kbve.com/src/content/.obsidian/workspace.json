@@ -4,15 +4,19 @@
     "type": "split",
     "children": [
       {
-        "id": "14f035c6c02e74c4",
+        "id": "cbbc6374a0e2cd43",
         "type": "tabs",
         "children": [
           {
-            "id": "37bddc06af682c94",
+            "id": "ac487b4f15663f55",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "journal/02-03.mdx",
+                "mode": "source",
+                "source": false
+              }
             }
           }
         ]
@@ -65,7 +69,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "7076f3e6745f5bf1",
@@ -81,6 +86,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "journal/02-03.mdx",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -97,6 +103,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "journal/02-03.mdx",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -118,7 +125,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "journal/02-03.mdx"
+              }
             }
           }
         ]
@@ -139,8 +148,10 @@
       "edit-mdx:New .mdx file": false
     }
   },
-  "active": "a34a596e823c0da5",
+  "active": "ac487b4f15663f55",
   "lastOpenFiles": [
+    "journal/02-03.mdx",
+    "journal/02-02.mdx",
     "journal/12-22.mdx",
     "journal/04-22.mdx",
     "journal/04-21.mdx",
@@ -151,7 +162,6 @@
     "crypto/btc/btc.mdx",
     "journal",
     "_bin/_daily.md",
-    "_bin/_daily.mdx",
     "2023-12-22.md",
     "Untitled.canvas"
   ]
