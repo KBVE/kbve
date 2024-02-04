@@ -130,6 +130,19 @@ export const settings = mysqlTable('settings', {
 	};
 });
 
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	hp: int('hp').default(0).notNull(),
+	mp: int('mp').default(0).notNull(),
+	ep: int('ep').default(0).notNull(),
+	health: int('health').default(0).notNull(),
+	mana: int('mana').default(0).notNull(),
+	energy: int('energy').default(0).notNull()
+
+});
+
 /**
  *	TODO: Bank
  * 	!		-> IGBC - [H]clickup#200
