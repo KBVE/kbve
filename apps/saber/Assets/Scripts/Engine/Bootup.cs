@@ -19,5 +19,12 @@ public class BootUp : MonoBehaviour
     // Register SceneLoaderService
     var sceneLoaderService = gameObject.AddComponent<SceneLoaderService>();
     Services.Instance.RegisterService<ISceneLoaderService>(sceneLoaderService);
+
+    // Register UserDataService
+    var userDataService = gameObject.AddComponent<UserDataService>();
+    Services.Instance.RegisterService<IUserDataService>(userDataService);
+
+
+
   }
 }
