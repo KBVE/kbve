@@ -1,0 +1,43 @@
+---
+title: 'February: 04'
+category: Daily
+date: 2024-02-04
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 4th for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+
+### 2024
+
+#### Unity
+
+After storing the UserData's JWT, we need to pull the player stats and general location from previous save.
+The base of the character profile table currently would look like this:
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	
+});
+
+```
+
+Yet we need to expand the table to include not only the current stats but the original max stats.
+So we should keep the `hp` column for the max health and `mp` for the max mana.
+Then the `health` and `mana` would hold the current session's data within the game.
+Next would be energy, which needs two names as well for the column, hmm.
+`ep` will be the term for Energy points which is the max energy that they have, while `energy` is the current session for the energy.
+
+Side note: Within the Schema.rs, most of these will be transported to Integer, so we will not have to worry too much about it on the gRPC endpoint.
+
+The exp / reputation is currently held under the `users` table, yet I am thinking that we can have them seperated because there would be multiple characters.
+The guild would have its own exp/rep and each character then would have its own internal.
