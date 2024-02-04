@@ -41,3 +41,92 @@ Side note: Within the Schema.rs, most of these will be transported to Integer, s
 
 The exp / reputation is currently held under the `users` table, yet I am thinking that we can have them seperated because there would be multiple characters.
 The guild would have its own exp/rep and each character then would have its own internal.
+
+The current table would look like this:
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	hp: int('hp').default(0).notNull(),
+	mp: int('mp').default(0).notNull(),
+	ep: int('ep').default(0).notNull(),
+	health: int('health').default(0).notNull(),
+	mana: int('mana').default(0).notNull(),
+	energy: int('energy').default(0).notNull(),
+	armour: int('armour').default(0).notNull(),
+	agility: int('agility').default(0).notNull(),
+	strength: int('strength').default(0).notNull(),
+	intelligence: int('intelligence').default(0).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull()
+});
+
+```
+
+For status effects like being poisoned, stunned or getting a buff, we will most likely have to create a couple new tables.
+
+Example of the status table:
+
+```javascript
+
+export const status = mysqlTable('status', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(), // Adding ULID for the status type
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+});
+
+```
+
+This table would not change too often but it would help us keep track of the different types of status from a fundamental level?
+Hmm I will think it through, so then the `effects` table would be something similar to this:
+
+
+```javascript
+
+export const effects = mysqlTable('effects', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(), // ULID for each effect instance
+    cid: binary('cid', { length: 16 }).references(() => characters.cid).notNull(), // Reference to characters' ULID
+    statusUlid: binary('status_ulid', { length: 16 }).references(() => status.ulid).notNull(),
+    startTime: datetime('start_time').notNull(),
+    duration: int('duration').notNull(),
+    intensity: int('intensity').default(1).notNull(),
+});
+
+```
+
+Wait! Okay there was an issue that I just realized with referencing the characters, which is by placing the character under a ULID!
+Instead we should update the table to be a `cid` aka character id that is a ULID but keeping the column name the same will help with inner , left, right joins because they would not only share the same value but reference.
+
+So the final character table would be:
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	cid: binary('cid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	hp: int('hp').default(0).notNull(),
+	mp: int('mp').default(0).notNull(),
+	ep: int('ep').default(0).notNull(),
+	health: int('health').default(0).notNull(),
+	mana: int('mana').default(0).notNull(),
+	energy: int('energy').default(0).notNull(),
+	armour: int('armour').default(0).notNull(),
+	agility: int('agility').default(0).notNull(),
+	strength: int('strength').default(0).notNull(),
+	intelligence: int('intelligence').default(0).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+	experience: int('experience').default(0).notNull(),
+    reputation: int('reputation').default(0).notNull(),
+});
+
+```
+
+That will make the cid the unique character id for the game!
+Okay now we need to make some changes to the effects table to maintain a better structure for future inner joins.
