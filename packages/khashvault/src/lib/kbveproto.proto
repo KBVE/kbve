@@ -37,6 +37,26 @@ message Auth {
     string two_factor_secret = 15;
     string recovery_codes = 16;
 }
+message Character {
+    uint64 id = 1;
+    bytes cid = 2;
+    bytes userid = 3;
+    int64 hp = 4;
+    int64 mp = 5;
+    int64 ep = 6;
+    int64 health = 7;
+    int64 mana = 8;
+    int64 energy = 9;
+    int64 armour = 10;
+    int64 agility = 11;
+    int64 strength = 12;
+    int64 intelligence = 13;
+    string name = 14;
+    string description = 15;
+    int64 experience = 16;
+    int64 reputation = 17;
+    int64 faith = 18;
+}
 message Global {
     uint64 id = 1;
     string key = 2;
@@ -89,6 +109,9 @@ message EnquireAppwriteRequest {
 message EnquireAuthRequest {
     int64 id =1;
 }
+message EnquireCharacterRequest {
+    int64 id =1;
+}
 message EnquireGlobalRequest {
     int64 id =1;
 }
@@ -110,6 +133,7 @@ service MessageRpc {
     rpc getApikey (EnquireApikeyRequest) returns (Apikey) { }
     rpc getAppwrite (EnquireAppwriteRequest) returns (Appwrite) { }
     rpc getAuth (EnquireAuthRequest) returns (Auth) { }
+    rpc getCharacter (EnquireCharacterRequest) returns (Character) { }
     rpc getGlobal (EnquireGlobalRequest) returns (Global) { }
     rpc getN8n (EnquireN8nRequest) returns (N8n) { }
     rpc getProfile (EnquireProfileRequest) returns (Profile) { }

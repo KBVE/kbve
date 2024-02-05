@@ -148,6 +148,11 @@ export const characters = mysqlTable('characters', {
     description: varchar('description', { length: 255 }).notNull(),
 	experience: int('experience').default(0).notNull(),
     reputation: int('reputation').default(0).notNull(),
+	faith: int('faith').default(0).notNull()
+}, (table) => {
+	return {
+		name_idx: uniqueIndex("name_idx").on(table.name),
+	};
 });
 
 /**

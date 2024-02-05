@@ -11,6 +11,7 @@ interface IMessageRpcService extends grpc.ServiceDefinition<grpc.UntypedServiceI
     getApikey: IMessageRpcService_IgetApikey;
     getAppwrite: IMessageRpcService_IgetAppwrite;
     getAuth: IMessageRpcService_IgetAuth;
+    getCharacter: IMessageRpcService_IgetCharacter;
     getGlobal: IMessageRpcService_IgetGlobal;
     getN8n: IMessageRpcService_IgetN8n;
     getProfile: IMessageRpcService_IgetProfile;
@@ -44,6 +45,15 @@ interface IMessageRpcService_IgetAuth extends grpc.MethodDefinition<kbveproto_pb
     requestDeserialize: grpc.deserialize<kbveproto_pb.EnquireAuthRequest>;
     responseSerialize: grpc.serialize<kbveproto_pb.Auth>;
     responseDeserialize: grpc.deserialize<kbveproto_pb.Auth>;
+}
+interface IMessageRpcService_IgetCharacter extends grpc.MethodDefinition<kbveproto_pb.EnquireCharacterRequest, kbveproto_pb.Character> {
+    path: "/MessageRpc/getCharacter";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<kbveproto_pb.EnquireCharacterRequest>;
+    requestDeserialize: grpc.deserialize<kbveproto_pb.EnquireCharacterRequest>;
+    responseSerialize: grpc.serialize<kbveproto_pb.Character>;
+    responseDeserialize: grpc.deserialize<kbveproto_pb.Character>;
 }
 interface IMessageRpcService_IgetGlobal extends grpc.MethodDefinition<kbveproto_pb.EnquireGlobalRequest, kbveproto_pb.Global> {
     path: "/MessageRpc/getGlobal";
@@ -97,6 +107,7 @@ export interface IMessageRpcServer {
     getApikey: grpc.handleUnaryCall<kbveproto_pb.EnquireApikeyRequest, kbveproto_pb.Apikey>;
     getAppwrite: grpc.handleUnaryCall<kbveproto_pb.EnquireAppwriteRequest, kbveproto_pb.Appwrite>;
     getAuth: grpc.handleUnaryCall<kbveproto_pb.EnquireAuthRequest, kbveproto_pb.Auth>;
+    getCharacter: grpc.handleUnaryCall<kbveproto_pb.EnquireCharacterRequest, kbveproto_pb.Character>;
     getGlobal: grpc.handleUnaryCall<kbveproto_pb.EnquireGlobalRequest, kbveproto_pb.Global>;
     getN8n: grpc.handleUnaryCall<kbveproto_pb.EnquireN8nRequest, kbveproto_pb.N8n>;
     getProfile: grpc.handleUnaryCall<kbveproto_pb.EnquireProfileRequest, kbveproto_pb.Profile>;
@@ -114,6 +125,9 @@ export interface IMessageRpcClient {
     getAuth(request: kbveproto_pb.EnquireAuthRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Auth) => void): grpc.ClientUnaryCall;
     getAuth(request: kbveproto_pb.EnquireAuthRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Auth) => void): grpc.ClientUnaryCall;
     getAuth(request: kbveproto_pb.EnquireAuthRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Auth) => void): grpc.ClientUnaryCall;
+    getCharacter(request: kbveproto_pb.EnquireCharacterRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Character) => void): grpc.ClientUnaryCall;
+    getCharacter(request: kbveproto_pb.EnquireCharacterRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Character) => void): grpc.ClientUnaryCall;
+    getCharacter(request: kbveproto_pb.EnquireCharacterRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Character) => void): grpc.ClientUnaryCall;
     getGlobal(request: kbveproto_pb.EnquireGlobalRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
     getGlobal(request: kbveproto_pb.EnquireGlobalRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
     getGlobal(request: kbveproto_pb.EnquireGlobalRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
@@ -142,6 +156,9 @@ export class MessageRpcClient extends grpc.Client implements IMessageRpcClient {
     public getAuth(request: kbveproto_pb.EnquireAuthRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Auth) => void): grpc.ClientUnaryCall;
     public getAuth(request: kbveproto_pb.EnquireAuthRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Auth) => void): grpc.ClientUnaryCall;
     public getAuth(request: kbveproto_pb.EnquireAuthRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Auth) => void): grpc.ClientUnaryCall;
+    public getCharacter(request: kbveproto_pb.EnquireCharacterRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Character) => void): grpc.ClientUnaryCall;
+    public getCharacter(request: kbveproto_pb.EnquireCharacterRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Character) => void): grpc.ClientUnaryCall;
+    public getCharacter(request: kbveproto_pb.EnquireCharacterRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Character) => void): grpc.ClientUnaryCall;
     public getGlobal(request: kbveproto_pb.EnquireGlobalRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
     public getGlobal(request: kbveproto_pb.EnquireGlobalRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
     public getGlobal(request: kbveproto_pb.EnquireGlobalRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
