@@ -230,3 +230,53 @@ export const worlds = mysqlTable('worlds', {
 Some changes that we can make would be the `ulid` column and maybe expanding the columns to include some additional information about the world?
 
 So we can shift the ulid to `wid` , which would be a ulid but for the world id.
+
+That means changing the `ulid: binary('ulid', { length: 16 }).unique().notNull(),` to:
+
+`wid: binary('wid', { length: 16 }).unique().notNull(),`
+
+and then updating the metaphysical table with a direct reference.
+
+`wid: binary('wid', { length: 16 }).references(() => worlds.wid).notNull(),`
+
+The cleaned up version of the worlds would be then:
+
+```javascript
+
+export const worlds = mysqlTable('worlds', {
+    id: serial('id').primaryKey().notNull(),
+    wid: binary('wid', { length: 16 }).unique().notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    userid: binary('userid', { length: 16 }).notNull(),
+    description: varchar('description', { length: 255 }).notNul(),
+    dimensionality: int('dimensionality').default(3).notNull(),
+   });
+
+```
+
+We can ommit the `complexDimensions: json('complexDimensions').notNull()` for a later time period.
+
+Part of the reasoning for leaving the complex dimensions behind is because we need to test case the Unity build for Andorid / iOS via react native and see how far we can push the view screen.
+
+We could include a `planes` for the complex structure, which would be something like this:
+
+```javascript
+
+export const planes = mysqlTable('planes', {
+    id: serial('id').primaryKey().notNull(),
+    wid: binary('wid', { length: 16 }).references(() => worlds.wid).unique().notNull(),
+    hash: varchar('hash', { length: 255 }).notNull(),
+})
+
+```
+
+Then have hash be an indrect reference to an outside reference of the planes. 
+
+Like a crystal field theory, which is E = q1q2/r, base theory with extended d electron orbits.
+
+Okay I am getting a bit side tracked with the planes within a metaphysical world, might be time to take a break.
+
+Leaving the note off on Faith! It seems that I missed that one.
+
+Spaceballs and getting some sleep is the plan for the rest of the night!
+
