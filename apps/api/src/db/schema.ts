@@ -132,15 +132,22 @@ export const settings = mysqlTable('settings', {
 
 export const characters = mysqlTable('characters', {
 	id: serial('id').primaryKey().notNull(),
-	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	cid: binary('cid', { length: 16}).unique().notNull(),
 	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
 	hp: int('hp').default(0).notNull(),
 	mp: int('mp').default(0).notNull(),
 	ep: int('ep').default(0).notNull(),
 	health: int('health').default(0).notNull(),
 	mana: int('mana').default(0).notNull(),
-	energy: int('energy').default(0).notNull()
-
+	energy: int('energy').default(0).notNull(),
+	armour: int('armour').default(0).notNull(),
+	agility: int('agility').default(0).notNull(),
+	strength: int('strength').default(0).notNull(),
+	intelligence: int('intelligence').default(0).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+	experience: int('experience').default(0).notNull(),
+    reputation: int('reputation').default(0).notNull(),
 });
 
 /**
