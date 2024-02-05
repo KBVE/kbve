@@ -130,3 +130,103 @@ export const characters = mysqlTable('characters', {
 
 That will make the cid the unique character id for the game!
 Okay now we need to make some changes to the effects table to maintain a better structure for future inner joins.
+
+Updated the effects table, so this is a quick reference to it:
+
+```javascript
+
+export const effects = mysqlTable('effects', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(), // ULID for each effect instance
+    cid: binary('cid', { length: 16 }).references(() => characters.cid).notNull(), // Reference to characters' cid
+    status: binary('status', { length: 16 }).references(() => status.ulid).notNull(), // Reference to status.ulid
+    startTime: datetime('start_time').notNull(),
+    duration: int('duration').notNull(),
+    intensity: int('intensity').default(1).notNull(),
+});
+
+```
+
+After the status / effects, I should look into the skill and ability tree?
+I am thinking of following a structure that would be similar to WoW talents or DnD feats but I will keep doing research.
+Then there is equipment and inventory, but I will do that with credit and banking, so hmm, I suppose guild, achievements and customization?
+
+I could keep those empty for now and then expand upon them later on.
+
+Starting the new character off with 0 health means that it would trigger a death animation / death event from the start.
+I am wondering if that makes sense? Hmm, also I am not storing the position of the character directly under the Character table, but rather have a new table to handle that.
+
+If the character is in multiple games, there should be a way to keep track of the position without having overwrites, I am also thinking about this as I am writing.
+
+Okay. Option 1 would be just storing the x,y and z into the character table, but we already know from previous experience that this would be terrible for performance and also for the logical problem.
+
+Option 2 would be to create a metaphysical table that we could use to store the location relative to the game that the character is playing, thus having multiple locations saved based upon the game.
+
+Here is the base of the metaphysical table:
+
+```javascript
+
+export const metaphysical = mysqlTable('metaphysical', {
+    id: serial('id').primaryKey().notNull(),
+    cid: binary('cid', { length: 16 }).references(() => characters.cid).unique().notNull(),
+    posX: float('posX').notNull(),
+    posY: float('posY').notNull(),
+    posZ: float('posZ').notNull(),
+    transport: int('transport').default(0).notNull(), // 0 could represent 'on foot' or no transportation
+    // Additional fields for state or other dynamic character aspects can be added here
+});
+
+
+```
+
+Well, almost, lets just quickly adjust some of the variables a bit.
+In addition, we might want to make the cid an unqiue because there should be only one metaphysical row per character aka per cid.
+We will maintain a one-to-one relationship between the metaphysical and the character, just to be on the safe side for now.
+We also might want a ulid for the metaphysical table, just to be safe, when trying to move the data around multiple databases, it will help with the integrity.
+Here is the updated table below:
+
+```javascript
+
+export const metaphysical = mysqlTable('metaphysical', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(), 
+    cid: binary('cid', { length: 16 }).references(() => characters.cid).unique().notNull(),
+    posX: float('posX').notNull(),
+    posY: float('posY').notNull(),
+    posZ: float('posZ').notNull(),
+    transport: int('transport').default(0).notNull(),
+});
+
+```
+
+The `id` would be a serial primary key for performance, while the `uild` would be for data integrity amoung multiple databases.
+Next the `cid` would be a binary reference to the character data, and it should be an unique reference, thus a one-to-one instead of a one-to-many or many-to-one.
+The `pos` of X,Y,Z would be the position of the character within the metaphysical world.
+The transport being `0` would be fine for this instance.
+
+I believe we could also set the world and plane, but I need to double check my notes to make sure I do this part right.
+
+We do want the characters to be able to move between world and different planes of space, but getting the math and the data structure down can be a bit of a pain.
+
+Thinking that through, it might make sense to create another table before we do the metaphysical table, with that table being the one that handles the worlds.
+
+Considering that the worlds can have a set amount of planes, we might have to adjust for that as well within the world table.
+
+This is the current worlds table:
+
+```javascript
+
+export const worlds = mysqlTable('worlds', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    createdBy: varchar('createdBy', { length: 255 }).notNull(), // Could be 'player' or 'server'
+    creatorId: binary('creatorId', { length: 16 }), // Nullable, references the user ID if created by a player
+    description: varchar('description', { length: 255 }),
+   });
+
+```
+
+Some changes that we can make would be the `ulid` column and maybe expanding the columns to include some additional information about the world?
+
+So we can shift the ulid to `wid` , which would be a ulid but for the world id.
