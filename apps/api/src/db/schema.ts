@@ -144,10 +144,15 @@ export const characters = mysqlTable('characters', {
 	agility: int('agility').default(0).notNull(),
 	strength: int('strength').default(0).notNull(),
 	intelligence: int('intelligence').default(0).notNull(),
-    name: varchar('name', { length: 255 }).notNull(),
+    name: varchar('name', { length: 255 }).unique().notNull(),
     description: varchar('description', { length: 255 }).notNull(),
 	experience: int('experience').default(0).notNull(),
     reputation: int('reputation').default(0).notNull(),
+	faith: int('faith').default(0).notNull()
+}, (table) => {
+	return {
+		name_idx: uniqueIndex("name_idx").on(table.name),
+	};
 });
 
 /**
