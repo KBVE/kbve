@@ -159,6 +159,81 @@ export namespace Auth {
     }
 }
 
+export class Character extends jspb.Message { 
+    getId(): number;
+    setId(value: number): Character;
+    getCid(): Uint8Array | string;
+    getCid_asU8(): Uint8Array;
+    getCid_asB64(): string;
+    setCid(value: Uint8Array | string): Character;
+    getUserid(): Uint8Array | string;
+    getUserid_asU8(): Uint8Array;
+    getUserid_asB64(): string;
+    setUserid(value: Uint8Array | string): Character;
+    getHp(): number;
+    setHp(value: number): Character;
+    getMp(): number;
+    setMp(value: number): Character;
+    getEp(): number;
+    setEp(value: number): Character;
+    getHealth(): number;
+    setHealth(value: number): Character;
+    getMana(): number;
+    setMana(value: number): Character;
+    getEnergy(): number;
+    setEnergy(value: number): Character;
+    getArmour(): number;
+    setArmour(value: number): Character;
+    getAgility(): number;
+    setAgility(value: number): Character;
+    getStrength(): number;
+    setStrength(value: number): Character;
+    getIntelligence(): number;
+    setIntelligence(value: number): Character;
+    getName(): string;
+    setName(value: string): Character;
+    getDescription(): string;
+    setDescription(value: string): Character;
+    getExperience(): number;
+    setExperience(value: number): Character;
+    getReputation(): number;
+    setReputation(value: number): Character;
+    getFaith(): number;
+    setFaith(value: number): Character;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Character.AsObject;
+    static toObject(includeInstance: boolean, msg: Character): Character.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Character, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Character;
+    static deserializeBinaryFromReader(message: Character, reader: jspb.BinaryReader): Character;
+}
+
+export namespace Character {
+    export type AsObject = {
+        id: number,
+        cid: Uint8Array | string,
+        userid: Uint8Array | string,
+        hp: number,
+        mp: number,
+        ep: number,
+        health: number,
+        mana: number,
+        energy: number,
+        armour: number,
+        agility: number,
+        strength: number,
+        intelligence: number,
+        name: string,
+        description: string,
+        experience: number,
+        reputation: number,
+        faith: number,
+    }
+}
+
 export class Global extends jspb.Message { 
     getId(): number;
     setId(value: number): Global;
@@ -406,6 +481,26 @@ export class EnquireAuthRequest extends jspb.Message {
 }
 
 export namespace EnquireAuthRequest {
+    export type AsObject = {
+        id: number,
+    }
+}
+
+export class EnquireCharacterRequest extends jspb.Message { 
+    getId(): number;
+    setId(value: number): EnquireCharacterRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): EnquireCharacterRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: EnquireCharacterRequest): EnquireCharacterRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: EnquireCharacterRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): EnquireCharacterRequest;
+    static deserializeBinaryFromReader(message: EnquireCharacterRequest, reader: jspb.BinaryReader): EnquireCharacterRequest;
+}
+
+export namespace EnquireCharacterRequest {
     export type AsObject = {
         id: number,
     }

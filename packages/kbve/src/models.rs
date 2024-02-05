@@ -53,6 +53,29 @@ pub struct Auth {
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
+#[diesel(table_name = characters)]
+pub struct Character {
+    pub id: u64,
+    pub cid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub hp: i32,
+    pub mp: i32,
+    pub ep: i32,
+    pub health: i32,
+    pub mana: i32,
+    pub energy: i32,
+    pub armour: i32,
+    pub agility: i32,
+    pub strength: i32,
+    pub intelligence: i32,
+    pub name: String,
+    pub description: String,
+    pub experience: i32,
+    pub reputation: i32,
+    pub faith: i32,
+}
+
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = globals)]
 pub struct Global {
     pub id: u64,

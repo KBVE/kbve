@@ -66,3 +66,43 @@ Under the death timer, based upon the game, we can find ways to lower the exp an
 Okay! We should look at shipping the new table into production and building out the basics of the character table.
 
 In addition to building out the character, we should also include a character sheet that gets generated using the SVG concept that we were talking about earlier.
+
+Final Table for execution:
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	cid: binary('cid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	hp: int('hp').default(0).notNull(),
+	mp: int('mp').default(0).notNull(),
+	ep: int('ep').default(0).notNull(),
+	health: int('health').default(0).notNull(),
+	mana: int('mana').default(0).notNull(),
+	energy: int('energy').default(0).notNull(),
+	armour: int('armour').default(0).notNull(),
+	agility: int('agility').default(0).notNull(),
+	strength: int('strength').default(0).notNull(),
+	intelligence: int('intelligence').default(0).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+	experience: int('experience').default(0).notNull(),
+    reputation: int('reputation').default(0).notNull(),
+	faith: int('faith').default(0).notNull()
+}, (table) => {
+	return {
+		name_idx: uniqueIndex("name_idx").on(table.name),
+	};
+});
+
+```
+
+Going to run the command to generate the mysql table,
+
+`pnpm drizzle-kit generate:mysql`.
+
+Afterwards, going to deploy a `dev` branch inside of the database and add the table.
+
+Looks like everything worked out! We have the character table now inside of the database!
+

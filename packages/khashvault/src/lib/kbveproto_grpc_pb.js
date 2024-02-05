@@ -37,6 +37,17 @@ function deserialize_Auth(buffer_arg) {
   return kbveproto_pb.Auth.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_Character(arg) {
+  if (!(arg instanceof kbveproto_pb.Character)) {
+    throw new Error('Expected argument of type Character');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_Character(buffer_arg) {
+  return kbveproto_pb.Character.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_EnquireApikeyRequest(arg) {
   if (!(arg instanceof kbveproto_pb.EnquireApikeyRequest)) {
     throw new Error('Expected argument of type EnquireApikeyRequest');
@@ -68,6 +79,17 @@ function serialize_EnquireAuthRequest(arg) {
 
 function deserialize_EnquireAuthRequest(buffer_arg) {
   return kbveproto_pb.EnquireAuthRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_EnquireCharacterRequest(arg) {
+  if (!(arg instanceof kbveproto_pb.EnquireCharacterRequest)) {
+    throw new Error('Expected argument of type EnquireCharacterRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_EnquireCharacterRequest(buffer_arg) {
+  return kbveproto_pb.EnquireCharacterRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_EnquireGlobalRequest(arg) {
@@ -214,6 +236,17 @@ var MessageRpcService = exports.MessageRpcService = {
     requestDeserialize: deserialize_EnquireAuthRequest,
     responseSerialize: serialize_Auth,
     responseDeserialize: deserialize_Auth,
+  },
+  getCharacter: {
+    path: '/MessageRpc/getCharacter',
+    requestStream: false,
+    responseStream: false,
+    requestType: kbveproto_pb.EnquireCharacterRequest,
+    responseType: kbveproto_pb.Character,
+    requestSerialize: serialize_EnquireCharacterRequest,
+    requestDeserialize: deserialize_EnquireCharacterRequest,
+    responseSerialize: serialize_Character,
+    responseDeserialize: deserialize_Character,
   },
   getGlobal: {
     path: '/MessageRpc/getGlobal',
