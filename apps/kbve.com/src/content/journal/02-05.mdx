@@ -106,3 +106,12 @@ Afterwards, going to deploy a `dev` branch inside of the database and add the ta
 
 Looks like everything worked out! We have the character table now inside of the database!
 
+#### SVG
+
+After the work meeting and getting the basics out of the way, I decided to focus on the character sheet render and what an adventure.
+
+It seems that using multiple layers for the SVG would be the best option and trying to position them for a generic character sheet, ugh I might have to think it through.
+
+The current SVG is about 8.7MB, which is way too much for a simple sheet, thus I will have to scale it back down.
+New plan would be to isolate the images that we would want for the character sheet and then call them directly as we put the sheet together.
+Now I will shift gears and work on pulling the data out of the database and rendering the image, but before I do that, I need to push through the changes to the codebase.
