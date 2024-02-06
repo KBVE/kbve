@@ -53,7 +53,7 @@ pub async fn sheet_controller(Query(
             </linearGradient>
         </defs>
         <rect width=\"100%\" height=\"100%\" fill=\"url(#grad1)\" />
-        <rect x=\"1\" y=\"1\" width=\"1078\" height=\"1078\" fill=\"none\" stroke=\"pink\" stroke-width=\"5\"/>
+        <rect x=\"1\" y=\"1\" width=\"1078\" height=\"1078\" fill=\"none\" stroke=\"black\" stroke-width=\"2\"/>
         <text x=\"10\" y=\"30\" font-family=\"Verdana\" font-size=\"20\" fill=\"white\">{}</text>
         <image href=\"https://rawcdn.githack.com/KBVE/kbve/fd71bc73e739d29847ac9e99690445611d05c705/apps/kbve.com/public/assets/img/sheet/frame.png\" x=\"0\" y=\"0\" width=\"1080\" height=\"1080\"/>
         <!-- Add a grey box in the bottom left corner -->

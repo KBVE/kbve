@@ -13,12 +13,12 @@ use kbve::{
 	db::{ self },
 	authentication::{ graceful },
 	utility::{ cors_service, fallback, global_map_init, root_endpoint },
-	runes::{  GLOBAL, },
-	entity::{ KbveState }
+	runes::{ GLOBAL },
+	entity::{ KbveState },
+	session::{ middleware_jwt },
 };
 
 use jedi::builder::ValidatorBuilder;
-
 
 #[tokio::main]
 async fn main() {
@@ -32,7 +32,10 @@ async fn main() {
 	let shared_validator_builder = Arc::new(validator_builder);
 
 	// Create KbveState
-	let kbve_state = KbveState::new(shared_pool.clone(), shared_validator_builder);
+	let kbve_state = KbveState::new(
+		shared_pool.clone(),
+		shared_validator_builder
+	);
 
 	let application_state = Arc::new(kbve_state);
 
@@ -70,6 +73,16 @@ async fn main() {
 				middleware::from_fn_with_state(shared_pool.clone(), graceful)
 			)
 		)
+		//	! Character Creation
+		.route(
+			"/auth/character-creation",
+			post(kbve::entity::character_creation_handler).route_layer(
+				middleware::from_fn_with_state(
+					shared_pool.clone(),
+					middleware_jwt
+				)
+			)
+		)
 		.route(
 			"/shieldwall/:action",
 			get(kbve::authentication::shieldwall_action).route_layer(
@@ -78,11 +91,14 @@ async fn main() {
 		)
 
 		.route("/auth/logout", get(kbve::authentication::auth_logout))
-		.route("/auth/register", post(kbve::authentication::auth_player_register))
+		.route(
+			"/auth/register",
+			post(kbve::authentication::auth_player_register)
+		)
 		.route("/auth/login", post(kbve::authentication::auth_player_login))
 
 		.layer(Extension(shared_pool.clone()));
-		//.layer(Extension(api_session_store));
+	//.layer(Extension(api_session_store));
 
 	// ?	Future v2 -> Panda
 
@@ -93,9 +109,10 @@ async fn main() {
 		.nest("/api/v2", apipanda_routes)
 		.route("/", get(root_endpoint))
 		.layer(Extension(shared_pool.clone()))
+		.layer(Extension(application_state))
 		.layer(corslight)
-		.fallback(fallback)
-		.with_state(shared_pool);
+		.fallback(fallback);
+		//.with_state(shared_pool);
 
 	axum::Server
 		::bind(&"0.0.0.0:3000".parse().unwrap())
