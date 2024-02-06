@@ -65,6 +65,33 @@ diesel::table! {
 }
 
 diesel::table! {
+    characters (id) {
+        id -> Unsigned<Bigint>,
+        #[max_length = 16]
+        cid -> Binary,
+        #[max_length = 16]
+        userid -> Binary,
+        hp -> Integer,
+        mp -> Integer,
+        ep -> Integer,
+        health -> Integer,
+        mana -> Integer,
+        energy -> Integer,
+        armour -> Integer,
+        agility -> Integer,
+        strength -> Integer,
+        intelligence -> Integer,
+        #[max_length = 255]
+        name -> Varchar,
+        #[max_length = 255]
+        description -> Varchar,
+        experience -> Integer,
+        reputation -> Integer,
+        faith -> Integer,
+    }
+}
+
+diesel::table! {
     globals (id) {
         id -> Unsigned<Bigint>,
         #[max_length = 255]
@@ -146,6 +173,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     apikey,
     appwrite,
     auth,
+    characters,
     globals,
     n8n,
     profile,

@@ -1,0 +1,127 @@
+---
+title: 'February: 05'
+category: Daily
+date: 2024-02-05
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 5th for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+#### tables
+
+Doing more table work today! Finally going to extend out the faith column for the character table.
+I believe the faith system would provide an increase in lucy and a bonus amount of healing, there might be other ways that I can extend the trait.
+I know in Runescape that this skill is basically called Prayer, so I will try to reference some of that within this trait.
+We could call it fate but I think faith is more align to a trait that we would want in the character table.
+
+Current table as of 9:40am today.
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	cid: binary('cid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	hp: int('hp').default(0).notNull(),
+	mp: int('mp').default(0).notNull(),
+	ep: int('ep').default(0).notNull(),
+	health: int('health').default(0).notNull(),
+	mana: int('mana').default(0).notNull(),
+	energy: int('energy').default(0).notNull(),
+	armour: int('armour').default(0).notNull(),
+	agility: int('agility').default(0).notNull(),
+	strength: int('strength').default(0).notNull(),
+	intelligence: int('intelligence').default(0).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+	experience: int('experience').default(0).notNull(),
+    reputation: int('reputation').default(0).notNull(),
+    faith: int('faith').default(0).notNull(), 
+});
+
+
+```
+
+Adding faith with this line, as an int with default 0.
+`faith: int('faith').default(0).notNull(),`
+
+As for other attributes, we could include charisma, wisdom, luck, stamina, crafting, stealth, perception, ect...
+But I think we could heave those as enchantments or external attributes that could be dependant based upon the situation that they are in.
+
+Like luck can be part of faith, while wisdom can be part of intelligence and stealth can be a subset of agility.
+
+An increase in perception could be a combination of faith and intelligence?
+
+There are a couple ways we can cross reference the skills, plus we can create a new table that is falls under enchantments
+
+Under the death timer, based upon the game, we can find ways to lower the exp and reputation of the user by having them face different style of puzzles.
+
+Okay! We should look at shipping the new table into production and building out the basics of the character table.
+
+In addition to building out the character, we should also include a character sheet that gets generated using the SVG concept that we were talking about earlier.
+
+Final Table for execution:
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	cid: binary('cid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	hp: int('hp').default(0).notNull(),
+	mp: int('mp').default(0).notNull(),
+	ep: int('ep').default(0).notNull(),
+	health: int('health').default(0).notNull(),
+	mana: int('mana').default(0).notNull(),
+	energy: int('energy').default(0).notNull(),
+	armour: int('armour').default(0).notNull(),
+	agility: int('agility').default(0).notNull(),
+	strength: int('strength').default(0).notNull(),
+	intelligence: int('intelligence').default(0).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+	experience: int('experience').default(0).notNull(),
+    reputation: int('reputation').default(0).notNull(),
+	faith: int('faith').default(0).notNull()
+}, (table) => {
+	return {
+		name_idx: uniqueIndex("name_idx").on(table.name),
+	};
+});
+
+```
+
+Going to run the command to generate the mysql table,
+
+`pnpm drizzle-kit generate:mysql`.
+
+Afterwards, going to deploy a `dev` branch inside of the database and add the table.
+
+Looks like everything worked out! We have the character table now inside of the database!
+
+#### SVG
+
+After the work meeting and getting the basics out of the way, I decided to focus on the character sheet render and what an adventure.
+
+It seems that using multiple layers for the SVG would be the best option and trying to position them for a generic character sheet, ugh I might have to think it through.
+
+The current SVG is about 8.7MB, which is way too much for a simple sheet, thus I will have to scale it back down.
+New plan would be to isolate the images that we would want for the character sheet and then call them directly as we put the sheet together.
+Now I will shift gears and work on pulling the data out of the database and rendering the image, but before I do that, I need to push through the changes to the codebase.
+
+#### State
+
+Earlier in the `kbve` package, I started the new state that would hold the validator and the db pool, however to keep the rolling update concept going, I believe we will integrate this new state while keeping the older one.
+
+Slowly we will shift the couple routes that we have, register, login, ect... to the new state, but before I do that, I want to make sure that the new state will work as intended.
+
+There was the idea of also including the a channel system using crossbeam, but I will hold off on pushing through that update until I get some of the unity SOA out of the way.
+
+Okay! the new validator builder would come from the `jedi` crate, which means I would have to include that crate inside of the `rust_api_profile`, 
