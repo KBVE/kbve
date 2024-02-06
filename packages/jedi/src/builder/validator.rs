@@ -57,8 +57,13 @@ pub trait AsyncValidationRule<T, E>: Sync + Send {
 	async fn validate(&self, input: &T) -> Result<(), E>;
 }
 
+trait SyncValidationRule<T, E>: Sync + Send {
+    fn validate(&self, input: &T) -> Result<(), E>;
+}
+
 pub struct ValidatorBuilder<T, E> {
-	sync_rules: Vec<Box<dyn Fn(&T) -> Result<(), E>>>,
+	sync_rules: Vec<Box<dyn SyncValidationRule<T, E>>>,
+	//sync_rules: Vec<Box<dyn Fn(&T) -> Result<(), E>>>,
 	async_rules: Vec<Box<dyn AsyncValidationRule<T, E>>>,
 	// sanitizers: Vec<Box<dyn Sanitizer<T>>>,
 	regex_builder: Option<Arc<RegexBuilder>>,
@@ -75,7 +80,8 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send + Default, E: Send {
 	}
 
 	pub fn add_rule<F>(&mut self, rule: F) -> &mut Self
-		where F: 'static + Fn(&T) -> Result<(), E>
+	where
+		F: 'static + Fn(&T) -> Result<(), E> + Sync + Send,
 	{
 		self.sync_rules.push(Box::new(rule));
 		self
@@ -104,7 +110,7 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send + Default, E: Send {
 		// }
 
 		for rule in &self.sync_rules {
-			if let Err(e) = rule(value) {
+			if let Err(e) = rule.validate(value) {
 				errors.push(e);
 			}
 		}
@@ -290,6 +296,15 @@ impl<T> RegexValidator for ValidatorBuilder<T, String> where T: AsRef<str> {
 			Err("RegexBuilder is not configured".to_string())
 		}
 	}
+}
+
+impl<T, E, F> SyncValidationRule<T, E> for F
+where
+    F: Fn(&T) -> Result<(), E> + Sync + Send,
+{
+    fn validate(&self, input: &T) -> Result<(), E> {
+        self(input)
+    }
 }
 
 #[async_trait]

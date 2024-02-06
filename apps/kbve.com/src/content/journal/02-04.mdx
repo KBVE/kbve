@@ -1,0 +1,282 @@
+---
+title: 'February: 04'
+category: Daily
+date: 2024-02-04
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 4th for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+
+### 2024
+
+#### Unity
+
+After storing the UserData's JWT, we need to pull the player stats and general location from previous save.
+The base of the character profile table currently would look like this:
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	
+});
+
+```
+
+Yet we need to expand the table to include not only the current stats but the original max stats.
+So we should keep the `hp` column for the max health and `mp` for the max mana.
+Then the `health` and `mana` would hold the current session's data within the game.
+Next would be energy, which needs two names as well for the column, hmm.
+`ep` will be the term for Energy points which is the max energy that they have, while `energy` is the current session for the energy.
+
+Side note: Within the Schema.rs, most of these will be transported to Integer, so we will not have to worry too much about it on the gRPC endpoint.
+
+The exp / reputation is currently held under the `users` table, yet I am thinking that we can have them seperated because there would be multiple characters.
+The guild would have its own exp/rep and each character then would have its own internal.
+
+The current table would look like this:
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	hp: int('hp').default(0).notNull(),
+	mp: int('mp').default(0).notNull(),
+	ep: int('ep').default(0).notNull(),
+	health: int('health').default(0).notNull(),
+	mana: int('mana').default(0).notNull(),
+	energy: int('energy').default(0).notNull(),
+	armour: int('armour').default(0).notNull(),
+	agility: int('agility').default(0).notNull(),
+	strength: int('strength').default(0).notNull(),
+	intelligence: int('intelligence').default(0).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull()
+});
+
+```
+
+For status effects like being poisoned, stunned or getting a buff, we will most likely have to create a couple new tables.
+
+Example of the status table:
+
+```javascript
+
+export const status = mysqlTable('status', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(), // Adding ULID for the status type
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+});
+
+```
+
+This table would not change too often but it would help us keep track of the different types of status from a fundamental level?
+Hmm I will think it through, so then the `effects` table would be something similar to this:
+
+
+```javascript
+
+export const effects = mysqlTable('effects', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(), // ULID for each effect instance
+    cid: binary('cid', { length: 16 }).references(() => characters.cid).notNull(), // Reference to characters' ULID
+    statusUlid: binary('status_ulid', { length: 16 }).references(() => status.ulid).notNull(),
+    startTime: datetime('start_time').notNull(),
+    duration: int('duration').notNull(),
+    intensity: int('intensity').default(1).notNull(),
+});
+
+```
+
+Wait! Okay there was an issue that I just realized with referencing the characters, which is by placing the character under a ULID!
+Instead we should update the table to be a `cid` aka character id that is a ULID but keeping the column name the same will help with inner , left, right joins because they would not only share the same value but reference.
+
+So the final character table would be:
+
+```javascript
+
+export const characters = mysqlTable('characters', {
+	id: serial('id').primaryKey().notNull(),
+	cid: binary('cid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	hp: int('hp').default(0).notNull(),
+	mp: int('mp').default(0).notNull(),
+	ep: int('ep').default(0).notNull(),
+	health: int('health').default(0).notNull(),
+	mana: int('mana').default(0).notNull(),
+	energy: int('energy').default(0).notNull(),
+	armour: int('armour').default(0).notNull(),
+	agility: int('agility').default(0).notNull(),
+	strength: int('strength').default(0).notNull(),
+	intelligence: int('intelligence').default(0).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+	experience: int('experience').default(0).notNull(),
+    reputation: int('reputation').default(0).notNull(),
+});
+
+```
+
+That will make the cid the unique character id for the game!
+Okay now we need to make some changes to the effects table to maintain a better structure for future inner joins.
+
+Updated the effects table, so this is a quick reference to it:
+
+```javascript
+
+export const effects = mysqlTable('effects', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(), // ULID for each effect instance
+    cid: binary('cid', { length: 16 }).references(() => characters.cid).notNull(), // Reference to characters' cid
+    status: binary('status', { length: 16 }).references(() => status.ulid).notNull(), // Reference to status.ulid
+    startTime: datetime('start_time').notNull(),
+    duration: int('duration').notNull(),
+    intensity: int('intensity').default(1).notNull(),
+});
+
+```
+
+After the status / effects, I should look into the skill and ability tree?
+I am thinking of following a structure that would be similar to WoW talents or DnD feats but I will keep doing research.
+Then there is equipment and inventory, but I will do that with credit and banking, so hmm, I suppose guild, achievements and customization?
+
+I could keep those empty for now and then expand upon them later on.
+
+Starting the new character off with 0 health means that it would trigger a death animation / death event from the start.
+I am wondering if that makes sense? Hmm, also I am not storing the position of the character directly under the Character table, but rather have a new table to handle that.
+
+If the character is in multiple games, there should be a way to keep track of the position without having overwrites, I am also thinking about this as I am writing.
+
+Okay. Option 1 would be just storing the x,y and z into the character table, but we already know from previous experience that this would be terrible for performance and also for the logical problem.
+
+Option 2 would be to create a metaphysical table that we could use to store the location relative to the game that the character is playing, thus having multiple locations saved based upon the game.
+
+Here is the base of the metaphysical table:
+
+```javascript
+
+export const metaphysical = mysqlTable('metaphysical', {
+    id: serial('id').primaryKey().notNull(),
+    cid: binary('cid', { length: 16 }).references(() => characters.cid).unique().notNull(),
+    posX: float('posX').notNull(),
+    posY: float('posY').notNull(),
+    posZ: float('posZ').notNull(),
+    transport: int('transport').default(0).notNull(), // 0 could represent 'on foot' or no transportation
+    // Additional fields for state or other dynamic character aspects can be added here
+});
+
+
+```
+
+Well, almost, lets just quickly adjust some of the variables a bit.
+In addition, we might want to make the cid an unqiue because there should be only one metaphysical row per character aka per cid.
+We will maintain a one-to-one relationship between the metaphysical and the character, just to be on the safe side for now.
+We also might want a ulid for the metaphysical table, just to be safe, when trying to move the data around multiple databases, it will help with the integrity.
+Here is the updated table below:
+
+```javascript
+
+export const metaphysical = mysqlTable('metaphysical', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(), 
+    cid: binary('cid', { length: 16 }).references(() => characters.cid).unique().notNull(),
+    posX: float('posX').notNull(),
+    posY: float('posY').notNull(),
+    posZ: float('posZ').notNull(),
+    transport: int('transport').default(0).notNull(),
+});
+
+```
+
+The `id` would be a serial primary key for performance, while the `uild` would be for data integrity amoung multiple databases.
+Next the `cid` would be a binary reference to the character data, and it should be an unique reference, thus a one-to-one instead of a one-to-many or many-to-one.
+The `pos` of X,Y,Z would be the position of the character within the metaphysical world.
+The transport being `0` would be fine for this instance.
+
+I believe we could also set the world and plane, but I need to double check my notes to make sure I do this part right.
+
+We do want the characters to be able to move between world and different planes of space, but getting the math and the data structure down can be a bit of a pain.
+
+Thinking that through, it might make sense to create another table before we do the metaphysical table, with that table being the one that handles the worlds.
+
+Considering that the worlds can have a set amount of planes, we might have to adjust for that as well within the world table.
+
+This is the current worlds table:
+
+```javascript
+
+export const worlds = mysqlTable('worlds', {
+    id: serial('id').primaryKey().notNull(),
+    ulid: binary('ulid', { length: 16 }).unique().notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    createdBy: varchar('createdBy', { length: 255 }).notNull(), // Could be 'player' or 'server'
+    creatorId: binary('creatorId', { length: 16 }), // Nullable, references the user ID if created by a player
+    description: varchar('description', { length: 255 }),
+   });
+
+```
+
+Some changes that we can make would be the `ulid` column and maybe expanding the columns to include some additional information about the world?
+
+So we can shift the ulid to `wid` , which would be a ulid but for the world id.
+
+That means changing the `ulid: binary('ulid', { length: 16 }).unique().notNull(),` to:
+
+`wid: binary('wid', { length: 16 }).unique().notNull(),`
+
+and then updating the metaphysical table with a direct reference.
+
+`wid: binary('wid', { length: 16 }).references(() => worlds.wid).notNull(),`
+
+The cleaned up version of the worlds would be then:
+
+```javascript
+
+export const worlds = mysqlTable('worlds', {
+    id: serial('id').primaryKey().notNull(),
+    wid: binary('wid', { length: 16 }).unique().notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    userid: binary('userid', { length: 16 }).notNull(),
+    description: varchar('description', { length: 255 }).notNul(),
+    dimensionality: int('dimensionality').default(3).notNull(),
+   });
+
+```
+
+We can ommit the `complexDimensions: json('complexDimensions').notNull()` for a later time period.
+
+Part of the reasoning for leaving the complex dimensions behind is because we need to test case the Unity build for Andorid / iOS via react native and see how far we can push the view screen.
+
+We could include a `planes` for the complex structure, which would be something like this:
+
+```javascript
+
+export const planes = mysqlTable('planes', {
+    id: serial('id').primaryKey().notNull(),
+    wid: binary('wid', { length: 16 }).references(() => worlds.wid).unique().notNull(),
+    hash: varchar('hash', { length: 255 }).notNull(),
+})
+
+```
+
+Then have hash be an indrect reference to an outside reference of the planes. 
+
+Like a crystal field theory, which is E = q1q2/r, base theory with extended d electron orbits.
+
+Okay I am getting a bit side tracked with the planes within a metaphysical world, might be time to take a break.
+
+Leaving the note off on Faith! It seems that I missed that one.
+
+Spaceballs and getting some sleep is the plan for the rest of the night!
+
