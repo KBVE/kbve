@@ -3142,6 +3142,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "diesel",
+ "jedi 0.1.1",
  "kbve",
  "r2d2",
  "serde",

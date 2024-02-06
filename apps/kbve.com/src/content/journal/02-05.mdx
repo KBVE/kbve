@@ -115,3 +115,13 @@ It seems that using multiple layers for the SVG would be the best option and try
 The current SVG is about 8.7MB, which is way too much for a simple sheet, thus I will have to scale it back down.
 New plan would be to isolate the images that we would want for the character sheet and then call them directly as we put the sheet together.
 Now I will shift gears and work on pulling the data out of the database and rendering the image, but before I do that, I need to push through the changes to the codebase.
+
+#### State
+
+Earlier in the `kbve` package, I started the new state that would hold the validator and the db pool, however to keep the rolling update concept going, I believe we will integrate this new state while keeping the older one.
+
+Slowly we will shift the couple routes that we have, register, login, ect... to the new state, but before I do that, I want to make sure that the new state will work as intended.
+
+There was the idea of also including the a channel system using crossbeam, but I will hold off on pushing through that update until I get some of the unity SOA out of the way.
+
+Okay! the new validator builder would come from the `jedi` crate, which means I would have to include that crate inside of the `rust_api_profile`, 
