@@ -32,9 +32,9 @@ async fn main() {
 	let shared_validator_builder = Arc::new(validator_builder);
 
 	// Create KbveState
-	//	let kbve_state = KbveState::new(shared_pool.clone(), shared_validator_builder);
+	let kbve_state = KbveState::new(shared_pool.clone(), shared_validator_builder);
 
-	// let application_state = Arc::new(kbve_state);
+	let application_state = Arc::new(kbve_state);
 
 	match global_map_init(shared_pool.clone()).await {
 		Ok(map) => {
@@ -50,6 +50,7 @@ async fn main() {
 		.route("/health", get(kbve::sys::system_health_check))
 		.route("/svg", get(kbve::entity::svg_handler))
 		.route("/jedi", get(kbve::entity::jedi_controller))
+		.route("/sheet", get(kbve::entity::sheet_controller))
 		.route("/speed", get(kbve::sys::system_database_speed_test))
 		.route(
 			"/graceful/profile",
