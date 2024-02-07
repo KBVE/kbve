@@ -18,6 +18,7 @@ use crate::entity::regex::{
 	extract_hex_code_from_regex,
 	extract_markdown_standalone_href_link_from_regex,
 	extract_markdown_image_href_link_from_regex,
+	extract_general_input_from_regex,
 };
 
 type ValidationResult<T, E> = Result<T, Vec<E>>;
@@ -168,6 +169,15 @@ impl ValidatorBuilder<String, String> {
 		});
 		self
 	}
+
+    pub fn general_input(&mut self) -> &mut Self {
+        self.add_rule(|s: String| {
+            extract_general_input_from_regex(&s).map_err(|e| e.to_string())
+        });
+        self
+    }
+
+
 }
 
 impl<T, E, F> SyncValidationRule<T, E>
