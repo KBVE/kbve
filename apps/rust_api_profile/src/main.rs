@@ -53,7 +53,7 @@ async fn main() {
 		.route("/health", get(kbve::sys::system_health_check))
 		.route("/svg", get(kbve::entity::svg_handler))
 		.route("/jedi", get(kbve::entity::jedi_controller))
-		.route("/sheet", get(kbve::entity::sheet_controller))
+		.route("/sheet/:character", get(kbve::entity::sheet_controller))
 		.route("/speed", get(kbve::sys::system_database_speed_test))
 		.route(
 			"/graceful/profile",
