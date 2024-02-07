@@ -3,8 +3,8 @@ use crate::db::{ self };
 use std::sync::Arc;
 
 pub struct KbveState {
-	db_pool: Arc<db::Pool>,
-	validator_builder: Arc<ValidatorBuilder<String, String>>,
+	pub db_pool: Arc<db::Pool>,
+	pub validator_builder: Arc<ValidatorBuilder<String, String>>,
 }
 
 impl KbveState {
