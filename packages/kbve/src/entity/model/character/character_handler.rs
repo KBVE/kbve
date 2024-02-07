@@ -40,40 +40,30 @@ pub struct CharacterCreationRequest {
 	pub description: String,
 }
 
-pub async fn hazardous_boolean_character_name_slot_open(
+pub async fn hazardous_blocking_boolean_character_name_slot_open(
 	dirty_name: String,
 	pool: Arc<Pool>
 ) -> Result<bool, &'static str> {
-	let mut conn = spellbook_pool_conn!(pool);
+	let result = task
+		::spawn_blocking(move || {
+			let mut conn = spellbook_pool_conn!(pool);
 
-	match
-		characters::table
-			.filter(characters::name.eq(dirty_name))
-			.select(characters::cid)
-			.first::<Vec<u8>>(&mut conn)
-	{
-		Ok(_) => Ok(false),
-		Err(diesel::NotFound) => Ok(true),
-		Err(_) => Err("db_error"),
-	}
+			characters::table
+				.filter(characters::name.eq(dirty_name))
+				.select(characters::cid)
+				.first::<Vec<u8>>(&mut conn)
+				.map(|_| false)
+				.or_else(|err| {
+					match err {
+						diesel::result::Error::NotFound => Ok(true),
+						_ => Err("db_error"),
+					}
+				})
+		}).await
+		.expect("spawn_blocking failed");
+
+	result
 }
-
-// pub async fn character_viewer_from_name(
-// 	character_name: String,
-// 	pool: Arc<Pool>
-// ) -> Result<Character, &'static str> {
-
-// 	let mut conn = spellbook_pool_conn!(pool);
-
-//     match characters::table
-//         .filter(characters::name.eq(character_name))
-//         .first::<Character>(&mut conn)
-//     {
-//         Ok(character) => Ok(character),
-//         Err(diesel::result::Error::NotFound) => Err("Character was not found"),
-//         Err(_) => Err("Database Error"),
-//     }
-// }
 
 pub async fn hazardous_blocking_character_viewer_from_name(
 	character_name: String,
@@ -99,43 +89,46 @@ pub async fn hazardous_blocking_character_viewer_from_name(
 	result
 }
 
-pub async fn hazardous_create_character_from_user(
+pub async fn hazardous_blocking_create_character_from_user(
 	dirty_name: String,
 	dirty_description: String,
 	dirty_user_id: Vec<u8>,
 	pool: Arc<Pool>
 ) -> Result<bool, &'static str> {
-	let mut conn = spellbook_pool_conn!(pool);
+	let result = task
+		::spawn_blocking(move || {
+			let mut conn = spellbook_pool_conn!(pool);
 
-	let clean_cid = spellbook_generate_ulid_bytes!();
+			let clean_cid = spellbook_generate_ulid_bytes!();
 
-	match
-		insert_into(characters::table)
-			.values((
-				characters::id.eq(0),
-				characters::cid.eq(clean_cid),
-				characters::userid.eq(dirty_user_id),
-				characters::hp.eq(100),
-				characters::mp.eq(100),
-				characters::ep.eq(100),
-				characters::health.eq(100),
-				characters::mana.eq(100),
-				characters::energy.eq(100),
-				characters::armour.eq(1),
-				characters::agility.eq(1),
-				characters::strength.eq(1),
-				characters::intelligence.eq(1),
-				characters::name.eq(dirty_name),
-				characters::description.eq(dirty_description),
-				characters::experience.eq(0),
-				characters::reputation.eq(0),
-				characters::faith.eq(1),
-			))
-			.execute(&mut conn)
-	{
-		Ok(_) => Ok(true),
-		Err(_) => Err("Failed to insert chracter into database"),
-	}
+			insert_into(characters::table)
+				.values((
+					characters::id.eq(0),
+					characters::cid.eq(clean_cid),
+					characters::userid.eq(dirty_user_id),
+					characters::hp.eq(100),
+					characters::mp.eq(100),
+					characters::ep.eq(100),
+					characters::health.eq(100),
+					characters::mana.eq(100),
+					characters::energy.eq(100),
+					characters::armour.eq(1),
+					characters::agility.eq(1),
+					characters::strength.eq(1),
+					characters::intelligence.eq(1),
+					characters::name.eq(dirty_name),
+					characters::description.eq(dirty_description),
+					characters::experience.eq(0),
+					characters::reputation.eq(0),
+					characters::faith.eq(1),
+				))
+				.execute(&mut conn)
+				.map(|_| true)
+				.map_err(|_| "Failed to insert character into database")
+		}).await
+		.expect("spawn_blocking failed");
+
+	result
 }
 
 pub async fn character_creation_handler(
@@ -215,7 +208,7 @@ pub async fn character_creation_handler(
 	// TODO - Integrate the General Input Regex for the Description.
 
 	let is_slot_open = match
-		hazardous_boolean_character_name_slot_open(
+		hazardous_blocking_boolean_character_name_slot_open(
 			name.clone(),
 			state.db_pool.clone()
 		).await
@@ -258,7 +251,7 @@ pub async fn character_creation_handler(
 		}
 	};
 
-	let creation_result = hazardous_create_character_from_user(
+	let creation_result = hazardous_blocking_create_character_from_user(
 		name.clone(),
 		description.clone(),
 		byte_ulid,
