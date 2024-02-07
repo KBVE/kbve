@@ -134,7 +134,9 @@ pub async fn character_creation_handler(
 		}
 	};
 
-	//let user_id = &privatedata.claims.userid;
+	// let name = match validator_builder.clean()
+
+	//	let user_id = &privatedata.claims.userid;
 
 	// Under Claims privatedata.claims -> Grab UserID -> Prepare hazardous query!
 
@@ -143,7 +145,7 @@ pub async fn character_creation_handler(
 
 	let success_response = GenericResponse::new(
 		json!({"character_id": "some_character_id"}), // Example success data
-		json!(format!("Character {} created successfully", user_id)),
+		json!(format!("Character {} created successfully, Name: {}, Description {},", user_id, payload.name, payload.description)),
 		StatusCode::CREATED
 	);
 	success_response.into_response()
