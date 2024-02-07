@@ -45,3 +45,10 @@ One of the ideas was to show the character sheet's inventory but that would be a
 
 Besides the generic character creation via a cookie session, in some cases, we can not store the cookie and need a way to create the character using a JWT.
 Also need to add block control over the character creation.
+
+Okay, so spawn blocking is around all the diesel mysql operatings within the character creation!
+I also updated the validator, so that there would be a character limit in the general input, which we did at the regex level.
+Now the next option would be to double check the base operations around the sheet generation.
+I changed the query parameters to a path based, so that would be easier to unique generate character sheets, but I do need to finish adding more information onto the sheet, itself.
+
+I still have not yet tackled the JWT character creation, which means that I have to create a new function around that too, because the parameters might be different, hmm.

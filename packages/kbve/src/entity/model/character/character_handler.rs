@@ -40,6 +40,38 @@ pub struct CharacterCreationRequest {
 	pub description: String,
 }
 
+pub async fn hazardous_blocking_check_user_character_limit(
+    dirty_userid: Vec<u8>,
+    pool: Arc<Pool>,
+) -> Result<bool, &'static str> {
+    let result = task::spawn_blocking(move || {
+		let mut conn = spellbook_pool_conn!(pool);
+
+        // Count the number of characters for the given userid
+        let character_count = characters::table
+            .filter(characters::userid.eq(dirty_userid))
+            .count()
+            .get_result::<i64>(&mut conn);
+
+        match character_count {
+            Ok(count) => {
+                if count >= 3 {
+                    // If the user already has 3 or more characters, return an error
+                    Ok(false)
+                } else {
+                    // If the user has less than 3 characters, they can create more
+                    Ok(true)
+                }
+            },
+            Err(_) => Err("db_error"),
+        }
+    }).await.expect("spawn_blocking failed");
+
+    result
+}
+
+
+
 pub async fn hazardous_blocking_boolean_character_name_slot_open(
 	dirty_name: String,
 	pool: Arc<Pool>
@@ -252,10 +284,37 @@ pub async fn character_creation_handler(
 		}
 	};
 
+	let check_character_limit = hazardous_blocking_check_user_character_limit(
+		byte_ulid.clone(),
+		state.db_pool.clone()
+	).await;
+
+	match check_character_limit {
+		Ok(true) => {},
+		Ok(false) => {
+			let error_response = GenericResponse::error(
+				json!({}),
+				json!({"error": "Hard limit of 3 Characters per account"}),
+				"Hard limit of 3 Characters per account".to_string(),
+				StatusCode::INTERNAL_SERVER_ERROR
+			);
+			return error_response.into_response();
+		},
+		Err(e) => {
+			let error_response = GenericResponse::error(
+				json!({}),
+				json!("Failed to acquire database connection"),
+				e.to_string(),
+				StatusCode::INTERNAL_SERVER_ERROR
+			);
+			return error_response.into_response();
+		}
+	}
+
 	let creation_result = hazardous_blocking_create_character_from_user(
 		name.clone(),
 		description.clone(),
-		byte_ulid,
+		byte_ulid.clone(),
 		state.db_pool.clone()
 	).await;
 
