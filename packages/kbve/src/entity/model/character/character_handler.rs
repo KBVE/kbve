@@ -112,23 +112,31 @@ pub async fn character_creation_handler(
 		}
 	};
 
-	//	Establish validator
-	let validator_builder = Arc::clone(&state.validator_builder);
+	// Assuming `validator_builder` is the shared `Arc<ValidatorBuilder<...>>`
+	//let validator_builder = Arc::clone(&state.validator_builder);
 
-	// match validator_builder.clean_or_fail().ulid().validate(&mut privatedata.claims.userid) {
-	// 	Ok(_) => {},
-	// 	Err(validation_error) => {
-    //         let error_response = GenericResponse::error(
-    //             json!({}),
-	// 			json!({"error": "Validation failed", "details": validation_error}),
-	// 			validation_error.join(", "),
-	// 			StatusCode::BAD_REQUEST,
-    //         );
-    //         return error_response.into_response();
-	// 	}
-	// };
+	// Dereference the Arc and clone the ValidatorBuilder to get a mutable instance
+	//let mut validator_builder = (*validator_builder).clone();
 
-	let user_id = &privatedata.claims.userid;
+	let mut validator_builder = ValidatorBuilder::<String, String>::new();
+
+
+	let user_id = match validator_builder.clean_or_fail().ulid().validate(privatedata.claims.userid) {
+		Ok(user_id) => user_id,
+		Err(validation_error) => {
+            let error_response = GenericResponse::error(
+                json!({}),
+				json!({"error": "Validation failed", "details": validation_error}),
+				validation_error.join(", "),
+				StatusCode::BAD_REQUEST,
+            );
+            return error_response.into_response();
+		}
+	};
+
+	// let name = match validator_builder.clean()
+
+	//	let user_id = &privatedata.claims.userid;
 
 	// Under Claims privatedata.claims -> Grab UserID -> Prepare hazardous query!
 
@@ -137,7 +145,7 @@ pub async fn character_creation_handler(
 
 	let success_response = GenericResponse::new(
 		json!({"character_id": "some_character_id"}), // Example success data
-		json!(format!("Character {} created successfully", user_id)),
+		json!(format!("Character {} created successfully, Name: {}, Description {},", user_id, payload.name, payload.description)),
 		StatusCode::CREATED
 	);
 	success_response.into_response()
