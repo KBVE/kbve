@@ -44,7 +44,7 @@ pub static SANITIZATION_MARKDOWN_IMAGE_LINK_REGEX: Lazy<Regex> = Lazy::new(|| {
 });
 
 pub static SANITIZATION_GENERAL_INPUT_REGEX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^[a-zA-Z0-9 !.?]*$").unwrap()
+    Regex::new(r"^[a-zA-Z0-9 !.?]{1,255}$").unwrap()
 });
 
 pub fn extract_email_from_regex(email: &str) -> Result<String, &'static str> {
