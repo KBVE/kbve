@@ -191,6 +191,7 @@ pub async fn character_creation_handler(
 		ValidatorBuilder::<String, String>
 			::new()
 			.clean_or_fail()
+			.general_input()
 			.validate(payload.description)
 	{
 		Ok(description) => description,
