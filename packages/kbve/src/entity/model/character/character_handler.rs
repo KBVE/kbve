@@ -93,11 +93,11 @@ pub async fn hazardous_create_character_from_user(
 
 pub async fn character_creation_handler(
 	Extension(state): Extension<Arc<KbveState>>,
-	Extension(privatedata): Extension<TokenData<TokenJWT>>,
+	Extension(mut privatedata): Extension<TokenData<TokenJWT>>,
 	Json(payload): Json<CharacterCreationRequest>
 ) -> impl IntoResponse {
 
-	// Establish pool connection
+	//	Establish pool connection
 	let mut conn = match state.db_pool.get() {
 		Ok(conn) => conn,
 		Err(e) => {
@@ -112,9 +112,23 @@ pub async fn character_creation_handler(
 		}
 	};
 
-	// PrivateData -> After Middleware auth -> Get UserID from the TokenJWT , that will be a vec<u8> probably.
+	//	Establish validator
+	let validator_builder = Arc::clone(&state.validator_builder);
 
-	let validator_builder = &state.validator_builder;
+	// match validator_builder.clean_or_fail().ulid().validate(&mut privatedata.claims.userid) {
+	// 	Ok(_) => {},
+	// 	Err(validation_error) => {
+    //         let error_response = GenericResponse::error(
+    //             json!({}),
+	// 			json!({"error": "Validation failed", "details": validation_error}),
+	// 			validation_error.join(", "),
+	// 			StatusCode::BAD_REQUEST,
+    //         );
+    //         return error_response.into_response();
+	// 	}
+	// };
+
+	let user_id = &privatedata.claims.userid;
 
 	// Under Claims privatedata.claims -> Grab UserID -> Prepare hazardous query!
 
@@ -123,7 +137,7 @@ pub async fn character_creation_handler(
 
 	let success_response = GenericResponse::new(
 		json!({"character_id": "some_character_id"}), // Example success data
-		json!("Character created successfully?"),
+		json!(format!("Character {} created successfully", user_id)),
 		StatusCode::CREATED
 	);
 	success_response.into_response()

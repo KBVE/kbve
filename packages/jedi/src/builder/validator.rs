@@ -21,6 +21,7 @@ use crate::entity::regex::{
 
 type ValidationResult<T> = Result<(), Vec<T>>;
 
+
 pub trait RegexValidator {
 	fn validate_with_regex(
 		&self,
@@ -29,28 +30,6 @@ pub trait RegexValidator {
 	) -> Result<(), String>;
 }
 
-// pub trait Sanitizer<T, E> {
-// 	fn sanitize(&self, input: &mut T) -> Result<(), E>;
-// 	fn sanitize_or_error(&self, input: &mut T) -> Result<(), E>;
-// }
-
-// pub struct HtmlSanitizer;
-
-// impl Sanitizer<String, String> for HtmlSanitizer {
-// 	fn sanitize(&self, input: &mut String) -> Result<(), String> {
-// 		let original = input.clone();
-// 		*input = ammonia::clean(input);
-// 		if *input != original {
-// 			Err("Sanitization altered the input".to_string())
-// 		} else {
-// 			Ok(())
-// 		}
-// 	}
-
-// 	fn sanitize_or_error(&self, input: &mut String) -> Result<(), String> {
-// 		self.sanitize(input)
-// 	}
-// }
 
 #[async_trait]
 pub trait AsyncValidationRule<T, E>: Sync + Send {
@@ -63,9 +42,7 @@ trait SyncValidationRule<T, E>: Sync + Send {
 
 pub struct ValidatorBuilder<T, E> {
 	sync_rules: Vec<Box<dyn SyncValidationRule<T, E>>>,
-	//sync_rules: Vec<Box<dyn Fn(&T) -> Result<(), E>>>,
 	async_rules: Vec<Box<dyn AsyncValidationRule<T, E>>>,
-	// sanitizers: Vec<Box<dyn Sanitizer<T>>>,
 	regex_builder: Option<Arc<RegexBuilder>>,
 }
 
@@ -74,7 +51,6 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send + Default, E: Send {
 		ValidatorBuilder {
 			sync_rules: Vec::new(),
 			async_rules: Vec::new(),
-			// sanitizers: Vec::new(),
 			regex_builder: None,
 		}
 	}
@@ -105,9 +81,6 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send + Default, E: Send {
 	pub fn validate(&mut self, value: &mut T) -> ValidationResult<E> {
 		let mut errors = Vec::new();
 
-		// for sanitizer in &self.sanitizers {
-		// 	sanitizer.sanitize(value);
-		// }
 
 		for rule in &self.sync_rules {
 			if let Err(e) = rule.validate(value) {
@@ -127,9 +100,6 @@ impl<T, E> ValidatorBuilder<T, E> where T: Sync + Send + Default, E: Send {
 		value: &mut T
 	) -> ValidationResult<E> {
 
-		// for sanitizer in &self.sanitizers {
-		// 	sanitizer.sanitize(value);
-		// }
 
 		let sync_result = self.validate(value);
 
