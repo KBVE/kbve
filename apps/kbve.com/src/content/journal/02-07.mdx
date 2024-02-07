@@ -1,0 +1,32 @@
+---
+title: 'February: 07'
+category: Daily
+date: 2024-02-07
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 7th for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+#### git
+
+There was some gc and lock corruption with my git instance, which really wasted a ton of my time!
+
+The way that I resolved it was by running these commands below, as a reference for myself in the future, when my git objects get messed up again.
+
+```shell
+
+cd .git/refs/remotes/origin/
+rm patch-atomic-kbve-validator-fix-02-06-2024-1707281479
+git gc --prune=now
+
+```
+
+I did have to reset the branch via a hard reset too but lets just make sure everything is back to normal.
+Going to push this through and hope that there are no issues with the pipeline.
