@@ -140,7 +140,7 @@ pub async fn sheet_controller(
         </text>
         
         <!-- Nam because gud musik, minus the ptsd, but the lsd -->
-        <text x="340" y="658" font-family="Verdana" font-size="12" fill="white">X Line 12 yjq</text>
+        <text x="340" y="658" font-family="Verdana" font-size="12" fill="white">{character_description}</text>
         <text x="340" y="683" font-family="Verdana" font-size="12" fill="white">X Line 13 yjq</text>
         <text x="340" y="708" font-family="Verdana" font-size="12" fill="white">X Line 14 yjq</text>
         <text x="10" y="1075" font-family="Verdana" font-size="12" fill="white">Open Ads</text>
@@ -173,7 +173,10 @@ pub async fn sheet_controller(
 			"{character_experience}",
 			&character_data.experience.to_string()
 		)
-		.replace("{character_faith}", &character_data.faith.to_string());
+		.replace("{character_faith}", &character_data.faith.to_string())
+        .replace("{character_description}", &character_data.description)
+        
+        ;
 
 	let svg_body = Body::from(svg_data);
 
