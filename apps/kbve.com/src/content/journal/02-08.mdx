@@ -64,4 +64,47 @@ public void SetReputation(int reputation)
 They are extremely basic right now, I will implement a get/set constructor later on to wrap around them.
 I will push this out as a patch and then go back and create a new `APIRequestService` to help handle some of the interactions! I know that I am basically going to have to rebuild and rewrite this again with the Steam package, but this is part of that learning experience.
 
+#### API
+
+The next shift will be to integrate the character list into the game, so that the player can pick the character that they would want to play on! Part of this game dynamic would be that the main account remains on the spaceship / guild ship as the captain and these characters would be part of the crew that they send down for the different missions. I am still working out the gameplay, but I figured that I would pivot and evolve it throughout my journey as a meme developer.
+
+Let me start with creating the base of the APIRequestService! We already did the login system earlier and we can rewrite that as its own / new system. I was thinking it would make sense to keep them split because later on, I could implement a couple different shifts to the actual login system to include captchas or additional security measures. 
+
+The base of the script would look like this:
+```c#
+
+using System;
+using System.Collections;
+using UnityEngine;
+using UnityEngine.Networking;
+
+namespace KBVE.Services
+{
+   public class APIRequestService : MonoBehaviour
+    {
+    } 
+}
+```
+
+I am keeping this in the notes as a base of reference for future services, the template is pretty straightforward but just incase I forget. It is a pain switching from different languages here and there.
+
+To maintain a single source of truth, the JWT will come from the UserData service, so we will add this function:
+
+```c#
+    private string GetJwtToken()
+    {
+      var userDataService = Services.Instance.GetService<IUserDataService>();
+      return userDataService?.GetToken();
+    }
+
+```
+
+This part is important because we want to maintain that single source of truth integrity. We also do not want to store the JWT outside of the Unity aka inside of a javascript method, because it should safe inside of the WASM, whereas if its inside of the JS, there could be additional security issues that we would have to account for! The leaking of the JWT is rough but with a single source of truth, that should make it easier to maintain a decent level of security.
+
+On a side note, for handling the websockets, we will probably not use this exact JWT but rather a unique session style, to at least keep the integrity from both server and client side. 
+
+
+
+
+
 
