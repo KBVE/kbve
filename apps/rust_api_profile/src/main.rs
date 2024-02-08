@@ -83,6 +83,16 @@ async fn main() {
 				)
 			)
 		)
+		//	! Character List
+		.route(
+			"/auth/characters",
+			get(kbve::entity::authorized_character_data_to_json).route_layer(
+				middleware::from_fn_with_state(
+					shared_pool.clone(),
+					middleware_jwt
+				)
+			)
+		)
 		.route(
 			"/shieldwall/:action",
 			get(kbve::authentication::shieldwall_action).route_layer(
@@ -112,7 +122,7 @@ async fn main() {
 		.layer(Extension(application_state))
 		.layer(corslight)
 		.fallback(fallback);
-		//.with_state(shared_pool);
+	//.with_state(shared_pool);
 
 	axum::Server
 		::bind(&"0.0.0.0:3000".parse().unwrap())
