@@ -103,6 +103,15 @@ This part is important because we want to maintain that single source of truth i
 
 On a side note, for handling the websockets, we will probably not use this exact JWT but rather a unique session style, to at least keep the integrity from both server and client side. 
 
+After building out the base of the APIRequestService, I am going to test that service against the character loadout scene. One of the downsides with this game is that there is a definitely way too much going on in the file structure, so I might have to wipe it clean when I do the RentEarth build and have a more uniform and clean version of the codebase. There are so many files, event systems and player scripts, it does get a bit confusing when I am calling the different ones here and there, but that is part of the thinking process, I suppose. 
+
+Now the new scene that I created is called `CharacterSelection`, ugh wait, `CharacterScene` and that will be after the login is successful and we will create a new script called CharacterSelection.cs, which will pull the character data from the API and provide the characters as an option to play. I will keep this very basic from the start and will go back to add improvements as I build it out.
+But wait, what is the game called? I am still thinking of just calling it RentEarth and moving past the name of the game because I do not really care what to call this meme project. I think it is far more important to get a functional game out into the world that people can play.
+
+Since we created the new service, APIRequestService, we need to go ahead and register that inside of the BootUp script for our game engine. It will live in here until we have a universal game framework / manager that can handle all of service instances on our behalf.
+
+
+
 
 
 
