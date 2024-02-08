@@ -1,0 +1,67 @@
+---
+title: "February: 08"
+category: Daily
+date: 2024-02-08
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 8th for each year!
+tags:
+  - daily
+---
+
+## Notes
+
+### 2024
+
+#### Unity
+
+Going to expand out the custom unity framework's UserDataServices!
+Since we are going with an extremely modular approach, with atomic changes, I will try to keep everything isolated as possible.
+The last update to the UserDataService, the constructor was only keeping track of email, jwt, level and experience, which we are going to change up a bit.
+We are going to drop the level as a field and replace it with reputation, hmm, I am going to also switch the experience from float to int.
+
+Under the `Scripts/Services/UserDataService.cs` , the public interface of IUserDataService can be extended to include these three functions:
+```c#
+
+    void SetCharacterName(string characterName);
+    void SetReputation(int level);
+    void SetExperience(int experience);
+    
+```
+
+And then we will go ahead and create these functions, to help set them with these functions:
+
+```c#
+ 
+public void SetCharacterName(string characterName)
+    {
+      if (_userData != null)
+      {
+        _userData.CharacterName = characterName;
+      }
+    }
+
+public void SetReputation(int reputation)
+    {
+      if (_userData != null)
+      {
+        _userData.Reputation = reputation;
+
+      }
+    }
+
+ public void SetExperience(int experience)
+    {
+      if (_userData != null)
+      {
+        _userData.Experience = experience;
+      }
+
+    }
+```
+
+They are extremely basic right now, I will implement a get/set constructor later on to wrap around them.
+I will push this out as a patch and then go back and create a new `APIRequestService` to help handle some of the interactions! I know that I am basically going to have to rebuild and rewrite this again with the Steam package, but this is part of that learning experience.
+
+

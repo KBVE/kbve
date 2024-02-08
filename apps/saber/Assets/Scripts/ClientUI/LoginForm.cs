@@ -1,9 +1,8 @@
+using KBVE.Events.Network;
 using KBVE.Services;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using KBVE.Events.Network;
-
 
 namespace KBVE.ClientUI
 {
@@ -14,42 +13,55 @@ namespace KBVE.ClientUI
     public Button loginButton;
     public TMP_Text statusMessage;
 
+    private IUserDataService _userDataService;
     private IAuthenticationService _authService;
 
     private void OnEnable()
-      {
-          AuthenticationEvent.OnLoginSuccess += HandleLoginSuccess;
-          AuthenticationEvent.OnLoginFailure += HandleLoginFailure;
-      }
+    {
+      AuthenticationEvent.OnLoginSuccess += HandleLoginSuccess;
+      AuthenticationEvent.OnLoginFailure += HandleLoginFailure;
+    }
 
-      private void OnDisable()
-      {
-          AuthenticationEvent.OnLoginSuccess -= HandleLoginSuccess;
-          AuthenticationEvent.OnLoginFailure -= HandleLoginFailure;
-      }
+    private void OnDisable()
+    {
+      AuthenticationEvent.OnLoginSuccess -= HandleLoginSuccess;
+      AuthenticationEvent.OnLoginFailure -= HandleLoginFailure;
+    }
 
-      private void HandleLoginSuccess(string token)
-      {
-          statusMessage.text = "Login successful!";
-          Debug.Log($"Login Succeeded with Token: {token}");
-          // Handle successful login (e.g., navigate to the next scene)
-          KBVE.Events.SceneEvent.RequestSingleSceneLoad("Scene1");
+    private void HandleLoginSuccess(string token)
+    {
+      statusMessage.text = "Login successful!";
+      Debug.Log($"Login Succeeded with Token: {token}");
+      // Handle successful login (e.g., navigate to the next scene)
 
-      }
+      statusMessage.text = "Configuring User Profile";
 
-      private void HandleLoginFailure(string error)
+      // Construct UserData
+      UserData userData = new UserData
       {
-            if (error == "invalid_password")
-            {
-                statusMessage.text = "Password failed!";
-            }
-            else
-            {
-                statusMessage.text = "Login failed. Please try again.";
-            }
-          Debug.Log($"Login Failed with Error: {error}");
-          // Handle login failure (e.g., show error message to the user)
+          Email = emailField.text
+      };
+
+      _userDataService.SetUserData(userData);
+
+      _userDataService.SetToken(token);
+
+      KBVE.Events.SceneEvent.RequestSingleSceneLoad("Scene1");
+    }
+
+    private void HandleLoginFailure(string error)
+    {
+      if (error == "invalid_password")
+      {
+        statusMessage.text = "Password failed!";
       }
+      else
+      {
+        statusMessage.text = "Login failed. Please try again.";
+      }
+      Debug.Log($"Login Failed with Error: {error}");
+      // Handle login failure (e.g., show error message to the user)
+    }
 
     private void Start()
     {
@@ -57,11 +69,17 @@ namespace KBVE.ClientUI
       if (_authService == null)
       {
         Debug.LogError("Failed to retrieve AuthenticationService.");
+        return;
       }
-      else
+
+      _userDataService = Services.Services.Instance.GetService<IUserDataService>();
+      if (_userDataService == null)
       {
-        loginButton.onClick.AddListener(OnLoginClicked);
+        Debug.LogError("Failed to retrieve UserDataService.");
+        return;
       }
+
+      loginButton.onClick.AddListener(OnLoginClicked);
     }
 
     private void OnLoginClicked()
@@ -69,7 +87,7 @@ namespace KBVE.ClientUI
       Debug.Log("Login button clicked.");
       if (_authService != null)
       {
-         statusMessage.text = "Attempting to log in...";
+        statusMessage.text = "Attempting to log in...";
         _authService.Login(emailField.text, passwordField.text);
       }
       else
@@ -77,6 +95,5 @@ namespace KBVE.ClientUI
         Debug.LogError("Authentication service not found.");
       }
     }
-
   }
 }

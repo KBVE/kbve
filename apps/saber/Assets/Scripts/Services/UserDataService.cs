@@ -7,8 +7,8 @@ namespace KBVE.Services
   {
     public string Email;
     public string CharacterName;
-    public int Level;
-    public float Experience;
+    public int Reputation;
+    public int Experience;
   }
 
   public interface IUserDataService
@@ -17,6 +17,11 @@ namespace KBVE.Services
     UserData GetUserData();
     void SetToken(string jwt);
     string GetToken();
+
+    //  02-08-2024
+    void SetCharacterName(string characterName);
+    void SetReputation(int level);
+    void SetExperience(int experience);
   }
 
   public class UserDataService : MonoBehaviour, IUserDataService
@@ -57,6 +62,30 @@ namespace KBVE.Services
     public string GetToken()
     {
       return _jwt;
+    }
+
+    public void SetCharacterName(string characterName)
+    {
+      if (_userData != null)
+      {
+        _userData.CharacterName = characterName;
+      }
+    }
+
+    public void SetReputation(int reputation)
+    {
+      if (_userData != null)
+      {
+        _userData.Reputation = reputation;
+      }
+    }
+
+    public void SetExperience(int experience)
+    {
+      if (_userData != null)
+      {
+        _userData.Experience = experience;
+      }
     }
   }
 }
