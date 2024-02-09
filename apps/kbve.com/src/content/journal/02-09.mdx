@@ -1,0 +1,56 @@
+---
+title: "February: 09"
+category: Daily
+date: 2024-02-09
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 9th for each year!
+tags:
+  - daily
+---
+
+## Notes
+
+### 2024
+
+#### Character
+
+Within the unity game, aka rentearth, I need to figure out a way to manage the characters.
+I am thinking of at least building out the basic and generic placeholders for those actions?
+After I get those placeholders done, I can always go back and fix them up to be more accurate to the user experience and interface.
+So we can throw out the color schemes, effects, sounds, ect.. for the time being and just focus on the general flow of these actions.
+
+The first action would be to create a new character, afterwards we need to build a function that would handle the loading and displaying of the characters.
+I will try to avoid doing the character deleting until the end, we want to make sure that there are a decent number of saftey nets in place to avoid having the character deleted by accident.
+
+Actually I think we should move the character deleting to the website, this should be something that involves extra steps, just to make sure that the player does not accidentally mess it up.
+
+The current error that I am running into is this:
+
+```txt
+
+MissingComponentException: There is no 'RectTransform' attached to the "CharacterButton(Clone)" game object, but a script is trying to access it.
+You probably need to add a RectTransform to the game object "CharacterButton(Clone)". Or your script needs to check if the component is attached before using it.
+
+```
+
+It seems that the object does not have a RectTransform attached, going to check the prefab.
+
+Ugh now I am getting this error!
+
+```txt
+
+Prefab mismatch: The instance of type Transform in the scene is referencing a corresponding source object of type RectTransform in the Prefab.
+Fixing by replacing Transform with RectTransform. Some references might be lost.
+
+```
+
+I hate having to use a GUI to make buttons, it feels so counter productive for my brain.
+The error was because the prefab was loaded under the MainCamera
+
+Oh man, I had to work through a decent amount of UI/UX errors, but I am getting a better understanding of how the UI system works!
+This was another case of me not understanding some of the RectTransform and the general depths of customization that can be done, but its part of the learning system.
+
+I should try to build the error system to be a bit more standard, however that might have to be done during the v3 of the API, since I am still building out the different aspects.
+

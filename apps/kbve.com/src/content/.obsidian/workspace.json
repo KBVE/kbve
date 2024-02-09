@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "journal/02-03.mdx",
+                "file": "journal/02-08.mdx",
                 "mode": "source",
                 "source": false
               }
@@ -69,8 +69,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200,
-    "collapsed": true
+    "width": 200
   },
   "right": {
     "id": "7076f3e6745f5bf1",
@@ -86,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "journal/02-03.mdx",
+                "file": "journal/02-08.mdx",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "journal/02-03.mdx",
+                "file": "journal/02-08.mdx",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -126,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "journal/02-03.mdx"
+                "file": "journal/02-08.mdx"
               }
             }
           }
@@ -150,6 +149,8 @@
   },
   "active": "ac487b4f15663f55",
   "lastOpenFiles": [
+    "journal/02-07.mdx",
+    "journal/02-08.mdx",
     "journal/02-03.mdx",
     "journal/02-02.mdx",
     "journal/12-22.mdx",
@@ -159,8 +160,6 @@
     "journal/04-19.mdx",
     "journal/04-17.mdx",
     "journal/04-18.mdx",
-    "crypto/btc/btc.mdx",
-    "journal",
     "_bin/_daily.md",
     "2023-12-22.md",
     "Untitled.canvas"
