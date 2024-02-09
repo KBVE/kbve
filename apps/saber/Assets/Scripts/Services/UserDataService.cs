@@ -1,14 +1,56 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace KBVE.Services
 {
-  [System.Serializable]
+  [Serializable]
   public class UserData
   {
     public string Email;
-    public string CharacterName;
+    public string CaptainName;
     public int Reputation;
     public int Experience;
+    public List<Character> Characters = new List<Character>();
+  }
+
+  [Serializable]
+  public class CharacterResponse
+  {
+    public CharacterData data;
+    public string message;
+    public string status;
+    public int status_code;
+  }
+
+  [Serializable]
+  public class CharacterData
+  {
+    public List<Character> characters;
+  }
+
+  [Serializable]
+  public class Character
+  {
+    public int agility;
+    public int armour;
+    public List<int> cid; // CID as List<int> to ULID
+    public string description;
+    public int energy;
+    public int ep; // Assuming energy points
+    public int experience;
+    public int faith;
+    public int health;
+    public int hp; // Assuming hit points
+    public int id;
+    public int intelligence;
+    public int mana;
+    public int mp; // Assuming mana points
+    public string name;
+    public int reputation;
+    public int strength;
+    public List<int> userid; // UserID as List<int> to ULID
   }
 
   public interface IUserDataService
@@ -19,9 +61,13 @@ namespace KBVE.Services
     string GetToken();
 
     //  02-08-2024
-    void SetCharacterName(string characterName);
+    void SetCaptainName(string captainName);
     void SetReputation(int level);
     void SetExperience(int experience);
+
+    //  02-08-2024 CONT.
+    void UpdateCharacterData(List<Character> characters);
+    List<Character> ListCharacters();
   }
 
   public class UserDataService : MonoBehaviour, IUserDataService
@@ -64,11 +110,11 @@ namespace KBVE.Services
       return _jwt;
     }
 
-    public void SetCharacterName(string characterName)
+    public void SetCaptainName(string captainName)
     {
       if (_userData != null)
       {
-        _userData.CharacterName = characterName;
+        _userData.CaptainName = captainName;
       }
     }
 
@@ -87,5 +133,24 @@ namespace KBVE.Services
         _userData.Experience = experience;
       }
     }
+
+    public void UpdateCharacterData(List<Character> characters)
+    {
+      if (_userData != null)
+      {
+        _userData.Characters = characters;
+      }
+    }
+
+    public List<Character> ListCharacters()
+    {
+        if (_userData != null && _userData.Characters != null)
+        {
+            return _userData.Characters;
+        }
+        return new List<Character>(); // Return an empty list if no characters are available
+    }
+
+
   }
 }

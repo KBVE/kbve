@@ -1563,13 +1563,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 983835727}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d89de667b468a2347ac0f361b5308665, type: 3}
+  m_Script: {fileID: 11500000, guid: 10d13020492fd2d4ab391a279ffe0637, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  emailField: {fileID: 438276328}
-  passwordField: {fileID: 599654012}
-  loginButton: {fileID: 1714684391}
   statusMessage: {fileID: 1895668176}
+  playButton: {fileID: 1714684391}
 --- !u!1 &1001550534
 GameObject:
   m_ObjectHideFlags: 0
@@ -1731,7 +1729,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Login
+  m_text: Play
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1867,7 +1865,7 @@ GameObject:
   - component: {fileID: 1714684394}
   - component: {fileID: 1714684395}
   m_Layer: 0
-  m_Name: Login
+  m_Name: Play
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1990,7 +1988,7 @@ MonoBehaviour:
   normalScale: {x: 1, y: 1, z: 1}
   pressedScale: {x: 1.1, y: 1.1, z: 1.1}
   animationDuration: 0.1
-  tooltipText: Danny
+  tooltipText: Good Luck
 --- !u!114 &1714684395
 MonoBehaviour:
   m_ObjectHideFlags: 0

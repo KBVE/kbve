@@ -110,6 +110,11 @@ But wait, what is the game called? I am still thinking of just calling it RentEa
 
 Since we created the new service, APIRequestService, we need to go ahead and register that inside of the BootUp script for our game engine. It will live in here until we have a universal game framework / manager that can handle all of service instances on our behalf.
 
+#### Captain
+
+The APIRequestService seems to be functional for the GET request test case, we were able to load the 3 demo characters that the account has within this test case. Now we need to wrap the JSON data that we are getting back as an inner object within the KBVE namespace. I am thinking that it would make sense to split up the `name` for this
+
+
 
 
 
