@@ -6,6 +6,21 @@ using UnityEngine;
 namespace KBVE.Services
 {
   [Serializable]
+  public class CharacterCreationRequest
+  {
+      public string name;
+      public string description;
+
+      public CharacterCreationRequest(string name, string description)
+      {
+          this.name = name;
+          this.description = description;
+      }
+  }
+
+
+
+  [Serializable]
   public class UserData
   {
     public string Email;
