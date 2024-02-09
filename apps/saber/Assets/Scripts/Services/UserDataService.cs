@@ -5,6 +5,30 @@ using UnityEngine;
 
 namespace KBVE.Services
 {
+
+  [Serializable]
+  public class CharacterCreationError
+  {
+    public CharacterCreationErrorData data;
+    public CharacterCreationErrorMessage message;
+    public string error;
+    public string status;
+    public int status_code;
+  }
+
+
+  [Serializable]
+  public class CharacterCreationErrorData
+  {
+
+  }
+
+  [Serializable]
+  public class CharacterCreationErrorMessage
+  {
+    public string error;
+  }
+
   [Serializable]
   public class CharacterCreationRequest
   {

@@ -45,11 +45,11 @@ namespace KBVE.ClientUI
     private void HandleNetworkError(string error)
     {
       // Handle API error
-      Debug.LogError($"Network Error: {error}");
-      if (statusMessage != null)
-      {
-        statusMessage.text = "Networking Error! from CharacterForm";
-      }
+      Debug.Log($"Network Error: {error}");
+      // if (statusMessage != null)
+      // {
+      //   statusMessage.text = "Networking Error! from CharacterForm";
+      // }
     }
 
     private void Start()
@@ -80,6 +80,11 @@ namespace KBVE.ClientUI
       if (playButton != null)
       {
         playButton.onClick.AddListener(OnPlayClicked);
+      }
+
+      if (characterCreationButton != null)
+      {
+        characterCreationButton.onClick.AddListener(CreateCharactersFromAPI);
       }
 
       PullCharactersFromAPI();
@@ -137,8 +142,12 @@ namespace KBVE.ClientUI
           },
           error =>
           {
-            Debug.LogError("Failed to create character: " + error);
-            statusMessage.text = "Failed to create character!";
+            Debug.Log("Failed to create character: " + error);
+            CharacterCreationError errorResponse = JsonUtility.FromJson<CharacterCreationError>(
+              error
+            );
+            string errorMessage = errorResponse.error ?? errorResponse.message.error;
+            statusMessage.text = "Error: " + errorMessage;
           }
         )
       );
@@ -146,6 +155,8 @@ namespace KBVE.ClientUI
 
     void PopulateCharacterList()
     {
+
+      ClearCharacterButtons();
       var characters = _userDataService.ListCharacters();
       if (characters == null || characters.Count == 0)
       {
@@ -160,32 +171,48 @@ namespace KBVE.ClientUI
 
       foreach (Character character in characters)
       {
-        GameObject buttonObj = Instantiate(buttonPrefab, buttonsContainer, false);
+        GameObject buttonObj = Instantiate(buttonPrefab, buttonsContainer.transform, false);
         buttonObj.transform.localScale = Vector3.one;
         TMP_Text buttonText = buttonObj.GetComponentInChildren<TMP_Text>();
         if (buttonText != null)
         {
           buttonText.text = character.name;
         }
-        else {
+        else
+        {
           Debug.LogError("Button TMP Text Not Found");
         }
 
         RectTransform rectTransform = buttonObj.GetComponent<RectTransform>();
+        rectTransform.anchoredPosition = Vector2.zero;
+        rectTransform.localScale = Vector3.one;
         rectTransform.sizeDelta = new Vector2(200, 50);
 
-        Button button = buttonObj.GetComponent<Button>();
+        Button button = buttonObj.GetComponentInChildren<Button>();
         if (button != null)
         {
           string url = $"https://rust.kbve.com/api/v1/sheet/{character.name}";
           button.onClick.AddListener(() => OpenCharacterSheet(url));
         }
+        else
+        {
+          Debug.LogError("Button component not found on the instantiated object.");
+        }
       }
     }
 
-    void OpenCharacterSheet(string url)
+    public void OpenCharacterSheet(string url)
     {
+      Debug.Log("Open Character Button Clicked!");
       Application.OpenURL(url);
+    }
+
+    private void ClearCharacterButtons()
+    {
+      foreach (Transform child in buttonsContainer)
+      {
+        Destroy(child.gameObject);
+      }
     }
   }
 }
