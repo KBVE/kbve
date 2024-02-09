@@ -81,8 +81,30 @@ namespace KBVE.Services
         }
         else
         {
-          onError?.Invoke(webRequest.error);
-          NetworkEvents.TriggerNetworkError(webRequest.error);
+          onError?.Invoke(webRequest.downloadHandler.text);
+          try
+          {
+            ErrorResponse errorResponse = JsonUtility.FromJson<ErrorResponse>(
+              webRequest.downloadHandler.text
+            );
+            if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.message.error))
+            {
+              // Debug.LogError($"Error from API: {errorResponse.message.error}");
+              NetworkEvents.TriggerNetworkError(errorResponse.message.error);
+            }
+            else
+            {
+              // Fallback if parsing succeeded but no error message was found
+              Debug.LogError("An unknown error occurred.");
+              NetworkEvents.TriggerNetworkError("An unknown error occurred.");
+            }
+          }
+          catch (System.Exception ex)
+          {
+            // Handle cases where the response body isn't valid JSON
+            Debug.LogError($"Failed to parse error response: {ex.Message}");
+            NetworkEvents.TriggerNetworkError($"Failed to parse error response: {ex.Message}");
+          }
         }
       }
     }
