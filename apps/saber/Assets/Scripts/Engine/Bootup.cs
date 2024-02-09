@@ -24,7 +24,9 @@ public class BootUp : MonoBehaviour
     var userDataService = gameObject.AddComponent<UserDataService>();
     Services.Instance.RegisterService<IUserDataService>(userDataService);
 
-
+    // Register APIRequestService
+    var apiService = gameObject.AddComponent<APIRequestService>();
+    Services.Instance.RegisterService<IAPIRequestService>(apiService);
 
   }
 }

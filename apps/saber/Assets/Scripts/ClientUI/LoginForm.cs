@@ -46,7 +46,7 @@ namespace KBVE.ClientUI
 
       _userDataService.SetToken(token);
 
-      KBVE.Events.SceneEvent.RequestSingleSceneLoad("Scene1");
+      KBVE.Events.SceneEvent.RequestSingleSceneLoad("CharacterScene");
     }
 
     private void HandleLoginFailure(string error)
