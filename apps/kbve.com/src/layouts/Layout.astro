@@ -6,6 +6,7 @@ interface Props {
 }
 const { title, description } = Astro.props;
 import { AstroVe as VE } from '@kbve/astro-ve';
+
 ---
 
 <!DOCTYPE html>
@@ -23,15 +24,16 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 	</head>
 
 	<div class="h-screen w-full bg-[#13151A] relative flex overflow-hidden">
-		
+
 		<VE widget="nav:aside:demo" data="" />
+		<VE widget="drawer:flowbite:demo"/>
 
 		<div class="w-full h-full flex flex-col justify-between">
 			<header
 				class="h-16 w-full flex items-center relative justify-center px-5 space-x-10 bg-zinc-950">
 				<div
 					class="flex flex-shrink-0 items-center space-x-4 text-white">
-					<div class="flex flex-col items-end">
+					<div class="flex flex-row items-end">
 						<VE
 							widget="nav:v01d:auto"
 							logo="/assets/img/letter_logo.png">
@@ -39,6 +41,12 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 								widget="kbve:user:user"
 								avatar="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
 							/>
+							<div class="text-center">
+								<button class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1.5  dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" type="button" data-drawer-target="drawer-navigation" data-drawer-show="drawer-navigation" aria-controls="drawer-navigation">
+								Show drawer
+								</button>
+							 </div>
+							 
 						</VE>
 					</div>
 				</div>
@@ -47,15 +55,11 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 			<main class="max-w-full h-full flex relative overflow-y-hidden">
 				<div
 					class="h-full w-full m-4 flex flex-wrap items-start justify-start rounded-tl grid-flow-col auto-cols-max gap-4 overflow-y-scroll">
-					
-						<slot />
-					
+					<slot />
 				</div>
 			</main>
 		</div>
 	</div>
-
-
 
 	<style is:global>
 		:root {
