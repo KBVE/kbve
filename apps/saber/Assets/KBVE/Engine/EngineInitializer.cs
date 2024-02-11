@@ -31,6 +31,10 @@ namespace KBVE.Engine
       // Register APIRequestService
       var apiService = gameObject.AddComponent<APIRequestService>();
       servicesInstance.RegisterService<IAPIRequestService>(apiService);
+
+      // Register CameraService
+      var cameraService = gameObject.AddComponent<CameraService>();
+      servicesInstance.RegisterService<ICameraService>(cameraService);
     }
   }
 }
