@@ -1,0 +1,44 @@
+---
+title: "February: 11"
+category: Daily
+date: 2024-02-11
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 11th for each year!
+tags:
+  - daily
+---
+
+## Notes
+
+### 2024
+
+The characters might have issues with multi-worlds and cause issues if they are being played oln multiple worlds/game sessions, so we need a way to lock them out to prevent this from occuring.
+
+#### StartZone
+
+Going to clone over the Scene1 and call it StartZone, here I want to test case a couple different concepts that I had in my mind, including a Game Manger and the combat engine.
+I am thinking that the GameManger and Combat both would be internal engines but with the combat engine extending out to a combat service, which would then be handling combat events?
+The game manager would just be incharge of loading and unloading the scene cameras for now? This is still a bit of a hazy area since I am trying to go for a SOA/Events style system but I need to remember that I am limited to just a single thread.
+We could have the game manager also push some of the messages to javascript via a post message, but offloading to javascript would mean that the game might have issues in an mobile build.
+Sometimes these things can be a pain to map out, because of the WASM limits, ugh.
+I am still going to think it through in small steps and maybe it will come together near the end, I guess that is part of the course.
+
+The first step would be to clone the `Scene1.unity` to `StartZone.unity` and then add it into the build order.
+
+Going back to the character scene, I would then adjust the buttons for the characters, one with an open sheet and another button to load the character into the StartZone.
+
+For the sake of simplicty, I should work out the locations of the characters and make sure that they do not get loaded into multiple worlds?
+
+Maybe make sure that once the character is done from the mission, there would be a timer that would prevent the character from going onto the same mission again?
+
+I still need to work out the kinks of how I would approach this problem, but for now, I will just skip it and leave this as a note!
+
+
+
+#### KBVE
+
+While I am working on the Unity front, I also wanted to go over the website design, I am thinking of a black, grey, sky blue style for the KBVE website.
+It would mean leaving the orange, pink and purple color style but I think it might be a better move down the line?
+I am not an amazing ux designer but I am thinking the tri-color scheme that I had earlier was a bit too much for the website and I think going a bit back to a monotone would make it easier.
