@@ -32,13 +32,21 @@ namespace KBVE.Entity
 
     public event Action<CombatState> OnCombatStateChanged;
 
-    // Example method to demonstrate changing the combat state
     public void ChangeCombatState(CombatState newState)
     {
-      CurrentCombatState = newState;
-      // Implement additional logic for state change if necessary
+       if (_currentCombatState != newState)
+        {
+            _currentCombatState = newState;
+            OnCombatStateChanged?.Invoke(_currentCombatState);
+        }
     }
 
-    // Combat-related methods such as TakeDamage, Heal, etc.
+    public void ResetCombatState()
+    {
+      ChangeCombatState(CombatState.Idle);
+      Debug.Log("Combat state has been reset to Idle.");
+
+    }
+
   }
 }

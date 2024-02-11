@@ -3,7 +3,12 @@ using UnityEngine;
 
 namespace KBVE.Entity
 {
-  public class BaseEntity : MonoBehaviour
+  public interface IPoolable
+  {
+    void ResetComponent();
+  }
+
+  public class BaseEntity : MonoBehaviour, IPoolable
   {
     protected EntityCombat combatComponent;
 
@@ -123,6 +128,24 @@ namespace KBVE.Entity
       {
         combatComponent = gameObject.AddComponent<EntityCombat>();
       }
+    }
+
+
+    // ? Remember inside a derived component, like NPC/Boss, we want to override this virtual void.
+
+    public virtual void ResetComponent()
+    {
+      Health = MaxHealth;
+      Mana = MaxMana;
+      Energy = MaxEnergy;
+      EntityCombat combatComponent = GetComponent<EntityCombat>();
+      if (combatComponent != null)
+      {
+        combatComponent.ResetCombatState();
+      }
+
+      // Debug Log
+      Debug.Log($"{gameObject.name} has been reset.");
     }
   }
 }
