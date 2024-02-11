@@ -1,6 +1,7 @@
 using UnityEngine;
 using Cinemachine;
 using System.Collections.Generic; // For managing a list of virtual cameras
+using UnityEngine.SceneManagement;
 
 namespace KBVE.Services
 {
@@ -26,8 +27,20 @@ namespace KBVE.Services
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+
+                SceneManager.sceneLoaded += OnSceneLoaded;
                 SetupCinemachineBrain();
             }
+        }
+
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            SetupCinemachineBrain();
         }
 
         private void SetupCinemachineBrain()
