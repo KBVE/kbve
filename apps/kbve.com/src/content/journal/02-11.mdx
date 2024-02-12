@@ -36,7 +36,6 @@ Maybe make sure that once the character is done from the mission, there would be
 I still need to work out the kinks of how I would approach this problem, but for now, I will just skip it and leave this as a note!
 
 
-
 #### KBVE
 
 While I am working on the Unity front, I also wanted to go over the website design, I am thinking of a black, grey, sky blue style for the KBVE website.
@@ -48,3 +47,50 @@ I am not an amazing ux designer but I am thinking the tri-color scheme that I ha
 
 Need to setup time to migrate all my domains out of namecheap and to CloudFlare!
 I will start with the base domains that I currently am using and I will let some of them expire because the cost basis might be too high.
+
+#### Weather
+
+While working on the KBVE namespace and migrating some of the older code, I am looking into how to expand the code base to include some additional features.
+One of the features that I wanted to include was a weather system, including a way handle it globally but for now, I think a simple day and night cycle is enough.
+My concern would be about running the internal clock, which I should migrate into a tick system?
+
+Here is the current clockbased weather formula:
+
+```c#
+
+
+  float angle = (currentTimeOfDay * 360f) - 90f; // Shift by -90 degrees to start at dawn
+      directionalLight.transform.localRotation = Quaternion.Euler(angle, -30f, 0f);
+
+      if (currentTimeOfDay <= 0.25f || currentTimeOfDay >= 0.75f)
+      {
+        //  ? Night Light
+        directionalLight.color = Color.Lerp(
+          Color.blue,
+          Color.black,
+          Mathf.Abs(currentTimeOfDay - 0.75f) * 4f
+        );
+        directionalLight.intensity = Mathf.Lerp(
+          0.1f,
+          0.5f,
+          Mathf.Sin(currentTimeOfDay * 2 * Mathf.PI)
+        );
+      }
+      else
+      {
+        //  ? Day Light
+        directionalLight.color = Color.Lerp(
+          Color.yellow,
+          Color.white,
+          Mathf.Abs(currentTimeOfDay - 0.5f) * 4f
+        );
+        directionalLight.intensity = Mathf.Lerp(
+          0.5f,
+          1f,
+          Mathf.Sin(currentTimeOfDay * 2 * Mathf.PI)
+        );
+      }
+
+```
+
+However, I think for the performance of the game, we need to rewrite some of it to use the tick system instead.
