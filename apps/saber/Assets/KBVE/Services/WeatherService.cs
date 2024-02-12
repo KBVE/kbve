@@ -1,8 +1,8 @@
 using System;
 using KBVE.Events;
+using KBVE.Services;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
 
 namespace KBVE.Services
 {
@@ -18,9 +18,11 @@ namespace KBVE.Services
     [SerializeField]
     private Light directionalLight;
 
-    [SerializeField]
-    private float dayLengthInSeconds = 1200f;
-    private float currentTimeOfDay = 0f;
+    private IClockService clockService;
+
+    // [SerializeField]
+    // private float dayLengthInSeconds = 1200f;
+    // private float currentTimeOfDay = 0f;
 
     // ? 1200f is 20mins for a full day cycle
 
@@ -38,69 +40,36 @@ namespace KBVE.Services
       }
     }
 
-    private void Update()
+    private void Start()
     {
-      UpdateTimeOfDay();
+      clockService = Services.Instance.GetService<IClockService>();
+      if (clockService != null)
+      {
+        clockService.SubscribeToTick(OnTick);
+      }
+    }
+
+    private void OnDestroy()
+    {
+      if (clockService != null)
+      {
+        clockService.UnsubscribeFromTick(OnTick);
+      }
+    }
+
+    private void OnTick(float currentTime)
+    {
       UpdateLightingBasedOnTimeOfDay();
     }
 
-    private void UpdateTimeOfDay()
-    {
-      currentTimeOfDay += Time.deltaTime / dayLengthInSeconds;
-      currentTimeOfDay %= 1;
 
-      UpdateLightingBasedOnTimeOfDay();
-
-      if (currentTimeOfDay < 0.25f || currentTimeOfDay > 0.75f)
-      {
-        WeatherEvents.TriggerNightStarted();
-      }
-      else
-      {
-        WeatherEvents.TriggerDayStarted();
-      }
-    }
 
     private void UpdateLightingBasedOnTimeOfDay()
     {
-      if (directionalLight == null)
-      {
-        InitializeDirectionalLight(); // Ensure light is re-initialized if it was destroyed
-        if (directionalLight == null)
-          return; // If still null, exit to avoid errors
-      }
+      if (directionalLight == null || clockService == null) return;
 
-      float angle = (currentTimeOfDay * 360f) - 90f; // Shift by -90 degrees to start at dawn
-      directionalLight.transform.localRotation = Quaternion.Euler(angle, -30f, 0f);
 
-      if (currentTimeOfDay <= 0.25f || currentTimeOfDay >= 0.75f)
-      {
-        //  ? Night Light
-        directionalLight.color = Color.Lerp(
-          Color.blue,
-          Color.black,
-          Mathf.Abs(currentTimeOfDay - 0.75f) * 4f
-        );
-        directionalLight.intensity = Mathf.Lerp(
-          0.1f,
-          0.5f,
-          Mathf.Sin(currentTimeOfDay * 2 * Mathf.PI)
-        );
-      }
-      else
-      {
-        //  ? Day Light
-        directionalLight.color = Color.Lerp(
-          Color.yellow,
-          Color.white,
-          Mathf.Abs(currentTimeOfDay - 0.5f) * 4f
-        );
-        directionalLight.intensity = Mathf.Lerp(
-          0.5f,
-          1f,
-          Mathf.Sin(currentTimeOfDay * 2 * Mathf.PI)
-        );
-      }
+
     }
 
     public void ChangeWeatherCondition(string condition)
