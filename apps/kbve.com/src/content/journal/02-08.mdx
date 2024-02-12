@@ -1,0 +1,124 @@
+---
+title: "February: 08"
+category: Daily
+date: 2024-02-08
+client: Self
+unsplash: 1569396116180-210c182bedb8
+img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 8th for each year!
+tags:
+  - daily
+---
+
+## Notes
+
+### 2024
+
+#### Unity
+
+Going to expand out the custom unity framework's UserDataServices!
+Since we are going with an extremely modular approach, with atomic changes, I will try to keep everything isolated as possible.
+The last update to the UserDataService, the constructor was only keeping track of email, jwt, level and experience, which we are going to change up a bit.
+We are going to drop the level as a field and replace it with reputation, hmm, I am going to also switch the experience from float to int.
+
+Under the `Scripts/Services/UserDataService.cs` , the public interface of IUserDataService can be extended to include these three functions:
+```c#
+
+    void SetCharacterName(string characterName);
+    void SetReputation(int level);
+    void SetExperience(int experience);
+    
+```
+
+And then we will go ahead and create these functions, to help set them with these functions:
+
+```c#
+ 
+public void SetCharacterName(string characterName)
+    {
+      if (_userData != null)
+      {
+        _userData.CharacterName = characterName;
+      }
+    }
+
+public void SetReputation(int reputation)
+    {
+      if (_userData != null)
+      {
+        _userData.Reputation = reputation;
+
+      }
+    }
+
+ public void SetExperience(int experience)
+    {
+      if (_userData != null)
+      {
+        _userData.Experience = experience;
+      }
+
+    }
+```
+
+They are extremely basic right now, I will implement a get/set constructor later on to wrap around them.
+I will push this out as a patch and then go back and create a new `APIRequestService` to help handle some of the interactions! I know that I am basically going to have to rebuild and rewrite this again with the Steam package, but this is part of that learning experience.
+
+#### API
+
+The next shift will be to integrate the character list into the game, so that the player can pick the character that they would want to play on! Part of this game dynamic would be that the main account remains on the spaceship / guild ship as the captain and these characters would be part of the crew that they send down for the different missions. I am still working out the gameplay, but I figured that I would pivot and evolve it throughout my journey as a meme developer.
+
+Let me start with creating the base of the APIRequestService! We already did the login system earlier and we can rewrite that as its own / new system. I was thinking it would make sense to keep them split because later on, I could implement a couple different shifts to the actual login system to include captchas or additional security measures. 
+
+The base of the script would look like this:
+```c#
+
+using System;
+using System.Collections;
+using UnityEngine;
+using UnityEngine.Networking;
+
+namespace KBVE.Services
+{
+   public class APIRequestService : MonoBehaviour
+    {
+    } 
+}
+```
+
+I am keeping this in the notes as a base of reference for future services, the template is pretty straightforward but just incase I forget. It is a pain switching from different languages here and there.
+
+To maintain a single source of truth, the JWT will come from the UserData service, so we will add this function:
+
+```c#
+    private string GetJwtToken()
+    {
+      var userDataService = Services.Instance.GetService<IUserDataService>();
+      return userDataService?.GetToken();
+    }
+
+```
+
+This part is important because we want to maintain that single source of truth integrity. We also do not want to store the JWT outside of the Unity aka inside of a javascript method, because it should safe inside of the WASM, whereas if its inside of the JS, there could be additional security issues that we would have to account for! The leaking of the JWT is rough but with a single source of truth, that should make it easier to maintain a decent level of security.
+
+On a side note, for handling the websockets, we will probably not use this exact JWT but rather a unique session style, to at least keep the integrity from both server and client side. 
+
+After building out the base of the APIRequestService, I am going to test that service against the character loadout scene. One of the downsides with this game is that there is a definitely way too much going on in the file structure, so I might have to wipe it clean when I do the RentEarth build and have a more uniform and clean version of the codebase. There are so many files, event systems and player scripts, it does get a bit confusing when I am calling the different ones here and there, but that is part of the thinking process, I suppose. 
+
+Now the new scene that I created is called `CharacterSelection`, ugh wait, `CharacterScene` and that will be after the login is successful and we will create a new script called CharacterSelection.cs, which will pull the character data from the API and provide the characters as an option to play. I will keep this very basic from the start and will go back to add improvements as I build it out.
+But wait, what is the game called? I am still thinking of just calling it RentEarth and moving past the name of the game because I do not really care what to call this meme project. I think it is far more important to get a functional game out into the world that people can play.
+
+Since we created the new service, APIRequestService, we need to go ahead and register that inside of the BootUp script for our game engine. It will live in here until we have a universal game framework / manager that can handle all of service instances on our behalf.
+
+#### Captain
+
+The APIRequestService seems to be functional for the GET request test case, we were able to load the 3 demo characters that the account has within this test case. Now we need to wrap the JSON data that we are getting back as an inner object within the KBVE namespace. I am thinking that it would make sense to split up the `name` for this
+
+
+
+
+
+
+
+
+

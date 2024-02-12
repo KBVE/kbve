@@ -5,8 +5,12 @@
     "cSpell.words": [
         "Cinemachine",
         "Cooldowns",
+        "Despawn",
         "Dont",
+        "IAPI",
         "KBVE",
-        "Mathf"
+        "Mathf",
+        "Poolable",
+        "Prepopulate"
     ]
 }
