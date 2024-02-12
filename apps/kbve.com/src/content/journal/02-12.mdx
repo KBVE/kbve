@@ -1,0 +1,95 @@
+---
+title: 'February: 12'
+category: Daily
+date: 2024-02-12
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 12th for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+#### Unity
+
+After finishing up my morning work session, I am going to continue working on my the unity game! Ugh character selection and the character handler, oh boy.
+
+This is how our Engine Initalizer looks right now:
+
+```c#
+
+using KBVE.Services;
+using UnityEngine;
+
+namespace KBVE.Engine
+{
+  public class EngineInitializer : MonoBehaviour
+  {
+    void Awake()
+    {
+      InitializeServices();
+    }
+
+    private void InitializeServices()
+    {
+      DontDestroyOnLoad(gameObject);
+
+      var servicesInstance = KBVE.Services.Services.Instance;
+
+      //  Register AuthenticationService
+      var authService = gameObject.AddComponent<AuthenticationService>();
+      servicesInstance.RegisterService<IAuthenticationService>(authService);
+
+      //  Register SceneLoaderService
+      var sceneLoaderService = gameObject.AddComponent<SceneLoaderService>();
+      servicesInstance.RegisterService<ISceneLoaderService>(sceneLoaderService);
+
+      //  Register UserDataService
+      var userDataService = gameObject.AddComponent<UserDataService>();
+      servicesInstance.RegisterService<IUserDataService>(userDataService);
+
+      //  Register APIRequestService
+      var apiService = gameObject.AddComponent<APIRequestService>();
+      servicesInstance.RegisterService<IAPIRequestService>(apiService);
+
+      //  Register CameraService
+      var cameraService = gameObject.AddComponent<CameraService>();
+      servicesInstance.RegisterService<ICameraService>(cameraService);
+
+      //  Register Weather
+      var weatherService = gameObject.AddComponent<WeatherService>();
+      servicesInstance.RegisterService<IWeatherService>(weatherService);
+    }
+  }
+}
+
+```
+
+The current design plan is a hybrid of service oriented architecture and event driven architecture.
+We split the two types into different namespaces, `KBVE.Services` and `KBVE.Events`, SOA vs EDA!
+
+To add a service on the Initalizer, we just throw in these two lines, for example adding the Entity Service.
+
+```c#
+
+  //  Register EntityService
+  var entityService = gameObject.AddComponent<EntityService>();
+  servicesInstance.RegisterService<IEntityService>(entityService);
+
+```
+
+Next we need to register the clock service, which will represent the global tick.
+
+
+```c#
+
+  //  Register ClockService
+  var clockService = gameObject.AddComponent<ClockService>();
+  servicesInstance.RegisterService<IClockService>(clockService);
+```
+
+I believe we have enough of the base services to move forward with the StartZone!
