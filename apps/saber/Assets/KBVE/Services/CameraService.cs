@@ -1,6 +1,6 @@
 using UnityEngine;
 using Cinemachine;
-using System.Collections.Generic; // For managing a list of virtual cameras
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
 namespace KBVE.Services
