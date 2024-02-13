@@ -76,7 +76,7 @@ jobs:
                         saber:
                             - 'apps/saber/**'
                         rustapiprofile:
-                            - 'apps/rust_api_profile/**' 
+                            - 'apps/rust_api_profile/**'
 
 
     # Alpha Builds
@@ -94,7 +94,8 @@ jobs:
                   unityVersion:
                     - 2022.3.12f1
                   targetPlatform:
-                    - WebGL
+                    - StandaloneWindows64
+                    # - WebGL * Disabled WebGL for DoTs
             steps:
                 - uses: actions/checkout@v4
                   with:
@@ -119,10 +120,19 @@ jobs:
                     projectPath: ${{ matrix.projectPath }}
                     unityVersion: ${{ matrix.unityVersion }}
                     targetPlatform: ${{ matrix.targetPlatform }}
+
+                # WebGL * Disalbed WebGL for DoTs
+                #
+                #- uses: actions/upload-artifact@v2
+                #  with:
+                #    name: build-WebGL
+                #    path: build/WebGL
+
+
                 - uses: actions/upload-artifact@v2
                   with:
-                    name: build-WebGL
-                    path: build/WebGL
+                    name: build-StandaloneWindows64
+                    path: build/StandaloneWindows64
 
 
         deploy:
@@ -191,12 +201,22 @@ jobs:
             steps:
               -   name: Checkout repository
                   uses: actions/checkout@v4
-              -   name: Download WebGL Build
+
+
+              -   name: Download Windows Build
                   uses: actions/download-artifact@v3
                   id: download
                   with:
-                    name: build-WebGL
-                    path: build/WebGL
+                    name: build-StandaloneWindows64
+                    path: build/StandaloneWindows64
+
+              #-   name: Download WebGL Build
+              #    uses: actions/download-artifact@v3
+              #    id: download
+              #    with:
+              #      name: build-WebGL
+              #      path: build/WebGL
+
               -   name: Itch Deploy
                   uses: KikimoraGames/itch-publish@v0.0.3
                   with:
@@ -204,4 +224,5 @@ jobs:
                     gameData: ${{steps.download.outputs.download-path}}
                     itchUsername: kbve
                     itchGameId: dev-saber
-                    buildChannel: webgl
+                    #buildChannel: webgl
+                    buildChannel: windows

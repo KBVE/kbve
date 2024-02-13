@@ -37,7 +37,6 @@ namespace KBVE.Services
     public float CurrentDayTime => CurrentTime % DayLengthInSeconds;
     public bool IsDaytime => CurrentDayTime >= SunriseTime && CurrentDayTime < SunsetTime;
 
-
     public float SunriseTime { get; private set; }
     public float SunsetTime { get; private set; }
 
@@ -52,9 +51,9 @@ namespace KBVE.Services
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-                    // Initialize sunrise and sunset times here
-            SunriseTime = dayLengthInSeconds * 0.25f;
-            SunsetTime = dayLengthInSeconds * 0.75f;
+        // Initialize sunrise and sunset times here
+        SunriseTime = dayLengthInSeconds * 0.25f;
+        SunsetTime = dayLengthInSeconds * 0.75f;
       }
     }
 

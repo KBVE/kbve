@@ -18,6 +18,9 @@ namespace KBVE.ClientUI
     public Button characterCreationButton;
 
     // TODO Prefab GameObject Character Button
+
+    public GameObject playerPrefab;
+
     public GameObject buttonPrefab;
     public RectTransform buttonsContainer;
 
@@ -155,7 +158,6 @@ namespace KBVE.ClientUI
 
     void PopulateCharacterList()
     {
-
       ClearCharacterButtons();
       var characters = _userDataService.ListCharacters();
       if (characters == null || characters.Count == 0)
@@ -192,7 +194,8 @@ namespace KBVE.ClientUI
         if (button != null)
         {
           string url = $"https://rust.kbve.com/api/v1/sheet/{character.name}";
-          button.onClick.AddListener(() => OpenCharacterSheet(url));
+          // button.onClick.AddListener(() => OpenCharacterSheet(url));
+          button.onClick.AddListener(() => LoadCharacter(character.name));
         }
         else
         {
@@ -201,9 +204,30 @@ namespace KBVE.ClientUI
       }
     }
 
+    public void LoadCharacter(string character)
+    {
+      Debug.Log($"Loaded Character: {character}");
+
+      // Check if statusMessage is not null to avoid NullReferenceException
+      if (statusMessage != null)
+      {
+        // Update the statusMessage text with the loaded character's name
+        statusMessage.text = $"Loaded Character: {character}";
+      }
+      else
+      {
+        Debug.LogWarning("StatusMessage is not assigned in the inspector.");
+      }
+    }
+
     public void OpenCharacterSheet(string url)
     {
       Debug.Log("Open Character Button Clicked!");
+
+      if (statusMessage != null)
+      {
+        statusMessage.text = "You selected a character";
+      }
       Application.OpenURL(url);
     }
 
