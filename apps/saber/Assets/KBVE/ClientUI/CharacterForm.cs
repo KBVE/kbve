@@ -18,6 +18,9 @@ namespace KBVE.ClientUI
     public Button characterCreationButton;
 
     // TODO Prefab GameObject Character Button
+
+    public GameObject playerPrefab;
+
     public GameObject buttonPrefab;
     public RectTransform buttonsContainer;
 
