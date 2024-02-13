@@ -93,3 +93,19 @@ Next we need to register the clock service, which will represent the global tick
 ```
 
 I believe we have enough of the base services to move forward with the StartZone!
+
+Before I get started on the next update, I want to make sure everything builds and that the rolling updates via the cicd pipeline works.
+We will move everything up from the `alpha` branch to the `beta` branch, after it builds, we can then shift it up to `main` for a release.
+
+Over the weekend, I was trying to test case multi agents working on the repo, there were some minor issues regarding them not isolating the changes and throwing a ton of git diffs.
+Uhh, long story short, either I need to find a way to resolve the git cherry picks OR really isolate the agents on where they can work, which needs to be done automatically as well.
+
+I am thinking that we we could also move the `KBVE` namespace into its own nuget package and then call it within our application, but that will be for a later time.
+
+The character section could be split into a couple different components, hmm, thinking it through, it might make more sense
+
+#### AutoReview
+
+During the pipeline roll out, it seems that the auto review passed on 3 of the test cases but faild on the remaining 7.
+
+I actually think the failure in the test case was on my end, I need to adjust the test casing again, which will be easier with finish products to test against.
