@@ -105,5 +105,5 @@ MonoBehaviour:
   Extensions:
     Extensions: []
   PostProcessing:
-    Enabled: 0
+    Enabled: 1
     Passes: []
