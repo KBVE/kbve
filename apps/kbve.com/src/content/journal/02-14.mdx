@@ -27,3 +27,26 @@ Okay we were able to get the basics of the cell shader to be functional, granted
 Here is the official repo for the toonshader that we are using, aka Unity Chan, https://github.com/Unity-Technologies/com.unity.toonshader
 
 I will push through these changes, then mess around with the sample scenes.
+
+Okay it looks like we can disable the Itch build for now because it will keep failing, since we need to figure out how to load abstract assets.
+
+So for now, the best step would be to setup the unity build condition, which I will place inside of the `ci-alpha`.
+
+Here is `setup` configuration under the `ci-alpha.yml`,
+
+```yaml
+
+        setup:
+            name: "Setup"
+            runs-on: ubuntu-latest
+            outputs:
+              build_unity: ${{ steps.set_output.outputs.build_unity }}
+            steps:
+              - id: set_output
+                run: "::set-output name=build_unity::false"
+
+```
+
+Then I will extend the condition for the saber build:
+
+
