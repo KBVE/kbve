@@ -47,6 +47,5 @@ Here is `setup` configuration under the `ci-alpha.yml`,
 
 ```
 
-Then I will extend the condition for the saber build:
-
+Then I will extend the condition for the saber build, `if: needs.alter.outputs.saber == 'true' && needs.setup.outputs.build_unity == 'true'`, which will help prevent the build fails that we will be facing.
 
