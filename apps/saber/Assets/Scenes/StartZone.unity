@@ -1941,6 +1941,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: rock_toon
       objectReference: {fileID: 0}
+    - target: {fileID: 6644848414311664462, guid: 5a10877d2cc560e42904021caf090714,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: a00013af81304728b2be1f4309ee2433, type: 2}
     - target: {fileID: 7360232393668240913, guid: 5a10877d2cc560e42904021caf090714,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -2642,7 +2647,7 @@ PrefabInstance:
     - target: {fileID: 7360232393668240913, guid: c469777943a72df4ea97f186d7564734,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 48.447273
+      value: 48.10604
       objectReference: {fileID: 0}
     - target: {fileID: 7360232393668240913, guid: c469777943a72df4ea97f186d7564734,
         type: 3}
@@ -2652,7 +2657,7 @@ PrefabInstance:
     - target: {fileID: 7360232393668240913, guid: c469777943a72df4ea97f186d7564734,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 66
+      value: 66.35748
       objectReference: {fileID: 0}
     - target: {fileID: 7360232393668240913, guid: c469777943a72df4ea97f186d7564734,
         type: 3}
