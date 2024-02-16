@@ -29,3 +29,13 @@ I am going to reactive the pipeline because it seems that our art style and the 
 The plan was to disable the alpha builds while we get the annex up and running but if the models are small enough, I think we can get creative enough with the tools that we have.
 
 I suppose we shall see once we build out a couple levels.
+
+The way to active the build would be to set the conditional line / variable to true.
+
+```yaml
+
+run: "::set-output name=build_unity::true"
+
+```
+
+This line will be our switch, so let us test it out!
