@@ -1,0 +1,51 @@
+---
+title: 'February: 14'
+category: Daily
+date: 2024-02-14
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 14th for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+#### Toon
+
+Round 2! Fight!
+
+I am going to try and see if I can get the official unity toon shader to load up and maybe attempt to integrate it into this game project!
+
+The goal would be to get a comical style within the game objects and the environment, but we shall see how it goes!
+
+Okay we were able to get the basics of the cell shader to be functional, granted there is an experimental packages warning that appears.
+
+Here is the official repo for the toonshader that we are using, aka Unity Chan, https://github.com/Unity-Technologies/com.unity.toonshader
+
+I will push through these changes, then mess around with the sample scenes.
+
+Okay it looks like we can disable the Itch build for now because it will keep failing, since we need to figure out how to load abstract assets.
+
+So for now, the best step would be to setup the unity build condition, which I will place inside of the `ci-alpha`.
+
+Here is `setup` configuration under the `ci-alpha.yml`,
+
+```yaml
+
+        setup:
+            name: "Setup"
+            runs-on: ubuntu-latest
+            outputs:
+              build_unity: ${{ steps.set_output.outputs.build_unity }}
+            steps:
+              - id: set_output
+                run: "::set-output name=build_unity::false"
+
+```
+
+Then I will extend the condition for the saber build, `if: needs.alter.outputs.saber == 'true' && needs.setup.outputs.build_unity == 'true'`, which will help prevent the build fails that we will be facing.
+

@@ -1,11 +1,11 @@
 ---
-title: 'February: 12'
+title: 'February: 13'
 category: Daily
-date: 2024-02-12
+date: 2024-02-13
 client: Self
 unsplash: 1561478908-1ceb3bcc74b6
 img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
-description: Daily Log for February 12th for each year!
+description: Daily Log for February 13th for each year!
 tags:
     - daily
 ---
@@ -24,3 +24,14 @@ I am not going to drop the WASM/WebGL build completely but I will come back to i
 Since we are going to use Unity DOTs, which does not build to WebGL, so we have to change that to `StandaloneWindows64`.
 
 That means editing the pipeline, `ci-alpha`, and comment out all the `WebGL`.
+
+While I am testing the build pipeline, I am going to add the `Toon RP` as a render engine because it would help resolve some of the style issues that I was having earlier.
+
+I made a mistake when doing the branches, I ended up doing a bit too many changes within just one branch, so I need to scale it back and rebuild the changes independantly.
+
+Under the branch 697, https://github.com/KBVE/kbve/pull/697/files, or patch atomic unity saber render engine 02 13 2024, the idea was to change the pipeline for a custom toon one but I feel like that might cause some problems with the way we are building this application.
+
+The inital toon shader was under the `toon-rp` package but I think it would make sense to look for a new cell shader that would work with the universal pipeline because then having it work across multiple devices will not be an issue.
+
+Now the best way to handle this would be to look through the docs and notes, and seeing if we can reference another shader, or... worse comes to worse, we would have to build our own custom shader.
+
