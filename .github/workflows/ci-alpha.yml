@@ -6,6 +6,18 @@ on:
                 - "alpha*"
 
 jobs:
+        setup:
+            name: "Setup"
+            runs-on: ubuntu-latest
+            outputs:
+              build_unity: ${{ steps.set_output.outputs.build_unity }}
+            steps:
+              - id: set_output
+                shell: bash
+                run: |
+                    echo "build_unity=true" >> $GITHUB_OUTPUT
+
+
         handle:
             name: "Alpha to Beta"
             runs-on: ubuntu-latest
@@ -82,10 +94,10 @@ jobs:
     # Alpha Builds
 
         buildSaber:
-            needs: alter
+            needs: [alter, setup]
             name: "Saber Alpha Build"
             runs-on: ubuntu-latest
-            if: needs.alter.outputs.saber == 'true'
+            if: needs.alter.outputs.saber == 'true' && needs.setup.outputs.build_unity == 'true'
             strategy:
                 fail-fast: false
                 matrix:
@@ -194,10 +206,10 @@ jobs:
 
 
         itchdev:
-            needs: ['alter', 'buildSaber']
+            needs: ['alter', 'buildSaber', 'setup']
             name: Itch Dev Saber Deployment
             runs-on: ubuntu-latest
-            if: needs.alter.outputs.saber == 'true'
+            if: needs.alter.outputs.saber == 'true' && needs.setup.outputs.build_unity == 'true'
             steps:
               -   name: Checkout repository
                   uses: actions/checkout@v4
