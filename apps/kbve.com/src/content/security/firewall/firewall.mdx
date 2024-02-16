@@ -1,0 +1,42 @@
+---
+title: Firewall
+description: NFTables, IP Tables, Honeypots and more!
+category: Application
+client: Self
+publishDate: 2022-09-01 00:00:00
+img: https://images.unsplash.com/photo-1642525027649-00d7397a6d4a?fit=crop&w=1400&h=700&q=75
+slug: firewall
+
+tags:
+  - technology
+  - networking
+  - security
+---
+
+
+## Information
+
+- The NFTables is the next generation of firewall rulesets that Netfliter created to expand upon their original `iptables` , `ip6tables` , `arptables` and `ebtables`.
+
+## Notes
+
+- Export Ruleset as JSON
+
+- ```shell
+  nft -j list ruleset > ~/nft-before-flush-$(date +%s).json
+  ```
+
+- Allow SSH Port (WIP)
+
+- ```shell
+    iptables-translate -A INPUT -i ens18 -p tcp --dport $SSH_PORT -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+    nft add rule ip filter INPUT iifname "ens18" tcp dport $SSH_PORT ct state new,established counter accept
+    ```
+
+- Warning: when doing NFTables, be careful not to lock yourself out from the communication from the main dedicated server.
+
+## References
+
+### Reference Material
+
+- [Quick Reference nftables in 10 minutes](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes)
