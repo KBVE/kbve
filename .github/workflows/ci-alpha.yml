@@ -13,7 +13,7 @@ jobs:
               build_unity: ${{ steps.set_output.outputs.build_unity }}
             steps:
               - id: set_output
-                run: "::set-output name=build_unity::false"
+                run: "::set-output name=build_unity::true"
 
 
         handle:
