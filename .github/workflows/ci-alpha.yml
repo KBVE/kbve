@@ -13,7 +13,9 @@ jobs:
               build_unity: ${{ steps.set_output.outputs.build_unity }}
             steps:
               - id: set_output
-                run: "::set-output name=build_unity::true"
+                shell: bash
+                run: |
+                    echo "build_unity=true" >> $GITHUB_OUTPUT
 
 
         handle:

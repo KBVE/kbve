@@ -39,3 +39,21 @@ run: "::set-output name=build_unity::true"
 ```
 
 This line will be our switch, so let us test it out!
+
+Okay it seemed to be an error, let me try to run a bash shell to set the output?
+
+```yaml
+
+jobs:
+        setup:
+            name: "Setup"
+            runs-on: ubuntu-latest
+            outputs:
+              build_unity: ${{ steps.set_output.outputs.build_unity }}
+            steps:
+              - id: set_output
+                shell: bash
+                run: |
+                    echo "build_unity=true" >> $GITHUB_OUTPUT
+
+```
