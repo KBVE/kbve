@@ -1,5 +1,9 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
+# 02-14-2024
+
+
+
 # 11-15-2023 9:19am - Ignore all __pycache__
 **/__pycache__/
 # 11-15-2023 - Ignore all .coverage
@@ -53,7 +57,12 @@ Thumbs.db
 .nx/cache
 apps/api/.env
 .env
+
+# Saber Ignores
+
 apps/saber/.vsconfig
 apps/saber/ProjectSettings/ShaderGraphSettings.asset
 apps/saber/Assets/Polytope Studio/Lowpoly_Environments/SRP/PT_Nature_Free_URP_10.10.1.unitypackage.meta
 apps/saber/Assets/Polytope Studio/Lowpoly_Environments/SRP/PT_Nature_Free_URP_12.1.10.unitypackage.meta
+
+apps/saber/Assets/Samples
