@@ -57,3 +57,13 @@ jobs:
                     echo "build_unity=true" >> $GITHUB_OUTPUT
 
 ```
+
+We still need to test this pipeline but I also need to push through the remaining models.
+
+#### GitLab
+
+I decided to begin building out a hybrid gitlab, one that will be hosted on gitlab.com directly, just incase we run into an issue with Github, and then another repo that will be our private one.
+
+The goal of having additional repo locations is to avoid any issue with github, ideally making it so that the cicd pipeline is git agnostic.
+
+The private gitlab instance could be a docker instance or a kubernetes setup, I am not too sure yet but I will write out a couple plans that we can use.
