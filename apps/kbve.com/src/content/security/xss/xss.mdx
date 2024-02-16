@@ -1,0 +1,86 @@
+---
+title: XSS
+category: Security
+client: Self
+publishDate: 2022-09-01 00:00:00
+img: https://images.unsplash.com/photo-1614064641938-3bbee52942c7?fit=crop&w=1400&h=700&q=75
+slug: xss
+description: Research and Development in XSS attack vectors.
+tags:
+  - security
+  - def
+---
+
+
+
+## Information
+
+- XSS, known as, Cross Site Scripting, is the act of injecting malicious script, usually javascript, into a website with the attempt to hi-jack information and/or alter the underlying production code. Examples include stealing client information, bypassing WAFs/filters and redirecting client (user, staff, entity) to unauthorized locations.
+
+- OWASP breaks XSS into 3 types, defined below:
+  - Reflected XSS - Non-Presistent - Type 1
+  - Stored XSS - Persistent - Type 2
+  - DOM Based XSS - Type 3 (as referenced as Type 0)
+
+
+---
+
+## Attacks
+
+Common XSS attack vectors are split into throw main categories.
+
+### ATO
+
+ATO - Hostile Account Takeover.
+
+### Cookie Manipulation
+
+Cookie Manipulation - Obtaining another client's cookie.
+  
+### DOM Replacement
+
+DOM Replacement - Swapping (Persistent/Non-Presistent) Document Object Model (HTML) with a hostile/malignment node (DOM-entity, Memory HTML).
+
+---
+
+## Defense
+
+- The best defense is to assume every form of client (user, staff, entity, personal) has a malicious intent and should be sanitized at the client and server side. Sanitization encompasses a combination of filtering and encoding, as well as, referencing libraries as tools. The only draw back with heavy filtering / encoding will be performance but its a trade-off worth the safety of the data, client and server.
+  - Encode:
+            - Unicode-escape sequence is a string that starts with a backlash, `\`, followed by the letter `u` and 4 hexadecimal digits.
+                - The backlash, `\` , acts as the `UnicodeEscape`.
+                - The letter, `u`, acts as the `UnicodeMarker`.
+                - The 4 digits are referenced as hexDigits:
+                    - `0` , `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `a`, `b`, `c`, `d`, `e`, `f`, `A`, `B`, `C`, `D`, `E`, `F`.
+                - Examples:
+                    - `<` -> UnicodeEscape() -> `\u003c`
+                    - `>` -> UnicodeEscape() -> `\u003e`
+            - HTML Entities
+                -
+                - Examples:
+                    - `<` -> HTML_Entities() -> `&lt;`  ||  `&#60;`
+                    - `>` -> HTML_Entities() -> `&gt;`  ||  `&#62;`
+                    - `&` -> HTML_Entities() -> `&amp;` ||  `&#38;`
+  - Filter:
+
+- Libraries: A collection of tools to help prevent common XSS attacks
+  - Check #References
+
+  
+## Vector
+
+- Reflection XSS - Type 1
+- Stored XSS - Type 2
+- DOM XSS - Type 3/0
+
+## Tools
+
+- Leviathan (2019)
+
+---
+
+## REF
+
+Browser Secrets [Breakdown](https://browsersecrets.restograde.com/)
+
+XSS - The LocalStorage Robbery [Medium](https://shahjerry33.medium.com/xss-the-localstorage-robbery-d5fbf353c6b0)
