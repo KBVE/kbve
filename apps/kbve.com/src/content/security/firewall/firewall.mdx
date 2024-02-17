@@ -16,24 +16,28 @@ tags:
 
 ## Information
 
-- The NFTables is the next generation of firewall rulesets that Netfliter created to expand upon their original `iptables` , `ip6tables` , `arptables` and `ebtables`.
+The NFTables is the next generation of firewall rulesets that Netfliter created to expand upon their original `iptables` , `ip6tables` , `arptables` and `ebtables`.
 
 ## Notes
 
-- Export Ruleset as JSON
+Export Ruleset as JSON
 
-- ```shell
-  nft -j list ruleset > ~/nft-before-flush-$(date +%s).json
-  ```
+```shell
 
-- Allow SSH Port (WIP)
+nft -j list ruleset > ~/nft-before-flush-$(date +%s).json
 
-- ```shell
-    iptables-translate -A INPUT -i ens18 -p tcp --dport $SSH_PORT -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
-    nft add rule ip filter INPUT iifname "ens18" tcp dport $SSH_PORT ct state new,established counter accept
-    ```
+```
 
-- Warning: when doing NFTables, be careful not to lock yourself out from the communication from the main dedicated server.
+Allow SSH Port (WIP)
+
+```shell
+
+iptables-translate -A INPUT -i ens18 -p tcp --dport $SSH_PORT -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+nft add rule ip filter INPUT iifname "ens18" tcp dport $SSH_PORT ct state new,established counter accept
+
+```
+
+Warning: when doing NFTables, be careful not to lock yourself out from the communication from the main dedicated server.
 
 ## References
 

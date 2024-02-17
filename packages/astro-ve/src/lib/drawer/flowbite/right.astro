@@ -1,9 +1,10 @@
 ---
 export interface Props {
+    id?: string;
 	img?: string;
 }
 
-const { img } = Astro.props;
+const { img, id } = Astro.props;
 ---
 
 <Fragment>
