@@ -14,6 +14,12 @@ export interface Props {
 
 const { img, id, dyn = false, description } = Astro.props;
 
+//  Imports
+import { style, dynStyle } from '../../style';
+
+let styleSheet = dyn ? dynStyle : style;
+
+
 // Helper Function for replacing Hyphens and the word Drawer
 function replaceHyphensWithSpaces(inputString: string) {
 	return inputString.replace(/-/g, ' ').replace(/drawer\s?/gi, '');
@@ -34,7 +40,7 @@ if (!id) {
 		'Warning: The "id" prop is missing or empty when calling the Astro Flowbite Right Component.'
 	);
 } else {
-	idText = replaceHyphensWithSpaces(id);
+	idText = (id);
 }
 
 // Check if `description` is not provided or is an empty sring

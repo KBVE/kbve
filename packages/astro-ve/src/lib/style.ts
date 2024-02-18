@@ -58,4 +58,4 @@ class DynamicKBVEStyleManager extends KBVEStyleManager {
 }
 
 export const style = new KBVEStyleManager();
-export const dyn_style = new DynamicKBVEStyleManager();
+export const dynStyle = new DynamicKBVEStyleManager();
