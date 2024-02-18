@@ -2,26 +2,40 @@
 export interface Props {
     id?: string;
 	img?: string;
+    dyn?: boolean;
 }
 
-const { img, id } = Astro.props;
+const { img, id, dyn = false } = Astro.props;
+
+// Helper Function for replacing Hyphens and the word Drawer
+function replaceHyphensWithSpaces(inputString: string) {
+  return inputString.replace(/-/g, ' ').replace(/drawer\s?/gi, '');
+}
+
+let idText: string = 'PlaceHolder';
+let baseBackgroundStyle: string = 'bg-kbve-menu-bg';
 
 // Check if `id` is not provided or is an empty string
 if (!id) {
     console.warn('Warning: The "id" prop is missing or empty when calling the Astro Flowbite Right Component.');
+} else {
+    idText = replaceHyphensWithSpaces(id);
 }
+
+// TODO: Dynamic CSS Integration
+
 
 ---
 
 <Fragment>
 	<div
 		id={id}
-		class="fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full bg-white w-80 dark:bg-gray-800"
+		class="fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full bg-kbve-menu-bg w-80"
 		tabindex="-1"
 		aria-labelledby={`${id}-label`}>
 		<h5
 			id={`${id}-label`}
-			class="inline-flex items-center mb-4 text-base font-semibold text-gray-500 dark:text-gray-400">
+			class="inline-flex items-center mb-4 text-base font-semibold text-gray-500 dark:text-gray-400 uppercase">
 			<svg
 				class="w-4 h-4 me-2.5"
 				aria-hidden="true"
@@ -31,7 +45,8 @@ if (!id) {
 				<path
 					d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z">
 				</path>
-			</svg>Right drawer
+			</svg>
+            {idText}
 		</h5>
 		<button
 			type="button"

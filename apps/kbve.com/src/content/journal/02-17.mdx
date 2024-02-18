@@ -26,3 +26,51 @@ Okay! For the new menu, we want to have multiple drawers that open on the right 
 There are a couple different ways that I am thinking we could do it but we will start with the flowbite user interface because we have the library already setup.
 
 I might also try to include a R3F version but that might end up becoming way too large.
+
+Got the right side of the drawer to be functional, now I need to adjust how it would look by utilizing the tailwindcss configuration.
+My first through process would be to just assign basic hex codes for the different tailwindcss variables, however I am also thinking of extending out the dynamic coloring option, but what would be the best way to handle that?
+
+I also added a simple dynamic id system and simple text naming scheme.
+
+```js
+
+
+// Helper Function for replacing Hyphens and the word Drawer
+function replaceHyphensWithSpaces(inputString: string) {
+  return inputString.replace(/-/g, ' ').replace(/drawer\s?/gi, '');
+}
+
+let idText: string = 'PlaceHolder';
+
+// Check if `id` is not provided or is an empty string
+if (!id) {
+    console.warn('Warning: The "id" prop is missing or empty when calling the Astro Flowbite Right Component.');
+} else {
+    idText = replaceHyphensWithSpaces(id);
+}
+
+```
+
+This will help with making sure the id prop is passed and also let us create a dyanmic `idText` from the same id that gets passed.
+
+For the background color, I am thinking of just passing through the `kbve-menu-bg` variable, but this means that the component will not have dynamic light and dark mode.
+
+We could resolve that right now by adding an additional property that gets passed, for this concept we could call it a `dyn` boolean, which would enable a couple types of dynamics.
+
+Let me update the `Props` to pass in the dynamic boolean, 
+
+```ts
+
+export interface Props {
+    id?: string;
+	img?: string;
+    dyn?: boolean;
+}
+
+const { img, id, dyn = false } = Astro.props;
+
+```
+
+Afterwards, we will have to add in a helper function to handle the dynamic colors for the form. 
+
+There are a couple options we could include but I think we can isolate it just within this component, rather than creating more sub-libraries.
