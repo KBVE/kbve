@@ -9,11 +9,16 @@ const { logo } = Astro.props;
 <Fragment>
 	<aside
 		class="h-full w-16 flex flex-col space-y-10 items-center justify-center relative bg-zinc-950 text-white">
-		<div
-			class="h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-emerald-400 hover:duration-300 hover:ease-linear focus:bg-white">
+		<button
+			class="h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-emerald-400 hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500"
+			data-drawer-target="drawer-right"
+			data-drawer-show="drawer-right"
+			data-drawer-placement="right"
+			aria-controls="drawer-right"
+			data-drawer-backdrop="true">
 			<svg
 				fill="currentColor"
-                class="w-6 h-6"
+				class="w-6 h-6"
 				version="1.1"
 				id="Layer_1"
 				xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +36,7 @@ const { logo } = Astro.props;
 					</path>
 				</g>
 			</svg>
-		</div>
+		</button>
 
 		<div
 			class="h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-white hover:duration-300 hover:ease-linear focus:bg-white">
@@ -69,7 +74,7 @@ const { logo } = Astro.props;
 			class="h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-white hover:duration-300 hover:ease-linear focus:bg-white">
 			<svg
 				fill="currentColor"
-                class="h-6 w-6"
+				class="h-6 w-6"
 				version="1.1"
 				id="Capa_1"
 				xmlns="http://www.w3.org/2000/svg"
