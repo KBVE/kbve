@@ -13,7 +13,11 @@ function replaceHyphensWithSpaces(inputString: string) {
 }
 
 let idText: string = 'PlaceHolder';
+
+// Dynamic CSS Placeholders
 let baseBackgroundStyle: string = 'bg-kbve-menu-bg';
+let baseTextStyle: string = 'text-white';
+let baseSVGColorStyle: string = 'text-kbve-svg-primary';
 
 // Check if `id` is not provided or is an empty string
 if (!id) {
@@ -24,20 +28,25 @@ if (!id) {
 
 // TODO: Dynamic CSS Integration
 
+if(dyn){
+    baseBackgroundStyle = 'bg-kbve-menu-bg-dyn';
+    baseSVGColorStyle = 'text-kbve-svg-primary-dyn';
+}
+
 
 ---
 
 <Fragment>
 	<div
 		id={id}
-		class="fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full bg-kbve-menu-bg w-80"
+		class={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full ${baseBackgroundStyle} w-80`}
 		tabindex="-1"
 		aria-labelledby={`${id}-label`}>
 		<h5
 			id={`${id}-label`}
 			class="inline-flex items-center mb-4 text-base font-semibold text-gray-500 dark:text-gray-400 uppercase">
 			<svg
-				class="w-4 h-4 me-2.5"
+				class={`w-4 h-4 me-2.5 ${baseSVGColorStyle}`}
 				aria-hidden="true"
 				xmlns="http://www.w3.org/2000/svg"
 				fill="currentColor"

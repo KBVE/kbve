@@ -74,3 +74,18 @@ const { img, id, dyn = false } = Astro.props;
 Afterwards, we will have to add in a helper function to handle the dynamic colors for the form. 
 
 There are a couple options we could include but I think we can isolate it just within this component, rather than creating more sub-libraries.
+
+We want to adjust the SVG colors, using a primary color and we should include a dynmaic class incase we want to alter the color of the svg using javascript.
+
+There will be two more tailwindcss variables that we will be using, `kbve-svg-primary` and then for the dynmaic variable, just adding dyn to the end, `kbve-svg-primary-dyn`.
+
+Going to run a quick health check on the two projects that are using the Astro VE, which can be done by this command:
+
+```shell
+
+./kbve.sh -nx kbve.com:build
+./kbve.sh -nx herbmail.com:build
+
+```
+
+I did notice the build throw a working with the `register` variable inside of the svelte file, `Register.svelte`, but I will go back and address that issue once I get the base of the form done.

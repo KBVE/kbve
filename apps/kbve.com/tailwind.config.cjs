@@ -24,13 +24,14 @@ module.exports = {
 				'kbve-secondary': '#1c033c',
 
 				'kbve-menu-primary': '#27272A',
-        'kbve-svg-primary': '',
-
+				'kbve-svg-primary': '#91ffff',
+				'kbve-svg-primary-dyn': 'var(--color-kbve-svg-primary-dyn)',
 			},
 			backgroundColor: {
 				default: 'var(--color-background)',
 				//offset: "var(--color-background-offset)",
 				'kbve-menu-bg': '#09090b', // zinc 950 as hex
+				'kbve-menu-bg-dyn': 'var(--color-kbve-menu-bg-dyn)', // Dynamic Variable
 				offset: '#23262d',
 			},
 

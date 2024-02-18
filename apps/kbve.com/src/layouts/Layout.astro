@@ -26,7 +26,7 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 	<div class="h-screen w-full bg-[#13151A] relative flex overflow-hidden">
 
 		<VE widget="nav:aside:demo" data="" />
-		<VE widget="drawer:flowbite:right" id="drawer-right" />
+		<VE widget="drawer:flowbite:right" id="drawer-right" dyn={false} />
 
 		<!--
 		<VE widget="drawer:flowbite:demo"/>
@@ -66,6 +66,7 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 
 	<style is:global>
 		:root {
+			--color-kbve-menu-bg-dyn: #FFF333;
 			--accent: 136, 58, 234;
 			--accent-light: 224, 204, 250;
 			--accent-dark: 49, 10, 101;
