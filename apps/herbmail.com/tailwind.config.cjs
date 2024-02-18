@@ -26,6 +26,10 @@ module.exports = {
 				'kbve-menu-primary': '#27272A',
 				'kbve-svg-primary': '#91ffff', // 02-17-2024 - This will have to be changed for the theme.
 				'kbve-svg-primary-dyn': 'var(--color-kbve-svg-primary-dyn)',
+				'kbve-text-primary': '',
+				'kbve-text-primary-dyn': 'var(--color-kbve-text-primary-dyn)',
+				'kbve-text-secondary': '',
+				'kbve-text-secondary-dyn': 'var(--color-kbve-text-secondary-dyn)',
 			},
 			backgroundColor: {
 				default: 'var(--color-background)',

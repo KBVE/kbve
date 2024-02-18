@@ -26,6 +26,10 @@ module.exports = {
 				'kbve-menu-primary': '#27272A',
 				'kbve-svg-primary': '#91ffff',
 				'kbve-svg-primary-dyn': 'var(--color-kbve-svg-primary-dyn)',
+        'kbve-text-primary': '#91ffff',
+        'kbve-text-primary-dyn': 'var(--color-kbve-text-primary-dyn)',
+        'kbve-text-secondary': '#ffffff',
+        'kbve-text-secondary-dyn': 'var(--color-kbve-text-secondary-dyn)',
 			},
 			backgroundColor: {
 				default: 'var(--color-background)',

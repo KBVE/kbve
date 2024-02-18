@@ -51,7 +51,7 @@ if (!id) {
 
 ```
 
-This will help with making sure the id prop is passed and also let us create a dyanmic `idText` from the same id that gets passed.
+This will help with making sure the id prop is passed and also let us create a dynamic `idText` from the same id that gets passed.
 
 For the background color, I am thinking of just passing through the `kbve-menu-bg` variable, but this means that the component will not have dynamic light and dark mode.
 
@@ -89,3 +89,9 @@ Going to run a quick health check on the two projects that are using the Astro V
 ```
 
 I did notice the build throw a working with the `register` variable inside of the svelte file, `Register.svelte`, but I will go back and address that issue once I get the base of the form done.
+
+#### slots
+
+We will go ahead and remove some of the default flowbite data that is provided by the example and place a couple slots within the drawer, which will hold the content that we want to display.
+
+Oh wait, before I add the slots, we need to make sure that the text is also base and dynamic, similar to how we did the `bg` and `svg`.
