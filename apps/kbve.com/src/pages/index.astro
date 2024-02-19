@@ -1,55 +1,49 @@
 ---
+import { AstroVe as VE } from '@kbve/astro-ve';
 import Layout from '../layouts/Layout.astro';
 import Card from '../components/Card.astro';
 ---
 
-<Layout title="Welcome to KBVE." description='Welcome to KBVE!'>
-	<div class="mx-auto text-white text-xl leading-normal">
-		
-		<h1>Welcome to <span class="text-gradient">Astro</span></h1>
-		<br />
-		<p class="instructions">
-			To get started, open the directory <code>src/pages</code> in your project.<br />
-			<strong>Code Challenge:</strong> Tweak the "Welcome to Astro" message above.
-		</p>
-		<ul role="list" class="link-card-grid">
-			<Card
-				href="https://docs.astro.build/"
-				title="Documentation"
-				body="Learn how Astro works and explore the official API docs."
-			/>
-			<Card
-				href="https://astro.build/integrations/"
-				title="Integrations"
-				body="Supercharge your project with new frameworks and libraries."
-			/>
-			<Card
-				href="https://astro.build/themes/"
-				title="Themes"
-				body="Explore a galaxy of community-built starter themes."
-			/>
-			<Card
-				href="https://astro.build/chat/"
-				title="Astro Community"
-				body="Come say hi to our amazing Astro Discord community. ❤️"
-			/>
-			<Card
-				href="https://nx.dev/"
-				title="Nx"
-				body="Learn more about Nx."
-			/>
-			<Card
-				href="https://nrwlcommunity.slack.com/"
-				title="Nrwl Community Slack"
-				body="Come chat in the Nrwl Community Slack. ❤️"
-			/>
-		</ul>
-		<br />
-	</div>
-</Layout>
+<Layout title="Welcome to KBVE." description="Welcome to KBVE!">
+	<div>
+		<section
+			class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+			<a href="#">
+				<h5
+					class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+					Noteworthy technology acquisitions 2021
+				</h5>
+			</a>
+			<p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
+				Here are the biggest enterprise technology acquisitions of 2021
+				so far, in reverse chronological order.
+			</p>
+			<a
+				href="#"
+				class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+				Read more
+				<svg
+					class="rtl:rotate-180 w-3.5 h-3.5 ms-2"
+					aria-hidden="true"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 14 10">
+					<path
+						stroke="currentColor"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M1 5h12m0 0L9 1m4 4L9 9">
+					</path>
+				</svg>
+			</a>
+		</section>
 
-<style>
-	/* main {
+		
+	</div>
+
+	<style>
+		/* main {
 		margin: auto;
 		padding: 1rem;
 		width: 800px;
@@ -59,57 +53,61 @@ import Card from '../components/Card.astro';
 		line-height: 1.6;
 	} */
 
-	.astro-a {
-		position: absolute;
-		top: -32px;
-		left: 50%;
-		transform: translatex(-50%);
-		width: 220px;
-		height: auto;
-		z-index: -1;
-	}
+		.astro-a {
+			position: absolute;
+			top: -32px;
+			left: 50%;
+			transform: translatex(-50%);
+			width: 220px;
+			height: auto;
+			z-index: -1;
+		}
 
-	h1 {
-		font-size: 4rem;
-		font-weight: 700;
-		line-height: 1;
-		text-align: center;
-		margin-bottom: 1em;
-	}
+		h1 {
+			font-size: 4rem;
+			font-weight: 700;
+			line-height: 1;
+			text-align: center;
+			margin-bottom: 1em;
+		}
 
-	.text-gradient {
-		background-image: var(--accent-gradient);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-size: 400%;
-		background-position: 0%;
-	}
+		.text-gradient {
+			background-image: var(--accent-gradient);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-size: 400%;
+			background-position: 0%;
+		}
 
-	.instructions {
-		margin-bottom: 2rem;
-		border: 1px solid rgba(var(--accent-light), 25%);
-		background: linear-gradient(rgba(var(--accent-dark), 66%), rgba(var(--accent-dark), 33%));
-		padding: 1.5rem;
-		border-radius: 8px;
-	}
+		.instructions {
+			margin-bottom: 2rem;
+			border: 1px solid rgba(var(--accent-light), 25%);
+			background: linear-gradient(
+				rgba(var(--accent-dark), 66%),
+				rgba(var(--accent-dark), 33%)
+			);
+			padding: 1.5rem;
+			border-radius: 8px;
+		}
 
-	.instructions code {
-		font-size: 0.8em;
-		font-weight: bold;
-		background: rgba(var(--accent-light), 12%);
-		color: rgb(var(--accent-light));
-		border-radius: 4px;
-		padding: 0.3em 0.4em;
-	}
+		.instructions code {
+			font-size: 0.8em;
+			font-weight: bold;
+			background: rgba(var(--accent-light), 12%);
+			color: rgb(var(--accent-light));
+			border-radius: 4px;
+			padding: 0.3em 0.4em;
+		}
 
-	.instructions strong {
-		color: rgb(var(--accent-light));
-	}
+		.instructions strong {
+			color: rgb(var(--accent-light));
+		}
 
-	.link-card-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
-		gap: 2rem;
-		padding: 0;
-	}
-</style>
+		.link-card-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
+			gap: 2rem;
+			padding: 0;
+		}
+	</style>
+</Layout>
