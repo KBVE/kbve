@@ -120,6 +120,21 @@ Proxmox Cheatsheet for quick commands and below are the basic CLI (command-line 
 
 This is a generic guide to installing and setting up windows.
 
+#### Windows Audio
+
+When booting up the Windows KVM, there has to be an audio configuration that has to be setup for the qemu server.
+
+Grab the qEMU server id from the proxmox list, then go to `/etc/pve/qemu-server/$VMID.conf`, replacing the `$VMID` with the ID.
+
+Then add this to the `args`:
+
+```conf
+
+args: -device intel-hda,id=sound5,bus=pci.0,addr=0x18 -device hda-micro,id=sound5-codec0,bus=sound5.0,cad=0 -device hda-duplex,id=sound5-codec1,bus=sound5.0,cad=1 
+
+```
+
+
 #### Windows Error
 
 Quick and short solutions to common window errors that we faced when deploying.
