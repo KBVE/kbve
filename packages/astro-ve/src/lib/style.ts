@@ -31,6 +31,13 @@ interface IVariableProcessor {
 	 * @returns The instance of IVariableProcessor with updated transparency.
 	 */
 	setTransparent(percentage: number): IVariableProcessor;
+
+    /** 
+     * Sets the hover option for the variable
+     * @returns IVariableProcessor with the hover substring attached.
+    */
+    setHover(): IVariableProcessor;
+    
 }
 
 /**
@@ -44,7 +51,7 @@ class KBVEStyleManager implements IKBVEStyleSheet {
 		// Background variables
 		'bg-kbve-menu-bg': 'bg-kbve-menu-bg',
 		'bg-k-m-bg': 'bg-kbve-menu-bg', // Alias for 'bg-kbve-menu-bg'
-
+        'bg-kbve-svg-primary': 'bg-kbve-svg-primary',
 
 		// Text color variables
 		'text-kbve-text-primary': 'text-kbve-text-primary',
@@ -81,6 +88,11 @@ class KBVEStyleManager implements IKBVEStyleSheet {
 				);
 				// Update 'variable' for the current object context and return 'this' to satisfy the interface
 				this.variable = transparentVariable;
+				return this;
+			},
+            setHover: function () {
+				// Prepend 'hover:' to the variable and return 'this' for chaining
+				this.variable = `hover:${this.variable}`;
 				return this;
 			},
 		};
