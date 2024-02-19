@@ -23,7 +23,7 @@ import Menu from './Menu.astro';
 		<VE widget="header:external:lottie" data="dot" />
 	</head>
 
-	<div class="h-screen w-full bg-[#13151A] relative flex overflow-hidden">
+	<div class="h-screen w-full bg-zinc-950 relative flex overflow-hidden">
 		<Menu />
 
 
@@ -40,13 +40,14 @@ import Menu from './Menu.astro';
 						<VE
 							widget="nav:v01d:auto"
 							logo="/assets/img/letter_logo.png">
+							
 							<VE
 								widget="kbve:user:user"
 								avatar="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
 							/>
 							<div class="text-center">
 								<button
-									class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1 focus:outline-none"
+									class="text-white bg-cyan-700 hover:bg-cyan-800 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
 									type="button"
 									data-drawer-target="drawer-swipe"
 									data-drawer-show="drawer-swipe"
@@ -54,17 +55,74 @@ import Menu from './Menu.astro';
 									data-drawer-edge="true"
 									data-drawer-edge-offset="bottom-[60px]"
 									aria-controls="drawer-swipe">
-									Menu
+									<div class="object-contain w-6">
+										<dotlottie-player
+											autoplay
+											loop
+											mode="normal"
+											src="/assets/lottie/menu.lottie"
+										></dotlottie-player>
+									</div>
 								</button>
+								
 							</div>
+
+							<div class="text-center">
+								<button
+									class="text-white bg-cyan-700 hover:bg-cyan-800 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
+									type="button"
+									data-drawer-target="drawer-swipe"
+									data-drawer-show="drawer-swipe"
+									data-drawer-placement="bottom"
+									data-drawer-edge="true"
+									data-drawer-edge-offset="bottom-[60px]"
+									aria-controls="drawer-swipe">
+									<div class="object-contain w-6">
+										<dotlottie-player
+											autoplay
+											loop
+											mode="normal"
+											src="/assets/lottie/rocket.lottie"
+										></dotlottie-player>
+									</div>
+								</button>
+								
+							</div>
+
+							<div class="text-center">
+								<button
+									class="text-white bg-cyan-700 hover:bg-cyan-800 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1.5 py-2 focus:outline-none"
+									type="button"
+									data-drawer-target="drawer-swipe"
+									data-drawer-show="drawer-swipe"
+									data-drawer-placement="bottom"
+									data-drawer-edge="true"
+									data-drawer-edge-offset="bottom-[60px]"
+									aria-controls="drawer-swipe">
+									<div class="object-contain w-5">
+										<dotlottie-player
+											autoplay
+											loop
+											mode="normal"
+											src="/assets/lottie/beer.lottie"
+										></dotlottie-player>
+									</div>
+								</button>
+								
+							</div>
+							
+
+							
 						</VE>
 					</div>
 				</div>
 			</header>
 
+		
 			<main class="max-w-full h-full flex relative overflow-y-hidden">
+			<!-- Removed grid-flow-col auto-cols-max -->
 				<div
-					class="h-full w-full m-4 flex flex-wrap items-start justify-start rounded-tl grid-flow-col auto-cols-max gap-4 overflow-y-scroll">
+					class="h-full w-full  items-start justify-start rounded-tl flex flex-wrap  gap-4 overflow-y-scroll grid-flow-col auto-cols-max  ">
 					<slot />
 				</div>
 			</main>

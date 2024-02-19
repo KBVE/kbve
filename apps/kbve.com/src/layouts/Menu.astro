@@ -47,8 +47,13 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 			</svg>
 		</button>
 
-		<div
-			class="h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-white hover:duration-300 hover:ease-linear focus:bg-white">
+		<button
+			class={`h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-kbve-svg-primary hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500`}
+			data-drawer-target="drawer-right"
+			data-drawer-show="drawer-right"
+			data-drawer-placement="right"
+			aria-controls="drawer-right"
+			data-drawer-backdrop="true">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-6 w-6"
@@ -60,10 +65,15 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 					clip-rule="evenodd">
 				</path>
 			</svg>
-		</div>
+		</button>
 
-		<div
-			class="h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-white hover:duration-300 hover:ease-linear focus:bg-white">
+		<button
+			class={`h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-kbve-svg-primary hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500`}
+			data-drawer-target="drawer-right"
+			data-drawer-show="drawer-right"
+			data-drawer-placement="right"
+			aria-controls="drawer-right"
+			data-drawer-backdrop="true">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-6 w-6"
@@ -77,10 +87,15 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 					d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
 				</path>
 			</svg>
-		</div>
+		</button>
 
-		<div
-			class="h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-white hover:duration-300 hover:ease-linear focus:bg-white">
+		<button
+			class={`h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-kbve-svg-primary hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500`}
+			data-drawer-target="drawer-right"
+			data-drawer-show="drawer-right"
+			data-drawer-placement="right"
+			aria-controls="drawer-right"
+			data-drawer-backdrop="true">
 			<svg
 				fill="currentColor"
 				class="h-6 w-6"
@@ -111,10 +126,15 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 					</g>
 				</g>
 			</svg>
-		</div>
+		</button>
 
-		<div
-			class="h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-white hover:duration-300 hover:ease-linear focus:bg-white">
+		<button
+			class={`h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-kbve-svg-primary hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500`}
+			data-drawer-target="drawer-right"
+			data-drawer-show="drawer-right"
+			data-drawer-placement="right"
+			aria-controls="drawer-right"
+			data-drawer-backdrop="true">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-6 w-6"
@@ -134,7 +154,22 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 					d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
 				</path>
 			</svg>
-		</div>
+		</button>
+		<button
+			class={`h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-kbve-svg-primary hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500`}
+			data-drawer-target="drawer-game"
+			data-drawer-show="drawer-game"
+			data-drawer-placement="right"
+			aria-controls="drawer-game"
+			data-drawer-backdrop="true">
+			<div class="object-contain w-10">
+				<dotlottie-player
+					autoplay
+					loop
+					mode="normal"
+					src="/assets/lottie/robot.lottie"></dotlottie-player>
+			</div>
+		</button>
 		<slot name="after-aside" />
 	</VE>
 
@@ -155,6 +190,7 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 						class="block text-xs font-medium tracki uppercase text-orange-400">
 						Quisque
 					</span>
+
 					<h2 class="text-xl font-semibold tracki">
 						Nam maximus purus
 					</h2>
@@ -166,4 +202,33 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 			</div>
 		</Fragment>
 	</VE>
+
+	<VE widget="drawer:flowbite:right" id="drawer-game" dyn={false}>
+		<Fragment slot="default">
+			<div
+				class="max-w-xs p-6 rounded-md shadow-md bg-gray-900 text-gray-50">
+				<img
+					src="https://source.unsplash.com/random/300x300/?1"
+					alt=""
+					class="object-cover object-center w-full rounded-md h-72 bg-gray-500"
+				/>
+				<div class="mt-6 mb-2">
+					<span
+						class="block text-xs font-medium tracki uppercase text-orange-400">
+						Game
+					</span>
+
+					<h2 class="text-xl font-semibold tracki">Game Window</h2>
+				</div>
+				<p class="">
+					Mauris et lorem at elit tristique dignissim et ullamcorper
+					elit. In sed feugiat mi. Etiam ut lacinia dui.
+				</p>
+				
+				
+			</div>
+		</Fragment>
+	</VE>
+
+	<slot />
 </Fragment>
