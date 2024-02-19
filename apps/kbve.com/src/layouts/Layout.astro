@@ -51,6 +51,8 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 			</slot>
 		</VE>
 
+		<VE widget="drawer:flowbite:bottom" id="drawer-swipe" dyn={false} />
+
 		<!--
 		<VE widget="drawer:flowbite:demo"/>
 			 -->
@@ -69,14 +71,15 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 							/>
 							<div class="text-center">
 								<button
-									class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+									class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1 focus:outline-none"
 									type="button"
-									data-drawer-target="drawer-right"
-									data-drawer-show="drawer-right"
-									data-drawer-placement="right"
-									aria-controls="drawer-right"
-									data-drawer-backdrop="true">
-									Show drawer
+									data-drawer-target="drawer-swipe"
+									data-drawer-show="drawer-swipe"
+									data-drawer-placement="bottom"
+									data-drawer-edge="true"
+									data-drawer-edge-offset="bottom-[60px]"
+									aria-controls="drawer-swipe">
+									Menu
 								</button>
 							</div>
 						</VE>

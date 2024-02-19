@@ -45,6 +45,7 @@ class KBVEStyleManager implements IKBVEStyleSheet {
 		'bg-kbve-menu-bg': 'bg-kbve-menu-bg',
 		'bg-k-m-bg': 'bg-kbve-menu-bg', // Alias for 'bg-kbve-menu-bg'
 
+
 		// Text color variables
 		'text-kbve-text-primary': 'text-kbve-text-primary',
 		'text-kbve-text-secondary': 'text-kbve-text-secondary',
