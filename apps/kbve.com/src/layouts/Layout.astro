@@ -6,6 +6,7 @@ interface Props {
 }
 const { title, description } = Astro.props;
 import { AstroVe as VE } from '@kbve/astro-ve';
+import Menu from './Menu.astro';
 ---
 
 <!DOCTYPE html>
@@ -23,35 +24,9 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 	</head>
 
 	<div class="h-screen w-full bg-[#13151A] relative flex overflow-hidden">
-		<VE widget="nav:aside:demo" data="" />
-		<VE widget="drawer:flowbite:right" id="drawer-right" dyn={false}>
-			<slot name="description">
-				<div
-					class="max-w-xs p-6 rounded-md shadow-md bg-gray-900 text-gray-50">
-					<img
-						src="https://source.unsplash.com/random/300x300/?1"
-						alt=""
-						class="object-cover object-center w-full rounded-md h-72 bg-gray-500"
-					/>
-					<div class="mt-6 mb-2">
-						<span
-							class="block text-xs font-medium tracki uppercase text-orange-400">
-							Quisque
-						</span>
-						<h2 class="text-xl font-semibold tracki">
-							Nam maximus purus
-						</h2>
-					</div>
-					<p class="">
-						Mauris et lorem at elit tristique dignissim et
-						ullamcorper elit. In sed feugiat mi. Etiam ut lacinia
-						dui.
-					</p>
-				</div>
-			</slot>
-		</VE>
+		<Menu />
 
-		<VE widget="drawer:flowbite:bottom" id="drawer-swipe" dyn={false} />
+
 
 		<!--
 		<VE widget="drawer:flowbite:demo"/>
