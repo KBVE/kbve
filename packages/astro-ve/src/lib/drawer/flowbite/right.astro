@@ -19,20 +19,21 @@ import { style, dynStyle } from '../../style';
 
 let styleSheet = dyn ? dynStyle : style;
 
-
-// Helper Function for replacing Hyphens and the word Drawer
-function replaceHyphensWithSpaces(inputString: string) {
-	return inputString.replace(/-/g, ' ').replace(/drawer\s?/gi, '');
-}
-
 let idText: string = 'PlaceHolder';
 let descriptionText: string = '';
 
 // Dynamic CSS Placeholders
-let baseBackgroundStyle: string = 'bg-kbve-menu-bg';
-let baseTextStyle: string = 'text-kbve-text-primary';
-let baseSecondaryTextStyle: string = 'text-kbve-text-secondary';
-let baseSVGColorStyle: string = 'text-kbve-svg-primary';
+let baseBackgroundStyle: string =
+	styleSheet.getVariable('bg-kbve-menu-bg').variable;
+let baseTextStyle: string = styleSheet.getVariable(
+	'text-kbve-text-primary'
+).variable;
+let baseSecondaryTextStyle: string = styleSheet.getVariable(
+	'text-kbve-text-secondary'
+).variable;
+let baseSVGColorStyle: string = styleSheet.getVariable(
+	'text-kbve-svg-primary'
+).variable;
 
 // Check if `id` is not provided or is an empty string
 if (!id) {
@@ -40,22 +41,13 @@ if (!id) {
 		'Warning: The "id" prop is missing or empty when calling the Astro Flowbite Right Component.'
 	);
 } else {
-	idText = (id);
+	idText = id.replace(/-/g, ' ').replace(/drawer\s?/gi, '');
 }
 
 // Check if `description` is not provided or is an empty sring
 
 if (description) {
 	descriptionText = description;
-}
-
-// TODO: Dynamic CSS Integration
-
-if (dyn) {
-	baseBackgroundStyle = 'bg-kbve-menu-bg-dyn';
-	baseTextStyle = 'text-kbve-text-primary-dyn';
-	baseSecondaryTextStyle = 'text-kbve-text-secondary-dyn';
-	baseSVGColorStyle = 'text-kbve-svg-primary-dyn';
 }
 ---
 
