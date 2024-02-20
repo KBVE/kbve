@@ -22,3 +22,29 @@ One of the ways that I was thinking of handling this would be to use flex with f
 I also need to make sure that the WASM will work on the main website, which is another adventure that I need to plan out.
 
 Hopefully we can get this all resovled within this week!
+
+The current solution to the flex box would be something like this:
+
+```html
+
+    <div
+        class="h-full w-full items-start justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 ">
+            <span>Content</span>
+    </div>
+
+```
+The flex, flex-wrap and content-start help align all the `section` containers within the flexbox and it seems to be responsive!
+
+Now I want to see how it will work with different size cards and if it can fit them in without any issues.
+
+For testing the flexbox, I am going to create some placeholder elements and see how they would render within the box.
+The first filler component is the `hero.astro`, which will be a generic hero element.
+
+
+
+
+#### VM
+
+The Windows machine needed a quick restart but we were able to get the sound up and running!
+Good work fudster on finding the patch!
+Now there are some issues with the audio, including the decoding and the feedback is scratching or skipping.

@@ -2,15 +2,20 @@
 export interface Props {
 	id?: string;
 	dyn?: boolean;
+	description?: string;
+	href?: string;
 }
 
-const { id, dyn = false } = Astro.props;
+const { id, dyn = false, href, description } = Astro.props;
 
 import { style, dynStyle } from '../../style';
 
 let styleSheet = dyn ? dynStyle : style;
 
+let _internal: string = 'card:dashboard:post';
 let idText: string = 'PlaceHolder';
+let descriptionText: string = 'Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.';
+let _href: string = '#';
 
 // Dynamic CSS Placeholders
 let baseBackgroundStyle: string =
@@ -28,43 +33,67 @@ let baseSVGColorStyle: string = styleSheet.getVariable(
 // Check if `id` is not provided or is an empty string
 if (!id) {
 	console.warn(
-		'Warning: The "id" prop is missing or empty when calling the Astro Flowbite Right Component.'
+		`Warning: The "id" prop is missing or empty when calling the ${_internal} Component.`
 	);
 } else {
 	idText = id.replace(/-/g, ' ').replace(/drawer\s?/gi, '');
 }
 
+//	Check if `href` is not provided or is an empty string
+if (!href) {
+	console.warn(
+		`Warning: The "href" prop is missing or empty when calling the ${_internal} component`
+	);
+} else {
+	_href = href;
+}
+
+//	[OPTIONAL]
+
+if (description) {
+	descriptionText = description;
+}
+
 //  This is a placeholder element
 ---
 
-<section
-	class="flex-auto max-w-sm p-6 bg-zinc-950 border border-gray-200 rounded-lg shadow">
-	<a href="#">
-		<h5 class="mb-2 text-2xl font-bold tracking-tight text-white">
-			Noteworthy technology acquisitions 2021
-		</h5>
-	</a>
-	<p class="mb-3 font-normal text-gray-200">
-		Here are the biggest enterprise technology acquisitions of 2021 so far,
-		in reverse chronological order.
-	</p>
-	<a
-		href="#"
-		class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-		Read more
-		<svg
-			class="rtl:rotate-180 w-3.5 h-3.5 ms-2"
-			aria-hidden="true"
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 14 10">
-			<path
-				stroke="currentColor"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M1 5h12m0 0L9 1m4 4L9 9">
-			</path>
-		</svg>
-	</a>
-</section>
+<Fragment>
+	<section
+		class={`flex-auto max-w-sm md:w-2/12 p-5 ${baseBackgroundStyle} border border-gray-200 rounded-lg shadow`}>
+		<a href={`${_href}`}>
+			<h5
+				class={`mb-2 text-2xl font-bold tracking-tight ${baseTextStyle} capitalize`}>
+				{idText}
+			</h5>
+		</a>
+		<p class={`mb-3 font-normal ${baseSecondaryTextStyle}`}>
+			{descriptionText}
+		</p>
+
+		<button
+			class="relative rounded px-5 py-2.5 overflow-hidden group bg-cyan-500 relative hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-cyan-400 transition-all ease-out duration-300">
+			<span
+				class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease">
+			</span>
+			<a href={`${_href}`}>
+				<div class="flex justify-between">
+					<span class="relative">Read More</span>
+					<svg
+						class={`rtl:rotate-180 w-3.5 h-3.5 ms-2 translate-y-1 ${baseSVGColorStyle}`}
+						aria-hidden="true"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 14 10">
+						<path
+							stroke="currentColor"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M1 5h12m0 0L9 1m4 4L9 9">
+						</path>
+					</svg>
+				</div>
+			</a>
+		</button>
+	</section>
+</Fragment>

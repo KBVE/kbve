@@ -1,0 +1,73 @@
+---
+export interface Props {
+    id?: string;
+    dyn?: boolean;
+    img?: string;
+    description?: string;
+    
+}
+
+const { id, dyn = false, img } = Astro.props;
+
+import { style, dynStyle } from '../../style';
+
+let styleSheet = dyn ? dynStyle : style;
+
+let _internal: string = 'card:dashboard:hero';
+let idText: string = 'PlaceHolder';
+let descriptionText: string = 'Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.';
+let _href: string = '#';
+let _img: string = 'https://source.unsplash.com/random/480x360';
+
+// Dynamic CSS Placeholders
+let baseBackgroundStyle: string =
+	styleSheet.getVariable('bg-kbve-menu-bg').variable;
+    
+let baseTextStyle: string = styleSheet.getVariable(
+	'text-kbve-text-primary'
+).variable;
+let baseSecondaryTextStyle: string = styleSheet.getVariable(
+	'text-kbve-text-secondary'
+).variable;
+let baseSVGColorStyle: string = styleSheet.getVariable(
+	'text-kbve-svg-primary'
+).variable;
+
+if(img)
+{
+    _img = img;
+}
+
+---
+<Fragment>
+<section class={`flex-auto w-full md:w-6/12 p-5 ${baseBackgroundStyle} border border-cyan-200 rounded-lg shadow bg-default bg-cover bg-blend-overlay`}
+style={`background-image: url('${_img}')`}>
+	<div class="container grid gap-6 mx-auto text-center lg:grid-cols-2 xl:grid-cols-5">
+		<div class="w-full max-h-96 px-6 py-6 rounded-md sm:px-10 md:px-12 xl:col-span-2 bg-cyan-800 bg-default bg-cover bg-blend-overlay"
+        style="background-image: url('./assets/img/curved-images/wave.jpg')">
+			<span class="block mb-1 text-zinc-950">Mamba design system</span>
+			<h1 class="text-2xl font-extrabold dark:text-gray-50">Build it with Mamba</h1>
+			<p class="my-2">
+				<span class="font-medium dark:text-gray-50">Modular and versatile.</span>Fugit vero facilis dolor sit neque cupiditate minus esse accusamus cumque at.
+			</p>
+			<form novalidate="" action="" class="self-stretch space-y-3">
+				<div>
+					<label for="name" class="text-sm sr-only">Your name</label>
+					<input id="name" type="text" placeholder="Your name" class="w-full rounded-md focus:ring focus:ri dark:border-gray-700">
+				</div>
+				<div>
+					<label for="lastname" class="text-sm sr-only">Email address</label>
+					<input id="lastname" type="text" placeholder="Email address" class="w-full rounded-md focus:ring focus:ri dark:border-gray-700">
+				</div>
+				<button type="button" class="w-full py-2 font-semibold rounded dark:bg-orange-400 dark:text-gray-900">Join the waitlist</button>
+			</form>
+		</div>
+		
+            <!--
+                <img src={`${_img}`} alt="" class="object-cover w-full rounded-md xl:col-span-3 dark:bg-gray-500">
+             -->
+         
+         
+	</div>
+</section>
+</Fragment>
