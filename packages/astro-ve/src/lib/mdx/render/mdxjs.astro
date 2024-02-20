@@ -1,0 +1,18 @@
+---
+export interface Props {
+    id?: string;
+    dyn?: string;
+}
+const { id, dyn = false } = Astro.props;
+---
+<Fragment>
+	<section
+		class={`flex-auto  p-5 border border-gray-200 rounded-lg shadow`}>
+	<div {...Astro.props}>
+        <div class="text-gray-200 prose max-w-none prose-li:text-yellow-500 prose-td:text-yellow-500 prose-tr:text-cyan-200 prose-tr:border-b-indigo-500/10 prose-p:text-yellow-500 prose-a:text-cyan-200 prose-code:text-cyan-200 prose-code:before:content-none prose-code:after:content-none prose-headings:text-cyan-200 prose-ul:text-yellow-500">
+			<slot />
+		</div>
+	</div>
+</section>
+
+</Fragment>
