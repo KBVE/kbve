@@ -1,0 +1,25 @@
+---
+import { AstroVe as VE } from '@kbve/astro-ve';
+import Layout from '../../layouts/Layout.astro';
+import Card from '../../components/Card.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+	const application = await getCollection('application');
+	return application.map((entry) => ({
+		params: {
+			id: entry.slug,
+		},
+		props: {
+			entry,
+		},
+	}));
+};
+
+const { id } = Astro.params;
+const { entry } = Astro.props;
+const { Content, headings, injectedFrontmatter } = await entry.render();
+---
+<Fragment>
+<Content />
+</Fragment>
