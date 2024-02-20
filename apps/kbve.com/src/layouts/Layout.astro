@@ -5,6 +5,7 @@ interface Props {
 	image?: string;
 }
 const { title, description } = Astro.props;
+import { ViewTransitions } from "astro:transitions";
 import { AstroVe as VE } from '@kbve/astro-ve';
 import Menu from './Menu.astro';
 ---
@@ -110,7 +111,7 @@ import Menu from './Menu.astro';
 			</header>
 
 			
-			<main class="max-w-full h-full flex relative overflow-y-hidden">
+			<main class="max-w-full h-full flex relative overflow-y-hidden" transition:animate="fade">
 				<!-- Removed grid-flow-col auto-cols-max -->
 				
 				<slot />
