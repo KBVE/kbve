@@ -18,8 +18,12 @@ export async function getStaticPaths() {
 
 const { id } = Astro.params;
 const { entry } = Astro.props;
-const { Content, headings, injectedFrontmatter } = await entry.render();
+const { Content, headings } = await entry.render();
 ---
-<Fragment>
-<Content />
-</Fragment>
+<Layout title={entry.data.title} description={entry.data.description}>
+	<div
+		class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 ">
+	
+	<Content />
+	</div>
+</Layout>
