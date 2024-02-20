@@ -1,0 +1,15 @@
+---
+export interface Props {
+	id?: string;
+	dyn?: boolean;
+}
+
+const { id, dyn = false } = Astro.props;
+
+import { style, dynStyle } from '../../style';
+
+let styleSheet = dyn ? dynStyle : style;
+---
+<Fragment>
+    
+</Fragment>
