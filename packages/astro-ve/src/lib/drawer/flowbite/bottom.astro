@@ -1,14 +1,14 @@
 ---
 export interface Props {
-    id?: string;
-    dyn?: boolean;
+	id?: string;
+	dyn?: boolean;
 }
 
 //  Slots
 
 //  TODO!
 
-const { id, dyn = false} = Astro.props;
+const { id, dyn = false } = Astro.props;
 
 //  Imports
 import { style, dynStyle } from '../../style';
@@ -30,8 +30,6 @@ let baseSVGColorStyle: string = styleSheet.getVariable(
 	'text-kbve-svg-primary'
 ).variable;
 
-
-
 // Check if `id` is not provided or is an empty string
 if (!id) {
 	console.warn(
@@ -41,6 +39,8 @@ if (!id) {
 	idText = id.replace(/-/g, ' ').replace(/drawer\s?/gi, '');
 }
 
+let _conditionBox: string =
+	'flex text-xs border m-2 px-1 py-1 text-white hover:text-cyan-500 hover:scale-110';
 ---
 
 <Fragment>
@@ -50,27 +50,44 @@ if (!id) {
 		class={`fixed z-40 w-full overflow-y-auto ${baseBackgroundStyle} ease-in-out delay-100 transition-transform bottom-0 left-0 right-0 translate-y-full bottom-[60px]`}
 		tabindex="-1"
 		aria-labelledby={`${id}-label`}>
-		<div
-			class={`p-4 cursor-pointer`}
-			data-drawer-toggle={id}>
-			<span
-				class="absolute w-8 h-1 -translate-x-1/2 bg-gray-300 rounded-lg top-3 left-1/2 dark:bg-gray-600">
-			</span>
-			<h5
-				id={`${id}-label`}
-				class="inline-flex items-center text-base text-gray-500 uppercase font-medium">
-				<svg
-					class="w-4 h-4 me-2"
-					aria-hidden="true"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="currentColor"
-					viewBox="0 0 18 18">
-					<path
-						d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10ZM17 13h-2v-2a1 1 0 0 0-2 0v2h-2a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h2a1 1 0 0 0 0-2Z">
-					</path>
-				</svg>
-                {idText}
-			</h5>
+		<div class="p-4 container flex flex-row justify-between">
+			<div class="cursor-pointer" data-drawer-toggle={id}>
+				<span
+					class="absolute w-8 h-1 -translate-y-1 -translate-x-24 md:-translate-x-1/2 bg-gray-300 rounded-lg top-3 left-1/2">
+				</span>
+				<h5
+					id={`${id}-label`}
+					class="inline-flex items-center text-base text-gray-500 uppercase font-medium">
+					<svg
+						class="w-4 h-4 me-2"
+						aria-hidden="true"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="currentColor"
+						viewBox="0 0 18 18">
+						<path
+							d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10ZM17 13h-2v-2a1 1 0 0 0-2 0v2h-2a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h2a1 1 0 0 0 0-2Z">
+						</path>
+					</svg>
+					{idText}
+				</h5>
+				
+			</div>
+			<div class="flex flex-row text-base text-gray-500 uppercase font-medium cursor-pointer" data-drawer-toggle={id}> © KBVE</div>
+			<div class="flex flex-row justify-center space-x-3">
+				<div class={`${_conditionBox}`}>
+					<a href="https://kbve.com/legal/">Legal</a>
+				</div>
+
+				<div class={`${_conditionBox}`}>
+					<a href="https://kbve.com/legal/eula">EULA</a>
+				</div>
+				<div class={`${_conditionBox}`}>
+					<a href="https://kbve.com/legal/terms">Terms</a>
+				</div>
+				<div class={`${_conditionBox}`}>
+					<a href="https://kbve.com/legal/privacy">Privacy</a>
+				</div>
+			</div>
 		</div>
 		<div class="grid grid-cols-3 gap-4 p-4 lg:grid-cols-4">
 			<div

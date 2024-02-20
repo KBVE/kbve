@@ -1,0 +1,116 @@
+---
+export interface Props {
+	id?: string;
+	dyn?: boolean;
+	img?: string;
+	description?: string;
+}
+
+const { id, dyn = false, img } = Astro.props;
+
+import { style, dynStyle } from '../../style';
+
+let styleSheet = dyn ? dynStyle : style;
+
+let _internal: string = 'card:dashboard:hero';
+let idText: string = 'PlaceHolder';
+let descriptionText: string =
+	'Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.';
+let _href: string = '#';
+let _img: string = 'https://source.unsplash.com/random/480x360';
+
+// Dynamic CSS Placeholders
+let baseBackgroundStyle: string =
+	styleSheet.getVariable('bg-kbve-menu-bg').variable;
+
+let baseTextStyle: string = styleSheet.getVariable(
+	'text-kbve-text-primary'
+).variable;
+let baseSecondaryTextStyle: string = styleSheet.getVariable(
+	'text-kbve-text-secondary'
+).variable;
+let baseSVGColorStyle: string = styleSheet.getVariable(
+	'text-kbve-svg-primary'
+).variable;
+
+if (img) {
+	_img = img;
+}
+---
+
+<Fragment>
+	<section
+		class={`flex-auto w-full md:w-6/12 p-5 ${baseBackgroundStyle} border border-cyan-200 rounded-lg shadow bg-default bg-cover bg-blend-overlay`}
+		style={`background-image: url('${_img}')`}>
+		<div
+			class="container grid mx-auto text-center lg:grid-cols-2 xl:grid-cols-5">
+			<div
+				class="w-full max-h-96 px-2 py-4 rounded-md sm:px-10 md:px-12 xl:col-span-2 bg-cyan-800 bg-default bg-cover bg-blend-overlay"
+				style="background-image: url('./assets/img/curved-images/wave.jpg')">
+				<span class="block text-lg font-medium mb-1 text-white">
+					KiloByte Virtual Enterprise
+				</span>
+				<h1 class="text-2xl font-extrabold bg-gradient-to-r from-zinc-800 via-gray-700 to-pink-500 bg-clip-text text-transparent">
+					Transforming Ideas into Reality with KBVE.
+				</h1>
+				<p class="my-2">
+					<span class="font-medium">Modular Mastery in Every Byte. Building Blocks for Tomorrow's Software.</span>
+				</p>
+				<form novalidate="" action="" class="self-stretch space-y-2">
+					<div>
+						<label for="name" class="text-sm sr-only">
+							Your name
+						</label>
+						<input
+							id="name"
+							type="text"
+							placeholder="Your name"
+							class="w-full rounded-md focus:ring focus:ri dark:border-gray-700"
+						/>
+					</div>
+					<div>
+						<label for="lastname" class="text-sm sr-only">
+							Email address
+						</label>
+						<input
+							id="lastname"
+							type="text"
+							placeholder="Email address"
+							class="w-full rounded-md focus:ring focus:ri dark:border-gray-700"
+						/>
+					</div>
+
+					<button class="relative inline-block text-lg group">
+						<span
+							class="relative z-10 block px-5 py-3 overflow-hidden font-medium leading-tight text-gray-800 transition-colors duration-300 ease-out border-2 border-gray-900 rounded-lg group-hover:text-white">
+							<span
+								class="absolute inset-0 w-full h-full px-5 py-3 rounded-lg bg-gray-50">
+							</span>
+							<span
+								class="absolute left-0 w-48 h-48 -ml-2 transition-all duration-300 origin-top-right -rotate-90 -translate-x-full translate-y-12 bg-gray-900 group-hover:-rotate-180 ease">
+							</span>
+							<span class="relative">Register!</span>
+						</span>
+						<span
+							class="absolute bottom-0 right-0 w-full h-12 -mb-1 -mr-1 transition-all duration-200 ease-linear bg-gray-900 rounded-lg group-hover:mb-0 group-hover:mr-0"
+							data-rounded="rounded-lg">
+						</span>
+					</button>
+				</form>
+			</div>
+
+			<!--
+                <img src={`${_img}`} alt="" class="object-cover w-full rounded-md xl:col-span-3 dark:bg-gray-500">
+             -->
+			<div class="w-full rounded-md xl:col-span3 justify-center">
+				<div class="object-contain w-56 md:w-96 md:translate-x-10">
+					<dotlottie-player
+						autoplay
+						loop
+						mode="normal"
+						src="/assets/lottie/robot.lottie"></dotlottie-player>
+				</div>
+			</div>
+		</div>
+	</section>
+</Fragment>
