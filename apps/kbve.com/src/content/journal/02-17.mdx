@@ -1,0 +1,111 @@
+---
+title: 'February: 17'
+category: Daily
+date: 2024-02-17
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 17th for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+#### Snow
+
+The late winter has stuck once more!
+I actually enjoy the late night snow because it creates such an amazing white morning, seeing everything under a blank of snow.
+
+#### Drawer
+
+Okay! For the new menu, we want to have multiple drawers that open on the right side of the website with slots to help control the data that gets render inside of them.
+
+There are a couple different ways that I am thinking we could do it but we will start with the flowbite user interface because we have the library already setup.
+
+I might also try to include a R3F version but that might end up becoming way too large.
+
+Got the right side of the drawer to be functional, now I need to adjust how it would look by utilizing the tailwindcss configuration.
+My first through process would be to just assign basic hex codes for the different tailwindcss variables, however I am also thinking of extending out the dynamic coloring option, but what would be the best way to handle that?
+
+I also added a simple dynamic id system and simple text naming scheme.
+
+```js
+
+
+// Helper Function for replacing Hyphens and the word Drawer
+function replaceHyphensWithSpaces(inputString: string) {
+  return inputString.replace(/-/g, ' ').replace(/drawer\s?/gi, '');
+}
+
+let idText: string = 'PlaceHolder';
+
+// Check if `id` is not provided or is an empty string
+if (!id) {
+    console.warn('Warning: The "id" prop is missing or empty when calling the Astro Flowbite Right Component.');
+} else {
+    idText = replaceHyphensWithSpaces(id);
+}
+
+```
+
+This will help with making sure the id prop is passed and also let us create a dynamic `idText` from the same id that gets passed.
+
+For the background color, I am thinking of just passing through the `kbve-menu-bg` variable, but this means that the component will not have dynamic light and dark mode.
+
+We could resolve that right now by adding an additional property that gets passed, for this concept we could call it a `dyn` boolean, which would enable a couple types of dynamics.
+
+Let me update the `Props` to pass in the dynamic boolean, 
+
+```ts
+
+export interface Props {
+    id?: string;
+	img?: string;
+    dyn?: boolean;
+}
+
+const { img, id, dyn = false } = Astro.props;
+
+```
+
+Afterwards, we will have to add in a helper function to handle the dynamic colors for the form. 
+
+There are a couple options we could include but I think we can isolate it just within this component, rather than creating more sub-libraries.
+
+We want to adjust the SVG colors, using a primary color and we should include a dynmaic class incase we want to alter the color of the svg using javascript.
+
+There will be two more tailwindcss variables that we will be using, `kbve-svg-primary` and then for the dynmaic variable, just adding dyn to the end, `kbve-svg-primary-dyn`.
+
+Going to run a quick health check on the two projects that are using the Astro VE, which can be done by this command:
+
+```shell
+
+./kbve.sh -nx kbve.com:build
+./kbve.sh -nx herbmail.com:build
+
+```
+
+I did notice the build throw a working with the `register` variable inside of the svelte file, `Register.svelte`, but I will go back and address that issue once I get the base of the form done.
+
+#### slots
+
+We will go ahead and remove some of the default flowbite data that is provided by the example and place a couple slots within the drawer, which will hold the content that we want to display.
+
+Oh wait, before I add the slots, we need to make sure that the text is also base and dynamic, similar to how we did the `bg` and `svg`.
+
+Slot breakdown:
+
+- after-description
+- after-footer
+- after-footer-button
+
+#### Style
+
+I am going to create a style interface that I will be call
+
+#### Windows
+
+For future reference, incase you need access to the Windows screen during setup, post install, press `Shift + F10` to open the command prompt, then Type `OOBE\BypassNRO` and press Enter.

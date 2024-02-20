@@ -1,0 +1,115 @@
+---
+title: 'February: 18'
+category: Daily
+date: 2024-02-18
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 18th for each year!
+tags:
+    - daily
+---
+
+## Notes
+
+### 2024
+
+#### Style
+
+The current plan is to build out a KBVEStyleSheet, which will nest our static and dynamic tailwindcss configurations.
+I will try to keep this as vanilla js as possible, so that it can be called and used with any library.
+This should make it easier for us to style our website and rotate out the colors as we wish.
+
+```ts
+export const style = new KBVEStyleManager();
+export const dyn_style = new DynamicKBVEStyleManager();
+```
+
+These will be the two main source of truths for our style sheets.
+
+Let me boot up the dev build using the nx command, `./kbve.sh -nx kbve.com:dev`, which runs the localhost version of the website on port 3000.
+
+While I am fixing up the dynamic styles, I will continue to work on the curves.
+
+The styles class looks good, going to update it and include the documentation, jsdocs, comments, ect... so that we can now utilize it across the AstroVE library.
+
+Let me go ahead and generated the markdown for the code as well.
+
+---
+
+## KBVE Style Management Library
+
+The KBVE Style Management Library provides a TypeScript-based framework for managing and applying dynamic styles within applications. It leverages interfaces and classes to create a flexible system for handling style variables and their transformations.
+
+## Interfaces
+
+### `IKBVEStyleSheet`
+
+Represents the base contract for a style sheet within the KBVE framework, defining how style variables can be retrieved and manipulated.
+
+- **Methods:**
+  - `getVariable(name: string, dyn?: boolean): IVariableProcessor`: Retrieves a variable processor for the specified variable name. Optionally, a dynamic flag (`dyn`) can be specified to modify the variable name retrieval process.
+
+### `IVariableProcessor`
+
+Defines the operations that can be performed on a style variable.
+
+- **Properties:**
+  - `variable: string`: The current value of the style variable.
+- **Methods:**
+  - `getText(): string`: Returns the textual representation of the variable.
+  - `setTransparent(percentage: number): IVariableProcessor`: Modifies the variable to apply a transparency based on the specified percentage and returns the processor for chaining.
+
+## Classes
+
+### `KBVEStyleManager`
+
+Implements `IKBVEStyleSheet`, providing the core functionality for managing style variables.
+
+- **Private Properties:**
+  - `variables: { [key: string]: string }`: A key-value store of style variable names to their corresponding values.
+- **Public Methods:**
+  - `getVariable(name: string, dyn: boolean = false)`: Implements the interface method to retrieve and process style variables.
+- **Private Methods:**
+  - `replaceHyphensWithSpaces(inputString: string)`: Utility method for formatting variable names.
+  - `applyTransparency(variable: string, percentage: number)`: Applies transparency to a variable based on a given percentage.
+
+### `DynamicKBVEStyleManager`
+
+Extends `KBVEStyleManager` to override the `getVariable` method, enabling automatic dynamic variable processing.
+
+- **Public Methods:**
+  - `getVariable(name: string)`: Overrides the parent method to always retrieve variables in their dynamic form.
+
+## Exported Instances
+
+- `style`: An instance of `KBVEStyleManager` for default style management.
+- `dynStyle`: An instance of `DynamicKBVEStyleManager` for dynamic style management.
+
+This library offers a structured approach to handling styles, allowing for both static and dynamic manipulation of style variables. Its architecture facilitates easy integration and extension within TypeScript applications.
+
+
+---
+
+#### RSPS
+
+Going to assign a couple small goals for the Atlas library, this includes setting up the bezier curves, an automated browser window and building out the base levels of robo movements.
+
+Before I set the goal for something too large, I think it would make sense to focus on smaller goals for the library.
+
+The three small tasks that I have assigned to weaver are:
+
+-   Bezier Curves. [721](https://github.com/KBVE/kbve/issues/721)
+-   Selenium Integration via an interface. [723](https://github.com/KBVE/kbve/issues/723)
+-   BlueStacks Integration via an interface. [724](https://github.com/KBVE/kbve/issues/724)
+
+For the Bezier curves, we want to aim for them to be as human like as possible.
+
+
+#### Aside
+
+Since we finished up the base style manager, I want to extend it out for the aside menu and maybe style up the options for each of those options.
+
+Well besides adding the `aside`, I am thinking of adding an additional `SWIPE` menu that we would call on the bottom.
+
+The current issue with the aside menu is the color scheme is not yet matching what we are aiming for, hopefully we can resolve that by tonight.
