@@ -13,7 +13,9 @@ tags:
   - host
 ---
 
+import MDXJS from '../../../components/MDXJS.astro';
 
+<MDXJS>
 
 ## Information
 
@@ -45,7 +47,11 @@ It can read the list and do the things one by one and then also check if the thi
 Ansible can talk to different kinds of computers and tell them what to do.
 Think of Ansible like a friend that helps people with computers.
 
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Install
 
@@ -68,8 +74,11 @@ To confirm that Ansible is installed and configured correctly, you can run the a
 
 If you need help with [Python, read our docs](https://kbve.com/application/python/)
 
+</MDXJS>
 
 ---
+
+<MDXJS>
 
 ## Playbook
 
@@ -78,13 +87,13 @@ It tells Ansible what to do, where to do it, and how to do it.
 With a playbook, you can transform your IT tasks into simple and repeatable steps that run on any number of hosts.
 Whether you need to install software, configure settings, run commands, or anything else, an Ansible playbook will make it happen in a snap.
 
+<MDXJS>
 
 ### Playbook Examples
 
 Let me dazzle you with an example of a playbook that I borrowed from the Ansible documentation.
 
 ```yaml
----
 - name: Update web servers
   hosts: webservers
   remote_user: root
@@ -117,6 +126,12 @@ The first one updates the web servers by installing the latest version of apache
 The second one updates the database servers by installing the latest version of postgresql and starting the service.
 Each play has a name, a list of hosts to target, a remote user to execute the tasks, and a list of tasks to perform.
 Each task has a name and a module to call with some parameters.
+
+</MDXJS>
+
+---
+
+<MDXJS>
 
 #### Minecraft Server Update Playbook
 
@@ -171,14 +186,21 @@ For example, the task `Download Minecraft server jar` will only run if the jar f
 The playbook uses the `register` keyword to store the output of some tasks in variables, such as `latest_version` and `jar_file`.
 These variables can be used in later tasks or conditions and this playbook could be expanded to include file checks with hashing.
 
+</MDXJS>
+
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 
 ## Modules
 
 > tldr; Ansible has a large collection of modules that can be used for various tasks and purposes.
 
----
+<MDXJS>
 
 ### Cloud Modules
 
@@ -203,6 +225,12 @@ You can work with any Google Cloud Platform service with these modules, such as 
 The `gcp_compute_instance` module is an example of how you can achieve your goals with GCP servers using Ansible.
 
 > [Official Documentation on GCP Compute Instance module](https://docs.ansible.com/ansible/latest/collections/google/cloud/gcp_compute_instance_module.html)
+
+</MDXJS>
+
+---
+
+<MDXJS>
 
 ##### Create GCP Instance
 
@@ -270,6 +298,8 @@ It also specifies the `machine_type` and `labels` parameters to change the machi
 The machine type determines the CPU and memory resources of the instance, and the labels are key-value pairs that can be used to organize and filter instances.
 Any other parameters that are not specified will remain unchanged.
 
+</MDXJS>
+
 ---
 
 #### OpenStack Modules
@@ -296,7 +326,11 @@ Employing these modules, you have full control over your database servers and ob
 Windows modules can be used to manage Windows systems and applications, such as Active Directory, IIS, PowerShell, etc.
 For example, you can use the `win_service` module to manage Windows services.
 
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## AWX
 
@@ -349,8 +383,11 @@ provider "awx" {
 
 > Remember that if you set both (username/password) and (token), then the (token) will have precedence.
 
+</MDXJS>
 
 ---
+
+<MDXJS>
 
 ## Cheatsheet
 
@@ -360,7 +397,12 @@ An Ansible cheatsheet is a quick and handy reference guide that provides example
 With an Ansible cheatsheet at your fingertips, you can breeze through a variety of tasks that would otherwise be tedious and time-consuming.
 Whether you need to test the connectivity to your nodes, switch to a different user, use a custom SSH key, use password-based authentication, run ad-hoc commands, create and run playbooks, use modules and roles, or anything else, an Ansible cheatsheet will make your life easier and more fun.
 
+</MDXJS>
+
 ---
+
+<MDXJS>
+
 
 ## Videos
 
@@ -369,3 +411,5 @@ Video -> https://www.youtube.com/watch?v=EcnqJbxBcM0
 ---
 
 ## Notes
+
+</MDXJS>
