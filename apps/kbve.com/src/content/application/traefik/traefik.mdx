@@ -15,12 +15,18 @@ tags:
 
 import MDXJS from '../../../components/MDXJS.astro';
 
+<MDXJS>
 
 ## Information
 
 -   Traefik is a cloud-hybrid reverse proxy and load balancer that makes deploying, configuring and integrating infrastructure components easy and automatic.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Install
 
@@ -28,13 +34,23 @@ import MDXJS from '../../../components/MDXJS.astro';
     -   There should be an acme.json file that you create and pass through the docker with the permission of chmod 600.
     -   Furthermore, there are two more files that you will have to configure and pass through before launching the traefik container. We provided them in the #config section below.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Config
 
 TODO: Need to migrate the Github Embeds.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Kubernetes
 
@@ -126,7 +142,12 @@ TODO: Need to migrate the Github Embeds.
 
                         Its important to note the namespace of the middleware, `longhorn-system` , before calling the middleware's name. This is to let the crd know where the middleware is located.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Notes
 
@@ -158,7 +179,11 @@ This plugin (which is what we tried to reference before with the `auth@file` lin
 This will require setting up an IngressRoute (which is a specific Kubernetes resource added by the Traefik Resource Definitions) with settings to specify
 what the middlewares are. [Find more info on the Traefik Middlewares Here](https://doc.traefik.io/traefik/middlewares/overview/)
 
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Cloudflare
 
@@ -176,3 +201,5 @@ Common environmental variable names and their purpose:
 -   `CF_API_KEY` - The Cloudflare API key.
 -   `CF_DNS_API_TOKEN` - The API token with `DNS:Edit` permission.
 -   `CF_ZONE_API_TOKEN` - The API token with `Zone:Read` permission.
+
+</MDXJS>

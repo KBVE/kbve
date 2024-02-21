@@ -17,11 +17,18 @@ tags:
 import MDXJS from '../../../components/MDXJS.astro';
 
 
+<MDXJS>
+
 ## Information
 
     Kubernetes is a CNCF-certified open-source container orchestration system for automating the deployment, scaling and management of virtual micro machines within a hybrid cloud.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## K
 
@@ -60,6 +67,13 @@ import MDXJS from '../../../components/MDXJS.astro';
             -   Replace `./kbve-manifest.yml` with the `fileName.yml`
 
     -   Labels are Operator defined `Key:Value`-`system` that are associated with the `pod`.
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
 
 ## k3s
 
@@ -116,14 +130,25 @@ Access might require `root`.
     -   Master Token
         -   Before the agents can connect, they will need a token from the master, which can be obtained from below:
 
+
+</MDXJS>
+
 ---
+
+
+<MDXJS>
 
 ## Help
 
 -   Kubectl Help
     -   `sudo kubectl -h` || `k -h`
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Cheatsheet
 
@@ -219,7 +244,12 @@ Access might require `root`.
 
         -   std out: storage provisioners.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Patch
 
@@ -249,7 +279,12 @@ Access might require `root`.
             sudo kubectl patch svc nodeport -p  '{"spec":{"externalTrafficPolicy":"Cluster"}}'
             ```
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Portainer Agent
 
@@ -293,6 +328,12 @@ environment:
 
     -   As of 11/18/2022 - There have bene some updates to Portainer! They now have better ingress support!
 
+
+</MDXJS>
+
+---
+
+<MDXJS>
 ## Harden
 
 -   Collection of harden manifests by the DoD
@@ -368,5 +409,8 @@ CSI-Driver-NFS
 
         -   Confirm
             -   Run `vcluster --version` to confirm that the install was sucessful.
+
+
+</MDXJS>
 
 ---
