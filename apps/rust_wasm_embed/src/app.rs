@@ -306,7 +306,7 @@ impl eframe::App for RustWasmEmbedApp {
 			ui.heading("eRust");
 
 			let text_color = egui::Color32::from_rgb(103, 232, 249); // Cyan Color for Reference.
-			let text = "version v0.0.0"; 
+			let text = "version v0.0.1"; 
 
 			ui.colored_label(text_color, text);
 

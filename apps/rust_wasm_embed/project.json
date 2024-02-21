@@ -49,7 +49,7 @@
 				  "chmod +x tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
 				  "chmod +x tools/scripts/public/wasm/pipeline_kbve_wasm_build.sh",
 				  "./tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
-				  "./tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh"
+				  "./tools/scripts/public/wasm/pipeline_kbve_wasm_build.sh"
 				],
 				"parallel": false
 			}
