@@ -20,16 +20,19 @@ let baseBackgroundStyle: string =
 <section
 class={`flex-auto min-w-full p-5 border border-cyan-200 rounded-lg shadow`}>
 <footer class={`${baseBackgroundStyle}`}>
-    <div class="mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div class="sm:flex sm:items-center sm:justify-between">
-        <div class="flex justify-center text-cyan-200 sm:justify-start">
-            <svg width="209pt" height="50pt" viewBox="-2 -2 213 54"  xmlns="http://www.w3.org/2000/svg"><g id="fontsvg1708484848590" stroke-linecap="round" fill-rule="evenodd" stroke="#000000" stroke-width="1mm" fill="currentColor"><path d="M 0 37.5 L 21.65 0 L 36.1 0 L 21.65 25 L 36.1 25 L 50.5 0 L 57.75 12.5 L 43.3 37.5 L 50.5 50 L 36.1 50 L 21.65 25 L 14.45 37.5 L 21.65 50 L 7.2 50 L 0 37.5 Z M 164.95 37.5 L 179.35 37.5 L 186.6 50 L 157.7 50 L 150.5 37.5 L 172.15 0 L 201 0 L 208.25 12.5 L 179.35 12.5 L 175.75 18.75 L 190.2 18.75 L 182.95 31.25 L 168.55 31.25 L 164.95 37.5 Z M 86.6 25 L 93.8 37.5 L 86.6 50 L 57.7 50 L 50.5 37.5 L 72.15 0 L 101 0 L 108.25 12.5 L 101 25 L 86.6 25 Z M 136.1 50 L 107.25 0 L 121.7 0 L 136.1 25 L 150.5 0.05 L 157.75 12.5 L 136.1 50 Z M 93.8 12.5 L 86.6 25 L 72.15 25 L 79.35 37.5 L 64.95 37.5 L 79.35 12.5 L 93.8 12.5 Z" vector-effect="non-scaling-stroke"/></g></svg>            
+    <div class="mx-auto px-4 py-2 sm:px-6 lg:px-8">
+      <div class="flex flex-row sm:items-center sm:justify-between">
+        <div class="flex justify-center text-cyan-200 sm:justify-start w-48">
+            <svg viewBox="-2 -2 213 54"  xmlns="http://www.w3.org/2000/svg"><g id="fontsvg1708484848590" stroke-linecap="round" fill-rule="evenodd" stroke="#000000" stroke-width="1mm" fill="currentColor"><path d="M 0 37.5 L 21.65 0 L 36.1 0 L 21.65 25 L 36.1 25 L 50.5 0 L 57.75 12.5 L 43.3 37.5 L 50.5 50 L 36.1 50 L 21.65 25 L 14.45 37.5 L 21.65 50 L 7.2 50 L 0 37.5 Z M 164.95 37.5 L 179.35 37.5 L 186.6 50 L 157.7 50 L 150.5 37.5 L 172.15 0 L 201 0 L 208.25 12.5 L 179.35 12.5 L 175.75 18.75 L 190.2 18.75 L 182.95 31.25 L 168.55 31.25 L 164.95 37.5 Z M 86.6 25 L 93.8 37.5 L 86.6 50 L 57.7 50 L 50.5 37.5 L 72.15 0 L 101 0 L 108.25 12.5 L 101 25 L 86.6 25 Z M 136.1 50 L 107.25 0 L 121.7 0 L 136.1 25 L 150.5 0.05 L 157.75 12.5 L 136.1 50 Z M 93.8 12.5 L 86.6 25 L 72.15 25 L 79.35 37.5 L 64.95 37.5 L 79.35 12.5 L 93.8 12.5 Z" vector-effect="non-scaling-stroke"/></g></svg>            
         </div>
+
+        <slot />
   
-        <p class="mt-4 text-center text-sm text-teal-500 lg:mt-0 lg:text-right">
-          Copyright &copy; 2022. All rights reserved.
-        </p>
+       
       </div>
+      <p class="mt-4 text-center text-sm text-teal-500 lg:mt-0 lg:text-right">
+        KBVE Copyright &copy
+      </p>
     </div>
   </footer>
   </section>
