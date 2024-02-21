@@ -5,6 +5,7 @@ interface Props {
 	image?: string;
 }
 const { title, description } = Astro.props;
+import { ViewTransitions } from "astro:transitions";
 import { AstroVe as VE } from '@kbve/astro-ve';
 import Menu from './Menu.astro';
 ---
@@ -26,8 +27,6 @@ import Menu from './Menu.astro';
 	<div class="h-screen w-full bg-zinc-950 relative flex overflow-hidden">
 		<Menu />
 
-
-
 		<!--
 		<VE widget="drawer:flowbite:demo"/>
 			 -->
@@ -40,7 +39,6 @@ import Menu from './Menu.astro';
 						<VE
 							widget="nav:v01d:auto"
 							logo="/assets/img/letter_logo.png">
-							
 							<VE
 								widget="kbve:user:user"
 								avatar="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
@@ -64,7 +62,6 @@ import Menu from './Menu.astro';
 										></dotlottie-player>
 									</div>
 								</button>
-								
 							</div>
 
 							<div class="text-center">
@@ -86,7 +83,6 @@ import Menu from './Menu.astro';
 										></dotlottie-player>
 									</div>
 								</button>
-								
 							</div>
 
 							<div class="text-center">
@@ -108,23 +104,17 @@ import Menu from './Menu.astro';
 										></dotlottie-player>
 									</div>
 								</button>
-								
 							</div>
-							
-
-							
 						</VE>
 					</div>
 				</div>
 			</header>
 
-		
-			<main class="max-w-full h-full flex relative overflow-y-hidden">
-			<!-- Removed grid-flow-col auto-cols-max -->
-				<div
-					class="h-full w-full  items-start justify-start rounded-tl flex flex-wrap  gap-4 overflow-y-scroll grid-flow-col auto-cols-max  ">
-					<slot />
-				</div>
+			
+			<main class="max-w-full h-full flex relative overflow-y-hidden" transition:animate="fade">
+				<!-- Removed grid-flow-col auto-cols-max -->
+				
+				<slot />
 			</main>
 		</div>
 	</div>
