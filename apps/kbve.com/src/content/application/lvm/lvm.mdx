@@ -15,18 +15,32 @@ tags:
     - unix
 ---
 
+import MDXJS from '../../../components/MDXJS.astro';
+
+<MDXJS>
+
 ## Information
 
 Logical Volume Storage
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Case
 
     -   These are case studies and references for usage of LVM.
     -   This includes common errors and solutions that we have found when running into them.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Storage
 
@@ -42,3 +56,5 @@ Logical Volume Storage
         -   Extend the PV volume with `sudo pvresize /dev/sda3`
         -   Extend the LV to 100% with `sudo lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv`
         -   Resize the filesystem with `sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv`
+
+</MDXJS>

@@ -6,6 +6,7 @@ const application = defineCollection({
       title: z.string(),
       description: z.string(),
       tags: z.array(z.string()), 
+      category: z.string(),
       footnote: z.string().optional(),
       author: z.string().default('KBVE Team'),
       unsplash: z.string().default(''),
@@ -14,6 +15,7 @@ const application = defineCollection({
       url: z.string().optional(),
       information: z.string().optional(),
       media: z.any().optional(),
+      lottie: z.string().optional(),
     }),
   });
   
