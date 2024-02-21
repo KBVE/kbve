@@ -29,21 +29,21 @@ check_sed_installed() {
 }
 
 
-# Function to clean up /apps/herbmail.com/public/embed/rust except .gitkeep
+# Function to clean up /apps/kbve.com/public/embed/rust except .gitkeep
 cleanup_directory() {
-    echo "Cleaning up ./apps/herbmail.com/public/embed/rust, keeping .gitkeep"
-    find ./apps/herbmail.com/public/embed/rust -type f ! -name '.gitkeep' -delete || return $ERR_CLEANUP_FAIL
+    echo "Cleaning up ./apps/kbve.com/public/embed/rust, keeping .gitkeep"
+    find ./apps/kbve.com/public/embed/rust -type f ! -name '.gitkeep' -delete || return $ERR_CLEANUP_FAIL
 }
 
-# Function to move files from /apps/rust_wasm_embed/dist/ to /apps/herbmail.com/public/embed/rust
+# Function to move files from /apps/rust_wasm_embed/dist/ to /apps/kbve.com/public/embed/rust
 move_files() {
-    echo "Moving files from ./apps/rust_wasm_embed/dist/ to ./apps/herbmail.com/public/embed/rust"
-    cp -rf ./apps/rust_wasm_embed/dist/* ./apps/herbmail.com/public/embed/rust/ || return $ERR_MOVE_FAIL
+    echo "Moving files from ./apps/rust_wasm_embed/dist/ to ./apps/kbve.com/public/embed/rust"
+    cp -rf ./apps/rust_wasm_embed/dist/* ./apps/kbve.com/public/embed/rust/ || return $ERR_MOVE_FAIL
 }
 
 # Function to extract SRI hashes and WASM file names from index.html
 extract_sri_and_wasm() {
-    local index_file="./apps/herbmail.com/public/embed/rust/index.html"
+    local index_file="./apps/kbve.com/public/embed/rust/index.html"
     if [ ! -f "$index_file" ]; then
         echo "Error: index.html not found at $index_file"
         return $ERR_SRI_EXTRACTION_FAIL
@@ -86,7 +86,7 @@ extract_sri_and_wasm() {
 
 # Function to save the extracted SRI hashes and file names
 save_sri_details() {
-    local output_file="./apps/herbmail.com/public/embed/rust/herbwasm_sri_hashes.txt"
+    local output_file="./apps/kbve.com/public/embed/rust/herbwasm_sri_hashes.txt"
     echo "Saving SRI hashes and file names to $output_file"
 
     echo "JS File: $js_file, JS Integrity: $js_integrity" > "$output_file"
@@ -95,7 +95,7 @@ save_sri_details() {
 
 # Function to save the extracted SRI hashes and file names in a Markdown format
 save_sri_details_markdown() {
-    local output_file="./apps/herbmail.com/public/embed/rust/herbwasm_sri_details.md"
+    local output_file="./apps/kbve.com/public/embed/rust/herbwasm_sri_details.md"
     echo "Saving SRI hashes and file names to $output_file in Markdown format"
 
     {
@@ -111,8 +111,8 @@ save_sri_details_markdown() {
 
 # Function to create an MDX file from the generated Markdown file
 create_mdx_from_md() {
-    local md_file="./apps/herbmail.com/public/embed/rust/herbwasm_sri_details.md"
-    local mdx_file="./apps/herbmail.com/src/content/tools/wasm.md"
+    local md_file="./apps/kbve.com/public/embed/rust/herbwasm_sri_details.md"
+    local mdx_file="./apps/kbve.com/src/content/tools/wasm.md"
 
     if [ ! -f "$md_file" ]; then
         echo "Error: Markdown file $md_file not found"
@@ -140,7 +140,7 @@ create_mdx_from_md() {
 add_mdx_fields() {
     local field=$1
     local data=$2
-    local mdx_file="./apps/herbmail.com/src/content/tools/wasm.md"
+    local mdx_file="./apps/kbve.com/src/content/tools/wasm.md"
 
     if [ ! -f "$mdx_file" ]; then
         echo "Error: MDX file $mdx_file not found"
@@ -192,12 +192,12 @@ if ! check_files; then
 fi
 
 if ! cleanup_directory; then
-    echo "Error during cleanup of ./apps/herbmail.com/public/embed/rust"
+    echo "Error during cleanup of ./apps/kbve.com/public/embed/rust"
     exit $ERR_CLEANUP_FAIL
 fi
 
 if ! move_files; then
-    echo "Error moving files to ./apps/herbmail.com/public/embed/rust"
+    echo "Error moving files to ./apps/kbve.com/public/embed/rust"
     exit $ERR_MOVE_FAIL
 fi
 
