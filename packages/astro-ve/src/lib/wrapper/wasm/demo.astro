@@ -1,0 +1,75 @@
+---
+//  DEV COMPONENT - DO NOT USE IN PRODUCTION UNLESS YOU KNOW WHAT YA DOIN!
+
+export interface Props {
+	id?: string;
+    js_file?: string;
+    js_integrity?: string;
+    wasm_file?: string;
+    wasm_integrity?: string;
+	dyn?: boolean;
+}
+
+const { id, dyn = false, js_file, js_integrity, wasm_file, wasm_integrity } = Astro.props;
+
+
+if (!id || !js_file || !js_integrity || !wasm_file || !wasm_integrity) {
+	console.warn(
+		'Warning: Props are missing or empty when calling the AstroVE Wrapper WASM Demo Component.'
+	);
+}
+
+---
+
+<Fragment>
+    <link
+		as="fetch"
+		id="wasm-file-link"
+		crossorigin
+		href={wasm_file}
+		integrity={wasm_integrity}
+		rel="preload"
+		type="application/wasm"
+	/>
+	<link
+		crossorigin
+		id="wasm-js-link"
+		href={js_file}
+		integrity={js_integrity}
+		rel="modulepreload"
+	/>
+
+	<script type="module">
+		const wasmUrl = document
+			.getElementById('wasm-file-link')
+			.getAttribute('href');
+		const jsUrl = document
+			.getElementById('wasm-js-link')
+			.getAttribute('href');
+
+		try {
+			const wasmModule = await import(jsUrl);
+
+			wasmModule.default(wasmUrl);
+			window.wasmBindings = wasmModule;
+		} catch (e) {
+			console.error('Failed to load WASM module:', e);
+		}
+	</script>
+
+	<script is:inline>
+		if (`serviceWorker` in navigator && window.location.hash !== `#dev`) {
+			window.addEventListener(`load`, () => {
+				navigator.serviceWorker.register(`sw.js`);
+			});
+		}
+	</script>
+
+	<section class="p-[300px] md:p-[400px] overflow-hidden relative">
+		<canvas
+			id="the_canvas_id"
+			class="mx-auto block absolute top-0 left-1/2 w-full"
+			style="transform: translateX(-50%);">
+		</canvas>
+	</section>
+</Fragment>
