@@ -25,14 +25,24 @@ The plugin upgrade was causing a null point error within nodejs, thus causing th
 It seems that I can never get away from null point errors, even in RUST! just kidding, it was all nodejs bullypoopy.
 
 
+#### KBVE
+
+Going to update the template a bit more while the pipelines are building.
+
+
+
 #### PackageHell
 
 It seems that I had entered package hell because of the amount of dependencies were all over the place, some of them not published, causing a weird vendor loop.
 
 Nx Graph kept looking for version 0.1.2 of `holy` but the workspace had a version of 0.1.3, which caused a weird bug in the graphing system.
 
+We will downgrade the Rust NX integration back to a working state for now, so we can move on.
+
 
 #### RustWASM
 
 Running the Rust WASM is currently with this command:
 - `./kbve.sh -nx rust_wasm_embed:trunkserve`
+
+I already updated the ReadMe with the command, incase I forget in the future!

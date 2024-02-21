@@ -1,0 +1,18 @@
+---
+interface Props {
+    dyn?: boolean;
+}
+
+//*     The dynamic styling is currently disabled because it would not yet be ready for production, so we will just set the 
+const { dyn = false } = Astro.props;
+
+//  [IMPORTS]
+
+import { AstroVe as VE } from '@kbve/astro-ve';
+
+
+
+---
+<Fragment>
+    <VE widget="footer:hyperui:inline" />
+</Fragment>

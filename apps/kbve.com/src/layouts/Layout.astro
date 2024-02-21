@@ -5,9 +5,10 @@ interface Props {
 	image?: string;
 }
 const { title, description } = Astro.props;
-import { ViewTransitions } from "astro:transitions";
+// 	import { ViewTransitions } from "astro:transitions"; Disabled ViewTransitions because it still seems to becausing errors with the menus.
 import { AstroVe as VE } from '@kbve/astro-ve';
 import Menu from './Menu.astro';
+import Footer from './Footer.astro';
 ---
 
 <!DOCTYPE html>
@@ -114,7 +115,12 @@ import Menu from './Menu.astro';
 			<main class="max-w-full h-full flex relative overflow-y-hidden" transition:animate="fade">
 				<!-- Removed grid-flow-col auto-cols-max -->
 				
+		<div
+			class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 ">
 				<slot />
+
+				<Footer />
+				</div>
 			</main>
 		</div>
 	</div>
