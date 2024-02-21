@@ -2,24 +2,22 @@ import { getCollection } from 'astro:content';
 
 
 export const GET = async () => {
-    const crypto = await getCollection('crypto');
+    const application = await getCollection('application');
 
-    const cryptoEntries = crypto.map((entry) => [
-        entry.slug, // Use entry.slug as the key
+    const applicationEntries = application.map((entry) => [
+        entry.slug, 
         {
-            params: {
-                id: entry.slug,
-            },
-            props: {
-                entry,
-            },
+            id: entry.slug,
+            title: entry.data.title,
+            description: entry.data.description,
+            tags: entry.data.tags,
         },
     ]);
-    const cryptoObject = Object.fromEntries(cryptoEntries);
+    const applicationObject = Object.fromEntries(applicationEntries);
 
 
     return new Response(
-        JSON.stringify(cryptoObject),  {
+        JSON.stringify(applicationObject),  {
             headers: {
               'Content-Type': 'application/json',
             },
