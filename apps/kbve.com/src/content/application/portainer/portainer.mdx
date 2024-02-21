@@ -14,11 +14,21 @@ tags:
     - host
 ---
 
+import MDXJS from '../../../components/MDXJS.astro';
+
+
+<MDXJS>
+
 ## Information
 
 Portainer is a web-based container management software that helps maintain `Docker` and `Kubernetes` clusters within the eco-system.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Install
 
@@ -75,7 +85,12 @@ We will be going over how to setup Portainer for Docker, Docker Swarm and k8s.
 
     -   3. The default location will be returned from the manifest, located at port 30777.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Edge
 
@@ -87,23 +102,33 @@ We will be going over how to setup Portainer for Docker, Docker Swarm and k8s.
 -   Scale
     -   15000 `{$EDGE_DEVICE}` with a polling frequency of 5 seconds will generate about 7 mbps of network traffic and require 4 CPUs to handle the encryption / tunnel load, according to Portainer.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Compose
 
 -   Docker Compose for Portainer.
-    <Github
-    	src="data/portainer/docker-compose_portainer_portainer-agent_traefik.yml"
-    	description="This is the docker compose we used that includes labels for Traefik."
-    />
+ 
+
+
+</MDXJS>
 
 ---
 
-<Github
-	src="data/portainer/edge-compose.yml"
-	description="This is the edge compose for an edge device."
-/>
+<MDXJS>
+
 * * *
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
 
 ## Upgrades
 
@@ -144,3 +169,5 @@ sudo kubectl apply -n portainer -f https://downloads.portainer.io/ce2-16/portain
 This will delete the existing portainer agent (which would be under the namespace of `portainer`) and then re-deploy the newer `ce2-16`.
 
 However these notes are for Portainer Agent 2.16.1 / 11/18/2022. We will update these once there is another major release.
+
+</MDXJS>

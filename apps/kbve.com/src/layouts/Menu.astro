@@ -49,10 +49,10 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 
 		<button
 			class={`h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-kbve-svg-primary hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500`}
-			data-drawer-target="drawer-right"
-			data-drawer-show="drawer-right"
+			data-drawer-target="drawer-register"
+			data-drawer-show="drawer-register"
 			data-drawer-placement="right"
-			aria-controls="drawer-right"
+			aria-controls="drawer-register"
 			data-drawer-backdrop="true">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -69,10 +69,10 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 
 		<button
 			class={`h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-kbve-svg-primary hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500`}
-			data-drawer-target="drawer-right"
-			data-drawer-show="drawer-right"
+			data-drawer-target="drawer-login"
+			data-drawer-show="drawer-login"
 			data-drawer-placement="right"
-			aria-controls="drawer-right"
+			aria-controls="drawer-login"
 			data-drawer-backdrop="true">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -228,6 +228,19 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 				
 				
 			</div>
+		</Fragment>
+	</VE>
+
+	<VE widget="drawer:flowbite:right" id="drawer-register" dyn={false}>
+		<Fragment slot="default">
+			<VE widget="kbve:register:introcard" className="max-w-xs p-6 rounded-md p-4 rounded-lg bg-sky-500/25 hover:bg-sky-500/50" />	
+		</Fragment>
+	</VE>
+
+	<VE widget="drawer:flowbite:right" id="drawer-login" dyn={false}>
+		<Fragment slot="default">
+			<VE widget="kbve:login:login" domain="https://api.kbve.com" className="max-w-xs p-6 rounded-md p-4 rounded-lg bg-sky-500/25 hover:bg-sky-500/50" />	
+
 		</Fragment>
 	</VE>
 

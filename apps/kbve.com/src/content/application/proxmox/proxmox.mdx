@@ -18,6 +18,10 @@ tags:
     - ubuntu
 ---
 
+import MDXJS from '../../../components/MDXJS.astro';
+
+<MDXJS>
+
 ## Information
 
 Proxmox is an exquisite open-source server platform that empowers you to orchestrate and administer virtual machines, containers, storage, networking, and backup.
@@ -27,7 +31,12 @@ The objective of this software is provide a base-line to build your own paradigm
 
 > Hint: Utilize the PAM/PVE settings within Proxmox to secure and abstract the system authentication.
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Cheatsheet
 
@@ -62,11 +71,13 @@ Proxmox Cheatsheet for quick commands and below are the basic CLI (command-line 
         -   `$v_ram` is in megabytes by default.
     -   `pct enter $v_id` - Enter the terminal of the container (LXC).
 
----
+
+</MDXJS>
 
 ---
 
----
+
+<MDXJS>
 
 ## Network
 
@@ -164,13 +175,12 @@ wget https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-vir
 
 After downloading the right ISO, attach it to your KVM/QEMU instance and then reboot the machine. After the reboot, go to `My Computer` and run the iso to install the proper drivers.
 
-### Offline
+
+</MDXJS>
 
 ---
 
----
-
----
+<MDXJS>
 
 ## Notes
 
@@ -188,6 +198,13 @@ After downloading the right ISO, attach it to your KVM/QEMU instance and then re
 
 General jokes/memes about the proxmox and general weird methods.
 We were trying to find a cute and creative way to introduce the vast realm of virtual machines.
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
 
 ### Jokes
 
@@ -241,3 +258,5 @@ Dock Swarm
 #In case you aren't in the know like cool guy Jones, Rick Deckard is from Bladerunner and he hunts stray replicants, the premise here don't let replicants go stray.
 ### 4.d. Creating Reverse Proxies for your Nodes
 ```
+
+</MDXJS>
