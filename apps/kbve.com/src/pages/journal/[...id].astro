@@ -1,13 +1,11 @@
 ---
-import { AstroVe as VE } from '@kbve/astro-ve';
 import Layout from '../../layouts/Layout.astro';
-import Card from '../../components/Card.astro';
 import Hero from '../../components/MDXHero.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-	const application = await getCollection('application');
-	return application.map((entry) => ({
+	const journal = await getCollection('journal');
+	return journal.map((entry) => ({
 		params: {
 			id: entry.slug,
 		},
