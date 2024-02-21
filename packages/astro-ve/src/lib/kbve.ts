@@ -3,12 +3,15 @@
 
 /* Content Engine */
 interface Content {
-    title?: string;
-    description?: string;
-    img?: string;
-    unsplash?: string;
-    lottie?: string;
-    logo?: string;
+	title?: string;
+	description?: string;
+	img?: string;
+	unsplash?: string;
+	lottie?: string;
+	logo?: string;
+	author?: string;
+	tags?: string[];
+	category?: string;
 	[key: string]: any;
 }
 
@@ -16,33 +19,34 @@ export function extractContentProperties(
 	content: Content | null | undefined,
 	defaultValue: string
 ): Content {
+	// Define the default structure with initial default values
+	let result: Content = {
+		title: `${defaultValue} Title`,
+		description: `${defaultValue} Description`,
+		img: 'https://source.unsplash.com/random/480x360',
+		unsplash: 'unsplash',
+		lottie: 'monkeymeme',
+		author: 'Anon',
+		date: 'Feb 30th, 2024',
+        category: 'Unknown',
+		// Add other properties as needed
+	};
 
+	const exclude = ['lottie', 'img', 'logo', 'date', 'lottie', 'tags', 'category', 'title', 'description', 'author'];
 
-    // Define the default structure with initial default values
-    let result: Content = {
-        title: `${defaultValue} Title`,
-        description: `${defaultValue} Description`,
-        img: "image",
-        unsplash: "unsplash",
-        lottie: "lottie",
-        // Add other properties as needed
-      };
+	if (content) {
+		Object.keys(content).forEach((key) => {
+			if (exclude.includes(key)) {
+				// For excluded properties, return them as is
+				result[key] = content[key];
+			} else {
+				// For other properties, prepend the defaultValue
+				result[key] = `${defaultValue} ${content[key]}`;
+			}
+		});
 
-      
-    const exclude = ['lottie', 'img', 'logo', 'date'];
-
-    if (content) {
-
-	Object.keys(content).forEach((key) => {
-		if (exclude.includes(key)) {
-			// For excluded properties, return them as is
-			result[key] = content[key];
-		} else {
-			// For other properties, prepend the defaultValue
-			result[key] = `${defaultValue} ${content[key]}`;
-		}
-	});
-}
+        result.tags = content.tags && content.tags.length > 0 ? content.tags : ['defaultTag'];
+	}
 
 	return result;
 }
