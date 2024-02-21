@@ -5,9 +5,10 @@ interface Props {
 	image?: string;
 }
 const { title, description } = Astro.props;
-import { ViewTransitions } from "astro:transitions";
+// 	import { ViewTransitions } from "astro:transitions"; Disabled ViewTransitions because it still seems to becausing errors with the menus.
 import { AstroVe as VE } from '@kbve/astro-ve';
 import Menu from './Menu.astro';
+import Footer from './Footer.astro';
 ---
 
 <!DOCTYPE html>
@@ -45,7 +46,7 @@ import Menu from './Menu.astro';
 							/>
 							<div class="text-center">
 								<button
-									class="text-white bg-cyan-700 hover:bg-cyan-800 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
+									class="text-white hover:bg-cyan-400 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
 									type="button"
 									data-drawer-target="drawer-swipe"
 									data-drawer-show="drawer-swipe"
@@ -53,58 +54,21 @@ import Menu from './Menu.astro';
 									data-drawer-edge="true"
 									data-drawer-edge-offset="bottom-[60px]"
 									aria-controls="drawer-swipe">
-									<div class="object-contain w-6">
+									
+								
+									<div class="object-contain w-6" id="menu">
 										<dotlottie-player
+											hover
 											autoplay
-											loop
 											mode="normal"
 											src="/assets/lottie/menu.lottie"
 										></dotlottie-player>
 									</div>
+									
 								</button>
 							</div>
 
-							<div class="text-center">
-								<button
-									class="text-white bg-cyan-700 hover:bg-cyan-800 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
-									type="button"
-									data-drawer-target="drawer-swipe"
-									data-drawer-show="drawer-swipe"
-									data-drawer-placement="bottom"
-									data-drawer-edge="true"
-									data-drawer-edge-offset="bottom-[60px]"
-									aria-controls="drawer-swipe">
-									<div class="object-contain w-6">
-										<dotlottie-player
-											autoplay
-											loop
-											mode="normal"
-											src="/assets/lottie/rocket.lottie"
-										></dotlottie-player>
-									</div>
-								</button>
-							</div>
-
-							<div class="text-center">
-								<button
-									class="text-white bg-cyan-700 hover:bg-cyan-800 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1.5 py-2 focus:outline-none"
-									type="button"
-									data-drawer-target="drawer-swipe"
-									data-drawer-show="drawer-swipe"
-									data-drawer-placement="bottom"
-									data-drawer-edge="true"
-									data-drawer-edge-offset="bottom-[60px]"
-									aria-controls="drawer-swipe">
-									<div class="object-contain w-5">
-										<dotlottie-player
-											autoplay
-											loop
-											mode="normal"
-											src="/assets/lottie/beer.lottie"
-										></dotlottie-player>
-									</div>
-								</button>
-							</div>
+							
 						</VE>
 					</div>
 				</div>
@@ -114,7 +78,12 @@ import Menu from './Menu.astro';
 			<main class="max-w-full h-full flex relative overflow-y-hidden" transition:animate="fade">
 				<!-- Removed grid-flow-col auto-cols-max -->
 				
+		<div
+			class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 ">
 				<slot />
+
+				<Footer />
+				</div>
 			</main>
 		</div>
 	</div>

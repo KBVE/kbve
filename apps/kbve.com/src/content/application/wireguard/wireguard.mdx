@@ -14,9 +14,18 @@ tags:
     - security
 ---
 
+import MDXJS from '../../../components/MDXJS.astro';
+
+<MDXJS>
+
 ## Wireguard
 
+
+</MDXJS>
+
 ---
+
+<MDXJS>
 
 ## Install
 
@@ -35,6 +44,13 @@ tags:
         -   Wireguard will be operating on the `UDP` port of `51820`.
         -   For: `ufw`
             -   To enable the port through `ufw` run `sudo allow 51821/udp`
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
 
 ## Netmaker
 
@@ -58,3 +74,8 @@ tags:
 -   The storage of the certificates will be an issue for this netmaker cluster, they recommend two types of storage classes:
     -   `RWO` - `Read Write Once` - Storage instance where only a single node is allowed to access the storage volume at a time for read and write access.
     -   `RWX` - `Read Write Many` - Storage instance where many nodes can concurrently read and write to the storage volume.
+
+
+</MDXJS>
+
+---

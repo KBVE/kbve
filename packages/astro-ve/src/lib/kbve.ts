@@ -1,6 +1,56 @@
 /* cspell:disable */
 // Disabling spell checking for this file, useful for code editors with spell check features.
 
+/* Content Engine */
+interface Content {
+	title?: string;
+	description?: string;
+	img?: string;
+	unsplash?: string;
+	lottie?: string;
+	logo?: string;
+	author?: string;
+	tags?: string[];
+	category?: string;
+	[key: string]: any;
+}
+
+export function extractContentProperties(
+	content: Content | null | undefined,
+	defaultValue: string
+): Content {
+	// Define the default structure with initial default values
+	let result: Content = {
+		title: `${defaultValue} Title`,
+		description: `${defaultValue} Description`,
+		img: 'https://source.unsplash.com/random/480x360',
+		unsplash: 'unsplash',
+		lottie: 'monkeymeme',
+		author: 'Anon',
+		date: 'Feb 30th, 2024',
+        category: 'Unknown',
+		// Add other properties as needed
+	};
+
+	const exclude = ['lottie', 'img', 'logo', 'date', 'lottie', 'tags', 'category', 'title', 'description', 'author'];
+
+	if (content) {
+		Object.keys(content).forEach((key) => {
+			if (exclude.includes(key)) {
+				// For excluded properties, return them as is
+				result[key] = content[key];
+			} else {
+				// For other properties, prepend the defaultValue
+				result[key] = `${defaultValue} ${content[key]}`;
+			}
+		});
+
+        result.tags = content.tags && content.tags.length > 0 ? content.tags : ['defaultTag'];
+	}
+
+	return result;
+}
+
 /* PUBLIC CONFIGURATIONS */
 // Section for defining public configurations and constants.
 
@@ -84,16 +134,16 @@ class InternalResponseHandler implements InternalResponse {
 		);
 	}
 
-    // Method to return a string representation of the data property
-    scope(): string {
-        try {
-            return JSON.stringify(this.data);
-        } catch (e) {
-            console.error('Parsing error:', e); // Log parsing errors
-            // Return a default error message if parsing fails
-            return 'Error: Unable to parse data';
-        }
-    }
+	// Method to return a string representation of the data property
+	scope(): string {
+		try {
+			return JSON.stringify(this.data);
+		} catch (e) {
+			console.error('Parsing error:', e); // Log parsing errors
+			// Return a default error message if parsing fails
+			return 'Error: Unable to parse data';
+		}
+	}
 
 	// Method to serialize the response object into a JSON string.
 	async serialize(): Promise<string> {
@@ -159,7 +209,6 @@ export const usernameRegex = new RegExp(/^[a-z0-9]+$/i);
 // This requirement helps ensure that usernames are sufficiently unique and identifiable.
 export const usernameLength: number = 8;
 
-
 /**
  * Validates a username based on length and character composition using a regex pattern.
  * This function takes a single string parameter 'value', which is the username to be validated.
@@ -170,35 +219,34 @@ export const usernameLength: number = 8;
  * If the username fails any of these checks, the function returns a validation error response using `InternalResponseHandler`
  * with a 400 status and an error message. If all checks pass, the function returns a success response with a 200 status,
  * indicating the username is valid.
- * 
+ *
  * @param value - The username string to be validated.
  * @returns A Promise resolving to an InternalResponseHandler, indicating the validation result.
  */
 export const validateUsername = async (
-    value: string
+	value: string
 ): Promise<InternalResponseHandler> => {
-    // Check if the username is shorter than the minimum required length
-    if (value.length < usernameLength) {
-        return new InternalResponseHandler(400, 'Validation Error', {
-            error: 'Username is too short. Minimum length is ' + usernameLength,
-        });
-    }
+	// Check if the username is shorter than the minimum required length
+	if (value.length < usernameLength) {
+		return new InternalResponseHandler(400, 'Validation Error', {
+			error: 'Username is too short. Minimum length is ' + usernameLength,
+		});
+	}
 
-    // Check if the username does not match the regex pattern
-    if (!usernameRegex.test(value)) {
-        return new InternalResponseHandler(400, 'Validation Error', {
-            error: 'Username contains invalid characters.',
-        });
-    }
+	// Check if the username does not match the regex pattern
+	if (!usernameRegex.test(value)) {
+		return new InternalResponseHandler(400, 'Validation Error', {
+			error: 'Username contains invalid characters.',
+		});
+	}
 
-    // TODO: Additional checks as needed, such as verifying if the username is already in use
+	// TODO: Additional checks as needed, such as verifying if the username is already in use
 
-    // If all checks pass, return a success response
-    return new InternalResponseHandler(200, 'Validation Successful', {
-        message: 'Username is valid.',
-    });
+	// If all checks pass, return a success response
+	return new InternalResponseHandler(200, 'Validation Successful', {
+		message: 'Username is valid.',
+	});
 };
-
 
 /**
  * Validates a username by sending it to a username validation service.
@@ -208,28 +256,28 @@ export const validateUsername = async (
  * If the username is valid (status 200), it returns an object indicating the username is valid.
  * If the username is invalid or if the `validateUsername` service returns a non-200 status, it returns an object indicating the username is invalid along with the error message.
  * In case of an exception, such as a network error or an issue with the `validateUsername` service, the function catches the error and returns a generic error message.
- * 
+ *
  * @param username - The username string to be validated.
  * @returns An object containing a boolean flag 'isValid' and an 'error' message if applicable.
  */
 export async function checkUsername(username: string) {
-    try {
-        // Await response from the username validation service
-        const response = await validateUsername(username);
+	try {
+		// Await response from the username validation service
+		const response = await validateUsername(username);
 
-        // Check if the response status is 200 (OK)
-        if (response.status === 200) {
-            // Username is valid, return an object indicating validity
-            return { isValid: true, error: null };
-        } else {
-            // Username is invalid, return an object with the error message
-            return { isValid: false, error: response.data.error };
-        }
-    } catch (error) {
-        // Catch and handle any unexpected errors
-        // Return an object indicating the username is invalid and provide a generic error message
-        return { isValid: false, error: 'An unexpected error occurred' };
-    }
+		// Check if the response status is 200 (OK)
+		if (response.status === 200) {
+			// Username is valid, return an object indicating validity
+			return { isValid: true, error: null };
+		} else {
+			// Username is invalid, return an object with the error message
+			return { isValid: false, error: response.data.error };
+		}
+	} catch (error) {
+		// Catch and handle any unexpected errors
+		// Return an object indicating the username is invalid and provide a generic error message
+		return { isValid: false, error: 'An unexpected error occurred' };
+	}
 }
 
 //  *   [Email]
@@ -245,26 +293,26 @@ export const emailRegex = new RegExp(
  * a validation error response using `InternalResponseHandler` with a 400 status and an error message.
  * If the email matches the regex, the function can perform additional checks (as indicated by the TODO comment).
  * If all checks pass, the function returns a success response with a 200 status, indicating the email is valid.
- * 
+ *
  * @param value - The email string to be validated.
  * @returns A Promise resolving to an InternalResponseHandler, indicating the validation result.
  */
 export const validateEmail = async (
-    value: string
+	value: string
 ): Promise<InternalResponseHandler> => {
-    // Check if the email does not match the regex
-    if (!emailRegex.test(value)) {
-        return new InternalResponseHandler(400, 'Validation Error', {
-            error: 'Email is invalid.',
-        });
-    }
+	// Check if the email does not match the regex
+	if (!emailRegex.test(value)) {
+		return new InternalResponseHandler(400, 'Validation Error', {
+			error: 'Email is invalid.',
+		});
+	}
 
-    // TODO: Additional checks as needed, such as checking if the email is already in use
+	// TODO: Additional checks as needed, such as checking if the email is already in use
 
-    // If all checks pass, return a success response
-    return new InternalResponseHandler(200, 'Validation Successful', {
-        message: 'Email is valid.',
-    });
+	// If all checks pass, return a success response
+	return new InternalResponseHandler(200, 'Validation Successful', {
+		message: 'Email is valid.',
+	});
 };
 
 /**
@@ -275,79 +323,78 @@ export const validateEmail = async (
  * If the email is valid (status 200), it returns an object indicating the email is valid.
  * If the email is invalid or if the `validateEmail` service returns a non-200 status, it returns an object indicating the email is invalid along with the error message.
  * In case of an exception, such as a network error or an issue with the `validateEmail` service, the function catches the error and returns a generic error message.
- * 
+ *
  * @param email - The email string to be validated.
  * @returns An object containing a boolean flag 'isValid' and an 'error' message if applicable.
  */
 export async function checkEmail(email: string) {
-    try {
-        // Await response from the email validation service
-        const response = await validateEmail(email);
+	try {
+		// Await response from the email validation service
+		const response = await validateEmail(email);
 
-        // Check if the response status is 200 (OK)
-        if (response.status === 200) {
-            // Email is valid, return an object indicating validity
-            return { isValid: true, error: null };
-        } else {
-            // Email is invalid, return an object with the error message
-            return { isValid: false, error: response.data.error };
-        }
-    } catch (error) {
-        // Catch and handle any unexpected errors
-        // Return an object indicating the email is invalid and provide a generic error message
-        return { isValid: false, error: 'An unexpected error occurred' };
-    }
+		// Check if the response status is 200 (OK)
+		if (response.status === 200) {
+			// Email is valid, return an object indicating validity
+			return { isValid: true, error: null };
+		} else {
+			// Email is invalid, return an object with the error message
+			return { isValid: false, error: response.data.error };
+		}
+	} catch (error) {
+		// Catch and handle any unexpected errors
+		// Return an object indicating the email is invalid and provide a generic error message
+		return { isValid: false, error: 'An unexpected error occurred' };
+	}
 }
 
-
 /**
- * This function validates a given password based on several criteria: length, 
+ * This function validates a given password based on several criteria: length,
  * presence of uppercase and lowercase letters, digits, and special characters.
- * It accepts a string parameter 'password' and returns a Promise that resolves to 
- * an instance of `InternalResponseHandler`. This instance represents the outcome 
- * of the validation: either a success (valid password) or a failure (invalid password), 
+ * It accepts a string parameter 'password' and returns a Promise that resolves to
+ * an instance of `InternalResponseHandler`. This instance represents the outcome
+ * of the validation: either a success (valid password) or a failure (invalid password),
  * along with appropriate messages and status codes.
- * 
+ *
  * @param password - The password string to be validated.
  * @returns A Promise resolving to an InternalResponseHandler, indicating the validation result.
  */
 export const validatePassword = async (
-    password: string
+	password: string
 ): Promise<InternalResponseHandler> => {
-    // Check if the password is shorter than 8 characters
-    if (password.length < 8) {
-        // Return a validation error with a message about the password being too short
-        return new InternalResponseHandler(400, 'Validation Error', {
-            error: 'Password is too short',
-        });
-    }
+	// Check if the password is shorter than 8 characters
+	if (password.length < 8) {
+		// Return a validation error with a message about the password being too short
+		return new InternalResponseHandler(400, 'Validation Error', {
+			error: 'Password is too short',
+		});
+	}
 
-    // Check if the password is longer than 255 characters
-    if (password.length > 255) {
-        // Return a validation error with a message about the password being too long
-        return new InternalResponseHandler(400, 'Validation Error', {
-            error: 'Password is too long',
-        });
-    }
+	// Check if the password is longer than 255 characters
+	if (password.length > 255) {
+		// Return a validation error with a message about the password being too long
+		return new InternalResponseHandler(400, 'Validation Error', {
+			error: 'Password is too long',
+		});
+	}
 
-    // Define regular expressions for different character types
-    const hasUppercase = /[A-Z]/.test(password); // Checks for uppercase letters
-    const hasLowercase = /[a-z]/.test(password); // Checks for lowercase letters
-    const hasDigit = /\d/.test(password);       // Checks for digits
-    const hasSpecial = /[^A-Za-z0-9]/.test(password); // Checks for special characters
+	// Define regular expressions for different character types
+	const hasUppercase = /[A-Z]/.test(password); // Checks for uppercase letters
+	const hasLowercase = /[a-z]/.test(password); // Checks for lowercase letters
+	const hasDigit = /\d/.test(password); // Checks for digits
+	const hasSpecial = /[^A-Za-z0-9]/.test(password); // Checks for special characters
 
-    // Check if the password contains uppercase, lowercase, digits, and special characters
-    if (!hasUppercase || !hasLowercase || !hasDigit || !hasSpecial) {
-        // Return a validation error with a message about missing character types
-        return new InternalResponseHandler(400, 'Validation Error', {
-            error: 'Password must include uppercase, lowercase, digits, and special characters',
-        });
-    }
+	// Check if the password contains uppercase, lowercase, digits, and special characters
+	if (!hasUppercase || !hasLowercase || !hasDigit || !hasSpecial) {
+		// Return a validation error with a message about missing character types
+		return new InternalResponseHandler(400, 'Validation Error', {
+			error: 'Password must include uppercase, lowercase, digits, and special characters',
+		});
+	}
 
-    // If all checks pass, return a success response
-    return new InternalResponseHandler(200, 'Validation Successful', {
-        message: 'Password is valid',
-    });
+	// If all checks pass, return a success response
+	return new InternalResponseHandler(200, 'Validation Successful', {
+		message: 'Password is valid',
+	});
 };
 
 /**
@@ -357,7 +404,7 @@ export const validatePassword = async (
  * If the password is valid (status 200), it returns an object indicating the password is valid.
  * If the password is invalid or if the `validatePassword` service returns a non-200 status, it returns an object indicating the password is invalid along with the error message.
  * In case of an exception, such as a network error or an issue with the `validatePassword` service, the function catches the error and returns a generic error message.
- * 
+ *
  * @param password - The password string to be validated.
  * @returns An object containing a boolean flag 'isValid' and an 'error' message if applicable.
  */
@@ -381,7 +428,6 @@ export async function checkPassword(password: string) {
 	}
 }
 
-
 /**
  * This function sends a POST request to a specified URL with the given data and headers.
  * It uses the JavaScript Fetch API to perform the HTTP POST request. The function accepts three parameters:
@@ -389,7 +435,7 @@ export async function checkPassword(password: string) {
  * The data is sent as JSON. The function handles the response by creating an instance of `InternalResponseHandler`,
  * which standardizes the response format, whether it's a successful response or an error.
  * In case of a network or other request-related error, the function catches the error and returns an error response.
- * 
+ *
  * @param url - The URL to which the POST request is sent.
  * @param data - The data object to be sent, which is serialized to JSON.
  * @param headers - Additional headers to be sent with the request.
@@ -397,43 +443,45 @@ export async function checkPassword(password: string) {
  */
 
 export async function spear(
-    url: string, 
-    data: any, 
-    headers: Record<string, string>
+	url: string,
+	data: any,
+	headers: Record<string, string>
 ): Promise<InternalResponseHandler> {
-    try {
-        // Initiating a POST request using the fetch API
-        const response = await fetch(url, {
-            method: 'POST', // Setting the method as POST
-            headers: {
-                'Content-Type': 'application/json', // Setting content type header to JSON
-                ...headers // Spreading any additional headers passed to the function
-            },
-            body: JSON.stringify(data), // Serializing the data object to a JSON string
-            credentials: 'include'
-        });
+	try {
+		// Initiating a POST request using the fetch API
+		const response = await fetch(url, {
+			method: 'POST', // Setting the method as POST
+			headers: {
+				'Content-Type': 'application/json', // Setting content type header to JSON
+				...headers, // Spreading any additional headers passed to the function
+			},
+			body: JSON.stringify(data), // Serializing the data object to a JSON string
+			credentials: 'include',
+		});
 
-        // Parsing the JSON response body
-        const responseData = await response.json();
-        // Creating a new instance of InternalResponseHandler with the response details
-        const message = responseData.message || (response.ok ? 'Success' : 'Error');
-        const error = !response.ok;
-        const dataField = error && responseData.error ? { error: responseData.error } : responseData;
+		// Parsing the JSON response body
+		const responseData = await response.json();
+		// Creating a new instance of InternalResponseHandler with the response details
+		const message =
+			responseData.message || (response.ok ? 'Success' : 'Error');
+		const error = !response.ok;
+		const dataField =
+			error && responseData.error
+				? { error: responseData.error }
+				: responseData;
 
-        return new InternalResponseHandler(response.status, message, dataField);
-
-    } catch (error) {
-        // Catching and logging any errors that occur during the fetch request
-        console.error('Request failed:', error);
-        // Returning an InternalResponseHandler instance for the error case
-        return new InternalResponseHandler(
-            500, // HTTP status code for internal server error
-            'Internal Server Error: Request failed', // Error message
-            {} // Empty object for data
-        );
-    }
+		return new InternalResponseHandler(response.status, message, dataField);
+	} catch (error) {
+		// Catching and logging any errors that occur during the fetch request
+		console.error('Request failed:', error);
+		// Returning an InternalResponseHandler instance for the error case
+		return new InternalResponseHandler(
+			500, // HTTP status code for internal server error
+			'Internal Server Error: Request failed', // Error message
+			{} // Empty object for data
+		);
+	}
 }
-
 
 /**
  * Sends a GET request to a specified URL with the given query parameters and headers.
@@ -442,51 +490,50 @@ export async function spear(
  * The data object is converted into a query string. The function handles the response by creating an instance of
  * `InternalResponseHandler`, which standardizes the response format, whether it's a successful response or an error.
  * In case of a network or other request-related error, the function catches the error and returns an error response.
- * 
+ *
  * @param url - The base URL to which the GET request is sent.
  * @param data - The data object to be sent, which is converted to a query string.
  * @param headers - Additional headers to be sent with the request.
  * @returns A promise that resolves to an instance of InternalResponseHandler, representing the response.
  */
 export async function helmet(
-    url: string, 
-    data: Record<string, any>, 
-    headers: Record<string, string>
+	url: string,
+	data: Record<string, any>,
+	headers: Record<string, string>
 ): Promise<InternalResponseHandler> {
-    try {
-        // Convert data object to query string
-        const queryString = new URLSearchParams(data).toString();
-        const fullUrl = `${url}?${queryString}`;
+	try {
+		// Convert data object to query string
+		const queryString = new URLSearchParams(data).toString();
+		const fullUrl = `${url}?${queryString}`;
 
-        // Initiating a GET request using the fetch API
-        const response = await fetch(fullUrl, {
-            method: 'GET', // Setting the method as GET
-            headers: {
-                ...headers // Spreading any additional headers passed to the function
-            },
-            credentials: 'include'
-        });
+		// Initiating a GET request using the fetch API
+		const response = await fetch(fullUrl, {
+			method: 'GET', // Setting the method as GET
+			headers: {
+				...headers, // Spreading any additional headers passed to the function
+			},
+			credentials: 'include',
+		});
 
-        // Parsing the JSON response body
-        const responseData = await response.json();
-        // Creating a new instance of InternalResponseHandler with the response details
-        return new InternalResponseHandler(
-            response.status, // HTTP status code of the response
-            responseData.message || (response.ok ? 'Success' : 'Error'), // Response message or default based on HTTP status
-            responseData.data || {} // Response data or an empty object if none
-        );
-    } catch (error) {
-        // Catching and logging any errors that occur during the fetch request
-        console.error('Request failed:', error);
-        // Returning an InternalResponseHandler instance for the error case
-        return new InternalResponseHandler(
-            500, // HTTP status code for internal server error
-            'Internal Server Error: Request failed', // Error message
-            {} // Empty object for data
-        );
-    }
+		// Parsing the JSON response body
+		const responseData = await response.json();
+		// Creating a new instance of InternalResponseHandler with the response details
+		return new InternalResponseHandler(
+			response.status, // HTTP status code of the response
+			responseData.message || (response.ok ? 'Success' : 'Error'), // Response message or default based on HTTP status
+			responseData.data || {} // Response data or an empty object if none
+		);
+	} catch (error) {
+		// Catching and logging any errors that occur during the fetch request
+		console.error('Request failed:', error);
+		// Returning an InternalResponseHandler instance for the error case
+		return new InternalResponseHandler(
+			500, // HTTP status code for internal server error
+			'Internal Server Error: Request failed', // Error message
+			{} // Empty object for data
+		);
+	}
 }
-
 
 /**
  * Registers a new user by sending their details to a dynamically constructed registration API URL.
@@ -495,7 +542,7 @@ export async function helmet(
  * A data object is constructed from the username, email, password, and captcha, and a POST request
  * is sent to the constructed URL. An additional custom header 'x-kbve-shieldwall' is included in the request.
  * The function relies on a `spear` function (assumed to be defined elsewhere) to send the request and handle the response.
- * 
+ *
  * @param endpoint - The base URL of the API (e.g., 'https://rust.kbve.com' or 'https://api.herbmail.com').
  * @param username - The username of the new user.
  * @param email - The email address of the new user.
@@ -504,25 +551,25 @@ export async function helmet(
  * @returns A promise that resolves to the response from the registration API.
  */
 export async function registerUser(
-    endpoint: string,
-    username: string, 
-    email: string, 
-    password: string, 
-    captcha: string
+	endpoint: string,
+	username: string,
+	email: string,
+	password: string,
+	captcha: string
 ): Promise<InternalResponseHandler> {
-    // Construct the full URL using the endpoint and predefined path segments
-    const url = `${endpoint}${kbve_v01d}${auth_register}`;
-    const data = {
-        username,
-        email,
-        password,
-        token: captcha
-    };
-    const headers = {
-        'x-kbve-shieldwall': 'auth-register'
-    };
+	// Construct the full URL using the endpoint and predefined path segments
+	const url = `${endpoint}${kbve_v01d}${auth_register}`;
+	const data = {
+		username,
+		email,
+		password,
+		token: captcha,
+	};
+	const headers = {
+		'x-kbve-shieldwall': 'auth-register',
+	};
 
-    return spear(url, data, headers);
+	return spear(url, data, headers);
 }
 
 /**
@@ -538,22 +585,22 @@ export async function registerUser(
  * @returns A promise that resolves to the response from the login API.
  */
 export async function loginUser(
-    endpoint: string,
-    email: string,
-    password: string
+	endpoint: string,
+	email: string,
+	password: string
 ): Promise<InternalResponseHandler> {
-    // Construct the full URL using the endpoint and predefined path segments
-    const url = `${endpoint}${kbve_v01d}${auth_login}`;
-    const data = {
-        email,
-        password
-    };
-    // Use appropriate headers if needed
-    const headers = {
-		'x-kbve-shieldwall': 'auth-login'
+	// Construct the full URL using the endpoint and predefined path segments
+	const url = `${endpoint}${kbve_v01d}${auth_login}`;
+	const data = {
+		email,
+		password,
+	};
+	// Use appropriate headers if needed
+	const headers = {
+		'x-kbve-shieldwall': 'auth-login',
 	};
 
-    return spear(url, data, headers);
+	return spear(url, data, headers);
 }
 
 /**
@@ -566,33 +613,36 @@ export async function loginUser(
  * @param endpoint - The base URL of the API (e.g., 'https://rust.kbve.com' or 'https://api.herbmail.com').
  * @returns A promise that resolves to the response from the logout API.
  */
-export async function logoutUser(endpoint: string): Promise<InternalResponseHandler> {
-    // Construct the full URL using the endpoint and predefined path segments
-    const url = `${endpoint}${kbve_v01d}${auth_logout}`;
+export async function logoutUser(
+	endpoint: string
+): Promise<InternalResponseHandler> {
+	// Construct the full URL using the endpoint and predefined path segments
+	const url = `${endpoint}${kbve_v01d}${auth_logout}`;
 
-    // Define the headers or any other configurations if needed
-    const headers = {
-		'x-kbve-shieldwall': 'auth-logout'
+	// Define the headers or any other configurations if needed
+	const headers = {
+		'x-kbve-shieldwall': 'auth-logout',
 	};
 
-    // Since logout might not require sending data, we send an empty object
-    return helmet(url, {}, headers);
+	// Since logout might not require sending data, we send an empty object
+	return helmet(url, {}, headers);
 }
 
 /**
  * TODO: Profile
- * 
+ *
  */
 
-export async function profile(endpoint: string): Promise<InternalResponseHandler> {
-    // Construct the full URL using the endpoint and predefined path segments
-    const url = `${endpoint}${kbve_v01d}${auth_profile}`;
+export async function profile(
+	endpoint: string
+): Promise<InternalResponseHandler> {
+	// Construct the full URL using the endpoint and predefined path segments
+	const url = `${endpoint}${kbve_v01d}${auth_profile}`;
 
-    // Define the headers or any other configurations if needed
-    const headers = {
-		'x-kbve-shieldwall': 'auth-profile'
+	// Define the headers or any other configurations if needed
+	const headers = {
+		'x-kbve-shieldwall': 'auth-profile',
 	};
 
-    return helmet(url, {}, headers);
-
+	return helmet(url, {}, headers);
 }
