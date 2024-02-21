@@ -7,9 +7,82 @@ export interface Props {
 }
 const { id, dyn = false, content } = Astro.props;
 
-let _id = '';
+//      [IMPORTS]
+import { style, dynStyle } from '../../style';
+import { extractContentProperties } from '../../kbve';
+
+//      [VARIABLES]
+
+let styleSheet = dyn ? dynStyle : style;
+let _internal: string = 'mdx:components:hero';
+const _render = extractContentProperties(content, _internal);
+console.log(_render);
+
+let _title: string = 'Hero Title PlaceHolder';
+let _id: string = 'Hero PlaceHolder';
+let _img: string = 'https://source.unsplash.com/random/480x360';
+let _date: string = '';
+let _lottie: string = 'gamer';
+
+
+// Dynamic CSS Placeholders
+let baseBackgroundStyle: string =
+	styleSheet.getVariable('bg-kbve-menu-bg').variable;
+
+  
+if(content)
+{
+if(content.lottie)
+{
+  _lottie = content.lottie;
+}
+
+if(content.title)
+{
+  _title = content.title;
+}
+}
+
 ---
 
 <Fragment>
+    <section
+		class={`flex-auto w-full md:w-6/12 p-5 ${baseBackgroundStyle} border border-cyan-200 rounded-lg shadow bg-default bg-cover bg-blend-overlay`}
+		style={`background-image: url('https://kbve.com/assets/img/curved-images/wave.jpg')`}>
+
+        <div class="flex flex-row">
+    <div class="mb-4 md:mb-0 w-full h-80 md:h-96 max-w-screen-md mx-auto relative">
+        <div class="absolute left-0 bottom-0 w-full h-full z-10"
+          style="background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.7));"></div>
+        <img src={`${_img}`} class="absolute left-0 top-0 w-full h-full z-0 object-cover" />
+        <div class="p-4 absolute bottom-0 left-0 z-20">
+          <a href="#"
+            class="px-4 py-1 bg-black text-gray-200 inline-flex items-center justify-center mb-2">Nutritions</a>
+          <h2 class="text-4xl font-semibold text-gray-100 leading-tight">
+            {_render.title}
+          </h2>
+          <div class="flex mt-3">
+            <img src="https://randomuser.me/api/portraits/men/97.jpg"
+              class="h-10 w-10 rounded-full mr-2 object-cover" />
+            <div>
+              <p class="font-semibold text-gray-200 text-sm"> Mike Sullivan </p>
+              <p class="font-semibold text-gray-400 text-xs"> 14 Aug </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-white hidden md:block">
+        <div class="object-contain w-96 -translate-x-20">
+        <dotlottie-player
+					autoplay
+					loop
+					mode="normal"
+					src={`/assets/lottie/${_lottie}.lottie`}></dotlottie-player>
+        </div>
+      </div>
+    </div>
+
+    </section>
 
 </Fragment>

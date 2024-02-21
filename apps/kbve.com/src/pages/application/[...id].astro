@@ -2,6 +2,7 @@
 import { AstroVe as VE } from '@kbve/astro-ve';
 import Layout from '../../layouts/Layout.astro';
 import Card from '../../components/Card.astro';
+import Hero from '../../components/MDXHero.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -21,5 +22,6 @@ const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
 ---
 <Layout title={entry.data.title} description={entry.data.description}>
+	<Hero />
 	<Content />
 </Layout>
