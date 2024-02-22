@@ -14,14 +14,45 @@ import { getCollection } from 'astro:content';
 
 const journals = await getCollection('journal');
 
-type JournalEntriesTuple = [string, {
+//  This type still needs to include the 
+type JournalEntryWithSlug = [string, {
     id: string;
     title: string;
     description: string;
     tags: string[];
-    date: any; 
+    date: string; // or Date
 }];
 
+
+// Represents the detailed data of a journal entry
+type JournalData = {
+    title: string;
+    description: string;
+    tags: string[];
+    date: string; // Assuming ISO format (YYYY-MM-DD)
+};
+
+// Represents the full structure of a journal entry, including its slug
+type JournalEntry = {
+    slug: string;
+    data: JournalData;
+};
+
+
+function mapJournalEntriesToTuples(journals: JournalEntry[]): JournalEntriesTuple[] {
+    return journals.map((entry): JournalEntriesTuple => [
+        entry.slug, 
+        {
+            title: entry.data.title,
+            description: entry.data.description,
+            tags: entry.data.tags,
+            date: entry.data.date,
+        },
+    ]);
+}
+
+// Represents the tuple used for mapping entries, combining slug with simplified data
+type JournalEntriesTuple = [string, JournalData];
 
     const journalsEntries: JournalEntriesTuple[] = journals.map((entry): JournalEntriesTuple => [
     entry.slug, 
@@ -42,13 +73,6 @@ const sortedJournals = sortableJournals.sort(([slugA, entryA], [slugB, entryB]) 
     return dateA.getTime() - dateB.getTime();
 });
 
-type JournalEntryWithSlug = [string, {
-    id: string;
-    title: string;
-    description: string;
-    tags: string[];
-    date: string; // or Date
-}];
 
 const groupedByMonth: { [key: string]: JournalEntryWithSlug[] } = {};
 
@@ -63,6 +87,42 @@ sortedJournals.forEach(([slug, entry]) => {
 
     groupedByMonth[monthKey].push([slug, entry]);
 });
+
+function getLatestJournalEntries(entries: JournalEntry[], count: number = 10): JournalEntry[] {
+    // Sort the entries by date in descending order
+    const sortedEntries = entries.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA; // For descending order
+    });
+
+    // Return the first 'count' entries
+    return sortedEntries.slice(0, count);
+}
+
+function getJournalEntriesInLast10Days(entries: JournalEntry[], daysAgo: number = 10): JournalEntry[] {
+    const today = new Date();
+    const endDate = new Date();
+    endDate.setDate(today.getDate() - daysAgo); // Set 'endDate' to 'daysAgo' days before today
+
+    // Filter entries within the last 10 days
+    const filteredEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= endDate && entryDate <= today;
+    });
+
+    // Sort the filtered entries by date in descending order (newest first)
+    const sortedFilteredEntries = filteredEntries.sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+
+    return sortedFilteredEntries; // This no longer slices to 10, assuming you want all entries in the last 10 days
+}
+
+const latestEntries = getJournalEntriesInLast10Days(journalsEntries);
+console.log(latestEntries);
+
+
 
 ---
 <Layout title={title} description={description}>
