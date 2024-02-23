@@ -10,7 +10,7 @@ let description =
 
 //  Journal Configuration
 
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 
 const journals = await getCollection('journal');
 
@@ -52,6 +52,11 @@ const sortedJournals = journalsEntries.sort(([slugA, dataA], [slugB, dataB]) => 
 
 const journalsEntriesLatest = sortedJournals[0];
 
+const latestEntry = await getEntry('journal', journalsEntriesLatest[1].id);
+
+
+console.log(latestEntry);
+
 const journalEntriesRecent = sortedJournals.slice(1, 9);
 
 const journalsByMonth: JournalEntriesTuple[][] = Array.from({ length: 12 }, () => []);
@@ -60,18 +65,17 @@ sortedJournals.forEach(([slug, data]) => {
 
     const entryDate = new Date(data.date);
     const month = entryDate.getMonth(); // Month as a number (0-11)
-    console.log(`Processing entry: ${data.date}, Month: ${month}`);
     journalsByMonth[month].push([slug, data]);
     
 });
 
 // console.log(journalsEntriesLatest);
 
-console.log(journalsByMonth[0]);
+// console.log(journalsByMonth[1]);
 ---
 <Layout title={title} description={description}>
-    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
 
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
     
       <div class="flex grow bg-zinc-950 border border-cyan-200 rounded-2xl p-4">  
         <div class="flex items-center grow">
@@ -147,8 +151,14 @@ console.log(journalsByMonth[0]);
   </div>
     </section>
 
+    <!-- N Entry / First Entry -->
 
-    <!-- Last 5 Days? -->
+    <section class="">
+
+    </section>
+
+
+    <!-- Last 8 Days of N -->
 
     <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-between">
       {journalEntriesRecent.map(([slug, { id, title, description, tags, date }]: JournalEntriesTuple) => (
