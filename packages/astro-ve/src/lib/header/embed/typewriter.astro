@@ -1,0 +1,53 @@
+---
+export interface Props {
+    message?: string;
+}
+
+const { message } = Astro.props;
+
+if(!message)
+{
+    console.error('The Typewriter Effect is missing a message!');
+}
+
+---
+
+<script is:inline src="https://unpkg.com/typewriter-effect@latest/dist/core.js"></script>
+
+<astro-typewriter data-message={message}>
+    <div id="typemachine" {...Astro.props}>
+        </div>
+</astro-typewriter>
+
+
+<script>
+    class AstroTypewriter extends HTMLElement {
+        constructor() {
+            super();
+
+            const holder = document.getElementById('typemachine');
+            const message = this.dataset.message;
+            const typewriter = new (window as any).Typewriter(holder, {
+                loop: false,
+                delay: 75,
+            }) || undefined;
+
+            if(typewriter)
+            {
+                console.log('Writing!');
+                typewriter
+                    .pauseFor(2500)
+                    .typeString(message)
+                    .pauseFor(300)
+                    .typeString('!')
+                    .pauseFor(1000)
+                    .start();
+            }
+
+
+        }
+    }
+
+    customElements.define('astro-typewriter', AstroTypewriter);
+
+</script>
