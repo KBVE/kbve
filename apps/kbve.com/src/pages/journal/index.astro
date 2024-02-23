@@ -10,7 +10,7 @@ let description =
 
 //  Journal Configuration
 
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 
 const journals = await getCollection('journal');
 
@@ -21,13 +21,7 @@ type JournalData = {
     title: string;
     description: string;
     tags: string[];
-    date: string; // Assuming ISO format (YYYY-MM-DD)
-};
-
-// Represents the full structure of a journal entry, including its slug
-type JournalEntry = {
-    slug: string;
-    data: JournalData;
+    date: any; // Assuming ISO format (YYYY-MM-DD)
 };
 
 
@@ -48,58 +42,40 @@ const journalsEntries: JournalEntriesTuple[] = journals.map((entry): JournalEntr
 
 // Weekly Journal Entries
 
-const today = new Date();
-const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
-const sixDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
-const sevenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-
-const journalsEntriesWeekly: JournalEntriesTuple[] = journals
-    .map((entry): JournalEntriesTuple => [
-        entry.slug, 
-        {
-            id: entry.slug,
-            title: entry.data.title,
-            description: entry.data.description,
-            tags: entry.data.tags,
-            date: entry.data.date,
-        },
-    ])
-    .filter(([slug, { date }]) => {
-        const entryDate = new Date(date);
-        return entryDate >= sevenDaysAgo && entryDate <= today;
-    })
-    .sort(([slugA, { date: dateA }], [slugB, { date: dateB }]) => {
-        const dateTimeA = new Date(dateA).getTime();
-        const dateTimeB = new Date(dateB).getTime();
-        return dateTimeB - dateTimeA; // Sort by newest (most recent) first
-    });
 
 
-const journalEntriesRecent: JournalEntriesTuple[] = journals
-    .map((entry): JournalEntriesTuple => [
-        entry.slug, 
-        {
-            id: entry.slug,
-            title: entry.data.title,
-            description: entry.data.description,
-            tags: entry.data.tags,
-            date: entry.data.date,
-        },
-    ])
-    .filter(([slug, { date }]) => {
-        const entryDate = new Date(date);
-        return entryDate >= sevenDaysAgo && entryDate < yesterday;
-    })
-    .sort(([slugA, { date: dateA }], [slugB, { date: dateB }]) => {
-        const dateTimeA = new Date(dateA).getTime();
-        const dateTimeB = new Date(dateB).getTime();
-        return dateTimeB - dateTimeA; // Sort by newest (most recent) first
-    });
+const sortedJournals = journalsEntries.sort(([slugA, dataA], [slugB, dataB]) => {
+    const dateA = new Date(dataA.date).getTime();
+    const dateB = new Date(dataB.date).getTime();
+    return dateB - dateA; // Descending order for latest date first
+});
 
+const journalsEntriesLatest = sortedJournals[0];
+
+const latestEntry = await getEntry('journal', journalsEntriesLatest[1].id);
+
+
+console.log(latestEntry);
+
+const journalEntriesRecent = sortedJournals.slice(1, 9);
+
+const journalsByMonth: JournalEntriesTuple[][] = Array.from({ length: 12 }, () => []);
+
+sortedJournals.forEach(([slug, data]) => {
+
+    const entryDate = new Date(data.date);
+    const month = entryDate.getMonth(); // Month as a number (0-11)
+    journalsByMonth[month].push([slug, data]);
+    
+});
+
+// console.log(journalsEntriesLatest);
+
+// console.log(journalsByMonth[1]);
 ---
 <Layout title={title} description={description}>
-    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
 
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
     
       <div class="flex grow bg-zinc-950 border border-cyan-200 rounded-2xl p-4">  
         <div class="flex items-center grow">
@@ -175,8 +151,14 @@ const journalEntriesRecent: JournalEntriesTuple[] = journals
   </div>
     </section>
 
+    <!-- N Entry / First Entry -->
 
-    <!-- 5 Days? -->
+    <section class="">
+
+    </section>
+
+
+    <!-- Last 8 Days of N -->
 
     <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-between">
       {journalEntriesRecent.map(([slug, { id, title, description, tags, date }]: JournalEntriesTuple) => (
@@ -198,7 +180,7 @@ const journalEntriesRecent: JournalEntriesTuple[] = journals
     </section>
 
 
-    <!-- Journals -->
+    <!-- All Journals -->
 
 
     <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-between">
