@@ -46,6 +46,11 @@
 				"{workspaceRoot}/eslint.config.js"
 			],
 			"cache": true
+		},
+		"@nx/expo:build": {
+			"cache": true,
+			"dependsOn": ["^build"],
+			"inputs": ["production", "^production"]
 		}
 	},
 	"namedInputs": {
