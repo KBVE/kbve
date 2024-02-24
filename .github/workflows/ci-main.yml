@@ -39,7 +39,7 @@ jobs:
             -   name: Checkout the repository using git
                 uses: actions/checkout@v4
                 with:
-                    fetch-depth: 1
+                    fetch-depth: 2
 
             -   name: File Changes
                 id: delta
@@ -126,6 +126,31 @@ jobs:
 
             #   @[NX] -> [REPORT] -> [END]
 
+
+            #   [KBVE.com]
+
+            -   name: KBVE.com -> Build
+                shell: bash
+                run: |
+                    pnpm nx build kbve.com
+
+            -   name: KBVE.com -> Deployment
+                uses: dobbelina/copy_file_to_another_repo_action@main
+                env:
+                    API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+                with:
+                    source_file: 'dist/apps/kbve.com/'
+                    destination_repo: 'kbve/kbve.com'
+                    destination_folder: '/docs'
+                    destination_branch: 'dev'
+                    destination_branch_create: 'patch-kbve-deploy'
+                    user_email: '5599058+h0lybyte@users.noreply.github.com'
+                    user_name: 'h0lybyte'
+                    commit_message: ${{ github.event.head_commit.message }}
+                    rsync_option: "-avrh --delete"
+
+
+
             #   [HerbMail]
 
             -   name: HerbMail -> Build
@@ -147,30 +172,6 @@ jobs:
                     destination_folder: '/docs'
                     destination_branch: 'main'
                     destination_branch_create: 'patch-herbmail-deploy'
-                    user_email: '5599058+h0lybyte@users.noreply.github.com'
-                    user_name: 'h0lybyte'
-                    commit_message: ${{ github.event.head_commit.message }}
-                    rsync_option: "-avrh --delete"
-
-            #   [KBVE.com]
-
-            -   name: KBVE.com -> Build
-                if: needs.alter.outputs.kbve == 'true'
-                shell: bash
-                run: |
-                    pnpm nx build kbve.com
-
-            -   name: KBVE.com -> Deployment
-                if: needs.alter.outputs.kbve == 'true'
-                uses: dobbelina/copy_file_to_another_repo_action@main
-                env:
-                    API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-                with:
-                    source_file: 'dist/apps/kbve.com/'
-                    destination_repo: 'kbve/kbve.com'
-                    destination_folder: '/docs'
-                    destination_branch: 'dev'
-                    destination_branch_create: 'patch-kbve-deploy'
                     user_email: '5599058+h0lybyte@users.noreply.github.com'
                     user_name: 'h0lybyte'
                     commit_message: ${{ github.event.head_commit.message }}
