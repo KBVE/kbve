@@ -1,0 +1,81 @@
+---
+title: 'February: 23'
+category: Daily
+date: 2024-02-23 12:00:00
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1454496522488-7a8e488e8606?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 23rd for each year!
+tags:
+    - daily
+---
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+
+<MDXJS>
+
+#### Expo
+
+After playing around with expo a couple times throughout my life, back in the painful days and recently with an older rentearth application, I decided to pull the trigger and integrate the expo into the NX.
+The NX integration is on my plate for this weekend, but there are a couple things that I know will cause issues, like making sure the iOS and Android pipeline work for a generic application.
+Then after making sure that they work for a barebone html app, the real challenge will arise... which is getting the WASM embed that we made earlier to load into iOS and Android.
+
+I will have to keep some distance with expo because I do not want to waste a bunch of time debugging random bugs over and over.
+
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Tickets
+
+I will try to work around the Github tickets again, at least to keep track of the changes within the monorepo!
+
+I am doing a solid job of keeping track of the issue tickets at work but I should not be lazy, ugh becoming complacent is a terrible thing to break out of.
+
+The loop of doing nothing!
+
+Okay we got 6 new tickets onto the board, hopefully we can hit around 50 by the end of this month!
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Pipeline
+
+Lets test out the pipeline for the KBVE.com build and have it push the code out into another repo!
+Just like how we are building the herbmail.com, we are basically swapping out the variables with kbve.com, thus making this process easier than I expected.
+
+Under the `ci-main.yml` , we will extend the build and deployment, by copying over the two actions and switching the variables.
+
+* **Action One** - Build the application using NX, since we already have that setup, while I am writing this out, I am going to test case it.
+
+* **Action Two** - Deploy the source code. We will push the `/dist/` code from `dist/apps/kbve.com` to the `kbve/kbve.com` repo and under the docs folder.
+
+We will have it push the `dev` branch but my concern might be that it will fail because there is no `docs` folder. Now there are two options that I am thinking through, should I run the action knowing that it will fail because the `docs` folder is not there? OR should I resolve that future problem now.
+
+Ideally we want to run the action and have it fail at that error point, then go in and resolve it from that error point; the error point is a bit of a foresight and a good spot to have it fail at.
+
+Eh, actually I will just quickly create a patch to resolve this issue before we run into it. 
+The patch for `kbve/kbve.com` is `adding docs`, which just creates the `docs` folder and places the a simple `README.md` into the location.
+I could have place a `.gitkeep` as well but that is a different story.
+
+</MDXJS>
+
+
+</MDXJS>

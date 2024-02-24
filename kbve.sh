@@ -165,6 +165,12 @@ run_pnpm_nx() {
     pnpm nx run "$argument"
 }
 
+# Function to generate a ULID
+generate_ulid() {
+    echo "Not Ready Yet!"
+}
+
+
 
 # Main execution
 case "$1" in
@@ -243,6 +249,9 @@ case "$1" in
     -nx)
         [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
         run_pnpm_nx "$2"
+        ;;
+    -ulid)
+        generate_ulid
         ;;
     -db)
         if is_installed "diesel_ext"; then
