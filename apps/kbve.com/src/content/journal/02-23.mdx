@@ -46,8 +46,36 @@ I will try to work around the Github tickets again, at least to keep track of th
 
 I am doing a solid job of keeping track of the issue tickets at work but I should not be lazy, ugh becoming complacent is a terrible thing to break out of.
 
-The loop of doing nothing.
+The loop of doing nothing!
+
+Okay we got 6 new tickets onto the board, hopefully we can hit around 50 by the end of this month!
 
 </MDXJS>
+
+---
+
+<MDXJS>
+
+#### Pipeline
+
+Lets test out the pipeline for the KBVE.com build and have it push the code out into another repo!
+Just like how we are building the herbmail.com, we are basically swapping out the variables with kbve.com, thus making this process easier than I expected.
+
+Under the `ci-main.yml` , we will extend the build and deployment, by copying over the two actions and switching the variables.
+
+* **Action One** - Build the application using NX, since we already have that setup, while I am writing this out, I am going to test case it.
+
+* **Action Two** - Deploy the source code. We will push the `/dist/` code from `dist/apps/kbve.com` to the `kbve/kbve.com` repo and under the docs folder.
+
+We will have it push the `dev` branch but my concern might be that it will fail because there is no `docs` folder. Now there are two options that I am thinking through, should I run the action knowing that it will fail because the `docs` folder is not there? OR should I resolve that future problem now.
+
+Ideally we want to run the action and have it fail at that error point, then go in and resolve it from that error point; the error point is a bit of a foresight and a good spot to have it fail at.
+
+Eh, actually I will just quickly create a patch to resolve this issue before we run into it. 
+The patch for `kbve/kbve.com` is `adding docs`, which just creates the `docs` folder and places the a simple `README.md` into the location.
+I could have place a `.gitkeep` as well but that is a different story.
+
+</MDXJS>
+
 
 </MDXJS>
