@@ -1,0 +1,27 @@
+{
+	"name": "expo-kbve-e2e",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/expo-kbve-e2e/src",
+	"targets": {
+		"e2e": {
+			"executor": "@nx/cypress:cypress",
+			"options": {
+				"cypressConfig": "apps/expo-kbve-e2e/cypress.config.ts",
+				"testingType": "e2e",
+				"devServerTarget": "expo-kbve:serve",
+				"port": 4200
+			},
+			"configurations": {
+				"ci": {
+					"devServerTarget": "expo-kbve:serve-static"
+				}
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		}
+	},
+	"implicitDependencies": ["expo-kbve"],
+	"tags": []
+}

@@ -71,6 +71,27 @@ const tools = defineCollection({
   }),
 });
 
+//*         [Comic]
+const comic = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    tags: z.array(z.string()), 
+    category: z.string(),
+    series: z.string(),
+    npc: z.string(),
+    footnote: z.string().optional(),
+    author: z.string().default('KBVE Team'),
+    unsplash: z.string().default(''),
+    img: z.string().default(''),
+    date: z.string().optional(),
+    url: z.string().optional(),
+    information: z.string().optional(),
+    media: z.any().optional(),
+    lottie: z.string().optional(),
+  }),
+});
+
 export const collections = {
 
     //*     [Applications]
@@ -85,5 +106,7 @@ export const collections = {
     //*     [Tools]
     tools: tools,
 
+    //*     [Comic]
+    comic: comic,
 
 }

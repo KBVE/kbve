@@ -63,5 +63,47 @@ module.exports = {
 	},
 	plugins: [
 		require('@tailwindcss/typography'),
+		function ({ addUtilities }) {
+			const newUtilities = {
+			  '.comic': {
+				display: 'grid',
+				gridTemplateColumns: '1fr 6fr 4fr 9fr 6fr repeat(2, 1fr)',
+				gridTemplateRows: '16px 2.35fr 1fr 0.5fr 0.3fr 1fr 1fr 0.35fr 0.45fr 1.25fr',
+				margin: '0 auto',
+			  },
+			  '.grid-row-end-auto': {
+				gridRow: '8 / -1',
+			  },
+			  '.grid-col-span-4-6': {
+				gridColumn: '4 / 6',
+			  },
+			  '.height-180': {
+				height: '180%',
+			  },
+			  '.panel-1': {
+				gridRow: '2 / span 1',
+				gridColumn: '2 / span 1',
+				zIndex: '1',
+			  },
+			  '.panel-2': {
+				gridRow: '1 / span 5',
+				gridColumn: '1 / -1',
+			  },
+			  '.panel-3': {
+				gridRow: '4 / 7',
+				gridColumn: '5 / span 1',
+				zIndex: '1',
+			  },
+			  '.panel-4': {
+				gridRow: '5 / 9',
+				gridColumn: '2 / -2',
+			  },
+			  '.panel-5': {
+				gridRow: '10 / -1',
+				gridColumn: '1 / -1',
+			  },
+			};
+			addUtilities(newUtilities, ['responsive', 'hover']);
+		  },
 	],
 };
