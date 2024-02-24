@@ -66,3 +66,18 @@ apps/saber/Assets/Polytope Studio/Lowpoly_Environments/SRP/PT_Nature_Free_URP_10
 apps/saber/Assets/Polytope Studio/Lowpoly_Environments/SRP/PT_Nature_Free_URP_12.1.10.unitypackage.meta
 
 apps/saber/Assets/Samples
+
+# Expo
+node_modules/
+.expo/
+.yarn/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+cache/

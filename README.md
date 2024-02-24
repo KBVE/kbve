@@ -18,6 +18,16 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/)
 
 * * *
 
+| C     	| R     	| A        	| P    	| @Apps   	            |
+|-------	|-------	|----------	|------	|---------------------- |
+| saber 	| erust 	| astro-ve 	| kbve 	| kbve.com	            |
+|       	| jedi  	|          	|      	| rentearth.com      	  |
+|       	| holy  	|          	|      	| TODO Steam App        |
+|         | kbve    |           |       | TODO Android App      |
+
+* * *
+
+
 ## CARP STACK
 
 > cRap , pronounced, Ceee-Rap. 💩 ... uhh wait I meant to say carp. 🐟
