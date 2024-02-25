@@ -34,6 +34,55 @@ The next stage would be to setup the script commands for setting up the sub modu
 
 Lets start with at least setting up the variables. Wait before we do that , we need to setup a ULID for the shell file.
 
+```shell
+
+
+# Function to add optional submodule
+addOptionalSubmodule() {
+    local SUBMODULE_PATH=$1
+    local SUBMODULE_URL=$2
+
+    # Check if the necessary arguments are provided
+    if [ -z "$SUBMODULE_PATH" ] || [ -z "$SUBMODULE_URL" ]; then
+        echo "Error: Missing required arguments. You must provide both a submodule path and a submodule URL."
+        exit 1
+    fi
+
+    # Check if the submodule directory already exists
+    if [ ! -d "$SUBMODULE_PATH" ]; then
+        echo "Adding optional submodule..."
+        git submodule add $SUBMODULE_URL $SUBMODULE_PATH
+        echo "$SUBMODULE_PATH" >> .gitignore
+    else
+        echo "Submodule already exists."
+    fi
+
+    # Deduplicate .gitignore entries
+    awk '!seen[$0]++' .gitignore > temp && mv temp .gitignore
+}
+
+```
+
+This is the basic function that will handle the git submodule setup.
+We want this to be optional and not have it affect the whole repo, definitely when cloning it from one area to another.
+
+Then we run another command to place the DLLs during the build process!
+
+Let me update the last part of the journal and then merge the patches.
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Azure
+
+The GIT LFS limit is around 250GB on Azure, thus we can place all of the RentEarth codebase with the plugins inside of a private Git LFS?
+
+If the build does not work through Github actions, we can work around using the `git lfs` from Azure devops as a backup plan.
+
 </MDXJS>
 
 </MDXJS>
