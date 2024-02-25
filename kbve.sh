@@ -1,5 +1,45 @@
 #!/bin/bash
 
+# Define internals
+#[v01d]
+#[ulid]:01HQH3MJ9FVHC4C2H68SV5SSMB
+#[path]:/kbve.sh
+
+UNTIY_SUBMODULE_PATH="/apps/saber/Assets/Plugins"
+UNITY_SUBMODULE_URL="https://github.com/KBVE/unity-plugins-rentearth.git"
+
+UNITY_PLUGIN_LIBCEF="https://utfs.io/f/3257923f-3183-4250-9181-8a8bf97714bc-i8psgx.dll"
+UNITY_PLUGIN_LIBCEF_PATH=""
+
+UNITY_PLUGIN_LIBCEF_CODECS="https://utfs.io/f/4d91b407-38f3-4f71-85ee-8e26145b8eba-fkm4gm.dll"
+UNITY_PLUGIN_LIBCEF_CODECS_PATH=""
+
+
+# Function to add optional submodule
+addOptionalSubmodule() {
+    local SUBMODULE_PATH=$1
+    local SUBMODULE_URL=$2
+
+    # Check if the necessary arguments are provided
+    if [ -z "$SUBMODULE_PATH" ] || [ -z "$SUBMODULE_URL" ]; then
+        echo "Error: Missing required arguments. You must provide both a submodule path and a submodule URL."
+        exit 1
+    fi
+
+    # Check if the submodule directory already exists
+    if [ ! -d "$SUBMODULE_PATH" ]; then
+        echo "Adding optional submodule..."
+        git submodule add $SUBMODULE_URL $SUBMODULE_PATH
+        echo "$SUBMODULE_PATH" >> .gitignore
+    else
+        echo "Submodule already exists."
+    fi
+
+    # Deduplicate .gitignore entries
+    awk '!seen[$0]++' .gitignore > temp && mv temp .gitignore
+}
+
+
 # Function to check if a command is installed
 is_installed() {
     command -v "$1" >/dev/null 2>&1
@@ -249,6 +289,9 @@ case "$1" in
     -nx)
         [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
         run_pnpm_nx "$2"
+        ;;
+    -rentearthplugin)
+        addOptionalSubmodule "$UNITY_SUBMODULE_PATH" "$UNITY_SUBMODULE_URL"
         ;;
     -ulid)
         generate_ulid
