@@ -116,11 +116,13 @@
 		"@tailwindcss/typography": "^0.5.10",
 		"@tamagui/config": "^1.90.6",
 		"axios": "1.6.7",
+		"clsx": "^2.1.0",
 		"drizzle-orm": "^0.29.1",
 		"drizzle-zod": "^0.5.1",
 		"expo": "~50.0.3",
 		"expo-splash-screen": "~0.26.1",
 		"expo-status-bar": "~1.11.1",
+		"framer-motion": "^11.0.6",
 		"react-helmet-async": "^2.0.4",
 		"react-is": "18.2.0",
 		"react-native": "0.73.2",
@@ -130,6 +132,7 @@
 		"reflect-metadata": "^0.1.13",
 		"rxjs": "^7.8.0",
 		"styled-components": "5.3.6",
+		"tailwind-merge": "^2.2.1",
 		"tamagui": "^1.90.6",
 		"tslib": "^2.3.0"
 	}
