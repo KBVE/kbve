@@ -1,0 +1,110 @@
+---
+title: 'February: 25'
+category: Daily
+date: 2024-02-25 12:00:00
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1589298884797-740f9bd9293b?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    The 25th of February!
+    Time to build the modules within modules.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Git
+
+Part 2 of the Git plan! We went ahead and setup a private repo with the source code for a couple plugins, however we need to make sure we can use them inside our unity editor.
+The next stage would be to setup the script commands for setting up the sub module.
+
+Lets start with at least setting up the variables. Wait before we do that , we need to setup a ULID for the shell file.
+
+```shell
+
+
+# Function to add optional submodule
+addOptionalSubmodule() {
+    local SUBMODULE_PATH=$1
+    local SUBMODULE_URL=$2
+
+    # Check if the necessary arguments are provided
+    if [ -z "$SUBMODULE_PATH" ] || [ -z "$SUBMODULE_URL" ]; then
+        echo "Error: Missing required arguments. You must provide both a submodule path and a submodule URL."
+        exit 1
+    fi
+
+    # Check if the submodule directory already exists
+    if [ ! -d "$SUBMODULE_PATH" ]; then
+        echo "Adding optional submodule..."
+        git submodule add $SUBMODULE_URL $SUBMODULE_PATH
+        echo "$SUBMODULE_PATH" >> .gitignore
+    else
+        echo "Submodule already exists."
+    fi
+
+    # Deduplicate .gitignore entries
+    awk '!seen[$0]++' .gitignore > temp && mv temp .gitignore
+}
+
+```
+
+This is the basic function that will handle the git submodule setup.
+We want this to be optional and not have it affect the whole repo, definitely when cloning it from one area to another.
+
+Then we run another command to place the DLLs during the build process!
+
+Let me update the last part of the journal and then merge the patches.
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Azure
+
+The GIT LFS limit is around 250GB on Azure, thus we can place all of the RentEarth codebase with the plugins inside of a private Git LFS?
+
+If the build does not work through Github actions, we can work around using the `git lfs` from Azure devops as a backup plan.
+
+For the `git lfs`, we need a solid unity git attributes, here is the one that I am adding in.
+
+Here is the [location of gist](https://gist.github.com/Srfigie/77b5c15bc5eb61733a74d34d10b3ed87) for `.gitattributes` when using Unity LFS.
+
+I might come back and shrink this down but for now this should help a ton with the storage and handling of the complex files.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### JS
+
+During the migration of the UI/UX, we need to keep track of the different watch commands.
+
+I am just going to use this entry to help keep track.
+
+```shell
+npx tailwindcss -i ./input.css -o ./output.css --watch
+```
+
+</MDXJS>
+
+</MDXJS>

@@ -1,0 +1,109 @@
+---
+title: 'February: 24'
+category: Daily
+date: 2024-02-24 12:00:00
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1454496522488-7a8e488e8606?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    The 24th of February! What a wild unity day this was!
+    So much unity, that it united my sanity, insanity, insomnia to create sanitia; it can be described like inverse pokemon evolution but for your mind and soul.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+
+<MDXJS>
+
+#### Camera
+
+The main focus today will be to extend out the camera service within the Unity game engine!
+The Camera Service is extremely important throughout the game and making sure we have a solid foundation around this camera system will make all future projects easier.
+
+The plan is to slowly add more functions and features within the service, while trying our best to maintain a level of backwards compatibility.
+
+We know that there would be a `main` camera and then virtual cameras that are controlled through the cinemachine.
+
+</MDXJS>
+
+
+<MDXJS>
+
+#### Plugins
+
+The next aspect of the project would be to add plugins that the game would use during the build.
+
+I added a new repo for the private plugins, to avoid having them leak out to the public or break any contract!
+
+This repo will be `https://github.com/KBVE/unity-plugins-rentearth` and while it is private, I will only keep the plugins that we really need inside of it.
+
+There will be two plugins that I would like to add:
+
+OneJS - To make the UI easier to build out! I am getting tired of writing the UI within C# or Unity, this will just make it easier.
+Gaia - This is our environmental handler and terrain manager!
+
+After we get these two plugins operational, it should help make the game easier to build out!
+
+Got damn! The first plugin was already 500 files+! We will zip those up and prepare to upload them to private repo.
+
+Well, here I thought that 500 was a lot, but now I am looking at over 7000+ files from just the world builder, this is going to be an interesting build process.
+
+After getting all the plugins loaded onto the private repo, we would have to test the private build process and make sure that everything runs smooth!
+
+We could actually have the steam demo ready by the end of this month, I can see the light! Yay!
+
+Let us review the changes, starting with the manifest.json, where we added two unity packages.
+
+- Burst - `com.unity.burst` - This is a new compiler, we will need this in the future for dots / ecs.
+- Mathematics - `com.unity.mathematics` - We can not get far without math.
+
+Then we can overlook the lock file and `PackageMangerSettings`, leaving the `ProjectSettings` file, which just adds some additional library functions during the build process.
+
+With all this setup, now we need maintain the files in another repo or private storage, the joys.
+
+I been slowly migrating all the files, about 7000+ and its becoming a bit of a pain, however we are getting there. 
+
+This should resolve all our environmental and UI issues, thus only leaving us with the character itself.
+
+The final hurdle will be getting these assets into the repo:
+
+- Trees
+- Ground Textures
+- Flora
+- Flowers
+- Terrain
+- Stones
+- Plants
+- Particles
+
+I lied, the real problem was getting two DDLs to be adding into the repo, since they are both over 100MB in size.
+I am thinking about all the possible options that we could do to resolve it and it does feel a bit annoying that we are being held back by storage issues in 2024.
+
+This means that I might just look into the Azure DevOps a bit further, ugh.
+
+</MDXJS>
+
+
+<MDXJS>
+
+#### Aceternity
+
+Well it looksa like I might have to rethink my component library within the Astro VE!
+I was looking to build my own custom astro library, but after looking at aceternity ui, it would make sense for me to also just integrate the library directly!
+
+</MDXJS>
+
+</MDXJS>

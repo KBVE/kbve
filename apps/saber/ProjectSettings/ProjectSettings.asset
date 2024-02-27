@@ -807,7 +807,10 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Standalone: UNITY_PIPELINE_URP
+    Android: CROSS_PLATFORM_INPUT;MOBILE_INPUT
+    Standalone: UNITY_PIPELINE_URP;VUPLEX_STANDALONE;CROSS_PLATFORM_INPUT;GAIA_2_PRESENT;GAIA_PRO_PRESENT;GAIA_MESH_PRESENT;FLORA_PRESENT;GENA_PRO;GeNa_URP
+    Windows Store Apps: MOBILE_INPUT
+    iPhone: CROSS_PLATFORM_INPUT;MOBILE_INPUT
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
@@ -913,7 +916,7 @@ PlayerSettings:
   hmiLogStartupTiming: 0
   hmiCpuConfiguration: 
   apiCompatibilityLevel: 6
-  activeInputHandler: 0
+  activeInputHandler: 2
   windowsGamepadBackendHint: 0
   cloudProjectId: 
   framebufferDepthMemorylessMode: 0
