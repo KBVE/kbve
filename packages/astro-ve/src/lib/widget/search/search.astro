@@ -4,6 +4,9 @@ export interface Props {
 	
 }
 const { data } = Astro.props;
+
+import {TabsDemo} from './_lib/tabDemo';
+
 ---
 <Fragment>
     <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
@@ -11,38 +14,38 @@ const { data } = Astro.props;
         <form class="max-w-lg mx-auto">
             <div class="flex">
                 <label for="search-dropdown" class="mb-2 text-sm font-medium text-white sr-only">Your Search</label>
-                <button id="dropdown-button" data-dropdown-toggle="dropdownToggle" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 rounded-s-lg hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Search Options <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                <button id="dropdown-button" data-dropdown-toggle="dropdownToggle" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-cyan-100 border border-gray-300 rounded-s-lg hover:bg-cyan-200 focus:ring-4 focus:outline-none focus:ring-cyan-100" type="button">Search Options <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                     </svg>
                 </button>
                 
                     <!-- Dropdown Toggle Menu - [START] -->
-                    <div id="dropdownToggle" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-72 dark:bg-gray-700 dark:divide-gray-600">
-                        <ul class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownToggleButton">
+                    <div id="dropdownToggle" class="z-10 hidden bg-zinc-800 divide-y divide-gray-100 rounded-lg shadow w-72">
+                        <ul class="p-3 space-y-1 text-sm text-gray-200 " aria-labelledby="dropdownToggleButton">
                         <li>
-                            <div class="flex p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <div class="flex p-2 rounded hover:bg-zinc-900 ">
                             <label class="inline-flex items-center w-full cursor-pointer">
                                 <input type="checkbox" value="" class="sr-only peer">
-                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600"></div>
-                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Enable Reddit Only</span>
+                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-300 rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-200 hover:text-cyan-200">Enable Reddit Only</span>
                             </label>
                             </div>
                         </li>
                         <li>
-                            <div class="flex p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <div class="flex p-2 rounded hover:bg-zinc-900">
                             <label class="inline-flex items-center w-full cursor-pointer">
                                 <input type="checkbox" value="" class="sr-only peer">
-                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600"></div>
-                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Enable AI*</span>
+                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all  peer-checked:bg-cyan-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-200 ">Enable AI*</span>
                             </label>
                             </div>
                         </li>
                         <li>
-                            <div class="flex p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <div class="flex p-2 rounded hover:bg-zinc-900 ">
                             <label class="inline-flex items-center w-full cursor-pointer">
                                 <input type="checkbox" value="" class="sr-only peer">
-                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600"></div>
-                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Enable v01d*</span>
+                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-300 rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-200 ">Enable v01d*</span>
                             </label>
                             </div>
                         </li>
@@ -54,8 +57,8 @@ const { data } = Astro.props;
 
 
                 <div class="relative w-full">
-                    <input type="search" id="search-dropdown" class="block p-2.5 w-full md:w-96 z-20 text-sm text-gray-900 bg-gray-50 rounded-e-lg border-s-gray-50 border-s-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-s-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="Search Mockups, Logos, Design Templates..." required />
-                    <button type="submit" class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-blue-700 rounded-e-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <input type="search" id="search-dropdown" class="block p-2.5 w-full md:w-96 z-20 text-sm text-gray-100 bg-zinc-900 rounded-e-lg border-s-cyan-300 border-s-2 border border-cyan-300 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Search Mockups, Logos, Design Templates..." required />
+                    <button type="submit" class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-cyan-700 rounded-e-lg border border-cyan-700 hover:bg-cyan-800 focus:ring-4 focus:outline-none focus:ring-cyan-300">
                         <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                         </svg>
@@ -66,4 +69,10 @@ const { data } = Astro.props;
         </form>
 
     </section>
+
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
+        <TabsDemo  client:only="react" />
+    </section>
+
+
 </Fragment>
