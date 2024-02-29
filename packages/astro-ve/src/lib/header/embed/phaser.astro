@@ -1,0 +1,73 @@
+---
+export interface Props {
+    message?: string;
+    scene?: string;
+}
+const { message, scene } = Astro.props;
+
+if(!scene) {
+    console.warn('[Astro] [Phaser] is missing a scene for Phaser to load!');
+}
+
+---
+
+<astro-phaser data-message={message} data-scene={scene}>
+    <div id="astro-phaser-container" {...Astro.props}>
+    </div>
+</astro-phaser>
+
+<slot />
+
+
+<script is:inline type="module">
+
+    import * as Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm';
+
+    class AstroPhaser extends HTMLElement {
+        constructor() {
+            super();
+            this.initPhaser();
+        }
+
+        async initPhaser() {
+            const _phaserContainer = document.getElementById('astro-phaser-container');
+
+            if (Phaser) {
+                console.log('Phaser Engine Found');
+                console.log(`${Phaser.VERSION}`);
+
+                // Initialize a Phaser game instance
+                const game = new Phaser.Game({
+                    type: Phaser.AUTO,
+                    parent: _phaserContainer,
+                    width: '800',
+                    height: '600',
+                    physics: {
+                        default: 'arcade',
+                        arcade: {
+                            gravity: { y: 0 } // No gravity
+                        }
+                    },
+                    scene: {
+                        preload: function() {
+                            this.load.image('logo', '/assets/img/letter_logo.png'); // Ensure you have a correct path to your logo image
+                        },
+                        create: function() {
+                            this.logo = this.physics.add.image(400, 300, 'logo');
+                            this.logo.setCollideWorldBounds(true); // Prevent it from going out of bounds
+                        },
+                        update: function() {
+                            // Randomly update the logo's velocity
+                            this.logo.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(-200, 200));
+                        }
+                    }
+                });
+            } else {
+                console.log('Phaser not found');
+            }
+        }
+    }
+
+    customElements.define('astro-phaser', AstroPhaser);
+    
+</script>

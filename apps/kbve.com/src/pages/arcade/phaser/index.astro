@@ -1,0 +1,15 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { AstroVe as VE } from '@kbve/astro-ve';
+
+let _title = 'Phaser Demo';
+let _description = 'This is a phaser demo!';
+---
+
+<Layout title={_title} description={_description}>
+    <VE widget="header:embed:phaser" scene="/embed/js/phaser/demo/GameScene.js">
+    
+
+       
+    </VE>
+</Layout>
