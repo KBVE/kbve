@@ -48,6 +48,10 @@ Okay so we are going to wipe all the repos clean once more and start again from 
 Setting up git lfs and making sure everything is running smoothly as possible, I transfered over the basics, like `gitattributes`, `README`, `gitignore`, `Packages` and now I am handling the hardest one of them... the damn `Assets` folder.
 The most painful thing about this is making sure everything gets transfered over without any issues but I have to split them all up, as if anything becomes too big than we get failures across the board.
 
+During the asset transfer, there are a couple errors that occur, similar to this `LFS: Client error` and the error code being a `413`. 
+We can set the transfer to `HTTP 1.1` using this command, `git config http.version HTTP/1.1` which should help and incase it does not, switch it to verion 2.
+I have no exact clue why this error is occuring besides something along the lines of azure networking and security, but I would avoid using the `--global` flag because it might impact your gitlab settings.
+
 </MDXJS>
 
 ---
@@ -64,6 +68,11 @@ The vibe that we could aim for is a bit of that old school dragonball and a hint
 I am still looking through Phaser and getting a better understanding of the tilemap.
 
 Looking through an example tileset, which is `176x128`, we can assume each tile is around `16px`, thus creating a 2D array of 11 tiles by 8 tiles.
+
+I split the Phaser engine into two different components, the first is under `astro-ve` via `header:embed:phaser` and then again within the actual website that is using the phaser.
+My plan would be to create a general wrapper around the `Phaser` engine and then call that wrapper to dynamically load the game and scenes.
+We could do a simple chaining, where each scene would chain to another? This would make the javascript style games a bit linear but also maintain a smaller size.
+This works the best for simple pixel and retro style games, since they will not be too heavy on CPU usage and can be played anywhere.
 
 
 </MDXJS>
