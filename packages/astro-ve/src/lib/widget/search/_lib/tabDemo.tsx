@@ -2,6 +2,7 @@
  
 //import Image from "next/image";
 import { Tabs } from "./tabs";
+import { SearchResults } from "./searchResults";
  
 export function TabsDemo() {
   const tabs = [
@@ -9,9 +10,9 @@ export function TabsDemo() {
       title: "Search",
       value: "search",
       content: (
-        <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900">
+        <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900 -translate-y-12">
           <p>Search</p>
-          <DummyContent />
+          <SearchResults />
         </div>
       ),
     },
@@ -19,7 +20,7 @@ export function TabsDemo() {
       title: "Services",
       value: "services",
       content: (
-        <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900">
+        <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900 -translate-y-12">
           <p>Services</p>
           <DummyContent />
         </div>
@@ -29,7 +30,7 @@ export function TabsDemo() {
       title: "PG",
       value: "playground",
       content: (
-        <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900">
+        <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900 -translate-y-12">
           <p>Playground</p>
           <DummyContent />
         </div>
@@ -39,7 +40,7 @@ export function TabsDemo() {
         title: "Content",
         value: "content",
         content: (
-          <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-purple-700 to-violet-900">
+          <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-purple-700 to-violet-900 -translate-y-12">
             <p>Content tab</p>
             <DummyContent />
           </div>
@@ -48,7 +49,7 @@ export function TabsDemo() {
   ];
  
   return (
-    <div className="h-[20rem] md:h-[40rem] [perspective:1000px] relative b flex flex-col max-w-5xl mx-auto w-full  items-start justify-start my-40">
+    <div className="h-[20rem] md:h-[40rem] [perspective:1000px] relative b flex flex-col max-w-5xl mx-auto w-full  items-start justify-start my-5">
       <Tabs tabs={tabs} />
     </div>
   );
