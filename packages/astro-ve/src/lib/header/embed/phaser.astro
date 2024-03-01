@@ -10,6 +10,8 @@ if(!scene) {
 }
 
 ---
+<script is:inline type="module" src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm"></script>
+
 
 <astro-phaser data-message={message} data-scene={scene}>
     <div id="astro-phaser-container" {...Astro.props}>
@@ -22,14 +24,19 @@ if(!scene) {
 <script is:inline type="module">
 
     import * as Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm';
+    window.Phaser = Phaser;
 
     class AstroPhaser extends HTMLElement {
         constructor() {
             super();
-            this.initPhaser();
+            const scene = this.dataset.scene;
+            window.addEventListener('load', (event) => {
+            this.initPhaser(scene)
+            });
+
         }
 
-        async initPhaser() {
+        async initPhaser(scene) {
             const _phaserContainer = document.getElementById('astro-phaser-container');
 
             if (Phaser) {
@@ -51,10 +58,21 @@ if(!scene) {
                     scene: {
                         preload: function() {
                             this.load.image('logo', '/assets/img/letter_logo.png'); // Ensure you have a correct path to your logo image
+                            this.load.sceneFile('FishScene', `${scene}`);
+
                         },
                         create: function() {
                             this.logo = this.physics.add.image(400, 300, 'logo');
                             this.logo.setCollideWorldBounds(true); // Prevent it from going out of bounds
+
+                            this.logo.setInteractive();
+
+                            this.logo.on('pointerdown', () => {
+                                // Here, 'this' refers to the current scene context
+                                // Switch to the FishScene
+                                this.scene.start('FishScene');
+                            }, this);
+
                         },
                         update: function() {
                             // Randomly update the logo's velocity
