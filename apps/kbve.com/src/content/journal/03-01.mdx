@@ -1,0 +1,142 @@
+---
+title: 'March: 01'
+category: Daily
+date: 2024-03-01 12:00:00
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1709065556197-2cbe782878e1?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    March 1st - Q1 is nearing!
+    The last month before we hit the end of the first quater.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Q1
+
+There were a decent amount of changes that I wanted to implement within the first quater of the year.
+Getting everything out into the public eco-system is always a bit painful because there will always be minor problems, that hold everything back.
+I suppose that is part of the job, even a small issue like file storage or hard drive failure can send everything into a mess.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Unity
+
+We had to wipe the repo because it seems that nothing was saved to the LFS storage, causing a massive object-key problem between my windows and macbook.
+I am under the impression that I might have messed up the `CRLF` and the way the line breaks are being handled by the two different operating systems.
+
+One day, I hope windows just adopts the unix standard and we can all move on from this mess, maybe like a `Windows 20` update that just puts WSL deep into the windows integration. 
+Like a combination of AtlasOS, Ubuntu and Windows to produce a master class operating system! One day we will get there, it is just a matter of time and how far the sticks are up the `micro@$$` execs. 
+
+Okay so we are going to wipe all the repos clean once more and start again from the basics.
+Setting up git lfs and making sure everything is running smoothly as possible, I transfered over the basics, like `gitattributes`, `README`, `gitignore`, `Packages` and now I am handling the hardest one of them... the damn `Assets` folder.
+The most painful thing about this is making sure everything gets transfered over without any issues but I have to split them all up, as if anything becomes too big than we get failures across the board.
+
+During the asset transfer, there are a couple errors that occur, similar to this `LFS: Client error` and the error code being a `413`. 
+We can set the transfer to `HTTP 1.1` using this command, `git config http.version HTTP/1.1` which should help and incase it does not, switch it to verion 2.
+I have no exact clue why this error is occuring besides something along the lines of azure networking and security, but I would avoid using the `--global` flag because it might impact your gitlab settings.
+
+Almost done pushing through the shaders, then I need to see if I can build the application!
+Afterwards, I will slowly add the minor packages that we will need, and by minor, they might be pretty major and bulky.
+
+The amount of times that I have installed a world generator is way too high for a normal week.
+
+Okay, we were able to get the base of the game inside of the repo, I am going to take a bit of a break on this front and focus on the gamejam. Ideally I should be able to get the basics of the gamejam done tonight and tomorrow, leaving me Sunday night to wrap up the Unity migrations.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### GameJam
+
+[Official Fish Jam](https://itch.io/jam/mini-jam-153-fishing)
+
+We are entering a small gamejam that lasts just a weekend! I believe we have 72 hours to complete a fishing game, but there is a twist! There is `no water`, but we could figure out a way to resolve it.
+
+I was thinking that it starts off in a desert / post global warming sandstorm town and the player has to find a way to bring water back to the town?
+The vibe that we could aim for is a bit of that old school dragonball and a hint of trigun, with our character having that bit of vash within him.
+
+I am still looking through Phaser and getting a better understanding of the tilemap.
+
+Looking through an example tileset, which is `176x128`, we can assume each tile is around `16px`, thus creating a 2D array of 11 tiles by 8 tiles.
+
+I split the Phaser engine into two different components, the first is under `astro-ve` via `header:embed:phaser` and then again within the actual website that is using the phaser.
+My plan would be to create a general wrapper around the `Phaser` engine and then call that wrapper to dynamically load the game and scenes.
+We could do a simple chaining, where each scene would chain to another? This would make the javascript style games a bit linear but also maintain a smaller size.
+This works the best for simple pixel and retro style games, since they will not be too heavy on CPU usage and can be played anywhere.
+
+The example of the [CyberNoid JSON](https://labs.phaser.io/assets/tilemaps/maps/cybernoid.json)
+Here is the tileset as a [png](https://labs.phaser.io/assets/tilemaps/tiles/cybernoid.png)
+The source for the tilemap from [phaser 3 sandbox](https://labs.phaser.io/edit.html?src=src\tilemap\get%20tiles%20in%20shape.js)
+
+After looking through that example, I am going to look through the [Phaser Loader TileMap JSON Example from Sammes Repo](https://samme.github.io/phaser-examples-mirror/loader/load%20tilemap%20json.html)
+
+These two examples should be more than enough to provide us with a bit of a room to play around!
+
+Okay going through my phaser notes, I was able to pickup [Annoraaq's Grid Engine](https://www.jsdelivr.com/package/npm/grid-engine?tab=files) which we can use to help build out the map a bit.
+
+I am thinking during the gameload, we could pre-fetch that ESM module and have it ready to be used via a `window.gridEngine`, after the Phaser is loaded.
+
+For scene management, there are a couple options we can use:
+
+Basic Stop / Start
+
+```javascript
+
+this.scene.stop('CurrentSceneKey'); // Stop the current scene
+this.scene.start('NewSceneKey'); // Start the new scene
+
+```
+
+Pause and Resume
+
+```javascript
+
+// To pause the current scene and start/resume another
+this.scene.pause('CurrentSceneKey');
+this.scene.start('NewSceneKey'); // Use `resume` if the new scene is already running and you're just bringing it back to focus
+
+// And to switch back
+this.scene.stop('NewSceneKey'); // Or `pause` if you want to keep its state
+this.scene.resume('CurrentSceneKey');
+
+```
+
+Launch and Stop
+
+```javascript
+
+// To overlay a new scene on top of the current one
+this.scene.launch('OverlaySceneKey');
+// The original scene remains running in the background but can be paused manually if needed
+
+// To hide the overlay and return focus to the original scene
+this.scene.stop('OverlaySceneKey'); // Or pause, depending on your needs
+
+```
+
+
+</MDXJS>
+
+
+</MDXJS>
+
+</MDXJS>

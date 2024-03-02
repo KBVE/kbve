@@ -28,8 +28,7 @@ public class PlayerInteract : MonoBehaviour
 
     void Awake()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+
     }
     void Update()
     {
@@ -49,22 +48,33 @@ public class PlayerInteract : MonoBehaviour
 
             if (interactable != null)
             {
-
-                // Calculate the direction to the interactable object
-                Vector3 dirToInteractObj = raycastHit.transform.position - transform.position;
-                float angle = Vector3.Angle(transform.forward, dirToInteractObj);
-
-
-                // Check if the angle is within the acceptable range (maxInteractionAngle) to ensure the player is facing the object
-                if (angle < maxInteractionAngle)
+                if (interactable.shouldFace)
                 {
-                    // Check if the interaction key is pressed and trigger the interaction
+                    // Calculate the direction to the interactable object
+                    Vector3 dirToInteractObj = raycastHit.transform.position - transform.position;
+                    float angle = Vector3.Angle(transform.forward, dirToInteractObj);
+
+
+                    // Check if the angle is within the acceptable range (maxInteractionAngle) to ensure the player is facing the object
+                    if (angle < maxInteractionAngle)
+                    {
+                        // Check if the interaction key is pressed and trigger the interaction
+                        if (Input.GetKeyDown(interactionKey))
+                        {
+                            interactable.BaseInteract();
+                        }
+
+                        // Update the UI prompt message for the interactable object
+                        UpdateUIPromptMessage(interactable.promptMsg);
+                    }
+                }
+                else
+                {
                     if (Input.GetKeyDown(interactionKey))
                     {
                         interactable.BaseInteract();
                     }
 
-                    // Update the UI prompt message for the interactable object
                     UpdateUIPromptMessage(interactable.promptMsg);
                 }
             }
@@ -75,9 +85,10 @@ public class PlayerInteract : MonoBehaviour
     {
         if (onDebug)
         {
+            Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             // Draw a ray in the direction of the player's forward vector.
             Gizmos.color = rayColor;
-            Gizmos.DrawRay(transform.position, transform.forward * interactionDistance);
+            Gizmos.DrawRay(pos, Camera.main.transform.forward * interactionDistance);
         }
     }
 
