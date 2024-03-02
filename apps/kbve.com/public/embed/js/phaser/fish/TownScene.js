@@ -1,6 +1,4 @@
 
-console.log('Town Scene Loaded');
-
 class TownScene extends Phaser.Scene {
     constructor() {
         super({ key: 'TownScene' });
@@ -9,7 +7,7 @@ class TownScene extends Phaser.Scene {
     preload() {
         // Load the fish sprite; ensure you have a 'fish.png' in the specified path
         this.load.image('fish', '/assets/img/letter_logo.png');
-
+        this.load.audio('music', '/assets/img/fishchip/bg.wav');
         
         this.load.image("tiles", "/assets/img/fishchip/cloud_tileset.png");
         this.load.tilemapTiledJSON(
@@ -20,13 +18,17 @@ class TownScene extends Phaser.Scene {
             frameWidth: 52,
             frameHeight: 72,
         });
-    
-        this.load.sceneFile('FishChipScene', '/embed/js/phaser/fish/FishChipScene.js')
+        if (!this.scene.get('FishChipScene')) { // Check if the scene isn't already added
+          this.load.sceneFile('FishChipScene', '/embed/js/phaser/fish/FishChipScene.js')
+        }
+        
 
     }
 
     create() {
-
+        if (!this.sound.get('music')?.isPlaying) {
+          this.sound.add('music', { loop: true, volume: 0.1 }).play();
+        }
         // this.gridEngine = this.plugins.get('gridEngine');
         console.log(this.gridEngine);
         console.log('Plugins?');
@@ -40,7 +42,10 @@ class TownScene extends Phaser.Scene {
           layer.scale = 3;
         }
         const playerSprite = this.add.sprite(0, 0, "player");
+        const npcSprite = this.add.sprite(0, 0, "player");
         playerSprite.scale = 1.5;
+        npcSprite.scale = 1.5;
+        
         this.cameras.main.startFollow(playerSprite, true);
         this.cameras.main.setFollowOffset(
           -playerSprite.width,
@@ -55,13 +60,43 @@ class TownScene extends Phaser.Scene {
               walkingAnimationMapping: 6,
               startPosition: { x: 14, y: 11 }, //Initial position 8,8
             },
+            {
+              id: "npc",
+              sprite: npcSprite,
+              walkingAnimationMapping: 6,
+              startPosition: { x: 4, y: 10 }, //Initial position 8,8
+            },
           ],
         };
         this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
-
+        this.createTextBubble(npcSprite.x, npcSprite.y, npcSprite.height, "Start fishing here!");
         window.__GRID_ENGINE__ = this.gridEngine;
 
     }
+
+    createTextBubble(x, y, height, text) {
+      // Draw the bubble
+      let bubbleWidth = 200; // Adjust based on your text length
+      let bubbleHeight = 50; // Adjust as needed
+      let bubblePadding = 10;
+      let bubble = this.add.graphics({ x: x, y: y });
+  
+      // Bubble color and shape
+      bubble.fillStyle(0xffffff, 1);
+      bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
+      bubble.setDepth(99);
+  
+      // Position text inside the bubble
+      let content = this.add.text(0, 0, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
+      content.setPosition(bubble.x + bubblePadding, bubble.y + bubblePadding / 2);
+      content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
+      content.setDepth(100);
+      // Adjust the position based on the NPC sprite's position and the desired offset
+      bubble.x = x - bubbleWidth / 24;
+      bubble.y = y - bubbleHeight - height / 24; // Adjust this offset based on your needs
+      content.x = bubble.x + bubblePadding;
+      content.y = bubble.y + bubblePadding;
+  }
 
     update() {
         const cursors = this.input.keyboard.createCursorKeys();

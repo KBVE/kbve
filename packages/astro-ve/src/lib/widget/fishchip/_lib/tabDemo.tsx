@@ -11,7 +11,7 @@ export function TabsDemo() {
       value: "search",
       content: (
         <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900 -translate-y-12">
-          <p>Search</p>
+          <p>Inventory</p>
           <SearchResults />
         </div>
       ),
@@ -21,17 +21,17 @@ export function TabsDemo() {
       value: "services",
       content: (
         <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900 -translate-y-12">
-          <p>Services</p>
+          <p>Chat</p>
           <DummyContent />
         </div>
       ),
     },
     {
       title: "PG",
-      value: "playground",
+      value: " ",
       content: (
         <div className="w-full overflow-hidden relative h-full rounded-2xl p-10 text-xl md:text-4xl font-bold text-white bg-gradient-to-br from-cyan-700 to-violet-900 -translate-y-12">
-          <p>Playground</p>
+          <p>Info</p>
           <DummyContent />
         </div>
       ),

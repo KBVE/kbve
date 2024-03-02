@@ -228,14 +228,16 @@ class FishChipScene extends Phaser.Scene {
         //  Load the assets for the game - Replace with your own assets
         //this.load.setPath('/assets/img/fishchip');
 
-        this.load.audio('music', '/assets/img/fishchip/bg.wav');
+        
         this.load.audio('type', '/assets/img/fishchip/type.mp3');
         this.load.image('wood', '/assets/img/fishchip/wood.jpg');
 
         //load spritesheet for fishing.png
         this.load.spritesheet('fishing', '/assets/img/fishchip/fishing.png', { frameWidth: 480, frameHeight: 480 });
 
-        this.load.sceneFile('GameOver', '/embed/js/phaser/fish/GameOver.js')
+        if (!this.scene.get('GameOver')) { // Check if the scene isn't already added
+            this.load.sceneFile('GameOver', '/embed/js/phaser/fish/GameOver.js')
+        }
     }
 
     resetGameState() {
@@ -389,7 +391,7 @@ class FishChipScene extends Phaser.Scene {
     }
 
     create() {
-        this.sound.add('music', { loop: true, volume: .1 }).play();
+        
         const typeSound = this.sound.add('type', { volume: .1 });
 
         // Initialize timer display
