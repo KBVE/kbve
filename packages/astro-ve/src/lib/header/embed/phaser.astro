@@ -11,6 +11,10 @@ if(!scene) {
 
 ---
 <script is:inline type="module" src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm"></script>
+<script is:inline type="module" src="https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm"></script>
+<!-- <script is:inline src="
+https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
+"></script> -->
 
 
 <astro-phaser data-message={message} data-scene={scene}>
@@ -26,8 +30,9 @@ if(!scene) {
     import * as Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm';
     window.Phaser = Phaser;
 
-    import gridEngine from 'https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm';
-    window.gridEngine = gridEngine;
+    import GridEngine from 'https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm';
+    // window.gridEngine = GridEngine;
+    window.GridEngine = GridEngine;
 
     class AstroPhaser extends HTMLElement {
         constructor() {
@@ -42,13 +47,13 @@ if(!scene) {
         async initPhaser(scene) {
             const _phaserContainer = document.getElementById('astro-phaser-container');
 
-            if (Phaser) {
-                console.log('Phaser Engine Found');
-                console.log(`${Phaser.VERSION}`);
+            if (Phaser && GridEngine) {
+                //console.log('Phaser Engine Found');
+                //console.log(`${Phaser.VERSION}`);
 
                 // Initialize a Phaser game instance
                 //  Game Configuration
-                const game = new Phaser.Game({
+                const config = {
                     title: "TownEngine", // Title for the Game
                     render: {
                         antialias: false,
@@ -61,7 +66,25 @@ if(!scene) {
                         height: 528,
                         autoCenter: Phaser.Scale.CENTER_BOTH,
                     },
-                    backgroundColor: '#f7d3a4', //#4488aa
+                    backgroundColor: '#c0987d', //#4488aa
+
+                    plugins: {
+                     scene: [
+                         {
+                         key: "gridEngine",
+                         plugin: GridEngine,
+                         mapping: "gridEngine",
+                         },
+                    ],
+
+                        // global: [{
+                        //     key: 'gridEngine',
+                        //     plugin: window.GridEngine,
+                        //     start: true,
+                        //     mapping: 'gridEngine' // Optional: if you want to access it via `this.gridEngine` in your scenes
+                        // }]
+                    },
+                    //  This physics engine may have to be removed.
                     physics: {
                         default: 'arcade',
                         arcade: {
@@ -71,7 +94,17 @@ if(!scene) {
                     scene: {
                         preload: function() {
                             this.load.image('logo', '/assets/img/letter_logo.png'); // Ensure you have a correct path to your logo image
-                            this.load.sceneFile('FishScene', `${scene}`);
+                            console.log('Plugin?');
+                            console.log( this.plugins.get('gridEngine') );
+
+                            this.load.sceneFile('TownScene', `${scene}`);
+                            // this.load.sceneFile('TownScene', `${scene}`, () => {
+                            //     const loadedScene = this.scene.get('TownScene');
+                            //             if (loadedScene) {
+                            //             // Inject the plugin into the loaded scene
+                            //             loadedScene.gridEngine = this.plugins.get('gridEngine') || console.log('No Plugin Found');
+                                    
+                            // }});
 
                         },
                         create: function() {
@@ -83,7 +116,7 @@ if(!scene) {
                             this.logo.on('pointerdown', () => {
                                 // Here, 'this' refers to the current scene context
                                 // Switch to the FishScene
-                                this.scene.start('FishScene');
+                                this.scene.start('TownScene');
                             }, this);
 
                         },
@@ -91,8 +124,20 @@ if(!scene) {
                             // Randomly update the logo's velocity
                             this.logo.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(-200, 200));
                         }
+                    },
+                    // Input - prevent Wheel and touch capture
+                    input: {
+                        mouse: {
+                            preventDefaultWheel: false
+                        },
+                        touch: {
+                            capture: false
+                        }
                     }
-                });
+                
+                };
+
+                    const game =  new Phaser.Game(config);
             } else {
                 console.log('Phaser not found');
             }
