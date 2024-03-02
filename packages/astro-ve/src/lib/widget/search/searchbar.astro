@@ -1,0 +1,66 @@
+---
+
+---
+
+<Fragment>
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
+
+        <form class="max-w-lg mx-auto" method="get" action="/search/" >
+            <div class="flex">
+                <label for="search-dropdown" class="mb-2 text-sm font-medium text-white sr-only">Your Search</label>
+                <button id="dropdown-button" data-dropdown-toggle="dropdownToggle" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-cyan-100 border border-gray-300 rounded-s-lg hover:bg-cyan-200 focus:ring-4 focus:outline-none focus:ring-cyan-100" type="button">Search Options <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                    </svg>
+                </button>
+                
+                    <!-- Dropdown Toggle Menu - [START] -->
+                    <div id="dropdownToggle" class="z-10 hidden bg-zinc-800 divide-y divide-gray-100 rounded-lg shadow w-72">
+                        <ul class="p-3 space-y-1 text-sm text-gray-200 " aria-labelledby="dropdownToggleButton">
+                        <li>
+                            <div class="flex p-2 rounded hover:bg-zinc-900 ">
+                            <label class="inline-flex items-center w-full cursor-pointer">
+                                <input type="checkbox" value="" class="sr-only peer">
+                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-300 rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-200 hover:text-cyan-200">Enable Reddit Only</span>
+                            </label>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex p-2 rounded hover:bg-zinc-900">
+                            <label class="inline-flex items-center w-full cursor-pointer">
+                                <input type="checkbox" value="" class="sr-only peer">
+                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all  peer-checked:bg-cyan-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-200 ">Enable AI*</span>
+                            </label>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex p-2 rounded hover:bg-zinc-900 ">
+                            <label class="inline-flex items-center w-full cursor-pointer">
+                                <input type="checkbox" value="" class="sr-only peer">
+                                <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-300 rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-200 ">Enable v01d*</span>
+                            </label>
+                            </div>
+                        </li>
+                        </ul>
+                    </div>
+
+                    <!-- Dropdown Toggle Menu - [END] -->
+
+
+
+                <div class="relative w-full">
+                    <input type="text" name="q" id="q" class="block p-2.5 w-full md:w-96 z-20 text-sm text-gray-100 bg-zinc-900 rounded-e-lg border-s-cyan-300 border-s-2 border border-cyan-300 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Search Mockups, Logos, Design Templates..." required />
+                    <button type="submit" class="absolute top-0 end-0 p-2.5 text-sm font-medium h-full text-white bg-cyan-700 rounded-e-lg border border-cyan-700 hover:bg-cyan-800 focus:ring-4 focus:outline-none focus:ring-cyan-300">
+                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                        </svg>
+                        <span class="sr-only">Search</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </section>
+</Fragment>
