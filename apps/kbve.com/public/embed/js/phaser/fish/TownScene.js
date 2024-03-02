@@ -45,8 +45,6 @@ class TownScene extends Phaser.Scene {
         playerSprite.scale = 1.5;
 
         const npcSprite = this.add.sprite(0, 0, "player");
-        
-
         npcSprite.scale = 1.5;
         
         this.cameras.main.startFollow(playerSprite, true);
@@ -66,13 +64,15 @@ class TownScene extends Phaser.Scene {
             {
               id: "npc",
               sprite: npcSprite,
-              walkingAnimationMapping: 6,
+              walkingAnimationMapping: 5,
               startPosition: { x: 4, y: 10 }, //Initial position 8,8
+              speed: 3,
             },
           ],
         };
         this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
         this.createTextBubble(npcSprite.x, npcSprite.y, npcSprite.height, "Start fishing here! Press F");
+        this.gridEngine.moveRandomly("npc", 1500, 3);
         window.__GRID_ENGINE__ = this.gridEngine;
 
     }
