@@ -42,8 +42,11 @@ class TownScene extends Phaser.Scene {
           layer.scale = 3;
         }
         const playerSprite = this.add.sprite(0, 0, "player");
-        const npcSprite = this.add.sprite(0, 0, "player");
         playerSprite.scale = 1.5;
+
+        const npcSprite = this.add.sprite(0, 0, "player");
+        
+
         npcSprite.scale = 1.5;
         
         this.cameras.main.startFollow(playerSprite, true);
@@ -69,7 +72,7 @@ class TownScene extends Phaser.Scene {
           ],
         };
         this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
-        this.createTextBubble(npcSprite.x, npcSprite.y, npcSprite.height, "Start fishing here!");
+        this.createTextBubble(npcSprite.x, npcSprite.y, npcSprite.height, "Start fishing here! Press F");
         window.__GRID_ENGINE__ = this.gridEngine;
 
     }
@@ -82,7 +85,7 @@ class TownScene extends Phaser.Scene {
       let bubble = this.add.graphics({ x: x, y: y });
   
       // Bubble color and shape
-      bubble.fillStyle(0xffffff, 1);
+      bubble.fillStyle(0xffffff, 0.7);
       bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
       bubble.setDepth(99);
   
@@ -120,6 +123,15 @@ class TownScene extends Phaser.Scene {
              return point.x >= xMin && point.x <= xMax &&
                     point.y >= yMin && point.y <= yMax;
         }
+
+        function isWithinRangeOfTombstone(point) {
+            //  Define the bounds
+            const xMin = 7, xMax = 10
+            const yMin = 9, yMax = 10
+             // Check if the point is within the bounds
+             return point.x >= xMin && point.x <= xMax &&
+                    point.y >= yMin && point.y <= yMax;
+        }
           
 
 
@@ -139,6 +151,11 @@ class TownScene extends Phaser.Scene {
             let withinRangeOfBuilding = isWithinRangeOfBuilding(position);
             if(withinRangeOfBuilding) {
                 console.log('Enter the Building?');
+            } 
+
+            let withinRangeOfTombstone = isWithinRangeOfTombstone(position);
+            if(withinRangeOfTombstone) {
+                console.log('Samson Statue!');
             } 
         }
         // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown) 
