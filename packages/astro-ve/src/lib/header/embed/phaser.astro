@@ -26,6 +26,9 @@ if(!scene) {
     import * as Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm';
     window.Phaser = Phaser;
 
+    import gridEngine from 'https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm';
+    window.gridEngine = gridEngine;
+
     class AstroPhaser extends HTMLElement {
         constructor() {
             super();
@@ -44,11 +47,21 @@ if(!scene) {
                 console.log(`${Phaser.VERSION}`);
 
                 // Initialize a Phaser game instance
+                //  Game Configuration
                 const game = new Phaser.Game({
+                    title: "TownEngine", // Title for the Game
+                    render: {
+                        antialias: false,
+                    }, // Anti Alias
                     type: Phaser.AUTO,
                     parent: _phaserContainer,
-                    width: '800',
-                    height: '600',
+                
+                    scale: {
+                        width: 720,
+                        height: 528,
+                        autoCenter: Phaser.Scale.CENTER_BOTH,
+                    },
+                    backgroundColor: '#f7d3a4', //#4488aa
                     physics: {
                         default: 'arcade',
                         arcade: {

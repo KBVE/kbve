@@ -15,7 +15,7 @@ class FishScene extends Phaser.Scene {
         // Move the fish across the screen
         this.tweens.add({
             targets: this.fish,
-            x: 700, // Assuming the screen width is around 800px
+            x: 300, // Assuming the screen width is around 800px
             duration: 2000, // Duration of 2 seconds to move across
             ease: 'Power2',
             yoyo: true, // Go back to the starting position
