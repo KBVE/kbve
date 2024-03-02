@@ -163,7 +163,7 @@ sortedJournals.forEach(([slug, data]) => {
                 </h1>
                 <p class="mb-8 leading-relaxed text-yellow-400">{latestEntry?.data.description}</p>
                 <div class="flex justify-center">
-                  <a href={latestEntry?.slug}>
+                  <a href={`/journal/${latestEntry?.slug}`}>
                     <button class="px-5 py-2.5 relative rounded group overflow-hidden font-medium bg-zinc-300 text-cyan-600 inline-block">
                       <span class="absolute top-0 left-0 flex w-full h-0 mb-0 transition-all duration-200 ease-out transform translate-y-0 bg-cyan-600 group-hover:h-full opacity-90"></span>
                       <span class="relative group-hover:text-white">Read Latest Journal</span>

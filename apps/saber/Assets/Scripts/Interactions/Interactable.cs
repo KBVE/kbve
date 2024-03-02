@@ -4,8 +4,11 @@ using UnityEngine;
 
 public abstract class Interactable : MonoBehaviour
 {
+
     // Message that will be displayed when Player looking at an Interactable object
     public string promptMsg;
+    public bool shouldFace;
+
 
     // This function will be called from Player
     public void BaseInteract()

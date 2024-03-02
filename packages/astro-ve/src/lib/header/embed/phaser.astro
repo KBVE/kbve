@@ -1,0 +1,143 @@
+---
+export interface Props {
+    message?: string;
+    scene?: string;
+}
+const { message, scene } = Astro.props;
+
+if(!scene) {
+    console.warn('[Astro] [Phaser] is missing a scene for Phaser to load!');
+}
+
+---
+<script is:inline type="module" src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm"></script>
+<script is:inline type="module" src="https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm"></script>
+<!-- 
+    *! We can remove this
+    <script is:inline src="
+https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
+"></script> -->
+
+
+<astro-phaser data-message={message} data-scene={scene}>
+    <div id="astro-phaser-container" {...Astro.props}>
+    </div>
+</astro-phaser>
+
+<slot />
+
+
+<script is:inline type="module">
+
+    import * as Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm';
+    window.Phaser = Phaser;
+
+    import GridEngine from 'https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm';
+    window.GridEngine = GridEngine;     // We had some issues with the capital and lowercase but have resolved it. window.gridEngine = GridEngine;
+
+
+    class AstroPhaser extends HTMLElement {
+        constructor() {
+            super();
+            const scene = this.dataset.scene;
+            window.addEventListener('load', (event) => {
+            this.initPhaser(scene)
+            });
+
+        }
+
+        async initPhaser(scene) {
+            const _phaserContainer = document.getElementById('astro-phaser-container');
+
+            if (Phaser && GridEngine) {
+
+                // This is for Debugging.
+                //console.log('Phaser Engine Found');
+                //console.log(`${Phaser.VERSION}`);
+
+                // Initialize a Phaser game instance
+                //  Game Configuration
+                const config = {
+                    title: "TownEngine", // Title for the Game
+                    render: {
+                        antialias: false,
+                    }, // Anti Alias
+                    type: Phaser.AUTO,
+                    parent: _phaserContainer,
+                
+                    scale: {
+
+                        mode: Phaser.Scale.FIT,
+                        autoCenter: Phaser.Scale.CENTER_BOTH,
+
+                        min: {
+                            width: 720,
+                            height: 528,
+                        }
+                    },
+                    transparent: true,
+                    //backgroundColor: '#c0987d', //#4488aa
+
+                    plugins: {
+                     scene: [
+                         {
+                         key: "gridEngine",
+                         plugin: GridEngine,
+                         mapping: "gridEngine",
+                         },
+                    ],
+
+
+                    },
+                    //  This physics engine may have to be removed.
+                    physics: {
+                        default: 'arcade',
+                        arcade: {
+                            gravity: { y: 0 } // No gravity
+                        }
+                    },
+                    scene: {
+                        preload: function() {
+                            this.load.image('logo', '/assets/img/letter_logo.png'); // Ensure you have a correct path to your logo image
+                            this.load.sceneFile('TownScene', `${scene}`);
+                        },
+                        create: function() {
+                            this.logo = this.physics.add.image(400, 300, 'logo');
+                            this.logo.setCollideWorldBounds(true); // Prevent it from going out of bounds
+
+                            this.logo.setInteractive();
+
+                            this.logo.on('pointerdown', () => {
+                                // Here, 'this' refers to the current scene context
+                                // Switch to the FishScene
+                                this.scene.start('TownScene');
+                            }, this);
+
+                        },
+                        update: function() {
+                            // Randomly update the logo's velocity
+                            this.logo.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(-200, 200));
+                        }
+                    },
+                    // Input - prevent Wheel and touch capture
+                    input: {
+                        mouse: {
+                            preventDefaultWheel: false
+                        },
+                        touch: {
+                            capture: false
+                        }
+                    }
+                
+                };
+
+                    const game =  new Phaser.Game(config);
+            } else {
+                console.log('Phaser not found');
+            }
+        }
+    }
+
+    customElements.define('astro-phaser', AstroPhaser);
+    
+</script>

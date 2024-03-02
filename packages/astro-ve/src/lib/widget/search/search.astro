@@ -1,0 +1,38 @@
+---
+export interface Props {
+	data?: string;
+	
+}
+const { data } = Astro.props;
+
+import {TabsDemo} from './_lib/tabDemo';
+
+---
+<Fragment>
+
+    <!--    Google CSE Code -   [START] -->
+		<script
+        is:inline
+        src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo"
+    ></script>
+    <!--    Google CSE Code -   [END] -->
+    <!--    Import -->
+    <link rel="stylesheet" href="/assets/css/gsc-control.css" />
+
+<!-- 
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
+        <TabsDemo  client:only="react" />
+    </section> -->
+
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around bg-gray-800">
+
+        
+        <gcse:search></gcse:search>
+
+        <gcse:searchresults></gcse:searchresults>
+
+
+    </section>
+    
+
+</Fragment>
