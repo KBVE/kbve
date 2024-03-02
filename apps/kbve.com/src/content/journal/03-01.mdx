@@ -95,6 +95,45 @@ Okay going through my phaser notes, I was able to pickup [Annoraaq's Grid Engine
 
 I am thinking during the gameload, we could pre-fetch that ESM module and have it ready to be used via a `window.gridEngine`, after the Phaser is loaded.
 
+For scene management, there are a couple options we can use:
+
+Basic Stop / Start
+
+```javascript
+
+this.scene.stop('CurrentSceneKey'); // Stop the current scene
+this.scene.start('NewSceneKey'); // Start the new scene
+
+```
+
+Pause and Resume
+
+```javascript
+
+// To pause the current scene and start/resume another
+this.scene.pause('CurrentSceneKey');
+this.scene.start('NewSceneKey'); // Use `resume` if the new scene is already running and you're just bringing it back to focus
+
+// And to switch back
+this.scene.stop('NewSceneKey'); // Or `pause` if you want to keep its state
+this.scene.resume('CurrentSceneKey');
+
+```
+
+Launch and Stop
+
+```javascript
+
+// To overlay a new scene on top of the current one
+this.scene.launch('OverlaySceneKey');
+// The original scene remains running in the background but can be paused manually if needed
+
+// To hide the overlay and return focus to the original scene
+this.scene.stop('OverlaySceneKey'); // Or pause, depending on your needs
+
+```
+
+
 </MDXJS>
 
 
