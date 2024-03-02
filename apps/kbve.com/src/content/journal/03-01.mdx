@@ -52,6 +52,13 @@ During the asset transfer, there are a couple errors that occur, similar to this
 We can set the transfer to `HTTP 1.1` using this command, `git config http.version HTTP/1.1` which should help and incase it does not, switch it to verion 2.
 I have no exact clue why this error is occuring besides something along the lines of azure networking and security, but I would avoid using the `--global` flag because it might impact your gitlab settings.
 
+Almost done pushing through the shaders, then I need to see if I can build the application!
+Afterwards, I will slowly add the minor packages that we will need, and by minor, they might be pretty major and bulky.
+
+The amount of times that I have installed a world generator is way too high for a normal week.
+
+Okay, we were able to get the base of the game inside of the repo, I am going to take a bit of a break on this front and focus on the gamejam. Ideally I should be able to get the basics of the gamejam done tonight and tomorrow, leaving me Sunday night to wrap up the Unity migrations.
+
 </MDXJS>
 
 ---
@@ -59,6 +66,8 @@ I have no exact clue why this error is occuring besides something along the line
 <MDXJS>
 
 #### GameJam
+
+[Official Fish Jam](https://itch.io/jam/mini-jam-153-fishing)
 
 We are entering a small gamejam that lasts just a weekend! I believe we have 72 hours to complete a fishing game, but there is a twist! There is `no water`, but we could figure out a way to resolve it.
 
@@ -74,6 +83,17 @@ My plan would be to create a general wrapper around the `Phaser` engine and then
 We could do a simple chaining, where each scene would chain to another? This would make the javascript style games a bit linear but also maintain a smaller size.
 This works the best for simple pixel and retro style games, since they will not be too heavy on CPU usage and can be played anywhere.
 
+The example of the [CyberNoid JSON](https://labs.phaser.io/assets/tilemaps/maps/cybernoid.json)
+Here is the tileset as a [png](https://labs.phaser.io/assets/tilemaps/tiles/cybernoid.png)
+The source for the tilemap from [phaser 3 sandbox](https://labs.phaser.io/edit.html?src=src\tilemap\get%20tiles%20in%20shape.js)
+
+After looking through that example, I am going to look through the [Phaser Loader TileMap JSON Example from Sammes Repo](https://samme.github.io/phaser-examples-mirror/loader/load%20tilemap%20json.html)
+
+These two examples should be more than enough to provide us with a bit of a room to play around!
+
+Okay going through my phaser notes, I was able to pickup [Annoraaq's Grid Engine](https://www.jsdelivr.com/package/npm/grid-engine?tab=files) which we can use to help build out the map a bit.
+
+I am thinking during the gameload, we could pre-fetch that ESM module and have it ready to be used via a `window.gridEngine`, after the Phaser is loaded.
 
 </MDXJS>
 
