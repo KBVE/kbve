@@ -12,7 +12,9 @@ if(!scene) {
 ---
 <script is:inline type="module" src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm"></script>
 <script is:inline type="module" src="https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm"></script>
-<!-- <script is:inline src="
+<!-- 
+    *! We can remove this
+    <script is:inline src="
 https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
 "></script> -->
 
@@ -31,8 +33,8 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
     window.Phaser = Phaser;
 
     import GridEngine from 'https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm';
-    // window.gridEngine = GridEngine;
-    window.GridEngine = GridEngine;
+    window.GridEngine = GridEngine;     // We had some issues with the capital and lowercase but have resolved it. window.gridEngine = GridEngine;
+
 
     class AstroPhaser extends HTMLElement {
         constructor() {
@@ -48,6 +50,8 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
             const _phaserContainer = document.getElementById('astro-phaser-container');
 
             if (Phaser && GridEngine) {
+
+                // This is for Debugging.
                 //console.log('Phaser Engine Found');
                 //console.log(`${Phaser.VERSION}`);
 
@@ -62,11 +66,17 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
                     parent: _phaserContainer,
                 
                     scale: {
-                        width: 720,
-                        height: 528,
+
+                        mode: Phaser.Scale.FIT,
                         autoCenter: Phaser.Scale.CENTER_BOTH,
+
+                        min: {
+                            width: 720,
+                            height: 528,
+                        }
                     },
-                    backgroundColor: '#c0987d', //#4488aa
+                    transparent: true,
+                    //backgroundColor: '#c0987d', //#4488aa
 
                     plugins: {
                      scene: [
@@ -77,12 +87,7 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
                          },
                     ],
 
-                        // global: [{
-                        //     key: 'gridEngine',
-                        //     plugin: window.GridEngine,
-                        //     start: true,
-                        //     mapping: 'gridEngine' // Optional: if you want to access it via `this.gridEngine` in your scenes
-                        // }]
+
                     },
                     //  This physics engine may have to be removed.
                     physics: {
@@ -94,18 +99,7 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
                     scene: {
                         preload: function() {
                             this.load.image('logo', '/assets/img/letter_logo.png'); // Ensure you have a correct path to your logo image
-                            console.log('Plugin?');
-                            console.log( this.plugins.get('gridEngine') );
-
                             this.load.sceneFile('TownScene', `${scene}`);
-                            // this.load.sceneFile('TownScene', `${scene}`, () => {
-                            //     const loadedScene = this.scene.get('TownScene');
-                            //             if (loadedScene) {
-                            //             // Inject the plugin into the loaded scene
-                            //             loadedScene.gridEngine = this.plugins.get('gridEngine') || console.log('No Plugin Found');
-                                    
-                            // }});
-
                         },
                         create: function() {
                             this.logo = this.physics.add.image(400, 300, 'logo');
