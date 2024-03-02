@@ -1,8 +1,12 @@
-import { Scene } from 'phaser';
+//import { Scene } from 'phaser';
 
-export class GameOver extends Scene {
+class GameOver extends Phaser.Scene {
     constructor() {
         super('GameOver');
+    }
+
+    preload(){
+        this.load.image('background', '/assets/img/fishchip/bg.png');
     }
 
     init(data) {
@@ -18,18 +22,33 @@ export class GameOver extends Scene {
     }
 
     create() {
+        this.scores = JSON.parse(localStorage.getItem('scores')) || [];
         this.cameras.main.setBackgroundColor(0xff0000);
-        // red tint
         this.add.image(480, 384, 'background').setAlpha(0.5).setTint(0xff0000);
 
-        this.add.text(480, 384, `Game Over\nScore: ${this.score}\nWPM: ${this.wpm}`, {
+        this.add.text(480, 100, `Game Over\nScore: ${this.score}\nWPM: ${this.wpm}`, {
+            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
+            stroke: '#000000', strokeThickness: 8,
+            align: 'center'
+        }).setOrigin(0.5);
+
+        // Render the high scores
+        this.add.text(480, 300, 'High Scores', {
             fontFamily: 'Arial Black', fontSize: 64, color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
         }).setOrigin(0.5);
 
-        const mainMenuButtonImage = this.add.image(480, 600, 'wood').setOrigin(0.5).setScale(0.7, 0.2).setInteractive({ useHandCursor: true });
-        const mainMenuButtonText = this.add.text(480, 600, 'Main Menu', {
+        this.scores.forEach((score, index) => {
+            this.add.text(480, 400 + (index * 50), `${index + 1}. Score: ${score.score} - WPM: ${score.wpm}`, {
+                fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
+                stroke: '#000000', strokeThickness: 8,
+                align: 'center'
+            }).setOrigin(0.5);
+        });
+
+        const mainMenuButtonImage = this.add.image(480, 700, 'wood').setOrigin(0.5).setScale(1, 0.2).setInteractive({ useHandCursor: true });
+        const mainMenuButtonText = this.add.text(480, 700, 'Go Back To Town', {
             fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
         }).setOrigin(0.5);
 
@@ -53,3 +72,5 @@ export class GameOver extends Scene {
         this.scene.start('TownScene');
     }
 }
+
+window.GameOver = GameOver;

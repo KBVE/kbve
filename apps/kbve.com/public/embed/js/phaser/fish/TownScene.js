@@ -75,6 +75,16 @@ class TownScene extends Phaser.Scene {
             return point.x >= xMin && point.x <= xMax &&
                    point.y >= yMin && point.y <= yMax;
         }
+
+        function isWithinRangeOfBuilding(point) {
+             // Define the bounds
+             const xMin = 13, xMax = 13;
+             const yMin = 6, yMax = 7;
+           
+             // Check if the point is within the bounds
+             return point.x >= xMin && point.x <= xMax &&
+                    point.y >= yMin && point.y <= yMax;
+        }
           
 
 
@@ -82,11 +92,19 @@ class TownScene extends Phaser.Scene {
         {
             console.log('Action Key F was Pressed');
             let position = this.gridEngine.getPosition('player');
-            let withinRange = isWithinRangeOfWell(position);
-            console.log(withinRange);
-            if(withinRange) {
+            console.log(position);
+
+
+
+            let withinRangeOfWell = isWithinRangeOfWell(position);
+            if(withinRangeOfWell) {
                 this.scene.start('FishChipScene');
             }
+
+            let withinRangeOfBuilding = isWithinRangeOfBuilding(position);
+            if(withinRangeOfBuilding) {
+                console.log('Enter the Building?');
+            } 
         }
         // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown) 
         if (cursors.left.isDown) {

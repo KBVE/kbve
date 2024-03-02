@@ -234,6 +234,8 @@ class FishChipScene extends Phaser.Scene {
 
         //load spritesheet for fishing.png
         this.load.spritesheet('fishing', '/assets/img/fishchip/fishing.png', { frameWidth: 480, frameHeight: 480 });
+
+        this.load.sceneFile('GameOver', '/embed/js/phaser/fish/GameOver.js')
     }
 
     resetGameState() {
@@ -283,7 +285,6 @@ class FishChipScene extends Phaser.Scene {
 
     displayCombo() {
         // First, clear any existing combo text objects
-        console.log(this.comboTextObjects);
         this.comboTextObjects.forEach(textObj => textObj.destroy());
         this.comboTextObjects = [];
 
@@ -306,7 +307,7 @@ class FishChipScene extends Phaser.Scene {
 
     gameOver() {
         if (this.countdownEvent) this.countdownEvent.remove();
-        this.scene.switch('FishChipScene', 'TownScene', { score: this.score, wpm: this.wpm });
+        this.scene.start('GameOver', { score: this.score, wpm: this.wpm });
     }
 
     handleInput(key) {
