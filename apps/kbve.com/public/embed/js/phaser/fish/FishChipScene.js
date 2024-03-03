@@ -490,6 +490,4 @@ class FishChipScene extends Phaser.Scene {
     }
 }
 
-console.log('FishChip Scene Loaded');
-
 window.FishChipScene = FishChipScene;
