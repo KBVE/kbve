@@ -9,12 +9,15 @@ class TownScene extends Phaser.Scene {
         this.load.image('fish', '/assets/img/letter_logo.png');
         this.load.audio('music', '/assets/img/fishchip/bg.ogg');
         
-        this.load.image("tiles", "/assets/img/fishchip/cloud_tileset.png");
+
+        //  Cloud TileSet -> cloud_tileset.png
+        this.load.image("tiles", "/assets/img/fishchip/desert_tileset.png");
         this.load.tilemapTiledJSON(
             "cloud-city-map",
             "/assets/img/fishchip/cloud_city.json",
         );
-        this.load.spritesheet("player", "/assets/img/fishchip/characters.png", {
+        // /assets/img/fishchip/characters_filter.png
+        this.load.spritesheet("player", "/assets/img/fishchip/chip_charactersheet.png", {
             frameWidth: 52,
             frameHeight: 72,
         });

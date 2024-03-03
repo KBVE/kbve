@@ -29,7 +29,8 @@
     "../../apps/next-itch-fishchip/.next/types/**/*.ts",
     "../../dist/apps/next-itch-fishchip/.next/types/**/*.ts",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "dist/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
