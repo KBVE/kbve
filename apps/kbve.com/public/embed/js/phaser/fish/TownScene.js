@@ -7,7 +7,7 @@ class TownScene extends Phaser.Scene {
     preload() {
         // Load the fish sprite; ensure you have a 'fish.png' in the specified path
         this.load.image('fish', '/assets/img/letter_logo.png');
-        this.load.audio('music', '/assets/img/fishchip/bg.wav');
+        this.load.audio('music', '/assets/img/fishchip/bg.ogg');
         
         this.load.image("tiles", "/assets/img/fishchip/cloud_tileset.png");
         this.load.tilemapTiledJSON(
@@ -20,6 +20,10 @@ class TownScene extends Phaser.Scene {
         });
         if (!this.scene.get('FishChipScene')) { // Check if the scene isn't already added
           this.load.sceneFile('FishChipScene', '/embed/js/phaser/fish/FishChipScene.js')
+        }
+
+        if (!this.scene.get('CreditsScene')) { // Check if the scene isn't already added
+          this.load.sceneFile('CreditsScene', '/embed/js/phaser/fish/CreditsScene.js')
         }
         
 
@@ -59,7 +63,7 @@ class TownScene extends Phaser.Scene {
               id: "player",
               sprite: playerSprite,
               walkingAnimationMapping: 6,
-              startPosition: { x: 14, y: 11 }, //Initial position 8,8
+              startPosition: { x: 5, y: 12 }, //Initial position 8,8, Lamp position 14 x, 11 y
             },
             {
               id: "npc",
@@ -82,24 +86,28 @@ class TownScene extends Phaser.Scene {
       let bubbleWidth = 200; // Adjust based on your text length
       let bubbleHeight = 50; // Adjust as needed
       let bubblePadding = 10;
-      let bubble = this.add.graphics({ x: x, y: y });
+      this.bubble = this.add.graphics({ x: x, y: y });
   
       // Bubble color and shape
-      bubble.fillStyle(0xffffff, 0.7);
-      bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
-      bubble.setDepth(99);
+      this.bubble.fillStyle(0xffffff, 0.7);
+      this.bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
+      this.bubble.setDepth(99);
   
       // Position text inside the bubble
-      let content = this.add.text(0, 0, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
-      content.setPosition(bubble.x + bubblePadding, bubble.y + bubblePadding / 2);
-      content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
-      content.setDepth(100);
+      this.content = this.add.text(0, 0, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
+      this.content.setPosition(this.bubble.x + bubblePadding, this.bubble.y + bubblePadding / 2);
+      this.content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
+      this.content.setDepth(100);
       // Adjust the position based on the NPC sprite's position and the desired offset
-      bubble.x = x - bubbleWidth / 24;
-      bubble.y = y - bubbleHeight - height / 24; // Adjust this offset based on your needs
-      content.x = bubble.x + bubblePadding;
-      content.y = bubble.y + bubblePadding;
-  }
+      this.updateTextBubblePosition(x, y - height - bubbleHeight); // New helper function to adjust position
+    }
+
+    updateTextBubblePosition(x, y) {
+      this.bubble.x = x;
+      this.bubble.y = y;
+      this.content.x = this.bubble.x + 10; // Assuming bubblePadding is 10
+      this.content.y = this.bubble.y + 5; // Adjust as needed
+    }
 
     update() {
         const cursors = this.input.keyboard.createCursorKeys();
@@ -113,6 +121,16 @@ class TownScene extends Phaser.Scene {
             return point.x >= xMin && point.x <= xMax &&
                    point.y >= yMin && point.y <= yMax;
         }
+
+        function isWithinRangeOfSign(point) {
+          // Define the bounds
+          const xMin = 2, xMax = 5;
+          const yMin = 2, yMax = 5;
+        
+          // Check if the point is within the bounds
+          return point.x >= xMin && point.x <= xMax &&
+                 point.y >= yMin && point.y <= yMax;
+      }
 
         function isWithinRangeOfBuilding(point) {
              // Define the bounds
@@ -148,6 +166,11 @@ class TownScene extends Phaser.Scene {
                 this.scene.start('FishChipScene');
             }
 
+            let withinRangeOfSign = isWithinRangeOfSign(position);
+            if(withinRangeOfSign) {
+                this.scene.start('CreditsScene');
+            }
+
             let withinRangeOfBuilding = isWithinRangeOfBuilding(position);
             if(withinRangeOfBuilding) {
                 console.log('Enter the Building?');
@@ -168,6 +191,13 @@ class TownScene extends Phaser.Scene {
         } else if (cursors.down.isDown) {
           this.gridEngine.move("player", "down");
         } 
+
+        // Update the speech bubble position to follow the NPC
+        if (this.npcSprite && this.bubble && this.content) {
+          const npcPosition = this.gridEngine.getPosition("npc");
+          const npcWorldPosition = this.gridEngine.getWorldPosition(npcPosition.x, npcPosition.y);
+          this.updateTextBubblePosition(npcWorldPosition.x, npcWorldPosition.y - this.npcSprite.height);
+        }
     }
 }
 

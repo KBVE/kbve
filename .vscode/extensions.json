@@ -1,10 +1,10 @@
 {
-	"recommendations": [
-		"nrwl.angular-console",
-		"esbenp.prettier-vscode",
-		"astro-build.astro-vscode",
-		"dbaeumer.vscode-eslint",
-		"firsttris.vscode-jest-runner",
-		"ms-playwright.playwright"
-	]
+  "recommendations": [
+    "nrwl.angular-console",
+    "esbenp.prettier-vscode",
+    "astro-build.astro-vscode",
+    "dbaeumer.vscode-eslint",
+    "firsttris.vscode-jest-runner",
+    "ms-playwright.playwright"
+  ]
 }

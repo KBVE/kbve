@@ -64,7 +64,15 @@ The best course of action for the itch would be to either package the game up di
 I am still working out the exact kinks that would be involved but once we get a proof of concept up and running, we can start to tweak the game around to fit our needs.
 Going through the itch build, we could make a new asset page for the fish and chip, then expand it from there.
 
+For the itch page, we will use a base of `NextJS`, instead of a direct `React` because it should help us build out the application faster.
+The first step would be `pnpm nx add @nx/next`, which was able to add the @nx/next but it seems that we had a command failure! 
+I am thinking it might be because we had a couple changes happening at the same time, which was causing problems.
+The error was resolved with `pnpm exec nx g @nx/next:init --keepExistingVersions --updatePackageScripts` , which resolved the package scripts.
+
+For [Itch Page Template Reference](https://hedgiespresso.itch.io/itch-page-image-templates), this includes all the information.
+
 </MDXJS>
 
+---
 
 </MDXJS>

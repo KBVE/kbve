@@ -1,0 +1,70 @@
+---
+interface Props {
+	title: string;
+	description: string;
+	image?: string;
+}
+
+const { title, description } = Astro.props;
+
+import { AstroVe as VE } from '@kbve/astro-ve';
+
+---
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Astro description" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<VE widget="header:external:toastify" data="" />
+		<VE widget="header:external:flowbite" data="" class="" />
+		<VE widget="header:external:lottie" data="dot" />
+	</head>
+
+	<div class="h-screen w-full bg-zinc-950 relative flex overflow-hidden">
+
+
+        <div class="w-full h-full flex flex-col justify-between">
+
+
+            <main class="max-w-full h-full flex relative overflow-y-hidden" transition:animate="fade">
+                        
+                <div
+                    class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 ">
+                        
+                    <slot />
+
+                </div>
+                
+			</main>
+
+        </div>
+    </div>
+
+    <style is:global>
+		:root {
+			--color-kbve-menu-bg-dyn: #fff333;
+			--accent: 136, 58, 234;
+			--accent-light: 224, 204, 250;
+			--accent-dark: 49, 10, 101;
+			--accent-gradient: linear-gradient(
+				45deg,
+				rgb(var(--accent)),
+				rgb(var(--accent-light)) 30%,
+				white 60%
+			);
+		}
+
+		code {
+			font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
+				DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New,
+				monospace;
+		}
+	</style>
+
+    </html>
+    
