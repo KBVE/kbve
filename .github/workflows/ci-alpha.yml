@@ -59,6 +59,7 @@ jobs:
                 proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
                 saber: ${{ steps.delta.outputs.saber_any_changed  }}
                 rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
+                itchfishchip: ${{ steps.delta.outputs.itchfishchip_any_changed }}
 
             steps:
               -   name: Checkout the repository using git
@@ -89,7 +90,9 @@ jobs:
                             - 'apps/saber/**'
                         rustapiprofile:
                             - 'apps/rust_api_profile/**'
-
+                        itchfishchip:
+                            - 'apps/next-itch-fishchip/**'
+                        
 
     # Alpha Builds
 
@@ -204,6 +207,17 @@ jobs:
                         echo "Deploying Saber..."
               #   [SABER] -> [UNITY] -> [END]
 
+              -   name: Itch Fish Chip Build
+                  if: needs.alter.outputs.itchfishchip == 'true'
+                  shell:  bash
+                  run: |
+                         pnpm nx build next-itch-fishchip
+
+              -   name: Itch Fish Chip Upload Deployment
+                  uses: actions/upload-artifact@v2
+                  with:
+                    name: build-WebGL
+                    path: apps/next-itch-fishchip/dist  
 
         itchdev:
             needs: ['alter', 'buildSaber', 'setup']
@@ -238,3 +252,28 @@ jobs:
                     itchGameId: dev-saber
                     #buildChannel: webgl
                     buildChannel: windows
+
+        itchfishchipdeploy:
+            needs: ['alter', 'deploy']
+            name: Itch Fish Chip Deployment
+            runs-on: ubuntu-latest
+            if: needs.alter.outputs.itchfishchip == 'true'
+            steps:
+                -   name: Checkout repository
+                    uses: actions/checkout@v4
+
+                -   name: Download WebGL Build
+                    uses: actions/download-artifact@v3
+                    id: download
+                    with:
+                        name: build-WebGL
+                        path: apps/next-itch-fishchip/dist
+
+                -   name: Itch Deploy
+                    uses: KikimoraGames/itch-publish@v0.0.3
+                    with:
+                        butlerApiKey: ${{ secrets.ITCH_API }}
+                        gameData: ${{steps.download.outputs.download-path}}
+                        itchUsername: kbve
+                        itchGameId: fishchip
+                        buildChannel: webgl

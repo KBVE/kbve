@@ -48,8 +48,8 @@ class TownScene extends Phaser.Scene {
         const playerSprite = this.add.sprite(0, 0, "player");
         playerSprite.scale = 1.5;
 
-        const npcSprite = this.add.sprite(0, 0, "player");
-        npcSprite.scale = 1.5;
+        this.npcSprite = this.add.sprite(0, 0, "player");
+        this.npcSprite.scale = 1.5;
         
         this.cameras.main.startFollow(playerSprite, true);
         this.cameras.main.setFollowOffset(
@@ -67,7 +67,7 @@ class TownScene extends Phaser.Scene {
             },
             {
               id: "npc",
-              sprite: npcSprite,
+              sprite: this.npcSprite,
               walkingAnimationMapping: 5,
               startPosition: { x: 4, y: 10 }, //Initial position 8,8
               speed: 3,
@@ -75,7 +75,7 @@ class TownScene extends Phaser.Scene {
           ],
         };
         this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
-        this.createTextBubble(npcSprite.x, npcSprite.y, npcSprite.height, "Start fishing here! Press F");
+        this.createTextBubble(this.npcSprite.x, this.npcSprite.y, this.npcSprite.height, "Start fishing at the well! Go there and press F");
         this.gridEngine.moveRandomly("npc", 1500, 3);
         window.__GRID_ENGINE__ = this.gridEngine;
 
@@ -89,7 +89,7 @@ class TownScene extends Phaser.Scene {
       this.bubble = this.add.graphics({ x: x, y: y });
   
       // Bubble color and shape
-      this.bubble.fillStyle(0xffffff, 0.7);
+      this.bubble.fillStyle(0xffffff);
       this.bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
       this.bubble.setDepth(99);
   
@@ -104,7 +104,7 @@ class TownScene extends Phaser.Scene {
 
     updateTextBubblePosition(x, y) {
       this.bubble.x = x;
-      this.bubble.y = y;
+      this.bubble.y = y + 25;
       this.content.x = this.bubble.x + 10; // Assuming bubblePadding is 10
       this.content.y = this.bubble.y + 5; // Adjust as needed
     }
@@ -194,9 +194,7 @@ class TownScene extends Phaser.Scene {
 
         // Update the speech bubble position to follow the NPC
         if (this.npcSprite && this.bubble && this.content) {
-          const npcPosition = this.gridEngine.getPosition("npc");
-          const npcWorldPosition = this.gridEngine.getWorldPosition(npcPosition.x, npcPosition.y);
-          this.updateTextBubblePosition(npcWorldPosition.x, npcWorldPosition.y - this.npcSprite.height);
+          this.updateTextBubblePosition(this.npcSprite.x, this.npcSprite.y - this.npcSprite.height);
         }
     }
 }

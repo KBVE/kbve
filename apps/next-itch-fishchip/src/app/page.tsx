@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-async-client-component */
 
   
   'use client';
@@ -466,4 +467,4 @@ export default async function Index() {
   
     </StyledPage>
   );
-};
+}
