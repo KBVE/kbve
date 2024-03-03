@@ -47,11 +47,31 @@ Developers would be:
 - `David`
 
 Then for the 2D artists, we have:
-- `ArchanDroid`
-- `Nezt50`
-- `Retornodomal`
+- `ArchanDroid` - Sprite
+- `Nezt50` - Tiles
+- `Retornodomal` - Menu
 
 Now for the itch page, there are a couple files that we need for the submission page.
+
+For credits, we need to reference the original assets:
+
+Original placeholder assets are from https://finalbossblues.com/ and were modified by Annoraaq, Raiper34, splashsky, therebelrobot and xLink.
+
+Phaser loaded via Astro.
+React / TailWindCSS.
+
+
+I noticed that the scrollbar appears in the frame, maybe I need to disable that within the internal iframe?
+
+Inside of the `page.tsx`, I updated the Iframe code.
+
+```javascript
+
+    <iframe src="https://kbve.com/arcade/fishchip/itch/" height="1024px" width="100%" frameBorder="0" scrolling="no" >Your browser doesnot support iframes<a href="https://kbve.com/arcade/fishchip/"> click here to view the page directly. </a></iframe>
+
+```
+
+I am getting type errors for the `frameBorder` and `scrolling`, as it seems to be no longer valid, hmm, given the time limit, I will just skip them.
 
 </MDXJS>
 
