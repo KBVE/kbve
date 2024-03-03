@@ -9,6 +9,8 @@ const { composePlugins, withNx } = require('@nx/next');
  **/
 const nextConfig = {
 
+  assetPrefix: process.env.NODE_ENV === 'production' ? '.' : undefined,
+
   distDir: 'dist',
   
   output: 'export',
