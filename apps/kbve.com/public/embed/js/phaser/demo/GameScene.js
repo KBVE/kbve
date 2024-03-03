@@ -11,30 +11,17 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('logo', '/assets/img/letter_logo.png');
+        this.load.image('mainBg', 'https://utfs.io/f/2c17f660-7f39-4edf-b83e-122a71014d99-6gflls.webp');
     }
 
     create() {
-        this.logo = this.physics.add.image(400, 300, 'logo');
-        this.logo.setCollideWorldBounds(true);
-        this.updateTarget();
+        
+        this.bg = this.add.image(400, 300, 'mainBg');
+
     }
 
-    update() {
-        this.physics.moveToObject(this.logo, this.target, 200);
-        const distance = Phaser.Math.Distance.Between(this.logo.x, this.logo.y, this.target.x, this.target.y);
-        if (distance < 4) {
-            this.logo.setPosition(this.target.x, this.target.y);
-            this.updateTarget();
-        }
-    }
 
-    updateTarget() {
-        this.target = {
-            x: Phaser.Math.Between(0, 800),
-            y: Phaser.Math.Between(0, 600)
-        };
-    }
+
 }
 
 export default GameScene;

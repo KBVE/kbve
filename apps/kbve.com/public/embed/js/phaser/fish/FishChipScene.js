@@ -230,7 +230,7 @@ class FishChipScene extends Phaser.Scene {
 
         
         this.load.audio('type', '/assets/img/fishchip/type.mp3');
-        this.load.image('wood', '/assets/img/fishchip/wood.jpg');
+        
 
         //load spritesheet for fishing.png
         this.load.spritesheet('fishing', '/assets/img/fishchip/fishing.png', { frameWidth: 480, frameHeight: 480 });
