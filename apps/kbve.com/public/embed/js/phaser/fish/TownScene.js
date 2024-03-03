@@ -14,7 +14,7 @@ class TownScene extends Phaser.Scene {
             "cloud-city-map",
             "/assets/img/fishchip/cloud_city.json",
         );
-        this.load.spritesheet("player", "/assets/img/fishchip/characters.png", {
+        this.load.spritesheet("player", "/assets/img/fishchip/characters_filter.png", {
             frameWidth: 52,
             frameHeight: 72,
         });
