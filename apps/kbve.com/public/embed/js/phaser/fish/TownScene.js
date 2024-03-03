@@ -63,7 +63,7 @@ class TownScene extends Phaser.Scene {
               id: "player",
               sprite: playerSprite,
               walkingAnimationMapping: 6,
-              startPosition: { x: 14, y: 11 }, //Initial position 8,8
+              startPosition: { x: 5, y: 12 }, //Initial position 8,8, Lamp position 14 x, 11 y
             },
             {
               id: "npc",
@@ -86,24 +86,28 @@ class TownScene extends Phaser.Scene {
       let bubbleWidth = 200; // Adjust based on your text length
       let bubbleHeight = 50; // Adjust as needed
       let bubblePadding = 10;
-      let bubble = this.add.graphics({ x: x, y: y });
+      this.bubble = this.add.graphics({ x: x, y: y });
   
       // Bubble color and shape
-      bubble.fillStyle(0xffffff, 0.7);
-      bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
-      bubble.setDepth(99);
+      this.bubble.fillStyle(0xffffff, 0.7);
+      this.bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
+      this.bubble.setDepth(99);
   
       // Position text inside the bubble
-      let content = this.add.text(0, 0, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
-      content.setPosition(bubble.x + bubblePadding, bubble.y + bubblePadding / 2);
-      content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
-      content.setDepth(100);
+      this.content = this.add.text(0, 0, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
+      this.content.setPosition(this.bubble.x + bubblePadding, this.bubble.y + bubblePadding / 2);
+      this.content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
+      this.content.setDepth(100);
       // Adjust the position based on the NPC sprite's position and the desired offset
-      bubble.x = x - bubbleWidth / 24;
-      bubble.y = y - bubbleHeight - height / 24; // Adjust this offset based on your needs
-      content.x = bubble.x + bubblePadding;
-      content.y = bubble.y + bubblePadding;
-  }
+      this.updateTextBubblePosition(x, y - height - bubbleHeight); // New helper function to adjust position
+    }
+
+    updateTextBubblePosition(x, y) {
+      this.bubble.x = x;
+      this.bubble.y = y;
+      this.content.x = this.bubble.x + 10; // Assuming bubblePadding is 10
+      this.content.y = this.bubble.y + 5; // Adjust as needed
+    }
 
     update() {
         const cursors = this.input.keyboard.createCursorKeys();
@@ -187,6 +191,13 @@ class TownScene extends Phaser.Scene {
         } else if (cursors.down.isDown) {
           this.gridEngine.move("player", "down");
         } 
+
+        // Update the speech bubble position to follow the NPC
+        if (this.npcSprite && this.bubble && this.content) {
+          const npcPosition = this.gridEngine.getPosition("npc");
+          const npcWorldPosition = this.gridEngine.getWorldPosition(npcPosition.x, npcPosition.y);
+          this.updateTextBubblePosition(npcWorldPosition.x, npcWorldPosition.y - this.npcSprite.height);
+        }
     }
 }
 

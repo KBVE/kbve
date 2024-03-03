@@ -21,7 +21,7 @@ class CreditsScene extends Phaser.Scene {
         let backButton = this.add.text(50, this.cameras.main.height - 50, 'Back', {
             font: '18px Arial',
             fill: '#fff'
-        }).setInteractive();
+        }).setInteractive({ useHandCursor: true });
 
         backButton.on('pointerdown', () => {
             this.scene.start('TownScene');
