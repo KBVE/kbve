@@ -20,7 +20,7 @@ export default async function Index() {
       
       
       <div>
-          <iframe src="https://kbve.com/arcade/fishchip/itch/" height="1024px" width="100%" frameBorder="0">Your browser doesnot support iframes<a href="myPageURL.htm"> click here to view the page directly. </a></iframe>
+          <iframe src="https://kbve.com/arcade/fishchip/itch/" height="1024px" width="100%" frameBorder="0" scrolling="no" >Your browser doesnot support iframes<a href="https://kbve.com/arcade/fishchip/"> click here to view the page directly. </a></iframe>
 
       </div>
         
