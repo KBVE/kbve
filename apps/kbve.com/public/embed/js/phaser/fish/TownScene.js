@@ -7,7 +7,7 @@ class TownScene extends Phaser.Scene {
     preload() {
         // Load the fish sprite; ensure you have a 'fish.png' in the specified path
         this.load.image('fish', '/assets/img/letter_logo.png');
-        this.load.audio('music', '/assets/img/fishchip/bg.wav');
+        this.load.audio('music', '/assets/img/fishchip/bg.ogg');
         
         this.load.image("tiles", "/assets/img/fishchip/cloud_tileset.png");
         this.load.tilemapTiledJSON(
@@ -20,6 +20,10 @@ class TownScene extends Phaser.Scene {
         });
         if (!this.scene.get('FishChipScene')) { // Check if the scene isn't already added
           this.load.sceneFile('FishChipScene', '/embed/js/phaser/fish/FishChipScene.js')
+        }
+
+        if (!this.scene.get('CreditsScene')) { // Check if the scene isn't already added
+          this.load.sceneFile('CreditsScene', '/embed/js/phaser/fish/CreditsScene.js')
         }
         
 
@@ -114,6 +118,16 @@ class TownScene extends Phaser.Scene {
                    point.y >= yMin && point.y <= yMax;
         }
 
+        function isWithinRangeOfSign(point) {
+          // Define the bounds
+          const xMin = 2, xMax = 5;
+          const yMin = 2, yMax = 5;
+        
+          // Check if the point is within the bounds
+          return point.x >= xMin && point.x <= xMax &&
+                 point.y >= yMin && point.y <= yMax;
+      }
+
         function isWithinRangeOfBuilding(point) {
              // Define the bounds
              const xMin = 13, xMax = 13;
@@ -146,6 +160,11 @@ class TownScene extends Phaser.Scene {
             let withinRangeOfWell = isWithinRangeOfWell(position);
             if(withinRangeOfWell) {
                 this.scene.start('FishChipScene');
+            }
+
+            let withinRangeOfSign = isWithinRangeOfSign(position);
+            if(withinRangeOfSign) {
+                this.scene.start('CreditsScene');
             }
 
             let withinRangeOfBuilding = isWithinRangeOfBuilding(position);
