@@ -19,14 +19,24 @@ export default async function Index() {
     <StyledPage>
       
       
+      <div>
+          <iframe src="https://kbve.com/arcade/fishchip/itch/" height="1024px" width="100%" frameBorder="0">Your browser doesnot support iframes<a href="myPageURL.htm"> click here to view the page directly. </a></iframe>
+
+      </div>
+        
     <div className="wrapper">
       <div className="container">
+  
         <div id="welcome">
           <h1>
             <span> Hello there, </span>
             Welcome next-itch-fishchip 👋
           </h1>
         </div>
+
+        
+
+       
 
         <div id="hero" className="rounded">
           <div className="text-container">
@@ -46,7 +56,7 @@ export default async function Index() {
               </svg>
               <span>You&apos;re up and running</span>
             </h2>
-            <a href="#commands"> What&apos;s next? </a>
+            <a href="https://kbve.com/arcade/fishchip/" target="_blank"> What&apos;s next? </a>
           </div>
           <div className="logo-container">
             <svg
