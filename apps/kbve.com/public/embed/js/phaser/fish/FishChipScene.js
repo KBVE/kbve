@@ -233,8 +233,7 @@ class FishChipScene extends Phaser.Scene {
         this.load.audio('type', '/assets/img/fishchip/type.mp3');
         
 
-        //load spritesheet for fishing.png
-        this.load.spritesheet('fishing', '/assets/img/fishchip/fishing.png', { frameWidth: 480, frameHeight: 480 });
+        this.load.spritesheet('fishing', '/assets/img/fishchip/animate.png', { frameWidth: 802, frameHeight: 652 });
 
         if (!this.scene.get('GameOver')) { // Check if the scene isn't already added
             this.load.sceneFile('GameOver', '/embed/js/phaser/fish/GameOver.js')
@@ -375,8 +374,6 @@ class FishChipScene extends Phaser.Scene {
 
         // Compare userInput with combo and handle success or failure
         if (this.userInput.join('') === this.combo.join('')) {
-            this.fisherman.play('catch');
-            this.fisherman.playAfterDelay('fishing', 1300);
             this.score++;
             this.scoreText.setText('Score: ' + this.score);
             this.wpm = this.calculateWPM();
@@ -424,19 +421,12 @@ class FishChipScene extends Phaser.Scene {
         // add fishing sprite sheet
         this.anims.create({
             key: 'fishing',
-            frames: this.anims.generateFrameNumbers('fishing', { start: 0, end: 18 }),
+            frames: this.anims.generateFrameNumbers('fishing', { start: 0, end: 32 }),
             frameRate: 20,
             repeat: -1
         });
 
         this.fisherman = this.add.sprite(480, 480, 'fishing').play('fishing').setScale(2).setDepth(-1);
-
-        this.anims.create({
-            key: 'catch',
-            frames: this.anims.generateFrameNumbers('fishing', { start: 19, end: 45 }),
-            frameRate: 20,
-            repeat: -1
-        });
 
         this.resetGameState()
 
@@ -445,6 +435,7 @@ class FishChipScene extends Phaser.Scene {
                 this.typingStarted = true;
                 this.instructions.setText('Type the letters as fast as you can!');
                 this.startComboSequence();
+                this.fisherman;
             }
             
 

@@ -79,9 +79,12 @@ To run the itch next template, we will issue this command:
 Instead we will be doing `pnpm nx dev next-itch-fishchip` to run the website, at least in developer mode.
 Maybe under the run / build, we can adjust the action once we get a decent theme up and functional.
 
-A side note, I updated the includes for the `tsconfig.json` , allowing the `.next/types/**/*.ts`.
+A side note, I updated the includes for the `tsconfig.json` , allowing the `.next/types/**/*.ts`. Hmm actually I am going to reverse this because it seems to be throwing a new error that I do not want to deal with.
 
 This is the reference guide for the [Next Static Build](https://nextjs.org/docs/pages/building-your-application/deploying/static-exports)
+Based off the guide, we will update the `next.config.js` to include an `output: 'export'` and `distDir: 'dist'` because we are looking to build a static website using next.
+
+
 
 </MDXJS>
 
