@@ -11,13 +11,13 @@ class TownScene extends Phaser.Scene {
         
 
         //  Cloud TileSet -> cloud_tileset.png
-        this.load.image("tiles", "/assets/img/fishchip/desert_tileset.png");
+        this.load.image("tiles", "/assets/img/fishchip/desert_tileset_1.png");
         this.load.tilemapTiledJSON(
             "cloud-city-map",
             "/assets/img/fishchip/cloud_city.json",
         );
         // /assets/img/fishchip/characters_filter.png
-        this.load.spritesheet("player", "/assets/img/fishchip/chip_charactersheet.png", {
+        this.load.spritesheet("player", "/assets/img/fishchip/chip_charactersheet_warmer.png", {
             frameWidth: 52,
             frameHeight: 72,
         });
