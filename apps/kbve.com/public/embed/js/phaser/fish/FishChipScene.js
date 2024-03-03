@@ -222,6 +222,7 @@ class FishChipScene extends Phaser.Scene {
         this.startTime = null; // Track start time of typing
         this.correctChars = 0; // Track number of correct characters typed
         this.wpm = 0;
+        this.typingStarted = false;
     }
 
     preload() {
@@ -232,8 +233,7 @@ class FishChipScene extends Phaser.Scene {
         this.load.audio('type', '/assets/img/fishchip/type.mp3');
         
 
-        //load spritesheet for fishing.png
-        this.load.spritesheet('fishing', '/assets/img/fishchip/fishing.png', { frameWidth: 480, frameHeight: 480 });
+        this.load.spritesheet('fishing', '/assets/img/fishchip/animate.png', { frameWidth: 800, frameHeight: 600 });
 
         if (!this.scene.get('GameOver')) { // Check if the scene isn't already added
             this.load.sceneFile('GameOver', '/embed/js/phaser/fish/GameOver.js')
@@ -246,7 +246,7 @@ class FishChipScene extends Phaser.Scene {
         this.score = 0;
 
         // Reset score text
-        this.scoreText.setText('Score: ' + this.score);
+        this.scoreText.setText('You Caught: ' + this.score + ' Fish');
 
         this.comboTextObjects.forEach(textObj => textObj.destroy()); // Clear previous combo texts
         this.comboTextObjects = [];
@@ -254,6 +254,7 @@ class FishChipScene extends Phaser.Scene {
         this.startTime = null; // Track start time of typing
         this.correctChars = 0; // Track number of correct characters typed
         this.wpm = 0;
+        this.typingStarted = false;
         this.timerText.setText('');
         if (this.countdownEvent) this.countdownEvent.remove();
     }
@@ -373,10 +374,8 @@ class FishChipScene extends Phaser.Scene {
 
         // Compare userInput with combo and handle success or failure
         if (this.userInput.join('') === this.combo.join('')) {
-            this.fisherman.play('catch');
-            this.fisherman.playAfterDelay('fishing', 1300);
             this.score++;
-            this.scoreText.setText('Score: ' + this.score);
+            this.scoreText.setText('You Caught: ' + this.score + ' Fish');
             this.wpm = this.calculateWPM();
             this.wpmText.setText('WPM: ' + this.wpm);
             this.instructions.setText(this.generateCompliments());
@@ -399,49 +398,81 @@ class FishChipScene extends Phaser.Scene {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ff0000',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(99);
 
         this.wpmText = this.add.text(480, 250, "WPM: 0", {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(99);
 
         this.scoreText = this.add.text(480, 300, this.score, {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(99);
 
         this.instructions = this.add.text(480, 650, "Press SHIFT to Start", {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(99);
 
         // add fishing sprite sheet
         this.anims.create({
             key: 'fishing',
-            frames: this.anims.generateFrameNumbers('fishing', { start: 0, end: 18 }),
-            frameRate: 20,
+            frames: this.anims.generateFrameNumbers('fishing', { start: 0, end: 46 }),
+            frameRate: 30,
             repeat: -1
         });
 
-        this.fisherman = this.add.sprite(480, 480, 'fishing').play('fishing').setScale(2).setDepth(-1);
+        this.fisherman = this.add.sprite(480, 480, 'fishing').play('fishing').setDepth(-1);
 
-        this.anims.create({
-            key: 'catch',
-            frames: this.anims.generateFrameNumbers('fishing', { start: 19, end: 45 }),
-            frameRate: 20,
-            repeat: -1
+    // Create a mask that matches the fishing sprite's bounds
+    let mask = this.make.graphics({
+        x: this.fisherman.x - this.fisherman.width / 2,
+        y: this.fisherman.y - this.fisherman.height / 2,
+        add: false
+    });
+    mask.fillStyle(0xffffff);
+    mask.beginPath();
+    mask.fillRect(0, 0, this.fisherman.width, this.fisherman.height);
+    mask.closePath();
+    mask.fillPath();
+    const maskImage = mask.createGeometryMask();
+
+    // Create the sandstorm effect with rectangles
+    for (let i = 0; i < 150; i++) {
+        const rect = this.add.rectangle(0, 0, this.cameras.main.width, 20, 0xc2b280, 0.2);
+        rect.setMask(maskImage);
+        rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x + this.fisherman.width / 2));
+        rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
+
+        this.tweens.add({
+            targets: rect,
+            x: `+=${this.cameras.main.width}`,
+            y: `+=${Phaser.Math.Between(-100, 100)}`,
+            ease: 'Linear',
+            duration: Phaser.Math.Between(3000, 5000),
+            repeat: -1,
+            yoyo: false,
+            onRepeat: () => {
+                rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x - this.fisherman.width / 2 + 100));
+                rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
+            }
         });
+    }
 
-        this.cameras.main.setBackgroundColor(0x00ff00);
         this.resetGameState()
 
         this.input.keyboard.on('keydown-SHIFT', () => {
-            this.instructions.setText('Type the letters as fast as you can!');
-            this.startComboSequence();
+            if(!this.typingStarted){
+                this.typingStarted = true;
+                this.instructions.setText('Type the letters as fast as you can!');
+                this.startComboSequence();
+            }
+            
+
         });
 
         this.input.keyboard.on('keydown', (event) => {
