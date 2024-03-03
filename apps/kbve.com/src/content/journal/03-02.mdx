@@ -69,7 +69,19 @@ The first step would be `pnpm nx add @nx/next`, which was able to add the @nx/ne
 I am thinking it might be because we had a couple changes happening at the same time, which was causing problems.
 The error was resolved with `pnpm exec nx g @nx/next:init --keepExistingVersions --updatePackageScripts` , which resolved the package scripts.
 
-For [Itch Page Template Reference](https://hedgiespresso.itch.io/itch-page-image-templates), this includes all the information.
+For [Itch Page Template Reference](https://hedgiespresso.itch.io/itch-page-image-templates), this includes all the information related to setting up the Itch template!
+
+The plan for now is to render the iframe for the game within a nextjs template, bundle it all up and then release it to the Itch via pipeline.
+
+To run the itch next template, we will issue this command:
+`./kbve.sh -nx next-itch-fishchip:run` ? Oh it seems that there were some changes to the way that next applications run within the Nx monorepo!
+
+Instead we will be doing `pnpm nx dev next-itch-fishchip` to run the website, at least in developer mode.
+Maybe under the run / build, we can adjust the action once we get a decent theme up and functional.
+
+A side note, I updated the includes for the `tsconfig.json` , allowing the `.next/types/**/*.ts`.
+
+This is the reference guide for the [Next Static Build](https://nextjs.org/docs/pages/building-your-application/deploying/static-exports)
 
 </MDXJS>
 

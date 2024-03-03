@@ -222,6 +222,7 @@ class FishChipScene extends Phaser.Scene {
         this.startTime = null; // Track start time of typing
         this.correctChars = 0; // Track number of correct characters typed
         this.wpm = 0;
+        this.typingStarted = false;
     }
 
     preload() {
@@ -254,6 +255,7 @@ class FishChipScene extends Phaser.Scene {
         this.startTime = null; // Track start time of typing
         this.correctChars = 0; // Track number of correct characters typed
         this.wpm = 0;
+        this.typingStarted = false;
         this.timerText.setText('');
         if (this.countdownEvent) this.countdownEvent.remove();
     }
@@ -436,12 +438,16 @@ class FishChipScene extends Phaser.Scene {
             repeat: -1
         });
 
-        this.cameras.main.setBackgroundColor(0x00ff00);
         this.resetGameState()
 
         this.input.keyboard.on('keydown-SHIFT', () => {
-            this.instructions.setText('Type the letters as fast as you can!');
-            this.startComboSequence();
+            if(!this.typingStarted){
+                this.typingStarted = true;
+                this.instructions.setText('Type the letters as fast as you can!');
+                this.startComboSequence();
+            }
+            
+
         });
 
         this.input.keyboard.on('keydown', (event) => {
