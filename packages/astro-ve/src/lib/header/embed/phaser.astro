@@ -98,25 +98,23 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
                     },
                     scene: {
                         preload: function() {
-                            this.load.image('logo', '/assets/img/letter_logo.png'); // Ensure you have a correct path to your logo image
+                            this.load.image('mainBg', 'https://utfs.io/f/2c17f660-7f39-4edf-b83e-122a71014d99-6gflls.webp'); // Ensure you have a correct path to your logo image
                             this.load.sceneFile('TownScene', `${scene}`);
+                            this.load.image('scroll', '/assets/img/fishchip/scroll.webp');
                         },
                         create: function() {
-                            this.logo = this.physics.add.image(400, 300, 'logo');
-                            this.logo.setCollideWorldBounds(true); // Prevent it from going out of bounds
-
-                            this.logo.setInteractive();
-
-                            this.logo.on('pointerdown', () => {
-                                // Here, 'this' refers to the current scene context
-                                // Switch to the FishScene
+                            this.add.image(480, 480, 'mainBg').setScale(0.1);
+                            
+                            this.mainMenuButtonImage = this.add.image(480, 480, 'scroll').setAlpha(0.9).setScale(0.7, 0.2).setInteractive({ useHandCursor: true });
+                            
+                            this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
+                                fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
+                            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+                            this.mainMenuButtonText.on('pointerdown', () => {
                                 this.scene.start('TownScene');
                             }, this);
+                            
 
-                        },
-                        update: function() {
-                            // Randomly update the logo's velocity
-                            this.logo.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(-200, 200));
                         }
                     },
                     // Input - prevent Wheel and touch capture
