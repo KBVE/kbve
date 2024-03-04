@@ -37,8 +37,6 @@ class TownScene extends Phaser.Scene {
           this.sound.add('music', { loop: true, volume: 0.1 }).play();
         }
         // this.gridEngine = this.plugins.get('gridEngine');
-        console.log(this.gridEngine);
-        console.log('Plugins?');
 
         // console.log(this.plugins); -> Plugin Works
 
@@ -78,7 +76,7 @@ class TownScene extends Phaser.Scene {
           ],
         };
         this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
-        this.createTextBubble(this.npcSprite.x, this.npcSprite.y, this.npcSprite.height, "Start fishing at the well! Go there and press F");
+        this.createTextBubble(this.npcSprite.x, this.npcSprite.y, this.npcSprite.height, "Enter the sand pit to start fishing! Go near it and press F!");
         this.gridEngine.moveRandomly("npc", 1500, 3);
         window.__GRID_ENGINE__ = this.gridEngine;
 
@@ -87,7 +85,7 @@ class TownScene extends Phaser.Scene {
     createTextBubble(x, y, height, text) {
       // Draw the bubble
       let bubbleWidth = 200; // Adjust based on your text length
-      let bubbleHeight = 50; // Adjust as needed
+      let bubbleHeight = 60; // Adjust as needed
       let bubblePadding = 10;
       this.bubble = this.add.graphics({ x: x, y: y });
   
@@ -158,11 +156,7 @@ class TownScene extends Phaser.Scene {
 
         if(this.input.keyboard.addKey('F').isDown)
         {
-            console.log('Action Key F was Pressed');
             let position = this.gridEngine.getPosition('player');
-            console.log(position);
-
-
 
             let withinRangeOfWell = isWithinRangeOfWell(position);
             if(withinRangeOfWell) {
@@ -185,13 +179,13 @@ class TownScene extends Phaser.Scene {
             } 
         }
         // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown) 
-        if (cursors.left.isDown) {
+        if (cursors.left.isDown || this.input.keyboard.addKey('A').isDown ) {
           this.gridEngine.move("player", "left");
-        } else if (cursors.right.isDown) {
+        } else if (cursors.right.isDown || this.input.keyboard.addKey('D').isDown ) {
           this.gridEngine.move("player", "right");
-        } else if (cursors.up.isDown) {
+        } else if (cursors.up.isDown || this.input.keyboard.addKey('W').isDown ) {
           this.gridEngine.move("player", "up");
-        } else if (cursors.down.isDown) {
+        } else if (cursors.down.isDown || this.input.keyboard.addKey('S').isDown ) {
           this.gridEngine.move("player", "down");
         } 
 
