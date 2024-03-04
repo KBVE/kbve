@@ -70,7 +70,7 @@ class GameOver extends Phaser.Scene {
     update() {
         this.input.keyboard.on('keydown', (event) => {
             if (event.key === 'Shift' || event.key === 'R') {
-                // Your code here for when any Shift key is pressed
+                // TODO -> Change state, start loading animation and/or display message of the current status
                 console.log('Shift is pressed');
                 this.retry();
             }
