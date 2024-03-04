@@ -1,0 +1,100 @@
+---
+title: 'March: 04'
+category: Daily
+date: 2024-03-04 12:00:00
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1709065556197-2cbe782878e1?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    March 4th!
+    The next couple steps 
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+
+<MDXJS>
+
+## Notes
+
+<MDXJS>
+
+### 2024
+
+</MDXJS>
+
+<MDXJS>
+
+#### DiscordBot
+
+Here is the updated discord bot compose, which I will have to switch over to a yaml file for deployment.
+
+```yaml
+
+version: '3.8'
+
+services:
+  redbot:
+    image: phasecorex/red-discordbot:audio
+    networks:
+      - public
+      - redacted
+    deploy:
+      mode: replicated
+      replicas: 1
+
+    environment:
+      - DATABASE_URL_PROD_FILE=/run/secrets/DATABASE_PROD_URL
+      - TOKEN=/run/secrets/DISCORD_MUSIC_TOKEN
+      - PREFIX=!!
+      - OWNER=/run/secrets/HOLY_DISCORD_UUID
+
+networks:
+  public:
+    external: true
+  redacted:
+    external: true
+
+```
+
+A future note to myself, we could connect the `API` and have it so that the discord bot can be reset via issue tickets on Github.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Inventory
+
+The inventory for the game will be under the localstorage and we will call it via nanostores.
+Before I put the code for the inventory out into the public and into the game, we want to make sure the first minigame is as bug free as we can get.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Ads
+
+I will start the advertising process again, which includes going through the links, content and getting approval from Adsense.
+I made an issue ticket earlier but if we get denied or have problems, I will create a new issue ticket around it.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Crossword
+
+One way to resolve the letter spacing issue would be to render crossword style squares and then place the letters via SVG inside of the panel.
+
+</MDXJS>
+
+
+</MDXJS>
+
