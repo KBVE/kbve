@@ -1,16 +1,18 @@
 ---
 export interface Props {
 	data?: string;
+	collection?: string;
+	slug?: string;
 	
 }
 const { data } = Astro.props;
 
-import { BentoGridDemo } from './_lib/bentoDemo';
+import { BentoAstroContent } from './_lib/bentoAstroContent';
 ---
 <Fragment>
 
 	<section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
-		<BentoGridDemo client:only="react" />
+		<BentoAstroContent client:only="react"  />
 	</section>
 
 </Fragment>
