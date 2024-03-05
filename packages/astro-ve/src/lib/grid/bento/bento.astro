@@ -4,9 +4,13 @@ export interface Props {
 	
 }
 const { data } = Astro.props;
+
+import { BentoGridDemo } from './_lib/bentoDemo';
 ---
 <Fragment>
 
-    
+	<section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
+		<BentoGridDemo client:only="react" />
+	</section>
 
 </Fragment>
