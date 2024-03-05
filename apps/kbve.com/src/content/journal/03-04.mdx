@@ -82,6 +82,35 @@ Side note, remember to json stringify or keep the data straight binary, with jso
 
 Confusion could arise from storing numbers as strings and having to parse it back and forth. Also there might be issues with how the pooling works out.
 
+StackOverFlow Reference for [GameState saving via localStorage](https://stackoverflow.com/questions/76631414/phaser-how-to-keep-game-data-organized-right-way).
+
+Here is the code snippet from `winner_joiner`, from the link above.
+
+```javascript
+
+// in the global scope 
+const GAME_STATE_KEY = 'MY_GAME_STATE';
+var GameState = {
+    // ...
+};
+
+// functions to save and load the State (if you want to persist it)
+
+function loadStateData(){
+    GameState = JSON.parse(localStorage.getItem(GAME_STATE_KEY));
+}
+
+function saveStateData(){
+    localStorage.setItem(GAME_STATE_KEY, JSON.stringify(GameState));
+}
+
+```
+
+This is a bit too `dumb data` but for this test casing it should be fine.
+
+One of the cool things about using the localStorage is that we can call it via the WASM too, in a way, it be a solid event holder for cross communication between client side applications that are running.
+
+
 </MDXJS>
 
 ---
@@ -162,7 +191,29 @@ Hmm, for the sake of time, we will just include this react library.
 
 `pnpm install @tabler/icons-react` to add it into the whole repo.
 
+After adding the package, I will quickly run a report and make sure everything is good to go!
+
+We already created the base folder for the bento, now will just add the file that we want to call.
+
+Inside of the `kbve.com` application, we will create the `Bento.astro` component.
+
+```javascript
+
+---
+import { AstroVe as VE } from '@kbve/astro-ve';
+---
+<VE widget="grid:bento:bento" {...Astro.props}>
+    <slot />
+</VE>
+
+```
+
+The `grid:bento:bento` is a referfence to the Astro VE `bento.astro` , the core base file that will hold the bento code.
+
+We are basically splitting the code to make it easier to reuse.
+
 </MDXJS>
+
 
 </MDXJS>
 
