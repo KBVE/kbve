@@ -117,6 +117,7 @@
     "@nestjs/platform-express": "^10.0.2",
     "@planetscale/database": "^1.11.0",
     "@swc/helpers": "~0.5.2",
+    "@tabler/icons-react": "^2.47.0",
     "@tailwindcss/typography": "^0.5.10",
     "@tamagui/config": "^1.90.6",
     "axios": "1.6.7",
