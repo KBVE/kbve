@@ -21,8 +21,6 @@ class CreditsScene extends Phaser.Scene {
         h0lybyte
         David
 
-        something in
-
         Artists:
         ArchanDroid - Sprites
         Nezt50 - Tiles

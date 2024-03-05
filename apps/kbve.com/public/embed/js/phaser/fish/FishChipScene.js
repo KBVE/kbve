@@ -229,9 +229,9 @@ class FishChipScene extends Phaser.Scene {
         //  Load the assets for the game - Replace with your own assets
         //this.load.setPath('/assets/img/fishchip');
 
-        
+
         this.load.audio('type', '/assets/img/fishchip/type.mp3');
-        
+
 
         this.load.spritesheet('fishing', '/assets/img/fishchip/animate.png', { frameWidth: 800, frameHeight: 600 });
 
@@ -286,24 +286,24 @@ class FishChipScene extends Phaser.Scene {
         this.displayCombo();
     }
 
+
+
     displayCombo() {
         // First, clear any existing combo text objects
         this.comboTextObjects.forEach(textObj => textObj.destroy());
         this.comboTextObjects = [];
 
-        let startX = 480 - (this.combo.length * 20); // Example starting X calculation
+        const characterSpacing = 30;
+        const startX = 480 - (this.combo.length * characterSpacing) / 2;
 
         this.combo.forEach((char, index) => {
-            // Before creating a new text object, ensure there's not already one at this index
-            if (!this.comboTextObjects[index]) {
-                const textObj = this.add.text(startX + (index * 40), 384, char, {
-                    fontFamily: 'Arial Black', fontSize: 48, color: '#ffffff',
-                    stroke: '#000000', strokeThickness: 8,
-                    align: 'center'
-                }).setOrigin(0.5);
+            const textObj = this.add.text(startX + (index * characterSpacing), 384, char, {
+                fontFamily: 'Courier', fontSize: 48, color: '#ffffff',
+                stroke: '#000000', strokeThickness: 8,
+                align: 'center'
+            }).setOrigin(0.5);
 
-                this.comboTextObjects[index] = textObj;
-            }
+            this.comboTextObjects[index] = textObj;
         });
     }
 
@@ -327,9 +327,7 @@ class FishChipScene extends Phaser.Scene {
                 this.userInput.push(key); // Add the correct key to userInput
 
                 // Update the color of the matched character to green
-                if (this.comboTextObjects[this.userInput.length - 1]) {
-                    this.comboTextObjects[this.userInput.length - 1].setColor('#00ff00');
-                }
+                this.comboTextObjects[this.userInput.length - 1].setColor('#00ff00');
 
                 // Increment correct characters count for WPM calculation
                 this.correctChars++;
@@ -343,7 +341,6 @@ class FishChipScene extends Phaser.Scene {
             }
         }
     }
-
 
     calculateWPM() {
         const currentTime = Date.now();
@@ -390,7 +387,7 @@ class FishChipScene extends Phaser.Scene {
     }
 
     create() {
-        
+
         const typeSound = this.sound.add('type', { volume: .1 });
 
         // Initialize timer display
@@ -428,50 +425,50 @@ class FishChipScene extends Phaser.Scene {
 
         this.fisherman = this.add.sprite(480, 480, 'fishing').play('fishing').setDepth(-1);
 
-    // Create a mask that matches the fishing sprite's bounds
-    let mask = this.make.graphics({
-        x: this.fisherman.x - this.fisherman.width / 2,
-        y: this.fisherman.y - this.fisherman.height / 2,
-        add: false
-    });
-    mask.fillStyle(0xffffff);
-    mask.beginPath();
-    mask.fillRect(0, 0, this.fisherman.width, this.fisherman.height);
-    mask.closePath();
-    mask.fillPath();
-    const maskImage = mask.createGeometryMask();
-
-    // Create the sandstorm effect with rectangles
-    for (let i = 0; i < 150; i++) {
-        const rect = this.add.rectangle(0, 0, this.cameras.main.width, 20, 0xc2b280, 0.2);
-        rect.setMask(maskImage);
-        rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x + this.fisherman.width / 2));
-        rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
-
-        this.tweens.add({
-            targets: rect,
-            x: `+=${this.cameras.main.width}`,
-            y: `+=${Phaser.Math.Between(-100, 100)}`,
-            ease: 'Linear',
-            duration: Phaser.Math.Between(3000, 5000),
-            repeat: -1,
-            yoyo: false,
-            onRepeat: () => {
-                rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x - this.fisherman.width / 2 + 100));
-                rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
-            }
+        // Create a mask that matches the fishing sprite's bounds
+        let mask = this.make.graphics({
+            x: this.fisherman.x - this.fisherman.width / 2,
+            y: this.fisherman.y - this.fisherman.height / 2,
+            add: false
         });
-    }
+        mask.fillStyle(0xffffff);
+        mask.beginPath();
+        mask.fillRect(0, 0, this.fisherman.width, this.fisherman.height);
+        mask.closePath();
+        mask.fillPath();
+        const maskImage = mask.createGeometryMask();
+
+        // Create the sandstorm effect with rectangles
+        for (let i = 0; i < 150; i++) {
+            const rect = this.add.rectangle(0, 0, this.cameras.main.width, 20, 0xc2b280, 0.2);
+            rect.setMask(maskImage);
+            rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x + this.fisherman.width / 2));
+            rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
+
+            this.tweens.add({
+                targets: rect,
+                x: `+=${this.cameras.main.width}`,
+                y: `+=${Phaser.Math.Between(-100, 100)}`,
+                ease: 'Linear',
+                duration: Phaser.Math.Between(3000, 5000),
+                repeat: -1,
+                yoyo: false,
+                onRepeat: () => {
+                    rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x - this.fisherman.width / 2 + 100));
+                    rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
+                }
+            });
+        }
 
         this.resetGameState()
 
         this.input.keyboard.on('keydown-SHIFT', () => {
-            if(!this.typingStarted){
+            if (!this.typingStarted) {
                 this.typingStarted = true;
                 this.instructions.setText('Type the letters as fast as you can!');
                 this.startComboSequence();
             }
-            
+
 
         });
 
