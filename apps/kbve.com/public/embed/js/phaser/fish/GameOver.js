@@ -67,6 +67,16 @@ class GameOver extends Phaser.Scene {
         this.scene.start('FishChipScene');
     }
 
+    update() {
+        this.input.keyboard.on('keydown', (event) => {
+            if (event.key === 'Shift' || event.key === 'R') {
+                // TODO -> Change state, start loading animation and/or display message of the current status
+                console.log('Shift is pressed');
+                this.retry();
+            }
+        });
+    }
+
     mainMenu() {
         this.scene.start('TownScene');
     }
