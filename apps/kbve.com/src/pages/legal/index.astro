@@ -1,6 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 
+import Bento from '../../components/Bento.astro';
+
 const title = 'KBVE.com - Legal Information';
 const description = 'KBVE Legal Information, ToS, Privacy and other legal documents';
 
@@ -12,4 +14,5 @@ const legals = await getCollection('legal');
 ---
 <Layout title={title} description={description} >
 
+    <Bento />
 </Layout>
