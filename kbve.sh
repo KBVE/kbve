@@ -15,6 +15,114 @@ UNITY_PLUGIN_LIBCEF_CODECS="https://utfs.io/f/4d91b407-38f3-4f71-85ee-8e26145b8e
 UNITY_PLUGIN_LIBCEF_CODECS_PATH=""
 
 
+# Function to install and prepare Rust
+install_rust() {
+    local session_name="rust-installation"
+    local install_command="curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+
+    # Check if the tmux session exists
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "Creating a new tmux session named '$session_name' for Rust installation."
+        tmux new-session -s "$session_name" -d
+        # Send the Rust installation command to the session
+        tmux send-keys -t "$session_name" "$install_command" C-m
+        echo "Rust installation command has been sent to the tmux session '$session_name'."
+    else
+        echo "Tmux session '$session_name' already exists."
+    fi
+
+    # Attach to the tmux session
+    tmux attach-session -t "$session_name"
+}
+
+# Function to install and prepare NodeJS
+install_node_pnpm() {
+    local session_name="node-pnpm-installation"
+    local install_node_command="curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash && source ~/.nvm/nvm.sh && nvm install node"
+    local install_pnpm_command="npm install -g pnpm"
+
+    # Check if the tmux session exists
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "Creating a new tmux session named '$session_name' for Node.js and pnpm installation."
+        tmux new-session -s "$session_name" -d
+        # Send the Node.js installation command to the session
+        tmux send-keys -t "$session_name" "$install_node_command" C-m
+        # After Node.js is installed, send the pnpm installation command
+        tmux send-keys -t "$session_name" "$install_pnpm_command" C-m
+        echo "Node.js and pnpm installation commands have been sent to the tmux session '$session_name'."
+    else
+        echo "Tmux session '$session_name' already exists."
+    fi
+
+    # Attach to the tmux session
+    tmux attach-session -t "$session_name"
+}
+
+# Functions to install and prepare DotNet
+install_dotnet() {
+    local session_name="dotnet-installation"
+    local install_dotnet_command="wget https://dot.net/v1/dotnet-install.sh && chmod +x dotnet-install.sh && ./dotnet-install.sh --channel 7.0 --version latest"
+
+    # Check if the tmux session exists
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "Creating a new tmux session named '$session_name' for .NET 7 installation."
+        tmux new-session -s "$session_name" -d
+        # Send the .NET 7 installation command to the session
+        tmux send-keys -t "$session_name" "$install_dotnet_command" C-m
+        echo ".NET 7 installation command has been sent to the tmux session '$session_name'."
+    else
+        echo "Tmux session '$session_name' already exists."
+    fi
+
+    # Attach to the tmux session
+    tmux attach-session -t "$session_name"
+}
+
+# Functions to install and prepare Poetry
+install_python_and_poetry() {
+    local session_name="python-poetry-installation"
+    local install_python_command="pyenv install 3.11.0 && pyenv global 3.11.0"
+    local install_poetry_command="curl -sSL https://install.python-poetry.org | python3 -"
+
+    # Check if the tmux session exists
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "Creating a new tmux session named '$session_name' for Python 3.11 and Poetry installation."
+        tmux new-session -s "$session_name" -d
+        # Send the Python 3.11 installation command to the session
+        tmux send-keys -t "$session_name" "$install_python_command" C-m
+        # Send the Poetry installation command to the session
+        tmux send-keys -t "$session_name" "$install_poetry_command" C-m
+        echo "Python 3.11 and Poetry installation commands have been sent to the tmux session '$session_name'."
+    else
+        echo "Tmux session '$session_name' already exists."
+    fi
+
+    # Attach to the tmux session
+    tmux attach-session -t "$session_name"
+}
+
+# Function to run 'pnpm install' within a tmux session in the current directory
+install_monorepo() {
+    local session_name="monorepo-installation"
+    local install_command="pnpm install"
+
+    # Check if the tmux session exists
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "Creating a new tmux session named '$session_name' for monorepo installation."
+        tmux new-session -s "$session_name" -d
+        # Navigate to the current directory in the new session
+        tmux send-keys -t "$session_name" "cd $(pwd)" C-m
+        # Send the 'pnpm install' command to the session
+        tmux send-keys -t "$session_name" "$install_command" C-m
+        echo "'pnpm install' command has been sent to the tmux session '$session_name'."
+    else
+        echo "Tmux session '$session_name' already exists."
+    fi
+
+    # Attach to the tmux session
+    tmux attach-session -t "$session_name"
+}
+
 # Function to add optional submodule
 addOptionalSubmodule() {
     local SUBMODULE_PATH=$1
@@ -227,6 +335,21 @@ case "$1" in
         ;;
     -root)
         check_root
+        ;;
+    -installrust)
+        install_rust
+        ;;
+    -installnode)
+        install_node_pnpm
+        ;;
+    -installnet)
+        install_dotnet
+        ;;
+    -installpy)
+        install_python_and_poetry
+        ;;
+    -install)
+        install_monorepo
         ;;
     -studio)
         manage_tmux_session "studio" "pnpm nx run api:studio"
