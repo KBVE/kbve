@@ -78,6 +78,29 @@ install_dotnet() {
     tmux attach-session -t "$session_name"
 }
 
+# Functions to install and prepare Poetry
+install_python_and_poetry() {
+    local session_name="python-poetry-installation"
+    local install_python_command="pyenv install 3.11.0 && pyenv global 3.11.0"
+    local install_poetry_command="curl -sSL https://install.python-poetry.org | python3 -"
+
+    # Check if the tmux session exists
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "Creating a new tmux session named '$session_name' for Python 3.11 and Poetry installation."
+        tmux new-session -s "$session_name" -d
+        # Send the Python 3.11 installation command to the session
+        tmux send-keys -t "$session_name" "$install_python_command" C-m
+        # Send the Poetry installation command to the session
+        tmux send-keys -t "$session_name" "$install_poetry_command" C-m
+        echo "Python 3.11 and Poetry installation commands have been sent to the tmux session '$session_name'."
+    else
+        echo "Tmux session '$session_name' already exists."
+    fi
+
+    # Attach to the tmux session
+    tmux attach-session -t "$session_name"
+}
+
 # Function to run 'pnpm install' within a tmux session in the current directory
 install_monorepo() {
     local session_name="monorepo-installation"
@@ -318,6 +341,15 @@ case "$1" in
         ;;
     -installnode)
         install_node_pnpm
+        ;;
+    -installnet)
+        install_dotnet
+        ;;
+    -installpy)
+        install_python_and_poetry
+        ;;
+    -install)
+        install_monorepo
         ;;
     -studio)
         manage_tmux_session "studio" "pnpm nx run api:studio"
