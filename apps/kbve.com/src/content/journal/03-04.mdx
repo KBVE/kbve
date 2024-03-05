@@ -1,0 +1,219 @@
+---
+title: 'March: 04'
+category: Daily
+date: 2024-03-04 12:00:00
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1709065556197-2cbe782878e1?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    March 4th!
+    The next couple steps 
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+
+<MDXJS>
+
+## Notes
+
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### DiscordBot
+
+Here is the updated discord bot compose, which I will have to switch over to a yaml file for deployment.
+
+```yaml
+
+version: '3.8'
+
+services:
+  redbot:
+    image: phasecorex/red-discordbot:audio
+    networks:
+      - public
+      - redacted
+    deploy:
+      mode: replicated
+      replicas: 1
+
+    environment:
+      - DATABASE_URL_PROD_FILE=/run/secrets/DATABASE_PROD_URL
+      - TOKEN=/run/secrets/DISCORD_MUSIC_TOKEN
+      - PREFIX=!!
+      - OWNER=/run/secrets/HOLY_DISCORD_UUID
+
+networks:
+  public:
+    external: true
+  redacted:
+    external: true
+
+```
+
+A future note to myself, we could connect the `API` and have it so that the discord bot can be reset via issue tickets on Github.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Inventory
+
+The inventory for the game will be under the localstorage and we will call it via nanostores.
+Before I put the code for the inventory out into the public and into the game, we want to make sure the first minigame is as bug free as we can get.
+
+Docs for [LocalStorage](https://rexrainbow.github.io/phaser3-rex-notes/docs/site/localstorage/)
+
+What we could do is wrap this around with a try-catch and maybe wrap it once more with nanostores? 
+
+Call Nanostores first to handle the data, if there are any issues with calling nanostores, have it fallback to localStorage.
+
+Side note, remember to json stringify or keep the data straight binary, with json stringify it would be easier to debug but by keeping the data straight binary we get the best performance.
+
+Confusion could arise from storing numbers as strings and having to parse it back and forth. Also there might be issues with how the pooling works out.
+
+StackOverFlow Reference for [GameState saving via localStorage](https://stackoverflow.com/questions/76631414/phaser-how-to-keep-game-data-organized-right-way).
+
+Here is the code snippet from `winner_joiner`, from the link above.
+
+```javascript
+
+// in the global scope 
+const GAME_STATE_KEY = 'MY_GAME_STATE';
+var GameState = {
+    // ...
+};
+
+// functions to save and load the State (if you want to persist it)
+
+function loadStateData(){
+    GameState = JSON.parse(localStorage.getItem(GAME_STATE_KEY));
+}
+
+function saveStateData(){
+    localStorage.setItem(GAME_STATE_KEY, JSON.stringify(GameState));
+}
+
+```
+
+This is a bit too `dumb data` but for this test casing it should be fine.
+
+One of the cool things about using the localStorage is that we can call it via the WASM too, in a way, it be a solid event holder for cross communication between client side applications that are running.
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Ads
+
+I will start the advertising process again, which includes going through the links, content and getting approval from Adsense.
+I made an issue ticket earlier but if we get denied or have problems, I will create a new issue ticket around it.
+
+The content requirement and legal documentation is a priority for this week.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Crossword
+
+One way to resolve the letter spacing issue would be to render crossword style squares and then place the letters via SVG inside of the panel.
+One idea on how we would handle the SVGs would be to create a set of them for A to Z , like `A.svg` to `Z.svg` and then render them as they are on the screen.
+
+We would have to cache / preload all the SVGs ahead of time as well... hmm we could even store them into the localStorage? There could be a couple ways for me test case around this.
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Park
+
+I thought it would be wise to take a quick walk around a local park and setup shop!
+Sometimes just programming outside, with a bit of fresh air and natural sunlight, oh it definitely hits perfect.
+The spring time weather is hitting the right spot within the soul.
+
+Now let me resolve that retry issue!
+
+Well GPT was able to solve it really quick!
+
+```javascript
+
+    update() {
+        this.input.keyboard.on('keydown', (event) => {
+            if (event.key === 'Shift' || event.key === 'R') {
+                console.log('Shift is pressed');
+                this.retry();
+            }
+        });
+    }
+
+```
+
+In a future update, we could include an animation when switching the scenes, maybe a small spinner or just some form of notification to the user when the scene changes.
+This will help prevent the user from thinking the game is bugged out or frozen.
+
+
+</MDXJS>
+
+
+---
+
+<MDXJS>
+
+#### Legal
+
+I need to transfer over and render the legal documents, oh the joys.
+
+Majortiy of it is basic boilerplate and should not be an issue to convert over.
+
+Let us try a bento grid out and see if it looks solid!
+
+According to the docs, we need to include a `@tabler/icons-react` package, which is probably there it handle the SVGS.
+Hmm, for the sake of time, we will just include this react library. 
+
+`pnpm install @tabler/icons-react` to add it into the whole repo.
+
+After adding the package, I will quickly run a report and make sure everything is good to go!
+
+We already created the base folder for the bento, now will just add the file that we want to call.
+
+Inside of the `kbve.com` application, we will create the `Bento.astro` component.
+
+```javascript
+
+---
+import { AstroVe as VE } from '@kbve/astro-ve';
+---
+<VE widget="grid:bento:bento" {...Astro.props}>
+    <slot />
+</VE>
+
+```
+
+The `grid:bento:bento` is a referfence to the Astro VE `bento.astro` , the core base file that will hold the bento code.
+
+We are basically splitting the code to make it easier to reuse.
+
+</MDXJS>
+
+</MDXJS>
+

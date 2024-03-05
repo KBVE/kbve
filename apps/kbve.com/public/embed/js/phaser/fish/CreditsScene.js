@@ -11,7 +11,7 @@ class CreditsScene extends Phaser.Scene {
     create() {
         // Add the background image
         this.add.image(this.cameras.main.centerX, this.cameras.main.centerY, 'creditsBg');
-        
+
 
         // add scroll background for text
 
