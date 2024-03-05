@@ -72,6 +72,16 @@ A future note to myself, we could connect the `API` and have it so that the disc
 The inventory for the game will be under the localstorage and we will call it via nanostores.
 Before I put the code for the inventory out into the public and into the game, we want to make sure the first minigame is as bug free as we can get.
 
+Docs for [LocalStorage](https://rexrainbow.github.io/phaser3-rex-notes/docs/site/localstorage/)
+
+What we could do is wrap this around with a try-catch and maybe wrap it once more with nanostores? 
+
+Call Nanostores first to handle the data, if there are any issues with calling nanostores, have it fallback to localStorage.
+
+Side note, remember to json stringify or keep the data straight binary, with json stringify it would be easier to debug but by keeping the data straight binary we get the best performance.
+
+Confusion could arise from storing numbers as strings and having to parse it back and forth. Also there might be issues with how the pooling works out.
+
 </MDXJS>
 
 ---
@@ -83,6 +93,8 @@ Before I put the code for the inventory out into the public and into the game, w
 I will start the advertising process again, which includes going through the links, content and getting approval from Adsense.
 I made an issue ticket earlier but if we get denied or have problems, I will create a new issue ticket around it.
 
+The content requirement and legal documentation is a priority for this week.
+
 </MDXJS>
 
 ---
@@ -92,6 +104,10 @@ I made an issue ticket earlier but if we get denied or have problems, I will cre
 #### Crossword
 
 One way to resolve the letter spacing issue would be to render crossword style squares and then place the letters via SVG inside of the panel.
+One idea on how we would handle the SVGs would be to create a set of them for A to Z , like `A.svg` to `Z.svg` and then render them as they are on the screen.
+
+We would have to cache / preload all the SVGs ahead of time as well... hmm we could even store them into the localStorage? There could be a couple ways for me test case around this.
+
 
 </MDXJS>
 
@@ -128,6 +144,25 @@ This will help prevent the user from thinking the game is bugged out or frozen.
 
 </MDXJS>
 
+
+---
+
+<MDXJS>
+
+#### Legal
+
+I need to transfer over and render the legal documents, oh the joys.
+
+Majortiy of it is basic boilerplate and should not be an issue to convert over.
+
+Let us try a bento grid out and see if it looks solid!
+
+According to the docs, we need to include a `@tabler/icons-react` package, which is probably there it handle the SVGS.
+Hmm, for the sake of time, we will just include this react library. 
+
+`pnpm install @tabler/icons-react` to add it into the whole repo.
+
+</MDXJS>
 
 </MDXJS>
 
