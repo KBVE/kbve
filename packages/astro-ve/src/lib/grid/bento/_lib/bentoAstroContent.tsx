@@ -12,7 +12,7 @@ import {
 } from "@tabler/icons-react";
  
 
-interface IAstroItem {
+export interface IAstroItem {
     title: string;
     description: string;
     header: React.ReactNode;
@@ -20,7 +20,7 @@ interface IAstroItem {
 }
 
 
-interface BentoAstroContentProps {
+export interface BentoAstroContentProps {
     entry: IAstroItem[];
 }
 

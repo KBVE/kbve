@@ -5,14 +5,23 @@ export interface Props {
 	slug?: string;
 	
 }
-const { data } = Astro.props;
+const { data, collection = 'legal', slug } = Astro.props;
 
-import { BentoAstroContent } from './_lib/bentoAstroContent';
+import { BentoAstroContent, IAstroItem, BentoAstroContentProps } from './_lib/bentoAstroContent';
+import { getCollection, getEntry } from 'astro:content';
+
+// const legalCollection = await getCollection(`${collection}`);
+const legalCollection = await getCollection(collection);
+
+console.log(legalCollection);
+
 ---
 <Fragment>
 
 	<section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
-		<BentoAstroContent client:only="react"  />
+		<!--
+					<BentoAstroContent client:only="react"  />
+		 -->
 	</section>
 
 </Fragment>
