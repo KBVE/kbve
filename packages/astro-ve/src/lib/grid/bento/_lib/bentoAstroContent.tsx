@@ -11,10 +11,25 @@ import {
   IconTableColumn,
 } from "@tabler/icons-react";
  
-export function BentoGridDemo() {
+
+export interface IAstroItem {
+    title: string;
+    description: string;
+    header: React.ReactNode;
+    icon: React.ReactNode;
+}
+
+
+export interface BentoAstroContentProps {
+    entry: IAstroItem[];
+}
+
+
+
+export function BentoAstroContent({ entry }: BentoAstroContentProps) {
   return (
-    <BentoGrid className="max-w-4xl mx-auto bg-zinc-800 p-4">
-      {items.map((item, i) => (
+    <BentoGrid className="mx-auto bg-zinc-800 p-4">
+      {entry.map((item, i) => (
         <BentoGridItem
           key={i}
           title={item.title}
@@ -30,6 +45,7 @@ export function BentoGridDemo() {
 const Skeleton = () => (
   <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 dark:from-neutral-900 dark:to-neutral-800 to-neutral-100"></div>
 );
+
 const items = [
   {
     title: "The Dawn of Innovation",
