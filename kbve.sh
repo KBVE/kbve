@@ -78,6 +78,27 @@ install_dotnet() {
     tmux attach-session -t "$session_name"
 }
 
+# Function to run 'pnpm install' within a tmux session in the current directory
+install_monorepo() {
+    local session_name="monorepo-installation"
+    local install_command="pnpm install"
+
+    # Check if the tmux session exists
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "Creating a new tmux session named '$session_name' for monorepo installation."
+        tmux new-session -s "$session_name" -d
+        # Navigate to the current directory in the new session
+        tmux send-keys -t "$session_name" "cd $(pwd)" C-m
+        # Send the 'pnpm install' command to the session
+        tmux send-keys -t "$session_name" "$install_command" C-m
+        echo "'pnpm install' command has been sent to the tmux session '$session_name'."
+    else
+        echo "Tmux session '$session_name' already exists."
+    fi
+
+    # Attach to the tmux session
+    tmux attach-session -t "$session_name"
+}
 
 # Function to add optional submodule
 addOptionalSubmodule() {
