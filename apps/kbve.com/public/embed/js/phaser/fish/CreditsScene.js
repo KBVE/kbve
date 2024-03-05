@@ -11,7 +11,7 @@ class CreditsScene extends Phaser.Scene {
     create() {
         // Add the background image
         this.add.image(this.cameras.main.centerX, this.cameras.main.centerY, 'creditsBg');
-        
+
 
         // add scroll background for text
 
@@ -20,6 +20,8 @@ class CreditsScene extends Phaser.Scene {
         BChip
         h0lybyte
         David
+
+        something in
 
         Artists:
         ArchanDroid - Sprites
