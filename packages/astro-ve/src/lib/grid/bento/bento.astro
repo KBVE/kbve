@@ -1,27 +1,45 @@
 ---
 export interface Props {
 	data?: string;
-	collection?: string;
+	collection: any;
 	slug?: string;
 	
 }
-const { data, collection = 'legal', slug } = Astro.props;
+const { data, collection, slug } = Astro.props;
 
 import { BentoAstroContent, IAstroItem, BentoAstroContentProps } from './_lib/bentoAstroContent';
 import { getCollection, getEntry } from 'astro:content';
 
 // const legalCollection = await getCollection(`${collection}`);
-const legalCollection = await getCollection(collection);
+// const legalCollection = await getCollection('legal');
 
-console.log(legalCollection);
+// const collectionEntries = legalCollection.map((entry) => [
+//         entry.slug, 
+//         {
+//             id: entry.slug,
+//             title: entry.data.title,
+//             description: entry.data.description,
+//             tags: entry.data.tags,
+//         },
+//     ]);
+// const applicationObject = Object.fromEntries(collectionEntries);
+
+// console.log(legalCollection);
+
+// const astroItems: IAstroItem[] = legalCollection.map(item  => ({
+//     title: item.title, // Assuming `item` has a title
+//     description: item.description, // Assuming `item` has a description
+//     header: <YourHeaderComponent>, // Replace with your actual component
+//     icon: <YourIconComponent>, // Replace with your actual component
+//   }));
 
 ---
 <Fragment>
 
 	<section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
-		<!--
-					<BentoAstroContent client:only="react"  />
-		 -->
+		
+					<BentoAstroContent client:only="react" entry={collection} />
+		 
 	</section>
 
 </Fragment>
