@@ -43,6 +43,12 @@ class TownScene extends Phaser.Scene {
     this.npcSprite = this.add.sprite(0, 0, "player");
     this.npcSprite.scale = 1.5;
 
+    this.npcSprite = this.add.sprite(0, 0, "player");
+    this.npcSprite.scale = 1.5;
+
+    this.fishNpcSprite = this.add.sprite(0, 0, "player");
+    this.fishNpcSprite.scale = 1.5;
+
     this.cameras.main.startFollow(playerSprite, true);
     this.cameras.main.setFollowOffset(
       -playerSprite.width,
@@ -64,41 +70,52 @@ class TownScene extends Phaser.Scene {
           startPosition: { x: 4, y: 10 }, //Initial position 8,8
           speed: 3,
         },
+        {
+          id: "fishNpc",
+          sprite: this.fishNpcSprite,
+          walkingAnimationMapping: 4,
+          startPosition: { x: 8, y: 14 }, //Initial position 8,8
+          speed: 3,
+        },
       ],
     };
     this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
-    this.createTextBubble(this.npcSprite.x, this.npcSprite.y, this.npcSprite.height, "Enter the sand pit to start fishing! Go near it and press F!");
+    const totalScore = JSON.parse(localStorage.getItem('totalScore')) || 0;
+    this.createTextBubble(this.npcSprite, "Enter the sand pit to start fishing! Go near it and press F!");
+    this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${totalScore} fish!`);
     this.gridEngine.moveRandomly("npc", 1500, 3);
+    this.gridEngine.moveRandomly("fishNpc", 1500, 3);
     window.__GRID_ENGINE__ = this.gridEngine;
 
   }
 
-  createTextBubble(x, y, height, text) {
-    // Draw the bubble
-    let bubbleWidth = 200; // Adjust based on your text length
-    let bubbleHeight = 60; // Adjust as needed
+  createTextBubble(sprite, text) {
+    let bubbleWidth = 200;
+    let bubbleHeight = 60;
     let bubblePadding = 10;
-    this.bubble = this.add.graphics({ x: x, y: y });
 
-    // Bubble color and shape
-    this.bubble.fillStyle(0xffffff);
-    this.bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
-    this.bubble.setDepth(99);
+    let bubble = this.add.graphics();
+    bubble.fillStyle(0xffffff, 1);
+    bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
+    bubble.setDepth(99);
 
-    // Position text inside the bubble
-    this.content = this.add.text(0, 0, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
-    this.content.setPosition(this.bubble.x + bubblePadding, this.bubble.y + bubblePadding / 2);
-    this.content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
-    this.content.setDepth(100);
-    // Adjust the position based on the NPC sprite's position and the desired offset
-    this.updateTextBubblePosition(x, y - height - bubbleHeight); // New helper function to adjust position
+    let content = this.add.text(100, 30, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
+    content.setOrigin(0.5);
+    content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
+    content.setDepth(100);
+
+    let container = this.add.container(0, 0, [bubble, content]);
+    container.setDepth(100);
+
+    sprite.textBubble = container;
+    this.updateTextBubblePosition(sprite);
   }
 
-  updateTextBubblePosition(x, y) {
-    this.bubble.x = x;
-    this.bubble.y = y + 25;
-    this.content.x = this.bubble.x + 10; // Assuming bubblePadding is 10
-    this.content.y = this.bubble.y + 5; // Adjust as needed
+  updateTextBubblePosition(sprite) {
+    let container = sprite.textBubble;
+
+    container.x = sprite.x;
+    container.y = sprite.y - sprite.height - container.height / 2;
   }
 
   update() {
@@ -179,9 +196,12 @@ class TownScene extends Phaser.Scene {
       this.gridEngine.move("player", "down");
     }
 
-    // Update the speech bubble position to follow the NPC
-    if (this.npcSprite && this.bubble && this.content) {
-      this.updateTextBubblePosition(this.npcSprite.x, this.npcSprite.y - this.npcSprite.height);
+    // Update the speech bubble positions for both NPCs
+    if (this.npcSprite && this.npcSprite.textBubble) {
+      this.updateTextBubblePosition(this.npcSprite);
+    }
+    if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
+      this.updateTextBubblePosition(this.fishNpcSprite);
     }
   }
 }
