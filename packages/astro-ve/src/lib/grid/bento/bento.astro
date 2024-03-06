@@ -8,7 +8,17 @@ export interface Props {
 const { data, collection, slug } = Astro.props;
 
 import { BentoAstroContent, IAstroItem, BentoAstroContentProps } from './_lib/bentoAstroContent';
-import { getCollection, getEntry } from 'astro:content';
+
+// import { getCollection, getEntry } from 'astro:content';
+
+import parse from 'html-react-parser';
+
+const parsedCollection: IAstroItem[] = collection.map((item: { icon: string; header: string; }) => ({
+    ...item,
+    icon: parse(item.icon), // Parse and convert back to string if necessary
+    header: parse(item.header), // Parse and convert back to string if necessary
+    // Note: This assumes `parse` outputs what you need; otherwise, adjust handling
+}));
 
 ---
 <Fragment>
