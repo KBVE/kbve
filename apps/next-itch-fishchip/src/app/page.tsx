@@ -20,10 +20,11 @@ export default async function Index() {
       
       
       <div>
-          <iframe src="https://kbve.com/arcade/fishchip/itch/" height="1024px" width="100%" frameBorder="0" scrolling="no" >Your browser doesnot support iframes<a href="https://kbve.com/arcade/fishchip/"> click here to view the page directly. </a></iframe>
+          <iframe src="https://kbve.com/arcade/fishchip/itch/" height="950px" width="100%" frameBorder="0" scrolling="no" >Your browser doesnot support iframes<a href="https://kbve.com/arcade/fishchip/"> click here to view the page directly. </a></iframe>
 
       </div>
         
+      {/* 
     <div className="wrapper">
       <div className="container">
   
@@ -70,6 +71,9 @@ export default async function Index() {
           </div>
         </div>
 
+        
+
+        
         <div id="middle-content">
           <div id="learning-materials" className="rounded shadow">
             <h2>Learning materials</h2>
@@ -472,8 +476,11 @@ export default async function Index() {
             />
           </svg>
         </p>
+        
+
       </div>
     </div>
+      */}
   
     </StyledPage>
   );
