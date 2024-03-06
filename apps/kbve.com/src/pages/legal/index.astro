@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 
 import Bento from '../../components/Bento.astro';
-import React from "react";
+import type React from "react";
 
 const title = 'KBVE.com - Legal Information';
 const description = 'KBVE Legal Information, ToS, Privacy and other legal documents';
@@ -15,8 +15,9 @@ const legalCollection = await getCollection('legal');
 interface IAstroItem {
     title: string;
     description: string;
-    header: string;
-    icon: string;
+    slug: string;
+    header: React.ReactNode;
+    icon: React.ReactNode;
 }
 
 
@@ -24,7 +25,8 @@ interface IAstroItem {
 const astroItems: IAstroItem[] = legalCollection.map((entry)  => ({
      title: entry.data.title, // Assuming `item` has a title
      description: entry.data.description, // Assuming `item` has a description
-     header: `<YourHeaderComponent>`, 
+     slug: `/legal/${entry.slug}`,
+     header: `<Skeleton />`, 
      icon: `<IconClipboardCopy className="h-4 w-4 text-neutral-500" />`, 
    }));
 
