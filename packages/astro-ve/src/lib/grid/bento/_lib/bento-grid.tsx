@@ -2,10 +2,8 @@ import { cn } from "../../../cn";
 
 import React, { ReactNode } from 'react';
 
-interface Props {
-  children?: ReactNode; // This is how you type 'children'
-  // other props
-}
+import parse from 'html-react-parser';
+
 
 export const BentoGrid = ({
     className,
@@ -38,9 +36,24 @@ export const BentoGrid = ({
     title?: string | React.ReactNode;
     description?: string | React.ReactNode;
     slug?: string;
-    header?: React.ReactNode;
-    icon?: React.ReactNode;
+    
+    // header?: React.ReactNode;
+    // icon?: React.ReactNode;
+
+    header?: string | React.ReactNode;
+    icon?: string | React.ReactNode;
   }) => {
+
+    const renderIcon = () => {
+      if (typeof icon === 'string') {
+        // If icon is a string, parse it into ReactNode
+        return parse(icon);
+      } else {
+        // If icon is already a ReactNode, use it directly
+        return icon;
+      }
+    };
+  
 
     // Function to render the inner content, optionally wrapped in an <a> tag
     const renderContent = () => (
@@ -62,7 +75,8 @@ export const BentoGrid = ({
           className
         )}
       >
-        {header}
+              {typeof header === 'string' ? parse(header) : header}
+
         <div className="group-hover/bento:translate-x-2 transition duration-200">
           {/* Conditionally wrap the content with a link if slug is provided */}
           {slug ? (
