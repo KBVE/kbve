@@ -1,0 +1,141 @@
+---
+export interface Props {
+    message?: string;
+    scene?: string;
+}
+const { message, scene } = Astro.props;
+
+---
+
+
+<astro-canvas data-message={message} data-scene={scene}>
+    <div id="astro-canvas-container" {...Astro.props}>
+    </div>
+</astro-canvas>
+
+
+<script is:inline type="module">
+
+    import * as Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm';
+    window.Phaser = Phaser;
+
+    import GridEngine from 'https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm';
+    window.GridEngine = GridEngine;     // We had some issues with the capital and lowercase but have resolved it. window.gridEngine = GridEngine;
+
+
+    class AstroCanvas extends HTMLElement {
+        constructor() {
+            super();
+            const scene = this.dataset.scene;
+            window.addEventListener('load', (event) => {
+            this.initPhaser(scene)
+            });
+
+            document.addEventListener('after-swup', () => {
+            this.pauseGame();
+            });
+        }
+
+
+        pauseGame() {
+         // Check if the game and its scenes exist
+            console.log('Pausing Game');
+            if (this.game && this.game.scene) {
+                this.game.scene.pauseAll(); // This pauses all scenes
+                // Alternatively, if you want to pause a specific scene, use:
+                // this.game.scene.pause('YourSceneKey');
+            }
+        }
+
+
+        async initPhaser(scene) {
+            const _phaserContainer = document.getElementById('astro-canvas-container');
+
+            if (Phaser && GridEngine) {
+
+                // This is for Debugging.
+                //console.log('Phaser Engine Found');
+                //console.log(`${Phaser.VERSION}`);
+
+                // Initialize a Phaser game instance
+                //  Game Configuration
+                const config = {
+                    title: "TownEngine", // Title for the Game
+                    render: {
+                        antialias: false,
+                    }, // Anti Alias
+                    type: Phaser.AUTO,
+                    parent: _phaserContainer,
+
+                    width: 720,
+                    height: 528,
+                  
+                    transparent: true,
+                    //backgroundColor: '#c0987d', //#4488aa
+
+                    plugins: {
+                     scene: [
+                         {
+                         key: "gridEngine",
+                         plugin: GridEngine,
+                         mapping: "gridEngine",
+                         },
+                    ],
+
+
+                    },
+                    //  This physics engine may have to be removed.
+                    physics: {
+                        default: 'arcade',
+                        arcade: {
+                            gravity: { y: 0 } // No gravity
+                        }
+                    },
+                    scene: {
+                        preload: function() {
+                            this.load.image('mainBg', 'https://utfs.io/f/2c17f660-7f39-4edf-b83e-122a71014d99-6gflls.webp'); // Ensure you have a correct path to your logo image
+                            this.load.sceneFile('TownScene', `${scene}`);
+                            this.load.image('scroll', '/assets/img/fishchip/scroll.webp');
+                            this.load.audio('music', '/assets/img/fishchip/bg.ogg');
+                        },
+                        create: function() {
+                            if (!this.sound.get('music')?.isPlaying) {
+                              this.sound.add('music', { loop: true, volume: 0.1 }).play();
+                            }
+                            this.add.image(480, 480, 'mainBg').setScale(0.1);
+
+                            this.mainMenuButtonImage = this.add.image(480, 480, 'scroll').setAlpha(0.9).setScale(0.7, 0.2).setInteractive({ useHandCursor: true });
+
+                            this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
+                                fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
+                            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+                            this.mainMenuButtonText.on('pointerdown', () => {
+                                this.scene.start('TownScene');
+                            }, this);
+
+
+                        }
+                    },
+                    // Input - prevent Wheel and touch capture
+                    input: {
+                        mouse: {
+                            preventDefaultWheel: false
+                        },
+                        touch: {
+                            capture: false
+                        }
+                    }
+
+                };
+                    this.game =  new Phaser.Game(config);
+            } else {
+                console.log('Phaser not found');
+            }
+        }
+        
+    }
+
+
+    customElements.define('astro-canvas', AstroCanvas);
+
+</script>
