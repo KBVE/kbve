@@ -409,7 +409,7 @@ class FishChipScene extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5).setDepth(99);
 
-        this.instructions = this.add.text(480, 650, "Press SHIFT to Start", {
+        this.instructions = this.add.text(480, 650, "Prepare to Start Typing!\nPress SHIFT to Start", {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
