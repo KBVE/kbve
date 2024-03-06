@@ -409,7 +409,7 @@ class FishChipScene extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5).setDepth(99);
 
-        this.instructions = this.add.text(480, 650, "Press SHIFT to Start", {
+        this.instructions = this.add.text(480, 650, "Prepare to Start Typing!\nPress SHIFT to Start", {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
@@ -425,40 +425,8 @@ class FishChipScene extends Phaser.Scene {
 
         this.fisherman = this.add.sprite(480, 480, 'fishing').play('fishing').setDepth(-1);
 
-        // Create a mask that matches the fishing sprite's bounds
-        let mask = this.make.graphics({
-            x: this.fisherman.x - this.fisherman.width / 2,
-            y: this.fisherman.y - this.fisherman.height / 2,
-            add: false
-        });
-        mask.fillStyle(0xffffff);
-        mask.beginPath();
-        mask.fillRect(0, 0, this.fisherman.width, this.fisherman.height);
-        mask.closePath();
-        mask.fillPath();
-        const maskImage = mask.createGeometryMask();
 
-        // Create the sandstorm effect with rectangles
-        for (let i = 0; i < 150; i++) {
-            const rect = this.add.rectangle(0, 0, this.cameras.main.width, 20, 0xc2b280, 0.2);
-            rect.setMask(maskImage);
-            rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x + this.fisherman.width / 2));
-            rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
-
-            this.tweens.add({
-                targets: rect,
-                x: `+=${this.cameras.main.width}`,
-                y: `+=${Phaser.Math.Between(-100, 100)}`,
-                ease: 'Linear',
-                duration: Phaser.Math.Between(3000, 5000),
-                repeat: -1,
-                yoyo: false,
-                onRepeat: () => {
-                    rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x - this.fisherman.width / 2 + 100));
-                    rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
-                }
-            });
-        }
+        this.createSandStorm();
 
         this.resetGameState()
 
@@ -481,9 +449,91 @@ class FishChipScene extends Phaser.Scene {
             }
         });
 
+    }
 
+    /**
+     * Creates a sandstorm effect using object pooling and tween animations.
+     * The sandstorm consists of multiple rectangles that move across the screen continuously.
+     */
+    createSandStorm() {
+        /**
+         * The number of rectangles to be used in the sandstorm effect.
+         * @type {number}
+         */
+        const numRectangles = 150;
 
+        /**
+         * An array to store the reusable rectangle objects.
+         * @type {Phaser.GameObjects.Rectangle[]}
+         */
+        const rectanglePool = [];
 
+        // Create a mask for the sandstorm effect
+        let mask = this.make.graphics({
+            x: this.fisherman.x - this.fisherman.width / 2,
+            y: this.fisherman.y - this.fisherman.height / 2,
+            add: false
+        });
+        mask.fillStyle(0xffffff);
+        mask.beginPath();
+        mask.fillRect(0, 0, this.fisherman.width, this.fisherman.height);
+        mask.closePath();
+        mask.fillPath();
+        const maskImage = mask.createGeometryMask();
+
+        /**
+         * Retrieves a rectangle from the pool or creates a new one if the pool is empty.
+         * @returns {Phaser.GameObjects.Rectangle} The retrieved or created rectangle.
+         */
+        const getRectangle = () => {
+            if (rectanglePool.length > 0) {
+                return rectanglePool.pop();
+            } else {
+                return this.add.rectangle(0, 0, this.cameras.main.width, 20, 0xc2b280, 0.2);
+            }
+        };
+
+        /**
+         * Releases a rectangle back to the pool by setting its visibility to false and pushing it into the pool array.
+         * @param {Phaser.GameObjects.Rectangle} rect - The rectangle to be released.
+         */
+        const releaseRectangle = (rect) => {
+            rect.setVisible(false);
+            rectanglePool.push(rect);
+        };
+
+        /**
+         * Starts the animation for a rectangle.
+         * Sets the rectangle's visibility to true, positions it randomly within the fisherman's bounds,
+         * and creates a tween animation for the rectangle.
+         * @param {Phaser.GameObjects.Rectangle} rect - The rectangle to start the animation for.
+         */
+        const startRectangleAnimation = (rect) => {
+            rect.setVisible(true);
+            rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x + this.fisherman.width / 2));
+            rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
+
+            this.tweens.add({
+                targets: rect,
+                x: `+=${this.cameras.main.width}`,
+                y: `+=${Phaser.Math.Between(-100, 100)}`,
+                ease: 'Linear',
+                duration: Phaser.Math.Between(3000, 5000),
+                repeat: 0,
+                yoyo: false,
+                onComplete: () => {
+                    releaseRectangle(rect);
+                    startRectangleAnimation(rect);
+                }
+            });
+        };
+
+        // Loop through the number of rectangles
+        for (let i = 0; i < numRectangles; i++) {
+            const rect = getRectangle();
+            rect.setMask(maskImage);
+            startRectangleAnimation(rect);
+        }
     }
 }
 

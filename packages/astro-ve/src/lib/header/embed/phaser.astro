@@ -12,7 +12,7 @@ if(!scene) {
 ---
 <script is:inline type="module" src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm"></script>
 <script is:inline type="module" src="https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm"></script>
-<!-- 
+<!--
     *! We can remove this
     <script is:inline src="
 https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
@@ -64,7 +64,7 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
                     }, // Anti Alias
                     type: Phaser.AUTO,
                     parent: _phaserContainer,
-                
+
                     scale: {
 
                         mode: Phaser.Scale.FIT,
@@ -101,19 +101,23 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
                             this.load.image('mainBg', 'https://utfs.io/f/2c17f660-7f39-4edf-b83e-122a71014d99-6gflls.webp'); // Ensure you have a correct path to your logo image
                             this.load.sceneFile('TownScene', `${scene}`);
                             this.load.image('scroll', '/assets/img/fishchip/scroll.webp');
+                            this.load.audio('music', '/assets/img/fishchip/bg.ogg');
                         },
                         create: function() {
+                            if (!this.sound.get('music')?.isPlaying) {
+                              this.sound.add('music', { loop: true, volume: 0.1 }).play();
+                            }
                             this.add.image(480, 480, 'mainBg').setScale(0.1);
-                            
+
                             this.mainMenuButtonImage = this.add.image(480, 480, 'scroll').setAlpha(0.9).setScale(0.7, 0.2).setInteractive({ useHandCursor: true });
-                            
+
                             this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
                                 fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
                             }).setOrigin(0.5).setInteractive({ useHandCursor: true });
                             this.mainMenuButtonText.on('pointerdown', () => {
                                 this.scene.start('TownScene');
                             }, this);
-                            
+
 
                         }
                     },
@@ -126,7 +130,7 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
                             capture: false
                         }
                     }
-                
+
                 };
 
                     const game =  new Phaser.Game(config);
@@ -137,5 +141,5 @@ https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/dist/GridEngine.min.js
     }
 
     customElements.define('astro-phaser', AstroPhaser);
-    
+
 </script>
