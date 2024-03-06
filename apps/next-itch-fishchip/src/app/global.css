@@ -5,6 +5,7 @@
       line-height: 1.5;
       tab-size: 4;
       scroll-behavior: smooth;
+      background: #000;
     }
     body {
       font-family: inherit;
