@@ -22,6 +22,69 @@ const { message, scene } = Astro.props;
     import GridEngine from 'https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm';
     window.GridEngine = GridEngine;     // We had some issues with the capital and lowercase but have resolved it. window.gridEngine = GridEngine;
 
+    
+    // Function to reload Phaser and GridEngine libraries
+    const reloadGameLibraries = () => {
+        // Reload Phaser library
+        import('https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm')
+            .then(module => {
+                // Update the global reference with the reloaded module
+                window.Phaser = module;
+                console.log('Phaser reloaded successfully.');
+            })
+            .catch(error => console.error('Error reloading Phaser:', error));
+        
+        // Reload GridEngine library
+        import('https://cdn.jsdelivr.net/npm/grid-engine@2.44.2/+esm')
+            .then(module => {
+                // Update the global reference with the reloaded module
+                window.GridEngine = module.default;
+                console.log('GridEngine reloaded successfully.');
+            })
+            .catch(error => console.error('Error reloading GridEngine:', error));
+    };
+
+    /*
+
+          
+    */
+
+    document.addEventListener('astro:page-load', () => {
+
+                reloadGameLibraries()
+
+                if(!AstroCanvas.prototype.game)
+                {
+                    
+                    console.error('Unable to find game');
+                    // AstroCanvas.prototype.initPhaser(scene)
+                }
+
+            });
+
+    document.addEventListener('astro:before-swup', () => {
+        const astroCanvasElement = document.querySelector('astro-canvas');
+            
+            if (astroCanvasElement) {
+                    astroCanvasElement.shutdownGame();
+                }
+                else 
+                {
+                    console.error('Unable to locate Canvas Element');
+                }
+        
+            });
+
+    window.addEventListener('resize', () => {
+            if (this.game) {
+                // Adjust this logic based on your game's specific needs
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                this.game.scale.resize(width, height);
+                // Additional adjustments might be needed for game's internal layout
+            }
+        });
+
 
     class AstroCanvas extends HTMLElement {
         constructor() {
@@ -31,19 +94,25 @@ const { message, scene } = Astro.props;
             this.initPhaser(scene)
             });
 
-            document.addEventListener('after-swup', () => {
+            document.addEventListener('astro:after-swup', () => {
             this.pauseGame();
             });
+            
+   
         }
 
 
         pauseGame() {
          // Check if the game and its scenes exist
-            console.log('Pausing Game');
             if (this.game && this.game.scene) {
                 this.game.scene.pauseAll(); // This pauses all scenes
                 // Alternatively, if you want to pause a specific scene, use:
                 // this.game.scene.pause('YourSceneKey');
+                console.log('Pausing Game');
+
+            } else 
+            {
+                console.error('Unable to pause game');
             }
         }
 
@@ -67,9 +136,17 @@ const { message, scene } = Astro.props;
                     type: Phaser.AUTO,
                     parent: _phaserContainer,
 
-                    width: 720,
-                    height: 528,
-                  
+                    scale: {
+
+                    mode: Phaser.Scale.FIT,
+                    autoCenter: Phaser.Scale.CENTER_BOTH,
+
+                    min: {
+                        width: 720,
+                        height: 528,
+                    }
+                    },
+                                    
                     transparent: true,
                     //backgroundColor: '#c0987d', //#4488aa
 
@@ -135,7 +212,18 @@ const { message, scene } = Astro.props;
         
     }
 
+    if (!customElements.get('astro-canvas')) {     customElements.define('astro-canvas', AstroCanvas);  }
 
-    customElements.define('astro-canvas', AstroCanvas);
+    AstroCanvas.prototype.shutdownGame = function() {
+    if (this.game) {
+        this.game.destroy(true); // This destroys the game instance and cleans up resources, the `true` parameter removes all associated game objects
+        this.game = null; // Ensure reference is cleared
+        }
+        else {
+            console.error('Unable to shutdown game!');
+        }
+    };
+
+
 
 </script>
