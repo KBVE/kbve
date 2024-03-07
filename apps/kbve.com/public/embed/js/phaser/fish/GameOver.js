@@ -21,6 +21,8 @@ class GameOver extends Phaser.Scene {
     let totalScore = JSON.parse(localStorage.getItem('totalScore')) || 0;
     totalScore += this.score;
     localStorage.setItem('totalScore', JSON.stringify(totalScore));
+
+     // this.updateTotalScore(this.score);
   }
 
   create() {
@@ -90,6 +92,40 @@ class GameOver extends Phaser.Scene {
   mainMenu() {
     this.scene.start('TownScene');
   }
+
+
+  //** Inventory Sync */
+  //** NanoStores updateInventoryAddFish */
+  updateInventoryAddFish(additionalFish) {
+    // Check if nanostorespersistent and totalScoreStore are initialized
+      if (window.nanostorespersistent) {
+          try {
+              const totalScoreStore = window.nanostorespersistent.totalScoreStore;
+              
+              let totalScore = totalScoreStore.get();
+              totalScore += additionalScore;
+              totalScoreStore.set(totalScore);
+          } catch (error) {
+              console.error('Error updating totalScore with nanostores:', error);
+              this.fallbackToUpdateLocalStorage(additionalScore);
+          }
+      } else {
+          // Fallback directly if nanostorespersistent or totalScoreStore are not available
+          console.warn('nanostorespersistent or totalScoreStore not initialized. Falling back to localStorage.');
+          this.fallbackToUpdateLocalStorage(additionalScore);
+      }
+  }
+
+  //** Fallback to localStorage */
+  fallbackToUpdateLocalStorage(additionalScore) {
+      let totalScore = JSON.parse(localStorage.getItem('totalScore')) || 0;
+      totalScore += additionalScore;
+      localStorage.setItem('totalScore', JSON.stringify(totalScore));
+  }
+
+  //**  */
+
+
 }
 
 window.GameOver = GameOver;

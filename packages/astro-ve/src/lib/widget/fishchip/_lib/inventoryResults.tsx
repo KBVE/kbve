@@ -9,8 +9,10 @@ export const InventoryResults = () => {
 
    React.useEffect(() => {
       // Subscribe to the store's updates
-      const unsubscribe = totalScoreStore.subscribe(setTotalScore);
-
+      const unsubscribe = totalScoreStore.subscribe((newScore) => {
+         console.log('New totalScore:', newScore);
+         setTotalScore(newScore);
+     });
       // Cleanup subscription on component unmount
       return () => unsubscribe();
   }, []);
@@ -20,6 +22,7 @@ export const InventoryResults = () => {
     return (
      <div>
         Your Inventory! {totalScore}
+        Go to the <a href="/arcade/fishchip/inn/">inn</a>
      </div>
     );
   };
