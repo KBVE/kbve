@@ -46,14 +46,11 @@ const { message, scene } = Astro.props;
 
     /*
 
-          
-    */
-
-    document.addEventListener('astro:page-load', () => {
+        document.addEventListener('astro:page-load', () => {
 
                 reloadGameLibraries()
 
-                if(!AstroCanvas.prototype.game)
+                if(!(AstroCanvas.prototype).game)
                 {
                     
                     console.error('Unable to find game');
@@ -62,63 +59,103 @@ const { message, scene } = Astro.props;
 
             });
 
-    document.addEventListener('astro:before-swup', () => {
-        const astroCanvasElement = document.querySelector('astro-canvas');
+        document.addEventListener('astro:before-swup', () => {
+            const astroCanvasElement = document.querySelector('astro-canvas');
+                
+                if (astroCanvasElement) {
+                        astroCanvasElement.shutdownGame();
+                    }
+                    else 
+                    {
+                        console.error('Unable to locate Canvas Element');
+                    }
             
-            if (astroCanvasElement) {
-                    astroCanvasElement.shutdownGame();
+                });
+
+        window.addEventListener('resize', () => {
+                if (this.game) {
+                    // Adjust this logic based on your game's specific needs
+                    const width = window.innerWidth;
+                    const height = window.innerHeight;
+                    this.game.scale.resize(width, height);
+                    // Additional adjustments might be needed for game's internal layout
                 }
-                else 
-                {
-                    console.error('Unable to locate Canvas Element');
-                }
-        
             });
 
-    window.addEventListener('resize', () => {
-            if (this.game) {
-                // Adjust this logic based on your game's specific needs
-                const width = window.innerWidth;
-                const height = window.innerHeight;
-                this.game.scale.resize(width, height);
-                // Additional adjustments might be needed for game's internal layout
-            }
-        });
+          
+    */
 
+  
 
     class AstroCanvas extends HTMLElement {
         constructor() {
             super();
-            const scene = this.dataset.scene;
-            window.addEventListener('load', (event) => {
-            this.initPhaser(scene)
-            });
+            // const scene = this.dataset.scene;
+            // window.addEventListener('load', (event) => {
+            // this.initPhaser(scene)
+            // });
 
-            document.addEventListener('astro:after-swup', () => {
-            this.pauseGame();
-            });
+            // document.addEventListener('astro:after-swup', () => {
+            // this.pauseGame();
+            // });
+            this.initEventListener();
+
             
    
         }
 
+        initEventListener() {
+            window.addEventListener('load', () => this.initPhaser());
+            document.addEventListener('astro:after-swup', () => this.pauseGame());
+            document.addEventListener('astro:before-swup', () => this.shutdownGame());
+        }
+
+        connectedCallback() {
+            if (!this.game) {
+                this.initPhaser();
+            }
+        }
+
+        disconnectedCallback() {
+            this.shutdownGame();
+        }
+
 
         pauseGame() {
-         // Check if the game and its scenes exist
             if (this.game && this.game.scene) {
                 this.game.scene.pauseAll(); // This pauses all scenes
                 // Alternatively, if you want to pause a specific scene, use:
                 // this.game.scene.pause('YourSceneKey');
                 console.log('Pausing Game');
-
             } else 
             {
                 console.error('Unable to pause game');
             }
         }
 
+        shutdownGame() {
+            if (this.game) {
+                this.game.destroy(true);
+                this.game = null;
+                console.log('Game destroyed');
+            }
+        }
 
-        async initPhaser(scene) {
+
+        async initPhaser() {
+            const scene = this.dataset.scene;
             const _phaserContainer = document.getElementById('astro-canvas-container');
+
+            // Error Check for Phaser Container
+            if (!_phaserContainer) {
+                console.error('Phaser container not found');
+                return;
+            }
+
+            if (this.game) {
+                this.shutdownGame(); // Ensure no previous game instance is running
+            }
+
 
             if (Phaser && GridEngine) {
 
@@ -138,13 +175,19 @@ const { message, scene } = Astro.props;
 
                     scale: {
 
-                    mode: Phaser.Scale.FIT,
-                    autoCenter: Phaser.Scale.CENTER_BOTH,
+                        mode: Phaser.Scale.FIT,
+                        autoCenter: Phaser.Scale.CENTER_BOTH,
 
-                    min: {
-                        width: 720,
-                        height: 528,
-                    }
+                        min: {
+                            width: 720,
+                            height: 528,
+                        },
+
+                        max: {
+                            width: 1024,
+                            height: 800,
+                        }
+
                     },
                                     
                     transparent: true,
@@ -204,7 +247,9 @@ const { message, scene } = Astro.props;
                     }
 
                 };
-                    this.game =  new Phaser.Game(config);
+                    
+                // Initialize the game
+                this.game =  new Phaser.Game(config);
             } else {
                 console.log('Phaser not found');
             }
@@ -214,15 +259,6 @@ const { message, scene } = Astro.props;
 
     if (!customElements.get('astro-canvas')) {     customElements.define('astro-canvas', AstroCanvas);  }
 
-    AstroCanvas.prototype.shutdownGame = function() {
-    if (this.game) {
-        this.game.destroy(true); // This destroys the game instance and cleans up resources, the `true` parameter removes all associated game objects
-        this.game = null; // Ensure reference is cleared
-        }
-        else {
-            console.error('Unable to shutdown game!');
-        }
-    };
 
 
 
