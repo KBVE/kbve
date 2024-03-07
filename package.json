@@ -39,6 +39,7 @@
     "@nx/playwright": "18.0.4",
     "@nx/react": "18.0.4",
     "@nx/vite": "18.0.4",
+    "@nx/web": "18.0.4",
     "@nx/webpack": "18.0.4",
     "@nx/workspace": "18.0.4",
     "@nxlv/python": "17.0.0",
