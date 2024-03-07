@@ -1,0 +1,42 @@
+---
+export interface Props {
+    message?: string;
+    scene?: string;
+}
+const { message, scene } = Astro.props;
+
+---
+
+<script is:inline type="module">
+
+    // Initial import to make them available globally
+    import nanostorespersistent from 'https://cdn.jsdelivr.net/npm/@nanostores/persistent@0.10.1/+esm'
+    window.nanostorespersistent = nanostorespersistent;
+
+    import nanostores from 'https://cdn.jsdelivr.net/npm/nanostores@0.10.0/+esm'
+    window.nanostores = nanostores;
+
+    const reloadNanoStores = () => {
+        import('https://cdn.jsdelivr.net/npm/@nanostores/persistent@0.10.1/+esm')
+            .then(module => {
+                // Update the global reference with the reloaded module
+                window.nanostoresPersistent = module.default;
+                console.log('Nanostores persistent reloaded successfully.');
+            })
+            .catch(error => console.error('Error reloading Nanostores persistent:', error));
+        
+        // Reload nanostores module
+        import('https://cdn.jsdelivr.net/npm/nanostores@0.10.0/+esm')
+            .then(module => {
+                // Update the global reference with the reloaded module
+                window.nanostores = module.default;
+                console.log('Nanostores reloaded successfully.');
+            })
+            .catch(error => console.error('Error reloading Nanostores:', error));
+        };
+
+
+    document.addEventListener('astro:page-load', () => {
+        reloadNanoStores()
+    });
+</script>
