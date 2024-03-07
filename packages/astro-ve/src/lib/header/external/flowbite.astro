@@ -6,7 +6,31 @@ export interface Props {
 const { data, widget} = Astro.props;
 
 ---
-<script
+<!--
+
+    <script
 is:inline
 src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"
 />
+
+ -->
+
+
+<script is:inline type="module">
+  
+    import flowbite from 'https://cdn.jsdelivr.net/npm/flowbite@2.3.0/+esm'
+    window.flowbite = flowbite;
+
+    const reloadFlowbite = () => {
+        import('https://cdn.jsdelivr.net/npm/flowbite@2.3.0/+esm')
+            .then(({ initFlowbite }) => {
+                initFlowbite();
+            })
+            .catch(error => console.error('Error loading Flowbite:', error));
+        };
+
+
+    document.addEventListener('astro:page-load', () => {
+        reloadFlowbite()
+    });
+</script>
