@@ -59,6 +59,9 @@ dependencies:
   framer-motion:
     specifier: ^11.0.6
     version: 11.0.6(react-dom@18.2.0)(react@18.2.0)
+  grid-engine:
+    specifier: ^2.44.2
+    version: 2.44.2(phaser@3.80.1)
   html-react-parser:
     specifier: ^5.1.8
     version: 5.1.8(@types/react@18.2.58)(react@18.2.0)
@@ -10062,6 +10065,10 @@ packages:
     resolution: {integrity: sha512-Wj+fqpTLtTbG7c0tH47dkahefpLKEbB+xAZuLq7b4/IDHPl/n6VoXcyUQ2bypFlbSwvCr0y+bD4euTTqTJsPxQ==}
     dev: true
 
+  /@types/minimist@1.2.5:
+    resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
+    dev: false
+
   /@types/ms@0.7.32:
     resolution: {integrity: sha512-xPSg0jm4mqgEkNhowKgZFBNtwoEwF6gJ4Dhww+GFpm3IgtNseHQZ5IqdNwnquZEoANxyDAKDRAdVo4Z72VvD/g==}
     dev: true
@@ -15986,6 +15993,17 @@ packages:
       strip-bom-string: 1.0.0
     dev: true
 
+  /grid-engine@2.44.2(phaser@3.80.1):
+    resolution: {integrity: sha512-c1ZkODzD1qonq8Q9OhhEYeyWbOJxpOkmeYX4UKp3X+Vh22AGaER4mT2Kl8htgWATN71b40PkUQSNzimI4s66rQ==}
+    peerDependencies:
+      phaser: ~3.70.0
+    dependencies:
+      mnemonist: 0.39.8
+      phaser: 3.80.1
+      rxjs: 7.8.1
+      tiled-property-flattener: 1.1.1
+    dev: false
+
   /grpc-tools@1.12.4:
     resolution: {integrity: sha512-5+mLAJJma3BjnW/KQp6JBjUMgvu7Mu3dBvBPd1dcbNIb+qiR0817zDpgPjS7gRb+l/8EVNIa3cB02xI9JLToKg==}
     hasBin: true
@@ -19511,6 +19529,12 @@ packages:
       ufo: 1.3.1
     dev: true
 
+  /mnemonist@0.39.8:
+    resolution: {integrity: sha512-vyWo2K3fjrUw8YeeZ1zF0fy6Mu59RHokURlld8ymdUPjMlD9EC9ov1/YPqTgqRvUN9nTr3Gqfz29LYAmu0PHPQ==}
+    dependencies:
+      obliterator: 2.0.4
+    dev: false
+
   /mock-fs@5.2.0:
     resolution: {integrity: sha512-2dF2R6YMSZbpip1V1WHKGLNjr/k48uQClqMVb5H3MOvwc9qhYis3/IWbj02qIg/Y8MDXKFF4c5v0rxx2o6xTZw==}
     engines: {node: '>=12.0.0'}
@@ -20116,6 +20140,10 @@ packages:
       define-properties: 1.2.1
       es-abstract: 1.22.2
     dev: true
+
+  /obliterator@2.0.4:
+    resolution: {integrity: sha512-lgHwxlxV1qIg1Eap7LgIeoBWIMFibOjbrYPIPJZcI1mmGAI2m3lNYpK12Y+GBdPQ0U1hRwSord7GIaawz962qQ==}
+    dev: false
 
   /obuf@1.1.2:
     resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}
@@ -23604,6 +23632,14 @@ packages:
   /thunky@1.1.0:
     resolution: {integrity: sha512-eHY7nBftgThBqOyHGVN+l8gF0BucP09fMo0oO/Lb0w1OF80dJv+lDVpXG60WMQvkcxAkNybKsrEIE3ZtKGmPrA==}
     dev: true
+
+  /tiled-property-flattener@1.1.1:
+    resolution: {integrity: sha512-Acj6WKbBkJlmqyDtlUIwvGHtNgopUmxYNZiLYWvgxWOTmtVubwskvOoZV3qqCGepBtL/18Fq/t4396n1NpqHng==}
+    dependencies:
+      '@types/minimist': 1.2.5
+      lodash: 4.17.21
+      minimist: 1.2.8
+    dev: false
 
   /timers-ext@0.1.7:
     resolution: {integrity: sha512-b85NUNzTSdodShTIbky6ZF02e8STtVVfD+fu4aXXShEELpozH+bCpJLYMPZbsABN2wDH7fJpqIoXxJpzbf0NqQ==}

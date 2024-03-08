@@ -129,6 +129,7 @@
     "expo-splash-screen": "~0.26.1",
     "expo-status-bar": "~1.11.1",
     "framer-motion": "^11.0.6",
+    "grid-engine": "^2.44.2",
     "html-react-parser": "^5.1.8",
     "next": "14.0.4",
     "phaser": "^3.80.1",
