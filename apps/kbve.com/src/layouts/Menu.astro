@@ -16,7 +16,7 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 
 <Fragment>
 	<!-- Aside -->
-	<VE widget="nav:aside:demo" data="">
+	<!-- <VE widget="nav:aside:demo" data="">
 		<slot name="before-aside" />
 		<button
 			class={`h-10 w-10 flex items-center justify-center rounded-lg cursor-pointer hover:text-gray-800 hover:bg-kbve-svg-primary hover:duration-300 hover:ease-linear focus:bg-white focus:text-gray-500`}
@@ -172,10 +172,21 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 		</button>
 		
 		<slot name="after-aside" />
-	</VE>
+	</VE> -->
 
 	<!-- Drawers -->
-	<VE widget="drawer:flowbite:bottom" id="drawer-swipe" dyn={false} />
+	<VE
+		widget="drawer:flowbite:bottom"
+		id="drawer-swipe"
+		dyn={false}
+		options={[
+			{
+				href: '/arcade/fishchip',
+				name: 'Fish & Chip',
+				img: '/assets/img/svg/fishchip.svg',
+			},
+		]}
+	/>
 
 	<VE widget="drawer:flowbite:right" id="drawer-right" dyn={false}>
 		<Fragment slot="default">
