@@ -37,42 +37,38 @@ import Footer from './Footer.astro';
 			<header
 				class="h-16 w-full flex items-center relative justify-center px-5 space-x-10 bg-zinc-950">
 				<div
-					class="flex flex-shrink-0 items-center space-x-4 text-white">
-					<div class="flex flex-row items-end">
+					class="w-full flex flex-shrink-0 items-center space-x-4 text-white">
+					<VE
+						widget="nav:v01d:auto"
+						logo="/assets/img/letter_logo.png">
 						<VE
-							widget="nav:v01d:auto"
-							logo="/assets/img/letter_logo.png">
-							<VE
-								widget="kbve:user:user"
-								avatar="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
-							/>
-							<div class="text-center">
-								<button
-									class="text-white hover:bg-cyan-400 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
-									type="button"
-									data-drawer-target="drawer-swipe"
-									data-drawer-show="drawer-swipe"
-									data-drawer-placement="bottom"
-									data-drawer-edge="true"
-									data-drawer-edge-offset="bottom-[60px]"
-									aria-controls="drawer-swipe">
-									
+							widget="kbve:user:user"
+							avatar="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
+						/>
+						<div class="text-center">
+							<button
+								class="text-white hover:bg-cyan-400 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
+								type="button"
+								data-drawer-target="drawer-swipe"
+								data-drawer-show="drawer-swipe"
+								data-drawer-placement="bottom"
+								data-drawer-edge="true"
+								data-drawer-edge-offset="bottom-[60px]"
+								aria-controls="drawer-swipe">
 								
-									<div class="object-contain w-6" id="menu">
-										<dotlottie-player
-											hover
-											autoplay
-											mode="normal"
-											src="/assets/lottie/menu.lottie"
-										></dotlottie-player>
-									</div>
-									
-								</button>
-							</div>
-
 							
-						</VE>
-					</div>
+								<div class="object-contain w-6" id="menu">
+									<dotlottie-player
+										hover
+										autoplay
+										mode="normal"
+										src="/assets/lottie/menu.lottie"
+									></dotlottie-player>
+								</div>
+								
+							</button>
+						</div>
+					</VE>
 				</div>
 			</header>
 
@@ -82,7 +78,7 @@ import Footer from './Footer.astro';
 				
 				
 		<div
-			class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 ">
+			class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 justify-center">
 				<slot />
 
 				<Footer />
