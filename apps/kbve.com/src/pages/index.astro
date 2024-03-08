@@ -1,21 +1,27 @@
 ---
 import { AstroVe as VE } from '@kbve/astro-ve';
 import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
 
 // TW1 - class="h-full w-full items-start justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 ">
+
+
+import { getCollection, getEntry } from 'astro:content';
+
+const applicationCollection = await getCollection('application');
 
 ---
 
 <Layout title="Welcome to KBVE." description="Welcome to KBVE!">
 		
-		<VE widget="card:dashboard:hero" id="hero-1" img="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3">
-		</VE>
-		<VE widget="card:dashboard:post" id="test" href="https://kbve.com/" description="This is an exmaple of passing a description to the box."/>
+		<VE widget="card:dashboard:hero" id="hero-1" img="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3"/>
+		{applicationCollection.map((application) => 
+			<VE widget="card:dashboard:post" id={application.slug} href={application.data.url} description={application.data.description}/>
+		)}
+		<!-- <VE widget="card:dashboard:post" id="test" href="https://kbve.com/" description="This is an exmaple of passing a description to the box."/>
 		<VE widget="card:dashboard:post" id="test-2"  href="https://kbve.com/" />
 		<VE widget="card:dashboard:post" id="test-of-3"  href="https://kbve.com/" />
 		<VE widget="card:dashboard:post" id="test-within-the-4th"  href="https://kbve.com/" />
-		<VE widget="card:dashboard:post" id="test-of-the-5th"  href="https://kbve.com/" />
+		<VE widget="card:dashboard:post" id="test-of-the-5th"  href="https://kbve.com/" /> -->
 
 
 
