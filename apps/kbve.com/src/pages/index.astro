@@ -7,16 +7,54 @@ import Layout from '../layouts/Layout.astro';
 
 import { getCollection, getEntry } from 'astro:content';
 
-const applicationCollection = await getCollection('application');
-
+const pages = [
+	{
+		name: 'Applications',
+		description: 'Guides, Tutorials, and Useful Tidbits concerning a wide variety of cutting-edge Applications.',
+		url: '/application',
+		img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+	},
+	{
+		name: 'Journal',
+		description: 'Just keeping the pen flowing, supposed to be great for your mental health. Here\'s mine.',
+		url: '/journal',
+		img: 'https://images.unsplash.com/photo-1483546363825-7ebf25fb7513?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+	},
+	{
+		name: 'Arcade',
+		description: 'Games we made, imported, absorbed, or otherwise enjoy.',
+		url: '/arcade',
+		img: 'https://images.unsplash.com/photo-1511882150382-421056c89033?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+	},
+	{
+		name: 'Comic',
+		description: 'A special person made this art. Beautiful.',
+		url: '/comic/dnd/barspaghetti',
+		img: 'https://images.unsplash.com/photo-1569701813229-33284b643e3c?q=80&w=1514&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+	},
+	{
+		name: 'WASM Thing',
+		description: 'Imported an egui project. Not much now, but could be real useful soon...',
+		url: '/tools/wasm',
+		img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+	}
+]
 ---
 
 <Layout title="Welcome to KBVE." description="Welcome to KBVE!">
 		
 		<VE widget="card:dashboard:hero" id="hero-1" img="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3"/>
-		{applicationCollection.map((application) => 
-			<VE widget="card:dashboard:post" id={application.slug} href={application.data.url} description={application.data.description}/>
-		)}
+		<div class="flex flex-col w-xl gap-2">
+			{pages.map((page) => 
+				<VE
+					widget="card:dashboard:post"
+					id={page.name}
+					href={page.url}
+					description={page.description}
+					img={page.img}
+				/>
+			)}
+		</div>
 		<!-- <VE widget="card:dashboard:post" id="test" href="https://kbve.com/" description="This is an exmaple of passing a description to the box."/>
 		<VE widget="card:dashboard:post" id="test-2"  href="https://kbve.com/" />
 		<VE widget="card:dashboard:post" id="test-of-3"  href="https://kbve.com/" />
