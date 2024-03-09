@@ -4,9 +4,10 @@ export interface Props {
 	dyn?: boolean;
 	description?: string;
 	href?: string;
+	img?: string;
 }
 
-const { id, dyn = false, href, description } = Astro.props;
+const { id, dyn = false, href, description, img } = Astro.props;
 
 import { style, dynStyle } from '../../style';
 
@@ -16,6 +17,7 @@ let _internal: string = 'card:dashboard:post';
 let idText: string = 'PlaceHolder';
 let descriptionText: string = 'Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.';
 let _href: string = '#';
+let _img: string = 'https://images.unsplash.com/photo-1608447714925-599deeb5a682?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
 // Dynamic CSS Placeholders
 let baseBackgroundStyle: string =
@@ -53,47 +55,67 @@ if (!href) {
 if (description) {
 	descriptionText = description;
 }
+if (img) {
+	_img = img;
+}
 
 //  This is a placeholder element
 ---
 
 <Fragment>
-	<section
-		class={`flex-auto max-w-sm md:w-4/12 lx:w-3/12 p-5 ${baseBackgroundStyle} border border-gray-200 rounded-lg shadow`}>
-		<a href={`${_href}`}>
-			<h5
-				class={`mb-2 text-2xl font-bold tracking-tight ${baseTextStyle} capitalize`}>
-				{idText}
-			</h5>
-		</a>
-		<p class={`mb-3 font-normal ${baseSecondaryTextStyle}`}>
-			{descriptionText}
-		</p>
-
-		<button
-			class="relative rounded px-5 py-2.5 overflow-hidden group bg-cyan-500 relative hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-cyan-400 transition-all ease-out duration-300">
+	<a href={`${_href}`} class="">
+		<section
+			class={`flex-auto flex-col b-[url('${_img}')] ${baseBackgroundStyle} hover:backdrop-brightness-125 border border-gray-200 rounded text-left bg-default bg-cover bg-center`}
+			style={`
+				background-image: url('${_img}');
+				`}
+		>
+		<div class="relative group overflow-clip bg-black bg-opacity-20 hover:bg-white hover:bg-opacity-20 transition-colors">
 			<span
-				class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease">
+			class="absolute right-0 w-12 h-12 -ml-2 transition-all duration-300 origin-top-left -rotate-90 translate-y-8 bg-gray-900 bg-opacity-50 group-hover:bg-opacity-50 group-hover:bg-gray-200 group-hover:-translate-x-40 group-hover:-scale-y-150 ease">
 			</span>
-			<a href={`${_href}`}>
-				<div class="flex justify-between">
-					<span class="relative">Read More</span>
-					<svg
-						class={`rtl:rotate-180 w-3.5 h-3.5 ms-2 translate-y-1 ${baseSVGColorStyle}`}
-						aria-hidden="true"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 14 10">
-						<path
-							stroke="currentColor"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M1 5h12m0 0L9 1m4 4L9 9">
-						</path>
-					</svg>
-				</div>
-			</a>
-		</button>
-	</section>
+			<div
+				class="flex-col p-1"
+				style="
+				background-color: rgba(0, 0, 0, 0.8);
+				clip-path: polygon(0% 0%, 38% 0%, 44% 40%, 100% 40%, 100% 100%, 0% 100%);
+				"
+			>
+				<span
+					class={`mb-2 text-2xl font-bold tracking-tight ${baseTextStyle} capitalize`}>
+					{idText}
+				</span>
+				<p class={`mb-3 pt-2 text-sm font-normal ${baseSecondaryTextStyle}`}>
+					{descriptionText}
+				</p>
+			</div>
+		</div>
+
+			<!-- <button
+				class="relative rounded px-5 py-2.5 overflow-hidden group bg-cyan-500 relative hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-cyan-400 transition-all ease-out duration-300">
+				<span
+					class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease">
+				</span>
+				<a href={`${_href}`}>
+					<div class="flex justify-between">
+						<span class="relative">Read More</span>
+						<svg
+							class={`rtl:rotate-180 w-3.5 h-3.5 ms-2 translate-y-1 ${baseSVGColorStyle}`}
+							aria-hidden="true"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 14 10">
+							<path
+								stroke="currentColor"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M1 5h12m0 0L9 1m4 4L9 9">
+							</path>
+						</svg>
+					</div>
+				</a>
+			</button> -->
+		</section>
+	</button>
 </Fragment>

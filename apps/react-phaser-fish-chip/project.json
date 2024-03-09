@@ -1,0 +1,8 @@
+{
+  "name": "react-phaser-fish-chip",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/react-phaser-fish-chip/src",
+  "projectType": "application",
+  "targets": {},
+  "tags": []
+}
