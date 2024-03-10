@@ -16,7 +16,7 @@ export class Preloader extends Scene {
         this.load.spritesheet('fishing', 'https://kbve.com/assets/img/fishchip/animate.png', { frameWidth: 800, frameHeight: 600 });
         this.load.image('fish', 'https://kbve.com/assets/img/letter_logo.png');
         this.load.image('background', 'https://kbve.com/assets/img/fishchip/scaled_fish_menu_minigame.webp');
-        this.load.image('fish', 'https://kbve.com/assets/img/letter_logo.png');
+        //this.load.image('fish', 'https://kbve.com/assets/img/letter_logo.png');
 
         //  Cloud TileSet -> cloud_tileset.png
         this.load.image("tiles", "https://kbve.com/assets/img/fishchip/desert_tileset_1.png");
