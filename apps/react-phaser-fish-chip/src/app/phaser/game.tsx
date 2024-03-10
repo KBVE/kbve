@@ -43,18 +43,21 @@ export function Game() {
 
                 scale: {
 
-                    mode: Phaser.Scale.FIT,
-                    autoCenter: Phaser.Scale.CENTER_BOTH,
+                    mode: Phaser.Scale.RESIZE,
+                    //mode: Phaser.Scale.FIT,
+                    //autoCenter: Phaser.Scale.CENTER_BOTH,
 
                     min: {
-                        width: 720,
-                        height: 528,
+                        width: 1024,
+                        height: 768,
                     },
 
                     max: {
-                        width: 1024,
-                        height: 800,
-                    }
+                        width: 1600,
+                        height: 1200,
+                    },
+
+                    zoom: 1
 
                 },
 

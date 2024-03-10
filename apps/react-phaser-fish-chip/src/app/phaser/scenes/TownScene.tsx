@@ -38,6 +38,9 @@ export class TownScene extends Scene {
   }
 
   create() {
+
+    const currentScore = score.get();
+    
     const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
     cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
@@ -54,8 +57,8 @@ export class TownScene extends Scene {
     this.npcSprite = this.add.sprite(0, 0, "player");
     this.npcSprite.scale = 1.5;
 
-    this.npcSprite = this.add.sprite(0, 0, "player");
-    this.npcSprite.scale = 1.5;
+    // this.npcSprite = this.add.sprite(0, 0, "player");
+    // this.npcSprite.scale = 1.5;
 
     this.fishNpcSprite = this.add.sprite(0, 0, "player");
     this.fishNpcSprite.scale = 1.5;
@@ -93,12 +96,11 @@ export class TownScene extends Scene {
 
     this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
 
-    const scoreStr = localStorage.getItem('totalScore');
-    
-    const scores: ScoreEntry[] = scoreStr ? JSON.parse(scoreStr) : [];
+    //const scoreStr = localStorage.getItem('totalScore');
+    //const scores: ScoreEntry[] = scoreStr ? JSON.parse(scoreStr) : [];
     
     this.createTextBubble(this.npcSprite, "Enter the sand pit to start fishing! Go near it and press F!");
-    this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${scores} fish!`);
+    this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly("npc", 1500, 3);
 
     this.gridEngine.moveRandomly("fishNpc", 1500, 3);
