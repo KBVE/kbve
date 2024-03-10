@@ -1,4 +1,6 @@
 import { Scene } from 'phaser';
+import Phaser from 'phaser';
+
 
 const FISH_LIST = [
     "Angelfish",
@@ -214,6 +216,22 @@ const FISH_LIST = [
 const DIFFICULTY = 3; // Increase the difficulty by adding more characters to the combo
 
 export class FishChipScene extends Scene {
+    combo: string[];
+    userInput: string[];
+    score: number;
+    comboTextObjects: Phaser.GameObjects.Text[] = [];
+    startTime: number | null = null;
+    correctChars: number;
+    wpm: number;
+    typingStarted: boolean;
+    scoreText: any;
+    timerText: any;
+    countdownEvent?: Phaser.Time.TimerEvent;
+    timeLeft: any; //number 
+    wpmText: any;
+    instructions: any;
+    fisherman: any; //Phaser.GameObjects.Sprite;
+    
     constructor() {
         super('FishChipScene');
         this.combo = [];
@@ -299,7 +317,7 @@ export class FishChipScene extends Scene {
         this.scene.start('GameOver', { score: this.score, wpm: this.wpm });
     }
 
-    handleInput(key) {
+    handleInput(key: string) {
         if (!this.startTime) {
             this.startTime = Date.now(); // Set start time on first input
         }
@@ -329,10 +347,16 @@ export class FishChipScene extends Scene {
     }
 
     calculateWPM() {
-        const currentTime = Date.now();
-        const timeElapsedInMinutes = (currentTime - this.startTime) / 60000; // Convert time from milliseconds to minutes
-        const wpm = this.correctChars / 5 / timeElapsedInMinutes; // Divide by 5 as one word is considered to be 5 chars
-        return wpm.toFixed(0); // Return WPM rounded to two decimal places
+        if (this.startTime === null) {
+            // Handle the case where startTime has not been set
+            // For example, return 0 or some default value
+            return 0;
+        } else {
+            const currentTime = Date.now();
+            const timeElapsedInMinutes = (currentTime - this.startTime) / 60000; // Convert time from milliseconds to minutes
+            const wpm = this.correctChars / 5 / timeElapsedInMinutes; // Divide by 5 as one word is considered to be 5 chars
+            return Number(wpm.toFixed(0)); // Return WPM rounded to the nearest whole number
+        }
     }
 
 
@@ -389,7 +413,7 @@ export class FishChipScene extends Scene {
             align: 'center'
         }).setOrigin(0.5).setDepth(99);
 
-        this.scoreText = this.add.text(480, 300, this.score, {
+        this.scoreText = this.add.text(480, 300, this.score.toString(), {
             fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
@@ -416,6 +440,8 @@ export class FishChipScene extends Scene {
 
         this.resetGameState()
 
+        if (this.input && this.input.keyboard) {
+
         this.input.keyboard.on('keydown-SHIFT', () => {
             if (!this.typingStarted) {
                 this.typingStarted = true;
@@ -426,7 +452,7 @@ export class FishChipScene extends Scene {
 
         });
 
-        this.input.keyboard.on('keydown', (event) => {
+        this.input.keyboard.on('keydown', (event: { key: string; }) => {
             typeSound.play();
             const pressedKey = event.key.toUpperCase(); // Normalize to uppercase
             // check if the key is a letter or space
@@ -434,6 +460,8 @@ export class FishChipScene extends Scene {
                 this.handleInput(pressedKey);
             }
         });
+
+        }
 
     }
 
@@ -452,13 +480,13 @@ export class FishChipScene extends Scene {
          * An array to store the reusable rectangle objects.
          * @type {Phaser.GameObjects.Rectangle[]}
          */
-        const rectanglePool = [];
+        const rectanglePool: any[] = [];
 
         // Create a mask for the sandstorm effect
-        let mask = this.make.graphics({
+        const mask = this.make.graphics({
             x: this.fisherman.x - this.fisherman.width / 2,
             y: this.fisherman.y - this.fisherman.height / 2,
-            add: false
+           // add: false
         });
         mask.fillStyle(0xffffff);
         mask.beginPath();
@@ -483,7 +511,7 @@ export class FishChipScene extends Scene {
          * Releases a rectangle back to the pool by setting its visibility to false and pushing it into the pool array.
          * @param {Phaser.GameObjects.Rectangle} rect - The rectangle to be released.
          */
-        const releaseRectangle = (rect) => {
+        const releaseRectangle = (rect: Phaser.GameObjects.Rectangle) => {
             rect.setVisible(false);
             rectanglePool.push(rect);
         };
@@ -494,7 +522,7 @@ export class FishChipScene extends Scene {
          * and creates a tween animation for the rectangle.
          * @param {Phaser.GameObjects.Rectangle} rect - The rectangle to start the animation for.
          */
-        const startRectangleAnimation = (rect) => {
+        const startRectangleAnimation = (rect: Phaser.GameObjects.Rectangle) => {
             rect.setVisible(true);
             rect.setX(Phaser.Math.Between(this.fisherman.x - this.fisherman.width / 2, this.fisherman.x + this.fisherman.width / 2));
             rect.setY(Phaser.Math.Between(this.fisherman.y - this.fisherman.height / 2, this.fisherman.y + this.fisherman.height / 2));
