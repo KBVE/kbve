@@ -8,6 +8,7 @@ import Phaser from 'phaser';
 import GridEngine from 'grid-engine';
 
 import { CreditsScene } from './scenes/CreditsScene';
+import { FishChipScene } from './scenes/FishChipScene';
 import {FishScene} from './scenes/FishScene';
 import {GameOver} from './scenes/GameOver';
 import {Preloader} from './scenes/Preloader';
@@ -35,7 +36,30 @@ export function Game() {
 
 
             const config = {
+                title: "TownEngine",
+                render: {
+                    antialias: false,
+                },
+
+                scale: {
+
+                    mode: Phaser.Scale.FIT,
+                    autoCenter: Phaser.Scale.CENTER_BOTH,
+
+                    min: {
+                        width: 720,
+                        height: 528,
+                    },
+
+                    max: {
+                        width: 1024,
+                        height: 800,
+                    }
+
+                },
+
                 type: Phaser.AUTO,
+                transparent: true,
                 width: 800,
                 height: 600,
                 physics: {
@@ -54,7 +78,18 @@ export function Game() {
                         },
                    ],
                 },
-                scene: [TownScene, CreditsScene, FishScene, GameOver, Preloader], // Add other scenes as needed
+                /// TownScene, CreditsScene, FishScene, GameOver, 
+                scene: [Preloader, TownScene, FishChipScene, GameOver, FishScene, CreditsScene], // Add other scenes as needed
+
+                input: {
+                    mouse: {
+                        preventDefaultWheel: false
+                    },
+                    touch: {
+                        capture: false
+                    }
+                },
+
             };
 
             const gameConfig = { ...config, parent: gameParent };

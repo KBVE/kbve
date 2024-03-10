@@ -3,6 +3,7 @@
 import { Scene } from 'phaser';
 
 import Phaser from 'phaser';
+import GridEngine from 'grid-engine';
 
 declare global {
   interface Window {
