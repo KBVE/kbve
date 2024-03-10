@@ -1,9 +1,12 @@
 
-
 import { Scene } from 'phaser';
-
 import Phaser from 'phaser';
+
 import GridEngine from 'grid-engine';
+
+import { useStore } from '@nanostores/react';
+
+import { score } from './data/score';
 
 declare global {
   interface Window {
@@ -12,8 +15,8 @@ declare global {
 }
 
 interface ScoreEntry {
-  score: number;
   wpm: number;
+  score: number;
 }
 
 class ExtendedSprite extends Phaser.GameObjects.Sprite {
@@ -27,6 +30,7 @@ export class TownScene extends Scene {
   fishNpcSprite: ExtendedSprite| undefined;
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
+  
   
 
   constructor() {
