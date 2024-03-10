@@ -1,6 +1,11 @@
 import { Scene } from 'phaser';
 
+import Phaser from 'phaser';
+
 export class FishScene extends Scene {
+
+    fish: Phaser.GameObjects.Sprite | null = null; // Initially null, will be assigned in create()
+
     constructor() {
         super({ key: 'FishScene' });
     }
