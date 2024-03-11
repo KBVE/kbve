@@ -32,6 +32,17 @@ nxViteTsPaths()],
       commonjsOptions: {
         transformMixedEsModules: true,
       },
+      rollupOptions: {
+        external: ['fs', 'path', 'process'],
+        output: {
+          // ES Module Output
+          format: 'es', // ES module format
+          // Change the output directory structure and naming
+          entryFileNames: `fish-chip.js`,
+          chunkFileNames: `[name].js`,
+          assetFileNames: `[name].[ext]`,
+        },
+      },
     },
     
         

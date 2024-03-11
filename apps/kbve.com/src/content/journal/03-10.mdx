@@ -1,0 +1,81 @@
+---
+title: 'March: 10'
+category: Daily
+date: 2024-03-10 12:00:00
+client: Self
+unsplash: 1619597455322-4fbbd820250a
+img: https://images.unsplash.com/photo-1619597455322-4fbbd820250a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    Ten days into March. The Pains and Joys.
+tags:
+    - daily
+---
+
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### WS
+
+I started to note out the socketio integration for the phaser engine.
+The goal here would be shift state management from client side to a hybrid model, allowing some more complex setups for the state.
+
+One concept that I was thinking about earlier would be having live `WPM` competition amoung players, a bit similar to a fishing contest.
+
+The other aspect would be to extend the KBVE site and the leaderboard concept, having some level of data would be great.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Characters
+
+I also want to expand upon the characters and the lore related to them.
+We have two NPCs right now but they are just there as placeholders and lack a decent level of depth that would matter.
+
+Preparing their back story, goals and general vibe within the Fish&Chip world is important, as it falls into the whole storyboard arc, but I want there to be a bit more chaos than structure.
+
+Placing a form of structure would make sense on any authority or villain arch, but the random NPCs should have chaos built into their blood, or well code.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Build
+
+It would make the most sense to prepare the build path for the Phaser game.
+We will have the build be within the Alpha branch!
+
+Lets open up the `ci-alpha.yml` and then make changes there for the build.
+The first step would be to check for file changes, via ` reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }} `.
+Then we would run a build, `pnpm nx build react-phaser-fish-chip`.
+We should also grab the logs and cache misses from the nx.app runs but that will be a future note.
+
+Damn I was mistaken, I need to place the build into the `ci-beta` branch instead, so I will migrate the changes over to the beta.
+An additional error that I noticed was that we would have to update the commands for the actual
+
+</MDXJS>
+
+</MDXJS>
+
+<MDXJS>
+
+## Tasks
+
+</MDXJS>

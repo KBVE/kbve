@@ -40,6 +40,8 @@ jobs:
         if: github.repository == 'kbve/kbve'
         outputs:
             rustwasmembed: ${{ steps.delta.outputs.rustwasmembed_any_changed }}
+            reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }}
+
 
         steps:
             -   name: Checkout the repository using git
@@ -54,6 +56,8 @@ jobs:
                   files_yaml: |
                       rustwasmembed:
                           - 'apps/rust_wasm_embed/src/**'
+                      reactfishchip:
+                          - 'apps/react-phaser-fish-chip/src/**'
                 
     deploy:
         needs: alter
@@ -125,6 +129,16 @@ jobs:
 
             
 
-            
+            #   [React] -> Fish & Chip
 
+            -   name: React Fish & Chip
+                if: needs.alter.outputs.reactfishchip == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-build react-phaser-fish-chip'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'rust-wasm-herbmail-dist-pipeline'
+                    pull_request_body: 'Rust WASM Embed Distribution for Herbmail.com'
+            
             
