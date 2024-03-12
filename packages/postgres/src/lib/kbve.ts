@@ -27,6 +27,8 @@ export const kbve_v01d = '/api/v1/';
 export const supabase_url = 'https://haiukcmcljjfaflqdmjc.supabase.co';
 export const supabase_anon = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaXVrY21jbGpqZmFmbHFkbWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTE1NTM0MjMsImV4cCI6MjAwNzEyOTQyM30.0taw1sQp2fHLY3byK2cnGtLttXPFRs9GfkxFBNQL6E8';
 
+
+
 /* hCaptcha */
 // Section for hCaptcha configuration constants.
 
@@ -44,3 +46,4 @@ export const auth_register = 'auth/register'; // Endpoint for user registration.
 export const auth_login = 'auth/login'; // Endpoint for user login.
 export const auth_logout = 'auth/logout'; // Endpoint for user logout.
 export const auth_profile = 'auth/profile'; // Endpoint for the user profile.
+

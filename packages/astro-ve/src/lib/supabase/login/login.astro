@@ -1,4 +1,4 @@
 ---
-import SvelteLogin from './SupabaseLogin.svelte';
+import { SupabaseLogin } from './SupabaseLogin';
 ---
-<SvelteLogin {...Astro.props} client:only="svelte" />
+<SupabaseLogin {...Astro.props} client:only="react" />

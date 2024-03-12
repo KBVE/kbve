@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient  } from '@supabase/supabase-js'
 
 import { supabase_url, supabase_anon } from './kbve';
 
@@ -8,7 +8,7 @@ export function supabase_test(): string {
 }
 
 
-export const supabase = createClient(supabase_url, supabase_anon);
+
 
 /**
  * Register a new user with Supabase.
@@ -20,8 +20,16 @@ export const supabase = createClient(supabase_url, supabase_anon);
  * @returns {Promise<string>} A promise that resolves to a success or error message.
  */
 export async function supabaseRegisterUser({ email, password, username, captchaToken }: { email: string; password: string; username: string; captchaToken: string; }): Promise<string> {
+    
+   
+  
     try {
-      const { data, error } = await supabase.auth.signUp({
+      
+      const supabase_kbve: SupabaseClient = createClient(supabase_url, supabase_anon, {
+        global: { fetch: fetch.bind(globalThis) }
+      });
+
+      const { data, error } = await supabase_kbve.auth.signUp({
         email,
         password,
         options: { 
@@ -63,7 +71,12 @@ export async function supabaseRegisterUser({ email, password, username, captchaT
  */
 export async function supabaseLoginUser({ email, password, captchaToken } : {email: string; password: string; captchaToken: string}): Promise<string> {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      
+      const supabase_kbve: SupabaseClient = createClient(supabase_url, supabase_anon, {
+        global: { fetch: fetch.bind(globalThis) }
+      });
+      
+      const { data, error } = await supabase_kbve.auth.signInWithPassword({
         email,
         password,
         options: {
