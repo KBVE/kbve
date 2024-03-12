@@ -24,6 +24,9 @@
       "@kbve/khashvault": [
         "packages/khashvault/src/index.ts"
       ],
+      "@kbve/postgres": [
+        "packages/postgres/src/index.ts"
+      ],
       "@kbve/react-appwrite": [
         "packages/react-appwrite/src/index.ts"
       ]
