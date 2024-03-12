@@ -313,6 +313,12 @@ run_pnpm_nx() {
     pnpm nx run "$argument"
 }
 
+# Function to build pnpm nx with an argument
+build_pnpm_nx() {
+    local argument="$1"
+    pnpm nx build "$argument"
+}
+
 # Function to generate a ULID
 generate_ulid() {
     echo "Not Ready Yet!"
@@ -412,6 +418,10 @@ case "$1" in
     -nx)
         [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
         run_pnpm_nx "$2"
+        ;;
+    -build)
+         [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
+        build_pnpm_nx "$2"
         ;;
     -rentearthplugin)
         addOptionalSubmodule "$UNITY_SUBMODULE_PATH" "$UNITY_SUBMODULE_URL"
