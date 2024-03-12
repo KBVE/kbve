@@ -1,0 +1,72 @@
+---
+title: 'March: 11'
+category: Daily
+date: 2024-03-11 12:00:00
+client: Self
+unsplash: 1619597455322-4fbbd820250a
+img: https://images.unsplash.com/photo-1619597455322-4fbbd820250a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    The 11th of March.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Output
+
+The biggest issue that I am seeing with this current game is the massive `fish-chip.js` file.
+I am going to read through the `output-manualchunks` from the RollUpJS Guide and see what I can do around improving the [build](https://rollupjs.org/configuration-options/#output-manualchunks).
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### PlanetScale
+
+It might be time to just drop the support of PlanetScale and switch back to the Postgres / Supabase setup.
+The main reason we want to do this is to handle the websocket and player movement.
+
+</MDXJS>
+
+--- 
+
+<MDXJS>
+
+#### Supabase Test Reports
+
+This is the repo for their [test reporting system](https://github.com/supabase/test-reports) and I am going to keep track of it, probably to keep watch of the changes and how they handle their reports.
+My plan would be to then to migrate some of their concepts into the Outpost for KBVE.
+I still been working on the Outpost generation but there is a ton that is missing that I need to improve upon! Ugh, there is almost no time.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Supabase
+
+For the storage of the KBVE types and general handling of it, I will just create a new library to help with it!
+Generic command for starting a new library -> `npx nx g @nx/js:lib mylib --bundler=vite`.
+
+We will create the `supabase` ts file within the `postgres` library.
+
+</MDXJS>
+
+</MDXJS>
