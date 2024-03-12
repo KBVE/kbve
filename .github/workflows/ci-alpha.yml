@@ -60,6 +60,7 @@ jobs:
                 saber: ${{ steps.delta.outputs.saber_any_changed  }}
                 rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
                 itchfishchip: ${{ steps.delta.outputs.itchfishchip_any_changed }}
+                reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }}
 
             steps:
               -   name: Checkout the repository using git
@@ -92,6 +93,9 @@ jobs:
                             - 'apps/rust_api_profile/**'
                         itchfishchip:
                             - 'apps/next-itch-fishchip/**'
+                        reactfishchip:
+                            - 'apps/react-phaser-fish-chip/src/**'
+
                         
 
     # Alpha Builds
@@ -214,10 +218,26 @@ jobs:
                          pnpm nx build next-itch-fishchip
 
               -   name: Itch Fish Chip Upload Deployment
+                  if: needs.alter.outputs.itchfishchip == 'true'
                   uses: actions/upload-artifact@v2
                   with:
                     name: build-WebGL
                     path: apps/next-itch-fishchip/dist  
+
+             #    [React] Fish & Chip
+            
+              -   name: React Fish & Chip Build
+                  if: needs.alter.outputs.reactfishchip == 'true'
+                  shell:  bash
+                  run: |
+                        pnpm nx build react-phaser-fish-chip
+
+              -   name: Upload Fish & Chip Build
+                  if: needs.alter.outputs.reactfishchip == 'true'
+                  uses: actions/upload-artifact@v2
+                  with:
+                    name: build-FishChip
+                    path: dist/apps/react-phasher-fish-chip
 
         itchdev:
             needs: ['alter', 'buildSaber', 'setup']

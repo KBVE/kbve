@@ -1,16 +1,55 @@
+
 import { Scene } from 'phaser';
+import Phaser from 'phaser';
+
+import GridEngine from 'grid-engine';
+
+import { useStore } from '@nanostores/react';
+
+import { score } from './data/score';
+
+declare global {
+  interface Window {
+    __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
+  }
+}
+
+interface ScoreEntry {
+  wpm: number;
+  score: number;
+}
+
+class ExtendedSprite extends Phaser.GameObjects.Sprite {
+  textBubble?: Phaser.GameObjects.Container; // Assuming it's a Container
+}
+
 
 export class TownScene extends Scene {
+  
+  npcSprite: ExtendedSprite | undefined;
+  fishNpcSprite: ExtendedSprite| undefined;
+  cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
+  gridEngine: any;
+  
+  
+
   constructor() {
     super({ key: 'TownScene' });
   }
 
   create() {
+
+    const currentScore = score.get();
+    
     const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
     cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
       const layer = cloudCityTilemap.createLayer(i, "Cloud City", 0, 0);
-      layer.scale = 3;
+      if (layer) {
+        layer.scale = 3;
+      } else {
+        console.error(`Layer ${i} could not be created.`);
+      }
     }
     const playerSprite = this.add.sprite(0, 0, "player");
     playerSprite.scale = 1.5;
@@ -18,8 +57,8 @@ export class TownScene extends Scene {
     this.npcSprite = this.add.sprite(0, 0, "player");
     this.npcSprite.scale = 1.5;
 
-    this.npcSprite = this.add.sprite(0, 0, "player");
-    this.npcSprite.scale = 1.5;
+    // this.npcSprite = this.add.sprite(0, 0, "player");
+    // this.npcSprite.scale = 1.5;
 
     this.fishNpcSprite = this.add.sprite(0, 0, "player");
     this.fishNpcSprite.scale = 1.5;
@@ -54,49 +93,63 @@ export class TownScene extends Scene {
         },
       ],
     };
+
     this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
-    const totalScore = JSON.parse(localStorage.getItem('totalScore')) || 0;
+
+    //const scoreStr = localStorage.getItem('totalScore');
+    //const scores: ScoreEntry[] = scoreStr ? JSON.parse(scoreStr) : [];
+    
     this.createTextBubble(this.npcSprite, "Enter the sand pit to start fishing! Go near it and press F!");
-    this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${totalScore} fish!`);
+    this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly("npc", 1500, 3);
+
     this.gridEngine.moveRandomly("fishNpc", 1500, 3);
     window.__GRID_ENGINE__ = this.gridEngine;
 
   }
 
-  createTextBubble(sprite, text) {
-    let bubbleWidth = 200;
-    let bubbleHeight = 60;
-    let bubblePadding = 10;
+  createTextBubble(sprite: ExtendedSprite, text: string | string[]) {
+    const bubbleWidth = 200;
+    const bubbleHeight = 60;
+    const bubblePadding = 10;
 
-    let bubble = this.add.graphics();
+    const bubble = this.add.graphics();
     bubble.fillStyle(0xffffff, 1);
     bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
     bubble.setDepth(99);
 
-    let content = this.add.text(100, 30, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
+    const content = this.add.text(100, 30, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
     content.setOrigin(0.5);
     content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
     content.setDepth(100);
 
-    let container = this.add.container(0, 0, [bubble, content]);
+    const container = this.add.container(0, 0, [bubble, content]);
     container.setDepth(100);
 
     sprite.textBubble = container;
     this.updateTextBubblePosition(sprite);
   }
 
-  updateTextBubblePosition(sprite) {
-    let container = sprite.textBubble;
-
+  updateTextBubblePosition(sprite: ExtendedSprite) {
+    const container = sprite.textBubble;
+    if(container)
+    {
     container.x = sprite.x;
     container.y = sprite.y - sprite.height - container.height / 2;
+    }
   }
 
   update() {
-    const cursors = this.input.keyboard.createCursorKeys();
+    
 
-    function isWithinRangeOfWell(point) {
+    if(this.input.keyboard)
+    {
+    this.cursor = this.input.keyboard.createCursorKeys();
+
+    }
+    const cursors = this.cursor;
+
+    function isWithinRangeOfWell(point: { x: number; y: number; }) {
       // Define the bounds
       const xMin = 2, xMax = 5;
       const yMin = 10, yMax = 14;
@@ -106,7 +159,7 @@ export class TownScene extends Scene {
         point.y >= yMin && point.y <= yMax;
     }
 
-    function isWithinRangeOfSign(point) {
+    function isWithinRangeOfSign(point: { x: number; y: number; }) {
       // Define the bounds
       const xMin = 2, xMax = 5;
       const yMin = 2, yMax = 5;
@@ -116,7 +169,7 @@ export class TownScene extends Scene {
         point.y >= yMin && point.y <= yMax;
     }
 
-    function isWithinRangeOfBuilding(point) {
+    function isWithinRangeOfBuilding(point: { x: number; y: number; }) {
       // Define the bounds
       const xMin = 13, xMax = 13;
       const yMin = 6, yMax = 7;
@@ -126,7 +179,7 @@ export class TownScene extends Scene {
         point.y >= yMin && point.y <= yMax;
     }
 
-    function isWithinRangeOfTombstone(point) {
+    function isWithinRangeOfTombstone(point: { x: number; y: number; }) {
       //  Define the bounds
       const xMin = 7, xMax = 10
       const yMin = 9, yMax = 10
@@ -137,37 +190,37 @@ export class TownScene extends Scene {
 
 
 
-    if (this.input.keyboard.addKey('F').isDown) {
-      let position = this.gridEngine.getPosition('player');
+    if (this.input.keyboard && this.input.keyboard.addKey('F').isDown) {
+      const position = this.gridEngine.getPosition('player');
 
-      let withinRangeOfWell = isWithinRangeOfWell(position);
+      const withinRangeOfWell = isWithinRangeOfWell(position);
       if (withinRangeOfWell) {
         this.scene.start('FishChipScene');
       }
 
-      let withinRangeOfSign = isWithinRangeOfSign(position);
+      const withinRangeOfSign = isWithinRangeOfSign(position);
       if (withinRangeOfSign) {
         this.scene.start('CreditsScene');
       }
 
-      let withinRangeOfBuilding = isWithinRangeOfBuilding(position);
+      const withinRangeOfBuilding = isWithinRangeOfBuilding(position);
       if (withinRangeOfBuilding) {
         console.log('Enter the Building?');
       }
 
-      let withinRangeOfTombstone = isWithinRangeOfTombstone(position);
+      const withinRangeOfTombstone = isWithinRangeOfTombstone(position);
       if (withinRangeOfTombstone) {
         console.log('Samson Statue!');
       }
     }
     // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown)
-    if (cursors.left.isDown || this.input.keyboard.addKey('A').isDown) {
+    if ((cursors && cursors.left.isDown) || (this.input.keyboard && this.input.keyboard.addKey('A').isDown)) {
       this.gridEngine.move("player", "left");
-    } else if (cursors.right.isDown || this.input.keyboard.addKey('D').isDown) {
+    } else if ((cursors && cursors.right.isDown) || (this.input.keyboard && this.input.keyboard.addKey('D').isDown)) {
       this.gridEngine.move("player", "right");
-    } else if (cursors.up.isDown || this.input.keyboard.addKey('W').isDown) {
+    } else if ((cursors && cursors.up.isDown) ||  (this.input.keyboard && this.input.keyboard.addKey('W').isDown)) {
       this.gridEngine.move("player", "up");
-    } else if (cursors.down.isDown || this.input.keyboard.addKey('S').isDown) {
+    } else if ((cursors && cursors.down.isDown) || (this.input.keyboard && this.input.keyboard.addKey('S').isDown)) {
       this.gridEngine.move("player", "down");
     }
 
