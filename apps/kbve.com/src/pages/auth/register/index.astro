@@ -1,14 +1,24 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import Layout from '../../../layouts/Layout.astro';
 import { AstroVe as VE } from '@kbve/astro-ve';
 
 let _title = 'KBVE Auth Register';
 let _description = 'KBVE Auth Register Description';
 
+
+import KBVERegister from './registerHelper.jsx';
+
 ---
 
 <Layout title={_title} description={_description}>
+
+    <script is:inline>var global = global || window;</script>
+    
+    <KBVERegister client:only="react" />
+
 	<VE widget="supabase:register:register" {...Astro.props}>
         <slot />
     </VE>
+
+
 </Layout>
