@@ -19,7 +19,17 @@
 					"mode": "production"
 				}
 			}
+		},
+	"pipe": {
+		"executor": "nx:run-commands",
+		"options": {
+			"commands": [
+			  "chmod +x tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
+			  "./tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh"
+			],
+			"parallel": false
 		}
+	}
 
   },
   "tags": []

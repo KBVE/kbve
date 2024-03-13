@@ -9,12 +9,16 @@ import { Input } from "../components/input";
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 
-import {  hcaptcha_site_key } from "@kbve/postgres";
+import {  hcaptcha_site_key, $registerAtom, $registerMap, RegisterFormType } from "@kbve/postgres";
+
 
 // const hcaptcha_site_key = '';
 
 import { useEffect, useRef, useState } from "react";
 
+import { action, type WritableStore } from "nanostores";
+
+import { useStore } from "@nanostores/react";
 
 import {
   IconBrandGithub,
@@ -25,27 +29,55 @@ import {
  
 export function SupabaseRegister() {
 
-  const [token, setToken] = useState(null);
+  const _registerAtom  = useStore($registerAtom);
+  const _registerMap = useStore($registerMap);
   const captchaRef = useRef<any>(null);
-
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const onLoad = () => {
-    if(captchaRef.current)
-    {
-    captchaRef.current?.execute();
-    
-  }
-  
+      if(captchaRef.current)
+      {
+      captchaRef.current?.execute();
+      }
   };
 
+  useEffect(() => {
+    //console.log(`Store is being called! ${_registerAtom}`);
+    //console.log('Current state of registerMap:', _registerMap);
+  }, [_registerAtom]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    $registerMap.setKey(name as keyof RegisterFormType , value);
+  };
+  
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted");
+    
+    $registerAtom.set('loading');
+
+    // Additional Post Loading
+
+    if(buttonRef.current) {
+      buttonRef.current.disabled = true;
+    }
+
+    // Loaded!
+    $registerAtom.set('loaded');
+
+
+    //console.log("Form submitted");
   };
 
   function handleVerificationSuccess(token: string, ekey: string): any {
-    throw new Error('Function not implemented.');
+    const captchaSuccess = true;
+    _registerMap.token = token;
+    if (captchaSuccess && buttonRef.current) {
+      if(_registerMap.confirmPassword == _registerMap.password)
+      {
+      buttonRef.current.disabled = false; // Enable the button
+      }
+    }  
   }
 
   return (
@@ -73,20 +105,26 @@ export function SupabaseRegister() {
 
         <LabelInputContainer className="mb-4">
           <Label htmlFor="username">Username</Label>
-          <Input id="username" placeholder="holybyte" type="text" />
+          <Input id="username" placeholder="holybyte" type="text" name="username"  value={_registerMap.username || ''}
+        onChange={handleInputChange} />
         </LabelInputContainer>
 
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
-          <Input id="email" placeholder="projectmayhem@fc.com" type="email" />
+          <Input id="email" placeholder="projectmayhem@fc.com" type="email" name="email" value={_registerMap.email || ''}
+        onChange={handleInputChange} />
         </LabelInputContainer>
         <LabelInputContainer className="mb-4">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" placeholder="••••••••" type="password" />
+          <Input id="password" placeholder="••••••••" type="password" name="password"  value={_registerMap.password || ''}
+        onChange={handleInputChange} />
         </LabelInputContainer>
         <LabelInputContainer className="mb-4">
           <Label htmlFor="confirmPassword">Confirm Password</Label>
-          <Input id="confirmPassword" placeholder="••••••••" type="password" />
+          <Input id="confirmPassword" placeholder="••••••••" type="password" name="confirmPassword"   value={_registerMap.confirmPassword || ''}
+        onChange={handleInputChange} />
+              {(_registerMap.confirmPassword != _registerMap.password) && <div className="text-red-500">Passwords do not match!</div>}
+
         </LabelInputContainer>
  
 
@@ -95,11 +133,26 @@ export function SupabaseRegister() {
         ref={captchaRef}
 
         onVerify={(token,ekey) => handleVerificationSuccess(token, ekey)}
+        onError={(err) => {
+          console.error("HCaptcha Error:", err);
+          captchaRef.current.resetCaptcha(); // Reset HCaptcha on error
+        }}
+        onExpire={() => {
+          console.log("HCaptcha Token Expired");
+          captchaRef.current.resetCaptcha(); // Reset HCaptcha when token expires
+        }}
+        onChalExpired={() => {
+          console.log("HCaptcha Challenge Expired");
+          captchaRef.current.resetCaptcha(); // Optional: Reset here if you want
+        }}
+
           />
 
         <button
-          className="bg-gradient-to-br relative group/btn from-black to-zinc-800 block bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+          className="disabled:cursor-not-allowed disabled:opacity-50 bg-gradient-to-br relative group/btn from-black to-zinc-800 block bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
           type="submit"
+          disabled
+          ref={buttonRef}
         >
           Sign up &rarr;
           <BottomGradient />
