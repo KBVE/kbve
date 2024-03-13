@@ -152,8 +152,8 @@
 		action="#"
 		on:submit|preventDefault={handleLogin}>
 		<div>
-			<label for="email" class="block mb-2 text-sm font-medium">
-				Your email
+			<label for="email" class="block mb-2 text-sm font-medium text-cyan-400">
+				Your KBVE Email!
 			</label>
 			<input
 				type="email"
@@ -166,7 +166,7 @@
 		</div>
 
 		<div>
-			<label for="password" class="block mb-2 text-sm font-medium">
+			<label for="password" class="block mb-2 text-sm font-medium text-cyan-400">
 				Password
 			</label>
 			<input

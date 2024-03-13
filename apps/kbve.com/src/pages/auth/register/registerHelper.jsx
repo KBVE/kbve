@@ -1,12 +1,12 @@
 import { supabase_url, supabase_anon, $registerAtom, $registerAction } from "@kbve/postgres";
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/supabase-js';
 import { useStore } from '@nanostores/react';
 import { Helmet, HelmetProvider, HelmetData } from 'react-helmet-async';
 import React, {useEffect} from 'react';
 
 
 
-const supabase = createClient(supabase_url, supabase_anon);
+const supabase = createBrowserClient(supabase_url, supabase_anon);
 
 
 export default function KBVERegister() {

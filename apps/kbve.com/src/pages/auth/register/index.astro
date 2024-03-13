@@ -6,19 +6,22 @@ let _title = 'KBVE Auth Register';
 let _description = 'KBVE Auth Register Description';
 
 
-import KBVERegister from './registerHelper.jsx';
+// import KBVERegister from './registerHelper.jsx';
+// Going to skip the Supabase integration for now.
 
 ---
 
 <Layout title={_title} description={_description}>
 
-    <script is:inline>var global = global || window;</script>
-    
+<!--     
     <KBVERegister client:only="react" />
 
 	<VE widget="supabase:register:register" {...Astro.props}>
         <slot />
-    </VE>
+    </VE> -->
 
-
+	<Fragment slot="default">
+        <VE widget="kbve:register:introcard" className="max-w-xs p-6 rounded-md p-4 rounded-lg bg-sky-500/25 hover:bg-sky-500/50" />	
+    </Fragment>
+    
 </Layout>
