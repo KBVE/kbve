@@ -9,7 +9,8 @@
 			"outputs": ["{options.outputPath}"],
 			"defaultConfiguration": "production",
 			"options": {
-				"outputPath": "apps/kbve.com/public/embed/js/fishchip"
+				"outputPath": "apps/kbve.com/public/embed/js/fishchip",
+				"emptyOutDir": true
 			},
 			"configurations": {
 				"development": {
