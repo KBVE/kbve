@@ -9,7 +9,7 @@
 			"outputs": ["{options.outputPath}"],
 			"defaultConfiguration": "production",
 			"options": {
-				"outputPath": "dist/apps/react-phaser-fish-chip"
+				"outputPath": "apps/kbve.com/public/embed/js/fishchip"
 			},
 			"configurations": {
 				"development": {
