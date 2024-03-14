@@ -135,7 +135,7 @@ jobs:
                 if: needs.alter.outputs.reactfishchip == 'true'
                 uses: ./.github/actions/kbve-shell
                 with:
-                    flag: '-build react-phaser-fish-chip'
+                    flag: '-pipe react-phaser-fish-chip'
                     create_pull_request: false
                     github_token: ${{ secrets.GITHUB_TOKEN }}
             
@@ -144,7 +144,7 @@ jobs:
                 if: needs.alter.outputs.reactfishchip == 'true'
                 uses: ./.github/actions/kbve-shell
                 with:
-                    flag: '-pipe react-phaser-fish-chip'
+                    flag: '-build react-phaser-fish-chip'
                     create_pull_request: true
                     github_token: ${{ secrets.GITHUB_TOKEN }}
                     pull_request_title: 'nextjs-react-fish-chip-built-request'
