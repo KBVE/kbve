@@ -66,6 +66,45 @@ I will go ahead and write them out slowly and have GPT double check them for me.
 #### Travel
 
 The next gamejam starts within this weekend and its the travel jam!
+The game could be named that `Davids Goliath`, granted we can not yet start the jam because its about 7 hours early since I last added this line.
+
+We are still allowed to plan the game out.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Shell
+
+To finish up the shell integration for the nextjs project, we want it to clean the files and move the build files to the embed location.
+The same way that we handled the previous WASM build, so we know where we have to go.
+
+These are the results from the `./kbve.sh -build react-phaser-fish-chip` : 
+
+```
+
+(!) outDir /home/h0lybyte/kbve/kbve/dist/apps/react-phaser-fish-chip is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+../../dist/apps/react-phaser-fish-chip/index.html        0.37 kB │ gzip:   0.25 kB
+../../dist/apps/react-phaser-fish-chip/fish-chip.js  1,969.38 kB │ gzip: 484.77 kB
+
+```
+
+We can actually just avoid using the shell and pass through that empty outdir command! Yay!
+That ended up being easier to manage than I would have thought.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### David Goliath 
+
+
 
 </MDXJS>
 
