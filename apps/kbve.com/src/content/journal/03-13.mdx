@@ -1,0 +1,61 @@
+---
+title: 'March: 13'
+category: Daily
+date: 2024-03-13 12:00:00
+client: Self
+unsplash: 1619597455322-4fbbd820250a
+img: https://images.unsplash.com/photo-1619597455322-4fbbd820250a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    13th of March.
+    The evil floor of March.
+tags:
+    - daily
+---
+
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### FishChip
+
+The focus will be back on making sure the NextJS build gets sent to the `kbve.com` folder via a build process.
+The first command should build the script and then a pipe command should handle the cleaning up and replacement of the build.
+
+Okay after thinking it through, we will have the beta branch build out the application and push it.
+
+Under the `ci-alpha.yml` we had this code block:
+
+```yaml
+
+            -   name: React Fish & Chip Build
+                  if: needs.alter.outputs.reactfishchip == 'true'
+                  shell:  bash
+                  run: |
+                        pnpm nx build react-phaser-fish-chip
+
+            -   name: Upload Fish & Chip Build
+                  if: needs.alter.outputs.reactfishchip == 'true'
+                  uses: actions/upload-artifact@v2
+                  with:
+                    name: build-FishChip
+                    path: dist/apps/react-phasher-fish-chip
+
+```
+
+And instead of using the alpha branch, we will use the beta branch to build and pipe the final `nextjs` build.
+
+</MDXJS>
+
+</MDXJS>
