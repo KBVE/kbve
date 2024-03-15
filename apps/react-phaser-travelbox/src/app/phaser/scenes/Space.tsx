@@ -22,12 +22,12 @@ class ExtendedSprite extends Phaser.GameObjects.Sprite {
 
 
 export class Space extends Scene {
-  
+
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite| undefined;
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
 //  gridEngine: any;
-  
+
   constructor() {
     super({ key: 'Space' });
   }
@@ -35,7 +35,7 @@ export class Space extends Scene {
   create() {
 
     const currentScore = score.get();
-    
+
     const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
     cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
@@ -93,7 +93,7 @@ export class Space extends Scene {
 
     //const scoreStr = localStorage.getItem('totalScore');
     //const scores: ScoreEntry[] = scoreStr ? JSON.parse(scoreStr) : [];
-    
+
     this.createTextBubble(this.npcSprite, "Enter the sand pit to start fishing! Go near it and press F!");
     this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly("npc", 1500, 3);
@@ -135,7 +135,7 @@ export class Space extends Scene {
   }
 
   update() {
-    
+
 
     if(this.input.keyboard)
     {
@@ -200,7 +200,7 @@ export class Space extends Scene {
 
       const withinRangeOfBuilding = isWithinRangeOfBuilding(position);
       if (withinRangeOfBuilding) {
-        console.log('Enter the Building?');
+        this.scene.start('Asteroids');
       }
 
       const withinRangeOfTombstone = isWithinRangeOfTombstone(position);

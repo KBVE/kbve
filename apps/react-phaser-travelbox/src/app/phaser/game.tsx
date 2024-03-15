@@ -10,6 +10,7 @@ import GridEngine from 'grid-engine';
 import {KBVE} from './scenes/KBVE';
 import {Menu} from './scenes/Menu';
 import {Space} from './scenes/Space';
+import { Asteroids } from './scenes/Asteroids';
 
 const StyledApp = styled.div`
     // Your style here
@@ -17,7 +18,7 @@ const StyledApp = styled.div`
 
 
 export function Game() {
-    const gameRef = useRef(null); 
+    const gameRef = useRef(null);
 
     useEffect(() => {
 
@@ -61,7 +62,7 @@ export function Game() {
                 physics: {
                     default: 'arcade',
                     arcade: {
-                        gravity: { x: 0, y: 0 }, 
+                        gravity: { x: 0, y: 0 },
                         debug: false
                     }
                 },
@@ -74,7 +75,7 @@ export function Game() {
                         },
                    ],
                 },
-                scene: [KBVE, Menu, Space], //  Missing scenes.
+                scene: [KBVE, Menu, Space, Asteroids], //  Missing scenes.
 
                 input: {
                     mouse: {
@@ -89,9 +90,9 @@ export function Game() {
 
             const gameConfig = { ...config, parent: gameParent };
             const game = new Phaser.Game(gameConfig);
-        
 
-                    
+
+
             return () => {
                 // Cleanup the game when the component is unmounted
                 game.destroy(true);
