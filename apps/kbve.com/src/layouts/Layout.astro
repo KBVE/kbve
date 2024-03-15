@@ -43,11 +43,10 @@ import Footer from './Footer.astro';
 						logo="/assets/img/letter_logo.png">
 						<VE
 							widget="kbve:user:user"
-							avatar="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
 						/>
 						<div class="text-center">
 							<button
-								class="text-white hover:bg-cyan-400 focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
+								class="text-white hover:bg-cyan-400 hover:bg-opacity-50 transition-all focus:ring-4 focus:ring-cyan-300 font-medium rounded-full text-sm px-1 py-1 focus:outline-none"
 								type="button"
 								data-drawer-target="drawer-swipe"
 								data-drawer-show="drawer-swipe"
@@ -56,15 +55,25 @@ import Footer from './Footer.astro';
 								data-drawer-edge-offset="bottom-[60px]"
 								aria-controls="drawer-swipe">
 								
+								<svg
+									class="object-contain w-6"
+									aria-hidden="true"
+									xmlns="http://www.w3.org/2000/svg"
+									fill="currentColor"
+									viewBox="0 0 18 18">
+									<path
+										d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10ZM17 13h-2v-2a1 1 0 0 0-2 0v2h-2a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h2a1 1 0 0 0 0-2Z">
+									</path>
+								</svg>
 							
-								<div class="object-contain w-6" id="menu">
+								<!-- <div class="object-contain w-6" id="menu">
 									<dotlottie-player
 										hover
 										autoplay
 										mode="normal"
 										src="/assets/lottie/menu.lottie"
 									></dotlottie-player>
-								</div>
+								</div> -->
 								
 							</button>
 						</div>
