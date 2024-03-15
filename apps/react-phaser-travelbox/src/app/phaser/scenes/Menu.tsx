@@ -17,19 +17,7 @@ export class Menu extends Phaser.Scene {
 
         //  this.load.image('mainBg', 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2672&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); // Ensure you have a correct path to your logo image
         
-        // Music 
-        this.load.audio('music', 'https://kbve.com/assets/img/fishchip/bg.ogg');
-        this.load.audio('type', 'https://kbve.com/assets/img/fishchip/type.mp3');
-        
-        // Button Background -> Scroll 
-        this.load.image('wave', 'https://kbve.com/assets/img/curved-images/wave.jpg');
-        // Replacing Scroll with Wave
-        this.load.image('scroll', 'https://kbve.com/assets/img/fishchip/scroll.webp');
-          
-        //  Credits Background
-        this.load.image('creditsBg', 'https://cdn.discordapp.com/attachments/1213306326290010112/1213992501166350466/itchcover.png?ex=65f77d9f&is=65e5089f&hm=1118240df1bba0735961a514a40d5293e91710f95d3746a1e32f61b218d63a30&');
-        
-        this.load.image('logo', 'https://kbve.com/assets/img/letter_logo.png');
+
 
         
 
@@ -55,7 +43,7 @@ export class Menu extends Phaser.Scene {
             fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         this.mainMenuButtonText.on('pointerdown', () => {
-            this.scene.start('Menu');
+            this.scene.start('Space');
         }, this);
 
         // Main Menu Button [END]

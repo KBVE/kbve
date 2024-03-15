@@ -4,9 +4,12 @@ import React, { useEffect, useRef } from 'react';
 
 
 import Phaser from 'phaser';
+import GridEngine from 'grid-engine';
+
 
 import {KBVE} from './scenes/KBVE';
 import {Menu} from './scenes/Menu';
+import {Space} from './scenes/Space';
 
 const StyledApp = styled.div`
     // Your style here
@@ -62,16 +65,16 @@ export function Game() {
                         debug: false
                     }
                 },
-                // plugins: {
-                //     scene: [
-                //         {
-                //         key: "gridEngine",
-                //         plugin: GridEngine,
-                //         mapping: "gridEngine",
-                //         },
-                //    ],
-                // },
-                scene: [KBVE, Menu], //  Missing scenes.
+                plugins: {
+                    scene: [
+                        {
+                        key: "gridEngine",
+                        plugin: GridEngine,
+                        mapping: "gridEngine",
+                        },
+                   ],
+                },
+                scene: [KBVE, Menu, Space], //  Missing scenes.
 
                 input: {
                     mouse: {
