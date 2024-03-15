@@ -2,11 +2,11 @@ import Phaser from "phaser"
 import React, { useEffect, useState } from "react"
 
 
-export class KBVE extends Phaser.Scene {
+export class Menu extends Phaser.Scene {
     mainMenuButtonImage: Phaser.GameObjects.Image | undefined;
     mainMenuButtonText: Phaser.GameObjects.Text | undefined;
     constructor() {
-        super('KBVE');
+        super('Menu');
     }
 
     preload() {
@@ -50,8 +50,8 @@ export class KBVE extends Phaser.Scene {
         //this.add.image(480, 480, 'mainBg').setScale(0.1);
 
         // Main Menu Button [START]
-        this.mainMenuButtonImage = this.add.image(480, 480, 'wave').setAlpha(0.9).setScale(0.9, 0.3).setInteractive({ useHandCursor: true });
-        this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
+        this.mainMenuButtonImage = this.add.image(480, 480, 'scroll').setAlpha(0.9).setScale(0.9, 0.3).setInteractive({ useHandCursor: true });
+        this.mainMenuButtonText = this.add.text(480, 480, 'Menu', {
             fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         this.mainMenuButtonText.on('pointerdown', () => {
@@ -59,6 +59,7 @@ export class KBVE extends Phaser.Scene {
         }, this);
 
         // Main Menu Button [END]
+
 
     }
 }

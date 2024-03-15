@@ -6,6 +6,7 @@ import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 
 import {KBVE} from './scenes/KBVE';
+import {Menu} from './scenes/Menu';
 
 const StyledApp = styled.div`
     // Your style here
@@ -70,7 +71,7 @@ export function Game() {
                 //         },
                 //    ],
                 // },
-                scene: [KBVE], //  Missing scenes.
+                scene: [KBVE, Menu], //  Missing scenes.
 
                 input: {
                     mouse: {
