@@ -1,8 +1,9 @@
 
 import styled from 'styled-components';
 
-import Game from './phaser/game';
+//import NxWelcome from "./nx-welcome";
 
+import Game from './phaser/game';
 
 const StyledApp = styled.div`
     // Your style here
@@ -14,7 +15,7 @@ export function App() {
   return (
       <StyledApp>
         
-        <Game />
+       <Game />
         
       </StyledApp>
   );
