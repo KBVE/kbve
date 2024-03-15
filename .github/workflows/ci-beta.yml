@@ -138,7 +138,6 @@ jobs:
                     flag: '-build react-phaser-fish-chip'
                     create_pull_request: true
                     github_token: ${{ secrets.GITHUB_TOKEN }}
-                    pull_request_title: 'rust-wasm-herbmail-dist-pipeline'
-                    pull_request_body: 'Rust WASM Embed Distribution for Herbmail.com'
-            
-            
+                    pull_request_title: 'nextjs-react-fish-chip-built-request'
+                    pull_request_body: 'NextJS Fish and Chip Built Request'
+                

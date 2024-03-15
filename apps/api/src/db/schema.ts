@@ -155,6 +155,8 @@ export const characters = mysqlTable('characters', {
 	};
 });
 
+
+
 /**
  *	TODO: Bank
  * 	!		-> IGBC - [H]clickup#200
