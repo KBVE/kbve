@@ -16,11 +16,14 @@ import UserMenu from './UserMenu.svelte';
 	data-dropdown-toggle="user-dropdown"
 	data-dropdown-placement="bottom">
 	<span class="sr-only">Open Drawer</span>
-	<img
+	{avatar ? <img
 		class="w-8 h-8 rounded-full hover:scale-110"
 		src={avatar}
 		alt="user photo"
-	/>
+	/> : <div
+		class="w-8 h-8 rounded-full hover:scale-110 bg-gray-500 dark:bg-gray-400"
+		style=`-webkit-mask: url(/assets/img/svg/person.svg) no-repeat center; mask: url(/assets/img/svg/person.svg) no-repeat center;`
+	/>}
 </button>
 
 <!-- Dropdown menu -->

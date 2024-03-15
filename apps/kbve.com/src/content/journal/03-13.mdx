@@ -1,0 +1,125 @@
+---
+title: 'March: 13'
+category: Daily
+date: 2024-03-13 12:00:00
+client: Self
+unsplash: 1619597455322-4fbbd820250a
+img: https://images.unsplash.com/photo-1619597455322-4fbbd820250a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    13th of March.
+    The evil floor of March.
+tags:
+    - daily
+---
+
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+<MDXJS>
+
+## Tasks
+
+[X] - Finish Preparing Fish&Chip Pipeline
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### FishChip
+
+The focus will be back on making sure the NextJS build gets sent to the `kbve.com` folder via a build process.
+The first command should build the script and then a pipe command should handle the cleaning up and replacement of the build.
+
+Okay after thinking it through, we will have the beta branch build out the application and push it.
+
+Under the `ci-alpha.yml` we had this code block:
+
+```yaml
+
+            -   name: React Fish & Chip Build
+                  if: needs.alter.outputs.reactfishchip == 'true'
+                  shell:  bash
+                  run: |
+                        pnpm nx build react-phaser-fish-chip
+
+            -   name: Upload Fish & Chip Build
+                  if: needs.alter.outputs.reactfishchip == 'true'
+                  uses: actions/upload-artifact@v2
+                  with:
+                    name: build-FishChip
+                    path: dist/apps/react-phasher-fish-chip
+
+```
+
+And instead of using the alpha branch, we will use the beta branch to build and pipe the final `nextjs` build.
+
+Actually, we would be running the build through the KBVE action script instead of directly running the pnpm.
+
+So the final command would look like this within the `ci-beta.yml`
+
+```yaml
+
+            -   name: React Fish & Chip
+                if: needs.alter.outputs.reactfishchip == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-pipe react-phaser-fish-chip'
+                    create_pull_request: false
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+            
+
+            -   name: React Fish & Chip
+                if: needs.alter.outputs.reactfishchip == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-build react-phaser-fish-chip'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'nextjs-react-fish-chip-built-request'
+                    pull_request_body: 'NextJS Fish and Chip Built Request'
+                
+
+```
+
+I will take a break from this for now!
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Jam
+
+Time to prepare ourselves for another jam, which will include some planning and general scoping of the project!
+
+I think the goal of doing 100 game jams as fast as I can would be an interesting way to become an indie game developer as fast as possible.
+
+The amount of skills that I am lacking within the music and art field is also a bit sadage but I think we will be able to get through it, with time and friends, as they say.
+
+Damn, I can already see a small game becoming born within the end of the year!
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Shogun
+
+Caught up to episode 4 of the series, I am loving the cinematics and the character development so far!
+I will try not to include any spoilers but FX is hitting it out the park with some of their new series, whoever is greenlighting them is doing a great job.
+
+</MDXJS>
+
+</MDXJS>

@@ -1,0 +1,17 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { AstroVe as VE } from '@kbve/astro-ve';
+
+let _title = 'KBVE Auth Login';
+let _description = 'KBVE Auth Login Description';
+
+---
+
+<Layout title={_title} description={_description}>
+	<!-- <VE widget="supabase:login:login" {...Astro.props}>
+        <slot />
+    </VE> -->
+
+    <VE widget="kbve:login:login" domain="https://rust.kbve.com" className="max-w-xs p-6 rounded-md p-4 rounded-lg bg-sky-500/25 hover:bg-sky-500/50" />	
+
+</Layout>
