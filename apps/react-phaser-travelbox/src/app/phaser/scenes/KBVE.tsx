@@ -31,6 +31,13 @@ export class KBVE extends Phaser.Scene {
         
         this.load.image('logo', 'https://kbve.com/assets/img/letter_logo.png');
 
+        // Space Port
+                //  Cloud TileSet -> cloud_tileset.png
+        this.load.image("tiles", "https://kbve.com/assets/img/fishchip/desert_tileset_1.png");
+        this.load.tilemapTiledJSON(
+                    "cloud-city-map",
+                    "https://kbve.com/assets/img/fishchip/cloud_city.json",
+        );
         
 
     }
@@ -59,6 +66,8 @@ export class KBVE extends Phaser.Scene {
         }, this);
 
         // Main Menu Button [END]
+
+        // Additional Button
 
     }
 }
