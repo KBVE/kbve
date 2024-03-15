@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 // import { AstroVe as VE } from '@kbve/astro-ve';
 import { getEntry } from 'astro:content';
 
-const wasmy = await getEntry('tools', 'wasm');
+const wasmy = await getEntry('experiments', 'wasm');
 
 
 let title = wasmy.data.title;
