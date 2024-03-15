@@ -1,9 +1,67 @@
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 128 128">
-    <path d="M50.4 78.5a75.1 75.1 0 0 0-28.5 6.9l24.2-65.7c.7-2 1.9-3.2 3.4-3.2h29c1.5 0 2.7 1.2 3.4 3.2l24.2 65.7s-11.6-7-28.5-7L67 45.5c-.4-1.7-1.6-2.8-2.9-2.8-1.3 0-2.5 1.1-2.9 2.7L50.4 78.5Zm-1.1 28.2Zm-4.2-20.2c-2 6.6-.6 15.8 4.2 20.2a17.5 17.5 0 0 1 .2-.7 5.5 5.5 0 0 1 5.7-4.5c2.8.1 4.3 1.5 4.7 4.7.2 1.1.2 2.3.2 3.5v.4c0 2.7.7 5.2 2.2 7.4a13 13 0 0 0 5.7 4.9v-.3l-.2-.3c-1.8-5.6-.5-9.5 4.4-12.8l1.5-1a73 73 0 0 0 3.2-2.2 16 16 0 0 0 6.8-11.4c.3-2 .1-4-.6-6l-.8.6-1.6 1a37 37 0 0 1-22.4 2.7c-5-.7-9.7-2-13.2-6.2Z" />
-    <style>
-        path { fill: #000; }
-        @media (prefers-color-scheme: dark) {
-            path { fill: #FFF; }
-        }
-    </style>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<svg
+   width="12.218496mm"
+   height="12.218489mm"
+   viewBox="0 0 12.218496 12.218489"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm" /><defs
+     id="defs1" /><g
+     inkscape:label="KBVE"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-92.182429,-68.518583)"><circle
+       style="fill:#302d36;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+       id="path4"
+       cx="98.291679"
+       cy="74.627823"
+       r="6.1092458"
+       inkscape:label="The Datasphere" /><path
+       sodipodi:type="star"
+       style="fill:#302d36;fill-opacity:1;stroke:#ffffff;stroke-width:0.8;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+       id="path3"
+       inkscape:flatsided="true"
+       sodipodi:sides="4"
+       sodipodi:cx="98.26062"
+       sodipodi:cy="74.611824"
+       sodipodi:r1="3.9572487"
+       sodipodi:r2="2.7981973"
+       sodipodi:arg1="-1.5628892"
+       sodipodi:arg2="-0.77749107"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 98.29191,70.654699 3.92584,3.988415 -3.98842,3.925835 -3.925835,-3.988415 z"
+       inkscape:transform-center-x="1.237929e-06"
+       transform="translate(0.03105927,0.01599884)"
+       inkscape:label="Guardians of Knowledge" /><path
+       sodipodi:type="star"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-dasharray:none"
+       id="path2"
+       inkscape:flatsided="true"
+       sodipodi:sides="4"
+       sodipodi:cx="98.270081"
+       sodipodi:cy="74.621376"
+       sodipodi:r1="1.8325154"
+       sodipodi:r2="1.295784"
+       sodipodi:arg1="-1.5704879"
+       sodipodi:arg2="-0.7850897"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 98.270646,72.788861 1.831954,1.83308 -1.833085,1.83195 -1.83195,-1.83308 z"
+       inkscape:transform-center-x="1.2380483e-06"
+       transform="translate(0.02159882,0.00644684)"
+       inkscape:label="Inner Diamond of Creation" /></g></svg>
