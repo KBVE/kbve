@@ -2,8 +2,8 @@
 import Layout from '../../../layouts/Layout.astro';
 import { AstroVe as VE } from '@kbve/astro-ve';
 
-let _title = 'Fish & Chip - The Game';
-let _description = 'This is a phaser demo!';
+let _title = 'Travel Box - An AutoRPG';
+let _description = 'This is our submission for the mini game jam 154!';
 ---
 
 <Layout title={_title} description={_description}>
@@ -18,11 +18,12 @@ let _description = 'This is a phaser demo!';
     style={`background-image: url('https://utfs.io/f/ae961975-ad95-4247-91cc-2c573d6fbe3e-1t0m0l.webp')`}
     >
 
-    <!-- <VE widget="header:embed:canvas" scene="/embed/js/phaser/fish/TownScene.js" transition:persist /> -->
 
-    <script is:inline type="module" src="/embed/js/fishchip/fish-chip.js"></script>
-        
-    <div id="fishchip"></div>
+        <!-- PlaceHolders -->
+
+        <script is:inline type="module" src="/embed/js/travelbox/travelbox.js"></script>
+            
+        <div id="travelbox"></div>
 
     </section>
 
@@ -30,5 +31,4 @@ let _description = 'This is a phaser demo!';
         Extras if we need.
      -->
     
-     <VE widget="widget:fishchip:fishchip" />
 </Layout>
