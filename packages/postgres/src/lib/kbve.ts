@@ -47,3 +47,4 @@ export const auth_login = 'auth/login'; // Endpoint for user login.
 export const auth_logout = 'auth/logout'; // Endpoint for user logout.
 export const auth_profile = 'auth/profile'; // Endpoint for the user profile.
 
+// action
