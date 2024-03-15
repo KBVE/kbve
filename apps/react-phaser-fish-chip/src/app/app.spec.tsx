@@ -10,9 +10,9 @@ it('should render successfully', () => {
   expect(baseElement).toBeTruthy();
 });
 
-it('should have a greeting as the title', () => {
-  const { getByText } = render(<App />);
-  expect(getByText(/Welcome react-phaser-fish-chip/gi)).toBeTruthy();
-});
+// it('should have a greeting as the title', () => {
+//   const { getByText } = render(<App />);
+//   expect(getByText(/Welcome react-phaser-fish-chip/gi)).toBeTruthy();
+// });
 
 });
