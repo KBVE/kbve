@@ -39,8 +39,109 @@ import MDXJS from '../../components/MDXJS.astro';
 #### Travel
 
 Travel Game Jam!
-We are thinking David Goliath.
+We are thinking David Goliath or a boeing flappy bird style game, hmmm.
+
+Bell just reminded me of the `Mighty Max` concept and maybe we could use that as a base concept for the game?
+
+There are only 69 hours left in the jam, we got this!
+
+The repo for the last mini game was under `nextjs-react-fish-chip-built-request` , now we could go ahead and create a new one.
+
+Okay! The demo for the pipeline looks perfect, so time to test case this with the `travelbox` gamejam.
+
+We will have to create a new react app with the vite bundler!
+
+Run : `pnpm nx g @nx/react:app react-phaser-travelbox --bundler=vite`
+
+Then we would update the `ci-beta` twith this code block.
+
+```yaml
+
+            #   [React] -> Travel Box
+
+            -   name: React Travel Box
+                if: needs.alter.outputs.reacttravelbox == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-build react-phaser-travelbox'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'react-travelbox-built-request'
+                    pull_request_body: 'React TravelBox Built Request'
+            
+
+```
+
+Now the game build itself, mapping out the menu will be easy and we can at least start from there.
+The configurations are next on the journy!
+
+The first was the NX Project JSON for building out the application, which we can extend the `project.json` to help us handle it.
+
+```json
+    "build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"defaultConfiguration": "production",
+			"options": {
+				"outputPath": "apps/kbve.com/public/embed/js/travelbox",
+				"emptyOutDir": true
+			},
+			"configurations": {
+				"development": {
+					"mode": "development"
+				},
+				"production": {
+					"mode": "production"
+				}
+			}
+		}
+```
+
+This way the game that gets built can go directly into the `travelbox` embed and we can work from there.
+
+After setting up the build command within the nx project, `./kbve.sh -nx react-phaser-travelbox:build`, we can add our rollup configurtions too.
+
+```js
+
+      rollupOptions: {
+        external: ['fs', 'path', 'process'],
+        output: {
+          // ES Module Output
+          format: 'es', // ES module format
+          // Change the output directory structure and naming
+          entryFileNames: `travelbox.js`,
+          chunkFileNames: `[name].js`,
+          assetFileNames: `[name].[ext]`,
+        },
+      },
+
+```
+
+We will come back to this on a later date, probably need to adjust the configuration of the chunking, but it will get that initial file down.
+
+Third step will be to make it so that we adjust the `travelbox/index.astro` to load the new travelbox build.
 
 </MDXJS>
+
+---
+
+<MDXJS>
+
+#### TravelBox Menu
+
+Getting started on the `TravelBox` Menu? This will be the menu of the game, while I am trying to remember the different parts of the menu haha.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### TravelBox GamePlay
+
+The gameplay for the `travelbox` and the design around it will be a bit of a test casing for us.
+
+</MDXJS>
+
 
 </MDXJS>
