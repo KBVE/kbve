@@ -3,6 +3,24 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/react-phaser-travelbox/src",
   "projectType": "application",
-  "targets": {},
+  "targets": {
+    "build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"defaultConfiguration": "production",
+			"options": {
+				"outputPath": "apps/kbve.com/public/embed/js/travelbox",
+				"emptyOutDir": true
+			},
+			"configurations": {
+				"development": {
+					"mode": "development"
+				},
+				"production": {
+					"mode": "production"
+				}
+			}
+		}
+  },
   "tags": []
 }

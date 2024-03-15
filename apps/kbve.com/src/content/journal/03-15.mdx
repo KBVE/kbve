@@ -53,6 +53,27 @@ We will have to create a new react app with the vite bundler!
 
 Run : `pnpm nx g @nx/react:app react-phaser-travelbox --bundler=vite`
 
+Then we would update the `ci-beta` twith this code block.
+
+```yaml
+
+            #   [React] -> Travel Box
+
+            -   name: React Travel Box
+                if: needs.alter.outputs.reacttravelbox == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-build react-phaser-travelbox'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'react-travelbox-built-request'
+                    pull_request_body: 'React TravelBox Built Request'
+            
+
+```
+
+Now the game build itself, mapping out the menu will be easy and we can at least start from there.
+The configurations are next on the journy!
 
 
 </MDXJS>
