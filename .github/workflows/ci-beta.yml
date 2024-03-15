@@ -59,6 +59,8 @@ jobs:
                           - 'apps/rust_wasm_embed/src/**'
                       reactfishchip:
                           - 'apps/react-phaser-fish-chip/src/**'
+                      reacttravelbox:
+                          - 'apps/react-phaser-travelbox/src/**'
                 
     deploy:
         needs: alter
@@ -145,8 +147,8 @@ jobs:
                     
             #   [React] -> Travel Box
 
-            -   name: React Fish & Chip
-                if: needs.alter.outputs.reactfishchip == 'true'
+            -   name: React Travel Box
+                if: needs.alter.outputs.reacttravelbox == 'true'
                 uses: ./.github/actions/kbve-shell
                 with:
                     flag: '-build react-phaser-travelbox'
