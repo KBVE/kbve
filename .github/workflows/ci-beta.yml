@@ -61,7 +61,7 @@ jobs:
                 
     deploy:
         needs: alter
-        name: "Processing Rust WASM Embed"
+        name: "Processing Embed Builds and Pipeline"
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout the repository using git
