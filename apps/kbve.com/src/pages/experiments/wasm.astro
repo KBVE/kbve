@@ -40,7 +40,7 @@ let wasm_integrity = wasmy.data.wasm_integrity;
             rel="modulepreload"
         />
     
-        <script type="module">
+        <script is:inline type="module">
             const wasmUrl = document
                 .getElementById('wasm-file-link')
                 .getAttribute('href');
@@ -61,7 +61,7 @@ let wasm_integrity = wasmy.data.wasm_integrity;
         <script is:inline>
             if (`serviceWorker` in navigator && window.location.hash !== `#dev`) {
                 window.addEventListener(`load`, () => {
-                    navigator.serviceWorker.register(`sw.js`);
+                    navigator.serviceWorker.register(`https://kbve.com/embed/rust/sw.js`);
                 });
             }
         </script>
