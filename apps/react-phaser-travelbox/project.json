@@ -1,0 +1,8 @@
+{
+  "name": "react-phaser-travelbox",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/react-phaser-travelbox/src",
+  "projectType": "application",
+  "targets": {},
+  "tags": []
+}
