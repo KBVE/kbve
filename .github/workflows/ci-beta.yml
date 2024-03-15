@@ -41,6 +41,7 @@ jobs:
         outputs:
             rustwasmembed: ${{ steps.delta.outputs.rustwasmembed_any_changed }}
             reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }}
+            reacttravelbox: ${{ steps.delta.outputs.reacttravelbox_any_changed }}
 
 
         steps:
@@ -141,3 +142,16 @@ jobs:
                     pull_request_title: 'react-fish-chip-built-request'
                     pull_request_body: 'React Fish and Chip Built Request'
                 
+                    
+            #   [React] -> Travel Box
+
+            -   name: React Fish & Chip
+                if: needs.alter.outputs.reactfishchip == 'true'
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-build react-phaser-travelbox'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'react-travelbox-built-request'
+                    pull_request_body: 'React TravelBox Built Request'
+            
