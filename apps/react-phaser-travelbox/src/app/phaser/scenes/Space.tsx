@@ -46,16 +46,16 @@ export class Space extends Scene {
       }
     }
     const playerSprite = this.add.sprite(0, 0, "player");
-    playerSprite.scale = 1.5;
+    playerSprite.scale = 2.0;
 
-    this.npcSprite = this.add.sprite(0, 0, "player");
-    this.npcSprite.scale = 1.5;
+    //this.npcSprite = this.add.sprite(0, 0, "player");
+    //this.npcSprite.scale = 1.5;
 
     // this.npcSprite = this.add.sprite(0, 0, "player");
     // this.npcSprite.scale = 1.5;
 
-    this.fishNpcSprite = this.add.sprite(0, 0, "player");
-    this.fishNpcSprite.scale = 1.5;
+    //this.fishNpcSprite = this.add.sprite(0, 0, "player");
+    //this.fishNpcSprite.scale = 1.5;
 
     this.cameras.main.startFollow(playerSprite, true);
     this.cameras.main.setFollowOffset(
@@ -93,11 +93,11 @@ export class Space extends Scene {
     //const scoreStr = localStorage.getItem('totalScore');
     //const scores: ScoreEntry[] = scoreStr ? JSON.parse(scoreStr) : [];
 
-    this.createTextBubble(this.npcSprite, "Enter the sand pit to start fishing! Go near it and press F!");
-    this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
-    this.gridEngine.moveRandomly("npc", 1500, 3);
+    //this.createTextBubble(this.npcSprite, "Enter the sand pit to start fishing! Go near it and press F!");
+    //this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
+    //this.gridEngine.moveRandomly("npc", 1500, 3);
 
-    this.gridEngine.moveRandomly("fishNpc", 1500, 3);
+    //this.gridEngine.moveRandomly("fishNpc", 1500, 3);
     window.__GRID_ENGINE__ = this.gridEngine;
 
   }
