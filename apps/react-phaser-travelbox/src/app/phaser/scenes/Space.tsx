@@ -8,11 +8,11 @@ import Phaser from 'phaser';
 
 import { score } from './data/score';
 
-// declare global {
-//   interface Window {
-//     __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
-//   }
-// }
+ declare global {
+   interface Window {
+     __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
+   }
+ }
 
 
 
@@ -26,7 +26,7 @@ export class Space extends Scene {
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite| undefined;
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-//  gridEngine: any;
+  gridEngine: any;
 
   constructor() {
     super({ key: 'Space' });
@@ -35,10 +35,10 @@ export class Space extends Scene {
   create() {
     const currentScore = score.get();
 
-    const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
-    cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
+    const cloudCityTilemap = this.make.tilemap({ key: "space-map" });
+    cloudCityTilemap.addTilesetImage("Space Map", "tiles");
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-      const layer = cloudCityTilemap.createLayer(i, "Cloud City", 0, 0);
+      const layer = cloudCityTilemap.createLayer(i, "Space Map", 0, 0);
       if (layer) {
         layer.scale = 3;
       } else {
