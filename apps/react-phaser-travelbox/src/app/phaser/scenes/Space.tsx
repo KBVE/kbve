@@ -8,11 +8,11 @@ import Phaser from 'phaser';
 
 import { score } from './data/score';
 
-// declare global {
-//   interface Window {
-//     __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
-//   }
-// }
+ declare global {
+   interface Window {
+     __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
+   }
+ }
 
 
 
@@ -26,7 +26,7 @@ export class Space extends Scene {
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite| undefined;
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-//  gridEngine: any;
+  gridEngine: any;
 
   constructor() {
     super({ key: 'Space' });
