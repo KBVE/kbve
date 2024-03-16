@@ -86,3 +86,7 @@ cache/
 .next
 
 # Next Outs
+
+# Mono
+.mono/*
+*.mono/

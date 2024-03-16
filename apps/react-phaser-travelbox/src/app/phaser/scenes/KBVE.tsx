@@ -58,6 +58,16 @@ export class KBVE extends Phaser.Scene {
     this.load.audio('thrust', '/thrust.ogg');
     this.load.audio('type', 'https://kbve.com/assets/img/fishchip/type.mp3');
 
+    //ship texture
+    this.load.spritesheet('ship', '/ship.png',{      frameWidth: 32,
+    frameHeight: 96});
+
+    // Player 
+    this.load.spritesheet("player", "https://kbve.com/assets/img/fishchip/chip_charactersheet_warmer.png", {
+      frameWidth: 52,
+      frameHeight: 72,
+  });
+
     // Button Background -> Scroll
     this.load.image('wave', 'https://kbve.com/assets/img/curved-images/wave.jpg');
     // Replacing Scroll with Wave
