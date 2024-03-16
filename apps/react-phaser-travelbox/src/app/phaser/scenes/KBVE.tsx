@@ -33,10 +33,16 @@ export class KBVE extends Phaser.Scene {
 
         // Space Port
                 //  Cloud TileSet -> cloud_tileset.png
-        this.load.image("tiles", "https://kbve.com/assets/img/fishchip/desert_tileset_1.png");
+        // this.load.image("tiles", "https://kbve.com/assets/img/fishchip/desert_tileset_1.png");
+        // this.load.tilemapTiledJSON(
+        //             "cloud-city-map",
+        //             "https://kbve.com/assets/img/fishchip/cloud_city.json",
+        // );
+        
+        this.load.image("tiles", "/space_map.png");
         this.load.tilemapTiledJSON(
-                    "cloud-city-map",
-                    "https://kbve.com/assets/img/fishchip/cloud_city.json",
+                    "space-map",
+                    "/space_data.json",
         );
         
 
