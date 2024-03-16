@@ -36,10 +36,10 @@ export class Space extends Scene {
 
     const currentScore = score.get();
 
-    const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
-    cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
+    const cloudCityTilemap = this.make.tilemap({ key: "space-map" });
+    cloudCityTilemap.addTilesetImage("Space Map", "tiles");
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-      const layer = cloudCityTilemap.createLayer(i, "Cloud City", 0, 0);
+      const layer = cloudCityTilemap.createLayer(i, "Space Map", 0, 0);
       if (layer) {
         layer.scale = 3;
       } else {
