@@ -39,10 +39,10 @@ export class KBVE extends Phaser.Scene {
         //             "https://kbve.com/assets/img/fishchip/cloud_city.json",
         // );
         
-        this.load.image("tiles", "/space_map.png");
+        this.load.image("tiles", "/space_map_nenko.png");
         this.load.tilemapTiledJSON(
                     "space-map",
-                    "/space_data.json",
+                    "/space_data_nenko.json",
         );
         
 
