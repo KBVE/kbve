@@ -33,7 +33,6 @@ export class Space extends Scene {
   }
 
   create() {
-
     const currentScore = score.get();
 
     const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
