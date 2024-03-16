@@ -33,6 +33,8 @@ export class Space extends Scene {
   }
 
   create() {
+    this.cameras.main.setBackgroundColor(0x000000);
+
     const currentScore = score.get();
 
     const cloudCityTilemap = this.make.tilemap({ key: "space-map" });
