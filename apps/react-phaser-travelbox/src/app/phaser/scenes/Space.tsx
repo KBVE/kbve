@@ -8,11 +8,11 @@ import Phaser from 'phaser';
 
 import { score } from './data/score';
 
- declare global {
-   interface Window {
-     __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
-   }
- }
+declare global {
+  interface Window {
+    __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
+  }
+}
 
 
 
@@ -27,6 +27,7 @@ export class Space extends Scene {
   fishNpcSprite: ExtendedSprite| undefined;
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
+  scoreText: Phaser.GameObjects.Text | undefined;
 
   constructor() {
     super({ key: 'Space' });
@@ -34,8 +35,6 @@ export class Space extends Scene {
 
   create() {
     this.cameras.main.setBackgroundColor(0x000000);
-
-    const currentScore = score.get();
 
     const cloudCityTilemap = this.make.tilemap({ key: "space-map" });
     cloudCityTilemap.addTilesetImage("Space Map", "tiles");
@@ -47,7 +46,7 @@ export class Space extends Scene {
         console.error(`Layer ${i} could not be created.`);
       }
     }
-    this.playerSprite = this.add.sprite(0, 0, "ship");
+    this.playerSprite = this.add.sprite(0, 0, "player");
     this.playerSprite.scale = 1.5;
 
     //this.npcSprite = this.add.sprite(0, 0, "player");
@@ -104,7 +103,13 @@ export class Space extends Scene {
     //this.gridEngine.moveRandomly("fishNpc", 1500, 3);
     window.__GRID_ENGINE__ = this.gridEngine;
 
-  }
+    const currentScore = parseInt(score.get());
+
+    console.log('Current score:', currentScore);
+    this.scoreText = this.add.text(16, 16, 'Score: ' + currentScore, { fontSize: '32px', fill: '#FFF' }); // Add the text object to the scene
+    this.scoreText.setScrollFactor(0); // Ensure the score text does not move with the camera
+
+  } 
 
   createTextBubble(sprite: ExtendedSprite, text: string | string[]) {
     const bubbleWidth = 200;
@@ -186,9 +191,19 @@ export class Space extends Scene {
         point.y >= yMin && point.y <= yMax;
     }
 
+    function isWithinRangeOfEarth(point: { x: number; y: number; }) {
+            //  Define the bounds
+            const xMin = 12, xMax = 15
+            const yMin = 11, yMax = 14
+            // Check if the point is within the bounds
+            return point.x >= xMin && point.x <= xMax &&
+              point.y >= yMin && point.y <= yMax;
+    } 
+
 
 
     if (this.input.keyboard && this.input.keyboard.addKey('F').isDown) {
+      console.log('F key pressed');
       const position = this.gridEngine.getPosition('player');
 
       const withinRangeOfWell = isWithinRangeOfWell(position);
@@ -210,28 +225,35 @@ export class Space extends Scene {
       if (withinRangeOfTombstone) {
         console.log('Samson Statue!');
       }
+
+      const withinRangeOfEarth = isWithinRangeOfEarth(position);
+      if (withinRangeOfEarth) {
+        this.scene.start('Asteroids');
+        console.log('Earth!');
+      }
+
     }
 
     if(this.playerSprite){
 
-    // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown)
-    if ((cursors && cursors.left.isDown) || (this.input.keyboard && this.input.keyboard.addKey('A').isDown)) {
-      this.gridEngine.move("player", "left");
-      this.playerSprite.rotation=Phaser.Math.DegToRad(270)
+      // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown)
+      if ((cursors && cursors.left.isDown) || (this.input.keyboard && this.input.keyboard.addKey('A').isDown)) {
+        this.gridEngine.move("player", "left");
+      // this.playerSprite.rotation=Phaser.Math.DegToRad(270)
 
-    } else if ((cursors && cursors.right.isDown) || (this.input.keyboard && this.input.keyboard.addKey('D').isDown)) {
-      this.gridEngine.move("player", "right");
-      this.playerSprite.rotation=Phaser.Math.DegToRad(90)
-      this.playerSprite.setOrigin(0.5, 0.5);
-    } else if ((cursors && cursors.up.isDown) ||  (this.input.keyboard && this.input.keyboard.addKey('W').isDown)) {
-      this.gridEngine.move("player", "up");
-      this.playerSprite.rotation=Phaser.Math.DegToRad(0)
-      this.playerSprite.setOrigin(0.5, 0.5);
-    } else if ((cursors && cursors.down.isDown) || (this.input.keyboard && this.input.keyboard.addKey('S').isDown)) {
-      this.gridEngine.move("player", "down");
-      this.playerSprite.rotation=Phaser.Math.DegToRad(180)
-      this.playerSprite.setOrigin(0.5, 0.5);
-    }
+      } else if ((cursors && cursors.right.isDown) || (this.input.keyboard && this.input.keyboard.addKey('D').isDown)) {
+        this.gridEngine.move("player", "right");
+      // this.playerSprite.rotation=Phaser.Math.DegToRad(90)
+        //this.playerSprite.setOrigin(0.5, 0.5);
+      } else if ((cursors && cursors.up.isDown) ||  (this.input.keyboard && this.input.keyboard.addKey('W').isDown)) {
+        this.gridEngine.move("player", "up");
+        //this.playerSprite.rotation=Phaser.Math.DegToRad(0)
+        ///this.playerSprite.setOrigin(0.5, 0.5);
+      } else if ((cursors && cursors.down.isDown) || (this.input.keyboard && this.input.keyboard.addKey('S').isDown)) {
+        this.gridEngine.move("player", "down");
+        // this.playerSprite.rotation=Phaser.Math.DegToRad(180)
+        // this.playerSprite.setOrigin(0.5, 0.5);
+      }
           
   }
 

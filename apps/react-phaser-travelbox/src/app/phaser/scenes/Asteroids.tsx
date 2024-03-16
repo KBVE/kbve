@@ -1,10 +1,12 @@
 import Phaser from "phaser"
 import { createStars } from "./utils/world";
+import { score } from './data/score';
 
 const NUMBER_OF_ASTEROIDS = 300;
 const NUMBER_OF_STARS = 500; // Adjust based on how dense you want the star background to be
 const WORLD_HEIGHT = 3000;
 const WORLD_WIDTH = 3000;
+
 
 export class Asteroids extends Phaser.Scene {
 
@@ -20,6 +22,7 @@ export class Asteroids extends Phaser.Scene {
     this.player = null;
     this.cursors = null;
     this.thrustSoundPlaying = false; // Add this line
+    this.isGameOver = false;
   }
 
   create() {
@@ -79,6 +82,11 @@ export class Asteroids extends Phaser.Scene {
 
 
     this.input.keyboard.on('keydown-SPACE', () => {
+
+      if (this.isGameOver) {
+        return;
+      }
+
       const bullet = this.bullets.get(this.player.x, this.player.y);
       this.sound.play('laser', { volume: 0.1 });
       if (bullet) {
@@ -224,12 +232,22 @@ export class Asteroids extends Phaser.Scene {
   }
 
   gameOver(player, asteroid) {
+
+
+    // IDEA If the player loose he lost a score 
+
+    let currentScore = parseInt(score.get())
+    currentScore = currentScore > 0 ? currentScore - 1 : 0;
+    score.set(currentScore);
+
+
     // Optionally, for visual effect, hide the player and asteroid
     player.setVisible(false);
     asteroid.setVisible(false);
 
     // Stop physics to halt game movement
     this.physics.pause();
+    this.isGameOver = true; // Update the flag
 
     // Display a game over message
     let gameOverText = this.add.text(this.player.x, this.player.y, 'Game Over\nHit ENTER to restart', { fontSize: '32px', fill: '#fff' });
@@ -238,8 +256,17 @@ export class Asteroids extends Phaser.Scene {
     // Optional: Add a way to restart the game, e.g., by clicking
     this.input.keyboard.on('keydown-ENTER', () => {
       this.scene.restart(); // Restart the current scene
+      this.isGameOver = false; // Reset the flag
     });
 
+    // Add if escape is pressed, go back to the main menu
+    this.input.keyboard.on('keydown-ESC', () => {
+      
+      this.scene.restart(); // Restart the current scene
+      this.scene.start('Space');
+    });
+
+   
     this.resetGame();
   }
 
@@ -254,7 +281,20 @@ export class Asteroids extends Phaser.Scene {
     });
     winText.setOrigin(0.5, 0.5);
 
+    let currentScore = parseInt(score.get())
+    currentScore += 1;
+    score.set(currentScore);
+
     this.physics.pause(); // Optionally pause the game
+
+    this.input.keyboard.on('keydown-ESC', () => {
+      this.scene.restart(); // Restart the current scene
+      this.scene.start('Space');  
+    });
+
+
+    this.resetGame();
+
     // Any additional win logic...
   }
 
