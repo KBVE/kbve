@@ -10,7 +10,15 @@ export class NenkoPort extends Phaser.Scene {
         super('NenkoPort');
     }
 
-    preload() {}
+    preload() {
+        // Presets
+
+        // Main Background Image from Unsplash 
+
+        //  this.load.image('mainBg', 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2672&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); // Ensure you have a correct path to your logo image
+        
+
+    }
 
     create() {
 
