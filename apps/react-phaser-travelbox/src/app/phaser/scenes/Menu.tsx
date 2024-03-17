@@ -60,7 +60,9 @@ export class Menu extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
 
-        this.glow=this.mainMenuButtonText?.preFX.addGlow();
+
+        this.glow=this.mainMenuButtonText.preFX.addGlow();
+        
         this.glow.outerStrength=1
         this.glow.setActive(false)
 

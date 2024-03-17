@@ -95,10 +95,11 @@ export class KBVE extends Phaser.Scene {
   }
 
   create() {
+    if(this.input.keyboard){
     this.input.keyboard.on('keydown-SPACE', () => {
       this.scene.start('Asteroids');
     });
-
+  }
     // Menu Music -> Replace Key from 'music' to maybe 'menumusic' ?
 
     //! This has to be placed back in!
