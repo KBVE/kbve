@@ -243,7 +243,7 @@ jobs:
                   uses: actions/upload-artifact@v2
                   with:
                     name: build-WebGL
-                    path: apps/kbve.com/public/embed/js/phaser
+                    path: apps/kbve.com/public/embed/js/travelbox
 
         itchdev:
             needs: ['alter', 'buildSaber', 'setup']
