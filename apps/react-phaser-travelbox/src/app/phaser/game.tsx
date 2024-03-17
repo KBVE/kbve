@@ -31,7 +31,7 @@ export function Game() {
 
 
             const config = {
-                title: "TravelBox",
+                title: "TravelBox - The Game",
                 render: {
                     antialias: false,
                 },
