@@ -19,3 +19,5 @@ const root = ReactDOM.createRoot(document.getElementById('travelbox') as HTMLEle
 root.render(
 <StrictMode><FullApp /></StrictMode>
 );
+
+// This is a quick edit for a trigger
