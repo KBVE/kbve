@@ -15,6 +15,11 @@ export class Asteroids extends Phaser.Scene {
   private enemies: Phaser.Physics.Arcade.Group | null;
 
   thrustSoundPlaying: boolean;
+  thrustSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound | undefined;
+  yellowBox: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | undefined;
+  blueCircle: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | undefined;
+  enemyBullets: Phaser.Physics.Arcade.Group | undefined;
+  boxAttached!: boolean;
 
   constructor() {
     super('Asteroids');
@@ -77,7 +82,9 @@ export class Asteroids extends Phaser.Scene {
 
   private setupCamera() {
     this.cameras.main.setBackgroundColor(0x000000);
-    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    if (this.player) { // Check if player is not null
+      this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    }
     this.cameras.main.setZoom(1);
   }
 
@@ -85,12 +92,15 @@ export class Asteroids extends Phaser.Scene {
     this.thrustSound = this.sound.add('thrust', { loop: true, volume: 0.1 });
     this.player = this.add.triangle(1000, 1000, 0, -10, 10, 10, -10, 10, 0xffffff);
     this.physics.add.existing(this.player);
-
+  
     this.player.setOrigin(0.1, 0.1);
-
-    this.player.body?.setDrag(100);
-    this.player.body?.setMaxVelocity(200);
-    this.player.body?.setCollideWorldBounds(true);
+  
+    // Use a type assertion to cast the body to an Arcade Body
+    const arcadeBody = this.player.body as Phaser.Physics.Arcade.Body;
+  
+    arcadeBody.setDrag(100);
+    arcadeBody.setMaxVelocity(200);
+    arcadeBody.setCollideWorldBounds(true);
   }
 
   private createPlayerBullets() {
@@ -113,25 +123,30 @@ export class Asteroids extends Phaser.Scene {
   }
 
   private playerShoot() {
-    this.input.keyboard.on('keydown-SPACE', () => {
-      const bullet = this.bullets.get(this.player.x, this.player.y);
-      this.sound.play('laser', { volume: 0.1 });
-      if (bullet) {
-        bullet.setActive(true).setVisible(true);
-        bullet.body.setAllowGravity(false); // Ensure the bullet doesn't fall due to gravity
-        this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 400, bullet.body.velocity); // Propel the bullet
+    if (this.input.keyboard) {
 
-        bullet.body.setCollideWorldBounds(true); // Make bullet collide with world bounds
-        bullet.body.onWorldBounds = true; // Enable world bounds event for the bullet
+      this.input.keyboard.on('keydown-SPACE', () => {
+        if (!this.bullets || !this.player) return;
 
-        // Automatically destroy the bullet when it goes out of bounds
-        bullet.body.world.on('worldbounds', (body) => {
-          if (body.gameObject === bullet) {
-            bullet.destroy(); // Destroy the bullet
-          }
-        }, this);
-      }
-    });
+        const bullet = this.bullets.get(this.player.x, this.player.y);
+        this.sound.play('laser', { volume: 0.1 });
+        if (bullet) {
+          bullet.setActive(true).setVisible(true);
+          bullet.body.setAllowGravity(false); // Ensure the bullet doesn't fall due to gravity
+          this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 400, bullet.body.velocity); // Propel the bullet
+
+          bullet.body.setCollideWorldBounds(true); // Make bullet collide with world bounds
+          bullet.body.onWorldBounds = true; // Enable world bounds event for the bullet
+
+          // Automatically destroy the bullet when it goes out of bounds
+          bullet.body.world.on('worldbounds', (body: { gameObject: any; }) => {
+            if (body.gameObject === bullet) {
+              bullet.destroy(); // Destroy the bullet
+            }
+          }, this);
+        }
+      });
+    }
   }
 
   private createPackage() {
@@ -165,57 +180,74 @@ export class Asteroids extends Phaser.Scene {
     enemyBulletGraphics.fillRect(0, 0, 10, 10); // Square bullets
     enemyBulletGraphics.generateTexture('enemyBulletTexture', 10, 10);
     enemyBulletGraphics.destroy();
+  
     this.enemyBullets = this.physics.add.group({
       defaultKey: 'enemyBulletTexture',
       createCallback: (bullet) => {
-        bullet.body.onWorldBounds = true;
+        // Use a type assertion to treat the body as an ArcadePhysics.Body
+        const arcadeBody = bullet.body as Phaser.Physics.Arcade.Body;
+        arcadeBody.onWorldBounds = true;
       },
       removeCallback: (bullet) => {
-        bullet.setActive(false).setVisible(false);
+        // Use a type assertion here as well
+        const spriteBullet = bullet as Phaser.Physics.Arcade.Sprite;
+        spriteBullet.setActive(false).setVisible(false);
       }
     });
-
-    this.physics.world.on('worldbounds', (body) => {
-      // Check if the body belongs to an enemy bullet
-      if (this.enemyBullets.contains(body.gameObject)) {
+  
+    this.physics.world.on('worldbounds', (body: { gameObject: Phaser.Physics.Arcade.Sprite; }) => {
+      // Ensure `this.enemyBullets` is defined before using it
+      if (this.enemyBullets && this.enemyBullets.contains(body.gameObject)) {
         body.gameObject.setActive(false).setVisible(false);
       }
     });
   }
 
   private createEnemies() {
-    // In the create method, after setting up the player and other assets:
     const enemyGraphics = this.make.graphics({}, false);
-    enemyGraphics.fillStyle(0x00ff00, 1); // Set color to green for enemy
-    enemyGraphics.fillRect(0, 0, 20, 30); // Draw a 20x30 rectangle for enemy
+    enemyGraphics.fillStyle(0x00ff00, 1);
+    enemyGraphics.fillRect(0, 0, 20, 30);
     enemyGraphics.generateTexture('enemyTexture', 20, 30);
-    enemyGraphics.destroy(); // Clean up the graphics object
+    enemyGraphics.destroy();
     this.enemies = this.physics.add.group({
       key: 'enemyTexture',
-      repeat: 5, // Number of enemies, adjust as needed
-      setXY: { x: 100, y: 100, stepX: 200 }, // Initial positions, adjust as needed
+      repeat: 5,
+      setXY: { x: 100, y: 100, stepX: 200 },
     });
-
-    // Set velocity and other properties for each enemy
-    this.enemies.children.iterate((enemy) => {
-      enemy.body.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
-      enemy.body.setCollideWorldBounds(true);
+  
+    this.enemies.children.iterate((enemy: any) => {
+      if (enemy.body) {
+        enemy.body.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
+        enemy.body.setCollideWorldBounds(true);
+      }
+      return null; // Explicitly return null
     });
   }
-
+  
   private handleCollisions() {
 
-    // Player collides with package
-    this.physics.add.overlap(this.player, this.yellowBox, (player, box) => {
-      this.attachBoxToPlayer(box);
-    }, null, this);
-
+    if (this.player && this.yellowBox) {
+      this.physics.add.overlap(this.player, this.yellowBox, (player, box) => {
+        this.attachBoxToPlayer(box);
+      }, undefined, this); // Use `undefined` instead of `null`, or just omit it entirely
+    }
+  
     // Player collides with Earth
-    this.physics.add.overlap(this.player, this.blueCircle, () => {
-      if (this.boxAttached) { // Check if the box is attached to the player
-        this.youWin();
-      }
-    }, null, this);
+    // this.physics.add.overlap(this.player, this.blueCircle, () => {
+    //   if (this.boxAttached) { // Check if the box is attached to the player
+    //     this.youWin();
+    //   }
+    // }, null, this);
+    
+    if (this.player && this.blueCircle) {
+      this.physics.add.overlap(this.player, this.blueCircle, () => {
+        if (this.boxAttached) { // Check if the box is attached to the player
+          this.youWin();
+        }
+      }, undefined, this);
+    }
+
+
 
     this.physics.add.collider(this.player, this.enemyBullets, (player, bullet) => {
       bullet.setActive(false).setVisible(false);
@@ -246,7 +278,7 @@ export class Asteroids extends Phaser.Scene {
     }, undefined, this);
   }
 
-  private attachBoxToPlayer(box) {
+  private attachBoxToPlayer(box: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody) {
     box.body.setEnable(false); // Disable physics
     this.boxAttached = true; // Flag to check in the update loop
   }
@@ -285,7 +317,7 @@ export class Asteroids extends Phaser.Scene {
     asteroid.body.onWorldBounds = true; // Enable world bounds collision event for this body
 
     // Listen for the world bounds event
-    asteroid.body.world.on('worldbounds', (body) => {
+    asteroid.body.world.on('worldbounds', (body: { gameObject: Phaser.GameObjects.Arc; }) => {
       if (body.gameObject === asteroid) {
         asteroid.destroy(); // Destroy the asteroid
         this.addAsteroid(); // Add a new asteroid
