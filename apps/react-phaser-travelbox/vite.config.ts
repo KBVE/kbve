@@ -25,6 +25,8 @@ nxViteTsPaths()],
     // worker: {
     //  plugins: [ nxViteTsPaths() ],
     // },
+
+    base: './',
         
     build: {
       outDir: '../../dist/apps/react-phaser-travelbox',
