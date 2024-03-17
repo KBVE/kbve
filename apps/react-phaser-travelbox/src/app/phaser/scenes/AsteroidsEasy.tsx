@@ -2,13 +2,13 @@ import Phaser from "phaser"
 import { createStars } from "./utils/world";
 import { incrementScore } from "./utils/score";
 
-const NUMBER_OF_ASTEROIDS = 300;
+const NUMBER_OF_ASTEROIDS = 50;
 const NUMBER_OF_STARS = 500; // Adjust based on how dense you want the star background to be
 const WORLD_HEIGHT = 3000;
 const WORLD_WIDTH = 3000;
-const NUMBER_OF_ENEMIES = 5;
+const NUMBER_OF_ENEMIES = 1;
 
-export class Asteroids extends Phaser.Scene {
+export class AsteroidsEasy extends Phaser.Scene {
 
   private asteroids: Phaser.GameObjects.Image[];
   private bullets: Phaser.Physics.Arcade.Group | null;
@@ -24,7 +24,7 @@ export class Asteroids extends Phaser.Scene {
   boxAttached!: boolean;
 
   constructor() {
-    super('Asteroids');
+    super('AsteroidsEasy');
     this.asteroids = [];
     this.bullets = null;
     this.player = null;
@@ -621,13 +621,12 @@ export class Asteroids extends Phaser.Scene {
         fontSize: '16px',
         color: '#ffffff'
       });
-
+      incrementScore();
       this.resetGame();
       winText.setOrigin(0.5, 0.5);
       this.physics.pause(); // Optionally pause the game
       if (this.input.keyboard) {
         this.input.keyboard.on('keydown-ENTER', () => {
-          incrementScore();
           this.scene.restart();
           this.scene.start('Space');
         });
