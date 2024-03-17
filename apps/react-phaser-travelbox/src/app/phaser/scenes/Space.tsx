@@ -7,12 +7,13 @@ import Phaser from 'phaser';
 // import { useStore } from '@nanostores/react';
 
 import { score } from './data/score';
+import { getScore } from './utils/score';
 
- declare global {
-   interface Window {
-     __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
-   }
- }
+declare global {
+  interface Window {
+    __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
+  }
+}
 
 
 
@@ -24,7 +25,7 @@ class ExtendedSprite extends Phaser.GameObjects.Sprite {
 export class Space extends Scene {
   playerSprite: ExtendedSprite | undefined;
   npcSprite: ExtendedSprite | undefined;
-  fishNpcSprite: ExtendedSprite| undefined;
+  fishNpcSprite: ExtendedSprite | undefined;
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
   scoreText: Phaser.GameObjects.Text | undefined;
@@ -108,7 +109,7 @@ export class Space extends Scene {
     const currentScore = parseInt(score.get());
 
     console.log('Current score:', currentScore);
-    this.scoreText = this.add.text(16, 16, 'Score: ' + currentScore, { fontSize: '32px', color: '#FFF' }); // Add the text object to the scene
+    this.scoreText = this.add.text(16, 16, 'Score: ' + getScore(), { fontSize: '32px', color: '#FFF' }); // Add the text object to the scene
     this.scoreText.setScrollFactor(0); // Ensure the score text does not move with the camera
 
   }
@@ -137,19 +138,17 @@ export class Space extends Scene {
 
   updateTextBubblePosition(sprite: ExtendedSprite) {
     const container = sprite.textBubble;
-    if(container)
-    {
-    container.x = sprite.x;
-    container.y = sprite.y - sprite.height - container.height / 2;
+    if (container) {
+      container.x = sprite.x;
+      container.y = sprite.y - sprite.height - container.height / 2;
     }
   }
 
   update() {
 
 
-    if(this.input.keyboard)
-    {
-    this.cursor = this.input.keyboard.createCursorKeys();
+    if (this.input.keyboard) {
+      this.cursor = this.input.keyboard.createCursorKeys();
 
     }
     const cursors = this.cursor;
@@ -200,7 +199,7 @@ export class Space extends Scene {
       // Check if the point is within the bounds
       return point.x >= xMin && point.x <= xMax &&
         point.y >= yMin && point.y <= yMax;
-  } 
+    }
 
 
 
@@ -226,7 +225,7 @@ export class Space extends Scene {
       if (withinRangeOfTombstone) {
         console.log('Samson Statue!');
       }
-      
+
       const withinRangeOfEarth = isWithinRangeOfEarth(position);
       if (withinRangeOfEarth) {
         this.scene.start('Asteroids');
@@ -234,28 +233,28 @@ export class Space extends Scene {
       }
     }
 
-    if(this.playerSprite){
+    if (this.playerSprite) {
 
-    // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown)
-    if ((cursors && cursors.left.isDown) || (this.input.keyboard && this.input.keyboard.addKey('A').isDown)) {
-      this.gridEngine.move("player", "left");
-      this.playerSprite.rotation=Phaser.Math.DegToRad(270)
+      // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown)
+      if ((cursors && cursors.left.isDown) || (this.input.keyboard && this.input.keyboard.addKey('A').isDown)) {
+        this.gridEngine.move("player", "left");
+        this.playerSprite.rotation = Phaser.Math.DegToRad(270)
 
-    } else if ((cursors && cursors.right.isDown) || (this.input.keyboard && this.input.keyboard.addKey('D').isDown)) {
-      this.gridEngine.move("player", "right");
-      this.playerSprite.rotation=Phaser.Math.DegToRad(90)
-      this.playerSprite.setOrigin(0.5, 0.5);
-    } else if ((cursors && cursors.up.isDown) ||  (this.input.keyboard && this.input.keyboard.addKey('W').isDown)) {
-      this.gridEngine.move("player", "up");
-      this.playerSprite.rotation=Phaser.Math.DegToRad(0)
-      this.playerSprite.setOrigin(0.5, 0.5);
-    } else if ((cursors && cursors.down.isDown) || (this.input.keyboard && this.input.keyboard.addKey('S').isDown)) {
-      this.gridEngine.move("player", "down");
-      this.playerSprite.rotation=Phaser.Math.DegToRad(180)
-      this.playerSprite.setOrigin(0.5, 0.5);
+      } else if ((cursors && cursors.right.isDown) || (this.input.keyboard && this.input.keyboard.addKey('D').isDown)) {
+        this.gridEngine.move("player", "right");
+        this.playerSprite.rotation = Phaser.Math.DegToRad(90)
+        this.playerSprite.setOrigin(0.5, 0.5);
+      } else if ((cursors && cursors.up.isDown) || (this.input.keyboard && this.input.keyboard.addKey('W').isDown)) {
+        this.gridEngine.move("player", "up");
+        this.playerSprite.rotation = Phaser.Math.DegToRad(0)
+        this.playerSprite.setOrigin(0.5, 0.5);
+      } else if ((cursors && cursors.down.isDown) || (this.input.keyboard && this.input.keyboard.addKey('S').isDown)) {
+        this.gridEngine.move("player", "down");
+        this.playerSprite.rotation = Phaser.Math.DegToRad(180)
+        this.playerSprite.setOrigin(0.5, 0.5);
+      }
+
     }
-          
-  }
 
     // Update the speech bubble positions for both NPCs
     if (this.npcSprite && this.npcSprite.textBubble) {
