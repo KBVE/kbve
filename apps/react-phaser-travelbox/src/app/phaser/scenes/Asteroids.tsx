@@ -238,7 +238,7 @@ export class Asteroids extends Phaser.Scene {
     //     this.youWin();
     //   }
     // }, null, this);
-    
+
     if (this.player && this.blueCircle) {
       this.physics.add.overlap(this.player, this.blueCircle, () => {
         if (this.boxAttached) { // Check if the box is attached to the player
@@ -249,83 +249,199 @@ export class Asteroids extends Phaser.Scene {
 
 
 
-    this.physics.add.collider(this.player, this.enemyBullets, (player, bullet) => {
-      bullet.setActive(false).setVisible(false);
-      this.gameOver(player, bullet);
-    }, null, this);
+    // this.physics.add.collider(this.player, this.enemyBullets, (player, bullet) => {
+    //   bullet.setActive(false).setVisible(false);
+    //   this.gameOver(player, bullet);
+    // }, null, this);
+    if (this.player && this.enemyBullets) {
+      this.physics.add.collider(this.player, this.enemyBullets, (player, bullet) => {
+          // Check or assert the type of `bullet` if necessary
+          if (bullet instanceof Phaser.GameObjects.Sprite) {
+              // Now that we've asserted `bullet` is a Sprite, we can safely call Sprite-specific methods
+              bullet.setActive(false).setVisible(false);
+          }
+          // Since `player` is being used without directly calling methods that might not exist on `Tile`,
+          // no type assertion is necessary for `player`. However, if you need to call specific methods,
+          // you should perform similar checks or assertions.
+          
+          // Assuming `gameOver` can accept these types; otherwise, you might need to adjust its parameters or perform type checks
+          // this.gameOver(player, bullet);
+          this.gameOver();
+      
+        }, undefined, this);
+    }
 
 
-    this.physics.add.collider(this.bullets, this.asteroids, (bullet, asteroid) => {
-      bullet.destroy(); // Destroy the bullet
-      asteroid.destroy(); // Destroy the asteroid
-    }, undefined, this);
+    
+    // this.physics.add.collider(this.bullets, this.asteroids, (bullet, asteroid) => {
+    //   bullet.destroy(); // Destroy the bullet
+    //   asteroid.destroy(); // Destroy the asteroid
+    // }, undefined, this);
+    if (this.bullets && this.asteroids) {
+      this.physics.add.collider(this.bullets, this.asteroids, (bullet, asteroid) => {
+        // Assuming `bullet` and `asteroid` are properly typed or casted within this block,
+        // you can now safely call methods like `destroy` on them.
+        bullet.destroy(); // Destroy the bullet
+        asteroid.destroy(); // Destroy the asteroid
+      }, undefined, this);
+    }
 
-    this.physics.add.collider(this.player, this.asteroids, this.gameOver, null, this);
+
+
+    //this.physics.add.collider(this.player, this.asteroids, this.gameOver, null, this);
+    if (this.player && this.asteroids) {
+      this.physics.add.collider(this.player, this.asteroids, this.gameOver, undefined, this);
+    }
 
     // Add this in the create method, after initializing enemyBullets
-    this.physics.add.collider(this.player, this.enemyBullets, this.gameOver, null, this);
+    if(this.player && this.enemyBullets)
+    {
+    this.physics.add.collider(this.player, this.enemyBullets, this.gameOver, undefined, this);
+    }
+    
+
+
     // Add this in the create method, after initializing enemies
-    this.physics.add.collider(this.player, this.enemies, this.gameOver, null, this);
+    if(this.player && this.enemies)
+    {
+    this.physics.add.collider(this.player, this.enemies, this.gameOver, undefined, this);
+    }
 
-    this.physics.add.collider(this.bullets, this.enemies, (bullet, enemy) => {
-      bullet.destroy(); // Destroy the bullet
-      enemy.destroy(); // Destroy the asteroid
-    }, undefined, this);
 
-    this.physics.add.collider(this.enemyBullets, this.asteroids, (bullet, asteroid) => {
-      bullet.destroy(); // Destroy the bullet
-      asteroid.destroy(); // Destroy the asteroid
-    }, undefined, this);
+    if(this.bullets && this.enemies)
+    {
+      this.physics.add.collider(this.bullets, this.enemies, (bullet, enemy) => {
+        bullet.destroy(); // Destroy the bullet
+        enemy.destroy(); // Destroy the asteroid
+      }, undefined, this);
+    }
+
+
+    if(this.enemyBullets)
+    {
+      this.physics.add.collider(this.enemyBullets, this.asteroids, (bullet, asteroid) => {
+        bullet.destroy(); // Destroy the bullet
+        asteroid.destroy(); // Destroy the asteroid
+      }, undefined, this);
+    }
   }
+
+  // private attachBoxToPlayer(box: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody) {
+  //   box.body.setEnable(false); // Disable physics
+  //   this.boxAttached = true; // Flag to check in the update loop
+  // }
+
+  // private attachBoxToPlayer(box: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody) {
+  //   // Check if 'box' is a GameObjectWithBody
+  //   if ("body" in box) {
+  //     box.body.setEnable(false); // Disable physics
+  //     this.boxAttached = true; // Flag to check in the update loop
+  //   }
+  // }
 
   private attachBoxToPlayer(box: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody) {
-    box.body.setEnable(false); // Disable physics
-    this.boxAttached = true; // Flag to check in the update loop
+    // Ensure 'box' has a 'body' and it's not null
+    if ("body" in box && box.body !== null) {
+      // Dynamically check if the body is of type Arcade Body and disable it
+      if (box.body instanceof Phaser.Physics.Arcade.Body) {
+        box.body.enable = false;
+      } else if (box.body instanceof Phaser.Physics.Arcade.StaticBody) {
+        // For StaticBody, you might handle them differently as they don't have an `enable` property
+        // Static bodies are typically manipulated by directly manipulating their game object
+        console.log("Static body encountered. Consider how you want to handle static bodies.");
+      }
+      this.boxAttached = true; // Flag to check in the update loop
+    }
   }
+  
+
+  // private addAsteroid() {
+  //   const cameraBounds = this.cameras.main.getBounds();
+
+  //   // Define margins outside the camera view where asteroids can spawn
+  //   const margin = 25; // Distance outside the camera view
+
+  //   // Calculate safe spawn zones bafsed on the camera view
+  //   let x, y;
+  //   if (Phaser.Math.Between(0, 1)) {
+  //     // Spawn to the left or right of the camera view
+  //     x = Phaser.Math.Between(0, 1) ? cameraBounds.left - margin : cameraBounds.right + margin;
+  //     y = Phaser.Math.Between(0, WORLD_HEIGHT);
+  //   } else {
+  //     // Spawn above or below the camera view
+  //     x = Phaser.Math.Between(0, WORLD_WIDTH);
+  //     y = Phaser.Math.Between(0, 1) ? cameraBounds.top - margin : cameraBounds.bottom + margin;
+  //   }
+
+  //   // Ensure x and y are within world bounds
+  //   x = Phaser.Math.Clamp(x, 0, WORLD_WIDTH);
+  //   y = Phaser.Math.Clamp(y, 0, WORLD_HEIGHT);
+
+  //   const asteroid = this.add.circle(x, y, Phaser.Math.Between(10, 20), 0x8B4513);
+  //   this.physics.add.existing(asteroid);
+
+  //   const velocityX = Phaser.Math.Between(-100, 100);
+  //   const velocityY = Phaser.Math.Between(-100, 100);
+  //   asteroid.body.setVelocity(velocityX, velocityY);
+
+  //   asteroid.body.setCollideWorldBounds(true);
+  //   asteroid.body.onWorldBounds = true; // Enable world bounds collision event for this body
+
+  //   // Listen for the world bounds event
+  //   asteroid.body.world.on('worldbounds', (body: { gameObject: Phaser.GameObjects.Arc; }) => {
+  //     if (body.gameObject === asteroid) {
+  //       asteroid.destroy(); // Destroy the asteroid
+  //       this.addAsteroid(); // Add a new asteroid
+  //     }
+  //   }, this);
+
+  //   this.asteroids.push(asteroid);
+  // }
 
 
   private addAsteroid() {
     const cameraBounds = this.cameras.main.getBounds();
-
-    // Define margins outside the camera view where asteroids can spawn
     const margin = 25; // Distance outside the camera view
 
-    // Calculate safe spawn zones bafsed on the camera view
     let x, y;
     if (Phaser.Math.Between(0, 1)) {
-      // Spawn to the left or right of the camera view
       x = Phaser.Math.Between(0, 1) ? cameraBounds.left - margin : cameraBounds.right + margin;
       y = Phaser.Math.Between(0, WORLD_HEIGHT);
     } else {
-      // Spawn above or below the camera view
       x = Phaser.Math.Between(0, WORLD_WIDTH);
       y = Phaser.Math.Between(0, 1) ? cameraBounds.top - margin : cameraBounds.bottom + margin;
     }
 
-    // Ensure x and y are within world bounds
     x = Phaser.Math.Clamp(x, 0, WORLD_WIDTH);
     y = Phaser.Math.Clamp(y, 0, WORLD_HEIGHT);
 
     const asteroid = this.add.circle(x, y, Phaser.Math.Between(10, 20), 0x8B4513);
     this.physics.add.existing(asteroid);
 
-    const velocityX = Phaser.Math.Between(-100, 100);
-    const velocityY = Phaser.Math.Between(-100, 100);
-    asteroid.body.setVelocity(velocityX, velocityY);
+    // Check if the asteroid has a body before attempting to access it
+    if (asteroid.body) {
+        const velocityX = Phaser.Math.Between(-100, 100);
+        const velocityY = Phaser.Math.Between(-100, 100);
+        asteroid.body.setVelocity(velocityX, velocityY);
 
-    asteroid.body.setCollideWorldBounds(true);
-    asteroid.body.onWorldBounds = true; // Enable world bounds collision event for this body
+        asteroid.body.setCollideWorldBounds(true);
+        asteroid.body.onWorldBounds = true; // Enable world bounds collision event for this body
 
-    // Listen for the world bounds event
-    asteroid.body.world.on('worldbounds', (body: { gameObject: Phaser.GameObjects.Arc; }) => {
-      if (body.gameObject === asteroid) {
-        asteroid.destroy(); // Destroy the asteroid
-        this.addAsteroid(); // Add a new asteroid
-      }
-    }, this);
+        // Listen for the world bounds event
+        asteroid.body.world.on('worldbounds', (body: { gameObject: Phaser.GameObjects.Arc; }) => {
+          if (body.gameObject === asteroid) {
+            asteroid.destroy(); // Destroy the asteroid
+            this.addAsteroid(); // Add a new asteroid
+          }
+        }, this);
+    } else {
+        console.error('Failed to create a physics body for the asteroid');
+    }
 
     this.asteroids.push(asteroid);
-  }
+}
+
+
 
   private enemyShootAtPlayer(enemy: any) {
     if (Phaser.Math.Between(0, 1000) > 999) {
