@@ -20,64 +20,89 @@ export class Asteroids extends Phaser.Scene {
     this.player = null;
     this.cursors = null;
     this.thrustSoundPlaying = false; // Add this line
+    this.enemies = null; // Add this line in the constructor
   }
 
   create() {
+    this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT, true, true, true, true);
 
-
-
-    this.thrustSound = this.sound.add('thrust', { loop: true, volume: 0.1 });
-
-    // make background black
-    this.cameras.main.setBackgroundColor(0x000000);
-    this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT); // Adjust size as needed
-    // Set up keyboard controls
     this.cursors = this.input.keyboard?.createCursorKeys() ?? null;
 
-    // Create the player as a triangle in the center of the game
-    this.player = this.add.triangle(1000, 1000, 0, -10, 10, 10, -10, 10, 0xffffff);
-    this.physics.add.existing(this.player);
+    this.createPlayer();
 
-
-    // Adjust the origin of the triangle. Start with the geometric center and adjust if necessary
-    this.player.setOrigin(0.1, 0.1); // Adjust this as needed
-
-    // Make the player physics-enabled
-    this.player.body?.setDrag(100);
-    this.player.body?.setMaxVelocity(200);
-    this.player.body?.setCollideWorldBounds(true);
+    this.setupCamera();
 
     this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', fill: '#fff' });
 
-    const graphics = this.make.graphics({}, false);
-    graphics.fillStyle(0xff0000, 1); // Set color to red
-    graphics.fillRect(0, 0, 10, 10); // Draw a 10x10 square
-    graphics.generateTexture('bulletTexture', 10, 10); // Generate a texture named 'bulletTexture'
-    graphics.destroy(); // Clean up the graphics object
-
-
-    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-    this.cameras.main.setZoom(1); // Optional, adjust zoom level as needed
-
-    // Now 'bulletTexture' can be used to create sprites
-    this.bullets = this.physics.add.group({
-      defaultKey: 'bulletTexture',
-      maxSize: 20 // Adjust based on your needs
-    });
+    this.createPlayerBullets();
 
     createStars(this, WORLD_WIDTH, WORLD_HEIGHT, NUMBER_OF_STARS);
 
+    this.createAsteroids();
+
+    this.playerShoot();
+
+    this.createPackage();
+
+    this.createEarth();
+
+    this.createEnemies();
+
+    this.createEnemyBullets();
+
+    this.handleCollisions();
+  }
+
+  update() {
+    this.rotatePlayer();
+    this.playerMoveForward();
+
+    this.boxFollowPlayer();
+
+    this.enemies.children.iterate((enemy) => {
+      this.enemyChasePlayer(enemy);
+      this.enemyShootAtPlayer(enemy);
+    });
+  }
+
+  private setupCamera() {
+    this.cameras.main.setBackgroundColor(0x000000);
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.setZoom(1);
+  }
+
+  private createPlayer() {
+    this.thrustSound = this.sound.add('thrust', { loop: true, volume: 0.1 });
+    this.player = this.add.triangle(1000, 1000, 0, -10, 10, 10, -10, 10, 0xffffff);
+    this.physics.add.existing(this.player);
+
+    this.player.setOrigin(0.1, 0.1);
+
+    this.player.body?.setDrag(100);
+    this.player.body?.setMaxVelocity(200);
+    this.player.body?.setCollideWorldBounds(true);
+  }
+
+  private createPlayerBullets() {
+    const graphics = this.make.graphics({}, false);
+    graphics.fillStyle(0xff0000, 1);
+    graphics.fillRect(0, 0, 10, 10);
+    graphics.generateTexture('bulletTexture', 10, 10);
+    graphics.destroy();
+
+    this.bullets = this.physics.add.group({
+      defaultKey: 'bulletTexture',
+      maxSize: 20
+    });
+  }
+
+  private createAsteroids() {
     for (let i = 0; i < NUMBER_OF_ASTEROIDS; i++) {
       this.addAsteroid();
     }
-    this.physics.add.collider(this.bullets, this.asteroids, (bullet, asteroid) => {
-      bullet.destroy(); // Destroy the bullet
-      asteroid.destroy(); // Destroy the asteroid
-    }, undefined, this);
+  }
 
-    this.physics.add.collider(this.player, this.asteroids, this.gameOver, null, this);
-
-
+  private playerShoot() {
     this.input.keyboard.on('keydown-SPACE', () => {
       const bullet = this.bullets.get(this.player.x, this.player.y);
       this.sound.play('laser', { volume: 0.1 });
@@ -97,8 +122,9 @@ export class Asteroids extends Phaser.Scene {
         }, this);
       }
     });
+  }
 
-    // Create a yellow square
+  private createPackage() {
     const boxSize = 20; // Size of the square
     const boxX = Phaser.Math.Between(0, WORLD_WIDTH - boxSize);
     const boxY = Phaser.Math.Between(0, WORLD_HEIGHT - boxSize);
@@ -108,13 +134,9 @@ export class Asteroids extends Phaser.Scene {
     graphicsYellowBox.clear(); // Clear the graphics object now that the texture is created
 
     this.yellowBox = this.physics.add.sprite(boxX, boxY, 'yellowBoxTexture');
+  }
 
-    this.physics.add.overlap(this.player, this.yellowBox, (player, box) => {
-      this.attachBoxToPlayer(box);
-    }, null, this);
-
-
-    // Draw a big blue circle
+  private createEarth() {
     const circleGraphics = this.add.graphics({ fillStyle: { color: 0x0000ff } });
     const circleRadius = 50; // Radius of the circle
     circleGraphics.fillCircle(circleRadius, circleRadius, circleRadius);
@@ -124,29 +146,109 @@ export class Asteroids extends Phaser.Scene {
     const circleX = Phaser.Math.Between(circleRadius, WORLD_WIDTH - circleRadius);
     const circleY = Phaser.Math.Between(circleRadius, WORLD_HEIGHT - circleRadius);
     this.blueCircle = this.physics.add.sprite(circleX, circleY, 'blueCircleTexture');
+  }
 
+  private createEnemyBullets() {
+    // Create enemy bullets texture
+    const enemyBulletGraphics = this.make.graphics({}, false);
+    enemyBulletGraphics.fillStyle(0x00ff00, 1); // Green color for bullets
+    enemyBulletGraphics.fillRect(0, 0, 10, 10); // Square bullets
+    enemyBulletGraphics.generateTexture('enemyBulletTexture', 10, 10);
+    enemyBulletGraphics.destroy();
+    this.enemyBullets = this.physics.add.group({
+      defaultKey: 'enemyBulletTexture',
+      createCallback: (bullet) => {
+        bullet.body.onWorldBounds = true;
+      },
+      removeCallback: (bullet) => {
+        bullet.setActive(false).setVisible(false);
+      }
+    });
 
+    this.physics.world.on('worldbounds', (body) => {
+      // Check if the body belongs to an enemy bullet
+      if (this.enemyBullets.contains(body.gameObject)) {
+        body.gameObject.setActive(false).setVisible(false);
+      }
+    });
+  }
+
+  private createEnemies() {
+    // In the create method, after setting up the player and other assets:
+    const enemyGraphics = this.make.graphics({}, false);
+    enemyGraphics.fillStyle(0x00ff00, 1); // Set color to green for enemy
+    enemyGraphics.fillRect(0, 0, 20, 30); // Draw a 20x30 rectangle for enemy
+    enemyGraphics.generateTexture('enemyTexture', 20, 30);
+    enemyGraphics.destroy(); // Clean up the graphics object
+    this.enemies = this.physics.add.group({
+      key: 'enemyTexture',
+      repeat: 5, // Number of enemies, adjust as needed
+      setXY: { x: 100, y: 100, stepX: 200 }, // Initial positions, adjust as needed
+    });
+
+    // Set velocity and other properties for each enemy
+    this.enemies.children.iterate((enemy) => {
+      enemy.body.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
+      enemy.body.setCollideWorldBounds(true);
+    });
+  }
+
+  private handleCollisions() {
+
+    // Player collides with package
+    this.physics.add.overlap(this.player, this.yellowBox, (player, box) => {
+      this.attachBoxToPlayer(box);
+    }, null, this);
+
+    // Player collides with Earth
     this.physics.add.overlap(this.player, this.blueCircle, () => {
       if (this.boxAttached) { // Check if the box is attached to the player
         this.youWin();
       }
     }, null, this);
 
+    this.physics.add.collider(this.player, this.enemyBullets, (player, bullet) => {
+      bullet.setActive(false).setVisible(false);
+      this.gameOver(player, bullet);
+    }, null, this);
+
+
+    this.physics.add.collider(this.bullets, this.asteroids, (bullet, asteroid) => {
+      bullet.destroy(); // Destroy the bullet
+      asteroid.destroy(); // Destroy the asteroid
+    }, undefined, this);
+
+    this.physics.add.collider(this.player, this.asteroids, this.gameOver, null, this);
+
+    // Add this in the create method, after initializing enemyBullets
+    this.physics.add.collider(this.player, this.enemyBullets, this.gameOver, null, this);
+    // Add this in the create method, after initializing enemies
+    this.physics.add.collider(this.player, this.enemies, this.gameOver, null, this);
+
+    this.physics.add.collider(this.bullets, this.enemies, (bullet, enemy) => {
+      bullet.destroy(); // Destroy the bullet
+      enemy.destroy(); // Destroy the asteroid
+    }, undefined, this);
+
+    this.physics.add.collider(this.enemyBullets, this.asteroids, (bullet, asteroid) => {
+      bullet.destroy(); // Destroy the bullet
+      asteroid.destroy(); // Destroy the asteroid
+    }, undefined, this);
   }
 
-  attachBoxToPlayer(box) {
+  private attachBoxToPlayer(box) {
     box.body.setEnable(false); // Disable physics
     this.boxAttached = true; // Flag to check in the update loop
   }
 
 
-  addAsteroid() {
+  private addAsteroid() {
     const cameraBounds = this.cameras.main.getBounds();
 
     // Define margins outside the camera view where asteroids can spawn
     const margin = 25; // Distance outside the camera view
 
-    // Calculate safe spawn zones based on the camera view
+    // Calculate safe spawn zones bafsed on the camera view
     let x, y;
     if (Phaser.Math.Between(0, 1)) {
       // Spawn to the left or right of the camera view
@@ -183,32 +285,22 @@ export class Asteroids extends Phaser.Scene {
     this.asteroids.push(asteroid);
   }
 
-
-
-
-  update() {
-    // Checking keyboard input to rotate the player
-    if (this.cursors?.left?.isDown) {
-      this.player.rotation -= 0.05; // Rotate left
-    } else if (this.cursors?.right?.isDown) {
-      this.player.rotation += 0.05; // Rotate right
-    }
-
-    // Move forward
-    if (this.cursors?.up?.isDown) {
-      this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 200, this.player.body.velocity);
-      if (!this.thrustSoundPlaying) {
-        this.thrustSound.play();
-        this.thrustSoundPlaying = true; // Update the flag
+  private enemyShootAtPlayer(enemy: any) {
+    if (Phaser.Math.Between(0, 1000) > 999) {
+      const angle = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y);
+      const bullet = this.enemyBullets.get(enemy.x, enemy.y);
+      if (bullet) {
+        bullet.setActive(true).setVisible(true);
+        this.physics.velocityFromRotation(angle, 300, bullet.body.velocity);
       }
-    } else {
-      if (this.thrustSoundPlaying) {
-        this.thrustSound.pause();
-        this.thrustSoundPlaying = false; // Update the flag
-      }
-      this.player.body.setDrag(100);
     }
+  }
 
+  private enemyChasePlayer(enemy: any) {
+    this.physics.accelerateToObject(enemy, this.player, 50);
+  }
+
+  private boxFollowPlayer() {
     if (this.boxAttached) {
       // Distance behind the player for the box to follow
       const followDistance = 30;
@@ -223,10 +315,31 @@ export class Asteroids extends Phaser.Scene {
     }
   }
 
-  gameOver(player, asteroid) {
-    // Optionally, for visual effect, hide the player and asteroid
-    player.setVisible(false);
-    asteroid.setVisible(false);
+  private playerMoveForward() {
+    if (this.cursors?.up?.isDown) {
+      this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 200, this.player.body.velocity);
+      if (!this.thrustSoundPlaying) {
+        this.thrustSound.play();
+        this.thrustSoundPlaying = true; // Update the flag
+      }
+    } else {
+      if (this.thrustSoundPlaying) {
+        this.thrustSound.pause();
+        this.thrustSoundPlaying = false; // Update the flag
+      }
+      this.player.body.setDrag(100);
+    }
+  }
+
+  private rotatePlayer() {
+    if (this.cursors?.left?.isDown) {
+      this.player.rotation -= 0.05; // Rotate left
+    } else if (this.cursors?.right?.isDown) {
+      this.player.rotation += 0.05;
+    }
+  }
+
+  private gameOver() {
 
     // Stop physics to halt game movement
     this.physics.pause();
@@ -243,20 +356,19 @@ export class Asteroids extends Phaser.Scene {
     this.resetGame();
   }
 
-  resetGame() {
+  private resetGame() {
     this.boxAttached = false; // Reset the flag
   }
 
-  youWin() {
-    let winText = this.add.text(this.player.x, this.player.y, 'You Win!', {
-      fontSize: '64px',
+  private youWin() {
+    let winText = this.add.text(this.player.x, this.player.y, 'Mission Complete!\nGreat work cadet!\nPress ENTER to return back to port.', {
+      fontSize: '16px',
       fill: '#ffffff'
     });
     winText.setOrigin(0.5, 0.5);
-
     this.physics.pause(); // Optionally pause the game
-    // Any additional win logic...
+    this.input.keyboard.on('keydown-ENTER', () => {
+      this.scene.start('Space');
+    });
   }
-
-
 }
