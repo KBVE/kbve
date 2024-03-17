@@ -116,4 +116,6 @@ export class Menu extends Phaser.Scene {
             console.error('Failed to create a physics body for the box');
         }
     }
+
+    
 }
