@@ -42,8 +42,8 @@ export class Asteroids extends Phaser.Scene {
 
     if (this.player) {
 
-    this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
- 
+      this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
+
     }
 
     this.createPlayerBullets();
@@ -71,7 +71,7 @@ export class Asteroids extends Phaser.Scene {
 
     this.boxFollowPlayer();
 
-    if(this.enemies) {
+    if (this.enemies) {
       this.enemies.children.iterate((enemy: any) => {
         this.enemyChasePlayer(enemy);
         this.enemyShootAtPlayer(enemy);
@@ -92,12 +92,12 @@ export class Asteroids extends Phaser.Scene {
     this.thrustSound = this.sound.add('thrust', { loop: true, volume: 0.1 });
     this.player = this.add.triangle(1000, 1000, 0, -10, 10, 10, -10, 10, 0xffffff);
     this.physics.add.existing(this.player);
-  
+
     this.player.setOrigin(0.1, 0.1);
-  
+
     // Use a type assertion to cast the body to an Arcade Body
     const arcadeBody = this.player.body as Phaser.Physics.Arcade.Body;
-  
+
     arcadeBody.setDrag(100);
     arcadeBody.setMaxVelocity(200);
     arcadeBody.setCollideWorldBounds(true);
@@ -180,7 +180,7 @@ export class Asteroids extends Phaser.Scene {
     enemyBulletGraphics.fillRect(0, 0, 10, 10); // Square bullets
     enemyBulletGraphics.generateTexture('enemyBulletTexture', 10, 10);
     enemyBulletGraphics.destroy();
-  
+
     this.enemyBullets = this.physics.add.group({
       defaultKey: 'enemyBulletTexture',
       createCallback: (bullet) => {
@@ -194,7 +194,7 @@ export class Asteroids extends Phaser.Scene {
         spriteBullet.setActive(false).setVisible(false);
       }
     });
-  
+
     this.physics.world.on('worldbounds', (body: { gameObject: Phaser.Physics.Arcade.Sprite; }) => {
       // Ensure `this.enemyBullets` is defined before using it
       if (this.enemyBullets && this.enemyBullets.contains(body.gameObject)) {
@@ -214,7 +214,7 @@ export class Asteroids extends Phaser.Scene {
       repeat: 5,
       setXY: { x: 100, y: 100, stepX: 200 },
     });
-  
+
     this.enemies.children.iterate((enemy: any) => {
       if (enemy.body) {
         enemy.body.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
@@ -223,7 +223,7 @@ export class Asteroids extends Phaser.Scene {
       return null; // Explicitly return null
     });
   }
-  
+
   private handleCollisions() {
 
     if (this.player && this.yellowBox) {
@@ -231,7 +231,7 @@ export class Asteroids extends Phaser.Scene {
         this.attachBoxToPlayer(box);
       }, undefined, this); // Use `undefined` instead of `null`, or just omit it entirely
     }
-  
+
     // Player collides with Earth
     // this.physics.add.overlap(this.player, this.blueCircle, () => {
     //   if (this.boxAttached) { // Check if the box is attached to the player
@@ -255,24 +255,24 @@ export class Asteroids extends Phaser.Scene {
     // }, null, this);
     if (this.player && this.enemyBullets) {
       this.physics.add.collider(this.player, this.enemyBullets, (player, bullet) => {
-          // Check or assert the type of `bullet` if necessary
-          if (bullet instanceof Phaser.GameObjects.Sprite) {
-              // Now that we've asserted `bullet` is a Sprite, we can safely call Sprite-specific methods
-              bullet.setActive(false).setVisible(false);
-          }
-          // Since `player` is being used without directly calling methods that might not exist on `Tile`,
-          // no type assertion is necessary for `player`. However, if you need to call specific methods,
-          // you should perform similar checks or assertions.
-          
-          // Assuming `gameOver` can accept these types; otherwise, you might need to adjust its parameters or perform type checks
-          // this.gameOver(player, bullet);
-          this.gameOver();
-      
-        }, undefined, this);
+        // Check or assert the type of `bullet` if necessary
+        if (bullet instanceof Phaser.GameObjects.Sprite) {
+          // Now that we've asserted `bullet` is a Sprite, we can safely call Sprite-specific methods
+          bullet.setActive(false).setVisible(false);
+        }
+        // Since `player` is being used without directly calling methods that might not exist on `Tile`,
+        // no type assertion is necessary for `player`. However, if you need to call specific methods,
+        // you should perform similar checks or assertions.
+
+        // Assuming `gameOver` can accept these types; otherwise, you might need to adjust its parameters or perform type checks
+        // this.gameOver(player, bullet);
+        this.gameOver();
+
+      }, undefined, this);
     }
 
 
-    
+
     // this.physics.add.collider(this.bullets, this.asteroids, (bullet, asteroid) => {
     //   bullet.destroy(); // Destroy the bullet
     //   asteroid.destroy(); // Destroy the asteroid
@@ -294,22 +294,19 @@ export class Asteroids extends Phaser.Scene {
     }
 
     // Add this in the create method, after initializing enemyBullets
-    if(this.player && this.enemyBullets)
-    {
-    this.physics.add.collider(this.player, this.enemyBullets, this.gameOver, undefined, this);
+    if (this.player && this.enemyBullets) {
+      this.physics.add.collider(this.player, this.enemyBullets, this.gameOver, undefined, this);
     }
-    
+
 
 
     // Add this in the create method, after initializing enemies
-    if(this.player && this.enemies)
-    {
-    this.physics.add.collider(this.player, this.enemies, this.gameOver, undefined, this);
+    if (this.player && this.enemies) {
+      this.physics.add.collider(this.player, this.enemies, this.gameOver, undefined, this);
     }
 
 
-    if(this.bullets && this.enemies)
-    {
+    if (this.bullets && this.enemies) {
       this.physics.add.collider(this.bullets, this.enemies, (bullet, enemy) => {
         bullet.destroy(); // Destroy the bullet
         enemy.destroy(); // Destroy the asteroid
@@ -317,8 +314,7 @@ export class Asteroids extends Phaser.Scene {
     }
 
 
-    if(this.enemyBullets)
-    {
+    if (this.enemyBullets) {
       this.physics.add.collider(this.enemyBullets, this.asteroids, (bullet, asteroid) => {
         bullet.destroy(); // Destroy the bullet
         asteroid.destroy(); // Destroy the asteroid
@@ -353,7 +349,7 @@ export class Asteroids extends Phaser.Scene {
       this.boxAttached = true; // Flag to check in the update loop
     }
   }
-  
+
 
   // private addAsteroid() {
   //   const cameraBounds = this.cameras.main.getBounds();
@@ -417,26 +413,25 @@ export class Asteroids extends Phaser.Scene {
 
     const asteroid = this.add.circle(x, y, Phaser.Math.Between(10, 20), 0x8B4513);
     this.physics.add.existing(asteroid);
-
     const body = asteroid.body as Phaser.Physics.Arcade.Body;
 
+    // Set velocity, world bounds collision, and enable world bounds event
     const velocityX = Phaser.Math.Between(-100, 100);
     const velocityY = Phaser.Math.Between(-100, 100);
-
     body.setVelocity(velocityX, velocityY);
-
-
     body.setCollideWorldBounds(true);
+    body.onWorldBounds = true; // Enable world bounds collision event
 
-    this.physics.world.on('worldbounds', (bodyEvent: { gameObject: Phaser.GameObjects.Arc; }) => {
+    // Listen for the world bounds event on this specific body
+    body.world.on('worldbounds', (bodyEvent: Phaser.Physics.Arcade.Body) => {
       if (bodyEvent.gameObject === asteroid) {
         asteroid.destroy();
-        this.addAsteroid();
+        this.addAsteroid(); // Recursively add a new asteroid
       }
-    });
-    
+    }, this);
+
     this.asteroids.push(asteroid);
-}
+  }
 
 
 
@@ -458,13 +453,13 @@ export class Asteroids extends Phaser.Scene {
       if (Phaser.Math.Between(0, 1000) > 999) {
         // Now safe to assume `this.player` is not null
         const angle = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y);
-        
+
         // Attempt to get a bullet from the enemyBullets group
         const bullet = this.enemyBullets.get(enemy.x, enemy.y) as Phaser.Physics.Arcade.Sprite;
-        
+
         if (bullet) {
           bullet.setActive(true).setVisible(true);
-  
+
           // Ensure `bullet.body` is treated as an Arcade physics body
           // This assumes `bullet` is an instance of `Phaser.Physics.Arcade.Sprite`
           if (bullet.body instanceof Phaser.Physics.Arcade.Body) {
@@ -531,7 +526,7 @@ export class Asteroids extends Phaser.Scene {
     if (this.player && this.player.body instanceof Phaser.Physics.Arcade.Body) {
       if (this.cursors?.up?.isDown) {
         this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 200, this.player.body.velocity);
-  
+
         // Ensure `this.thrustSound` is initialized before using it.
         if (!this.thrustSoundPlaying && this.thrustSound) {
           this.thrustSound.play();
@@ -543,7 +538,7 @@ export class Asteroids extends Phaser.Scene {
           this.thrustSound.pause();
           this.thrustSoundPlaying = false;
         }
-  
+
         this.player.body.setDrag(100);
       }
     } else {
@@ -580,21 +575,20 @@ export class Asteroids extends Phaser.Scene {
   private gameOver() {
     // Stop physics to halt game movement
     this.physics.pause();
-  
+
     if (this.player) {
       // Display a game over message
       const gameOverText = this.add.text(this.player.x, this.player.y, 'Game Over\nHit ENTER to restart', { fontSize: '32px', color: '#fff' });
       gameOverText.setOrigin(0.5);
     }
-  
-    if(this.input.keyboard)
-    {
+
+    if (this.input.keyboard) {
       // Optional: Add a way to restart the game
       this.input.keyboard.on('keydown-ENTER', () => {
         this.scene.restart();
       });
     }
-  
+
     this.resetGame();
   }
 
@@ -608,21 +602,19 @@ export class Asteroids extends Phaser.Scene {
 
   private youWin() {
 
-    if(this.player)
-    {
-    const winText = this.add.text(this.player.x, this.player.y, 'Mission Complete!\nGreat work cadet!\nPress ENTER to return back to port.', {
-      fontSize: '16px',
-      color: '#ffffff'
-    });
-    
-    winText.setOrigin(0.5, 0.5);
-    this.physics.pause(); // Optionally pause the game
-    if(this.input.keyboard)
-    {
-    this.input.keyboard.on('keydown-ENTER', () => {
-      this.scene.start('Space');
-    });
-    }
+    if (this.player) {
+      const winText = this.add.text(this.player.x, this.player.y, 'Mission Complete!\nGreat work cadet!\nPress ENTER to return back to port.', {
+        fontSize: '16px',
+        color: '#ffffff'
+      });
+
+      winText.setOrigin(0.5, 0.5);
+      this.physics.pause(); // Optionally pause the game
+      if (this.input.keyboard) {
+        this.input.keyboard.on('keydown-ENTER', () => {
+          this.scene.start('Space');
+        });
+      }
     }
   }
 
