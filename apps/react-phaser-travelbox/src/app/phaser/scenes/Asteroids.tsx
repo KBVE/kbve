@@ -418,48 +418,86 @@ export class Asteroids extends Phaser.Scene {
     const asteroid = this.add.circle(x, y, Phaser.Math.Between(10, 20), 0x8B4513);
     this.physics.add.existing(asteroid);
 
-    // Check if the asteroid has a body before attempting to access it
-    if (asteroid.body) {
-        const velocityX = Phaser.Math.Between(-100, 100);
-        const velocityY = Phaser.Math.Between(-100, 100);
-        asteroid.body.setVelocity(velocityX, velocityY);
+    const body = asteroid.body as Phaser.Physics.Arcade.Body;
 
-        asteroid.body.setCollideWorldBounds(true);
-        asteroid.body.onWorldBounds = true; // Enable world bounds collision event for this body
+    const velocityX = Phaser.Math.Between(-100, 100);
+    const velocityY = Phaser.Math.Between(-100, 100);
 
-        // Listen for the world bounds event
-        asteroid.body.world.on('worldbounds', (body: { gameObject: Phaser.GameObjects.Arc; }) => {
-          if (body.gameObject === asteroid) {
-            asteroid.destroy(); // Destroy the asteroid
-            this.addAsteroid(); // Add a new asteroid
-          }
-        }, this);
-    } else {
-        console.error('Failed to create a physics body for the asteroid');
-    }
+    body.setVelocity(velocityX, velocityY);
 
+
+    body.setCollideWorldBounds(true);
+
+    this.physics.world.on('worldbounds', (bodyEvent: { gameObject: Phaser.GameObjects.Arc; }) => {
+      if (bodyEvent.gameObject === asteroid) {
+        asteroid.destroy();
+        this.addAsteroid();
+      }
+    });
+    
     this.asteroids.push(asteroid);
 }
 
 
 
+
+  // private enemyShootAtPlayer(enemy: any) {
+  //   if (Phaser.Math.Between(0, 1000) > 999) {
+  //     const angle = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y);
+  //     const bullet = this.enemyBullets.get(enemy.x, enemy.y);
+  //     if (bullet) {
+  //       bullet.setActive(true).setVisible(true);
+  //       this.physics.velocityFromRotation(angle, 300, bullet.body.velocity);
+  //     }
+  //   }
+  // }
+
   private enemyShootAtPlayer(enemy: any) {
-    if (Phaser.Math.Between(0, 1000) > 999) {
-      const angle = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y);
-      const bullet = this.enemyBullets.get(enemy.x, enemy.y);
-      if (bullet) {
-        bullet.setActive(true).setVisible(true);
-        this.physics.velocityFromRotation(angle, 300, bullet.body.velocity);
+    // Ensure `this.player` and `this.enemyBullets` are not null
+    if (this.player && this.enemyBullets) {
+      if (Phaser.Math.Between(0, 1000) > 999) {
+        // Now safe to assume `this.player` is not null
+        const angle = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y);
+        
+        // Attempt to get a bullet from the enemyBullets group
+        const bullet = this.enemyBullets.get(enemy.x, enemy.y) as Phaser.Physics.Arcade.Sprite;
+        
+        if (bullet) {
+          bullet.setActive(true).setVisible(true);
+  
+          // Ensure `bullet.body` is treated as an Arcade physics body
+          // This assumes `bullet` is an instance of `Phaser.Physics.Arcade.Sprite`
+          if (bullet.body instanceof Phaser.Physics.Arcade.Body) {
+            this.physics.velocityFromRotation(angle, 300, bullet.body.velocity);
+          } else {
+            console.error('Bullet body is not an instance of Phaser.Physics.Arcade.Body');
+          }
+        }
       }
+    } else {
+      console.error('Player or enemyBullets group is null');
     }
   }
 
+
+
+  // private enemyChasePlayer(enemy: any) {
+  //   this.physics.accelerateToObject(enemy, this.player, 50);
+  // }
+
   private enemyChasePlayer(enemy: any) {
-    this.physics.accelerateToObject(enemy, this.player, 50);
+    // Ensure this.player is not null before proceeding
+    if (this.player) {
+      this.physics.accelerateToObject(enemy, this.player, 50);
+    } else {
+      // Optionally, handle the case where this.player is null, such as by logging an error or taking alternative actions
+      console.warn("Player object is null, cannot chase player.");
+    }
   }
 
+
   private boxFollowPlayer() {
-    if (this.boxAttached) {
+    if (this.boxAttached && this.player && this.yellowBox) {
       // Distance behind the player for the box to follow
       const followDistance = 30;
 
@@ -473,60 +511,120 @@ export class Asteroids extends Phaser.Scene {
     }
   }
 
+  // private playerMoveForward() {
+  //   if (this.cursors?.up?.isDown) {
+  //     this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 200, this.player.body.velocity);
+  //     if (!this.thrustSoundPlaying) {
+  //       this.thrustSound.play();
+  //       this.thrustSoundPlaying = true; // Update the flag
+  //     }
+  //   } else {
+  //     if (this.thrustSoundPlaying) {
+  //       this.thrustSound.pause();
+  //       this.thrustSoundPlaying = false; // Update the flag
+  //     }
+  //     this.player.body.setDrag(100);
+  //   }
+  // }
+
   private playerMoveForward() {
-    if (this.cursors?.up?.isDown) {
-      this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 200, this.player.body.velocity);
-      if (!this.thrustSoundPlaying) {
-        this.thrustSound.play();
-        this.thrustSoundPlaying = true; // Update the flag
+    if (this.player && this.player.body instanceof Phaser.Physics.Arcade.Body) {
+      if (this.cursors?.up?.isDown) {
+        this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 200, this.player.body.velocity);
+  
+        // Ensure `this.thrustSound` is initialized before using it.
+        if (!this.thrustSoundPlaying && this.thrustSound) {
+          this.thrustSound.play();
+          this.thrustSoundPlaying = true;
+        }
+      } else {
+        // Ensure `this.thrustSound` is initialized before using it.
+        if (this.thrustSoundPlaying && this.thrustSound) {
+          this.thrustSound.pause();
+          this.thrustSoundPlaying = false;
+        }
+  
+        this.player.body.setDrag(100);
       }
     } else {
-      if (this.thrustSoundPlaying) {
-        this.thrustSound.pause();
-        this.thrustSoundPlaying = false; // Update the flag
-      }
-      this.player.body.setDrag(100);
+      console.warn("Player or player body is not initialized.");
     }
   }
+
+  // Yay!
+
+  // private rotatePlayer() {
+  //   if (this.cursors?.left?.isDown) {
+  //     this.player.rotation -= 0.05; // Rotate left
+  //   } else if (this.cursors?.right?.isDown) {
+  //     this.player.rotation += 0.05;
+  //   }
+  // }
 
   private rotatePlayer() {
-    if (this.cursors?.left?.isDown) {
-      this.player.rotation -= 0.05; // Rotate left
-    } else if (this.cursors?.right?.isDown) {
-      this.player.rotation += 0.05;
+    // Check if `this.player` is not null before attempting to access its properties
+    if (this.player) {
+      if (this.cursors?.left?.isDown) {
+        this.player.rotation -= 0.05; // Rotate left
+      } else if (this.cursors?.right?.isDown) {
+        this.player.rotation += 0.05; // Rotate right
+      }
+    } else {
+      // Optionally, handle the scenario where `this.player` is null
+      console.warn("Player object is null, cannot rotate player.");
     }
   }
 
-  private gameOver() {
+  // Updating GameOver
 
+  private gameOver() {
     // Stop physics to halt game movement
     this.physics.pause();
-
-    // Display a game over message
-    let gameOverText = this.add.text(this.player.x, this.player.y, 'Game Over\nHit ENTER to restart', { fontSize: '32px', fill: '#fff' });
-    gameOverText.setOrigin(0.5);
-
-    // Optional: Add a way to restart the game, e.g., by clicking
-    this.input.keyboard.on('keydown-ENTER', () => {
-      this.scene.restart(); // Restart the current scene
-    });
-
+  
+    if (this.player) {
+      // Display a game over message
+      const gameOverText = this.add.text(this.player.x, this.player.y, 'Game Over\nHit ENTER to restart', { fontSize: '32px', color: '#fff' });
+      gameOverText.setOrigin(0.5);
+    }
+  
+    if(this.input.keyboard)
+    {
+      // Optional: Add a way to restart the game
+      this.input.keyboard.on('keydown-ENTER', () => {
+        this.scene.restart();
+      });
+    }
+  
     this.resetGame();
   }
+
+
+
+
 
   private resetGame() {
     this.boxAttached = false; // Reset the flag
   }
 
   private youWin() {
-    let winText = this.add.text(this.player.x, this.player.y, 'Mission Complete!\nGreat work cadet!\nPress ENTER to return back to port.', {
+
+    if(this.player)
+    {
+    const winText = this.add.text(this.player.x, this.player.y, 'Mission Complete!\nGreat work cadet!\nPress ENTER to return back to port.', {
       fontSize: '16px',
-      fill: '#ffffff'
+      color: '#ffffff'
     });
+    
     winText.setOrigin(0.5, 0.5);
     this.physics.pause(); // Optionally pause the game
+    if(this.input.keyboard)
+    {
     this.input.keyboard.on('keydown-ENTER', () => {
       this.scene.start('Space');
     });
+    }
+    }
   }
+
+
 }
