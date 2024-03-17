@@ -61,6 +61,7 @@ jobs:
                 rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
                 itchfishchip: ${{ steps.delta.outputs.itchfishchip_any_changed }}
                 reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }}
+                reacttravelbox: ${{ steps.delta.outputs.reacttravelbox_any_changed }}
 
             steps:
               -   name: Checkout the repository using git
@@ -95,6 +96,8 @@ jobs:
                             - 'apps/next-itch-fishchip/**'
                         reactfishchip:
                             - 'apps/react-phaser-fish-chip/src/**'
+                        reacttravelbox:
+                            - 'apps/react-phaser-travelbox/src/**'
 
                         
 
@@ -225,8 +228,22 @@ jobs:
                     path: apps/next-itch-fishchip/dist  
 
              #    [React] Fish & Chip
+
+
+             #    [React] Phaser TravelBox
             
-           
+              -   name: Itch TravelBox Build
+                  if: needs.alter.outputs.reacttravelbox == 'true'
+                  shell:  bash
+                  run: |
+                         pnpm nx build react-phaser-travelbox
+            
+              -   name: Itch Fish Chip Upload Deployment
+                  if: needs.alter.outputs.reacttravelbox == 'true'
+                  uses: actions/upload-artifact@v2
+                  with:
+                    name: build-WebGL
+                    path: apps/kbve.com/public/embed/js/phaser
 
         itchdev:
             needs: ['alter', 'buildSaber', 'setup']
@@ -286,3 +303,30 @@ jobs:
                         itchUsername: kbve
                         itchGameId: fishchip
                         buildChannel: webgl
+
+
+        itchtravelbox:
+            needs: ['alter', 'deploy']
+            name: Itch TravelBox Deployment
+            runs-on: ubuntu-latest
+            if: needs.alter.outputs.reacttravelbox == 'true'
+            steps:
+                -   name: Checkout repository
+                    uses: actions/checkout@v4
+
+                -   name: Download WebGL Build
+                    uses: actions/download-artifact@v3
+                    id: download
+                    with:
+                        name: build-WebGL
+                        path: apps/kbve.com/public/embed/js/phaser
+
+                -   name: Itch Deploy
+                    uses: KikimoraGames/itch-publish@v0.0.3
+                    with:
+                        butlerApiKey: ${{ secrets.ITCH_API }}
+                        gameData: ${{steps.download.outputs.download-path}}
+                        itchUsername: kbve
+                        itchGameId: travelbox
+                        buildChannel: webgl
+    
