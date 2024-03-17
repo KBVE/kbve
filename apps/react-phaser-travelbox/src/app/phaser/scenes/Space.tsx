@@ -214,10 +214,10 @@ export class Space extends Scene {
     const position = this.gridEngine.getPosition('player');
     if(isWithinRangeOfBuilding(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
       this.playerSprite.textBubble.visible=true
-      this.content.text="Level 1\n F to start."
+      this.content.text="1. Mars\n F to start."
     }else if(isWithinRangeOfEarth(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
       this.playerSprite.textBubble.visible=true
-      this.content.text="Level 2\n F to start."
+      this.content.text="2. Earth\n F to start."
     }else if (this.content&&this.playerSprite&&this.playerSprite.textBubble){
       this.playerSprite.textBubble.visible=false
     }
