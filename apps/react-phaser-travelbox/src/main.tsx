@@ -20,4 +20,4 @@ root.render(
 <StrictMode><FullApp /></StrictMode>
 );
 
-// This is a quick edit for a trigger - Trigger a chance
+// This is a quick edit for a trigger - Trigger the build again
