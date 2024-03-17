@@ -12,6 +12,9 @@ export class Asteroids extends Phaser.Scene {
   private bullets: Phaser.Physics.Arcade.Group | null;
   private player: Phaser.GameObjects.Triangle | null;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | null;
+  private enemies: Phaser.Physics.Arcade.Group | null;
+
+  thrustSoundPlaying: boolean;
 
   constructor() {
     super('Asteroids');
@@ -32,7 +35,11 @@ export class Asteroids extends Phaser.Scene {
 
     this.setupCamera();
 
-    this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', fill: '#fff' });
+    if (this.player) {
+
+    this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
+ 
+    }
 
     this.createPlayerBullets();
 
@@ -59,10 +66,13 @@ export class Asteroids extends Phaser.Scene {
 
     this.boxFollowPlayer();
 
-    this.enemies.children.iterate((enemy) => {
-      this.enemyChasePlayer(enemy);
-      this.enemyShootAtPlayer(enemy);
-    });
+    if(this.enemies) {
+      this.enemies.children.iterate((enemy: any) => {
+        this.enemyChasePlayer(enemy);
+        this.enemyShootAtPlayer(enemy);
+        return true; // Explicitly return true to continue iteration
+      });
+    }
   }
 
   private setupCamera() {
