@@ -8,9 +8,9 @@ const WORLD_WIDTH = 3000;
 
 export class Asteroids extends Phaser.Scene {
 
-  private asteroids: Phaser.GameObjects.Arc[];
+  private asteroids: Phaser.GameObjects.Image[];
   private bullets: Phaser.Physics.Arcade.Group | null;
-  private player: Phaser.GameObjects.Triangle | null;
+  private player: Phaser.GameObjects.Image | null;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | null;
   private enemies: Phaser.Physics.Arcade.Group | null;
 
@@ -29,6 +29,15 @@ export class Asteroids extends Phaser.Scene {
     this.cursors = null;
     this.thrustSoundPlaying = false; // Add this line
     this.enemies = null; // Add this line in the constructor
+    this.boxAttached = false; // Initialize the flag
+  }
+
+  preload() {
+    this.load.image('potato', '/asteroid_potato.png');
+    this.load.image('earth', '/earth.png');
+    this.load.image('ship_still', '/ship_still.png');
+    this.load.image('ship_thrust', '/ship_thrust.png');
+    this.load.image('enemy', '/enemy.png');
   }
 
   create() {
@@ -90,10 +99,10 @@ export class Asteroids extends Phaser.Scene {
 
   private createPlayer() {
     this.thrustSound = this.sound.add('thrust', { loop: true, volume: 0.1 });
-    this.player = this.add.triangle(1000, 1000, 0, -10, 10, 10, -10, 10, 0xffffff);
+    this.player = this.add.image(1000, 1000, 'ship_still');
     this.physics.add.existing(this.player);
 
-    this.player.setOrigin(0.1, 0.1);
+    this.player.setOrigin(0.5, .5);
 
     // Use a type assertion to cast the body to an Arcade Body
     const arcadeBody = this.player.body as Phaser.Physics.Arcade.Body;
@@ -132,6 +141,7 @@ export class Asteroids extends Phaser.Scene {
         this.sound.play('laser', { volume: 0.1 });
         if (bullet) {
           bullet.setActive(true).setVisible(true);
+          bullet.setDepth(-99);
           bullet.body.setAllowGravity(false); // Ensure the bullet doesn't fall due to gravity
           this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 400, bullet.body.velocity); // Propel the bullet
 
@@ -150,27 +160,19 @@ export class Asteroids extends Phaser.Scene {
   }
 
   private createPackage() {
-    const boxSize = 20; // Size of the square
+    const boxSize = 16; // Size of the square
     const boxX = Phaser.Math.Between(0, WORLD_WIDTH - boxSize);
     const boxY = Phaser.Math.Between(0, WORLD_HEIGHT - boxSize);
-    const graphicsYellowBox = this.add.graphics({ fillStyle: { color: 0xffff00 } });
-    graphicsYellowBox.fillRect(0, 0, boxSize, boxSize);
-    graphicsYellowBox.generateTexture('yellowBoxTexture', boxSize, boxSize);
-    graphicsYellowBox.clear(); // Clear the graphics object now that the texture is created
 
-    this.yellowBox = this.physics.add.sprite(boxX, boxY, 'yellowBoxTexture');
+    this.yellowBox = this.physics.add.sprite(boxX, boxY, 'box');
   }
 
   private createEarth() {
-    const circleGraphics = this.add.graphics({ fillStyle: { color: 0x0000ff } });
-    const circleRadius = 50; // Radius of the circle
-    circleGraphics.fillCircle(circleRadius, circleRadius, circleRadius);
-    circleGraphics.generateTexture('blueCircleTexture', circleRadius * 2, circleRadius * 2);
-    circleGraphics.clear(); // Clear the graphics object now that the texture is created
 
-    const circleX = Phaser.Math.Between(circleRadius, WORLD_WIDTH - circleRadius);
-    const circleY = Phaser.Math.Between(circleRadius, WORLD_HEIGHT - circleRadius);
-    this.blueCircle = this.physics.add.sprite(circleX, circleY, 'blueCircleTexture');
+
+    const circleX = Phaser.Math.Between(64, WORLD_WIDTH - 64);
+    const circleY = Phaser.Math.Between(64, WORLD_HEIGHT - 64);
+    this.blueCircle = this.physics.add.sprite(circleX, circleY, 'earth');
   }
 
   private createEnemyBullets() {
@@ -204,19 +206,15 @@ export class Asteroids extends Phaser.Scene {
   }
 
   private createEnemies() {
-    const enemyGraphics = this.make.graphics({}, false);
-    enemyGraphics.fillStyle(0x00ff00, 1);
-    enemyGraphics.fillRect(0, 0, 20, 30);
-    enemyGraphics.generateTexture('enemyTexture', 20, 30);
-    enemyGraphics.destroy();
     this.enemies = this.physics.add.group({
-      key: 'enemyTexture',
+      key: 'enemy',
       repeat: 5,
       setXY: { x: 100, y: 100, stepX: 200 },
     });
 
     this.enemies.children.iterate((enemy: any) => {
       if (enemy.body) {
+        enemy.setScale(0.5);
         enemy.body.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
         enemy.body.setCollideWorldBounds(true);
       }
@@ -411,9 +409,19 @@ export class Asteroids extends Phaser.Scene {
     x = Phaser.Math.Clamp(x, 0, WORLD_WIDTH);
     y = Phaser.Math.Clamp(y, 0, WORLD_HEIGHT);
 
-    const asteroid = this.add.circle(x, y, Phaser.Math.Between(10, 20), 0x8B4513);
+    // create asteroid using potato image
+    const asteroid = this.add.image(x, y, 'potato');
+    // set asteroid origin
+    asteroid.setOrigin(0.5, 0.5);
+
+    // set random scale .7 to .99
+    asteroid.setScale(Phaser.Math.Between(3, 9) / 10);
+
     this.physics.add.existing(asteroid);
     const body = asteroid.body as Phaser.Physics.Arcade.Body;
+
+    //rotate the asteroid slowly
+    body.setAngularVelocity(Phaser.Math.Between(-50, 50));
 
     // Set velocity, world bounds collision, and enable world bounds event
     const velocityX = Phaser.Math.Between(-100, 100);
@@ -459,7 +467,7 @@ export class Asteroids extends Phaser.Scene {
 
         if (bullet) {
           bullet.setActive(true).setVisible(true);
-
+          bullet.setDepth(-99); // Ensure the bullet is behind other objects
           // Ensure `bullet.body` is treated as an Arcade physics body
           // This assumes `bullet` is an instance of `Phaser.Physics.Arcade.Sprite`
           if (bullet.body instanceof Phaser.Physics.Arcade.Body) {
@@ -494,7 +502,7 @@ export class Asteroids extends Phaser.Scene {
   private boxFollowPlayer() {
     if (this.boxAttached && this.player && this.yellowBox) {
       // Distance behind the player for the box to follow
-      const followDistance = 30;
+      const followDistance = 60;
 
       // Calculate the position behind the player
       const angle = this.player.rotation - Math.PI / 2; // Adjust player's rotation to match the direction
@@ -527,24 +535,28 @@ export class Asteroids extends Phaser.Scene {
       if (this.cursors?.up?.isDown) {
         this.physics.velocityFromRotation(this.player.rotation - Math.PI / 2, 200, this.player.body.velocity);
 
-        // Ensure `this.thrustSound` is initialized before using it.
+        // Play thrust sound and change texture to show thrust.
         if (!this.thrustSoundPlaying && this.thrustSound) {
           this.thrustSound.play();
           this.thrustSoundPlaying = true;
+          // Change the player texture to show thrust
+          this.player.setTexture('ship_thrust');
         }
       } else {
-        // Ensure `this.thrustSound` is initialized before using it.
+        // Pause thrust sound and change texture back to still image.
         if (this.thrustSoundPlaying && this.thrustSound) {
           this.thrustSound.pause();
           this.thrustSoundPlaying = false;
+          // Change the player texture back to the normal state
+          this.player.setTexture('ship_still');
         }
-
         this.player.body.setDrag(100);
       }
     } else {
       console.warn("Player or player body is not initialized.");
     }
   }
+
 
   // Yay!
 
@@ -607,11 +619,12 @@ export class Asteroids extends Phaser.Scene {
         fontSize: '16px',
         color: '#ffffff'
       });
-
+      this.resetGame();
       winText.setOrigin(0.5, 0.5);
       this.physics.pause(); // Optionally pause the game
       if (this.input.keyboard) {
         this.input.keyboard.on('keydown-ENTER', () => {
+          this.scene.restart();
           this.scene.start('Space');
         });
       }
