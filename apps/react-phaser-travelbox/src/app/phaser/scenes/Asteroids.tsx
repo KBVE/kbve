@@ -33,11 +33,11 @@ export class Asteroids extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('potato', '/asteroid_potato.png');
-    this.load.image('earth', '/earth.png');
-    this.load.image('ship_still', '/ship_still.png');
-    this.load.image('ship_thrust', '/ship_thrust.png');
-    this.load.image('enemy', '/enemy.png');
+    this.load.image('potato', './asteroid_potato.png');
+    this.load.image('earth', './earth.png');
+    this.load.image('ship_still', './ship_still.png');
+    this.load.image('ship_thrust', './ship_thrust.png');
+    this.load.image('enemy', './enemy.png');
   }
 
   create() {
