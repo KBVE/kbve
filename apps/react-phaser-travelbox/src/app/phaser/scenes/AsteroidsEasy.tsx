@@ -162,7 +162,7 @@ export class AsteroidsEasy extends Phaser.Scene {
   }
 
   private createPackage() {
-    const boxSize = 16; // Size of the square
+    const boxSize = 25; // Size of the square
     const boxX = Phaser.Math.Between(0, WORLD_WIDTH - boxSize);
     const boxY = Phaser.Math.Between(0, WORLD_HEIGHT - boxSize);
 

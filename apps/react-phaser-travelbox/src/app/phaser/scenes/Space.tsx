@@ -23,6 +23,7 @@ class ExtendedSprite extends Phaser.GameObjects.Sprite {
 
 
 export class Space extends Scene {
+  content:Phaser.GameObjects.Text | undefined;
   playerSprite: ExtendedSprite | undefined;
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite | undefined;
@@ -35,6 +36,8 @@ export class Space extends Scene {
   }
 
   create() {
+
+    
     this.cameras.main.setBackgroundColor(0x000000);
 
     // const currentScore = score.get();
@@ -66,6 +69,10 @@ export class Space extends Scene {
       -this.playerSprite.width,
       -this.playerSprite.height,
     );
+
+    this.createTextBubble(this.playerSprite,"yooooo")
+
+
 
     const gridEngineConfig = {
       characters: [
@@ -114,22 +121,24 @@ export class Space extends Scene {
 
   }
 
+
+
   createTextBubble(sprite: ExtendedSprite, text: string | string[]) {
     const bubbleWidth = 200;
     const bubbleHeight = 60;
-    const bubblePadding = 10;
+    const bubblePadding = 5;
 
     const bubble = this.add.graphics();
     bubble.fillStyle(0xffffff, 1);
     bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
     bubble.setDepth(99);
 
-    const content = this.add.text(100, 30, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
-    content.setOrigin(0.5);
-    content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
-    content.setDepth(100);
+    this.content = this.add.text(100, 30, text, { fontFamily: 'Arial', fontSize: 16, color: '#000000' });
+    this.content.setOrigin(0.5);
+    this.content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
+    this.content.setDepth(100);
 
-    const container = this.add.container(0, 0, [bubble, content]);
+    const container = this.add.container(0, 0, [bubble, this.content]);
     container.setDepth(100);
 
     sprite.textBubble = container;
@@ -139,7 +148,7 @@ export class Space extends Scene {
   updateTextBubblePosition(sprite: ExtendedSprite) {
     const container = sprite.textBubble;
     if (container) {
-      container.x = sprite.x;
+      container.x = sprite.x- 65;
       container.y = sprite.y - sprite.height - container.height / 2;
     }
   }
@@ -202,10 +211,19 @@ export class Space extends Scene {
         point.y >= yMin && point.y <= yMax;
     }
 
+    const position = this.gridEngine.getPosition('player');
+    if(isWithinRangeOfBuilding(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
+      this.playerSprite.textBubble.visible=true
+      this.content.text="Level 1\n F to start."
+    }else if(isWithinRangeOfEarth(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
+      this.playerSprite.textBubble.visible=true
+      this.content.text="Level 2\n F to start."
+    }else if (this.content&&this.playerSprite&&this.playerSprite.textBubble){
+      this.playerSprite.textBubble.visible=false
+    }
 
 
     if (this.input.keyboard && this.input.keyboard.addKey('F').isDown) {
-      const position = this.gridEngine.getPosition('player');
 
       const withinRangeOfWell = isWithinRangeOfWell(position);
       if (withinRangeOfWell) {
@@ -219,6 +237,7 @@ export class Space extends Scene {
 
       const withinRangeOfBuilding = isWithinRangeOfBuilding(position);
       if (withinRangeOfBuilding) {
+
         this.scene.start('AsteroidsEasy');
       }
 
@@ -258,11 +277,13 @@ export class Space extends Scene {
     }
 
     // Update the speech bubble positions for both NPCs
-    if (this.npcSprite && this.npcSprite.textBubble) {
-      this.updateTextBubblePosition(this.npcSprite);
+    if (this.playerSprite && this.playerSprite.textBubble) {
+      this.updateTextBubblePosition(this.playerSprite);
     }
     if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
       this.updateTextBubblePosition(this.fishNpcSprite);
     }
   }
+
+  
 }
