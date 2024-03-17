@@ -39,8 +39,8 @@ export function Game() {
 
         scale: {
 
-          mode: Phaser.Scale.RESIZE,
-          //mode: Phaser.Scale.FIT,
+          //mode: Phaser.Scale.RESIZE,
+          mode: Phaser.Scale.FIT,
           //autoCenter: Phaser.Scale.CENTER_BOTH,
 
           min: {
@@ -60,7 +60,7 @@ export function Game() {
         type: Phaser.AUTO,
         transparent: true,
         width: 920,
-        height: 600,
+        height: 700,
         physics: {
           default: 'arcade',
           arcade: {
