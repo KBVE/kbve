@@ -8,7 +8,7 @@ import App from './app/app';
 const FullApp = () => (
     <HelmetProvider>
         <Helmet>
-            <title>The TravelBox</title>
+            <title>The TravelBox Game</title>
         </Helmet>
         <App />
     </HelmetProvider>
