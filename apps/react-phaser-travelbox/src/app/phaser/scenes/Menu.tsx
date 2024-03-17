@@ -61,14 +61,26 @@ export class Menu extends Phaser.Scene {
 
 
 
-        this.glow=this.mainMenuButtonText.preFX.addGlow();
-        
+       // this.glow=this.mainMenuButtonText.preFX.addGlow();
+       
+       if (this.mainMenuButtonText && this.mainMenuButtonText.preFX) {
+        this.glow = this.mainMenuButtonText.preFX.addGlow();
         this.glow.outerStrength=1
         this.glow.setActive(false)
 
+        } else {
+            console.warn('preFX is not available');
+            // Handle the absence of preFX appropriately
+        }
+        
+       
+
         this.mainMenuButtonText.on("pointerover",()=>{
             console.log(this.glow)
+            if(this.glow)
+            {
             this.glow.setActive(true)
+            }
             console.log("glow")
         })
         this.mainMenuButtonText.on("pointerout",()=>{
@@ -85,14 +97,21 @@ export class Menu extends Phaser.Scene {
 
 
     }
-
-    createBox(vel:number,width:number,height:number){
+    
+    createBox(vel: number, width: number, height: number) {
         const posX = Phaser.Math.Between(0, width);
         const posY = Phaser.Math.Between(0, height);
-        const box=this.add.image(posX,posY,"box").setScale(1.5)
+        const box = this.add.image(posX, posY, "box").setScale(1.5);
         this.physics.add.existing(box);
+    
         const velocityX = Phaser.Math.Between(-vel, vel);
         const velocityY = Phaser.Math.Between(-vel, vel);
-        box.body.setVelocity(velocityX, velocityY);
+    
+        // Ensure box.body exists and is not null
+        if (box.body instanceof Phaser.Physics.Arcade.Body) {
+            box.body.setVelocity(velocityX, velocityY);
+        } else {
+            console.error('Failed to create a physics body for the box');
+        }
     }
 }
