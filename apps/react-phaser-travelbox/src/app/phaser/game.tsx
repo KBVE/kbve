@@ -11,7 +11,7 @@ import {KBVE} from './scenes/KBVE';
 import {Menu} from './scenes/Menu';
 import {Space} from './scenes/Space';
 import { Asteroids } from './scenes/Asteroids';
-import { NenkoPort } from './scenes/NenkoPort';
+// import { NenkoPort } from './scenes/NenkoPort';
 
 const StyledApp = styled.div`
     // Your style here
@@ -78,7 +78,7 @@ export function Game() {
                         },
                    ],
                 },
-                scene: [KBVE, Menu, Space, Asteroids,NenkoPort], //  Missing scenes.
+                scene: [KBVE, Menu, Space, Asteroids], //  Missing scenes.
 
                 input: {
                     mouse: {

@@ -64,6 +64,9 @@ export class KBVE extends Phaser.Scene {
       frameHeight: 96
     });
 
+    //box texture
+    this.load.image('box', '/box_small.png');
+
     // Player
     this.load.spritesheet("player", "https://kbve.com/assets/img/fishchip/chip_charactersheet_warmer.png", {
       frameWidth: 52,
@@ -92,10 +95,11 @@ export class KBVE extends Phaser.Scene {
   }
 
   create() {
+    if(this.input.keyboard){
     this.input.keyboard.on('keydown-SPACE', () => {
       this.scene.start('Asteroids');
     });
-
+  }
     // Menu Music -> Replace Key from 'music' to maybe 'menumusic' ?
 
     //! This has to be placed back in!
@@ -108,13 +112,14 @@ export class KBVE extends Phaser.Scene {
     //this.add.image(480, 480, 'mainBg').setScale(0.1);
 
     // Main Menu Button [START]
-    this.mainMenuButtonImage = this.add.image(480, 480, 'wave').setAlpha(0.9).setScale(0.9, 0.3).setInteractive({ useHandCursor: true });
-    this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
-      fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    this.mainMenuButtonText.on('pointerdown', () => {
-      this.scene.start('Menu');
-    }, this);
+    //this.mainMenuButtonImage = this.add.image(480, 480, 'wave').setAlpha(0.9).setScale(0.9, 0.3).setInteractive({ useHandCursor: true });
+    //this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
+    //  fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
+    //}).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    this.scene.start('Menu');
+    //this.mainMenuButtonText.on('pointerdown', () => {
+    //  this.scene.start('Menu');
+    //}, this);
 
     // Main Menu Button [END]
 
