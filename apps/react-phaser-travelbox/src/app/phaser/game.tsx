@@ -59,7 +59,7 @@ export function Game() {
 
         type: Phaser.AUTO,
         transparent: true,
-        width: 800,
+        width: 920,
         height: 600,
         physics: {
           default: 'arcade',
