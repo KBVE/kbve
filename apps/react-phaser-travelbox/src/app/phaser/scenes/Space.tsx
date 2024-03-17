@@ -49,7 +49,7 @@ export class Space extends Scene {
         console.error(`Layer ${i} could not be created.`);
       }
     }
-    this.playerSprite = this.add.sprite(0, 0, "ship");
+    this.playerSprite = this.add.sprite(0, 0, "player");
     this.playerSprite.scale = 1.5;
 
     //this.npcSprite = this.add.sprite(0, 0, "player");
@@ -73,7 +73,7 @@ export class Space extends Scene {
           id: "player",
           sprite: this.playerSprite,
           walkingAnimationMapping: 6,
-          startPosition: { x: 5, y: 12 }, //Initial position 8,8, Lamp position 14 x, 11 y
+          startPosition: { x: 10, y: 10 }, //Initial position 8,8, Lamp position 14 x, 11 y
           speed: 4,
           origin: 0.5
         },
@@ -109,7 +109,7 @@ export class Space extends Scene {
     const currentScore = parseInt(score.get());
 
     console.log('Current score:', currentScore);
-    this.scoreText = this.add.text(16, 16, 'Score: ' + getScore(), { fontSize: '32px', color: '#FFF' }); // Add the text object to the scene
+    this.scoreText = this.add.text(16, 16, 'Boxes  ' + getScore(), { fontSize: '32px',fontFamily: 'Arial Black', color: '#FFF' }); // Add the text object to the scene
     this.scoreText.setScrollFactor(0); // Ensure the score text does not move with the camera
 
   }
@@ -147,6 +147,7 @@ export class Space extends Scene {
   update() {
 
 
+
     if (this.input.keyboard) {
       this.cursor = this.input.keyboard.createCursorKeys();
 
@@ -175,8 +176,8 @@ export class Space extends Scene {
 
     function isWithinRangeOfBuilding(point: { x: number; y: number; }) {
       // Define the bounds
-      const xMin = 13, xMax = 13;
-      const yMin = 6, yMax = 7;
+      const xMin = 12, xMax = 16;
+      const yMin = 4, yMax = 8;
 
       // Check if the point is within the bounds
       return point.x >= xMin && point.x <= xMax &&
@@ -218,7 +219,7 @@ export class Space extends Scene {
 
       const withinRangeOfBuilding = isWithinRangeOfBuilding(position);
       if (withinRangeOfBuilding) {
-        this.scene.start('Asteroids');
+        this.scene.start('AsteroidsEasy');
       }
 
       const withinRangeOfTombstone = isWithinRangeOfTombstone(position);
@@ -238,20 +239,20 @@ export class Space extends Scene {
       // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown)
       if ((cursors && cursors.left.isDown) || (this.input.keyboard && this.input.keyboard.addKey('A').isDown)) {
         this.gridEngine.move("player", "left");
-        this.playerSprite.rotation = Phaser.Math.DegToRad(270)
+        //this.playerSprite.rotation = Phaser.Math.DegToRad(270)
 
       } else if ((cursors && cursors.right.isDown) || (this.input.keyboard && this.input.keyboard.addKey('D').isDown)) {
         this.gridEngine.move("player", "right");
-        this.playerSprite.rotation = Phaser.Math.DegToRad(90)
-        this.playerSprite.setOrigin(0.5, 0.5);
+        //this.playerSprite.rotation = Phaser.Math.DegToRad(90)
+        //this.playerSprite.setOrigin(0.5, 0.5);
       } else if ((cursors && cursors.up.isDown) || (this.input.keyboard && this.input.keyboard.addKey('W').isDown)) {
         this.gridEngine.move("player", "up");
-        this.playerSprite.rotation = Phaser.Math.DegToRad(0)
-        this.playerSprite.setOrigin(0.5, 0.5);
+        //this.playerSprite.rotation = Phaser.Math.DegToRad(0)
+        //this.playerSprite.setOrigin(0.5, 0.5);
       } else if ((cursors && cursors.down.isDown) || (this.input.keyboard && this.input.keyboard.addKey('S').isDown)) {
         this.gridEngine.move("player", "down");
-        this.playerSprite.rotation = Phaser.Math.DegToRad(180)
-        this.playerSprite.setOrigin(0.5, 0.5);
+        //this.playerSprite.rotation = Phaser.Math.DegToRad(180)
+        //this.playerSprite.setOrigin(0.5, 0.5);
       }
 
     }
