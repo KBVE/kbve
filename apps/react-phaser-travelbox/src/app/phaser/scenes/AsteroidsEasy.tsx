@@ -35,11 +35,11 @@ export class AsteroidsEasy extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('potato', '/asteroid_potato.png');
-    this.load.image('earth', '/earth.png');
-    this.load.image('ship_still', '/ship_still.png');
-    this.load.image('ship_thrust', '/ship_thrust.png');
-    this.load.image('enemy', '/enemy.png');
+    this.load.image('potato', './asteroid_potato.png');
+    this.load.image('earth', './earth.png');
+    this.load.image('ship_still', './ship_still.png');
+    this.load.image('ship_thrust', './ship_thrust.png');
+    this.load.image('enemy', './enemy.png');
   }
 
   create() {
@@ -48,12 +48,12 @@ export class AsteroidsEasy extends Phaser.Scene {
     this.cursors = this.input.keyboard?.createCursorKeys() ?? null;
 
     this.createPlayer();
-
+ 
     this.setupCamera();
 
     if (this.player) {
 
-      this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
+      this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Mars!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
 
     }
 
@@ -68,7 +68,7 @@ export class AsteroidsEasy extends Phaser.Scene {
     this.createPackage();
 
     this.createEarth();
-
+    
     this.createEnemies();
 
     this.createEnemyBullets();
@@ -175,6 +175,7 @@ export class AsteroidsEasy extends Phaser.Scene {
     const circleX = Phaser.Math.Between(64, WORLD_WIDTH - 64);
     const circleY = Phaser.Math.Between(64, WORLD_HEIGHT - 64);
     this.blueCircle = this.physics.add.sprite(circleX, circleY, 'earth');
+    this.blueCircle.tint = 0xff0000; // red
   }
 
   private createEnemyBullets() {

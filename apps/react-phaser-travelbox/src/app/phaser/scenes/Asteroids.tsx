@@ -53,12 +53,12 @@ export class Asteroids extends Phaser.Scene {
 
     if (this.player) {
 
-      this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
+      this.add.text(this.player.x - 200, this.player.y - 200, 'Big guy!\nEnemies stole our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
 
     }
-
-    this.createPlayerBullets();
-
+    
+    this.createPlayerBullets(); 
+    
     createStars(this, WORLD_WIDTH, WORLD_HEIGHT, NUMBER_OF_STARS);
 
     this.createAsteroids();
