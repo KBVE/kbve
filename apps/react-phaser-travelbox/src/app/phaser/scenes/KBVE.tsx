@@ -39,10 +39,10 @@ export class KBVE extends Phaser.Scene {
     //             "https://kbve.com/assets/img/fishchip/cloud_city.json",
     // );
 
-    this.load.image("tiles", "/space_map_nenko.png");
+    this.load.image("tiles", "./space_map_nenko.png");
     this.load.tilemapTiledJSON(
       "space-map",
-      "/space_data_nenko.json",
+      "./space_data_nenko.json",
     );
 
 
@@ -53,19 +53,19 @@ export class KBVE extends Phaser.Scene {
     //  this.load.image('mainBg', 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2672&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); // Ensure you have a correct path to your logo image
 
     // Music
-    this.load.audio('music', '/space.ogg');
-    this.load.audio('laser', '/laser.ogg');
-    this.load.audio('thrust', '/thrust.ogg');
+    this.load.audio('music', './space.ogg');
+    this.load.audio('laser', './laser.ogg');
+    this.load.audio('thrust', './thrust.ogg');
     this.load.audio('type', 'https://kbve.com/assets/img/fishchip/type.mp3');
 
     //ship texture
-    this.load.spritesheet('ship', '/ship.png', {
+    this.load.spritesheet('ship', './ship.png', {
       frameWidth: 32,
       frameHeight: 96
     });
 
     //box texture
-    this.load.image('box', '/box_small.png');
+    this.load.image('box', './box_small.png');
 
     // Player
     this.load.spritesheet("player", "https://kbve.com/assets/img/fishchip/chip_charactersheet_warmer.png", {
