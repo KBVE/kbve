@@ -49,15 +49,17 @@ export class Menu extends Phaser.Scene {
             this.createBox(15,1200,800)
         }
 
-        const titleText = this.add.text(650, 300, 'TravelBox', {
+        const titleText = this.add.text(450, 300, 'TravelBox', {
             fontFamily: 'Arial Black', fontSize: 120, color: '#ffffff'
         }).setOrigin(0.5)
         
 
         //this.mainMenuButtonImage = this.add.image(650, 450, 'scroll').setAlpha(0.9).setScale(0.5, 0.2).setInteractive({ useHandCursor: true });
-        this.mainMenuButtonText = this.add.text(650, 450, 'Play', {
+        this.mainMenuButtonText = this.add.text(460, 400, 'Play', {
             fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff'
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+
 
 
 
@@ -114,4 +116,6 @@ export class Menu extends Phaser.Scene {
             console.error('Failed to create a physics body for the box');
         }
     }
+
+    
 }

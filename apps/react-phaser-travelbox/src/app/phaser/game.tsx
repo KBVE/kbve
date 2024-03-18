@@ -12,6 +12,8 @@ import { Menu } from './scenes/Menu';
 import { Space } from './scenes/Space';
 import { Asteroids } from './scenes/Asteroids';
 import { AsteroidsEasy } from './scenes/AsteroidsEasy';
+import { AsteroidsMedium } from './scenes/AsteroidsMedium';
+import { Credits } from './scenes/Credits';
 // import { NenkoPort } from './scenes/NenkoPort';
 
 const StyledApp = styled.div`
@@ -39,8 +41,8 @@ export function Game() {
 
         scale: {
 
-          mode: Phaser.Scale.RESIZE,
-          //mode: Phaser.Scale.FIT,
+          //mode: Phaser.Scale.RESIZE,
+          mode: Phaser.Scale.FIT,
           //autoCenter: Phaser.Scale.CENTER_BOTH,
 
           min: {
@@ -59,8 +61,8 @@ export function Game() {
 
         type: Phaser.AUTO,
         transparent: true,
-        width: 800,
-        height: 600,
+        width: 920,
+        height: 700,
         physics: {
           default: 'arcade',
           arcade: {
@@ -79,7 +81,7 @@ export function Game() {
             },
           ],
         },
-        scene: [KBVE, Menu, Space, Asteroids, AsteroidsEasy], //  Missing scenes.
+        scene: [KBVE, Menu, Space, Asteroids, AsteroidsEasy,AsteroidsMedium,Credits], //  Missing scenes.
 
         input: {
           mouse: {
