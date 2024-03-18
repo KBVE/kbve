@@ -162,11 +162,11 @@ export class AsteroidsEasy extends Phaser.Scene {
   }
 
   private createPackage() {
-    const boxSize = 25; // Size of the square
+    const boxSize = 2.0; // Size of the square
     const boxX = Phaser.Math.Between(0, WORLD_WIDTH - boxSize);
-    const boxY = Phaser.Math.Between(0, WORLD_HEIGHT - boxSize);
+    const boxY = Phaser.Math.Between(0, WORLD_HEIGHT - boxSize); 
 
-    this.yellowBox = this.physics.add.sprite(boxX, boxY, 'box');
+    this.yellowBox = this.physics.add.sprite(boxX, boxY, 'box').setScale(boxSize);
   }
 
   private createEarth() {

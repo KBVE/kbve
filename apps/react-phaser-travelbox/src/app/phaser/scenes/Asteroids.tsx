@@ -53,7 +53,7 @@ export class Asteroids extends Phaser.Scene {
 
     if (this.player) {
 
-      this.add.text(this.player.x - 200, this.player.y - 200, 'Big guy!\nEnemies stole our cargo!\nFind it and bring it back to Earth!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
+      this.add.text(this.player.x - 200, this.player.y - 200, 'Big guy!\nEnemies stole our cargo!\nFind it and bring it back to Earth!\nMay success follow you!!!', { fontSize: '16px', color: '#fff' });
 
     }
     
@@ -162,11 +162,11 @@ export class Asteroids extends Phaser.Scene {
   }
 
   private createPackage() {
-    const boxSize = 25; // Size of the square
+    const boxSize = 1.5; // Size of the square
     const boxX = Phaser.Math.Between(0, WORLD_WIDTH - boxSize);
-    const boxY = Phaser.Math.Between(0, WORLD_HEIGHT - boxSize);
+    const boxY = Phaser.Math.Between(0, WORLD_HEIGHT - boxSize); 
 
-    this.yellowBox = this.physics.add.sprite(boxX, boxY, 'box');
+    this.yellowBox = this.physics.add.sprite(boxX, boxY, 'box').setScale(boxSize);
   }
 
   private createEarth() {
