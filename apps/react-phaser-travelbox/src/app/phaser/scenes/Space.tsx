@@ -6,7 +6,6 @@ import Phaser from 'phaser';
 
 // import { useStore } from '@nanostores/react';
 
-import { score } from './data/score';
 import { getScore } from './utils/score';
 
 declare global {
@@ -40,7 +39,6 @@ export class Space extends Scene {
     
     this.cameras.main.setBackgroundColor(0x000000);
 
-    // const currentScore = score.get();
 
     const cloudCityTilemap = this.make.tilemap({ key: "space-map" });
     cloudCityTilemap.addTilesetImage("Space Map", "tiles");
@@ -113,9 +111,6 @@ export class Space extends Scene {
     //this.gridEngine.moveRandomly("fishNpc", 1500, 3);
     window.__GRID_ENGINE__ = this.gridEngine;
 
-    const currentScore = parseInt(score.get());
-
-    console.log('Current score:', currentScore);
     this.scoreText = this.add.text(16, 16, 'Boxes  ' + getScore(), { fontSize: '32px',fontFamily: 'Arial Black', color: '#FFF' }); // Add the text object to the scene
     this.scoreText.setScrollFactor(0); // Ensure the score text does not move with the camera
 
@@ -183,10 +178,30 @@ export class Space extends Scene {
         point.y >= yMin && point.y <= yMax;
     }
 
-    function isWithinRangeOfBuilding(point: { x: number; y: number; }) {
+    function isRangeBlue(point: { x: number; y: number; }) {
       // Define the bounds
-      const xMin = 12, xMax = 16;
-      const yMin = 4, yMax = 8;
+      const xMin = 12, xMax = 15;
+      const yMin = 5, yMax = 8;
+
+      // Check if the point is within the bounds
+      return point.x >= xMin && point.x <= xMax &&
+        point.y >= yMin && point.y <= yMax;
+    }
+
+    function isRangeRed(point: { x: number; y: number; }) {
+      // Define the bounds
+      const xMin = 7, xMax = 10; 
+      const yMin = 5, yMax = 8;
+
+      // Check if the point is within the bounds
+      return point.x >= xMin && point.x <= xMax &&
+        point.y >= yMin && point.y <= yMax;
+    }
+
+    function isCredit(point: { x: number; y: number; }) {
+      // Define the bounds
+      const xMin = 15, xMax = 17;
+      const yMin = 2, yMax = 3;
 
       // Check if the point is within the bounds
       return point.x >= xMin && point.x <= xMax &&
@@ -212,16 +227,22 @@ export class Space extends Scene {
     }
 
     const position = this.gridEngine.getPosition('player');
-    if(isWithinRangeOfBuilding(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
+    if(isRangeBlue(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
       this.playerSprite.textBubble.visible=true
-      this.content.text="1. Mars\n F to start."
+      this.content.text="2. Neptun\n F to start."
     }else if(isWithinRangeOfEarth(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
       this.playerSprite.textBubble.visible=true
-      this.content.text="2. Earth\n F to start."
+      this.content.text="3. Earth\n F to start."
+    }else if(isRangeRed(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
+      this.playerSprite.textBubble.visible=true
+      this.content.text="1. Mars\n F to start."
+    }else if (isCredit(position)&&this.content&&this.playerSprite&&this.playerSprite.textBubble){
+      this.scene.start('Credits');
     }else if (this.content&&this.playerSprite&&this.playerSprite.textBubble){
       this.playerSprite.textBubble.visible=false
     }
 
+  
 
     if (this.input.keyboard && this.input.keyboard.addKey('F').isDown) {
 
@@ -235,11 +256,18 @@ export class Space extends Scene {
         this.scene.start('CreditsScene');
       }
 
-      const withinRangeOfBuilding = isWithinRangeOfBuilding(position);
+      const withinRangeOfBuilding = isRangeBlue(position);
       if (withinRangeOfBuilding) {
+
+        this.scene.start('AsteroidsMedium');
+      }
+
+      const withinRangeOfRed = isRangeRed(position);
+      if (withinRangeOfRed) {
 
         this.scene.start('AsteroidsEasy');
       }
+
 
       const withinRangeOfTombstone = isWithinRangeOfTombstone(position);
       if (withinRangeOfTombstone) {

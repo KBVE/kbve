@@ -4,8 +4,8 @@ import { incrementScore } from "./utils/score";
 
 const NUMBER_OF_ASTEROIDS = 50;
 const NUMBER_OF_STARS = 500; // Adjust based on how dense you want the star background to be
-const WORLD_HEIGHT = 3000;
-const WORLD_WIDTH = 3000;
+const WORLD_HEIGHT = 2000;
+const WORLD_WIDTH = 2000;
 const NUMBER_OF_ENEMIES = 1;
 
 export class AsteroidsEasy extends Phaser.Scene {
@@ -53,7 +53,7 @@ export class AsteroidsEasy extends Phaser.Scene {
 
     if (this.player) {
 
-      this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Mars!\nGood Luck!!!', { fontSize: '16px', color: '#fff' });
+      this.add.text(this.player.x - 200, this.player.y - 200, 'Cadet!\nWe have lost our cargo!\nFind it and bring it back to Mars!\nWishing you fortune!!!', { fontSize: '16px', color: '#fff' });
 
     }
 
@@ -593,7 +593,7 @@ export class AsteroidsEasy extends Phaser.Scene {
 
     if (this.player) {
       // Display a game over message
-      const gameOverText = this.add.text(this.player.x, this.player.y, 'Game Over\nHit ENTER to restart', { fontSize: '32px', color: '#fff' });
+      const gameOverText = this.add.text(this.player.x, this.player.y, 'Game Over\nHit ENTER to restart\nESC to return to space.', { fontSize: '32px', color: '#fff' });
       gameOverText.setOrigin(0.5);
     }
 
@@ -602,6 +602,11 @@ export class AsteroidsEasy extends Phaser.Scene {
       this.input.keyboard.on('keydown-ENTER', () => {
         this.scene.restart();
       });
+
+      this.input.keyboard.on('keydown-ESC', () => {
+        this.scene.start('Space');
+      }
+      );
     }
 
     this.resetGame();

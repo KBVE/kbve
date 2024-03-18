@@ -12,6 +12,8 @@ import { Menu } from './scenes/Menu';
 import { Space } from './scenes/Space';
 import { Asteroids } from './scenes/Asteroids';
 import { AsteroidsEasy } from './scenes/AsteroidsEasy';
+import { AsteroidsMedium } from './scenes/AsteroidsMedium';
+import { Credits } from './scenes/Credits';
 // import { NenkoPort } from './scenes/NenkoPort';
 
 const StyledApp = styled.div`
@@ -79,7 +81,7 @@ export function Game() {
             },
           ],
         },
-        scene: [KBVE, Menu, Space, Asteroids, AsteroidsEasy], //  Missing scenes.
+        scene: [KBVE, Menu, Space, Asteroids, AsteroidsEasy,AsteroidsMedium,Credits], //  Missing scenes.
 
         input: {
           mouse: {
