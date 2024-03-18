@@ -54,6 +54,7 @@ export class Credits  extends Phaser.Scene {
             Special Thanks: KBVE
 
             Thank you for playing!
+            v1
         `;
 
         const textConfig = {
