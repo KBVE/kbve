@@ -59,7 +59,10 @@ export class Menu extends Phaser.Scene {
             fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff'
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-
+        const version = this.add.text(650, 600, 'Version v1', {
+            fontFamily: 'Arial Black', fontSize: 16, color: '#ffffff'
+        }).setOrigin(0.5)
+        
 
 
 
