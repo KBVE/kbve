@@ -1,0 +1,26 @@
+{
+  "name": "react-phaser-three",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/react-phaser-three/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"defaultConfiguration": "production",
+			"options": {
+				"outputPath": "apps/kbve.com/public/embed/js/three",
+				"emptyOutDir": true
+			},
+			"configurations": {
+				"development": {
+					"mode": "development"
+				},
+				"production": {
+					"mode": "production"
+				}
+			}
+		}
+  },
+  "tags": []
+}
