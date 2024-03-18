@@ -2,13 +2,13 @@ import Phaser from "phaser"
 import { createStars } from "./utils/world";
 import { incrementScore } from "./utils/score";
 
-const NUMBER_OF_ASTEROIDS = 300;
+const NUMBER_OF_ASTEROIDS = 150;
 const NUMBER_OF_STARS = 500; // Adjust based on how dense you want the star background to be
-const WORLD_HEIGHT = 3000;
-const WORLD_WIDTH = 3000;
-const NUMBER_OF_ENEMIES = 5;
+const WORLD_HEIGHT = 2500;
+const WORLD_WIDTH = 2500;
+const NUMBER_OF_ENEMIES = 3;
 
-export class Asteroids extends Phaser.Scene {
+export class AsteroidsMedium extends Phaser.Scene { 
 
   private asteroids: Phaser.GameObjects.Image[];
   private bullets: Phaser.Physics.Arcade.Group | null;
@@ -24,7 +24,7 @@ export class Asteroids extends Phaser.Scene {
   boxAttached!: boolean;
 
   constructor() {
-    super('Asteroids');
+    super('AsteroidsMedium');
     this.asteroids = [];
     this.bullets = null;
     this.player = null;
@@ -48,17 +48,17 @@ export class Asteroids extends Phaser.Scene {
     this.cursors = this.input.keyboard?.createCursorKeys() ?? null;
 
     this.createPlayer();
-
+ 
     this.setupCamera();
 
     if (this.player) {
 
-      this.add.text(this.player.x - 200, this.player.y - 200, 'Big guy!\nEnemies stole our cargo!\nFind it and bring it back to Earth!\nMay god save us!!!', { fontSize: '16px', color: '#fff' });
+      this.add.text(this.player.x - 200, this.player.y - 200, 'Caporal!\nWe lost our cargo again!\nFind it and bring it back to Neptun!\nBest of luck!!!', { fontSize: '16px', color: '#fff' });
 
     }
-    
-    this.createPlayerBullets(); 
-    
+
+    this.createPlayerBullets();
+
     createStars(this, WORLD_WIDTH, WORLD_HEIGHT, NUMBER_OF_STARS);
 
     this.createAsteroids();
@@ -68,7 +68,7 @@ export class Asteroids extends Phaser.Scene {
     this.createPackage();
 
     this.createEarth();
-
+    
     this.createEnemies();
 
     this.createEnemyBullets();
@@ -162,7 +162,7 @@ export class Asteroids extends Phaser.Scene {
   }
 
   private createPackage() {
-    const boxSize = 1.5; // Size of the square
+    const boxSize = 1.8; // Size of the square
     const boxX = Phaser.Math.Between(0, WORLD_WIDTH - boxSize);
     const boxY = Phaser.Math.Between(0, WORLD_HEIGHT - boxSize); 
 
@@ -175,6 +175,7 @@ export class Asteroids extends Phaser.Scene {
     const circleX = Phaser.Math.Between(64, WORLD_WIDTH - 64);
     const circleY = Phaser.Math.Between(64, WORLD_HEIGHT - 64);
     this.blueCircle = this.physics.add.sprite(circleX, circleY, 'earth');
+    this.blueCircle.tint = 0x00a2ff // Blue 
   }
 
   private createEnemyBullets() {
@@ -592,7 +593,7 @@ export class Asteroids extends Phaser.Scene {
 
     if (this.player) {
       // Display a game over message
-      const gameOverText = this.add.text(this.player.x, this.player.y, 'Game Over\nHit ENTER to restart\nESC to return to space.', { fontSize: '32px', color: '#fff' });
+      const gameOverText = this.add.text(this.player.x, this.player.y, 'Game Over\nHit ENTER to restart \nESC to return to space', { fontSize: '32px', color: '#fff' });
       gameOverText.setOrigin(0.5);
     }
 
@@ -622,17 +623,16 @@ export class Asteroids extends Phaser.Scene {
   private youWin() {
 
     if (this.player) {
-      const winText = this.add.text(this.player.x, this.player.y, 'Mission Complete!\nGreat work big guy!\nPress ENTER to return back to port.', {
+      const winText = this.add.text(this.player.x, this.player.y, 'Mission Complete!\nGreat work caporal!\nPress ENTER to return back to port.', {
         fontSize: '16px',
         color: '#ffffff'
       });
-
+      incrementScore();
       this.resetGame();
       winText.setOrigin(0.5, 0.5);
       this.physics.pause(); // Optionally pause the game
       if (this.input.keyboard) {
         this.input.keyboard.on('keydown-ENTER', () => {
-          incrementScore();
           this.scene.restart();
           this.scene.start('Space');
         });
