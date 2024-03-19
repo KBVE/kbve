@@ -6,14 +6,5 @@
 	"semi": true,
 	"bracketSpacing": true,
 	"bracketSameLine":true,
-	"htmlWhitespaceSensitivity": "ignore",
-	"plugins": ["prettier-plugin-astro"],
-	"overrides": [
-	  {
-		"files": "*.astro",
-		"options": {
-		  "parser": "astro"
-		}
-	  }
-	]
+	"htmlWhitespaceSensitivity": "ignore"
 }

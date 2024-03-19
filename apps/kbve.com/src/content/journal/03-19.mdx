@@ -19,11 +19,9 @@ import MDXJS from '../../components/MDXJS.astro';
 
 </MDXJS>
 
-
 <MDXJS>
 
 ### 2024
-
 
 <MDXJS>
 
@@ -43,30 +41,27 @@ const url = new URL(`${protocol}://${clientId}.${proxyDomain}${resourcePath}`);
 
 This is an example of the full url construction.
 
-We might run into an issue where we might have to `patchUrlMappings`, when trying to use the react helmet! 
+We might run into an issue where we might have to `patchUrlMappings`, when trying to use the react helmet!
 
 An example of wrapping it using patch-package:
 
 ```js
-
-import {DiscordSDK} from '@discord/embedded-app-sdk';
+import { DiscordSDK } from '@discord/embedded-app-sdk';
 const discordSdk = new DiscordSDK(YOUR_APP_ID);
 const isProd = process.env.NODE_ENV === 'production'; // Actual dev/prod env check may vary for you
 
 async function setupApp() {
-  if (isProd) {
-    discordSdk.patchUrlMappings([{prefix: '/foo', target: 'foo.com'}]);
-  }
-  // start app initialization after this....
+	if (isProd) {
+		discordSdk.patchUrlMappings([{ prefix: '/foo', target: 'foo.com' }]);
+	}
+	// start app initialization after this....
 }
-
 ```
 
 And the warning, for future cases:
-    
-> Note: 
-> patchUrlMappings is modifying your browser's fetch, WebSocket, and XMLHttpRequest.prototype.open global variables. Depending on the library, you may see side effects from using this helper function. It should be used only when necessary.
 
+> Note:
+> patchUrlMappings is modifying your browser's fetch, WebSocket, and XMLHttpRequest.prototype.open global variables. Depending on the library, you may see side effects from using this helper function. It should be used only when necessary.
 
 </MDXJS>
 
@@ -93,6 +88,30 @@ Afterwards I just quickly merged those changes with ernie and his changes, thus 
 #### Buildathon
 
 Lets start the generic buildathon for this test casing!
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Prettier
+
+It seems that the prettier plugin was crashing because of an astro override, I think I was able to get it resolved.
+
+```json
+
+	"plugins": ["prettier-plugin-astro"],
+	"overrides": [
+	  {
+		"files": "*.astro",
+		"options": {
+		  "parser": "astro"
+		}
+	  }
+	]
+
+```
 
 </MDXJS>
 
