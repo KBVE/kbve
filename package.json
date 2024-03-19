@@ -129,6 +129,7 @@
     "@types/three": "0.161.2",
     "axios": "1.6.7",
     "clsx": "^2.1.0",
+    "colyseus.js": "^0.15.18",
     "drizzle-orm": "^0.29.1",
     "drizzle-zod": "^0.5.1",
     "enable3d": "^0.25.4",
