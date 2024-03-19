@@ -6,7 +6,9 @@
       
       export default defineConfig({
         root: __dirname,
+
         cacheDir: '../../node_modules/.vite/apps/react-phaser-three',
+
         
     server:{
       port: 4200,
@@ -25,6 +27,7 @@ nxViteTsPaths()],
     // worker: {
     //  plugins: [ nxViteTsPaths() ],
     // },
+
         
     build: {
       outDir: '../../dist/apps/react-phaser-three',
@@ -32,6 +35,18 @@ nxViteTsPaths()],
       commonjsOptions: {
         transformMixedEsModules: true,
       },
+      rollupOptions: {
+        external: ['fs', 'path', 'process'],
+        output: {
+          // ES Module Output
+          format: 'es', // ES module format
+          // Change the output directory structure and naming
+          entryFileNames: `travelbox.js`,
+          chunkFileNames: `[name].js`,
+          assetFileNames: `[name].[ext]`,
+        },
+      },
+
     },
     
         
@@ -45,6 +60,7 @@ nxViteTsPaths()],
     
     reporters: ['default'],
     coverage: {
+
       reportsDirectory: '../../coverage/apps/react-phaser-three',
       provider: 'v8',
     }

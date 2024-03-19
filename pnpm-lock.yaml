@@ -44,6 +44,12 @@ dependencies:
   '@tamagui/config':
     specifier: ^1.90.6
     version: 1.90.6(react-dom@18.2.0)(react-native-reanimated@3.7.1)(react-native@0.73.2)(react@18.2.0)
+  '@types/matter-js':
+    specifier: 0.17.6
+    version: 0.17.6
+  '@types/three':
+    specifier: 0.161.2
+    version: 0.161.2
   axios:
     specifier: 1.6.7
     version: 1.6.7
@@ -56,6 +62,9 @@ dependencies:
   drizzle-zod:
     specifier: ^0.5.1
     version: 0.5.1(drizzle-orm@0.29.1)(zod@3.22.4)
+  enable3d:
+    specifier: ^0.25.4
+    version: 0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0)
   expo:
     specifier: ~50.0.3
     version: 50.0.7(@babel/core@7.23.0)(@react-native/babel-preset@0.73.21)
@@ -74,12 +83,18 @@ dependencies:
   html-react-parser:
     specifier: ^5.1.8
     version: 5.1.8(@types/react@18.2.58)(react@18.2.0)
+  matter-js:
+    specifier: 0.17.1
+    version: 0.17.1
   next:
     specifier: 14.0.4
     version: 14.0.4(@babel/core@7.23.0)(babel-plugin-macros@3.1.0)(react-dom@18.2.0)(react@18.2.0)
   phaser:
     specifier: ^3.80.1
     version: 3.80.1
+  poly-decomp:
+    specifier: ^0.3.0
+    version: 0.3.0
   react-helmet-async:
     specifier: ^2.0.4
     version: 2.0.4(react-dom@18.2.0)(react@18.2.0)
@@ -113,6 +128,12 @@ dependencies:
   tamagui:
     specifier: ^1.90.6
     version: 1.90.6(@types/react@18.2.58)(react-dom@18.2.0)(react-native-web@0.19.10)(react-native@0.73.2)(react@18.2.0)
+  three:
+    specifier: 0.161.0
+    version: 0.161.0
+  three-csg-ts:
+    specifier: ^3.1.10
+    version: 3.1.14(@types/three@0.161.2)(three@0.161.0)
   tslib:
     specifier: ^2.3.0
     version: 2.6.2
@@ -4143,6 +4164,61 @@ packages:
 
   /@emotion/unitless@0.7.5:
     resolution: {integrity: sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg==}
+
+  /@enable3d/ammo-physics@0.25.4(@types/three@0.161.2)(three@0.161.0):
+    resolution: {integrity: sha512-LQ67LE6eUxepFFUx6R0v7hPOE0UYWE5amnbaUzirzp4R9hkVmQb3ZFCjc1M3yg8ZAzuYAe/LSlmeU3VaKxpXpw==}
+    peerDependencies:
+      '@types/three': 0.156.0
+      three: 0.156.1
+    dependencies:
+      '@enable3d/common': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+      '@enable3d/three-wrapper': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+      '@types/three': 0.161.2
+      '@yandeu/events': 0.0.5
+      three: 0.161.0
+    dev: false
+
+  /@enable3d/common@0.25.4(@types/three@0.161.2)(three@0.161.0):
+    resolution: {integrity: sha512-71IlGeQ/7gf7REfghgqdvaCPEiPXB6B5QkUKRs9Xqpl2m+ZsQXo2wdYsJOz0wXsSeydafGpIaDyOOB9d02RhDA==}
+    dependencies:
+      '@enable3d/three-wrapper': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+      '@yandeu/events': 0.0.5
+    transitivePeerDependencies:
+      - '@types/three'
+      - three
+    dev: false
+
+  /@enable3d/three-graphics@0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0):
+    resolution: {integrity: sha512-eOPAmtfQ8ioHda/G13BcnkcXi54L4wwUEOVCyCp8FsgIfh7xkZZSuJHZkJkkZmL1i/NmhESvz/UwNlLVW/KNGw==}
+    peerDependencies:
+      '@types/matter-js': 0.17.6
+      '@types/three': 0.156.0
+      matter-js: 0.17.1
+      poly-decomp: ^0.3.0
+      three: 0.156.1
+    dependencies:
+      '@enable3d/ammo-physics': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+      '@enable3d/common': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+      '@enable3d/three-wrapper': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+      '@types/matter-js': 0.17.6
+      '@types/three': 0.161.2
+      '@yandeu/events': 0.0.5
+      '@yandeu/tap': 0.0.3
+      matter-js: 0.17.1
+      poly-decomp: 0.3.0
+      three: 0.161.0
+      three-csg-ts: 3.1.14(@types/three@0.161.2)(three@0.161.0)
+    dev: false
+
+  /@enable3d/three-wrapper@0.25.4(@types/three@0.161.2)(three@0.161.0):
+    resolution: {integrity: sha512-B0Xo+jlpWH/R2H2Btn6jIRFqxOLo75RLEnMVlEXI4OSGLUdh1sDLQq3TxvbPQMysK9nhC92odrePjHP6HyhT6Q==}
+    peerDependencies:
+      '@types/three': 0.156.0
+      three: 0.156.1
+    dependencies:
+      '@types/three': 0.161.2
+      three: 0.161.0
+    dev: false
 
   /@esbuild-kit/core-utils@3.3.2:
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
@@ -10199,6 +10275,10 @@ packages:
       '@types/node': 18.19.17
     dev: true
 
+  /@types/matter-js@0.17.6:
+    resolution: {integrity: sha512-i6WLNuM7/89SLqO2aOyaUkom9tc3B/qo4ekh7BD99xQ8+wOVVZO0F4RzKNYZCaFwr+xp3pK3oIb6sSVjLpz+pA==}
+    dev: false
+
   /@types/mdast@4.0.3:
     resolution: {integrity: sha512-LsjtqsyF+d2/yFOYaN22dHZI1Cpwkrj+g06G8+qtUKlhovPW89YhqSnfKtMbkgmEtYpH2gydRNULd6y8mciAFg==}
     dependencies:
@@ -10343,6 +10423,10 @@ packages:
   /@types/stack-utils@2.0.1:
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
 
+  /@types/stats.js@0.17.3:
+    resolution: {integrity: sha512-pXNfAD3KHOdif9EQXZ9deK82HVNaXP5ZIF5RP2QG6OQFNTaY2YIetfrE9t528vEreGQvEPRDDc8muaoYeK0SxQ==}
+    dev: false
+
   /@types/styled-components@5.1.26:
     resolution: {integrity: sha512-KuKJ9Z6xb93uJiIyxo/+ksS7yLjS1KzG6iv5i78dhVg/X3u5t1H7juRWqVmodIdz6wGVaIApo1u01kmFRdJHVw==}
     dependencies:
@@ -10350,6 +10434,15 @@ packages:
       '@types/react': 18.2.58
       csstype: 3.1.2
     dev: true
+
+  /@types/three@0.161.2:
+    resolution: {integrity: sha512-DazpZ+cIfBzbW/p0zm6G8CS03HBMd748A3R1ZOXHpqaXZLv2I5zNgQUrRG//UfJ6zYFp2cUoCQaOLaz8ubH07w==}
+    dependencies:
+      '@types/stats.js': 0.17.3
+      '@types/webxr': 0.5.14
+      fflate: 0.6.10
+      meshoptimizer: 0.18.1
+    dev: false
 
   /@types/toastify-js@1.12.3:
     resolution: {integrity: sha512-9RjLlbAHMSaae/KZNHGv19VG4gcLIm3YjvacCXBtfMfYn26h76YP5oxXI8k26q4iKXCB9LNfv18lsoS0JnFPTg==}
@@ -10366,6 +10459,10 @@ packages:
   /@types/unist@3.0.2:
     resolution: {integrity: sha512-dqId9J8K/vGi5Zr7oo212BGii5m3q5Hxlkwy3WpYuKPklmBEvsbMYYyLxAQpSffdLl/gdW0XUpKWFvYmyoWCoQ==}
     dev: true
+
+  /@types/webxr@0.5.14:
+    resolution: {integrity: sha512-UEMMm/Xn3DtEa+gpzUrOcDj+SJS1tk5YodjwOxcqStNhCfPcwgyC5Srg2ToVKyg2Fhq16Ffpb0UWUQHqoT9AMA==}
+    dev: false
 
   /@types/ws@8.5.10:
     resolution: {integrity: sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==}
@@ -10949,6 +11046,16 @@ packages:
   /@xtuc/long@4.2.2:
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
     dev: true
+
+  /@yandeu/events@0.0.5:
+    resolution: {integrity: sha512-TUkghSGu0ThcEyAP50WHU/vdQkpt9EZyotjZzG8KirR+VI5o7Rp5wabcGru62JNy+awMR8Voy+kFzhNkC/1E6A==}
+    dev: false
+
+  /@yandeu/tap@0.0.3:
+    resolution: {integrity: sha512-GIStEHmboHVbs6ghcRxkO5NVdZtRCsf1mkKI0gvzc21uj5qGlGSCD/Eaax98/c6Mu9+n2lkTYbTwuBbg2vzuQw==}
+    dependencies:
+      '@yandeu/events': 0.0.5
+    dev: false
 
   /@yarnpkg/lockfile@1.1.0:
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
@@ -14058,6 +14165,21 @@ packages:
     engines: {node: '>= 4'}
     dev: true
 
+  /enable3d@0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0):
+    resolution: {integrity: sha512-mI3ptNEBzcFlpKXPpkJAUzZMFvk6RjV5ydFichTbd8RzOHD1+yblOWN2z9qKjblPVyA83b5D5+nW4NT0LsdUAQ==}
+    dependencies:
+      '@enable3d/ammo-physics': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+      '@enable3d/common': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+      '@enable3d/three-graphics': 0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0)
+      '@enable3d/three-wrapper': 0.25.4(@types/three@0.161.2)(three@0.161.0)
+    transitivePeerDependencies:
+      - '@types/matter-js'
+      - '@types/three'
+      - matter-js
+      - poly-decomp
+      - three
+    dev: false
+
   /encodeurl@1.0.2:
     resolution: {integrity: sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==}
     engines: {node: '>= 0.8'}
@@ -15378,6 +15500,10 @@ packages:
 
   /fetch-retry@4.1.1:
     resolution: {integrity: sha512-e6eB7zN6UBSwGVwrbWVH+gdLnkW9WwHhmq2YDK1Sh30pzx1onRVGBvogTlUeWxwTa+L86NYdo4hFkh7O8ZjSnA==}
+
+  /fflate@0.6.10:
+    resolution: {integrity: sha512-IQrh3lEPM93wVCEczc9SaAOvkmcoQn/G8Bo1e8ZPlY3X3bnAxWaBdvTdvM1hP62iZp0BXWDy4vTAy4fF0+Dlpg==}
+    dev: false
 
   /fflate@0.8.1:
     resolution: {integrity: sha512-/exOvEuc+/iaUm105QIiOt4LpBdMTWsXxqR0HDF35vx3fmaKzw7354gTilCh5rkzEt8WYyG//ku3h3nRmd7CHQ==}
@@ -18697,6 +18823,10 @@ packages:
   /marky@1.2.5:
     resolution: {integrity: sha512-q9JtQJKjpsVxCRVgQ+WapguSbKC3SQ5HEzFGPAJMStgh3QjCawp00UKv3MTTAArTmGmmPUvllHZoNbZ3gs0I+Q==}
 
+  /matter-js@0.17.1:
+    resolution: {integrity: sha512-pSquoENJgvSAlQGcA0s5UkmEohGXZaUww2g3B6qG87x0iEcVf+aigMXn5UkFPdnh6w3B+C4vXSLaYqhHwKrOLA==}
+    dev: false
+
   /md5-file@3.2.3:
     resolution: {integrity: sha512-3Tkp1piAHaworfcCgH0jKbTvj1jWWFgbvh2cXaNCgHwyTCBxxvD1Y04rmfpvdPm1P4oXMOpm6+2H7sr7v9v8Fw==}
     engines: {node: '>=0.10'}
@@ -18977,6 +19107,10 @@ packages:
   /merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
+
+  /meshoptimizer@0.18.1:
+    resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
+    dev: false
 
   /methods@1.1.2:
     resolution: {integrity: sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==}
@@ -20817,6 +20951,10 @@ packages:
   /pngjs@3.4.0:
     resolution: {integrity: sha512-NCrCHhWmnQklfH4MtJMRjZ2a8c80qXeMlQMv2uVp9ISJMTt562SbGd6n2oq0PaPgKm7Z6pL9E2UlLIhC+SHL3w==}
     engines: {node: '>=4.0.0'}
+
+  /poly-decomp@0.3.0:
+    resolution: {integrity: sha512-hWeBxGzPYiybmI4548Fca7Up/0k1qS5+79cVHI9+H33dKya5YNb9hxl0ZnDaDgvrZSuYFBhkCK/HOnqN7gefkQ==}
+    dev: false
 
   /popmotion@11.0.3:
     resolution: {integrity: sha512-Y55FLdj3UxkR7Vl3s7Qr4e9m0onSnP8W7d/xQLsoJM40vs6UKHFdygs6SWryasTZYqugMjm3BepCF4CWXDiHgA==}
@@ -23768,6 +23906,20 @@ packages:
     resolution: {integrity: sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw==}
     dependencies:
       any-promise: 1.3.0
+
+  /three-csg-ts@3.1.14(@types/three@0.161.2)(three@0.161.0):
+    resolution: {integrity: sha512-miDfFA/bxXU5sgnePj28Nq4wcdmGkdM6dbv+lqK/vb0KbeYEDzcA9aTwMOyS1a3Fd/TDkcJ7MxHRevIGj8hMSA==}
+    peerDependencies:
+      '@types/three': '>= 0.125.0'
+      three: '>= 0.125.0'
+    dependencies:
+      '@types/three': 0.161.2
+      three: 0.161.0
+    dev: false
+
+  /three@0.161.0:
+    resolution: {integrity: sha512-LC28VFtjbOyEu5b93K0bNRLw1rQlMJ85lilKsYj6dgTu+7i17W+JCCEbvrpmNHF1F3NAUqDSWq50UD7w9H2xQw==}
+    dev: false
 
   /throat@5.0.0:
     resolution: {integrity: sha512-fcwX4mndzpLQKBS1DVYhGAcYaYt7vsHNIvQV+WXMvnow5cgjPphq5CaayLaGsjRdSCKZFNGt7/GYAuXaNOiYCA==}

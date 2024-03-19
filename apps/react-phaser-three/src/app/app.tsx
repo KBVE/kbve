@@ -1,7 +1,6 @@
 
 import styled from 'styled-components';
-
-import NxWelcome from "./nx-welcome";
+import Game from './phaser/game';
 
 
 const StyledApp = styled.div`
@@ -12,11 +11,10 @@ const StyledApp = styled.div`
 export function App() {
 
   return (
-      <StyledApp>
-        
-        <NxWelcome title="react-phaser-three"/>
-        
-      </StyledApp>
+    <StyledApp>
+      <Game />
+    </StyledApp>
+
   );
 
 }
