@@ -12,7 +12,9 @@ it('should render successfully', () => {
 
 it('should have a greeting as the title', () => {
   const { getByText } = render(<App />);
-  expect(getByText(/Welcome react-phaser-travelbox/gi)).toBeTruthy();
+
+  expect(getByText(/Welcome react-phaser-three/gi)).toBeTruthy();
+
 });
 
 });

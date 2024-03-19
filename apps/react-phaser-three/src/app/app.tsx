@@ -2,6 +2,7 @@
 import styled from 'styled-components';
 import Game from './phaser/game';
 
+
 const StyledApp = styled.div`
     // Your style here
 `;
@@ -13,6 +14,7 @@ export function App() {
     <StyledApp>
       <Game />
     </StyledApp>
+
   );
 
 }

@@ -6,7 +6,9 @@
       
       export default defineConfig({
         root: __dirname,
-        cacheDir: '../../node_modules/.vite/apps/react-phaser-travelbox',
+
+        cacheDir: '../../node_modules/.vite/apps/react-phaser-three',
+
         
     server:{
       port: 4200,
@@ -26,10 +28,9 @@ nxViteTsPaths()],
     //  plugins: [ nxViteTsPaths() ],
     // },
 
-    base: './',
         
     build: {
-      outDir: '../../dist/apps/react-phaser-travelbox',
+      outDir: '../../dist/apps/react-phaser-three',
       reportCompressedSize: true,
       commonjsOptions: {
         transformMixedEsModules: true,
@@ -45,6 +46,7 @@ nxViteTsPaths()],
           assetFileNames: `[name].[ext]`,
         },
       },
+
     },
     
         
@@ -58,7 +60,8 @@ nxViteTsPaths()],
     
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../coverage/apps/react-phaser-travelbox',
+
+      reportsDirectory: '../../coverage/apps/react-phaser-three',
       provider: 'v8',
     }
   },
