@@ -89,6 +89,60 @@ Afterwards I just quickly merged those changes with ernie and his changes, thus 
 
 Lets start the generic buildathon for this test casing!
 
+The first package we will need is the `colyseus.js`, which we can just run `pnpm install colyseus.js` and we should be save.
+
+Next we add in the backend packages.
+
+```json
+
+
+  "dependencies": {
+    "@colyseus/monitor": "^0.14.22",
+    "@colyseus/schema": "^1.0.34",
+    "@colyseus/uwebsockets-transport": "^0.14.28",
+    "@colyseus/ws-transport": "^0.14.21",
+    "colyseus": "^0.14.23"
+
+  }, 
+
+  ```
+
+To add these, we will run this: `pnpm install colyseus @colyseus/monitor @colyseus/schema @colyseus/uwebsockets-transport @colyseus/ws-transport`
+
+The next libraries we might need are :
+
+```json
+
+"dependencies": {
+
+    "cross-fetch": "^3.1.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^2.0.6",
+    "uwebsockets-express": "^1.2.2"
+}
+
+```
+
+Next would be the `devDependencies` that we could include:
+
+```json
+
+  "devDependencies": {
+    "@types/express": "^4.17.11",
+    "@types/node": "^14.14.22",
+    "nodemon": "^3.0.3",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+
+```
+
+For now, I will skip these and switch gears back to the `enabled3d` for Phaser.
+
+
 </MDXJS>
 
 ---
