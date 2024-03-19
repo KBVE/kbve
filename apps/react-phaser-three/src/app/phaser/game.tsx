@@ -6,6 +6,8 @@ import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import GridEngine from 'grid-engine';
 
+import { enable3d, Canvas } from '@enable3d/phaser-extension'
+
 
 import { Main } from './scenes';
 
@@ -29,7 +31,7 @@ export function Game() {
 
 
       const config = {
-        title: "TravelBox - The Game",
+        title: "Phaser Enable3D - Demo",
         render: {
           antialias: false,
         },
@@ -54,7 +56,8 @@ export function Game() {
 
         },
 
-        type: Phaser.AUTO,
+        //type: Phaser.AUTO,
+        type: Phaser.WEBGL,
         transparent: true,
         width: 920,
         height: 700,
@@ -87,10 +90,14 @@ export function Game() {
           }
         },
 
+        ...Canvas()
       };
 
       const gameConfig = { ...config, parent: gameParent };
-      const game = new Phaser.Game(gameConfig);
+      const game = new Phaser.Game(gameConfig)
+      //enable3d(() => new Phaser.Game(config)).withPhysics('assets/ammo')
+      //enable3d(() =>  game).withPhysics('assets/ammo')
+      enable3d(() =>  game);
 
 
 
