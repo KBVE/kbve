@@ -79,6 +79,26 @@ The initial command would be: `pnpm nx g @nx/react:app react-phaser-three --bund
 
 Afterwards I just quickly merged those changes with ernie and his changes, thus creating a complete set of changes.
 
+Libraries we would need to install:
+
+```
+
+enable3d A standalone 3D Framework on top of three-graphics.
+@enable3d/phaser-extension Allows to integrate the three-graphics package into your Phaser 3 Games.
+@enable3d/ammo-physics The core Physics package. Wraps ammo.js physics.
+@enable3d/ammo-on-nodejs Enables you to run ammo.js on your node.js server.
+@enable3d/three-graphics The core 3D Objects package. A beautiful API for many three.js elements.
+@enable3d/three-wrapper Wraps the three.js library and some of its examples in one package.
+@enable3d/common Some common code used by almost every package.
+
+```
+
+To install all the libraries that we would need:
+
+Run this command: `pnpm install enable3d @enable3d/phaser-extension @enable3d/ammo-physics @enable3d/ammo-on-nodejs @enable3d/three-graphics @enable3d/three-wrapper @enable3d/common`
+
+
+
 </MDXJS>
 
 ---
