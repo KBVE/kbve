@@ -33,6 +33,39 @@ Proxy Paths and [URL Mapping](https://discord.com/developers/docs/activities/dev
 
 In their notes, I noticed that they would require `Static IP Addresses`, this will not be a major problem as of right now but it could be in the future.
 
+```js
+const protocol = `https`;
+const clientId = '<YOUR CLIENT ID>';
+const proxyDomain = 'discordsays.com';
+const resourcePath = '/foo/bar.jpg';
+const url = new URL(`${protocol}://${clientId}.${proxyDomain}${resourcePath}`);
+```
+
+This is an example of the full url construction.
+
+We might run into an issue where we might have to `patchUrlMappings`, when trying to use the react helmet! 
+
+An example of wrapping it using patch-package:
+
+```js
+
+import {DiscordSDK} from '@discord/embedded-app-sdk';
+const discordSdk = new DiscordSDK(YOUR_APP_ID);
+const isProd = process.env.NODE_ENV === 'production'; // Actual dev/prod env check may vary for you
+
+async function setupApp() {
+  if (isProd) {
+    discordSdk.patchUrlMappings([{prefix: '/foo', target: 'foo.com'}]);
+  }
+  // start app initialization after this....
+}
+
+```
+
+And the warning, for future cases:
+    
+> Note: 
+> patchUrlMappings is modifying your browser's fetch, WebSocket, and XMLHttpRequest.prototype.open global variables. Depending on the library, you may see side effects from using this helper function. It should be used only when necessary.
 
 
 </MDXJS>
@@ -48,6 +81,18 @@ Going to take a quick break from the proxy note taking and now I am going to foc
 This is just to test case the `three` and `phaser` integration but keeping notes of it as well.
 
 The initial command would be: `pnpm nx g @nx/react:app react-phaser-three --bundler=vite`
+
+Afterwards I just quickly merged those changes with ernie and his changes, thus creating a complete set of changes.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Buildathon
+
+Lets start the generic buildathon for this test casing!
 
 </MDXJS>
 
