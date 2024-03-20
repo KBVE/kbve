@@ -60,6 +60,69 @@ Location 4 - Discord Reverse Proxy
 
 Now to call the `ammo` library, we can take a look at the specific ammo examples from the `enable3d-website`, here is a reference to the [search](https://github.com/search?q=repo%3Aenable3d%2Fenable3d-website%20ammo&type=code)
 
+The current error that we are facing is a double canvas, which might be similar to this [stackoverflow problem](https://stackoverflow.com/questions/73910900/why-are-multiple-canvases-being-made-in-my-phaser-react-app)
+
+Currently we have three canvas:
+
+```html
+
+<canvas id="enable3d-phaser-canvas">
+<canvas data-engine="three.js r161" id="enable3d-three-canvas">
+<canvas id="enable3d-phaser-canvas">
+
+```
+
+Here are our attempts to resolve the multiple canvas problem, we are adding these here for reference.
+
+
+```javascript
+
+      //const game = new Phaser.Game(gameConfig); 
+
+      //enable3d(() => new Phaser.Game(config)).withPhysics('assets/ammo')
+      //enable3d(() => game).withPhysics('assets/ammo')
+      //enable3d(() =>  game);
+
+      // 03-20-2024 - 7:21am Attempt to Load Ammo Physics Engine 
+      // enable3d(() => new Phaser.Game(gameConfig)).withPhysics('/ammo/kripken')
+
+      // try to handle with a game instance
+      // enable3d(() => {
+      //   const game = new Phaser.Game({...config, parent: gameRef.current});
+      //   gameInstance.current = game;
+      //   return gameInstance.current;
+      // }).withPhysics('/ammo/kripken')
+
+
+
+      // return () => {
+      //   // Cleanup the game when the component is unmounted
+      //   // game.destroy(true);
+      //   if (gameInstance.current) {
+      //     gameInstance.current.destroy(true);
+      //     gameInstance.current = null;
+      //   }
+      // };
+
+```
+
+We believe it might be because we have multiple physics, with ammo and arcade, so we will remove the default physics.
+
+```javascript
+
+    physics: {
+          default: 'arcade',
+          arcade: {
+            gravity: { x: 0, y: 0 },
+            debug: false,
+            worldBounds: true,
+            emitOnWorldBounds: true
+          }
+        },
+
+```
+
+
 </MDXJS>
 
 </MDXJS>

@@ -23,10 +23,10 @@ export class Main extends Scene3D {
     this.third.warpSpeed()
 
     // adds a box
-    this.third.add.box({ x: 1, y: 2 })
+    this.third.add.box({ x: 1, y: 2, z: 0 })
 
     // adds a box with physics
-    // this.third.physics.add.box({ x: -1, y: 2 })
+    this.third.physics.add.box({ x: -1, y: 2, z: 0 })
 
     // throws some random object on the scene
     this.third.haveSomeFun()
