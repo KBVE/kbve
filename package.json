@@ -143,6 +143,7 @@
 		"clsx": "^2.1.0",
 		"colyseus": "^0.15.15",
 		"colyseus.js": "^0.15.18",
+		"cross-fetch": "^4.0.0",
 		"drizzle-orm": "^0.29.1",
 		"drizzle-zod": "^0.5.1",
 		"enable3d": "^0.25.4",
@@ -153,6 +154,7 @@
 		"framer-motion": "^11.0.6",
 		"grid-engine": "^2.44.2",
 		"html-react-parser": "^5.1.8",
+		"http-proxy-middleware": "^2.0.6",
 		"matter-js": "0.17.1",
 		"next": "14.0.4",
 		"phaser": "^3.80.1",
@@ -170,6 +172,7 @@
 		"tamagui": "^1.90.6",
 		"three": "0.161.0",
 		"three-csg-ts": "^3.1.10",
-		"tslib": "^2.3.0"
+		"tslib": "^2.3.0",
+		"uwebsockets-express": "^1.3.6"
 	}
 }
