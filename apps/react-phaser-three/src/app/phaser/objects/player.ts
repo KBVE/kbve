@@ -21,20 +21,26 @@ export default class Player extends ExtendedObject3D {
 		this.add(this.physicsObject);
 	}
 
-	update(cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
-		if (!cursors) return;
+	update(keys: { [key: string]: Phaser.Input.Keyboard.Key }) {
+		if (!keys) return;
 
-		const velocityX = cursors.left.isDown
+		const velocityX = keys.left.isDown
 			? -this.speed
-			: cursors.right.isDown
+			: keys.right.isDown
 			? this.speed
 			: 0;
-		const velocityZ = cursors.up.isDown
+		const velocityZ = keys.up.isDown
 			? -this.speed
-			: cursors.down.isDown
+			: keys.down.isDown
 			? this.speed
 			: 0;
 
-		this.physicsObject.body.setVelocity(velocityX, 0, velocityZ);
+		const velocityY = keys.space.isDown
+			? this.speed
+			: keys.shift.isDown
+			? -this.speed
+			: 0;
+
+		this.physicsObject.body.setVelocity(velocityX, velocityY, velocityZ);
 	}
 }
