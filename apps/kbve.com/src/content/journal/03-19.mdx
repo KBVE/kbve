@@ -1,0 +1,206 @@
+---
+title: 'March: 19'
+category: Daily
+date: 2024-03-19 12:00:00
+client: Self
+unsplash: 1615563821068-a15bbe32b305
+img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    19th of March.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Proxy
+
+Proxy Paths and [URL Mapping](https://discord.com/developers/docs/activities/development-guides#url-mapping)
+
+In their notes, I noticed that they would require `Static IP Addresses`, this will not be a major problem as of right now but it could be in the future.
+
+```js
+const protocol = `https`;
+const clientId = '<YOUR CLIENT ID>';
+const proxyDomain = 'discordsays.com';
+const resourcePath = '/foo/bar.jpg';
+const url = new URL(`${protocol}://${clientId}.${proxyDomain}${resourcePath}`);
+```
+
+This is an example of the full url construction.
+
+We might run into an issue where we might have to `patchUrlMappings`, when trying to use the react helmet!
+
+An example of wrapping it using patch-package:
+
+```js
+import { DiscordSDK } from '@discord/embedded-app-sdk';
+const discordSdk = new DiscordSDK(YOUR_APP_ID);
+const isProd = process.env.NODE_ENV === 'production'; // Actual dev/prod env check may vary for you
+
+async function setupApp() {
+	if (isProd) {
+		discordSdk.patchUrlMappings([{ prefix: '/foo', target: 'foo.com' }]);
+	}
+	// start app initialization after this....
+}
+```
+
+And the warning, for future cases:
+
+> Note:
+> patchUrlMappings is modifying your browser's fetch, WebSocket, and XMLHttpRequest.prototype.open global variables. Depending on the library, you may see side effects from using this helper function. It should be used only when necessary.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Three
+
+Going to take a quick break from the proxy note taking and now I am going to focus on setting up the `Three`-webGL application!
+
+This is just to test case the `three` and `phaser` integration but keeping notes of it as well.
+
+The initial command would be: `pnpm nx g @nx/react:app react-phaser-three --bundler=vite`
+
+Afterwards I just quickly merged those changes with ernie and his changes, thus creating a complete set of changes.
+
+Libraries we would need to install:
+
+```
+
+enable3d A standalone 3D Framework on top of three-graphics.
+@enable3d/phaser-extension Allows to integrate the three-graphics package into your Phaser 3 Games.
+@enable3d/ammo-physics The core Physics package. Wraps ammo.js physics.
+@enable3d/ammo-on-nodejs Enables you to run ammo.js on your node.js server.
+@enable3d/three-graphics The core 3D Objects package. A beautiful API for many three.js elements.
+@enable3d/three-wrapper Wraps the three.js library and some of its examples in one package.
+@enable3d/common Some common code used by almost every package.
+
+```
+
+To install all the libraries that we would need:
+
+Run this command: `pnpm install enable3d @enable3d/phaser-extension @enable3d/ammo-physics @enable3d/ammo-on-nodejs @enable3d/three-graphics @enable3d/three-wrapper @enable3d/common`
+
+Afterwards! We went ahead and tested the Enable3D Engine!
+
+Build Command: `./kbve.sh -build react-phaser-three`
+Serve Command: `./kbve.sh -nx react-phaser-three:serve`
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Buildathon
+
+Lets start the generic buildathon for this test casing!
+
+The first package we will need is the `colyseus.js`, which we can just run `pnpm install colyseus.js` and we should be save.
+
+Next we add in the backend packages.
+
+```json
+
+
+  "dependencies": {
+    "@colyseus/monitor": "^0.14.22",
+    "@colyseus/schema": "^1.0.34",
+    "@colyseus/uwebsockets-transport": "^0.14.28",
+    "@colyseus/ws-transport": "^0.14.21",
+    "colyseus": "^0.14.23"
+
+  },
+
+```
+
+To add these, we will run this: `pnpm install colyseus @colyseus/monitor @colyseus/schema @colyseus/uwebsockets-transport @colyseus/ws-transport`
+
+The next libraries we might need are :
+
+```json
+
+"dependencies": {
+
+    "cross-fetch": "^3.1.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^2.0.6",
+    "uwebsockets-express": "^1.2.2"
+}
+
+```
+
+Next would be the `devDependencies` that we could include:
+
+```json
+
+  "devDependencies": {
+    "@types/express": "^4.17.11",
+    "@types/node": "^14.14.22",
+    "nodemon": "^3.0.3",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+
+```
+
+For now, I will skip these and switch gears back to the `enabled3d` for Phaser.
+
+Perfect! We can start to mess around with the library now!
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Prettier
+
+It seems that the prettier plugin was crashing because of an astro override, I think I was able to get it resolved.
+
+```json
+
+	"plugins": ["prettier-plugin-astro"],
+	"overrides": [
+	  {
+		"files": "*.astro",
+		"options": {
+		  "parser": "astro"
+		}
+	  }
+	]
+
+```
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Ammo
+
+The next move would be to use `ammo` for the front and backend!
+
+</MDXJS>
+
+</MDXJS>
