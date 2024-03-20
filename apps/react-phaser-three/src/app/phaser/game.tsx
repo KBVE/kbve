@@ -61,6 +61,8 @@ export function Game() {
         transparent: true,
         width: 920,
         height: 700,
+        // Physics -> Default Arcade
+        // [START]
         physics: {
           default: 'arcade',
           arcade: {
@@ -70,6 +72,7 @@ export function Game() {
             emitOnWorldBounds: true
           }
         },
+        // [END]
         plugins: {
           scene: [
             {
@@ -94,9 +97,9 @@ export function Game() {
       };
 
       const gameConfig = { ...config, parent: gameParent };
-      const game = new Phaser.Game(gameConfig)
+      const game = new Phaser.Game(gameConfig);
       //enable3d(() => new Phaser.Game(config)).withPhysics('assets/ammo')
-      //enable3d(() =>  game).withPhysics('assets/ammo')
+      //enable3d(() => game).withPhysics('assets/ammo')
       enable3d(() =>  game);
 
 
