@@ -1,0 +1,16 @@
+{
+	"name": "express-colyseus-discord-e2e",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"implicitDependencies": ["express-colyseus-discord"],
+	"projectType": "application",
+	"targets": {
+		"e2e": {
+			"executor": "@nx/jest:jest",
+			"outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+			"options": {
+				"jestConfig": "apps/express-colyseus-discord-e2e/jest.config.ts",
+				"passWithNoTests": true
+			}
+		}
+	}
+}
