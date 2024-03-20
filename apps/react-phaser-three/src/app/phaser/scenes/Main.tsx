@@ -20,13 +20,80 @@ export class Main extends Scene3D {
 	}
 
 	init(): void {
-		this.accessThirdDimension();
+		this.accessThirdDimension({ gravity: { x: 0, y: -20, z: 0 } });
 		this.isTouchDevice = this.sys.game.device.input.touch;
 	}
 
-	create(): void {
-		this.third.warpSpeed(); // Ensure the environment is initialized
+	preload(): void {
+		this.third.load.preload('sky', '/assets/img/sky.png');
+	}
 
+	async create() {
+		const { lights } = await this.third.warpSpeed(
+			'-ground',
+			'-sky',
+			'-orbitControls'
+		);
+
+		this.third.camera.position.set(0, 5, 20);
+		this.third.camera.lookAt(0, 0, 0);
+
+		// this.third.physics.debug.enable(); // Uncomment to enable physics debugging.
+
+		this.third.load
+			.texture('sky')
+			.then((sky) => (this.third.scene.background = sky));
+
+		// add platforms
+		const platformMaterial = {
+			phong: { transparent: true, color: 0x21572f },
+		};
+		const platforms = [
+			this.third.physics.add.box(
+				{
+					name: 'platform-ground',
+					y: -2,
+					width: 30,
+					depth: 5,
+					height: 2,
+					mass: 0,
+				},
+				platformMaterial
+			),
+			this.third.physics.add.box(
+				{
+					name: 'platform-right1',
+					x: 7,
+					y: 4,
+					width: 15,
+					depth: 5,
+					mass: 0,
+				},
+				platformMaterial
+			),
+			this.third.physics.add.box(
+				{
+					name: 'platform-left',
+					x: -10,
+					y: 7,
+					width: 10,
+					depth: 5,
+					mass: 0,
+				},
+				platformMaterial
+			),
+			this.third.physics.add.box(
+				{
+					name: 'platform-right2',
+					x: 10,
+					y: 10,
+					width: 10,
+					depth: 5,
+					mass: 0,
+				},
+				platformMaterial
+			),
+		];
 		if (!this.input.keyboard) return;
 
 		this.add
