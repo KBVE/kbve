@@ -126,6 +126,23 @@ It ended up being that we were using two `useRef` and instead we had to use the 
 
 Now that we have the canvas loaded and ready, we can move forward with different types of demos with that Ammo physics engine.
 
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Express
+
+The base application for colyseus is express, so let us set that up!
+
+We will run this command to init the application, `pnpm nx g @nx/node:application express-colyseus-discord`
+
+Afterwards, we will run: `pnpm nx show project express-colyseus-discord --web` , which will give us a breakdown of the commands.
+
+Finally we have the serve command, which is `pnpm nx run express-colyseus-discord:serve`, we can use this as `./kbve.sh -nx express-colyseus-discord:serve`
+
+We got port 3000 running and it says hello!
 
 </MDXJS>
 
