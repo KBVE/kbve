@@ -1,15 +1,14 @@
-import { Scene3D, ExtendedObject3D } from '@enable3d/phaser-extension';
+import { Scene3D } from '@enable3d/phaser-extension';
+import { Player } from '../objects'; // Ensure the path matches where you save your Player class
 
 export class Main extends Scene3D {
 	private isTouchDevice: boolean;
-	private player: ExtendedObject3D | null;
-	private cursors: Phaser.Types.Input.Keyboard.CursorKeys | null;
+	private player: Player | null = null; // Set to null initially
+	private cursors: Phaser.Types.Input.Keyboard.CursorKeys | null = null;
 
 	constructor() {
 		super({ key: 'Main' });
 		this.isTouchDevice = false;
-		this.cursors = null; // Initialized as null, will be set in 'create'
-		this.player = null; // Initialized as null, will be set in 'create'
 	}
 
 	init() {
@@ -18,45 +17,18 @@ export class Main extends Scene3D {
 	}
 
 	create() {
-		this.third.warpSpeed('ground', 'sky', 'light'); // Initialize basic environment
-
-		// Create the player as a box
-		const box = this.third.physics.add.box({
-			x: 0,
-			y: 1,
-			z: 0,
-			width: 1,
-			height: 2,
-			depth: 1,
-		});
-		if (box) {
-			this.player = box;
-		}
-
+		this.third.warpSpeed(); // Ensure the environment is initialized
 		if (this.input && this.input.keyboard) {
 			this.cursors = this.input.keyboard.createCursorKeys();
 		}
+
+		// Create the player here, ensuring 'this.third' is initialized
+		this.player = new Player(this, 0, 0, 0, 1, 1, 1);
+		this.third.add.existing(this.player);
 	}
 
 	update() {
-		const speed = 2; // Adjust for desired speed, note this is now a velocity
-
-		if (!this.cursors || !this.player) return; // Check if cursors and player are initialized
-
-		// Reset velocity
-		this.player.body.setVelocity(0, 0, 0);
-
-		// Movement controls based on cursor key input
-		if (this.cursors.left?.isDown) {
-			this.player.body.setVelocityX(-speed); // Move left
-		} else if (this.cursors.right?.isDown) {
-			this.player.body.setVelocityX(speed); // Move right
-		}
-
-		if (this.cursors.up?.isDown) {
-			this.player.body.setVelocityZ(-speed); // Move forward
-		} else if (this.cursors.down?.isDown) {
-			this.player.body.setVelocityZ(speed); // Move backward
-		}
+		if (!this.cursors || !this.player) return;
+		this.player.update(this.cursors);
 	}
 }
