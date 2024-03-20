@@ -1,0 +1,8 @@
+{
+  "name": "react-phaser-discord",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/react-phaser-discord/src",
+  "projectType": "application",
+  "targets": {},
+  "tags": []
+}
