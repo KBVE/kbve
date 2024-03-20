@@ -38,7 +38,7 @@ export class Main extends Scene3D {
 		this.third.camera.position.set(0, 5, 20);
 		this.third.camera.lookAt(0, 0, 0);
 
-		// this.third.physics.debug.enable(); // Uncomment to enable physics debugging.
+		this.third.physics.debug.enable(); // Uncomment to enable physics debugging.
 
 		this.third.load
 			.texture('sky')
@@ -126,8 +126,12 @@ export class Main extends Scene3D {
 			this.keys[actionKey] = this.input.keyboard.addKey(storedKey);
 		});
 
-		// Create the player.
-		this.player = new Player(this, 0, 0, 0, 1, 1, 1);
+		const assetUrl = '/assets/glb/robot.glb';
+		if (typeof assetUrl !== 'string') {
+			console.error('Asset URL is not a string:', assetUrl);
+			return;
+		}
+		this.player = new Player(this, assetUrl, 1 / 3);
 		this.third.add.existing(this.player);
 	}
 
