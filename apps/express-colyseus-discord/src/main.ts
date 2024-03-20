@@ -44,6 +44,12 @@ router.use('/colyseus', monitor(server as Partial<MonitorOptions>));
 
   // Fetch token from developer portal and return to the embedded app
 router.post('/token', async (req: Request, res: Response) => {
+
+	if (!process.env.VITE_CLIENT_ID || !process.env.CLIENT_SECRET) {
+		console.error("VITE_CLIENT_ID or CLIENT_SECRET is not set.");
+		return;
+	}
+
 	const response = await fetch(`https://discord.com/api/oauth2/token`, {
 	  method: 'POST',
 	  headers: {
