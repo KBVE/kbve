@@ -126,6 +126,47 @@ It ended up being that we were using two `useRef` and instead we had to use the 
 
 Now that we have the canvas loaded and ready, we can move forward with different types of demos with that Ammo physics engine.
 
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Express
+
+The base application for colyseus is express, so let us set that up!
+
+We will run this command to init the application, `pnpm nx g @nx/node:application express-colyseus-discord`
+
+Afterwards, we will run: `pnpm nx show project express-colyseus-discord --web` , which will give us a breakdown of the commands.
+
+Finally we have the serve command, which is `pnpm nx run express-colyseus-discord:serve`, we can use this as `./kbve.sh -nx express-colyseus-discord:serve`
+
+We got port 3000 running and it says hello!
+
+Okay! It seems that we missed a couple libraries. 
+
+`pnpm install uwebsockets-express`.
+
+After we get the base of colyseus up and running, we will go ahead and ship this out!
+
+Next we will make sure the docker build works for the application, inside of a Node instance.
+
+We change the output to be within the same folder `"outputPath": "apps/express-colyseus-discord/dist",` via the `project.json`.
+
+Wait! I will revert that for now because of the build path that we have setup with the rust deployment. 
+
+The goal would be to release the initial dockerfile and then loop back around with another instance to chisel the that instance.
+
+We should also have an internal version number to keep track of the dockerbuilds during the deployment.
+
+The two builds are located here:
+
+- `/apps/express-colyseus-discord`
+- `/migrations/docker/chisel/colyseus-discord/Dockerfile`
+
+After the build is sucessful, we will do the two docker builds, one after the other.
+Then we can do the automatic deployment via the shell command.
 
 </MDXJS>
 
