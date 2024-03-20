@@ -1,0 +1,173 @@
+---
+title: 'March: 20'
+category: Daily
+date: 2024-03-20 12:00:00
+client: Self
+unsplash: 1615563821068-a15bbe32b305
+img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    20th of March! The Best Day of March!
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+
+<MDXJS>
+
+#### Enable3D
+
+The actual location for the example source [code / repo](https://github.com/enable3d/enable3d-website/tree/master/src/examples)
+
+The first two commands we ran this morning were: 
+
+- `./kbve.sh -nx kbve.com:dev` - Astro on port 4321
+- `./kbve.sh -nx react-phaser-three:serve` - Vite on port 4200
+
+We will begin by looking through the examples of the `PhysicsLoader` and the options that we have.
+
+To grab the `ammo` libraries, we will just download the whole repo as a zip , aka `enable3d/enable3d-website` as a `master.zip`.
+After downloading the zip, we will add the `/src/lib/ammo/` folders, located [here](https://github.com/enable3d/enable3d-website/tree/master/src/lib/ammo), into the vite public of `react-phaser-three`!
+
+Actually, it might make more sense to upload the `ammo` files directly to `/apps/kbve.com/public/embed/js/ammo/` and have them hosted there.
+Yet for the time being, we will place them inside of the vite.
+
+So we have placed them into two locations. 
+
+Location 1 - `/apps/kbve.com/public/embed/js/ammo/`
+Location 2 - `/apps/react-phaser-three/public/ammo/`
+
+During the development phase, we will just call it from the relative path and then once we are ready, we can call it from an absolute path.
+
+After that , we need to add a Location 3 , which would be a CDN, Content Delivery Network, and a Location 4 , which would be the Discord Reverse Proxy.
+
+Location 1 - `/apps/kbve.com/public/embed/js/ammo/`
+Location 2 - `/apps/react-phaser-three/public/ammo/`
+Location 3 - TODO CDN
+Location 4 - Discord Reverse Proxy
+
+Now to call the `ammo` library, we can take a look at the specific ammo examples from the `enable3d-website`, here is a reference to the [search](https://github.com/search?q=repo%3Aenable3d%2Fenable3d-website%20ammo&type=code)
+
+The current error that we are facing is a double canvas, which might be similar to this [stackoverflow problem](https://stackoverflow.com/questions/73910900/why-are-multiple-canvases-being-made-in-my-phaser-react-app)
+
+Currently we have three canvas:
+
+```html
+
+<canvas id="enable3d-phaser-canvas">
+<canvas data-engine="three.js r161" id="enable3d-three-canvas">
+<canvas id="enable3d-phaser-canvas">
+
+```
+
+Here are our attempts to resolve the multiple canvas problem, we are adding these here for reference.
+
+
+```javascript
+
+      //const game = new Phaser.Game(gameConfig); 
+
+      //enable3d(() => new Phaser.Game(config)).withPhysics('assets/ammo')
+      //enable3d(() => game).withPhysics('assets/ammo')
+      //enable3d(() =>  game);
+
+      // 03-20-2024 - 7:21am Attempt to Load Ammo Physics Engine 
+      // enable3d(() => new Phaser.Game(gameConfig)).withPhysics('/ammo/kripken')
+
+      // try to handle with a game instance
+      // enable3d(() => {
+      //   const game = new Phaser.Game({...config, parent: gameRef.current});
+      //   gameInstance.current = game;
+      //   return gameInstance.current;
+      // }).withPhysics('/ammo/kripken')
+
+
+
+      // return () => {
+      //   // Cleanup the game when the component is unmounted
+      //   // game.destroy(true);
+      //   if (gameInstance.current) {
+      //     gameInstance.current.destroy(true);
+      //     gameInstance.current = null;
+      //   }
+      // };
+
+```
+
+We believe it might be because we have multiple physics, with ammo and arcade, so we will remove the default physics.
+
+```javascript
+
+    physics: {
+          default: 'arcade',
+          arcade: {
+            gravity: { x: 0, y: 0 },
+            debug: false,
+            worldBounds: true,
+            emitOnWorldBounds: true
+          }
+        },
+
+```
+
+It ended up being that we were using two `useRef` and instead we had to use the `state` and two `useEffect` to handle the loading for the multiple canvas problem.
+
+Now that we have the canvas loaded and ready, we can move forward with different types of demos with that Ammo physics engine.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Express
+
+The base application for colyseus is express, so let us set that up!
+
+We will run this command to init the application, `pnpm nx g @nx/node:application express-colyseus-discord`
+
+Afterwards, we will run: `pnpm nx show project express-colyseus-discord --web` , which will give us a breakdown of the commands.
+
+Finally we have the serve command, which is `pnpm nx run express-colyseus-discord:serve`, we can use this as `./kbve.sh -nx express-colyseus-discord:serve`
+
+We got port 3000 running and it says hello!
+
+Okay! It seems that we missed a couple libraries. 
+
+`pnpm install uwebsockets-express`.
+
+After we get the base of colyseus up and running, we will go ahead and ship this out!
+
+Next we will make sure the docker build works for the application, inside of a Node instance.
+
+We change the output to be within the same folder `"outputPath": "apps/express-colyseus-discord/dist",` via the `project.json`.
+
+Wait! I will revert that for now because of the build path that we have setup with the rust deployment. 
+
+The goal would be to release the initial dockerfile and then loop back around with another instance to chisel the that instance.
+
+We should also have an internal version number to keep track of the dockerbuilds during the deployment.
+
+The two builds are located here:
+
+- `/apps/express-colyseus-discord`
+- `/migrations/docker/chisel/colyseus-discord/Dockerfile`
+
+After the build is sucessful, we will do the two docker builds, one after the other.
+Then we can do the automatic deployment via the shell command.
+
+</MDXJS>
+
+</MDXJS>
