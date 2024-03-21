@@ -168,6 +168,28 @@ The two builds are located here:
 After the build is sucessful, we will do the two docker builds, one after the other.
 Then we can do the automatic deployment via the shell command.
 
+While we are preparing the Docker system for the Colyseus, I want to take a moment, to look over the tutorial for integrating both of them!
+
+- [Colyseus Phaser Tutorial](https://learn.colyseus.io/phaser/1-basic-player-movement) - 4 Part Guide on how to set it up and execute all the scenes within.
+
 </MDXJS>
+
+---
+
+<MDXJS>
+
+#### Dockerfile
+
+The Dockerfile will be similar to the other ones that we have built in the past, our goal would be to just get a generic build out of the way.
+
+The first build comes in at around 300MB but it seems to be functional, with the node application running on port 3000.
+
+Going to sync this into the main branch and then build out a docker compose.
+
+As for the `chisel` build, we would have to use esbuild, rspack or vite to combine all of the node modules into a single js esm file and then run that in a sliced ubuntu container.
+Of which, I do not want to do, until maybe next week.
+
+</MDXJS>
+
 
 </MDXJS>
