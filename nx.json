@@ -110,6 +110,20 @@
 				"serveTargetName": "serve",
 				"serveStaticTargetName": "serve-static"
 			}
+		},
+		{
+			"plugin": "@nx/expo/plugin",
+			"options": {
+				"startTargetName": "start",
+				"serveTargetName": "serve",
+				"runIosTargetName": "run-ios",
+				"runAndroidTargetName": "run-android",
+				"exportTargetName": "export",
+				"prebuildTargetName": "prebuild",
+				"installTargetName": "install",
+				"buildTargetName": "build",
+				"submitTargetName": "submit"
+			}
 		}
 	],
 	"defaultProject": "kbve.com",

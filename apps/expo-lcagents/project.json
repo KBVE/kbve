@@ -1,0 +1,16 @@
+{
+	"name": "expo-lcagents",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/expo-lcagents/src",
+	"projectType": "application",
+	"tags": [],
+	"targets": {
+		"test": {
+			"executor": "@nx/jest:jest",
+			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+			"options": {
+				"jestConfig": "apps/expo-lcagents/jest.config.ts"
+			}
+		}
+	}
+}
