@@ -1,18 +1,16 @@
 import { Scene3D } from '@enable3d/phaser-extension';
-import { Player } from '../objects'; // Make sure this path is correct.
+import { Player } from '../objects';
+import { Room, Client } from 'colyseus.js';
 
-// Define a type for the keys that can be used in the game.
-type GameKeys = 'up' | 'down' | 'left' | 'right' | 'space' | 'shift';
-
-// Define a type for the mapping between action strings and Phaser's keyboard keys.
-type KeyMappings = {
-	[key in GameKeys]?: Phaser.Input.Keyboard.Key;
-};
+import { GameKeys, KeyMappings, PlayerType, EndpointSettings } from '../types';
 
 export class Main extends Scene3D {
-	private isTouchDevice: boolean;
 	private player: Player | null = null;
 	private keys: KeyMappings = {};
+	private otherPlayers: Map<string, Player> = new Map();
+	public room: Room | null = null;
+	private client: Client | null = null;
+	private isTouchDevice: boolean;
 
 	constructor() {
 		super({ key: 'Main' });
@@ -29,7 +27,49 @@ export class Main extends Scene3D {
 		this.third.load.preload('robot', '/assets/glb/robot.glb');
 	}
 
-	async create() {
+	// Connect to the Colyseus server.
+	async connectToServer() {
+		// todo: change to load from env
+		const vite_ws_url: EndpointSettings = {
+			hostname: 'localhost',
+			secure: false,
+			port: 2567,
+		};
+		this.client = new Client(vite_ws_url);
+		try {
+			this.room = await this.client.joinOrCreate('my_room');
+
+			this.room.send('getPlayers');
+			this.room.onMessage('playersList', (message) => {
+				console.log('Players list:', message);
+				message.forEach((player: PlayerType) => {
+					console.log(player);
+					this.createPlayer(player.sessionId);
+				});
+			});
+
+			this.room.onMessage('playerMoved', (message) => {
+				if (!this.room) return;
+				this.updatePlayerPosition(
+					message.sessionId,
+					message.x,
+					message.y,
+					message.z
+				);
+			});
+			this.room.onMessage('playerJoined', (message) => {
+				console.log('Player joined', message);
+				this.createPlayer(message.sessionId);
+			});
+			this.room.onMessage('playerLeft', (message) => {
+				console.log('Player left', message);
+				this.removePlayer(message.sessionId);
+			});
+		} catch (e) {
+			console.error('Failed to connect to server:', e);
+		}
+	}
+	async initializeScene(): Promise<void> {
 		const { lights } = await this.third.warpSpeed(
 			'-ground',
 			'-sky',
@@ -39,16 +79,17 @@ export class Main extends Scene3D {
 		this.third.camera.position.set(0, 5, 20);
 		this.third.camera.lookAt(0, 0, 0);
 
-		this.third.physics.debug.enable(); // Uncomment to enable physics debugging.
+		// Load and set the sky texture
+		this.third.load.texture('sky').then((sky) => {
+			this.third.scene.background = sky;
+		});
 
-		this.third.load
-			.texture('sky')
-			.then((sky) => (this.third.scene.background = sky));
-
-		// add platforms
+		// Add platforms and other static elements to match the server environment.
+		// These values and items should match those initialized in your ServerScene.
 		const platformMaterial = {
 			phong: { transparent: true, color: 0x21572f },
 		};
+		// The platforms here should match those created in the server's physics simulation
 		const platforms = [
 			this.third.physics.add.box(
 				{
@@ -95,8 +136,10 @@ export class Main extends Scene3D {
 				platformMaterial
 			),
 		];
-		if (!this.input.keyboard) return;
 
+		// Note: No physics simulation runs here; these are just visual representations.
+
+		// Add keybinds interaction
 		this.add
 			.text(10, 10, 'Click here to set keybinds', {
 				color: '#00ff00',
@@ -106,7 +149,9 @@ export class Main extends Scene3D {
 			.on('pointerdown', () => {
 				this.scene.start('Keybinds');
 			});
+	}
 
+	private initializeKeyboard(): void {
 		// Define default keys in case local storage is empty or keys are not yet customized.
 		const defaultKeys: Record<GameKeys, string> = {
 			up: 'W',
@@ -126,13 +171,43 @@ export class Main extends Scene3D {
 			if (!this.input.keyboard) return;
 			this.keys[actionKey] = this.input.keyboard.addKey(storedKey);
 		});
+	}
 
-		this.player = new Player(this, 1 / 3);
-		this.third.add.existing(this.player);
+	async create(): Promise<void> {
+		await this.connectToServer();
+		this.initializeScene();
+		this.initializeKeyboard();
+
+		this.player = new Player(this);
 	}
 
 	update(): void {
-		if (!this.player) return;
-		this.player.update(this.keys);
+		if (!this.room || !this.player) return;
+		const hasMoved = this.player.checkSignificantMovement();
+		if (hasMoved) {
+			this.player.update(this.keys);
+		}
+	}
+
+	updatePlayerPosition(sessionId: string, x: number, y: number, z: number) {
+		const player = this.otherPlayers.get(sessionId) || this.player;
+		if (player) {
+			player.setPosition(x, y, z);
+		}
+	}
+
+	createPlayer(sessionId: string) {
+		if (this.otherPlayers.has(sessionId) || !this.room) return;
+		if (sessionId === this.room.sessionId) return;
+		const player = new Player(this, 1);
+		this.otherPlayers.set(sessionId, player);
+	}
+
+	removePlayer(sessionId: string) {
+		const player = this.otherPlayers.get(sessionId);
+		if (player) {
+			player.destroy();
+			this.otherPlayers.delete(sessionId);
+		}
 	}
 }
