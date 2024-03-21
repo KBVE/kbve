@@ -26,6 +26,7 @@ export class Main extends Scene3D {
 
 	preload(): void {
 		this.third.load.preload('sky', '/assets/img/sky.png');
+		this.third.load.preload('robot', '/assets/glb/robot.glb');
 	}
 
 	async create() {
@@ -126,12 +127,7 @@ export class Main extends Scene3D {
 			this.keys[actionKey] = this.input.keyboard.addKey(storedKey);
 		});
 
-		const assetUrl = '/assets/glb/robot.glb';
-		if (typeof assetUrl !== 'string') {
-			console.error('Asset URL is not a string:', assetUrl);
-			return;
-		}
-		this.player = new Player(this, assetUrl, 1 / 3);
+		this.player = new Player(this, 1 / 3);
 		this.third.add.existing(this.player);
 	}
 

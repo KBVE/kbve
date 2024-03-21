@@ -9,22 +9,14 @@ export default class Player extends ExtendedObject3D {
 
 	constructor(
 		private scene: Scene3D,
-		assetUrl: string,
 		scale: number = 1 / 3
 	) {
 		super();
 
 		this.currentAnimation = 'Idle';
 
-		if (typeof assetUrl !== 'string') {
-			console.error(
-				'Asset URL is not a string in Player constructor:',
-				assetUrl
-			);
-			return;
-		}
 		this.scene.third.load
-			.gltf(assetUrl)
+			.gltf('robot')
 			.then((gltf) => {
 				this.physicsObject = new ExtendedObject3D();
 				this.physicsObject.add(gltf.scene);
@@ -64,9 +56,7 @@ export default class Player extends ExtendedObject3D {
 				this.scene.third.physics.add.existing(sensor, {
 					mass: 1e-8,
 					shape: 'box',
-					width: 0.2,
 					height: 0.2,
-					depth: 0.2,
 				});
 				sensor.body.setCollisionFlags(4);
 				this.scene.third.physics.add.constraints.lock(
