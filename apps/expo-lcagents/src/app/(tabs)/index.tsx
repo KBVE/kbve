@@ -36,7 +36,7 @@ function HomeCards() {
 
 export function DemoCard({ title, paragraph, buttonText, ...props }: CardProps) {
   return (
-    <Card elevate size="$4" bordered {...props}>
+    <Card elevate size="$4" bordered {...props} backgroundColor="gray">
       <Card.Header padded>
         <H2 color="white">{title}</H2>
         <Paragraph theme="alt2" color="white">{paragraph}</Paragraph>
@@ -47,7 +47,7 @@ export function DemoCard({ title, paragraph, buttonText, ...props }: CardProps) 
       </Card.Footer>
       <Card.Background>
         <Image
-          resizeMode="contain"
+          resizeMode="cover"
           alignSelf="center"
           source={{
             width: 300,
@@ -85,7 +85,7 @@ export function Hero({
       elevate
       style={{
         width: '100%',
-        height: 500,
+        height: '35%',
         overflow: 'hidden',
         position: 'relative',
       }}
@@ -102,7 +102,7 @@ export function Hero({
           justifyContent: 'center',
           alignItems: 'center',
           padding: 20,
-          backgroundColor: 'rgba(0, 0, 0, 0.4)', // Add a dark overlay to ensure text is readable
+          backgroundColor: 'rgba(0, 0, 0, 0.5)', // Add a dark overlay to ensure text is readable
         }}
       >
         <H1 color="white" style={{ textAlign: 'center' }}>{title}</H1>
