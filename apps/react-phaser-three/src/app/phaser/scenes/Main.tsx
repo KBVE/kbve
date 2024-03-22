@@ -199,7 +199,7 @@ export class Main extends Scene3D {
 	createPlayer(sessionId: string) {
 		if (this.otherPlayers.has(sessionId) || !this.room) return;
 		if (sessionId === this.room.sessionId) return;
-		const player = new Player(this, 1);
+		const player = new Player(this);
 		this.otherPlayers.set(sessionId, player);
 	}
 
