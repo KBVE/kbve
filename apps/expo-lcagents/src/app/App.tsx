@@ -134,7 +134,7 @@ export const App = () => {
 
 	return (
 		<TamaguiProvider config={config} defaultTheme="dark">
-			<Theme name="dark">
+			<Theme name="light">
 				<StatusBar barStyle="dark-content" />
 				<SafeAreaView
 					style={{
@@ -155,9 +155,9 @@ export const App = () => {
 								Welcome ExpoLcagents 👋
 							</Text>
 
-							<TView margin={10}>
+							{/* <TView margin={10}>
 								<TText color="$darkRed">Hello</TText>
-							</TView>
+							</TView> */}
 						</View>
 						<View style={styles.section}>
 							<View style={styles.hero}>

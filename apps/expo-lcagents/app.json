@@ -26,7 +26,14 @@
 		"web": {
 			"favicon": "./assets/favicon.png",
 			"bundler": "metro"
+
 		},
-		"plugins": []
+		"plugins": [
+			"expo-router"
+		],
+		"experiments": {
+			"tsconfigPaths": true,
+			"typedRoutes": true
+		  }
 	}
 }

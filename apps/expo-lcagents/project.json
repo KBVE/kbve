@@ -1,5 +1,6 @@
 {
 	"name": "expo-lcagents",
+	"main": "expo-router/entry",
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "apps/expo-lcagents/src",
 	"projectType": "application",
