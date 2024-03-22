@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'tamagui';
 
-const Project = () => {
+const Projects = () => {
   return (
     <View>
       <Text color="cyan">This is the Project Page</Text>
@@ -9,4 +9,4 @@ const Project = () => {
   );
 };
 
-export default Project;
+export default Projects;
