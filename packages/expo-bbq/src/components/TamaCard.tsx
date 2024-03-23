@@ -40,7 +40,7 @@ export function TamaCard({
         if (linker) {
         // If linker is provided, wrap Button in Link
         return (
-            <Link href={linker}>
+            <Link href={linker} asChild>
             <Button borderRadius="$10">{buttonText}</Button>
             </Link>
         );
