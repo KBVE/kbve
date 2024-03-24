@@ -21,7 +21,7 @@ export default function TabLayout() {
 					title: 'LC',
 					tabBarIcon: ({ color }) => <Home color="cyan" />,
 					headerRight: () => (
-						<Link href="/modal" asChild>
+						<Link href="/menu" asChild>
 							<Pressable>
 								<MenuSquare color="cyan" padding="$4" />
 							</Pressable>
@@ -35,7 +35,7 @@ export default function TabLayout() {
 					title: 'Support',
 					tabBarIcon: ({ color }) => <HelpingHand color="cyan" />,
 					headerRight: () => (
-						<Link href="/modal" asChild>
+						<Link href="/menu" asChild>
 							<Pressable>
 								<MenuSquare color="cyan" padding="$4" />
 							</Pressable>
@@ -49,7 +49,7 @@ export default function TabLayout() {
 					title: 'Services',
 					tabBarIcon: ({ color }) => <DollarSign color="cyan" />,
 					headerRight: () => (
-						<Link href="/modal" asChild>
+						<Link href="/menu" asChild>
 							<Pressable>
 								<MenuSquare color="cyan" padding="$4" />
 							</Pressable>
@@ -63,7 +63,7 @@ export default function TabLayout() {
 					title: 'Fish&Chip',
 					tabBarIcon: ({ color }) => <Fish color="cyan" />,
 					headerRight: () => (
-						<Link href="/modal" asChild>
+						<Link href="/menu" asChild>
 							<Pressable>
 								<MenuSquare color="cyan" padding="$4" />
 							</Pressable>
@@ -71,20 +71,7 @@ export default function TabLayout() {
 					),
 				}}
 			/>
-      <Tabs.Screen
-				name="five"
-				options={{
-					title: 'Twisted Plastic',
-					tabBarIcon: ({ color }) => <DollarSign color="cyan" />,
-					headerRight: () => (
-						<Link href="/modal" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
-					),
-				}}
-			/>
+     
 		</Tabs>
 	);
 }

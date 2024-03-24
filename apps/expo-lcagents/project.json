@@ -12,6 +12,17 @@
 			"options": {
 				"jestConfig": "apps/expo-lcagents/jest.config.ts"
 			}
+		},
+		"export": {
+			"executor": "@nx/expo:export",
+			"outputs": ["{options.outputDir}"],
+			"options": {
+			  "platform": "web",
+			  "bundler": "metro",
+			  "outputDir": "dist/apps/expo-lcagents"
+			},
+			"dependsOn": ["sync-deps"]
 		}
+
 	}
 }

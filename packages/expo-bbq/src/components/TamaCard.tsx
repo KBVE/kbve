@@ -23,6 +23,7 @@ interface TamaCardProps  {
 	hoverStyle?: object;
 	pressStyle?: object;
     linker?: string;
+	image?: string;
 }
 
 
@@ -70,7 +71,7 @@ export function TamaCard({
 					source={{
 						width: 300,
 						height: 300,
-						uri: 'https://images.unsplash.com/photo-1541976844346-f18aeac57b06?q=80&w=300&auto=format&fit=crop',
+						uri: props.image,
 					}}
 				/>
 			</Card.Background>
