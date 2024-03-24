@@ -10,6 +10,7 @@
 			"resizeMode": "contain",
 			"backgroundColor": "#ffffff"
 		},
+		"userInterfaceStyle": "automatic",
 		"updates": {
 			"fallbackToCacheTimeout": 0
 		},
@@ -25,8 +26,18 @@
 		},
 		"web": {
 			"favicon": "./assets/favicon.png",
-			"bundler": "metro"
+			"bundler": "metro",
+			"output": "static"
+
+
 		},
-		"plugins": []
+		"plugins": [
+			"expo-router",
+			"expo-font"
+		],
+		"experiments": {
+			"tsconfigPaths": true,
+			"typedRoutes": true
+		  }
 	}
 }
