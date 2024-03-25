@@ -75,6 +75,8 @@ jobs:
                         - 'packages/jedi/src/**'
                     expresscolyseusdiscord:
                         - 'apps/express-colyseus-discord/**'
+                    lcagents
+                        - 'apps/expo-lcagents/src/**'
 
 
 
@@ -179,6 +181,9 @@ jobs:
                     user_name: 'h0lybyte'
                     commit_message: ${{ github.event.head_commit.message }}
                     rsync_option: "-avrh --delete"
+
+            #   [LC-Agents]
+
 
 
             #   [ATLAS]
