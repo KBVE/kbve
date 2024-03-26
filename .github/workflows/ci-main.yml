@@ -35,6 +35,7 @@ jobs:
             kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
             jedi: ${{ steps.delta.outputs.jedi_any_changed }}
             expresscolyseusdiscord: ${{ steps.delta.outputs.expresscolyseusdiscord_any_change }}
+            lcagents: ${{ steps.delta.outputs.lcagents_any_change }}
 
         steps:
             -   name: Checkout the repository using git
@@ -75,6 +76,9 @@ jobs:
                         - 'packages/jedi/src/**'
                     expresscolyseusdiscord:
                         - 'apps/express-colyseus-discord/**'
+                    lcagents
+                        - 'apps/expo-lcagents/src/**'
+                    
 
 
 
@@ -179,6 +183,9 @@ jobs:
                     user_name: 'h0lybyte'
                     commit_message: ${{ github.event.head_commit.message }}
                     rsync_option: "-avrh --delete"
+
+            #   [LC-Agents]
+
 
 
             #   [ATLAS]
@@ -550,3 +557,75 @@ jobs:
                     cache-to: type=gha,mode=max
                     #cache-from: type=registry,ref=kbve/rustprofile:buildcache
                     #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
+
+
+    # [EXPO] -> [START]
+
+
+    # Expo Deployments
+    lc-agents-expo-deployment:
+        needs: ["alter", "deploy"]
+        name: Build Expo Web LC Agents
+        if: needs.alter.outputs.lcagents == 'true'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            -   name: Checkout Repository
+                uses: actions/checkout@v4
+
+            -   name: Setup Node v18
+                uses: actions/setup-node@v3
+                with:
+                    node-version: 18
+            
+            -   name: Setup pnpm
+                uses: pnpm/action-setup@v2
+                with:
+                    version: 8
+                    run_install: false
+
+            -   name: Get pnpm Store Path
+                shell: bash
+                run: |
+                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            -   name: Setup pnpm Cache
+                uses: actions/cache@v3
+                with:
+                    path: ${{ env.STORE_PATH }}
+                    key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                    restore-keys: |
+                        ${{ runner.os }}-pnpm-store-
+            
+            -   name: Install pnpm dependencies
+                run: pnpm install
+
+           # -   name: LCA Expo Build
+
+            -   name: LCA Expo Build
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-nx expo-lcagents:export'
+                    create_pull_request: false
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            
+            -   name: LC Agents -> Deployment
+                uses: dobbelina/copy_file_to_another_repo_action@main
+                env:
+                    API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+                with:
+                    source_file: 'dist/apps/expo-lcagents/'
+                    destination_repo: 'kbve/lc-agents.com'
+                    destination_folder: '/docs'
+                    destination_branch: 'main'
+                    destination_branch_create: 'patch-kbve-lcagents-deploy'
+                    user_email: '5599058+h0lybyte@users.noreply.github.com'
+                    user_name: 'h0lybyte'
+                    commit_message: ${{ github.event.head_commit.message }}
+                    rsync_option: "-avrh --delete"
+        
+
+    # [EXPO] -> [END]
