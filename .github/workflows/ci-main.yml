@@ -41,7 +41,7 @@ jobs:
             -   name: Checkout the repository using git
                 uses: actions/checkout@v4
                 with:
-                    fetch-depth: 1
+                    fetch-depth: 2
 
             -   name: File Changes
                 id: delta
@@ -568,12 +568,12 @@ jobs:
         name: Build Expo Web LC Agents
         if: needs.alter.outputs.lcagents == 'true'
         runs-on: ubuntu-latest
-        permissions:
-            id-token: write
-            contents: write
-            packages: write
-            issues: write
-            pull-requests: write
+        # permissions:
+        #     id-token: write
+        #     contents: write
+        #     packages: write
+        #     issues: write
+        #     pull-requests: write
         steps:
             -   name: Checkout Repository
                 uses: actions/checkout@v4
