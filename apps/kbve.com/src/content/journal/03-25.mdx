@@ -1,0 +1,116 @@
+---
+title: 'March: 25'
+category: Daily
+date: 2024-03-25 12:00:00
+client: Self
+unsplash: 1615563821068-a15bbe32b305
+img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    25th of March.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+Command to Serve LC Agents: `pnpm nx serve expo-lcagents`
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Actions
+
+Time to test case the LC Agents Expo deployment using Github Actions.
+There will be three main test cases that we will perform, the first would be for the web, then Android and finally iOS.
+
+Instead of bulking up the main `deployment`, I am thinking that it would be wise to start splitting up the actions a bit. 
+However I am thinking before I add new action files for each deployment, I will at least try to keep them within the same `ci-main` for now.
+
+```yaml
+
+    lc-agents-expo-deployment:
+        needs: ["alter", "deploy"]
+        name: Build Expo Web LC Agents
+        if: needs.alter.outputs.lcagents == 'true'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node v18
+              uses: actions/setup-node@v3
+              with:
+                node-version: 18
+            
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                version: 8
+                run_install: false
+
+            - name: Get pnpm Store Path
+              shell: bash
+              run: |
+                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v3
+              with:
+                path: ${{ env.STORE_PATH }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                    ${{ runner.os }}-pnpm-store-
+            
+            - name: Install pnpm dependencies
+              run: pnpm install
+
+```
+
+That is the base of the action that we will be using to setup the `pnpm` before we execute any expo commands.
+
+Okay now we have to work out the build phase, which is below:
+
+```yaml
+           # -   name: LCA Expo Build
+
+            -   name: LCA Expo Build
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-nx expo-lcagents:export'
+                    create_pull_request: false
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            
+            -   name: LC Agents -> Deployment
+                uses: dobbelina/copy_file_to_another_repo_action@main
+                env:
+                    API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+                with:
+                    source_file: 'dist/apps/expo-lcagents/'
+                    destination_repo: 'kbve/lc-agents.com'
+                    destination_folder: '/docs'
+                    destination_branch: 'main'
+                    destination_branch_create: 'patch-kbve-lcagents-deploy'
+                    user_email: '5599058+h0lybyte@users.noreply.github.com'
+                    user_name: 'h0lybyte'
+                    commit_message: ${{ github.event.head_commit.message }}
+                    rsync_option: "-avrh --delete"
+        
+    ```
+
+
+</MDXJS>
+
+</MDXJS>
