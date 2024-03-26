@@ -90,3 +90,6 @@ cache/
 # Mono
 .mono/*
 *.mono/
+
+# Tamagui
+*.tamagui

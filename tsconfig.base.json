@@ -1,39 +1,26 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "target": "es2015",
-    "module": "esnext",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@kbve/astro-ve": [
-        "packages/astro-ve/index.ts"
-      ],
-      "@kbve/khashvault": [
-        "packages/khashvault/src/index.ts"
-      ],
-      "@kbve/postgres": [
-        "packages/postgres/src/index.ts"
-      ],
-      "@kbve/react-appwrite": [
-        "packages/react-appwrite/src/index.ts"
-      ]
-    }
-  },
-  "exclude": [
-    "node_modules",
-    "tmp"
-  ]
+	"compileOnSave": false,
+	"compilerOptions": {
+		"rootDir": ".",
+		"sourceMap": true,
+		"declaration": false,
+		"moduleResolution": "node",
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"target": "es2015",
+		"module": "esnext",
+		"lib": ["es2020", "dom"],
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"baseUrl": ".",
+		"paths": {
+			"@kbve/astro-ve": ["packages/astro-ve/index.ts"],
+			"@kbve/expo-bbq": ["packages/expo-bbq/src/index.ts"],
+			"@kbve/khashvault": ["packages/khashvault/src/index.ts"],
+			"@kbve/postgres": ["packages/postgres/src/index.ts"],
+			"@kbve/react-appwrite": ["packages/react-appwrite/src/index.ts"]
+		}
+	},
+	"exclude": ["node_modules", "tmp"]
 }
