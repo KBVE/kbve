@@ -19,7 +19,8 @@
 			"options": {
 			  "platform": "web",
 			  "bundler": "metro",
-			  "outputDir": "dist/apps/expo-lcagents"
+			  "outputDir": "dist/apps/expo-lcagents",
+			  "clear": true
 			},
 			"dependsOn": ["sync-deps"]
 		}

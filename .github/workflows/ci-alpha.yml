@@ -360,8 +360,8 @@ jobs:
                 -   name: Install dependencies
                     run: pnpm install
 
-                -   name: Clear Metro Cache
-                    run: npx react-native start --reset-cache
+                # -   name: Clear Metro Cache
+                #     run: npx react-native start --reset-cache
                 
                 -   name: LCA Expo Build
                     uses: ./.github/actions/kbve-shell
