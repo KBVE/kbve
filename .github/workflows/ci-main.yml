@@ -569,8 +569,11 @@ jobs:
         if: needs.alter.outputs.lcagents == 'true'
         runs-on: ubuntu-latest
         permissions:
-            contents: read
+            id-token: write
+            contents: write
             packages: write
+            issues: write
+            pull-requests: write
         steps:
             -   name: Checkout Repository
                 uses: actions/checkout@v4
