@@ -151,6 +151,25 @@ We will push this through and see where the action goes from here!
 Ah it seems that by default, the `pnpm/action-setup@v2` does not run the install, so we will go ahead and put that command back in.
 Now the question would be if we want to pass the node-linker as a varible or not.
 
+Let me see if I can add something that might be missing from the Github Actions?
+
+```yaml
+
+ 
+                -   name: Install react-native-cli globally
+                    run: pnpm add -g react-native-cli
+                      
+                -   name: Install dependencies
+                    run: pnpm install
+
+                -   name: Clear Metro Cache
+                    run: npx react-native start --reset-cache
+                
+
+```
+
+We will try this next! Hopefully this might solve the issue with the automated builds within the pipeline.
+
 </MDXJS>
 
 </MDXJS>
