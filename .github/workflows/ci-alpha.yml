@@ -366,6 +366,6 @@ jobs:
                 -   name: LCA Expo Build
                     uses: ./.github/actions/kbve-shell
                     with:
-                        flag: '-nx expo-lcagents:export'
+                        flag: '-nx expo-lcagents:export  --verbose'
                         create_pull_request: false
                         github_token: ${{ secrets.GITHUB_TOKEN }}
