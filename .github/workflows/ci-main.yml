@@ -76,7 +76,7 @@ jobs:
                         - 'packages/jedi/src/**'
                     expresscolyseusdiscord:
                         - 'apps/express-colyseus-discord/**'
-                    lcagents
+                    lcagents:
                         - 'apps/expo-lcagents/src/**'
                     
 
