@@ -353,9 +353,15 @@ jobs:
                     with:
                         version: 8
                         run_install: false
-                        
+                
+                -   name: Install react-native-cli globally
+                    run: pnpm add -g react-native-cli
+                      
                 -   name: Install dependencies
                     run: pnpm install
+
+                -   name: Clear Metro Cache
+                    run: npx react-native start --reset-cache
                 
                 -   name: LCA Expo Build
                     uses: ./.github/actions/kbve-shell
