@@ -62,6 +62,7 @@ jobs:
                 itchfishchip: ${{ steps.delta.outputs.itchfishchip_any_changed }}
                 reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }}
                 reacttravelbox: ${{ steps.delta.outputs.reacttravelbox_any_changed }}
+                expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
 
             steps:
               -   name: Checkout the repository using git
@@ -98,6 +99,8 @@ jobs:
                             - 'apps/react-phaser-fish-chip/src/**'
                         reacttravelbox:
                             - 'apps/react-phaser-travelbox/src/**'
+                        expolcagents:
+                            - 'apps/expo-lcagents/**'
 
                         
 
@@ -330,3 +333,31 @@ jobs:
                         itchGameId: travelbox
                         buildChannel: webgl
     
+        
+        expo-lcagents-web-build:
+            needs: ['alter']
+            name: Expo LC Agents We Build
+            runs-on: ubuntu-latest
+            # if: needs.alter.outputs.expolcagents == 'true'
+            steps:
+                -   name: Checkout repository
+                    uses: actions/checkout@v4
+
+                -   name: Setup NodeJS
+                    uses: actions/setup-node@v3
+                    with:
+                        node-version: 18
+
+                -   name: Setup PNPM
+                    uses: pnpm/action-setup@v2
+                    with:
+                        version: 8
+                        #run_install: false
+
+                
+                -   name: LCA Expo Build
+                    uses: ./.github/actions/kbve-shell
+                    with:
+                        flag: '-nx expo-lcagents:export'
+                        create_pull_request: false
+                        github_token: ${{ secrets.GITHUB_TOKEN }}
