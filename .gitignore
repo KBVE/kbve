@@ -93,3 +93,4 @@ cache/
 
 # Tamagui
 *.tamagui
+apps/expo-lcagents/.tamagui/*
