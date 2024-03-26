@@ -566,7 +566,6 @@ jobs:
     lc-agents-expo-deployment:
         needs: ["alter", "deploy"]
         name: Build Expo Web LC Agents
-        if: needs.alter.outputs.lcagents == 'true'
         runs-on: ubuntu-latest
         # permissions:
         #     id-token: write
