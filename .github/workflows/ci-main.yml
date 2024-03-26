@@ -559,6 +559,9 @@ jobs:
                     #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
 
 
+    # [EXPO] -> [START]
+
+
     # Expo Deployments
     lc-agents-expo-deployment:
         needs: ["alter", "deploy"]
@@ -600,22 +603,29 @@ jobs:
                 run: pnpm install
 
            # -   name: LCA Expo Build
-                
 
+            -   name: LCA Expo Build
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-nx expo-lcagents:export'
+                    create_pull_request: false
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
 
             
-            -   name: KBVE.com -> Deployment
+            -   name: LC Agents -> Deployment
                 uses: dobbelina/copy_file_to_another_repo_action@main
                 env:
                     API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
                 with:
-                    source_file: 'dist/apps/kbve.com/'
-                    destination_repo: 'kbve/kbve.com'
+                    source_file: 'dist/apps/expo-lcagents/'
+                    destination_repo: 'kbve/lc-agents.com'
                     destination_folder: '/docs'
-                    destination_branch: 'dev'
-                    destination_branch_create: 'patch-kbve-deploy'
+                    destination_branch: 'main'
+                    destination_branch_create: 'patch-kbve-lcagents-deploy'
                     user_email: '5599058+h0lybyte@users.noreply.github.com'
                     user_name: 'h0lybyte'
                     commit_message: ${{ github.event.head_commit.message }}
                     rsync_option: "-avrh --delete"
-            
+        
+
+    # [EXPO] -> [END]
