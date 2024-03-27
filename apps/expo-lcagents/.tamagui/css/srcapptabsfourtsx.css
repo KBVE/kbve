@@ -1,0 +1,10 @@
+:root ._dsp-flex{display:flex;}
+:root ._fd-column{flex-direction:column;}
+:root ._fb-auto{flex-basis:auto;}
+:root ._bxs-border-box{box-sizing:border-box;}
+:root ._pos-relative{position:relative;}
+:root ._mih-0px{min-height:0px;}
+:root ._miw-0px{min-width:0px;}
+:root ._fs-1{flex-shrink:1;}
+:root ._fg-1{flex-grow:1;}
+:root ._ai-center{align-items:center;}
