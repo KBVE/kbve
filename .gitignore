@@ -92,6 +92,6 @@ cache/
 *.mono/
 
 # Tamagui
-*.tamagui
-apps/expo-lcagents/.tamagui/*
-/apps/expo-lcagents/.tamagui
+# *.tamagui
+# apps/expo-lcagents/.tamagui/*
+# /apps/expo-lcagents/.tamagui

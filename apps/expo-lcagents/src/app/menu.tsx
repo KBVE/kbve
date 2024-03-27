@@ -15,7 +15,7 @@ export function AccordionDemo() {
 					justifyContent="space-between">
 					{({ open }: AccordionTriggerProps) => (
 						<>
-							<Paragraph>1. Take a cold shower</Paragraph>
+							<Paragraph>Menu</Paragraph>
 							<Square
 								animation="quick"
 								rotate={open ? '180deg' : '0deg'}>
@@ -39,7 +39,7 @@ export function AccordionDemo() {
 					justifyContent="space-between">
 					{({ open }: AccordionTriggerProps) => (
 						<>
-							<Paragraph>2. Eat 4 eggs</Paragraph>
+							<Paragraph>Socials</Paragraph>
 							<Square
 								animation="quick"
 								rotate={open ? '180deg' : '0deg'}>
@@ -50,9 +50,7 @@ export function AccordionDemo() {
 				</Accordion.Trigger>
 				<Accordion.Content>
 					<Paragraph>
-						Eggs have been a dietary staple since time immemorial
-						and there’s good reason for their continued presence in
-						our menus and meals.
+						Place holder here for socials and just to trigger the build!
 					</Paragraph>
 				</Accordion.Content>
 			</Accordion.Item>
