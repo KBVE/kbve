@@ -378,7 +378,7 @@ jobs:
                     shell: bash
                     continue-on-error: true
                     run: |
-                        pnpm nx run expo-lcagents:serve --verbose    
+                        pnpm nx run expo-lcagents:export --verbose    
 
                 -   name: NX Command - 2
                     shell: bash
