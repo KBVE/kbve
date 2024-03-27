@@ -374,9 +374,14 @@ jobs:
                         ls -la .expo/static/
                         find . -type l -exec ls -l {} \;  # List all symlinks and their targets
 
-                -   name: LCA Expo Build
-                    uses: ./.github/actions/kbve-shell
-                    with:
-                        flag: '-nx expo-lcagents:export  --verbose'
-                        create_pull_request: false
-                        github_token: ${{ secrets.GITHUB_TOKEN }}
+                -   name: NX Command
+                    shell: bash
+                    run: |
+                        pnpm nx run expo-lcagents:export --verbose    
+
+                # -   name: LCA Expo Build
+                #     uses: ./.github/actions/kbve-shell
+                #     with:
+                #         flag: '-nx expo-lcagents:export  --verbose'
+                #         create_pull_request: false
+                #         github_token: ${{ secrets.GITHUB_TOKEN }}
