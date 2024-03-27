@@ -386,11 +386,34 @@ jobs:
                     run: |
                         pnpm nx run expo-lcagents:export --verbose 
                 
-                -   name: NX Command - 3
-                    shell: bash
-                    continue-on-error: true
-                    run: |
-                        pnpm nx run expo-lcagents:export --verbose
+                # -   name: NX Command - 3
+                #     shell: bash
+                #     continue-on-error: true
+                #     run: |
+                #         pnpm nx run expo-lcagents:export --verbose
+
+                -   name: LCA Expo Build
+                    uses: ./.github/actions/kbve-shell
+                    with:
+                        flag: '-nx expo-lcagents:export'
+                        create_pull_request: false
+                        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            
+                -   name: LC Agents -> Deployment
+                    uses: dobbelina/copy_file_to_another_repo_action@main
+                    env:
+                        API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+                    with:
+                        source_file: 'dist/apps/expo-lcagents/'
+                        destination_repo: 'kbve/lc-agents.com'
+                        destination_folder: '/docs'
+                        destination_branch: 'main'
+                        destination_branch_create: 'patch-kbve-lcagents-deploy'
+                        user_email: '5599058+h0lybyte@users.noreply.github.com'
+                        user_name: 'h0lybyte'
+                        commit_message: ${{ github.event.head_commit.message }}
+                        rsync_option: "-avrh --delete"
 
                 # -   name: LCA Expo Build
                 #     uses: ./.github/actions/kbve-shell
