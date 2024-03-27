@@ -363,9 +363,25 @@ jobs:
                 # -   name: Clear Metro Cache
                 #     run: npx react-native start --reset-cache
                 
-                -   name: LCA Expo Build
-                    uses: ./.github/actions/kbve-shell
-                    with:
-                        flag: '-nx expo-lcagents:export  --verbose'
-                        create_pull_request: false
-                        github_token: ${{ secrets.GITHUB_TOKEN }}
+                -   name: Setup Watchman (if applicable)
+                    run: |
+                        sudo apt-get update
+                        sudo apt-get install -y watchman
+                        watchman --version
+
+                -   name: Debug File Paths and Symlinks
+                    run: |
+                        ls -la .expo/static/
+                        find . -type l -exec ls -l {} \;  # List all symlinks and their targets
+
+                -   name: NX Command
+                    shell: bash
+                    run: |
+                        pnpm nx run expo-lcagents:export --verbose    
+
+                # -   name: LCA Expo Build
+                #     uses: ./.github/actions/kbve-shell
+                #     with:
+                #         flag: '-nx expo-lcagents:export  --verbose'
+                #         create_pull_request: false
+                #         github_token: ${{ secrets.GITHUB_TOKEN }}
