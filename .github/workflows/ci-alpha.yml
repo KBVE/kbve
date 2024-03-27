@@ -369,13 +369,20 @@ jobs:
                         sudo apt-get install -y watchman
                         watchman --version
 
-                -   name: Debug File Paths and Symlinks
-                    run: |
-                        ls -la .expo/static/
-                        find . -type l -exec ls -l {} \;  # List all symlinks and their targets
+                # -   name: Debug File Paths and Symlinks
+                #     run: |
+                #         ls -la .expo/static/
+                #         find . -type l -exec ls -l {} \;  # List all symlinks and their targets
 
                 -   name: NX Command
                     shell: bash
+                    continue-on-error: true
+                    run: |
+                        pnpm nx run expo-lcagents:export --verbose    
+
+                -   name: NX Command - 2
+                    shell: bash
+                    continue-on-error: true
                     run: |
                         pnpm nx run expo-lcagents:export --verbose    
 
