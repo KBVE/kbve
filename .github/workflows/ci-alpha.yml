@@ -378,13 +378,19 @@ jobs:
                     shell: bash
                     continue-on-error: true
                     run: |
-                        pnpm nx run expo-lcagents:export --verbose    
+                        pnpm nx run expo-lcagents:serve --verbose    
 
                 -   name: NX Command - 2
                     shell: bash
                     continue-on-error: true
                     run: |
-                        pnpm nx run expo-lcagents:export --verbose    
+                        pnpm nx run expo-lcagents:export --verbose 
+                
+                -   name: NX Command - 3
+                    shell: bash
+                    continue-on-error: true
+                    run: |
+                        pnpm nx run expo-lcagents:export --verbose
 
                 # -   name: LCA Expo Build
                 #     uses: ./.github/actions/kbve-shell
