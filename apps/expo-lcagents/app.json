@@ -1,10 +1,11 @@
 {
   "expo": {
-    "name": "ExpoLcagents",
+    "name": "expo-lcagents",
     "slug": "expo-lcagents",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "lcagents",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",

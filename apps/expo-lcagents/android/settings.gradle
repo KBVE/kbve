@@ -1,4 +1,4 @@
-rootProject.name = 'ExpoLcagents'
+rootProject.name = 'expo-lcagents'
 
 dependencyResolutionManagement {
   versionCatalogs {
