@@ -5,7 +5,7 @@ interface Props {
 	image?: string;
 }
 const { title, description } = Astro.props;
-import { ViewTransitions } from "astro:transitions";  // Disabled ViewTransitions because it still seems to becausing errors with the menus.
+//import { ViewTransitions } from "astro:transitions";  // Disabled ViewTransitions because it still seems to becausing errors with the menus.
 import { AstroVe as VE } from '@kbve/astro-ve';
 import Menu from './Menu.astro';
 import Footer from './Footer.astro';
@@ -24,7 +24,7 @@ import Footer from './Footer.astro';
 		<VE widget="header:external:flowbite" data="" class="" />
 		<VE widget="header:embed:nanostores" data="" />
 		<VE widget="header:external:lottie" data="dot" />
-		<ViewTransitions />
+		<!-- <ViewTransitions /> -->
 	</head>
 
 	<div class="h-screen w-full bg-zinc-950 relative flex overflow-hidden">
