@@ -1,0 +1,67 @@
+---
+title: 'March: 28'
+category: Daily
+date: 2024-03-28 12:00:00
+client: Self
+unsplash: 1615563821068-a15bbe32b305
+img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    28th of March.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Arcade
+
+It looks like a couple routes for the KBVE website are broken, let me take some time to resolve those really quick.
+
+Here is the base template that we will add for the `index.astro`
+
+```ts
+
+---
+import Layout from '../../layouts/Layout.astro';
+import Bento from '../../components/Bento.astro';
+
+import type React from "react";
+
+const title = 'KBVE.com - Arcade';
+const description = 'KBVE Arcade! Play your favorite games in your browser!';
+
+---
+
+<Layout title={title} description={description} >
+
+</Layout>
+
+```
+
+We would need to enhance the title and description, lets go ahead and place those into the Chat GPT.
+
+Here is the title that ChatGPT came up with:
+
+> Title: "KBVE.com Arcade - Classic & Exclusive Browser Games"
+
+and here is the description:
+
+> Dive into KBVE Arcade for a blast from the past with our collection of classic retro games, alongside exclusive, in-house developed fun you won't find anywhere else!
+> Experience the nostalgia and discover new favorites, all playable in your browser.
+> Perfect for gaming enthusiasts looking for a unique mix of old-school and innovative arcade games.
+
+</MDXJS>
+
+</MDXJS>
