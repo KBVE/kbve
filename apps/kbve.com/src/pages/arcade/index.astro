@@ -16,8 +16,10 @@ interface IAstroItem {
     title: string;
     description: string;
     slug: string;
+    unsplash: string;
     header: React.ReactNode;
     icon: React.ReactNode;
+   
 }
 
 const astroItems: IAstroItem[] = arcadeCollection.map((entry)  => ({

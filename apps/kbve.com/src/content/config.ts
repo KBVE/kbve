@@ -33,8 +33,9 @@ const arcade = defineCollection({
     date: z.string().optional(),
     url: z.string().optional(),
     icon: z.string().default('https://kbve.com/favicon.svg'),
+    unsplash: z.string().optional(),
     swf: z.string().optional(),
-    
+
   }),
 });
 
@@ -114,6 +115,7 @@ export const collections = {
 
     //*     [Applications]
     application: application,
+    arcade: arcade,
 
     //*     [Assets]
     crypto: crypto,
