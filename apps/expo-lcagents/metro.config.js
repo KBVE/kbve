@@ -25,7 +25,7 @@ let mergedConfig = mergeConfig(defaultConfig, svgAndExtensionConfig);
 
 // Enable CSS support and configure for Tamagui
 const tamaguiConfig = getDefaultConfig(__dirname, {
-  isCSSEnabled: true, // [Web-only]: Enables CSS support in Metro.
+  isCSSEnabled: false, // [Web-only]: Enables CSS support in Metro.
 });
 
 // Merge the Tamagui configuration into the previously merged configuration

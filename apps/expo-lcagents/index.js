@@ -17,14 +17,14 @@ function AppWrapper() {
 // ensuring that routing and other setup is handled correctly.
 //registerRootComponent();
 
-// ExpoRoot(<AppWrapper />);
+//ExpoRoot(<AppWrapper />);
 
 // 03-27-2024 Changes
 
 
 export function App() {
-  const ctx = require.context('./src/app');
-  return <ExpoRoot context={ctx} />;
+   const ctx = require.context('./src/app');
+   return <ExpoRoot context={ctx} />;
 }
 
 registerRootComponent(App);

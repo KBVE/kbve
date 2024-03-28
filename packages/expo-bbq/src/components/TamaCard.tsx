@@ -22,7 +22,7 @@ interface TamaCardProps  {
 	scale?: number;
 	hoverStyle?: object;
 	pressStyle?: object;
-    linker?: string;
+    linker: string;
 	image?: string;
 }
 
@@ -36,22 +36,6 @@ export function TamaCard({
 	...props
 }: TamaCardProps ) {
 
-        // Conditionally rendered Button or Button within a Link
-    const RenderButton = () => {
-        if (linker) {
-        // If linker is provided, wrap Button in Link
-        return (
-            <Link href={linker} asChild>
-            <Button borderRadius="$10">{buttonText}</Button>
-            </Link>
-        );
-        } else {
-        // If no linker, render Button alone
-        return <Button borderRadius="$10">{buttonText}</Button>;
-        }
-    };
-
-
 	return (
 		<Card elevate size="$4" bordered {...props} backgroundColor="gray">
 			<Card.Header padded>
@@ -62,7 +46,9 @@ export function TamaCard({
 			</Card.Header>
 			<Card.Footer padded>
 				<XStack flex={1} />
-                <RenderButton />
+				<Link href={linker} asChild>
+            		<Button borderRadius="$10">{buttonText}</Button>
+            	</Link>
 			</Card.Footer>
 			<Card.Background>
 				<Image
