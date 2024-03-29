@@ -360,19 +360,11 @@ jobs:
                 -   name: Install dependencies
                     run: pnpm install
 
-                # -   name: Clear Metro Cache
-                #     run: npx react-native start --reset-cache
-                
                 -   name: Setup Watchman (if applicable)
                     run: |
                         sudo apt-get update
                         sudo apt-get install -y watchman
                         watchman --version
-
-                # -   name: Debug File Paths and Symlinks
-                #     run: |
-                #         ls -la .expo/static/
-                #         find . -type l -exec ls -l {} \;  # List all symlinks and their targets
 
                 -   name: NX Command
                     shell: bash
@@ -385,12 +377,6 @@ jobs:
                     continue-on-error: true
                     run: |
                         pnpm nx run expo-lcagents:export --verbose 
-                
-                # -   name: NX Command - 3
-                #     shell: bash
-                #     continue-on-error: true
-                #     run: |
-                #         pnpm nx run expo-lcagents:export --verbose
 
                 -   name: LCA Expo Build
                     uses: ./.github/actions/kbve-shell
@@ -399,6 +385,15 @@ jobs:
                         create_pull_request: false
                         github_token: ${{ secrets.GITHUB_TOKEN }}
 
+                -   name: Create .nojekyll file
+                    run: |
+                          mkdir -p dist/apps/expo-lcagents/
+                          touch dist/apps/expo-lcagents/.nojekyll
+                          
+                -   name: Create CNAME file
+                    run: |
+                            mkdir -p dist/apps/expo-lcagents/
+                            echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
             
                 -   name: LC Agents -> Deployment
                     uses: dobbelina/copy_file_to_another_repo_action@main

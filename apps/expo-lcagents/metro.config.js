@@ -25,7 +25,7 @@ let mergedConfig = mergeConfig(defaultConfig, svgAndExtensionConfig);
 
 // Enable CSS support and configure for Tamagui
 const tamaguiConfig = getDefaultConfig(__dirname, {
-  isCSSEnabled: true, // [Web-only]: Enables CSS support in Metro.
+  isCSSEnabled: false, // [Web-only]: Enables CSS support in Metro.
 });
 
 // Merge the Tamagui configuration into the previously merged configuration
@@ -37,7 +37,7 @@ module.exports = withNxMetro(withTamagui(mergedConfig, {
   config: './tamagui.config.ts',
   outputCSS: './tamagui-web.css',
 }), {
-  debug: true, // Change this to true to see debugging info.
+  debug: false, // Change this to true to see debugging info.
   extensions: [], // All the file extensions used for imports other than 'ts', 'tsx', 'js', 'jsx', 'json'
   watchFolders: [], // Specify folders to watch, in addition to Nx defaults (workspace libraries and node_modules)
 });
