@@ -1,0 +1,38 @@
+---
+const { swf = 'https://rareicon.com/assets/swf/r/robotunicornattack.swf', className = 'w-full flex overflow-y-hidden' } = Astro.props;
+---
+
+<astro-ruffle data-swf={swf} data-className={className}>
+	<div id="container" class={className}></div>
+</astro-ruffle>
+
+
+<script is:inline>
+class AstroRuffle extends HTMLElement {
+		constructor() {
+			super();
+
+            const swf = this.dataset.swf;
+			// Read the message from the data attribute.
+			window.RufflePlayer = window.RufflePlayer || {};
+			window.addEventListener('load', (event) => {
+				const ruffle = window.RufflePlayer.newest();
+				const player = ruffle.createPlayer();
+				const container = document.getElementById('container');
+				container?.appendChild(player);
+				player.load(swf);
+				player.style.width = "100vw"; 
+				player.style.height = "100vh";
+			});
+			
+		}
+	}
+
+    if (!customElements.get('astro-ruffle')) {
+        customElements.define('astro-ruffle', AstroRuffle);
+    }
+</script>
+
+
+
+<script is:inline src="https://unpkg.com/@ruffle-rs/ruffle"></script>
