@@ -5,6 +5,8 @@ import { TamaguiProvider } from 'tamagui'
 
 import '../../tamagui-web.css'
 
+import { Platform } from "react-native";
+
 import { config } from '../../tamagui.config'
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'

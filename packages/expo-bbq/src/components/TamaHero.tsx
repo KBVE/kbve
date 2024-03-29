@@ -5,6 +5,7 @@ import {
 	XStack,
 	YStack,
 	H1,
+	Paragraph,
 } from 'tamagui';
 
 
@@ -53,14 +54,14 @@ export function TamaHero({
 				<H1 color="white" style={{ textAlign: 'center' }}>
 					{title}
 				</H1>
-				<p
-					style={{
+				<Paragraph theme="alt2" color="white" style={{
 						color: 'white',
 						textAlign: 'center',
 						margin: '10px 0',
 					}}>
+					
 					{description}
-				</p>
+				</Paragraph>
 				<XStack space="$2" alignItems="center">
 					<Button onPress={onButtonOnePress}>{buttonOneText}</Button>
 					<Button onPress={onButtonTwoPress}>{buttonTwoText}</Button>
