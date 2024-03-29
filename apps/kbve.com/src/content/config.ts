@@ -40,6 +40,7 @@ const arcade = defineCollection({
     house: z.boolean().default(false),
     promoted: z.boolean().default(false),
     ipfs: z.string().optional(),
+    
 
   }),
 });
