@@ -62,6 +62,44 @@ and here is the description:
 > Experience the nostalgia and discover new favorites, all playable in your browser.
 > Perfect for gaming enthusiasts looking for a unique mix of old-school and innovative arcade games.
 
+The configuration for the `arcade` collection via zod has to be updated as well, hmm, the question then becomes what should we add for that setup?
+
+Here is the updated zod for the `arcade` collection:
+
+```ts
+
+
+const arcade = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    status: z.boolean().optional(),
+    description: z.string(),
+    tags: z.array(z.string()), 
+    footnote: z.string().optional(),
+    author: z.string().default('KBVE Team'),
+    img: z.string().default(''),
+    date: z.string().optional(),
+    url: z.string().optional(),
+    icon: z.string().default('https://kbve.com/favicon.svg'),
+    unsplash: z.string().optional(),
+    swf: z.string().optional(),
+    featured: z.boolean().default(false),
+    draft: z.boolean().default(false),
+    house: z.boolean().default(false),
+    promoted: z.boolean().default(false),
+    ipfs: z.string().optional(),
+
+  }),
+});
+
+```
+
+The `ipfs` is a string that we will use in the future for storing the the various files, making it easier to use.
+
+Now we have to create three modules! The first module would be the game cover, where we would use html to display the game information, controls and any additional information.
+The cover would then have a play button and upon clicking on that button, we would use an action to load one of the other two modules.
+
+
 </MDXJS>
 
 </MDXJS>
