@@ -35,6 +35,12 @@ const arcade = defineCollection({
     icon: z.string().default('https://kbve.com/favicon.svg'),
     unsplash: z.string().optional(),
     swf: z.string().optional(),
+    featured: z.boolean().default(false),
+    draft: z.boolean().default(false),
+    house: z.boolean().default(false),
+    promoted: z.boolean().default(false),
+    ipfs: z.string().optional(),
+    
 
   }),
 });

@@ -1,0 +1,30 @@
+---
+import { AstroVe as VE } from '@kbve/astro-ve';
+
+export interface Props {
+    title: string;
+    description: string;
+}
+
+const { title, description } = Astro.props;
+
+
+---
+
+<article class="bg-gray-800 grid items-start justify-items-center gap-4 h-dvh w-full">
+
+    <section class="mt-5 py-6 bg-cyan-400/[.25] rounded-xl">
+        <slot />
+    </section>
+
+</article>
+
+<script is:inline>
+
+    window.addEventListener('keydown', function(e) {
+    if(e.keyCode == 32 && e.target == document.body) {
+        e.preventDefault();
+    }
+    });
+
+</script>

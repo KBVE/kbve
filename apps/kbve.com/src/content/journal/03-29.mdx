@@ -1,0 +1,43 @@
+---
+title: 'March: 29'
+category: Daily
+date: 2024-03-29 12:00:00
+client: Self
+unsplash: 1615563821068-a15bbe32b305
+img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    29th of March.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Ruffle
+
+There was some issues with Ruffle being loaded twice! So it seems that there might be issues in the future with how we load the library, but for now I was able to get it working again.
+
+This can be an interesting test case for future problems that I need to break down, including the dynamic loading of certain types of content, including the phaser or adsense.
+
+The core of the problem was that it was importing and registering the `astro-ruffle` twice, once from the `astro-ve` library and then again with our custom library. The solution, at least in the future, would be to extend the `astro-ve` ruffle component, rather than use the one that we are using,
+Yet I feel like that a decent amount of the content does not need to be included inside of the library, as it is a waste of time for everyone involved, mainly because it feels like its an offset library that I do not plan on using on any other website.
+
+Lets go ahead and push this all up the CI/CD and make sure that it works in the production phase.
+
+
+</MDXJS>
+
+</MDXJS>

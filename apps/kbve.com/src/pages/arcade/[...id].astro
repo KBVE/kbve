@@ -1,0 +1,29 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Card from '../../components/Card.astro';
+import Hero from '../../components/MDXHero.astro';
+import { getCollection } from 'astro:content';
+import AstroRuffle from '../../components/AstroRuffle.astro';
+
+export async function getStaticPaths() {
+	const arcade = await getCollection('arcade');
+	return arcade.map((entry) => ({
+		params: {
+			id: entry.slug,
+		},
+		props: {
+			entry,
+		},
+	}));
+};
+
+const { id } = Astro.params;
+const { entry } = Astro.props;
+const { Content, headings } = await entry.render();
+---
+<Layout title={entry.data.title} description={entry.data.description}>
+	<Hero data={entry.data} />
+	<Content />
+    <!-- {entry.data.swf && <AstroRuffle swf={entry.data.swf} /> } -->
+
+</Layout>
