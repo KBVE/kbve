@@ -72,6 +72,22 @@ const crypto = defineCollection({
 
 
 //*         [Blog]
+const blog = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    img: z.string().default(''),
+    tags: z.array(z.string()), 
+    footnote: z.string().optional(),
+    author: z.string().default('KBVE Team'),
+    date: z.string().optional(),
+    url: z.string().optional(),
+    unsplash: z.string().default(''),
+    featured: z.boolean().default(false),
+    draft: z.boolean().default(false),
+  }),
+});
+
 
 //?         {Journal}
 const journal = defineCollection({

@@ -4,18 +4,13 @@ description: The Theorycraft is a mental adventure that journeys through the mor
 author: KBVE
 bg_img: https://images.unsplash.com/photo-1605373401635-7efc1d10d1e3?fit=crop&w=1400&h=700&q=75
 img: https://images.unsplash.com/photo-1689852484069-3e0fe82cc7c1?fit=crop&w=1400&h=700&q=75
+unsplash: 1689852484069-3e0fe82cc7c1
 tags:
   - theory
   - infosec
 ---
 
-import Details from '@w/Details.astro';
-import MDXLayer from "@l/MDXLayer.astro";
-import Widget from "@w/Widget.astro";
-import MDXJS from "@w/MDXJS.astro";
-
-<MDXLayer title={frontmatter.title} description={frontmatter.description}>
-<Widget img={frontmatter.img} skeleton={false}>
+import MDXJS from '../../components/MDXJS.astro';
 
 <MDXJS>
 ## Introduction
@@ -36,18 +31,15 @@ Notes for Theorycraft Blog Post.
 
 - [ ] Need to organize this blog post.
 
-<Details data="Closed">
 
 ### Closed
 
 - [x] Update the Theorycraft Blog Post
 - [x] MDXJS Wrapper
 
-</Details>
 
 ### Journal
 
-<Details data="J1">
 
 #### J1
 
@@ -55,7 +47,6 @@ Notes for Theorycraft Blog Post.
 
 Updating the theorycraft blog post.
 
-</Details>
 
 </MDXJS>
 
@@ -66,5 +57,3 @@ Updating the theorycraft blog post.
 ## REF
 
 </MDXJS>
-</Widget>
-</MDXLayer>

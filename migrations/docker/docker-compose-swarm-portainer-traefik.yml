@@ -34,6 +34,7 @@ services:
       - --log.level=ERROR
     ports:
       - "80:80"
+      
       - "443:443"
     networks:
       - public
