@@ -1,0 +1,70 @@
+---
+title: Theorycraft
+description: The Theorycraft is a mental adventure that journeys through the moral, spiritual, and metaphysical realms of the mind.
+author: KBVE
+bg_img: https://images.unsplash.com/photo-1605373401635-7efc1d10d1e3?fit=crop&w=1400&h=700&q=75
+img: https://images.unsplash.com/photo-1689852484069-3e0fe82cc7c1?fit=crop&w=1400&h=700&q=75
+tags:
+  - theory
+  - infosec
+---
+
+import Details from '@w/Details.astro';
+import MDXLayer from "@l/MDXLayer.astro";
+import Widget from "@w/Widget.astro";
+import MDXJS from "@w/MDXJS.astro";
+
+<MDXLayer title={frontmatter.title} description={frontmatter.description}>
+<Widget img={frontmatter.img} skeleton={false}>
+
+<MDXJS>
+## Introduction
+
+The Theorycraft starts off as a test case within the current theme template, I suppose a replacement of the latin memes as of right now.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+## Notes
+
+Notes for Theorycraft Blog Post.
+
+### Log
+
+- [ ] Need to organize this blog post.
+
+<Details data="Closed">
+
+### Closed
+
+- [x] Update the Theorycraft Blog Post
+- [x] MDXJS Wrapper
+
+</Details>
+
+### Journal
+
+<Details data="J1">
+
+#### J1
+
+##### 07-29-2023
+
+Updating the theorycraft blog post.
+
+</Details>
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+## REF
+
+</MDXJS>
+</Widget>
+</MDXLayer>

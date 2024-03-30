@@ -16,6 +16,10 @@ const application = defineCollection({
       information: z.string().optional(),
       media: z.any().optional(),
       lottie: z.string().optional(),
+      featured: z.boolean().default(false),
+      draft: z.boolean().default(false),
+      promoted: z.boolean().default(false),
+      
     }),
   });
   
