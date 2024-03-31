@@ -4,23 +4,24 @@ import Bento from '../../components/Bento.astro';
 
 import type React from "react";
 
-const title = 'KBVE.com Blog - Insights and Innovations Unveiled';
-const description = "Explore the KBVE Blog for a deep dive into the latest trends, tips, and technological breakthroughs. Join our community to engage with thought leaders and enthusiasts alike, discovering content that enlightens and inspires. From in-depth analyses to practical advice, we're here to fuel your passion for innovation.";
+const title = 'KBVE.com - Project';
+const description = 'KBVE Projects';
 
 import { getCollection, getEntry } from 'astro:content';
 
-const blogCollection = await getCollection('blog');
+const projectCollection = await getCollection('project');
 
 
 interface IAstroItem {
     title: string;
     description: string;
     slug: string;
+    unsplash?: string;
     header: React.ReactNode;
     icon: React.ReactNode;
 }
 
-const astroItems: IAstroItem[] = blogCollection.map((entry)  => ({
+const astroItems: IAstroItem[] = projectCollection.map((entry)  => ({
      title: entry.data.title, 
      description: entry.data.description, 
      slug: `/blog/${entry.slug}`,
