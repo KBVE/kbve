@@ -39,10 +39,73 @@ const pages = [
 		img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 	}
 ]
+
+const _sliderAnime = [
+	{
+		n: 1,
+		title: 'Lossless Youths',
+		description: 'Adventure',
+		url: '',
+		img: 'https://cdn.mos.cms.futurecdn.net/dP3N4qnEZ4tCTCLq59iysd.jpg',
+	},
+	{
+		n: 2,
+		title: 'Lossless Youths',
+		description: 'Adventure',
+		url: '',
+		img: 'https://i.redd.it/tc0aqpv92pn21.jpg',
+	},
+	{
+		n: 3,
+		title: 'Lossless Youths',
+		description: 'Adventure',
+		url: '',
+		img: 'https://wharferj.files.wordpress.com/2015/11/bio_north.jpg',
+	},
+	{
+		n: 4,
+		title: 'Lossless Youths',
+		description: 'Adventure',
+		url: '',
+		img: 'https://images7.alphacoders.com/878/878663.jpg',
+	},
+	{
+		n: 5,
+		title: 'Lossless Youths',
+		description: 'Adventure',
+		url: '',
+		img: 'https://theawesomer.com/photos/2017/07/simon_stalenhag_the_electric_state_6.jpg',
+	},
+	{
+		n: 6,
+		title: 'Lossless Youths',
+		description: 'Adventure',
+		url: '',
+		img: 'https://da.se/app/uploads/2015/09/simon-december1994.jpg',
+	},
+	{
+		n: 7,
+		title: 'Lossless Youths',
+		description: 'Adventure',
+		url: '',
+		img: 'https://cdn.mos.cms.futurecdn.net/dP3N4qnEZ4tCTCLq59iysd.jpg',
+	},
+	{
+		n: 8,
+		title: 'Lossless Youths',
+		description: 'Adventure',
+		url: '',
+		img: 'https://cdn.mos.cms.futurecdn.net/dP3N4qnEZ4tCTCLq59iysd.jpg',
+	}
+]
 ---
 
 <Layout title="Welcome to KBVE." description="Welcome to KBVE!">
-		
+
+	<div class="w-full h-full flex flex-col justify-between">
+		<div
+		class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 justify-center"
+	>
 		<VE widget="card:dashboard:hero" id="hero-1" img="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3"/>
 		<div class="flex flex-col w-xl gap-2">
 			{pages.map((page) => 
@@ -55,81 +118,75 @@ const pages = [
 				/>
 			)}
 		</div>
-		<!-- <VE widget="card:dashboard:post" id="test" href="https://kbve.com/" description="This is an exmaple of passing a description to the box."/>
-		<VE widget="card:dashboard:post" id="test-2"  href="https://kbve.com/" />
-		<VE widget="card:dashboard:post" id="test-of-3"  href="https://kbve.com/" />
-		<VE widget="card:dashboard:post" id="test-within-the-4th"  href="https://kbve.com/" />
-		<VE widget="card:dashboard:post" id="test-of-the-5th"  href="https://kbve.com/" /> -->
+		</div>
+	</div>
+
+	<span class="flex items-center bg-gradient-to-b from-zinc-950 to-gray-900">
+	<hr class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-cyan-500 via-rose-500 to-yellow-500 border-0 rounded md:my-10">
+
+	<span class="text-cyan-300">Cheers</span>
+	<hr class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-yellow-500 via-rose-500 to-cyan-500 border-0 rounded md:my-10">
+
+	</span>
+
+	<div class="flex flex-col">
+		<section class="bg-gray-900">
+			<div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
+				<div class="mr-auto place-self-center lg:col-span-7">
+					<h1 class="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl text-cyan-400">Payments tool for software companies</h1>
+					<p class="max-w-2xl mb-6 font-light lg:mb-8 md:text-lg lg:text-xl text-gray-400">From checkout to global sales tax compliance, companies around the world use Flowbite to simplify their payment stack.</p>
+					<a href="#" class="inline-flex items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 ">
+						Get started
+						<svg class="w-5 h-5 ml-2 -mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+					</a>
+					<a href="#" class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-gray-300 border border-gray-300 rounded-lg hover:bg-gray-400 focus:ring-4 focus:ring-gray-100 ">
+						Speak to Sales
+					</a> 
+				</div>
+				<div class="hidden lg:mt-0 lg:col-span-5 lg:flex">
+					<dotlottie-player
+                                    autoplay
+                                    loop
+                                    mode="normal"
+                                    src="/assets/lottie/beer.lottie"
+                     ></dotlottie-player>
+				</div>                
+			</div>
+		</section>	
+	</div>
+
+
+
+	<span class="flex items-center bg-gradient-to-b from-gray-900 to-zinc-800">
+
+	<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10 ">
+
+	</span>
+
+
+	<div class="flex flex-col">
+		<section class="relative w-full h-[400px] overflow-hidden">
+			<VE widget="carousel:noirsociety:carousel" slider={_sliderAnime} />
+		</section>
+	</div>
+	
+
+	<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10 ">
+
+	<div class="m-2 items-center">
+	
+	</div>
+
+
+	<div class="bg-zinc-950">
+			<VE widget="aceternity:hero-parallax:hero-parallax-demo"  
+			title="The KBVE Projects" 
+			description="We build beautiful products with the latest technologies and frameworks. We are a team of passionate developers and designers that love to build amazing products." 
+		/>
+	</div>
 
 
 
 
-	<style>
-		/* main {
-		margin: auto;
-		padding: 1rem;
-		width: 800px;
-		max-width: calc(100% - 2rem);
-		color: white;
-		font-size: 20px;
-		line-height: 1.6;
-	} */
-
-		.astro-a {
-			position: absolute;
-			top: -32px;
-			left: 50%;
-			transform: translatex(-50%);
-			width: 220px;
-			height: auto;
-			z-index: -1;
-		}
-
-		h1 {
-			font-size: 4rem;
-			font-weight: 700;
-			line-height: 1;
-			text-align: center;
-			margin-bottom: 1em;
-		}
-
-		.text-gradient {
-			background-image: var(--accent-gradient);
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			background-size: 400%;
-			background-position: 0%;
-		}
-
-		.instructions {
-			margin-bottom: 2rem;
-			border: 1px solid rgba(var(--accent-light), 25%);
-			background: linear-gradient(
-				rgba(var(--accent-dark), 66%),
-				rgba(var(--accent-dark), 33%)
-			);
-			padding: 1.5rem;
-			border-radius: 8px;
-		}
-
-		.instructions code {
-			font-size: 0.8em;
-			font-weight: bold;
-			background: rgba(var(--accent-light), 12%);
-			color: rgb(var(--accent-light));
-			border-radius: 4px;
-			padding: 0.3em 0.4em;
-		}
-
-		.instructions strong {
-			color: rgb(var(--accent-light));
-		}
-
-		.link-card-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
-			gap: 2rem;
-			padding: 0;
-		}
-	</style>
 </Layout>
+
