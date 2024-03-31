@@ -24,7 +24,7 @@ interface IAstroItem {
 const astroItems: IAstroItem[] = projectCollection.map((entry)  => ({
      title: entry.data.title, 
      description: entry.data.description, 
-     slug: `/blog/${entry.slug}`,
+     slug: `/project/${entry.slug}`,
      header: `<img loading="lazy" src="https://images.unsplash.com/photo-${entry.data.unsplash}?8&auto=format&fit=crop&w=400&q=80" class="object-cover flex flex-1 w-full h-full min-h-[6rem] rounded-xl" />`, 
      icon: `<IconClipboardCopy className="h-4 w-4 text-neutral-500" />`, 
    }));
