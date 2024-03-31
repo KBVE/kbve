@@ -1,0 +1,93 @@
+---
+id: 8
+title: Charles
+client: Self
+category: API
+frontpage: true
+status: true
+publishDate: 2023-04-10 00:00:00
+author: Ziggy9263 h0lybyte
+img: https://images.unsplash.com/photo-1516563988150-3e50726d365c?fit=crop&w=1400&h=700&q=75
+unsplash: 1516563988150-3e50726d365c
+description: Charles The Cyber Monkey that holds the wire within the fabric of the matrix.
+slug: charles
+tags:
+- design
+- dev
+- ml
+- ai
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Information
+
+Picture a symphony of GPUs, each singing in computational harmony within a single machine.
+This ensemble isn't just for show; it's tailored for the demanding concertos of machine learning.
+In this digital orchestra, every GPU strikes a note, turning data into artful insights!
+
+</MDXJS>
+
+<MDXJS>
+
+## Hardware
+
+These are the hardware notes for `charles`, our internal machine learning build/project.
+
+<MDXJS>
+
+### GPU
+
+- NVIDIA RTX 4090
+    - The 4090 series has a couple different variants on the market, but since we want to cluster them together, it might make more sense to look at liquid cooled instances.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+### RAM
+
+While the required RAM for constructing a GPU cluster for deep learning varies based on specific use-cases and requirements, we'll outline key considerations to guide your decision-making process.
+
+### Dataset Size
+
+When preprocessing and loading large datasets into main memory, a substantial amount of RAM is crucial for fast access, as it's quicker than persistent storage.
+Standard memory configurations may fall short for extensive datasets.
+Therefore, 128GB, 256GB, or even more RAM could be essential, especially with on-the-fly data augmentation or transformation. 
+
+### Concurrent Tasks
+
+Running concurrent tasks like data preprocessing, serving models, or multiple training jobs on one machine demands ample RAM.
+Sufficient memory ensures efficient multitasking and optimal performance during simultaneous operations.
+
+### GPU-System Communication
+
+Adequate system RAM is essential to prevent bottlenecks when data is transferred between the CPU and GPU.
+Remember that while GPU memory (VRAM) is crucial for model training, the system RAM plays a role in staging and preparing data.
+
+### Software Overhead
+
+Running the operating system, deep learning frameworks, databases, and other necessary software tools will also consume RAM.
+
+### Scaling Strategy
+
+If your cluster, managed through solutions like Docker and Kubernetes, is designed to distribute tasks across multiple nodes, each node might not require a vast amount of RAM.
+Instead, RAM can be allocated according to the specific role and demand of each node, enhancing your scaling strategy.
+
+
+### RAM CONFIG
+
+- Entry-Level Configuration: At least 32GB to 64GB of RAM per node.
+- Mid-Range Configuration: Between 64GB to 128GB of RAM per node.
+- High-End Configuration: 256GB or more per node, especially if you're working with vast datasets or complex multi-stage workflows.
+
+Remember to always tailor your cluster's configuration to your specific needs.
+Monitoring tools can help gauge memory usage in real-time and assist in making informed decisions about future upgrades.
+
+</MDXJS>
+
+</MDXJS>
