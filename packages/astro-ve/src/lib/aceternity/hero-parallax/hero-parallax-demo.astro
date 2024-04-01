@@ -1,0 +1,14 @@
+---
+export interface Props {
+	title: string;
+	description: string;
+  products: any;
+}
+
+const { title, description, products } = Astro.props;
+
+import React from "react";
+import { HeroParallax } from "./hero-parallax";
+
+---
+<HeroParallax products={products} title={title} description={description} client:only="react" />
