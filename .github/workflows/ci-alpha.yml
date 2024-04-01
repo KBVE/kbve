@@ -338,7 +338,7 @@ jobs:
             needs: ['alter']
             name: Expo LC Agents We Build
             runs-on: ubuntu-latest
-            # if: needs.alter.outputs.expolcagents == 'true'
+            if: needs.alter.outputs.expolcagents == 'true'
             steps:
                 -   name: Checkout repository
                     uses: actions/checkout@v4
