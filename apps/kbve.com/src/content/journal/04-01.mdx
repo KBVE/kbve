@@ -1,0 +1,134 @@
+---
+title: 'April: 01'
+category: Daily
+date: 2024-03-30 12:00:00
+client: Self
+unsplash: 1582647790126-0fd37ff34f98
+img: https://images.unsplash.com/photo-1582647790126-0fd37ff34f98?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    On April 1st, the world becomes my playground, a day when chaos and laughter intertwine, and everyone gets a taste of shaco's delight. 
+    It's a glorious moment where pranks bloom like flowers in spring, a reminder to dance on the edge of madness and never, ever play it safe.
+tags:
+    - daily
+---
+
+
+import MDXJS from '../../components/MDXJS.astro';
+
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Docker
+
+Getting the `express-colyseus-discord` build operation on the portainer will be the goal for today!
+This includes having an endpoint for the portainer communication, which would include the deployment of any changes via github actions.
+We need to keep track of the X, Y, Z and maybe a couple other variables in a 3D space?
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### LCAgents
+
+We want to move the changes for LC Agents outside of the `ci-alpha` and towards the `ci-main`, so that we can keep the changes in order!
+After moving it towards the main branch, we can extend out the iOS and Android build process for Expo, now we need to make sure that the current flow will work.
+We might also want to automate the pull requests that it makes on the LC Agents repo as well, hmm.
+
+Here is the pipeline that we are migrating with this push:
+
+```yaml
+
+        expo-lcagents-web-build:
+            needs: ['alter']
+            name: Expo LC Agents We Build
+            runs-on: ubuntu-latest
+            if: needs.alter.outputs.expolcagents == 'true'
+            steps:
+                -   name: Checkout repository
+                    uses: actions/checkout@v4
+
+                -   name: Setup NodeJS
+                    uses: actions/setup-node@v3
+                    with:
+                        node-version: 18
+
+                -   name: Setup PNPM
+                    uses: pnpm/action-setup@v2
+                    with:
+                        version: 8
+                        run_install: false
+                
+                -   name: Install react-native-cli globally
+                    run: pnpm add -g react-native-cli
+                      
+                -   name: Install dependencies
+                    run: pnpm install
+
+                -   name: Setup Watchman (if applicable)
+                    run: |
+                        sudo apt-get update
+                        sudo apt-get install -y watchman
+                        watchman --version
+
+                -   name: NX Command
+                    shell: bash
+                    continue-on-error: true
+                    run: |
+                        pnpm nx run expo-lcagents:export --verbose    
+
+                -   name: NX Command - 2
+                    shell: bash
+                    continue-on-error: true
+                    run: |
+                        pnpm nx run expo-lcagents:export --verbose 
+
+                -   name: LCA Expo Build
+                    uses: ./.github/actions/kbve-shell
+                    with:
+                        flag: '-nx expo-lcagents:export'
+                        create_pull_request: false
+                        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+                -   name: Create .nojekyll file
+                    run: |
+                          mkdir -p dist/apps/expo-lcagents/
+                          touch dist/apps/expo-lcagents/.nojekyll
+                          
+                -   name: Create CNAME file
+                    run: |
+                            mkdir -p dist/apps/expo-lcagents/
+                            echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
+            
+                -   name: LC Agents -> Deployment
+                    uses: dobbelina/copy_file_to_another_repo_action@main
+                    env:
+                        API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+                    with:
+                        source_file: 'dist/apps/expo-lcagents/'
+                        destination_repo: 'kbve/lc-agents.com'
+                        destination_folder: '/docs'
+                        destination_branch: 'main'
+                        destination_branch_create: 'patch-kbve-lcagents-deploy'
+                        user_email: '5599058+h0lybyte@users.noreply.github.com'
+                        user_name: 'h0lybyte'
+                        commit_message: ${{ github.event.head_commit.message }}
+                        rsync_option: "-avrh --delete"
+
+```
+
+
+</MDXJS>
+
+</MDXJS>
