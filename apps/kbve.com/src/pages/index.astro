@@ -98,13 +98,111 @@ const _sliderAnime = [
 		img: 'https://cdn.mos.cms.futurecdn.net/dP3N4qnEZ4tCTCLq59iysd.jpg',
 	}
 ]
+
+
+export const products = [
+  {
+    title: "Moonbeam",
+    link: "https://gomoonbeam.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/moonbeam.png",
+  },
+  {
+    title: "Cursor",
+    link: "https://cursor.so",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/cursor.png",
+  },
+  {
+    title: "Rogue",
+    link: "https://userogue.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/rogue.png",
+  },
+ 
+  {
+    title: "Editorially",
+    link: "https://editorially.org",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/editorially.png",
+  },
+  {
+    title: "Editrix AI",
+    link: "https://editrix.ai",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/editrix.png",
+  },
+  {
+    title: "Pixel Perfect",
+    link: "https://app.pixelperfect.quest",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/pixelperfect.png",
+  },
+ 
+  {
+    title: "Algochurn",
+    link: "https://algochurn.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/algochurn.png",
+  },
+  {
+    title: "Aceternity UI",
+    link: "https://ui.aceternity.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/aceternityui.png",
+  },
+  {
+    title: "Tailwind Master Kit",
+    link: "https://tailwindmasterkit.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/tailwindmasterkit.png",
+  },
+  {
+    title: "SmartBridge",
+    link: "https://smartbridgetech.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/smartbridge.png",
+  },
+  {
+    title: "Renderwork Studio",
+    link: "https://renderwork.studio",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/renderwork.png",
+  },
+ 
+  {
+    title: "Creme Digital",
+    link: "https://cremedigital.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/cremedigital.png",
+  },
+  {
+    title: "Golden Bells Academy",
+    link: "https://goldenbellsacademy.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/goldenbellsacademy.png",
+  },
+  {
+    title: "Invoker Labs",
+    link: "https://invoker.lol",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/invoker.png",
+  },
+  {
+    title: "E Free Invoice",
+    link: "https://efreeinvoice.com",
+    thumbnail:
+      "https://aceternity.com/images/products/thumbnails/new/efreeinvoice.png",
+  },
+];
+
 ---
 
 <Layout title="Welcome to KBVE." description="Welcome to KBVE!">
 
 	<div class="w-full h-full flex flex-col justify-between">
 		<div
-		class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 justify-center"
+		class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-hidden content-start p-3 justify-center"
 	>
 		<VE widget="card:dashboard:hero" id="hero-1" img="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3"/>
 		<div class="flex flex-col w-xl gap-2">
@@ -157,7 +255,7 @@ const _sliderAnime = [
 
 
 
-	<span class="flex items-center bg-gradient-to-b from-gray-900 to-zinc-800">
+	<span class="flex items-center bg-gradient-to-b from-gray-900 to-zinc-950">
 
 	<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10 ">
 
@@ -173,17 +271,18 @@ const _sliderAnime = [
 
 	<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10 ">
 
-	<div class="m-2 items-center">
-	
-	</div>
-
-
 	<div class="bg-zinc-950">
-			<VE widget="aceternity:hero-parallax:hero-parallax-demo"  
+			<VE widget="aceternity:hero-parallax:hero-parallax-demo"
+			products={products}
 			title="The KBVE Projects" 
 			description="We build beautiful products with the latest technologies and frameworks. We are a team of passionate developers and designers that love to build amazing products." 
 		/>
 	</div>
+
+
+</div>
+
+
 
 
 
