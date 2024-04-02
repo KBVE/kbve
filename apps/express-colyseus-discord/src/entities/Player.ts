@@ -1,6 +1,6 @@
 import {Schema, type} from '@colyseus/schema';
 
-export type TPlayerOptions = Pick<Player, 'sessionId' | 'userId' | 'name' | 'avatarUri' | 'talking' | 'x' | 'y' | 'z'>;
+export type TPlayerOptions = Pick<Player, 'sessionId' | 'userId' | 'name' | 'avatarUri' | 'talking' | 'x' | 'y' | 'z' | 'action'>;
 
 export class Player extends Schema {
   @type('string')
@@ -28,6 +28,9 @@ export class Player extends Schema {
   @type('number')
   public z: number;
 
+  @type('string')
+  public action: string;
+
   // Init
   constructor({name, userId, avatarUri, sessionId}: TPlayerOptions) {
     super();
@@ -38,5 +41,6 @@ export class Player extends Schema {
     this.x = 0;
     this.y = 0;
     this.z = 0;
+    this.action = '';
   }
 }
