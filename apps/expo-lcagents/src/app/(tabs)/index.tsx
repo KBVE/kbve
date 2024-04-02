@@ -72,7 +72,7 @@ export default function TabOneScreen() {
 			<View flex={1} alignItems="center">
 				<TamaHero
 					backgroundImageUri="https://images.unsplash.com/photo-1711029028695-6db032f5c476?q=80&w=2056&auto=format&fit=crop"
-					title="L & C Agents LLC"
+					title="LaMorte Consults LLC"
 					description="L & C Agency"
 					buttonOneText="Contact"
 					buttonTwoText="Support"
