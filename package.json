@@ -133,6 +133,7 @@
 		"@nestjs/platform-express": "^10.0.2",
 		"@planetscale/database": "^1.11.0",
 		"@radix-ui/react-label": "^2.0.2",
+		"@react-three/fiber": "^8.16.1",
 		"@supabase/supabase-js": "^2.39.8",
 		"@swc/helpers": "~0.5.2",
 		"@tabler/icons-react": "^2.47.0",
