@@ -6,7 +6,7 @@ function HomeCards() {
 	return (
 		<XStack $sm={{ flexDirection: 'column' }} paddingHorizontal="$4" space>
 			<TamaCard
-				title="Projects"
+				title="Consulting"
 				paragraph="Check out our cool projects"
 				buttonText="Read More!"
 				animation="bouncy"
@@ -16,7 +16,7 @@ function HomeCards() {
 				scale={0.9}
 				hoverStyle={{ scale: 0.925 }}
 				pressStyle={{ scale: 0.875 }}
-				linker="/projects"
+				linker="/consulting"
 			/>
 
 			<TamaCard
