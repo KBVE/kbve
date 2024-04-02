@@ -34,14 +34,14 @@ jobs:
             holy: ${{ steps.delta.outputs.holy_any_changed  }}
             kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
             jedi: ${{ steps.delta.outputs.jedi_any_changed }}
-            expresscolyseusdiscord: ${{ steps.delta.outputs.expresscolyseusdiscord_any_change }}
+            expressdiscord: ${{ steps.delta.outputs.expressdiscord_any_change }}
             expolcagents: ${{ steps.delta.outputs.expolcagents_any_change }}
 
         steps:
             -   name: Checkout the repository using git
                 uses: actions/checkout@v4
                 with:
-                    fetch-depth: 2
+                    fetch-depth: 1
 
             -   name: File Changes
                 id: delta
@@ -74,7 +74,7 @@ jobs:
                         - 'packages/kbve/src/**'
                     jedi:
                         - 'packages/jedi/src/**'
-                    expresscolyseusdiscord:
+                    expressdiscord:
                         - 'apps/express-colyseus-discord/**'
                     expolcagents:
                         - 'apps/expo-lcagents/src/**'
@@ -523,7 +523,7 @@ jobs:
     node-express-colyseus-image:
         needs: ["monorepo-image", "alter"]
         name: Build Node Express Colyseus Image
-        if: needs.alter.outputs.expresscolyseusdiscord == 'true'
+        if: needs.alter.outputs.expressdiscord == 'true'
         runs-on: ubuntu-latest
         permissions:
             contents: read
