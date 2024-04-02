@@ -34,8 +34,8 @@ jobs:
             holy: ${{ steps.delta.outputs.holy_any_changed  }}
             kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
             jedi: ${{ steps.delta.outputs.jedi_any_changed }}
-            expressdiscord: ${{ steps.delta.outputs.expressdiscord_any_change }}
-            expolcagents: ${{ steps.delta.outputs.expolcagents_any_change }}
+            expressdiscord: ${{ steps.delta.outputs.expressdiscord_any_changed }}
+            expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
 
         steps:
             -   name: Checkout the repository using git
@@ -80,6 +80,16 @@ jobs:
                         - 'apps/expo-lcagents/src/**'
                     
 
+
+    debug:
+        needs: ["alter"]
+        name: Debug Pipeline
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout the repository
+                uses: actions/checkout@v4
+
+            
 
 
     deploy:
