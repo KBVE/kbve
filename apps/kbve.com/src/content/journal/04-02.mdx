@@ -58,10 +58,64 @@ I am thinking of doing a couple different routes to help handle the docker swarm
 #### Python
 
 I started to map out the python modules for Atlas and the plans for the initial package deployment + example.
+Under the `kbve` module, we will split up the different parts of the library, one being the original atlas but the there might be three or five more parts of this module that we have to build out.
+However given the scope of this requirement and the limited time that we have, ugh, we have to very careful on how we structure the next moves within the python realm.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Colyseus
+
+The next step after the docker build for the `express-colyseus-discord` would be to setup the docker compose and the k8s helm chart.
+For the start of this application, we will stick with a swarm compsoe but movikng towards the k8s structure would make sense because we want this to be stateless.
+
+Here is the basic compose that we will test case:
+
+```yml
+
+version: '3.8'
+
+services:
+  colyseus:
+    hostname: colyseus
+    image: kbve/expresscolyseusdiscord:latest
+    container_name: colyseus
+    restart: unless-stopped
+    environment:
+      - VITE_CLIENT_ID=PASTE_OAUTH2_CLIENT_ID_HERE
+      - CLIENT_SECRET=PASTE_OAUTH2_CLIENT_SECRET_HERE
+    configs:
+      - source: lavalink_copy_copy
+        target: /opt/kbve/config.yml
+
+    volumes:
+      - /opt/kbve/
+    
+    networks:
+      - colyseus
+
+    expose:
+      - 3000
+
+configs:
+  lavalink_copy_copy:
+    external: true
+
+networks:
+  colyseus:
+    name: colyseus
+    driver: overlay
+    attachable: true
+
+```
 
 
 </MDXJS>
 
+---
 
 
 </MDXJS>
