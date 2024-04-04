@@ -26,16 +26,36 @@ services:
         - traefik.http.routers.n8n_https.service=n8n
         - traefik.http.routers.n8n_https.tls=true
 
-    volumes:
-      - 
+    secrets:
+        - POSTGRES_PASSWORD
+        - POSTGRES_HOST
+        - POSTGRES_USER
+
+        
+    environment:
+        - DB_TYPE=postgresdb
+        - DB_POSTGRESDB_PORT=5432
+        - DB_POSTGRESDB_DATABASE=postgres
+        - N8N_HOST=automation.kbve.com
+        - N8N_ENCRYPTION_KEY=/run/secrets/POSTGRES_PASSWORD
+        - DB_POSTGRESDB_HOST_FILE=/run/secrets/POSTGRES_HOST
+        - DB_POSTGRESDB_USER_FILE=/run/secrets/POSTGRES_USER
+        - DB_POSTGRESDB_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD
 
     networks:
-      - n8n
-      - rust
-      - public
+        - n8n
+        - rust
+        - public
 
 
-
+secrets:
+  POSTGRES_PASSWORD:
+    external: true
+  POSTGRES_HOST:
+    external: true
+  POSTGRES_USER:
+    external: true
+  
 
 networks:
   n8n:
