@@ -1,0 +1,129 @@
+---
+title: 'April: 02'
+category: Daily
+date: 2024-04-02 12:00:00
+client: Self
+unsplash: 1603855873822-0931a843ee3a
+img: https://images.unsplash.com/photo-1603855873822-0931a843ee3a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    2nd of April!
+    April 2nd arrives with a serene calm, the playful chaos of April Fool's Day having retreated into memory, leaving behind a day for reflection and the ordinary pace of life.
+    It's a day that bridges the light-heartedness of jest with the groundedness of routine, reminding us of life's delicate balance between joy and duty. 
+    In this quiet aftermath, I find a renewed sense of purpose and a deeper appreciation for the unexpected moments of laughter and the comforting rhythm of the everyday.
+tags:
+    - daily
+---
+
+
+import MDXJS from '../../components/MDXJS.astro';
+
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Videos
+
+To add videos to our websites, we have a couple options that we can take!
+I am thinking that the best move would be to have one `component` within the Astro VE library and then extend that component out in various websites that would use the component.
+The customization would be during the component extension, but we would keep the core configuration within the `Astro VE`, with that being said, the aspect ratio would be an issue that has to be resolved.
+
+We could also load an image for the video and then actually load the video upon clicking the image? This way we can have multiple videos ready, depending on the topic, without causing a major lag spike within the rendering.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Portainer
+
+The next step would be to update the `portainer` route within the Rust API to help manage different stacks outside of the `Rust API` itself.
+I am thinking of doing a couple different routes to help handle the docker swarm and the k8s, but I should map it out before building it.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Python
+
+I started to map out the python modules for Atlas and the plans for the initial package deployment + example.
+Under the `kbve` module, we will split up the different parts of the library, one being the original atlas but the there might be three or five more parts of this module that we have to build out.
+However given the scope of this requirement and the limited time that we have, ugh, we have to very careful on how we structure the next moves within the python realm.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Colyseus
+
+The next step after the docker build for the `express-colyseus-discord` would be to setup the docker compose and the k8s helm chart.
+For the start of this application, we will stick with a swarm compsoe but movikng towards the k8s structure would make sense because we want this to be stateless.
+
+Here is the basic compose that we will test case:
+
+```yml
+
+version: '3.8'
+
+services:
+  colyseus:
+    hostname: colyseus
+    image: kbve/expresscolyseusdiscord:latest
+    container_name: colyseus
+    restart: unless-stopped
+    environment:
+      - VITE_CLIENT_ID=PASTE_OAUTH2_CLIENT_ID_HERE
+      - CLIENT_SECRET=PASTE_OAUTH2_CLIENT_SECRET_HERE
+    configs:
+      - source: lavalink_copy_copy
+        target: /opt/kbve/config.yml
+
+    volumes:
+      - /opt/kbve/
+    
+    networks:
+      - colyseus
+
+    expose:
+      - 3000
+
+configs:
+  lavalink_copy_copy:
+    external: true
+
+networks:
+  colyseus:
+    name: colyseus
+    driver: overlay
+    attachable: true
+
+```
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### API
+
+Mapping out the routes for the deployment has to be done right this round, including making sure that the applications that we build can easily be deployed and maintained.
+
+
+</MDXJS>
+
+</MDXJS>

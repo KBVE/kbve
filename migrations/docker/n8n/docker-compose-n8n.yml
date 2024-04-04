@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  n8n:
+    hostname: n8n
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        # Base Traefik Labels
+        - traefik.enable=true
+        - traefik.constraint-label-stack=n8n
+        - traefik.docker.network=public
+        - traefik.http.services.n8n.loadbalancer.server.port=5678
+        - traefik.http.routers.n8n.rule=Host(`automation.kbve.com`)
+        # HTTP
+        - traefik.http.routers.n8n_http.entrypoints=web
+        - traefik.http.routers.n8n_http.rule=PathPrefix(`/`)
+        - traefik.http.routers.n8n_http.service=n8n
+        # HTTPS
+        - traefik.http.routers.n8n_https.entrypoints=websecure
+        - traefik.http.routers.n8n_https.rule=PathPrefix(`/`)
+        - traefik.http.routers.n8n_https.service=n8n
+        - traefik.http.routers.n8n_https.tls=true
+
+    volumes:
+      - 
+
+    networks:
+      - n8n
+      - rust
+      - public
+
+
+
+
+networks:
+  n8n:
+    name: n8n
+    driver: overlay
+    attachable: true
+  rust:
+    external: true
+  public:
+    external: true
