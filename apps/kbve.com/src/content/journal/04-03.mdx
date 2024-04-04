@@ -117,4 +117,77 @@ The issue ticket of interest is [here](https://github.com/oven-sh/bun/issues/483
 
 </MDXJS>
 
+
+---
+<MDXJS>
+
+#### API
+
+To get started with adding the `API` route, lets make sure that the current rust build is fine locally, given the recent changes to the monorepo.
+
+We will head over to the `project.json` for the `rust_api_profile` and see that the dev command is `run`, thus we will execute `./kbve.sh -nx rust_api_profile:run` and that should place the API on port 3000.
+In this situation we want to make a new route, called `actions` and have it require that we pass the `API` token and followed by the path.
+
+Under `actions`, we can create a sub-route called `n8n`, which will handle our `n8n`-based actions via the Rust API. Since we already have the tables created, we can have the path look up the ulid for the n8n webhook and then pass the information that is being sent over to it.
+
+We already have an n8n instance up and running, so we can use that instance to help us manage our application.
+
+While we do have an instance of n8n already running, this would be a good time to isolate the instances, with one being in development and the other in production.
+
+```yaml
+
+version: '3.8'
+
+services:
+  n8n:
+    hostname: n8n
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        # Base Traefik Labels
+        - traefik.enable=true
+        - traefik.constraint-label-stack=n8n
+        - traefik.docker.network=public
+        - traefik.http.services.n8n.loadbalancer.server.port=5678
+        - traefik.http.routers.n8n.rule=Host(`automation.kbve.com`)
+        # HTTP
+        - traefik.http.routers.n8n_http.entrypoints=web
+        - traefik.http.routers.n8n_http.rule=PathPrefix(`/`)
+        - traefik.http.routers.n8n_http.service=n8n
+        # HTTPS
+        - traefik.http.routers.n8n_https.entrypoints=websecure
+        - traefik.http.routers.n8n_https.rule=PathPrefix(`/`)
+        - traefik.http.routers.n8n_https.service=n8n
+        - traefik.http.routers.n8n_https.tls=true
+
+    volumes:
+      - 
+
+    networks:
+      - n8n
+      - rust
+      - public
+
+
+
+
+networks:
+  n8n:
+    name: n8n
+    driver: overlay
+    attachable: true
+  rust:
+    external: true
+  public:
+    external: true
+
+```
+
+
+</MDXJS>
+
 </MDXJS>
