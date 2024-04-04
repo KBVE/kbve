@@ -36,6 +36,8 @@ services:
         - DB_TYPE=postgresdb
         - DB_POSTGRESDB_PORT=5432
         - DB_POSTGRESDB_DATABASE=postgres
+        - N8N_HOST=automation.kbve.com
+        - N8N_ENCRYPTION_KEY=/run/secrets/POSTGRES_PASSWORD
         - DB_POSTGRESDB_HOST_FILE=/run/secrets/POSTGRES_HOST
         - DB_POSTGRESDB_USER_FILE=/run/secrets/POSTGRES_USER
         - DB_POSTGRESDB_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD
