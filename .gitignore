@@ -95,3 +95,7 @@ cache/
 # *.tamagui
 # apps/expo-lcagents/.tamagui/*
 # /apps/expo-lcagents/.tamagui
+
+
+# NuGetScracthroot
+NuGetScratchroot/

@@ -6,8 +6,9 @@ import { createServer } from 'http';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import path from 'path';
 
-import { GAME_NAME } from './shared/Constants';
-import { StateHandlerRoom } from './rooms/StateHandlerRoom';
+// import { GAME_NAME } from './shared/Constants';
+// import { StateHandlerRoom } from './rooms/StateHandlerRoom';
+import { MyRoom } from './rooms/MyRoom';
 
 // const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -23,7 +24,8 @@ const server = new Server({
 
 // Game Rooms
 server
-	.define(GAME_NAME, StateHandlerRoom)
+	// .define(GAME_NAME, StateHandlerRoom)
+	.define('my_room', MyRoom)
 	// filterBy allows us to call joinOrCreate and then hold one game per channel
 	// https://discuss.colyseus.io/topic/345/is-it-possible-to-run-joinorcreatebyid/3
 	.filterBy(['channelId']);

@@ -33,7 +33,7 @@ export class Main extends Scene3D {
 		const vite_ws_url: EndpointSettings = {
 			hostname: 'localhost',
 			secure: false,
-			port: 2567,
+			port: 3000,
 		};
 		this.client = new Client(vite_ws_url);
 		try {
