@@ -36,6 +36,8 @@ She made the whole NYC shake a bit but it was just a mild wake up call for our n
 
 </MDXJS>
 
+---
+
 <MDXJS>
 
 #### Discord
@@ -46,9 +48,22 @@ For this quick session, I am going to take it apart and see if I can resolve it 
 I am thinking that the first step would be to isolate the different folders and then work within that scope.
 `kbve.com/public/embed/discord` will be the main location for the embeds, then an additional folder for each `DiscordEmbedSDK` application.
 For this test case, we will have two, `dreambound` and `fishchip`, but I am open to expand it out to a couple more as I test case.
+I lied, I believe we will have a third folder for this test case well! Okay now let me start with the basics and work around that for this application.
 
 </MDXJS>
 
 ---
+
+<MDXJS>
+
+#### Email
+
+After looking through the options for a mailserver, the one that stands out the most for what we are building is [Stalwart](https://github.com/stalwartlabs/mail-server).
+It has a rust backend and is supported through an EU grant for Open source technology, which is a huge +1 for the application.
+The software has a decent amount of progress and provides an all-in-one solution that we were looking for, however my bigger concern would be the amount of storage that email servers would take.
+We could address this concern by keeping the emails only for 72 hours and/or forwarding them over to our GMAILs, but this is all for a future date.
+
+</MDXJS>
+
 
 </MDXJS>
