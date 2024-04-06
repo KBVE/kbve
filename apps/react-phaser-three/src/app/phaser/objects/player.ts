@@ -170,6 +170,11 @@ export default class Player {
 			});
 			this.physicsObjects = null;
 		}
+
+		if (this.group) {
+			this.scene.third.scene.remove(this.group);
+			this.group = null;
+		}
 	}
 
 	getPhysicsObject(): ExtendedObject3D | null {
