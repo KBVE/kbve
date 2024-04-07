@@ -92,32 +92,41 @@ pub async fn system_database_speed_test(Extension(
   }
 }
 
-
 // In this call_n8n example, we will include a fallback for the sake of the dev cycle.
 
 pub async fn call_n8n_service() -> impl IntoResponse {
   let client = reqwest::Client::new();
 
-  let n8ncall = match
-    client
-      .get("http://n8n:5678/workflows") // n8n -> hostname on k8s || port would be 5678.
-      .send().await
-  {
-    Ok(response) => response,
-    Err(e) => {
-      return (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({"error": format!("Failure to call internal n8n: {}", e)})),
-      );
-    }
-  };
+  // Attempt to call the first service
+  match client.get("http://n8n:5678/workflows").send().await {
+    Ok(resp) =>
+      match resp.json::<Value>().await {
+        Ok(json) => {
+          return (StatusCode::OK, Json(json));
+        }
+        Err(_) => (), // If parsing fails, try the second service, i.e proc next
+      }
+    Err(_) => (), // If the request fails, try the second service, i.e proc next
+  }
 
-  match n8ncall.json::<Value>().await {
-    Ok(json) => (StatusCode::OK, Json(json)),
+  match client.get("https://automation.kbve.com/workflows").send().await {
+    Ok(resp) =>
+      match resp.json::<Value>().await {
+        Ok(json) => (StatusCode::OK, Json(json)),
+        Err(e) =>
+          (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(
+              json!({"error": format!("Failed to parse response from automation.kbve.com: {}", e)})
+            ),
+          ),
+      }
     Err(e) =>
       (
         StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({"error": format!("Failure to parse n8n response: {}", e)})),
+        Json(
+          json!({"error": format!("Failed to call both n8n and automation.kbve.com services: {}", e)})
+        ),
       ),
   }
 }
