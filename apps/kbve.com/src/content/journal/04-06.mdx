@@ -31,6 +31,16 @@ Prepare the side account for the IRS bill.
 Preparing the docker build for the DreamBound platform and the state management within the structure.
 We had to move all of Erni's codebase from this repo into the `kbve` repo, but did not get a chance to refine and process the codebase.
 
+Part of the code migration was a bit of a pain because of the typescript safety, however we were able to convert and ready most of it.
+The next step would be to make sure everything gets wrapped into a single docker Image.
+
+For the `dev` cylce, we will be using this command: `./kbve.sh -nx express-colyseus-discord:serve`.
+
+As for the production image, we will be running `./kbve.sh -nx express-colyseus-discord:build:production --export`.
+
+Going to go ahead and push these changes through, as the most recent build had a failure.
+I am thinking the build failed because we had two additional files that we did not need, so lets see if that was the case.
+
 </MDXJS>
 
 ---
