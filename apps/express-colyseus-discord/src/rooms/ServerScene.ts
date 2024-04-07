@@ -7,7 +7,10 @@ export class ServerScene {
 	playerBodies: Map<string, ExtendedObject3D>; // Map session IDs to physics bodies
 	platforms: ExtendedObject3D[]; // Store the platforms
 	private static instance: ServerScene;
-	onPlayerPlatformStateChange: (sessionId: string, isOnPlatform: boolean) => void;
+	onPlayerPlatformStateChange: (
+		sessionId: string,
+		isOnPlatform: boolean,
+	) => void;
 
 	constructor() {
 		this.playerBodies = new Map();
@@ -42,30 +45,34 @@ export class ServerScene {
 			this.platforms.forEach((platform) => {
 				// todo: check if the player is on the platform
 				const platformPos = platform.position;
-				const parameters = (platform.geometry as THREE.BoxGeometry).parameters;
+				const parameters = (platform.geometry as THREE.BoxGeometry)
+					.parameters;
 
-
-
-
-				const platformSize = { width: parameters.width, height: parameters.height, depth: parameters.depth };
-				const isAbovePlatform = (
+				const platformSize = {
+					width: parameters.width,
+					height: parameters.height,
+					depth: parameters.depth,
+				};
+				const isAbovePlatform =
 					playerPos.x >= platformPos.x - platformSize.width / 2 &&
 					playerPos.x <= platformPos.x + platformSize.width / 2 &&
 					playerPos.z >= platformPos.z - platformSize.depth / 2 &&
-					playerPos.z <= platformPos.z + platformSize.depth / 2
-				);
+					playerPos.z <= platformPos.z + platformSize.depth / 2;
 
-				const heightDifference = playerPos.y - (platformPos.y + platformSize.height / 2);
-				if (isAbovePlatform && heightDifference < playerHeight / 2 && heightDifference >= 0) {
+				const heightDifference =
+					playerPos.y - (platformPos.y + platformSize.height / 2);
+				if (
+					isAbovePlatform &&
+					heightDifference < playerHeight / 2 &&
+					heightDifference >= 0
+				) {
 					isOnPlatform = true;
 				}
-
 			});
 
 			if (isOnPlatform) {
 				this.onPlayerPlatformStateChange(sessionId, true);
 			}
-
 		});
 	}
 
@@ -116,7 +123,6 @@ export class ServerScene {
 				mass: 0,
 			}),
 		];
-
 
 		// Initialize update loop
 		const clock = new ServerClock();

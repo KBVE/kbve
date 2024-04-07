@@ -15,10 +15,11 @@ export class MyRoom extends Room<MyRoomState> {
 	onCreate(options: MyRoomOptions) {
 		this.setState(new MyRoomState());
 		this.serverScene = options.serverScene;
-		this.serverScene.registerPlayerPlatformStateChangeCallback((sessionId, isOnPlatform) => {
-            this.updatePlayerOnPlatform(sessionId, isOnPlatform);
-        });
-
+		this.serverScene.registerPlayerPlatformStateChangeCallback(
+			(sessionId, isOnPlatform) => {
+				this.updatePlayerOnPlatform(sessionId, isOnPlatform);
+			},
+		);
 
 		this.onMessage('getPlayers', (client) => {
 			const players = Array.from(this.state.players.entries()).map(
@@ -85,7 +86,6 @@ export class MyRoom extends Room<MyRoomState> {
 			this.fixPlayerPosition();
 			this.syncPlayerPositions();
 		}, 1000 / 20);
-
 	}
 
 	onJoin(client: Client, options: any) {
@@ -122,7 +122,6 @@ export class MyRoom extends Room<MyRoomState> {
 
 	private fixPlayerPosition() {
 		//TODO: check if the player is on the ground and fix the y position
-
 	}
 
 	private syncPlayerPositions() {
