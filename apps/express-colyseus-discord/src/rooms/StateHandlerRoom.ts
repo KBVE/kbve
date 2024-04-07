@@ -1,36 +1,38 @@
-import {Room, Client} from 'colyseus';
-import {TPlayerOptions} from '../entities/Player';
-import {State, IState} from '../entities/State';
+import { Room, Client } from 'colyseus';
+import { TPlayerOptions } from '../entities/Player';
+import { State, IState } from '../entities/State';
 
 export class StateHandlerRoom extends Room<State> {
-  maxClients = 1000;
+	maxClients = 1000;
 
-  onCreate(options: IState) {
-    this.setState(new State(options));
+	onCreate(options: IState) {
+		this.setState(new State(options));
 
-    // Here's where we would add handlers for updating state
-    this.onMessage('startTalking', (client, _data) => {
-      this.state.startTalking(client.sessionId);
-    });
+		// Here's where we would add handlers for updating state
 
-    this.onMessage('stopTalking', (client, _data) => {
-      this.state.stopTalking(client.sessionId);
-    });
-  }
+    // Older Changes! We have to swap them out.
+		this.onMessage('startTalking', (client, _data) => {
+			this.state.startTalking(client.sessionId);
+		});
 
-  onAuth(_client: any, _options: any, _req: any) {
-    return true;
-  }
+		this.onMessage('stopTalking', (client, _data) => {
+			this.state.stopTalking(client.sessionId);
+		});
+	}
 
-  onJoin(client: Client, options: TPlayerOptions) {
-    this.state.createPlayer(client.sessionId, options);
-  }
+	onAuth(_client: any, _options: any, _req: any) {
+		return true;
+	}
 
-  onLeave(client: Client) {
-    this.state.removePlayer(client.sessionId);
-  }
+	onJoin(client: Client, options: TPlayerOptions) {
+		this.state.createPlayer(client.sessionId, options);
+	}
 
-  onDispose() {
-    console.log('Dispose StateHandlerRoom');
-  }
+	onLeave(client: Client) {
+		this.state.removePlayer(client.sessionId);
+	}
+
+	onDispose() {
+		console.log('Dispose StateHandlerRoom');
+	}
 }
