@@ -10,6 +10,8 @@ import path from 'path';
 // import { StateHandlerRoom } from './rooms/StateHandlerRoom';
 import { MyRoom } from './rooms/MyRoom';
 
+// server scene
+import { ServerScene } from './rooms/ServerScene';
 // const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
@@ -22,10 +24,11 @@ const server = new Server({
 	}),
 });
 
+const sharedServerScene = ServerScene.getInstance();
 // Game Rooms
 server
 	// .define(GAME_NAME, StateHandlerRoom)
-	.define('my_room', MyRoom)
+	.define('my_room', MyRoom, { serverScene: sharedServerScene })
 	// filterBy allows us to call joinOrCreate and then hold one game per channel
 	// https://discuss.colyseus.io/topic/345/is-it-possible-to-run-joinorcreatebyid/3
 	.filterBy(['channelId']);

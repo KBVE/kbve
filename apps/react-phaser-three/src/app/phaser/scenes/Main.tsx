@@ -194,6 +194,25 @@ export class Main extends Scene3D {
 		if (player) {
 			player.setPosition(x, y, z);
 		}
+		/*
+		const player = this.otherPlayers.get(sessionId) || this.player;
+		if (player) {
+			const currentPos = player.getPhysicsObject()?.position;
+			if (currentPos) {
+				const deltaY = Math.abs(currentPos.y - y);
+				if (deltaY > 0.1) {
+					player.setPosition(x, y, z);
+				} else {
+					const interpolatedY = Phaser.Math.Interpolation.SmoothStep(
+						0.1,
+						currentPos.y,
+						y
+					);
+					player.setPosition(x, interpolatedY, z);
+				}
+			}
+		}
+		*/
 	}
 
 	createPlayer(sessionId: string) {
