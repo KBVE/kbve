@@ -1,12 +1,24 @@
 ---
 
 const { slider } = Astro.props;
-
+ 
 // <VE widget="carousel:highflyer:wave" />
 ---
 
 <div class="highflyerwavewrapper">
     <div class="highflywaveitems">
+
+
+        {slider.map((page: { img: string; }) => 
+        <Fragment>
+
+            <div class="highflywaveitem" tabindex="0" style={`background-image: url('${page.img}')`}>
+            </div>
+            
+        </Fragment>
+        )}
+<!-- 
+
       <div class="highflywaveitem" tabindex="0" style="background-image: url(https://e22u.short.gy/KTU286)"></div>
       <div class="highflywaveitem" tabindex="0" style="background-image: url(https://e22u.short.gy/SMBrES)"></div>
       <div class="highflywaveitem" tabindex="0" style="background-image: url(https://e22u.short.gy/f8spJ8)"></div>
@@ -19,7 +31,7 @@ const { slider } = Astro.props;
       <div class="highflywaveitem" tabindex="0" style="background-image: url(https://e22u.short.gy/Xvf2a1)"></div>
       <div class="highflywaveitem" tabindex="0" style="background-image: url(https://e22u.short.gy/pCrIJq)"></div>
       <div class="highflywaveitem" tabindex="0" style="background-image: url(https://e22u.short.gy/mSLCrl)"></div>
-      <div class="highflywaveitem" tabindex="0" style="background-image: url(https://e22u.short.gy/EwQcy5)"></div>
+      <div class="highflywaveitem" tabindex="0" style="background-image: url(https://e22u.short.gy/EwQcy5)"></div> -->
         
       </div>
         

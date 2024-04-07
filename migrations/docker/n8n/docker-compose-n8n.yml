@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  n8n:
+    hostname: n8n
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        # Base Traefik Labels
+        - traefik.enable=true
+        - traefik.constraint-label-stack=n8n
+        - traefik.docker.network=public
+        - traefik.http.services.n8n.loadbalancer.server.port=5678
+        - traefik.http.routers.n8n.rule=Host(`automation.kbve.com`)
+        # HTTP
+        - traefik.http.routers.n8n_http.entrypoints=web
+        - traefik.http.routers.n8n_http.rule=PathPrefix(`/`)
+        - traefik.http.routers.n8n_http.service=n8n
+        # HTTPS
+        - traefik.http.routers.n8n_https.entrypoints=websecure
+        - traefik.http.routers.n8n_https.rule=PathPrefix(`/`)
+        - traefik.http.routers.n8n_https.service=n8n
+        - traefik.http.routers.n8n_https.tls=true
+
+    secrets:
+        - POSTGRES_PASSWORD
+        - POSTGRES_HOST
+        - POSTGRES_USER
+
+        
+    environment:
+        - DB_TYPE=postgresdb
+        - DB_POSTGRESDB_PORT=5432
+        - DB_POSTGRESDB_DATABASE=postgres
+        - N8N_HOST=automation.kbve.com
+        - WEBHOOK_URL=https://automation.kbve.com/
+        - N8N_ENCRYPTION_KEY=/run/secrets/POSTGRES_PASSWORD
+        - DB_POSTGRESDB_HOST_FILE=/run/secrets/POSTGRES_HOST
+        - DB_POSTGRESDB_USER_FILE=/run/secrets/POSTGRES_USER
+        - DB_POSTGRESDB_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD
+
+    networks:
+        - n8n
+        - rust
+        - public
+
+
+secrets:
+  POSTGRES_PASSWORD:
+    external: true
+  POSTGRES_HOST:
+    external: true
+  POSTGRES_USER:
+    external: true
+  
+
+networks:
+  n8n:
+    name: n8n
+    driver: overlay
+    attachable: true
+  rust:
+    external: true
+  public:
+    external: true

@@ -149,4 +149,63 @@ We will be using the `any_changed` to calculate any of the files that are change
 
 </MDXJS>
 
+---
+
+<MDXJS>
+
+#### LC Agents
+
+Here is the older code block for the LC Agents Expo application.
+
+```js
+
+import { registerRootComponent } from 'expo';
+
+import { ExpoRoot } from 'expo-router';
+import 'expo-router/entry';
+import BaseApp from './src/app/_layout';
+
+
+
+// The ExpoRoot component requires a React element, not a component class or function directly.
+// Therefore, we create a simple wrapper component that returns BaseApp.
+function AppWrapper() {
+  return <BaseApp />;
+}
+
+// Pass the wrapper component to ExpoRoot.
+// ExpoRoot will take care of rendering your application within the Expo environment,
+// ensuring that routing and other setup is handled correctly.
+//registerRootComponent();
+
+//ExpoRoot(<AppWrapper />);
+
+// 03-27-2024 Changes
+
+
+export function App() {
+   const ctx = require.context('./src/app');
+   return <ExpoRoot context={ctx} />;
+}
+
+registerRootComponent(App);
+
+
+// Create a new component that renders ExpoRoot with AppWrapper.
+// This component will be the entry point of your application.
+// function RootComponent() {
+//   return ExpoRoot(<AppWrapper />);
+// }
+
+// registerRootComponent(RootComponent);
+```
+
+However there are a couple errors that are appearing in the source code, including this one: 
+
+`You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.`
+
+So there might be an issue with how we are doing the root / application rendering.
+
+</MDXJS>
+
 </MDXJS>

@@ -4,19 +4,20 @@ import Layout from '../layouts/Layout.astro';
 
 // TW1 - class="h-full w-full items-start justify-start rounded-tl flex flex-wrap gap-4 overflow-y-scroll content-start p-3 ">
 
-
 import { getCollection, getEntry } from 'astro:content';
 
 const pages = [
 	{
 		name: 'Applications',
-		description: 'Guides, Tutorials, and Useful Tidbits concerning a wide variety of cutting-edge Applications.',
+		description:
+			'Guides, Tutorials, and Useful Tidbits concerning a wide variety of cutting-edge Applications.',
 		url: '/application',
 		img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 	},
 	{
 		name: 'Journal',
-		description: 'Just keeping the pen flowing, supposed to be great for your mental health. Here\'s mine.',
+		description:
+			"Just keeping the pen flowing, supposed to be great for your mental health. Here's mine.",
 		url: '/journal',
 		img: 'https://images.unsplash.com/photo-1483546363825-7ebf25fb7513?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 	},
@@ -34,11 +35,51 @@ const pages = [
 	},
 	{
 		name: 'WASM Thing',
-		description: 'Imported an egui project. Not much now, but could be real useful soon...',
+		description:
+			'Imported an egui project. Not much now, but could be real useful soon...',
 		url: '/tools/wasm',
 		img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-	}
-]
+	},
+];
+
+const waveslider = [
+	{
+		img: 'https://images.unsplash.com/photo-1594671581654-cc7ed83167bb?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1585758874546-c593da5f29e7?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1620317948296-68fa1671dd7f?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1562948249-2e39697fb51d?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1562575214-da9fcf59b907?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1527870428821-bb5d20b1345f?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1548098751-d645421e0d7a?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1578302682624-b3486556f903?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1562526818-c4c3fc0c4f97?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1603136548508-4d207fadc1a0?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1535886802713-24dc8659801d?q=80&w=1024&auto=format&fit=crop',
+	},
+	{
+		img: 'https://images.unsplash.com/photo-1597660641167-56545225e42d?q=80&w=1024&auto=format&fit=crop',
+	},
+];
 
 const _sliderAnime = [
 	{
@@ -96,206 +137,218 @@ const _sliderAnime = [
 		description: 'Adventure',
 		url: '',
 		img: 'https://cdn.mos.cms.futurecdn.net/dP3N4qnEZ4tCTCLq59iysd.jpg',
-	}
-]
-
-
-export const products = [
-  {
-    title: "Moonbeam",
-    link: "https://gomoonbeam.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/moonbeam.png",
-  },
-  {
-    title: "Cursor",
-    link: "https://cursor.so",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/cursor.png",
-  },
-  {
-    title: "Rogue",
-    link: "https://userogue.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/rogue.png",
-  },
- 
-  {
-    title: "Editorially",
-    link: "https://editorially.org",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/editorially.png",
-  },
-  {
-    title: "Editrix AI",
-    link: "https://editrix.ai",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/editrix.png",
-  },
-  {
-    title: "Pixel Perfect",
-    link: "https://app.pixelperfect.quest",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/pixelperfect.png",
-  },
- 
-  {
-    title: "Algochurn",
-    link: "https://algochurn.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/algochurn.png",
-  },
-  {
-    title: "Aceternity UI",
-    link: "https://ui.aceternity.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/aceternityui.png",
-  },
-  {
-    title: "Tailwind Master Kit",
-    link: "https://tailwindmasterkit.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/tailwindmasterkit.png",
-  },
-  {
-    title: "SmartBridge",
-    link: "https://smartbridgetech.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/smartbridge.png",
-  },
-  {
-    title: "Renderwork Studio",
-    link: "https://renderwork.studio",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/renderwork.png",
-  },
- 
-  {
-    title: "Creme Digital",
-    link: "https://cremedigital.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/cremedigital.png",
-  },
-  {
-    title: "Golden Bells Academy",
-    link: "https://goldenbellsacademy.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/goldenbellsacademy.png",
-  },
-  {
-    title: "Invoker Labs",
-    link: "https://invoker.lol",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/invoker.png",
-  },
-  {
-    title: "E Free Invoice",
-    link: "https://efreeinvoice.com",
-    thumbnail:
-      "https://aceternity.com/images/products/thumbnails/new/efreeinvoice.png",
-  },
+	},
 ];
 
+export const products = [
+	{
+		title: 'Moonbeam',
+		link: 'https://gomoonbeam.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/moonbeam.png',
+	},
+	{
+		title: 'Cursor',
+		link: 'https://cursor.so',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/cursor.png',
+	},
+	{
+		title: 'Rogue',
+		link: 'https://userogue.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/rogue.png',
+	},
+
+	{
+		title: 'Editorially',
+		link: 'https://editorially.org',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/editorially.png',
+	},
+	{
+		title: 'Editrix AI',
+		link: 'https://editrix.ai',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/editrix.png',
+	},
+	{
+		title: 'Pixel Perfect',
+		link: 'https://app.pixelperfect.quest',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/pixelperfect.png',
+	},
+
+	{
+		title: 'Algochurn',
+		link: 'https://algochurn.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/algochurn.png',
+	},
+	{
+		title: 'Aceternity UI',
+		link: 'https://ui.aceternity.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/aceternityui.png',
+	},
+	{
+		title: 'Tailwind Master Kit',
+		link: 'https://tailwindmasterkit.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/tailwindmasterkit.png',
+	},
+	{
+		title: 'SmartBridge',
+		link: 'https://smartbridgetech.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/smartbridge.png',
+	},
+	{
+		title: 'Renderwork Studio',
+		link: 'https://renderwork.studio',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/renderwork.png',
+	},
+
+	{
+		title: 'Creme Digital',
+		link: 'https://cremedigital.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/cremedigital.png',
+	},
+	{
+		title: 'Golden Bells Academy',
+		link: 'https://goldenbellsacademy.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/goldenbellsacademy.png',
+	},
+	{
+		title: 'Invoker Labs',
+		link: 'https://invoker.lol',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/invoker.png',
+	},
+	{
+		title: 'E Free Invoice',
+		link: 'https://efreeinvoice.com',
+		thumbnail:
+			'https://aceternity.com/images/products/thumbnails/new/efreeinvoice.png',
+	},
+];
 ---
 
 <Layout title="Welcome to KBVE." description="Welcome to KBVE!">
-
 	<div class="w-full h-full flex flex-col justify-between">
 		<div
-		class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-hidden content-start p-3 justify-center"
-	>
-		<VE widget="card:dashboard:hero" id="hero-1" img="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3"/>
-		<div class="flex flex-col w-xl gap-2">
-			{pages.map((page) => 
-				<VE
-					widget="card:dashboard:post"
-					id={page.name}
-					href={page.url}
-					description={page.description}
-					img={page.img}
-				/>
-			)}
-		</div>
+			class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-hidden content-start p-3 justify-center">
+			<VE
+				widget="card:dashboard:hero"
+				id="hero-1"
+				img="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3"
+			/>
+			<div class="flex flex-col w-xl gap-2">
+				{
+					pages.map((page) => (
+						<VE
+							widget="card:dashboard:post"
+							id={page.name}
+							href={page.url}
+							description={page.description}
+							img={page.img}
+						/>
+					))
+				}
+			</div>
 		</div>
 	</div>
 
 	<span class="flex items-center bg-gradient-to-b from-zinc-950 to-gray-900">
-	<hr class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-cyan-500 via-rose-500 to-yellow-500 border-0 rounded md:my-10">
+		<hr
+			class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-cyan-500 via-rose-500 to-yellow-500 border-0 rounded md:my-10"
+		/>
 
-	<span class="text-cyan-300">Cheers</span>
-	<hr class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-yellow-500 via-rose-500 to-cyan-500 border-0 rounded md:my-10">
-
+		<span class="text-cyan-300">Cheers</span>
+		<hr
+			class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-yellow-500 via-rose-500 to-cyan-500 border-0 rounded md:my-10"
+		/>
 	</span>
 
 	<div class="flex flex-col">
 		<section class="bg-gray-900">
-			<div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
+			<div
+				class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
 				<div class="mr-auto place-self-center lg:col-span-7">
-					<h1 class="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl text-cyan-400">Payments tool for software companies</h1>
-					<p class="max-w-2xl mb-6 font-light lg:mb-8 md:text-lg lg:text-xl text-gray-400">From checkout to global sales tax compliance, companies around the world use Flowbite to simplify their payment stack.</p>
-					<a href="#" class="inline-flex items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 ">
+					<h1
+						class="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl text-cyan-400">
+						Payments tool for software companies
+					</h1>
+					<p
+						class="max-w-2xl mb-6 font-light lg:mb-8 md:text-lg lg:text-xl text-gray-400">
+						From checkout to global sales tax compliance, companies
+						around the world use Flowbite to simplify their payment
+						stack.
+					</p>
+					<a
+						href="#"
+						class="inline-flex items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300">
 						Get started
-						<svg class="w-5 h-5 ml-2 -mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+						<svg
+							class="w-5 h-5 ml-2 -mr-1"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+							xmlns="http://www.w3.org/2000/svg">
+							<path
+								fill-rule="evenodd"
+								d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+								clip-rule="evenodd">
+							</path>
+						</svg>
 					</a>
-					<a href="#" class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-gray-300 border border-gray-300 rounded-lg hover:bg-gray-400 focus:ring-4 focus:ring-gray-100 ">
+					<a
+						href="#"
+						class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-gray-300 border border-gray-300 rounded-lg hover:bg-gray-400 focus:ring-4 focus:ring-gray-100">
 						Speak to Sales
-					</a> 
+					</a>
 				</div>
 				<div class="hidden lg:mt-0 lg:col-span-5 lg:flex">
 					<dotlottie-player
-                                    autoplay
-                                    loop
-                                    mode="normal"
-                                    src="/assets/lottie/beer.lottie"
-                     ></dotlottie-player>
-				</div>                
+						autoplay
+						loop
+						mode="normal"
+						src="/assets/lottie/beer.lottie"></dotlottie-player>
+				</div>
 			</div>
-		</section>	
+		</section>
 	</div>
 
-
-
 	<span class="flex items-center bg-gradient-to-b from-gray-900 to-zinc-950">
-
-	<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10 ">
-
+		<hr
+			class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10"
+		/>
 	</span>
-
 
 	<div class="flex flex-col">
 		<section class="relative w-full h-[400px] overflow-hidden">
 			<VE widget="carousel:noirsociety:carousel" slider={_sliderAnime} />
 		</section>
 	</div>
-	
 
-	<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10 ">
+	<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10" />
 
 	<div class="bg-zinc-950">
-			<VE widget="aceternity:hero-parallax:hero-parallax-demo"
+		<VE
+			widget="aceternity:hero-parallax:hero-parallax-demo"
 			products={products}
-			title="The KBVE Projects" 
-			description="At the forefront of innovation, we craft not just products, but experiences that resonate with the heart of gaming. Our arsenal is loaded with the latest technologies and frameworks, enabling us to bring the virtual worlds of applications, games, and tools to life. We are a collective of developers and designers, bound by our passion for creating the extraordinary. Join us on a thrilling journey where imagination meets reality, and discover the magic we bring to the digital playground" 
+			title="The KBVE Projects"
+			description="At the forefront of innovation, we craft not just products, but experiences that resonate with the heart of gaming. Our arsenal is loaded with the latest technologies and frameworks, enabling us to bring the virtual worlds of applications, games, and tools to life. We are a collective of developers and designers, bound by our passion for creating the extraordinary. Join us on a thrilling journey where imagination meets reality, and discover the magic we bring to the digital playground"
 		/>
 	</div>
 
-	
-
 	<span class="flex items-center bg-gradient-to-b from-gray-900 to-zinc-950">
+		<hr
+			class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10"
+		/>
+	</span>
 
-		<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10 ">
-	
-		</span>
-
-		<VE widget="carousel:highflyer:wave" />
-
-
-</div>
-
-
-
-
-
-
+	<VE widget="carousel:highflyer:wave" slider={waveslider} />
 </Layout>
-
