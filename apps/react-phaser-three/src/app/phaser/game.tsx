@@ -45,7 +45,7 @@ const StyledApp = styled.div`
  * 
  * @returns {JSX.Element} Renders a div as the container for the Phaser game canvas.
  */
-export function Game() {
+export function Game(): JSX.Element {
 	const gameContainerRef = useRef<HTMLDivElement | null>(null);
 	const [gameInitialized, setGameInitialized] = useState(false);
 	const gameInstanceRef = useRef<Phaser.Game | null>(null);
