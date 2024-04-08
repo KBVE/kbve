@@ -32,6 +32,218 @@ Prepare the side account for the IRS bill.
 These are the notes from Remy regarding the first file of the `kbve` package!
 I am going to place them here and then move them into the library.
 
+For Password character checking, Remy suggested this:
+
+```rust
+  match password.chars().count() {
+    // Check if the password is long enough (e.g., at least 8 characters)
+    0..=7 => return Err("Password is too short"),
+ 
+    // Check if the password is not too long (e.g., no more than 255 characters)
+    256..=usize::MAX => return Err("Password is too long"),
+
+    _ => ()     
+  }
+
+```
+
+Here is an example of the fold method for checking the characters:
+
+```rust
+
+  let conditions = password.chars().fold([false; 4], |mut acc, c| {
+    let acc1 = [char::is_uppercase, char::is_lowercase, |c: char| c.is_digit(10), |c: char| !c.is_alphanumeric()].map(|f| f(c));
+    (0..4).for_each(|i| acc[i] |= acc1[i]);
+    acc
+  });
+
+  if conditions.into_iter().fold(false, |acc, cond| (acc|!cond)) {
+        return Err(
+            "Password must include uppercase, lowercase, digits, and special characters"
+        );
+    }
+
+```
+
+If we expand the `acc1`, then we can do this instead:
+
+```rust
+
+let conditions = password.chars().fold([false; 4], |mut acc, c| {
+    let acc1 = [char::is_uppercase, char::is_lowercase, |c: char| c.is_digit(10), |c: char| !c.is_alphanumeric()].map(|f| f(c));
+    (0..acc1.len()).for_each(|i| acc[i] |= acc1[i]);
+    acc
+  });
+
+  if conditions.into_iter().fold(false, |acc, cond| (acc|!cond)) {
+        return Err(
+            "Password must include uppercase, lowercase, digits, and special characters"
+        );
+    }
+
+```
+
+Here is a better way of writing the `sanitize_path` function:
+
+```rust
+
+pub fn sanitize_path(input: &str) -> String {
+    let mut sanitized: String = input
+        .chars()
+        .filter(|c| matches!(c, 'a'..='z'|'A'..='Z'|'/'|'?'|'@'|'%'|'$'|'#') )
+        .collect();
+
+    if sanitized.chars().count() > 255 {
+        sanitized.truncate(255);
+    }
+
+    sanitized
+}
+
+```
+
+Next, we have a better way to do the ulid string to bytes: 
+
+```rust
+
+pub fn convert_ulid_string_to_bytes(ulid_str: &str) -> Result<Vec<u8>, String> {
+  Ulid::from_str(ulid_str)
+    .map(|o| ulid.to_bytes().to_vec())
+    .map_err(|_| "Invalid ULID string".to_string())
+}
+
+```
+
+And vice versa, for bytes to string:
+
+```rust
+
+pub fn convert_ulid_bytes_to_string(ulid_bytes: &[u8]) -> Result<String, String> {
+    let 16 = ulid_bytes.len() else {
+        return Err("Invalid ULID bytes length".to_string());
+    };
+
+    // Convert the slice to an array
+    let ulid_array_ref: [u8; 16] = ulid_bytes.try_into().map_err(|_|"Failed to convert slice to array")?;
+
+    // Convert the Ulid to a string
+    Ok(Ulid::from_bytes(ulid_array_ref).to_string())
+}
+
+```
+
+We could clean up the `cors_service()` function as well:
+
+```rust
+
+pub fn cors_service() -> CorsLayer {
+    let orgins = [
+        "https://herbmail.com",
+        "https://kbve.com",
+        "https://discord.sh",
+        "https://hoppscotch.io",
+        "http://localhost:3000",
+        "http://localhost:4321",
+        "https://kbve.itch.io",
+        "https://html-classic.itch.zone",
+    ].map(|url| url.parse::<HeaderValue>().unwrap());
+
+    CorsLayer::new()
+        .allow_origin(orgins)
+        .allow_methods([Method::PUT, Method::GET, Method::DELETE, Method::POST])
+        .allow_credentials(true)
+        .allow_headers([
+            AUTHORIZATION,
+            ACCEPT,
+            CONTENT_TYPE,
+            HeaderName::from_static("x-kbve-shieldwall"),
+            HeaderName::from_static("x-kbve-api"),
+        ])
+}
+
+```
+
+Last two were the health check, which would look like this:
+
+```rust
+
+
+pub async fn health_check(Extension(pool): Extension<Arc<Pool>>) -> Result<
+    Json<WizardResponse>,
+    StatusCode
+> {
+    let connection_result = task::spawn_blocking(move || { pool.get() }).await.flatten();
+
+    match connection_result {
+        Ok(_conn) => {
+            Ok(
+                Json(WizardResponse {
+                    data: serde_json::json!({"status": "online"}),
+                    message: serde_json::json!({"health": "ok"}),
+                })
+            )
+        }
+        _ => { Err(StatusCode::SERVICE_UNAVAILABLE) }
+    }
+}
+
+```
+
+and finally the `speed_test`, which would look like this:
+
+```rust
+
+pub async fn speed_test(Extension(pool): Extension<Arc<Pool>>) -> Result<
+    Json<WizardResponse>,
+    StatusCode
+> {
+    let start_time = Instant::now();
+
+    // Use `block_in_place` or `spawn_blocking` for the blocking database operation
+    let query_result = task::block_in_place(|| {
+        let mut conn = pool.get().map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
+
+        // Execute a simple query
+        diesel
+            ::sql_query("SELECT 1")
+            .execute(&mut conn)
+            .map_err(|_| StatusCode::SERVICE_UNAVAILABLE)
+    });
+
+  query_result?;
+
+  let elapsed_time = start_time.elapsed().as_millis() as u64;
+    Ok(
+        Json(WizardResponse {
+            data: serde_json::json!({"status": "time"}),
+            message: serde_json::json!({"time": elapsed_time.to_string()}),
+        })
+    )
+}
+
+```
+
+Bonus function , getting the environmental variable function:
+
+```rust
+
+fn get_env_var(name: &str) -> Result<String, String> {
+    let file_path = env::var(name);
+    if let Ok(_) = &file_path {
+      return file_path;
+    };
+
+    let Ok(file_path) = env::var(format!("{}_FILE", name)) else {
+      return Err(format!(
+        "Environment variable {} or {}_FILE must be set",
+        name, name
+      ));
+    };
+
+    fs::read_to_string(file_path).map_err(|err| format!("Error reading file for {}: {}", name, err))
+
+```
+
 </MDXJS>
 
 </MDXJS>
