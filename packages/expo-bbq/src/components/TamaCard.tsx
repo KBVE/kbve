@@ -6,6 +6,7 @@ import {
 	Image,
 	Paragraph,
 	XStack,
+	YStack,
 } from 'tamagui';
 
 import { Link } from 'expo-router';
@@ -37,18 +38,23 @@ export function TamaCard({
 }: TamaCardProps ) {
 
 	return (
+		<Link href={linker} asChild>
 		<Card elevate size="$4" bordered {...props} backgroundColor="gray">
+			
 			<Card.Header padded>
+			
+			<YStack backgroundColor="rgba(0, 0, 0, 0.5)" borderRadius="$2" padding="$2">
 				<H2 color="white">{title}</H2>
 				<Paragraph theme="alt2" color="white">
 					{paragraph}
 				</Paragraph>
+				</YStack>
 			</Card.Header>
 			<Card.Footer padded>
 				<XStack flex={1} />
-				<Link href={linker} asChild>
+				
             		<Button borderRadius="$10">{buttonText}</Button>
-            	</Link>
+            	
 			</Card.Footer>
 			<Card.Background>
 				<Image
@@ -61,6 +67,8 @@ export function TamaCard({
 					}}
 				/>
 			</Card.Background>
+			
 		</Card>
+		</Link>
 	);
 }
