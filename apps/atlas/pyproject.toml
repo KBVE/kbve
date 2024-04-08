@@ -27,6 +27,7 @@ readme = 'README.md'
   beautifulsoup4 = "^4.12.2"
   litellm = "^1.0.0"
   openai = "^1.2.4"
+  requests = "^2.31.0"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.0.2"
