@@ -9,65 +9,52 @@ import {
 	MenuSquare,
 } from '@tamagui/lucide-icons';
 
+
+import { NavBar  } from '../_nav';
+
 export default function TabLayout() {
 	return (
 		<Tabs
 			screenOptions={{
-				tabBarActiveTintColor: 'white',
+				tabBarActiveTintColor: 'cyan',
 			}}>
 			<Tabs.Screen
 				name="index"
 				options={{
 					title: 'LC',
-					tabBarIcon: ({ color }) => <Home color="cyan" />,
-					headerRight: () => (
-						<Link href="/menu" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
+					tabBarIcon: ({ color }) => <Home color={`${color}`} />,
+					headerLeft: () => (
+						<NavBar />
 					),
 				}}
 			/>
 			<Tabs.Screen
-				name="two"
+				name="support"
 				options={{
 					title: 'Support',
-					tabBarIcon: ({ color }) => <HelpingHand color="cyan" />,
-					headerRight: () => (
-						<Link href="/menu" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
+					tabBarIcon: ({ color }) => <HelpingHand  color={`${color}`} />,
+					headerLeft: () => (
+						<NavBar />
 					),
 				}}
 			/>
 			<Tabs.Screen
-				name="three"
+				name="services"
 				options={{
 					title: 'Services',
-					tabBarIcon: ({ color }) => <DollarSign color="cyan" />,
-					headerRight: () => (
-						<Link href="/menu" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
+					tabBarIcon: ({ color }) => <DollarSign  color={`${color}`} />,
+					headerLeft: () => (
+						<NavBar />
 					),
 				}}
 			/>
 			<Tabs.Screen
-				name="four"
+				name="about"
 				options={{
-					title: 'Fish&Chip',
-					tabBarIcon: ({ color }) => <Fish color="cyan" />,
-					headerRight: () => (
-						<Link href="/menu" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
+					title: 'About',
+					tabBarIcon: ({ color }) => <Fish  color={`${color}`} />,
+					headerLeft: () => (
+						<NavBar />
 					),
 				}}
 			/>
