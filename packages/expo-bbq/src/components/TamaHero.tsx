@@ -33,7 +33,7 @@ export function TamaHero({
 			elevate
 			style={{
 				width: '100%',
-				height: '55%',
+				height: '750',
 				overflow: 'hidden',
 				position: 'relative',
 			}}>
