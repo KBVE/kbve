@@ -24,11 +24,13 @@ const server = new Server({
 	}),
 });
 
-const sharedServerScene = ServerScene.getInstance();
+//const sharedServerScene = ServerScene.getInstance();
 // Game Rooms
 server
 	// .define(GAME_NAME, StateHandlerRoom)
-	.define('my_room', MyRoom, { serverScene: sharedServerScene })
+	//.define('my_room', MyRoom, { serverScene: sharedServerScene })
+	.define('my_room', MyRoom, { serverScene:  ServerScene.getInstance()})
+
 	// filterBy allows us to call joinOrCreate and then hold one game per channel
 	// https://discuss.colyseus.io/topic/345/is-it-possible-to-run-joinorcreatebyid/3
 	.filterBy(['channelId']);

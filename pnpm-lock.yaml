@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@colyseus/core':
+    specifier: ^0.15.29
+    version: 0.15.29
   '@colyseus/monitor':
     specifier: ^0.15.6
     version: 0.15.6
@@ -2410,14 +2413,14 @@ packages:
     dev: true
     optional: true
 
-  /@colyseus/auth@0.15.10(@colyseus/core@0.15.27)(express@4.19.1):
+  /@colyseus/auth@0.15.10(@colyseus/core@0.15.29)(express@4.19.1):
     resolution: {integrity: sha512-2RsbqtS2WTsjDlY5BDxpjC4OGm0HvvaNlZYMPGLD5vN8gJoQGnU9SEl1OWmcvlrxqFY0tEk1d4Wux10G4U8ifw==}
     engines: {node: '>= 14.x'}
     peerDependencies:
       '@colyseus/core': ^0.15.23
       express: ^4.17.1
     dependencies:
-      '@colyseus/core': 0.15.27
+      '@colyseus/core': 0.15.29
       '@types/jsonwebtoken': 9.0.6
       connect-redis: 7.1.1(express-session@1.18.0)
       express: 4.19.1
@@ -2428,8 +2431,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@colyseus/core@0.15.27:
-    resolution: {integrity: sha512-zz9uabkkT3qYC9etv6jBo007rPGEX5xnWoD2gZ/nMS9VEfGpKcUKMvhzqiCl0YZKGtrgHl9OIG6CvMN3u+sd2A==}
+  /@colyseus/core@0.15.29:
+    resolution: {integrity: sha512-Qzfhwmq8qTS6+lkJa+HxpJv8D9yRSfcN1DVRuWQntsGYZqQvHECSnRlmIhojdFYerXv3I6GE/JlgtGzemSeSIQ==}
     engines: {node: '>= 14.x'}
     dependencies:
       '@colyseus/greeting-banner': 2.0.2
@@ -2463,8 +2466,8 @@ packages:
     peerDependencies:
       express: '>=4.16.0'
     dependencies:
-      '@colyseus/auth': 0.15.10(@colyseus/core@0.15.27)(express@4.19.1)
-      '@colyseus/core': 0.15.27
+      '@colyseus/auth': 0.15.10(@colyseus/core@0.15.29)(express@4.19.1)
+      '@colyseus/core': 0.15.29
       express: 4.19.1
     transitivePeerDependencies:
       - bufferutil
@@ -2475,7 +2478,7 @@ packages:
   /@colyseus/redis-driver@0.15.5:
     resolution: {integrity: sha512-OwRMP+JXOlaAetBcdP1LN77Sa0aLyeYtAP1MPTwuJOIjtBA9E8j8xd+mn71lC5pX15RbECmoHU/sekl1/G5yNw==}
     dependencies:
-      '@colyseus/core': 0.15.27
+      '@colyseus/core': 0.15.29
       ioredis: 5.3.2
     transitivePeerDependencies:
       - bufferutil
@@ -2486,7 +2489,7 @@ packages:
   /@colyseus/redis-presence@0.15.4:
     resolution: {integrity: sha512-6yfPqskAv/+XoV8ARlKbcJAL/kDgo7PoMKb6mEiVwLk5MtMEEjhmR9cKPZ3Mt80cIJloINFej6s8aArKB7SKLQ==}
     dependencies:
-      '@colyseus/core': 0.15.27
+      '@colyseus/core': 0.15.29
       ioredis: 5.3.2
     transitivePeerDependencies:
       - bufferutil
@@ -2502,7 +2505,7 @@ packages:
     resolution: {integrity: sha512-eJv3upnWFnIiGAhCACU9ttDaZbiVXo3Qt5ZPLjkgsl7fJnsKwkjoMBnWrEssUyTqlSt7z4v8DDU7Vdm82sxCmg==}
     hasBin: true
     dependencies:
-      '@colyseus/core': 0.15.27
+      '@colyseus/core': 0.15.29
       '@colyseus/ws-transport': 0.15.1(@colyseus/schema@2.0.29)
       cors: 2.8.5
       dotenv: 8.6.0
@@ -2520,7 +2523,7 @@ packages:
     peerDependencies:
       '@colyseus/schema': '>=1.0.0'
     dependencies:
-      '@colyseus/core': 0.15.27
+      '@colyseus/core': 0.15.29
       '@colyseus/schema': 2.0.29
       uWebSockets.js: github.com/uNetworking/uWebSockets.js/6545da07696855e77de1480d5b55bb661746ddd3
     transitivePeerDependencies:
@@ -2534,7 +2537,7 @@ packages:
     peerDependencies:
       '@colyseus/schema': '>=1.0.0'
     dependencies:
-      '@colyseus/core': 0.15.27
+      '@colyseus/core': 0.15.29
       '@colyseus/schema': 2.0.29
       '@types/ws': 7.4.7
       ws: 7.5.9
@@ -11997,8 +12000,8 @@ packages:
     resolution: {integrity: sha512-b0lkXf9Q2d+Bo0625qU6vPiXpKpiGHQENmhl02be9a8aIPtJ8W2pFZxccwdgy3/HddV0EQGa9YmE8+aenFwIWw==}
     engines: {node: '>= 14.x'}
     dependencies:
-      '@colyseus/auth': 0.15.10(@colyseus/core@0.15.27)(express@4.19.1)
-      '@colyseus/core': 0.15.27
+      '@colyseus/auth': 0.15.10(@colyseus/core@0.15.29)(express@4.19.1)
+      '@colyseus/core': 0.15.29
       '@colyseus/redis-driver': 0.15.5
       '@colyseus/redis-presence': 0.15.4
       '@colyseus/ws-transport': 0.15.1(@colyseus/schema@2.0.29)

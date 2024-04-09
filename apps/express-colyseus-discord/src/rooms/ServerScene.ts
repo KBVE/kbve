@@ -12,7 +12,7 @@ export class ServerScene {
 		isOnPlatform: boolean,
 	) => void;
 
-	constructor() {
+	private constructor() {
 		this.playerBodies = new Map();
 		this.init();
 		this.create();
