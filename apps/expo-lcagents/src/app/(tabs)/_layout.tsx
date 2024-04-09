@@ -13,14 +13,14 @@ export default function TabLayout() {
 	return (
 		<Tabs
 			screenOptions={{
-				tabBarActiveTintColor: 'white',
+				tabBarActiveTintColor: 'cyan',
 			}}>
 			<Tabs.Screen
 				name="index"
 				options={{
 					title: 'LC',
 					tabBarIcon: ({ color }) => <Home color="cyan" />,
-					headerRight: () => (
+					headerLeft: () => (
 						<Link href="/menu" asChild>
 							<Pressable>
 								<MenuSquare color="cyan" padding="$4" />
@@ -30,11 +30,11 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="two"
+				name="support"
 				options={{
 					title: 'Support',
 					tabBarIcon: ({ color }) => <HelpingHand color="cyan" />,
-					headerRight: () => (
+					headerLeft: () => (
 						<Link href="/menu" asChild>
 							<Pressable>
 								<MenuSquare color="cyan" padding="$4" />
@@ -44,11 +44,11 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="three"
+				name="services"
 				options={{
 					title: 'Services',
 					tabBarIcon: ({ color }) => <DollarSign color="cyan" />,
-					headerRight: () => (
+					headerLeft: () => (
 						<Link href="/menu" asChild>
 							<Pressable>
 								<MenuSquare color="cyan" padding="$4" />
@@ -58,11 +58,11 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="four"
+				name="about"
 				options={{
-					title: 'Fish&Chip',
+					title: 'About',
 					tabBarIcon: ({ color }) => <Fish color="cyan" />,
-					headerRight: () => (
+					headerLeft: () => (
 						<Link href="/menu" asChild>
 							<Pressable>
 								<MenuSquare color="cyan" padding="$4" />

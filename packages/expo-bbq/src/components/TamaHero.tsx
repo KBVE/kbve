@@ -15,6 +15,7 @@ interface TamaHeroProps {
 	description: string;
 	buttonOneText: string;
 	buttonTwoText: string;
+
 	onButtonOnePress?: () => void;
 	onButtonTwoPress?: () => void;
 }
@@ -25,6 +26,7 @@ export function TamaHero({
 	description,
 	buttonOneText,
 	buttonTwoText,
+
 	onButtonOnePress,
 	onButtonTwoPress,
 }: TamaHeroProps) {

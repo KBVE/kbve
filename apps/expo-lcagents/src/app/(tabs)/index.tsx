@@ -16,7 +16,7 @@ function HomeCards() {
 				scale={0.9}
 				hoverStyle={{ scale: 0.925 }}
 				pressStyle={{ scale: 0.875 }}
-				linker="/consulting"
+				linker="/services"
 				image="https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=300&auto=format&fit=crop"
 			/>
 
@@ -33,7 +33,6 @@ function HomeCards() {
 				pressStyle={{ scale: 0.875 }}
 				linker="/about"
 				image="https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=300&auto=format&fit=crop"
-
 			/>
 
 			<TamaCard
@@ -47,7 +46,7 @@ function HomeCards() {
 				scale={0.9}
 				hoverStyle={{ scale: 0.925 }}
 				pressStyle={{ scale: 0.875 }}
-				linker="/projects"
+				linker="/support"
 				image="https://images.unsplash.com/photo-1711117479774-5102ba0eee19?q=80&w=300&auto=format&fit=crop"
 			/>
 
