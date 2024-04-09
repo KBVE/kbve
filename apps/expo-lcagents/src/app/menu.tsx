@@ -50,7 +50,8 @@ export function AccordionDemo() {
 				</Accordion.Trigger>
 				<Accordion.Content>
 					<Paragraph>
-						Place holder here for socials and just to trigger the build!
+						Place holder here for socials and just to trigger the
+						build!
 					</Paragraph>
 				</Accordion.Content>
 			</Accordion.Item>
