@@ -29,6 +29,97 @@ import MDXJS from '../../components/MDXJS.astro';
 
 The docker build seems to error out for the Discord App Pitch 2024 game, so lets take a look at the error and see what we can do to resolve it.
 
+The Docker build on action #1273 had this error:
+`apps/express-colyseus-discord/src/rooms/MyRoom.ts:1:30 - error TS2307: Cannot find module '@colyseus/core' or its corresponding type declarations.`
+
+and then we went ahead and did the `pnpm install @colyseus/core` and then I will push this through and see what the next error might be.
+
+There were a couple other errors, but that might have been either a typescript error because the the module was missing OR our typescript configurations might be wrong.
+
+Yay! We were able to get the docker to build and publish, now its time to update the docker compose and add in our game files into the build process.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Charles 
+
+The new power supply is in and I will go ahead and swap it out.
+
+If the power supply is not the issue then the bigger issue would be the amount of power that is coming out of the outlet, ugh, that would be terrible for us.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### GHA
+
+We need to update the Github Actions to perform test casing and integration testing across the board, but this might be a bit more painful than what I had expected.
+
+Besides updating the actions to perform intergration testing, we also need to update the deprecated node v16 instances within our actions, bumping it up to node 20.
+
+Part of this issue might be our node 18 usage as well, so going through all the code and making sure that we are using only node v20 as of right now.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Python
+
+After we release a new python library version of atlas, we would want a function that gets called to help bump the version up by `0.0.1`, so in our action we release version `1.0.3` and now we want it to automatically bump it up to `1.0.4`.
+
+For this situation, we can take a look at how we handle the cargo version bump and use that concept as a base for the automatic version bump.
+
+Here is a base function that we can use to help do this!
+
+```shell
+
+# Function to bump the Python package version
+bump_python_package_version() {
+    local package_dir="$1"
+
+    # Ensure the package directory is provided and exists
+    if [ -z "$package_dir" ] || [ ! -d "$package_dir" ]; then
+        echo "Error: Package directory is missing or does not exist."
+        return 1
+    fi
+
+    local pyproject_file="$package_dir/pyproject.toml"
+
+    # Ensure the pyproject.toml file exists
+    if [ ! -f "$pyproject_file" ]; then
+        echo "Error: pyproject.toml not found in $package_dir"
+        return 1
+    fi
+
+    # Read the current version from the file
+    local current_version_line=$(grep '^version = "[0-9]*\.[0-9]*\.[0-9]*"' "$pyproject_file")
+    if [ -z "$current_version_line" ]; then
+        echo "Error: Version line not found in pyproject.toml"
+        return 1
+    fi
+
+    local current_version=$(echo "$current_version_line" | grep -oP 'version = "\K[0-9]+\.[0-9]+\.[0-9]+')
+
+    # Increment the patch version number
+    local base_version=${current_version%.*}
+    local patch_version=${current_version##*.}
+    local new_patch_version=$((patch_version + 1))
+    local new_version="$base_version.$new_patch_version"
+
+    # Replace the old version with the new version in pyproject.toml
+    sed -i "s/version = \"$current_version\"/version = \"$new_version\"/" "$pyproject_file"
+    echo "Version bumped in $pyproject_file to $new_version"
+}
+
+```
+
 
 </MDXJS>
 
