@@ -15,6 +15,7 @@ interface TamaHeroProps {
 	description: string;
 	buttonOneText: string;
 	buttonTwoText: string;
+
 	onButtonOnePress?: () => void;
 	onButtonTwoPress?: () => void;
 }
@@ -25,6 +26,7 @@ export function TamaHero({
 	description,
 	buttonOneText,
 	buttonTwoText,
+
 	onButtonOnePress,
 	onButtonTwoPress,
 }: TamaHeroProps) {
@@ -33,7 +35,7 @@ export function TamaHero({
 			elevate
 			style={{
 				width: '100%',
-				height: '55%',
+				height: '750',
 				overflow: 'hidden',
 				position: 'relative',
 			}}>

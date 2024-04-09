@@ -7,30 +7,32 @@ function HomeCards() {
 		<XStack $sm={{ flexDirection: 'column' }} paddingHorizontal="$4" space>
 			<TamaCard
 				title="Consulting"
-				paragraph="Check out our cool projects"
+				paragraph="Discover innovative solutions with LaMorte Consults, a versatile consulting firm specializing in groundbreaking construction projects and cutting-edge website design."
 				buttonText="Read More!"
 				animation="bouncy"
-				size="$4"
-				width={250}
+				size="$2"
+				width={300}
 				height={300}
 				scale={0.9}
 				hoverStyle={{ scale: 0.925 }}
 				pressStyle={{ scale: 0.875 }}
-				linker="/consulting"
+				linker="/services"
+				image="https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=300&auto=format&fit=crop"
 			/>
 
 			<TamaCard
-				title="Projects"
+				title="About Us"
 				paragraph="Check out our cool projects"
 				buttonText="Read More!"
 				animation="bouncy"
 				size="$4"
-				width={250}
+				width={300}
 				height={300}
 				scale={0.9}
 				hoverStyle={{ scale: 0.925 }}
 				pressStyle={{ scale: 0.875 }}
-				linker="/projects"
+				linker="/about"
+				image="https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=300&auto=format&fit=crop"
 			/>
 
 			<TamaCard
@@ -39,12 +41,12 @@ function HomeCards() {
 				buttonText="Read More!"
 				animation="bouncy"
 				size="$4"
-				width={250}
+				width={300}
 				height={300}
 				scale={0.9}
 				hoverStyle={{ scale: 0.925 }}
 				pressStyle={{ scale: 0.875 }}
-				linker="/projects"
+				linker="/support"
 				image="https://images.unsplash.com/photo-1711117479774-5102ba0eee19?q=80&w=300&auto=format&fit=crop"
 			/>
 
@@ -54,7 +56,7 @@ function HomeCards() {
 				buttonText="Read More!"
 				animation="bouncy"
 				size="$4"
-				width={250}
+				width={300}
 				height={300}
 				scale={0.9}
 				hoverStyle={{ scale: 0.925 }}
