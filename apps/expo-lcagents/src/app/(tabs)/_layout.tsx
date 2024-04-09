@@ -9,6 +9,9 @@ import {
 	MenuSquare,
 } from '@tamagui/lucide-icons';
 
+
+import { NavBar  } from '../_nav';
+
 export default function TabLayout() {
 	return (
 		<Tabs
@@ -19,13 +22,9 @@ export default function TabLayout() {
 				name="index"
 				options={{
 					title: 'LC',
-					tabBarIcon: ({ color }) => <Home color="cyan" />,
+					tabBarIcon: ({ color }) => <Home color={`${color}`} />,
 					headerLeft: () => (
-						<Link href="/menu" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
+						<NavBar />
 					),
 				}}
 			/>
@@ -33,13 +32,9 @@ export default function TabLayout() {
 				name="support"
 				options={{
 					title: 'Support',
-					tabBarIcon: ({ color }) => <HelpingHand color="cyan" />,
+					tabBarIcon: ({ color }) => <HelpingHand  color={`${color}`} />,
 					headerLeft: () => (
-						<Link href="/menu" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
+						<NavBar />
 					),
 				}}
 			/>
@@ -47,13 +42,9 @@ export default function TabLayout() {
 				name="services"
 				options={{
 					title: 'Services',
-					tabBarIcon: ({ color }) => <DollarSign color="cyan" />,
+					tabBarIcon: ({ color }) => <DollarSign  color={`${color}`} />,
 					headerLeft: () => (
-						<Link href="/menu" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
+						<NavBar />
 					),
 				}}
 			/>
@@ -61,13 +52,9 @@ export default function TabLayout() {
 				name="about"
 				options={{
 					title: 'About',
-					tabBarIcon: ({ color }) => <Fish color="cyan" />,
+					tabBarIcon: ({ color }) => <Fish  color={`${color}`} />,
 					headerLeft: () => (
-						<Link href="/menu" asChild>
-							<Pressable>
-								<MenuSquare color="cyan" padding="$4" />
-							</Pressable>
-						</Link>
+						<NavBar />
 					),
 				}}
 			/>
