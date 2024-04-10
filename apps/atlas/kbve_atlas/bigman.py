@@ -19,4 +19,3 @@ birthyear= input("What year were you born")
 age = (int(currentyear) - int(birthyear))
 print(f"You're {age} years old")
 pounds = input("How much wood could a Woodchuck, chuck; if a WoodChuck could chuck wood?")
-if 

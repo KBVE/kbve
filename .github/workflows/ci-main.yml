@@ -194,36 +194,79 @@ jobs:
                     commit_message: ${{ github.event.head_commit.message }}
                     rsync_option: "-avrh --delete"
 
-            #   [LC-Agents]
 
 
 
-            #   [ATLAS]
+    #   [ATLAS] -> Publish (As App)
+    pythonatlaspublish:
+        needs: ["deploy", "alter"]
+        name: Python Atlas Module Publish
+        if: needs.alter.outputs.atlas == 'true'
+        runs-on: 'ubuntu-latest'
+        steps:
+            -   name: Checkout the repository using git
+                uses: actions/checkout@v4
+
+            -   name: Setup Node v18
+                uses: actions/setup-node@v3
+                with:
+                    node-version: 18
+            
+            -   name: Setup pnpm
+                uses: pnpm/action-setup@v2
+                with:
+                    version: 8
+                    run_install: false
+
+            #   @[CACHE]->[START]
+            -   name: Get pnpm Store
+                shell: bash
+                run: |
+                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            -   name: Setup pnpm Cache
+                uses: actions/cache@v3
+                with:
+                    path: ${{ env.STORE_PATH }}
+                    key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                    restore-keys: |
+                        ${{ runner.os }}-pnpm-store-
+
+            #   @[CACHE]->[END]
+
+            -   name: Install pnpm dependencies
+                run: pnpm install
 
             -   name: Python Install
-                if: needs.alter.outputs.atlas == 'true'
                 uses: actions/setup-python@v4
                 with:
                   python-version: "3.x"
 
             -   name: Poetry Install
-                if: needs.alter.outputs.atlas == 'true'
                 uses: snok/install-poetry@v1
 
             -   name: Atlas Build
-                if: needs.alter.outputs.atlas == 'true'
                 shell: bash
                 run: |
                     pnpm nx build atlas
 
             -   name: Store the Atlas distribution packages
-                if: needs.alter.outputs.atlas== 'true'
                 uses: actions/upload-artifact@v3
                 with:
                     name: atlas-python-package-distributions
                     path: apps/atlas/dist/
 
+            -   name: KBVE Shell
+                uses: ./.github/actions/kbve-shell
+                with:
+                    flag: '-pythonbump apps/atlas'
+                    create_pull_request: true
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    pull_request_title: 'python-atlas-minor-version-bump'
+                    pull_request_body: 'Bumping up the minor version of the Python ATLAS package.'
 
+
+    #   @[ERust] -> Publish                
     erustpublish:
         needs: ["deploy", "alter"]
         name: Erust Crates Publish
@@ -575,7 +618,7 @@ jobs:
     
     expo-lcagents-web-build:
         needs: ["alter"]
-        name: Expo LC Agents We Build
+        name: Expo LC Agents Web Build
         runs-on: ubuntu-latest
         if: needs.alter.outputs.expolcagents == 'true'
         steps:

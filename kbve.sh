@@ -252,6 +252,71 @@ bump_cargo_version() {
     fi
 }
 
+# Function to bump the Python package version
+bump_python_package_version() {
+    local package_dir="$1"
+
+    # Ensure the package directory is provided and exists
+    if [ -z "$package_dir" ] || [ ! -d "$package_dir" ]; then
+        echo "Error: Package directory is missing or does not exist."
+        return 1
+    fi
+
+    local pyproject_file="$package_dir/pyproject.toml"
+
+    # Ensure the pyproject.toml file exists
+    if [ ! -f "$pyproject_file" ]; then
+        echo "Error: pyproject.toml not found in $package_dir"
+        return 1
+    fi
+
+    # Read the current version from the file
+    local current_version_line=$(grep '^version = "[0-9]*\.[0-9]*\.[0-9]*"' "$pyproject_file")
+    if [ -z "$current_version_line" ]; then
+        echo "Error: Version line not found in pyproject.toml"
+        return 1
+    fi
+
+    local current_version=$(echo "$current_version_line" | grep -oP 'version = "\K[0-9]+\.[0-9]+\.[0-9]+')
+
+    # Increment the patch version number
+    local base_version=${current_version%.*}
+    local patch_version=${current_version##*.}
+    local new_patch_version=$((patch_version + 1))
+    local new_version="$base_version.$new_patch_version"
+
+    # Replace the old version with the new version in pyproject.toml
+    sed -i "s/version = \"$current_version\"/version = \"$new_version\"/" "$pyproject_file"
+    echo "Version bumped in $pyproject_file to $new_version"
+}
+
+# Function to activate python environment.
+python_venv_activate_and_run_vscode() {
+    local directory_name="$1"
+    local venv_path=""
+
+    # Check the first potential path for the virtual environment
+    if [ -f "packages/$directory_name/.venv/bin/activate" ]; then
+        venv_path="packages/$directory_name/.venv/bin/activate"
+    # Check the second potential path for the virtual environment
+    elif [ -f "apps/$directory_name/.venv/bin/activate" ]; then
+        venv_path="apps/$directory_name/.venv/bin/activate"
+    else
+        echo "Error: Virtual environment 'activate' script not found."
+        return 1
+    fi
+
+    # Activate the virtual environment
+    echo "Activating virtual environment from: $venv_path"
+    # Use `source` to activate the virtual environment
+    source "$venv_path"
+    
+    # Open Visual Studio Code in the current directory
+    echo "Opening Visual Studio Code..."
+    code .
+}
+
+
 # Function Markdown -> From create_markdown.sh
 create_markdown() {
     local template_name="$1"
@@ -394,6 +459,16 @@ case "$1" in
         package_name="$2"
         package_dir="packages/$package_name"
         bump_cargo_version "$package_dir"
+        ;;
+    -pythonbump)
+        [ -z "$2" ] && { echo "No package directory specified. Usage: $0 -pythonbump [package_directory]"; exit 1; }
+        package_dir="$2"
+        bump_python_package_version "$package_dir"
+        ;;
+    -py)
+        [ -z "$2" ] && { echo "No project directory specified. Usage: $0 -py [project_directory]"; exit 1; }
+        directory_name="$2"
+        python_venv_activate_and_run_vscode "$directory_name"
         ;;
     -createmarkdown)
         [ -z "$2" ] || [ -z "$3" ] && { echo "Usage: $0 -createmarkdown [template_name] [output_file_path]"; exit 1; }
