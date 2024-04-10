@@ -111,6 +111,36 @@ async def coindesk_main():
 
 ```
 
+Added a decorant / base wrapper around the get command to make the movement of services faster and easier.
+
+The decorants can be extended out, which will be within the `util` folder of atlas, but for now we should have more than enough to execute what we would need.
+
+Next, we can add the broadcasting for `ATLAS`, holding our chat and the a couple of the basic or general machine learning commands.
+
+To add the broadcasting, we will first add the library that was recommended by the FastAPI Team.
+Shell Command: `./kbve.sh -nx atlas:add --name=broadcaster[redis]`
+
+One of the things that I just realized is that we will need an internal Redis server, ideally one that can be accessed by Rust, Python, n8n, ect...
+
+Hmm, creating a redis cluster within the swarm does make the most sense, with a redis entity on each node within the whole swarm?
+
+We could also try to setup a redis bridge that would let some of the microservices sub/pub data from? This might just be all food for thought, I still need to do some more test casing.
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### NX
+
+The Nx flag on the `./kbve.sh` aka `-nx` seems to be only taking one arguement and none of the additional flags.
+
+This is going to be a quick fix around it, just quickly update the shell file so that it can take multiple additional flags and keeping the older part of the shell code within the file.
+
+After a week or so, I will go back and update the code.
+
 </MDXJS>
 
 </MDXJS>

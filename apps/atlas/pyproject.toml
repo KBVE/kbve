@@ -32,6 +32,7 @@ readme = 'README.md'
   lxml = "^5.2.1"
   fastapi = "^0.110.1"
   uvicorn = {extras = ["standard"], version = "^0.29.0"}
+  broadcaster = {extras = ["redis"], version = "^0.2.0"}
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.0.2"

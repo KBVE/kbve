@@ -14,6 +14,16 @@ async def root():
         await websocket_client.close()
         return {"ws": "true"}
 
+@app.get("/echo")
+async def echo_main():
+    websocket_client = WebsocketEchoClient()
+    try:
+        await websocket_client.example()
+    finally:
+        await websocket_client.close()
+        return {"ws": "true"}
+
+
 @app.get("/news")
 async def google_news():
     rss_utility = RSSUtility(base_url="https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")
