@@ -3,8 +3,8 @@ title: 'April: 10'
 category: Daily
 date: 2024-04-10 12:00:00
 client: Self
-unsplash: 1712251351568-1c56602c31aa
-img: https://images.unsplash.com/photo-1712251351568-1c56602c31aa?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1538439907460-1596cafd4eff
+img: https://images.unsplash.com/photo-1538439907460-1596cafd4eff?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: |
     10th of April.
 tags:
@@ -17,6 +17,8 @@ import MDXJS from '../../components/MDXJS.astro';
 <MDXJS>
 
 ## Notes
+
+Double check the shell execution.
 
 </MDXJS>
 
@@ -126,6 +128,8 @@ Hmm, creating a redis cluster within the swarm does make the most sense, with a 
 
 We could also try to setup a redis bridge that would let some of the microservices sub/pub data from? This might just be all food for thought, I still need to do some more test casing.
 
+Going to take a bit of a break from FastAPI and prepare to setup the broadcaster, we could also setup the relay through it as well! Hmmm....
+
 
 </MDXJS>
 
@@ -140,6 +144,17 @@ The Nx flag on the `./kbve.sh` aka `-nx` seems to be only taking one arguement a
 This is going to be a quick fix around it, just quickly update the shell file so that it can take multiple additional flags and keeping the older part of the shell code within the file.
 
 After a week or so, I will go back and update the code.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Broadcaster
+
+The next goal for the day will be to setup a Pub/Sub for our C A R P stack! Oh the joys!
+
 
 </MDXJS>
 
