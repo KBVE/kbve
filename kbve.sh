@@ -290,6 +290,33 @@ bump_python_package_version() {
     echo "Version bumped in $pyproject_file to $new_version"
 }
 
+# Function to activate python environment.
+python_venv_activate_and_run_vscode() {
+    local directory_name="$1"
+    local venv_path=""
+
+    # Check the first potential path for the virtual environment
+    if [ -f "packages/$directory_name/.venv/bin/activate" ]; then
+        venv_path="packages/$directory_name/.venv/bin/activate"
+    # Check the second potential path for the virtual environment
+    elif [ -f "apps/$directory_name/.venv/bin/activate" ]; then
+        venv_path="apps/$directory_name/.venv/bin/activate"
+    else
+        echo "Error: Virtual environment 'activate' script not found."
+        return 1
+    fi
+
+    # Activate the virtual environment
+    echo "Activating virtual environment from: $venv_path"
+    # Use `source` to activate the virtual environment
+    source "$venv_path"
+    
+    # Open Visual Studio Code in the current directory
+    echo "Opening Visual Studio Code..."
+    code .
+}
+
+
 # Function Markdown -> From create_markdown.sh
 create_markdown() {
     local template_name="$1"
@@ -437,6 +464,11 @@ case "$1" in
         [ -z "$2" ] && { echo "No package directory specified. Usage: $0 -pythonbump [package_directory]"; exit 1; }
         package_dir="$2"
         bump_python_package_version "$package_dir"
+        ;;
+    -py)
+        [ -z "$2" ] && { echo "No project directory specified. Usage: $0 -py [project_directory]"; exit 1; }
+        directory_name="$2"
+        python_venv_activate_and_run_vscode "$directory_name"
         ;;
     -createmarkdown)
         [ -z "$2" ] || [ -z "$3" ] && { echo "Usage: $0 -createmarkdown [template_name] [output_file_path]"; exit 1; }

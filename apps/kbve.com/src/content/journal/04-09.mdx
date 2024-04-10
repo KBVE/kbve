@@ -138,6 +138,62 @@ Finally, after the package is release, we will run:
 ./kbve.sh -pythonbump apps/atlas
 ```
 
+Besides the version bumping, I am thinking of making a simple command that we can use to get started with python development, at least a bit faster.
+
+Since the `venv` needs to be activated and based upon the different types of applications, it could get a bit messy, definitely with upgrading around it.
+
+My solution would be to add a `py` flag within the kbve shell and have it handle it for us, hmm maybe it would look like this:
+
+`./kbve.sh -py atlas` and then have it run these two commands:
+
+`source apps/atlas/.venv/bin/activate` and then followed by `code .` to open it up in VSCode.
+
+To do this setup, we will go ahead and add the python_venv_activate function:
+
+```shell
+
+python_venv_activate_and_run_vscode() {
+    local directory_name="$1"
+    local venv_path=""
+
+    # Check the first potential path for the virtual environment
+    if [ -f "packages/$directory_name/.venv/bin/activate" ]; then
+        venv_path="packages/$directory_name/.venv/bin/activate"
+    # Check the second potential path for the virtual environment
+    elif [ -f "apps/$directory_name/.venv/bin/activate" ]; then
+        venv_path="apps/$directory_name/.venv/bin/activate"
+    else
+        echo "Error: Virtual environment 'activate' script not found."
+        return 1
+    fi
+
+    # Activate the virtual environment
+    echo "Activating virtual environment from: $venv_path"
+    # Use `source` to activate the virtual environment
+    source "$venv_path"
+    
+    # Open Visual Studio Code in the current directory
+    echo "Opening Visual Studio Code..."
+    code .
+}
+
+
+```
+
+Then under our custom flags, we will add the `-py` to the rest of the commands:
+
+```shell
+
+    -py)
+        [ -z "$2" ] && { echo "No project directory specified. Usage: $0 -py [project_directory]"; exit 1; }
+        directory_name="$2"
+        python_venv_activate_and_run_vscode "$directory_name"
+        ;;
+
+```
+
+So now we can just call the `-py` flag to help automatically setup the environments, making it easier for us to build and rotate around the different projects.
+
 </MDXJS>
 
 </MDXJS>
