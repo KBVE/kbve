@@ -1,0 +1,64 @@
+---
+title: 'April: 10'
+category: Daily
+date: 2024-04-10 12:00:00
+client: Self
+unsplash: 1712251351568-1c56602c31aa
+img: https://images.unsplash.com/photo-1712251351568-1c56602c31aa?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    10th of April.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Python
+
+Today is going to be a heavy day of sneeks.
+The big phat python that hopefully will not wrap around my server or neck.
+
+Earlier, I went ahead and updated a decent amount of the `atlas` code base, preparing it for the future production environment, including test casing it on docker.
+
+Yet, sadly, even the weird edge cases become a huge pain! But its been long over due, at least since last year, so it makes sense that I invest some heavy time into it.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### FastAPI
+
+To get started, we will add both the `fastapi` and the `uvicorn[standard]` to our standard poetry book, as they will provide the main entrance to our software stack.
+Majority of the codebase will be within the `kbve_atlas`, with a `main.py` file located outside of it.
+This `main.py` file will be the router that we use to handle all the python routes, including any micro-service that we might need down the line.
+Under the current build, I am thinking of keeping a bunch of the services within an isolated python instance and then using our Rust API to handle the communication between them, ideally using a queue style system.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Main.py
+
+Now the adventure of integrating the `main.py` with the FastAPI.
+
+</MDXJS>
+
+</MDXJS>
