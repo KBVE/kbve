@@ -198,7 +198,7 @@ jobs:
 
 
     #   [ATLAS] -> Publish (As App)
-    pythonatlaspublish:
+    python_atlas_build:
         needs: ["deploy", "alter"]
         name: Python Atlas Module Publish
         if: needs.alter.outputs.atlas == 'true'
@@ -407,8 +407,8 @@ jobs:
                         pull_request_title: 'jedi-crates-minor-version-bump'
                         pull_request_body: 'Bumping up the minor version of the jedi package.'
 
-    pypublish:
-        needs: ["deploy", "alter"]
+    python_atlas_publish:
+        needs: ["deploy", "alter", "python_atlas_build"]
         name: Pypi Publish
         if: needs.alter.outputs.atlas == 'true'
         runs-on: ubuntu-latest
