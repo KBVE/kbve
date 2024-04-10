@@ -120,6 +120,23 @@ bump_python_package_version() {
 
 ```
 
+Now for us to execute this command, we have to add it into the shell command.
+
+```shell
+
+    -pythonbump)
+        [ -z "$2" ] && { echo "No package directory specified. Usage: $0 -pythonbump [package_directory]"; exit 1; }
+        package_dir="$2"
+        bump_python_package_version "$package_dir"
+        ;;
+
+```
+
+Finally, after the package is release, we will run: 
+
+```
+./kbve.sh -pythonbump apps/atlas
+```
 
 </MDXJS>
 
