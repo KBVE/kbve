@@ -575,7 +575,7 @@ jobs:
     
     expo-lcagents-web-build:
         needs: ["alter"]
-        name: Expo LC Agents We Build
+        name: Expo LC Agents Web Build
         runs-on: ubuntu-latest
         if: needs.alter.outputs.expolcagents == 'true'
         steps:
