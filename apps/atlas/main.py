@@ -1,9 +1,42 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
+from broadcaster import Broadcast
+import anyio
+
 from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator
 
 app = FastAPI()
 kr_decorator = KRDecorator(app)
+
+broadcast = Broadcast("redis://localhost:6379")
+
+@app.on_event("startup")
+async def startup_event():
+    await broadcast.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await broadcast.disconnect()
+
+@app.websocket("/ws/chatroom")
+async def chatroom_ws(websocket: WebSocket):
+    await websocket.accept()
+
+    async with anyio.create_task_group() as task_group:
+        async def run_chatroom_ws_receiver() -> None:
+            async for message in websocket.iter_text():
+                await broadcast.publish(channel="chatroom", message=message)
+            task_group.cancel_scope.cancel()
+
+        async def run_chatroom_ws_sender() -> None:
+            async with broadcast.subscribe(channel="chatroom") as subscriber:
+                async for event in subscriber:
+                    await websocket.send_text(event.message)
+
+        task_group.start_soon(run_chatroom_ws_receiver)
+        task_group.start_soon(run_chatroom_ws_sender)
+
 
 @app.get("/")
 async def root():
