@@ -11,7 +11,7 @@ addopts = "--cov --cov-report html:'../../coverage/apps/atlas/html' --cov-report
 
 [tool.poetry]
 name = "kbve"
-version = "1.0.5"
+version = "1.0.6"
 description = "ATLAS"
 authors = [ ]
 license = 'Proprietary'
@@ -29,6 +29,11 @@ readme = 'README.md'
   openai = "^1.16.2"
   requests = "^2.31.0"
   aiohttp = "^3.9.3"
+  lxml = "^5.2.1"
+  fastapi = "^0.110.1"
+  uvicorn = {extras = ["standard"], version = "^0.29.0"}
+  broadcaster = {extras = ["redis"], version = "^0.2.0"}
+  anyio = "^4.3.0"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.0.2"

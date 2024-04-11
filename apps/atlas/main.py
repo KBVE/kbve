@@ -1,48 +1,72 @@
-import asyncio
-from kbve_atlas.api.clients.poetry_db_client import PoetryDBClient
-from kbve_atlas.api.clients.websocket_echo_client import WebsocketEchoClient
-from kbve_atlas.api.clients.coindesk_client import CoinDeskClient
+from fastapi import FastAPI, WebSocket
+from fastapi.responses import HTMLResponse
 
-async def poetry_main():
-    poetry_client = PoetryDBClient()
-    try:
-        random_poem = await poetry_client.get_random_poem()
-        print(f"Title: {random_poem.title}\nAuthor: {random_poem.author}\n")
-        print("\n".join(random_poem.lines))
-        await poetry_client.close()
-        print("\n Closed Session")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+import uvicorn
 
-        pass
+from contextlib import asynccontextmanager
 
-async def wss_main():
+from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient
+from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
+
+# TODO : Logging 
+import logging
+logger = logging.getLogger("uvicorn")
+
+
+# TODO : broadcast = ENV_REDIS_FILE For k8s/swarm.
+broadcast = BroadcastUtility()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await broadcast.connect()
+    yield
+    await broadcast.disconnect()
+
+
+app = FastAPI(lifespan=lifespan)
+kr_decorator = KRDecorator(app)
+
+CORSUtil(app)
+
+
+@app.websocket("/")
+async def chatroom_ws(websocket: WebSocket):
+    await websocket.accept()
+    await broadcast.send_messages(websocket, "chatroom")
+
+@app.get("/", response_class=HTMLResponse)
+async def get():
+    return ThemeCore.example_chat_page()
+
+@app.get("/echo")
+async def echo_main():
     websocket_client = WebsocketEchoClient()
     try:
         await websocket_client.example()
     finally:
         await websocket_client.close()
+        return {"ws": "true"}
 
-        pass
-    
-async def coindesk_main():    
-    coindesk_client = CoinDeskClient()
+
+@app.get("/news")
+async def google_news():
+    rss_utility = RSSUtility(base_url="https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")
     try:
-        bitcoin_price = await coindesk_client.get_current_bitcoin_price()
-        print(bitcoin_price)
-    finally:
-        await coindesk_client.close()
+        soup = await rss_utility.fetch_and_parse_rss()
+        rss_feed_model = await rss_utility.convert_to_model(soup)
+        formatted_feed = RSSUtility.format_rss_feed(rss_feed_model)
+        return {"news": formatted_feed}
+    except:
+        return {"news": "failed"}
 
+@kr_decorator.k_r("/bitcoin-price", CoinDeskClient, "get_current_bitcoin_price")
+def bitcoin_price(price):
+    return {"bitcoin_price": price}
 
-        pass
-    
-async def main():
-    # Using asyncio.gather to run both tasks concurrently
-    await asyncio.gather(
-        poetry_main(),
-        wss_main(),
-        coindesk_main(),
-    )
+@kr_decorator.k_r("/poem", PoetryDBClient, "get_random_poem")
+def poetry_db(poem):
+    return {"poem": poem}
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    uvicorn.run(app, host="0.0.0.0", port=8086)
