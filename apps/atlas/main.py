@@ -8,6 +8,11 @@ from contextlib import asynccontextmanager
 from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
+# TODO : Logging 
+import logging
+logger = logging.getLogger("uvicorn")
+
+
 # TODO : broadcast = ENV_REDIS_FILE For k8s/swarm.
 broadcast = BroadcastUtility()
 
