@@ -373,9 +373,17 @@ execmdx_function() {
 
 
 # Function to run pnpm nx with an argument
+# 4-9-2024
+# run_pnpm_nx() {
+#     local argument="$1"
+#     pnpm nx run "$argument"
+# }
+
+# Function to run pnpm nx with additiona arguments.
 run_pnpm_nx() {
-    local argument="$1"
-    pnpm nx run "$argument"
+    # Note: "$@" passes all arguments received by the function as-is
+    echo "Running pnpm nx with arguments: $@"
+    pnpm nx run "$@"
 }
 
 # Function to build pnpm nx with an argument
@@ -490,10 +498,22 @@ case "$1" in
         execmdx_function "./apps/kbve.com/public/data/outpost/nx/report.mdx" "echo 'Report Timestamp: $timestamp'"
 
         ;;
+    # 4-9-2024 - NX Command with a single command.
+    # -nx)
+    #     [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
+    #     run_pnpm_nx "$2"
+    #     ;;
+
+    # Updated NX Run Command with Additional Flags.
     -nx)
-        [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
-        run_pnpm_nx "$2"
+        shift  # This discards "-nx", shifting all other arguments left.
+        if [ $# -eq 0 ]; then  # Check if there are any arguments left.
+            echo "No command specified. Usage: $0 -nx [command] [args...]"
+            exit 1
+        fi
+        run_pnpm_nx "$@"  # Pass all remaining arguments to the function.
         ;;
+
     -build)
          [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
         build_pnpm_nx "$2"
