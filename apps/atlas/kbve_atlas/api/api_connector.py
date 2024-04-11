@@ -19,6 +19,11 @@ class APIConnector:
             response.raise_for_status()
             return await response.json()
 
+    async def _get_session(self):
+        if not self.session:
+            self.session = aiohttp.ClientSession()
+        return self.session
+
     async def get(self, endpoint: str, **kwargs) -> Any:
         return await self._request('GET', endpoint, **kwargs)
 
@@ -72,3 +77,18 @@ class APIConnector:
         if self.key and auth == 'header':
             headers['Authorization'] = f"Bearer {self.key}"
         return headers
+    
+    async def get_raw_content(self, endpoint: str) -> bytes:
+        """
+        Performs a GET request to the specified endpoint and returns the raw response content.
+
+        :param endpoint: The API endpoint to fetch.
+        :return: Raw content of the response as bytes.
+        """
+        # Ensure the session is initialized
+        session = await self._get_session()
+        # Construct the full URL
+        url = f"{self.base_url}/{endpoint}"
+        async with session.get(url) as response:
+            response.raise_for_status()  # Ensure we got a successful response
+            return await response.read()  # Return the response content as bytes
