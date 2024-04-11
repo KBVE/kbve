@@ -1,25 +1,37 @@
 from fastapi import FastAPI, WebSocket
 from broadcaster import Broadcast
 import anyio
+import uvicorn
+
+from contextlib import asynccontextmanager
+
 
 from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient
-from kbve_atlas.api.utils import RSSUtility, KRDecorator
+from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil
 
-app = FastAPI()
-kr_decorator = KRDecorator(app)
 
-broadcast = Broadcast("redis://localhost:6379")
+broadcast = Broadcast("memory://")
 
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await broadcast.connect()
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
+    yield
     await broadcast.disconnect()
 
-@app.websocket("/ws/chatroom")
+
+app = FastAPI(lifespan=lifespan)
+kr_decorator = KRDecorator(app)
+
+custom_origins = [
+    "http://n8n",
+    "https://n8n",
+    "https://atlas",
+    "http://atlas"
+]
+CORSUtil(app, origins=custom_origins)
+
+
+@app.websocket("/")
 async def chatroom_ws(websocket: WebSocket):
     await websocket.accept()
 
@@ -75,3 +87,7 @@ def bitcoin_price(price):
 @kr_decorator.k_r("/poem", PoetryDBClient, "get_random_poem")
 def poetry_db(poem):
     return {"poem": poem}
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8086)

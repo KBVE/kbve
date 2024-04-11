@@ -155,6 +155,46 @@ After a week or so, I will go back and update the code.
 
 The next goal for the day will be to setup a Pub/Sub for our C A R P stack! Oh the joys!
 
+To start the broadcaster, we can use this code block:
+
+```python
+
+@app.on_event("startup")
+async def startup_event():
+    await broadcast.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await broadcast.disconnect()
+
+```
+
+Yet the issue is that `on_event` of `startup`/`shutdown` has become deprecated and instead we would have to use `@asynccontextmanager` and the `lifespan` decorated.
+
+So lets update the code to look something like this:
+
+```python
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await broadcast.connect()
+    yield
+    await broadcast.disconnect()
+
+```
+
+To launch the current `ATLAS` , we will be using `uvicorn main:app --port 8086` however we might not have access to the redis right now on the mac, so lets swap that out to memory. 
+
+Here is the quick swap to memory:
+
+```python
+
+broadcast = Broadcast("memory://")
+
+```
+
+
 
 </MDXJS>
 
