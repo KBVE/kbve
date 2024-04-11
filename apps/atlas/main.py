@@ -1,16 +1,20 @@
 from fastapi import FastAPI, WebSocket
-from broadcaster import Broadcast
-import anyio
+from fastapi.responses import HTMLResponse
+
 import uvicorn
 
 from contextlib import asynccontextmanager
 
-
 from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient
-from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil
+from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
+
+# TODO : Logging 
+import logging
+logger = logging.getLogger("uvicorn")
 
 
-broadcast = Broadcast("memory://")
+# TODO : broadcast = ENV_REDIS_FILE For k8s/swarm.
+broadcast = BroadcastUtility()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,42 +26,17 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 kr_decorator = KRDecorator(app)
 
-custom_origins = [
-    "http://n8n",
-    "https://n8n",
-    "https://atlas",
-    "http://atlas"
-]
-CORSUtil(app, origins=custom_origins)
+CORSUtil(app)
 
 
 @app.websocket("/")
 async def chatroom_ws(websocket: WebSocket):
     await websocket.accept()
+    await broadcast.send_messages(websocket, "chatroom")
 
-    async with anyio.create_task_group() as task_group:
-        async def run_chatroom_ws_receiver() -> None:
-            async for message in websocket.iter_text():
-                await broadcast.publish(channel="chatroom", message=message)
-            task_group.cancel_scope.cancel()
-
-        async def run_chatroom_ws_sender() -> None:
-            async with broadcast.subscribe(channel="chatroom") as subscriber:
-                async for event in subscriber:
-                    await websocket.send_text(event.message)
-
-        task_group.start_soon(run_chatroom_ws_receiver)
-        task_group.start_soon(run_chatroom_ws_sender)
-
-
-@app.get("/")
-async def root():
-    websocket_client = WebsocketEchoClient()
-    try:
-        await websocket_client.example()
-    finally:
-        await websocket_client.close()
-        return {"ws": "true"}
+@app.get("/", response_class=HTMLResponse)
+async def get():
+    return ThemeCore.example_chat_page()
 
 @app.get("/echo")
 async def echo_main():
