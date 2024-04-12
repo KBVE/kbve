@@ -1,4 +1,5 @@
 import React, { useEffect, useState, CSSProperties, useRef } from 'react';
+import LanderHero from './LanderHero';
 
 const words = ["Hello", "World", "React", "Animation", "Raining"];
 
@@ -51,7 +52,7 @@ const RandomCharacters: React.FC = () => {
         {columns}
       </div>
       <div className="z-10 w-full">
-       
+       <LanderHero />
       </div>
     </div>
   ) : null;
