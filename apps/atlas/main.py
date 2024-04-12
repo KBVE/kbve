@@ -8,7 +8,6 @@ from contextlib import asynccontextmanager
 from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
-# TODO : Logging 
 import logging
 logger = logging.getLogger("uvicorn")
 
@@ -18,8 +17,10 @@ broadcast = BroadcastUtility()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("[BROADCAST]@PENDING")
     await broadcast.connect()
     yield
+    logger.info("[BROADCAST]@DISINT")
     await broadcast.disconnect()
 
 
