@@ -1,11 +1,11 @@
-// bgwords.tsx
-import React, { useEffect, useState, CSSProperties } from 'react';
+import React, { useEffect, useState, CSSProperties, useRef } from 'react';
 
 const words = ["Hello", "World", "React", "Animation", "Raining"];
 
+
 const RandomCharacters: React.FC = () => {
   const [columns, setColumns] = useState<JSX.Element[]>([]);
-  const [showComponent, setShowComponent] = useState(false); // Controls rendering of the component
+  const [showComponent, setShowComponent] = useState(false);
 
   useEffect(() => {
     const tempColumns = words.map((word, index) => {
@@ -31,26 +31,28 @@ const RandomCharacters: React.FC = () => {
 
     setColumns(tempColumns);
 
-    // Manage the loader and set when to display the component
     setTimeout(() => {
       const loader = document.getElementById('herolanding_loader');
       if (loader) {
-        loader.classList.add('fade-out'); // Start fade-out animation
+        loader.classList.add('fade-out');
         loader.addEventListener('animationend', () => {
-          loader.style.display = 'none'; // Ensure loader is not displayed after fading
-          setShowComponent(true); // Only then show the component
+          loader.style.display = 'none';
+          setShowComponent(true);
         });
       }
-    }, 1000); // Simulates a loading process; adjust as necessary
+    }, 1000);
 
   }, []);
 
   return showComponent ? (
-    <div className="w-full h-screen flex justify-center items-center overflow-hidden relative">
-      <div className="absolute w-full h-full z-0">
+    <div className="w-full h-screen flex flex-col justify-center items-center overflow-hidden relative">
+      <div className="z-10 text-white text-4xl">Welcome to Next Generation Software Development Community</div>
+      <div className="absolute top-0 w-full h-full z-0">
         {columns}
       </div>
-      <div className="z-10 text-white text-4xl">Welcome to Next Generation Software Development Community</div>
+      <div className="z-10 w-full">
+       
+      </div>
     </div>
   ) : null;
 };

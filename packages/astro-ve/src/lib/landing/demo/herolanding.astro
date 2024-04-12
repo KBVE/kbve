@@ -6,7 +6,7 @@ import RandomCharacters from './bgwords';
 
 <Fragment>
 	<div
-		class="w-full h-screen flex justify-center items-center overflow-hidden relative bg-cover bg-blend-multiply bg-gray-700 bg-opacity-80"
+		class="w-full h-[75vh] flex -translate-y-6 justify-center items-center overflow-hidden relative bg-cover bg-blend-multiply bg-gray-700 bg-opacity-80"
 		style={{
 			backgroundImage: `url(https://images.unsplash.com/photo-1561344640-2453889cde5b?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)`,
 		}}>
@@ -14,7 +14,6 @@ import RandomCharacters from './bgwords';
 		<div
 			class="flex flex-col rounded shadow-md animate-pulse w-full h-full sm:w-3/4 sm:h-3/4 bg-gray-900"
 			id="herolanding_loader">
-			<!-- Spinner added here -->
 			<div class="flex justify-center items-center">
 				<div
 					class="z-30 w-64 h-64 border-4 border-dashed rounded-full animate-spin border-cyan-200">
@@ -30,8 +29,6 @@ import RandomCharacters from './bgwords';
 			</div>
 		</div>
 	</div>
-
-
 </Fragment>
 
 <style>
@@ -40,7 +37,7 @@ import RandomCharacters from './bgwords';
 			transform: translateY(-10vh);
 		}
 		100% {
-			transform: translateY(110vh);
+			transform: translateY(120vh);
 		}
 	}
 
@@ -69,4 +66,6 @@ import RandomCharacters from './bgwords';
 	.fade-in {
 		animation: fadeIn 1s ease-in forwards;
 	}
+
 </style>
+
