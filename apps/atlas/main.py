@@ -5,7 +5,7 @@ import uvicorn
 
 from contextlib import asynccontextmanager
 
-from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient
+from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
 import logging
@@ -38,6 +38,12 @@ async def chatroom_ws(websocket: WebSocket):
 @app.get("/", response_class=HTMLResponse)
 async def get():
     return ThemeCore.example_chat_page()
+
+@app.get("/click")
+async def click_main():
+    image_url = "http://example.com/path/to/image.png"
+    client = ScreenClient(image_url, timeout=3)
+    await client.find_and_click_image()
 
 @app.get("/echo")
 async def echo_main():
