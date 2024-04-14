@@ -15,39 +15,37 @@ RUN apt-get update && apt-get install -y \
     tightvncserver \
     novnc \
     net-tools \
+    python3-tk \
+    python3-dev \
     gnupg2 \
     gnome-terminal \
     gnome-session
 
-# Add the deadsnakes PPA and install Python 3.12
+# Install Python and Poetry using deadsnakes PPA
 RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y python3.12 python3.12-venv python3.12-distutils python3-pip
+    apt-get install -y python3.12 python3.12-venv python3.12-distutils python3-pip && \
+    curl -sSL https://install.python-poetry.org | python3.12 -
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3.12 -
+# Environment variables to configure
+ENV HOME=/root \
+    DISPLAY=:1 \
+    XAUTHORITY=$HOME/.Xauthority
 
 # Ensure the Poetry bin directory is in the PATH
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Setup environment variables
-ENV HOME=/root \
-    DISPLAY=:1 \
-    XAUTHORITY=/root/.Xauthority
-
-# Prepare directory for app and copy the entrypoint script
+# Copy application source
 WORKDIR /app
 COPY . /app
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Install application dependencies
-# RUN poetry config virtualenvs.create false && \
-#     poetry install --no-dev
-
+# Install dependencies with Poetry
 RUN poetry install
 
-# Expose VNC and noVNC ports
+
+# Expose necessary ports
 EXPOSE 5900 6080 8000
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

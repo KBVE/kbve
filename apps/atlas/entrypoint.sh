@@ -1,21 +1,25 @@
 #!/bin/bash
 
-# Ensure the X11 lock files and MIT-MAGIC-COOKIE file are not present
-rm /tmp/.X1-lock /tmp/.X11-unix/X1 $XAUTHORITY || true
+# Ensure the X11 and VNC related files are cleaned up properly
+rm -f /tmp/.X1-lock /tmp/.X11-unix/X1 $XAUTHORITY
 touch $XAUTHORITY
-xauth generate $DISPLAY . trusted
+xauth generate $DISPLAY . trusted 2>/dev/null
 
-# Start Virtual Frame Buffer
+# Start Virtual Frame Buffer in the background
 Xvfb $DISPLAY -screen 0 1280x800x16 -ac &
 
-# Wait for Xvfb to start
+# Wait a bit to make sure Xvfb starts
 sleep 5
 
-# Start the VNC server with password
+# Set up a password for VNC connection
+mkdir -p ~/.vnc
+x11vnc -storepasswd 12345 ~/.vnc/passwd
+
+# Start the VNC server
 x11vnc -display $DISPLAY -auth $XAUTHORITY -forever -usepw -create &
 
 # Start the noVNC server
 websockify -D --web=/usr/share/novnc/ 6080 localhost:5900 &
 
-# Start the application
+# Execute the command passed to the docker run
 exec "$@"
