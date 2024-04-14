@@ -51,5 +51,60 @@ My fear is that it will escalate here within the southern regions of the America
 
 ---
 
+<MDXJS>
+
+#### Ubuntu 24
+
+With the recent annoucement of Ubuntu 24 LTS beta, it will be time to slowly migrate everything from the QEMU/KVMs and Dockerfiles to GHAs/Gitlab actions.
+This will be a rolling update that we 
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### DockerFile
+
+The current plan is to split the Dockerfile for ATLAS to focus on building out the core functions, VNC, python 3.12, x11 , ect... then shift the setup to an `entrypoint.sh`.
+
+In case anyone runs into an error like this: `ERROR: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?`
+
+Open `Docker Desktop`, go to `Settings` > `Resources` > `WSL INTEGRATION` , then make sure that `Ubuntu` is selected. 
+
+Incase we run into an issue where `Poetry` cannot be found, we can set the path for it within the `Dockerfile`:
+
+```
+# Ensure the Poetry bin directory is in the PATH
+ENV PATH="/root/.local/bin:${PATH}"
+```
+
+The amount of hours that I have spent going through different options and debugs! Ugh!
+
+Next error on the dockerfile build:
+
+```
+
+2024-04-14 00:58:12 rm: cannot remove '/tmp/.X1-lock': No such file or directory
+2024-04-14 00:58:12 rm: cannot remove '/tmp/.X11-unix/X1': No such file or directory
+2024-04-14 00:58:12 rm: cannot remove '/root/.Xauthority': No such file or directory
+2024-04-14 00:58:12 xauth: (argv):1:  unable to open display ":1".
+2024-04-14 00:58:17 Enter VNC password: stty: 'standard input': Inappropriate ioctl for device
+2024-04-14 00:58:17 fgets: No such file or directory
+2024-04-14 00:58:17 stty: 'standard input': Inappropriate ioctl for device
+2024-04-14 00:58:17 x11vnc -usepw: could not find a password to use.
+2024-04-14 00:58:18 WebSocket server settings:
+2024-04-14 00:58:18   - Listen on :6080
+2024-04-14 00:58:18   - Web server. Web root: /usr/share/novnc
+2024-04-14 00:58:18   - No SSL/TLS support (no cert file)
+2024-04-14 00:58:18   - Backgrounding (daemon)
+2024-04-14 00:58:19 NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: sudo apt-get install python3-tk python3-dev
+2024-04-14 00:58:19 Xlib.xauth: warning, no xauthority details available
+
+```
+
+
+</MDXJS>
+
 
 </MDXJS>
