@@ -48,8 +48,9 @@ RUN poetry install
 
 # Expose necessary ports
 #EXPOSE 5900 6080 8000
-EXPOSE 6080 8086
+#EXPOSE 6080 8086
+EXPOSE 8086
 
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086"]
+CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]

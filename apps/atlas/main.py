@@ -1,11 +1,15 @@
-from fastapi import FastAPI, WebSocket
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, WebSocket,  HTTPException
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+
+import websockets
+import asyncio
 
 import uvicorn
 
 from contextlib import asynccontextmanager
 
-from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCProxy
+from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
 import logging
@@ -30,9 +34,35 @@ kr_decorator = KRDecorator(app)
 
 CORSUtil(app)
 
+app.mount("/novnc", StaticFiles(directory="/app/templates/novnc", html=True), name="novnc")
 
-proxy = NoVNCProxy(app)
-app.add_middleware(NoVNCProxy)
+
+@app.websocket("/websockify")
+async def websocket_proxy(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        async with websockets.connect("ws://localhost:6080") as upstream:
+            while True:
+                recv_task = asyncio.create_task(websocket.receive_text())
+                send_task = asyncio.create_task(upstream.recv())
+                done, pending = await asyncio.wait(
+                    [recv_task, send_task],
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+
+                if recv_task in done:
+                    message = recv_task.result()
+                    await upstream.send(message)
+                elif send_task in done:
+                    message = send_task.result()
+                    await websocket.send_text(message)
+
+                for task in pending:
+                    task.cancel()
+
+    except Exception as e:
+        print(f"Error: {e}")
+        await websocket.close()
 
 @app.websocket("/")
 async def chatroom_ws(websocket: WebSocket):
@@ -45,6 +75,7 @@ async def get():
 
 @app.get("/click")
 async def click_main():
+    # TODO Opps, need to replace this with the right image to click test.
     image_url = "http://example.com/path/to/image.png"
     client = ScreenClient(image_url, timeout=3)
     await client.find_and_click_image()

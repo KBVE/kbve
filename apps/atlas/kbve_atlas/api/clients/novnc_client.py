@@ -1,46 +1,45 @@
-import logging
-from aiohttp import ClientSession
-from fastapi import Request
-from starlette.responses import Response
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import WebSocket
+import websockets
+from starlette.websockets import WebSocketDisconnect, WebSocketState
+import asyncio
+from logging import getLogger
 
+class NoVNCClient:
+    def __init__(self, logger=None):
+        self.logger = logger if logger else getLogger("uvicorn")
 
-logger = logging.getLogger("uvicorn")
+    async def ws_vnc_proxy(self, websocket: WebSocket, host: str = "localhost", port: int = 6080):
+        await websocket.accept()
+        uri = f"ws://{host}:{port}"
+        while True:
+            try:
+                async with websockets.connect(uri) as ws:
+                    await self.proxy_websocket_messages(websocket, ws)
+            except websockets.ConnectionClosed:
+                self.logger.warning("WebSocket connection to VNC server was closed, attempting to reconnect...")
+                await asyncio.sleep(1)  # wait a bit before reconnecting
+                continue  # try to reconnect
+            except WebSocketDisconnect:
+                self.logger.warning("WebSocket connection to client was closed.")
+                break  # exit loop if client disconnects
+            except Exception as e:
+                self.logger.error(f"Error in WebSocket proxy: {e}", exc_info=True)
+                await websocket.close(code=1001)
+                break
 
-class NoVNCProxy(BaseHTTPMiddleware):
-    def __init__(self, app, proxy_url="http://localhost:6080"):
-        super().__init__(app)
-        self.proxy_url = proxy_url.rstrip('/') 
-        self.session = ClientSession()
-        logger.info(f"NoVNCProxy initialized with proxy URL: {self.proxy_url}")
+    async def proxy_websocket_messages(self, client: WebSocket, server: websockets.WebSocketClientProtocol):
+        client_task = asyncio.create_task(client.receive_text())
+        server_task = asyncio.create_task(server.recv())
+        done, pending = await asyncio.wait(
+            [client_task, server_task],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
 
-    async def dispatch(self, request: Request, call_next):
-        if request.url.path.startswith("/novnc"):
-            adjusted_path = request.url.path[len("/novnc"):] 
-            if not adjusted_path.startswith('/'):
-                adjusted_path = '/' + adjusted_path 
-            if adjusted_path == '/':
-                adjusted_path = '/vnc.html'
-
-            proxy_url = f"{self.proxy_url}{adjusted_path}"
-            logger.debug(f"Proxying request: {request.url.path} to {proxy_url}")
-
-            async with self.session.request(
-                request.method, proxy_url, allow_redirects=True,
-                headers={key: value for key, value in request.headers.items() if key != 'host'},
-                data=await request.body()) as resp:
-
-                content = await resp.read()
-                headers = {key: value for key, value in resp.headers.items() if key.lower() != 'content-encoding'}
-                logger.debug(f"Response status from {proxy_url}: {resp.status}")
-                if resp.status != 200:
-                    logger.error(f"Error from proxy {proxy_url}: {await resp.text()}")
-
-                return Response(content=content, status_code=resp.status, headers=headers)
+        if client_task in done:
+            message = client_task.result()
+            await server.send(message)
+            await self.proxy_websocket_messages(client, server)
         else:
-            response = await call_next(request)
-            return response
-
-    async def close(self):
-        await self.session.close()
-        logger.info("Closed NoVNCProxy HTTP session")
+            message = server_task.result()
+            await client.send_text(message)
+            await self.proxy_websocket_messages(client, server)
