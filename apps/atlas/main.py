@@ -1,11 +1,13 @@
-from fastapi import FastAPI, WebSocket
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, WebSocket,  HTTPException
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+
 
 import uvicorn
 
 from contextlib import asynccontextmanager
 
-from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCProxy
+from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
 import logging
@@ -30,9 +32,14 @@ kr_decorator = KRDecorator(app)
 
 CORSUtil(app)
 
+novnc_client = NoVNCClient()
+app.include_router(novnc_client.router)
 
-proxy = NoVNCProxy(app)
-app.add_middleware(NoVNCProxy)
+app.mount("/novnc", StaticFiles(directory="/app/templates/novnc", html=True), name="novnc")
+
+@app.websocket("/websockify")
+async def websocket_default_proxy(websocket: WebSocket):
+    await novnc_client.ws_vnc_proxy(websocket, "localhost", 6080)
 
 @app.websocket("/")
 async def chatroom_ws(websocket: WebSocket):

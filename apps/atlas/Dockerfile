@@ -48,7 +48,8 @@ RUN poetry install
 
 # Expose necessary ports
 #EXPOSE 5900 6080 8000
-EXPOSE 6080 8086
+#EXPOSE 6080 8086
+EXPOSE 8086
 
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

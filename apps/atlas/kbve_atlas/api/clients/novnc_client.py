@@ -1,46 +1,42 @@
-import logging
-from aiohttp import ClientSession
-from fastapi import Request
-from starlette.responses import Response
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import APIRouter, WebSocket
+from fastapi.staticfiles import StaticFiles
+import websockets
+from logging import getLogger
 
+class NoVNCClient:
+    def __init__(self, static_dir="/app/templates/novnc", logger=None):
+        """Initialize NoVNCClient with directory for static files and optional custom logger."""
+        self.logger = logger if logger else getLogger("uvicorn.info")
+        self.router = APIRouter()
 
-logger = logging.getLogger("uvicorn")
+        # Mount the static files from the specified path
+        self.router.mount("/novnc", StaticFiles(directory=static_dir, html=True), name="novnc")
 
-class NoVNCProxy(BaseHTTPMiddleware):
-    def __init__(self, app, proxy_url="http://localhost:6080"):
-        super().__init__(app)
-        self.proxy_url = proxy_url.rstrip('/') 
-        self.session = ClientSession()
-        logger.info(f"NoVNCProxy initialized with proxy URL: {self.proxy_url}")
+        # Define the WebSocket proxy endpoint under the router
+        @self.router.websocket("/ws/vnc/{host}/{port}")
+        async def websocket_vnc_proxy(websocket: WebSocket, host: str, port: int):
+            await self.ws_vnc_proxy(websocket, host, port)
 
-    async def dispatch(self, request: Request, call_next):
-        if request.url.path.startswith("/novnc"):
-            adjusted_path = request.url.path[len("/novnc"):] 
-            if not adjusted_path.startswith('/'):
-                adjusted_path = '/' + adjusted_path 
-            if adjusted_path == '/':
-                adjusted_path = '/vnc.html'
+        # Define a default WebSocket endpoint that connects to localhost:6060
+        @self.router.websocket("/websockify")
+        async def websocket_default_proxy(websocket: WebSocket):
+            await self.ws_vnc_proxy(websocket, "localhost", 6080)
 
-            proxy_url = f"{self.proxy_url}{adjusted_path}"
-            logger.debug(f"Proxying request: {request.url.path} to {proxy_url}")
+    async def ws_vnc_proxy(self, websocket: WebSocket, host: str, port: int):
+        """Handle WebSocket proxying between the client and the VNC server."""
+        await websocket.accept()
+        uri = f"ws://{host}:{port}"
+        try:
+            async with websockets.connect(uri) as ws:
+                while True:
+                    data = await websocket.receive_text()
+                    await ws.send(data)
+                    reply = await ws.recv()
+                    await websocket.send_text(reply)
+        except Exception as e:
+            self.logger.error(f"Websocket error: {str(e)}", exc_info=True)
+            await websocket.close()
 
-            async with self.session.request(
-                request.method, proxy_url, allow_redirects=True,
-                headers={key: value for key, value in request.headers.items() if key != 'host'},
-                data=await request.body()) as resp:
-
-                content = await resp.read()
-                headers = {key: value for key, value in resp.headers.items() if key.lower() != 'content-encoding'}
-                logger.debug(f"Response status from {proxy_url}: {resp.status}")
-                if resp.status != 200:
-                    logger.error(f"Error from proxy {proxy_url}: {await resp.text()}")
-
-                return Response(content=content, status_code=resp.status, headers=headers)
-        else:
-            response = await call_next(request)
-            return response
-
-    async def close(self):
-        await self.session.close()
-        logger.info("Closed NoVNCProxy HTTP session")
+def create_novnc_client(static_dir: str, logger=None):
+    """Factory function to create a new NoVNCClient instance."""
+    return NoVNCClient(static_dir, logger)
