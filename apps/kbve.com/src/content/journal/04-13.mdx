@@ -106,6 +106,34 @@ Next error on the dockerfile build:
 Okay! Next error is debug 44, but we are making progress in the setup!
 We have the ubuntu container built out, fixed a formatting issue within RSS Utility and we were able to connect to the container on the noVNC web panel.
 
+For Debug 45, we are going to update the entrypoint script once more because of a black screen / display error.
+
+```
+
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    software-properties-common \
+    x11vnc \
+    dbus-x11 \
+    xvfb \
+    xauth \
+    tightvncserver \
+    novnc \
+    net-tools \
+    python3-tk \
+    python3-dev \
+    gnupg2 \
+    gnome-terminal \
+    gnome-session
+
+```
+
+We are also going to add `dbus-x11` package inside of the Dockerfile.
+
+Yay! We got the Docker application to run with display and the terminal window!
+Making progress!
+
 
 </MDXJS>
 

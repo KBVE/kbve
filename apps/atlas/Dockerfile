@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     x11vnc \
+    dbus-x11 \
     xvfb \
     xauth \
     tightvncserver \
@@ -46,7 +47,9 @@ RUN poetry install
 
 
 # Expose necessary ports
-EXPOSE 5900 6080 8000
+#EXPOSE 5900 6080 8000
+EXPOSE 6080 8000
+
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
