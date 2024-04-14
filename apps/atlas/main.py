@@ -45,6 +45,7 @@ async def get():
 
 @app.get("/click")
 async def click_main():
+    # TODO Opps, need to replace this with the right image to click test.
     image_url = "http://example.com/path/to/image.png"
     client = ScreenClient(image_url, timeout=3)
     await client.find_and_click_image()

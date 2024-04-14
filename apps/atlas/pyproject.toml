@@ -9,6 +9,31 @@ show_missing = true
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report html:'../../coverage/apps/atlas/html' --cov-report xml:'../../coverage/apps/atlas/coverage.xml' --html='../../reports/apps/atlas/unittests/html/index.html' --junitxml='../../reports/apps/atlas/unittests/junit.xml'"
 
+[tool.pyright]
+include = ["kbve_atlas"]
+exclude = ["**/tests", "**/__pycache__", "**/*.venv"]
+
+[tool.pyright.behavior]
+reportMissingImports = true
+reportMissingTypeStubs = true
+reportOptionalSubscript = true
+reportOptionalMemberAccess = true
+reportGeneralTypeIssues = true
+reportFunctionMemberAccess = true
+reportUnusedVariable = true
+strict = true
+typeCheckingMode = "strict"
+
+[tool.pyright.environment]
+pythonVersion = "3.12"
+venvPath = ".venv"
+venv = "myenv"
+stubPath = "typings"
+typingsPath = "typings"
+analyzeTypeshed = false
+autoSearchPaths = true
+
+
 [tool.poetry]
 name = "kbve"
 version = "1.0.7"
