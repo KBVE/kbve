@@ -5,7 +5,7 @@ import uvicorn
 
 from contextlib import asynccontextmanager
 
-from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient
+from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCProxy
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
 import logging
@@ -25,10 +25,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
 kr_decorator = KRDecorator(app)
 
 CORSUtil(app)
 
+
+proxy = NoVNCProxy(app)
+app.add_middleware(NoVNCProxy)
 
 @app.websocket("/")
 async def chatroom_ws(websocket: WebSocket):
@@ -73,7 +77,3 @@ def bitcoin_price(price):
 @kr_decorator.k_r("/poem", PoetryDBClient, "get_random_poem")
 def poetry_db(poem):
     return {"poem": poem}
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8086)
