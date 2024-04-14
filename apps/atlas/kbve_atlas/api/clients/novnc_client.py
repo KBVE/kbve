@@ -1,42 +1,45 @@
-from fastapi import APIRouter, WebSocket
-from fastapi.staticfiles import StaticFiles
+from fastapi import WebSocket
 import websockets
+from starlette.websockets import WebSocketDisconnect, WebSocketState
+import asyncio
 from logging import getLogger
 
 class NoVNCClient:
-    def __init__(self, static_dir="/app/templates/novnc", logger=None):
-        """Initialize NoVNCClient with directory for static files and optional custom logger."""
-        self.logger = logger if logger else getLogger("uvicorn.info")
-        self.router = APIRouter()
+    def __init__(self, logger=None):
+        self.logger = logger if logger else getLogger("uvicorn")
 
-        # Mount the static files from the specified path
-        self.router.mount("/novnc", StaticFiles(directory=static_dir, html=True), name="novnc")
-
-        # Define the WebSocket proxy endpoint under the router
-        @self.router.websocket("/ws/vnc/{host}/{port}")
-        async def websocket_vnc_proxy(websocket: WebSocket, host: str, port: int):
-            await self.ws_vnc_proxy(websocket, host, port)
-
-        # Define a default WebSocket endpoint that connects to localhost:6060
-        @self.router.websocket("/websockify")
-        async def websocket_default_proxy(websocket: WebSocket):
-            await self.ws_vnc_proxy(websocket, "localhost", 6080)
-
-    async def ws_vnc_proxy(self, websocket: WebSocket, host: str, port: int):
-        """Handle WebSocket proxying between the client and the VNC server."""
+    async def ws_vnc_proxy(self, websocket: WebSocket, host: str = "localhost", port: int = 6080):
         await websocket.accept()
         uri = f"ws://{host}:{port}"
-        try:
-            async with websockets.connect(uri) as ws:
-                while True:
-                    data = await websocket.receive_text()
-                    await ws.send(data)
-                    reply = await ws.recv()
-                    await websocket.send_text(reply)
-        except Exception as e:
-            self.logger.error(f"Websocket error: {str(e)}", exc_info=True)
-            await websocket.close()
+        while True:
+            try:
+                async with websockets.connect(uri) as ws:
+                    await self.proxy_websocket_messages(websocket, ws)
+            except websockets.ConnectionClosed:
+                self.logger.warning("WebSocket connection to VNC server was closed, attempting to reconnect...")
+                await asyncio.sleep(1)  # wait a bit before reconnecting
+                continue  # try to reconnect
+            except WebSocketDisconnect:
+                self.logger.warning("WebSocket connection to client was closed.")
+                break  # exit loop if client disconnects
+            except Exception as e:
+                self.logger.error(f"Error in WebSocket proxy: {e}", exc_info=True)
+                await websocket.close(code=1001)
+                break
 
-def create_novnc_client(static_dir: str, logger=None):
-    """Factory function to create a new NoVNCClient instance."""
-    return NoVNCClient(static_dir, logger)
+    async def proxy_websocket_messages(self, client: WebSocket, server: websockets.WebSocketClientProtocol):
+        client_task = asyncio.create_task(client.receive_text())
+        server_task = asyncio.create_task(server.recv())
+        done, pending = await asyncio.wait(
+            [client_task, server_task],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+
+        if client_task in done:
+            message = client_task.result()
+            await server.send(message)
+            await self.proxy_websocket_messages(client, server)
+        else:
+            message = server_task.result()
+            await client.send_text(message)
+            await self.proxy_websocket_messages(client, server)

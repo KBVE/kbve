@@ -23,7 +23,7 @@ x11vnc -storepasswd 12345 ~/.vnc/passwd
 x11vnc -display $DISPLAY -auth $XAUTHORITY -forever -usepw -create -noxdamage -verbose &
 
 # Start the noVNC server
-websockify -D --web=/usr/share/novnc/ 6080 localhost:5900 &
+websockify -D --web=/usr/share/novnc/ 0.0.0.0:6080 localhost:5900 &
 
 # Create the target directory if it doesn't already exist
 mkdir -p /app/templates/novnc

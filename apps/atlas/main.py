@@ -2,6 +2,8 @@ from fastapi import FastAPI, WebSocket,  HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
+import websockets
+import asyncio
 
 import uvicorn
 
@@ -32,14 +34,35 @@ kr_decorator = KRDecorator(app)
 
 CORSUtil(app)
 
-novnc_client = NoVNCClient()
-app.include_router(novnc_client.router)
-
 app.mount("/novnc", StaticFiles(directory="/app/templates/novnc", html=True), name="novnc")
 
+
 @app.websocket("/websockify")
-async def websocket_default_proxy(websocket: WebSocket):
-    await novnc_client.ws_vnc_proxy(websocket, "localhost", 6080)
+async def websocket_proxy(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        async with websockets.connect("ws://localhost:6080") as upstream:
+            while True:
+                recv_task = asyncio.create_task(websocket.receive_text())
+                send_task = asyncio.create_task(upstream.recv())
+                done, pending = await asyncio.wait(
+                    [recv_task, send_task],
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+
+                if recv_task in done:
+                    message = recv_task.result()
+                    await upstream.send(message)
+                elif send_task in done:
+                    message = send_task.result()
+                    await websocket.send_text(message)
+
+                for task in pending:
+                    task.cancel()
+
+    except Exception as e:
+        print(f"Error: {e}")
+        await websocket.close()
 
 @app.websocket("/")
 async def chatroom_ws(websocket: WebSocket):
