@@ -76,7 +76,11 @@ class RSSUtility:
         """
         formatted_feed = f"RSS Feed: {rss_feed.title}\n"
         for item in rss_feed.items:
-            formatted_feed += f"\nTitle: {item.title}\nLink: {
-                item.link}\nDescription: {item.description}\nPubDate: {item.pubDate}\n"
+            formatted_feed += (
+                f"\nTitle: {item.title}\n"
+                f"Link: {item.link}\n"
+                f"Description: {item.description}\n"
+                f"PubDate: {item.pubDate}\n"
+            )
             formatted_feed += "-" * 50 + "\n"  # Separator between items
         return formatted_feed

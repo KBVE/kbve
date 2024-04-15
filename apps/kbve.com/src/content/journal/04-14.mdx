@@ -1,0 +1,121 @@
+---
+title: 'April: 14'
+category: Daily
+date: 2024-04-13 12:00:00
+client: Self
+unsplash: 1659646339818-6a8511cabeb1
+img: https://images.unsplash.com/photo-1659646339818-6a8511cabeb1?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    14th of April.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Zed
+
+Just grab Zed on my m1 and trying out the IDE!
+So far it seems great as lite vs code alternative, but this is just the first hour of messing around with it.
+
+The Ui/Ux is already better than what I was expecting, I think it will replace my obsidian very soon.
+The speed is also on point, I can easily move around without having any major problems.
+
+`But dat vim lyfe. NeoZedVim doe.`
+
+Looks like Pyright on Zed is throwing some missing import errors.
+I might have to include some toml to help fix them.
+
+Here is what we added so far:
+
+```toml
+
+[tool.pyright]
+include = ["kbve_atlas"]
+exclude = ["**/tests", "**/__pycache__", "**/*.venv"]
+
+[tool.pyright.behavior]
+reportMissingImports = true
+reportMissingTypeStubs = true
+reportOptionalSubscript = true
+reportOptionalMemberAccess = true
+reportGeneralTypeIssues = true
+reportFunctionMemberAccess = true
+reportUnusedVariable = true
+strict = true
+typeCheckingMode = "strict"
+
+[tool.pyright.environment]
+pythonVersion = "3.12"
+venvPath = ".venv"
+venv = "myenv"
+stubPath = "typings"
+typingsPath = "typings"
+analyzeTypeshed = false
+autoSearchPaths = true
+```
+
+I will have to get back to fixing that once I get the websocket issue resolved.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### PieThorn
+
+The next update for Atlas would be to fix the proxy for noVNC and the FastAPI!
+We want to add some level of auth and protection, at least during the dev cycle before we get deeper into that mixture.
+
+My current plan is to just directly proxy the websocketify library within FastAPI, if that ends up being too much work, I suppose I could switch over to either node or rust to get the job done.
+
+But then I would not learn anything, where would the fun be in that then?
+
+The next question on my mind, before booting up another episode of toyko vice or smoking a quick, what would be the next couple goals within atlas.
+
+We have the discord app pitch to finish up, which is due within 2 weeks, getting this part of the code out of the way before going back to phaser, UGH.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### noVNC
+
+This bash command, from `entrypoint.sh`, is running the novnc:
+
+```bash
+
+websockify -D --web=/usr/share/novnc/ 6080 localhost:5900 &
+
+```
+
+What could do is just basically move that command out and basically replace it within FastAPI?
+
+We know that the novnc static files are stored in the `usr/share/novnc` and then we need to do the websockets after that.
+
+Lets throw up the 3rd episode of Tokyo Vice and see if we can bang this out within the next hour.
+
+Granted if this works out, as I see it in my mind, we could then setup a custom auth as a middleware to handle some of the security needs.
+
+Afterwards, it is just packaging up the docker file and doing some quick integration tests with our docker swarm and portainer.
+
+For the authentication, we could just use an API key style, yeah this will be cake walk once we get the reverse proxy resolved.
+
+</MDXJS>
+
+</MDXJS>
