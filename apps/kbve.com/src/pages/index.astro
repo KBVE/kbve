@@ -238,6 +238,17 @@ export const products = [
 ---
 
 <Layout title="Welcome to KBVE." description="Welcome to KBVE!">
+	<!-- 
+		A Landing Header Here? [NEED TO DO]
+	 -->
+
+	 <VE
+	 widget="landing:demo:herolanding" />
+
+	<!-- 
+		Core Menu with Login [DONE]
+	  -->
+
 	<div class="w-full h-full flex flex-col justify-between">
 		<div
 			class="h-full w-full justify-start rounded-tl flex flex-wrap gap-4 overflow-y-hidden content-start p-3 justify-center">
@@ -333,6 +344,7 @@ export const products = [
 		</section>
 	</div>
 
+	<!-- 
 	<hr class="w-48 h-1 mx-auto my-4 bg-gray-700 border-0 rounded md:my-10" />
 
 	<div class="bg-zinc-950">
@@ -350,5 +362,8 @@ export const products = [
 		/>
 	</span>
 
-	<VE widget="carousel:highflyer:wave" slider={waveslider} />
+	<div class="overflow-hidden">
+		<VE widget="carousel:highflyer:wave" slider={waveslider} />
+	</div>
+	 -->
 </Layout>

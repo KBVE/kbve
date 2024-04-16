@@ -1,0 +1,141 @@
+---
+title: 'April: 13'
+category: Daily
+date: 2024-04-13 12:00:00
+client: Self
+unsplash: 1712313221432-16ee2d6aba88
+img: https://images.unsplash.com/photo-1712313221432-16ee2d6aba88?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: | 
+    13th of Unlucky April.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Castle
+
+My cousin just recent opened up their new home!
+The cost for this house was close to a million for them to build but it is massive, interesting and feels like a little mansion.
+The project was called the `Castle of Edison` by the developer, because of how high the ceilings are and the amount of open space that the house presents.
+
+They were able to fit about 100 people in there and from the outside, you could not even tell there was anyone one.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### War
+
+The world seems to be just inches away from a global war. I do not have much to say about this feeling but it is looking closer towards becoming a dangerous eco-system across the different regions.
+
+My fear is that it will escalate here within the southern regions of the Americas, once the threat is in our backyards, then the FUD is going to sky rocket.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Ubuntu 24
+
+With the recent annoucement of Ubuntu 24 LTS beta, it will be time to slowly migrate everything from the QEMU/KVMs and Dockerfiles to GHAs/Gitlab actions.
+This will be a rolling update that we 
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### DockerFile
+
+The current plan is to split the Dockerfile for ATLAS to focus on building out the core functions, VNC, python 3.12, x11 , ect... then shift the setup to an `entrypoint.sh`.
+
+In case anyone runs into an error like this: `ERROR: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?`
+
+Open `Docker Desktop`, go to `Settings` > `Resources` > `WSL INTEGRATION` , then make sure that `Ubuntu` is selected. 
+
+Incase we run into an issue where `Poetry` cannot be found, we can set the path for it within the `Dockerfile`:
+
+```
+# Ensure the Poetry bin directory is in the PATH
+ENV PATH="/root/.local/bin:${PATH}"
+```
+
+The amount of hours that I have spent going through different options and debugs! Ugh!
+
+Next error on the dockerfile build:
+
+```
+
+2024-04-14 00:58:12 rm: cannot remove '/tmp/.X1-lock': No such file or directory
+2024-04-14 00:58:12 rm: cannot remove '/tmp/.X11-unix/X1': No such file or directory
+2024-04-14 00:58:12 rm: cannot remove '/root/.Xauthority': No such file or directory
+2024-04-14 00:58:12 xauth: (argv):1:  unable to open display ":1".
+2024-04-14 00:58:17 Enter VNC password: stty: 'standard input': Inappropriate ioctl for device
+2024-04-14 00:58:17 fgets: No such file or directory
+2024-04-14 00:58:17 stty: 'standard input': Inappropriate ioctl for device
+2024-04-14 00:58:17 x11vnc -usepw: could not find a password to use.
+2024-04-14 00:58:18 WebSocket server settings:
+2024-04-14 00:58:18   - Listen on :6080
+2024-04-14 00:58:18   - Web server. Web root: /usr/share/novnc
+2024-04-14 00:58:18   - No SSL/TLS support (no cert file)
+2024-04-14 00:58:18   - Backgrounding (daemon)
+2024-04-14 00:58:19 NOTE: You must install tkinter on Linux to use MouseInfo. Run the following: sudo apt-get install python3-tk python3-dev
+2024-04-14 00:58:19 Xlib.xauth: warning, no xauthority details available
+
+```
+
+Okay! Next error is debug 44, but we are making progress in the setup!
+We have the ubuntu container built out, fixed a formatting issue within RSS Utility and we were able to connect to the container on the noVNC web panel.
+
+For Debug 45, we are going to update the entrypoint script once more because of a black screen / display error.
+
+```
+
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    software-properties-common \
+    x11vnc \
+    dbus-x11 \
+    xvfb \
+    xauth \
+    tightvncserver \
+    novnc \
+    net-tools \
+    python3-tk \
+    python3-dev \
+    gnupg2 \
+    gnome-terminal \
+    gnome-session
+
+```
+
+We are also going to add `dbus-x11` package inside of the Dockerfile.
+
+Yay! We got the Docker application to run with display and the terminal window!
+Making progress! Now we want to update the FastAPI that is running within this contianer to proxy our noVNC.
+
+
+</MDXJS>
+
+
+</MDXJS>
