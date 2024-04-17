@@ -8,7 +8,9 @@ import RandomCharacters from './bgwords';
 	<div
 		class="w-full h-[75vh] flex -translate-y-6 justify-center items-center overflow-hidden relative bg-cover bg-blend-multiply bg-gray-700 bg-opacity-80"
 		style={{
-			backgroundImage: `url(https://images.unsplash.com/photo-1561344640-2453889cde5b?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)`,
+			backgroundImage: `url(https://images.unsplash.com/photo-1
+			
+			561344640-2453889cde5b?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)`,
 		}}>
 		<RandomCharacters client:only="react" />
 		<div
@@ -67,5 +69,10 @@ import RandomCharacters from './bgwords';
 		animation: fadeIn 1s ease-in forwards;
 	}
 
+	.LanderHero .HeroTransition-enter,
+	.LanderHero .HeroTransition-exit {
+		transition:
+			transform 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+			opacity 1.2s ease-out;
+	}
 </style>
-
