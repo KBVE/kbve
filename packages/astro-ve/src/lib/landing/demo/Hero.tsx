@@ -87,10 +87,10 @@ const Hero: React.FC<HeroProps> = ({ components }) => {
           <Component />
         </motion.div>
       </AnimatePresence>
-      <button className={clsx('absolute top-1/2 left-5 transform -translate-y-1/2 z-20', 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded')}
-        onClick={() => paginate(-1)}>Previous</button>
-      <button className={clsx('absolute top-1/2 right-5 transform -translate-y-1/2 z-20', 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded')}
-        onClick={() => paginate(1)}>Next</button>
+      <button className={clsx('absolute top-1/2 left-5 transform -translate-y-1/2 z-20', 'bg-cyan-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded')}
+        onClick={() => paginate(-1)}>←</button>
+      <button className={clsx('absolute top-1/2 right-5 transform -translate-y-1/2 z-20', 'bg-cyan-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded')}
+        onClick={() => paginate(1)}>→</button>
     </div>
   );
 }
