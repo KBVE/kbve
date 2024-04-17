@@ -81,18 +81,18 @@ install_dotnet() {
 # Functions to install and prepare Poetry
 install_python_and_poetry() {
     local session_name="python-poetry-installation"
-    local install_python_command="pyenv install 3.11.0 && pyenv global 3.11.0"
+    local install_python_command="pyenv install 3.12.0 && pyenv global 3.12.0"
     local install_poetry_command="curl -sSL https://install.python-poetry.org | python3 -"
 
     # Check if the tmux session exists
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
-        echo "Creating a new tmux session named '$session_name' for Python 3.11 and Poetry installation."
+        echo "Creating a new tmux session named '$session_name' for Python 3.12 and Poetry installation."
         tmux new-session -s "$session_name" -d
-        # Send the Python 3.11 installation command to the session
+        # Send the Python 3.12 installation command to the session
         tmux send-keys -t "$session_name" "$install_python_command" C-m
         # Send the Poetry installation command to the session
         tmux send-keys -t "$session_name" "$install_poetry_command" C-m
-        echo "Python 3.11 and Poetry installation commands have been sent to the tmux session '$session_name'."
+        echo "Python 3.12 and Poetry installation commands have been sent to the tmux session '$session_name'."
     else
         echo "Tmux session '$session_name' already exists."
     fi
