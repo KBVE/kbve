@@ -1,0 +1,116 @@
+---
+title: 'April: 11'
+category: Daily
+date: 2024-04-11 12:00:00
+client: Self
+unsplash: 1538439907460-1596cafd4eff
+img: https://images.unsplash.com/photo-1538439907460-1596cafd4eff?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: | 
+    The season was filled with grey clouds, a hint of cold air with a dash of darkness.
+    I have this urge to find some red tea and a chicken sandwich, this itch must be resolved.
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+
+<MDXJS>
+
+## Notes
+
+Cooking stream? When and Where?
+
+</MDXJS>
+
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Logging
+
+For the Atlas program, we will use the built in logging system that comes with `uvicorn`!
+To do this, we just import the logging and grab the `uvicorn` logger, like this below:
+
+```python
+
+import logging
+logger = logging.getLogger("uvicorn")
+
+```
+
+Then we have three functions that we can use:
+
+```python
+
+    logger.info("[info]")
+    logger.warning("[warn]")
+    logger.error("[err]")
+
+```
+
+In the future we would want to integrate a way to move specific warnings out of the logger and into a metric system.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Atlas Template
+
+We have two options for the template system, i.e. loading static files from `template`.
+However, I suggest we opt for simplicity on the backend by returning a generic HTML template and dynamically loading the JavaScript.
+
+
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### KBVE Front Page
+
+Going to take a quick break from the python realm and see if I can mess around with the front page and its code for a bit.
+I noticed that the wavey carousel seems to break the viewpoint and cause the x to over extend on the mobile phone, creating this weird white space bug!
+Oh the joys of CSS and responsive design, another adventure down the meme design mindduck, let me get started.
+
+To get the dev kbve website up and running on port 4321, the default astro port, we run this command:
+
+`./kbve.sh -nx kbve.com:dev`.
+
+I am thinking the fix for this would be to wrap the VE widget, like below:
+
+```js
+
+	<div class="">
+		<VE widget="carousel:highflyer:wave" slider={waveslider} />
+	</div>
+
+```
+
+Then inside of the `class` , we slap around some basic tailwindcss to help us account for the various situations, including the overflows.
+
+Actually I am thinking we could just scratch both of those components, the wave and the scroll effect and maybe start with a fresh full screen landing page.
+
+Now the question is what would we make this page about?
+Here is what I am thinking as the base so far:
+
+```html
+
+	<div class="w-full h-screen">
+		<div>Hi</div>
+	</div>
+
+```
+
+We start with a `w-full` and `h-screen` to at least make sure the landing page takes the whole screen.
+
+
+</MDXJS>
+
+</MDXJS>
