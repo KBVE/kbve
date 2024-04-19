@@ -50,7 +50,7 @@ jobs:
         if: github.repository == 'kbve/kbve'
         outputs:
             herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
-            kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
+            kbve: ${{ steps.delta.outputs.kbve_any_changed }}
             rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
             discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
             atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
