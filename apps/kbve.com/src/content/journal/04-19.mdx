@@ -83,6 +83,20 @@ Hmm, maybe I should restart the docker build.
 
 Looks like the `v01d` dockerfile builds without any issues on the local end, going to prepare the official build next.
 
+When looking at the github actions, there are two options in figuring out if files have changed.
+It can be either : `kbve_all_changed_files` or `kbve_any_changed`, in this case, we will do the `_any_changed` for the file paths.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Docker
+
+The main `kbve` dockerfile seems to fail at building, I am going to traceback some issues that might be the cause?
+I will start with making sure the `pnpm-lock.yml` for the whole repo is up-to-Date, as I noticed that it was still under an older version. 
+
 </MDXJS>
 
 </MDXJS>
