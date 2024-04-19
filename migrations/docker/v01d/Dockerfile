@@ -65,3 +65,13 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV CUDA_HOME=/usr/local/cuda-12.4 \
     LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH} \
     PATH=${CUDA_HOME}/bin:${PATH}
+
+### Base User.
+#RUN useradd -m -s /bin/bash kbve
+#USER kbve
+#WORKDIR /home/kbve
+
+### HealthCheck
+### Remember localhost:port in some cases.
+#HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+#  CMD curl -f http://localhost/ || exit 1
