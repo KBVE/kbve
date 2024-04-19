@@ -13,19 +13,19 @@ RUN apt-get update && apt-get install -y \
     apt-utils
 
 ### Download and setup the CUDA repository pin
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin && \
-    mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
+# RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin && \
+#     mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
 
-### Download and install the CUDA local repository package
-RUN wget https://developer.download.nvidia.com/compute/cuda/12.4.1/local_installers/cuda-repo-ubuntu2204-12-4-local_12.4.1-550.54.15-1_amd64.deb && \
-    dpkg -i cuda-repo-ubuntu2204-12-4-local_12.4.1-550.54.15-1_amd64.deb
+# ### Download and install the CUDA local repository package
+# RUN wget https://developer.download.nvidia.com/compute/cuda/12.4.1/local_installers/cuda-repo-ubuntu2204-12-4-local_12.4.1-550.54.15-1_amd64.deb && \
+#     dpkg -i cuda-repo-ubuntu2204-12-4-local_12.4.1-550.54.15-1_amd64.deb
 
-### Copy the keyring file to the appropriate directory
-RUN cp /var/cuda-repo-ubuntu2204-12-4-local/cuda-*-keyring.gpg /usr/share/keyrings/
+# ### Copy the keyring file to the appropriate directory
+# RUN cp /var/cuda-repo-ubuntu2204-12-4-local/cuda-*-keyring.gpg /usr/share/keyrings/
 
-### Update package lists and install CUDA toolkit
-RUN apt-get update && \
-    apt-get -y install cuda-toolkit-12-4
+# ### Update package lists and install CUDA toolkit
+# RUN apt-get update && \
+#     apt-get -y install cuda-toolkit-12-4
 
 ### Install other necessary software
 RUN apt-get install -y \
@@ -62,9 +62,9 @@ ENV HOME=/root \
 ENV PATH="/root/.local/bin:${PATH}"
 
 ### Set CUDA-related environment variables
-ENV CUDA_HOME=/usr/local/cuda-12.4 \
-    LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH} \
-    PATH=${CUDA_HOME}/bin:${PATH}
+# ENV CUDA_HOME=/usr/local/cuda-12.4 \
+#     LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH} \
+#     PATH=${CUDA_HOME}/bin:${PATH}
 
 # Possible CUDA Issue
 #ENV CUDA_HOME=/usr/local/cuda-12.4 \
