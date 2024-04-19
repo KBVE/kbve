@@ -10,3 +10,101 @@ description: |
 tags:
     - daily
 ---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+
+<MDXJS>
+
+## Notes
+
+---
+
+## Tasks
+
+
+- [x] Upgrade Coolify to v3.12.31.
+- [x] R&D for automated RAW image conversion.
+- [x] Rollback Astro upgrade because of errors.
+- [x] Pay off any additional CC debt(s) for the month.
+- [x] Leverage 100 shares of $SPY again for the week.
+- [x] AppWrite -> Register -> https://github.com/KBVE/kbve.com/issues/122
+- [x] Scope out local tailor for pants.
+- [x] Ant Spray for the house in India.
+
+
+---
+
+## Quote
+
+> Many men go fishing all of their lives without knowing that it is not fish they are after.
+> — <cite>Henry David Thoreau</cite>
+
+
+</MDXJS>
+
+
+<MDXJS>
+
+<MDXJS>
+### 2024
+
+<MDXJS>
+
+#### v01d
+
+The current `v01d` is misisng the nvidia and cuda drivers, so let me start fixing that up.
+We want to install the cuda drivers for nvida, so here is what we can do from the dockerfile aspect.
+
+```
+E: Conflicting values set for option Signed-By regarding source https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /: /usr/share/keyrings/cuda-archive-keyring.gpg != 
+E: The list of sources could not be read.
+
+```
+
+Okay, going to update the dockerfile and remove the original cuda keys.
+I went back to the docs and here is what we got:
+
+```shell
+
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
+sudo mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
+wget https://developer.download.nvidia.com/compute/cuda/12.4.1/local_installers/cuda-repo-ubuntu2204-12-4-local_12.4.1-550.54.15-1_amd64.deb
+sudo dpkg -i cuda-repo-ubuntu2204-12-4-local_12.4.1-550.54.15-1_amd64.deb
+sudo cp /var/cuda-repo-ubuntu2204-12-4-local/cuda-*-keyring.gpg /usr/share/keyrings/
+sudo apt-get update
+sudo apt-get -y install cuda-toolkit-12-4
+
+```
+
+When the docker shell is frozen, you know you been too far! xD
+It seems to freeze up on the libllvm15 library, maybe that might be an error from the amount of data that we are pulling?
+Hmm, maybe I should restart the docker build.
+
+Looks like the `v01d` dockerfile builds without any issues on the local end, going to prepare the official build next.
+
+</MDXJS>
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+### 2023
+
+<MDXJS>
+
+#### India
+
+- Visiting the inner city this morning and it was wild! The food smells amazing but the crowd is mind numbing and the traffic is insane, damn I almost got hit by a tuk tuk / rickshaw at least 3 times.
+- Currently trying to fix the issues with SendGrid and Ezoic. It seems that Ezoic's DNS is replacing the SendGrid CNAME by dropping it. When trying to place the CNAME inside of the Ezoic DNS panel, it seems to say that it can not proxy it. I rasied a community ticket on their forum, hopefully they can get it resolved but if they can not then we might use a 3rd party domain.
+- Upgrading Coolify to v3.12.31. Before upgrading, I am going to execute an AWX backup stack. This is another test case for a full scale backup, including the SQL database but excluding snapshots.
+- Integration of Portainer and Coolify still has some issues, including volume and network management. I will rise an issue after doing more R&D between both applications.
+- Starting the AppWrite Register for Astro.
+
+</MDXJS>
+
+</MDXJS>
+
+</MDXJS>
