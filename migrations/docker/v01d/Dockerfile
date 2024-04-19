@@ -66,6 +66,18 @@ ENV CUDA_HOME=/usr/local/cuda-12.4 \
     LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH} \
     PATH=${CUDA_HOME}/bin:${PATH}
 
+# Possible CUDA Issue
+#ENV CUDA_HOME=/usr/local/cuda-12.4 \
+#    LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH} \
+#    PATH="/root/.local/bin:/usr/local/cuda-12.4/bin:${PATH}"
+
+
+# Entry Point for Later
+#COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+#RUN chmod +x /usr/local/bin/entrypoint.sh
+#ENTRYPOINT ["entrypoint.sh"]
+
+
 ### Base User.
 #RUN useradd -m -s /bin/bash kbve
 #USER kbve
@@ -75,3 +87,6 @@ ENV CUDA_HOME=/usr/local/cuda-12.4 \
 ### Remember localhost:port in some cases.
 #HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 #  CMD curl -f http://localhost/ || exit 1
+
+
+#
