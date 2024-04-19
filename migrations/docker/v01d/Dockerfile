@@ -1,12 +1,34 @@
 ### Use Ubuntu 22.04 LTS as the base image
 FROM ubuntu:22.04
+
 ### Interactive Shell must be disabled.
 ENV DEBIAN_FRONTEND=noninteractive
-### Apt-Get Install
+
+### Install necessary packages for handling repositories and packages
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
+    gnupg2 \
     software-properties-common \
+    apt-utils
+
+### Download and setup the CUDA repository pin
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin && \
+    mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
+
+### Download and install the CUDA local repository package
+RUN wget https://developer.download.nvidia.com/compute/cuda/12.4.1/local_installers/cuda-repo-ubuntu2204-12-4-local_12.4.1-550.54.15-1_amd64.deb && \
+    dpkg -i cuda-repo-ubuntu2204-12-4-local_12.4.1-550.54.15-1_amd64.deb
+
+### Copy the keyring file to the appropriate directory
+RUN cp /var/cuda-repo-ubuntu2204-12-4-local/cuda-*-keyring.gpg /usr/share/keyrings/
+
+### Update package lists and install CUDA toolkit
+RUN apt-get update && \
+    apt-get -y install cuda-toolkit-12-4
+
+### Install other necessary software
+RUN apt-get install -y \
     x11vnc \
     dbus-x11 \
     xvfb \
@@ -16,7 +38,6 @@ RUN apt-get update && apt-get install -y \
     net-tools \
     python3-tk \
     python3-dev \
-    gnupg2 \
     gnome-terminal \
     gnome-session
 
@@ -26,14 +47,21 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get install -y python3.12 python3.12-venv python3.12-distutils python3-pip && \
     curl -sSL https://install.python-poetry.org | python3.12 -
 
+
+# Updating NodeJS to v21.
+RUN curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && \
+    apt-get install -y nodejs
+
 # Environment variables to configure
 ENV HOME=/root \
     DISPLAY=:1 \
-    XAUTHORITY=$HOME/.Xauthority
+    XAUTHORITY=$HOME/.Xauthority \
+    PATH="/root/.local/bin:${PATH}"
 
 # Ensure the Poetry bin directory is in the PATH
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Updating NodeJS to v21.
-RUN curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash - && \
-    sudo apt-get install -y nodejs
+### Set CUDA-related environment variables
+ENV CUDA_HOME=/usr/local/cuda-12.4 \
+    LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH} \
+    PATH=${CUDA_HOME}/bin:${PATH}

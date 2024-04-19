@@ -3,135 +3,133 @@ name: CI - Dev
 on:
     push:
         branches:
-                - "dev*"
+            - 'dev*'
 
 jobs:
-        handle:
-            name: "Dev to Alpha"
-            runs-on: ubuntu-latest
-            steps:
-                -   name: Checkout
-                    uses: actions/checkout@v4
+    handle:
+        name: 'Dev to Alpha'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-                -   name: Auto-Pull
-                    id: open-pr
-                    uses: diillson/auto-pull-request@v1.0.1
-                    with:
-                        destination_branch: "alpha"
-                        pr_title: "Preparing Alpha Branch"
-                        pr_body: |
-                                            *An automated PR for Alpha*
-                                            This PR is for the alpha branch
-                        pr_label: "auto-pr"
+            - name: Auto-Pull
+              id: open-pr
+              uses: diillson/auto-pull-request@v1.0.1
+              with:
+                  destination_branch: 'alpha'
+                  pr_title: 'Preparing Alpha Branch'
+                  pr_body: |
+                      *An automated PR for Alpha*
+                      This PR is for the alpha branch
+                  pr_label: 'auto-pr'
 
-                -   name: output-url
-                    run: echo ${{steps.open-pr.outputs.pr_url}}
-                -   name: output-number
-                    run: echo ${{steps.open-pr.outputs.pr_number}}
-                -   name: output-created
-                    run: echo ${{steps.open-pr.outputs.pr_created}}
-                -   name: output-has-changed-files
-                    run: echo ${{steps.open-pr.outputs.has_changed_files}}
+            - name: output-url
+              run: echo ${{steps.open-pr.outputs.pr_url}}
+            - name: output-number
+              run: echo ${{steps.open-pr.outputs.pr_number}}
+            - name: output-created
+              run: echo ${{steps.open-pr.outputs.pr_created}}
+            - name: output-has-changed-files
+              run: echo ${{steps.open-pr.outputs.has_changed_files}}
 
-        alter:
-            name: "Dev Deployment Checks"
-            runs-on: ubuntu-latest
-            if: github.repository == 'kbve/kbve'
-            outputs:
-                herbmail:  ${{ steps.delta.outputs.herbmail_any_changed  }}
-                kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
-                rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
-                discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
-                atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
-                api: ${{ steps.delta.outputs.api_any_changed  }}
-                proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
-                saber: ${{ steps.delta.outputs.saber_any_changed  }}
-                rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
+    alter:
+        name: 'Dev Deployment Checks'
+        runs-on: ubuntu-latest
+        if: github.repository == 'kbve/kbve'
+        outputs:
+            herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
+            kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
+            rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
+            discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
+            atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
+            api: ${{ steps.delta.outputs.api_any_changed  }}
+            proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
+            saber: ${{ steps.delta.outputs.saber_any_changed  }}
+            rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
 
-            steps:
-              -   name: Checkout the repository using git
-                  uses: actions/checkout@v4
-                  with:
-                      fetch-depth: 1
+        steps:
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
 
-              -   name: File Changes
-                  id: delta
-                  uses: tj-actions/changed-files@v39
-                  with:
-                    files_yaml: |
-                        herbmail:
-                            - 'apps/herbmail.com/**'
-                        kbve:
-                            - 'apps/kbve.com/**'
-                        rareicon:
-                            - 'apps/rareicon.com/**'
-                        discordsh:
-                            - 'apps/discord.sh/**'
-                        atlas:
-                            - 'apps/atlas/kbve_atlas/**'
-                        api:
-                            - 'apps/api/**'
-                        proxy:
-                            - 'apps/proxy/**'
-                        saber:
-                            - 'apps/saber/**'
-                        rustapiprofile:
-                            - 'apps/rust_api_profile/**' 
+            - name: File Changes
+              id: delta
+              uses: tj-actions/changed-files@v39
+              with:
+                  files_yaml: |
+                      herbmail:
+                          - 'apps/herbmail.com/**'
+                      kbve:
+                          - 'apps/kbve.com/**'
+                      rareicon:
+                          - 'apps/rareicon.com/**'
+                      discordsh:
+                          - 'apps/discord.sh/**'
+                      atlas:
+                          - 'apps/atlas/kbve_atlas/**'
+                      api:
+                          - 'apps/api/**'
+                      proxy:
+                          - 'apps/proxy/**'
+                      saber:
+                          - 'apps/saber/**'
+                      rustapiprofile:
+                          - 'apps/rust_api_profile/**'
 
+    deploy:
+        needs: alter
+        name: 'Process Dev'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
 
-        deploy:
-            needs: alter
-            name: "Process Dev"
-            runs-on: ubuntu-latest
-            steps:
-              -   name: Checkout the repository using git
-                  uses: actions/checkout@v4
+            - name: Setup Node v18
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18
 
-              -   name: Setup Node v18
-                  uses: actions/setup-node@v3
-                  with:
-                      node-version: 18
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+                  run_install: false
 
-              -   name: Setup pnpm
-                  uses: pnpm/action-setup@v2
-                  with:
-                      version: 8
-                      run_install: false
+            #   @[CACHE]-> [PNPM] -> [START]
 
-              #   @[CACHE]-> [PNPM] -> [START]
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-              -   name: Get pnpm Store
-                  shell: bash
-                  run: |
-                      echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+            - name: Setup pnpm Cache
+              uses: actions/cache@v3
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
 
-              -   name: Setup pnpm Cache
-                  uses: actions/cache@v3
-                  with:
-                      path: ${{ env.STORE_PATH }}
-                      key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                      restore-keys: |
-                          ${{ runner.os }}-pnpm-store-
+            #   @[CACHE] -> [PNPM] ->  [END]
 
-              #   @[CACHE] -> [PNPM] ->  [END]
+            - name: Install pnpm dependencies
+              run: pnpm install
 
-              -   name: Install pnpm dependencies
-                  run: pnpm install
+            #   @[REPORT] -> [START]
 
+            - name: Generate NX Report
+              shell: bash
+              run: |
+                  pnpm nx report
 
-              #   @[REPORT] -> [START]
+            #   @[REPORT] -> [END]
 
-              -   name: Generate NX Report
-                  shell: bash
-                  run: |
-                      pnpm nx report
-
-              #   @[REPORT] -> [END]
-
-            #   #   [SABER] -> [UNITY] -> [START]
-            #   -   name: Saber Deployment
-            #       if: needs.alter.outputs.saber == 'true'
-            #       shell:  bash
-            #       run: |
-            #             echo "Deploying Saber..."
-            #   #   [SABER] -> [UNITY] -> [END]
+        #   #   [SABER] -> [UNITY] -> [START]
+        #   -   name: Saber Deployment
+        #       if: needs.alter.outputs.saber == 'true'
+        #       shell:  bash
+        #       run: |
+        #             echo "Deploying Saber..."
+        #   #   [SABER] -> [UNITY] -> [END]
