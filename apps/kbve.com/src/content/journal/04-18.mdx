@@ -1,0 +1,134 @@
+---
+title: 'April: 18'
+category: Daily
+date: 2024-04-18 12:00:00
+client: Self
+unsplash: 1679597454485-d1d04f88b78a
+img: https://images.unsplash.com/photo-1679597454485-d1d04f88b78a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+
+tags:
+    - daily
+---
+
+import MDXJS from '../../components/MDXJS.astro';
+
+<MDXJS>
+
+## Notes
+
+We 
+
+---
+
+## Quote
+
+> Love does not consist of gazing at each other, but in looking together in the same direction.
+> — <cite>Antoine de Saint-Exupéry</cite>
+
+---
+
+## Tasks
+
+-   [x] Finish yearly medical check.
+-   [x] Check prices on electric tuk tuk / rickshaws / ricksha.
+-   [x] Scope out local tailor for pants.
+-   [x] Ant Spray for the house in India.
+
+</MDXJS>
+
+<MDXJS>
+
+### 2024
+
+<MDXJS>
+
+#### Homepage
+
+I am getting a bit more comfortable with the framer motion and how the animations would work!
+But damnm does setting up the whole homepage feel like a pain, getting the perfect website for KBVE will be always a passion project.
+
+</MDXJS>
+
+---
+
+<MDXJS>
+
+#### Python
+
+The split in the dockerfile, we will put the v01d configuration within the `migrations/docker/v01d/` folder and should use the github actions to build a docker image for `v01d`.
+After building that Image, we can go back to the python build and pull it as a base?
+
+Under the `Dockerfile` for the `v01d`, we will use this as the base template:
+
+```docker
+
+### Use Ubuntu 22.04 LTS as the base image
+FROM ubuntu:22.04
+### Interactive Shell must be disabled.
+ENV DEBIAN_FRONTEND=noninteractive
+### Apt-Get Install
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    software-properties-common \
+    x11vnc \
+    dbus-x11 \
+    xvfb \
+    xauth \
+    tightvncserver \
+    novnc \
+    net-tools \
+    python3-tk \
+    python3-dev \
+    gnupg2 \
+    gnome-terminal \
+    gnome-session
+
+# Install Python and Poetry using deadsnakes PPA
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y python3.12 python3.12-venv python3.12-distutils python3-pip && \
+    curl -sSL https://install.python-poetry.org | python3.12 -
+
+# Environment variables to configure
+ENV HOME=/root \
+    DISPLAY=:1 \
+    XAUTHORITY=$HOME/.Xauthority
+
+# Ensure the Poetry bin directory is in the PATH
+ENV PATH="/root/.local/bin:${PATH}"
+
+# Updating NodeJS to v21.
+RUN curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash - && \
+    sudo apt-get install -y nodejs
+
+```
+
+This should give us the noVnc, node 21 and python 3.12!
+
+I should then update the `main` action to build this image and upload it to the dockerhub.
+
+
+</MDXJS>
+
+</MDXJS>
+
+<MDXJS>
+
+### 2023
+
+<MDXJS>
+
+#### India
+
+@h0lybyte
+
+-   Went to the hospital for my yearly check up and it was an interesting system. So I pay around 1000R and get a "full body" checkup, from almost every major medical branch. It was a bit time consuming, about less than 2 hours in total but it was definitely better than having to schedule a bunch of different doctors. Furthermore, since they all work in the same hospital, they could give secondary reviews and be able to cross-pin among different areas of a concern. I will try to make a quick reference about this for anyone that might want to do medical tourism within Gujarat, India.
+
+-   After the hopsital trip, I did a casual photo shoot at Sonia Studio and it was magical. First time experiencing the depth that a photographer goes to get the best shot of a person, besides just the angles, lights and timing. Will I ever want to do modeling again in the future? Nah. Was it fun? Yup and for many other reasons as well.
+
+-   Now its about 1pm and I decided to meet up with a local and chill at his work. He basically runs a safety & maintainece company for a buddy of his
+
+</MDXJS>
+
+</MDXJS>
