@@ -86,6 +86,17 @@ Looks like the `v01d` dockerfile builds without any issues on the local end, goi
 When looking at the github actions, there are two options in figuring out if files have changed.
 It can be either : `kbve_all_changed_files` or `kbve_any_changed`, in this case, we will do the `_any_changed` for the file paths.
 
+3:47pm - It seems we ran out of space during the docker build for this image, hmm maybe I can go back to the drawing board and figure out another way to handle this.
+
+The `Nvdia` image comes with three types, `base`, `runtime`, and `devel`.
+
+The other option might be to use an exisiting image, this [Fooocus-API](https://github.com/mrhan1993/Fooocus-API) seems to fit perfectly into this project.
+
+There are three paths that I see, the first would be having the `v01d` use the nvidia-based image for its own docker container and the second would be to extend out the foocus api dockerfile.
+
+The third path would be to just drop `cuda` support within the base image and shift it over to a shell file that would install the needed drivers, outside of the base image.
+
+
 </MDXJS>
 
 ---
@@ -98,6 +109,10 @@ The main `kbve` dockerfile seems to fail at building, I am going to traceback so
 I will start with making sure the `pnpm-lock.yml` for the whole repo is up-to-Date, as I noticed that it was still under an older version.
 
 Hmm, that was the error, so we can move foward with our `v01d` build.
+
+For some reason the pnpm lock is still becoming a pain point, maybe I need to look back at the node versions that are split amoung the different docker files.
+
+Preparing everything to node v20 or node v21 might b
 
 </MDXJS>
 
