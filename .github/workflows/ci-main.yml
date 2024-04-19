@@ -3,12 +3,11 @@ name: CI - Main
 on:
     workflow_dispatch:
     push:
-         branches:
-             - main
-
+        branches:
+            - main
 
 concurrency:
-    group: "pages"
+    group: 'pages'
     cancel-in-progress: true
 
 env:
@@ -21,7 +20,7 @@ jobs:
         name: File Alterations
         if: github.repository == 'kbve/kbve'
         outputs:
-            herbmail:  ${{ steps.delta.outputs.herbmail_any_changed  }}
+            herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
             kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
             rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
             discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
@@ -29,246 +28,236 @@ jobs:
             api: ${{ steps.delta.outputs.api_any_changed  }}
             proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
             saber: ${{ steps.delta.outputs.saber_any_changed  }}
-            rustprofile:  ${{ steps.delta.outputs.rustprofile_any_changed  }}
-            erust:  ${{ steps.delta.outputs.erust_any_changed  }}
+            rustprofile: ${{ steps.delta.outputs.rustprofile_any_changed  }}
+            erust: ${{ steps.delta.outputs.erust_any_changed  }}
             holy: ${{ steps.delta.outputs.holy_any_changed  }}
             kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
             jedi: ${{ steps.delta.outputs.jedi_any_changed }}
             expressdiscord: ${{ steps.delta.outputs.expressdiscord_any_changed }}
             expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
+            dockervoid: ${{ steps.delta.outputs.dockervoid_any_changed }}
 
         steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
-                with:
-                    fetch-depth: 1
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
 
-            -   name: File Changes
-                id: delta
-                uses: tj-actions/changed-files@v39
-                with:
+            - name: File Changes
+              id: delta
+              uses: tj-actions/changed-files@v39
+              with:
                   files_yaml: |
-                    herbmail:
-                        - 'apps/herbmail.com/**'
-                    kbve:
-                        - 'apps/kbve.com/**'
-                    rareicon:
-                        - 'apps/rareicon.com/**'
-                    discordsh:
-                        - 'apps/discord.sh/**'
-                    atlas:
-                        - 'apps/atlas/kbve_atlas/**'
-                    api:
-                        - 'apps/api/**'
-                    proxy:
-                        - 'apps/proxy/**'
-                    saber:
-                        - 'apps/saber/**'
-                    rustprofile:
-                        - 'apps/rust_api_profile/**'
-                    erust:
-                        - 'packages/erust/src/**'
-                    holy:
-                        - 'packages/holy/src/**'
-                    kbvecrate:
-                        - 'packages/kbve/src/**'
-                    jedi:
-                        - 'packages/jedi/src/**'
-                    expressdiscord:
-                        - 'apps/express-colyseus-discord/**'
-                    expolcagents:
-                        - 'apps/expo-lcagents/src/**'
-                    
-
+                      herbmail:
+                          - 'apps/herbmail.com/**'
+                      kbve:
+                          - 'apps/kbve.com/**'
+                      rareicon:
+                          - 'apps/rareicon.com/**'
+                      discordsh:
+                          - 'apps/discord.sh/**'
+                      atlas:
+                          - 'apps/atlas/kbve_atlas/**'
+                      api:
+                          - 'apps/api/**'
+                      proxy:
+                          - 'apps/proxy/**'
+                      saber:
+                          - 'apps/saber/**'
+                      rustprofile:
+                          - 'apps/rust_api_profile/**'
+                      erust:
+                          - 'packages/erust/src/**'
+                      holy:
+                          - 'packages/holy/src/**'
+                      kbvecrate:
+                          - 'packages/kbve/src/**'
+                      jedi:
+                          - 'packages/jedi/src/**'
+                      expressdiscord:
+                          - 'apps/express-colyseus-discord/**'
+                      expolcagents:
+                          - 'apps/expo-lcagents/src/**'
+                      dockervoid:
+                          - 'migrations/docker/v01d/**'
 
     debug:
-        needs: ["alter"]
+        needs: ['alter']
         name: Debug Pipeline
         runs-on: ubuntu-latest
         steps:
-            -   name: Checkout the repository
-                uses: actions/checkout@v4
+            - name: Checkout the repository
+              uses: actions/checkout@v4
 
-            
-
+              
 
     deploy:
-        needs: ["alter"]
+        needs: ['alter']
         name: Deployment
         runs-on: ubuntu-latest
         steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
 
-            -   name: Setup Node v18
-                uses: actions/setup-node@v3
-                with:
-                    node-version: 18
+            - name: Setup Node v18
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18
 
-            -   name: Setup pnpm
-                uses: pnpm/action-setup@v2
-                with:
-                    version: 8
-                    run_install: false
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+                  run_install: false
             #   @[CACHE]->[START]
-            -   name: Get pnpm Store
-                shell: bash
-                run: |
-                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            -   name: Setup pnpm Cache
-                uses: actions/cache@v3
-                with:
-                    path: ${{ env.STORE_PATH }}
-                    key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                    restore-keys: |
-                        ${{ runner.os }}-pnpm-store-
+            - name: Setup pnpm Cache
+              uses: actions/cache@v3
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
 
             #   @[CACHE]->[END]
 
-            
-            -   name: Install pnpm dependencies
-                run: pnpm install
+            - name: Install pnpm dependencies
+              run: pnpm install
 
-            
             #   @[NX] -> [REPORT] -> [START]
-            
-            -   name: KBVE Shell - Generate Report
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-outpostgraph'
-                    create_pull_request: true
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
-                    pull_request_title: 'outpost-nx-report'
-                    pull_request_body: 'Generating NX Report and saving it as a MDX Report'
+
+            - name: KBVE Shell - Generate Report
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-outpostgraph'
+                  create_pull_request: true
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  pull_request_title: 'outpost-nx-report'
+                  pull_request_body: 'Generating NX Report and saving it as a MDX Report'
 
             #   @[NX] -> [REPORT] -> [END]
 
             #   [KBVE.com]
 
-            -   name: KBVE.com -> Build
-                shell: bash
-                run: |
-                    pnpm nx build kbve.com
+            - name: KBVE.com -> Build
+              shell: bash
+              run: |
+                  pnpm nx build kbve.com
 
-            -   name: KBVE.com -> Deployment
-                uses: dobbelina/copy_file_to_another_repo_action@main
-                env:
-                    API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-                with:
-                    source_file: 'dist/apps/kbve.com/'
-                    destination_repo: 'kbve/kbve.com'
-                    destination_folder: '/docs'
-                    destination_branch: 'dev'
-                    destination_branch_create: 'patch-kbve-deploy'
-                    user_email: '5599058+h0lybyte@users.noreply.github.com'
-                    user_name: 'h0lybyte'
-                    commit_message: ${{ github.event.head_commit.message }}
-                    rsync_option: "-avrh --delete"
-
-
+            - name: KBVE.com -> Deployment
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+              with:
+                  source_file: 'dist/apps/kbve.com/'
+                  destination_repo: 'kbve/kbve.com'
+                  destination_folder: '/docs'
+                  destination_branch: 'dev'
+                  destination_branch_create: 'patch-kbve-deploy'
+                  user_email: '5599058+h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: ${{ github.event.head_commit.message }}
+                  rsync_option: '-avrh --delete'
 
             #   [HerbMail]
 
-            -   name: HerbMail -> Build
-                if: needs.alter.outputs.herbmail == 'true'
-                shell: bash
-                run: |
-                    pnpm nx build herbmail.com
+            - name: HerbMail -> Build
+              if: needs.alter.outputs.herbmail == 'true'
+              shell: bash
+              run: |
+                  pnpm nx build herbmail.com
 
-            
-
-            -   name: HerbMail -> Deployment
-                if: needs.alter.outputs.herbmail == 'true'
-                uses: dobbelina/copy_file_to_another_repo_action@main
-                env:
-                    API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-                with:
-                    source_file: 'dist/apps/herbmail.com/'
-                    destination_repo: 'kbve/herbmail.com'
-                    destination_folder: '/docs'
-                    destination_branch: 'main'
-                    destination_branch_create: 'patch-herbmail-deploy'
-                    user_email: '5599058+h0lybyte@users.noreply.github.com'
-                    user_name: 'h0lybyte'
-                    commit_message: ${{ github.event.head_commit.message }}
-                    rsync_option: "-avrh --delete"
-
-
-
+            - name: HerbMail -> Deployment
+              if: needs.alter.outputs.herbmail == 'true'
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+              with:
+                  source_file: 'dist/apps/herbmail.com/'
+                  destination_repo: 'kbve/herbmail.com'
+                  destination_folder: '/docs'
+                  destination_branch: 'main'
+                  destination_branch_create: 'patch-herbmail-deploy'
+                  user_email: '5599058+h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: ${{ github.event.head_commit.message }}
+                  rsync_option: '-avrh --delete'
 
     #   [ATLAS] -> Publish (As App)
     python_atlas_build:
-        needs: ["deploy", "alter"]
+        needs: ['deploy', 'alter']
         name: Python Atlas Module Publish
         if: needs.alter.outputs.atlas == 'true'
         runs-on: 'ubuntu-latest'
         steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
 
-            -   name: Setup Node v18
-                uses: actions/setup-node@v3
-                with:
-                    node-version: 18
-            
-            -   name: Setup pnpm
-                uses: pnpm/action-setup@v2
-                with:
-                    version: 8
-                    run_install: false
+            - name: Setup Node v18
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+                  run_install: false
 
             #   @[CACHE]->[START]
-            -   name: Get pnpm Store
-                shell: bash
-                run: |
-                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            -   name: Setup pnpm Cache
-                uses: actions/cache@v3
-                with:
-                    path: ${{ env.STORE_PATH }}
-                    key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                    restore-keys: |
-                        ${{ runner.os }}-pnpm-store-
+            - name: Setup pnpm Cache
+              uses: actions/cache@v3
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
 
             #   @[CACHE]->[END]
 
-            -   name: Install pnpm dependencies
-                run: pnpm install
+            - name: Install pnpm dependencies
+              run: pnpm install
 
-            -   name: Python Install
-                uses: actions/setup-python@v4
-                with:
-                  python-version: "3.x"
+            - name: Python Install
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.x'
 
-            -   name: Poetry Install
-                uses: snok/install-poetry@v1
+            - name: Poetry Install
+              uses: snok/install-poetry@v1
 
-            -   name: Atlas Build
-                shell: bash
-                run: |
-                    pnpm nx build atlas
+            - name: Atlas Build
+              shell: bash
+              run: |
+                  pnpm nx build atlas
 
-            -   name: Store the Atlas distribution packages
-                uses: actions/upload-artifact@v3
-                with:
-                    name: atlas-python-package-distributions
-                    path: apps/atlas/dist/
+            - name: Store the Atlas distribution packages
+              uses: actions/upload-artifact@v3
+              with:
+                  name: atlas-python-package-distributions
+                  path: apps/atlas/dist/
 
-            -   name: KBVE Shell
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-pythonbump apps/atlas'
-                    create_pull_request: true
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
-                    pull_request_title: 'python-atlas-minor-version-bump'
-                    pull_request_body: 'Bumping up the minor version of the Python ATLAS package.'
+            - name: KBVE Shell
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-pythonbump apps/atlas'
+                  create_pull_request: true
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  pull_request_title: 'python-atlas-minor-version-bump'
+                  pull_request_body: 'Bumping up the minor version of the Python ATLAS package.'
 
-
-    #   @[ERust] -> Publish                
+    #   @[ERust] -> Publish
     erustpublish:
-        needs: ["deploy", "alter"]
+        needs: ['deploy', 'alter']
         name: Erust Crates Publish
         if: needs.alter.outputs.erust == 'true'
         runs-on: 'ubuntu-latest'
@@ -279,136 +268,136 @@ jobs:
             issues: write
             pull-requests: write
         steps:
-            -   name: Checkout repository
-                uses: actions/checkout@v4
-            
-            -   name: Rust ToolChain
-                uses: dtolnay/rust-toolchain@stable
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-            -   name: Cargo Login
-                run: cargo login ${{ secrets.CRATES_TOKEN }}
+            - name: Rust ToolChain
+              uses: dtolnay/rust-toolchain@stable
 
-            -   name: Cargo Release
-                run: |-
-                    cargo publish \
-                        -p erust
+            - name: Cargo Login
+              run: cargo login ${{ secrets.CRATES_TOKEN }}
 
-            -   name: KBVE Shell
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-cargobump erust'
-                    create_pull_request: true
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
-                    pull_request_title: 'erust-minor-version-bump'
-                    pull_request_body: 'Bumping up the minor version of the erust package.'
+            - name: Cargo Release
+              run: |-
+                  cargo publish \
+                      -p erust
+
+            - name: KBVE Shell
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-cargobump erust'
+                  create_pull_request: true
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  pull_request_title: 'erust-minor-version-bump'
+                  pull_request_body: 'Bumping up the minor version of the erust package.'
 
     holycratespublish:
-            needs: ["deploy", "alter"]
-            name: Holy Crates Publish
-            if: needs.alter.outputs.holy == 'true'
-            runs-on: 'ubuntu-latest'
-            permissions:
-                id-token: write
-                contents: write
-                packages: write
-                issues: write
-                pull-requests: write
-            steps:
-                -   name: Checkout repository
-                    uses: actions/checkout@v4
-                            
-                -   name: Rust ToolChain
-                    uses: dtolnay/rust-toolchain@stable
-                
-                -   name: Cargo Login
-                    run: cargo login ${{ secrets.CRATES_TOKEN }}
-                
-                -   name: Cargo Release
-                    run: |-
-                            cargo publish \
-                            -p holy
-                
-                -   name: Bump Holy Package
-                    uses: ./.github/actions/kbve-shell
-                    with:
-                        flag: '-cargobump holy'
-                        create_pull_request: true
-                        github_token: ${{ secrets.GITHUB_TOKEN }}
-                        pull_request_title: 'holy-crates-minor-version-bump'
-                        pull_request_body: 'Bumping up the minor version of the holy package.'
+        needs: ['deploy', 'alter']
+        name: Holy Crates Publish
+        if: needs.alter.outputs.holy == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            id-token: write
+            contents: write
+            packages: write
+            issues: write
+            pull-requests: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Rust ToolChain
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Cargo Login
+              run: cargo login ${{ secrets.CRATES_TOKEN }}
+
+            - name: Cargo Release
+              run: |-
+                  cargo publish \
+                  -p holy
+
+            - name: Bump Holy Package
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-cargobump holy'
+                  create_pull_request: true
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  pull_request_title: 'holy-crates-minor-version-bump'
+                  pull_request_body: 'Bumping up the minor version of the holy package.'
 
     kbvecratespublish:
-            needs: ["deploy", "alter"]
-            name: KBVE Crates Publish
-            if: needs.alter.outputs.kbvecrate == 'true'
-            runs-on: 'ubuntu-latest'
-            permissions:
-                id-token: write
-                contents: write
-                packages: write
-                issues: write
-                pull-requests: write
-            steps:
-                -   name: Checkout repository
-                    uses: actions/checkout@v4
-                            
-                -   name: Rust ToolChain
-                    uses: dtolnay/rust-toolchain@stable
-                
-                -   name: Cargo Login
-                    run: cargo login ${{ secrets.CRATES_TOKEN }}
-                
-                -   name: Cargo Release KBVE
-                    run: |-
-                            cargo publish \
-                            -p kbve
-                
-                -   name: Bump Holy Package
-                    uses: ./.github/actions/kbve-shell
-                    with:
-                        flag: '-cargobump kbve'
-                        create_pull_request: true
-                        github_token: ${{ secrets.GITHUB_TOKEN }}
-                        pull_request_title: 'kbve-crates-minor-version-bump'
-                        pull_request_body: 'Bumping up the minor version of the kbve package.'
+        needs: ['deploy', 'alter']
+        name: KBVE Crates Publish
+        if: needs.alter.outputs.kbvecrate == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            id-token: write
+            contents: write
+            packages: write
+            issues: write
+            pull-requests: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Rust ToolChain
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Cargo Login
+              run: cargo login ${{ secrets.CRATES_TOKEN }}
+
+            - name: Cargo Release KBVE
+              run: |-
+                  cargo publish \
+                  -p kbve
+
+            - name: Bump Holy Package
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-cargobump kbve'
+                  create_pull_request: true
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  pull_request_title: 'kbve-crates-minor-version-bump'
+                  pull_request_body: 'Bumping up the minor version of the kbve package.'
 
     jedicratespublish:
-            needs: ["deploy", "alter"]
-            name: Jedi Crates Publish
-            if: needs.alter.outputs.jedi == 'true'
-            runs-on: 'ubuntu-latest'
-            permissions:
-                id-token: write
-                contents: write
-                packages: write
-                issues: write
-                pull-requests: write
-            steps:
-                -   name: Checkout repository
-                    uses: actions/checkout@v4
-                            
-                -   name: Rust ToolChain
-                    uses: dtolnay/rust-toolchain@stable
-                
-                -   name: Cargo Login
-                    run: cargo login ${{ secrets.CRATES_TOKEN }}
-                
-                -   name: Cargo Release KBVE
-                    run: |-
-                            cargo publish \
-                            -p jedi
-                
-                -   name: Bump Holy Package
-                    uses: ./.github/actions/kbve-shell
-                    with:
-                        flag: '-cargobump jedi'
-                        create_pull_request: true
-                        github_token: ${{ secrets.GITHUB_TOKEN }}
-                        pull_request_title: 'jedi-crates-minor-version-bump'
-                        pull_request_body: 'Bumping up the minor version of the jedi package.'
+        needs: ['deploy', 'alter']
+        name: Jedi Crates Publish
+        if: needs.alter.outputs.jedi == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            id-token: write
+            contents: write
+            packages: write
+            issues: write
+            pull-requests: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Rust ToolChain
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Cargo Login
+              run: cargo login ${{ secrets.CRATES_TOKEN }}
+
+            - name: Cargo Release KBVE
+              run: |-
+                  cargo publish \
+                  -p jedi
+
+            - name: Bump Holy Package
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-cargobump jedi'
+                  create_pull_request: true
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  pull_request_title: 'jedi-crates-minor-version-bump'
+                  pull_request_body: 'Bumping up the minor version of the jedi package.'
 
     python_atlas_publish:
-        needs: ["deploy", "alter", "python_atlas_build"]
+        needs: ['deploy', 'alter', 'python_atlas_build']
         name: Pypi Publish
         if: needs.alter.outputs.atlas == 'true'
         runs-on: ubuntu-latest
@@ -418,69 +407,69 @@ jobs:
         permissions:
             id-token: write
         steps:
-            -   name: Download all the dists
-                uses: actions/download-artifact@v3
-                with:
-                    name: atlas-python-package-distributions
-                    path: dist/
-            -   name: Publish distribution 📦 to PyPI
-                uses: pypa/gh-action-pypi-publish@release/v1
-                with:
-                    user: __token__
-                    password: ${{ secrets.PYPI_API_TOKEN }}
+            - name: Download all the dists
+              uses: actions/download-artifact@v3
+              with:
+                  name: atlas-python-package-distributions
+                  path: dist/
+            - name: Publish distribution 📦 to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  user: __token__
+                  password: ${{ secrets.PYPI_API_TOKEN }}
 
     # Monorepo Image from https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
     monorepo-image:
-        needs: ["deploy"]
+        needs: ['deploy']
         name: Build Monorepo Docker Image
         runs-on: ubuntu-latest
         permissions:
             contents: read
             packages: write
         steps:
-              - name: Checkout Repository
-                uses: actions/checkout@v4
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-              - name: Set up QEMU
-                uses: docker/setup-qemu-action@v3
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
 
-              - name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-              - name: Login to Docker Hub
-                uses: docker/login-action@v3
-                with:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-              - name: Log in to the Container registry
-                uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-                with:
+            - name: Log in to the Container registry
+              uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+              with:
                   registry: ${{ env.REGISTRY }}
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
 
-              - name: Extract metadata (tags, labels) for Docker
-                id: meta
-                uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-                with:
-                    images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            - name: Extract metadata (tags, labels) for Docker
+              id: meta
+              uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+              with:
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-              - name: Build and push Docker image
-                uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-                with:
-                      context: .
-                      # platforms: linux/amd64, linux/arm64
-                      platforms: linux/amd64
-                      push: true
-                      tags: ${{ steps.meta.outputs.tags }}
-                      labels: ${{ steps.meta.outputs.labels }}
-                      cache-from: type=gha
-                      cache-to: type=gha,mode=max
+            - name: Build and push Docker image
+              uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+              with:
+                  context: .
+                  # platforms: linux/amd64, linux/arm64
+                  platforms: linux/amd64
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
 
     # Rust Profile Image Deployment
     rust-profile-image:
-        needs: ["monorepo-image", "alter"]
+        needs: ['monorepo-image', 'alter']
         name: Build Rust Profile Docker Image
         if: needs.alter.outputs.rustprofile == 'true'
         runs-on: ubuntu-latest
@@ -488,93 +477,92 @@ jobs:
             contents: read
             packages: write
         steps:
-              - name: Checkout Repository
-                uses: actions/checkout@v4
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-              - name: Set up QEMU
-                uses: docker/setup-qemu-action@v3
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
 
-              - name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-              - name: Login to Docker Hub
-                uses: docker/login-action@v3
-                with:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-              - name: Build and push
-                uses: docker/build-push-action@v5
-                with:
-                    context: ./apps/rust_api_profile/
-                    push: true
-                    tags: kbve/rustprofile:latest
-                    #platforms: linux/amd64, linux/arm64
-                    platforms: linux/amd64
-                    file: ./apps/rust_api_profile/Dockerfile
-                    cache-from: type=gha
-                    cache-to: type=gha,mode=max
-                    #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-                    #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
+            - name: Build and push
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./apps/rust_api_profile/
+                  push: true
+                  tags: kbve/rustprofile:latest
+                  #platforms: linux/amd64, linux/arm64
+                  platforms: linux/amd64
+                  file: ./apps/rust_api_profile/Dockerfile
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+                  #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
 
     # Deploy Rust Profile Image
     deploy-rust-profile-image:
-         needs: ["rust-profile-image", "alter"]
-         name: Deploy Rust Profile Docker Image to Portainer
-         runs-on: ubuntu-latest
-         steps:
-             -  name: Checkout Repository
-                uses: actions/checkout@v4
+        needs: ['rust-profile-image', 'alter']
+        name: Deploy Rust Profile Docker Image to Portainer
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-             -  name: Deploy to Portainer
-                uses: ./.github/actions/shieldwall-command-center
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    command: "deploy"
-                    kbve-shield-token: ${{ secrets.SHIELDWALL }}
+            - name: Deploy to Portainer
+              uses: ./.github/actions/shieldwall-command-center
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  command: 'deploy'
+                  kbve-shield-token: ${{ secrets.SHIELDWALL }}
 
     # Chisel Deployment
     chisel-rust-profile-image:
-          needs: ["rust-profile-image", "alter", "deploy-rust-profile-image"]
-          name: Chisel Rust Profile Docker Image
-          runs-on: ubuntu-latest
-          permissions:
-              contents: read
-              packages: write
-          steps:
-              - name: Checkout Repository
-                uses: actions/checkout@v4
+        needs: ['rust-profile-image', 'alter', 'deploy-rust-profile-image']
+        name: Chisel Rust Profile Docker Image
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-              - name: Set up QEMU
-                uses: docker/setup-qemu-action@v3
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
 
-              - name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-              - name: Login to Docker Hub
-                uses: docker/login-action@v3
-                with:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-              - name: Build and push
-                uses: docker/build-push-action@v5
-                with:
-                    context: ./migrations/docker/chisel/rust-profile-api/
-                    push: true
-                    tags: kbve/rustprofilechisel:latest
-                    #platforms: linux/amd64, linux/arm64
-                    platforms: linux/amd64
-                    file: ./migrations/docker/chisel/rust-profile-api/Dockerfile
-                    cache-from: type=gha
-                    cache-to: type=gha,mode=max
+            - name: Build and push
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./migrations/docker/chisel/rust-profile-api/
+                  push: true
+                  tags: kbve/rustprofilechisel:latest
+                  #platforms: linux/amd64, linux/arm64
+                  platforms: linux/amd64
+                  file: ./migrations/docker/chisel/rust-profile-api/Dockerfile
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
 
-    
     # NodeJS
 
     # Rust Profile Image Deployment
     node-express-colyseus-image:
-        needs: ["monorepo-image", "alter"]
+        needs: ['monorepo-image', 'alter']
         name: Build Node Express Colyseus Image
         if: needs.alter.outputs.expressdiscord == 'true'
         runs-on: ubuntu-latest
@@ -582,112 +570,149 @@ jobs:
             contents: read
             packages: write
         steps:
-              - name: Checkout Repository
-                uses: actions/checkout@v4
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-              - name: Set up QEMU
-                uses: docker/setup-qemu-action@v3
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
 
-              - name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-              - name: Login to Docker Hub
-                uses: docker/login-action@v3
-                with:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-              - name: Build and push
-                uses: docker/build-push-action@v5
-                with:
-                    context: ./apps/express-colyseus-discord/
-                    push: true
-                    tags: kbve/expresscolyseusdiscord:latest
-                    #platforms: linux/amd64, linux/arm64
-                    platforms: linux/amd64
-                    file: ./apps/express-colyseus-discord/Dockerfile
-                    cache-from: type=gha
-                    cache-to: type=gha,mode=max
-                    #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-                    #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
-
+            - name: Build and push
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./apps/express-colyseus-discord/
+                  push: true
+                  tags: kbve/expresscolyseusdiscord:latest
+                  #platforms: linux/amd64, linux/arm64
+                  platforms: linux/amd64
+                  file: ./apps/express-colyseus-discord/Dockerfile
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+                  #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
 
     # [EXPO] -> [START]
 
-
-    
     expo-lcagents-web-build:
-        needs: ["alter"]
+        needs: ['alter']
         name: Expo LC Agents Web Build
         runs-on: ubuntu-latest
         if: needs.alter.outputs.expolcagents == 'true'
         steps:
-            -   name: Checkout repository
-                uses: actions/checkout@v4
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-            -   name: Setup NodeJS
-                uses: actions/setup-node@v3
-                with:
-                    node-version: 18
+            - name: Setup NodeJS
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18
 
-            -   name: Setup PNPM
-                uses: pnpm/action-setup@v2
-                with:
-                    version: 8
-                    run_install: false
-            
-            -   name: Install react-native-cli globally
-                run: pnpm add -g react-native-cli
-                  
-            -   name: Install dependencies
-                run: pnpm install
+            - name: Setup PNPM
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+                  run_install: false
 
-            -   name: Setup Watchman (if applicable)
-                run: |
-                    sudo apt-get update
-                    sudo apt-get install -y watchman
-                    watchman --version
+            - name: Install react-native-cli globally
+              run: pnpm add -g react-native-cli
 
-            -   name: NX Command
-                shell: bash
-                continue-on-error: true
-                run: |
-                    pnpm nx run expo-lcagents:export --verbose    
+            - name: Install dependencies
+              run: pnpm install
 
-            -   name: NX Command - 2
-                shell: bash
-                continue-on-error: true
-                run: |
-                    pnpm nx run expo-lcagents:export --verbose 
+            - name: Setup Watchman (if applicable)
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y watchman
+                  watchman --version
 
-            -   name: LCA Expo Build
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-nx expo-lcagents:export'
-                    create_pull_request: false
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
+            - name: NX Command
+              shell: bash
+              continue-on-error: true
+              run: |
+                  pnpm nx run expo-lcagents:export --verbose
 
-            -   name: Create .nojekyll file
-                run: |
-                      mkdir -p dist/apps/expo-lcagents/
-                      touch dist/apps/expo-lcagents/.nojekyll
-                      
-            -   name: Create CNAME file
-                run: |
-                        mkdir -p dist/apps/expo-lcagents/
-                        echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
-        
-            -   name: LC Agents -> Deployment
-                uses: dobbelina/copy_file_to_another_repo_action@main
-                env:
-                    API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-                with:
-                    source_file: 'dist/apps/expo-lcagents/'
-                    destination_repo: 'kbve/lc-agents.com'
-                    destination_folder: '/docs'
-                    destination_branch: 'main'
-                    destination_branch_create: 'patch-kbve-lcagents-deploy'
-                    user_email: '5599058+h0lybyte@users.noreply.github.com'
-                    user_name: 'h0lybyte'
-                    commit_message: ${{ github.event.head_commit.message }}
-                    rsync_option: "-avrh --delete"
+            - name: NX Command - 2
+              shell: bash
+              continue-on-error: true
+              run: |
+                  pnpm nx run expo-lcagents:export --verbose
+
+            - name: LCA Expo Build
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-nx expo-lcagents:export'
+                  create_pull_request: false
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Create .nojekyll file
+              run: |
+                  mkdir -p dist/apps/expo-lcagents/
+                  touch dist/apps/expo-lcagents/.nojekyll
+
+            - name: Create CNAME file
+              run: |
+                  mkdir -p dist/apps/expo-lcagents/
+                  echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
+
+            - name: LC Agents -> Deployment
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+              with:
+                  source_file: 'dist/apps/expo-lcagents/'
+                  destination_repo: 'kbve/lc-agents.com'
+                  destination_folder: '/docs'
+                  destination_branch: 'main'
+                  destination_branch_create: 'patch-kbve-lcagents-deploy'
+                  user_email: '5599058+h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: ${{ github.event.head_commit.message }}
+                  rsync_option: '-avrh --delete'
+
+    #   [Docker]
+    void-docker-base-image:
+        needs: ['monorepo-image', 'alter']
+        name: v01d Base Docker Image Build
+        runs-on: ubuntu-latest
+        if: needs.alter.outputs.dockervoid == 'true'
+
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build Docker Image and Push
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./migrations/docker/v01d/
+                  push: true
+                  tags: kbve/v01d:latest
+                  #platforms: linux/amd64, linux/arm64
+                  platforms: linux/amd64
+                  file: ./migrations/docker/v01d/Dockerfile
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+                  #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
