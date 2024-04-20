@@ -13,7 +13,6 @@ tags:
 
 import MDXJS from '../../components/MDXJS.astro';
 
-
 <MDXJS>
 
 ## Notes
@@ -22,16 +21,14 @@ import MDXJS from '../../components/MDXJS.astro';
 
 ## Tasks
 
-
-- [x] Upgrade Coolify to v3.12.31.
-- [x] R&D for automated RAW image conversion.
-- [x] Rollback Astro upgrade because of errors.
-- [x] Pay off any additional CC debt(s) for the month.
-- [x] Leverage 100 shares of $SPY again for the week.
-- [x] AppWrite -> Register -> https://github.com/KBVE/kbve.com/issues/122
-- [x] Scope out local tailor for pants.
-- [x] Ant Spray for the house in India.
-
+-   [x] Upgrade Coolify to v3.12.31.
+-   [x] R&D for automated RAW image conversion.
+-   [x] Rollback Astro upgrade because of errors.
+-   [x] Pay off any additional CC debt(s) for the month.
+-   [x] Leverage 100 shares of $SPY again for the week.
+-   [x] AppWrite -> Register -> https://github.com/KBVE/kbve.com/issues/122
+-   [x] Scope out local tailor for pants.
+-   [x] Ant Spray for the house in India.
 
 ---
 
@@ -40,14 +37,53 @@ import MDXJS from '../../components/MDXJS.astro';
 > Many men go fishing all of their lives without knowing that it is not fish they are after.
 > — <cite>Henry David Thoreau</cite>
 
-
 </MDXJS>
-
 
 <MDXJS>
 
 <MDXJS>
 ### 2024
+
+<MDXJS>
+
+#### GHA
+
+The Github Actions are throwing too many errors for me to handle without overthinking.
+Thus the next step for the night would be start placing dynamic sha hashses into each pull request + branch within the automation system.
+I was looking to avoid this before because I figured it would create too many pull requests, yet it seems to be causing more build failures and slightly becoming a pain point.
+
+So my solution to this would be to create a globals job before the altar and then call it like this example below:
+
+```yaml
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        outputs:
+            sha256head: ${{ steps.hash.outputs.sha256head }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+            - name: Calculate SHA-256 Hash
+              id: hash
+              run: |
+                  echo "::set-output name=sha256head::$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')"
+            - name: Log SHA-256 Hash
+              run: |
+                  echo "SHA-256 of the commit is ${{ steps.hash.outputs.sha256head }}"
+
+    use_hash:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Use SHA-256 Hash
+              run: |
+                  echo "Using SHA-256 Hash in another job: ${{ needs.build.outputs.sha256head }}"
+```
+
+Going to place this within the `ci-main.yml` and call it throughout any of the pull requests that create a new branch.
+Now I will push this file change through the main branch and see how it performs.
+
+</MDXJS>
 
 <MDXJS>
 
@@ -57,7 +93,7 @@ The current `v01d` is misisng the nvidia and cuda drivers, so let me start fixin
 We want to install the cuda drivers for nvida, so here is what we can do from the dockerfile aspect.
 
 ```
-E: Conflicting values set for option Signed-By regarding source https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /: /usr/share/keyrings/cuda-archive-keyring.gpg != 
+E: Conflicting values set for option Signed-By regarding source https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /: /usr/share/keyrings/cuda-archive-keyring.gpg !=
 E: The list of sources could not be read.
 
 ```
@@ -96,7 +132,6 @@ There are three paths that I see, the first would be having the `v01d` use the n
 
 The third path would be to just drop `cuda` support within the base image and shift it over to a shell file that would install the needed drivers, outside of the base image.
 
-
 </MDXJS>
 
 ---
@@ -128,11 +163,11 @@ Preparing everything to node v20 or node v21 might b
 
 #### India
 
-- Visiting the inner city this morning and it was wild! The food smells amazing but the crowd is mind numbing and the traffic is insane, damn I almost got hit by a tuk tuk / rickshaw at least 3 times.
-- Currently trying to fix the issues with SendGrid and Ezoic. It seems that Ezoic's DNS is replacing the SendGrid CNAME by dropping it. When trying to place the CNAME inside of the Ezoic DNS panel, it seems to say that it can not proxy it. I rasied a community ticket on their forum, hopefully they can get it resolved but if they can not then we might use a 3rd party domain.
-- Upgrading Coolify to v3.12.31. Before upgrading, I am going to execute an AWX backup stack. This is another test case for a full scale backup, including the SQL database but excluding snapshots.
-- Integration of Portainer and Coolify still has some issues, including volume and network management. I will rise an issue after doing more R&D between both applications.
-- Starting the AppWrite Register for Astro.
+-   Visiting the inner city this morning and it was wild! The food smells amazing but the crowd is mind numbing and the traffic is insane, damn I almost got hit by a tuk tuk / rickshaw at least 3 times.
+-   Currently trying to fix the issues with SendGrid and Ezoic. It seems that Ezoic's DNS is replacing the SendGrid CNAME by dropping it. When trying to place the CNAME inside of the Ezoic DNS panel, it seems to say that it can not proxy it. I rasied a community ticket on their forum, hopefully they can get it resolved but if they can not then we might use a 3rd party domain.
+-   Upgrading Coolify to v3.12.31. Before upgrading, I am going to execute an AWX backup stack. This is another test case for a full scale backup, including the SQL database but excluding snapshots.
+-   Integration of Portainer and Coolify still has some issues, including volume and network management. I will rise an issue after doing more R&D between both applications.
+-   Starting the AppWrite Register for Astro.
 
 </MDXJS>
 
