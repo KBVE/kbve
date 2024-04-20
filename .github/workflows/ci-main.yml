@@ -15,7 +15,23 @@ env:
     IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+    globals:
+        runs-on: ubuntu-latest
+        name: Global Variables
+        outputs:
+            sha256head: ${{ steps.hash.outputs.sha256head }}
+
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Calculate SHA-256 Hash
+              id: hash
+              run: |
+                  echo "::set-output name=sha256head::$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')"
+
     alter:
+        needs: ['globals']
         runs-on: ubuntu-latest
         name: File Alterations
         if: github.repository == 'kbve/kbve'
@@ -82,15 +98,19 @@ jobs:
                           - 'migrations/docker/v01d/**'
 
     debug:
-        needs: ['alter']
+        needs: ['alter', 'globals']
         name: Debug Pipeline
         runs-on: ubuntu-latest
         steps:
             - name: Checkout the repository
               uses: actions/checkout@v4
 
+            - name: Global SHA Output
+              run: |
+                echo "Using SHA-256 Hash in another job: ${{ needs.globals.outputs.sha256head }}"
+
     deploy:
-        needs: ['alter']
+        needs: ['alter', 'globals']
         name: Deployment
         runs-on: ubuntu-latest
         steps:
@@ -134,7 +154,7 @@ jobs:
                   flag: '-outpostgraph'
                   create_pull_request: true
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  pull_request_title: 'outpost-nx-report'
+                  pull_request_title: 'outpost-nx-report-${{ needs.globals.outputs.sha256head }}'
                   pull_request_body: 'Generating NX Report and saving it as a MDX Report'
 
             #   @[NX] -> [REPORT] -> [END]
@@ -155,7 +175,7 @@ jobs:
                   destination_repo: 'kbve/kbve.com'
                   destination_folder: '/docs'
                   destination_branch: 'dev'
-                  destination_branch_create: 'patch-kbve-deploy'
+                  destination_branch_create: 'patch-kbve-deploy-${{ needs.globals.outputs.sha256head }}'
                   user_email: '5599058+h0lybyte@users.noreply.github.com'
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
@@ -179,7 +199,7 @@ jobs:
                   destination_repo: 'kbve/herbmail.com'
                   destination_folder: '/docs'
                   destination_branch: 'main'
-                  destination_branch_create: 'patch-herbmail-deploy'
+                  destination_branch_create: 'patch-herbmail-deploy-${{ needs.globals.outputs.sha256head }}'
                   user_email: '5599058+h0lybyte@users.noreply.github.com'
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
@@ -187,7 +207,7 @@ jobs:
 
     #   [ATLAS] -> Publish (As App)
     python_atlas_build:
-        needs: ['deploy', 'alter']
+        needs: ['deploy', 'alter', 'globals']
         name: Python Atlas Module Publish
         if: needs.alter.outputs.atlas == 'true'
         runs-on: 'ubuntu-latest'
@@ -250,12 +270,12 @@ jobs:
                   flag: '-pythonbump apps/atlas'
                   create_pull_request: true
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  pull_request_title: 'python-atlas-minor-version-bump'
+                  pull_request_title: 'python-atlas-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
                   pull_request_body: 'Bumping up the minor version of the Python ATLAS package.'
 
     #   @[ERust] -> Publish
     erustpublish:
-        needs: ['deploy', 'alter']
+        needs: ['deploy', 'alter', 'globals']
         name: Erust Crates Publish
         if: needs.alter.outputs.erust == 'true'
         runs-on: 'ubuntu-latest'
@@ -286,11 +306,11 @@ jobs:
                   flag: '-cargobump erust'
                   create_pull_request: true
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  pull_request_title: 'erust-minor-version-bump'
+                  pull_request_title: 'erust-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
                   pull_request_body: 'Bumping up the minor version of the erust package.'
 
     holycratespublish:
-        needs: ['deploy', 'alter']
+        needs: ['deploy', 'alter', 'globals']
         name: Holy Crates Publish
         if: needs.alter.outputs.holy == 'true'
         runs-on: 'ubuntu-latest'
@@ -321,11 +341,11 @@ jobs:
                   flag: '-cargobump holy'
                   create_pull_request: true
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  pull_request_title: 'holy-crates-minor-version-bump'
+                  pull_request_title: 'holy-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
                   pull_request_body: 'Bumping up the minor version of the holy package.'
 
     kbvecratespublish:
-        needs: ['deploy', 'alter']
+        needs: ['deploy', 'alter', 'globals']
         name: KBVE Crates Publish
         if: needs.alter.outputs.kbvecrate == 'true'
         runs-on: 'ubuntu-latest'
@@ -356,11 +376,11 @@ jobs:
                   flag: '-cargobump kbve'
                   create_pull_request: true
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  pull_request_title: 'kbve-crates-minor-version-bump'
+                  pull_request_title: 'kbve-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
                   pull_request_body: 'Bumping up the minor version of the kbve package.'
 
     jedicratespublish:
-        needs: ['deploy', 'alter']
+        needs: ['deploy', 'alter', 'globals']
         name: Jedi Crates Publish
         if: needs.alter.outputs.jedi == 'true'
         runs-on: 'ubuntu-latest'
@@ -391,7 +411,7 @@ jobs:
                   flag: '-cargobump jedi'
                   create_pull_request: true
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  pull_request_title: 'jedi-crates-minor-version-bump'
+                  pull_request_title: 'jedi-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
                   pull_request_body: 'Bumping up the minor version of the jedi package.'
 
     python_atlas_publish:
@@ -600,7 +620,7 @@ jobs:
     # [EXPO] -> [START]
 
     expo-lcagents-web-build:
-        needs: ['alter']
+        needs: ['alter', 'globals']
         name: Expo LC Agents Web Build
         runs-on: ubuntu-latest
         if: needs.alter.outputs.expolcagents == 'true'
@@ -669,7 +689,7 @@ jobs:
                   destination_repo: 'kbve/lc-agents.com'
                   destination_folder: '/docs'
                   destination_branch: 'main'
-                  destination_branch_create: 'patch-kbve-lcagents-deploy'
+                  destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
                   user_email: '5599058+h0lybyte@users.noreply.github.com'
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
