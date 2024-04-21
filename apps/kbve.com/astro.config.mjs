@@ -4,7 +4,6 @@ import svelte from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
-import prefetch from '@astrojs/prefetch';
 import mdx from '@astrojs/mdx';
 
 import { fileURLToPath } from 'node:url';
@@ -16,15 +15,13 @@ export default defineConfig({
   site: 'https://kbve.com/',
   outDir: '../../dist/apps/kbve.com',
   markdown: markdownConfig,
-
+  prefetch: true,
   integrations: [
     react(),
     svelte(),
     partytown(),
     sitemap(),
-    prefetch({
-			throttle: 5,
-		}),
+   
     mdx({
 			...markdownConfig,
 			//extendPlugins: "astroDefaults"
