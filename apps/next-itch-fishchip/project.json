@@ -1,18 +1,16 @@
 {
-  "name": "next-itch-fishchip",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/next-itch-fishchip",
-  "projectType": "application",
-  "targets": {
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": [
-        "{workspaceRoot}/coverage/{projectRoot}"
-      ],
-      "options": {
-        "jestConfig": "apps/next-itch-fishchip/jest.config.ts"
-      }
-    }
-  },
-  "tags": []
+	"name": "next-itch-fishchip",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/next-itch-fishchip",
+	"projectType": "application",
+	"tags": [],
+	"targets": {
+		"test": {
+			"executor": "@nx/jest:jest",
+			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+			"options": {
+				"jestConfig": "apps/next-itch-fishchip/jest.config.ts"
+			}
+		}
+	}
 }

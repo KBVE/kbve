@@ -3,6 +3,7 @@
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "apps/express-colyseus-discord/src",
 	"projectType": "application",
+	"tags": [],
 	"targets": {
 		"build": {
 			"executor": "@nx/esbuild:esbuild",
@@ -58,6 +59,5 @@
 				"jestConfig": "apps/express-colyseus-discord/jest.config.ts"
 			}
 		}
-	},
-	"tags": []
+	}
 }

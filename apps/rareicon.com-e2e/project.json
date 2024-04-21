@@ -3,6 +3,8 @@
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "apps/rareicon.com-e2e/src",
 	"projectType": "application",
+	"tags": [],
+	"implicitDependencies": ["rareicon.com"],
 	"targets": {
 		"e2e": {
 			"executor": "@nx/cypress:cypress",
@@ -16,7 +18,5 @@
 			"executor": "@nx/eslint:lint",
 			"outputs": ["{options.outputFile}"]
 		}
-	},
-	"tags": [],
-	"implicitDependencies": ["rareicon.com"]
+	}
 }

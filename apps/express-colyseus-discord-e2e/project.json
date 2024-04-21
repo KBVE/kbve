@@ -1,8 +1,8 @@
 {
 	"name": "express-colyseus-discord-e2e",
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
-	"implicitDependencies": ["express-colyseus-discord"],
 	"projectType": "application",
+	"implicitDependencies": ["express-colyseus-discord"],
 	"targets": {
 		"e2e": {
 			"executor": "@nx/jest:jest",
