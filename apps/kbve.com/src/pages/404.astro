@@ -4,12 +4,40 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="404 Not Found." description="404 Not Found.">
-	4 0 4
-	<div class="flex object-contain w-32 md:w-32">
-		<dotlottie-player
-			autoplay
-			loop
-			mode="normal"
-			src="/assets/lottie/robot.lottie"></dotlottie-player>
+	<div class="hero min-h-screen bg-base-200 flex justify-center items-center">
+		<div class="text-center">
+			<div class="max-w-md mx-auto">
+				<a
+					href="/"
+					class="relative inline-flex items-center justify-center inline-block p-4 px-5 py-3 overflow-hidden font-medium text-indigo-600 rounded-lg shadow-2xl group hover:scale-110">
+					<span
+						class="absolute top-0 left-0 w-40 h-40 -mt-10 -ml-3 transition-all duration-700 bg-red-500 rounded-full blur-md ease">
+					</span>
+					<span
+						class="absolute inset-0 w-full h-full transition duration-700 group-hover:rotate-180 ease">
+						<span
+							class="absolute bottom-0 left-0 w-24 h-24 -ml-10 bg-yellow-500 rounded-full blur-md">
+						</span>
+						<span
+							class="absolute bottom-0 right-0 w-24 h-24 -mr-10 bg-cyan-500 rounded-full blur-md">
+						</span>
+					</span>
+					<span class="relative text-black hover:text-white">Return Home</span>
+				</a>
+				<h1 class="text-8xl font-bold text-cyan-300">404</h1>
+				<p class="py-6 text-cyan-300">
+					Oops! The page you are looking for has vanished into the
+					ether.
+				</p>
+				<div class="flex justify-center items-center w-full">
+					<dotlottie-player
+						autoplay
+						loop
+						mode="normal"
+						src="/assets/lottie/robot.lottie"
+						class="w-64 md:w-96"></dotlottie-player>
+				</div>
+			</div>
+		</div>
 	</div>
 </Layout>
