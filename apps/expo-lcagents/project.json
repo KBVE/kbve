@@ -1,7 +1,7 @@
 {
 	"name": "expo-lcagents",
-	"main": "expo-router/entry",
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"main": "expo-router/entry",
 	"sourceRoot": "apps/expo-lcagents/src",
 	"projectType": "application",
 	"tags": [],
@@ -17,13 +17,12 @@
 			"executor": "@nx/expo:export",
 			"outputs": ["{options.outputDir}"],
 			"options": {
-			  "platform": "web",
-			  "bundler": "metro",
-			  "outputDir": "dist/apps/expo-lcagents",
-			  "clear": true
+				"platform": "web",
+				"bundler": "metro",
+				"outputDir": "dist/apps/expo-lcagents",
+				"clear": true
 			},
 			"dependsOn": ["sync-deps"]
 		}
-
 	}
 }

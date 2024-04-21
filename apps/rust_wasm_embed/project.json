@@ -3,58 +3,48 @@
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"sourceRoot": "apps/rust_wasm_embed/src",
+	"tags": [],
 	"targets": {
-
 		"trunksetup": {
 			"executor": "nx:run-commands",
-		    "options": {
+			"options": {
 				"commands": [
-				  "rustup update",
-				  "sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev",
-				  "rustup target add wasm32-unknown-unknown",
-				  "cargo install --locked trunk"
+					"rustup update",
+					"sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev",
+					"rustup target add wasm32-unknown-unknown",
+					"cargo install --locked trunk"
 				],
 				"parallel": false
 			}
-
 		},
-
 		"trunkserve": {
 			"executor": "nx:run-commands",
-		    "options": {
+			"options": {
 				"cwd": "apps/rust_wasm_embed",
-				"commands": [
-				  "trunk serve"
-				],
+				"commands": ["trunk serve"],
 				"parallel": false
 			}
 		},
-
-		
 		"trunkrelease": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/rust_wasm_embed",
-				"commands": [
-				"trunk build --release"
-				],
+				"commands": ["trunk build --release"],
 				"parallel": false
 			}
 		},
-
 		"pipe": {
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-				  "chmod +x tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
-				  "chmod +x tools/scripts/public/wasm/pipeline_kbve_wasm_build.sh",
-				  "./tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
-				  "./tools/scripts/public/wasm/pipeline_kbve_wasm_build.sh"
+					"chmod +x tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
+					"chmod +x tools/scripts/public/wasm/pipeline_kbve_wasm_build.sh",
+					"./tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
+					"./tools/scripts/public/wasm/pipeline_kbve_wasm_build.sh"
 				],
 				"parallel": false
 			}
 		},
-
 		"build": {
 			"executor": "@monodon/rust:build",
 			"outputs": ["{options.target-dir}"],
@@ -98,6 +88,5 @@
 				}
 			}
 		}
-	},
-	"tags": []
+	}
 }

@@ -3,6 +3,8 @@
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "apps/herbmail.com-e2e/src",
 	"projectType": "application",
+	"tags": [],
+	"implicitDependencies": ["herbmail.com"],
 	"targets": {
 		"e2e": {
 			"executor": "@nx/cypress:cypress",
@@ -16,7 +18,5 @@
 			"executor": "@nx/eslint:lint",
 			"outputs": ["{options.outputFile}"]
 		}
-	},
-	"tags": [],
-	"implicitDependencies": ["herbmail.com"]
+	}
 }
