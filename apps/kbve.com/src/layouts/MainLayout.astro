@@ -4,6 +4,8 @@ import Meta from "../components/Meta.astro";
 import Navbar from "../components/sections/Navbar.astro";
 import FooterSection from "../components/sections/FooterSection.astro";
 import { SITE } from "../data_files/constants";
+import { AstroVe as VE } from '@kbve/astro-ve';
+
 
 // Setting expected props
 const { title = SITE.title, meta, structuredData, lang = "en" } = Astro.props;
@@ -27,6 +29,7 @@ We set the language of the page to English and add classes for scrollbar and scr
     <Meta meta={meta} structuredData={structuredData} />
     <!-- Define the title of the page -->
     <title>{title}</title>
+    <VE widget="header:external:lottie" data="dot" />
     <script is:inline>
       // Script to handle dark mode. It will check if the theme is stored in localStorage or if dark theme is preferred by system settings
       if (

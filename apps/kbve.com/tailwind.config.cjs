@@ -23,6 +23,7 @@ module.exports = {
 			current: "currentColor",
 			black: "#000000",
 			white: "#ffffff",
+			cyan: colors.cyan,
 			gray: colors.gray,
 			indigo: colors.indigo,
 			neutral: colors.neutral,  // Used mainly for text color

@@ -13,7 +13,7 @@
     --sl-color-gray-5: #383838;
     --sl-color-gray-6: #272727;
     --sl-color-white: #fff;
-    --yellow-hsl: 43.3, 96.4%, 56.3%;
+    --yellow-hsl: 180, 96.4%, 56.3%;
     --overlay-yellow: hsla(var(--yellow-hsl), .2);
 }
 
