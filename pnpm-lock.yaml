@@ -170,6 +170,9 @@ importers:
       poly-decomp:
         specifier: ^0.3.0
         version: 0.3.0
+      preline:
+        specifier: ^2.1.0
+        version: 2.1.0
       react-helmet-async:
         specifier: ^2.0.4
         version: 2.0.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -357,6 +360,9 @@ importers:
       '@swc/plugin-styled-components':
         specifier: ^1.5.67
         version: 1.5.122
+      '@tailwindcss/forms':
+        specifier: ^0.5.7
+        version: 0.5.7(tailwindcss@3.4.3(ts-node@10.9.1(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(typescript@5.4.4)))
       '@testing-library/jest-native':
         specifier: ~5.4.3
         version: 5.4.3(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react-test-renderer@18.2.0(react@18.2.0))(react@18.2.0)
@@ -411,6 +417,9 @@ importers:
       astro:
         specifier: 4.6.3
         version: 4.6.3(@types/node@18.19.17)(less@4.1.3)(lightningcss@1.22.0)(sass@1.75.0)(stylus@0.59.0)(terser@5.30.3)(typescript@5.4.4)
+      astro-vtbot:
+        specifier: ^1.7.12
+        version: 1.7.12
       babel-jest:
         specifier: ^29.4.1
         version: 29.7.0(@babel/core@7.24.4)
@@ -3163,6 +3172,9 @@ packages:
   '@polka/url@1.0.0-next.25':
     resolution: {integrity: sha512-j7P6Rgr3mmtdkeDGTe0E/aYyWEWVtc5yFXtHCRHs28/jptDEWfaVOc5T7cblqy1XKPPfCxJc/8DwQ5YgLOZOVQ==}
 
+  '@popperjs/core@2.11.8':
+    resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
+
   '@radix-ui/react-compose-refs@1.0.0':
     resolution: {integrity: sha512-0KaSv6sx787/hK3eF53iOkiSLwAGlFMx5lotrqD2pTjB18KbybKoEIgkNZTKC60YECDQTKGTRcDBILwZVqVKvA==}
     peerDependencies:
@@ -3813,6 +3825,11 @@ packages:
 
   '@tabler/icons@2.47.0':
     resolution: {integrity: sha512-4w5evLh+7FUUiA1GucvGj2ReX2TvOjEr4ejXdwL/bsjoSkof6r1gQmzqI+VHrE2CpJpB3al7bCTulOkFa/RcyA==}
+
+  '@tailwindcss/forms@0.5.7':
+    resolution: {integrity: sha512-QE7X69iQI+ZXwldE+rzasvbJiyV/ju1FGHH0Qn2W3FKbuYtqp8LKcy6iSw79fVUT5/Vvf+0XgLCeYVG+UV6hOw==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
 
   '@tailwindcss/typography@0.5.12':
     resolution: {integrity: sha512-CNwpBpconcP7ppxmuq3qvaCxiRWnbhANpY/ruH4L5qs2GCiVDJXde/pjj2HWPV1+Q4G9+V/etrwUYopdcjAlyg==}
@@ -5172,6 +5189,9 @@ packages:
     resolution: {integrity: sha512-9JAyllueMUN8JTl/h/yTdbKinNmfalEWcV11s3lSf/UJQbAZfWJuy+IlGcArZDI/CmD21GXhFHLqYthpdY33ug==}
     peerDependencies:
       astro: ^4.0.0-beta || ^3.3.0
+
+  astro-vtbot@1.7.12:
+    resolution: {integrity: sha512-/botqljlm507eZtGY4+j5yEr9GbqR1unD7r0Rzg89dOU6MVjCrk//QSB7fg1NyDwur74LeYjcArMGE4FjOo/Dg==}
 
   astro@4.6.3:
     resolution: {integrity: sha512-p2zs1Gac+ysdc/yFCoc8pOXTZE5L9foAtmqUzUVL22WX68bYTRovd03GRs7J1MDpwzsl9kJtlK20ROpjyIFpNw==}
@@ -9564,6 +9584,10 @@ packages:
     peerDependencies:
       webpack: ^5.0.0
 
+  mini-svg-data-uri@1.4.4:
+    resolution: {integrity: sha512-r9deDe9p5FJUPZAk3A59wGH7Ii9YrjjWw0jmw/liSbHl2CHiyXj6FcDXDu2K3TjVAXqiJdaw3xxwlZZr9E6nHg==}
+    hasBin: true
+
   minimalistic-assert@1.0.1:
     resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
 
@@ -10591,6 +10615,9 @@ packages:
   preferred-pm@3.1.3:
     resolution: {integrity: sha512-MkXsENfftWSRpzCzImcp4FRsCc3y1opwB73CfCNWyzMqArju2CrlMHlqB7VexKiPEOjGMbttv1r9fSCn5S610w==}
     engines: {node: '>=10'}
+
+  preline@2.1.0:
+    resolution: {integrity: sha512-7pwrGNPVfGYUv1XHW9i49ejowIVHCDTx8JvbM43hapLi1GCjj9NnAZmTKupxaROboB4Nvp2x0ADBVKAhpmZppA==}
 
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
@@ -17292,6 +17319,8 @@ snapshots:
 
   '@polka/url@1.0.0-next.25': {}
 
+  '@popperjs/core@2.11.8': {}
+
   '@radix-ui/react-compose-refs@1.0.0(react@18.2.0)':
     dependencies:
       '@babel/runtime': 7.24.4
@@ -18225,6 +18254,11 @@ snapshots:
       react: 18.2.0
 
   '@tabler/icons@2.47.0': {}
+
+  '@tailwindcss/forms@0.5.7(tailwindcss@3.4.3(ts-node@10.9.1(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(typescript@5.4.4)))':
+    dependencies:
+      mini-svg-data-uri: 1.4.4
+      tailwindcss: 3.4.3(ts-node@10.9.1(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(typescript@5.4.4))
 
   '@tailwindcss/typography@0.5.12(tailwindcss@3.4.3(ts-node@10.9.1(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(typescript@5.4.4)))':
     dependencies:
@@ -20251,6 +20285,8 @@ snapshots:
       astro: 4.6.3(@types/node@18.19.17)(less@4.1.3)(lightningcss@1.22.0)(sass@1.75.0)(stylus@0.59.0)(terser@5.30.3)(typescript@5.4.4)
       hast-util-to-html: 8.0.4
       remark-expressive-code: 0.33.5
+
+  astro-vtbot@1.7.12: {}
 
   astro@4.6.3(@types/node@18.19.17)(less@4.1.3)(lightningcss@1.22.0)(sass@1.75.0)(stylus@0.59.0)(terser@5.30.3)(typescript@5.4.4):
     dependencies:
@@ -26201,6 +26237,8 @@ snapshots:
       schema-utils: 4.2.0
       webpack: 5.91.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(esbuild@0.19.5)
 
+  mini-svg-data-uri@1.4.4: {}
+
   minimalistic-assert@1.0.1: {}
 
   minimalistic-crypto-utils@1.0.1:
@@ -27327,6 +27365,10 @@ snapshots:
       find-yarn-workspace-root2: 1.2.16
       path-exists: 4.0.0
       which-pm: 2.0.0
+
+  preline@2.1.0:
+    dependencies:
+      '@popperjs/core': 2.11.8
 
   prelude-ls@1.2.1: {}
 
