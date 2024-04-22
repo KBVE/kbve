@@ -3,6 +3,7 @@
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"sourceRoot": "apps/atlas/kbve_atlas",
+	"tags": [],
 	"targets": {
 		"lock": {
 			"executor": "@nxlv/python:run-commands",
@@ -61,6 +62,5 @@
 				"cwd": "apps/atlas"
 			}
 		}
-	},
-	"tags": []
+	}
 }

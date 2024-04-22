@@ -9,10 +9,6 @@
 			"inputs": ["production", "^production"],
 			"cache": true
 		},
-		"check": {
-			"inputs": ["production", "^production"],
-			"cache": true
-		},
 		"e2e": {
 			"inputs": ["default", "^production"],
 			"cache": true
@@ -61,6 +57,19 @@
 			"cache": true,
 			"dependsOn": ["^build"],
 			"inputs": ["production", "^production"]
+		},
+		"@nxtensions/astro:build": {
+			"dependsOn": ["^build"],
+			"inputs": ["production", "^production"],
+			"cache": true,
+			"outputs": ["{workspaceRoot}/dist/{projectRoot}"]
+		},
+		"@nxtensions/astro:check": {
+			"inputs": ["production", "^production"],
+			"cache": true
+		},
+		"@nxtensions/astro:preview": {
+			"dependsOn": ["build"]
 		}
 	},
 	"namedInputs": {

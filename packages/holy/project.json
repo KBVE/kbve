@@ -3,6 +3,7 @@
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "library",
 	"sourceRoot": "packages/holy/src",
+	"tags": [],
 	"targets": {
 		"build": {
 			"executor": "@monodon/rust:build",
@@ -35,6 +36,5 @@
 				"target-dir": "dist/target/holy"
 			}
 		}
-	},
-	"tags": []
+	}
 }

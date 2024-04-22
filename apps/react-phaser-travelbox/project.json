@@ -1,10 +1,11 @@
 {
-  "name": "react-phaser-travelbox",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/react-phaser-travelbox/src",
-  "projectType": "application",
-  "targets": {
-    "build": {
+	"name": "react-phaser-travelbox",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/react-phaser-travelbox/src",
+	"projectType": "application",
+	"tags": [],
+	"targets": {
+		"build": {
 			"executor": "@nx/vite:build",
 			"outputs": ["{options.outputPath}"],
 			"defaultConfiguration": "production",
@@ -21,6 +22,5 @@
 				}
 			}
 		}
-  },
-  "tags": []
+	}
 }

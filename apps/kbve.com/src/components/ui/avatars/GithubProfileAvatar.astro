@@ -1,0 +1,25 @@
+---
+import { Image } from 'astro:assets';
+
+const { src, alt, profile } = Astro.props;
+
+interface Props {
+	src: string;
+	alt: string;
+	profile: string;
+}
+---
+
+<a
+	href={`https://github.com/${profile}`}
+	target="_blank"
+	rel="noopener noreferrer"
+	class="inline-block h-8 w-8 hover:scale-[4] transition-transform duration-300 ease-in-out cursor-pointer">
+	<Image
+		class="rounded-full ring-2 ring-neutral-50 dark:ring-zinc-800"
+		src={src}
+		alt={alt}
+		inferSize
+		loading={'eager'}
+	/>
+</a>

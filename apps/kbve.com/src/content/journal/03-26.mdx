@@ -56,7 +56,7 @@ I am going to remove the LCA build from the ci-main, saving it here below for re
                     node-version: 18
             
             -   name: Setup pnpm
-                uses: pnpm/action-setup@v2
+                uses: pnpm/action-setup@v3
                 with:
                     version: 8
                     run_install: false
@@ -130,7 +130,7 @@ Here is our current `ci-alpha.yml` configuration for the Github Action to build 
                         node-version: 18
 
                 -   name: Setup PNPM
-                    uses: pnpm/action-setup@v2
+                    uses: pnpm/action-setup@v3
                     with:
                         version: 8
                         #run_install: false
@@ -148,7 +148,7 @@ Here is our current `ci-alpha.yml` configuration for the Github Action to build 
 
 We will push this through and see where the action goes from here! 
 
-Ah it seems that by default, the `pnpm/action-setup@v2` does not run the install, so we will go ahead and put that command back in.
+Ah it seems that by default, the `pnpm/action-setup@v3` does not run the install, so we will go ahead and put that command back in.
 Now the question would be if we want to pass the node-linker as a varible or not.
 
 Let me see if I can add something that might be missing from the Github Actions?
