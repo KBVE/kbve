@@ -498,13 +498,6 @@ case "$1" in
         execmdx_function "./apps/kbve.com/public/data/outpost/nx/report.mdx" "echo 'Report Timestamp: $timestamp'"
 
         ;;
-    # 4-9-2024 - NX Command with a single command.
-    # -nx)
-    #     [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
-    #     run_pnpm_nx "$2"
-    #     ;;
-
-    # Updated NX Run Command with Additional Flags.
     -nx)
         shift  # This discards "-nx", shifting all other arguments left.
         if [ $# -eq 0 ]; then  # Check if there are any arguments left.

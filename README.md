@@ -104,6 +104,7 @@ The Richard Stack is known as `Dockerized Integrated Container Kubes`.
     - We use [Portainer](https://kbve.com/application/portainer/) for Docker/K8s management.
   - KBVE Docker Images via [Hub](https://hub.docker.com/u/kbve)
     - [kbve:rustprofile](https://hub.docker.com/r/kbve/rustprofile)
+    - [kbve:expresscolyseusdiscord](https://hub.docker.com/r/kbve/expresscolyseusdiscord)
   
 - I for Integrations
   - Github Actions

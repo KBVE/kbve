@@ -1,10 +1,11 @@
 {
-  "name": "react-phaser-fish-chip",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/react-phaser-fish-chip/src",
-  "projectType": "application",
-  "targets": {
-    "build": {
+	"name": "react-phaser-fish-chip",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/react-phaser-fish-chip/src",
+	"projectType": "application",
+	"tags": [],
+	"targets": {
+		"build": {
 			"executor": "@nx/vite:build",
 			"outputs": ["{options.outputPath}"],
 			"defaultConfiguration": "production",
@@ -21,17 +22,15 @@
 				}
 			}
 		},
-	"pipe": {
-		"executor": "nx:run-commands",
-		"options": {
-			"commands": [
-			  "chmod +x tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
-			  "./tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh"
-			],
-			"parallel": false
+		"pipe": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"chmod +x tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
+					"./tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh"
+				],
+				"parallel": false
+			}
 		}
 	}
-
-  },
-  "tags": []
 }
