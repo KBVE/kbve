@@ -7,15 +7,16 @@
   },
   "private": true,
   "devDependencies": {
-    "@astrojs/check": "^0.5.2",
-    "@astrojs/markdown-remark": "^4.0.1",
-    "@astrojs/mdx": "^2.0.2",
-    "@astrojs/partytown": "^2.0.0",
-    "@astrojs/prefetch": "^0.4.1",
-    "@astrojs/react": "^3.0.2",
-    "@astrojs/sitemap": "^3.0.0",
-    "@astrojs/svelte": "^4.0.2",
-    "@astrojs/tailwind": "^5.0.0",
+    "@astrojs/check": "^0.5.10",
+    "@astrojs/markdown-remark": "^5.1.0",
+    "@astrojs/mdx": "^2.3.1",
+    "@astrojs/partytown": "^2.0.4",
+    "@astrojs/react": "^3.3.0",
+    "@astrojs/sitemap": "^3.1.4",
+    "@astrojs/starlight": "^0.21.5",
+    "@astrojs/starlight-tailwind": "^2.0.2",
+    "@astrojs/svelte": "^5.4.0",
+    "@astrojs/tailwind": "^5.1.0",
     "@babel/core": "^7.14.5",
     "@babel/preset-react": "^7.14.5",
     "@colyseus/playground": "^0.15.12",
@@ -70,7 +71,7 @@
     "@vitest/coverage-c8": "~0.32.0",
     "@vitest/coverage-v8": "1.3.0",
     "@vitest/ui": "1.3.0",
-    "astro": "4.4.0",
+    "astro": "4.6.3",
     "babel-jest": "^29.4.1",
     "babel-plugin-macros": "^3.1.0",
     "babel-plugin-styled-components": "1.10.7",
@@ -188,4 +189,3 @@
     "uwebsockets-express": "^1.3.6"
   }
 }
-
