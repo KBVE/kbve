@@ -10,7 +10,8 @@ import TestimonialsSection from '../components/sections/testimonials/Testimonial
 import PricingSection from '../components/sections/pricing/PricingSection.astro';
 import FAQ from '../components/sections/FAQ.astro';
 import AnnouncementBanner from '../components/ui/banners/AnnouncementBanner.astro';
-import heroImage from '../images/hero-image.avif';
+//import heroImage from '../images/hero-image.avif';
+import heroImage from '../images/cyan_dwarf.png';
 import faqs from '../data_files/faqs.json';
 import features from '../data_files/features.json';
 import pricing from '../data_files/pricing.json';
@@ -38,11 +39,11 @@ const avatarSrcs: Array<string> = [
 	<HeroSection
 		title=`Meet Your Dream <span
         class="text-cyan-500 dark:text-cyan-400">Dev Team!</span>`
-		subTitle="Top-quality hardware tools and expert construction services for every project need."
+		subTitle="Advanced gaming and software solutions - Elevate your experience with cutting-edge technology! From k8s to AI, we got you covered!"
 		primaryBtn="Start Exploring"
 		primaryBtnURL="/products"
-		secondaryBtn="Contact Sales Team"
-		secondaryBtnURL="/contact"
+		secondaryBtn="Join Our Discord"
+		secondaryBtnURL="/discord"
 		withReview={true}
 		avatars={avatarSrcs}
 		rating=`<span class="font-bold">4.8</span> / 5`
