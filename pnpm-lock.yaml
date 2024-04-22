@@ -152,6 +152,9 @@ importers:
       grid-engine:
         specifier: ^2.44.2
         version: 2.44.2(phaser@3.80.1)
+      gsap:
+        specifier: ^3.12.5
+        version: 3.12.5
       html-react-parser:
         specifier: ^5.1.8
         version: 5.1.10(@types/react@18.2.79)(react@18.2.0)
@@ -7734,6 +7737,9 @@ packages:
   grpc_tools_node_protoc_ts@5.3.3:
     resolution: {integrity: sha512-M/YrklvVXMtuuj9kb42PxeouZhs7Ul+R4e/31XwrankUcKL8cQQP50Q9q+KEHGyHQaPt6VtKKsxMgLaKbCxeww==}
     hasBin: true
+
+  gsap@3.12.5:
+    resolution: {integrity: sha512-srBfnk4n+Oe/ZnMIOXt3gT605BX9x5+rh/prT2F1SsNJsU1XuMiP0E2aptW481OnonOGACZWBqseH5Z7csHxhQ==}
 
   handle-thing@2.0.1:
     resolution: {integrity: sha512-9Qn4yBxelxoh2Ow62nP+Ka/kMnOXRi8BXnRaUwezLNhqelnN49xKz4F/dPP8OYLxLxq6JDtZb2i9XznUQbNPTg==}
@@ -23627,6 +23633,8 @@ snapshots:
     dependencies:
       google-protobuf: 3.15.8
       handlebars: 4.7.7
+
+  gsap@3.12.5: {}
 
   handle-thing@2.0.1: {}
 
