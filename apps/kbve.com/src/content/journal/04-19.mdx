@@ -11,54 +11,9 @@ tags:
     - daily
 ---
 
-import MDXJS from '../../components/MDXJS.astro';
+## 2024
 
-<MDXJS>
-
-## Notes
-
-No notes to sync.
-
-</MDXJS>
-
----
-
-<MDXJS>
-
-## Tasks
-
--   [x] Upgrade Coolify to v3.12.31.
--   [x] R&D for automated RAW image conversion.
--   [x] Rollback Astro upgrade because of errors.
--   [x] Pay off any additional CC debt(s) for the month.
--   [x] Leverage 100 shares of $SPY again for the week.
--   [x] AppWrite -> Register -> https://github.com/KBVE/kbve.com/issues/122
--   [x] Scope out local tailor for pants.
--   [x] Ant Spray for the house in India.
-
-
-</MDXJS>
-
----
-
-<MDXJS>
-
-## Quote
-
-> Many men go fishing all of their lives without knowing that it is not fish they are after.
-> — <cite>Henry David Thoreau</cite>
-
-</MDXJS>
-
----
-
-<MDXJS>
-
-### 2024
-
-<MDXJS>
-
-#### GHA
+**GHA**
 
 The Github Actions are throwing too many errors for me to handle without overthinking.
 Thus the next step for the night would be start placing dynamic sha hashses into each pull request + branch within the automation system.
@@ -95,11 +50,7 @@ jobs:
 Going to place this within the `ci-main.yml` and call it throughout any of the pull requests that create a new branch.
 Now I will push this file change through the main branch and see how it performs.
 
-</MDXJS>
-
-<MDXJS>
-
-#### v01d
+**v01d**
 
 The current `v01d` is misisng the nvidia and cuda drivers, so let me start fixing that up.
 We want to install the cuda drivers for nvida, so here is what we can do from the dockerfile aspect.
@@ -144,13 +95,7 @@ There are three paths that I see, the first would be having the `v01d` use the n
 
 The third path would be to just drop `cuda` support within the base image and shift it over to a shell file that would install the needed drivers, outside of the base image.
 
-</MDXJS>
-
----
-
-<MDXJS>
-
-#### Docker
+**Docker**
 
 The main `kbve` dockerfile seems to fail at building, I am going to traceback some issues that might be the cause?
 I will start with making sure the `pnpm-lock.yml` for the whole repo is up-to-Date, as I noticed that it was still under an older version.
@@ -161,20 +106,9 @@ For some reason the pnpm lock is still becoming a pain point, maybe I need to lo
 
 Preparing everything to node v20 or node v21 might b
 
-</MDXJS>
+## 2023
 
-
-</MDXJS>
-
----
-
-<MDXJS>
-
-### 2023
-
-<MDXJS>
-
-#### India
+**India**
 
 -   Visiting the inner city this morning and it was wild! The food smells amazing but the crowd is mind numbing and the traffic is insane, damn I almost got hit by a tuk tuk / rickshaw at least 3 times.
 -   Currently trying to fix the issues with SendGrid and Ezoic. It seems that Ezoic's DNS is replacing the SendGrid CNAME by dropping it. When trying to place the CNAME inside of the Ezoic DNS panel, it seems to say that it can not proxy it. I rasied a community ticket on their forum, hopefully they can get it resolved but if they can not then we might use a 3rd party domain.
@@ -182,6 +116,22 @@ Preparing everything to node v20 or node v21 might b
 -   Integration of Portainer and Coolify still has some issues, including volume and network management. I will rise an issue after doing more R&D between both applications.
 -   Starting the AppWrite Register for Astro.
 
-</MDXJS>
+## Notes
 
-</MDXJS>
+No notes to sync.
+
+## Tasks
+
+-   [x] Upgrade Coolify to v3.12.31.
+-   [x] R&D for automated RAW image conversion.
+-   [x] Rollback Astro upgrade because of errors.
+-   [x] Pay off any additional CC debt(s) for the month.
+-   [x] Leverage 100 shares of $SPY again for the week.
+-   [x] AppWrite -> Register -> https://github.com/KBVE/kbve.com/issues/122
+-   [x] Scope out local tailor for pants.
+-   [x] Ant Spray for the house in India.
+
+## Quote
+
+> Many men go fishing all of their lives without knowing that it is not fish they are after.
+> — <cite>Henry David Thoreau</cite>
