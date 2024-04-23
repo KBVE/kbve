@@ -11,11 +11,47 @@ tags:
     - daily
 ---
 
-The journal system has to go through another change that should make it easier for us within the template level.
 
 ## 2024
 
+**Astro**
+
+More changes to the website! The feeling of fixing up the daily journal has been a long standing pain for my eyes, so I am going to try and tackle it today.
+I am thinking the focus should be on optimizing while crafting an unique experience for the future readers, including myself.
+
+```javascript
+    <div class="sm:order-2">
+      <div class="relative rounded-lg pt-[50%] sm:pt-[100%]">
+        <img
+          class="absolute start-0 top-0 size-full rounded-xl object-cover"
+          src={journalEntry.data.img}
+          alt={`journalEntry.data.cardImageAlt`}
+          draggable={"false"}
+          loading={"eager"}
+        />
+      </div>
+    </div>
+```
+
+We should wrap this container with code that would optimize the image URL and also see if we can pass through the unsplash ID , then apply changes to the URL to make it faster for us.
+
+I decided to to have the source be `journalImage` and added this code block in the start of the journal.
+
+
+```javascript
+
+const journalImage = journalEntry.data.unsplash ? 
+    `https://images.unsplash.com/photo-${journalEntry.data.unsplash}?crop=entropy&cs=srgb&fm=avif&q=85&w=1024` : 
+    journalEntry.data.img;
+
+```
+
+This will help us control the way the size of the image that is being loaded, before we were loading nearly 100MB worth of images, which is not worth it!
+I swapped out the `eager` with a `lazy` as well, so the site now loads super fast and will lazy load the images as we scroll down.
+
 ## 2023
+
+**India**
 
 - Damn! 17 days left in India for this vacation! I definitely will miss this place, the internal clock is already ticking. The next time I am around India, I might make plans to visit the Himalayas and also expand around Asia, definitely need to put Japan on the list.
 - I am currently debating how I should setup the AppWrite Register. I am thinking I will do the classical way first and then maybe create a widget, `react-appwrite-widget` , to handle the Register? Hmm. 
@@ -23,6 +59,8 @@ The journal system has to go through another change that should make it easier f
 - Expanding the user profile via its own astro component, I have to be careful not to hit the API too much while building out the basics. We could store the basic user information into another nanoStore, so we do not have to pull from the API all the time. The issue is related to https://github.com/KBVE/kbve.com/issues/183
 
 ## Notes
+
+The journal system has to go through another change that should make it easier for us within the template level.
 
 ## Quote
 

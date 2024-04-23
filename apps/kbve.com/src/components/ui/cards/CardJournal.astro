@@ -11,6 +11,12 @@ const { journalEntry } = Astro.props;
 interface Props {
     journalEntry: CollectionEntry<"journal">;
 }
+
+const journalImage = journalEntry.data.unsplash ? 
+    `https://images.unsplash.com/photo-${journalEntry.data.unsplash}?crop=entropy&cs=srgb&fm=avif&q=85&w=1024` : 
+    journalEntry.data.img;
+
+
 ---
 
 
@@ -29,7 +35,7 @@ interface Props {
      >
        <img
          class="absolute start-0 top-0 size-full object-cover transition duration-500 group-hover:scale-110"
-         src={journalEntry.data.img}
+         src={journalImage}
          alt={`blogEntry.data.cardImageAlt`}
          draggable={"false"}
          loading="lazy"

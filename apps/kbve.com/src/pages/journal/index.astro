@@ -1,115 +1,111 @@
 ---
-// Import necessary components, modules and types
-import MainLayout from "../../layouts/MainLayout.astro";
-import CardJournal from "../../components/ui/cards/CardJournal.astro";
-import CardJournalRecent from "../../components/ui/cards/CardJournalRecent.astro";
-import CardInsight from "../../components/ui/cards/CardInsight.astro";
-import { getCollection } from "astro:content";
-import type { CollectionEntry } from "astro:content";
-import { SITE } from "../../data_files/constants";
+// [IMPORT]
+import MainLayout from '../../layouts/MainLayout.astro';
+import CardJournal from '../../components/ui/cards/CardJournal.astro';
+import CardJournalRecent from '../../components/ui/cards/CardJournalRecent.astro';
+import CardInsight from '../../components/ui/cards/CardInsight.astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { SITE } from '../../data_files/constants';
 
-// Get all blogs post and sort them based on publish date
-const journalPosts: CollectionEntry<"journal">[] = (await getCollection("journal")).sort(
-  (a: CollectionEntry<"journal">, b: CollectionEntry<"journal">) =>
-    b.data.date.valueOf() - a.data.date.valueOf(),
+// Get all journal post and sort them based on publish date
+const journalPosts: CollectionEntry<'journal'>[] = (
+	await getCollection('journal')
+).sort(
+	(a: CollectionEntry<'journal'>, b: CollectionEntry<'journal'>) =>
+		b.data.date.valueOf() - a.data.date.valueOf()
 );
 
 // Get all insights posts
-const insightPosts: CollectionEntry<"insights">[] =
-  await getCollection("insights");
+const insightPosts: CollectionEntry<'insights'>[] =
+	await getCollection('insights');
 
+const mostRecentPost: CollectionEntry<'journal'> = journalPosts[0];
+const otherPosts: CollectionEntry<'journal'>[] = journalPosts.slice(1);
 
-
-const mostRecentPost: CollectionEntry<"journal"> = journalPosts[0];
-const otherPosts: CollectionEntry<"journal">[] = journalPosts.slice(1);
-
-// Define variables for page content
-const title: string = "Your Gateway to Construction Excellence";
+// [VAR]
+const title: string =
+	'The Creator’s Diary: Adventures in Art, Tech, and Cinema';
 const subTitle: string =
-  "Explore the latest news, tips, and insights from ScrewFast to enhance your construction projects. From product spotlights to project management strategies, our blog is your go-to resource for all things hardware and construction.";
+	'Explore daily dispatches from a modern-day Renaissance journey, spanning the realms of art, technology, and ancient wisdom. Dive into a world where algorithms meet aesthetics and every day is a new adventure in beta.';
 
-  const secondTitle: string = "Insights";
+const secondTitle: string = 'Insights';
 const secondSubTitle: string =
-  "Stay up-to-date with the latest trends and developments in the construction industry with insights from ScrewFast's team of industry experts. ";
+	"Stay up-to-date with the latest trends and developments in the construction industry with insights from ScrewFast's team of industry experts. ";
 
 const pageTitle: string = `Journal | ${SITE.title}`;
 const pageDescription: string = `KBVE daily journal and log, with the latest development notes from the KBVE team.`;
-
 ---
+
 <MainLayout
-title={pageTitle}
-structuredData={{
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  "@id": "https://kbve.com/journal",
-  "url": "https://kbve.com/journal",
-  "name": `${pageTitle}`,
-  "description": `${pageDescription}`,
-  "isPartOf": {
-    "@type": "WebSite",
-    "url": "https://kbve.com/",
-    "name": `KBVE ${SITE.title}`,
-    "description": `${SITE.description_short}`
-  },
-  "inLanguage": "en-US"
-}}
->
-<section
-  class="mx-auto max-w-[85rem] space-y-8 px-4 pt-16 sm:px-6 lg:px-8 2xl:max-w-full"
->
-  <!--Page header-->
-  <div class="mx-auto max-w-3xl text-left sm:text-center">
-    <h1
-      class="block text-balance text-4xl font-bold tracking-tight text-neutral-800 dark:text-neutral-200 md:text-5xl lg:text-6xl"
-    >
-      {title}
-    </h1>
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://kbve.com/journal',
+		url: 'https://kbve.com/journal',
+		name: `${pageTitle}`,
+		description: `${pageDescription}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com/',
+			name: `KBVE ${SITE.title}`,
+			description: `${SITE.description_short}`,
+		},
+		inLanguage: 'en-US',
+	}}>
+	<section
+		class="mx-auto max-w-[85rem] space-y-8 px-4 pt-16 sm:px-6 lg:px-8 2xl:max-w-full">
+		<!--Page header-->
+		<div class="mx-auto max-w-3xl text-left sm:text-center">
+			<h1
+				class="block text-balance text-4xl font-bold tracking-tight text-neutral-800 dark:text-neutral-200 md:text-5xl lg:text-6xl">
+				{title}
+			</h1>
 
-    <p
-      class="mt-4 text-pretty text-lg text-neutral-600 dark:text-neutral-400"
-    >
-      {subTitle}
-    </p>
-  </div>
-</section>
+			<p
+				class="mt-4 text-pretty text-lg text-neutral-600 dark:text-neutral-400">
+				{subTitle}
+			</p>
+		</div>
+	</section>
 
+	<!--Most recent blog post-->
+	<section
+		class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full">
+		<CardJournalRecent journalEntry={mostRecentPost} />
+	</section>
 
-<!--Most recent blog post-->
-<section
-  class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
->
-  <CardJournalRecent journalEntry={mostRecentPost} />
-</section>
+	<section
+		class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full">
+		<!--Blog posts grid-->
+		<div class="grid gap-6 lg:grid-cols-2">
+			{
+				otherPosts.map((blogEntry) => (
+					<CardJournal journalEntry={blogEntry} />
+				))
+			}
+		</div>
+	</section>
 
-<section
-  class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
->
-  <!--Blog posts grid-->
-  <div class="grid gap-6 lg:grid-cols-2">
-    {otherPosts.map((blogEntry) => <CardJournal journalEntry={blogEntry} />)}
-  </div>
-</section>
-
-<!--Insights section-->
-<section
-  class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
->
-  <div class="mx-auto mb-10 max-w-2xl text-center lg:mb-14">
-    <h2
-      class="text-2xl font-bold text-neutral-800 dark:text-neutral-200 md:text-4xl md:leading-tight"
-    >
-      {secondTitle}
-    </h2>
-    <p class="mt-1 text-pretty text-neutral-600 dark:text-neutral-400">
-      {secondSubTitle}
-    </p>
-  </div>
-  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-    {
-      insightPosts.map((insightEntry) => (
-        <CardInsight insightEntry={insightEntry} />
-      ))
-    }
-  </div>
-</section>
+	<!--Insights section-->
+	<section
+		class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full">
+		<div class="mx-auto mb-10 max-w-2xl text-center lg:mb-14">
+			<h2
+				class="text-2xl font-bold text-neutral-800 dark:text-neutral-200 md:text-4xl md:leading-tight">
+				{secondTitle}
+			</h2>
+			<p class="mt-1 text-pretty text-neutral-600 dark:text-neutral-400">
+				{secondSubTitle}
+			</p>
+		</div>
+		<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+			{
+				insightPosts.map((insightEntry) => (
+					<CardInsight insightEntry={insightEntry} />
+				))
+			}
+		</div>
+	</section>
 </MainLayout>

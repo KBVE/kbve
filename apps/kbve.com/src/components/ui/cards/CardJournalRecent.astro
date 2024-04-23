@@ -10,15 +10,22 @@ const { journalEntry } = Astro.props;
 interface Props {
     journalEntry: CollectionEntry<"journal">;
 }
+
+// Format the Unsplash ID to use for the default image.
+const journalImage = journalEntry.data.unsplash ? 
+    `https://images.unsplash.com/photo-${journalEntry.data.unsplash}?crop=entropy&cs=srgb&fm=avif&q=85&w=1024` : 
+    journalEntry.data.img;
+
+
 ---
 <!-- Root container, which is divided into 2 grid column layout for larger screens -->
 <div class="grid gap-8 sm:grid-cols-2 sm:items-center">
-    <!-- Container for the blog post's cover image -->
+    <!-- Container for the journal post's cover image -->
     <div class="sm:order-2">
       <div class="relative rounded-lg pt-[50%] sm:pt-[100%]">
         <img
           class="absolute start-0 top-0 size-full rounded-xl object-cover"
-          src={journalEntry.data.img}
+          src={journalImage}
           alt={`journalEntry.data.cardImageAlt`}
           draggable={"false"}
           loading={"eager"}
