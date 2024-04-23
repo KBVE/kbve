@@ -61,7 +61,7 @@ const journalImage = journalEntry.data.unsplash ?
                {journalEntry.data.author}
              </h4>
              <p class="text-xs text-neutral-50/[.8]">
-               {formatDate(journalEntry.data.date)}
+               {journalEntry.data.date && formatDate(journalEntry.data.date)}
              </p>
            </div>
          </div>

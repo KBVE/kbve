@@ -11,10 +11,13 @@ import { SITE } from '../../data_files/constants';
 // Get all journal post and sort them based on publish date
 const journalPosts: CollectionEntry<'journal'>[] = (
 	await getCollection('journal')
-).sort(
-	(a: CollectionEntry<'journal'>, b: CollectionEntry<'journal'>) =>
-		b.data.date.valueOf() - a.data.date.valueOf()
-);
+).sort((a: CollectionEntry<'journal'>, b: CollectionEntry<'journal'>) => {
+	// Use zero if the date is undefined to ensure comparison can happen without errors
+	const dateA = a.data.date ? new Date(a.data.date).valueOf() : 0;
+	const dateB = b.data.date ? new Date(b.data.date).valueOf() : 0;
+
+	return dateB - dateA;
+});
 
 // Get all insights posts
 const insightPosts: CollectionEntry<'insights'>[] =
