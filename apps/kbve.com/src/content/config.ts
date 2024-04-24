@@ -172,6 +172,7 @@ const journal = defineCollection({
       tags: z.array(z.string()), 
       footnote: z.string().optional(),
       author: z.string().default('KBVE Team'),
+      role: z.string().default('KBVE Member'),
       unsplash: z.string().default(''),
       img: z.string().default(''),
       date: z.date().optional(),
@@ -233,7 +234,7 @@ const project = defineCollection({
 export const collections = {
 
     //*     [Applications]
-    application: application,
+    //      application: application,
     arcade: arcade,
 
     //*     [Assets]
