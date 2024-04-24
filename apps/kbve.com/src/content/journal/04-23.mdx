@@ -70,6 +70,28 @@ We can import the `StarlightHead` , I am wondering if we could import the search
 import StarlightSearch from '@astrojs/starlight/components/Search.astro';
 ```
 
+Hmm this ended up being a bit too complex for me to do while I am half Zzzz, so I will try it again tomorrow.
+
+**Github**
+
+Lets update the Github contributors , filtering out the bots and myself! Then maybe trimming the list down to about the top 10 contributors.
+
+```javascript
+// Filter Users
+const remove_github_users = [
+	'github_actions',
+	'actions-user',
+	'h0lybyte',
+	'github',
+];
+const github_avatars_filtered = github_avatars.filter(
+	(avatar) => !remove_github_users.includes(avatar.login),
+);
+const github_avatars_leaderboard = github_avatars_filtered.slice(0, 10);
+```
+
+Simple filtering and slicing got the job done!
+
 ## 2023
 
 **India**
