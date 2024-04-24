@@ -18,7 +18,6 @@
 			"@kbve/astro-ve": ["packages/astro-ve/index.ts"],
 			"@kbve/expo-bbq": ["packages/expo-bbq/src/index.ts"],
 			"@kbve/khashvault": ["packages/khashvault/src/index.ts"],
-			"@kbve/postgres": ["packages/postgres/src/index.ts"],
 			"@kbve/react-appwrite": ["packages/react-appwrite/src/index.ts"]
 		}
 	},
