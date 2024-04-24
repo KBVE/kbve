@@ -41,6 +41,9 @@ export default defineConfig({
 		}),
 		starlight({
 			title: 'KBVE Docs',
+			editLink: {
+				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
+			},
 			expressiveCode: false, // Disabled Expressive Code
 			defaultLocale: 'root',
 			locales: {
@@ -73,6 +76,11 @@ export default defineConfig({
 					label: 'Applications',
 					autogenerate: { directory: 'application' },
 				},
+				{
+					label: 'Theory',
+					autogenerate: { directory: 'theory' },
+				},
+
 				{
 					label: 'Tools & Equipment',
 					items: [
