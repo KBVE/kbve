@@ -1,0 +1,64 @@
+---
+// [IMPORTS]
+const menuLinks = {
+	arcade: 'Arcade',
+	journal: 'Journal',
+};
+
+import Icon from './icons/Icon.astro';
+---
+
+<div class="hs-dropdown relative inline-flex">
+	<button
+		id="hs-dropdown-slideup-animation"
+		type="button"
+		class="hs-dropdown-toggle inline-flex items-center gap-x-2 rounded-lg px-1.5 py-1.5 text-sm font-medium text-neutral-600 outline-none ring-zinc-500 transition duration-300 hover:bg-neutral-200 hover:text-cyan-400 dark:border-neutral-700 dark:text-neutral-400 dark:ring-zinc-200 dark:hover:bg-neutral-700 dark:hover:text-cyan-300 dark:focus:outline-none">
+		<Icon name="earth" />
+		<svg
+			class="hs-dropdown-open:rotate-180 size-4"
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round">
+			<path d="m6 9 6 6 6-6"></path>
+		</svg>
+	</button>
+
+	<div
+		class="hs-dropdown-menu w-72 transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-10 duration-300 mt-2 min-w-60 bg-white shadow-md rounded-lg p-2 dark:bg-neutral-800 dark:border dark:border-neutral-700 dark:divide-neutral-700 !transform-none !top-[78%] !left-[20%] md:!top-[80%] md:!left-[70%]"
+		aria-labelledby="hs-dropdown-slideup-animation">
+		<a
+			class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700"
+			href="/arcade"
+            data-astro-prefetch="viewport">
+			Arcade
+		</a>
+		<a
+			class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700"
+			href="/welcome-to-docs"
+            data-astro-prefetch="viewport">
+			Docs
+		</a>
+		<a
+			class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700"
+			href="/assets"
+            data-astro-prefetch="viewport">
+			Assets
+		</a>
+		<a
+			class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700"
+			href="#"
+            data-astro-prefetch="viewport">
+			Team Account
+		</a>
+	</div>
+</div>
+
+<!--Import the necessary Dropdown plugin-->
+<!--https://preline.co/plugins/html/dropdown.html-->
+<script is:inline src="/scripts/vendor/preline/dropdown/index.js"></script>
