@@ -102,6 +102,7 @@ export default defineConfig({
 			],
 			social: {
 				github: 'https://github.com/kbve/kbve',
+				discord: 'https://kbve.com/discord/'
 			},
 			disable404Route: true,
 			customCss: ['./src/styles/starlight.css'],
