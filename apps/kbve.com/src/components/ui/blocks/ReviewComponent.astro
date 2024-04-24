@@ -12,124 +12,137 @@ interface Props {
 	reviews?: string;
 }
 
-
 // Define an interface for the expected structure of a GitHub contributor
 interface GithubContributor {
-    login: string;
-    id: number;
-    avatar_url: string;
-    contributions: number;
+	login: string;
+	id: number;
+	avatar_url: string;
+	contributions: number;
 }
 
 // Define an interface for the avatar data we will use in the component
 interface GithubAvatar {
-    src: string;
-    login: string;
+	src: string;
+	login: string;
 }
 
 interface GitHubUser {
-    login: string;
-    id: number;
-    node_id: string;
-    avatar_url: string;
-    gravatar_id: string;
-    url: string;
-    html_url: string;
-    followers_url: string;
-    following_url: string;
-    gists_url: string;
-    starred_url: string;
-    subscriptions_url: string;
-    organizations_url: string;
-    repos_url: string;
-    events_url: string;
-    received_events_url: string;
-    type: string;
-    site_admin: boolean;
+	login: string;
+	id: number;
+	node_id: string;
+	avatar_url: string;
+	gravatar_id: string;
+	url: string;
+	html_url: string;
+	followers_url: string;
+	following_url: string;
+	gists_url: string;
+	starred_url: string;
+	subscriptions_url: string;
+	organizations_url: string;
+	repos_url: string;
+	events_url: string;
+	received_events_url: string;
+	type: string;
+	site_admin: boolean;
 }
 
 interface GitHubCommitAuthor {
-    name: string;
-    email: string;
-    date: string;
+	name: string;
+	email: string;
+	date: string;
 }
 
 interface GitHubCommitDetail {
-    author: GitHubCommitAuthor;
-    committer: GitHubCommitAuthor;
-    message: string;
-    tree: {
-        sha: string;
-        url: string;
-    };
-    url: string;
-    comment_count: number;
-    verification: {
-        verified: boolean;
-        reason: string;
-        signature: string;
-        payload: string;
-    };
+	author: GitHubCommitAuthor;
+	committer: GitHubCommitAuthor;
+	message: string;
+	tree: {
+		sha: string;
+		url: string;
+	};
+	url: string;
+	comment_count: number;
+	verification: {
+		verified: boolean;
+		reason: string;
+		signature: string;
+		payload: string;
+	};
 }
 
 interface GitHubCommit {
-    sha: string;
-    node_id: string;
-    commit: GitHubCommitDetail;
-    url: string;
-    html_url: string;
-    comments_url: string;
-    author: GitHubUser | null;
-    committer: GitHubUser | null;
-    parents: Array<{
-        sha: string;
-        url: string;
-        html_url: string;
-    }>;
+	sha: string;
+	node_id: string;
+	commit: GitHubCommitDetail;
+	url: string;
+	html_url: string;
+	comments_url: string;
+	author: GitHubUser | null;
+	committer: GitHubUser | null;
+	parents: Array<{
+		sha: string;
+		url: string;
+		html_url: string;
+	}>;
 }
-
 
 //* Github Fetch
 async function getContributors(): Promise<GithubAvatar[]> {
-    try {
-        const response = await fetch('https://api.github.com/repos/kbve/kbve/contributors');
-        if (!response.ok) {
-            throw new Error(`GitHub API error with status ${response.status}`);
-        }
-        const contributors: GithubContributor[] = await response.json();
+	try {
+		const response = await fetch(
+			'https://api.github.com/repos/kbve/kbve/contributors',
+		);
+		if (!response.ok) {
+			throw new Error(`GitHub API error with status ${response.status}`);
+		}
+		const contributors: GithubContributor[] = await response.json();
 
-        const avatars: GithubAvatar[] = contributors.map((contributor): GithubAvatar => ({
-            src: contributor.avatar_url,
-            login: contributor.login
-        }));
-        return avatars;
-    } catch (error) {
-        console.error('Error fetching contributors:', error);
-        return [];
-    }
+		const avatars: GithubAvatar[] = contributors.map(
+			(contributor): GithubAvatar => ({
+				src: contributor.avatar_url,
+				login: contributor.login,
+			}),
+		);
+		return avatars;
+	} catch (error) {
+		console.error('Error fetching contributors:', error);
+		return [];
+	}
 }
 
 const github_avatars = await getContributors();
 
+// Filter Users
+const remove_github_users = [
+	'github_actions',
+	'actions-user',
+	'h0lybyte',
+	'github',
+];
+const github_avatars_filtered = github_avatars.filter(
+	(avatar) => !remove_github_users.includes(avatar.login),
+);
+const github_avatars_leaderboard = github_avatars_filtered.slice(0, 10);
+
 async function getCommits(): Promise<GitHubCommit[]> {
-    try {
-        const response = await fetch('https://api.github.com/repos/kbve/kbve/commits');
-        if (!response.ok) {
-            throw new Error(`GitHub API error with status ${response.status}`);
-        }
-        const commits: GitHubCommit[] = await response.json();
-        return commits;  // Returns the array of commit objects
-    } catch (error) {
-        console.error('Error fetching commits:', error);
-        return [];  // Return an empty array in case of an error
-    }
+	try {
+		const response = await fetch(
+			'https://api.github.com/repos/kbve/kbve/commits',
+		);
+		if (!response.ok) {
+			throw new Error(`GitHub API error with status ${response.status}`);
+		}
+		const commits: GitHubCommit[] = await response.json();
+		return commits; // Returns the array of commit objects
+	} catch (error) {
+		console.error('Error fetching commits:', error);
+		return []; // Return an empty array in case of an error
+	}
 }
 
 const github_commits = await getCommits();
 const latestCommit = github_commits[0];
-
-
-
 ---
 
 <div class="mt-6 lg:mt-10">
@@ -137,13 +150,20 @@ const latestCommit = github_commits[0];
 		<div class="text-center sm:flex sm:items-center sm:text-start">
 			<div class="flex-shrink-0 pb-5 sm:flex sm:flex-col sm:pb-0 sm:pe-5">
 				<!-- Avatar Group -->
-        <div class="text-center mb-3">
-          <h3 class="font-semibold text-lg text-neutral-800 dark:text-neutral-200">Meet the Team</h3>
-        </div>
+				<div class="text-center mb-3">
+					<h3
+						class="font-semibold text-lg text-neutral-800 dark:text-neutral-200">
+						Meet the Team
+					</h3>
+				</div>
 				<div class="flex justify-center -space-x-3">
 					{
-						github_avatars?.map((avatar) => (
-							<GithubProfileAvatar src={avatar.src} profile={avatar.login} alt={`Avatar for ${avatar.login}`} />
+						github_avatars_leaderboard?.map((avatar) => (
+							<GithubProfileAvatar
+								src={avatar.src}
+								profile={avatar.login}
+								alt={`Avatar for ${avatar.login}`}
+							/>
 						))
 					}
 					<span
@@ -175,10 +195,35 @@ const latestCommit = github_commits[0];
 				</div>
 				<div
 					class="text-sm text-neutral-800 dark:text-neutral-200 sm:ps-5">
-          <p>Latest Commit by <a href={`${latestCommit?.author?.html_url}`} class="font-bold underline text-cyan-600 dark:text-cyan-400">{latestCommit?.author ? latestCommit.author.login : 'Unknown Author'}</a>:</p>
-          <p><em>"{latestCommit?.commit.message}"</em></p>
-          <p>On: <time datetime=`${latestCommit?.commit.author.date}`>{new Date(latestCommit?.commit.author.date).toLocaleDateString()}</time></p>
-          <p>View this commit on <a href=`${latestCommit?.html_url}` class="underline text-blue-600 hover:text-blue-800 visited:text-purple-600">GitHub</a>.</p>      
+					<p>
+						Latest Commit by <a
+							href={`${latestCommit?.author?.html_url}`}
+							class="font-bold underline text-cyan-600 dark:text-cyan-400">
+							{
+								latestCommit?.author
+									? latestCommit.author.login
+									: 'Unknown Author'
+							}
+						</a>:
+					</p>
+					<p><em>"{latestCommit?.commit.message}"</em></p>
+					<p>
+						On: <time
+							datetime=`${latestCommit?.commit.author.date}`>
+							{
+								new Date(
+									latestCommit?.commit.author.date,
+								).toLocaleDateString()
+							}
+						</time>
+					</p>
+					<p>
+						View this commit on <a
+							href=`${latestCommit?.html_url}`
+							class="underline text-blue-600 hover:text-blue-800 visited:text-purple-600">
+							GitHub
+						</a>.
+					</p>
 				</div>
 			</div>
 		</div>
