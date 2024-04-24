@@ -30,7 +30,6 @@ export default defineConfig({
 		},
 	},
 	integrations: [
-    
 		sitemap({
 			i18n: {
 				defaultLocale: 'en',
@@ -42,7 +41,7 @@ export default defineConfig({
 		}),
 		starlight({
 			title: 'KBVE Docs',
-      expressiveCode: false, // Disabled Expressive Code 
+			expressiveCode: false, // Disabled Expressive Code
 			defaultLocale: 'root',
 			locales: {
 				root: {
@@ -69,6 +68,10 @@ export default defineConfig({
 						'zh-cn': '快速入门指南',
 					},
 					autogenerate: { directory: 'guides' },
+				},
+				{
+					label: 'Applications',
+					autogenerate: { directory: 'application' },
 				},
 				{
 					label: 'Tools & Equipment',
@@ -116,7 +119,7 @@ export default defineConfig({
 				},
 			],
 		}),
-	
+
 		react(),
 		svelte(),
 		partytown(),
@@ -125,7 +128,7 @@ export default defineConfig({
 				new URL('./tailwind.config.cjs', import.meta.url),
 			),
 		}),
-    mdx({
+		mdx({
 			...markdownConfig,
 			//extendPlugins: "astroDefaults"
 		}),

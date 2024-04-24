@@ -1,0 +1,239 @@
+---
+import Layout from '../../layouts/Layout.astro';
+// import { AstroVe as VE } from '@kbve/astro-ve';
+
+//  META Tags
+
+let title = "KBVE Journal: Chronicle Your Daily Odyssey";
+let description = 
+    'KBVE Journal: Your Personal Space to Reflect and Grow. Capture the essence of each day in a beautifully designed digital journal, tailor-made to inspire your journey towards self-discovery and personal growth'
+
+//  Journal Configuration
+
+import { getCollection, getEntry } from 'astro:content';
+
+const journals = await getCollection('journal');
+
+
+// Represents the detailed data of a journal entry
+type JournalData = {
+    id: string;
+    title: string;
+    description: string;
+    tags: string[];
+    date: any; // Assuming ISO format (YYYY-MM-DD)
+};
+
+
+
+// Represents the tuple used for mapping entries, combining slug with simplified data
+type JournalEntriesTuple = [string, JournalData];
+
+const journalsEntries: JournalEntriesTuple[] = journals.map((entry): JournalEntriesTuple => [
+    entry.slug, 
+    {
+        id: entry.slug,
+        title: entry.data.title,
+        description: entry.data.description,
+        tags: entry.data.tags,
+        date: entry.data.date,
+    },
+]);
+
+// Weekly Journal Entries
+
+
+
+const sortedJournals = journalsEntries.sort(([slugA, dataA], [slugB, dataB]) => {
+    const dateA = new Date(dataA.date).getTime();
+    const dateB = new Date(dataB.date).getTime();
+    return dateB - dateA; // Descending order for latest date first
+});
+
+const journalsEntriesLatest = sortedJournals[0];
+
+const latestEntry = await getEntry('journal', journalsEntriesLatest[1].id);
+
+
+console.log(latestEntry);
+
+const journalEntriesRecent = sortedJournals.slice(1, 9);
+
+const journalsByMonth: JournalEntriesTuple[][] = Array.from({ length: 12 }, () => []);
+
+sortedJournals.forEach(([slug, data]) => {
+
+    const entryDate = new Date(data.date);
+    const month = entryDate.getMonth(); // Month as a number (0-11)
+    journalsByMonth[month].push([slug, data]);
+    
+});
+
+// console.log(journalsEntriesLatest);
+
+// console.log(journalsByMonth[1]);
+---
+<Layout title={title} description={description}>
+
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-around">
+    
+      <div class="flex grow bg-zinc-950 border border-cyan-200 rounded-2xl p-4">  
+        <div class="flex items-center grow">
+          <div class="inline-flex flex-shrink-0 justify-center items-center w-12 h-12 text-white bg-gradient-to-br from-pink-500 to-voilet-500 rounded-lg mr-3">
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+          </div>
+          <div class="flex-shrink-0 ml-3">
+            <span class="text-2xl font-bold leading-none text-gray-200 sm:text-3xl">$3,600</span>
+            <h3 class="text-base font-normal text-gray-200">Today's Money</h3>
+          </div>
+          <div class="flex flex-1 justify-end items-center ml-5 w-0 text-base font-bold text-teal-500">
+            +16%
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+        </div>
+    </div>
+
+    
+    <div class="flex grow  bg-zinc-950 border border-cyan-200 rounded-2xl p-4">  
+        <div class="flex items-center grow">
+          <div class="inline-flex flex-shrink-0 justify-center items-center w-12 h-12 text-white bg-gradient-to-br from-pink-500 to-voilet-500 rounded-lg mr-3">
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+          </div>
+          <div class="flex-shrink-0 ml-3">
+            <span class="text-2xl font-bold leading-none text-gray-200 sm:text-3xl">$3,600</span>
+            <h3 class="text-base font-normal text-gray-200">Today's Money</h3>
+          </div>
+          <div class="flex flex-1 justify-end items-center ml-5 w-0 text-base font-bold text-teal-500">
+            +16%
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+        </div>
+    </div>
+    
+    <div class="flex grow bg-zinc-950 border border-cyan-200 rounded-2xl p-4">  
+        <div class="flex items-center grow">
+          <div class="inline-flex flex-shrink-0 justify-center items-center w-12 h-12 text-white bg-gradient-to-br from-pink-500 to-voilet-500 rounded-lg mr-3">
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+          </div>
+          <div class="flex-shrink-0 ml-3">
+            <span class="text-2xl font-bold leading-none text-gray-200 sm:text-3xl">$3,600</span>
+            <h3 class="text-base font-normal text-gray-200">Today's Money</h3>
+          </div>
+          <div class="flex flex-1 justify-end items-center ml-5 w-0 text-base font-bold text-teal-500">
+            +16%
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+        </div>
+    </div>
+
+    <div class="flex grow bg-zinc-950 border border-cyan-200 rounded-2xl p-4">  
+      <div class="flex items-center grow">
+        <div class="inline-flex flex-shrink-0 justify-center items-center w-12 h-12 text-white bg-gradient-to-br from-pink-500 to-voilet-500 rounded-lg mr-3">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+        </div>
+        <div class="flex-shrink-0 ml-3">
+          <span class="text-2xl font-bold leading-none text-gray-200 sm:text-3xl">$3,600</span>
+          <h3 class="text-base font-normal text-gray-200">Today's Money</h3>
+        </div>
+        <div class="flex flex-1 justify-end items-center ml-5 w-0 text-base font-bold text-teal-500">
+          +16%
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+      </div>
+  </div>
+    </section>
+
+    <!-- N Entry / First Entry -->
+
+    <section class="flex grow bg-zinc-950 border border-cyan-200 rounded-2xl p-4">
+      <article class="text-gray-600 body-font">
+        <div class="container mx-auto flex px-5 py-24 md:flex-row flex-col items-center">
+            <div
+                class="lg:flex-grow md:w-1/2 lg:pr-24 md:pr-16 flex flex-col md:items-start md:text-left mb-16 md:mb-0 items-center text-center">
+                <h1 class="title-font sm:text-4xl text-3xl mb-4 font-medium text-cyan-400">{latestEntry?.data.title}
+                    <br class="hidden lg:inline-block">Read our latest journal entry!
+                </h1>
+                <p class="mb-8 leading-relaxed text-yellow-400">{latestEntry?.data.description}</p>
+                <div class="flex justify-center">
+                  <a href={`/journal/${latestEntry?.slug}`}>
+                    <button class="px-5 py-2.5 relative rounded group overflow-hidden font-medium bg-zinc-300 text-cyan-600 inline-block">
+                      <span class="absolute top-0 left-0 flex w-full h-0 mb-0 transition-all duration-200 ease-out transform translate-y-0 bg-cyan-600 group-hover:h-full opacity-90"></span>
+                      <span class="relative group-hover:text-white">Read Latest Journal</span>
+                    </button>
+                    </a>
+                </div>
+            </div>
+            <div class="lg:max-w-lg lg:w-full md:w-1/2 w-5/6">
+                <img class="object-cover object-center rounded grayscale" alt="hero" src={`${latestEntry?.data.img}`}>
+            </div>
+        </div>
+    </article>
+    </section>
+
+
+    <!-- Last 8 Days of N -->
+
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-between">
+      {journalEntriesRecent.map(([slug, { id, title, description, tags, date }]: JournalEntriesTuple) => (
+      <div  class="max-w-md mx-auto bg-zinc-950 border-cyan-200 border rounded-xl shadow-md overflow-hidden md:max-w-2xl">
+          <div class="p-8">
+              <a href={`/journal/${slug}`} class="block mt-1 text-lg leading-tight font-medium text-fuchsia-400 hover:underline">{title}</a>
+              <p class="mt-2 text-yellow-500">{description}</p>
+              <div class="flex flex-wrap gap-2 mt-2">
+                  {tags.map((tag: string) => (
+                      <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{tag}</span>
+                  ))}
+              </div>
+              <div class="text-right text-sm text-teal-500 mt-4">
+                  {new Date(date).toLocaleDateString()}
+              </div>
+          </div>
+      </div>
+  ))}
+    </section>
+
+
+    <!-- All Journals -->
+
+
+    <section class="flex flex-col md:flex-row md:flex-wrap gap-2 mx-auto w-full justify-between">
+      {journalsEntries.map(([slug, { id, title, description, tags, date }]) => (
+        <div class="flex grow bg-zinc-950 border border-cyan-200 rounded-2xl p-4">
+          <a href={`https://kbve.com/journal/${id}`}>  
+            <div class="flex items-center">
+              
+              
+              <div class="bg-zinc-800 shadow-md rounded-lg p-2">
+                <h2 class="text-lg font-semibold text-cyan-400">{title}</h2>
+                <p class="text-gray-600">{description}</p>
+                <div class="flex flex-wrap gap-2 mt-2 justify-end">
+                  {tags.map((tag: string) => (
+                    <span  class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div class="text-right text-sm text-gray-500 mt-4">
+                  {new Date(date).toLocaleDateString()}
+                </div>
+
+              </div>
+            
+            </div>
+          </a>
+    </div>
+    ))}
+    </section>
+
+    <!-- Sorted Journals -->
+
+  
+</Layout>
