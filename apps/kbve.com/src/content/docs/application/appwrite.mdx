@@ -1,0 +1,214 @@
+---
+title: Appwrite
+description: Appwrite is an open-source backend server that provides developers with core APIs to build applications. It is self-hosted and can run on any operating system. Appwrite aims to simplify backend development for developers.
+sidebar:
+    label: Appwrite
+    order: 4
+unsplash: 1549605659-32d82da3a059
+img: https://images.unsplash.com/photo-1549605659-32d82da3a059?fit=crop&w=1400&h=700&q=75
+---
+
+## Information
+
+Appwrite is a cutting-edge backend server that streamlines the development of modern apps.
+With its powerful APIs, intuitive tools, and sleek management console UI, Appwrite empowers developers to build their apps with speed and security.
+Say goodbye to the headaches of common, complex, and repetitive tasks - Appwrite has got you covered.
+Get ready to revolutionize your app development process with Appwrite!
+
+## Javascript
+
+This part of the documentation is no longer valid for Appwrite 1.4+, as they have changed their functions.
+
+We split the functions into three different areas:
+
+1. `Init` - Which initializes the serverless function, handling the installs if using different libaries, ect...
+2. `Core` - These are the notes for the core serverless function.
+3. `Extra` - Additional notes and information regarding the expansion of a serverless function.
+
+### Init
+
+Hello there, fellow developers! 🚀
+
+Today, we're diving deep into the world of cloud functions with a special focus on Appwrite - a wonderful platform that allows you to build secure web and mobile applications faster.
+
+### What is a Cloud Function?
+
+At its core, a cloud function is a piece of code that runs in response to an event.
+You don’t need to manage the infrastructure; the cloud provider does that for you.
+Think of it as "Function as a Service" (FaaS).
+Cloud functions are a key part of the serverless architecture, allowing developers to focus on writing code without worrying about the underlying infrastructure.
+
+### Initializing Your Appwrite Cloud Function
+
+1. `Function Creation` :
+
+    - Head over to your Appwrite Console, navigate to the Functions section, and click on `Add Function`.
+    - Give your function a name and choose a runtime (e.g., Node.js, Python, Deno, etc.).
+
+2. `Code Your Function` :
+
+    - Reference Core for the basics.
+    - Here is a basic / starter.
+
+    ```javascript
+    module.exports = async (req, res) => {
+    	const payload =
+    		req.payload ||
+    		'No payload provided. Add custom data when executing function.';
+
+    	const secretKey =
+    		req.variables.SECRET_KEY ||
+    		'SECRET_KEY variable not found. You can set it in Function settings.';
+
+    	const randomNumber = Math.random();
+
+    	const trigger = req.variables.APPWRITE_FUNCTION_TRIGGER;
+
+    	res.json({
+    		message: 'Hello from Appwrite!',
+    		payload,
+    		secretKey,
+    		randomNumber,
+    		trigger,
+    	});
+    };
+    ```
+
+3. `Packaging` :
+
+    - Cloud functions in Appwrite run inside Docker containers, so your function and any dependencies need to be packed into a tarball. For Node.js:
+      `tar -czf code.tar.gz --exclude code.tar.gz .`
+
+4. `Deployment` :
+    - Upload Your Code: Back in the Appwrite Console, under your function, click on the Deploy Tag button.
+    - Upload the code.tar.gz file.
+    - Set Your Triggers! Functions can respond to various events, like user registration or document creation. Select the triggers relevant to your use case.
+    - Execute! With everything set, hit the Execute button. Your function will run, and you can see the logs in real-time.
+
+Yay! Congratulations, you’ve just deployed your first Appwrite Cloud Function! 🎉
+The power of serverless lies in its simplicity and scalability.
+As your application grows, you can continue adding more functions without the hassle of managing servers or infrastructure.
+
+I hope this introduction helps kickstart your journey with Appwrite Cloud Functions.
+Stay tuned for more in-depth tutorials, and happy coding! 🚀
+
+### Core
+
+General documentation and information in reference to the cloud functions / open runtime for Appwrite.
+
+Remember to import the SDK outside of the module function.
+
+The main `module.exports` is usually written like this
+
+```javascript
+module.exports = async function (req, res) {}; // Passing req and res
+```
+
+The `req` contains these three main objects:
+
+`req.headers` - An object with the request headers for the function.
+`req.payload` - An object with the payload, which is the main body data.
+`req.env` - An object with the environment data.
+
+The `res` can return two main objects:
+
+`res.send` - returns a `text` and `statusCode`.
+`res.json` - returns an `object` and `statusCode`.
+
+Example of parsing the `req.payload` check and `res.json` return.
+
+```javascript
+if (req.payload) {
+	try {
+		payload = JSON.parse(req.payload);
+	} catch (error) {
+		errorHandler('Corrupt payload for the function.');
+	}
+} else {
+	errorHandler('Missing payload for the function.');
+}
+```
+
+In this case our `errorHandler` function would be:
+
+```javascript
+const errorHandler = (__errorMessage, statusCode = 418) => {
+	res.json({ data: 'error', message: __errorMessage }, statusCode);
+};
+```
+
+### Extra
+
+In the context of Appwrite Cloud Functions, "extra libraries" refer to external dependencies or packages that your function might need to execute correctly.
+Due to the isolated nature of cloud functions, they don't inherently have access to all the libraries or tools available in a full-fledged server environment.
+To overcome this, Appwrite allows you to bundle these additional libraries with your function code.
+When you're developing your function, you specify and package these libraries—be it npm packages for a Node.js function, pip packages for a Python function, or any other dependencies for other runtimes.
+Once bundled, Appwrite ensures that these libraries are available to your function at runtime, providing a seamless execution environment tailored to your specific needs.
+
+-   For data fetching, we recommend that you add an external module known as `axios`.
+    -   `const axios = require("axios").default;`
+
+---
+
+## Python
+
+The Appwrite Python SDK allows Python developers to interact with Appwrite's API, facilitating tasks like user authentication, database operations, storage, and more.
+By using this SDK, Python developers can seamlessly integrate and manage Appwrite services in their applications, without delving into the complexities of direct API calls.
+
+Step aside traditional backends, the Appwrite Python SDK is in town, rolling out the red carpet for Pythonistas eager to elevate their web and mobile projects!
+This snazzy toolkit doesn't just connect Python applications to the Appwrite server; it's a golden ticket to a carnival of backend delights.
+From the tantalizing whirlwind of user authentication to the magic show of database operations and the high-flying trapeze of storage management, the SDK transforms mundane backend tasks into a spectacle.
+No more wrestling with manual API requests – just harness the SDK's sleek methods and watch as Appwrite's vast services dance harmoniously with your Python code.
+Whether you're orchestrating a symphony of user data or choreographing a ballet of notifications, the Appwrite Python SDK ensures every act is a showstopper or a stormtrooper muhahaha.
+
+### Appwrite Python SDK Install
+
+Python wizards, gather 'round! Elevate your coding cauldron with a sprinkle of Appwrite magic by simply chanting `pip install appwrite`.
+And just like that, your Python broomstick is turbocharged and ready to soar through the backend skies!
+
+Calling the `appwrite` in python is really easy! Just add this below:
+
+```python
+
+from appwrite.client import Client
+
+client = Client()
+
+client = (client
+    .set_endpoint('https://ap.kbve.com/v1') # Your API Endpoint
+    .set_project('[PROJECT_ID]')                # Your project ID
+    .set_key('919c2db5d4...a2a3346ad2')          # Your secret API key
+)
+
+```
+
+And you will be good to go!
+
+### Appwrite Python SDK Demo
+
+Here is a quick and easy demo for Appwrite python below!
+
+```python
+
+from appwrite.client import Client
+from appwrite.id import ID
+from appwrite.services.users import Users
+
+client = Client()
+
+client = (client
+    .set_endpoint('https://cloud.appwrite.io/v1') # Your API Endpoint
+    .set_project('[PROJECT_ID]')                # Your project ID
+    .set_key('919c2db5d4...a2a3346ad2')          # Your secret API key
+)
+
+users = Users(client)
+
+user = users.create(
+    user_id=ID.unique(),
+    email='email@example.com',
+    phone=None,
+    password='password'
+)
+
+```

@@ -2,6 +2,7 @@
 //Import relevant dependencies
 import ThemeIcon from "../../components/ThemeIcon.astro";
 import NavLink from "../../components/ui/links/NavLink.astro";
+import AppBar from "../../components/ui/AppBar.astro";
 import Authentication from "./Authentication.astro";
 import enStrings from "../../utils/navigation";
 import frStrings from "../../utils/fr/navigation";
@@ -90,8 +91,9 @@ const homeUrl = Astro.currentLocale === "fr" ? "/fr" : "/";
           <NavLink url={link.url} name={link.name} />
         ))}
 
+        <AppBar />
         <Authentication />
-        <LanguagePicker />
+        <!-- <LanguagePicker /> -->
         <!-- ThemeIcon component specifically for larger screens -->
         <span class="hidden md:inline-block">
           <ThemeIcon />

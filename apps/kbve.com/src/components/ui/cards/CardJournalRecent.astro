@@ -1,0 +1,80 @@
+---
+// Import all required components and utilities
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+import AvatarBlogLarge from "../../../components/ui/avatars/AvatarBlogLarge.astro";
+import PrimaryCTA from "../../../components/ui/buttons/PrimaryCTA.astro";
+
+const { journalEntry } = Astro.props;
+
+interface Props {
+    journalEntry: CollectionEntry<"journal">;
+}
+
+// Format the Unsplash ID to use for the default image.
+const journalImage = journalEntry.data.unsplash ? 
+    `https://images.unsplash.com/photo-${journalEntry.data.unsplash}?crop=entropy&cs=srgb&fm=avif&q=85&w=1024` : 
+    journalEntry.data.img;
+
+
+---
+<!-- Root container, which is divided into 2 grid column layout for larger screens -->
+<div class="grid gap-8 sm:grid-cols-2 sm:items-center">
+    <!-- Container for the journal post's cover image -->
+    <div class="sm:order-2">
+      <div class="relative rounded-lg pt-[50%] sm:pt-[100%]">
+        <img
+          class="absolute start-0 top-0 size-full rounded-xl object-cover"
+          src={journalImage}
+          alt={`journalEntry.data.cardImageAlt`}
+          draggable={"false"}
+          loading={"eager"}
+        />
+      </div>
+    </div>
+    <!-- Container for the blog post's heading, author avatar, author's role, and read more button -->
+    <div class="sm:order-1">
+      <!-- Blog title which is also a hyperlink to the blog detail page  -->
+      <h2
+        class="text-balance text-2xl font-bold tracking-tight text-neutral-800 dark:text-neutral-200 md:text-3xl lg:text-4xl lg:leading-tight xl:text-5xl xl:leading-tight"
+      >
+        <a
+          class="outline-none ring-zinc-500 transition duration-300 hover:text-cyan-400 focus-visible:ring dark:text-neutral-300 dark:ring-zinc-200 dark:hover:text-neutral-50 dark:focus:outline-none"
+          href={`/journal/${journalEntry.slug}/`}
+          data-astro-prefetch="viewpoint"
+        >
+          {journalEntry.data.description}
+        </a>
+      </h2>
+      <!-- Container for the author's avatar and metadata -->
+      <div class="mt-6 flex items-center sm:mt-10">
+        
+            <div class="flex-shrink-0">
+                <img
+                class="size-10 rounded-full sm:h-14 sm:w-14"
+                src={`https://i.imgur.com/dthJ2OT.png`}
+                alt={`journalEntry.data.authorImageAlt`}
+                draggable={"false"}
+                />
+            </div>
+  
+        <div class="ms-3 sm:ms-4">
+          <p class="font-bold text-neutral-800 dark:text-neutral-200 sm:mb-1">
+            {journalEntry.data?.author || 'h0lybyte'}
+          </p>
+          <p class="text-xs text-neutral-500">
+            {journalEntry.data?.role || 'Author Role'}
+          </p>
+        </div>
+      </div>
+      <!-- Read More button which is a link to the blog post detailed page -->
+      <div class="mt-5">
+        <PrimaryCTA
+          url={`/journal/${journalEntry.slug}/`}
+          title="Read More"
+          data-astro-prefetch
+        />
+      </div>
+    </div>
+  </div>
+  
