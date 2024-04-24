@@ -1,258 +1,262 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 
-
 //*         [Emil SF Docs]
 
-
 const productsCollection = defineCollection({
-  type: 'content',
-    schema: ({ image }) => z.object({
-    title: z.string(),
-    description: z.string(),
-    main: z.object({
-      id: z.number(),
-      content: z.string(),
-      imgCard: image(),
-      imgMain: image(),
-      imgAlt: z.string(),
-    }),
-    tabs: z.array(
-      z.object({
-        id: z.string(),
-        dataTab: z.string(),
-        title: z.string(),
-      })
-    ),
-    longDescription: z.object({
-      title: z.string(),
-      subTitle: z.string(),
-      btnTitle: z.string(),
-      btnURL: z.string(),
-    }),
-    descriptionList: z.array(
-      z.object({
-        title: z.string(),
-        subTitle: z.string(),
-      })
-    ),
-    specificationsLeft: z.array(
-      z.object({
-        title: z.string(),
-        subTitle: z.string(),
-      })
-    ),
-    specificationsRight: z.array(
-      z.object({
-        title: z.string(),
-        subTitle: z.string(),
-      })
-    ).optional(),
-    tableData: z.array(
-      z.object({
-        feature: z.array(z.string()),
-        description: z.array(z.array(z.string())),
-      })
-    ).optional(),
-    blueprints: z.object({
-      first: image().optional(),
-      second: image().optional(),
-    }),
-  }),
+	type: 'content',
+	schema: ({ image }) =>
+		z.object({
+			title: z.string(),
+			description: z.string(),
+			main: z.object({
+				id: z.number(),
+				content: z.string(),
+				imgCard: image(),
+				imgMain: image(),
+				imgAlt: z.string(),
+			}),
+			tabs: z.array(
+				z.object({
+					id: z.string(),
+					dataTab: z.string(),
+					title: z.string(),
+				}),
+			),
+			longDescription: z.object({
+				title: z.string(),
+				subTitle: z.string(),
+				btnTitle: z.string(),
+				btnURL: z.string(),
+			}),
+			descriptionList: z.array(
+				z.object({
+					title: z.string(),
+					subTitle: z.string(),
+				}),
+			),
+			specificationsLeft: z.array(
+				z.object({
+					title: z.string(),
+					subTitle: z.string(),
+				}),
+			),
+			specificationsRight: z
+				.array(
+					z.object({
+						title: z.string(),
+						subTitle: z.string(),
+					}),
+				)
+				.optional(),
+			tableData: z
+				.array(
+					z.object({
+						feature: z.array(z.string()),
+						description: z.array(z.array(z.string())),
+					}),
+				)
+				.optional(),
+			blueprints: z.object({
+				first: image().optional(),
+				second: image().optional(),
+			}),
+		}),
 });
 
 const blogCollection = defineCollection({
-  type: "content",
-  schema: ({ image }) => z.object ({
-  title: z.string(),
-  description: z.string(),
-  contents: z.array(z.string()),
-  author: z.string(),
-  role: z.string().optional(),
-  authorImage: image(),
-  authorImageAlt: z.string(),
-  pubDate: z.date(),
-  cardImage: image(),
-  cardImageAlt: z.string(),
-  readTime: z.number(),
-  tags: z.array(z.string()).optional(),
-  }),
+	type: 'content',
+	schema: ({ image }) =>
+		z.object({
+			title: z.string(),
+			description: z.string(),
+			contents: z.array(z.string()),
+			author: z.string(),
+			role: z.string().optional(),
+			authorImage: image(),
+			authorImageAlt: z.string(),
+			pubDate: z.date(),
+			cardImage: image(),
+			cardImageAlt: z.string(),
+			readTime: z.number(),
+			tags: z.array(z.string()).optional(),
+		}),
 });
 
 const insightsCollection = defineCollection({
-  type: "content",
-  schema: ({ image }) => z.object ({
-  title: z.string(),
-  description: z.string(),
-  // contents: z.array(z.string()),
-  cardImage: image(),
-  cardImageAlt: z.string(),
-  }),
+	type: 'content',
+	schema: ({ image }) =>
+		z.object({
+			title: z.string(),
+			description: z.string(),
+			// contents: z.array(z.string()),
+			cardImage: image(),
+			cardImageAlt: z.string(),
+		}),
 });
-
 
 //*         [Applications]
 const application = defineCollection({
-    schema: z.object({
-      title: z.string(),
-      description: z.string(),
-      tags: z.array(z.string()), 
-      category: z.string(),
-      footnote: z.string().optional(),
-      author: z.string().default('KBVE Team'),
-      unsplash: z.string().default(''),
-      img: z.string().default(''),
-      date: z.string().optional(),
-      url: z.string().optional(),
-      information: z.string().optional(),
-      media: z.any().optional(),
-      lottie: z.string().optional(),
-      featured: z.boolean().default(false),
-      draft: z.boolean().default(false),
-      promoted: z.boolean().default(false),
-      
-    }),
-  });
-  
+	schema: z.object({
+		title: z.string(),
+		description: z.string(),
+		tags: z.array(z.string()),
+		category: z.string(),
+		footnote: z.string().optional(),
+		author: z.string().default('KBVE Team'),
+		unsplash: z.string().default(''),
+		img: z.string().default(''),
+		date: z.string().optional(),
+		url: z.string().optional(),
+		information: z.string().optional(),
+		media: z.any().optional(),
+		lottie: z.string().optional(),
+		featured: z.boolean().default(false),
+		draft: z.boolean().default(false),
+		promoted: z.boolean().default(false),
+	}),
+});
+
 //*         [Arcade]
 
 const arcade = defineCollection({
-  schema: z.object({
-    title: z.string(),
-    status: z.boolean().optional(),
-    description: z.string(),
-    tags: z.array(z.string()), 
-    footnote: z.string().optional(),
-    author: z.string().default('KBVE Team'),
-    img: z.string().default(''),
-    date: z.string().optional(),
-    url: z.string().optional(),
-    icon: z.string().default('https://kbve.com/favicon.svg'),
-    unsplash: z.string().optional(),
-    swf: z.string().optional(),
-    featured: z.boolean().default(false),
-    draft: z.boolean().default(false),
-    house: z.boolean().default(false),
-    promoted: z.boolean().default(false),
-    ipfs: z.string().optional(),
-    
-
-  }),
+	schema: z.object({
+		title: z.string(),
+		status: z.boolean().optional(),
+		description: z.string(),
+		tags: z.array(z.string()),
+		footnote: z.string().optional(),
+		author: z.string().default('KBVE Team'),
+		img: z.string().default(''),
+		date: z.string().optional(),
+		url: z.string().optional(),
+		icon: z.string().default('https://kbve.com/favicon.svg'),
+		unsplash: z.string().optional(),
+		swf: z.string().optional(),
+		featured: z.boolean().default(false),
+		draft: z.boolean().default(false),
+		house: z.boolean().default(false),
+		promoted: z.boolean().default(false),
+		ipfs: z.string().optional(),
+	}),
 });
 
 //*         [Assets]
 
 //?         {Crypto}
 const crypto = defineCollection({
-    schema: z.object({
-      ticker: z.string(),
-      title: z.string(),
-      description: z.string(),
-      isin: z.string().optional(),
-      cusip: z.string().optional(),
-      exchange: z.string(),
-      tags: z.array(z.string()), 
-      footnote: z.string().optional(),
-      author: z.string().default('KBVE Team'),
-      unsplash: z.string().default(''),
-      img: z.string().default(''),
-      date: z.string().optional(),
-      url: z.string().optional(),
-    }),
-  });
-
-
-
+	schema: z.object({
+		ticker: z.string(),
+		title: z.string(),
+		description: z.string(),
+		isin: z.string().optional(),
+		cusip: z.string().optional(),
+		exchange: z.string(),
+		tags: z.array(z.string()),
+		footnote: z.string().optional(),
+		author: z.string().default('KBVE Team'),
+		unsplash: z.string().default(''),
+		img: z.string().default(''),
+		date: z.string().optional(),
+		url: z.string().optional(),
+	}),
+});
 
 //?         {Journal}
 const journal = defineCollection({
-    schema: z.object({
-      title: z.string(),
-      description: z.string(),
-      tags: z.array(z.string()), 
-      footnote: z.string().optional(),
-      author: z.string().default('KBVE Team'),
-      role: z.string().default('KBVE Member'),
-      unsplash: z.string().default(''),
-      img: z.string().default(''),
-      date: z.date().optional(),
-      url: z.string().optional(),
-    }),
-  });
+	schema: z.object({
+		title: z.string(),
+		description: z.string(),
+		tags: z.array(z.string()),
+		footnote: z.string().optional(),
+		author: z.string().default('KBVE Team'),
+		role: z.string().default('KBVE Member'),
+		unsplash: z.string().default(''),
+		img: z.string().default(''),
+		date: z.date().optional(),
+		url: z.string().optional(),
+	}),
+});
 
 //*         [Tools]
 const tools = defineCollection({
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    js_integrity: z.string().optional(),
-    js_file: z.string().optional(),
-    wasm_integrity: z.string().optional(),
-    wasm_file:  z.string().optional()
-  }),
+	schema: z.object({
+		title: z.string(),
+		description: z.string(),
+		js_integrity: z.string().optional(),
+		js_file: z.string().optional(),
+		wasm_integrity: z.string().optional(),
+		wasm_file: z.string().optional(),
+	}),
 });
 
 //*         [Comic]
 const comic = defineCollection({
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    tags: z.array(z.string()), 
-    category: z.string(),
-    series: z.string(),
-    npc: z.string(),
-    footnote: z.string().optional(),
-    author: z.string().default('KBVE Team'),
-    unsplash: z.string().default(''),
-    img: z.string().default(''),
-    date: z.string().optional(),
-    url: z.string().optional(),
-    information: z.string().optional(),
-    media: z.any().optional(),
-    lottie: z.string().optional(),
-  }),
+	schema: z.object({
+		title: z.string(),
+		description: z.string(),
+		tags: z.array(z.string()),
+		category: z.string(),
+		series: z.string(),
+		npc: z.string(),
+		footnote: z.string().optional(),
+		author: z.string().default('KBVE Team'),
+		unsplash: z.string().default(''),
+		img: z.string().default(''),
+		date: z.string().optional(),
+		url: z.string().optional(),
+		information: z.string().optional(),
+		media: z.any().optional(),
+		lottie: z.string().optional(),
+	}),
 });
 
 //*         [Project]
 const project = defineCollection({
-  schema: z.object({
-    title: z.string(),
-    status: z.boolean().optional(),
-    description: z.string(),
-    tags: z.array(z.string()), 
-    footnote: z.string().optional(),
-    author: z.string().default('KBVE Team'),
-    img: z.string().default(''),
-    unsplash: z.string().default(''),
-    date: z.string().optional(),
-    url: z.string().optional(),
-    featured: z.boolean().default(false),
-    draft: z.boolean().default(false),
-  }),
+	schema: z.object({
+		title: z.string(),
+		status: z.boolean().optional(),
+		description: z.string(),
+		tags: z.array(z.string()),
+		footnote: z.string().optional(),
+		author: z.string().default('KBVE Team'),
+		img: z.string().default(''),
+		unsplash: z.string().default(''),
+		date: z.string().optional(),
+		url: z.string().optional(),
+		featured: z.boolean().default(false),
+		draft: z.boolean().default(false),
+	}),
 });
 
 export const collections = {
+	//*     [Applications]
+	//      application: application,
+	arcade: arcade,
 
-    //*     [Applications]
-    //      application: application,
-    arcade: arcade,
+	//*     [Assets]
+	crypto: crypto,
 
-    //*     [Assets]
-    crypto: crypto,
+	//*     [Blog]
+	journal: journal,
+	project: project,
 
-    //*     [Blog]
-    journal: journal,
-    project: project,
+	//*     [Tools]
+	tools: tools,
 
-    //*     [Tools]
-    tools: tools,
+	//*     [Comic]
+	comic: comic,
 
-    //*     [Comic]
-    comic: comic,
-
-    //*     [SF]
-    docs: defineCollection({ schema: docsSchema() }),
-    'products': productsCollection,
-    'blog': blogCollection,
-    'insights': insightsCollection,
-}
+	//*     [SF]
+	docs: defineCollection({
+		schema: docsSchema({
+			extend: z.object({
+				// Make a built-in field required instead of optional.
+				tags: z.array(z.string()).optional(),
+			}),
+		}),
+	}),
+	products: productsCollection,
+	blog: blogCollection,
+	insights: insightsCollection,
+};
