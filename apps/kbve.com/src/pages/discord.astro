@@ -1,15 +1,32 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import MainLayout from "../layouts/MainLayout.astro";
+import { SITE } from "../data_files/constants";
 
-import type React from "react";
-
-const title = 'KBVE.com - Tech, Gaming, Memes!';
-const description = "Join our vibrant Discord community dedicated to gaming, memes and programming! Dive deep into discussions, collaborate on projects, and connect with like-minded enthusiasts. Let's level up together and create amazing experiences!";
+const pageTitle: string = `Discord | ${SITE.title}`;
+const pageDescription: string = `Join our Discord | KBVE.com Community`
 ---
 
+<MainLayout
+  title={pageTitle}
+  structuredData={{
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "https://kbve.com/discord",
+    "url": "https://kbve.com/discord",
+    "name": `${pageTitle}`,
+    "description":
+    `{${pageDescription}}`,    "isPartOf": {
+      "@type": "WebSite",
+      "url": "https://kbve.com",
+      "name": "Kilo Byte Virtual Engine",
+      "description":
+      "Elevate your efficiency with KBVE, Kilobyte Virtual Engine! Discover cutting-edge software and automation solutions designed to streamline and enhance your projects. Let’s innovate together!",
+    },
+    "inLanguage": "en-US"
+  }}
+>
 
-<Layout title={title} description={description} >
-  <div class="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20">
+<div class="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20">
     <div class="flex flex-col justify-between lg:flex-row">
       
       <div class="px-5 pt-6 pb-5 text-center border border-gray-300 rounded lg:w-3/5">
@@ -31,11 +48,11 @@ const description = "Join our vibrant Discord community dedicated to gaming, mem
 
       <div class="mb-12 lg:max-w-lg lg:pl-5 lg:mb-0 mt-4 md:mt-0">
         <div class="max-w-xl mb-6 bg-cyan-100/[.35] p-4 rounded-lg">
-          <h1 class="md:text-4xl text-5xl font-extrabold bg-gradient-to-r from-cyan-200 via-blue-200 to-pink-200 bg-clip-text text-transparent mb-2">
-            {title}
+          <h1 class="p-4 md:text-4xl text-5xl font-extrabold bg-gradient-to-r from-cyan-200 via-indigo-200 to-yellow-50 bg-clip-text text-transparent mb-2">
+            {pageTitle}
           </h1>
           <p class="text-white font-semibold md:text-lg indent-10	">
-            {description}
+            {pageDescription}
         </p>
         </div>
         <hr class="mb-6 border-gray-300" />
@@ -56,6 +73,4 @@ const description = "Join our vibrant Discord community dedicated to gaming, mem
     <hr class="flex-1 border-cyan-300 m-5 p-5" />
 
   </div>
-
-
-</Layout>
+</MainLayout>
