@@ -1,26 +1,15 @@
 ---
-id: 8
 title: Charles
-client: Self
-category: API
-frontpage: true
-status: true
-publishDate: 2023-04-10 00:00:00
-author: Ziggy9263 h0lybyte
-img: https://images.unsplash.com/photo-1516563988150-3e50726d365c?fit=crop&w=1400&h=700&q=75
+description: |
+    Charles The Cyber Monkey that holds the wire within the fabric of the matrix.
+sidebar:
+    label: Charles
+    order: 8
 unsplash: 1516563988150-3e50726d365c
-description: Charles The Cyber Monkey that holds the wire within the fabric of the matrix.
-slug: charles
+img: https://images.unsplash.com/photo-1516563988150-3e50726d365c?fit=crop&w=1400&h=700&q=75
 tags:
-- design
-- dev
-- ml
-- ai
+    - ai
 ---
-
-import MDXJS from '../../components/MDXJS.astro';
-
-<MDXJS>
 
 ## Information
 
@@ -28,29 +17,15 @@ Picture a symphony of GPUs, each singing in computational harmony within a singl
 This ensemble isn't just for show; it's tailored for the demanding concertos of machine learning.
 In this digital orchestra, every GPU strikes a note, turning data into artful insights!
 
-</MDXJS>
-
-<MDXJS>
-
 ## Hardware
 
 These are the hardware notes for `charles`, our internal machine learning build/project.
-
-<MDXJS>
 
 ### GPU
 
 NVIDIA RTX 4090 - The 4090 series has a couple different variants on the market, but since we want to cluster them together, it might make more sense to look at liquid cooled instances.
 
 The 4090 that we are using right now is the Suprim LiquidX from MSI.
-
-
-
-</MDXJS>
-
----
-
-<MDXJS>
 
 ### RAM
 
@@ -62,7 +37,7 @@ The RAM sticks we are using are DDR5.
 
 When preprocessing and loading large datasets into main memory, a substantial amount of RAM is crucial for fast access, as it's quicker than persistent storage.
 Standard memory configurations may fall short for extensive datasets.
-Therefore, 128GB, 256GB, or even more RAM could be essential, especially with on-the-fly data augmentation or transformation. 
+Therefore, 128GB, 256GB, or even more RAM could be essential, especially with on-the-fly data augmentation or transformation.
 
 ### Concurrent Tasks
 
@@ -83,46 +58,27 @@ Running the operating system, deep learning frameworks, databases, and other nec
 If your cluster, managed through solutions like Docker and Kubernetes, is designed to distribute tasks across multiple nodes, each node might not require a vast amount of RAM.
 Instead, RAM can be allocated according to the specific role and demand of each node, enhancing your scaling strategy.
 
-
 ### RAM CONFIG
 
-- Entry-Level Configuration: At least 32GB to 64GB of RAM per node.
-- Mid-Range Configuration: Between 64GB to 128GB of RAM per node.
-- High-End Configuration: 256GB or more per node, especially if you're working with vast datasets or complex multi-stage workflows.
+-   Entry-Level Configuration: At least 32GB to 64GB of RAM per node.
+-   Mid-Range Configuration: Between 64GB to 128GB of RAM per node.
+-   High-End Configuration: 256GB or more per node, especially if you're working with vast datasets or complex multi-stage workflows.
 
 Remember to always tailor your cluster's configuration to your specific needs.
 Monitoring tools can help gauge memory usage in real-time and assist in making informed decisions about future upgrades.
 
-</MDXJS>
-
 ---
 
-<MDXJS>
+## Software
 
-#### Proxmox
+### Proxmox
 
 The setup for the Charles will be in our [Proxmox Applications page](https://kbve.com/application/proxmox/).
 
-</MDXJS>
-
----
-
-<MDXJS>
-
-#### ML
+### ML
 
 This section will be for the machine learning and ai eco-system + notes.
 
-</MDXJS>
-
----
-
-<MDXJS>
-
-#### Gaming
+### Gaming
 
 This section will be for our gaming section.
-
-</MDXJS>
-
-</MDXJS>
