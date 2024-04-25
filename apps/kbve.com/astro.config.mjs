@@ -44,6 +44,7 @@ export default defineConfig({
 			editLink: {
 				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
 			},
+			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5},
 			expressiveCode: false, // Disabled Expressive Code
 			defaultLocale: 'root',
 			locales: {
@@ -85,6 +86,10 @@ export default defineConfig({
 					label: 'Crypto',
 					autogenerate: { directory: 'crypto' },
 				},
+				{
+					label: 'Stocks',
+					autogenerate: { directory: 'stock' },
+				},
 
 				{
 					label: 'Tools & Equipment',
@@ -95,6 +100,11 @@ export default defineConfig({
 							link: 'tools/equipment-care/',
 						},
 					],
+				},
+
+				{
+					label: 'Projects',
+					autogenerate: { directory: 'project'},
 				},
 				{
 					label: 'Construction Services',
@@ -115,6 +125,9 @@ export default defineConfig({
 			components: {
 				SiteTitle: './src/components/ui/starlight/SiteTitle.astro',
 				Head: './src/components/ui/starlight/Head.astro',
+				Footer: './src/components/ui/starlight/Footer.astro',
+				TableOfContents: './src/components/ui/starlight/TableOfContents.astro',
+				
 			},
 			head: [
 				{

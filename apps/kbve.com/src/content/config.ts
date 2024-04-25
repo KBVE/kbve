@@ -96,26 +96,26 @@ const insightsCollection = defineCollection({
 });
 
 //*         [Applications]
-const application = defineCollection({
-	schema: z.object({
-		title: z.string(),
-		description: z.string(),
-		tags: z.array(z.string()),
-		category: z.string(),
-		footnote: z.string().optional(),
-		author: z.string().default('KBVE Team'),
-		unsplash: z.string().default(''),
-		img: z.string().default(''),
-		date: z.string().optional(),
-		url: z.string().optional(),
-		information: z.string().optional(),
-		media: z.any().optional(),
-		lottie: z.string().optional(),
-		featured: z.boolean().default(false),
-		draft: z.boolean().default(false),
-		promoted: z.boolean().default(false),
-	}),
-});
+// const application = defineCollection({
+// 	schema: z.object({
+// 		title: z.string(),
+// 		description: z.string(),
+// 		tags: z.array(z.string()),
+// 		category: z.string(),
+// 		footnote: z.string().optional(),
+// 		author: z.string().default('KBVE Team'),
+// 		unsplash: z.string().default(''),
+// 		img: z.string().default(''),
+// 		date: z.string().optional(),
+// 		url: z.string().optional(),
+// 		information: z.string().optional(),
+// 		media: z.any().optional(),
+// 		lottie: z.string().optional(),
+// 		featured: z.boolean().default(false),
+// 		draft: z.boolean().default(false),
+// 		promoted: z.boolean().default(false),
+// 	}),
+// });
 
 //*         [Arcade]
 
@@ -179,16 +179,16 @@ const journal = defineCollection({
 });
 
 //*         [Tools]
-const tools = defineCollection({
-	schema: z.object({
-		title: z.string(),
-		description: z.string(),
-		js_integrity: z.string().optional(),
-		js_file: z.string().optional(),
-		wasm_integrity: z.string().optional(),
-		wasm_file: z.string().optional(),
-	}),
-});
+// const tools = defineCollection({
+// 	schema: z.object({
+// 		title: z.string(),
+// 		description: z.string(),
+// 		js_integrity: z.string().optional(),
+// 		js_file: z.string().optional(),
+// 		wasm_integrity: z.string().optional(),
+// 		wasm_file: z.string().optional(),
+// 	}),
+// });
 
 //*         [Comic]
 const comic = defineCollection({
@@ -212,22 +212,22 @@ const comic = defineCollection({
 });
 
 //*         [Project]
-const project = defineCollection({
-	schema: z.object({
-		title: z.string(),
-		status: z.boolean().optional(),
-		description: z.string(),
-		tags: z.array(z.string()),
-		footnote: z.string().optional(),
-		author: z.string().default('KBVE Team'),
-		img: z.string().default(''),
-		unsplash: z.string().default(''),
-		date: z.string().optional(),
-		url: z.string().optional(),
-		featured: z.boolean().default(false),
-		draft: z.boolean().default(false),
-	}),
-});
+// const project = defineCollection({
+// 	schema: z.object({
+// 		title: z.string(),
+// 		status: z.boolean().optional(),
+// 		description: z.string(),
+// 		tags: z.array(z.string()),
+// 		footnote: z.string().optional(),
+// 		author: z.string().default('KBVE Team'),
+// 		img: z.string().default(''),
+// 		unsplash: z.string().default(''),
+// 		date: z.string().optional(),
+// 		url: z.string().optional(),
+// 		featured: z.boolean().default(false),
+// 		draft: z.boolean().default(false),
+// 	}),
+// });
 
 export const collections = {
 	//*     [Applications]
@@ -239,10 +239,10 @@ export const collections = {
 
 	//*     [Blog]
 	journal: journal,
-	project: project,
+	//project: project,
 
 	//*     [Tools]
-	tools: tools,
+	//tools: tools,
 
 	//*     [Comic]
 	comic: comic,
