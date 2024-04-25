@@ -101,6 +101,11 @@ export default defineConfig({
 						},
 					],
 				},
+
+				{
+					label: 'Projects',
+					autogenerate: { directory: 'project'},
+				},
 				{
 					label: 'Construction Services',
 					autogenerate: { directory: 'construction' },
