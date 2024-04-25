@@ -1,31 +1,21 @@
 ---
-id: 1
 title: API
-client: Self
-frontpage: true
-publishDate: 2020-03-02 00:00:00
-img: https://images.unsplash.com/photo-1658874919865-35bb32505edc?fit=crop&w=1400&h=700&q=75
-unsplash: 1658874919865-35bb32505edc
-description: KBVE API - Central API for KBVE Projects.
-slug: api
+description: |
+    KBVE API - Central API for KBVE Projects.
+sidebar:
+    label: API
+    order: 2
+unsplash: 1477959858617-67f85cf4f1df
+img: https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?fit=crop&w=1400&h=700&q=75
 tags:
-  - design
-  - dev
-  - branding
-repo: kbve/api.kbve.com
+    - api
 ---
-
-import MDXJS from '../../components/MDXJS.astro';
-
-
-<MDXJS>
-
 
 ## Information
 
-- Official documentation will be provided for the API, we are currently going to base the API off of Strapi / Appwrite.
+-   Official documentation will be provided for the API, we are currently going to base the API off of Strapi / Appwrite.
 
-- This documentation will hold all the general reference points for the multi-tenet API, however we would need to expand upon the reference material and try to make it easier to onboard new developers.
+-   This documentation will hold all the general reference points for the multi-tenet API, however we would need to expand upon the reference material and try to make it easier to onboard new developers.
 
 ## Goals
 
@@ -34,19 +24,19 @@ Like the Force in Star Wars, they bind and intertwine disparate systems, ensurin
 By sculpting robust and intuitive APIs, we're not just coding; we're forging lightsabers for the next generation of developers, ensuring the saga continues seamlessly.
 The API is an unique construct that extends outside of the normal universe, the net that holds the sky.
 
-
 ### Auth
 
-- Auth Journal
-  - For the core of the API, we will use JWT as the `key` in between the $User and $API.
-- React JSX
-  - The first mod will be the core auth system between the client $User and server $API, which includes the register and login. While we build it out, we will include generic defensive components into the foundation, then re-visit and apply external security, such as limits and firewalls (some may operate outside of the API).
-    - Cookie Storage (of the JWT)
-      - Cookie - `token` - will store the client $User JWT.
-      - Cookie - `user` - will store the client $User data.
-      - Library: `react-cookie` will be used to help maintain the cookies.
+-   Auth Journal
+    -   For the core of the API, we will use JWT as the `key` in between the $User and $API.
+-   React JSX
 
-- For the Appwrite JWT, we will be holding it inside of a session store from Nanostores, at least as of right now.
+    -   The first mod will be the core auth system between the client $User and server $API, which includes the register and login. While we build it out, we will include generic defensive components into the foundation, then re-visit and apply external security, such as limits and firewalls (some may operate outside of the API).
+        -   Cookie Storage (of the JWT)
+            -   Cookie - `token` - will store the client $User JWT.
+            -   Cookie - `user` - will store the client $User data.
+            -   Library: `react-cookie` will be used to help maintain the cookies.
+
+-   For the Appwrite JWT, we will be holding it inside of a session store from Nanostores, at least as of right now.
 
 ### API Keys
 
@@ -59,8 +49,6 @@ By utilizing API keys, we prioritize both the user's privacy and the integrity o
 
 The current method of storage has a couple risks that we need to migrate, including the way the data is being encrypted within the storage of the database.
 
-
-
 ### API Install Introduction
 
 In the dynamic world of software, where even a moment's downtime can make or break user trust, managing the API installation process is paramount. P
@@ -69,13 +57,12 @@ From there, Portainer takes the baton to deploy the image.
 While most of our front-end instances proudly wear the labels of applications or static pages, there are those intriguing outliers - the edge cases where we might stumble upon SSR or hybrid applications.
 Let's dive deeper into this fascinating setup.
 
-
 The current API installation process needs to be migrated but it currently sits as this:
 
-- Proxmox -> qEMU -> Docker Swarm
-- Portainer -> Deploy Image
+-   Proxmox -> qEMU -> Docker Swarm
+-   Portainer -> Deploy Image
 
-With all front-end instances being either applications or static pages. 
+With all front-end instances being either applications or static pages.
 There might be a couple edge cases where we have SSR or hybrids applications.
 
 ### v1
@@ -86,17 +73,13 @@ For v1, we would like you to look into the [Appwrite documentation](/application
 
 The following information below is for installing the older API, which was just a MariaDB cluster with Strapi.
 
-
 ### Locker
-
-
 
 ### Locker Information
 
 The locker will serve as a client-side storage for variables and data points that we do not need to `hit` the main server for!
 
 The current locker that we are using as of August 12th, 2023 is below, but if we need to extend it out further, we shall.
-
 
 ### Locker
 
@@ -105,20 +88,17 @@ However, to ensure data integrity and security, locking mechanisms can be implem
 Think of it as a personal vault in your browser, where the combination is known only to trusted sources
 
 ```typescript
-
 export type kbveLocker = {
-	username: string,
-	phone: string,
-	last: string,
-	uuid: string,
-	avatar: string,
-	github: string,
-	instagram: string,
-	email: string,
-	theme: "dark" | "light" | "auto",
-
+	username: string;
+	phone: string;
+	last: string;
+	uuid: string;
+	avatar: string;
+	github: string;
+	instagram: string;
+	email: string;
+	theme: 'dark' | 'light' | 'auto';
 };
-
 ```
 
 ### Locker Storage
@@ -126,21 +106,16 @@ export type kbveLocker = {
 For the management of the locker storage on the client-side, we will be using [nanostores!](https://kbve.com/application/javascript#nanostores).
 There is an option to extend AES encryption ontop of the stored values but that will be something that we can implement in the start of the next year.
 
-
-
 ### Uptime Notes
 
-Uptime is the heartbeat of any API, indicating its reliability and performance in real-time. 
+Uptime is the heartbeat of any API, indicating its reliability and performance in real-time.
 
 Ensuring consistent availability is crucial, as even minor downtimes can impact user experience and trust.
 
 Diving deep into the world of API uptime, this documentation equips you with the tools to vigilantly monitor and enhance your service's responsiveness.
 
-- ![API Uptime Badge](https://api.checklyhq.com/v1/badges/checks/206925a6-0f7b-4669-a4fd-b61b3f5b70fc?style=for-the-badge&theme=default&responseTime=true)
+-   ![API Uptime Badge](https://api.checklyhq.com/v1/badges/checks/206925a6-0f7b-4669-a4fd-b61b3f5b70fc?style=for-the-badge&theme=default&responseTime=true)
 
 The current uptime badge is handled by ChecklyHQ, however we could build out our own uptime management software down the line.
 This would be an interesting test case for the NodePy, having it automatically do test cases every hour.
 I will make an issue ticket when I feel like it would be time to set this up.
-
-
-</MDXJS>
