@@ -82,6 +82,11 @@ export default defineConfig({
 				},
 
 				{
+					label: 'Crypto',
+					autogenerate: { directory: 'crypto' },
+				},
+
+				{
 					label: 'Tools & Equipment',
 					items: [
 						{ label: 'Tool Guides', link: 'tools/tool-guides/' },
