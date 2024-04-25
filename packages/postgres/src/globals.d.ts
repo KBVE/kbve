@@ -1,4 +1,0 @@
-
-interface Window {
-    supabase: any; 
-}
