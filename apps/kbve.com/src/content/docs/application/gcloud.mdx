@@ -31,7 +31,7 @@ tags:
 
 Load balancing on the GCloud compuete platform.
 
--   Command to run 3 instances of `nginx` with an ingress load balancer.
+-   Command to run 3 instances of `nginx` with an ingress load balancer. Additional Documentation on [Nginx Here](https://kbve.com/application/nginx/)
 
     -   Shell command for VM that is running nginx inside of a `debian` operating system.
 
@@ -55,12 +55,13 @@ Load balancing on the GCloud compuete platform.
 
             -   For switching from Nginx to Apache2, replace the `nginx` with `apache2`.
             -   To check the status on `ubuntu`, run the `sudo systemctl status nginx` OR `sudo systemctl status apache2`.
+            
 
         -   Example of a Load Balance Template:
 
             -   The shell below is an example of an instance template that creates the load balance backend template.
 
-                -   ````shell
+                -   ```shell
                         gcloud compute instance-templates create lb-backend-template \
                         --region=us-west1 \
                         --network=default \
@@ -70,8 +71,8 @@ Load balancing on the GCloud compuete platform.
                         --image-family=debian-11 \
                         --image-project=debian-cloud \
                         --metadata=startup-script=start_nginx_script.sh
-                        ```
-                    ````
+                        
+                    ```
 
             -   Key concept is : Managed instance groups MIGs
                 -   Mage instance groups or MIGs enable you to operate applications on multiple identical / clone virtual machines, thus allowing your orchestration to become scalable and highly available. This is done by utilizing the components within the automated MIG services, which includes: autoscaling, autohealing, regional (multiple zone) deployment, and automatic updating.
@@ -128,7 +129,7 @@ Load balancing on the GCloud compuete platform.
                             ````
 
                         -   Extra information regarding the URL Map:
-                            \*\*\* Note: URL map is a Google Cloud configuration resource used to route requests to backend services or backend buckets. For example, with an external HTTP(S) load balancer, you can use a single URL map to route requests to different destinations based on the rules configured in the URL map:
+                            Note: URL map is a Google Cloud configuration resource used to route requests to backend services or backend buckets. For example, with an external HTTP(S) load balancer, you can use a single URL map to route requests to different destinations based on the rules configured in the URL map:
                             Requests for [Video](https://example.com/video) go to one backend service.
                             Requests for [Audio](https://example.com/audio) go to a different backend service.
                             Requests for [Images](https://example.com/images) go to a Cloud Storage backend bucket.

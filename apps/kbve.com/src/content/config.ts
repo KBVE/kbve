@@ -144,23 +144,23 @@ const arcade = defineCollection({
 //*         [Assets]
 
 //?         {Crypto}
-const crypto = defineCollection({
-	schema: z.object({
-		ticker: z.string(),
-		title: z.string(),
-		description: z.string(),
-		isin: z.string().optional(),
-		cusip: z.string().optional(),
-		exchange: z.string(),
-		tags: z.array(z.string()),
-		footnote: z.string().optional(),
-		author: z.string().default('KBVE Team'),
-		unsplash: z.string().default(''),
-		img: z.string().default(''),
-		date: z.string().optional(),
-		url: z.string().optional(),
-	}),
-});
+// const crypto = defineCollection({
+// 	schema: z.object({
+// 		ticker: z.string(),
+// 		title: z.string(),
+// 		description: z.string(),
+// 		isin: z.string().optional(),
+// 		cusip: z.string().optional(),
+// 		exchange: z.string(),
+// 		tags: z.array(z.string()),
+// 		footnote: z.string().optional(),
+// 		author: z.string().default('KBVE Team'),
+// 		unsplash: z.string().default(''),
+// 		img: z.string().default(''),
+// 		date: z.string().optional(),
+// 		url: z.string().optional(),
+// 	}),
+// });
 
 //?         {Journal}
 const journal = defineCollection({
@@ -235,7 +235,7 @@ export const collections = {
 	arcade: arcade,
 
 	//*     [Assets]
-	crypto: crypto,
+	//crypto: crypto,
 
 	//*     [Blog]
 	journal: journal,
