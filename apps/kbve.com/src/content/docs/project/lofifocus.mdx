@@ -1,0 +1,277 @@
+---
+title: LofiFocus
+description: |
+    Lofi Focus is a chrome extension that automatically generates lo-fi music when browsing the internet!
+sidebar:
+    label: LofiFocus
+    order: 15
+unsplash: 1602089266537-57cb22e5235b
+img: https://images.unsplash.com/photo-1602089266537-57cb22e5235b?fit=crop&w=1400&h=700&q=75
+tags:
+    - design
+---
+
+---
+
+Demo: https://lofifocus.kbve.com/#
+
+Chrome Extension Repo: https://github.com/KBVE/lofifocus-chrome-extension
+
+Download Chrome Extension: https://github.com/KBVE/lofifocus-chrome-extension/releases/latest
+
+Custom Trained LoFi Model: https://storageapi.webenclave.com/hackathon/lm_final.pt
+
+AI Voice Generation via ElevenLabs: https://storageapi.webenclave.com/hackathon/ElevenLabs_2023-08-29T22_11_24_Charlotte_pre_s50_sb75_b_m1.mp3
+
+Songs Generated using facebook/musicgen-small:
+
+https://storageapi.webenclave.com/hackathon/77896957728656.wav
+
+https://storageapi.webenclave.com/hackathon/89748590695969.wav
+
+https://storageapi.webenclave.com/hackathon/32174022274771.wav
+
+Custom Model with Multi-Band Diffusion:
+
+https://storageapi.webenclave.com/hackathon/1693443008707.wav
+
+https://storageapi.webenclave.com/hackathon/1693446342975.wav
+
+https://storageapi.webenclave.com/hackathon/1693446441558.wav
+
+---
+# Video 
+Youtube video: https://www.youtube.com/embed/szN4w4cd02s?si=cd0fz-zlLhpL_sYR
+
+---
+
+# Lofi Focus
+
+- [Video](#video)
+- [Lofi Focus](#lofi-focus)
+  - [Overview](#overview)
+  - [Benefits of LoFi Music](#benefits-of-lofi-music)
+  - [Audiocraft to the Rescue](#audiocraft-to-the-rescue)
+  - [Why Download Our Chrome Extension](#why-download-our-chrome-extension)
+  - [How to Install Our Chrome Extension](#how-to-install-our-chrome-extension)
+  - [Features](#features)
+  - [Implementation](#implementation)
+  - [Our Custom Model](#our-custom-model)
+  - [Goals](#goals)
+  - [Technologies Used](#technologies-used)
+  - [High Level Design](#high-level-design)
+- [API Documentation](#api-documentation)
+  - [Flask API](#flask-api)
+  - [N8N API](#n8n-api)
+- [Contributions](#contributions)
+- [Citations](#citations)
+
+## Overview
+
+Lofi Focus is a chrome extension that automatically generates lo-fi music when browsing articles, blogs, and other sites. The ambient, chilled-out sounds create an enjoyable atmosphere to help users focus while reading.
+
+Lofi music, as explored in Justin Wang's study "Lofi hip-hop radio: Beats to relax/study to" offers a therapeutic escape for its listeners. The genre serves as a coping mechanism for stress and anxiety, with research suggesting that such music impacts the autonomic nervous system, potentially reducing subconscious stress levels (wang2020lofi, Page 5). Additionally, lofi provides solace during personal losses, with its comforting visuals and tones resonating with the emotions of its audience (wang2020lofi, Page 12). Many also use lofi as calming background music for various tasks, from studying to relaxation (wang2020lofi, Page 12). Furthermore, its nostalgic connection to late '90s and early 2000s anime offers a unique blend of soothing genres, providing listeners with a familiar yet calming auditory experience (wang2020lofi, Page 4).
+
+## Benefits of LoFi Music
+
+- Improves focus and concentration - The chill, repetitive beats help tune out distractions and keep you in a flow state. The lack of jarring changes also avoids breaking focus.
+- Reduces stress and anxiety - The ambient sounds lower heart rate and have a calming effect on the mind and body.
+- Enhances productivity - By helping you focus and relax, lo-fi enables you to work and study more efficiently for longer periods.
+- Sets a peaceful mood - The mellow, nostalgic sounds induce feelings of tranquility and relaxation.
+- Provides unobtrusive background music - As there are no attention-grabbing vocals, it subtly enhances an environment without being distracting.
+- Inspires creativity - The simple compositions are unintimidating and let your mind wander productively.
+- Helps with sleep and relaxation - The soothing tracks are great for relaxing the body and quieting the mind before sleep.
+- Fosters pleasant memories and nostalgia - For many, it evokes nostalgia from times spent studying or relaxing to music.
+
+## Audiocraft to the Rescue
+
+With Audiocraft we can:
+
+- Create fully AI-generated LoFi tracks tailored to specific use-cases
+- Produce High-quality audio
+- Create endless unique music
+- Train new models tailored to LoFi
+
+## Why Download Our Chrome Extension
+
+- Improve focus and concentration when reading
+- Make reading more enjoyable and relaxing
+- Boost productivity
+- Avoid listening fatigue
+- Portability
+- Ease of use
+- Less anxiety
+- Nostalgia
+
+## How to Install Our Chrome Extension
+
+1. Download the extension files here: https://github.com/KBVE/lofifocus-chrome-extension/releases/latest
+   - You will need to download the files that make up the chrome extension, usually as a zip folder from the developer. This includes the manifest.json file, HTML/CSS/JS assets, and any images or resources.
+2. Unzip the folder containing the extension source files to a location on your computer. You should now have a folder that contains a popup.html, manfiest.json, and several other files.
+3. Open Google Chrome and navigate to `chrome://extensions` in the address bar.
+4. Enable Developer Mode.
+5. Click the "Load Unpacked" button and select the folder containing your extracted extension files. This will install the extension in developer mode.
+6. For easy access, click the puzzle icon for your extensions and pin your newly installed extension. This will make it appear as an icon in your browser toolbar.
+
+## Features
+
+- Analyzes webpage content
+- Generates a unique, customized lofi track for that page using AI music generation
+- Allows users to adjust volume, pause, start, play, re-generate Lo-Fi Music
+
+## Implementation
+
+- Built as a Chrome browser extension for ease of use
+- Uses JavaScript content scripts to analyze webpages and play lofi audio
+- Leverages AudioCraft's MusicGen AI model to generate the lofi tracks
+- Polished UI allows easy control over the music generation
+
+## Our Custom Model
+We collected a dataset of original non-copyright lofi music. This gave us access to a large corpus of high-quality training data without any copyright issues.
+
+We split the lofi songs into 30 second audio clips and paired each clip with a text prompt describing the mood, instruments, tempo and other qualities of that segment. Examples include "slow chill hip hop beat with mellow piano and vinyl crackle" and "upbeat lofi with energetic drums and warm bassline".
+
+We formatted this dataset into the required .wav and .txt file pairs that musicgen_trainer expects. The text prompts would guide the model to learn the nuances of lofi hip hop.
+
+We then ran musicgen_trainer on this dataset, configuring it to use the small architecture for optimization purposes. We trained for 100 epochs with a learning rate of 1e-5 and batch size of 4.
+
+During training, musicgen_trainer used the audio/text pairs to fine-tune MusicGen on lofi music. The pre-trained weights were specialized to generate high quality lofi given descriptive prompts.
+
+After training finished, we saved the best performing model checkpoint. We now have a MusicGen variant skilled at generating original lofi tunes according to textual descriptions.
+
+## Goals
+
+- Help people focus and be more productive when reading on the web
+- Provide an ambient audio environment that blocks distracting sounds
+- Make reading more enjoyable and relaxed through chill tunes
+- Give users more options to customize their browsing experience
+
+## Technologies Used
+
+- Audiocraft Music Generation
+- Audiocraft Multi-Band Diffusion
+- Audiocraft Audio Write
+- ChatGPT 3.5-turbo
+- JsonLink
+- Local Tunnel
+- ElevenLabs AI Voice Generation
+- Min.io S3 Storage
+- Python - Poetry - Flask API
+- Node.js - Yarn
+- HTML, CSS (Tailwind)
+- Plasmo Browser Extension Framework
+- Appwrite Backend as a Service
+- Docker - Portainer - Coolify
+- Github Actions (CI/CD)
+- N8N Workflow Automation Tool
+
+## High Level Design
+
+- [x] User visits webpage
+
+- [x] User opens extension
+
+- [x] Browser extension loads ElevenLabs voice clip and says "Please wait patiently while your LoFi track is loading... We are fetching the contents of the page, generating the necessary prompts, and guiding Audiocraft to generate you ambient and chilled-out LoFi music to create an enjoyable atmosphere to help you focus while reading. Sit back... Relax... and focus on your breathing for next several seconds..."
+
+- [x] Lofi Focus sends current URL to N8N workflow
+
+- [x] N8N calls JsonLink API to extract URL metadata
+
+- [x] JsonLink returns page metadata to N8N
+
+- [x] N8N sends metadata to ChatGPT API
+
+- [x] ChatGPT generates personalized lofi music prompts
+
+- [x] N8N parses the prompts
+
+- [x] N8N sets generation parameters (prompt, sampling, top_k, MBD, etc)
+
+- [x] N8N calls custom AudioCraft REST API (Python Flask)
+
+- [x] Flask app runs locally and exposes API via LocalTunnel
+
+- [x] Flask app receives inputs and invokes AudioCraft generation
+
+- [x] AudioCraft generates track using MusicGen + RTX 4090 GPU (CUDA)
+
+- [x] Flask API returns .wav file to N8N
+
+- [x] N8N uploads .wav to S3 storage (Min.io)
+
+- [x] N8N sends audio URL to Lofi Focus
+
+- [x] Lofi Focus plays the generated track
+
+# API Documentation
+
+## Flask API
+
+POST - `https://.../generate_music`
+
+```json
+{
+  "model_name": "facebook/musicgen-small",
+  "duration": 15,
+  "prompt": "LoFi Hip-Hop",
+  "strategy": "loudness",
+  "sampling": true,
+  "top_k": 0,
+  "top_p": 0.9,
+  "temperature": 0.9,
+  "use_diffusion": false
+}
+```
+
+## N8N API
+
+POST - `https://.../generate-music`
+
+```json
+{
+	"url": "https://medium.com/@KimWitten/stop-trying-to-manage-your-time-a07b6e45cec8",
+  "use_custom": true, /* optional */
+	"use_diffusion": true, /* optional */
+  "duration": 15 /* optional */
+}
+```
+
+# Contributions
+
+https://github.com/h0lybyte - Docker, Portainer, Appwrite
+
+https://github.com/BChip - Audiocraft, Flask API, N8N Workflow, Eleven
+Labs Voice AI, Documentation
+
+https://github.com/Ziggy9263 - Chrome Extension
+
+https://github.com/ZachHandley - Custom Audiocraft Model for LoFi
+
+https://github.com/8gratitude8 - Presentation, Static Site, Prompt Engineering
+
+https://github.com/ernivani - Chrome Extension
+
+# Citations
+
+```
+https://ojs.stanford.edu/ojs/index.php/theword/article/view/1705/1326
+@article{wang2020lofi,
+  title={Lofi hip-hop radio: Beats to relax/study to},
+  author={Wang, Justin},
+  journal={The Word: Tha Stanford Journal of Student Hiphop Research},
+  volume={1},
+  number={1},
+  pages={10--23},
+  year={2020}
+}
+
+```
+
+```
+@article{copet2023simple,
+      title={Simple and Controllable Music Generation},
+      author={Jade Copet and Felix Kreuk and Itai Gat and Tal Remez and David Kant and Gabriel Synnaeve and Yossi Adi and Alexandre Défossez},
+      year={2023},
+      journal={arXiv preprint arXiv:2306.05284},
+}
+```

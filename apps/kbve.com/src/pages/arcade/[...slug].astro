@@ -1,0 +1,32 @@
+---
+// [IMPORT]
+
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { SITE } from '../../data_files/constants';
+import Hero from '../../components/MDXHero.astro';
+
+export async function getStaticPaths() {
+	const arcade = await getCollection('arcade');
+	return arcade.map((entry) => ({
+		params: {
+			slug: entry.slug,
+		},
+		props: {
+			entry,
+		},
+	}));
+}
+
+const { slug } = Astro.params;
+const { entry } = Astro.props;
+const { Content, headings } = await entry.render();
+---
+
+<MainLayout>
+	<section class="mx-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-10">
+		<Hero data={entry.data} />
+		<Content />
+	</section>
+</MainLayout>
