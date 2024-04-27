@@ -1,40 +1,71 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+// [IMPORTS]
+import MainLayout from '../../layouts/MainLayout.astro';
+
+import CardArcade from "../../components/ui/cards/CardArcade.astro";
+
+import { SITE } from '../../data_files/constants';
+
 import Bento from '../../components/Bento.astro';
-
-import type React from "react";
-
-const title = 'KBVE.com Arcade - Classic & Exclusive Browser Games';
-const description = "Dive into KBVE Arcade for a blast from the past with our collection of classic retro games, alongside exclusive, in-house developed fun you won't find anywhere else! Experience the nostalgia and discover new favorites, all playable in your browser. Perfect for gaming enthusiasts looking for a unique mix of old-school and innovative arcade games.";
-
 import { getCollection, getEntry } from 'astro:content';
+import type { CollectionEntry } from "astro:content";
 
-const arcadeCollection = await getCollection('arcade');
+
+const pageTitle: string = `Arcade - Classic & Exclusive Browser Games| ${SITE.title}`;
+const pageDescription =
+	"Dive into KBVE Arcade for a blast from the past with our collection of classic retro games, alongside exclusive, in-house developed fun you won't find anywhere else! Experience the nostalgia and discover new favorites, all playable in your browser. Perfect for gaming enthusiasts looking for a unique mix of old-school and innovative arcade games.";
+
+const title: string = 'KBVE Arcade: Classic & Exclusive Browser Games';
+const subTitle: string =
+	'Experience the best of retro and innovative arcade games in your browser.';
 
 
-interface IAstroItem {
-    title: string;
-    description: string;
-    slug: string;
-    unsplash?: string;
-    header: React.ReactNode;
-    icon: React.ReactNode;
-   
-}
+const arcadeCollection: CollectionEntry<"arcade">[] =
+  await getCollection("arcade");
 
-const astroItems: IAstroItem[] = arcadeCollection.map((entry)  => ({
-     title: entry.data.title, 
-     description: entry.data.description, 
-     slug: `/arcade/${entry.slug}`,
-     header: `<img loading="lazy" src="https://images.unsplash.com/photo-${entry.data.unsplash}?8&auto=format&fit=crop&w=400&q=80" class="object-cover flex flex-1 w-full h-full min-h-[6rem] rounded-xl" />`, 
-     icon: `<IconClipboardCopy className="h-4 w-4 text-neutral-500" />`, 
-   }));
 
 
 ---
 
-<Layout title={title} description={description} >
+<MainLayout
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://screwfast.uk/blog',
+		url: 'https://screwfast.uk/blog',
+		name: `${pageTitle}`,
+		description: `${pageDescription}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: ` ${SITE.title}`,
+			description: `${SITE.description}`,
+		},
+		inLanguage: 'en-US',
+	}}>
+	<section
+		class="mx-auto max-w-[85rem] space-y-8 px-4 pt-16 sm:px-6 lg:px-8 2xl:max-w-full">
+		<!--Page header-->
+		<div class="mx-auto max-w-3xl text-left sm:text-center">
+			<h1
+				class="block text-balance text-4xl font-bold tracking-tight text-neutral-800 dark:text-neutral-200 md:text-5xl lg:text-6xl">
+				{title}
+			</h1>
 
-    <Bento collection={astroItems} />
+			<p
+				class="mt-4 text-pretty text-lg text-neutral-600 dark:text-neutral-400">
+				{subTitle}
+			</p>
+		</div>
+	</section>
 
-</Layout>
+	<section
+		class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full">
+		
+        <div class="grid gap-6 lg:grid-cols-2">
+            {arcadeCollection.map((arcadeEntry) => <CardArcade arcadeEntry={arcadeEntry} />)}
+          </div>
+
+	</section>
+</MainLayout>
