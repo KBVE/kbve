@@ -1,0 +1,71 @@
+---
+title: Atlas
+description: |
+    Atlas
+sidebar:
+    label: Atlas
+    order: 20
+unsplash: 1602089266537-57cb22e5235b
+img: https://images.unsplash.com/photo-1602089266537-57cb22e5235b?fit=crop&w=1400&h=700&q=75
+tags:
+    - design
+---
+
+## Information
+
+### Autonomous
+
+-   In the context of machine learning agents, `autonomous` refers to the ability of an agent to make decisions, take actions, or perform tasks without explicit instructions from a human. Instead, the agent relies on its training, data inputs, algorithms, and sometimes even its own self-generated strategies to perform its functions. Here are a few key points to understand about autonomous machine learning agents:
+
+-   -   `Learning and Adapting` : Autonomous agents not only operate on their own but also have the capacity to learn from their environment and experiences. This ability to adapt makes them more effective over time.
+-   -   `Decision-making` : Autonomous agents make decisions based on their training data, learned experiences, and sometimes rules or guidelines embedded in them. They assess the current situation and take appropriate actions based on patterns they've recognized.
+-   -   `No Continuous Human Oversight` : Once deployed, an autonomous agent doesn't need constant human supervision. However, this doesn't mean humans are out of the loop; there might be periodic checks, updates, or interventions, especially if the agent isn't behaving as expected.
+-   -   `Self-correction` : Some advanced autonomous agents can recognize when they make an error or when there's a more efficient method to achieve their goal. They can then adapt their strategies accordingly.
+-   -   `Goal-oriented` : Typically, autonomous agents have specific tasks or goals. Their autonomy is directed towards achieving these objectives as efficiently and effectively as possible.
+-   -   `Interaction with Environment` : In many cases, especially with agents operating in complex environments, there is an element of interaction with the environment. The agent takes in information, processes it, makes decisions, acts, and then receives feedback from the environment, creating a continuous loop.
+
+-   It's essential to note that "autonomy" in machine learning is not absolute. The degree to which an agent is autonomous can vary. Some might only operate within strict boundaries or specific conditions, while others might have broader operational capabilities.
+
+### Training
+
+-   In the context of machine learning, `training` refers to the process by which a machine learning model learns from a set of data to make predictions or decisions without being explicitly programmed to perform the task. Here's a more detailed breakdown:
+
+-   -   `Data` : Training begins with a dataset, which consists of input data and the corresponding correct outputs. This dataset is called the training dataset.
+-   -   `Model Architecture` : Depending on the problem at hand, an appropriate machine learning algorithm or model architecture is chosen.
+        This could be a linear regression for simple trend predictions, a deep neural network for image recognition, or any other algorithm suitable for the specific task.
+-   -   `Learning Algorithm` : The chosen model uses a learning algorithm to adjust its internal parameters.
+        This adjustment happens iteratively, where the model makes a prediction using the training data, compares its prediction to the actual output, and then adjusts its parameters to reduce the error.
+-   -   `Objective/Cost/Loss Function` : The difference between the model's predictions and the actual output is measured using an objective function, sometimes referred to as a cost or loss function.
+        The goal of training is to minimize this function.
+-   -   `Iteration` : The learning algorithm typically makes multiple passes over the training data, each time updating the model's parameters to reduce the error.
+        The model is said to "converge" when additional training no longer significantly reduces the error.
+-   -   `Validation` : While the model is being trained, it's also important to periodically test its performance on a separate dataset (called the validation dataset) to ensure it's not just memorizing the training data (a problem known as overfitting).
+
+-   Once training is complete, the model should have adjusted its parameters such that it can make accurate predictions on new, unseen data.
+    This final test, usually on another separate dataset called the test dataset, evaluates the model's true predictive capability.
+
+### Layered
+
+-   "Layer" is related to neural networks, especially deep learning, as the concept of `layer` refers to a collection of nodes operating together at a specific depth within the network.
+-   Deep learning models, like convolutional neural networks (CNNs) and recurrent neural networks (RNNs), can have multiple layers, which is why they're often referred to as "deep" networks.
+
+### Agent
+
+-   "Agent" typically refers to any entity that perceives its environment through sensors and acts upon that environment through actuators.
+-   The primary goal of an `agent` is to perform actions that maximize some notion of cumulative reward.
+-   The `agent` achieves this by learning the best strategy from its experiences, often without being explicitly programmed to perform a specific task.
+
+### Systems
+
+-   `System` typically refers to a combination of algorithms, data, and processes designed to perform a specific task or set of tasks based on data-driven learning.
+    Furthermore, a machine learning system can be broken down into several components:
+
+-   -   `Data Collection` : Before training a model, relevant data must be collected. This could be images, text, sensor readings, or any other type of data.
+-   -   `Data Preprocessing` : Once data is collected, it often needs to be cleaned, normalized, or transformed in some way to be suitable for training.
+-   -   `Model Selection` : Based on the task at hand, a particular algorithm or type of model (e.g., neural network, decision tree, support vector machine) is chosen.
+-   -   `Training` : This is the process where the chosen model learns patterns from the training data.
+        The model adjusts its internal parameters based on the feedback from a loss function, which indicates how well the model is performing.
+-   -   `Validation` : During or post-training, a separate set of data (validation data) is used to tune the model and prevent overfitting.
+-   -   `Testing` : Once the model is trained and tuned, its performance is evaluated on a test set, which consists of data it has never seen before.
+-   -   `Deployment` : If the model performs satisfactorily on the test set, it can be deployed in a real-world setting, whether it's for predicting stock prices, diagnosing diseases, or any other application.
+-   -   `Maintenance and Monitoring` : Once deployed, the performance of the model needs to be continuously monitored. It may require periodic retraining or fine-tuning based on new data or changing conditions.
