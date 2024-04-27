@@ -44,7 +44,7 @@ export default defineConfig({
 			editLink: {
 				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
 			},
-			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5},
+			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
 			expressiveCode: false, // Disabled Expressive Code
 			defaultLocale: 'root',
 			locales: {
@@ -93,18 +93,12 @@ export default defineConfig({
 
 				{
 					label: 'Tools & Equipment',
-					items: [
-						{ label: 'Tool Guides', link: 'tools/tool-guides/' },
-						{
-							label: 'Equipment Care',
-							link: 'tools/equipment-care/',
-						},
-					],
+					autogenerate: { directory: 'tools' },
 				},
 
 				{
 					label: 'Projects',
-					autogenerate: { directory: 'project'},
+					autogenerate: { directory: 'project' },
 				},
 				{
 					label: 'Construction Services',
@@ -117,7 +111,7 @@ export default defineConfig({
 			],
 			social: {
 				github: 'https://github.com/kbve/kbve',
-				discord: 'https://kbve.com/discord/'
+				discord: 'https://kbve.com/discord/',
 			},
 			disable404Route: true,
 			customCss: ['./src/styles/starlight.css'],
@@ -126,8 +120,8 @@ export default defineConfig({
 				SiteTitle: './src/components/ui/starlight/SiteTitle.astro',
 				Head: './src/components/ui/starlight/Head.astro',
 				Footer: './src/components/ui/starlight/Footer.astro',
-				TableOfContents: './src/components/ui/starlight/TableOfContents.astro',
-				
+				TableOfContents:
+					'./src/components/ui/starlight/TableOfContents.astro',
 			},
 			head: [
 				{
