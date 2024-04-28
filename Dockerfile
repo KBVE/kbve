@@ -1,5 +1,5 @@
 # KBVE Monorepo Base Dockerfile
-FROM ubuntu:22.10 as kbve
+FROM ubuntu:22.04 as kbve
 
 # Set environment variables to non-interactive (this prevents prompts during package installation)
 ENV DEBIAN_FRONTEND=noninteractive
