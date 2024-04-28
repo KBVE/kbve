@@ -1,0 +1,157 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+
+let _title = 'Side-Scrolling Typing Game';
+let _description = 'Typing Rocks';
+---
+
+<Layout title={_title} description={_description}>
+
+  <style is:inline>
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background-color: #f0f0f0;
+      overflow: hidden;
+    }
+    #player {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-color: #3b82f6;
+      transition: top 0.3s, left 0.3s;
+    }
+    .word {
+      position: absolute;
+      padding: 5px;
+      background-color: #10b981;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+
+
+
+    <section class="bg-gray-100">
+      <div class="container mx-auto py-8">
+        <h1 class="text-4xl font-bold mb-4 text-center text-blue-600">Side-Scrolling Typing Game</h1>
+        <div id="game-container" class="mx-auto bg-white rounded-lg shadow-md">
+          <div id="player"></div>
+        </div>
+        <div class="mt-4 text-center">
+          <input type="text" id="word-input" class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type the word...">
+        </div>
+        <div class="mt-4 text-center">
+          <p class="text-xl font-bold">Score: <span id="score" class="text-blue-600">0</span></p>
+        </div>
+        <div class="container mx-auto mt-8">
+            <h2 class="text-2xl font-bold mb-4 text-center text-blue-600">The Story</h2>
+            <p class="text-lg text-gray-700 mb-4">
+              In a world where words have taken on a life of their own, a brave adventurer sets out on a quest to restore order. Armed with quick reflexes and a sharp mind, the adventurer must navigate a treacherous landscape filled with rogue words that threaten to overwhelm the land.
+            </p>
+            <p class="text-lg text-gray-700 mb-4">
+              As the adventurer journeys through this word-infested realm, they must confront each word head-on, typing them out with speed and precision to vanquish them. The faster the words are typed, the more points the adventurer earns, proving their worth as a true champion of the written word.
+            </p>
+            <p class="text-lg text-gray-700">
+              With each successful encounter, the adventurer grows stronger, honing their skills and rising to the challenge. But the road ahead is long and the words are many. Will the adventurer have the determination and the typing prowess to see their quest through to the end and restore harmony to the land? Only time will tell...
+            </p>
+          </div>
+      </div>
+
+      <script is:inline>
+        const gameContainer = document.getElementById('game-container');
+        const player = document.getElementById('player');
+        const wordInput = document.getElementById('word-input');
+        const scoreElement = document.getElementById('score');
+
+        let playerX = 0;
+        let playerY = 0;
+        let score = 0;
+        const words = ['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon'];
+
+        function movePlayer(event) {
+          const key = event.key.toLowerCase();
+          const speed = 10;
+
+          if (key === 'w' && playerY > 0) {
+            playerY -= speed;
+          } else if (key === 's' && playerY < gameContainer.offsetHeight - player.offsetHeight) {
+            playerY += speed;
+          } else if (key === 'a' && playerX > 0) {
+            playerX -= speed;
+          } else if (key === 'd' && playerX < gameContainer.offsetWidth - player.offsetWidth) {
+            playerX += speed;
+          }
+
+          player.style.top = playerY + 'px';
+          player.style.left = playerX + 'px';
+        }
+
+        function spawnWord() {
+          const word = words[Math.floor(Math.random() * words.length)];
+          const wordElement = document.createElement('div');
+          wordElement.className = 'word';
+          wordElement.textContent = word;
+          wordElement.style.top = Math.random() * (gameContainer.offsetHeight - 30) + 'px';
+          wordElement.style.left = gameContainer.offsetWidth + 'px';
+          gameContainer.appendChild(wordElement);
+
+          const speed = 2;
+          let wordX = gameContainer.offsetWidth;
+
+          function moveWord() {
+            wordX -= speed;
+            wordElement.style.left = wordX + 'px';
+
+            if (isColliding(player, wordElement)) {
+              wordInput.focus();
+              wordInput.value = '';
+              wordInput.placeholder = `Type "${word}"`;
+
+              wordInput.addEventListener('input', function () {
+                if (wordInput.value === word) {
+                  gameContainer.removeChild(wordElement);
+                  const typingTime = Date.now() - startTime;
+                  const points = Math.max(1000 - typingTime, 100);
+                  score += points;
+                  scoreElement.textContent = score;
+                  wordInput.placeholder = 'Type the word...';
+                }
+              });
+            }
+
+            if (wordX > -wordElement.offsetWidth) {
+              requestAnimationFrame(moveWord);
+            } else {
+              gameContainer.removeChild(wordElement);
+            }
+          }
+
+          const startTime = Date.now();
+          moveWord();
+        }
+
+        function isColliding(element1, element2) {
+          const rect1 = element1.getBoundingClientRect();
+          const rect2 = element2.getBoundingClientRect();
+
+          return (
+            rect1.left < rect2.right &&
+            rect1.right > rect2.left &&
+            rect1.top < rect2.bottom &&
+            rect1.bottom > rect2.top
+          );
+        }
+
+        document.addEventListener('keydown', movePlayer);
+
+        setInterval(spawnWord, 3000);
+      </script>
+    </section>
+
+    <!--
+        Extras if we need.
+     -->
+
+</Layout>
