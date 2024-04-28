@@ -5,6 +5,9 @@ import MainLayout from '../../layouts/MainLayout.astro';
 import Hero from '../../components/MDXHero.astro';
 import { getCollection } from 'astro:content';
 
+
+import { SITE } from '../../data_files/constants';
+
 export async function getStaticPaths() {
 	const legal = await getCollection('legal');
 	return legal.map((entry) => ({
@@ -22,7 +25,22 @@ const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
 ---
 <MainLayout
-	title={entry.data.title}>
+	title={entry.data.title}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://kbve.com/arcade',
+		url: 'https://kbve.com/arcade',
+		name: `${entry.data.title}`,
+		description: `${entry.data.description}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: ` ${SITE.title}`,
+			description: `${SITE.description}`,
+		},
+		inLanguage: 'en-US',
+	}}>
 	<Hero data={entry.data} />
 	<Content />
 </MainLayout>
