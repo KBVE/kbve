@@ -29,8 +29,8 @@ const { Content, headings } = await entry.render();
 	structuredData={{
 		'@context': 'https://schema.org',
 		'@type': 'WebPage',
-		'@id': 'https://kbve.com/arcade',
-		url: 'https://kbve.com/arcade',
+		'@id': `https://kbve.com/legal/${entry.slug}`,
+		url: `https://kbve.com/legal/${entry.slug}`,
 		name: `${entry.data.title}`,
 		description: `${entry.data.description}`,
 		isPartOf: {
