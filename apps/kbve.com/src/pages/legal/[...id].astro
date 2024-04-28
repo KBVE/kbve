@@ -1,5 +1,7 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+//import Layout from '../../layouts/Layout.astro';
+import MainLayout from '../../layouts/MainLayout.astro';
+
 import Hero from '../../components/MDXHero.astro';
 import { getCollection } from 'astro:content';
 
@@ -19,7 +21,8 @@ const { id } = Astro.params;
 const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
 ---
-<Layout title={entry.data.title} description={entry.data.description}>
+<MainLayout
+	title={entry.data.title}>
 	<Hero data={entry.data} />
 	<Content />
-</Layout>
+</MainLayout>

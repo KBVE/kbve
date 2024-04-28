@@ -1,0 +1,38 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+import Bento from '../../components/Bento.astro';
+import type React from "react";
+
+const title = 'KBVE.com - Legal Information';
+const description = 'KBVE Legal Information, ToS, Privacy and other legal documents';
+
+import { getCollection, getEntry } from 'astro:content';
+
+const legalCollection = await getCollection('legal');
+
+
+interface IAstroItem {
+    title: string;
+    description: string;
+    slug: string;
+    header: React.ReactNode;
+    icon: React.ReactNode;
+}
+
+
+
+const astroItems: IAstroItem[] = legalCollection.map((entry)  => ({
+     title: entry.data.title, // Assuming `item` has a title
+     description: entry.data.description, // Assuming `item` has a description
+     slug: `/legal/${entry.slug}`,
+     header: `<img src="https://images.unsplash.com/photo-${entry.data.unsplash}?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80" class="object-cover flex flex-1 w-full h-full min-h-[6rem] rounded-xl" />`, 
+     icon: `<IconClipboardCopy className="h-4 w-4 text-neutral-500" />`, 
+   }));
+
+
+---
+<Layout title={title} description={description} >
+
+    <Bento collection={astroItems} />
+</Layout>
