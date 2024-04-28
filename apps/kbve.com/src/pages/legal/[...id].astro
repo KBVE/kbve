@@ -1,7 +1,12 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+//import Layout from '../../layouts/Layout.astro';
+import MainLayout from '../../layouts/MainLayout.astro';
+
 import Hero from '../../components/MDXHero.astro';
 import { getCollection } from 'astro:content';
+
+
+import { SITE } from '../../data_files/constants';
 
 export async function getStaticPaths() {
 	const legal = await getCollection('legal');
@@ -19,7 +24,23 @@ const { id } = Astro.params;
 const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
 ---
-<Layout title={entry.data.title} description={entry.data.description}>
+<MainLayout
+	title={entry.data.title}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': `https://kbve.com/legal/${entry.slug}`,
+		url: `https://kbve.com/legal/${entry.slug}`,
+		name: `${entry.data.title}`,
+		description: `${entry.data.description}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: ` ${SITE.title}`,
+			description: `${SITE.description}`,
+		},
+		inLanguage: 'en-US',
+	}}>
 	<Hero data={entry.data} />
 	<Content />
-</Layout>
+</MainLayout>

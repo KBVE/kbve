@@ -2,14 +2,13 @@
 // [IMPORTS]
 import MainLayout from '../../layouts/MainLayout.astro';
 
-import CardArcade from "../../components/ui/cards/CardArcade.astro";
+import CardArcade from '../../components/ui/cards/CardArcade.astro';
 
 import { SITE } from '../../data_files/constants';
 
 import Bento from '../../components/Bento.astro';
 import { getCollection, getEntry } from 'astro:content';
-import type { CollectionEntry } from "astro:content";
-
+import type { CollectionEntry } from 'astro:content';
 
 const pageTitle: string = `Arcade - Classic & Exclusive Browser Games| ${SITE.title}`;
 const pageDescription =
@@ -19,12 +18,8 @@ const title: string = 'KBVE Arcade: Classic & Exclusive Browser Games';
 const subTitle: string =
 	'Experience the best of retro and innovative arcade games in your browser.';
 
-
-const arcadeCollection: CollectionEntry<"arcade">[] =
-  await getCollection("arcade");
-
-
-
+const arcadeCollection: CollectionEntry<'arcade'>[] =
+	await getCollection('arcade');
 ---
 
 <MainLayout
@@ -32,8 +27,8 @@ const arcadeCollection: CollectionEntry<"arcade">[] =
 	structuredData={{
 		'@context': 'https://schema.org',
 		'@type': 'WebPage',
-		'@id': 'https://screwfast.uk/blog',
-		url: 'https://screwfast.uk/blog',
+		'@id': 'https://kbve.com/arcade',
+		url: 'https://kbve.com/arcade',
 		name: `${pageTitle}`,
 		description: `${pageDescription}`,
 		isPartOf: {
@@ -62,10 +57,12 @@ const arcadeCollection: CollectionEntry<"arcade">[] =
 
 	<section
 		class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full">
-		
-        <div class="grid gap-6 lg:grid-cols-2">
-            {arcadeCollection.map((arcadeEntry) => <CardArcade arcadeEntry={arcadeEntry} />)}
-          </div>
-
+		<div class="grid gap-6 lg:grid-cols-2">
+			{
+				arcadeCollection.map((arcadeEntry) => (
+					<CardArcade arcadeEntry={arcadeEntry} />
+				))
+			}
+		</div>
 	</section>
 </MainLayout>
