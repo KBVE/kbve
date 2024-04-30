@@ -8,6 +8,9 @@ import {
 	int,
 	uniqueIndex,
 	binary,
+	json,
+	decimal,
+	bigint
 } from 'drizzle-orm/mysql-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z, ZodRawShape } from 'zod';
@@ -155,6 +158,24 @@ export const characters = mysqlTable('characters', {
 	};
 });
 
+/**
+ *  ? Invoice - WIP.
+ * 	
+ */
+
+export const invoice = mysqlTable('invoice', {
+	id: serial('id').primaryKey().notNull(),
+	ulid: binary('ulid', { length: 16}).unique().notNull(),
+	userid: binary("userid", { length: 16}).references(() => users.userid).notNull(),
+	items: json('items').notNull(),
+	paid: decimal('paid', { precision: 10, scale: 2 }).default('0').notNull(),
+	total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+    balance: decimal('balance', { precision: 10, scale: 2 }).notNull(),
+	external: varchar('external', {length: 255}).default('/#').notNull(),
+	due: bigint('due', { mode: 'number', unsigned: true}).notNull(),
+	visibility: int('visibility').default(0).notNull(),
+	status: int('status').default(0).notNull()
+});
 
 
 /**

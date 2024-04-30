@@ -13,6 +13,7 @@ interface IMessageRpcService extends grpc.ServiceDefinition<grpc.UntypedServiceI
     getAuth: IMessageRpcService_IgetAuth;
     getCharacter: IMessageRpcService_IgetCharacter;
     getGlobal: IMessageRpcService_IgetGlobal;
+    getInvoice: IMessageRpcService_IgetInvoice;
     getN8n: IMessageRpcService_IgetN8n;
     getProfile: IMessageRpcService_IgetProfile;
     getSetting: IMessageRpcService_IgetSetting;
@@ -64,6 +65,15 @@ interface IMessageRpcService_IgetGlobal extends grpc.MethodDefinition<kbveproto_
     responseSerialize: grpc.serialize<kbveproto_pb.Global>;
     responseDeserialize: grpc.deserialize<kbveproto_pb.Global>;
 }
+interface IMessageRpcService_IgetInvoice extends grpc.MethodDefinition<kbveproto_pb.EnquireInvoiceRequest, kbveproto_pb.Invoice> {
+    path: "/MessageRpc/getInvoice";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<kbveproto_pb.EnquireInvoiceRequest>;
+    requestDeserialize: grpc.deserialize<kbveproto_pb.EnquireInvoiceRequest>;
+    responseSerialize: grpc.serialize<kbveproto_pb.Invoice>;
+    responseDeserialize: grpc.deserialize<kbveproto_pb.Invoice>;
+}
 interface IMessageRpcService_IgetN8n extends grpc.MethodDefinition<kbveproto_pb.EnquireN8nRequest, kbveproto_pb.N8n> {
     path: "/MessageRpc/getN8n";
     requestStream: false;
@@ -109,6 +119,7 @@ export interface IMessageRpcServer {
     getAuth: grpc.handleUnaryCall<kbveproto_pb.EnquireAuthRequest, kbveproto_pb.Auth>;
     getCharacter: grpc.handleUnaryCall<kbveproto_pb.EnquireCharacterRequest, kbveproto_pb.Character>;
     getGlobal: grpc.handleUnaryCall<kbveproto_pb.EnquireGlobalRequest, kbveproto_pb.Global>;
+    getInvoice: grpc.handleUnaryCall<kbveproto_pb.EnquireInvoiceRequest, kbveproto_pb.Invoice>;
     getN8n: grpc.handleUnaryCall<kbveproto_pb.EnquireN8nRequest, kbveproto_pb.N8n>;
     getProfile: grpc.handleUnaryCall<kbveproto_pb.EnquireProfileRequest, kbveproto_pb.Profile>;
     getSetting: grpc.handleUnaryCall<kbveproto_pb.EnquireSettingRequest, kbveproto_pb.Setting>;
@@ -131,6 +142,9 @@ export interface IMessageRpcClient {
     getGlobal(request: kbveproto_pb.EnquireGlobalRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
     getGlobal(request: kbveproto_pb.EnquireGlobalRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
     getGlobal(request: kbveproto_pb.EnquireGlobalRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
+    getInvoice(request: kbveproto_pb.EnquireInvoiceRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Invoice) => void): grpc.ClientUnaryCall;
+    getInvoice(request: kbveproto_pb.EnquireInvoiceRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Invoice) => void): grpc.ClientUnaryCall;
+    getInvoice(request: kbveproto_pb.EnquireInvoiceRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Invoice) => void): grpc.ClientUnaryCall;
     getN8n(request: kbveproto_pb.EnquireN8nRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.N8n) => void): grpc.ClientUnaryCall;
     getN8n(request: kbveproto_pb.EnquireN8nRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.N8n) => void): grpc.ClientUnaryCall;
     getN8n(request: kbveproto_pb.EnquireN8nRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.N8n) => void): grpc.ClientUnaryCall;
@@ -162,6 +176,9 @@ export class MessageRpcClient extends grpc.Client implements IMessageRpcClient {
     public getGlobal(request: kbveproto_pb.EnquireGlobalRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
     public getGlobal(request: kbveproto_pb.EnquireGlobalRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
     public getGlobal(request: kbveproto_pb.EnquireGlobalRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Global) => void): grpc.ClientUnaryCall;
+    public getInvoice(request: kbveproto_pb.EnquireInvoiceRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Invoice) => void): grpc.ClientUnaryCall;
+    public getInvoice(request: kbveproto_pb.EnquireInvoiceRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Invoice) => void): grpc.ClientUnaryCall;
+    public getInvoice(request: kbveproto_pb.EnquireInvoiceRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.Invoice) => void): grpc.ClientUnaryCall;
     public getN8n(request: kbveproto_pb.EnquireN8nRequest, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.N8n) => void): grpc.ClientUnaryCall;
     public getN8n(request: kbveproto_pb.EnquireN8nRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.N8n) => void): grpc.ClientUnaryCall;
     public getN8n(request: kbveproto_pb.EnquireN8nRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: kbveproto_pb.N8n) => void): grpc.ClientUnaryCall;
