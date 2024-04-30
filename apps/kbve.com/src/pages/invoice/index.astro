@@ -1,0 +1,50 @@
+---
+// Import the necessary components
+import MainLayout from '../../layouts/MainLayout.astro';
+import { SITE } from '../../data_files/constants';
+
+import InvoiceData from './_InvoiceData.svelte';
+
+const pageTitle: string = `Invoice | ${SITE.title}`;
+---
+
+<!--Utilizing MainLayout for the outer layout of the page, and defining meta for SEO purposes-->
+<MainLayout
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://kbve.com/invoice',
+		url: 'https://kbve.com/invoice',
+		name: `${pageTitle}`,
+		description:
+			'Explore our software and automation solutions! Contact us to discuss your project and let us help you create the perfect automated tools and provide expert software support.',
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: 'Kilo Byte Virtual Engine',
+			description:
+				'Elevate your efficiency with KBVE, Kilobyte Virtual Engine! Discover cutting-edge software and automation solutions designed to streamline and enhance your projects. Let’s innovate together!',
+		},
+		inLanguage: 'en-US',
+	}}>
+	<!-- Javascript -->
+
+	<div id="skeleton_invoice_loader" class="animate-pulse">
+		<!-- <section
+			class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+			<div class="bg-gray-300 h-6 w-3/4 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+		</section> -->
+	</div>
+	<InvoiceData client:only="svelte" />
+</MainLayout>
