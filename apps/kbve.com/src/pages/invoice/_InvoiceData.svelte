@@ -1,5 +1,5 @@
 <script>
-	import { ulidinvoicestore } from './_InvoiceStore';
+	import { ulidinvoicestore, ulidinvoicedatestore } from './_InvoiceStore';
 	import { onMount } from 'svelte';
 
 	let invoiceNumber = 'Loading...'; // Default or placeholder text
@@ -7,6 +7,12 @@
 	ulidinvoicestore.subscribe((value) => {
 		invoiceNumber = value || 'Not available'; // Fallback if no ULID is found
 	});
+
+	let date = 'Loading...';
+
+	ulidinvoicedatestore.subscribe((value) => {
+		date = value || 'Not available'; // Fallback if no ULID is found
+	})
 
 	onMount(() => {
 		const loader = document.getElementById('skeleton_invoice_loader');
@@ -152,7 +158,7 @@
 							</dt>
 							<dd
 								class="col-span-2 text-gray-500 dark:text-neutral-500">
-								03/10/2018
+								{date}
 							</dd>
 						</dl>
 						<dl class="grid sm:grid-cols-5 gap-x-3">
