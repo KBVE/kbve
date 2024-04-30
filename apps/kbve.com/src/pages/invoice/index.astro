@@ -31,20 +31,24 @@ const pageTitle: string = `Invoice | ${SITE.title}`;
 	<!-- Javascript -->
 
 	<div id="skeleton_invoice_loader" class="animate-pulse">
-		<!-- <section
-			class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-			<div class="bg-gray-300 h-6 w-3/4 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-			<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
-		</section> -->
+		<div class="max-w-[85rem] px-4 sm:px-6 lg:px-8 mx-auto my-4 sm:my-10">
+			<div class="sm:w-11/12 lg:w-3/4 mx-auto">
+				<section
+					class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+					<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-3/4 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-3/4 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-3/4 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-4/12 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+					<div class="bg-gray-300 h-6 w-1/2 mb-4"></div>
+				</section>
+			</div>
+		</div>
 	</div>
 	<InvoiceData client:only="svelte" />
 </MainLayout>

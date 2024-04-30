@@ -5,6 +5,7 @@ import { persistentAtom } from '@nanostores/persistent';
 // Create an atom store to hold the ULID
 //const ulidStore = atom(null);
 const ulidinvoicestore = persistentAtom('ulidinvoicestore', null);
+const ulidinvoicedatestore = persistentAtom('ulidinvoicedatestore', null);
 
 
 // Function to update the ulidStore based on the URL hash
@@ -32,4 +33,4 @@ window.addEventListener('hashchange', updateUlidStore);
 updateUlidStore();
 
 // Exporting the ulidStore for use in other parts of the application
-export { ulidinvoicestore };
+export { ulidinvoicestore, ulidinvoicedatestore };

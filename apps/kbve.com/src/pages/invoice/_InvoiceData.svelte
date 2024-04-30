@@ -24,6 +24,31 @@
 			}, 500); // Duration matches the transition time
 		}
 	});
+
+	// Simulate importing JSON data
+	let items = [
+		{ item: 'Design UX and UI', qty: 1, rate: 5, amount: 500 },
+		{ item: 'Web project', qty: 1, rate: 24, amount: 1250 },
+		{ item: 'SEO', qty: 1, rate: 6, amount: 2000 },
+        { item: 'Tutorial', qty: 1, rate: 1, amount: 4000},
+	];
+
+    let _subtotal = items.reduce((total, item) => total + item.amount, 0);
+    let subtotal = _subtotal.toFixed(2);
+    let _fees = (_subtotal * 0.108);
+    let fees = _fees.toFixed(2);
+
+    let _total = _subtotal + _fees;
+    let total = _total.toFixed(2);
+
+    let _paid = 694.20;
+    let paid = _paid.toFixed(2);
+
+    let _due = _total - _paid;
+    let due = _due.toFixed(2);
+
+    let _invoice = '';
+
 </script>
 
 <!-- Invoice -->
@@ -36,9 +61,9 @@
 			<div class="flex justify-between">
 				<div class="text-gray-800 dark:text-neutral-200">
 					<svg
-                        class="size-20"
-                        width="50"
-                        height="50"
+						class="size-20"
+						width="50"
+						height="50"
 						viewBox="0 0 76 76"
 						xmlns="http://www.w3.org/2000/svg"
 						xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -62,7 +87,6 @@
 							</path>
 						</g>
 					</svg>
-
 
 					<h1
 						class="mt-2 text-lg md:text-xl font-semibold text-cyan-600 dark:text-white">
@@ -149,6 +173,7 @@
 			<!-- End Grid -->
 
 			<!-- Table -->
+
 			<div class="mt-6">
 				<div
 					class="border border-gray-200 p-4 rounded-lg space-y-4 dark:border-neutral-700">
@@ -175,128 +200,51 @@
 						class="hidden sm:block border-b border-gray-200 dark:border-neutral-700">
 					</div>
 
-					<div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
-						<div class="col-span-full sm:col-span-2">
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Item
-							</h5>
-							<p
-								class="font-medium text-gray-800 dark:text-neutral-200">
-								Design UX and UI
-							</p>
+					{#each items as { item, qty, rate, amount }}
+						<div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+							<div class="col-span-full sm:col-span-2">
+								<h5
+									class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+									Item
+								</h5>
+								<p
+									class="font-medium text-gray-800 dark:text-neutral-200">
+									{item}
+								</p>
+							</div>
+							<div>
+								<h5
+									class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+									Qty
+								</h5>
+								<p class="text-gray-800 dark:text-neutral-200">
+									{qty}
+								</p>
+							</div>
+							<div>
+								<h5
+									class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+									Rate
+								</h5>
+								<p class="text-gray-800 dark:text-neutral-200">
+									{rate}
+								</p>
+							</div>
+							<div>
+								<h5
+									class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+									Amount
+								</h5>
+								<p
+									class="sm:text-end text-gray-800 dark:text-neutral-200">
+									${amount}
+								</p>
+							</div>
 						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Qty
-							</h5>
-							<p class="text-gray-800 dark:text-neutral-200">1</p>
-						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Rate
-							</h5>
-							<p class="text-gray-800 dark:text-neutral-200">5</p>
-						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Amount
-							</h5>
-							<p
-								class="sm:text-end text-gray-800 dark:text-neutral-200">
-								$500
-							</p>
-						</div>
-					</div>
-
-					<div
-						class="sm:hidden border-b border-gray-200 dark:border-neutral-700">
-					</div>
-
-					<div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
-						<div class="col-span-full sm:col-span-2">
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Item
-							</h5>
-							<p
-								class="font-medium text-gray-800 dark:text-neutral-200">
-								Web project
-							</p>
-						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Qty
-							</h5>
-							<p class="text-gray-800 dark:text-neutral-200">1</p>
-						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Rate
-							</h5>
-							<p class="text-gray-800 dark:text-neutral-200">
-								24
-							</p>
-						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Amount
-							</h5>
-							<p
-								class="sm:text-end text-gray-800 dark:text-neutral-200">
-								$1250
-							</p>
-						</div>
-					</div>
-
-					<div
-						class="sm:hidden border-b border-gray-200 dark:border-neutral-700">
-					</div>
-
-					<div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
-						<div class="col-span-full sm:col-span-2">
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Item
-							</h5>
-							<p
-								class="font-medium text-gray-800 dark:text-neutral-200">
-								SEO
-							</p>
-						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Qty
-							</h5>
-							<p class="text-gray-800 dark:text-neutral-200">1</p>
-						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Rate
-							</h5>
-							<p class="text-gray-800 dark:text-neutral-200">6</p>
-						</div>
-						<div>
-							<h5
-								class="sm:hidden text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-								Amount
-							</h5>
-							<p
-								class="sm:text-end text-gray-800 dark:text-neutral-200">
-								$2000
-							</p>
-						</div>
-					</div>
+					{/each}
 				</div>
 			</div>
+
 			<!-- End Table -->
 
 			<!-- Flex -->
@@ -311,10 +259,22 @@
 							</dt>
 							<dd
 								class="col-span-2 text-gray-500 dark:text-neutral-500">
-								$2750.00
+                                ${subtotal}
 							</dd>
 						</dl>
 
+						<dl class="grid sm:grid-cols-5 gap-x-3">
+							<dt
+								class="col-span-3 font-semibold text-gray-800 dark:text-neutral-200">
+								Tax, Fees & Service:
+							</dt>
+							<dd
+								class="col-span-2 text-gray-500 dark:text-neutral-500">
+								${fees}
+							</dd>
+						</dl>
+
+                        
 						<dl class="grid sm:grid-cols-5 gap-x-3">
 							<dt
 								class="col-span-3 font-semibold text-gray-800 dark:text-neutral-200">
@@ -322,20 +282,10 @@
 							</dt>
 							<dd
 								class="col-span-2 text-gray-500 dark:text-neutral-500">
-								$2750.00
+								${total}
 							</dd>
 						</dl>
 
-						<dl class="grid sm:grid-cols-5 gap-x-3">
-							<dt
-								class="col-span-3 font-semibold text-gray-800 dark:text-neutral-200">
-								Tax:
-							</dt>
-							<dd
-								class="col-span-2 text-gray-500 dark:text-neutral-500">
-								$39.00
-							</dd>
-						</dl>
 
 						<dl class="grid sm:grid-cols-5 gap-x-3">
 							<dt
@@ -344,7 +294,7 @@
 							</dt>
 							<dd
 								class="col-span-2 text-gray-500 dark:text-neutral-500">
-								$2789.00
+								${paid}
 							</dd>
 						</dl>
 
@@ -355,7 +305,7 @@
 							</dt>
 							<dd
 								class="col-span-2 text-gray-500 dark:text-neutral-500">
-								$0.00
+								${due}
 							</dd>
 						</dl>
 					</div>
@@ -386,7 +336,7 @@
 			</div>
 
 			<p class="mt-5 text-sm text-gray-500 dark:text-neutral-500">
-				© 2022 Preline.
+				© 2024 KBVE.com
 			</p>
 		</div>
 		<!-- End Card -->
