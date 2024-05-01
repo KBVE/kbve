@@ -1,25 +1,24 @@
 /* cspell:disable */
 
-// Exporting a constant 'kbve_v01d' representing a version or an identifier.
-export const kbve_v01d: string = '/api/v1/';
+import { kbve_v01d } from "./khashvault";
 
 /* hCaptcha */
 // Section for hCaptcha configuration constants.
 
 // Exporting the hCaptcha site key as a constant.
 // This key is specific to your site and is used to authenticate with the hCaptcha service.
-export const hcaptcha_site_key: string = '5ba581fa-b6fc-4bb0-8222-02fcd6a59e35'; // 9-20-2023 Key
+export const hcaptcha_site_key = '5ba581fa-b6fc-4bb0-8222-02fcd6a59e35'; // 9-20-2023 Key
 
 // Exporting the URL to the hCaptcha API script.
 // This is the script that will be loaded to integrate hCaptcha into your site.
-export const hcaptcha_api: string = 'https://js.hcaptcha.com/1/api.js';
+export const hcaptcha_api = 'https://js.hcaptcha.com/1/api.js';
 
 // Exporting API endpoints for authentication.
 // These are the server endpoints for registering and logging in users.
-export const auth_register: string = 'auth/register'; // Endpoint for user registration.
-export const auth_login: string = 'auth/login'; // Endpoint for user login.
-export const auth_logout: string = 'auth/logout'; // Endpoint for user logout.
-export const auth_profile: string = 'auth/profile'; // Endpoint for the user profile.
+export const auth_register = 'auth/register'; // Endpoint for user registration.
+export const auth_login = 'auth/login'; // Endpoint for user login.
+export const auth_logout = 'auth/logout'; // Endpoint for user logout.
+export const auth_profile = 'auth/profile'; // Endpoint for the user profile.
 
 
 // Summary:
@@ -136,7 +135,7 @@ export const usernameRegex = new RegExp(/^[a-z0-9]+$/i);
 // This constant sets the required minimum number of characters for a valid username.
 // In this case, a username must be at least 8 characters long.
 // This requirement helps ensure that usernames are sufficiently unique and identifiable.
-export const usernameLength: number = 8;
+export const usernameLength = 8;
 
 
 /**
@@ -213,6 +212,7 @@ export async function checkUsername(username: string) {
 
 //  *   [Email]
 export const emailRegex = new RegExp(
+	// eslint-disable-next-line no-control-regex
 	/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
 );
 

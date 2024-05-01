@@ -103,6 +103,17 @@ function deserialize_EnquireGlobalRequest(buffer_arg) {
   return kbveproto_pb.EnquireGlobalRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_EnquireInvoiceRequest(arg) {
+  if (!(arg instanceof kbveproto_pb.EnquireInvoiceRequest)) {
+    throw new Error('Expected argument of type EnquireInvoiceRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_EnquireInvoiceRequest(buffer_arg) {
+  return kbveproto_pb.EnquireInvoiceRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_EnquireN8nRequest(arg) {
   if (!(arg instanceof kbveproto_pb.EnquireN8nRequest)) {
     throw new Error('Expected argument of type EnquireN8nRequest');
@@ -156,6 +167,17 @@ function serialize_Global(arg) {
 
 function deserialize_Global(buffer_arg) {
   return kbveproto_pb.Global.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_Invoice(arg) {
+  if (!(arg instanceof kbveproto_pb.Invoice)) {
+    throw new Error('Expected argument of type Invoice');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_Invoice(buffer_arg) {
+  return kbveproto_pb.Invoice.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_N8n(arg) {
@@ -258,6 +280,17 @@ var MessageRpcService = exports.MessageRpcService = {
     requestDeserialize: deserialize_EnquireGlobalRequest,
     responseSerialize: serialize_Global,
     responseDeserialize: deserialize_Global,
+  },
+  getInvoice: {
+    path: '/MessageRpc/getInvoice',
+    requestStream: false,
+    responseStream: false,
+    requestType: kbveproto_pb.EnquireInvoiceRequest,
+    responseType: kbveproto_pb.Invoice,
+    requestSerialize: serialize_EnquireInvoiceRequest,
+    requestDeserialize: deserialize_EnquireInvoiceRequest,
+    responseSerialize: serialize_Invoice,
+    responseDeserialize: deserialize_Invoice,
   },
   getN8n: {
     path: '/MessageRpc/getN8n',
