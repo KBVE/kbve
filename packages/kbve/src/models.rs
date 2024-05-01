@@ -3,7 +3,7 @@
 #![allow(unused)]
 #![allow(clippy::all)]
 use diesel::prelude::*;
-use diesel::sql_types::Json;
+use serde_json::{ Value as Json};
 use serde::{ Serialize, Deserialize};
 
 

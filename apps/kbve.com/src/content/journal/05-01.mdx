@@ -51,3 +51,45 @@ cargo publish -p kbve --dry-run
 ```
 
 For the kbve crate, it looks like we were missing a `serde_json` feature, but let me commit this and run the test again.
+
+Next, just to be safe, remember to run a `cargo check`.
+
+Okay! Instead of messing around with the serde_json directly, I am going to just pass `use serde_json::{ Value as Json};` as the Json representation for that model and move forward.
+
+Finally we have the erust issue, which we need to resolve!
+
+So we know that after we create the erust models using the shell script, we need a way to patch it.
+
+```shell
+
+            sed -i 's/(Queryable, Debug)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
+            echo "Patching the DBModels"
+
+```
+
+We can use this method below, to patch the `dbmodels.rs`
+
+```shell
+
+            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde_json::{ Value as Json};'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
+
+```
+
+We need to insert the rust code below into the `../erust/src/state/dbmodels.rs`
+
+```rust 
+
+use serde_json::{ Value as Json};
+
+```
+
+Okay! Here is what we can do using grep, 
+
+```shell
+
+grep -q 'use serde_json::' "../erust/src/state/dbmodels.rs" || sed -i '5 a use serde_json::{Value as Json};' "../erust/src/state/dbmodels.rs"
+echo "Patching Part 2 of the DBModels"
+
+```
+
+This should patch the dbmodels to use `Json` without having any issues, both seem to run fine with dry runs as well.
