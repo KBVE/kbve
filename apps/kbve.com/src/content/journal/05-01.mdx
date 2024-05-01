@@ -1,0 +1,105 @@
+---
+title: 'May: 01'
+category: Daily
+date: 2024-05-01 12:00:00
+client: Self
+unsplash: 1545569341-9eb8b30979d9
+img: https://images.unsplash.com/photo-1545569341-9eb8b30979d9?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    Daily Log for May 1st of each year.
+tags:
+    - daily
+---
+
+## 2024
+
+**Rust**
+
+Nothing says a great start of the day than having Rust issues that you have to resolve!
+We got two major issues with our database command:
+
+1. kbve Crate
+
+```
+
+error[E0277]: the trait bound `diesel::sql_types::Json: Deserialize<'_>` is not satisfied
+  --> src/models.rs:93:5
+   |
+93 |     pub items: Json,
+   |     ^^^ the trait `Deserialize<'_>` is not implemented for `diesel::sql_types::Json`
+
+```
+
+2. erust Crate
+
+```
+error[E0412]: cannot find type `Json` in this scope
+  --> src/state/dbmodels.rs:84:16
+   |
+84 |     pub items: Json,
+   |                ^^^^ not found in this scope
+
+
+```
+
+We are testing these with these commands:
+
+```shell
+
+cargo publish -p kbve --dry-run
+
+```
+
+For the kbve crate, it looks like we were missing a `serde_json` feature, but let me commit this and run the test again.
+
+Next, just to be safe, remember to run a `cargo check`.
+
+Okay! Instead of messing around with the serde_json directly, I am going to just pass `use serde_json::{ Value as Json};` as the Json representation for that model and move forward.
+
+Finally we have the erust issue, which we need to resolve!
+
+So we know that after we create the erust models using the shell script, we need a way to patch it.
+
+```shell
+
+            sed -i 's/(Queryable, Debug)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
+            echo "Patching the DBModels"
+
+```
+
+We can use this method below, to patch the `dbmodels.rs`
+
+```shell
+
+            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde_json::{ Value as Json};'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
+
+```
+
+We need to insert the rust code below into the `../erust/src/state/dbmodels.rs`
+
+```rust 
+
+use serde_json::{ Value as Json};
+
+```
+
+Okay! Here is what we can do using grep, 
+
+```shell
+
+grep -q 'use serde_json::' "../erust/src/state/dbmodels.rs" || sed -i '5 a use serde_json::{Value as Json};' "../erust/src/state/dbmodels.rs"
+echo "Patching Part 2 of the DBModels"
+
+```
+
+This should patch the dbmodels to use `Json` without having any issues, both seem to run fine with dry runs as well.
+
+While we wait for that to build up and move along the pipeline, we can focus on the register method once more for KBVE.
+
+**Register**
+
+The register function will require updates on both the client and server side! Oh boy, this is going to be another one of those days.
+
+We need to change the error system on the `register` function within the KBVE API.
+The older error system needs to be replaced with the x-kbve shield style, so we can capture the error headers outside of the rust application too.
+Oh, I need to also include a `127.0.0.1:4321` in the CORS policy for the application.

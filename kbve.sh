@@ -540,7 +540,11 @@ case "$1" in
             # Patching includes
             # sed -i 's/(Queryable, Debug, Identifiable)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
             sed -i 's/(Queryable, Debug)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
-            echo "Patching the DBModels"
+            echo "Patching Part 1 of the DBModels"
+
+
+            grep -q 'use serde_json::' "../erust/src/state/dbmodels.rs" || sed -i '5 a use serde_json::{Value as Json};' "../erust/src/state/dbmodels.rs"
+            echo "Patching Part 2 of the DBModels"
 
             # Execute diesel_ext and redirect output
             diesel_ext --model -t > src/models.rs
@@ -548,7 +552,7 @@ case "$1" in
             echo "diesel_ext executed and output redirected to src/models.rs"
 
             # Patching the models.rs inside of src.
-            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
+            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde_json::{ Value as Json};'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
             sed -i 's/#\[derive(Queryable,/#\[derive(Queryable, Serialize, Deserialize,/' src/models.rs
             echo "Patching models.rs"
 
