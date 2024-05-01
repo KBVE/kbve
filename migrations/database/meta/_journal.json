@@ -15,6 +15,13 @@
       "when": 1707147860321,
       "tag": "0001_sad_shatterstar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1714516270058,
+      "tag": "0002_amusing_luminals",
+      "breakpoints": true
     }
   ]
 }
