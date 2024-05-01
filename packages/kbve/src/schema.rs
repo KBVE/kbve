@@ -102,6 +102,25 @@ diesel::table! {
 }
 
 diesel::table! {
+    invoice (id) {
+        id -> Unsigned<Bigint>,
+        #[max_length = 16]
+        ulid -> Binary,
+        #[max_length = 16]
+        userid -> Binary,
+        items -> Json,
+        paid -> Decimal,
+        total -> Decimal,
+        balance -> Decimal,
+        #[max_length = 255]
+        external -> Varchar,
+        due -> Unsigned<Bigint>,
+        visibility -> Integer,
+        status -> Integer,
+    }
+}
+
+diesel::table! {
     n8n (id) {
         id -> Unsigned<Bigint>,
         #[max_length = 16]
@@ -175,6 +194,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     auth,
     characters,
     globals,
+    invoice,
     n8n,
     profile,
     settings,

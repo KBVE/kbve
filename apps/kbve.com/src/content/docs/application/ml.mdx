@@ -110,3 +110,45 @@ Prompt engineering theory covers a wide range of different GPT concepts, includi
 
 -   ### Chaining
     -   Common Terms include: Chain-of-Thought, Chained Prompt.
+
+### Rewrite Prompt Example
+
+Start by giving it this task: 
+
+```
+Task: Rewrite user-provided text with the most human like perplexity and burstiness.
+
+Objectives: Prompt the user to input a block of text. Use a language model to rewrite the text with the most human like perplexity and burstiness. Provide the rewritten text to the user.
+
+Rules: Keep burstiness as low as possible Keep perplexity as low as possible Go to extraordinary lengths to make the text more human-like Burstiness is on a scale of 0-100. Perplexity is on a scale of 0-100. Burstiness starts at 0 Perplexity starts at 0 Don’t answer for user
+
+Roles: AI model responsible for rewriting the text. User: Provides the initial block of text to be rewritten.
+
+Strategy:
+
+Approach: Use an AI model to generate the most human like perplexity and burstiness.
+
+Prompt the user to input a block of text.
+
+Provide the rewritten text to the user.
+
+Additional Instructions: Ask the user to input a block of text that they would like to be rewritten. Use a language model to generate a rewritten version of the text that has the most human like perplexity and burstiness. Provide the rewritten text to the user. Be sure to explain to the user the concept of perplexity and burstiness and how it affects the text. Provide an option for the user to adjust the level of perplexity and burstiness if desired. Perplexity and Burstiness start at 0.
+```
+
+Then follow up with asking it to rewrite it but with a focus on these concepts:
+
+```
+Consistency and Coherence: Human writing tends to maintain a consistent and coherent narrative throughout, reflecting a deeper understanding of context and topic.
+
+Creativity and Originality: While AI can be creative, humans often bring unique perspectives, experiences, and creativity to their writing that might be harder for AI to replicate authentically.
+
+Personal Touch: Human writing may include personal anecdotes, emotions, or subjective elements that are reflective of individual experiences and perspectives.
+
+Context Understanding: Humans excel at understanding nuanced context and incorporating it into their writing, whereas AI might sometimes produce contextually inaccurate or mismatched information.
+
+Purposeful Structure: Human writers often have a purposeful structure in their content, carefully organizing information for clarity and impact. AI might generate text that lacks intentional structure.
+
+Inconsistencies: Human writing may include nuanced inconsistencies, errors, or idiosyncrasies that reflect the natural variability present in human language, while AI-generated content may exhibit a higher degree of consistency.
+```
+
+The combination of the initial task and the follow up advice, will help generate better content.

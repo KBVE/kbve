@@ -572,6 +572,11 @@ case "$1" in
             sed -i 's/\/\* TODO: unknown type Unsigned<Bigint> \*\//uint64/g' src/kbveproto.proto
             echo "Patching Unsign BigInt from Protos"
 
+            # Patching Decimal Protobuf
+            sed -i 's/\/\* TODO: unknown type Decimal \*\//string/g' src/kbveproto.proto
+            echo "Patching Decimal as string for Protos"
+
+
             # Copy KBVEProto to JS Library
             cp -f src/kbveproto.proto ../khashvault/src/lib/kbveproto.proto
             

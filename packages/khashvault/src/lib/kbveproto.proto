@@ -62,6 +62,19 @@ message Global {
     string key = 2;
     string value = 3;
 }
+message Invoice {
+    uint64 id = 1;
+    bytes ulid = 2;
+    bytes userid = 3;
+    string items = 4;
+    string paid = 5;
+    string total = 6;
+    string balance = 7;
+    string external = 8;
+    uint64 due = 9;
+    int64 visibility = 10;
+    int64 status = 11;
+}
 message N8n {
     uint64 id = 1;
     bytes ulid = 2;
@@ -115,6 +128,9 @@ message EnquireCharacterRequest {
 message EnquireGlobalRequest {
     int64 id =1;
 }
+message EnquireInvoiceRequest {
+    int64 id =1;
+}
 message EnquireN8nRequest {
     int64 id =1;
 }
@@ -135,6 +151,7 @@ service MessageRpc {
     rpc getAuth (EnquireAuthRequest) returns (Auth) { }
     rpc getCharacter (EnquireCharacterRequest) returns (Character) { }
     rpc getGlobal (EnquireGlobalRequest) returns (Global) { }
+    rpc getInvoice (EnquireInvoiceRequest) returns (Invoice) { }
     rpc getN8n (EnquireN8nRequest) returns (N8n) { }
     rpc getProfile (EnquireProfileRequest) returns (Profile) { }
     rpc getSetting (EnquireSettingRequest) returns (Setting) { }

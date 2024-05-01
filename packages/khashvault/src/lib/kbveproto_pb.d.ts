@@ -260,6 +260,60 @@ export namespace Global {
     }
 }
 
+export class Invoice extends jspb.Message { 
+    getId(): number;
+    setId(value: number): Invoice;
+    getUlid(): Uint8Array | string;
+    getUlid_asU8(): Uint8Array;
+    getUlid_asB64(): string;
+    setUlid(value: Uint8Array | string): Invoice;
+    getUserid(): Uint8Array | string;
+    getUserid_asU8(): Uint8Array;
+    getUserid_asB64(): string;
+    setUserid(value: Uint8Array | string): Invoice;
+    getItems(): string;
+    setItems(value: string): Invoice;
+    getPaid(): string;
+    setPaid(value: string): Invoice;
+    getTotal(): string;
+    setTotal(value: string): Invoice;
+    getBalance(): string;
+    setBalance(value: string): Invoice;
+    getExternal(): string;
+    setExternal(value: string): Invoice;
+    getDue(): number;
+    setDue(value: number): Invoice;
+    getVisibility(): number;
+    setVisibility(value: number): Invoice;
+    getStatus(): number;
+    setStatus(value: number): Invoice;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Invoice.AsObject;
+    static toObject(includeInstance: boolean, msg: Invoice): Invoice.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Invoice, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Invoice;
+    static deserializeBinaryFromReader(message: Invoice, reader: jspb.BinaryReader): Invoice;
+}
+
+export namespace Invoice {
+    export type AsObject = {
+        id: number,
+        ulid: Uint8Array | string,
+        userid: Uint8Array | string,
+        items: string,
+        paid: string,
+        total: string,
+        balance: string,
+        external: string,
+        due: number,
+        visibility: number,
+        status: number,
+    }
+}
+
 export class N8n extends jspb.Message { 
     getId(): number;
     setId(value: number): N8n;
@@ -521,6 +575,26 @@ export class EnquireGlobalRequest extends jspb.Message {
 }
 
 export namespace EnquireGlobalRequest {
+    export type AsObject = {
+        id: number,
+    }
+}
+
+export class EnquireInvoiceRequest extends jspb.Message { 
+    getId(): number;
+    setId(value: number): EnquireInvoiceRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): EnquireInvoiceRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: EnquireInvoiceRequest): EnquireInvoiceRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: EnquireInvoiceRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): EnquireInvoiceRequest;
+    static deserializeBinaryFromReader(message: EnquireInvoiceRequest, reader: jspb.BinaryReader): EnquireInvoiceRequest;
+}
+
+export namespace EnquireInvoiceRequest {
     export type AsObject = {
         id: number,
     }

@@ -77,6 +77,21 @@ pub struct Global {
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Invoice {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub items: Json,
+    pub paid: f64,
+    pub total: f64,
+    pub balance: f64,
+    pub external: String,
+    pub due: u64,
+    pub visibility: i32,
+    pub status: i32,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
 pub struct N8n {
     pub id: u64,
     pub ulid: Vec<u8>,
