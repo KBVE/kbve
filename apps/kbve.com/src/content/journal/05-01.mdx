@@ -1,0 +1,53 @@
+---
+title: 'May: 01'
+category: Daily
+date: 2024-05-01 12:00:00
+client: Self
+unsplash: 1545569341-9eb8b30979d9
+img: https://images.unsplash.com/photo-1545569341-9eb8b30979d9?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    Daily Log for May 1st of each year.
+tags:
+    - daily
+---
+
+## 2024
+
+**Rust**
+
+Nothing says a great start of the day than having Rust issues that you have to resolve!
+We got two major issues with our database command:
+
+1. kbve Crate
+
+```
+
+error[E0277]: the trait bound `diesel::sql_types::Json: Deserialize<'_>` is not satisfied
+  --> src/models.rs:93:5
+   |
+93 |     pub items: Json,
+   |     ^^^ the trait `Deserialize<'_>` is not implemented for `diesel::sql_types::Json`
+
+```
+
+2. erust Crate
+
+```
+error[E0412]: cannot find type `Json` in this scope
+  --> src/state/dbmodels.rs:84:16
+   |
+84 |     pub items: Json,
+   |                ^^^^ not found in this scope
+
+
+```
+
+We are testing these with these commands:
+
+```shell
+
+cargo publish -p kbve --dry-run
+
+```
+
+For the kbve crate, it looks like we were missing a `serde_json` feature, but let me commit this and run the test again.
