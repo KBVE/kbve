@@ -22,7 +22,7 @@ import { atom, WritableAtom, task, keepMount } from 'nanostores'; // Importing f
 import { persistentMap } from '@nanostores/persistent'; // Importing 'persistentMap' for persistent state management.
 
 // Exporting a constant 'kbve_v01d' representing a version or an identifier.
-export const kbve_v01d: string = '/api/v1/';
+export const kbve_v01d = '/api/v1/';
 
 //? [DATA]->@core
 // Defining core data atoms for application state management.

@@ -6,6 +6,7 @@ import Checkbox from './input/Checkbox.astro';
 import AuthBtn from '../../../components/ui/buttons/AuthBtn.astro';
 import GoogleBtn from '../../../components/ui/buttons/GoogleBtn.astro';
 
+import LoginForm from './LoginForm.svelte';
 // Variables for customization of the LoginModal Component
 
 const config = {
@@ -42,6 +43,7 @@ const config = {
 						</p>
 					</div>
 
+
 					<div class="mt-5">
 						<p
 							id="error-message"
@@ -52,43 +54,46 @@ const config = {
 							class="text-cyan-500 dark:text-cyan-400">
 						</p>
 					</div>
-					<div class="mt-5">
+
+					
+					<div class="mt-5" id="skeleton_login_loader">
+						<div class="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-500 dark:border-cyan-400"></div>
+					</div>
+
+					<LoginForm client:only="svelte" />
+					<!-- <div class="mt-5">
 						<GoogleBtn title="Sign in with Google" />
 
 						<div
 							class="flex items-center py-3 text-xs uppercase text-neutral-400 before:me-6 before:flex-[1_1_0%] before:border-t before:border-neutral-200 after:ms-6 after:flex-[1_1_0%] after:border-t after:border-neutral-200 dark:text-neutral-500 dark:before:border-neutral-600 dark:after:border-neutral-600">
 							Or
 						</div>
-						<!-- The container for the form -->
 						<form id="loginForm">
-							<!-- A grid layout for the form fields -->
 							<div class="grid gap-y-4">
-								<!-- The email input field -->
 								<EmailInput
 									id="login-email"
 									errorId="login-email-error"
 								/>
-								<!-- The password input field -->
 								<PasswordInput
 									forgot={true}
 									id="password"
 									errorId="login-password-error"
 									content="8+ characters required"
 								/>
-								<!-- The remember-me checkbox -->
 								<Checkbox id="remember-me" />
-								<!-- The sign-in button -->
 								<AuthBtn title="Sign in" />
 							</div>
 						</form>
-					</div>
+					</div> -->
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
-
+<!-- 
 <script is:inline type="module">
+
+
 	let initialized = false;
 
 	function initialize() {
@@ -100,11 +105,12 @@ const config = {
 			event.preventDefault();
 			const formData = new FormData(loginForm);
 			const formProps = {
-				email: formData.get('email'), 
+				email: formData.get('email'),
 				password: formData.get('password'),
 			};
 
 			try {
+
 				const response = await fetch(
 					'https://rust.kbve.com/api/v1/auth/login',
 					{
@@ -135,7 +141,7 @@ const config = {
 			} catch (error) {
 				console.error('Network or other error:', error);
 				errorMessage.textContent =
-					'Network error. Please try again later.'; 
+					'Network error. Please try again later.';
 			}
 		});
 
@@ -197,4 +203,4 @@ const config = {
 			initialize();
 		}
 	});
-</script>
+</script> -->
