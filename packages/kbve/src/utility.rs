@@ -313,6 +313,7 @@ pub fn cors_service() -> CorsLayer {
 		"https://discord.sh".parse::<HeaderValue>().unwrap(),
 		"https://hoppscotch.io".parse::<HeaderValue>().unwrap(),
 		"http://localhost:3000".parse::<HeaderValue>().unwrap(),
+		"http://127.0.0.1:4321".parse::<HeaderValue>().unwrap(),
 		"http://localhost:4321".parse::<HeaderValue>().unwrap(),
 		"https://kbve.itch.io".parse::<HeaderValue>().unwrap(),
 		"https://html-classic.itch.zone".parse::<HeaderValue>().unwrap(),

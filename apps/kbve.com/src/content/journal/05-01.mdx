@@ -99,3 +99,7 @@ While we wait for that to build up and move along the pipeline, we can focus on 
 **Register**
 
 The register function will require updates on both the client and server side! Oh boy, this is going to be another one of those days.
+
+We need to change the error system on the `register` function within the KBVE API.
+The older error system needs to be replaced with the x-kbve shield style, so we can capture the error headers outside of the rust application too.
+Oh, I need to also include a `127.0.0.1:4321` in the CORS policy for the application.
