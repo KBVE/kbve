@@ -548,7 +548,7 @@ case "$1" in
             echo "diesel_ext executed and output redirected to src/models.rs"
 
             # Patching the models.rs inside of src.
-            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
+            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use diesel::sql_types::Json;'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
             sed -i 's/#\[derive(Queryable,/#\[derive(Queryable, Serialize, Deserialize,/' src/models.rs
             echo "Patching models.rs"
 
