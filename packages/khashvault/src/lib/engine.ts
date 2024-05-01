@@ -18,8 +18,14 @@ export const hcaptcha_api = 'https://js.hcaptcha.com/1/api.js';
 export const auth_register = 'auth/register'; // Endpoint for user registration.
 export const auth_login = 'auth/login'; // Endpoint for user login.
 export const auth_logout = 'auth/logout'; // Endpoint for user logout.
-export const auth_profile = 'auth/profile'; // Endpoint for the user profile.
+export const auth_profile = 'graceful/profile'; // Endpoint for the user profile.
 
+
+// Utility:
+
+export async function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // Summary:
 // The InternalResponse interface and the InternalResponseHandler class are designed
@@ -71,6 +77,63 @@ class InternalResponseHandler implements InternalResponse {
             // Return a default error message if parsing fails
             return 'Error: Unable to parse data';
         }
+    }
+
+    extractField(fieldName: string): any {
+        // First check in the data object
+        if (this.data && typeof this.data === 'object' && fieldName in this.data) {
+            return this.data[fieldName];
+        }
+
+        // If not found in data, try parsing the message as JSON and extracting the field
+        try {
+            if (typeof this.message === 'string') {
+                const parsedMessage = JSON.parse(this.message);
+                if (parsedMessage && typeof parsedMessage === 'object' && fieldName in parsedMessage) {
+                    return parsedMessage[fieldName];
+                }
+            }
+        } catch (e) {
+            console.error('Parsing error when checking message:', e);
+        }
+
+        // Return null if the field is not found in either data or message
+        return null;
+    }
+    
+    // Method to extract the error message from the message
+    extractError(): string {
+        // First, check if 'message' is a string that might contain JSON
+        if (typeof this.message === 'string') {
+            try {
+                const parsed = JSON.parse(this.message);
+                // Check if the 'error' exists and return it
+                if (parsed && typeof parsed === 'object' && 'error' in parsed) {
+                    return parsed.error;
+                }
+            } catch (e) {
+                console.error('Parsing error:', e); // Log parsing errors
+            }
+        }
+        // If parsing fails or message is not in expected JSON format, return a default error message
+        return 'Error: Unable to parse error message';
+    }
+
+    token(): string {
+        // First, check if 'message' is already a string that might contain JSON
+        if (typeof this.message === 'string') {
+            try {
+                const parsed = JSON.parse(this.message);
+                // Check if the token exists and return it
+                if (parsed && typeof parsed === 'object' && 'token' in parsed) {
+                    return parsed.token;
+                }
+            } catch (e) {
+                console.error('Parsing error:', e); // Log parsing errors
+            }
+        }
+        // If parsing fails or message is not in expected JSON format, return a default error message
+        return 'Error: Unable to parse token';
     }
 
 	// Method to serialize the response object into a JSON string.
@@ -395,8 +458,13 @@ export async function spear(
         // Parsing the JSON response body
         const responseData = await response.json();
         // Creating a new instance of InternalResponseHandler with the response details
-        const message = responseData.message || (response.ok ? 'Success' : 'Error');
+        
         const error = !response.ok;
+
+        let message = response.ok ? 'Success' : 'Error';
+        if (typeof responseData.message === 'object' && responseData.message !== null) {
+            message = JSON.stringify(responseData.message)
+        }
         const dataField = error && responseData.error ? { error: responseData.error } : responseData;
 
         return new InternalResponseHandler(response.status, message, dataField);
@@ -448,11 +516,17 @@ export async function helmet(
 
         // Parsing the JSON response body
         const responseData = await response.json();
-        // Creating a new instance of InternalResponseHandler with the response details
+
+        // Determine the message based on the presence of a 'message' field or use default
+        const message = responseData.message || (response.ok ? 'Success' : 'Error');
+
+        // Check if the response actually has a 'data' field, if not use the whole responseData
+        const dataField = responseData.data || responseData;
+
         return new InternalResponseHandler(
-            response.status, // HTTP status code of the response
-            responseData.message || (response.ok ? 'Success' : 'Error'), // Response message or default based on HTTP status
-            responseData.data || {} // Response data or an empty object if none
+            response.status,
+            message,
+            dataField
         );
     } catch (error) {
         // Catching and logging any errors that occur during the fetch request
@@ -569,6 +643,19 @@ export async function profile(endpoint: string): Promise<InternalResponseHandler
 
     // Define the headers or any other configurations if needed
     const headers = {
+		'x-kbve-shieldwall': 'auth-profile'
+	};
+
+    return helmet(url, {}, headers);
+
+}
+
+export async function profileWithToken(endpoint: string, token: string): Promise<InternalResponseHandler> {
+    // Construct the full URL using the endpoint and predefined path segments
+    const url = `${endpoint}${kbve_v01d}${auth_profile}`;
+
+    const headers = {
+        Authorization: `Bearer ${token}`,
 		'x-kbve-shieldwall': 'auth-profile'
 	};
 

@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-	import { locker, kbve$, loginUser, profileWithToken, sleep } from '@kbve/khashvault';
+	import {
+		locker,
+		kbve$,
+		registerUser,
+		profileWithToken,
+		sleep,
+	} from '@kbve/khashvault';
 
 	const dispatch = createEventDispatcher();
 
@@ -19,6 +25,9 @@
 	// UI
 	let email = '';
 	let password = '';
+	let confirm = '';
+	let username = '';
+	let captcha = '';
 	let svelte_internal_message = '';
 	let successful_message = '';
 
@@ -29,7 +38,8 @@
 	const bgColorClasses = 'bg-yellow-400 dark:focus:outline-none';
 	const hoverClasses = 'hover:bg-yellow-500';
 	const fontSizeClasses = '2xl:text-base';
-	const disabledClasses = 'disabled:pointer-events-none disabled:opacity-50';
+	const disabledClasses =
+		'disabled:pointer-events-none disabled:opacity-50 disabled:animate-pulse';
 	const ringClasses = 'ring-zinc-500 dark:ring-zinc-200';
 
 	onMount(() => {
@@ -54,19 +64,21 @@
 		mounted = true;
 	});
 
-	const handleLogin = async () => {
+	const handleRegister = async () => {
 		loading = true;
 		svelte_internal_message = '';
 
-		const taskLogin = await loginUser(
+		const taskRegister = await registerUser(
 			'https://rust.kbve.com',
+			username,
 			email,
 			password,
+			captcha,
 		);
 
-		if (taskLogin.error) {
+		if (taskRegister.error) {
 			//taskLogin.display();
-			switch (taskLogin.extractError()) {
+			switch (taskRegister.extractError()) {
 				case 'invalid_password':
 					svelte_internal_message = 'Invalid Password';
 					lottie_player_file = 'pray.lottie';
@@ -76,18 +88,20 @@
 					lottie_player_file = 'monkeymeme.lottie';
 					break;
 				default:
-					svelte_internal_message = taskLogin.extractError();
+					svelte_internal_message = taskRegister.extractError();
 			}
 			reset();
 		} else {
-			taskLogin.display();
+			taskRegister.display();
 			svelte_internal_message = '';
 			lottie_player_file = 'holydance.lottie';
 			successful_message =
 				'Yay! SucklessFully Dance, while I get dat profile!';
-			//console.log(taskLogin.token());
 			await sleep(500);
-			const taskProfile = await profileWithToken('https://rust.kbve.com', taskLogin.token());
+			const taskProfile = await profileWithToken(
+				'https://rust.kbve.com',
+				taskRegister.token(),
+			);
 
 			if (taskProfile.error) {
 				switch (taskProfile.extractError()) {
@@ -95,35 +109,35 @@
 						svelte_internal_message = taskProfile.extractError();
 						reset();
 				}
-			}
-			else 
-			{
+			} else {
 				locker('username', taskProfile.extractField('username'));
 				locker('email', taskProfile.extractField('email'));
 				locker('uuid', taskProfile.extractField('userid'));
 				location.href = '/dashboard';
 			}
 		}
-
 	};
 </script>
 
-	{#if $kbve$.username}
+{#if $kbve$.username}
 	<div class="object-contain">
-	<a href="/dashboard/">
-	<button class="relative rounded px-5 py-2.5 overflow-hidden group bg-cyan-500 relative hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-cyan-400 transition-all ease-out duration-300">
-		<span class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-		<span class="relative">	{$kbve$.username} Enter The Dashboard</span>
-	</button>
-	</a>
+		<a href="/dashboard/">
+			<button
+				class="relative rounded px-5 py-2.5 overflow-hidden group bg-cyan-500 relative hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-cyan-400 transition-all ease-out duration-300">
+				<span
+					class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease">
+				</span>
+				<span class="relative">
+					{$kbve$.username} Enter The Dashboard
+				</span>
+			</button>
+		</a>
 	</div>
-
-	{/if}
+{/if}
 
 <div class="mt-5">
-	<!-- Buttons for Google Sign in -->
 	<div class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-		Welcome to KBVE Auth Portal!
+		Register through the KBVE Auth Portal!
 	</div>
 
 	{#if svelte_internal_message}
@@ -161,9 +175,17 @@
 		Or
 	</div>
 
-	<form id="loginForm" action="#" on:submit|preventDefault={handleLogin}>
+	<form
+		id="registerForm"
+		action="#"
+		on:submit|preventDefault={handleRegister}>
 		<div class="grid gap-y-4">
-			<!-- Email - START -->
+			<!--TODO Username - START -->
+			<div></div>
+
+			<!-- Username - END -->
+
+			<!--? Email - START -->
 
 			<div>
 				<!-- Label for the email input field -->
@@ -211,7 +233,7 @@
 
 			<!-- Email - END -->
 
-			<!-- PASS - START -->
+			<!--? Password START -->
 
 			<div>
 				<div class="flex items-center justify-between">
@@ -220,12 +242,6 @@
 						class="mb-2 block text-sm text-neutral-800 dark:text-neutral-200">
 						Password
 					</label>
-
-					<button
-						class="rounded-lg text-sm font-medium text-cyan-400 decoration-2 outline-none ring-zinc-500 hover:underline focus-visible:ring dark:text-cyan-400 dark:ring-zinc-200 dark:focus:outline-none dark:focus:ring-1"
-						data-hs-overlay="#hs-toggle-between-modals-recover-modal">
-						Forgot password?
-					</button>
 				</div>
 				<div class="relative">
 					<input
@@ -258,16 +274,66 @@
 				</p>
 			</div>
 
-			<!-- PASS - END -->
+			<!-- Password END -->
 
-			<!-- Additional Options -->
+			<!-- Confirm START -->
 
-			<!-- Button -->
+			<div>
+				<div class="flex items-center justify-between">
+					<label
+						for="login-password"
+						class="mb-2 block text-sm text-neutral-800 dark:text-neutral-200">
+						Confirm Password
+					</label>
+				</div>
+				<div class="relative">
+					<input
+						type="password"
+						id="confirm-login-password"
+						name="password"
+						class="block w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						required
+						aria-describedby="confirm-login-password"
+						bind:value={confirm} />
+					<div
+						class="pointer-events-none absolute inset-y-0 end-0 hidden pe-3">
+						<svg
+							class="h-5 w-5 text-red-500"
+							width="16"
+							height="16"
+							fill="currentColor"
+							viewBox="0 0 16 16"
+							aria-hidden="true">
+							<path
+								d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z">
+							</path>
+						</svg>
+					</div>
+				</div>
+				<p
+					class="mt-2 hidden text-xs text-red-600"
+					id="confirm-login-password-error">
+					8+ characters required
+				</p>
+			</div>
+
+			<!--! Confirm END -->
+
+			<!--TODO Captcha START -->
+			<div></div>
+
+			<!--! Captcha END -->
+
+			<!--TODO Legal START -->
+			<div></div>
+			<!--! Legal END -->
+
+			<!--TODO Submit -->
 			<button
 				type="submit"
 				class={`${baseClasses} ${borderClasses} ${bgColorClasses} ${hoverClasses} ${fontSizeClasses} ${disabledClasses} ${ringClasses}`}
 				disabled={loading}>
-				{loading ? 'Loading...' : 'Sign In'}
+				{loading ? 'Loading...' : 'Register'}
 			</button>
 		</div>
 	</form>
