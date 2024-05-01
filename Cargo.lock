@@ -1039,6 +1039,7 @@ dependencies = [
  "mysqlclient-sys",
  "percent-encoding",
  "r2d2",
+ "serde_json",
  "url",
 ]
 
