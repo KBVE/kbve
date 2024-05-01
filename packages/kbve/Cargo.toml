@@ -16,7 +16,7 @@ ammonia = "3.3.0"
 argon2 = "0.5.0"
 async-trait = "0.1.74"
 chrono = { version = "0.4.24", features = ["serde"] }
-diesel = { version = "2.0.0", features = ["mysql", "chrono", "r2d2"] }
+diesel = { version = "2.0.0", features = ["mysql", "chrono", "r2d2", "serde_json"] }
 dotenvy = "0.15"
 axum = "0.6.20"
 axum-extra = { version = "0.7.2", features = ["cookie"] }
