@@ -2,3 +2,4 @@
 
 // @ts-expect-error TypeScript doesn't know about Astro files
 export { default as AstroVe } from './src/AstroVe.astro';
+//export { default as Locker } from './src/vault/locker';
