@@ -103,3 +103,48 @@ The register function will require updates on both the client and server side! O
 We need to change the error system on the `register` function within the KBVE API.
 The older error system needs to be replaced with the x-kbve shield style, so we can capture the error headers outside of the rust application too.
 Oh, I need to also include a `127.0.0.1:4321` in the CORS policy for the application.
+
+As we wait for the branch to pull into production, we can start updating the next couple functions during this build phase, hmm while I cook myself some beans.
+
+```rust
+
+return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+			 	"email-exists"
+		);
+
+```
+
+Above is the older rust code, which works fine but we need to sort out the return json, so the client-side code can easily figure out what is going on.
+
+
+```rust
+
+      let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			
+      let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", "email_exists"))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": "email_exists"}),
+				}),
+			).into_response();
+
+```
+
+This is now the updated rust code, which sends back a header with the error code and displays the error within the message.
+I suppose we could just send the data back with the error code because the status error could be handled via the `StatusCode` but I am thinking that there might be edge cases in the future where we need the data to hold additional information and the message to be for the end-user.
+
+The great part of n8n is that we can also no-code some temporary routes to help us with test casing and those edge cases.
+I am currently writing an automation that would generate an invoice through n8n without using the Rust API, this gives us the flexibility to move fast without having to break the Rust API.
