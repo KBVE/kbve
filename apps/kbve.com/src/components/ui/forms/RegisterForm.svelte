@@ -40,6 +40,10 @@
 		sleep,
 		hcaptcha_site_key,
 		hcaptcha_api,
+		checkUsername,
+		checkEmail,
+		checkPassword
+
 	} from '@kbve/khashvault';
 
 	const dispatch = createEventDispatcher();
@@ -69,7 +73,7 @@
 	export let hl: string = '';
 	export let sitekey: string = hcaptcha_site_key; // Exporting 'sitekey', initially set from 'kbve' module.
 	export let apihost: string = hcaptcha_api;
-	export let reCaptchaCompat: boolean = false; // Exporting 'reCaptchaCompat', initially set to false.
+	export let reCaptchaCompat: boolean = true; // Exporting 'reCaptchaCompat', initially set to false.
 	export let theme: CaptchaTheme = CaptchaTheme.DARK; // Exporting 'theme', initially set to 'CaptchaTheme.DARK'.
 	export let size: 'normal' | 'compact' | 'invisible' = 'compact'; // Exporting 'size', with three possible values, initially 'compact'.
 
@@ -93,7 +97,7 @@
 
 	// Styles from ScrewFast
 	const baseClasses =
-		'inline-flex w-full items-center justify-center gap-x-2 rounded-lg px-4 py-3 text-sm font-bold text-neutral-700 focus-visible:ring outline-none transition duration-300';
+		'inline-flex w-full items-center justify-center gap-x-2 rounded-lg px-4 py-1 text-sm font-bold text-neutral-700 focus-visible:ring outline-none transition duration-300';
 	const borderClasses = 'border border-transparent';
 	const bgColorClasses = 'bg-yellow-400 dark:focus:outline-none';
 	const hoverClasses = 'hover:bg-yellow-500';
@@ -165,6 +169,46 @@
 		loading = true;
 		svelte_internal_message = '';
 
+		if(confirm != password)
+		{
+			svelte_internal_message = 'Password does not match!';
+			lottie_player_file = 'pray.lottie';
+			reset();
+			return;
+		}
+
+		let check_username = await checkUsername(username);
+
+		if(!check_username.isValid)
+		{
+			svelte_internal_message = check_username.error;
+			lottie_player_file = 'pray.lottie';
+			reset();
+			return;
+		}
+
+		let check_email = await checkEmail(email);
+
+		if(!check_email.isValid)
+		{
+			svelte_internal_message = check_email.error;
+			lottie_player_file = 'pray.lottie';
+			reset();
+			return;
+		}
+
+
+		let check_password = await checkPassword(password);
+
+		if(!check_password.isValid)
+		{
+			svelte_internal_message = check_password.error;
+			lottie_player_file = 'pray.lottie';
+			reset();
+			return;
+		}
+
+
 		const taskRegister = await registerUser(
 			'https://rust.kbve.com',
 			username,
@@ -184,37 +228,23 @@
 					svelte_internal_message = 'Invalid Auth Method';
 					lottie_player_file = 'monkeymeme.lottie';
 					break;
-				case 'email-exists':
+				case 'email_exists':
 				svelte_internal_message = 'Email is Taken';
-					lottie_player_file = 'monkeymeme.lottie';
+				lottie_player_file = 'monkeymeme.lottie';
+				
 				default:
 					svelte_internal_message = taskRegister.extractError();
 			}
 			reset();
+			return;
 		} else {
-			taskRegister.display();
+			// taskRegister.display();
 			svelte_internal_message = '';
 			lottie_player_file = 'holydance.lottie';
 			successful_message =
-				'Yay! SucklessFully Dance, while I get dat profile!';
-			await sleep(500);
-			const taskProfile = await profileWithToken(
-				'https://rust.kbve.com',
-				taskRegister.token(),
-			);
-
-			if (taskProfile.error) {
-				switch (taskProfile.extractError()) {
-					default:
-						svelte_internal_message = taskProfile.extractError();
-						reset();
-				}
-			} else {
-				locker('username', taskProfile.extractField('username'));
-				locker('email', taskProfile.extractField('email'));
-				locker('uuid', taskProfile.extractField('userid'));
-				location.href = '/dashboard';
-			}
+				'Yay! SucklessFully Dance, while I send ya to the login!';
+			await sleep(5000);
+			location.href = '/login';
 		}
 	};
 
@@ -251,33 +281,14 @@
 	{/if}
 </svelte:head>
 
-{#if $kbve$.username}
-	<div class="object-contain">
-		<a href="/dashboard/">
-			<button
-				class="relative rounded px-5 py-2.5 overflow-hidden group bg-cyan-500 relative hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-cyan-400 transition-all ease-out duration-300">
-				<span
-					class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease">
-				</span>
-				<span class="relative">
-					{$kbve$.username} Enter The Dashboard
-				</span>
-			</button>
-		</a>
-	</div>
-{/if}
-
 <div class="mt-5">
-	<div class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-		Register through the KBVE Auth Portal!
-	</div>
 
 	{#if svelte_internal_message}
 		<div class="flex">
 			<dotlottie-player
 				autoplay
 				loop
-				class="w-24"
+				class="w-8"
 				mode="normal"
 				src="/assets/lottie/{lottie_player_file}">
 			</dotlottie-player>
@@ -292,7 +303,7 @@
 			<dotlottie-player
 				autoplay
 				loop
-				class="w-24"
+				class="w-8"
 				mode="normal"
 				src="/assets/lottie/{lottie_player_file}">
 			</dotlottie-player>
@@ -307,16 +318,17 @@
 		Or
 	</div>
 
+	
 	<form
 		id="registerForm"
 		action="#"
 		on:submit|preventDefault={handleRegister}>
-		<div class="grid gap-y-4">
+		<div class="grid gap-y-2 md:gap-y-4">
 			<!--TODO Username - START -->
 			<div>
 				<label
 					for="login-username"
-					class="mb-2 block text-sm text-neutral-800 dark:text-neutral-200">
+					class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
 					Username
 				</label>
 
@@ -326,7 +338,7 @@
 						id="register-username"
 						name="username"
 						autocomplete="username"
-						class="block w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						class="block w-full h-4 md:h-12  rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
 						required
 						aria-describedby="register-username"
 						bind:value={username} />
@@ -361,7 +373,7 @@
 				<!-- Label for the email input field -->
 				<label
 					for="register-email"
-					class="mb-2 block text-sm text-neutral-800 dark:text-neutral-200">
+					class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
 					Email Address
 				</label>
 				<!-- Label for the email input field -->
@@ -372,7 +384,7 @@
 						id="register-email"
 						name="email"
 						autocomplete="email"
-						class="block w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
 						required
 						aria-describedby="register-email"
 						bind:value={email} />
@@ -409,7 +421,7 @@
 				<div class="flex items-center justify-between">
 					<label
 						for="register-password"
-						class="mb-2 block text-sm text-neutral-800 dark:text-neutral-200">
+						class="mb-1 block text-xs md:text-sm md:mb-2  text-neutral-800 dark:text-neutral-200">
 						Password
 					</label>
 				</div>
@@ -418,7 +430,7 @@
 						type="password"
 						id="register-password"
 						name="password"
-						class="block w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						class="block w-full h-4 md:h-12  rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
 						required
 						aria-describedby="register-password"
 						bind:value={password} />
@@ -452,7 +464,7 @@
 				<div class="flex items-center justify-between">
 					<label
 						for="confirm-register-password"
-						class="mb-2 block text-sm text-neutral-800 dark:text-neutral-200">
+						class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
 						Confirm Password
 					</label>
 				</div>
@@ -461,7 +473,7 @@
 						type="password"
 						id="confirm-register-password"
 						name="password"
-						class="block w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						class="block w-full h-4 md:h-12  rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
 						required
 						aria-describedby="confirm-register-password"
 						bind:value={confirm} />
@@ -491,7 +503,7 @@
 
 			<!--TODO Captcha START -->
 			<div>
-				<div id="h-captcha-{id}" class="flex justify-center" />
+				<div id="h-captcha-{id}" class="flex justify-center scale-75 md:scale-100" />
 			</div>
 
 			<!--! Captcha END -->
