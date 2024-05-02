@@ -87,11 +87,16 @@ pub async fn auth_player_register(
   match crate::utils::verify_token_via_hcaptcha(&body.token).await {
     Ok(success) => {
       if !success {
-        return (StatusCode::UNPROCESSABLE_ENTITY, "Invalid captcha").into_response();
+        return create_custom_response(
+          StatusCode::UNPROCESSABLE_ENTITY,
+          "x-kbve",
+          "invalid_captcha",
+          "invalid_captcha"
+        );
       }
     }
     Err(_) => {
-      return (StatusCode::INTERNAL_SERVER_ERROR, "Captcha verification failed").into_response();
+      return create_error_response("x-kbve", "invalid_captcha", "invalid_captcha");
     }
   }
 
