@@ -8,7 +8,7 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 
 
 // Setting expected props
-const { title = SITE.title, meta, structuredData, lang = "en" } = Astro.props;
+const { title = SITE.title, meta, structuredData, lang = "en", Nav = true } = Astro.props;
 
 // Interface to type-check the properties
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
   meta?: string;
   structuredData?: object;
   lang?: string;
+  Nav?: boolean;
 }
 ---
 
@@ -63,7 +64,8 @@ We set the language of the page to English and add classes for scrollbar and scr
     The Navbar is placed at the top, with a slot for the main content and FooterSection at the bottom.
     -->
     <div class="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-      <Navbar />
+      {Nav && ( <Navbar /> )}
+     
       <main>
         <slot />
       </main>

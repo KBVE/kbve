@@ -153,10 +153,20 @@ pub async fn auth_player_register(
   match crate::guild::hazardous_create_user(body.username.clone(), pool.clone()).await {
     Ok(true) => {}
     Ok(false) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-user-failed");
+      return create_custom_response(
+        StatusCode::BAD_REQUEST,
+        "x-kbve",
+        "process_user_failed",
+        "process_user_failed"
+      );
+
+      //return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-user-failed");
     }
     Err(e) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+      return create_error_response("x-kbve",
+      "process_user_failed",
+      "process_user_failed");
+      //return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
     }
   }
 
@@ -167,7 +177,11 @@ pub async fn auth_player_register(
   {
     Ok(value) => value,
     Err(_) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-ulid-failed");
+      return create_error_response("x-kbve",
+      "process_ulid_failed",
+      "process_uild_failed");
+
+    // return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-ulid-failed");
     }
   };
 
@@ -182,10 +196,19 @@ pub async fn auth_player_register(
   {
     Ok(true) => {}
     Ok(false) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-auth-failed");
+      return create_error_response("x-kbve",
+      "process_auth_failed",
+      "process_auth_failed");
+
+      //return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-auth-failed");
     }
     Err(e) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+
+      return create_error_response("x-kbve",
+      "process_ulid_failed",
+      &e);
+
+      //return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
     }
   }
 
@@ -199,10 +222,21 @@ pub async fn auth_player_register(
   {
     Ok(true) => {}
     Ok(false) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-profile-failed");
+
+      return create_error_response("x-kbve",
+      "process_profile_failed",
+      "process_profile_failed");
+      
+      //return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "process-profile-failed");
     }
     Err(e) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+
+
+      return create_error_response("x-kbve",
+      "process_profile_failed",
+      &e);
+
+     // return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
     }
   }
 
@@ -210,10 +244,19 @@ pub async fn auth_player_register(
   match crate::guild::hazardous_boolean_email_exist(body.email.clone(), pool.clone()).await {
     Ok(true) => {}
     Ok(false) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "auth-register-fail");
+      
+      
+      return create_error_response("x-kbve",
+      "internal_process",
+      "process_register_emailcheck_failed");
+      // return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "auth-register-fail");
     }
     Err(e) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+      return create_error_response("x-kbve",
+      "internal_process",
+      &e);
+
+      //return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
     }
   }
 
