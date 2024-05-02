@@ -1,9 +1,13 @@
 use crate::entity::response::GenericResponse;
 
+use std::str::FromStr;
+
 use axum::{
-    http::{HeaderMap, header::{HeaderName, HeaderValue, SET_COOKIE}},
+    http::{StatusCode, HeaderMap, header::{HeaderName, HeaderValue, SET_COOKIE}},
     response::{IntoResponse, Response, Json},
 };
+
+use serde_json::{json, Value as JsonValue};
 
 
 use axum_extra::extract::cookie::{Cookie, SameSite};
@@ -51,4 +55,37 @@ impl IntoResponse for HeaderResponse {
 		*response.headers_mut() = self.headers;
 		response
 	}
+}
+
+
+pub fn create_error_response(header_key: &str, header_value_suffix: &str, error_message: &str) -> Response {
+    let mut headers = HeaderMap::new();
+    let header_name = HeaderName::from_str(header_key).unwrap();
+    let header_value = HeaderValue::from_str(&format!("shield_{}", header_value_suffix)).unwrap();
+    headers.insert(header_name, header_value);
+
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        headers,
+        Json(json!({
+            "data": {"status": "error"},
+            "message": {"error": error_message}
+        }))
+    ).into_response()
+}
+
+pub fn create_custom_response(status: StatusCode, header_key: &str, header_value_suffix: &str, error_message: &str) -> Response {
+    let mut headers = HeaderMap::new();
+    let header_name = HeaderName::from_str(header_key).unwrap();
+    let header_value = HeaderValue::from_str(&format!("shield_{}", header_value_suffix)).unwrap();
+    headers.insert(header_name, header_value);
+
+    (
+        status,
+        headers,
+        Json(json!({
+            "data": {"status": "error"},
+            "message": {"error": error_message}
+        }))
+    ).into_response()
 }
