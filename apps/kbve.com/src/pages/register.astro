@@ -1,0 +1,41 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import { SITE } from '../data_files/constants';
+import RegisterForm from '../components/ui/forms/RegisterForm.svelte';
+
+const pageTitle: string = `Register | ${SITE.title}`;
+const pageDescription: string = `Register | KBVE.com`;
+---
+
+<MainLayout
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://kbve.com/register/',
+		url: 'https://kbve.com/register/',
+		name: `${pageTitle}`,
+		description: `{${pageDescription}}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: 'Kilo Byte Virtual Engine',
+			description:
+				'Elevate your efficiency with KBVE, Kilobyte Virtual Engine! Discover cutting-edge software and automation solutions designed to streamline and enhance your projects. Let’s innovate together!',
+		},
+		inLanguage: 'en-US',
+	}}
+    Nav={false}>
+	<div
+		class="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20">
+		<div class="flex flex-col justify-between lg:flex-row">
+			<div
+				class="px-5 pt-6 pb-5 text-center border border-gray-300 rounded lg:w-3/5">
+
+                <RegisterForm client:only="svelte" />
+			</div>
+		</div>
+	</div>
+    
+    
+    </MainLayout>
