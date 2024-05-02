@@ -22,7 +22,7 @@ use jedi::builder::ValidatorBuilder;
 
 #[tokio::main]
 async fn main() {
-	println!("◈ [LAUNCH] 🚀");
+	println!("◈ [LAUNCH] 🚀🚀");
 
 	let pool = db::establish_connection_pool();
 	let shared_pool = Arc::new(pool);
