@@ -15,7 +15,7 @@ use crate::runes::{
   LoginUserSchema,
 };
 
-use crate::entity::response::{ create_error_response };
+use crate::entity::response::{ create_error_response, create_custom_response };
 
 use crate::{
   spellbook_create_cookie,
@@ -106,11 +106,6 @@ pub async fn auth_player_register(
   match crate::guild::hazardous_boolean_email_exist(body.email.clone(), pool.clone()).await {
     Ok(false) => {}
     Ok(true) => {
-      // return spellbook_error!(
-      // 	axum::http::StatusCode::BAD_REQUEST,
-      // 	"email-exists"
-      // );
-
       return create_error_response("x-kbve", "email_exists", "email_exists");
     }
     Err(e) => {
@@ -122,10 +117,15 @@ pub async fn auth_player_register(
   match crate::guild::hazardous_boolean_username_exist(body.username.clone(), pool.clone()).await {
     Ok(false) => {}
     Ok(true) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "username-exists");
+      return create_custom_response(
+        StatusCode::BAD_REQUEST,
+        "x-kbve",
+        "username_exists",
+        "username_exists"
+      );
     }
     Err(e) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);
+      return create_error_response("x-kbve", "username_exists", &e);
     }
   }
 
@@ -135,7 +135,12 @@ pub async fn auth_player_register(
   let hash = match Argon2::default().hash_password(body.password.as_bytes(), &salt) {
     Ok(value) => value,
     Err(_) => {
-      return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, "invaild_hash");
+      return create_custom_response(
+        StatusCode::BAD_REQUEST,
+        "x-kbve",
+        "invaild_hash",
+        "invaild_hash"
+      );
     }
   };
 
