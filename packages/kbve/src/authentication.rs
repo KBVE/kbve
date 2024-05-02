@@ -124,10 +124,31 @@ pub async fn auth_player_register(
 	{
 		Ok(false) => {}
 		Ok(true) => {
-			return spellbook_error!(
-				axum::http::StatusCode::BAD_REQUEST,
-				"email-exists"
-			);
+			
+			// return spellbook_error!(
+			// 	axum::http::StatusCode::BAD_REQUEST,
+			// 	"email-exists"
+			// );
+
+			let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", "email_exists"))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": "email_exists"}),
+				}),
+			).into_response();
 		}
 		Err(e) => {
 			return spellbook_error!(axum::http::StatusCode::BAD_REQUEST, &e);

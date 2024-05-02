@@ -1,0 +1,52 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { SITE } from '../../data_files/constants';
+
+const title: string = 'Dashboard';
+const subTitle: string = 'KBVE Dashboard';
+
+const pageTitle: string = `Dashboard | ${SITE.title}`;
+const pageDescription: string = ``;
+---
+
+<MainLayout
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://kbve.com/dashboard/',
+		url: 'https://kbve.com/dashboard/',
+		name: `${pageTitle}`,
+		description: `${pageDescription}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: `${SITE.title}`,
+			description: `${SITE.description}`,
+		},
+		inLanguage: 'en-US',
+	}}>
+	<div
+		class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full">
+        <div
+			class="mb-4 flex items-center justify-between gap-8 sm:mb-8 md:mb-12">
+			<div class="flex items-center gap-12">
+				<h1
+					class="text-balance text-2xl font-bold tracking-tight text-neutral-800 dark:text-neutral-200 md:text-4xl md:leading-tight">
+					{title}
+				</h1>
+				{
+					subTitle && (
+						<p class="hidden max-w-screen-sm text-pretty text-neutral-600 dark:text-neutral-400 md:block">
+							{subTitle}
+						</p>
+					)
+				}
+			</div>
+			
+		</div>
+		<div class="overscroll-contain" data-lenis-prevent>
+			
+		</div>
+	</div>
+</MainLayout>
