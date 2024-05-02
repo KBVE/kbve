@@ -1361,7 +1361,7 @@ checksum = "281e452d3bad4005426416cdba5ccfd4f5c1280e10099e21db27f7c1c28347fc"
 
 [[package]]
 name = "erust"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "base64 0.21.7",
  "chrono",
@@ -2148,7 +2148,7 @@ dependencies = [
 
 [[package]]
 name = "kbve"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "ammonia",
  "anyhow",
