@@ -2,9 +2,9 @@ import ogImageSrc from "../images/social.png";
 
 export const SITE = {
   title: "KiloByte Virtual Engine",
-  tagline: "Top-quality Hardware Tools",
-  description: "ScrewFast offers top-tier hardware tools and expert construction services to meet all your project needs. Start exploring and contact our sales team for superior quality and reliability.",
-  description_short: "ScrewFast offers top-tier hardware tools and expert construction services to meet all your project needs.",
+  tagline: "Top-quality Hardware, Guides, Tools, Tutorials!",
+  description: 'KBVE offers an extensive range of premium hardware components, expert tutorials, and innovative game development services, including our own Steam games and mobile applications. Explore our offerings and contact our team for unmatched quality and creativity.',
+  description_short: 'KBVE provides top-quality hardware components, comprehensive tutorials, and cutting-edge game development tailored to meet all your project needs.',
   url: "https://kbve.com/",
   author: "KBVE",
 };
