@@ -1,29 +1,29 @@
 {
-  "subTitle": "Ask us anything about our brand and products, and get factual responses.",
+  "subTitle": "Ask us anything about our games, applications, and services, and get detailed answers.",
   "faqs": [
     {
-      "question": "What types of tools are included in the Starter Kit?",
-      "answer": "The Starter Kit features essential hand and power tools for diverse DIY projects, including hammers, drills, screwdrivers, and a variety of fasteners. It's a curated selection to help beginners and experienced DIYers alike tackle most home improvement tasks."
+      "question": "What types of applications are included in the Developer Suite?",
+      "answer": "The Developer Suite features a comprehensive array of tools for game and app development, including advanced game engines, integrated development environments (IDEs), and user experience design tools. It’s curated to support both novice and seasoned developers in creating innovative digital products."
     },
     {
-      "question": "Can I upgrade from the Starter Kit to the Professional Toolbox?",
-      "answer": "Absolutely! You can upgrade to the Professional Toolbox at any time to access a wider range of high-quality tools, enjoy priority customer support, and receive exclusive content. Contact our support team for a seamless transition."
+      "question": "Can I upgrade from the Developer Suite to the Elite Developer Program?",
+      "answer": "Absolutely! You can upgrade to the Elite Developer Program at any time to access more sophisticated tools, enjoy premium customer support, and participate in exclusive developer events. Contact our support team for a seamless upgrade process."
     },
     {
-      "question": "What discounts are available for bulk orders through the Professional Toolbox plan?",
-      "answer": "Professional Toolbox members are entitled to exclusive discounts on bulk orders, the percentage of which may vary depending on the order volume. Get in touch with us to discuss your needs, and we'll provide a tailored discount structure."
+      "question": "What discounts are available for bulk licenses through the Elite Developer Program?",
+      "answer": "Elite Developer Program members are entitled to exclusive discounts on bulk license purchases, the percentage of which may vary depending on the order volume. Get in touch with us to discuss your needs, and we'll provide a tailored discount structure."
     },
     {
       "question": "What kind of customer support can I expect?",
-      "answer": "All our customers receive dedicated email support. With the Starter Kit, you'll receive our standard support, while the Professional Toolbox plan upgrades you to priority support, meaning faster response times and specialized assistance."
+      "answer": "All our customers receive dedicated support via email, phone, and chat. With the Developer Suite, you’ll receive our standard support, while the Elite Developer Program upgrades you to priority support, ensuring faster response times and access to specialized tech assistance."
     },
     {
-      "question": "How current are the online resources and tutorials?",
-      "answer": "We regularly update our online resources and tutorials to reflect the latest trends in DIY and construction, as well as introductions to new tools and techniques. Our material aims to be comprehensive and user-friendly for all skill levels."
+      "question": "How current are the online resources and developer tutorials?",
+      "answer": "We regularly update our online resources and tutorials to reflect the latest in game development and software engineering, as well as introductions to new tools and programming languages. Our content aims to be comprehensive and accessible for developers of all skill levels."
     },
     {
-      "question": "Does ScrewFast offer services for large-scale construction projects?",
-      "answer": "Yes, our Enterprise Solutions are designed for larger companies requiring comprehensive services. We provide consultation, planning, and supply of high-grade tools and materials, as well as staffing solutions for substantial construction needs. Contact us for a customized quote."
+      "question": "Does KBVE offer services for large-scale software projects?",
+      "answer": "Yes, our Enterprise Solutions are tailored for larger organizations requiring end-to-end software solutions. We provide consultation, project planning, and supply of enterprise-grade tools and services, as well as staffing solutions for extensive software development projects. Contact us for a customized proposal."
     }
   ]
 }
