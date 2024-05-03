@@ -21,9 +21,13 @@ const product: CollectionEntry<"products">[] = (
 );
 
 // Define variables for page content
+
+const pageURL: string = "https://kbve.com/products/";
+const pageTitle: string = `Products | ${SITE.title}`;
+const pageDescription: string = "Explore KBVE's premium hardware components and unique custom artwork, crafted for excellence and innovation in every project.";
 const title: string = "Products";
 const subTitle: string =
-  "Explore the durability and precision of ScrewFast tools, designed for both professionals and enthusiasts. Each of our products is crafted with precision and built to last, ensuring you have the right tool for every job.";
+  "Discover the reliability and craftsmanship of KBVE products, tailored for both technical projects and artistic endeavors. Each hardware component and custom artwork is meticulously designed to meet high standards of quality and uniqueness, ensuring you have the perfect piece for your needs.";
 
 // Testimonial data that will be rendered in the component
 const testimonials = [
@@ -59,7 +63,6 @@ const testimonials = [
   },
 ];
 
-const pageTitle: string = `Products | ${SITE.title}`;
 ---
 
 <MainLayout
@@ -67,15 +70,15 @@ const pageTitle: string = `Products | ${SITE.title}`;
   structuredData={{
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": "https://screwfast.uk/products",
-    "url": "https://screwfast.uk/products",
-    "name": "Hardware Tools | ScrewFast",
-    "description": "Explore the durability and precision of ScrewFast tools, designed for both professionals and enthusiasts.",
+    "@id": `${pageURL}`,
+    "url": `${pageURL}`,
+    "name": `${pageTitle}`,
+    "description": `${pageDescription}`,
     "isPartOf": {
       "@type": "WebSite",
-      "url": "https://screwfast.uk",
-      "name": "ScrewFast",
-      "description": "ScrewFast offers top-tier hardware tools and expert construction services to meet all your project needs."
+      "url": "https://kbve.com",
+      "name": `${SITE.title}`,
+      "description": `${SITE.description_short}`
     },
     "inLanguage": "en-US"
   }}
