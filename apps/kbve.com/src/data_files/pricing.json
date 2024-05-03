@@ -1,29 +1,30 @@
 {
-  "title": "Simple, Transparent Pricing",
-  "subTitle": "Boost efficiency with ScrewFast's clear, value-driven plans.",
+  "title": "Effortless Pricing, Endless Possibilities",
+  "subTitle": "Get the most out of your investment with KBVE's flexible, results-driven pricing plans that adapt to your unique business needs.",
   "badge": "Best value",
   "thirdOption": "Enterprise Solutions?",
+  "thirdLink": "/discord/",
   "btnText": "Get a Custom Quote",
 
   "starterKit": {
-    "name": "Starter Kit",
-    "description": "Best option for DIY projects",
-    "price": "$49",
-    "cents": ".00",
+    "name": "General Membership",
+    "description": "Best option for new users or DIY projects",
+    "price": "Free",
+    "cents": "$0.00",
     "billingFrequency": "USD / monthly",
     "features": [
-      "Key hardware tools",
-      "Access to guides & tutorials",
+      "Key private tools",
+      "Access to private guides & tutorials",
       "Standard support"
     ],
-    "purchaseBtnTitle": "Get the Starter Kit",
-    "purchaseLink": "#"
+    "purchaseBtnTitle": "Join Now!",
+    "purchaseLink": "/register/"
   },
 
   "professionalToolbox": {
-    "name": "Professional Toolbox",
-    "description": "Best for large scale uses",
-    "price": "$89",
+    "name": "VIP Membership",
+    "description": "Best for pro users! Yet still sometime before we launch :D",
+    "price": "$5",
     "cents": ".00",
     "billingFrequency": "USD / monthly",
     "features": [
@@ -32,7 +33,7 @@
       "Exclusive content & deals",
       "Bulk order discounts"
     ],
-    "purchaseBtnTitle": "Get the Professional Toolbox",
+    "purchaseBtnTitle": "Coming Soon!",
     "purchaseLink": "#"
   }
 }

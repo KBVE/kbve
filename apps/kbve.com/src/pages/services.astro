@@ -91,8 +91,10 @@ const articles: Article[] = [
     btnURL: "#",
   },
 ];
-
+const pageURL: string = "https://kbve.com/services/";
 const pageTitle: string = `Services | ${SITE.title}`;
+const pageDescription: string = 'Combining expert knowledge with your vision, KBVE offers exceptional service and comprehensive solutions in software and application development, from initial consultation to project completion.';
+
 ---
 
 <MainLayout
@@ -100,27 +102,28 @@ const pageTitle: string = `Services | ${SITE.title}`;
   structuredData={{
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": "https://screwfast.uk/services",
-    "url": "https://screwfast.uk/services",
-    "name": "Expert Consultation Services | ScrewFast",
-    "description": "Uniting expertise with your vision, ScrewFast provides exceptional service and comprehensive solutions in the hardware and construction industry, from consultation to project completion.",
+    "@id": `${pageURL}`,
+    "url": `${pageURL}`,
+    "name": `${pageTitle}`,
+    "description": `${pageDescription}`,
     "isPartOf": {
         "@type": "WebSite",
-        "url": "https://screwfast.uk",
-        "name": "ScrewFast",
-        "description": "ScrewFast offers top-tier hardware tools and expert construction services to meet all your project needs."
+        "url": "https://kbve.com",
+        "name": `${SITE.title}`,
+        "description": `${SITE.description}`
     },
     "inLanguage": "en-US"
   }}
 >
   <!--MainSection is the introductory section of the page, it also contains a CTA button-->
   <MainSection
-    title="Uniting Expertise with Your Vision"
-    subTitle="At ScrewFast, we take pride in providing comprehensive solutions and exceptional service in the hardware and construction industry. Our experienced team is dedicated to supporting your project from inception to completion with a range of specialized services."
-    btnExists={true}
-    btnTitle="Schedule a Consultation"
-    btnURL="#"
-  />
+  title="Uniting Expertise with Your Vision"
+  subTitle="At KBVE, we pride ourselves on delivering comprehensive solutions and exceptional service in software and application development. Our experienced team is dedicated to supporting your projects from inception to completion with a range of specialized services."
+  btnExists={true}
+  btnTitle="Schedule a Consultation"
+  btnURL="#"
+/>
+
   <!-- RightSection and LeftSection contain details about various services along with pertinent imagery.
   They alternate for variety in design.
   The 'btnExists' property is used to toggle the display of a button in these sections.
