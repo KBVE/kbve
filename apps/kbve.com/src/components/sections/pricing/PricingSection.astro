@@ -24,6 +24,7 @@ interface PricingSectionProps {
   badge: string;
   thirdOption: string;
   btnText: string;
+  thirdLink: string;
   pricing: {
     title: string;
     subTitle: string;
@@ -147,6 +148,6 @@ interface PricingSectionProps {
       {pricing.thirdOption}
     </p>
 
-    <SecondaryCTA title={pricing.btnText} url="#" />
+    <SecondaryCTA title={pricing.btnText} url={pricing.thirdLink} />
   </div>
 </section>
