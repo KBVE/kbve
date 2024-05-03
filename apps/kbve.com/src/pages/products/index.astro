@@ -21,18 +21,22 @@ const product: CollectionEntry<"products">[] = (
 );
 
 // Define variables for page content
+
+const pageURL: string = "https://kbve.com/products/";
+const pageTitle: string = `Products | ${SITE.title}`;
+const pageDescription: string = "Explore KBVE's premium hardware components and unique custom artwork, crafted for excellence and innovation in every project.";
 const title: string = "Products";
 const subTitle: string =
-  "Explore the durability and precision of ScrewFast tools, designed for both professionals and enthusiasts. Each of our products is crafted with precision and built to last, ensuring you have the right tool for every job.";
+  "Discover the reliability and craftsmanship of KBVE products, tailored for both technical projects and artistic endeavors. Each hardware component and custom artwork is meticulously designed to meet high standards of quality and uniqueness, ensuring you have the perfect piece for your needs.";
 
 // Testimonial data that will be rendered in the component
 const testimonials = [
   // First testimonial data
   {
     content:
-      " \"Since switching to ScrewFast's hardware tools, the efficiency on our construction sites has skyrocketed. The durability of the hex bolts and precision of the machine screws are simply unmatched. It's refreshing to work with a company that truly understands the daily demands of the industry.\" ",
+    "\"Since incorporating KBVE's hardware components into our development process, the quality and durability of our tech products have greatly improved. Their electronic parts and custom artwork enhance the uniqueness of each piece, making KBVE an indispensable partner in innovation.\"",
     author: "Jason Clark",
-    role: "Site Foreman | TopBuild",
+    role: "Tech Project Manager | TopTech",
     avatarSrc:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80",
     avatarAlt: "Image Description",
@@ -40,9 +44,9 @@ const testimonials = [
   // Second testimonial data
   {
     content:
-      " \"As an interior designer, I'm always looking for high-quality materials and tools that help bring my visions to life. ScrewFast's mixed screws assortment has been a game-changer for my projects, providing the perfect blend of quality and variety. The outstanding customer support was just the cherry on top!\" ",
-    author: "Maria Gonzalez",
-    role: "Interior Designer | Creative Spaces",
+    "\"As a game developer, the creative tools and resources provided by KBVE have been crucial in bringing our digital environments to life. Their commitment to supporting developers with tutorials and ready-to-use game assets is truly transformative. The support team is fantastic, always ready to help.\"",
+      author: "Maria Gonzalez",
+      role: "Game Developer | Interactive Adventures",
     avatarSrc:
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1376&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80",
     avatarAlt: "Image Description",
@@ -50,16 +54,15 @@ const testimonials = [
   // Third testimonial data
   {
     content:
-      " \"I’ve been a professional carpenter for over 15 years, and I can sincerely say that ScrewFast’s tap bolts and nuts are some of the best I've used. They grip like no other, and I have full confidence in every joint and fixture. Plus, the service is impeccable – they truly care about my project's success.\" ",
+      "\"Utilizing KBVE's mobile application frameworks has significantly accelerated our app development timelines. Their robust APIs and developer-friendly tools are perfect for anyone looking to innovate quickly and efficiently. Plus, their team's proactive support ensures we always have what we need to succeed.\"",
     author: "Richard Kim",
-    role: "Master Carpenter | WoodWright",
+    role: "Lead Mobile Developer | App Innovate",
     avatarSrc:
       "https://images.unsplash.com/photo-1474176857210-7287d38d27c6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80",
     avatarAlt: "Image Description",
   },
 ];
 
-const pageTitle: string = `Products | ${SITE.title}`;
 ---
 
 <MainLayout
@@ -67,15 +70,15 @@ const pageTitle: string = `Products | ${SITE.title}`;
   structuredData={{
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": "https://screwfast.uk/products",
-    "url": "https://screwfast.uk/products",
-    "name": "Hardware Tools | ScrewFast",
-    "description": "Explore the durability and precision of ScrewFast tools, designed for both professionals and enthusiasts.",
+    "@id": `${pageURL}`,
+    "url": `${pageURL}`,
+    "name": `${pageTitle}`,
+    "description": `${pageDescription}`,
     "isPartOf": {
       "@type": "WebSite",
-      "url": "https://screwfast.uk",
-      "name": "ScrewFast",
-      "description": "ScrewFast offers top-tier hardware tools and expert construction services to meet all your project needs."
+      "url": "https://kbve.com",
+      "name": `${SITE.title}`,
+      "description": `${SITE.description_short}`
     },
     "inLanguage": "en-US"
   }}
@@ -117,13 +120,13 @@ const pageTitle: string = `Products | ${SITE.title}`;
   </div>
   <!--Features statistics section-->
   <FeaturesStatsAlt
-    title="Why Choose ScrewFast?"
-    subTitle="Transform your ideas into tangible results with ScrewFast tools. Whether you're starting with a sketch on a napkin or diving into a comprehensive construction project, our tools are engineered to help you build with confidence."
-    benefits={[
-      "Robust and reliable tools for long-lasting performance.",
-      "Innovative solutions tailored to modern construction needs.",
-      "Customer support dedicated to your project's success.",
-    ]}
+  title="Why Choose KBVE?"
+  subTitle="Turn your creative and technical ideas into reality with KBVE. Whether you’re developing a game, crafting unique artwork, or building with our top-notch hardware components, our products are designed to empower your projects."
+  benefits={[
+    "High-quality hardware components for superior performance.",
+    "Innovative software and game development tools.",
+    "Dedicated customer support to ensure your project’s success.",
+  ]}
   />
   <!--Testimonials section-->
   <TestimonialsSectionAlt
