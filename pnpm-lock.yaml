@@ -286,7 +286,7 @@ importers:
         specifier: ^0.9.1
         version: 0.9.1(nanostores@0.9.5)
       '@nanostores/react':
-        specifier: ^0.7.1
+        specifier: ^0.7.2
         version: 0.7.2(nanostores@0.9.5)(react@18.2.0)
       '@nestjs/schematics':
         specifier: ^10.0.1
@@ -787,6 +787,10 @@ packages:
     resolution: {integrity: sha512-9cUznXMG0+FxRuJfvL82QlTqIzhVW9sL0KjMPHhAOOvpQGL8QtdxnBKILjBqxlHyliz0yCa1G903ZXI/FuHy2w==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/helper-plugin-utils@7.24.5':
+    resolution: {integrity: sha512-xjNLDopRzW2o6ba0gKbkZq5YWEBaK3PCyTOY1K2P/O07LGMhMqlMXPxwN4S5/RhWuCobT8z0jrlKGlYmeR1OhQ==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/helper-remap-async-to-generator@7.22.20':
     resolution: {integrity: sha512-pBGyV4uBqOns+0UvhsTO8qgl8hO89PmiDYv+/COyp1aeMcmfrfruz+/nCMFiYyFF/Knn0yfrC85ZzNFjembFTw==}
     engines: {node: '>=6.9.0'}
@@ -1262,6 +1266,12 @@ packages:
 
   '@babel/plugin-transform-optional-chaining@7.24.1':
     resolution: {integrity: sha512-n03wmDt+987qXwAgcBlnUUivrZBPZ8z1plL0YvgQalLm+ZE5BMhGm94jhxXtA1wzv1Cu2aaOv1BM9vbVttrzSg==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+
+  '@babel/plugin-transform-optional-chaining@7.24.5':
+    resolution: {integrity: sha512-xWCkmwKT+ihmA6l7SSTpk8e4qQl/274iNbSKRRS8mpqFR32ksy36+a+LWY8OXCCEefF8WFlnOHVsaDI2231wBg==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
@@ -14039,6 +14049,8 @@ snapshots:
 
   '@babel/helper-plugin-utils@7.24.0': {}
 
+  '@babel/helper-plugin-utils@7.24.5': {}
+
   '@babel/helper-remap-async-to-generator@7.22.20(@babel/core@7.24.4)':
     dependencies:
       '@babel/core': 7.24.4
@@ -14516,6 +14528,13 @@ snapshots:
     dependencies:
       '@babel/core': 7.24.4
       '@babel/helper-plugin-utils': 7.24.0
+      '@babel/helper-skip-transparent-expression-wrappers': 7.22.5
+      '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.24.4)
+
+  '@babel/plugin-transform-optional-chaining@7.24.5(@babel/core@7.24.4)':
+    dependencies:
+      '@babel/core': 7.24.4
+      '@babel/helper-plugin-utils': 7.24.5
       '@babel/helper-skip-transparent-expression-wrappers': 7.22.5
       '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.24.4)
 
@@ -28442,7 +28461,7 @@ snapshots:
       '@babel/core': 7.24.4
       '@babel/plugin-transform-arrow-functions': 7.24.1(@babel/core@7.24.4)
       '@babel/plugin-transform-nullish-coalescing-operator': 7.24.1(@babel/core@7.24.4)
-      '@babel/plugin-transform-optional-chaining': 7.24.1(@babel/core@7.24.4)
+      '@babel/plugin-transform-optional-chaining': 7.24.5(@babel/core@7.24.4)
       '@babel/plugin-transform-shorthand-properties': 7.24.1(@babel/core@7.24.4)
       '@babel/plugin-transform-template-literals': 7.24.1(@babel/core@7.24.4)
       '@babel/preset-typescript': 7.24.1(@babel/core@7.24.4)
