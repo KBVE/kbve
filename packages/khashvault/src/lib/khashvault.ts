@@ -22,6 +22,7 @@ export interface Layout {
 	y: number; // y coordinate on the grid
 	w: number; // width of the item
 	h: number; // height of the item
+	moved?: boolean;
 	static?: boolean;
 }
 
@@ -32,16 +33,16 @@ import { persistentMap, persistentAtom } from '@nanostores/persistent'; // Impor
 
 // Layout Default
 const defaultLayout: Layout[] = [
-	{ i: 'a', x: 0, y: 0, w: 4, h: 4 },
-	{ i: 'b', x: 4, y: 0, w: 4, h: 4 },
-	{ i: 'c', x: 8, y: 0, w: 4, h: 4 },
-	{ i: 'd', x: 0, y: 0, w: 4, h: 4 },
-	{ i: 'e', x: 4, y: 0, w: 4, h: 4 },
-	{ i: 'f', x: 0, y: 0, w: 4, h: 4 },
-	{ i: 'g', x: 4, y: 0, w: 4, h: 4 },
-	{ i: 'h', x: 4, y: 0, w: 4, h: 4 },
-	{ i: 'i', x: 0, y: 0, w: 4, h: 4 },
-	{ i: 'j', x: 12, y: 0, w: 4, h: 12 },
+	{ i: 'a', x: 0, y: 0, w: 4, h: 4, moved: false, static: false},
+	{ i: 'b', x: 4, y: 0, w: 4, h: 4 ,  moved: false, static: false},
+	{ i: 'c', x: 8, y: 0, w: 4, h: 4 , moved: false, static: false},
+	{ i: 'd', x: 0, y: 0, w: 4, h: 4 ,  moved: false,static: false},
+	{ i: 'e', x: 4, y: 0, w: 4, h: 4 ,  moved: false,static: false},
+	{ i: 'f', x: 0, y: 0, w: 4, h: 4 ,  moved: false,static: false},
+	{ i: 'g', x: 4, y: 0, w: 4, h: 4 ,  moved: false,static: false },
+	{ i: 'h', x: 4, y: 0, w: 4, h: 4 , moved: false, static: false},
+	{ i: 'i', x: 0, y: 0, w: 4, h: 4 , moved: false, static: false},
+	{ i: 'j', x: 12, y: 0, w: 4, h: 12 ,  moved: false,static: false},
 ];
 
 export const layoutStore$ = persistentAtom<Layout[]>(
