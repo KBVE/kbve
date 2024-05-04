@@ -33,7 +33,7 @@ import { persistentMap, persistentAtom } from '@nanostores/persistent'; // Impor
 
 // Layout Default
 const defaultLayout: Layout[] = [
-	{ i: 'a', x: 0, y: 0, w: 4, h: 4, moved: false, static: false},
+	{ i: 'a', x: 0, y: 0, w: 4, h: 16, moved: false, static: true},
 	{ i: 'b', x: 4, y: 0, w: 4, h: 4 ,  moved: false, static: false},
 	{ i: 'c', x: 8, y: 0, w: 4, h: 4 , moved: false, static: false},
 	{ i: 'd', x: 0, y: 0, w: 4, h: 4 ,  moved: false,static: false},
