@@ -2,6 +2,9 @@
 import MainLayout from '../../layouts/MainLayout.astro';
 import { SITE } from '../../data_files/constants';
 
+
+import DashboardCore from '../../components/tooling/dashboard/DashboardCore.astro';
+
 const title: string = 'Dashboard';
 const subTitle: string = 'KBVE Dashboard';
 
@@ -45,8 +48,10 @@ const pageDescription: string = ``;
 			</div>
 			
 		</div>
-		<div class="overscroll-contain" data-lenis-prevent>
-			
+		<!-- <div class="overscroll-contain" data-lenis-prevent> -->
+
+		<div>
+			<DashboardCore />
 		</div>
 	</div>
 </MainLayout>

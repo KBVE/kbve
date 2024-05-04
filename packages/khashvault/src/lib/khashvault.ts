@@ -16,10 +16,47 @@ export type kbveLocker = {
 	unsplash: string; // User's Unsplash profile URL.
 };
 
+export interface Layout {
+	i: string; // Unique identifier for the item
+	x: number; // x coordinate on the grid
+	y: number; // y coordinate on the grid
+	w: number; // width of the item
+	h: number; // height of the item
+	moved?: boolean;
+	static?: boolean;
+}
+
 //	? [IMPORTS]
 
 import { atom, WritableAtom, task, keepMount } from 'nanostores'; // Importing from 'nanostores' for state management.
-import { persistentMap } from '@nanostores/persistent'; // Importing 'persistentMap' for persistent state management.
+import { persistentMap, persistentAtom } from '@nanostores/persistent'; // Importing 'persistentMap' for persistent state management.
+
+// Layout Default
+const defaultLayout: Layout[] = [
+	{ i: 'a', x: 0, y: 0, w: 4, h: 4, moved: false, static: false},
+	{ i: 'b', x: 4, y: 0, w: 4, h: 4 ,  moved: false, static: false},
+	{ i: 'c', x: 8, y: 0, w: 4, h: 4 , moved: false, static: false},
+	{ i: 'd', x: 0, y: 0, w: 4, h: 4 ,  moved: false,static: false},
+	{ i: 'e', x: 4, y: 0, w: 4, h: 4 ,  moved: false,static: false},
+	{ i: 'f', x: 0, y: 0, w: 4, h: 4 ,  moved: false,static: false},
+	{ i: 'g', x: 4, y: 0, w: 4, h: 4 ,  moved: false,static: false },
+	{ i: 'h', x: 4, y: 0, w: 4, h: 4 , moved: false, static: false},
+	{ i: 'i', x: 0, y: 0, w: 4, h: 4 , moved: false, static: false},
+	{ i: 'j', x: 12, y: 0, w: 4, h: 12 ,  moved: false,static: false},
+];
+
+export const layoutStore$ = persistentAtom<Layout[]>(
+	'layoutKey',
+	defaultLayout,
+	{
+		encode: JSON.stringify,
+		decode: JSON.parse,
+	},
+);
+
+export function updateLayout(newLayout: Layout[]) {
+	layoutStore$.set(newLayout);
+  }
 
 // Exporting a constant 'kbve_v01d' representing a version or an identifier.
 export const kbve_v01d = '/api/v1/';
@@ -32,7 +69,7 @@ export const uuid$: WritableAtom<string> = atom(undefined); // Atom for keeping 
 //? [DATA]->[UI]
 // Defining UI-related data atoms.
 export const avatar$: WritableAtom<string> = atom(
-	'https://source.unsplash.com/192x192/?portrait' // Atom for storing avatar URL, with a default portrait image.
+	'https://source.unsplash.com/192x192/?portrait', // Atom for storing avatar URL, with a default portrait image.
 );
 
 //? [DATA]->[UX]
