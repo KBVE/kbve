@@ -79,15 +79,18 @@ const MyGridLayout = () => {
       preventCollision={false}
       onLayoutChange={handleLayoutChange}>
       {layout.map(item => (
-        <div key={item.i} className={`bg-gray-200 dark:bg-gray-400 border-2 border-gray-400 p-4 shadow `} id={`block-${item.i}`}>
+        <div key={item.i} className={`bg-gray-200 dark:bg-gray-400 border-2 border-gray-400 p-4 shadow ${item.static ? 'opacity-100' : 'opacity-50'} `} id={`block-${item.i}`}>
           Block {item.i.toUpperCase()}
           <button 
             onMouseDown={e => e.stopPropagation()} // Stop the mousedown event from propagating
             onClick={e => togglePin(item.i, e)} // Handle click, pass the event
-            className={`m-1 float-right ${item.static ? 'opacity-100' : 'opacity-50'}`}
+            className={`z-30 m-1 float-right ${item.static ? 'opacity-100' : 'opacity-50'}`}
           >
             {item.static ? <IconPinFill /> : <IconPin />}
           </button>
+          <div className={`flex object-contain overflow-hidden`} id={`block-content-${item.i}`}>
+
+          </div>
         </div>
       ))}
     </ResponsiveGridLayout>
