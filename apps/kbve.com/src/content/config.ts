@@ -253,6 +253,8 @@ export const collections = {
 			extend: z.object({
 				// Make a built-in field required instead of optional.
 				tags: z.array(z.string()).optional(),
+				"yt-tracks" : z.array(z.string()).optional(),
+				"yt-sets": z.array(z.string()).optional(),
 			}),
 		}),
 	}),

@@ -10,6 +10,8 @@ import starlight from '@astrojs/starlight';
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
 
+import { defineConfig as defineViteConfig } from 'vite';
+
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://kbve.com/',
@@ -90,7 +92,10 @@ export default defineConfig({
 					label: 'Stocks',
 					autogenerate: { directory: 'stock' },
 				},
-
+				{
+					label: 'Music',
+					autogenerate: { directory: 'music' },
+				},
 				{
 					label: 'Tools & Equipment',
 					autogenerate: { directory: 'tools' },
@@ -154,4 +159,18 @@ export default defineConfig({
 			//extendPlugins: "astroDefaults"
 		}),
 	],
+	// vite: defineViteConfig({
+	// 	build: {
+	// 		rollupOptions: {
+	// 			// Define an additional entry point for your graph.js.js
+	// 			input: {
+	// 				//main: './src/engine/entry.client.jsx', // Your main JS entry
+	// 				graph: './src/engine/Graph.jsx', // Path to your React component
+	// 			},
+	// 			output: {
+	// 				entryFileNames: 'public/[name].js',
+	// 			},
+	// 		},
+	// 	},
+	// }),
 });
