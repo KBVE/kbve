@@ -28,6 +28,16 @@
 		},
 		"sync": {
 			"executor": "@nxtensions/astro:sync"
+		},
+		"graph": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"chmod +x tools/scripts/public/js/build_node_graph.sh",
+					"./tools/scripts/public/js/build_node_graph.sh"
+				],
+				"parallel": false
+			}
 		}
 	}
 }

@@ -395,6 +395,42 @@ module.exports = {
 
 ---
 
+## ESBuild
+
+### ESBuild Install
+
+### ESBuild Example
+
+#### ESBuild Shell
+
+```shell
+
+esbuild src/components/Graph.jsx --bundle --outfile=public/graph.js --minify --sourcemap --platform=browser --target=es2020 --jsx-factory=React.createElement --jsx-fragment=React.Fragment
+
+```
+
+This command tells esbuild to:
+
+    *   Bundle the `Graph.jsx` file.
+    *   Output the bundle to `public/graph.js`.
+    *   Minify the output.
+    *   Generate a source map.
+    *   Set the platform to browser (handles browser globals like `window`).
+    *   Target modern JavaScript (es2020).
+    *   Properly handle JSX for React.
+
+Explanation of Key Options:
+
+-   **\--bundle**: Bundles all dependencies into one file.
+-   **\--outfile**: Specifies the output file.
+-   **\--minify**: Minimizes the output.
+-   **\--sourcemap**: Generates a source map.
+-   **\--platform**: Specifies the platform (node or browser).
+-   **\--target**: Sets the ECMAScript target version.
+-   **\--jsx-factory** and **\--jsx-fragment**: Sets up JSX processing for React.
+
+---
+
 ## Tools
 
 ### Rome
