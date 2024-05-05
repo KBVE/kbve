@@ -3,8 +3,8 @@ title: 'May: 04'
 category: Daily
 date: 2024-05-04 12:00:00
 client: Self
-unsplash: 1589829482673-03413c918c48
-img: https://images.unsplash.com/photo-1589829482673-03413c918c48?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1520358889634-04b1a67b3f0c
+img: https://images.unsplash.com/photo-1520358889634-04b1a67b3f0c?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: |
     May da 4th be with you!
 tags:
@@ -28,11 +28,45 @@ Now getting each of the minor components built out will be interesting, definite
 The best way to handle this might be to isolate the different components into a single file each, a bit like a gear system.
 We do not want the blocks to become way too complex either, as it would cause lag within the browser.
 
+The way that I am thinking of handling this would be to create a `engine` folder and then parse through each script file and use `esbuild` to create the javascript files.
+But how would we go about doing that? Hmm, we could start with a basic command, `build:graph` and have it execute this command:
+
+```shell
+
+esbuild src/components/Graph.jsx --bundle --outfile=public/graph.js --minify --sourcemap --platform=browser --target=es2020 --jsx-factory=React.createElement --jsx-fragment=React.Fragment
+
+```
+
+This command tells esbuild to:
+    
+    *   Bundle the `Graph.jsx` file.
+    *   Output the bundle to `public/graph.js`.
+    *   Minify the output.
+    *   Generate a source map.
+    *   Set the platform to browser (handles browser globals like `window`).
+    *   Target modern JavaScript (es2020).
+    *   Properly handle JSX for React.
+
+Explanation of Key Options:
+
+*   **\--bundle**: Bundles all dependencies into one file.
+*   **\--outfile**: Specifies the output file.
+*   **\--minify**: Minimizes the output.
+*   **\--sourcemap**: Generates a source map.
+*   **\--platform**: Specifies the platform (node or browser).
+*   **\--target**: Sets the ECMAScript target version.
+*   **\--jsx-factory** and **\--jsx-fragment**: Sets up JSX processing for React.
+
+This aspect of the notes could be added into the javascript library.
+
 ## 2023
 
 - 12:00pm - Review the notes on the iOS / Flutter. I will have to transfer them over to this knowledge bank later this week. There are two core pillars that I have to make sure that I get right for deploying future iOS applications. The first will be getting flutter to actually build and sign the application, so for that I will run `flutter doctor -v` and see what it requires for the iOS / iPhone build. It seems that I will need xCode and CocaPods, it was pretty straight forward for getting the xCode, as I was able to grab it from app store.
+
 - The CocaPods aka a Swift package manager that Flutter uses for iOS development was easy to install, just had to run `sudo gem install cocoapods` and then agree to the xCode license.
+
 - The next pillar is the development and pipeline, currently I am able to build the iOS application within the development eco-system. However I will have to figure out how to setup the CI/CD for the application, ideally making it so that once the commit is made on the `main` branch, it will automatically deploy the application to the Apple App store.
+
 - 3:00pm - Going to prepare to pack up my luggage! It seems that my grandparents have some older suitcases, so I am thinking of letting them have mine, while I go grab some new ones. I am going to travel to either the `CromAs` or `InOrbit` mall and pickup two new suitcases. The total cost was around 15000 Rupees and they were pretty solid hardshell cases, they look and feel like a CSGO crate haha.
 
 ## Quote
