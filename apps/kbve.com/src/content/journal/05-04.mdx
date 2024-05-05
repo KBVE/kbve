@@ -72,6 +72,34 @@ pnpm esbuild apps/kbve.com/src/engine/Graph.jsx --bundle --minify --platform=bro
 This produces the final graph file, yet there is a missing `a-frames`, however I am sure we can resolve that with some fixes.
 The other downside is a massive file, ugh, the js file is around 2.2mb.
 
+```json
+
+"graph": {
+			"executor": "@nx/esbuild:esbuild",
+			"options": {
+				"entryFile": "apps/kbve.com/src/engine/nodegraph/Graph.jsx",
+				"bundle": true,
+				"minify": true,
+				"platform": "browser",
+				"target": "es2020",
+				"define": {
+				  "process.env.NODE_ENV": "\"production\"",
+				  "global": "window"
+				},
+				"external": ["aframe-extras"],
+				"outputPath": "apps/kbve.com/public/scripts/internal/nodegraph",
+				"outputHashing": "none",
+				"outputFileName": "graph.js",
+				"jsxFactory": "React.createElement",
+				"jsxFragment": "React.Fragment",
+				"sourcemap": false,
+				"tsConfig": "apps/kbve.com/src/engine/nodegraph/config.json"
+			  }
+		}
+```
+
+This was the esbuild for the nodegraph but there were too many errors to deal with, so I will just make a shell command to handle this for us.
+
 ## 2023
 
 - 12:00pm - Review the notes on the iOS / Flutter. I will have to transfer them over to this knowledge bank later this week. There are two core pillars that I have to make sure that I get right for deploying future iOS applications. The first will be getting flutter to actually build and sign the application, so for that I will run `flutter doctor -v` and see what it requires for the iOS / iPhone build. It seems that I will need xCode and CocaPods, it was pretty straight forward for getting the xCode, as I was able to grab it from app store.
