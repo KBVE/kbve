@@ -92,7 +92,10 @@ export default defineConfig({
 					label: 'Stocks',
 					autogenerate: { directory: 'stock' },
 				},
-
+				{
+					label: 'Music',
+					autogenerate: { directory: 'music' },
+				},
 				{
 					label: 'Tools & Equipment',
 					autogenerate: { directory: 'tools' },
