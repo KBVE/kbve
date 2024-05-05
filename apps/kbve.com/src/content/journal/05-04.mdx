@@ -59,6 +59,19 @@ Explanation of Key Options:
 
 This aspect of the notes could be added into the javascript library.
 
+I am thinking that we utilize the esbuild that is within nx, thus we have to convert that shell command over to the project.json!
+
+For the situation that we are in right now, we wanted to make sure the esbuild works, so here is the raw shell command that would generate the graph.js.
+
+```shell
+
+pnpm esbuild apps/kbve.com/src/engine/Graph.jsx --bundle --minify --platform=browser --outfile=apps/kbve.com/public/scripts/internal/nodegraph/graph.js --jsx-factory=React.createElement --jsx-fragment=React.Fragment --external:aframe-extras
+
+```
+
+This produces the final graph file, yet there is a missing `a-frames`, however I am sure we can resolve that with some fixes.
+The other downside is a massive file, ugh, the js file is around 2.2mb.
+
 ## 2023
 
 - 12:00pm - Review the notes on the iOS / Flutter. I will have to transfer them over to this knowledge bank later this week. There are two core pillars that I have to make sure that I get right for deploying future iOS applications. The first will be getting flutter to actually build and sign the application, so for that I will run `flutter doctor -v` and see what it requires for the iOS / iPhone build. It seems that I will need xCode and CocaPods, it was pretty straight forward for getting the xCode, as I was able to grab it from app store.

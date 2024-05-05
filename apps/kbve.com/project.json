@@ -28,6 +28,28 @@
 		},
 		"sync": {
 			"executor": "@nxtensions/astro:sync"
+		},
+		"graph": {
+			"executor": "@nx/esbuild:esbuild",
+			"options": {
+				"entryFile": "apps/kbve.com/src/engine/nodegraph/Graph.jsx",
+				"bundle": true,
+				"minify": true,
+				"platform": "browser",
+				"target": "es2020",
+				"define": {
+				  "process.env.NODE_ENV": "\"production\"",
+				  "global": "window"
+				},
+				"external": ["aframe-extras"],
+				"outputPath": "apps/kbve.com/public/scripts/internal/nodegraph",
+				"outputHashing": "none",
+				"outputFileName": "graph.js",
+				"jsxFactory": "React.createElement",
+				"jsxFragment": "React.Fragment",
+				"sourcemap": false,
+				"tsConfig": "apps/kbve.com/src/engine/nodegraph/config.json"
+			  }
 		}
 	}
 }
