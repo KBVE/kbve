@@ -26,10 +26,26 @@ export interface Layout {
 	static?: boolean;
 }
 
+export interface Track {
+    id: string;
+    title: string;
+    url: string;
+}
+
+export interface DataItem {
+    ytSets: Track[];
+    ytTracks: Track[];
+    tags: string[];
+}
+
+
 //	? [IMPORTS]
 
 import { atom, WritableAtom, task, keepMount } from 'nanostores'; // Importing from 'nanostores' for state management.
 import { persistentMap, persistentAtom } from '@nanostores/persistent'; // Importing 'persistentMap' for persistent state management.
+
+// JukeBox Default
+
 
 // Layout Default
 const defaultLayout: Layout[] = [
