@@ -10,113 +10,37 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 
-	import { kbve$ } from '@kbve/khashvault';
+	import {
+		kbve$,
+		musicData$,
+		updateJukeBox$$$,
+		tagSetting$,
+	} from '@kbve/khashvault';
 
+	// Variables
 	let player: any;
-	let ytTracks: string[] = [];
-	let ytSets: string[] = [];
-	let checkReadyInterval: number;
-	let intervalCheck: number | undefined;
 	let scriptsLoaded = false;
 	let mounted = false;
+
 	let playTracks = true; // Toggle for playing tracks
 	let playSets = false; // Toggle for playing sets
-	let allData: {
-		ytSets: any;
-		ytTracks: any;
-		tags: any[];
-	}[] = [];
-	let tags = new Set<string>(); // Stores all available tags
-	let selectedTags = new Set<string>(); // Stores currently selected tags
-	let filteredTracks: any[] = []; // Stores tracks filtered by selected tags
-	let filteredSets: any[] = []; // Stores sets filtered by selected tags
 
-	async function fetchMusicData() {
-		const response = await fetch('/api/music.json');
-		const data = await response.json();
-		allData = data.items;
-		allData.forEach((item) => {
-			item.tags.forEach((tag) => {
-				if (tag !== 'music') tags.add(tag); // Ignore 'music' tag for the filter
-			});
+	onMount(() => {
+		mounted = true;
+		console.log('Mounted');
+		loadVideoScripts().then(() => {
+			if (mounted && scriptsLoaded) {
+				initializeJukeBox();
+			}
 		});
-		selectedTags = new Set(tags); // Initially select all tags
-		filterTracks();
-	}
+	});
 
-	function filterTracks() {
-		const filteredItems = allData.filter((item) =>
-			item.tags.some((tag) => selectedTags.has(tag)),
-		);
-
-		filteredTracks = filteredItems.flatMap((item) => item.ytTracks);
-		filteredSets = filteredItems.flatMap((item) => item.ytSets);
-		initializePlayer(); // Function to initialize or update the player
-	}
-
-	function toggleTag(tag: string) {
-		if (selectedTags.has(tag)) {
-			selectedTags.delete(tag);
-		} else {
-			selectedTags.add(tag);
+	onDestroy(() => {
+		mounted = false;
+		if (player) {
+			player.dispose();
 		}
-		filterTracks();
-	}
-
-	function checkScriptsReady() {
-		if (typeof videojs !== 'undefined' && videojs.getTech('youtube')) {
-			clearInterval(checkReadyInterval);
-			initializePlayer();
-		}
-	}
-
-	function initializePlayer() {
-		if (typeof videojs !== 'undefined') {
-			const allVideos = getActiveVideos();
-			if (allVideos.length === 0) return; // Prevent initialization if no videos are available
-
-			const randomIndex = Math.floor(Math.random() * allVideos.length); // Select a random index
-			const initialVideoId = allVideos[randomIndex]; // Use the random index to fetch an ID
-
-			player = videojs('video-js', {
-				techOrder: ['youtube'],
-				sources: [
-					{
-						type: 'video/youtube',
-						src: `https://www.youtube.com/watch?v=${initialVideoId}`,
-					},
-				],
-				youtube: { iv_load_policy: 3 },
-				controls: true,
-				autoplay: true,
-				preload: 'auto',
-			});
-
-			player.on('ended', loadNextVideo); // Load next video when one ends
-		} else {
-			setTimeout(initializePlayer, 100); // Retry after 100ms
-		}
-	}
-
-	function getActiveVideos() {
-		return [
-			...(playTracks ? filteredTracks : []),
-			...(playSets ? filteredSets : []),
-		];
-	}
-
-	function loadNextVideo() {
-		const allVideos = getActiveVideos();
-		if (allVideos.length === 0) return; // Prevent loading if no videos are available
-
-		const nextVideoId =
-			allVideos[Math.floor(Math.random() * allVideos.length)];
-		player.src({
-			type: 'video/youtube',
-			src: `https://www.youtube.com/watch?v=${nextVideoId}`,
-		});
-		player.play();
-	}
+	});
 
 	async function loadVideoScripts() {
 		try {
@@ -145,23 +69,146 @@
 		}
 	}
 
-	$: if (mounted && scriptsLoaded) {
-		// initializePlayer();
+	async function fetchMusicData() {
+		updateJukeBox$$$
+			.then(() => {
+				console.log('Music data has been successfully updated.');
+			})
+			.catch((error: any) => {
+				console.error('Error updating music data:', error);
+			});
 	}
 
-	onMount(() => {
-		mounted = true;
-		loadVideoScripts().then(() => {
-        scriptsLoaded = true; // Indicate that scripts are loaded
-        fetchMusicData(); // Fetch the music data after scripts are loaded
-    	});
-	});
+	function initializeTagsFromMusicData() {
+    // Define newTags with an index signature
+    const newTags: Record<string, boolean> = {};  // This tells TypeScript that newTags can have any number of properties where keys are strings and values are boolean.
 
-	onDestroy(() => {
-		if (player) {
-			player.dispose();
+    $musicData$.items.forEach((item) => {
+        item.tags.forEach((tag) => {
+            if (tag !== 'music') {
+                newTags[tag] = true; // Initialize as true, skip "music"
+            }
+        });
+    });
+
+    tagSetting$.set(newTags);
+}
+
+
+	async function initializeJukeBox() {
+		// First check if the music data needs to be fetched
+		if ($musicData$.items.length === 0) {
+			try {
+				await fetchMusicData();  // Ensure music data is loaded
+				console.log("Music Data Loaded:", $musicData$.items);
+			} catch (error) {
+				console.error('Failed to fetch music data:', error);
+				return; // Stop further execution if data cannot be fetched
+			}
 		}
-	});
+
+		// Now, check if tags need to be initialized
+		if (Object.keys($tagSetting$).length === 0) {
+			console.log("Initializing tags from music data...");
+			initializeTagsFromMusicData();  // Initialize tags if tagSetting$ is empty
+		} else {
+			console.log("Tags already initialized:", $tagSetting$);
+		}
+
+		// Finally, initialize the player regardless
+		initializePlayer();
+	}
+
+
+	function initializePlayer() {
+		if (typeof videojs !== 'undefined' && videojs.getTech('youtube')) {
+			const allVideos = getActiveVideos();
+			if (allVideos.length === 0) return; // Prevent initialization if no videos are available
+
+			const randomIndex = Math.floor(Math.random() * allVideos.length); // Select a random index
+			const initialVideoId = allVideos[randomIndex]; // Use the random index to fetch an ID
+
+			player = videojs('video-js', {
+				techOrder: ['youtube'],
+				sources: [
+					{
+						type: 'video/youtube',
+						src: `https://www.youtube.com/watch?v=${initialVideoId}`,
+					},
+				],
+				youtube: { iv_load_policy: 3 },
+				controls: true,
+				autoplay: true,
+				preload: 'auto',
+			});
+
+			player.on('ended', loadNextVideo); // Load next video when one ends
+		} else {
+			setTimeout(initializePlayer, 100); // Retry after 100ms
+		}
+	}
+
+	function getActiveVideos() {
+		let activeVideos: any[] = [];
+
+		// Iterate over each music item
+		$musicData$.items.forEach((item) => {
+			// Check if any of the item's tags are active
+			const isActive = item.tags.some(
+				(tag) => $tagSetting$[tag] === true,
+			);
+
+			// If any tag is active, check user preferences for tracks and sets
+			if (isActive) {
+				if (playTracks) {
+					activeVideos = activeVideos.concat(item.ytTracks);
+				}
+				if (playSets) {
+					activeVideos = activeVideos.concat(item.ytSets);
+				}
+			}
+		});
+
+		return activeVideos;
+	}
+
+	function loadNextVideo() {
+		const allVideos = getActiveVideos();
+		if (allVideos.length === 0) return; // Prevent loading if no videos are available
+
+		const nextVideoId =
+			allVideos[Math.floor(Math.random() * allVideos.length)];
+		player.src({
+			type: 'video/youtube',
+			src: `https://www.youtube.com/watch?v=${nextVideoId}`,
+		});
+		player.play();
+	}
+
+	function toggleTag(tag: string | number) {
+        const updatedTags = {
+            ...$tagSetting$,
+            [tag]: !$tagSetting$[tag]
+        };
+        tagSetting$.set(updatedTags);
+    }
+
+	async function syncData() {
+		// Clear existing data
+		musicData$.set({ items: [] });  // Assuming $musicData$ is a writable store
+		tagSetting$.set({});  // Assuming $tagSetting$ is a writable store or atom
+
+    // Fetch and reinitialize data
+		try {
+			await fetchMusicData();  // Fetches and presumably updates $musicData$
+			initializeTagsFromMusicData();  // Reinitialize tags based on the new music data
+			initializePlayer();  // Reinitialize the player if necessary
+			console.log('Data and tags have been synchronized.');
+		} catch (error) {
+			console.error('Error during synchronization:', error);
+		}
+	}
+
 </script>
 
 <svelte:head>
@@ -170,18 +217,21 @@
 		rel="stylesheet" />
 </svelte:head>
 
+
+<button on:click={syncData} class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+    Sync
+</button>
+
 <div class="space-x-2">
-	{#each Array.from(tags) as tag}
-		<button
-			class="px-3 py-1 text-sm font-medium rounded-md {selectedTags.has(
-				tag,
-			)
-				? 'opacity-100'
-				: 'opacity-50'}"
-			on:click={() => toggleTag(tag)}>
-			{tag}
-		</button>
-	{/each}
+    {#each Object.keys($tagSetting$) as tag}
+        <button
+            class="px-3 py-1 text-sm font-medium rounded-md"
+            class:opacity-100={$tagSetting$[tag]}
+            class:opacity-50={!$tagSetting$[tag]}
+            on:click={() => toggleTag(tag)}>
+            {tag}
+        </button>
+    {/each}
 </div>
 
 <div class="space-x-2 my-4">
