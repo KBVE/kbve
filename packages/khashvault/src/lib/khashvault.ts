@@ -26,23 +26,72 @@ export interface Layout {
 	static?: boolean;
 }
 
+export interface MusicItem {
+	id: string;
+	name: string;
+	description: string;
+	tags: string[];
+	ytTracks: string[]; // YouTube track IDs as strings
+	ytSets: string[]; // YouTube set IDs as strings
+}
+
+export interface MusicData {
+	items: MusicItem[];
+}
+
 //	? [IMPORTS]
 
 import { atom, WritableAtom, task, keepMount } from 'nanostores'; // Importing from 'nanostores' for state management.
 import { persistentMap, persistentAtom } from '@nanostores/persistent'; // Importing 'persistentMap' for persistent state management.
 
+// JukeBox Default
+export const musicData$ = persistentAtom<MusicData>(
+	'musicData',
+	{ items: [] },
+	{
+		encode: JSON.stringify,
+		decode: JSON.parse,
+	},
+);
+
+// export type Tags = {
+// 	key: string; 
+// 	active: string;
+// } 
+// export const tagSetting$ = persistentMap<Tags>('tagSettings:');
+
+export interface Tags {
+    [tagName: string]: boolean;
+}
+
+// Initialize the persistentAtom with an empty object for tags.
+export const tagSetting$ = persistentAtom<Tags>('tagSettings', {}, {
+    encode: JSON.stringify,
+    decode: JSON.parse,
+});
+
+export const updateJukeBox$$$ = task(async () => {
+	const response = await fetch('/api/music.json');
+	if (!response.ok) {
+		throw new Error('Failed to fetch music data');
+	}
+	const data: MusicData = await response.json();
+	musicData$.set(data);
+	return data;
+});
+
 // Layout Default
 const defaultLayout: Layout[] = [
-	{ i: 'a', x: 0, y: 0, w: 4, h: 16, moved: false, static: true},
-	{ i: 'b', x: 4, y: 0, w: 4, h: 4 ,  moved: false, static: false},
-	{ i: 'c', x: 8, y: 0, w: 4, h: 4 , moved: false, static: false},
-	{ i: 'd', x: 0, y: 0, w: 4, h: 4 ,  moved: false,static: false},
-	{ i: 'e', x: 4, y: 0, w: 4, h: 4 ,  moved: false,static: false},
-	{ i: 'f', x: 0, y: 0, w: 4, h: 4 ,  moved: false,static: false},
-	{ i: 'g', x: 4, y: 0, w: 4, h: 4 ,  moved: false,static: false },
-	{ i: 'h', x: 4, y: 0, w: 4, h: 4 , moved: false, static: false},
-	{ i: 'i', x: 0, y: 0, w: 4, h: 4 , moved: false, static: false},
-	{ i: 'j', x: 12, y: 0, w: 4, h: 12 ,  moved: false,static: false},
+	{ i: 'a', x: 0, y: 0, w: 4, h: 16, moved: false, static: true },
+	{ i: 'b', x: 4, y: 0, w: 4, h: 4, moved: false, static: false },
+	{ i: 'c', x: 8, y: 0, w: 4, h: 4, moved: false, static: false },
+	{ i: 'd', x: 0, y: 0, w: 4, h: 4, moved: false, static: false },
+	{ i: 'e', x: 4, y: 0, w: 4, h: 4, moved: false, static: false },
+	{ i: 'f', x: 0, y: 0, w: 4, h: 4, moved: false, static: false },
+	{ i: 'g', x: 4, y: 0, w: 4, h: 4, moved: false, static: false },
+	{ i: 'h', x: 4, y: 0, w: 4, h: 4, moved: false, static: false },
+	{ i: 'i', x: 0, y: 0, w: 4, h: 4, moved: false, static: false },
+	{ i: 'j', x: 12, y: 0, w: 4, h: 12, moved: false, static: false },
 ];
 
 export const layoutStore$ = persistentAtom<Layout[]>(
@@ -56,7 +105,7 @@ export const layoutStore$ = persistentAtom<Layout[]>(
 
 export function updateLayout(newLayout: Layout[]) {
 	layoutStore$.set(newLayout);
-  }
+}
 
 // Exporting a constant 'kbve_v01d' representing a version or an identifier.
 export const kbve_v01d = '/api/v1/';
