@@ -67,6 +67,13 @@ pub struct AuthVerificationSchema {
 	pub hash: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct RecoverUserSchema {
+	pub email: String,
+	pub captcha: String,
+}
+
+
 
 /**
 	- UpdateProfileSchema is a struct used to represent the data for updating a user profile. 

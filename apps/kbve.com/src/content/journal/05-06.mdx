@@ -23,6 +23,19 @@ The Email recovery still needs to be fixed, I am going to add the API directly i
 However there might be a couple aspects of the code's flow that I need to look over, do we want to have a captcha before the email recovery?
 I understand that it might be a bit weak on the UIUX but the security issues that can arise by not having some level of protection on the path might be a pain in the future.
 
+Let me add a couple schemas to prepare for the Resend API Integration:
+
+```rust
+
+#[derive(Debug, Deserialize)]
+pub struct RecoverUserSchema {
+	pub email: String,
+	pub captcha: String,
+}
+
+```
+
+
 
 ---
 
