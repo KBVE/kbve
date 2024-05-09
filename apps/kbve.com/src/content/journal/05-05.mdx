@@ -6,10 +6,15 @@ client: Self
 unsplash: 1583842761792-214790fc1ae0
 img: https://images.unsplash.com/photo-1583842761792-214790fc1ae0?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: |
-   May 5th - Weather Be Making Me Drink a 5th.
+    May 5th - Weather Be Making Me Drink a 5th.
 tags:
     - daily
 ---
+
+## Quote
+
+> Trust your hunches. They're usually based on facts filed away just below the conscious level.
+> — <cite>Joyce Brothers</cite>
 
 ## 2024
 
@@ -24,9 +29,39 @@ Hmmm...
 
 **Music**
 
-Maybe I switch back to working on the music application, to get my mind mind off it. 
+Maybe I switch back to working on the music application, to get my mind mind off it.
+
+The Jukebox was able to get into the basic prototype, yet there a ton of updates that I need to add into the tool.
+I believe I can knock out the button improvements within the next patch, then fix the mobile autopausing.
 
 
 **Python**
 
 If I get a bit more pissy with javascript, I might have to take a break and go to python.
+
+---
+
+### 2023
+
+-   9:30am - Woke up a bit earlier today, got ready and headed out to the border part of Vadodara, known as Gotri. I asked a fellow friend to bring me some Goldbond lotion from America, which my grandparents love and its a bit hard to find here in India.
+
+-   11:15am - Looking over the `kbve.com` repo and noticed that there needs to be some updates that I have to do for the day.
+
+-   11:25am - Quick break from travel / coding and going to relax, watch some game trailers and sip some coffee. The Unreal 5 game engine demos have been crazy! I can not wait to test out Unreal when I get back into the states, I will not be diving too deep into that engine, as I am still learning how to master Unity.
+
+-   12:30pm - I am looking over the CI/CD for the Android deployment. Its been a couple years since I messed around with this, I remember doing it before in Jenkins and again in Gitlab, so I am sure it will be even easier with Github / Git Actions. Later down the line, I will look into doing hybrid deployments, including a combination of private and public repos, to avoid any future issues of licensing / conflict of interests. (i.e if I am using a paid Flutter theme and want to include it inside an open source project! We would host the paid theme inside a private repo and let the open source project pull the code during the build / deploy phase.) Here is an interesting article that goes over what I am looking to [setup](https://dev.to/matijanovosel/deploying-flutter-applications-to-google-play-using-github-actions-j8a).
+
+-   For the releasing, I am going to use the actions from this developer, [Subosito Actions](https://github.com/subosito/flutter-action) , and the two specific ones that I am interested in are the `android` and the `ios`.
+
+-   2:15pm - I really hate the breaking changes in Flutter! Okay to grab the parameters from the path, you have to call `state.pathParameters['pathId'];` with pathId being the variable that you pass through. In our situation we will only be passing one pathId through-out most of the application. The user-information will be stored inside of the HiveDB for now and I will have it make the net request after pulling the information from HiveDB. So in the case of looking up the stock asset, it will check the local instance of the asset and if it does not find it, then it will make a net request for the updated json from the static kbve.com api. I am thinking if there is no internet, then have the application perform the best it can using the local storage data. Side note, the local storage for the mobile applications will be in their default documents folder or downloads folder.
+
+-   6:00pm - Okay I am going to remove the deep nest and keep everything at max depth of 1, so that I can streamline everything else into a simple and easy flow. So instead of `asset/stock`, it will be just `stock` or `crypto`. This will be with all content and mainly so that I can keep everything type-safe and organized later down the line without having too many constraints and dead code to deal with. There might be some SEO/SEM impact from the link structure change, but I think its safe to do it right now rather than later down the line.
+
+
+
+---
+
+## Tasks
+
+-   [ ] -   Check out 3 new cafes within the day.
+-   [x] -   Update Astro on KBVE.com repo to the latest version.

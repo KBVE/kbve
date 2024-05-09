@@ -1,0 +1,99 @@
+---
+title: 'May: 07'
+category: Daily
+date: 2024-05-07 12:00:00
+client: Self
+unsplash: 1553481187-be93c21490a9
+img: https://images.unsplash.com/photo-1553481187-be93c21490a9?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 7th - The Daily Journal
+tags:
+    - daily
+---
+
+## 2024
+
+**Resend**
+
+The plan is to map out all the structures again, converting the javascript code over to Rust code!
+
+The recovery 
+
+```rust
+
+#[derive(Debug, Deserialize)]
+pub struct RecoverUserSchema {
+	pub email: String,
+  pub service: String, 
+	pub captcha: String,
+}
+
+```
+
+
+Resend API to request an Email
+
+
+```shell
+
+curl -X POST 'https://api.resend.com/emails' \
+  -H 'Authorization: Bearer re_secret_token_1245656' \
+  -H 'Content-Type: application/json' \
+  -d $'{
+    "from": "onboarding@resend.dev",
+    "to": "delivered@resend.dev",
+    "subject": "Hello World",
+    "html": "<strong>it works!</strong>"
+  }'
+
+```
+
+Here is a basic rust function for sending out the resend api request:
+
+```rust
+
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use serde_json::json;
+use std::error::Error;
+
+// Asynchronously sends an API request to resend an email
+async fn send_email() -> Result<(), Box<dyn Error>> {
+    // Set up the client
+    let client = reqwest::Client::new();
+
+    // Headers
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_static("Bearer re_123456789"),
+    );
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+    // JSON body
+    let body = json!({
+        "from": "onboarding@resend.dev",
+        "to": "delivered@resend.dev",
+        "subject": "Hello World",
+        "html": "<strong>it works!</strong>"
+    });
+
+    // Send the request
+    let response = client.post("https://api.resend.com/emails")
+        .headers(headers)
+        .json(&body)
+        .send()
+        .await?;
+
+    // Check the status and optionally print the response text
+    if response.status().is_success() {
+        println!("Email sent successfully: {}", response.text().await?);
+    } else {
+        eprintln!("Failed to send email: {}", response.status());
+    }
+
+    Ok(())
+}
+
+```
+
+Granted this will still need a decent amount of work, including better thread management and pulling the data from the database.

@@ -258,7 +258,8 @@
 	controls
 	preload="auto"
 	width="640"
-	height="264">
+	height="264"
+	>
 	<p class="vjs-no-js">
 		To view this video please enable JavaScript, and consider upgrading to a
 		web browser that

@@ -1,0 +1,73 @@
+---
+title: 'May: 06'
+category: Daily
+date: 2024-05-06 12:00:00
+client: Self
+unsplash: 1553481187-be93c21490a9
+img: https://images.unsplash.com/photo-1553481187-be93c21490a9?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 6th, the day the game changed, I made my move and rearranged dat frame.
+tags:
+    - daily
+---
+
+## 2024
+
+**JukeBox**
+
+The jukebox client side code has been updated but a couple more patches that I need to build out.
+
+**Resend**
+
+The Email recovery still needs to be fixed, I am going to add the API directly into the Rust codebase!
+However there might be a couple aspects of the code's flow that I need to look over, do we want to have a captcha before the email recovery?
+I understand that it might be a bit weak on the UIUX but the security issues that can arise by not having some level of protection on the path might be a pain in the future.
+
+Let me add a couple schemas to prepare for the Resend API Integration:
+
+```rust
+
+#[derive(Debug, Deserialize)]
+pub struct RecoverUserSchema {
+	pub email: String,
+	pub captcha: String,
+}
+
+```
+
+
+
+---
+
+## 2023
+
+**India**
+
+- 9:00am - Going to miss this amazing breakfast place, for under $3 or 200 Rupees, I get nearly a full course meal. It keeps me fed throughout the day but damn them eggs do produce some deadly methane gas xD
+
+- 9:30am - Restoring the `asset.astro` and the `media.astro` paths to avoid some broken links when navigating through the menu on the main website.
+
+- 10:30am - Read this great article from [SemiAnalysis No Moat](https://www.semianalysis.com/p/google-we-have-no-moat-and-neither) that goes over the lack of a moat from Google / OpenAI within the eco-system of Ai/mL, yet this can have some issues further down the line, including investment and capital markets, whom bet on companies being able to `secure` a moat. I believe that a hybrid source movement will remain the best course of action as of right now.
+
+- 11:00am - Currently looking up the works of `Ursula K. Le Guin` and her universe of `Hainish Cycle` because she coined the term `Ansible`. The first piece of her work that I am going to read while taking this rickshaw is `Winter's King`. 
+
+- 3:00pm - Currently on my last interview for a new job that I might start in June! I am excited but I might also decline because the amount of pay is not worth the amount of work that they might demand. We shall see, I usually enjoy working for startups but seeing how they conduct their interviews and testing has been very off-putting. I might also not get the job because I did decline to sign any NDAs until I felt more confident with the company.
+
+- 9:00pm - Going to start to integrate Rive into the Flutter application! I have had great experience with Lottie but I been finding that they have a bit too limited animations for my taste and I do not feel like integrating React into Flutter at this time. If everything works out as planned, then I will remove Lottie from the `kbve.com` source and replace it with Rive as well.
+
+---
+
+## Quote
+
+> Kindness in words creates confidence. Kindness in thinking creates profoundness. Kindness in giving creates love.
+> — <cite>Laozi</cite>
+
+---
+
+## Tasks
+
+- [X] Double check AirIndia tickets.
+- [X] Dentist checkup.
+- [X] Tiles for the new bathroom.
+- [X] Adding Jio sim card for UPI.
+- [X] Bulk ordering glasses.
