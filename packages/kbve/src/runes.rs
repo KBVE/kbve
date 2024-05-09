@@ -126,6 +126,48 @@ impl RecoverUserSchema {
     }
 }
 
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct PasswordRecoveryRequestSchema {
+    pub email: String,
+    pub password: String,
+    pub token: String,
+}
+
+
+impl PasswordRecoveryRequestSchema {
+
+  pub fn sanitize(&mut self) -> Result<(), String> {
+
+    let email_result = ValidatorBuilder::<String, String>::new()
+        .clean_or_fail()
+        .email()
+        .validate(self.email.clone());
+    
+    match email_result {
+            Ok(_) => (),
+            Err(errors) => return Err(format!("Email validation error: {}", errors.join(", "))),
+        }
+
+
+    // Initialize and configure the validator for the token
+    let token_result = ValidatorBuilder::<String, String>::new()
+       .clean_or_fail()
+       .service()
+       .validate(self.token.clone());
+
+    match token_result {
+       Ok(_) => (),
+       Err(errors) => return Err(format!("Token validation error: {}", errors.join(", "))),
+       }
+      
+    /// TODO PASSWORD Check for Length via ValidationBuilder - Forgot to add this xD to jedi
+
+    Ok(())
+
+  }
+}
+
 /**
 	- UpdateProfileSchema is a struct used to represent the data for updating a user profile. 
 	Each field is optional, allowing partial updates.
