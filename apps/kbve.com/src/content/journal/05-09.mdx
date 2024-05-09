@@ -24,6 +24,60 @@ Now we need to prepare the front end for the recovery! Yay!
 
 The JEDI crate does need a function that will help with checking if the password is valid!
 
+We will extend out the `ValidatorBuilder` with another function called :
+
+```rust
+
+impl ValidatorBuilder<String, String> {
+  pub fn password(&mut self) -> &mut Self {
+    self.add_rule(|s: String| {
+      match validate_only_input_password_without_regex(&s) {
+        Ok(()) => Ok(s),
+        Err(e) => Err(e.to_string()),
+      }
+    });
+    self
+  }
+}
+
+pub fn validate_only_input_password_without_regex(password: &str) -> Result<(), &'static str> {
+    if password.chars().count() < 8 {
+        return Err("Password is too short");
+    }
+    if password.chars().count() > 255 {
+        return Err("Password is too long");
+    }
+    let has_uppercase = password.chars().any(|c| c.is_uppercase());
+    let has_lowercase = password.chars().any(|c| c.is_lowercase());
+    let has_digit = password.chars().any(|c| c.is_digit(10));
+    let has_special = password.chars().any(|c| !c.is_alphanumeric());
+
+    if !has_uppercase || !has_lowercase || !has_digit || !has_special {
+        return Err(
+            "Password must include uppercase, lowercase, digits, and special characters"
+        );
+    }
+    Ok(())
+}
+
+
+```
+
+This chain function will be used to verify if the input password is valid for an account. 
+
+The only other issue is that we can not wrap the whole ValidatorBuilder inside an Arc.
+
+Anyhow, after adding these functions, we will run a quick package check:
+
+
+```shell
+
+cargo publish -p jedi --dry-run --allow-dirty
+
+```
+
+Looks good to me! Going to push it up the repo!
+
 ## 2023
 
 - 10:00am - Just had 500mL of cold brewed coffee that was aged in whisky and rum barrels! It might have been a bit too much caffeine to start the day, I feel like my heart trying to escape my body. Besides the overload of energy, the taste was amazing, the hints of whisky and rum notes are noticeable through initial taste and near the end. It blends so well that the exiting bitterness that comes with normal brews is almost gone! Overall it was nice to meet the creators of the brew, however they are still in the experimental stage and have not yet done any social / digital work. I was kindly given some concentrated powder to take back to the US with me, think of it like instant coffee? They said they would reach out if they need any digital work done, but I know that my costs might be too high for them.   
