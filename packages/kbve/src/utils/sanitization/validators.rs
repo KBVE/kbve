@@ -6,6 +6,8 @@ use crate::utils::sanitization::{
 	extract_discord_server_id_from_regex,
 	extract_ulid_from_regex,
 	extract_username_from_regex,
+	extract_service_from_regex,
+	extract_captcha_token_from_regex,
 };
 
 use ammonia::clean;

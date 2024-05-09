@@ -4,7 +4,7 @@ use std::error::Error;
 use crate::db::Pool;
 use std::sync::{ Arc };
 
-use crate::runes::{ WizardResponse };
+use crate::runes::{ WizardResponse, RecoverUserSchema };
 
 use axum::{
   async_trait,
@@ -18,8 +18,10 @@ use axum::{
 
 pub async fn resend_email(
   Extension(pool): Extension<Arc<Pool>>,
-  Json(mut body): Json<AuthPlayerRegisterSchema>
+  Json(mut body): Json<RecoverUserSchema>
 ) -> impl IntoResponse {
 
-    
+
+    // Sanitize?
+
 }
