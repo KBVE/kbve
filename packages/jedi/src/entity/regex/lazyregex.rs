@@ -47,6 +47,16 @@ pub static SANITIZATION_GENERAL_INPUT_REGEX: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^[a-zA-Z0-9 !.?]{1,255}$").unwrap()
 });
 
+
+pub static SANITIZATION_SERVICE_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^[a-zA-Z0-9]{3,32}$").unwrap()
+});
+
+pub static SANITIZATION_CAPTCHA_TOKEN_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*$").unwrap()
+});
+
+
 pub fn extract_email_from_regex(email: &str) -> Result<String, &'static str> {
 	if SANITIZATION_EMAIL_REGEX.is_match(email) {
 		Ok(email.to_string())
@@ -157,5 +167,21 @@ pub fn extract_general_input_from_regex(input: &str) -> Result<String, &'static 
         Ok(input.to_string())
     } else {
         Err("Invalid input format")
+    }
+}
+
+pub fn extract_service_from_regex(service: &str) -> Result<String, &'static str> {
+    if SANITIZATION_SERVICE_REGEX.is_match(service) {
+        Ok(service.to_string())
+    } else {
+        Err("Invalid service format")
+    }
+}
+
+pub fn extract_captcha_token_from_regex(token: &str) -> Result<String, &'static str> {
+    if SANITIZATION_CAPTCHA_TOKEN_REGEX.is_match(token) {
+        Ok(token.to_string())
+    } else {
+        Err("Invalid Captcha token format")
     }
 }

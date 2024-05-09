@@ -13,12 +13,15 @@ use std::sync::{ Arc, OnceLock };
 use crate::{ spellbook_sanitize_fields };
 
 //			*Schema
-
 use crate::schema::{ profile };
 
 //			*ValidationBuilder
+// use crate::utils::sanitization::{ ValidationBuilder };
 
-use crate::utils::sanitization::{ ValidationBuilder };
+use jedi::ValidatorBuilder;
+
+//			*Captcha
+use crate::utils::captcha::{ verify_token_via_hcaptcha };
 
 //         [GLOBALS]
 pub type GlobalStore = DashMap<String, String>;
@@ -77,32 +80,43 @@ pub struct RecoverUserSchema {
 }
 
 impl RecoverUserSchema {
-  pub fn sanitize(&mut self) -> Result<(), String> {
-    // Sanitize Email
-    let email_validator = ValidatorBuilder::<&str>
-      ::new()
-      .clean_or_fail()
-      .email()
-      .validate(&self.email);
-    if let Err(e) = email_validator {
-      return Err(format!("Email validation error: {}", e));
+
+    pub fn sanitize(&mut self) -> Result<(), String> {
+
+        // Initialize and configure the validator for the email
+        let mut email_validator = ValidatorBuilder::<String, String>::new();
+        email_validator.clean_or_fail().email();
+        let email_result = email_validator.validate(self.email.clone()); // Clone `&str` to `String`
+        if let Err(errors) = email_result {
+            return Err(format!("Email validation error: {}", errors.join(", ")));
+        }
+
+        // Initialize and configure the validator for the service
+        let mut service_validator = ValidatorBuilder::<String, String>::new();
+        //service_validator.clean_or_fail().service();
+		service_validator.clean();
+        let service_result = service_validator.validate(self.service.clone()); // Clone `&str` to `String`
+        if let Err(errors) = service_result {
+            return Err(format!("Service validation error: {}", errors.join(", ")));
+        }
+
+        // Initialize and configure the validator for the captcha
+        let mut captcha_validator = ValidatorBuilder::<String, String>::new();
+        //captcha_validator.captcha_token();
+		captcha_validator.clean();
+        let captcha_result = captcha_validator.validate(self.captcha.clone()); // Clone `&str` to `String`
+        if let Err(errors) = captcha_result {
+            return Err(format!("Captcha validation error: {}", errors.join(", ")));
+        }
+
+        Ok(())
     }
 
-    // Sanitize Service String
 
-	let service_validator = ValidatorBuilder::<&str>::new()
-	.clean_or_fail() 
-	.validate(&self.service);
-
-	// Validate the service
-	if let Err(e) = service_validator {
-		return Err(format!("Service validation error: {}", e));
-	}
-
-
-    // Santize Captcha Token
-
-    Ok(())
+  pub async fn captcha_verify(&self) -> Result<bool, String> {
+    verify_token_via_hcaptcha(&self.captcha).await.map_err(|e|
+      format!("Captcha verification error: {}", e)
+    )
   }
 }
 

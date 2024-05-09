@@ -112,6 +112,26 @@ impl ValidatorBuilder<&str> {
 		self
 	}
 
+	pub fn service(mut self) -> Self {
+        self.add_rule(|s: &&str| {
+            extract_service_from_regex(s)
+                .map(|_| ())
+                .map_err(|_| "Invalid service format")
+        });
+        self
+    }
+
+	pub fn captcha_token(mut self) -> Self {
+        self.add_rule(|s: &&str| {
+            extract_captcha_token_from_regex(s)
+                .map(|_| ())
+                .map_err(|_| "Invalid captcha token format")
+        });
+        self
+    }
+
+
+
 	pub fn clean_or_fail(mut self) -> Self {
 		self.add_rule(|s: &&str| {
 			let sanitized = ammonia::clean(*s);
