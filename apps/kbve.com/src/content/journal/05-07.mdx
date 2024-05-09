@@ -97,3 +97,37 @@ async fn send_email() -> Result<(), Box<dyn Error>> {
 ```
 
 Granted this will still need a decent amount of work, including better thread management and pulling the data from the database.
+
+## 2023
+
+- 9:00am - I was thinking it might be interesting to gamify some of the boring morning tasks? Granted this was a shower thought but it would be interesting to develop an AI-based mentor / digital character that would reward for completing certain tasks on time? This could be combined with different pre-built personality language models, so you could have your pet digital monster become aggressive and berate you for not doing pushups? I am just writing my thoughts, hoping that I do not forget them later down the line. The idea is not have a companion that drains your mental health, but rather let you customize it based on your own personal motivational factor(s). I might not find a devil daemon calling me a fat slob for skipping 10 pushups haha but I would not want to impose that onto a younger child, if it were a gamified application.
+- 10:30am - Traveling to the local temple for the last time before I head back to the states, I actually enjoy coming here in the morning because some of the stray dogs come in and its cute to watch them engage with the locals, including them getting treats for being awesome. 
+- 12:30pm - Sync the notes. It looks like the pass tool is currently broken, so I am going to try and figure out what I can do to fix it again. I believe the issue might be the way that I am handling the javascript within AstroJS, I will go through some guess and checks and see if I could resolve it that way. It works in `dev` mode but after the SSG, the `generate()` function seems to be missing or broken, so lets see what the issue could be.
+- Error @ 12:30pm: 
+  ```javascript
+  (index):166 Uncaught ReferenceError: generate is not defined
+    at HTMLButtonElement.onclick 
+```
+- Going to try and push the pipe through `alpha` and then test case it via the Netlify build. Okay, looks like that resolved that issue. I was missing the `is:inline` when calling the 3rd party external scripts, okay going to move back to updating the AppWrite.
+- 1:15pm - Updated AppWrite to 1.3.4, then did a quick database migration! I am wondering if there might be a way to do an update without taking the whole API down but I noticed that it could cause corrupted shards, so I suppose it might be best to keep it the way it is right now. 
+- 2:45pm - Getting ready to go shopping around a local mall district. I got over 30kg worth of free space in my luggage, so lets see if I can find anything interesting to buy. Before I head out, I think I will test case some of the local pipelines that I been building, including one that is known as `cook-ai`, which is a small mL model that helps you make amazing recipes! 
+- 4:00pm - Looking over all my blueprints that I have written for KBVE and starting to parse through them and organize them into something a bit more meaningful and structured. 
+- 5:45pm - Great background video, [The Micro Education Business Model - How To Monetize Your Knowledge](https://www.youtube.com/watch?v=XgAMayF-JZY)! This would be great material for a lofi mix :D
+- 11:15pm - Doing some speed tests, I noticed some issues here and there but I think I could hit 90s+ across each metric if I address some of the problems from PageSpeed. 
+- Last Test was https://pagespeed.web.dev/analysis/https-kbve-com/j7ervvivzh?form_factor=desktop 
+	  - 99 Desktop , 84 Accessibility, 75 Best Practices and 100 SEO.
+	  - 85 Mobile, 77 Acc, 75 Best Practices and 100 SEO.
+- Let us see if these recent updates will boost us up to 90s+
+## Quote
+
+> Minds, like bodies, will often fall into a pimpled, ill-conditioned state from mere excess of comfort.
+> — <cite>Charles Dickens</cite>
+
+---
+
+## Tasks
+
+- [x] Upgrade AppWrite to 1.3.4
+- [x] Fix the Tools -> Pass
+- [ ] Review all the blueprints and being to shift them into private documents.
+- [ ] Review MDX plugins and write a plan for steps to resolve known and future issues.
