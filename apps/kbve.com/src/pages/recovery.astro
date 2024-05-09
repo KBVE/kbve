@@ -1,0 +1,42 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import { SITE } from '../data_files/constants';
+
+const pageTitle: string = `Account Recovery | ${SITE.title}`;
+const pageDescription: string = `Account Recovery | KBVE.com`;
+const pageURL: string = 'https://kbve.com/recovery/';
+---
+
+
+<MainLayout
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': `${pageURL}`,
+		url: `${pageURL}`,
+		name: `${pageTitle}`,
+		description: `${pageDescription}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+            "name": `${SITE.title}`,
+            "description": `${SITE.description_short}`
+    },
+		inLanguage: 'en-US',
+	}}
+    >
+
+
+    <div
+		class="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20">
+		<div class="flex flex-col justify-between lg:flex-row">
+			<div
+				class="px-5 pt-6 pb-5 text-center border border-gray-300 rounded lg:w-3/5">
+            
+                <!-- Recovery Form Goes Here -->
+            
+            </div>
+            </div>
+            </div>
+</MainLayout>

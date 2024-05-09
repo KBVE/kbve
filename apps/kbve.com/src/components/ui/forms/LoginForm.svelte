@@ -221,7 +221,7 @@
 						Password
 					</label>
 
-					<a href="/recover/" target="/recover/">
+					<a href="/recovery/" target="_blank">
 
 					<span
 						class="rounded-lg text-sm font-medium text-cyan-400 decoration-2 outline-none ring-zinc-500 hover:underline focus-visible:ring dark:text-cyan-400 dark:ring-zinc-200 dark:focus:outline-none dark:focus:ring-1"
