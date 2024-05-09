@@ -20,17 +20,42 @@ use axum::{
 };
 
 async fn resend_confirmation_email(email: &str, pool: &Arc<Pool>) -> Result<(), String> {
-  // Example: send an email using an SMTP client or an email service API
-  // This is a placeholder logic that you would replace with actual email sending code
-  // For instance, you might enqueue the email to be sent, or directly send it via an SMTP server
 
-  // Here we pretend we're using a fake email service that returns Ok or Err
-  let fake_email_service_response = true; // Placeholder for actual email service call
+    // Retrieve secret key from global settings
+    let secret_key = match crate::runes::GLOBAL.get() {
+      Some(global_map) => match global_map.get("resend") {
+          Some(value) => value.value().clone(),
+          None => return Err("missing_resend".to_string()),
+      },
+      None => return Err("invalid_global_map".to_string()),
+    };
 
-  if fake_email_service_response {
-      Ok(())
-  } else {
-      Err("Email service is currently unavailable".to_string())
+  let client = Client::new();
+  let mut headers = HeaderMap::new();
+  let auth_value = format!("Bearer {}", secret_key);
+  headers.insert(AUTHORIZATION, HeaderValue::from_str(&auth_value).unwrap());
+  headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+  // Construct the JSON body for the request using hardcoded details
+  let request_body = json!({
+      "from": "noreply@example.com",
+      "to": email,
+      "subject": "Resend Confirmation",
+      "html": "<h1>Confirmation Email</h1><p>Please click the link below to confirm your email address.</p>"
+  });
+
+  // Send the request
+  let response = client.post("https://api.resend.com/emails")
+      .headers(headers)
+      .json(&request_body)
+      .send()
+      .await;
+
+  // Handle the response
+  match response {
+      Ok(resp) if resp.status().is_success() => Ok(()),
+      Ok(resp) => Err(format!("Failed to send email: {}", resp.status())),
+      Err(e) => Err(format!("Error sending request: {}", e)),
   }
 }
 
