@@ -1,0 +1,99 @@
+---
+title: 'May: 09'
+category: Daily
+date: 2024-05-09 12:00:00
+client: Self
+unsplash: 1664202526602-08cbc96c4b3c
+img: https://images.unsplash.com/photo-1664202526602-08cbc96c4b3c?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 8th - The Daily Journal
+tags:
+    - daily
+---
+
+
+## 2024
+
+**Resend**
+
+The majority of the morning was spent refactoring the Diesel query to be async with a blocking spawn.
+
+Now we need to prepare the front end for the recovery! Yay!
+
+**Jedi**
+
+The JEDI crate does need a function that will help with checking if the password is valid!
+
+We will extend out the `ValidatorBuilder` with another function called :
+
+```rust
+
+impl ValidatorBuilder<String, String> {
+  pub fn password(&mut self) -> &mut Self {
+    self.add_rule(|s: String| {
+      match validate_only_input_password_without_regex(&s) {
+        Ok(()) => Ok(s),
+        Err(e) => Err(e.to_string()),
+      }
+    });
+    self
+  }
+}
+
+pub fn validate_only_input_password_without_regex(password: &str) -> Result<(), &'static str> {
+    if password.chars().count() < 8 {
+        return Err("Password is too short");
+    }
+    if password.chars().count() > 255 {
+        return Err("Password is too long");
+    }
+    let has_uppercase = password.chars().any(|c| c.is_uppercase());
+    let has_lowercase = password.chars().any(|c| c.is_lowercase());
+    let has_digit = password.chars().any(|c| c.is_digit(10));
+    let has_special = password.chars().any(|c| !c.is_alphanumeric());
+
+    if !has_uppercase || !has_lowercase || !has_digit || !has_special {
+        return Err(
+            "Password must include uppercase, lowercase, digits, and special characters"
+        );
+    }
+    Ok(())
+}
+
+
+```
+
+This chain function will be used to verify if the input password is valid for an account. 
+
+The only other issue is that we can not wrap the whole ValidatorBuilder inside an Arc.
+
+Anyhow, after adding these functions, we will run a quick package check:
+
+
+```shell
+
+cargo publish -p jedi --dry-run --allow-dirty
+
+```
+
+Looks good to me! Going to push it up the repo!
+
+## 2023
+
+- 10:00am - Just had 500mL of cold brewed coffee that was aged in whisky and rum barrels! It might have been a bit too much caffeine to start the day, I feel like my heart trying to escape my body. Besides the overload of energy, the taste was amazing, the hints of whisky and rum notes are noticeable through initial taste and near the end. It blends so well that the exiting bitterness that comes with normal brews is almost gone! Overall it was nice to meet the creators of the brew, however they are still in the experimental stage and have not yet done any social / digital work. I was kindly given some concentrated powder to take back to the US with me, think of it like instant coffee? They said they would reach out if they need any digital work done, but I know that my costs might be too high for them.   
+- 12:30pm - Weighing out both bags, it looks like I have about 20kg of free space, thus I am going to go H.A.M and buy a bunch of shawls and then maybe use the remaining left over weight to grab rare spices that are a bit tough to find in the US.
+- 2:30pm - Went shopping to grab shawls and ended up going to the shop owner's home, we had tea and he talked about his past and how his kids have all moved to the UK/Canada. How I went from buying items at his shop to some how going to his home was probably the weirdest adventure lmao. I needed around 15 shawls and the type that he had in his store were the lighter material, which makes sense because its the warmer season here in India. He told me his winter stock is currently in storage at his home, so we decided it would better if I head over there and look through his inventory. When I got to his home, I was amazed with the amount of stock that he had, the dude could run his own department store from his house! His wife and her family have been hand making some of the styles but lately its been hard for them to stay afloat because of the market has been flooded with cheaper and machine made scarves. I ended up buying a couple hundred dollars worth from him, he was super excited because I basically gave him a couple weeks worth of business in less than two hours. When I am back in the states, I will try to take some cool pictures with them!
+- 5:00pm - Going to take a break from the heat and relax at a new local cafe, man there are a ton of them here, almost every street has a new cafe popping up with their own twists to coffee and tea. This makes sense because the population density is high and there are no major companies that control the sector, i.e think more mom & pop cafe shops and less Starbucks / DD.
+- 6:00pm - Researching on ways to improve the page load of KBVE.com and looking at why some aspects of the website seem to score so low. I might have to remove some of the bulk images that are being loading from UnSplash and remove some of the extra javascript code that we are not using. 
+- 6:30pm - Okay it looks like our spell book seems to be causing a painful first page load. I am thinking that might be worth removing the splash component and then seeing how the site performs. The splash is cool but it might not be worth it in the long term, as it might be annoying and a bit of a waste to then scroll down. Speaking of which, I do need to start thinking about how I will handle the content that should be displayed on the front page. We could also remove some of the wait listing and shrink the footer to be more compressed and clean. Overall the changes could easily decrease the total size of KBVE by 10%, across the board.
+
+## Quote
+
+> It does not matter how slowly you go as long as you do not stop.
+> — <cite>Confucius</cite>
+
+---
+
+## Tasks
+
+- [ ]

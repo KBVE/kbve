@@ -83,40 +83,88 @@ impl RecoverUserSchema {
 
     pub fn sanitize(&mut self) -> Result<(), String> {
 
-        // Initialize and configure the validator for the email
-        let mut email_validator = ValidatorBuilder::<String, String>::new();
-        email_validator.clean_or_fail().email();
-        let email_result = email_validator.validate(self.email.clone()); // Clone `&str` to `String`
-        if let Err(errors) = email_result {
-            return Err(format!("Email validation error: {}", errors.join(", ")));
+      // Initialize and configure the validator for the email
+      let email_result = ValidatorBuilder::<String, String>::new()
+        .clean_or_fail()
+        .email()
+        .validate(self.email.clone()); // Clone `&str` to `String`
+    
+      match email_result {
+            Ok(_) => (),
+            Err(errors) => return Err(format!("Email validation error: {}", errors.join(", "))),
         }
 
-        // Initialize and configure the validator for the service
-        let mut service_validator = ValidatorBuilder::<String, String>::new();
-        //service_validator.clean_or_fail().service();
-		service_validator.clean();
-        let service_result = service_validator.validate(self.service.clone()); // Clone `&str` to `String`
-        if let Err(errors) = service_result {
-            return Err(format!("Service validation error: {}", errors.join(", ")));
+       // Initialize and configure the validator for the service
+      let service_result = ValidatorBuilder::<String, String>::new()
+        .clean_or_fail()
+        .service()
+        .validate(self.service.clone()); // Clone `&str` to `String`
+
+      match service_result {
+        Ok(_) => (),
+        Err(errors) => return Err(format!("Service validation error: {}", errors.join(", "))),
         }
 
-        // Initialize and configure the validator for the captcha
-        let mut captcha_validator = ValidatorBuilder::<String, String>::new();
-        //captcha_validator.captcha_token();
-		captcha_validator.clean();
-        let captcha_result = captcha_validator.validate(self.captcha.clone()); // Clone `&str` to `String`
-        if let Err(errors) = captcha_result {
-            return Err(format!("Captcha validation error: {}", errors.join(", ")));
-        }
+      // Initialize and configure the validator for the captcha
+      let captcha_result = ValidatorBuilder::<String, String>::new()
+        .captcha_token()
+        .validate(self.captcha.clone()); // Clone `&str` to `String`
+    
+      match captcha_result {
+          Ok(_) => (),
+          Err(errors) => return Err(format!("Captcha validation error: {}", errors.join(", "))),
+      }
 
-        Ok(())
+      Ok(())
     }
 
 
-  pub async fn captcha_verify(&self) -> Result<bool, String> {
-    verify_token_via_hcaptcha(&self.captcha).await.map_err(|e|
-      format!("Captcha verification error: {}", e)
-    )
+    pub async fn captcha_verify(&self) -> Result<bool, String> {
+      verify_token_via_hcaptcha(&self.captcha).await.map_err(|e|
+        format!("Captcha verification error: {}", e)
+      )
+    }
+}
+
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct PasswordRecoveryRequestSchema {
+    pub email: String,
+    pub password: String,
+    pub token: String,
+}
+
+
+impl PasswordRecoveryRequestSchema {
+
+  pub fn sanitize(&mut self) -> Result<(), String> {
+
+    let email_result = ValidatorBuilder::<String, String>::new()
+        .clean_or_fail()
+        .email()
+        .validate(self.email.clone());
+    
+    match email_result {
+            Ok(_) => (),
+            Err(errors) => return Err(format!("Email validation error: {}", errors.join(", "))),
+        }
+
+
+    // Initialize and configure the validator for the token
+    let token_result = ValidatorBuilder::<String, String>::new()
+       .clean_or_fail()
+       .service()
+       .validate(self.token.clone());
+
+    match token_result {
+       Ok(_) => (),
+       Err(errors) => return Err(format!("Token validation error: {}", errors.join(", "))),
+       }
+      
+    /// TODO PASSWORD Check for Length via ValidationBuilder - Forgot to add this xD to jedi
+
+    Ok(())
+
   }
 }
 
