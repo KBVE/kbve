@@ -172,10 +172,41 @@ impl ValidatorBuilder<String, String> {
     self.add_rule(|s: String| { extract_captcha_token_from_regex(&s).map_err(|e| e.to_string()) });
     self
   }
+
+  pub fn password(&mut self) -> &mut Self {
+    self.add_rule(|s: String| {
+      match validate_only_input_password_without_regex(&s) {
+        Ok(()) => Ok(s),
+        Err(e) => Err(e.to_string()),
+      }
+    });
+    self
+  }
 }
 
 impl<T, E, F> SyncValidationRule<T, E> for F where F: Fn(T) -> Result<T, E> + Sync + Send, T: Clone {
   fn validate(&self, input: T) -> Result<T, E> {
     self(input)
   }
+}
+
+
+pub fn validate_only_input_password_without_regex(password: &str) -> Result<(), &'static str> {
+  if password.chars().count() < 8 {
+      return Err("Password is too short");
+  }
+  if password.chars().count() > 255 {
+      return Err("Password is too long");
+  }
+  let has_uppercase = password.chars().any(|c| c.is_uppercase());
+  let has_lowercase = password.chars().any(|c| c.is_lowercase());
+  let has_digit = password.chars().any(|c| c.is_digit(10));
+  let has_special = password.chars().any(|c| !c.is_alphanumeric());
+
+  if !has_uppercase || !has_lowercase || !has_digit || !has_special {
+      return Err(
+          "Password must include uppercase, lowercase, digits, and special characters"
+      );
+  }
+  Ok(())
 }
