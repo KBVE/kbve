@@ -1,0 +1,149 @@
+---
+title: 'May: 08'
+category: Daily
+date: 2024-05-08 12:00:00
+client: Self
+unsplash: 1553481187-be93c21490a9
+img: https://images.unsplash.com/photo-1553481187-be93c21490a9?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 8th - The Daily Journal
+tags:
+    - daily
+---
+
+
+## 2024
+
+**Resend**
+
+We should be building out these API endpoints a bit faster but I got side tracked with the Steam integration!
+Solo leveling through these projects can be a bit of a pain.
+
+Okay! So let us look at the package structure for kbve:
+
+Under `entity`, we will add a client folder + mod, then start building out the `resend.rs`.
+This resend API will be rewritten later on but for now we just need the basics of it out of the way!
+
+Going back to the `RecoverUserSchema`, we want to add a quick sanitize method, to clean the variables that are added into the Schema.
+
+```rust
+
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RecoverUserSchema {
+	pub email: String,
+	pub service: String,
+	pub captcha: String,
+}
+
+impl RecoverUserSchema {
+	pub fn sanitize(&mut self) -> Result<(), String> {
+	
+		// Sanitize Email
+		let limited_email = crate::utility::sanitize_string_limit(&self.email);
+		match crate::utility::sanitize_email(&limited_email) {
+			Ok(clean_email) => {
+				self.email = clean_email;
+			}
+			Err(e) => {
+				return Err(e.to_string());
+			}
+		}
+
+		// Sanitize Service String
+
+		// Santize Captcha Token
+
+		Ok(())
+	}
+}
+
+
+```
+
+We can use the `sanitize_string_limit` and `sanitize_email` functions to help us clean up the email.
+Afterwards we have two more strings to clean up, the service should be easy, so we will just clean that using the string limit.
+
+Actually this would be a great time to test out the `ValidationBuilder` and move the sanitization into that area!
+
+We already have a sanitization for the email built into the validationbuilder, so we can skip that part BUT we will need to build two new regexs for the `service` and `captcha`.
+
+For future references, services would only be 3 to 32 characters and alphanumeric, so here is the regex that we can add into the `regex_extractor`.
+
+```rust
+
+pub static SANITIZATION_SERVICE_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^[a-zA-Z0-9]{3,32}$").unwrap()
+});
+
+pub fn extract_service_from_regex(service: &str) -> Result<String, &'static str> {
+    if SANITIZATION_SERVICE_REGEX.is_match(service) {
+        Ok(service.to_string())
+    } else {
+        Err("Invalid service format")
+    }
+}
+
+```
+
+Then we add the `extract_service_from_regex` into the functions that we will call within our validation builder.
+Okay this will help with the service cleaning, then there is the captcha token cleaning that we need to do next.
+
+```rust
+
+pub static VALIDATION_TOKEN_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*$").unwrap()
+});
+
+pub fn extract_captcha_token_from_regex(token: &str) -> Result<String, &'static str> {
+    if VALIDATION_TOKEN_REGEX.is_match(token) {
+        Ok(token.to_string())
+    } else {
+        Err("Invalid token format")
+    }
+}
+
+```
+
+The only thing we want to do here is be a bit more specific with the tokens.
+Okay, these look great! Lets go ahead and add them back into the validationbuilder.
+
+```rust
+use crate::utils::sanitization::{
+	extract_email_from_regex,
+	extract_github_username_from_regex,
+	extract_instagram_username_from_regex,
+	extract_unsplash_photo_id_from_regex,
+	extract_discord_server_id_from_regex,
+	extract_ulid_from_regex,
+	extract_username_from_regex,
+	extract_service_from_regex,
+	extract_captcha_token_from_regex,
+};
+```
+
+After importing them, we need to add them into the rules for calling them within the validationbuilder.
+
+Let us run a quick dry run with our changes, there is probably a couple errors that we need to account for.
+
+```shell
+
+cargo publish -p kbve --dry-run --allow-dirty
+
+```
+
+Okay! I just realized I made a mistake and that the validation builder was moved to the `jedi`
+
+For this situation, we will just move the changes we made to the OG validation builder into the `jedi` package.
+
+In this case, we will be using this shell command to check:
+
+```shell
+
+cargo publish -p jedi --dry-run --allow-dirty
+
+```
+
+Okay! Both packages are building, so I will go ahead and move those up a branch!
+
+We do need the `jedi` package to build and release, then go back and fix our sanitization function. 
