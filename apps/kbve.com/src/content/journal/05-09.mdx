@@ -20,6 +20,18 @@ The majority of the morning was spent refactoring the Diesel query to be async w
 
 Now we need to prepare the front end for the recovery! Yay!
 
+The async blocking does not have the right error code setup, which means that I will have to go back and update them.
+Furthermore, we will need the jedi package to be updated and published, if we want to call the password function, since I forgot it the last push.
+
+The blocking does need a couple new integration test cases, which will be added into the gitlab later tonight!
+Another idea that I was thinking about was extending out the database pool options and including a read-only connection.
+We could shift some of the queries towards the read-only database, specifically the invoice fetching and maybe some of the general character / profile fetching.
+
+I still need to think these through, hmm, how would we setup the read-only connections, without causing too much confusion?
+
+Actually, taking the rust-api-profile concept but instead of having any of the write routes, we could make another rust application that would be specific to the read only routes?
+This way we would not need to do any additional programming, just not include any of the write-able paths and make it like a `read.kbve.com` api? Hmm...
+
 **Jedi**
 
 The JEDI crate does need a function that will help with checking if the password is valid!
@@ -78,13 +90,27 @@ cargo publish -p jedi --dry-run --allow-dirty
 
 Looks good to me! Going to push it up the repo!
 
+
+**Website**
+
+The recover and register modals were commented out and will be their own isolated pages.
+Part of this is because the hcaptcha is way too heavy and pointless to load on every page call.
+
+I actually think the way that the we are calling the structured data is incorrect.
+Do we need to extend the description beyond a sentences? Like is it suppose to be the `meta` description? 
+
 ## 2023
 
 - 10:00am - Just had 500mL of cold brewed coffee that was aged in whisky and rum barrels! It might have been a bit too much caffeine to start the day, I feel like my heart trying to escape my body. Besides the overload of energy, the taste was amazing, the hints of whisky and rum notes are noticeable through initial taste and near the end. It blends so well that the exiting bitterness that comes with normal brews is almost gone! Overall it was nice to meet the creators of the brew, however they are still in the experimental stage and have not yet done any social / digital work. I was kindly given some concentrated powder to take back to the US with me, think of it like instant coffee? They said they would reach out if they need any digital work done, but I know that my costs might be too high for them.   
+
 - 12:30pm - Weighing out both bags, it looks like I have about 20kg of free space, thus I am going to go H.A.M and buy a bunch of shawls and then maybe use the remaining left over weight to grab rare spices that are a bit tough to find in the US.
+
 - 2:30pm - Went shopping to grab shawls and ended up going to the shop owner's home, we had tea and he talked about his past and how his kids have all moved to the UK/Canada. How I went from buying items at his shop to some how going to his home was probably the weirdest adventure lmao. I needed around 15 shawls and the type that he had in his store were the lighter material, which makes sense because its the warmer season here in India. He told me his winter stock is currently in storage at his home, so we decided it would better if I head over there and look through his inventory. When I got to his home, I was amazed with the amount of stock that he had, the dude could run his own department store from his house! His wife and her family have been hand making some of the styles but lately its been hard for them to stay afloat because of the market has been flooded with cheaper and machine made scarves. I ended up buying a couple hundred dollars worth from him, he was super excited because I basically gave him a couple weeks worth of business in less than two hours. When I am back in the states, I will try to take some cool pictures with them!
+
 - 5:00pm - Going to take a break from the heat and relax at a new local cafe, man there are a ton of them here, almost every street has a new cafe popping up with their own twists to coffee and tea. This makes sense because the population density is high and there are no major companies that control the sector, i.e think more mom & pop cafe shops and less Starbucks / DD.
+
 - 6:00pm - Researching on ways to improve the page load of KBVE.com and looking at why some aspects of the website seem to score so low. I might have to remove some of the bulk images that are being loading from UnSplash and remove some of the extra javascript code that we are not using. 
+
 - 6:30pm - Okay it looks like our spell book seems to be causing a painful first page load. I am thinking that might be worth removing the splash component and then seeing how the site performs. The splash is cool but it might not be worth it in the long term, as it might be annoying and a bit of a waste to then scroll down. Speaking of which, I do need to start thinking about how I will handle the content that should be displayed on the front page. We could also remove some of the wait listing and shrink the footer to be more compressed and clean. Overall the changes could easily decrease the total size of KBVE by 10%, across the board.
 
 ## Quote
