@@ -4,6 +4,10 @@ use std::error::Error;
 use crate::db::Pool;
 use std::sync::{ Arc };
 
+
+use crate::entity::session::{ handle_recovery_process };
+
+
 use crate::entity::response::{ create_error_response, create_custom_response };
 
 
@@ -21,8 +25,15 @@ use axum::{
 
 async fn resend_confirmation_email(email: &str, pool: &Arc<Pool>) -> Result<(), String> {
 
-    // Retrieve secret key from global settings
-    let secret_key = match crate::runes::GLOBAL.get() {
+  // Handle the recovery process and generate a token
+    
+  let recovery_token = match handle_recovery_process(email, pool) {
+        Ok(token) => token,
+        Err(_) => return Err("Password recovery failed".to_string()),
+  };
+
+  // Retrieve secret key from global settings
+  let secret_key = match crate::runes::GLOBAL.get() {
       Some(global_map) => match global_map.get("resend") {
           Some(value) => value.value().clone(),
           None => return Err("missing_resend".to_string()),
@@ -41,8 +52,8 @@ async fn resend_confirmation_email(email: &str, pool: &Arc<Pool>) -> Result<(), 
       "from": "noreply@example.com",
       "to": email,
       "subject": "Resend Confirmation",
-      "html": "<h1>Confirmation Email</h1><p>Please click the link below to confirm your email address.</p>"
-  });
+      "html": format!("<h1>Reset Your Password</h1><p>Please use the following token to reset your password: {}</p>", recovery_token)
+    });
 
   // Send the request
   let response = client.post("https://api.resend.com/emails")
@@ -61,8 +72,8 @@ async fn resend_confirmation_email(email: &str, pool: &Arc<Pool>) -> Result<(), 
 
 
 pub async fn resend_email(
-  Extension(pool): Extension<Arc<Pool>>,
-  Json(mut body): Json<RecoverUserSchema>
+  Json(mut body): Json<RecoverUserSchema>,
+  Extension(pool): Extension<Arc<Pool>>
 ) -> impl IntoResponse {
    
     // Sanitization
