@@ -221,11 +221,14 @@
 						Password
 					</label>
 
-					<button
+					<a href="/recover/" target="/recover/">
+
+					<span
 						class="rounded-lg text-sm font-medium text-cyan-400 decoration-2 outline-none ring-zinc-500 hover:underline focus-visible:ring dark:text-cyan-400 dark:ring-zinc-200 dark:focus:outline-none dark:focus:ring-1"
-						data-hs-overlay="#hs-toggle-between-modals-recover-modal">
-						Forgot password?
-					</button>
+					>
+					Forgot password?
+					</span>
+					</a>
 				</div>
 				<div class="relative">
 					<input
