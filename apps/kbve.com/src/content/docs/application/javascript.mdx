@@ -14,6 +14,8 @@ tags:
     - js
 ---
 
+import { Aside, Steps } from '@astrojs/starlight/components';
+
 ## Information
 
     If you are a web developer or a web enthusiast, you have probably heard of JavaScript! Or why else would you be here?.
@@ -27,6 +29,20 @@ tags:
     Prepare to unleash the power of JavaScript with this mdx documentation.
     You will learn everything you need to create dynamic and interactive web applications from scratch.
     Whether you are a beginner or a seasoned coder, this guide will take your skills to the next level.
+
+<Aside>
+	This document is designed to serve as a scholarly compendium on the vast
+	landscape of JavaScript and its associated technologies. We begin by
+	exploring design, layout and CSS, the fundamental language of web design
+	aesthetics, then transition to NodeJS, which facilitates server-side
+	scripting. Our exploration extends to React Native, a framework for crafting
+	mobile applications that seamlessly integrate with multiple platforms. This
+	markdown not only elucidates each technology’s unique contributions but also
+	examines their synergies within the broader context of modern software
+	development. Aimed at both neophytes and seasoned developers, this guide
+	endeavors to deepen your understanding of how these diverse tools
+	collectively enhance and refine the art of programming.
+</Aside>
 
 ## Design
 
@@ -59,30 +75,462 @@ tags:
 
     Factories, builders and singletons are the three core concepts of creational design pattern.
 
-### Abstract Factory
+### Abstract Factory Design Pattern
 
-    The `Abstract Factory` concept is a component within creational design pattern that provides an interface for creating families of related or dependent objects without specifying their concrete classes.
-    This concept is advantageous when a system or application requires the versatility of handling diverse objects that share a thematic connection, or in other words, the system needs to work with multiple types of objects that are related by a common theme.
+The Abstract Factory design pattern is a fundamental component of creational patterns that offers a way to encapsulate a group of individual factories with a common theme without specifying their concrete classes.
+This pattern is especially useful in systems that need to be independent of how their products are created, composed, and represented.
 
-    To exemplify, envision that a developer is working on a cross-platform application that requires generating user interface components, such as buttons, modals, forms, text boxes, and menus.
-    The programmer would utilize an `Abstract Factory` to define an interface for creating and rendering these UI elements.
-    Then, the developer could have different concrete factories that implement this interface to create UI building blocks for different platforms (e.g., Windows, Android, iOS, MacOS, Linux).
-    As a result, the rest of your application codebase can remain the same and doesn’t need to know the details of how the UI/UX elements are created for each platform.
-    Instead, the application or software can just use the factory interface to create the UI features it needs, thus optimizing productivity and resources.
+#### Purpose
+
+The Abstract Factory pattern is designed to provide an interface for creating families of related or dependent objects.
+It allows a system to be independent of how its products are created, composed, or represented.
+This pattern is beneficial for systems that require the flexibility to deal with diverse objects sharing a thematic or functional link.
+
+#### Implementation
+
+The pattern involves several key components:
+
+-   **Abstract Factory**: An interface that declares a set of methods for creating each of the abstract products.
+-   **Concrete Factory**: Implements the abstract factory methods to create concrete products.
+-   **Abstract Product**: Declares an interface for a type of product object.
+-   **Concrete Product**: Implements the abstract product interface; objects created through a factory.
+-   **Client**: Uses only interfaces declared by Abstract Factory and Abstract Product classes.
+
+#### Scenario and Example
+
+Consider a scenario where a software developer is tasked with creating a cross-platform application that needs to generate various user interface components like buttons, modals, forms, text boxes, and menus.
+By employing the Abstract Factory, the developer can define an interface for creating these UI elements which can then be implemented by different concrete factories for specific platforms (e.g., Windows, Android, iOS, MacOS, Linux).
+
+<Aside type="tip">
+
+Simplified JavaScript example illustrating this concept:
+
+```js
+// Abstract Factory
+class GUIFactory {
+	createButton() {}
+	createTextbox() {}
+}
+
+// Concrete Factory for Windows
+class WindowsFactory extends GUIFactory {
+	createButton() {
+		return new WindowsButton();
+	}
+	createTextbox() {
+		return new WindowsTextbox();
+	}
+}
+
+// Concrete Factory for MacOS
+class MacOSFactory extends GUIFactory {
+	createButton() {
+		return new MacOSButton();
+	}
+	createTextbox() {
+		return new MacOSTextbox();
+	}
+}
+
+// Abstract Products
+class Button {
+	render() {}
+}
+class Textbox {
+	render() {}
+}
+
+// Concrete Products for Windows
+class WindowsButton extends Button {
+	render() {
+		console.log('Rendering Windows button');
+	}
+}
+class WindowsTextbox extends Textbox {
+	render() {
+		console.log('Rendering Windows textbox');
+	}
+}
+
+// Concrete Products for MacOS
+class MacOSButton extends Button {
+	render() {
+		console.log('Rendering MacOS button');
+	}
+}
+class MacOSTextbox extends Textbox {
+	render() {
+		console.log('Rendering MacOS textbox');
+	}
+}
+
+// Client code
+function renderUI(factory) {
+	const button = factory.createButton();
+	button.render();
+	const textbox = factory.createTextbox();
+	textbox.render();
+}
+
+const windowsFactory = new WindowsFactory();
+const macFactory = new MacOSFactory();
+
+renderUI(windowsFactory);
+renderUI(macFactory);
+```
+
+**Abstract Factory Pattern Quick Tip:**
+
+Use the Abstract Factory pattern when you need to ensure that your application can create and manage families of related or dependent products, or when you want to provide a library of products without exposing the implementation details.
+This pattern not only fosters system scalability and interchangeability but also promotes consistency among products.
+
+</Aside>
+
+#### Advantages
+
+-   **Flexibility**: Allows the creation of sets of related products without specifying their concrete classes.
+-   **Scalability**: Supports adding new kinds of products without disturbing existing client code.
+
+<Aside type="caution">
+
+**Warning: Abstract Factory Pattern Use**
+
+While the Abstract Factory pattern is powerful for promoting consistency among products and managing families of related objects, be cautious of its complexity. Overusing the pattern can lead to overly complicated designs that might be difficult to understand and maintain. It's particularly important to assess whether the benefits of abstracting factory creation truly outweigh the additional overhead. This pattern is most beneficial when your system genuinely requires a diverse range of objects with shared characteristics or when you need to enforce a particular set of design constraints across various product families.
+
+</Aside>
+
+#### Asbtract Factory Tutorial
+
+<Steps>
+
+1.  **Define Abstract Factory Interface:**
+
+        Create an interface for the abstract factory. This interface will declare methods for creating each type of vehicle.
+
+        ```js
+
+        class VehicleFactory {
+        createCar() {}
+        createBoat() {}
+        }
+
+        ```
+
+2.  **Create Concrete Factory Classes:**
+
+        Implement concrete factories that extend the abstract factory interface. Each factory will provide specific implementations for creating vehicles suitable for its environment.
+
+        ```js
+
+            class LandVehicleFactory extends VehicleFactory {
+                createCar() {
+                    return new Sedan();
+                }
+                createBoat() {
+                    return new Canoe(); // Just for demonstration, usually wouldn't be in LandVehicleFactory
+                }
+            }
+
+            class WaterVehicleFactory extends VehicleFactory {
+                createCar() {
+                    return new AmphibiousCar();
+                }
+                createBoat() {
+                    return new SpeedBoat();
+                }
+            }
+
+
+        ```
+
+3.  **Define Abstract Product Interfaces**:
+
+        Define interfaces for each type of vehicle. These interfaces will include methods that all concrete vehicle products must implement.
+
+        ```js
+
+        class Car {
+            drive() {}
+        }
+
+        class Boat {
+            sail() {}
+        }
+
+        ```
+
+4.  **Create Concrete Product Classes**:
+
+        Implement the product interfaces with concrete classes. These classes will define the specific characteristics of vehicles.
+
+        ```js
+
+        class Sedan extends Car {
+            drive() {
+                console.log("Driving a sedan on roads");
+            }
+        }
+
+        class Canoe extends Boat {
+            sail() {
+                console.log("Canoeing in calm waters");
+            }
+        }
+
+        class AmphibiousCar extends Car {
+            drive() {
+                console.log("Driving an amphibious car on land and water");
+            }
+        }
+
+        class SpeedBoat extends Boat {
+            sail() {
+                console.log("Speeding through water with a speedboat");
+            }
+        }
+
+        ```
+
+5.  **Implement Client Code**:
+
+        Write the client code that utilizes the factories to create objects. The client should interact with these objects through their abstract interfaces.
+
+        ```js
+
+        function testVehicle(factory) {
+            const car = factory.createCar();
+            car.drive();
+            const boat = factory.createBoat();
+            boat.sail();
+        }
+
+        const landFactory = new LandVehicleFactory();
+        const waterFactory = new WaterVehicleFactory();
+
+        testVehicle(landFactory);
+        testVehicle(waterFactory);
+
+        ```
+
+6.  **Test Your Implementation**:
+        Test the implementation to confirm that the correct vehicle types are being created and that they behave as intended, ensuring that the factory logic correctly encapsulates the creation details.
+
+        This example illustrates how the Abstract Factory pattern can be applied to a vehicle manufacturing scenario, facilitating the creation of products that are tailored for specific environmental conditions without exposing the creation logic to the client code.
+
+</Steps>
+
+---
 
 ### Builder
 
+The Builder design pattern is a creational pattern that separates the construction of a complex object from its representation.
+By doing so, the same construction process can create different representations.
+This pattern is particularly useful when an object must be created in multiple steps or with various configurations.
+
+#### Purpose
+
+The primary purpose of the Builder pattern is to allow the step-by-step construction of complex objects and to simplify the code by separating the construction of these objects from their class.
+This pattern is ideal for situations where multiple versions of an object need to be created, and a clear method of doing so is necessary.
+
+#### Implementation
+
+The Builder pattern involves three key components:
+
+-   **Builder**: This is an interface that defines all the steps required to build a part of the object.
+-   **Concrete Builder**: Implements the builder interface and provides an implementation for those steps. It keeps track of the representation it creates and provides an interface for retrieving the product.
+-   **Director**: Takes a builder instance and executes the necessary operations to produce a part of the object. The director knows which builder to use to get the desired object configuration.
+-   **Product**: The complex object that is being built. The builder returns the product as a final step.
+
+<Aside type="tip">
+
+Example of Builder pattern implemented in JavaScript:
+
+```js
+class CarBuilder {
+	constructor() {
+		this.car = {};
+	}
+
+	addEngine(engine) {
+		this.car.engine = engine;
+		return this;
+	}
+
+	addWheels(wheels) {
+		this.car.wheels = wheels;
+		return this;
+	}
+
+	addDoors(doors) {
+		this.car.doors = doors;
+		return this;
+	}
+
+	build() {
+		return this.car;
+	}
+}
+
+// Director function to construct a sports car
+function buildSportsCar(builder) {
+	return builder.addEngine('V8').addWheels(4).addDoors(2).build();
+}
+
+// Usage
+const builder = new CarBuilder();
+const sportsCar = buildSportsCar(builder);
+console.log(sportsCar);
+```
+
+</Aside>
+
+#### Advantages
+
+-   **Flexibility in Object Construction**: Builders can construct objects step-by-step, vary the process based on the situation, and easily create different types of objects with the same construction code.
+-   **Encapsulation and Construction Control**: The product's internal representation is protected from the client until it is fully built. This encapsulation helps in maintaining the integrity of the constructed object.
+
+#### When to Use
+
+Use the Builder pattern when constructing a complex object with multiple optional and mandatory fields, or when an object must be assembled in multiple steps or configurations. It is also beneficial when you need a clear way to create different representations of the same class.
+
+The Builder design pattern greatly enhances the modularity and readability of code, making it easier to write, maintain, and modify code where complex objects are involved.
+
 ### Singleton
+
+Singleton is a design pattern that falls under the creational category, which concerns itself with the best ways to instantiate objects.
+The core principle of the Singleton pattern is to ensure that a class has only one instance and to provide a global point of access to that instance.
+This pattern is particularly useful when exactly one object is needed to coordinate actions across the system.
+
+The implementation of the Singleton pattern involves creating a class with a method that creates a new instance of the class if one does not already exist.
+If an instance already exists, it simply returns a reference to that object. To ensure that no other instances can be created, the constructor of the class is made private.
+
+A typical use of the Singleton pattern is in managing a connection to a database or the settings in a configuration file.
+By using a Singleton, multiple parts of an application can share a single connection or configuration object without the need to pass around a reference throughout the program.
+
+Singletons also help in conserving system resources, as they avoid constant creation and destruction of objects when a single object is sufficient.
+However, care must be taken with Singletons as they can introduce global state into an application, which can complicate testing and limit flexibility.
+
+Overall, the Singleton pattern provides an elegant solution to ensuring a class has only one instance while offering a global point of access, thereby contributing to a cleaner and more manageable codebase.
+
+<Aside type="tip">
+
+JavaScript Example of Singleton
+
+```js
+class Database {
+	static instance = null;
+
+	constructor() {
+		if (Database.instance) {
+			return Database.instance;
+		}
+		Database.instance = this;
+		this.connection = 'Connection established'; // Simulating a database connection
+	}
+
+	connect() {
+		return this.connection;
+	}
+}
+
+// Usage
+const db1 = new Database();
+const db2 = new Database();
+
+console.log(db1 === db2); // Output: true
+console.log(db1.connect()); // Output: Connection established
+```
+
+In this example, the **Database** class is designed such that it can only have one instance.
+When an instance is created, it is stored in a static property. Any subsequent attempts to create new instances will return the original instance, ensuring that there is only one Database instance throughout the application.
+
+**Singleton Pattern Quick Tip:**
+
+When using the Singleton pattern, remember that it's best applied in scenarios where a single shared resource, like a database or configuration settings, needs to be managed consistently across an application.
+However, be cautious of its impact on application design, as it can introduce a global state that might complicate testing and make the code less modular.
+Always consider if the Singleton pattern is the best fit for your use case, particularly in environments where instance management is critical.
+
+</Aside>
 
 ### Structural Design Patterns
 
-    Structural Design Patterns, SDP, are concerned with how objects and classes are composed to form larger structures.
-    They help to ensure that changes in one part of the system do not affect other parts.
+Structural Design Patterns, SDP, are concerned with how objects and classes are composed to form larger structures.
+
+They help to ensure that changes in one part of the system do not affect other parts.
+
+Structural Design Patterns (SDP) play a pivotal role in software architecture by focusing on how objects and classes can be assembled into larger and more complex structures.
+These patterns aim to improve the design of a system by ensuring that the individual components can be combined in such a way that maintains both the individual integrity and the overall flexibility of the system.
+
+SDP are instrumental in simplifying the structure by identifying the relationships between the entities.
+This identification helps in facilitating better organization of the system components, making it easier to understand, maintain, and scale. Additionally, these patterns help in ensuring that changes in one part of a system do not adversely affect other parts, which is crucial for the stability and robustness of the system.
+
+<Aside type="tip">
+
+Examples of Structural Design Patterns include the Adapter pattern, which allows interfaces of different classes to work together despite incompatible interfaces; the Composite pattern, which enables the composition of objects into tree structures to represent part-whole hierarchies; and the Facade pattern, which provides a simplified interface to a complex subsystem, thereby reducing dependencies and minimizing the impact of changes.
+
+```js
+class OldInterface {
+	constructor() {
+		this.request = () => 'Old Interface: Processing request';
+	}
+}
+
+class NewInterface {
+	constructor() {
+		this.specificRequest = () =>
+			'New Interface: Processing specific request';
+	}
+}
+
+class InterfaceAdapter {
+	constructor(newInterface) {
+		this.newInterface = newInterface;
+	}
+
+	request() {
+		return this.newInterface.specificRequest();
+	}
+}
+
+// Usage
+const oldInterface = new OldInterface();
+console.log(oldInterface.request()); // Output: Old Interface: Processing request
+
+const newInterface = new NewInterface();
+const adapter = new InterfaceAdapter(newInterface);
+console.log(adapter.request()); // Output: New Interface: Processing specific request
+```
+
+In this example, the **InterfaceAdapter** class adapts the **NewInterface** so it can be used where the **OldInterface** is expected.
+This is particularly useful in scenarios where parts of the software need to be upgraded or changed without disrupting existing code.
+
+**Structural Design Pattern Quick Tip: Adapter Pattern**
+
+The Adapter pattern is invaluable when integrating new components into existing systems where interfaces do not match.
+It acts as a bridge, allowing different parts of a system to communicate seamlessly without requiring changes to their actual code.
+Use the Adapter pattern to resolve compatibility issues while maintaining the integrity of the original system.
+This pattern is a testament to the flexibility and adaptability of software, ensuring longevity and scalability.
+
+</Aside>
+
+By using these patterns, developers can create systems that are more modular and easier to manage, with well-defined interconnections between different components. Structural Design Patterns are essential for developers looking to build complex systems that require high levels of inter-component flexibility and maintainability.
 
 ### Behavioral Design Patterns
 
-    Behavioral Design Patterns, BDP, define the communication between objects and how they interact with each other.
-    They help to ensure that objects work together in a coordinated manner.
+Behavioral Design Patterns, BDP, define the communication between objects and how they interact with each other.
+
+They help to ensure that objects work together in a coordinated manner.
+
+Behavioral Design Patterns (BDP) are crucial in the realm of software engineering, specifically focusing on improving the communication and interaction between objects in software systems.
+These patterns facilitate a smooth and efficient orchestration of behaviors among different objects, enabling them to perform their tasks in a coordinated and cooperative manner.
+
+These patterns are distinguished by their ability to distribute responsibilities among objects, which helps in reducing the complexity of the code and increasing its flexibility.
+By defining standard communication protocols, BDP ensure that the objects can interact without being tightly coupled, thereby enhancing modularity and facilitating future scalability and maintenance.
+
+Examples of Behavioral Design Patterns include the Observer pattern, which allows objects to be notified of changes in other objects without creating a direct dependency; the Strategy pattern, which enables the selection of an algorithm's behavior at runtime; and the State pattern, which allows an object to alter its behavior when its internal state changes.
+
+Implementing these patterns can lead to more dynamic and adaptable software, with components that are easier to understand, extend, or modify.
+Behavioral Design Patterns are indispensable for developers aiming to create interactive systems that are robust, scalable, and maintainable.
 
 ---
 
@@ -103,6 +551,111 @@ tags:
 
     However, Node isn't just about web applications.
     Its versatility extends to a variety of applications such as command-line tools, chat applications, real-time data-intensive applications, and even Internet of Things (IoT) devices. With its continued growth, extensive community support, and ability to adapt to the evolving needs of modern application development, Node.js stands as a testament to how server-side development has evolved in the 21st century.
+
+### NodeJS Installation
+
+Getting Started with Node.js Installation
+
+Node.js is a powerful JavaScript runtime built on Chrome's V8 JavaScript engine.
+It allows developers to write server-side applications in JavaScript.
+Installing Node.js is the first step towards using its rich ecosystem for developing web applications, REST APIs, and more.
+
+**Choosing the Right NodeJS Version**
+
+When planning to install Node.js, you have two main versions to consider:
+
+*   **LTS (Long-Term Support)**: This version is best for most users, especially in production environments, because it receives security and stability updates for an extended period.
+*   **Current**: This version includes the latest features and updates. It's suitable for developers who want to experiment with the newest capabilities of Node.js but might be less stable than the LTS version.
+
+Using the LTS version ensures that you are working on a stable and well-supported platform, which is crucial for application stability and security.
+
+<Aside title="Importance of Node.js Versions">
+
+Node.js versions are important because of the following reasons:
+
+*   **API Stability**: Different versions of Node.js may have varying API compatibilities. LTS versions guarantee backward compatibility with older stable APIs.
+*   **Security**: Newer versions receive security updates that protect your application from vulnerabilities.
+*   **Features**: Newer versions typically have new features that are not available or are backported to older versions. Using the current version allows developers to utilize the latest features.
+
+</Aside>
+
+#### Version Management
+
+For managing multiple Node.js versions on a single machine, tools like `nvm` (Node Version Manager) for Unix-based systems or `nvm-windows` for Windows are highly recommended.
+These tools allow you to switch between different Node.js versions easily, which is helpful when working on multiple projects that require different versions.
+
+Here is how you can install `nvm`:
+
+```bash
+# Install nvm and use it to install Node.js
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+nvm install node # "node" is an alias for the latest version
+nvm use node
+```
+
+#### Ubuntu NodeJS Install
+
+<Steps>
+
+1.  For Debian-based distributions like Ubuntu, Node.js can be installed via the package manager. 
+    First, update your package repository:
+
+    ```bash
+    sudo apt-get update
+    ```
+
+2.  Install Node.js:
+    
+    ```bash
+    sudo apt-get install nodejs
+    sudo apt-get install npm
+    ```
+
+3.  Verify the installation by typing node -v and npm -v in the terminal.
+
+
+</Steps>
+
+
+#### Windows NodeJS Install
+
+<Steps>
+
+1.  Download the Windows installer from the official Node.js website: [Node.js](https://nodejs.org/en)
+
+2.  Run the installer (.msi) and follow the prompts to set up Node.js.
+
+    Make sure to include the installation of npm (Node Package Manager), which comes bundled with Node.js.
+
+3.  After installation, open the Command Prompt and type node -v to verify the installation.
+
+    The version of Node.js should appear.
+
+</Steps>
+
+
+<Aside type="tip" title="WSL">
+
+You can choose to install NodeJS in your WSL instance!
+In that case, follow the Ubuntu tutorial above.
+
+</Aside>
+
+#### MacOS NodeJS Install
+
+<Steps>
+
+1.  You can install Node.js via the package from the Node.js website or use a package manager like Homebrew. 
+    
+    To install with Homebrew:
+
+    ```bash
+    brew install node
+    ```
+
+2. Once installed, open a terminal window and type node -v to check the installed version.
+
+</Steps>
 
 ---
 
