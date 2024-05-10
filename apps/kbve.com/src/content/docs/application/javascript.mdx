@@ -14,7 +14,7 @@ tags:
     - js
 ---
 
-import { Aside, Steps } from '@astrojs/starlight/components';
+import { Aside, Steps, Card, CardGrid  } from '@astrojs/starlight/components';
 
 ## Information
 
@@ -521,36 +521,34 @@ Behavioral Design Patterns, BDP, define the communication between objects and ho
 
 They help to ensure that objects work together in a coordinated manner.
 
-Behavioral Design Patterns (BDP) are crucial in the realm of software engineering, specifically focusing on improving the communication and interaction between objects in software systems.
+&emsp; &emsp; Behavioral Design Patterns (BDP) are crucial in the realm of software engineering, specifically focusing on improving the communication and interaction between objects in software systems.
 These patterns facilitate a smooth and efficient orchestration of behaviors among different objects, enabling them to perform their tasks in a coordinated and cooperative manner.
 
-These patterns are distinguished by their ability to distribute responsibilities among objects, which helps in reducing the complexity of the code and increasing its flexibility.
+&emsp; &emsp; These patterns are distinguished by their ability to distribute responsibilities among objects, which helps in reducing the complexity of the code and increasing its flexibility.
 By defining standard communication protocols, BDP ensure that the objects can interact without being tightly coupled, thereby enhancing modularity and facilitating future scalability and maintenance.
 
 Examples of Behavioral Design Patterns include the Observer pattern, which allows objects to be notified of changes in other objects without creating a direct dependency; the Strategy pattern, which enables the selection of an algorithm's behavior at runtime; and the State pattern, which allows an object to alter its behavior when its internal state changes.
 
-Implementing these patterns can lead to more dynamic and adaptable software, with components that are easier to understand, extend, or modify.
+&emsp; &emsp; Implementing these patterns can lead to more dynamic and adaptable software, with components that are easier to understand, extend, or modify.
 Behavioral Design Patterns are indispensable for developers aiming to create interactive systems that are robust, scalable, and maintainable.
 
 ---
 
 ## NodeJS
 
-    Node.js is an open-source runtime environment that enables server-side execution of JavaScript, leveraging the V8 engine.
-    It unifies web application development by allowing JavaScript to be used both client and server-side, while its package manager, npm, offers the largest ecosystem of open-source libraries.
-    With its event-driven architecture, Node is ideal for scalable, real-time applications, and extends its capabilities beyond web applications to command-line tools and IoT devices.
+Node.js is a dynamic open-source runtime environment that brings JavaScript to the server side.
+Running on Google's powerful V8 engine, it allows for both client and server-side application development using JavaScript.
+This is streamlined by npm, Node's package manager, which hosts a vast repository of open-source libraries.
 
+Often simply called "Node," this environment was created to extend the efficient and event-driven qualities of JavaScript beyond web browsers.
+Node.js executes code using the V8 engine and is designed around an event-driven, non-blocking I/O model that not only boosts efficiency but is also perfect for scalable and real-time applications.
 
-    Node.js, often simply referred to as "Node", is a revolutionary open-source runtime environment that facilitates the execution of JavaScript on the server-side.
-    Born out of a desire to carry the lightweight, event-driven nature of JavaScript beyond the confines of the browser, Node.js uses the V8 JavaScript engine (originally developed by Google for Chrome) to execute code.
-    The event-driven, non-blocking I/O model makes it not only efficient but also ideal for scalable and real-time applications.
+Node.js really shines by bridging the gap between front-end and back-end development, allowing developers to work with JavaScript across the board.
+This unity simplifies the development process and makes it more cohesive. Npm, Node’s package manager, plays a critical role by offering a wealth of open-source libraries that help developers quickly construct applications using modules shared by the community.
 
-    At its core, Node brings about a convergence of web application development, merging front-end and back-end development into a more unified discipline.
-    This means developers can use the same language, JavaScript, both on the client and server side, leading to more streamlined and cohesive development processes.
-    Furthermore, its package manager, npm, has become an indispensable tool, boasting the largest ecosystem of open-source libraries in the world, which aids developers in quickly piecing together applications by leveraging community-contributed modules.
+Node’s utility extends beyond typical web applications. It’s also used for developing command-line tools, chat applications, data-intensive real-time applications, and even for IoT devices.
+With its continuous development, strong community support, and adaptability to modern development needs, Node.js is a prime example of how server-side development has transformed in the modern era.
 
-    However, Node isn't just about web applications.
-    Its versatility extends to a variety of applications such as command-line tools, chat applications, real-time data-intensive applications, and even Internet of Things (IoT) devices. With its continued growth, extensive community support, and ability to adapt to the evolving needs of modern application development, Node.js stands as a testament to how server-side development has evolved in the 21st century.
 
 ### NodeJS Installation
 
@@ -643,6 +641,14 @@ In that case, follow the Ubuntu tutorial above.
 
 #### MacOS NodeJS Install
 
+Option A: Brew Install NVM
+
+```bash
+brew install nvm
+```
+
+
+Option B: Brew Install Node (directly)
 <Steps>
 
 1.  You can install Node.js via the package from the Node.js website or use a package manager like Homebrew. 
@@ -747,7 +753,37 @@ In that case, follow the Ubuntu tutorial above.
 
 ## Bun
 
-    Bun is a batteries-included runtime engine that bundles, transpiles, installs and runs Javascript / typescript with a task runner.
+<Aside>
+**Bun** is a batteries-included runtime engine that bundles, transpiles, installs and runs Javascript / typescript with a task runner.
+</Aside>
+
+&emsp; &emsp; Bun is a modern JavaScript and TypeScript runtime, similar to Node.js but designed to be significantly faster and more efficient.
+It integrates several functionalities such as bundling, transpiling, package management, and running JavaScript/TypeScript code.
+Bun is optimized for performance and aims to streamline the development process by combining multiple tools into one comprehensive package.
+
+<Card title="Key Highlights of Bun">Essential Features of Bun.</Card>
+
+<CardGrid>
+  <Card title="Bundling" icon="seti:odata">
+    Bun comes with a built-in bundler that efficiently packages your JavaScript or TypeScript files into a single file, ready for production. This helps in reducing load times and improving performance by minimizing the number of server requests.
+  </Card>
+  <Card title="Transpiling" icon="codePen">
+    It supports on-the-fly transpilation of modern JavaScript and TypeScript, allowing developers to use the latest language features without worrying about browser compatibility.
+  </Card>
+  <Card title="Package Management" icon="document">
+    Bun includes a fast package manager that can install dependencies up to three times faster than npm or Yarn. It directly handles dependency resolution and integrates seamlessly with the broader npm ecosystem.
+  </Card>
+  <Card title="Task Running" icon="setting">
+    Beyond running scripts, Bun can be used as a task runner, automating routine development tasks like minification, compilation, and testing, much like Gulp or Grunt.
+  </Card>
+  <Card title="Speed and Performance" icon="seti:bicep">
+    One of the standout features of Bun is its focus on performance. Built on Zig, a language known for its speed and low overhead, Bun is engineered to execute JavaScript code very quickly, competing directly with established runtimes like Node.js and Deno.
+  </Card>
+  <Card title="Modern Syntax Support" icon="seti:tsconfig">
+    Bun automatically supports modern JavaScript and TypeScript syntax without the need for additional plugins or configurations. This feature ensures developers can immediately take advantage of the latest language improvements and coding techniques.
+</Card>
+</CardGrid>
+
 
 ### Bun Install
 
@@ -859,6 +895,17 @@ In that case, follow the Ubuntu tutorial above.
         | --no-install | Skip installing `node_modules` & tasks |
         | --no-git     | Don’t initialize a git repository      |
         | --open       | Start & open in-browser after finish   |
+
+---
+
+## MDX
+
+### MDX Cheatsheet
+
+For indenting within a markdown file, we can use this code to produce a tab.
+```mdx
+    &emsp;
+```
 
 ---
 
