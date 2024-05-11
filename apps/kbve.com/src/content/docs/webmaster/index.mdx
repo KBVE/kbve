@@ -11,7 +11,7 @@ tags:
     - tools
 ---
 
-import  Webmaster  from '../../../components/tooling/webmaster/Webmaster.astro';
+import Webmaster from '../../../components/tooling/webmaster/Webmaster.astro';
 
 import {
 	Card,
@@ -33,6 +33,7 @@ This webmaster tool streamlines critical operations to optimize your website’s
 With features like running PageSpeed tests, checking Google, Bing, and Yahoo search indexes, and assessing backlinks through Ahrefs, it ensures comprehensive oversight and enhancement of your site’s digital footprint.
 
 Utilize this tool to keep your website finely tuned and ahead in the competitive online landscape.
+
 </Aside>
 
 ## Webmaster
@@ -41,7 +42,6 @@ A webmaster, often seen as the architect of online success, plays a pivotal role
 In today's digital era, where the online presence of a business can make or break its success, a skilled webmaster becomes indispensable.
 Their expertise spans from the meticulous art of SEO to the dynamic strategies of digital marketing, ensuring that a website not only reaches its target audience but also captivates them.
 By optimizing site architecture, enhancing user experience, and deploying cutting-edge marketing tactics, a webmaster crafts an online space that is both visible and effective, making them a crucial asset in any digital arsenal.
-
 
 ## Website Management
 
@@ -97,23 +97,23 @@ Improving page speed not only enhances user satisfaction but also supports a sit
 
     `Preconnect` allows the browser to set up early connections before an HTTP request is actually sent to the server.
     This includes DNS lookups, TLS negotiations, etc.
-    
+
     `Prefetch` is a way to tell the browser to fetch resources in the background (like images or files) that will be needed soon, speeding up their future loading.
-    
+
     `Preload` is used to declare specific resources that need to be loaded early in the page life cycle, which ensures they are available earlier.
 
 </Steps>
 
 <Aside type="tip" title='JavaScript Tips'>
 
-• **Keep JavaScript Bundles Small:** 
+• **Keep JavaScript Bundles Small:**
 
 Aim for smaller JavaScript bundles to enhance page speed, particularly on mobile devices.
 Smaller bundles are quicker to download, consume less memory, and lower CPU processing requirements, which is crucial for devices with limited resources.
 
 • **Use Server-side or Pre-rendering:**
 
-Implement server-side rendering or pre-rendering to boost your site's performance and user experience. 
+Implement server-side rendering or pre-rendering to boost your site's performance and user experience.
 This method also improves the accessibility of your site content for search engine crawlers, enhancing SEO.
 
 • **Optimizing Client-Side Rendering:**
@@ -131,7 +131,6 @@ Additionally, experiment with the network "throttling" feature to simulate how y
 ---
 
 ## SEO
-
 
 Search Engine Optimization (SEO) is a fundamental aspect of web management that enhances a website's visibility and ranking on search engines like Google, Bing, and Yahoo.
 By employing strategic keyword research, optimizing website content, and building quality backlinks, SEO helps ensure that a site appears more prominently in search engine results pages (SERPs).
@@ -155,15 +154,15 @@ The content of the `<title>` tag appears in browser tabs, search engine results 
 
 ```html
 <head>
-    <title>Example Website Title Tag for Effective SEO</title>
+	<title>Example Website Title Tag for Effective SEO</title>
 </head>
 ```
+
 </Aside>
 
 For SEO, the title tag helps search engines understand the subject matter of a page and plays a significant role in determining its ranking for particular keywords.
 A well-crafted title should be concise, ideally under 60 characters to ensure it displays fully in SERPs, and include relevant keywords to improve the page's search visibility.
 Additionally, the title should be compelling enough to encourage clicks from users, balancing keyword inclusion with readability and relevance.
-
 
 <Aside type="tip" title="Optimizing HTML Title Tags">
 
@@ -174,7 +173,6 @@ Additionally, the title should be compelling enough to encourage clicks from use
 • **Impact on CTR:** Craft titles with compelling descriptions. A well-phrased title can significantly enhance click-through rates by capturing the interest of potential visitors.
 
 </Aside>
-
 
 #### Description Tag
 
@@ -188,9 +186,12 @@ Ideally, meta descriptions should be concise, around 150-160 characters, and inc
 
 ```html
 <head>
-    <meta name="description" content="This is an example of a meta description tag. It should succinctly summarize the page's content, attract readers from search engine results, and include relevant keywords for SEO purposes. Aim for about 150-160 characters.">
+	<meta
+		name="description"
+		content="This is an example of a meta description tag. It should succinctly summarize the page's content, attract readers from search engine results, and include relevant keywords for SEO purposes. Aim for about 150-160 characters." />
 </head>
 ```
+
 </Aside>
 
 #### Image Tag
@@ -204,7 +205,9 @@ From an SEO perspective, the `alt` attribute helps search engines understand the
 
 ```html
 <main>
-    <img src="example-image.jpg" alt="A scenic view of the beach at sunset, highlighting the vibrant sky colors and tranquil sea">
+	<img
+		src="example-image.jpg"
+		alt="A scenic view of the beach at sunset, highlighting the vibrant sky colors and tranquil sea" />
 </main>
 ```
 
@@ -214,24 +217,23 @@ For effective SEO, the `alt` text should be concise yet descriptive, accurately 
 This practice not only aids search engine crawlers in associating the image with the page's context but also improves the site's accessibility, contributing to a better overall user experience.
 It's important to ensure that `alt` descriptions are helpful and relevant, avoiding the overuse of keywords in an attempt to manipulate search rankings.
 
-
 <Aside type="tip" title="Optimizing Images for SEO">
 
 • **Descriptive Alt Text:**
-    Use the alt attribute to provide a clear, descriptive text of the image, incorporating relevant keywords without overstuffing.
-    This improves accessibility and helps search engines understand the image context.
+Use the alt attribute to provide a clear, descriptive text of the image, incorporating relevant keywords without overstuffing.
+This improves accessibility and helps search engines understand the image context.
 
 • **Optimize File Size:**
-    Compress images and use modern formats like WebP, which provides high-quality visuals at significantly reduced file sizes.
-    Tools like Adobe Photoshop or online compressors can be utilized.
+Compress images and use modern formats like WebP, which provides high-quality visuals at significantly reduced file sizes.
+Tools like Adobe Photoshop or online compressors can be utilized.
 
 • **Adaptive Sizing:**
-    Serve different image sizes for different devices to enhance load times and user experience.
-    Use responsive images with srcset to automatically select the appropriate image size based on the user's screen.
+Serve different image sizes for different devices to enhance load times and user experience.
+Use responsive images with srcset to automatically select the appropriate image size based on the user's screen.
 
 • **Lazy Loading:**
-    Implement lazy loading to defer the loading of images until they are about to enter the viewport.
-    This reduces initial load time, speeds up page interaction, and saves bandwidth.
+Implement lazy loading to defer the loading of images until they are about to enter the viewport.
+This reduces initial load time, speeds up page interaction, and saves bandwidth.
 
 </Aside>
 
@@ -253,10 +255,12 @@ This means using `nofollow` for links such as ads, comments, or other links that
 It’s a strategic tool that allows webmasters to curate how search engines perceive the links on their pages, ensuring that they contribute positively to the site’s ranking potential.
 By carefully selecting which links to nofollow, webmasters can guide search engine crawlers more effectively and prioritize the indexing of valuable, organically linked content.
 
-<Aside title='Note: An example of nofollow href link!'>
-```html
-<a href="https://www.kbve.com" rel="nofollow">Visit KBVE!</a>
-```
+<Aside title="Note: An example of nofollow href link!">
+	```html
+	<a href="https://www.kbve.com" rel="nofollow">
+		Visit KBVE!
+	</a>
+	```
 </Aside>
 
 ##### Sponsored
@@ -266,10 +270,12 @@ This attribute tells search engines that the link was created as part of a comme
 Furthermore, the clarity helps maintain transparency with search engines and avoids penalties associated with undisclosed paid links.
 Using sponsored not only adheres to SEO best practices but also ensures that the endorsements and advertisements are clearly marked as such, maintaining ethical standards.
 
-<Aside title='Note: An example of a sponsored href link!'>
-```html
-<a href="https://www.kbve.com/products" rel="sponsored">Shop Now!</a>
-```
+<Aside title="Note: An example of a sponsored href link!">
+	```html
+	<a href="https://www.kbve.com/products" rel="sponsored">
+		Shop Now!
+	</a>
+	```
 </Aside>
 
 ##### UGC
@@ -281,10 +287,12 @@ This attribute signals to search engines that the link originates from user cont
 It's an important attribute for sites that allow user interaction, as it helps prevent potentially harmful or low-quality links from affecting the site's search engine ranking.
 Using `rel="ugc"` effectively differentiates editorial content from user-submitted content in the eyes of search engines.
 
-<Aside title='Note: An example of a UGC href link!'>
-```html
-<a href="https://www.kbve.com" rel="ugc">Visit the Forum</a>
-```
+<Aside title="Note: An example of a UGC href link!">
+	```html
+	<a href="https://www.kbve.com" rel="ugc">
+		Visit the Forum
+	</a>
+	```
 </Aside>
 
 #### Image Link
@@ -310,17 +318,17 @@ This is crucial because search engines view URLs with slight differences as sepa
 Using the `<link rel="canonical">` tag helps webmasters prevent duplicate content issues by indicating to search engines which URL is the "canonical" or preferred version of a page.
 This not only consolidates link signals for the content but also ensures that search engines index and rank the canonical URL, improving SEO effectiveness and preserving site integrity.
 
-<Aside title='Example of a Canonical Link Tag'>
-```html
-<head>
-    <link rel="canonical" href="https://www.kbve.com/preferred-page.html" />
-</head>
-```
+<Aside title="Example of a Canonical Link Tag">
+	```html
+	<head>
+		<link rel="canonical" href="https://www.kbve.com/preferred-page.html" />
+	</head>
+	```
 </Aside>
 
 ### URLs
 
-URLs, or Uniform Resource Locators, serve as the addresses for individual pieces of content on the web and are a fundamental component of any website's structure. 
+URLs, or Uniform Resource Locators, serve as the addresses for individual pieces of content on the web and are a fundamental component of any website's structure.
 In the context of SEO, a well-structured URL is critical as it helps search engines understand the hierarchy and content of a website, potentially improving the site's search engine rankings.
 A clear and descriptive URL that includes relevant keywords can enhance visibility and make it easier for users to infer the content of a page before clicking the link.
 Moreover, URLs are used to track user behavior, facilitate content categorization, and optimize user experience by providing clarity and direction within a website.
@@ -341,34 +349,32 @@ Proper understanding and usage of these elements can significantly influence how
     *   This indicates the protocol used to access the web resources. `https` suggests that the connection is secured using encryption.
 
 2.  **Subdomain**: `store`
-    
-    *   This is a prefix added to the domain name to specify a subdivision or a server within the main website. In this case, 'store' likely denotes a retail or eCommerce part of the website.
+
+    -   This is a prefix added to the domain name to specify a subdivision or a server within the main website. In this case, 'store' likely denotes a retail or eCommerce part of the website.
 
 3.  **Root Domain**: `kbve`
-    
-    *   This part of the URL specifies the registered domain name of the website. It is the central part that represents the entity or organization's online identity.
+
+    -   This part of the URL specifies the registered domain name of the website. It is the central part that represents the entity or organization's online identity.
 
 4.  **Top-Level Domain (TLD)**: `.com`
-    
-    *   This is the highest level of the domain's hierarchy and helps categorize the domain's purpose or geographical association. '.com' is typically associated with commercial entities.
+
+    -   This is the highest level of the domain's hierarchy and helps categorize the domain's purpose or geographical association. '.com' is typically associated with commercial entities.
 
 5.  **Subfolder/Path**: `/product/keyword/`
-    
-    *   This part of the URL indicates the specific location of a page or resource within the website's hierarchy. It helps organize content and can be crucial for SEO.
+
+    -   This part of the URL indicates the specific location of a page or resource within the website's hierarchy. It helps organize content and can be crucial for SEO.
 
 6.  **Page**: This is implied within the path (`keyword`)
-    
-    *   While not explicitly labeled as "page," the last part of the path typically points to a specific page, which in this case is indicated by the keyword.
+
+    -   While not explicitly labeled as "page," the last part of the path typically points to a specific page, which in this case is indicated by the keyword.
 
 7.  **Parameter**: `?id=420`
-    
-    *   These are additional values provided in the URL to specify or filter resources. Parameters are typically used to track user behaviors or to sort/filter content.
+
+    -   These are additional values provided in the URL to specify or filter resources. Parameters are typically used to track user behaviors or to sort/filter content.
 
 8.  **Named Anchor**: `#top`
-    
-    *   Also known as a fragment identifier, it allows users to jump to a specific part of the webpage immediately upon loading. Here, '#top' likely directs the browser to the top of the page.
 
-
+    -   Also known as a fragment identifier, it allows users to jump to a specific part of the webpage immediately upon loading. Here, '#top' likely directs the browser to the top of the page.
 
 </Steps>
 
@@ -392,8 +398,6 @@ Proper understanding and usage of these elements can significantly influence how
 • **Neglecting URL Redirections:** Failing to properly implement redirects, especially when redesigning a site or changing URL structures, can lead to broken links and lost SEO value.
 
 </Aside>
-
-
 
 ---
 
@@ -428,18 +432,472 @@ Important considerations include color scheme, font choice, and element placemen
 
 ## Marketing
 
+In today’s digital landscape, effective marketing proves essential for generating traffic, engaging with users, and enhancing conversion rates.
+Webmasters at KBVE should prioritize the integration of comprehensive marketing strategies that resonate with the overarching business goals while expanding the website's digital presence.
+Implementing a diverse array of tactics, including search engine optimization (SEO), content marketing, active social media engagement, targeted email campaigns, and strategic paid advertising, forms a holistic approach.
+This approach aims to captivate the appropriate audience precisely when they are most receptive.
+Webmasters need to meticulously measure and fine-tune each marketing tactic using insights derived from data analytics.
+Crafting engaging content, harnessing the power of analytics, and keeping abreast of the latest digital marketing trends empowers webmasters to enhance the website's visibility.
+Such efforts cultivate a robust connection with the audience, propelling the website's success in highly competitive digital arenas.
+
 ---
 
 ## Compliance
+
+Compliance is a critical aspect of web management that ensures a website adheres to legal and regulatory standards, which can vary widely depending on geography, industry, and the type of data a website handles.
+For our webmasters at KBVE, it is paramount to stay informed and compliant with an array of regulations such as the General Data Protection Regulation (GDPR) for privacy and data protection in the EU, the Americans with Disabilities Act (ADA) for website accessibility, and other local and international laws affecting online activities.
+
+Ensuring compliance involves several key actions, so we provided a quick checklist to help you get through common compliance but we still advocate that you talk to a legal expert.
+
+### Compliance Roadmap
+
+<Steps>
+
+1.  **Data Protection and Privacy**:
+    Implementing measures to protect user data and ensuring privacy policies are transparent, easily accessible, and up-to-date.
+    The privacy policy includes securing user data through encryption, obtaining necessary consents, and providing users with control over their personal information.
+
+2.  **Accessibility**:
+    Making the website accessible to all users, including those with disabilities, by following Web Content Accessibility Guidelines (WCAG).
+    This not only enhances user experience but also prevents potential legal issues related to accessibility.
+
+3.  **Copyright and Intellectual Property**:
+    Adhering to laws related to copyright and intellectual property rights, ensuring that all content on the site, whether text, images, or videos, is either original, licensed, or used with permission.
+
+4.  **Legal Requirements for E-commerce**:
+    For websites involved in e-commerce, complying with consumer protection laws, e-commerce regulations, and tax obligations is essential.
+
+5.  **Terms of Service (ToS)**:
+    Clearly defining the terms under which the service is provided to users, including the rights and responsibilities of both parties.
+    The ToS should be easily accessible and written in clear language to ensure users understand the terms of using the website and its services.
+
+6.  **End-User License Agreement (EULA)**:
+    Especially relevant for websites that provide downloadable software or content, the EULA outlines how the product can be used and any restrictions applied.
+    Like ToS, it should be clearly articulated to ensure users agree to the terms before using the product.
+
+</Steps>
+
+<Aside type="caution">
+
+Regular audits and updates to the website based on these compliance areas are vital to avoid legal risks and penalties.
+
+Staying compliant not only fosters trust with users but also fortifies the website’s reputation and operational integrity.
+
+</Aside>
 
 ---
 
 ## Accessibility
 
+Accessibility stands as a fundamental component in web design and development, ensuring that every user, including those with disabilities, can effectively navigate and interact with websites.
+Strict adherence to the Web Content Accessibility Guidelines (WCAG) plays a pivotal role in this process.
+The guidelines offer a comprehensive set of strategies to enhance web content accessibility for individuals across a diverse range of disabilities, including visual, auditory, physical, speech, cognitive, language, learning, and neurological challenges.
+Essential measures to increase accessibility encompass providing text alternatives for visual and audio content, embedding captions in video materials, and facilitating keyboard navigation across all web pages.
+Regular audits of accessibility standards and active engagement with individuals who have disabilities in user testing are critical to maintain universal usability.
+Such thorough and proactive practices not only broaden the audience reach but also align with legal compliance standards, effectively reducing the risk of legal complications.
+
+### Accessibility Roadmap
+
+<Steps>
+
+1.  **Understand Accessibility Standards**:
+    Familiarize yourself with the [Web Content Accessibility Guidelines (WCAG)](https://github.com/w3c/wcag/) and identify applicable accessibility laws in your region to ensure compliance.
+2.  **Conduct an Initial Accessibility Audit**:
+    Utilize automated tools like Axe or WAVE and engage in manual testing to identify accessibility issues, focusing on keyboard navigation and screen reader compatibility.
+3.  **Plan for Accessibility Improvements**:
+    Prioritize issues identified in the audit based on their impact, setting a realistic timeline for addressing them with appropriate resources.
+4.  **Implement Changes**:
+
+    > Modify the website to include text alternatives for non-text content, ensure videos have captions, and enable comprehensive keyboard navigation.
+
+    To enhance website accessibility, significant changes must be incorporated systematically.
+    Start by providing text alternatives for all non-text content such as images and videos.
+    For example, use the `alt` attribute in image tags to describe the image content clearly.
+    Ensure all video content has accurate captions and subtitles that cater to users with hearing impairments.
+    Additionally, enhance keyboard navigation by ensuring that all interactive elements are accessible through keyboard shortcuts, and that tab orders are logical and intuitive.
+    These adjustments enable users with various disabilities to navigate and understand your website's content effectively.
+
+    <Aside title='Example of Implementing Text Alternatives and Keyboard Navigation'>
+    ```html
+    <!-- Example of an image with alt text -->
+    <img src="example.jpg" alt="Descriptive text about the image">
+    <!-- Example of ensuring tabbable navigation -->
+    <a href="https://www.example.com" tabindex="0">Visit Example.com</a>
+    <!-- Example of Providing text alternatives for charts and graphs -->
+    <figure>
+        <img src="chart.png" alt="Line graph showing the growth of website traffic over time">
+        <figcaption>A line graph showing the growth of website traffic over time</figcaption>
+    </figure>
+    <!-- Example of Providing closed captions for videos -->
+    <video width="640" height="480" controls>
+        <track kind="captions" src="video.captions.vtt" srclang="en" label="English">
+        <source src="video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <!-- Providing a logical and intuitive tab order -->
+    <form>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" tabindex="1">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" tabindex="2">
+        <input type="submit" value="Submit" tabindex="3">
+    </form>
+    ```
+    </Aside>
+
+5.  **Train Your Team**:
+    Conduct training sessions on accessibility best practices for your content creators, designers, and developers.
+6.  **Engage With the Community**:
+    Include users with disabilities in the testing process to gain direct feedback on accessibility improvements.
+7.  **Monitor and Maintain Accessibility**:
+    Regularly perform accessibility audits to ensure ongoing compliance and address new issues as they arise.
+8.  **Publish an Accessibility Statement**:
+    Develop and publish an accessibility statement on your website is an essential action that underscores your dedication to inclusivity.
+    Such a statement will clearly detail the accessibility objectives of your site, reference the specific standards followed, such as the Web Content Accessibility Guidelines (WCAG), and describe the proactive steps taken to make the site navigable and usable for individuals with disabilities.
+    Additionally, the statement will offer guidance on how users with disabilities can request further accommodations or voice concerns about accessibility barriers they encounter.
+    Serving as both a pledge of commitment and a detailed account of accessibility initiatives, the accessibility statement transparently communicates your ongoing efforts to improve accessibility and engage with all users meaningfully.
+
+    <Aside title='Example of an Accessibility Statement'>
+    ```html
+    <!-- Example of linking to an Accessibility Statement page -->
+    <a href="https://www.kbve.com/accessibility-statement">View our Accessibility Statement</a>
+    <!-- Sample text for an Accessibility Statement -->
+    <p>At KBVE.com, we are committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards. Please contact us if you encounter accessibility barriers on Example.com: [Contact Information].</p>
+    <!-- Sample text 2 for an Accessibility Statement !-->
+    <p>At [Company Name], we believe that everyone deserves equal access to our services and resources. That's why we're committed to making our website and digital platforms accessible to people with disabilities. We're dedicated to following the Web Content Accessibility Guidelines (WCAG) and continually improving our accessibility features.</p>
+    <!-- Sample text 3 !-->
+    <p>We're committed to providing an accessible experience for all our users. Here are some of the accessibility features we've implemented:</p>
+    <ul>
+        <li>Keyboard-navigable menus and forms</li>
+        <li>High contrast color scheme options</li>
+        <li>Closed captions on all videos</li>
+        <li>Screen reader compatibility</li>
+        <li>Clear and consistent navigation</li>
+    </ul>
+    ```
+    </Aside>
+
+9.  **Optimize for Assistive Technologies**:
+
+    > Ensure that all website features and functionalities are compatible with assistive technologies like screen readers, magnification software, and speech recognition tools.
+
+    Ensuring compatibility with assistive technologies is vital for making your website accessible to a broader range of users.
+    All features and functionalities of the site should be designed to work seamlessly with tools such as screen readers, magnification software, and speech recognition systems.
+    By integrating support for these technologies, you enhance the usability of your website for individuals with visual, auditory, or speech impairments.
+    This optimization not only improves user experience but also reinforces your commitment to inclusivity, allowing users with various disabilities to engage fully with your website's content and services.
+
+10. **Design for All Users**:
+    Adopt a universal design approach in the initial phases of website planning and development to ensure that the site is usable by everyone, regardless of their abilities.
+
+11. **Simplify Navigation**:
+
+    Structure your website with a logical flow, using clear headings, descriptive link texts, and consistent navigational menus to assist users in finding information quickly and easily.
+
+    <Aside  title='Example of an ARIA Label Navigation'>
+
+    ```html
+    <nav aria-label="Main Menu">
+    	<ul>
+    		<li><a href="#about" aria-label="About Us">About Us</a></li>
+    		<li><a href="#help" aria-label="Help">Help</a></li>
+    		<li><a href="#contact" aria-label="Contact Us">Contact Us</a></li>
+    	</ul>
+    </nav>
+    ```
+
+    </Aside>
+
+12. **Provide Accessibility Resources**:
+    Create a dedicated section on your website where users can find information on accessibility features, useful contacts, and tips for navigating the site effectively.
+
+</Steps>
+
+---
+
+## Robots
+
+The Robots Exclusion Standard, commonly known as "robots.txt," is a fundamental component of website management and search engine optimization.
+It is a text file placed in the root directory of a website to instruct web crawlers (robots) about which parts of the site should not be processed or scanned.
+
+### Robots.txt
+
+Robots.txt is used primarily to prevent overloading your site with requests from bots, as well as to keep certain parts of your site private (not indexed by search engines).
+This is crucial for managing crawler traffic and ensuring that only the relevant parts of your site are indexed.
+
+-   **Disallow:** Specify specific URLs or directories that you do not want crawlers to access.
+-   **Allow:** Specify specific URLs or directories that you do want crawlers to access.
+-   **User-agent:** Specify the type of crawler you want to target (e.g., Googlebot, Bingbot, etc.).
+-   **Crawl-delay:** Specify the delay between crawls to prevent over-crawling.
+
+<Aside title="Note: Example of a robots.txt">
+
+```plaintext
+
+User-agent: *
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /junk/
+Sitemap: https://kbve.com/sitemap.xml
+
+```
+
+</Aside>
+
+<Aside type="tip" title="Best practices for using robots.txt">
+
+-   **Be specific:** Only disallow or allow specific URLs or directories to prevent unintended consequences.
+-   **Keep it up-to-date:** Update your robots.txt file regularly to reflect changes to your website.
+-   **Test it:** Use tools like Google Search Console or Bing Webmaster Tools to test your robots.txt file and ensure it's working as intended.
+
+</Aside>
+
+<Aside type="danger" title="Limitations">
+
+-   **Security:**
+    It’s important to note that robots.txt does not provide security.
+    Files and directories listed in robots.txt can still be accessed directly through their URLs.
+
+-   **Adherence:**
+    Not all bots adhere to the instructions in robots.txt; malicious bots designed to find security vulnerabilities may ignore the file entirely.
+
+</Aside>
+
+### User Agents
+
+User agents are strings that web browsers and crawlers send to websites to identify themselves.
+When configuring directives like those in a `robots.txt` file, it’s important to know which user agents to specify, especially for search engine bots.
+
+Here is the rewritten text in a markdown table format:
+
+| User Agent      | Description                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Googlebot       | Used by Google to crawl and index web pages for Google Search. `Googlebot` for desktop & `Googlebot-Mobile` for mobile.                   |
+| Bingbot         | Microsoft's web crawler, responsible for indexing content for the Bing search engine. `Bingbot`.                                          |
+| Yahoo! Slurp    | Yahoo's web-crawling bot (now part of Verizon Media but originally used for Yahoo Search). `Slurp`.                                       |
+| Facebook        | Facebook's web crawler, responsible for indexing and ranking websites in Facebook's search results.                                       |
+| Twitterbot      | Twitter's web crawler, responsible for indexing and ranking websites in Twitter's search results.                                         |
+| Ahrefs          | Ahrefs' web crawler, responsible for indexing and ranking websites in Ahrefs' search results.                                             |
+| ---             | ---                                                                                                                                       |
+| Mozilla Firefox | `Mozilla/5.0 (platform; rv:geckoversion) Gecko/geckotrail Firefox/firefoxversion`                                                         |
+| Google Chrome   | `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/chromeversion Safari/537.36`                     |
+| Apple Safari    | `Mozilla/5.0 (iPhone; CPU iPhone OS 12_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1` |
+| Microsoft Edge  | `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/chromeversion Safari/537.36 Edge/edgeversion`    |
+
+Understanding these user agents is crucial for webmasters when creating rules in `robots.txt` files or tailoring website content and experience based on the user's browser.
+
+---
+
+## Sitemap
+
+Sitemaps are essential tools that guide search engines in effectively crawling and indexing a website.
+A sitemap provides a structured overview of all the pages on a site, ensuring that search engines can discover and understand the site's content and structure.
+Webmasters create XML sitemaps to list URLs along with additional metadata about each page (such as the last updated date, the frequency of changes, and the relative importance of pages) to optimize the crawling process.
+HTML sitemaps, on the other hand, aid users in navigating the website, enhancing both usability and SEO.
+Regularly updating the sitemap and submitting it through search engine webmaster tools, like Google Search Console, plays a crucial role in maintaining up-to-date search engine visibility and optimizing a website's discoverability.
+
+
+### XML Sitemap
+
+Expanded table for XML Sitemap Schemas:
+
+| Sitemap Schema     | Description                                                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **sitemap**        | The root element of the XML Sitemap, containing a list of URLs.                                                         |
+| **sitemapindex**   | A container element for a list of Sitemap files, allowing for multiple Sitemaps to be combined into a single file.      |
+| **urlset**         | A container element for a set of URLs, containing a list of URLs.                                                       |
+| **url**            | A single URL element, containing information about a specific URL.                                                      |
+| **loc**            | The location of the URL, in the format of a URL.                                                                        |
+| **lastmod**        | The date and time the URL was last modified.                                                                            |
+| **changefreq**     | The frequency at which the URL is changed.                                                                              |
+| **priority**       | The priority of the URL, on a scale of 0 to 1.                                                                          |
+| **image**          | An image element, containing information about an image.                                                                |
+| **video**          | A video element, containing information about a video.                                                                  |
+| **news**           | A news element, containing information about a news article.                                                            |
+| **product**        | A product element, containing information about a product.                                                              |
+| **article**        | An article element, containing information about an article.                                                            |
+| **imageindex**     | A container element for a list of image URLs, allowing for multiple images to be combined into a single file.           |
+| **videoindex**     | A container element for a list of video URLs, allowing for multiple videos to be combined into a single file.           |
+| **newsarchive**    | A container element for a list of news articles, allowing for multiple news articles to be combined into a single file. |
+| **productdata**    | A container element for a list of product data, allowing for multiple products to be combined into a single file.       |
+| **articlearchive** | A container element for a list of article URLs, allowing for multiple articles to be combined into a single file.       |
+
+
+An XML sitemap serves as a comprehensive directory that catalogues URLs within a site along with crucial metadata for each URL.
+Recognized and supported by search engines, these sitemaps enhance the efficiency with which search engines crawl websites.
+Within the structure of an XML sitemap, each entry specifies the page location (`<loc>`), the date the page was last modified (`<lastmod>`), and may also detail how frequently the page updates (`<changefreq>`) along with its importance relative to other pages (`<priority>`).
+Providing such detailed insights ensures that search engines promptly identify any updates, thereby streamlining the process of indexing and improving the visibility of the website in search results.
+
+<Aside title='Example of an XML Sitemap'>
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>http://www.example.com/</loc>
+    <lastmod>2022-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>http://www.example.com/about.html</loc>
+    <lastmod>2022-01-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>
+```
+
+> This example shows a basic XML sitemap that provides essential information to search engines, facilitating more efficient page crawling and indexing.
+
+</Aside>
+
+### Sitemap Index File
+
+A Sitemap Index file is used to manage multiple sitemap files, which is particularly useful for large websites that have numerous pages spread across various sitemaps.
+The XML file functions as an index, listing the individual sitemap files, thereby simplifying the management of sitemap data and ensuring that search engines can access and crawl all sitemaps efficiently.
+
+#### Structure of a Sitemap Index File
+
+The structure of a Sitemap Index file includes a root tag `<sitemapindex>` and individual `<sitemap>` entries for each sitemap file listed. Each `<sitemap>` element contains:
+
+*   **`<loc>`**: The URL location of the sitemap file, which can also be compressed files (as denoted by the `.gz` extension to save bandwidth).
+*   **`<lastmod>`**: The last modification timestamp of the sitemap file, which helps search engines determine how frequently they should crawl the sitemap for updates.
+
+<Aside>
+
+```xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://kbve.com/sitemap1.xml.gz</loc>
+    <lastmod>2024-01-01T18:23:17+00:00</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://kbve.com/sitemap2.xml.gz</loc>
+    <lastmod>2024-05-10</lastmod>
+  </sitemap>
+</sitemapindex>
+
+```
+</Aside>
+
+---
+
+## Mobile
+
+---
+
+## Schema
+
+Table representing the Schema.org options:
+
+| Schema.org Option              | Description                                                                                                                                                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RDFa (RDFa 1.1)                | A W3C standard for embedding RDF data in HTML documents. RDFa is used to add semantic meaning to web pages, making it easier for search engines and other applications to understand the content.                               |
+| Microdata                      | A W3C standard for embedding structured data in HTML documents. Microdata is used to define specific parts of an HTML document, such as a name, address, or phone number.                                                       |
+| JSON-LD (JSON for Linked Data) | A lightweight, JavaScript-based format for representing structured data. JSON-LD is used to add semantic meaning to web pages, making it easier for search engines and other applications to understand the content.            |
+| Microformats                   | A simple, lightweight format for embedding structured data in HTML documents. Microformats are used to add semantic meaning to web pages, making it easier for search engines and other applications to understand the content. |
+
+### Structured Data
+
+Table representing the different types of structured data:
+
+| Structured Data Type | Description                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| **Reviews**          | Reviews of products, services, or content, including ratings and opinions.                |
+| **Events**           | Events, such as concerts, conferences, or meetups, including dates, times, and locations. |
+| **Products**         | Products, including descriptions, prices, and availability.                               |
+| **Businesses**       | Businesses, including names, addresses, and contact information.                          |
+| **Articles**         | Articles, including titles, summaries, and content.                                       |
+| **Blogs**            | Blogs, including titles, summaries, and content.                                          |
+| **Videos**           | Videos, including titles, descriptions, and embed codes.                                  |
+| **Images**           | Images, including captions and alt text.                                                  |
+| **Recipes**          | Recipes, including ingredients, instructions, and cooking times.                          |
+| **Courses**          | Online courses, including titles, descriptions, and course materials.                     |
+| **Organizations**    | Organizations, including names, addresses, and contact information.                       |
+| **People**           | People, including names, titles, and contact information.                                 |
+| **Locations**        | Locations, including addresses, maps, and coordinates.                                    |
+| **FAQs**             | Frequently Asked Questions, including questions and answers.                              |
+
+
+### Rich Snippets
+
+- TODO
+
+---
+
+## Languages
+
+- TODO
+
+### Langcodes
+
+<Aside title="Note: Popular Langage Codes">
+	* en - English * es - Spanish * zh - Chinese * hi - Hindi * ja - Japanese
+</Aside>
+
+### i18n
+
+- TODO
+
 ---
 
 ## Hosting
 
+Hosting represents a core component of web management, entailing the storage of a website’s data on a server to facilitate access via the Internet.
+The choice of hosting environment significantly affects the website's performance, security, and reliability.
+Among the options are shared hosting, dedicated hosting, and cloud hosting solutions such as Amazon Web Services (AWS) or Microsoft Azure.
+Each hosting type presents unique advantages and challenges; for example, cloud hosting typically provides enhanced scalability and reliability but may demand more sophisticated technical oversight.
+Webmasters must evaluate the specific requirements of their website, including anticipated traffic volumes, necessary storage capacity, and security needs, to select the most suitable hosting arrangement.
+Furthermore, the geographical location of servers plays a role in determining load times and adhering to data sovereignty laws, both of which are essential for maintaining compliance and optimizing website performance.
+
+<Aside type='tip' title="Best Practices for Website Hosting">
+
+-   **Evaluate Hosting Types**:
+    Consider the specific needs of your website—such as traffic levels, data security requirements, and scalability—when choosing between shared, dedicated, or cloud hosting solutions.
+
+-   **Leverage Cloud Advantages**:
+    Utilize cloud hosting for its scalability and reliability.
+    Services like Amazon Web Services (AWS) or Microsoft Azure can provide dynamic resource allocation that adjusts to your site's needs.
+
+-   **Prioritize Security Measures**:
+    Ensure your hosting provider offers robust security features, including firewalls, intrusion detection, and regular security audits to protect against potential threats.
+
+-   **Monitor Performance**:
+    Regularly monitor your site’s performance and optimize hosting parameters to ensure fast load times and a smooth user experience.
+
+-   **Understand Data Location**:
+    Be aware of the physical location of servers as this affects data sovereignty and compliance, as well as the overall performance of your site for users in different regions.
+
+These tips will help ensure that your hosting setup optimizes your website’s performance, security, and compliance with applicable laws.
+
+</Aside>
+
 ---
 
 ## Recovery
+
+Recovery focuses on devising and executing strategies to reinstate a website following data loss, cyber attacks, or hardware failures.
+Establishing a routine for regular backups forms the foundation of an effective recovery plan.
+Webmasters should schedule these backups to occur at consistent intervals, storing them across multiple, secure locations.
+The frequency and scope of backups—whether daily, weekly, or monthly—depend on the website's complexity and the critical nature of the data, encompassing all vital files and databases.
+Developing a comprehensive disaster recovery plan is also essential; this plan details the steps required to restore data and services promptly, aiming to minimize downtime.
+Conducting regular tests of the disaster recovery plan verifies its readiness to handle various scenarios effectively. For webmasters, employing these diligent recovery strategies is critical for mitigating data loss risks and ensuring rapid service restoration, which helps maintain user trust and continuity.
+
+<Aside type='danger' title="Common Risks in Website Recovery">
+
+-   **Data Loss:**
+    Without regular and properly configured backups, critical data can be permanently lost during a system failure or cyberattack, leading to significant operational disruptions.
+
+-   **Cyber Attacks:**
+    Websites are constant targets for cyber threats, including ransomware and hacking. Inadequate security measures can leave a website vulnerable, jeopardizing both data integrity and user trust.
+
+-   **Hardware Failures:**
+    Server or storage hardware can fail unexpectedly, risking data loss if redundancies and recovery processes are not in place.
+
+-   **Insufficient Testing:**
+    Failing to regularly test disaster recovery plans can result in unanticipated problems during an actual recovery, extending downtime and compounding issues.
+
+These risks underline the importance of a comprehensive, well-tested recovery strategy to safeguard website operations and maintain continuity.
+
+</Aside>
