@@ -204,6 +204,8 @@
 			initializeTagsFromMusicData();  // Reinitialize tags based on the new music data
 			initializePlayer();  // Reinitialize the player if necessary
 			console.log('Data and tags have been synchronized.');
+			window.location.reload();
+
 		} catch (error) {
 			console.error('Error during synchronization:', error);
 		}
@@ -218,14 +220,14 @@
 </svelte:head>
 
 
-<button on:click={syncData} class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+<button on:click={syncData} class="px-4 py-2 bg-blue-500 border text-white rounded hover:scale-110 ease-in-out duration-500">
     Sync
 </button>
 
 <div class="space-x-2">
     {#each Object.keys($tagSetting$) as tag}
         <button
-            class="px-3 py-1 text-sm font-medium rounded-md"
+            class="px-3 py-1 text-sm font-medium border rounded-md hover:scale-110 ease-in-out duration-500"
             class:opacity-100={$tagSetting$[tag]}
             class:opacity-50={!$tagSetting$[tag]}
             on:click={() => toggleTag(tag)}>
@@ -236,14 +238,14 @@
 
 <div class="space-x-2 my-4">
 	<button
-		class="px-3 py-1 text-sm font-medium rounded-md {playTracks
+		class="px-3 py-1 text-sm font-medium border rounded-md hover:scale-110 ease-in-out duration-500 {playTracks
 			? 'opacity-100'
 			: 'opacity-50'}"
 		on:click={() => (playTracks = !playTracks)}>
 		Play Tracks
 	</button>
 	<button
-		class="px-3 py-1 text-sm font-medium rounded-md {playSets
+		class="px-3 py-1 text-sm font-medium border rounded-md hover:scale-110 ease-in-out duration-500 {playSets
 			? 'opacity-100'
 			: 'opacity-50'}"
 		on:click={() => (playSets = !playSets)}>
