@@ -97,6 +97,10 @@ export default defineConfig({
 					autogenerate: { directory: 'music' },
 				},
 				{
+					label: 'Webmaster',
+					autogenerate: { directory: 'webmaster' },
+				},
+				{
 					label: 'Tools & Equipment',
 					autogenerate: { directory: 'tools' },
 				},
