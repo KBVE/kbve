@@ -77,7 +77,7 @@ const WebmasterTool = () => {
 					value={url}
 					onChange={handleUrlChange}
 					placeholder="Enter website URL"
-					className="text-sm p-2 border rounded-md w-full"
+					className="text-sm p-2 border rounded-md w-full text-gray-300 bg-[var(--sl-color-black)]"
 				/>
 			</div>
 			<div className="-m-1.5 overflow-x-auto">
@@ -88,12 +88,12 @@ const WebmasterTool = () => {
 								<tr>
 									<th
 										scope="col"
-										className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+										className="px-6 py-3 text-start text-xs font-medium  uppercase">
 										Operation
 									</th>
 									<th
 										scope="col"
-										className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+										className="px-6 py-3 text-end text-xs font-medium  uppercase">
 										Action
 									</th>
 								</tr>
@@ -102,14 +102,14 @@ const WebmasterTool = () => {
 								{operations.map((operation) => (
 									<tr
 										key={operation.type}
-										className="hover:!bg-gray-100 dark:hover:!bg-neutral-700">
+										className="">
 										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium ">
 											{operation.name}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
 											<button
 												type="button"
-												className="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400"
+												className="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border p-2 hover:scale-110 ease-in-out duration-300 disabled:opacity-50 disabled:pointer-events-none"
 												onClick={() =>
 													openSearch(operation.type)
 												}>
