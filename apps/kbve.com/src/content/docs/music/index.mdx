@@ -23,58 +23,42 @@ import {
 	TabItem,
 } from '@astrojs/starlight/components';
 
-
 <Jukebox />
 
-
-* * *
-
-<Card title="JukeBox Tool" icon="seti:audio">
-<LinkCard
-  description="The KBVE Music Collection, an abstract library of sounds that will bless your ears through the waves."
-  href="/music/"
-/>
-<LinkCard
-  description="The jukebox is a music tool to help you with finding new music or getting you into the groove!"
-  href="/tools/"
-/>
-</Card>
-
-
+---
 
 <CardGrid>
-<Card title="Song Request/Remix?" icon="star">
+<Card title="Song Request/Remix?" icon="seti:audio">
 
-  - Remember the genre labels are persistent.
-  - Best way to get a song into the Jukebox would be to create a pull request on the mdx file for the genre, group or artist.
-  - Drop a link in our discord as a suggestion for a banger!
-  - We are planning to add a system for submissions, I will keep it noted here.
+-   Remember the genre labels are persistent.
+-   Best way to get a song into the Jukebox would be to create a pull request on the mdx file for the genre, group or artist.
+-   Drop a link in our discord as a suggestion for a banger!
+-   We are planning to add a system for submissions, I will keep it noted here.
 
 </Card>
-<Card title="Troubleshooting Common Issues" icon="rocket">
+<Card title="Troubleshooting Common Issues" icon="star">
 
-   - Press the `Sync` button and then reload the page.
-   - Weekly song updates can cause broken tags, clearing the web cache can help.
-   - Ask on our [discord](/discord/) or create an issue ticket at the repo!
+-   Press the `Sync` button and then reload the page.
+-   Weekly song updates can cause broken tags, clearing the web cache can help.
+-   Ask on our [discord](/discord/) or create an issue ticket at the repo!
 
 </Card>
 </CardGrid>
 
-<Aside>
+<Aside title='Note: Upcoming Patch Updates!'>
 
-Upcoming Patch:
-
-    - [ ] - Mobile Force AutoPlay
-    - [ ] - New Genres - Rock, DnB, Electro Swing
+-   Mobile Force AutoPlay
+-   Rock/Metal Genre
+-   Drum and Bass Genre
+-   Electro Swing Genre
 
 </Aside>
 
-## About the Jukebox App
+## About
 
-The Jukebox App is your ultimate music companion, designed to streamline your listening experience.
+The **Jukebox App** is your ultimate music companion, designed to streamline your listening experience.
 This JavaScript application seamlessly plays a variety of YouTube music tracks at your convenience, eliminating the need for manual searches and selections.
 Whether you're looking to discover new tunes or simply enjoy a hassle-free music session, the Jukebox App has you covered.
-
 
 ## Help
 
@@ -82,12 +66,93 @@ The best way to get help would be to reach out to our discord directly.
 
 ## DevLog
 
-The Jukebox is written in [svelte](https://kbve.com/application/javascript/) with nanostores through khashvault.
+The Jukebox is written in:
+
+-   [Svelte](https://kbve.com/application/javascript/#svelte)
+-   [Nanostores](https://kbve.com/application/javascript/#nanostores) through khashvault.
+-   [Astro Content](https://kbve.com/application/javascript/#astro)
 
 ## Idea
 
+These are future ideas for the jukebox!
+
+We're always looking to innovate and improve the jukebox experience. Here are some exciting ideas we're considering:
+
+-   **Mood-based playlists**: Generate playlists based on your current mood, using AI-powered music recommendations to create the perfect soundtrack for your emotions.
+-   **Social features**: Introduce social sharing options, allowing you to share your favorite songs, playlists, and combos with friends and family.
+-   **Collaborative playlists**: Enable users to create and share playlists with others, fostering a sense of community and discovery.
+-   **Music therapy sessions**: Offer guided meditation and relaxation sessions, featuring calming music and soothing sounds to help reduce stress and anxiety.
+-   **Gamification**: Introduce rewards and challenges to encourage users to explore new music, genres, and playlists, making the jukebox experience more engaging and fun.
+-   **Integration with popular music platforms**: Seamlessly integrate with popular music streaming services, allowing users to access their favorite songs and playlists across multiple platforms.
+
+These ideas are just the beginning.
+We value your feedback and would love to hear your thoughts on what you'd like to see in future updates.
+Let's shape the future of the jukebox together!
+
 ### Combo
 
-A combo setting where you could listen to lofi chill mix and a lecture.
+<Aside>
 
+Maybe another name besides Combo?
+If anyone has a name idea, I would love to hear it!
+
+</Aside>
+
+A combo setting where you could listen to lofi chill mix and a lecture.
 So you press one button and now you can listen to j-dilla style beats and a MIT electro-magentic physics lecture!
+
+Pitch for the Combo!
+
+Experience the ultimate combination of relaxation and learning with our unique combo setting.
+Press a single button to transport yourself to a world of lofi chill beats, carefully crafted to soothe your mind and calm your senses.
+Meanwhile, immerse yourself in a fascinating lecture on electro-magnetic physics from MIT, presented in an engaging and easy-to-follow manner.
+
+This innovative combo setting is perfect for:
+
+-   Studying for exams while staying focused and relaxed
+-   Boosting productivity and creativity
+-   Unwinding after a long day with a unique and engaging experience
+
+With our combo setting, you can now enjoy the perfect blend of music and learning, all in one convenient and user-friendly package.
+So go ahead, press the `Combo` button, and discover a new way to learn and relax!
+
+
+### Weighted Shuffle
+
+The "Weighted Shuffle" feature revolutionizes the way you experience music by allowing you to personalize the frequency with which songs from different genres are played.
+By assigning a weight from 0 to 10 to each genre, you can tailor the playlist to suit your mood or preferences at any given moment.
+A higher weight increases the probability of songs from that genre being played next, enabling dynamic control over your music listening experience.
+This feature ensures that your favorite genres are more prominently featured, while still offering a diverse listening experience.
+
+<Aside type='tip'>
+
+Experiment with different weights in the Weighted Shuffle to fine-tune your listening experience.
+Start with your favorite genre at a higher weight and adjust others accordingly.
+Remember, setting a genre's weight to 0 excludes it from the shuffle, perfect for when you're in the mood for something specific!
+
+</Aside>
+
+---
+
+## Music Theory
+
+Music theory systematically explores the structures and systems that underpin musical creation and interpretation.
+Serving as a foundational framework, music theory equips composers and performers with the understanding needed to effectively manipulate elements such as harmony, melody, rhythm, and texture.
+Students of music theory gain valuable insights into the complex interactions among these elements, enhancing their compositional creativity and performance skills.
+A deepened appreciation of musical works across diverse genres and historical periods often accompanies this knowledge.
+Whether just starting out and aiming to grasp the basics, or an experienced musician intent on refining their craft, mastering music theory proves indispensable.
+
+
+<Aside type='tip' title='Tips for Learning Music Theory'>
+
+- **Start with the basics**: Mastering the fundamentals of music theory, such as scales, intervals, and chords, provides a strong foundation for further learning.
+- **Practice regularly**: Apply music theory concepts to your own music-making and practice regularly to reinforce your understanding.
+- **Analyze music**: Listen to and analyze the music of others, paying attention to how they use different elements of music theory.
+- **Experiment and create**: Apply your knowledge of music theory to your own creative projects, experimenting with different styles and techniques.
+
+</Aside>
+
+---
+
+
+
