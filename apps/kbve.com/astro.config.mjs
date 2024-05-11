@@ -80,6 +80,10 @@ export default defineConfig({
 					autogenerate: { directory: 'application' },
 				},
 				{
+					label: 'Webmaster',
+					autogenerate: { directory: 'webmaster' },
+				},
+				{
 					label: 'Theory',
 					autogenerate: { directory: 'theory' },
 				},
@@ -96,10 +100,7 @@ export default defineConfig({
 					label: 'Music',
 					autogenerate: { directory: 'music' },
 				},
-				{
-					label: 'Webmaster',
-					autogenerate: { directory: 'webmaster' },
-				},
+				
 				{
 					label: 'Tools & Equipment',
 					autogenerate: { directory: 'tools' },
