@@ -1,0 +1,70 @@
+---
+title: 'May: 10'
+category: Daily
+date: 2024-05-10 12:00:00
+client: Self
+unsplash: 1682553064442-272b63b5a541
+img: https://images.unsplash.com/photo-1682553064442-272b63b5a541?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 10th - The Daily Journal
+tags:
+    - daily
+---
+
+## 2024
+
+**TailWindCSS**
+
+I am thinking of adding a bunch of the different tailwindcss code fragments into our `javascript` page, this way it will be easier for me to reference them.
+However one of the issues that I want to resolve is rendering the tailwindcss, so that it would be easier to see.
+
+The question then becomes, how would we go about rendering the tailwindcss and displaying the same html/tailwindcss code?
+
+We can go ahead and add a library called `html-react-parser` which should help us render the tailwindcss code.
+
+**El Portal**
+
+The best way to start the day off is with some fresh El Portal!
+
+**Tools**
+
+I decided to move a couple tools out of the `/tools/` folder and into their own respective areas.
+The jukebox is back inside of `/music/` and webmaster tool is moved over to `/webmaster/`.
+
+**Webmaster**
+
+I decided to dump a decent amount of information that is related to general SEO/Webmaster stuff into one large mdx file.
+The goal will be to aim at updating or adding 3 mdx files each week, eventually I will place bounties for someone to help improve them.
+
+The webmaster documentation is not 100% complete but I did add a decent amount of information , tables and general examples.
+
+
+## 2023
+
+- 10:00am - SSS - *Shiitake, Shower and shave* and out the door! My last official day in India and its giving me the feels. I am going to miss this place for the time being, the society, the flow and the memories. I suppose I will not miss the random cow dung, monkeys throwing dung and the historic slums but the light and darkness create a vibrant eco-system that I can only define as karma. 
+
+- 12:00pm - Going through the general updates for the website, I can not seem to get a basic or static result from the pagespeed tests, they keep throwing me into a random loop of scores. Sometimes I am hitting high 90s and then several sessions later, I am hitting low 60s? I can not tell if its Google or Ezoic (which is displaying Google ads?) or Cloudflare or something that I messed up within my UI/UX. The best course of action might be to just disable everything and then slowly add back content that helps with the flow. Okay lets remove the splash and the general advertisement above the fold! Maybe that might help with the flow of the website and the content. 
+
+- 1:00pm - I removed the splash page, the floating buttons and added aria-labels to the footer buttons. I am going to go through the code base for the main page again and see if I can remove anything else that I will not need for the time being. I will have to update the Oracle component as well and have all the images load at an extremely lazy method, as they are taking a bunch of resources and data up that we do not need to offer. I suppose we could just remove all of the background images for the specific listing and place more gradient style backgrounds with slow loading images upon the hover? We could also swap the idea of a light/dark mode with a slim and heavy mode? Where the website loads with a simple bases and then if they press the heavy, it then takes them to the app. The concept we are going for might be to keep the astro layout as simple and fast as possible! With the visual aesthetics and heavy performance inside of the flutter application. 
+
+- 1:30pm - Upgrading Astro to 2.4.4, Appwrite's Pink library to 0.0.6 RC-12. and the Astro sitemap to 1.3.1. While I am able to upgrade the components and the general website, the cache for the website does not seem to update. I will have to create a new action within Github to clear the Ezoic cache. I could have the cache get cleared via n8n or through AppWrite but I feel like having it done via Github actions would make the most sense. The idea being that we want to put the least amount of stress on our own private systems and offload as much and as many tasks to 3rd party tools and/or applications. The trade off is worth it in the long term, as we expand our collection of websites, we can make sure that the scaling will not hold back our system.
+
+- 2:00pm - I am trying the cache system again from Ezoic and it seems to be a bit more annoying than I remember. Furthermore, I am having a bit of a tough time clearing the cache, so I will have to look further into how they are handling it. Upon doing some more deep diving, it looks like there might be a conflict with Cloudflare's cache settings and those by Ezoic. We could have a situation where there is a double cache going on, which might make it a bit more painful for the website to be a bit more `live`, as updates might take upwards of 48 hours to dispatch. One solution would be to have some of the more active pages be limited in the cache to just under one hour? Maybe even disable all cache for news and the front page? If we put back up the chat and forum, we could also look into disabling that? These are some thoughts I will go over while I walk around the city before departing. The good news is that there are no issues within flutter, which makes sense because its just a monolithic javascript file aka dart.js that loads everything.  
+
+- 2:30pm - A great read on how [Unsplash](https://unsplash.com/blog/the-service-powering-unsplashs-beautiful-imagery/) handles their backend stack! I love how they organized themselves into a small but productive team, something that I think a lot of startups should take note of. You do not need a massive team to get the job done, just a strong and core collective with simple mission and structure. Granted the initial look at their infrastructure map might seem a bit perplexing but its really simple at the heart. You have an extremely large data set of images and then make it fast enough for the whole world through caching and optimization. I like their take on the newer technological stacks and honestly sometimes it just might not be worth the energy at the time. Why switch your whole database from Postgres to some random new database to only save 10% of speed while breaking all your tools!? It would make more sense to focus the time on growing your business and then going back to re-tool down the line or outsourcing it to battle-proven operations.
+
+- Ah! Got a new amazing... high, ugh low?... score of 58 on PageSpeed! I guess it might be time to ask the Ezoic team what the fish is going on.
+
+- 6:00pm - We were able to figure it out! It was a Google advertisement issue that caused multiple issues then stack on top of each other. Actually it was worse but we wont throw them under the bus, because they will never care and honestly its just a shitty and sand thing overall. 
+
+## Quote
+
+> Silence is the sleep that nourishes wisdom.
+> — <cite>Francis Bacon</cite>
+
+---
+
+## Tasks
+
+- [ ] Get onto a plane.
+- [ ] Tom Hanking around the Terminal.

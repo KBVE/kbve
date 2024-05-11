@@ -169,7 +169,7 @@
     "framer-motion": "^11.0.6",
     "grid-engine": "^2.44.2",
     "gsap": "^3.12.5",
-    "html-react-parser": "^5.1.8",
+    "html-react-parser": "^5.1.10",
     "http-proxy-middleware": "^2.0.6",
     "matter-js": "0.17.1",
     "next": "14.0.4",
