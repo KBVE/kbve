@@ -19,7 +19,6 @@ export default defineConfig({
 		domains: ['images.unsplash.com'],
 	},
 	outDir: '../../dist/apps/kbve.com',
-	markdown: markdownConfig,
 	prefetch: true,
 	i18n: {
 		defaultLocale: 'en',
@@ -32,15 +31,7 @@ export default defineConfig({
 		},
 	},
 	integrations: [
-		sitemap({
-			i18n: {
-				defaultLocale: 'en',
-				locales: {
-					en: 'en',
-					fr: 'fr',
-				},
-			},
-		}),
+
 		starlight({
 			title: 'KBVE Docs',
 			editLink: {
@@ -151,6 +142,16 @@ export default defineConfig({
 			],
 		}),
 
+		sitemap({
+			i18n: {
+				defaultLocale: 'en',
+				locales: {
+					en: 'en',
+					fr: 'fr',
+				},
+			},
+		}),
+		
 		react(),
 		svelte(),
 		partytown(),
@@ -164,6 +165,7 @@ export default defineConfig({
 			//extendPlugins: "astroDefaults"
 		}),
 	],
+	markdown: markdownConfig,
 	// vite: defineViteConfig({
 	// 	build: {
 	// 		rollupOptions: {

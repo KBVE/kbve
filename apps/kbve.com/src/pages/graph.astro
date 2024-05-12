@@ -1,16 +1,11 @@
 ---
 // Importing necessary components
-import MainLayout from '../../layouts/MainLayout.astro';
-import PrimaryCTA from '../../components/ui/buttons/PrimaryCTA.astro';
-import CardSmall from '../../components/ui/cards/CardSmall.astro';
-import CardWide from '../../components/ui/cards/CardWide.astro';
-import FeaturesStatsAlt from '../../components/sections/features/FeaturesStatsAlt.astro';
-import TestimonialsSectionAlt from '../../components/sections/testimonials/TestimonialsSectionAlt.astro';
+import MainLayout from '../layouts/MainLayout.astro';
+import PrimaryCTA from '../components/ui/buttons/PrimaryCTA.astro';
+import CardGraph from '../components/ui/cards/CardGraph.astro';
 
-import CardGraph from '../../components/ui/cards/CardGraph.astro';
-
-import MyGraph from './_graph.jsx';
-import { SITE } from '../../data_files/constants';
+import NodeGraph from '../components/tooling/nodegraph/NodeGraph.astro';
+import { SITE } from '../data_files/constants';
 
 
 
@@ -62,13 +57,11 @@ const pageDescription: string = ``;
 			</div>
 			<PrimaryCTA
 				title="Read The Docs"
-				url="https://kbve.com/welcome-to-docs"
+				url="https://kbve.com/welcome-to-docs/"
 				noArrow={true}
 			/>
 		</div>
-		<div class="overscroll-contain" data-lenis-prevent>
-			<MyGraph client:only="react" />
-		</div>
+		<NodeGraph />
 	</div>
 
 	<div

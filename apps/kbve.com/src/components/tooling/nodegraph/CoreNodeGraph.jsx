@@ -3,7 +3,7 @@ import { ForceGraph3D } from 'react-force-graph';
 import SpriteText from 'three-spritetext';
 import * as THREE from 'three';
 
-function My3DGraph() {
+function CoreNodeGraph() {
 	const [graphData, setGraphData] = useState({ nodes: [], links: [] });
 	const containerRef = useRef(null);
 	const tooltipRef = useRef(null);
@@ -13,7 +13,7 @@ function My3DGraph() {
 	});
 
 	useEffect(() => {
-		fetch('/graph/graph_data.json')
+		fetch('/api/graph.json')
 			.then((response) => response.json())
 			.then((data) => {
 				const nodes = preprocessNodes(data.nodes);
@@ -94,7 +94,8 @@ function My3DGraph() {
 	return (
 		<div
 			ref={containerRef}
-			className="w-full h-100vh overflow-hidden overscroll-contain relative">
+			className="w-full h-100vh overflow-hidden overscroll-contain relative"
+			id="nodegraph">
 			<ForceGraph3D
 				graphData={graphData}
 				width={dimensions.width}
@@ -145,4 +146,4 @@ function My3DGraph() {
 	);
 }
 
-export default My3DGraph;
+export default CoreNodeGraph;
