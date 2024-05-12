@@ -69,6 +69,22 @@ const WebmasterTool = () => {
 		// Add more operations as needed
 	];
 
+	const openAllSearches = () => {
+        if (!url) {
+            alert('Please enter a URL.');
+            return;
+        }
+		const delay = 500;
+        const rootDomain = getRootDomain(url);
+		Object.values(searchUrls).forEach((templateUrl, index) => {
+			setTimeout(() => {
+				let searchUrl = templateUrl.replace('{url}', encodeURIComponent(url));
+				searchUrl = searchUrl.replace('{root}', encodeURIComponent(rootDomain));
+				window.open(searchUrl, '_blank');
+			}, index * delay);
+		});
+    };
+
 	return (
 		<div className="flex flex-col">
 			<div className="p-4">
@@ -79,7 +95,16 @@ const WebmasterTool = () => {
 					placeholder="Enter website URL"
 					className="text-sm p-2 border rounded-md w-full text-gray-300 bg-[var(--sl-color-black)]"
 				/>
+				 <button
+                    type="button"
+                    onClick={openAllSearches}
+                    className="mt-2 w-full p-2 rounded border hover:scale-110 ease-in-out duration-500">
+                    Open All Searches
+                </button>
 			</div>
+			
+			<span className="p-2 text-lg">Manual Action</span>
+
 			<div className="-m-1.5 overflow-x-auto">
 				<div className="p-1.5 min-w-full inline-block align-middle">
 					<div className="overflow-hidden">
