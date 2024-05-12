@@ -14,7 +14,7 @@ tags:
     - js
 ---
 
-import { Aside, Steps, Card, CardGrid  } from '@astrojs/starlight/components';
+import { Aside, Steps, Card, CardGrid, Code } from '@astrojs/starlight/components';
 
 ## Information
 
@@ -577,7 +577,7 @@ Node.js versions are important because of the following reasons:
 
 </Aside>
 
-#### Version Management
+**Version Management**
 
 For managing multiple Node.js versions on a single machine, tools like `nvm` (Node Version Manager) for Unix-based systems or `nvm-windows` for Windows are highly recommended.
 These tools allow you to switch between different Node.js versions easily, which is helpful when working on multiple projects that require different versions.
@@ -591,7 +591,7 @@ nvm install node # "node" is an alias for the latest version
 nvm use node
 ```
 
-#### Ubuntu NodeJS Install
+**Ubuntu NodeJS Install**
 
 <Steps>
 
@@ -615,7 +615,7 @@ nvm use node
 </Steps>
 
 
-#### Windows NodeJS Install
+**Windows NodeJS Install**
 
 <Steps>
 
@@ -639,7 +639,7 @@ In that case, follow the Ubuntu tutorial above.
 
 </Aside>
 
-#### MacOS NodeJS Install
+**MacOS NodeJS Install**
 
 Option A: Brew Install NVM
 
@@ -664,6 +664,183 @@ Option B: Brew Install Node (directly)
 </Steps>
 
 ---
+
+## Bun
+
+<Aside>
+**Bun** is a batteries-included runtime engine that bundles, transpiles, installs and runs Javascript / typescript with a task runner.
+</Aside>
+
+&emsp; &emsp; Bun is a modern JavaScript and TypeScript runtime, similar to Node.js but designed to be significantly faster and more efficient.
+It integrates several functionalities such as bundling, transpiling, package management, and running JavaScript/TypeScript code.
+Bun is optimized for performance and aims to streamline the development process by combining multiple tools into one comprehensive package.
+
+<Card title="Key Highlights of Bun">Essential Features of Bun.</Card>
+
+<CardGrid>
+  <Card title="Bundling" icon="seti:odata">
+    Bun comes with a built-in bundler that efficiently packages your JavaScript or TypeScript files into a single file, ready for production. This helps in reducing load times and improving performance by minimizing the number of server requests.
+  </Card>
+  <Card title="Transpiling" icon="codePen">
+    It supports on-the-fly transpilation of modern JavaScript and TypeScript, allowing developers to use the latest language features without worrying about browser compatibility.
+  </Card>
+  <Card title="Package Management" icon="document">
+    Bun includes a fast package manager that can install dependencies up to three times faster than npm or Yarn. It directly handles dependency resolution and integrates seamlessly with the broader npm ecosystem.
+  </Card>
+  <Card title="Task Running" icon="setting">
+    Beyond running scripts, Bun can be used as a task runner, automating routine development tasks like minification, compilation, and testing, much like Gulp or Grunt.
+  </Card>
+  <Card title="Speed and Performance" icon="seti:bicep">
+    One of the standout features of Bun is its focus on performance. Built on Zig, a language known for its speed and low overhead, Bun is engineered to execute JavaScript code very quickly, competing directly with established runtimes like Node.js and Deno.
+  </Card>
+  <Card title="Modern Syntax Support" icon="seti:tsconfig">
+    Bun automatically supports modern JavaScript and TypeScript syntax without the need for additional plugins or configurations. This feature ensures developers can immediately take advantage of the latest language improvements and coding techniques.
+</Card>
+</CardGrid>
+
+
+### Bun Install
+
+Bun can be installed on MacOS, Linux, and Windows (via WSL) using a simple command-line interface (CLI).
+To install Bun, you can run the following command in your terminal: `curl https://bun.sh/install | bash`.
+Alternatively, MacOS and Linux users can install Bun using Homebrew.
+Start by adding Bun to your Homebrew with `brew tap oven-sh/bun`, then install it by running `brew install bun`.
+
+<Aside type='note' title='Note: Bun CLI Install'>
+**CLI for MacOS, Linux and Windows (through WSL)**
+
+```shell
+curl https://bun.sh/install | bash
+```
+
+**Homebrew for MacOS / Linux**
+
+```shell
+brew tap oven-sh/bun
+brew install bun
+```
+</Aside>
+
+<Aside type='tip' title='Tip: Installation Verification'>
+After installing, verify your Bun installation by running the command below in your terminal:
+```shell
+bun --version
+```
+This command will display the installed version of Bun, confirming a successful installation.
+</Aside>
+
+**Bun Docker**
+
+
+Integrating Bun into a Docker environment provides a robust and scalable solution for deploying JavaScript and TypeScript applications.
+Docker containers offer an isolated, consistent environment for applications, ensuring uniform operation across different deployment locations.
+Developers gain significant advantages from Docker's encapsulation features combined with Bun's impressive performance capabilities.
+Such a setup promotes easier version control, dependency management, and testing.
+Leveraging Docker with Bun enhances the development to production workflow, minimizing discrepancies between environments and reducing deployment conflicts.
+The abstraction layer simplifies configuration processes and boosts overall deployment efficiency and reliability.
+
+
+<Aside type="note" title="Note: Bun Docker CLI">
+To utilize Bun within Docker, use the **oven/bun** image. 
+Execute Bun commands using the following single command: 
+```shell
+docker run --rm oven/bun --init --ulimit memlock=-1:-1 --$command
+```
+</Aside>
+
+**Bun DockerFile**
+
+The Dockerfile sets up a more secure and structured environment for a Bun application.
+It ensures that all files are neatly organized in a specific working directory (/app), dependencies are installed there, and the application is exposed on port 3000.
+In addition, the DockerFile example below, addresses security best practices by running the application as a non-root user, which can help mitigate potential risks in production environments.
+
+<Aside type="note" title="Note: Bun Dockerfile Example">
+
+```dockerfile
+
+# Use the latest oven/bun image
+FROM oven/bun:latest
+
+# Set the working directory in the Docker image
+WORKDIR /app
+
+# Copy necessary files to the working directory
+COPY package.json ./
+COPY bun.lockb ./
+COPY src ./
+
+# Install dependencies using Bun
+RUN bun install
+
+# Expose port 3000 for the application
+EXPOSE 3000
+
+# Create a new user to avoid running the app as root for security reasons
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
+# Command to run the application
+CMD ["bun", "src/index.js"]
+
+```
+
+*   **Working Directory**: Ensure the **WORKDIR** is set to **/app**. This is crucial as all operations thereafter are based on this directory.
+*   **Port Configuration**: Verify that the port **3000** is appropriate for your application. Adjust if a different port is required.
+*   **Application Entry Point**: Confirm that **index.js** is the correct entry point for your application. This should be the main file where your app starts execution.
+
+</Aside>
+            
+
+**Bun Upgrade**
+
+To update Bun to the latest stable version, run the command bun upgrade in your terminal.
+If you want to experiment with the newest features, you can install the Canary version by using the command bun upgrade --canary.
+This will download and apply the latest experimental version available.
+
+<Aside type="tip" title="Tips: Quick Bun Upgrade Command">
+
+**Latest Version**
+
+```shell
+bun upgrade
+```
+
+**Canary Version**
+
+```shell
+bun upgrade --canary
+```
+
+</Aside>
+
+### Bun Cheatsheet
+
+This Bun Cheatsheet provides a concise overview of the most commonly used commands in the Bun toolkit.
+The sheet is designed to serve as a quick reference guide, helping developers efficiently navigate through Bun's capabilities.
+Whether you're installing packages, running scripts, or setting up projects, this cheatsheet can help streamline your workflow with Bun.
+
+| Command | Description | Command Example | Note |
+|---------|-------------|-----------------|------|
+| Bun Run | This will execute the script (Javascript / Typescript) within the runtime engine. | `bun run` | This should replace `npm run` with `bun run`. |
+| Bun Clean | To remove the cache: | `bun run clean` | - |
+| Bun Hot | Bun will live reload the application, similar to file watchers like nodemon. | `bun run --hot index.ts` | - |
+| Bun Dependencies Install | This will install the dependencies for the application using an extremely fast npm-compatible package manager. | `bun install` | This should replace `yarn install` or `npm install` with `bun install`. |
+
+
+**Bun Flags**
+        
+| Flag         | Description                            |
+| ------------ | -------------------------------------- |
+| --npm        | Use `npm` for tasks & install          |
+| --yarn       | Use `yarn` for tasks & install         |
+| --pnpm       | Use `pnpm` for tasks & install         |
+| --force      | Overwrite existing files               |
+| --no-install | Skip installing `node_modules` & tasks |
+| --no-git     | Don’t initialize a git repository      |
+| --open       | Start & open in-browser after finish   |
+
+---
+
 
 ## React
 
@@ -748,154 +925,6 @@ Option B: Brew Install Node (directly)
         ```js
         <object client:only="svelte" />
         ```
-
----
-
-## Bun
-
-<Aside>
-**Bun** is a batteries-included runtime engine that bundles, transpiles, installs and runs Javascript / typescript with a task runner.
-</Aside>
-
-&emsp; &emsp; Bun is a modern JavaScript and TypeScript runtime, similar to Node.js but designed to be significantly faster and more efficient.
-It integrates several functionalities such as bundling, transpiling, package management, and running JavaScript/TypeScript code.
-Bun is optimized for performance and aims to streamline the development process by combining multiple tools into one comprehensive package.
-
-<Card title="Key Highlights of Bun">Essential Features of Bun.</Card>
-
-<CardGrid>
-  <Card title="Bundling" icon="seti:odata">
-    Bun comes with a built-in bundler that efficiently packages your JavaScript or TypeScript files into a single file, ready for production. This helps in reducing load times and improving performance by minimizing the number of server requests.
-  </Card>
-  <Card title="Transpiling" icon="codePen">
-    It supports on-the-fly transpilation of modern JavaScript and TypeScript, allowing developers to use the latest language features without worrying about browser compatibility.
-  </Card>
-  <Card title="Package Management" icon="document">
-    Bun includes a fast package manager that can install dependencies up to three times faster than npm or Yarn. It directly handles dependency resolution and integrates seamlessly with the broader npm ecosystem.
-  </Card>
-  <Card title="Task Running" icon="setting">
-    Beyond running scripts, Bun can be used as a task runner, automating routine development tasks like minification, compilation, and testing, much like Gulp or Grunt.
-  </Card>
-  <Card title="Speed and Performance" icon="seti:bicep">
-    One of the standout features of Bun is its focus on performance. Built on Zig, a language known for its speed and low overhead, Bun is engineered to execute JavaScript code very quickly, competing directly with established runtimes like Node.js and Deno.
-  </Card>
-  <Card title="Modern Syntax Support" icon="seti:tsconfig">
-    Bun automatically supports modern JavaScript and TypeScript syntax without the need for additional plugins or configurations. This feature ensures developers can immediately take advantage of the latest language improvements and coding techniques.
-</Card>
-</CardGrid>
-
-
-### Bun Install
-
-    -   CLI for MacOS, Linux and Windows (through WSL)
-
-        -   ```shell
-                curl https://bun.sh/install | bash
-            ```
-
-    -   Homebrew for MacOS / Linux
-
-        -   ```shell
-                brew tap oven-sh/bun
-                brew install bun
-            ```
-
-    -   Docker
-
-        -   Bun recommends using the `jarredsumner/bun:edge` build as the Docker base.
-
-            -   ```shell
-                docker pull jarredsumner/bun:edge
-                docker run --rm --init --ulimit memlock=-1:-1 jarredsumner/bun:edge
-                ```
-
-        -   Example of Docker build:
-
-            -   ```shell
-                FROM jarredsumner/bun:edge
-                WORKDIR /app
-                COPY package.json package.json
-                COPY bun.lockb bun.lockb
-                RUN bun install
-                COPY . .
-                EXPOSE 3000
-                ENTRYPOINT ["bun", "index.js"]
-                ```
-
-                -   Remember to double check the working directory variable : `WORKDIR /app`
-                -   Make sure the port `3000` is the one being used by your application.
-                -   Ensure that `index.js` is the start of your application.
-
-### Bun Upgrade
-
-    -   CLI
-
-        -   Latest Version
-
-            -   ```shell
-                bun upgrade
-                ```
-
-        -   Canary Version
-
-            -   ```shell
-                bun upgrade --canary
-                ```
-
-### Bun Commands
-
-    Quick cheatsheet on the general commands for `bun`.
-
-    #### Bun Run
-
-        This will execute the script (Javascript / Typescript) within the runtime engine.
-
-        ```shell
-        bun run
-        ```
-
-        This should replace `npm run` with `bun run`.
-
-    #### Bun Clean
-
-        To remove the cache:
-
-        ```shell
-        bun run clean
-        ```
-
-    #### Bun Hot
-
-        Hot Reload : Bun will live reload the application, similar to file watchers like nodemon.
-
-        ```shell
-        bun run --hot index.ts
-            ```
-
-    #### Bun Dependencies Install
-
-    This will install the dependencies for the application using an extremely fast npm-compatible package manager.
-
-    ```shell
-    bun install
-    ```
-
-        > This should replace `yarn install` or `npm install` with `bun install`
-
-    #### Bun Flags
-
-        This chart is from the official documentation.
-
-        | Flag         | Description                            |
-        | ------------ | -------------------------------------- |
-        | --npm        | Use `npm` for tasks & install          |
-        | --yarn       | Use `yarn` for tasks & install         |
-        | --pnpm       | Use `pnpm` for tasks & install         |
-        | --force      | Overwrite existing files               |
-        | --no-install | Skip installing `node_modules` & tasks |
-        | --no-git     | Don’t initialize a git repository      |
-        | --open       | Start & open in-browser after finish   |
-
 ---
 
 ## MDX

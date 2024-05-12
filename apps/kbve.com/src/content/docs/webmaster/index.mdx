@@ -695,7 +695,6 @@ Webmasters create XML sitemaps to list URLs along with additional metadata about
 HTML sitemaps, on the other hand, aid users in navigating the website, enhancing both usability and SEO.
 Regularly updating the sitemap and submitting it through search engine webmaster tools, like Google Search Console, plays a crucial role in maintaining up-to-date search engine visibility and optimizing a website's discoverability.
 
-
 ### XML Sitemap
 
 Expanded table for XML Sitemap Schemas:
@@ -720,7 +719,6 @@ Expanded table for XML Sitemap Schemas:
 | **newsarchive**    | A container element for a list of news articles, allowing for multiple news articles to be combined into a single file. |
 | **productdata**    | A container element for a list of product data, allowing for multiple products to be combined into a single file.       |
 | **articlearchive** | A container element for a list of article URLs, allowing for multiple articles to be combined into a single file.       |
-
 
 An XML sitemap serves as a comprehensive directory that catalogues URLs within a site along with crucial metadata for each URL.
 Recognized and supported by search engines, these sitemaps enhance the efficiency with which search engines crawl websites.
@@ -759,8 +757,8 @@ The XML file functions as an index, listing the individual sitemap files, thereb
 
 The structure of a Sitemap Index file includes a root tag `<sitemapindex>` and individual `<sitemap>` entries for each sitemap file listed. Each `<sitemap>` element contains:
 
-*   **`<loc>`**: The URL location of the sitemap file, which can also be compressed files (as denoted by the `.gz` extension to save bandwidth).
-*   **`<lastmod>`**: The last modification timestamp of the sitemap file, which helps search engines determine how frequently they should crawl the sitemap for updates.
+-   **`<loc>`**: The URL location of the sitemap file, which can also be compressed files (as denoted by the `.gz` extension to save bandwidth).
+-   **`<lastmod>`**: The last modification timestamp of the sitemap file, which helps search engines determine how frequently they should crawl the sitemap for updates.
 
 <Aside>
 
@@ -779,24 +777,31 @@ The structure of a Sitemap Index file includes a root tag `<sitemapindex>` and i
 </sitemapindex>
 
 ```
+
 </Aside>
 
 ---
 
 ## Mobile
 
+-   TODO
+
 ---
 
 ## Schema
 
-Table representing the Schema.org options:
+Schema.org is a collaborative, community-driven initiative launched by major search engines such as Google, Microsoft, Yahoo, and Yandex, aimed at creating, maintaining, and promoting schemas for structured data on the Internet.
+The schemas provided by Schema.org help webmasters and developers to markup their pages in ways that can be recognized by major search providers, enhancing the display of search results through rich snippets and improving search relevance.
+The structured data vocabulary covers a vast array of types, from generic items like "Person" and "Place" to more specific entities like "Movie" or "Book".
+Implementing Schema.org markup can significantly impact a site's SEO performance, making its content more discoverable and effectively indexed by search engines.
 
-| Schema.org Option              | Description                                                                                                                                                                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| RDFa (RDFa 1.1)                | A W3C standard for embedding RDF data in HTML documents. RDFa is used to add semantic meaning to web pages, making it easier for search engines and other applications to understand the content.                               |
-| Microdata                      | A W3C standard for embedding structured data in HTML documents. Microdata is used to define specific parts of an HTML document, such as a name, address, or phone number.                                                       |
-| JSON-LD (JSON for Linked Data) | A lightweight, JavaScript-based format for representing structured data. JSON-LD is used to add semantic meaning to web pages, making it easier for search engines and other applications to understand the content.            |
-| Microformats                   | A simple, lightweight format for embedding structured data in HTML documents. Microformats are used to add semantic meaning to web pages, making it easier for search engines and other applications to understand the content. |
+
+| Schema.org Option              | Description                                                                                                                                                                                                                                                                             |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RDFa (RDFa 1.1)                | RDFa (Resource Description Framework in attributes) is a W3C standard that embeds rich metadata within HTML tags using additional attributes. It supports a range of vocabularies and enables complex representations of data relationships, enhancing semantic clarity in web content. |
+| Microdata                      | Microdata, a W3C standard similar to RDFa, integrates semantic annotations directly into HTML tags. It's used to define specific parts of HTML documents, like names or addresses, with a syntax that is simpler and more straightforward, ideal for basic annotations.                 |
+| JSON-LD (JSON for Linked Data) | JSON-LD is a lightweight, JavaScript-based format designed for representing structured data. As a preferred format for its separation from HTML, it facilitates the addition of semantic meaning to web pages, enhancing content understandability for search engines and apps.         |
+| Microformats                   | Microformats are a simple, lightweight format for embedding structured data using existing HTML standards. Utilizing class names and rel attributes, they are used to add straightforward semantic meanings to web pages, suitable for less complex data scenarios.                     |
 
 ### Structured Data
 
@@ -819,16 +824,15 @@ Table representing the different types of structured data:
 | **Locations**        | Locations, including addresses, maps, and coordinates.                                    |
 | **FAQs**             | Frequently Asked Questions, including questions and answers.                              |
 
-
 ### Rich Snippets
 
-- TODO
+-   TODO
 
 ---
 
 ## Languages
 
-- TODO
+-   TODO
 
 ### Langcodes
 
@@ -838,7 +842,7 @@ Table representing the different types of structured data:
 
 ### i18n
 
-- TODO
+-   TODO
 
 ---
 
