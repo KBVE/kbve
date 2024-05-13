@@ -352,8 +352,8 @@ importers:
         specifier: 18.3.3
         version: 18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))
       '@nxlv/python':
-        specifier: 17.0.0
-        version: 17.0.0(@iarna/toml@2.2.5)(@nx/devkit@18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))))(chalk@5.3.0)(command-exists@1.2.9)(cross-spawn@7.0.3)(file-uri-to-path@2.0.0)(fs-extra@11.2.0)(lodash@4.17.21)(mock-fs@5.2.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(string-dedent@3.0.1)(uuid@9.0.1)
+        specifier: 18.0.1
+        version: 18.0.1(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))
       '@nxtensions/astro':
         specifier: 18.2.1
         version: 18.2.1(@nx/cypress@18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(cypress@13.8.0)(js-yaml@4.1.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4))(@nx/devkit@18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))))(@nx/js@18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4))(@nx/playwright@18.3.3(@babel/traverse@7.24.1)(@playwright/test@1.43.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(js-yaml@4.1.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4))(astro@4.6.3(@types/node@18.19.17)(less@4.1.3)(lightningcss@1.22.0)(sass@1.75.0)(stylus@0.59.0)(terser@5.30.3)(typescript@5.4.4))(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)
@@ -3119,21 +3119,8 @@ packages:
   '@nx/workspace@18.3.3':
     resolution: {integrity: sha512-SUJJKzOUuNnclpHHde6f6nlF+pQwMjeF026jFpWDFaNzdsADhhRulkz0GLRXB9kKszvzz2JKde9WBWnKrFZ2IQ==}
 
-  '@nxlv/python@17.0.0':
-    resolution: {integrity: sha512-QVt0sn6r1rsYzaKuzHxhm05q+qqEz/Lf/w5YCYF5kOysDmgnmWNwfL/2Q+ZmzVHJdLdfrzLD41t0kvUCi59jEw==}
-    peerDependencies:
-      '@iarna/toml': ^2.2.5
-      '@nx/devkit': ^17.0.0
-      chalk: ^4.1.1
-      command-exists: ^1.2.9
-      cross-spawn: ^7.0.3
-      file-uri-to-path: ^2.0.0
-      fs-extra: ^11.1.0
-      lodash: 4.17.21
-      mock-fs: ^5.2.0
-      nx: ^17.0.0
-      string-dedent: ^3.0.1
-      uuid: ^9.0.0
+  '@nxlv/python@18.0.1':
+    resolution: {integrity: sha512-iNaUOhGKA/OKIo9LFBjR92tRpY868Cz5/V0SYdy6nAy9kuUMyhkX3iGGzAD6+++7aTztumgLVRn/O6HkG5qOqg==}
 
   '@nxtensions/astro@18.2.1':
     resolution: {integrity: sha512-f4OcXgGfVtAQCrYFPLXTlVSFH/BhGYulwm29B4pCoZwjxEww6Txg434B1t2Y1wDQhqX9/+8sbIi/fGbPbXMBzQ==}
@@ -10051,10 +10038,6 @@ packages:
   mnemonist@0.39.8:
     resolution: {integrity: sha512-vyWo2K3fjrUw8YeeZ1zF0fy6Mu59RHokURlld8ymdUPjMlD9EC9ov1/YPqTgqRvUN9nTr3Gqfz29LYAmu0PHPQ==}
 
-  mock-fs@5.2.0:
-    resolution: {integrity: sha512-2dF2R6YMSZbpip1V1WHKGLNjr/k48uQClqMVb5H3MOvwc9qhYis3/IWbj02qIg/Y8MDXKFF4c5v0rxx2o6xTZw==}
-    engines: {node: '>=12.0.0'}
-
   moti@0.27.5:
     resolution: {integrity: sha512-6PbHgNTzSyipTon57TBm5w3/cKKMZVugq/Ey2YLbZbMLxsmL4uz6zGO0uBcZWkKaVqm9O8LcK+WdGMyNiR2yrg==}
     peerDependencies:
@@ -12173,10 +12156,6 @@ packages:
   string-argv@0.3.2:
     resolution: {integrity: sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q==}
     engines: {node: '>=0.6.19'}
-
-  string-dedent@3.0.1:
-    resolution: {integrity: sha512-A2zCXSgpPrpFi1lDJlDwIPYakBWeDtQZ8ZBKssB8M/WbtNEKTzsl1yCDRmHx55jSB27xZDQ6NOtRYekESWx6fw==}
-    engines: {node: '>=0.12.0'}
 
   string-length@4.0.2:
     resolution: {integrity: sha512-+l6rNN5fYHNhZZy41RXsYptCjA2Igmq4EG7kZAYFQI1E1VTXarr6ZPXBg6eq7Y6eK4FEhY6AJlyuFIb/v/S0VQ==}
@@ -17818,21 +17797,23 @@ snapshots:
       - '@swc/core'
       - debug
 
-  '@nxlv/python@17.0.0(@iarna/toml@2.2.5)(@nx/devkit@18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))))(chalk@5.3.0)(command-exists@1.2.9)(cross-spawn@7.0.3)(file-uri-to-path@2.0.0)(fs-extra@11.2.0)(lodash@4.17.21)(mock-fs@5.2.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(string-dedent@3.0.1)(uuid@9.0.1)':
+  '@nxlv/python@18.0.1(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))':
     dependencies:
       '@iarna/toml': 2.2.5
       '@nx/devkit': 18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))
-      chalk: 5.3.0
+      chalk: 4.1.2
       command-exists: 1.2.9
       cross-spawn: 7.0.3
       file-uri-to-path: 2.0.0
       fs-extra: 11.2.0
       lodash: 4.17.21
-      mock-fs: 5.2.0
       nx: 18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))
-      string-dedent: 3.0.1
       tslib: 2.6.2
       uuid: 9.0.1
+    transitivePeerDependencies:
+      - '@swc-node/register'
+      - '@swc/core'
+      - debug
 
   ? '@nxtensions/astro@18.2.1(@nx/cypress@18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(cypress@13.8.0)(js-yaml@4.1.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4))(@nx/devkit@18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))))(@nx/js@18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4))(@nx/playwright@18.3.3(@babel/traverse@7.24.1)(@playwright/test@1.43.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(js-yaml@4.1.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4))(astro@4.6.3(@types/node@18.19.17)(less@4.1.3)(lightningcss@1.22.0)(sass@1.75.0)(stylus@0.59.0)(terser@5.30.3)(typescript@5.4.4))(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)'
   : dependencies:
@@ -27293,8 +27274,6 @@ snapshots:
     dependencies:
       obliterator: 2.0.4
 
-  mock-fs@5.2.0: {}
-
   moti@0.27.5(react-dom@18.2.0(react@18.2.0))(react-native-reanimated@3.8.1(@babel/core@7.24.4)(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0))(react@18.2.0):
     dependencies:
       framer-motion: 6.5.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -29748,8 +29727,6 @@ snapshots:
   strict-uri-encode@2.0.0: {}
 
   string-argv@0.3.2: {}
-
-  string-dedent@3.0.1: {}
 
   string-length@4.0.2:
     dependencies:
