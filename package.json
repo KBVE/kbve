@@ -22,7 +22,7 @@
     "@colyseus/playground": "^0.15.12",
     "@colyseus/tools": "^0.15.36",
     "@expo/cli": "~0.16.5",
-    "@monodon/rust": "1.4.0",
+    "@monodon/rust": "1.2.0",
     "@nanostores/persistent": "^0.9.1",
     "@nanostores/react": "^0.7.2",
     "@nestjs/schematics": "^10.0.1",
