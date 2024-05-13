@@ -150,8 +150,8 @@ importers:
         specifier: ^11.0.6
         version: 11.1.7(@emotion/is-prop-valid@1.2.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       grid-engine:
-        specifier: ^2.44.2
-        version: 2.44.2(phaser@3.80.1)
+        specifier: ^2.44.6
+        version: 2.44.6(phaser@3.80.1)
       gsap:
         specifier: ^3.12.5
         version: 3.12.5
@@ -8115,10 +8115,10 @@ packages:
     resolution: {integrity: sha512-5v6yZd4JK3eMI3FqqCouswVqwugaA9r4dNZB1wwcmrD02QkV5H0y7XBQW8QwQqEaZY1pM9aqORSORhJRdNK44Q==}
     engines: {node: '>=6.0'}
 
-  grid-engine@2.44.2:
-    resolution: {integrity: sha512-c1ZkODzD1qonq8Q9OhhEYeyWbOJxpOkmeYX4UKp3X+Vh22AGaER4mT2Kl8htgWATN71b40PkUQSNzimI4s66rQ==}
+  grid-engine@2.44.6:
+    resolution: {integrity: sha512-i6yOilO07Wj6wTY6Gh+CGfDO3TMryvUhVyuKsJo7CqZB5tmZlTWjfm0yOguBlqPByu7GGxZEvVKnfDiQDCxjsQ==}
     peerDependencies:
-      phaser: ~3.70.0
+      phaser: ~3.80.1
 
   grpc-tools@1.12.4:
     resolution: {integrity: sha512-5+mLAJJma3BjnW/KQp6JBjUMgvu7Mu3dBvBPd1dcbNIb+qiR0817zDpgPjS7gRb+l/8EVNIa3cB02xI9JLToKg==}
@@ -24870,7 +24870,7 @@ snapshots:
       section-matter: 1.0.0
       strip-bom-string: 1.0.0
 
-  grid-engine@2.44.2(phaser@3.80.1):
+  grid-engine@2.44.6(phaser@3.80.1):
     dependencies:
       mnemonist: 0.39.8
       phaser: 3.80.1

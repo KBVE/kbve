@@ -167,7 +167,7 @@
     "expo-status-bar": "~1.11.1",
     "express": "^4.18.1",
     "framer-motion": "^11.0.6",
-    "grid-engine": "^2.44.2",
+    "grid-engine": "^2.44.6",
     "gsap": "^3.12.5",
     "html-react-parser": "^5.1.10",
     "http-proxy-middleware": "^2.0.6",
