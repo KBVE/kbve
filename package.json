@@ -158,7 +158,7 @@
     "drizzle-orm": "^0.29.5",
     "drizzle-zod": "^0.5.1",
     "enable3d": "^0.25.4",
-    "expo": "~50.0.3",
+    "expo": "~50.0.18",
     "expo-font": "^11.10.3",
     "expo-linear-gradient": "^12.7.2",
     "expo-linking": "^6.2.2",
