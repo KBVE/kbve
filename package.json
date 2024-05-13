@@ -46,7 +46,7 @@
     "@nx/web": "18.3.3",
     "@nx/webpack": "18.3.3",
     "@nx/workspace": "18.3.3",
-    "@nxlv/python": "17.0.0",
+    "@nxlv/python": "18.0.1",
     "@nxtensions/astro": "18.2.1",
     "@playwright/test": "^1.36.0",
     "@swc-node/register": "1.8.0",
