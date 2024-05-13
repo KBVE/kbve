@@ -160,7 +160,7 @@
     "enable3d": "^0.25.4",
     "expo": "~51.0.2",
     "expo-font": "^12.0.4",
-    "expo-linear-gradient": "^12.7.2",
+    "expo-linear-gradient": "^13.0.2",
     "expo-linking": "^6.2.2",
     "expo-router": "^3.4.8",
     "expo-splash-screen": "~0.26.1",
