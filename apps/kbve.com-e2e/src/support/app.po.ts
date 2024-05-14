@@ -1,3 +1,5 @@
+
+
 export const getGreeting = () => cy.get('h1');
 export const getLegal = (links: string[]) =>
 	cy.get('footer').within(() => {
@@ -57,6 +59,7 @@ export const getNodeGraph = () => {
 		.should('match', /^three\.js/);
 
 	// Minor Interactivity Check
+	// eslint-disable-next-line cypress/unsafe-to-chain-command
 	cy.get('#nodegraph canvas')
 		.trigger('mousedown', { button: 0, clientX: 100, clientY: 100 })
 		.trigger('mousemove', { clientX: 150, clientY: 150 })
