@@ -1001,11 +1001,302 @@ module.exports = {
 
 ## MUI
 
-    -   MUI (formerly Material-UI) is a popular React UI framework that implements Google's Material Design principles.
+MUI, formerly known as Material-UI, stands as a prominent React UI framework that brings Google's Material Design principles to life. 
+Offering an extensive collection of React components and CSS-in-JS styling solutions, MUI enables developers to create responsive and visually consistent web applications with ease.
+With its standardized design components and patterns, MUI ensures cohesive and professional user interfaces, making it an invaluable asset for modern web development.
 
-    -   It offers a comprehensive set of React components, along with CSS-in-JS styling solutions, to build responsive web applications efficiently.
+### MUI Setup
 
-    -   MUI promotes consistent user interfaces by providing standardized design components and patterns.
+<Steps>
+
+0.  **Install PNPM (Optional)**:
+
+    If pnpm is not already installed, you can install it globally using npm:
+    
+    ```shell
+    npm install -g pnpm
+    ```
+
+1.  **Initialize Your Project**:
+
+    Create a new project directory and initialize it with pnpm:
+
+    ```shell
+    mkdir my-mui-project
+    cd my-mui-project
+    pnpm init
+    ```
+
+2.  **Install React and React DOM**:
+
+    Install React and React DOM, which are required for using MUI:
+
+    ```shell
+    pnpm add react react-dom
+    ```
+
+3.  **Install MUI Core**:
+
+    Install the core MUI package and its dependencies:
+
+    ```shell
+    pnpm add @mui/material @emotion/react @emotion/styled
+    ```
+
+4.  **Set Up Your Project Structure**:
+
+    We will create a basic project structure for this MUI example!
+
+    <FileTree>
+
+    - my-mui-project/
+        - public/
+            - index.html
+        - src/
+            - App.js
+            - index.js
+            - style.css
+        - package.json
+        - pnpm-lock.yaml
+    - README.md
+
+    </FileTree>
+
+    <Aside title="Note: MUI Project README">
+        Use the README.md file to document your MUI project notes, installation steps, and any useful references for future development.
+        
+        Be sure to link back to this section :D
+    </Aside>
+
+5.  **Create an HTML File**:
+
+    In the `public` directory, create an `index.html` file:
+
+    ```html
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MUI Project</title>
+    </head>
+    <body>
+        <div id="root"></div>
+    </body>
+    </html>
+    ```
+
+    <Aside title="Note: Understanding the HTML Code">
+
+        ```html 
+        <div id="root"></div>
+        ``` 
+        This div container is where the React app will be mounted.
+    </Aside>
+
+6.  **Create Your React Application**:
+
+    In the `src` directory, create an `index.js` file to serve as the entry point for your React application:
+
+    ```js
+    import React from 'react';
+    import ReactDOM from 'react-dom';
+    import App from './App';
+    import './styles.css';
+
+    ReactDOM.render(
+        <React.StrictMode>
+            <App />
+        </React.StrictMode>,
+        document.getElementById('root')
+    );
+
+    ```
+
+7.  **Create the Main App Component**:
+
+    Create an `App.js` file in the `src` directory and set up a basic MUI component:
+
+    ```js
+    import React from 'react';
+    import { Button, Container, Typography } from '@mui/material';
+
+    function App() {
+        return (
+            <Container>
+            <Typography variant="h2" component="h1" gutterBottom>
+                Welcome to MUI
+            </Typography>
+            <Button variant="contained" color="primary">
+                Hello World
+            </Button>
+            </Container>
+        );
+    }
+
+    export default App;
+
+    ```
+
+8.  **Add Basic Styling**:
+
+    Create a `styles.css` file in the `src` directory to add some basic styling:
+
+    ```css
+
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #root {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+    ```
+
+9.  **Configure Babel**:
+
+    If your project uses advanced JavaScript features or JSX, you might need to set up Babel. First, create a `.babelrc` file in the root directory:
+
+    ```json
+    {
+        "presets": ["@babel/preset-env", "@babel/preset-react"]
+    }
+    ```
+
+    Next, install Babel dependencies:
+
+    ```shell
+    pnpm add -D @babel/core @babel/preset-env @babel/preset-react babel-loader
+    ```
+
+    
+    <FileTree>
+
+    - my-mui-project/
+        - public/
+            - index.html
+        - src/
+            - App.js
+            - index.js
+            - style.css
+        - package.json
+        - pnpm-lock.yaml
+        - **.babelrc**
+    - README.md
+
+    </FileTree>
+
+10. **Configure Webpack**:
+
+    To bundle your application, you may want to set up Webpack. Create `webpack.config.js` in the root directory:
+
+    
+    <FileTree>
+
+    - my-mui-project/
+        - public/
+            - index.html
+        - src/
+            - App.js
+            - index.js
+            - style.css
+        - package.json
+        - pnpm-lock.yaml
+        - .babelrc
+        - **webpack.config.js**
+    - README.md
+
+    </FileTree>
+
+    ```js
+
+    const path = require('path');
+    const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+    module.exports = {
+    entry: './src/index.js',
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'bundle.js',
+    },
+    module: {
+        rules: [
+        {
+            test: /\.(js|jsx)$/,
+            exclude: /node_modules/,
+            use: {
+            loader: 'babel-loader',
+            },
+        },
+        {
+            test: /\.css$/,
+            use: ['style-loader', 'css-loader'],
+        },
+        ],
+    },
+    plugins: [
+        new HtmlWebpackPlugin({
+        template: './public/index.html',
+        }),
+    ],
+    resolve: {
+        extensions: ['.js', '.jsx'],
+    },
+    devServer: {
+        contentBase: path.join(__dirname, 'dist'),
+        compress: true,
+        port: 3000,
+    },
+    };
+    ```
+
+    Install Webpack and its dependencies:
+
+    ```shell
+    pnpm add -D webpack webpack-cli webpack-dev-server html-webpack-plugin style-loader css-loader
+    ```
+
+11. **Add Scripts to Package.json**:
+
+    Add the following scripts to your `package.json` to build and start your application:
+
+    ```json
+    {
+        "scripts": {
+            "start": "webpack serve --mode development",
+            "build": "webpack --mode production"
+        }
+    }
+    ```
+
+12. **Start Your Development Server**:
+
+    Run the development server to see your MUI application in action:
+
+    ```shell
+    pnpm start
+    ```
+
+    Open your browser and navigate to `http://localhost:3000`. You should see your MUI application running with a button and some text.
+
+</Steps>
+
+<Aside type="tip" title="Tips for MUI!">
+
+- Use meaningful and descriptive names for your components to make your code more readable.
+- Keep your components small and focused on a single task for better maintainability.
+- Regularly commit your code to version control to track changes and collaborate effectively.
+- Take advantage of MUI's extensive documentation and examples to learn more about its features and best practices.
+- Use a linter and formatter to keep your code consistent and error-free.
+
+</Aside>
+
+
 
 ---
 
@@ -1016,6 +1307,134 @@ Built to interpret and render animations exported as JSON data from Adobe After 
 With platform-specific integrations for iOS, Android, and the web, Lottie ensures that animations remain sharp and fluid across different screen resolutions and devices.
 By providing a more interactive and visually engaging user experience, Lottie has become a game-changer in the realm of modern app design and development.
 
+
+<Aside>
+
+There are a couple different lottie libraries that you can use!
+Try to pick the one that best fits your website or application!
+
+</Aside>
+
+### Lottie Web Setup
+
+<Steps>
+
+1.  **Install Lottie Web**:
+
+    First, you need to install the Lottie web library.
+    You can do this using npm or pnpm. 
+    Open your terminal and run the following command:
+
+    ```shell
+    pnpm add lottie-web
+    ```
+
+2.  **Set Up Your Project Structure**:
+
+    Create a basic lottie web project structure
+    Here is an example of the layout:
+
+    <FileTree>
+
+    - my-project/
+        - src/
+            - index.html
+            - animations/
+                - animation.json
+            - js/
+                - main.js
+        - css/
+            - styles.css
+        - package.json
+        - pnpm-lock.yaml
+    - README.md
+
+    </FileTree>
+
+3.  **Create an HTML File**:
+
+    Create an `index.html` file in the `src` directory:
+    Here is a starter html template:
+
+    ```html
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Lottie Animation Example</title>
+            <link rel="stylesheet" href="../css/styles.css">
+        </head>
+        <body>
+            <div id="animationContainer" style="width: 500px; height: 500px;"></div>
+            <script src="../js/main.js"></script>
+        </body>
+    </html>
+    ```
+
+4.  **Add Lottie Animation JSON File**:
+
+    Place your Lottie animation JSON file in the `src/animations` directory. 
+    You can export this JSON file from Adobe After Effects using the Bodymovin plugin.
+
+    You can also use our [sister website, Rare Icon,](https://rareicon.com/) to grab Lottie JSONs.
+
+5.  **Add Lottie to Your JavaScript File**:
+
+    In your `js/main.js` file, initialize Lottie and load your animation:
+
+    ```js
+
+    import lottie from 'lottie-web';
+
+    const animationContainer = document.getElementById('animationContainer');
+
+    const animation = lottie.loadAnimation({
+        container: animationContainer, // the DOM element that will contain the animation
+        renderer: 'svg', // the rendering method: 'svg', 'canvas', or 'html'
+        loop: true, // whether the animation should loop
+        autoplay: true, // whether the animation should start automatically
+        path: '../animations/animation.json' // the path to the animation JSON file
+    });
+    ```
+
+
+6.  **Add Basic CSS**:
+
+    Add some basic CSS to `css/styles.css` to style your page: 
+
+    ```css
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    #animationContainer {
+        border: 2px solid #333;
+    }
+
+    ```
+
+7.  **Test Your Setup**:
+
+    Start a local server to test your setup. You can use a simple server like `http-server`:
+
+    ```shell
+    # Install http-server globally
+    npm install -g http-server
+
+    # Start the server
+    http-server src
+    ```
+
+    Open your browser and navigate to the URL provided by `http-server`.
+    You should see your Lottie animation playing in the `animationContainer` div.
+
+</Steps>
 
 
 
