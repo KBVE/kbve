@@ -10,6 +10,7 @@ describe('kbve.com', () => {
 	beforeEach(() => cy.visit('/'));
 
 	it('should display welcome message', () => {
+		//TODO Move this into Cypress ENV
 		cy.login('my-email@something.com', 'myPassword');
 
 		getGreeting().contains('Meet Your Dream');
@@ -30,8 +31,8 @@ describe('API JSON Format Tests', () => {
 		const apiEndpoints = [
 			'/api/graph.json',
 			'/api/music.json',
-      'https://rust.kbve.com/api/v1/health',
-      'https://rust.kbve.com/api/v1/speed'
+			'https://rust.kbve.com/api/v1/health',
+			'https://rust.kbve.com/api/v1/speed',
 			// Add more API endpoints as needed
 		];
 		checkJSONendpointAPI(apiEndpoints);
