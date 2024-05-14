@@ -14,7 +14,14 @@ tags:
     - js
 ---
 
-import { Aside, Steps, Card, CardGrid, Code } from '@astrojs/starlight/components';
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
 
 ## Information
 
@@ -313,7 +320,7 @@ While the Abstract Factory pattern is powerful for promoting consistency among p
         ```
 
 6.  **Test Your Implementation**:
-        Test the implementation to confirm that the correct vehicle types are being created and that they behave as intended, ensuring that the factory logic correctly encapsulates the creation details.
+    Test the implementation to confirm that the correct vehicle types are being created and that they behave as intended, ensuring that the factory logic correctly encapsulates the creation details.
 
         This example illustrates how the Abstract Factory pattern can be applied to a vehicle manufacturing scenario, facilitating the creation of products that are tailored for specific environmental conditions without exposing the creation logic to the client code.
 
@@ -549,7 +556,6 @@ This unity simplifies the development process and makes it more cohesive. Npm, N
 Node’s utility extends beyond typical web applications. It’s also used for developing command-line tools, chat applications, data-intensive real-time applications, and even for IoT devices.
 With its continuous development, strong community support, and adaptability to modern development needs, Node.js is a prime example of how server-side development has transformed in the modern era.
 
-
 ### NodeJS Installation
 
 Getting Started with Node.js Installation
@@ -562,8 +568,8 @@ Installing Node.js is the first step towards using its rich ecosystem for develo
 
 When planning to install Node.js, you have two main versions to consider:
 
-*   **LTS (Long-Term Support)**: This version is best for most users, especially in production environments, because it receives security and stability updates for an extended period.
-*   **Current**: This version includes the latest features and updates. It's suitable for developers who want to experiment with the newest capabilities of Node.js but might be less stable than the LTS version.
+-   **LTS (Long-Term Support)**: This version is best for most users, especially in production environments, because it receives security and stability updates for an extended period.
+-   **Current**: This version includes the latest features and updates. It's suitable for developers who want to experiment with the newest capabilities of Node.js but might be less stable than the LTS version.
 
 Using the LTS version ensures that you are working on a stable and well-supported platform, which is crucial for application stability and security.
 
@@ -571,9 +577,9 @@ Using the LTS version ensures that you are working on a stable and well-supporte
 
 Node.js versions are important because of the following reasons:
 
-*   **API Stability**: Different versions of Node.js may have varying API compatibilities. LTS versions guarantee backward compatibility with older stable APIs.
-*   **Security**: Newer versions receive security updates that protect your application from vulnerabilities.
-*   **Features**: Newer versions typically have new features that are not available or are backported to older versions. Using the current version allows developers to utilize the latest features.
+-   **API Stability**: Different versions of Node.js may have varying API compatibilities. LTS versions guarantee backward compatibility with older stable APIs.
+-   **Security**: Newer versions receive security updates that protect your application from vulnerabilities.
+-   **Features**: Newer versions typically have new features that are not available or are backported to older versions. Using the current version allows developers to utilize the latest features.
 
 </Aside>
 
@@ -595,7 +601,7 @@ nvm use node
 
 <Steps>
 
-1.  For Debian-based distributions like Ubuntu, Node.js can be installed via the package manager. 
+1.  For Debian-based distributions like Ubuntu, Node.js can be installed via the package manager.
     First, update your package repository:
 
     ```bash
@@ -603,7 +609,7 @@ nvm use node
     ```
 
 2.  Install Node.js:
-    
+
     ```bash
     sudo apt-get install nodejs
     sudo apt-get install npm
@@ -611,9 +617,7 @@ nvm use node
 
 3.  Verify the installation by typing node -v and npm -v in the terminal.
 
-
 </Steps>
-
 
 **Windows NodeJS Install**
 
@@ -631,7 +635,6 @@ nvm use node
 
 </Steps>
 
-
 <Aside type="tip" title="WSL">
 
 You can choose to install NodeJS in your WSL instance!
@@ -647,19 +650,19 @@ Option A: Brew Install NVM
 brew install nvm
 ```
 
-
 Option B: Brew Install Node (directly)
+
 <Steps>
 
-1.  You can install Node.js via the package from the Node.js website or use a package manager like Homebrew. 
-    
+1.  You can install Node.js via the package from the Node.js website or use a package manager like Homebrew.
+
     To install with Homebrew:
 
     ```bash
     brew install node
     ```
 
-2. Once installed, open a terminal window and type node -v to check the installed version.
+2.  Once installed, open a terminal window and type node -v to check the installed version.
 
 </Steps>
 
@@ -668,7 +671,8 @@ Option B: Brew Install Node (directly)
 ## Bun
 
 <Aside>
-**Bun** is a batteries-included runtime engine that bundles, transpiles, installs and runs Javascript / typescript with a task runner.
+	**Bun** is a batteries-included runtime engine that bundles, transpiles,
+	installs and runs Javascript / typescript with a task runner.
 </Aside>
 
 &emsp; &emsp; Bun is a modern JavaScript and TypeScript runtime, similar to Node.js but designed to be significantly faster and more efficient.
@@ -678,26 +682,40 @@ Bun is optimized for performance and aims to streamline the development process 
 <Card title="Key Highlights of Bun">Essential Features of Bun.</Card>
 
 <CardGrid>
-  <Card title="Bundling" icon="seti:odata">
-    Bun comes with a built-in bundler that efficiently packages your JavaScript or TypeScript files into a single file, ready for production. This helps in reducing load times and improving performance by minimizing the number of server requests.
-  </Card>
-  <Card title="Transpiling" icon="codePen">
-    It supports on-the-fly transpilation of modern JavaScript and TypeScript, allowing developers to use the latest language features without worrying about browser compatibility.
-  </Card>
-  <Card title="Package Management" icon="document">
-    Bun includes a fast package manager that can install dependencies up to three times faster than npm or Yarn. It directly handles dependency resolution and integrates seamlessly with the broader npm ecosystem.
-  </Card>
-  <Card title="Task Running" icon="setting">
-    Beyond running scripts, Bun can be used as a task runner, automating routine development tasks like minification, compilation, and testing, much like Gulp or Grunt.
-  </Card>
-  <Card title="Speed and Performance" icon="seti:bicep">
-    One of the standout features of Bun is its focus on performance. Built on Zig, a language known for its speed and low overhead, Bun is engineered to execute JavaScript code very quickly, competing directly with established runtimes like Node.js and Deno.
-  </Card>
-  <Card title="Modern Syntax Support" icon="seti:tsconfig">
-    Bun automatically supports modern JavaScript and TypeScript syntax without the need for additional plugins or configurations. This feature ensures developers can immediately take advantage of the latest language improvements and coding techniques.
-</Card>
+	<Card title="Bundling" icon="seti:odata">
+		Bun comes with a built-in bundler that efficiently packages your
+		JavaScript or TypeScript files into a single file, ready for production.
+		This helps in reducing load times and improving performance by
+		minimizing the number of server requests.
+	</Card>
+	<Card title="Transpiling" icon="codePen">
+		It supports on-the-fly transpilation of modern JavaScript and
+		TypeScript, allowing developers to use the latest language features
+		without worrying about browser compatibility.
+	</Card>
+	<Card title="Package Management" icon="document">
+		Bun includes a fast package manager that can install dependencies up to
+		three times faster than npm or Yarn. It directly handles dependency
+		resolution and integrates seamlessly with the broader npm ecosystem.
+	</Card>
+	<Card title="Task Running" icon="setting">
+		Beyond running scripts, Bun can be used as a task runner, automating
+		routine development tasks like minification, compilation, and testing,
+		much like Gulp or Grunt.
+	</Card>
+	<Card title="Speed and Performance" icon="seti:bicep">
+		One of the standout features of Bun is its focus on performance. Built
+		on Zig, a language known for its speed and low overhead, Bun is
+		engineered to execute JavaScript code very quickly, competing directly
+		with established runtimes like Node.js and Deno.
+	</Card>
+	<Card title="Modern Syntax Support" icon="seti:tsconfig">
+		Bun automatically supports modern JavaScript and TypeScript syntax
+		without the need for additional plugins or configurations. This feature
+		ensures developers can immediately take advantage of the latest language
+		improvements and coding techniques.
+	</Card>
 </CardGrid>
-
 
 ### Bun Install
 
@@ -719,18 +737,16 @@ curl https://bun.sh/install | bash
 brew tap oven-sh/bun
 brew install bun
 ```
+
 </Aside>
 
-<Aside type='tip' title='Tip: Installation Verification'>
-After installing, verify your Bun installation by running the command below in your terminal:
-```shell
-bun --version
-```
-This command will display the installed version of Bun, confirming a successful installation.
+<Aside type="tip" title="Tip: Installation Verification">
+	After installing, verify your Bun installation by running the command below
+	in your terminal: ```shell bun --version ``` This command will display the
+	installed version of Bun, confirming a successful installation.
 </Aside>
 
 **Bun Docker**
-
 
 Integrating Bun into a Docker environment provides a robust and scalable solution for deploying JavaScript and TypeScript applications.
 Docker containers offer an isolated, consistent environment for applications, ensuring uniform operation across different deployment locations.
@@ -739,13 +755,10 @@ Such a setup promotes easier version control, dependency management, and testing
 Leveraging Docker with Bun enhances the development to production workflow, minimizing discrepancies between environments and reducing deployment conflicts.
 The abstraction layer simplifies configuration processes and boosts overall deployment efficiency and reliability.
 
-
 <Aside type="note" title="Note: Bun Docker CLI">
-To utilize Bun within Docker, use the **oven/bun** image. 
-Execute Bun commands using the following single command: 
-```shell
-docker run --rm oven/bun --init --ulimit memlock=-1:-1 --$command
-```
+	To utilize Bun within Docker, use the **oven/bun** image. Execute Bun
+	commands using the following single command: ```shell docker run --rm
+	oven/bun --init --ulimit memlock=-1:-1 --$command ```
 </Aside>
 
 **Bun DockerFile**
@@ -784,12 +797,11 @@ CMD ["bun", "src/index.js"]
 
 ```
 
-*   **Working Directory**: Ensure the **WORKDIR** is set to **/app**. This is crucial as all operations thereafter are based on this directory.
-*   **Port Configuration**: Verify that the port **3000** is appropriate for your application. Adjust if a different port is required.
-*   **Application Entry Point**: Confirm that **index.js** is the correct entry point for your application. This should be the main file where your app starts execution.
+-   **Working Directory**: Ensure the **WORKDIR** is set to **/app**. This is crucial as all operations thereafter are based on this directory.
+-   **Port Configuration**: Verify that the port **3000** is appropriate for your application. Adjust if a different port is required.
+-   **Application Entry Point**: Confirm that **index.js** is the correct entry point for your application. This should be the main file where your app starts execution.
 
 </Aside>
-            
 
 **Bun Upgrade**
 
@@ -819,16 +831,15 @@ This Bun Cheatsheet provides a concise overview of the most commonly used comman
 The sheet is designed to serve as a quick reference guide, helping developers efficiently navigate through Bun's capabilities.
 Whether you're installing packages, running scripts, or setting up projects, this cheatsheet can help streamline your workflow with Bun.
 
-| Command | Description | Command Example | Note |
-|---------|-------------|-----------------|------|
-| Bun Run | This will execute the script (Javascript / Typescript) within the runtime engine. | `bun run` | This should replace `npm run` with `bun run`. |
-| Bun Clean | To remove the cache: | `bun run clean` | - |
-| Bun Hot | Bun will live reload the application, similar to file watchers like nodemon. | `bun run --hot index.ts` | - |
-| Bun Dependencies Install | This will install the dependencies for the application using an extremely fast npm-compatible package manager. | `bun install` | This should replace `yarn install` or `npm install` with `bun install`. |
-
+| Command                  | Description                                                                                                    | Command Example          | Note                                                                    |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------- |
+| Bun Run                  | This will execute the script (Javascript / Typescript) within the runtime engine.                              | `bun run`                | This should replace `npm run` with `bun run`.                           |
+| Bun Clean                | To remove the cache:                                                                                           | `bun run clean`          | -                                                                       |
+| Bun Hot                  | Bun will live reload the application, similar to file watchers like nodemon.                                   | `bun run --hot index.ts` | -                                                                       |
+| Bun Dependencies Install | This will install the dependencies for the application using an extremely fast npm-compatible package manager. | `bun install`            | This should replace `yarn install` or `npm install` with `bun install`. |
 
 **Bun Flags**
-        
+
 | Flag         | Description                            |
 | ------------ | -------------------------------------- |
 | --npm        | Use `npm` for tasks & install          |
@@ -840,7 +851,6 @@ Whether you're installing packages, running scripts, or setting up projects, thi
 | --open       | Start & open in-browser after finish   |
 
 ---
-
 
 ## React
 
@@ -925,6 +935,7 @@ Whether you're installing packages, running scripts, or setting up projects, thi
         ```js
         <object client:only="svelte" />
         ```
+
 ---
 
 ## MDX
@@ -932,6 +943,7 @@ Whether you're installing packages, running scripts, or setting up projects, thi
 ### MDX Cheatsheet
 
 For indenting within a markdown file, we can use this code to produce a tab.
+
 ```mdx
     &emsp;
 ```
@@ -999,13 +1011,175 @@ module.exports = {
 
 ## Lottie
 
-        Lottie is a dynamic and innovative library developed by Airbnb that bridges the gap between designers and developers by allowing the incorporation of rich, high-quality animations into applications with ease.
-        Built to interpret and render animations exported as JSON data from Adobe After Effects, Lottie facilitates the use of intricate animations without the overhead of traditional image or video files. With platform-specific integrations for iOS, Android, and the web, Lottie ensures that animations remain sharp and fluid across different screen resolutions and devices.
-        By providing a more interactive and visually engaging user experience, Lottie has become a game-changer in the realm of modern app design and development.
+Lottie is a dynamic and innovative library developed by Airbnb that bridges the gap between designers and developers by allowing the incorporation of rich, high-quality animations into applications with ease.
+Built to interpret and render animations exported as JSON data from Adobe After Effects, Lottie facilitates the use of intricate animations without the overhead of traditional image or video files.
+With platform-specific integrations for iOS, Android, and the web, Lottie ensures that animations remain sharp and fluid across different screen resolutions and devices.
+By providing a more interactive and visually engaging user experience, Lottie has become a game-changer in the realm of modern app design and development.
+
+
+
 
 ---
 
 ## SWUP
+
+SWUP is a JavaScript library that brings a smooth, app-like feel to websites.
+Instead of traditional page reloads, SWUP provides seamless transitions with customizable animations, making browsing more enjoyable and engaging.
+When a link is clicked, SWUP loads new content asynchronously, avoiding the need for a full page refresh.
+The library is flexible and extensible, offering a variety of plugins to enhance functionality, such as improving accessibility, managing scripts, and maintaining scroll positions.
+SWUP is perfect for creating dynamic and responsive web applications that deliver a modern user experience.
+
+### SWUP Setup
+
+<Steps>
+
+1.  **Install SWUP**:
+
+    First, you need to install SWUP.
+    Open your terminal and add the `swup` package:
+
+    ```shell
+    pnpm add swup
+    ```
+
+2.  **Install SWUP Plugins**:
+
+    To enhance SWUP's functionality, install some useful plugins.
+    Run the following command in your terminal:
+
+    ```shell
+    pnpm add @swup/scripts-plugin @swup/a11y-plugin @swup/head-plugin @swup/slide-theme @swup/scroll-plugin @swup/preload-plugin @swup/body-class-plugin @swup/debug-plugin
+    ```
+
+3.  **Set Up Your Project Structure**:
+
+    Create a basic project structure.
+    Here's an example:
+
+     <FileTree>
+
+        - my-project/
+            - src/
+                - index.html
+                - about.html
+                - contac.html
+            - public/
+                - assets/
+                    - robots.txt
+            - css/
+                - styles.css
+            - js/
+                - main.js
+            - package.json
+            - pnpm-lock.yaml
+        - README.md
+
+    </FileTree>
+
+4.  **Create HTML Files**
+    
+    Create some HTML files in the `src` directory. Here’s an example for `index.html`:
+
+    ```html
+
+    <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Home</title>
+            <link rel="stylesheet" href="../css/styles.css">
+        </head>
+        <body>
+            <div id="swup" class="transition-fade">
+            <h1>Home Page</h1>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+            </div>
+            <script src="../js/main.js"></script>
+        </body>
+    </html>
+
+    ```
+
+    Repeat the structure for `about.html` and `contact.html`, changing the content inside the `div` with `id="swup"`.
+
+
+5.  **Add SWUP to Your JavaScript File**:
+
+    In your `js/main.js` file, initialize SWUP and its plugins:
+
+    ```js
+    import Swup from 'swup';
+    import SwupScriptsPlugin from '@swup/scripts-plugin';
+    import SwupA11yPlugin from '@swup/a11y-plugin';
+    import SwupHeadPlugin from '@swup/head-plugin';
+    import SwupSlideTheme from '@swup/slide-theme';
+    import SwupScrollPlugin from '@swup/scroll-plugin';
+    import SwupPreloadPlugin from '@swup/preload-plugin';
+    import SwupBodyClassPlugin from '@swup/body-class-plugin';
+    import SwupDebugPlugin from '@swup/debug-plugin';
+
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin(),
+            new SwupA11yPlugin(),
+            new SwupHeadPlugin(),
+            new SwupSlideTheme(),
+            new SwupScrollPlugin(),
+            new SwupPreloadPlugin(),
+            new SwupBodyClassPlugin(),
+            new SwupDebugPlugin()
+        ]
+    });
+    ```
+
+6.  **Add CSS for Transitions**:
+
+    Add some basic CSS to `css/styles.css` to handle the transitions:
+
+    ```css
+    /* CSS for SWUP transitions */
+    html, body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    nav a {
+        margin: 0 10px;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .transition-fade {
+        opacity: 1;
+        transition: opacity 0.4s;
+    }
+
+    html.is-leaving .transition-fade {
+        opacity: 0;
+    }
+    ```
+
+7.  **Test Your Setup**
+
+    Start a local server to test your setup. You can use a simple server like `http-server`:
+
+    ```shell
+    # Install http-server globally
+    npm install -g http-server
+
+    # Start the server
+    http-server src
+    ```
+
+    Open your browser and navigate to the URL provided by `http-server`. Click the links in your navigation to see the smooth transitions provided by SWUP.
+
+</Steps>
 
     ### SWUP Install
 
@@ -1026,11 +1200,175 @@ module.exports = {
 
 ## ESBuild
 
-### ESBuild Install
+ESBuild is a fast JavaScript bundler and minifier that has gained popularity due to its remarkable speed and efficiency.
+Designed with performance in mind, ESBuild leverages Go's concurrency model to provide lightning-fast build times, often outperforming other popular tools like Webpack and Rollup.
+It supports modern JavaScript features and can handle TypeScript, JSX, and even various CSS formats, making it a versatile choice for web development projects.
+Additionally, ESBuild's simplicity in configuration and its ability to be integrated with other tools and workflows make it a compelling option for developers seeking a high-performance, scalable build solution.
 
-### ESBuild Example
+### ESBuild Setup
 
-#### ESBuild Shell
+<Steps>
+
+1.  **Install ESBuild**:
+
+    First, you need to install ESBuild. You can do this using npm or yarn. Open your terminal and run one of the following commands:
+
+    ```shell
+    npm install esbuild --save-dev
+    ```
+
+2.  **Create Your Project Structure**:
+
+    Set up a basic project structure
+
+    <FileTree>
+
+        - my-project/
+            - src/
+                - components/
+                    - Graph.jsx
+            - public/
+                    - index.html
+            -   package.json
+            - **esbuild.config.js**
+        - README.md
+
+    </FileTree>
+
+3.  **Write Your JSX Component**:
+
+    Create a simple React component in `src/components/Graph.jsx`:
+
+    ```jsx
+    // src/components/Graph.jsx
+    import React from 'react';
+
+    const Graph = () => {
+    	return <div>This is a Graph component.</div>;
+    };
+
+    export default Graph;
+    ```
+
+    <FileTree>
+
+        - my-project/
+            - src/
+                - components/
+                    - **Graph.jsx**
+            - public/
+                -   index.html
+            - package.json
+            - esbuild.config.js
+        - README.md
+
+    </FileTree>
+
+4.  **Create an HTML File**;
+
+    Create a simple HTML file in `public/index.html` to include your bundled script:
+
+    ```html
+    <!doctype html>
+    <html lang="en">
+    	<head>
+    		<meta charset="UTF-8" />
+    		<meta
+    			name="viewport"
+    			content="width=device-width, initial-scale=1.0" />
+    		<title>ESBuild Example</title>
+    	</head>
+    	<body>
+    		<div id="root"></div>
+    		<script src="graph.js"></script>
+    	</body>
+    </html>
+    ```
+
+    <FileTree>
+
+        - my-project/
+            - src/
+                - components/
+                    - Graph.jsx
+            - public/
+                - **index.html**
+            - package.json
+            - esbuild.config.js
+        - README.md
+
+    </FileTree>
+
+5.  **Create an ESBuild Configuration File**:
+
+    Create an `esbuild.config.js` file in the root of your project:
+
+    ```js
+    // esbuild.config.js
+    const esbuild = require('esbuild');
+
+    esbuild
+    	.build({
+    		entryPoints: ['src/components/Graph.jsx'],
+    		bundle: true,
+    		outfile: 'public/graph.js',
+    		minify: true,
+    		sourcemap: true,
+    		platform: 'browser',
+    		target: 'es2020',
+    		jsxFactory: 'React.createElement',
+    		jsxFragment: 'React.Fragment',
+    	})
+    	.catch(() => process.exit(1));
+    ```
+
+6.  **Add Build Script to package.json**:
+
+    In your `package.json`, add a script to run the ESBuild configuration:
+
+    ```json
+    {
+    	"name": "my-project",
+    	"version": "1.0.0",
+    	"scripts": {
+    		"build": "node esbuild.config.js"
+    	},
+    	"devDependencies": {
+    		"esbuild": "^0.13.0",
+    		"react": "^17.0.0",
+    		"react-dom": "^17.0.0"
+    	}
+    }
+    ```
+
+7.  **Build Your Project**:
+
+    Run the build script from your terminal:
+
+    ```shell
+    npm run build
+    ```
+
+    This command will bundle your `Graph.jsx` component, minify the output, generate a source map, and output the final script to `public/graph.js`.
+
+8.  **Serve Your HTML File**:
+
+    You can use any static file server to serve your `public` directory. For simplicity, you can use the `serve` package:
+
+    ```shell
+    # Install the serve package globally
+    npm install -g serve
+
+    # Serve the public directory
+    serve public
+    ```
+
+    Now, open your browser and navigate to the URL provided by the `serve` command.
+    You should see your HTML page with the bundled `Graph` component.
+
+</Steps>
+
+**ESBuild Example**
 
 ```shell
 
@@ -1058,61 +1396,56 @@ Explanation of Key Options:
 -   **\--target**: Sets the ECMAScript target version.
 -   **\--jsx-factory** and **\--jsx-fragment**: Sets up JSX processing for React.
 
----
+**ESBuild Configuration Table**
 
-## Tools
-
-### Rome
-
-        -   [Rome Docs](https://docs.rome.tools/guides/getting-started/)
-
-        -   [Rome Tools](https://rome.tools/) Unified tool for Javascript / CSS3 / HTML / Typescript
-            -   Recommended by: [Ziggy9263](https://github.com/jzanecook)
-            -   h0lybyte: 10/10 - "Now I am afraid to open multiple JSX files , for the fear of the roman gods striking my screen with red digital blood blobs"
-
-### Size Limit
-
-    Official [Repo](https://github.com/ai/size-limit)
-
-    The function can calculate the:
-    time limit:
-    size:
-    loading time:
-    running time:
-    total time:
-
-    We can utilize this via Github Actions, through the Size-limit Report.
-    Github Action [Reference](https://github.com/andresz1/size-limit-action)
+| Configuration Option | Description                                                                           | Example Value                                |
+| -------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `entryPoints`        | Array of entry points for the bundle.                                                 | `['src/components/Graph.jsx']`               |
+| `bundle`             | Bundles all dependencies into one file.                                               | `true`                                       |
+| `outfile`            | Specifies the output file.                                                            | `'public/graph.js'`                          |
+| `minify`             | Minimizes the output.                                                                 | `true`                                       |
+| `sourcemap`          | Generates a source map.                                                               | `true`                                       |
+| `platform`           | Specifies the platform (node or browser).                                             | `'browser'`                                  |
+| `target`             | Sets the ECMAScript target version.                                                   | `'es2020'`                                   |
+| `jsxFactory`         | Specifies the JSX factory function for React.                                         | `'React.createElement'`                      |
+| `jsxFragment`        | Specifies the JSX fragment function for React.                                        | `'React.Fragment'`                           |
+| `define`             | Replaces global identifiers with constant expressions.                                | `{ 'process.env.NODE_ENV': '"production"' }` |
+| `external`           | Excludes specific modules from the bundle (e.g., `node_modules` packages).            | `['react', 'react-dom']`                     |
+| `loader`             | Specifies a custom loader for specific file types.                                    | `{ '.js': 'jsx' }`                           |
+| `plugins`            | Adds custom plugins to the build process.                                             | `[myPlugin()]`                               |
+| `format`             | Sets the output format (`iife`, `cjs`, `esm`).                                        | `'iife'`                                     |
+| `globalName`         | Specifies a global variable name to be used in the output bundle (for `iife` format). | `'MyLibrary'`                                |
+| `inject`             | Specifies a list of files to be automatically injected into the bundle.               | `['src/shim.js']`                            |
+| `outdir`             | Specifies the output directory (used instead of `outfile` for multiple entry points). | `'dist'`                                     |
+| `entryNames`         | Specifies the name pattern for output files when multiple entry points are used.      | `'[dir]/[name]-[hash]'`                      |
+| `assetNames`         | Specifies the name pattern for output assets (e.g., images, fonts).                   | `'assets/[name]-[hash]'`                     |
+| `chunkNames`         | Specifies the name pattern for output chunks created via code-splitting.              | `'chunks/[name]-[hash]'`                     |
+| `splitting`          | Enables code-splitting (only for `esm` format).                                       | `true`                                       |
+| `metafile`           | Generates a JSON file with metadata about the bundle.                                 | `true`                                       |
+| `watch`              | Enables watch mode, automatically rebuilding on file changes.                         | `true`                                       |
+| `logLevel`           | Sets the logging level (`silent`, `error`, `warning`, `info`, `debug`).               | `'info'`                                     |
+| `incremental`        | Enables incremental builds for faster rebuilds.                                       | `true`                                       |
+| `treeShaking`        | Controls tree shaking behavior.                                                       | `true`                                       |
+| `minifyWhitespace`   | Minifies whitespace in the output.                                                    | `true`                                       |
+| `minifyIdentifiers`  | Minifies variable and function names.                                                 | `true`                                       |
+| `minifySyntax`       | Minifies syntax without changing semantics.                                           | `true`                                       |
+| `charset`            | Controls the character set used in the output (default is `utf8`).                    | `'ascii'`                                    |
+| `legalComments`      | Controls how legal comments are handled (`none`, `inline`, `eof`, `linked`).          | `'eof'`                                      |
 
 ---
 
 ## Shiki
 
-    Shiki is a syntax highlighter based on the same syntax definitions as Visual Studio Code, ensuring accurate and visually consistent code highlighting.
-    When integrated with MDX, a format that combines Markdown and JSX, Shiki can provide syntax highlighting for code blocks within MDX content.
-    The combination ensures that developers get a high-quality, themeable code highlighting experience in their MDX-based documents or blogs.
+Shiki is a syntax highlighter based on the same syntax definitions as Visual Studio Code, ensuring accurate and visually consistent code highlighting.
+When integrated with MDX, a format that combines Markdown and JSX, Shiki can provide syntax highlighting for code blocks within MDX content.
+The combination ensures that developers get a high-quality, themeable code highlighting experience in their MDX-based documents or blogs.
 
-### Shiki Install
+### Shiki Setup
 
-You can install shiki through common package managers.
+To set up Shiki, a powerful syntax highlighter, simply install it using npm with the command `npm i shiki`.
+This will allow you to integrate rich code syntax highlighting into your projects, enhancing the readability and aesthetics of code snippets on web pages or in documentation.
 
-NPM || Node Package Manager:
-
-```shell
-
-npm i shiki
-
-```
-
-Yarn:
-
-```shell
-
-yarn add shiki
-
-```
-
-### Shiki Configurations
+**Shiki Configurations**
 
 Template themes for `Shiki`:
 
@@ -1153,4 +1486,522 @@ export type Theme =
 
 ## Signature Pad
 
-These are notes on a javascript library known as [Signature Pad](https://github.com/szimek/signature_pad) which provides a canvas-ready signature plugin for your users!
+[Signature Pad](https://github.com/szimek/signature_pad) is a JavaScript library that utilizes HTML5 canvas technology to facilitate smooth signature drawing on web pages.
+It's designed to function seamlessly across all modern desktop and mobile browsers without the need for any external libraries.
+Signature Pad supports various features like variable width Bézier curve interpolation, allowing for natural pen strokes and is ideal for applications requiring users to provide signatures digitally.
+You can install it via npm or directly embed it into your web pages using a script tag.
+For developers looking to implement detailed canvas-based interactions, Signature Pad offers extensive API options for managing signature data.
+
+**Singature Pad Tutorial**
+
+<Steps>
+
+1.  **Install and Include Signature Pad**:
+
+    You can install Signature Pad using npm or yarn, or directly include it in your HTML file. If you are using npm or yarn, run one of the following commands in your project directory:
+
+    ```shell
+    npm install signature_pad
+    ```
+
+    Alternatively, you can directly include Signature Pad in your HTML page using a script tag.
+    This method is particularly useful if you're not using a JavaScript module bundler:
+
+    ```html
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@latest/dist/signature_pad.umd.min.js"></script>
+    ```
+
+    This script tag links to the latest version of Signature Pad hosted on the jsDelivr CDN, making it immediately available for use in your project.
+
+2.  **Create a Canvas Element**:
+
+    Add a canvas element to your HTML where the signature will be drawn:
+
+    ```html
+    <canvas id="signature-pad" width="400" height="200"></canvas>
+    ```
+
+3.  **Initialize Signature Pad**:
+
+    In your JavaScript file, initialize Signature Pad on the canvas element:
+
+    ```js
+    const canvas = document.getElementById('signature-pad');
+    const signaturePad = new SignaturePad(canvas);
+    ```
+
+4.  **Configure Options (Optional)**:
+
+    Configure Signature Pad with options such as pen color or background color:
+
+    ```js
+    const options = {
+    	backgroundColor: 'rgb(255, 255, 255)', // Set canvas background color
+    	penColor: 'rgb(0, 0, 0)', // Set pen color
+    };
+    const signaturePad = new SignaturePad(canvas, options);
+    ```
+
+5.  **Handling Resize**:
+
+    Add event listeners to resize the canvas appropriately when the window size changes:
+
+    ```js
+    function resizeCanvas() {
+    	const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    	canvas.width = canvas.offsetWidth * ratio;
+    	canvas.height = canvas.offsetHeight * ratio;
+    	canvas.getContext('2d').scale(ratio, ratio);
+    	signaturePad.clear(); // otherwise isEmpty might return incorrect value
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    ```
+
+6.  **Save and Clear Functions**:
+
+    Implement functions to save the signature to an image or clear the canvas:
+
+    ```js
+    document.getElementById('save').addEventListener('click', function () {
+    	const dataURL = signaturePad.toDataURL();
+    	console.log(dataURL); // Save the data URL of the signature image
+    });
+
+    document.getElementById('clear').addEventListener('click', function () {
+    	signaturePad.clear();
+    });
+    ```
+
+</Steps>
+
+---
+
+## Tools
+
+This section provides an overview of essential JavaScript tools that can significantly enhance your project's development and maintenance processes.
+From code editors and linters that ensure code quality and consistency, to frameworks and libraries that expedite development with ready-made functions and components, these tools cover a broad spectrum of functionalities.
+Additionally, we'll explore build tools and task runners that automate routine tasks like minification and testing, alongside version control systems that track changes and facilitate collaboration.
+Whether you're building a small application or a large-scale enterprise solution, integrating the right tools can streamline your workflow and increase efficiency.
+
+<Aside type="note" title="Note: JavaScript Tools">
+
+When integrating JavaScript tools into your project, focus on those that align with your development environment and project requirements.
+For instance, consider using webpack for module bundling if your project involves numerous dependencies, or Babel for transpiling if you need to support older browsers.
+Stay updated with the latest versions of these tools to leverage enhancements and security improvements.
+
+</Aside>
+
+### Cypress
+
+Cypress stands out as a comprehensive testing framework specifically tailored for modern web applications and written in JavaScript.
+Developers favor Cypress for its ability to streamline the testing process, enabling the creation of end-to-end tests, integration tests, and unit tests in a manner that is both coherent and straightforward. Unlike other testing tools, Cypress operates directly within the browser and executes commands concurrently with the application's run loop. Such synchronization facilitates real-time interaction and debugging while its automatic waiting feature minimizes the inconsistencies commonly associated with asynchronous test execution.
+The framework's extensive API library and user-friendly dashboard further bolster test automation and monitoring.
+These features collectively make Cypress a highly regarded tool among developers aiming to enhance the robustness and reliability of web applications.
+
+**Cypress Table**
+
+| File / Directory   | Description                                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cypress.json`     | Configuration file for Cypress settings. It allows customization of default behaviors for running tests.                                                                       |
+| `cypress.env.json` | Environment variables specific to Cypress can be stored here, providing a secure place to store sensitive information outside of source control.                               |
+| `commands.ts`      | Custom commands can be added to Cypress in this file, enhancing its functionality and reusability across tests.                                                                |
+| `index.ts`         | This file within the Cypress plugin folder is used to load plugins or modify internal behavior of Cypress via its API.                                                         |
+| `fixtures/`        | Directory for storing static data that can be used during test runs. Helps in managing test data separately from test cases.                                                   |
+| `integration/`     | Default directory where test files are located. Cypress will look for test files here unless configured otherwise.                                                             |
+| `plugins/`         | Contains JavaScript files that are executed when a project is opened or re-opened. Useful for tasks like modifying webpack configuration, handling environment variables, etc. |
+| `support/`         | Files in this directory are loaded before each test file execution. Useful for overriding configurations, creating global functions etc.                                       |
+
+**Cypress Command Table**
+
+| Command                           | Description                                                                                                                                                     |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cy.get(selector)`                | Retrieves one or more DOM elements by selector. Commonly used to interact with or assert the properties of elements on the page.                                |
+| `cy.request(url)`                 | Makes HTTP requests to specified URLs. Useful for testing backend APIs directly or to prepare application state before a test.                                  |
+| `cy.trigger(eventName)`           | Triggers an event on a DOM element. This is handy for testing interactive behavior like mouseover or keypress events.                                           |
+| `cy.should(assertion, value)`     | Attaches one or more assertions to elements yielded by the previous command. Frequently used to check if elements contain expected properties or states.        |
+| `cy.invoke(functionName)`         | Invokes a function on the previously yielded subject. Useful for invoking jQuery methods or other functions provided by DOM elements.                           |
+| `cy.contains(content)`            | Finds and yields DOM elements containing the specified content, which can be text or a regular expression.                                                      |
+| `cy.visit(url)`                   | Visits the specified URL. It is the starting point for most end-to-end tests that interact with web pages.                                                      |
+| `cy.wait(alias)`                  | Waits for a specific alias to resolve before moving on. Aliases are typically used with `cy.route()` to wait for requests or responses.                         |
+| `cy.route(method, url, response)` | Intercepts and manages the behavior of network requests. `cy.route()` is essential for stubbing network calls to control test environments.                     |
+| `cy.click(options)`               | Issues a click event on the first element within a set of DOM elements. Options can modify the behavior, like forcing the click or specifying the mouse button. |
+
+**Cypress Advance Table**
+
+| Category                          | Command                              | Description                                                |
+| --------------------------------- | ------------------------------------ | ---------------------------------------------------------- |
+| **Context and Hooks**             | `describe()` / `context()`           | Define a test suite.                                       |
+|                                   | `it()` / `specify()`                 | Define a test case.                                        |
+|                                   | `before()`                           | Run once before all tests in a block.                      |
+|                                   | `after()`                            | Run once after all tests in a block.                       |
+|                                   | `beforeEach()`                       | Run before each test in a block.                           |
+|                                   | `afterEach()`                        | Run after each test in a block.                            |
+| **Assertions**                    | `.should('not.exist')`               | Assertion to check if element does not exist.              |
+|                                   | `.should('be.visible')`              | Assertion to check if element is visible.                  |
+|                                   | `.should('contain', 'text')`         | Assertion to check if element contains text.               |
+|                                   | `.should('have.value', 'value')`     | Assertion to check if form element has a value.            |
+|                                   | `.should('be.checked')`              | Asserts that the element is checked.                       |
+|                                   | `.should('have.class', 'className')` | Asserts that the element has a specific class.             |
+| **Utility Commands**              | `cy.log()`                           | Log a message to the Cypress Command Log.                  |
+|                                   | `cy.clearCookies()`                  | Clear browser cookies.                                     |
+|                                   | `cy.fixture()`                       | Load a fixed set of data located in a file.                |
+|                                   | `cy.reload()`                        | Reload the current page.                                   |
+|                                   | `cy.screenshot()`                    | Take a screenshot of the current state of the application. |
+| **Selection Commands**            | `cy.get(selector)`                   | Select DOM elements.                                       |
+|                                   | `cy.contains(content)`               | Select elements containing specific text or content.       |
+|                                   | `cy.root()`                          | Get the root DOM element.                                  |
+|                                   | `cy.within()`                        | Scope upcoming commands to within a DOM element.           |
+| **Action Commands**               | `cy.click()`                         | Click a DOM element.                                       |
+|                                   | `cy.type('text')`                    | Type text into a DOM element.                              |
+|                                   | `cy.check()`                         | Check a checkbox or radio button.                          |
+|                                   | `cy.uncheck()`                       | Uncheck a checkbox.                                        |
+|                                   | `cy.select('option')`                | Select an option in a dropdown.                            |
+|                                   | `cy.submit()`                        | Submit a form.                                             |
+| **Browser Commands**              | `cy.visit(url)`                      | Visit a URL.                                               |
+|                                   | `cy.location()`                      | Get the current URL, pathname, or hash.                    |
+|                                   | `cy.title()`                         | Get the title of the current page.                         |
+|                                   | `cy.url()`                           | Get the current URL as a string.                           |
+|                                   | `cy.go('back')` / `cy.go('forward')` | Navigate back or forward in the browser's history.         |
+| **Network Requests**              | `cy.request()`                       | Make an HTTP request.                                      |
+|                                   | `cy.server()`                        | Start a server to manage HTTP requests.                    |
+|                                   | `cy.route()`                         | Control behavior of network requests.                      |
+| **Aliases**                       | `cy.as('aliasName')`                 | Assign an alias for later use.                             |
+|                                   | `cy.get('@aliasName')`               | Retrieve an aliased element.                               |
+| **File Handling**                 | `cy.readFile()`                      | Read a file's contents.                                    |
+|                                   | `cy.writeFile()`                     | Write data to a file.                                      |
+| **Environment and Configuration** | `Cypress.env('VAR')`                 | Access environment variables.                              |
+|                                   | `Cypress.config('key')`              | Get or set configuration.                                  |
+| **Debugging**                     | `cy.debug()`                         | Debug the command's subject in the developer tools.        |
+|                                   | `cy.pause()`                         | Pause test execution.                                      |
+
+<Aside type="tip" title="Tip: Cypress">
+
+When writing tests with Cypress, it’s beneficial to use the **.contains()** command to select elements by their text content.
+This approach is more resilient to changes in the UI, such as class names or IDs, making your tests less likely to break with UI updates.
+Additionally, consider using Cypress’s network stubbing capabilities with **cy.route()** or **cy.intercept()** to control and test network responses without relying on external servers.
+This ensures your tests run quickly and remain consistent, regardless of network conditions.
+
+</Aside>
+
+#### Cypress Tutorial
+
+<Steps>
+
+1.  Install Cypress in your project:
+
+    ```shell
+    npm install cypress --save-dev
+    ```
+
+    This command adds Cypress to your project as a development dependency, ensuring that it's available for writing and running tests.
+
+2.  Open Cypress for the first time:
+
+    ```shell
+    npx cypress open
+    ```
+
+    Running this command sets up the initial Cypress configuration and opens the Cypress Test Runner, which helps you manage and run your tests.
+
+3.  Create the test files:
+
+    After opening Cypress, it automatically generates a `cypress` folder in your project.
+    Inside this folder, create two files: `app.cy.ts` for your test cases and `app.po.ts` for your page objects, which help manage element selectors and interactions in a reusable manner.
+
+    `app.po.ts` File:
+
+    ```ts
+    // app.po.ts
+    export class PageObjects {
+    	getSubmitButton() {
+    		return cy.get('button[type="submit"]');
+    	}
+    }
+    ```
+
+    `app.cy.ts` File:
+
+    ```ts
+    // app.cy.ts
+    import { PageObjects } from './app.po';
+
+    describe('App Test', () => {
+    	const page = new PageObjects();
+
+    	beforeEach(() => {
+    		cy.visit('http://localhost:3000'); // Adjust URL to your application's URL
+    	});
+
+    	it('Should click the submit button', () => {
+    		page.getSubmitButton().click();
+    		cy.url().should('include', '/success'); // Adjust the assertion to match expected behavior
+    	});
+    });
+    ```
+
+4.  Run your tests:
+
+    ```shell
+    npx cypress run
+    ```
+
+    The command runs your tests in the headless mode, which is suitable for continuous integration environments or local test runs without the GUI.
+
+5.  Review test results:
+
+    After running the tests, Cypress provides detailed results in the terminal or command prompt.
+    If you prefer a graphical interface, you can use npx cypress open to run tests and observe their execution in real time.
+
+</Steps>
+
+<Aside type="caution" title="Warning: Cypress Usage">
+
+When using Cypress for testing, ensure that your test environment closely mimics your production environment to avoid discrepancies that could affect test reliability.
+Avoid using production credentials or sensitive data in your test scripts to maintain security.
+Be mindful of Cypress's limitation with cross-origin policies when designing tests that interact with multiple domains.
+
+</Aside>
+
+<Aside type="danger" title="Danger: Security Risks with Cypress">
+
+Be vigilant about not hardcoding sensitive information such as passwords or API keys directly in your Cypress tests.
+Exposing sensitive data can lead to security breaches and data leaks.
+Always use environment variables to manage sensitive information securely, and ensure that these variables are not included in version control.
+Additionally, regularly review your test scripts and environment configurations to prevent accidental exposure of secure data.
+
+</Aside>
+
+**Cypress JSON API Example**
+
+Example Function:
+
+```ts
+export const checkJSONendpointAPI = (endpoints: string[]) => {
+	endpoints.forEach((endpoint) => {
+		cy.request(endpoint).then((response) => {
+			expect(response.status).to.eq(200);
+			expect(response.headers['content-type']).to.include(
+				'application/json',
+			);
+			expect(response.body).to.be.an('object');
+		});
+	});
+};
+```
+
+<Steps>
+
+1.  **Define the Function and Parameters**:
+    Begin by declaring the function `checkJSONendpointAPI` and specify that it accepts an array of strings, where each string represents an API endpoint URL.
+
+    ```ts
+    export const checkJSONendpointAPI = (endpoints: string[]) => {};
+    ```
+
+    This setup allows the function to handle multiple endpoints, making it versatile for API testing.
+
+2.  **Iterate Over the Endpoints**:
+    Use the `forEach` method to loop through each endpoint provided in the array.
+    This method applies a function to each item in the array, which in this case is used to initiate a Cypress request to the endpoint.
+
+    ```ts
+    endpoints.forEach((endpoint) => {});
+    ```
+
+    This step is crucial for automating the process of sending requests to multiple endpoints without repeating code.
+
+3.  **Make a Request to Each Endpoint**:
+
+    Within the loop, use `cy.request()` to send an HTTP request to the current endpoint.
+    This Cypress command is designed to handle asynchronous requests and fetches data from the specified endpoint.
+
+    ```ts
+    cy.request(endpoint).then((response) => {});
+    ```
+
+    Here, `cy.request` returns a promise that resolves with the response object, allowing you to inspect the response further in the subsequent steps.
+
+4.  **Check the Response Status**:
+    After receiving the response, ensure that the HTTP status code is `200`. This status code indicates that the request was successful.
+
+    ```ts
+    expect(response.status).to.eq(200);
+    ```
+
+    Checking the status code is a basic validation to confirm that the endpoint is reachable and responding as expected.
+
+5.  **Validate the Content-Type**:
+    Verify that the `Content-Type` header of the response includes `application/json`.
+    This step confirms that the endpoint is indeed returning JSON data.
+
+    ```ts
+    expect(response.headers['content-type']).to.include('application/json');
+    ```
+
+    It's essential to check the `Content-Type` to ensure that the data format is correct, as the subsequent validation assumes JSON format.
+
+6.  **Assess the Response Body**:
+    Finally, ensure that the response body is an object.
+    This check is vital because JSON data, when parsed, should typically be an object or an array.
+    ```ts
+    expect(response.body).to.be.an('object');
+    ```
+    The assertion verifies that the parsed JSON data structure is as expected, reinforcing the integrity of the response.
+7.  Close out the function and then check if it executes without any issues!
+
+</Steps>
+
+---
+
+### Biome
+
+<Aside type="note" title="Note: Transition of Rome to Biome">
+
+The development and maintenance of the Rome tool, initially a standalone project, has been officially taken over by the Biome team.
+This transition aims to integrate Rome's capabilities into the broader suite of tools offered by Biome, enhancing both projects with improved functionality and support.
+
+</Aside>
+
+Biome.js is a comprehensive toolchain specifically designed for web projects, providing a range of functionalities to maintain and enhance project quality.
+It features a formatter and linter that can be utilized through a Command Line Interface (CLI) or a Language Server Protocol (LSP).
+The toolchain supports JavaScript, TypeScript, JSX, and JSON, offering a high degree of compatibility with existing formatting standards like Prettier, and includes over 200 linting rules to help improve code quality.
+
+Biome.js is designed to function interactively within an editor, allowing it to format and lint code as it is written, which is particularly useful for developers looking for immediate feedback on their code quality.
+For those looking to integrate Biome.js into their projects, it can be installed with npm and used directly from the command line to format, lint, and check code, making it a versatile addition to development workflows.
+
+For detailed usage and more information about setting up Biome.js in your projects, you can visit their official GitHub page [here](https://github.com/biomejs/biome).
+
+#### Biome Setup
+
+<Steps>
+
+1.  **Install Biome**:
+
+    You can install Biome using npm or your preferred Node.js package manager in a directory that contains a `package.json` file.
+    This installation method is quick and integrates easily with your existing Node.js setup.
+
+    ```shell
+    npm install --save-dev --save-exact @biomejs/biome
+    ```
+
+    Alternatively, if you prefer not to use Node.js, you can download a standalone CLI binary from the Biome GitHub releases page, suitable for your operating system, and give it execution permissions.
+
+2.  **Configure Biome**:
+
+    To streamline your Biome usage across different environments (like your editor and CI systems), it’s recommended to create a `biome.json` configuration file in your project’s root directory.
+    This file ensures consistent settings are used everywhere Biome is run.
+    You can generate this file by running the following command:
+
+    ```shell
+    npx @biomejs/biome init
+    ```
+
+    This command will create a biome.json file with default settings, which you can modify as needed.
+
+3.  **Usage**:
+
+    Biome can be used to format, lint, and apply safe fixes to your code.
+    You can run these tools individually or together depending on your needs.
+
+    -   To format your code:
+        ```shell
+        npx @biomejs/biome format --write ./src
+        ```
+    -   To lint and apply safe fixes:
+        ```shell
+        npx @biomejs/biome lint --apply ./src
+        ```
+    -   To check (format, lint, and organize imports) all at once:
+        ```shell
+        npx @biomejs/biome check --apply ./src
+        ```
+
+4.  **Integrating with Your Editor**:
+    For an improved development experience, integrating Biome with your code editor is recommended.
+    This enables features like format-on-save and provides inline suggestions and fixes.
+    Most popular editors have plugins or extensions available for Biome.
+
+    -   [VS Code BiomeJS Extension](https://marketplace.visualstudio.com/items?itemName=biomejs.biome)
+    -   [NeoVim](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#biome)
+    -   [Additional Editors from Biome Docs](https://biomejs.dev/guides/integrate-in-editor/)
+
+5.  **Set Up Continuous Integration**:
+    Incorporate Biome into your CI/CD pipeline to ensure all submitted code meets your formatting and linting standards before it is merged.
+    Using Biome in your CI setup helps maintain code quality and reduces manual review time.
+
+    Head over to the [Git](https://kbve.com/application/git/) for CICD tutorials, information.
+
+    Example of a Github Action from Biome Docs:
+
+    ```yaml
+    name: Code quality
+
+    on:
+    push:
+    pull_request:
+
+    jobs:
+    quality:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout
+            uses: actions/checkout@v4
+        - name: Setup Biome
+            uses: biomejs/setup-biome@v2
+            with:
+            version: latest
+        - name: Run Biome
+            run: biome ci .
+    ```
+
+</Steps>
+
+<Aside type="tip" title="Tip: Using Biome with Reviewdog Action">
+
+Leverage the power of Reviewdog when integrating Biome in your CI/CD pipeline to automate code reviews and maintain high-quality code standards.
+By combining Biome with Reviewdog, you can automatically flag coding style violations and potential errors directly in pull requests, providing actionable feedback within the context of code reviews.
+This setup not only streamlines the review process but also ensures consistency across your project’s codebase.
+Ensure to secure your **github_token** and set the appropriate permissions in your workflow file for seamless integration.
+
+```yaml
+name: reviewdog
+on: [pull_request]
+jobs:
+    biome:
+        name: runner / Biome
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v4
+            - uses: mongolyy/reviewdog-action-biome@v1
+              with:
+                  github_token: ${{ secrets.github_token }}
+                  reporter: github-pr-review
+```
+
+</Aside>
+
+---
+
+### Size Limit
+
+[Size Limit](https://github.com/ai/size-limit) is a powerful tool designed to help developers control the size of their packages.
+It offers a suite of functionalities to measure various metrics such as the time it takes to load your package on a 3G network, the execution time of your JavaScript, and the overall size of your package.
+These measurements can assist in optimizing performance and ensuring your application loads efficiently for users.
+
+Size Limit is particularly useful in a continuous integration environment, as it can be integrated with GitHub Actions through the [Size-limit Report](https://github.com/andresz1/size-limit-action).
+This GitHub Action automates the process of tracking and reporting on the size impacts of new code, making it easier to prevent performance regressions during development
+
+---
+
+<Aside type="note" title="Note: JavaScript Reminder">
+
+Choosing the right JavaScript tools is crucial for optimizing your development process and ensuring high-quality outcomes.
+Consider the scale of your project and specific needs when selecting tools, as each offers different benefits.
+Regularly update and review your tools to keep up with new features and improvements in the development ecosystem.
+
+</Aside>
