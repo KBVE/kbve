@@ -1,55 +1,135 @@
 ---
 title: Getting Started
-description: Explore ScrewFast's comprehensive documentation for an in-depth look at our premium tools and construction services. 
+description: Dive into KBVE's comprehensive documentation for an in-depth look at our premium tools, services, detailed notes, and practical tutorials.
 sidebar:
-  label: Getting Started
-  order: 1
+    label: Getting Started
+    order: 1
 ---
 
 import {
-  Card,
-  CardGrid,
-  LinkCard,
-  Steps,
-  Aside,
-  Tabs,
-  TabItem,
+Card,
+CardGrid,
+LinkCard,
+Steps,
+Aside,
+Tabs,
+TabItem,
 } from "@astrojs/starlight/components";
 
-Welcome to ScrewFast Docs! We're excited to help you get started with our premium tools. This guide is designed to introduce you to our tool range, help you understand the basics, and get you up to speed for your first project. Let's jump right into the world of high-quality, reliable craftsmanship with ScrewFast.
+Welcome to KBVE Docs! We're thrilled to guide you through our extensive range of tools, software, and services.
+This documentation hub is designed to introduce you to our innovative projects, offer detailed tutorials, and provide insightful notes.
+Whether you're a seasoned developer or just starting, you'll find everything you need to get up to speed and excel in your projects.
+Dive into the world of cutting-edge technology and elevate your skills with KBVE.
 
 ## Tools Overview
 
 <CardGrid>
-  <Card title="ScrewDriver Set" icon="seti:config">
-    Versatile and ergonomic, suitable for all screw types.
-    <LinkCard title="Learn More " href="/guides/getting-started" />
+  <Card title="KBVE Jukebox" icon="seti:config">
+  Discover a dynamic music tool that curates playlists based on your favorite keywords.
+    <LinkCard title="Listen Now " href="/music/" />
   </Card>
-  <Card title="Hammer Drill" icon="seti:pipeline">
-    Powerful performance for drilling and impact driving.
-    <LinkCard title="Learn More " href="/guides/getting-started" />
+  <Card title="Webmaster Utility" icon="seti:pipeline">
+  Optimize and manage your website efficiently with our powerful webmaster tools.
+    <LinkCard title="Learn More " href="/webmaster/" />
   </Card>
-  <Card title="Power Saws" icon="seti:crystal">
-    Precision cutting with adjustable settings for various materials.
-    <LinkCard title="Learn More " href="/guides/getting-started" />
+  <Card title="Automation Suite" icon="seti:crystal">
+  Enhance productivity with our comprehensive automation software and hardware solutions.
+    <LinkCard title="Learn More " href="/theory/automation" />
   </Card>
 </CardGrid>
 
 ## Setup Instructions
 
+Here are the step-by-step instructions to set up and run the KBVE repository on WSL Ubuntu:
+
 <Steps>
 
-1. Unboxing Icon Unbox Your ScrewFast Tools
-   Carefully open the packaging and verify all components are present. Familiarize yourself with the tool and any accessories.
+1. Open your WSL Ubuntu terminal.
 
-2. Safety Check Icon Initial Setup and Safety Checks
-   Read the safety manual before handling the tool. Check the tool for any shipping damage and ensure safety guards are in place.
+2. Install Git by running the following command:
 
-3. Calibration Icon Calibration and Preparation for First Use
-   Follow the manufacturer's instructions to calibrate your tools as required. Ensure batteries are charged or electrical connections are secure.
+    ```bash
+    sudo apt install git
+    ```
+
+3. Install Python 3.10 by running the following commands:
+
+    ```bash
+    sudo add-apt-repository ppa:deadsnakes/ppa
+    sudo apt update
+    sudo apt install python3.10
+    ```
+
+4. Install Node.js and npm by running the following commands:
+
+    ```bash
+    sudo apt update
+    sudo apt install nodejs npm
+    ```
+
+5. Install pnpm globally by running the following command:
+
+    ```bash
+    sudo npm install -g pnpm
+    ```
+
+6. Install the .NET 7 SDK by running the following commands:
+
+    ```bash
+    wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+    sudo dpkg -i packages-microsoft-prod.deb
+    rm packages-microsoft-prod.deb
+    sudo apt update
+    sudo apt install dotnet-sdk-7.0
+    ```
+
+7. Install Rust by running the following command:
+
+    ```bash
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+    Follow the on-screen instructions to complete the Rust installation.
+
+8. Clone the KBVE repository by running the following command:
+
+    ```bash
+    git clone https://github.com/KBVE/kbve.git
+    ```
+
+9. Change into the cloned repository directory:
+
+    ```bash
+    cd kbve
+    ```
+
+10. Install the project dependencies using pnpm:
+
+    ```bash
+    pnpm install
+    ```
+
+11. To run the code watcher, use the following command:
+
+    ```bash
+    ./kbve.sh -nx kbve.com:dev
+    ```
+
+12. To create a new branch for a new pull request, use the following command:
+
+    ```bash
+    ./kbve.sh -atomic you can type anything here and spaces do not matter
+    ```
+
+13. If you don't have Visual Studio Code running, you can open it from the terminal by running the following command while inside the repository:
+
+    ```bash
+    code .
+    ```
+
+14. Visual Studio Code will automatically suggest plugins to install. Install the recommended plugins and reload the editor if needed.
 
 </Steps>
-
 
 ## Cleaning and Maintenance
 
