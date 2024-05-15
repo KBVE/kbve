@@ -93,10 +93,17 @@ export default defineConfig({
 						},
 					],
 				},
+
 				{
-					label: 'Music',
+					label: 'Media',
 					collapsed: true,
-					autogenerate: { directory: 'music' },
+					items: [
+						{
+							label: 'Music',
+							collapsed: false,
+							autogenerate: { directory: 'music' },
+						},
+					],
 				},
 
 				{
