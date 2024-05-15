@@ -31,7 +31,6 @@ export default defineConfig({
 		},
 	},
 	integrations: [
-
 		starlight({
 			title: 'KBVE Docs',
 			editLink: {
@@ -68,6 +67,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Applications',
+					collapsed: true,
 					autogenerate: { directory: 'application' },
 				},
 				{
@@ -80,18 +80,32 @@ export default defineConfig({
 				},
 
 				{
-					label: 'Crypto',
-					autogenerate: { directory: 'crypto' },
+					label: 'Assets',
+					collapsed: true,
+					items: [
+						{
+							label: 'Crypto',
+							autogenerate: { directory: 'crypto' },
+						},
+						{
+							label: 'Stocks',
+							autogenerate: { directory: 'stock' },
+						},
+					],
 				},
+
 				{
-					label: 'Stocks',
-					autogenerate: { directory: 'stock' },
+					label: 'Media',
+					collapsed: true,
+					items: [
+						{
+							label: 'Music',
+							collapsed: false,
+							autogenerate: { directory: 'music' },
+						},
+					],
 				},
-				{
-					label: 'Music',
-					autogenerate: { directory: 'music' },
-				},
-				
+
 				{
 					label: 'Tools & Equipment',
 					autogenerate: { directory: 'tools' },
@@ -151,7 +165,7 @@ export default defineConfig({
 				},
 			},
 		}),
-		
+
 		react(),
 		svelte(),
 		partytown(),
