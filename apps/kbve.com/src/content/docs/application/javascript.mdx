@@ -15,13 +15,15 @@ tags:
 ---
 
 import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
+Aside,
+Steps,
+Card,
+CardGrid,
+Code,
+FileTree,
 } from '@astrojs/starlight/components';
+
+import DevCode from '../../../components/tooling/devcode/DevCode.astro';
 
 ## Information
 
@@ -952,15 +954,225 @@ For indenting within a markdown file, we can use this code to produce a tab.
 
 ## TailwindCSS
 
--   TailWindCSS or Tailwind is a custom open source CSS framework written in Javascript that enables utility css classes.
+TailwindCSS is a popular utility-first CSS framework that allows developers to rapidly build custom user interfaces without writing a single line of custom CSS. Unlike traditional CSS frameworks that provide predefined components, Tailwind offers low-level utility classes that let developers compose and style elements directly in their markup.
+This approach promotes consistency, reusability, and efficiency in styling, making it easy to create responsive and visually appealing designs.
+TailwindCSS also features a highly customizable configuration, enabling developers to tailor the framework to fit their specific design needs and preferences.
 
-### TailWindCSS Install
+### TailWindCSS Setup
 
-    Since the core of TailWind is written in NodeJS, you can install it via `npm` || `yarn` || or any node package management software.
+<Steps>
 
-### TailWindCSS Config
+0.  **Create a New TailwindCSS Project Directory**
 
-        The default name for the configuration file is `tailwind.config.js` or `tailwind.config.cjs` and the default location is within the root of the project.
+    Open your terminal and create a new directory for your tailwindcss project.
+    Navigate into the directory.
+
+    ```shell
+    mkdir my-tailwind-project
+    cd my-tailwind-project
+    ```
+
+    After creating the directory, go ahead and initialize a new pnpm project!
+
+    ```shell
+    pnpm init -y
+    ```
+
+1.  **Install TailwindCSS**
+
+    You can use the npm or pnpm to install Tailwindcss.
+
+    ```shell
+    pnpm install tailwindcss
+    ```
+
+    After installing the `tailwindcss` package, go ahead and initialize the `tailwindcss` configuration with the command below.
+
+    ```shell
+    npx tailwindcss init
+    ```
+
+    This will generate a `tailwind.config.fs` file within your project root.
+
+2.  **Configure TailwindCSS**:
+
+    Create a directory for your CSS files (e.g., `src`).
+
+    ```shell
+    mkdir src
+    ```
+
+    Create a main CSS file (e.g., `src/styles.css`).
+
+    ```shell
+    touch src/styles.css
+    ```
+
+    After creating the `src/styles.css`, open it up and paste in the default Tailwind imports.
+
+    ```css
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+    ```
+
+    Then update your `tailwind.config.js` file to specify the paths to all of your template files.
+    This is necessary for purging unused styles in production.
+
+    ```js
+    module.exports = {
+    	content: ['./src/**/*.{html,js,jsx,ts,tsx}'],
+    	theme: {
+    		extend: {},
+    	},
+    	plugins: [],
+    };
+    ```
+
+3.  **Set Up a Build Process**:
+
+    To use TailwindCSS, you need to process your CSS file, we can use a couple different tools to help us.
+    In the example below, we will use PostCSS but we can also use Webpack or ESBuild.
+
+    Install PostCSS and Autoprefixer:
+
+    ```shell
+    pnpm install postcss postcss-cli autoprefixer
+    ```
+
+    Then create a PostCSS config file in your project root and add the following default configuration:
+
+    ```js
+    module.exports = {
+    	plugins: {
+    		tailwindcss: {},
+    		autoprefixer: {},
+    	},
+    };
+    ```
+
+4.  **Build The CSS**:
+
+    Update the `scripts` section in your `package.json` to include a build script:
+
+    ```json
+    "scripts": {
+        "build:css": "postcss src/styles.css -o dist/styles.css"
+    }
+    ```
+
+    Then to run the build script, we can execute the command below to generate the CSS files:
+
+    ```shell
+    pnpm build:css
+    ```
+
+5.  **Include the Compiled CSS in Your HTML**:
+
+    Create an `index.html` file in your project root and include the compiled CSS file:
+
+    ```html
+    <!doctype html>
+    <html lang="en">
+    	<head>
+    		<meta charset="UTF-8" />
+    		<meta
+    			name="viewport"
+    			content="width=device-width, initial-scale=1.0" />
+    		<title>TailwindCSS Project</title>
+    		<link href="dist/styles.css" rel="stylesheet" />
+    	</head>
+    	<body>
+    		<h1 class="text-3xl font-bold underline">Hello, TailwindCSS!</h1>
+    	</body>
+    </html>
+    ```
+
+6.  **Development Workflow**:
+
+    If you have `serve` already installed, then you can run the serve from the `dist` directory.
+
+    By default, `serve` will serve the contents of the current directory on port 3000.
+    If you want to specify a different directory (e.g., `dist`), you can do so:
+
+    ```shell
+    serve dist
+    ```
+
+    Then open your browser and navigate to `http://localhost:3000` to view your TailwindCSS project.
+
+    You have successfully set up, installed, and configured TailwindCSS in your project.
+    From here, you can start building and styling your web pages using Tailwind's utility classes.
+    For more advanced configuration and customization, refer to the [official TailwindCSS documentation](https://tailwindcss.com/docs).
+
+</Steps>
+
+### TailwindCSS Buttons
+
+These are the Dojo buttons
+
+---
+
+export const buttonCode = `<a href="#_" class="relative inline-block text-lg group">
+    <span class="relative z-10 block px-5 py-3 overflow-hidden font-medium leading-tight text-gray-800 transition-colors duration-300 ease-out border-2 border-gray-900 rounded-lg group-hover:text-white">
+    <span class="absolute inset-0 w-full h-full px-5 py-3 rounded-lg bg-gray-50"></span>
+    <span class="absolute left-0 w-48 h-48 -ml-2 transition-all duration-300 origin-top-right -rotate-90 -translate-x-full translate-y-12 bg-gray-900 group-hover:-rotate-180 ease"></span>
+    <span class="relative">Button Text</span>
+    </span>
+    <span class="absolute bottom-0 right-0 w-full h-12 -mb-1 -mr-1 transition-all duration-200 ease-linear bg-gray-900 rounded-lg group-hover:mb-0 group-hover:mr-0" data-rounded="rounded-lg"></span>
+</a>`;
+
+<DevCode htmlCode={buttonCode} />
+
+---
+
+export const buttonArrowCode = `<a href="#_" class="relative inline-flex items-center justify-start py-3 pl-4 pr-12 overflow-hidden font-semibold text-indigo-600 transition-all duration-150 ease-in-out rounded hover:pl-10 hover:pr-6 bg-gray-50 group">
+    <span class="absolute bottom-0 left-0 w-full h-1 transition-all duration-150 ease-in-out bg-indigo-600 group-hover:h-full"></span>
+    <span class="absolute right-0 pr-4 duration-200 ease-out group-hover:translate-x-12">
+    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+    </span>
+    <span class="absolute left-0 pl-2.5 -translate-x-12 group-hover:translate-x-0 ease-out duration-200">
+    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+    </span>
+    <span class="relative w-full text-left transition-colors duration-200 ease-in-out group-hover:text-white">Button Text</span>
+</a>`
+
+<DevCode htmlCode={buttonArrowCode} />
+
+---
+
+export const buttonBowtieCode = `<a href="#_" class="relative px-5 py-2 font-medium text-white group">
+<span class="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-x-0 -skew-x-12 bg-cyan-500 group-hover:bg-cyan-700 group-hover:skew-x-12"></span>
+<span class="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform skew-x-12 bg-cyan-700 group-hover:bg-cyan-500 group-hover:-skew-x-12"></span>
+<span class="absolute bottom-0 left-0 hidden w-10 h-20 transition-all duration-100 ease-out transform -translate-x-8 translate-y-10 bg-cyan-600 -rotate-12"></span>
+<span class="absolute bottom-0 right-0 hidden w-10 h-20 transition-all duration-100 ease-out transform translate-x-10 translate-y-8 bg-cyan-400 -rotate-12"></span>
+<span class="relative">Button Text</span>
+</a>`;
+
+<DevCode htmlCode={buttonBowtieCode} />
+
+---
+
+export const buttonShutterCode = `<button class="rounded-md px-3.5 py-2 m-1 overflow-hidden relative group cursor-pointer border-2 font-medium border-cyan-600 text-cyan-600 text-white">
+<span class="absolute w-64 h-0 transition-all duration-300 origin-center rotate-45 -translate-x-20 bg-cyan-600 top-1/2 group-hover:h-64 group-hover:-translate-y-32 ease"></span>
+<span class="relative text-cyan-600 transition duration-300 group-hover:text-white ease">Button Text</span>
+</button>`;
+
+<DevCode htmlCode={buttonShutterCode} />
+
+---
+
+export const buttonGradientGlowCode = `<a href="#_" class="px-5 py-2.5 relative rounded group font-medium !text-white font-medium inline-block">
+<span class="absolute top-0 left-0 w-full h-full rounded opacity-50 filter blur-sm bg-gradient-to-br from-cyan-600 to-cyan-400"></span>
+<span class="h-full w-full inset-0 absolute mt-0.5 ml-0.5 bg-gradient-to-br filter group-active:opacity-0 rounded opacity-50 from-cyan-600 to-cyan-400"></span>
+<span class="absolute inset-0 w-full h-full transition-all duration-200 ease-out rounded shadow-xl bg-gradient-to-br filter group-active:opacity-0 group-hover:blur-sm from-cyan-600 to-cyan-400"></span>
+<span class="absolute inset-0 w-full h-full transition duration-200 ease-out rounded bg-gradient-to-br to-cyan-600 from-cyan-300"></span>
+<span class="relative">Button Text</span>
+</a>`;
+
+<DevCode htmlCode={buttonGradientGlowCode} />
+
+---
 
 ### TailWindCSS Animation
 
@@ -1001,11 +1213,298 @@ module.exports = {
 
 ## MUI
 
-    -   MUI (formerly Material-UI) is a popular React UI framework that implements Google's Material Design principles.
+MUI, formerly known as Material-UI, stands as a prominent React UI framework that brings Google's Material Design principles to life.
+Offering an extensive collection of React components and CSS-in-JS styling solutions, MUI enables developers to create responsive and visually consistent web applications with ease.
+With its standardized design components and patterns, MUI ensures cohesive and professional user interfaces, making it an invaluable asset for modern web development.
 
-    -   It offers a comprehensive set of React components, along with CSS-in-JS styling solutions, to build responsive web applications efficiently.
+### MUI Setup
 
-    -   MUI promotes consistent user interfaces by providing standardized design components and patterns.
+<Steps>
+
+0.  **Install PNPM (Optional)**:
+
+    If pnpm is not already installed, you can install it globally using npm:
+
+    ```shell
+    npm install -g pnpm
+    ```
+
+1.  **Initialize Your Project**:
+
+    Create a new project directory and initialize it with pnpm:
+
+    ```shell
+    mkdir my-mui-project
+    cd my-mui-project
+    pnpm init
+    ```
+
+2.  **Install React and React DOM**:
+
+    Install React and React DOM, which are required for using MUI:
+
+    ```shell
+    pnpm add react react-dom
+    ```
+
+3.  **Install MUI Core**:
+
+    Install the core MUI package and its dependencies:
+
+    ```shell
+    pnpm add @mui/material @emotion/react @emotion/styled
+    ```
+
+4.  **Set Up Your Project Structure**:
+
+    We will create a basic project structure for this MUI example!
+
+    <FileTree>
+
+    -   my-mui-project/
+        -   public/
+            -   index.html
+        -   src/
+            -   App.js
+            -   index.js
+            -   style.css
+        -   package.json
+        -   pnpm-lock.yaml
+    -   README.md
+
+    </FileTree>
+
+    <Aside title="Note: MUI Project README">
+        Use the README.md file to document your MUI project notes, installation steps, and any useful references for future development.
+
+        Be sure to link back to this section :D
+
+    </Aside>
+
+5.  **Create an HTML File**:
+
+    In the `public` directory, create an `index.html` file:
+
+    ```html
+    <!doctype html>
+    <html lang="en">
+    	<head>
+    		<meta charset="UTF-8" />
+    		<meta
+    			name="viewport"
+    			content="width=device-width, initial-scale=1.0" />
+    		<title>MUI Project</title>
+    	</head>
+    	<body>
+    		<div id="root"></div>
+    	</body>
+    </html>
+    ```
+
+    <Aside title="Note: Understanding the HTML Code">
+
+        ```html
+        <div id="root"></div>
+        ```
+        This div container is where the React app will be mounted.
+
+    </Aside>
+
+6.  **Create Your React Application**:
+
+    In the `src` directory, create an `index.js` file to serve as the entry point for your React application:
+
+    ```js
+    import React from 'react';
+    import ReactDOM from 'react-dom';
+    import App from './App';
+    import './styles.css';
+
+    ReactDOM.render(
+    	<React.StrictMode>
+    		<App />
+    	</React.StrictMode>,
+    	document.getElementById('root'),
+    );
+    ```
+
+7.  **Create the Main App Component**:
+
+    Create an `App.js` file in the `src` directory and set up a basic MUI component:
+
+    ```js
+    import React from 'react';
+    import { Button, Container, Typography } from '@mui/material';
+
+    function App() {
+    	return (
+    		<Container>
+    			<Typography variant="h2" component="h1" gutterBottom>
+    				Welcome to MUI
+    			</Typography>
+    			<Button variant="contained" color="primary">
+    				Hello World
+    			</Button>
+    		</Container>
+    	);
+    }
+
+    export default App;
+    ```
+
+8.  **Add Basic Styling**:
+
+    Create a `styles.css` file in the `src` directory to add some basic styling:
+
+    ```css
+    body {
+    	margin: 0;
+    	font-family: 'Roboto', sans-serif;
+    }
+
+    #root {
+    	display: flex;
+    	justify-content: center;
+    	align-items: center;
+    	height: 100vh;
+    	background-color: #f5f5f5;
+    }
+    ```
+
+9.  **Configure Babel**:
+
+    If your project uses advanced JavaScript features or JSX, you might need to set up Babel. First, create a `.babelrc` file in the root directory:
+
+    ```json
+    {
+    	"presets": ["@babel/preset-env", "@babel/preset-react"]
+    }
+    ```
+
+    Next, install Babel dependencies:
+
+    ```shell
+    pnpm add -D @babel/core @babel/preset-env @babel/preset-react babel-loader
+    ```
+
+    <FileTree>
+
+    -   my-mui-project/
+        -   public/
+            -   index.html
+        -   src/
+            -   App.js
+            -   index.js
+            -   style.css
+        -   package.json
+        -   pnpm-lock.yaml
+        -   **.babelrc**
+    -   README.md
+
+    </FileTree>
+
+10. **Configure Webpack**:
+
+    To bundle your application, you may want to set up Webpack. Create `webpack.config.js` in the root directory:
+
+    <FileTree>
+
+    -   my-mui-project/
+        -   public/
+            -   index.html
+        -   src/
+            -   App.js
+            -   index.js
+            -   style.css
+        -   package.json
+        -   pnpm-lock.yaml
+        -   .babelrc
+        -   **webpack.config.js**
+    -   README.md
+
+    </FileTree>
+
+    ```js
+    const path = require('path');
+    const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+    module.exports = {
+    	entry: './src/index.js',
+    	output: {
+    		path: path.resolve(__dirname, 'dist'),
+    		filename: 'bundle.js',
+    	},
+    	module: {
+    		rules: [
+    			{
+    				test: /\.(js|jsx)$/,
+    				exclude: /node_modules/,
+    				use: {
+    					loader: 'babel-loader',
+    				},
+    			},
+    			{
+    				test: /\.css$/,
+    				use: ['style-loader', 'css-loader'],
+    			},
+    		],
+    	},
+    	plugins: [
+    		new HtmlWebpackPlugin({
+    			template: './public/index.html',
+    		}),
+    	],
+    	resolve: {
+    		extensions: ['.js', '.jsx'],
+    	},
+    	devServer: {
+    		contentBase: path.join(__dirname, 'dist'),
+    		compress: true,
+    		port: 3000,
+    	},
+    };
+    ```
+
+    Install Webpack and its dependencies:
+
+    ```shell
+    pnpm add -D webpack webpack-cli webpack-dev-server html-webpack-plugin style-loader css-loader
+    ```
+
+11. **Add Scripts to Package.json**:
+
+    Add the following scripts to your `package.json` to build and start your application:
+
+    ```json
+    {
+    	"scripts": {
+    		"start": "webpack serve --mode development",
+    		"build": "webpack --mode production"
+    	}
+    }
+    ```
+
+12. **Start Your Development Server**:
+
+    Run the development server to see your MUI application in action:
+
+    ```shell
+    pnpm start
+    ```
+
+    Open your browser and navigate to `http://localhost:3000`. You should see your MUI application running with a button and some text.
+
+</Steps>
+
+<Aside type="tip" title="Tips for MUI!">
+
+-   Use meaningful and descriptive names for your components to make your code more readable.
+-   Keep your components small and focused on a single task for better maintainability.
+-   Regularly commit your code to version control to track changes and collaborate effectively.
+-   Take advantage of MUI's extensive documentation and examples to learn more about its features and best practices.
+-   Use a linter and formatter to keep your code consistent and error-free.
+
+</Aside>
 
 ---
 
@@ -1016,8 +1515,134 @@ Built to interpret and render animations exported as JSON data from Adobe After 
 With platform-specific integrations for iOS, Android, and the web, Lottie ensures that animations remain sharp and fluid across different screen resolutions and devices.
 By providing a more interactive and visually engaging user experience, Lottie has become a game-changer in the realm of modern app design and development.
 
+<Aside>
 
+There are a couple different lottie libraries that you can use!
+Try to pick the one that best fits your website or application!
 
+</Aside>
+
+### Lottie Web Setup
+
+<Steps>
+
+1.  **Install Lottie Web**:
+
+    First, you need to install the Lottie web library.
+    You can do this using npm or pnpm.
+    Open your terminal and run the following command:
+
+    ```shell
+    pnpm add lottie-web
+    ```
+
+2.  **Set Up Your Project Structure**:
+
+    Create a basic lottie web project structure
+    Here is an example of the layout:
+
+    <FileTree>
+
+    -   my-project/
+        -   src/
+            -   index.html
+            -   animations/
+                -   animation.json
+            -   js/
+                -   main.js
+        -   css/
+            -   styles.css
+        -   package.json
+        -   pnpm-lock.yaml
+    -   README.md
+
+    </FileTree>
+
+3.  **Create an HTML File**:
+
+    Create an `index.html` file in the `src` directory:
+    Here is a starter html template:
+
+    ```html
+    <!doctype html>
+    <html lang="en">
+    	<head>
+    		<meta charset="UTF-8" />
+    		<meta
+    			name="viewport"
+    			content="width=device-width, initial-scale=1.0" />
+    		<title>Lottie Animation Example</title>
+    		<link rel="stylesheet" href="../css/styles.css" />
+    	</head>
+    	<body>
+    		<div
+    			id="animationContainer"
+    			style="width: 500px; height: 500px;"></div>
+    		<script src="../js/main.js"></script>
+    	</body>
+    </html>
+    ```
+
+4.  **Add Lottie Animation JSON File**:
+
+    Place your Lottie animation JSON file in the `src/animations` directory.
+    You can export this JSON file from Adobe After Effects using the Bodymovin plugin.
+
+    You can also use our [sister website, Rare Icon,](https://rareicon.com/) to grab Lottie JSONs.
+
+5.  **Add Lottie to Your JavaScript File**:
+
+    In your `js/main.js` file, initialize Lottie and load your animation:
+
+    ```js
+    import lottie from 'lottie-web';
+
+    const animationContainer = document.getElementById('animationContainer');
+
+    const animation = lottie.loadAnimation({
+    	container: animationContainer, // the DOM element that will contain the animation
+    	renderer: 'svg', // the rendering method: 'svg', 'canvas', or 'html'
+    	loop: true, // whether the animation should loop
+    	autoplay: true, // whether the animation should start automatically
+    	path: '../animations/animation.json', // the path to the animation JSON file
+    });
+    ```
+
+6.  **Add Basic CSS**:
+
+    Add some basic CSS to `css/styles.css` to style your page:
+
+    ```css
+    body {
+    	display: flex;
+    	justify-content: center;
+    	align-items: center;
+    	height: 100vh;
+    	margin: 0;
+    	font-family: Arial, sans-serif;
+    }
+
+    #animationContainer {
+    	border: 2px solid #333;
+    }
+    ```
+
+7.  **Test Your Setup**:
+
+    Start a local server to test your setup. You can use a simple server like `http-server`:
+
+    ```shell
+    # Install http-server globally
+    npm install -g http-server
+
+    # Start the server
+    http-server src
+    ```
+
+    Open your browser and navigate to the URL provided by `http-server`.
+    You should see your Lottie animation playing in the `animationContainer` div.
+
+</Steps>
 
 ---
 
@@ -1077,36 +1702,35 @@ SWUP is perfect for creating dynamic and responsive web applications that delive
     </FileTree>
 
 4.  **Create HTML Files**
-    
+
     Create some HTML files in the `src` directory. Here’s an example for `index.html`:
 
     ```html
-
-    <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Home</title>
-            <link rel="stylesheet" href="../css/styles.css">
-        </head>
-        <body>
-            <div id="swup" class="transition-fade">
-            <h1>Home Page</h1>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </nav>
-            </div>
-            <script src="../js/main.js"></script>
-        </body>
+    <!doctype html>
+    <html lang="en">
+    	<head>
+    		<meta charset="UTF-8" />
+    		<meta
+    			name="viewport"
+    			content="width=device-width, initial-scale=1.0" />
+    		<title>Home</title>
+    		<link rel="stylesheet" href="../css/styles.css" />
+    	</head>
+    	<body>
+    		<div id="swup" class="transition-fade">
+    			<h1>Home Page</h1>
+    			<nav>
+    				<a href="index.html">Home</a>
+    				<a href="about.html">About</a>
+    				<a href="contact.html">Contact</a>
+    			</nav>
+    		</div>
+    		<script src="../js/main.js"></script>
+    	</body>
     </html>
-
     ```
 
     Repeat the structure for `about.html` and `contact.html`, changing the content inside the `div` with `id="swup"`.
-
 
 5.  **Add SWUP to Your JavaScript File**:
 
@@ -1124,16 +1748,16 @@ SWUP is perfect for creating dynamic and responsive web applications that delive
     import SwupDebugPlugin from '@swup/debug-plugin';
 
     const swup = new Swup({
-        plugins: [
-            new SwupScriptsPlugin(),
-            new SwupA11yPlugin(),
-            new SwupHeadPlugin(),
-            new SwupSlideTheme(),
-            new SwupScrollPlugin(),
-            new SwupPreloadPlugin(),
-            new SwupBodyClassPlugin(),
-            new SwupDebugPlugin()
-        ]
+    	plugins: [
+    		new SwupScriptsPlugin(),
+    		new SwupA11yPlugin(),
+    		new SwupHeadPlugin(),
+    		new SwupSlideTheme(),
+    		new SwupScrollPlugin(),
+    		new SwupPreloadPlugin(),
+    		new SwupBodyClassPlugin(),
+    		new SwupDebugPlugin(),
+    	],
     });
     ```
 
@@ -1143,25 +1767,26 @@ SWUP is perfect for creating dynamic and responsive web applications that delive
 
     ```css
     /* CSS for SWUP transitions */
-    html, body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
+    html,
+    body {
+    	margin: 0;
+    	padding: 0;
+    	font-family: Arial, sans-serif;
     }
 
     nav a {
-        margin: 0 10px;
-        text-decoration: none;
-        color: #333;
+    	margin: 0 10px;
+    	text-decoration: none;
+    	color: #333;
     }
 
     .transition-fade {
-        opacity: 1;
-        transition: opacity 0.4s;
+    	opacity: 1;
+    	transition: opacity 0.4s;
     }
 
     html.is-leaving .transition-fade {
-        opacity: 0;
+    	opacity: 0;
     }
     ```
 
