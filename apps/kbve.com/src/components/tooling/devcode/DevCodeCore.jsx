@@ -63,7 +63,7 @@ const DevCodeCore = ({ htmlCode }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="prose max-w-none"
+            className="max-w-none"
           >
             {parse(htmlCode)}
           </motion.div>
