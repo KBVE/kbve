@@ -50,11 +50,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Install dependencies with Poetry
 RUN poetry install
 
-# Setup Openbox
-RUN mkdir -p /root/.config/openbox && \
-    echo 'x-terminal-emulator &' > /root/.config/openbox/autostart && \
-    echo 'java -jar /usr/local/bin/runelite.jar &' >> /root/.config/openbox/autostart
-
 # Expose necessary ports
 #EXPOSE 5900 6080 8000
 EXPOSE 6080 8086
