@@ -13,6 +13,15 @@ tags:
     - technology
 ---
 
+import {
+Aside,
+Steps,
+Card,
+CardGrid,
+Code,
+FileTree,
+} from '@astrojs/starlight/components';
+
 ## Information
 
 Python is a high-level, interpreted [programming](https://kbve.com/theory/programming/) language known for its clear syntax and readability, making it excellent for beginners and experienced developers alike.
@@ -22,7 +31,104 @@ Python's vast ecosystem of libraries and frameworks—such as Django for web dev
 Python is widely used in scientific computing, data mining, and [artificial intelligence](https://kbve.com/application/ml/), thanks to its simplicity and the powerful libraries that extend its capabilities. It's also a favorite for automation, scripting, and rapid application development across diverse fields.
 The language's design and module architecture encourage code reusability and maintainability.
 
-## Install
+## Setup
+
+These are various tutorials for setting up python on different operating systems!
+
+### Windows
+
+<Steps>
+
+
+1. **Download Python Installer:**
+   - Go to the [official Python website](https://www.python.org/).
+   - Click on the "Downloads" section and select the latest version for Windows.
+
+2. **Run the Installer:**
+   - Double-click the downloaded file to run the installer.
+   - Check the box that says "Add Python to PATH."
+   - Click on "Customize installation" if you want to choose specific features, otherwise, click on "Install Now."
+
+3. **Verify the Installation:**
+   - Open Command Prompt (Win + R, type `cmd`, and press Enter).
+   - Type `python --version` and press Enter. You should see the Python version you installed.
+   - Also, check `pip` (Python package installer) by typing `pip --version`.
+
+</Steps>
+
+### macOS
+
+<Steps>
+
+1. **Download Python Installer:**
+   - Go to the [official Python website](https://www.python.org/).
+   - Click on the "Downloads" section and select the latest version for macOS.
+
+2. **Run the Installer:**
+   - Open the downloaded `.pkg` file and follow the installation instructions.
+   - The installer will automatically add Python to your PATH.
+
+3. **Verify the Installation:**
+   - Open Terminal (Cmd + Space, type `Terminal`, and press Enter).
+   - Type `python3 --version` and press Enter. You should see the Python version you installed.
+   - Also, check `pip3` by typing `pip3 --version`.
+
+</Steps>
+
+
+### Linux (Ubuntu)
+
+<Steps>
+
+1. **Update and Upgrade System:**
+   - Open Terminal (Ctrl + Alt + T).
+   - Run the following commands:
+     ```bash
+     sudo apt update
+     sudo apt upgrade
+     ```
+
+2. **Install Python:**
+   - Run the command to install Python (replace `3.x` with the version you want, e.g., `3.10`):
+     ```bash
+     sudo apt install python3.x
+     ```
+   - Install `pip`:
+     ```bash
+     sudo apt install python3-pip
+     ```
+
+3. **Verify the Installation:**
+   - Type `python3 --version` and press Enter. You should see the Python version you installed.
+   - Also, check `pip3` by typing `pip3 --version`.
+
+
+</Steps>
+
+---
+
+## Virtual Environments
+
+<Steps>
+
+1.  **Install `virtualenv`:**
+
+     ```bash
+     pip3 install virtualenv
+     ```
+     
+2.  Create a virtual environment:
+    
+     ```bash
+     virtualenv myenv
+     ```
+3.  Activate the virtual environment:
+     - Windows: `myenv\Scripts\activate`
+     - macOS/Linux: `source myenv/bin/activate`
+    
+    - Deactivate the virtual environment by typing `deactivate`.
+
+</Steps>
 
 ---
 
@@ -48,3 +154,27 @@ In this example, we will look into the install of the `requests` package via `pi
 ```shell
 pip install requests
 ```
+
+<Steps>
+
+1. **Install Packages Using `pip`:**
+   - To install a package:
+     ```bash
+     pip install package_name
+     ```
+   - To list installed packages:
+     ```bash
+     pip list
+     ```
+
+2. **Upgrade `pip`:**
+   - Run the command:
+     ```bash
+     python -m pip install --upgrade pip
+     ```
+
+</Steps>
+
+---
+
+
