@@ -20,13 +20,18 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     gnupg2 \
     gnome-terminal \
-    gnome-session
+    gnome-session \
+    openbox \
+    openjdk-11-jdk
 
 # Install Python and Poetry using deadsnakes PPA
 RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get install -y python3.12 python3.12-venv python3.12-distutils python3-pip && \
     curl -sSL https://install.python-poetry.org | python3.12 -
+
+# Download RuneLite
+RUN wget -O /usr/local/bin/runelite.jar https://github.com/runelite/launcher/releases/download/2.7.1/RuneLite.jar
 
 # Environment variables to configure
 ENV HOME=/root \
@@ -45,6 +50,10 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Install dependencies with Poetry
 RUN poetry install
 
+# Setup Openbox
+RUN mkdir -p /root/.config/openbox && \
+    echo 'x-terminal-emulator &' > /root/.config/openbox/autostart && \
+    echo 'java -jar /usr/local/bin/runelite.jar &' >> /root/.config/openbox/autostart
 
 # Expose necessary ports
 #EXPOSE 5900 6080 8000

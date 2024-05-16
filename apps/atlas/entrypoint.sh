@@ -34,5 +34,14 @@ cp -r /usr/share/novnc/* /app/templates/novnc/
 # Copy vnc.html to index.html
 cp /app/templates/novnc/vnc.html /app/templates/novnc/index.html
 
+# Start Openbox (window manager)
+openbox &
+
+# Wait a bit to make sure Openbox starts
+sleep 5
+
+# Start RuneLite
+java -jar /usr/local/bin/runelite.jar &
+
 # Execute the command passed to the docker run
 exec "$@"
