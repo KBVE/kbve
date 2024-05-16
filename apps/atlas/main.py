@@ -9,7 +9,7 @@ import uvicorn
 
 from contextlib import asynccontextmanager
 
-from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient
+from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient, RuneLiteClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
 import logging
@@ -108,3 +108,7 @@ def bitcoin_price(price):
 @kr_decorator.k_r("/poem", PoetryDBClient, "get_random_poem")
 def poetry_db(poem):
     return {"poem": poem}
+
+@kr_decorator.k_r("/start-runelite", RuneLiteClient, "start_runelite_async")
+def runelite_startup_message(startup_message):
+    return {"message": startup_message}
