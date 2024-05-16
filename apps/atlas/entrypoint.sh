@@ -17,6 +17,17 @@ sleep 5
 mkdir -p ~/.vnc
 x11vnc -storepasswd 12345 ~/.vnc/passwd
 
+# Update the xstartup script to run RuneLite
+cat <<EOF > ~/.vnc/xstartup
+#!/bin/sh
+# Start GNOME session
+gnome-session &
+EOF
+
+
+# Ensure the xstartup script has executable permissions
+chmod +x ~/.vnc/xstartup
+
 # Start the VNC server
 # Added `-noxdamage` to avoid issues with compositing window managers that might cause the black screen
 # Added `-verbose` for more detailed logs which might help in diagnosing issues
@@ -33,6 +44,15 @@ cp -r /usr/share/novnc/* /app/templates/novnc/
 
 # Copy vnc.html to index.html
 cp /app/templates/novnc/vnc.html /app/templates/novnc/index.html
+
+# Start Openbox (window manager)
+#openbox &
+
+# Wait a bit to make sure Openbox starts
+#sleep 5
+
+# Start RuneLite
+#java -jar /usr/local/bin/runelite.jar &
 
 # Execute the command passed to the docker run
 exec "$@"
