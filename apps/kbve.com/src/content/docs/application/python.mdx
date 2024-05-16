@@ -14,12 +14,12 @@ tags:
 ---
 
 import {
-Aside,
-Steps,
-Card,
-CardGrid,
-Code,
-FileTree,
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
 } from '@astrojs/starlight/components';
 
 ## Information
@@ -39,20 +39,21 @@ These are various tutorials for setting up python on different operating systems
 
 <Steps>
 
-
 1. **Download Python Installer:**
-   - Go to the [official Python website](https://www.python.org/).
-   - Click on the "Downloads" section and select the latest version for Windows.
+
+    - Go to the [official Python website](https://www.python.org/).
+    - Click on the "Downloads" section and select the latest version for Windows.
 
 2. **Run the Installer:**
-   - Double-click the downloaded file to run the installer.
-   - Check the box that says "Add Python to PATH."
-   - Click on "Customize installation" if you want to choose specific features, otherwise, click on "Install Now."
+
+    - Double-click the downloaded file to run the installer.
+    - Check the box that says "Add Python to PATH."
+    - Click on "Customize installation" if you want to choose specific features, otherwise, click on "Install Now."
 
 3. **Verify the Installation:**
-   - Open Command Prompt (Win + R, type `cmd`, and press Enter).
-   - Type `python --version` and press Enter. You should see the Python version you installed.
-   - Also, check `pip` (Python package installer) by typing `pip --version`.
+    - Open Command Prompt (Win + R, type `cmd`, and press Enter).
+    - Type `python --version` and press Enter. You should see the Python version you installed.
+    - Also, check `pip` (Python package installer) by typing `pip --version`.
 
 </Steps>
 
@@ -61,47 +62,49 @@ These are various tutorials for setting up python on different operating systems
 <Steps>
 
 1. **Download Python Installer:**
-   - Go to the [official Python website](https://www.python.org/).
-   - Click on the "Downloads" section and select the latest version for macOS.
+
+    - Go to the [official Python website](https://www.python.org/).
+    - Click on the "Downloads" section and select the latest version for macOS.
 
 2. **Run the Installer:**
-   - Open the downloaded `.pkg` file and follow the installation instructions.
-   - The installer will automatically add Python to your PATH.
+
+    - Open the downloaded `.pkg` file and follow the installation instructions.
+    - The installer will automatically add Python to your PATH.
 
 3. **Verify the Installation:**
-   - Open Terminal (Cmd + Space, type `Terminal`, and press Enter).
-   - Type `python3 --version` and press Enter. You should see the Python version you installed.
-   - Also, check `pip3` by typing `pip3 --version`.
+    - Open Terminal (Cmd + Space, type `Terminal`, and press Enter).
+    - Type `python3 --version` and press Enter. You should see the Python version you installed.
+    - Also, check `pip3` by typing `pip3 --version`.
 
 </Steps>
-
 
 ### Linux (Ubuntu)
 
 <Steps>
 
 1. **Update and Upgrade System:**
-   - Open Terminal (Ctrl + Alt + T).
-   - Run the following commands:
-     ```bash
-     sudo apt update
-     sudo apt upgrade
-     ```
+
+    - Open Terminal (Ctrl + Alt + T).
+    - Run the following commands:
+        ```bash
+        sudo apt update
+        sudo apt upgrade
+        ```
 
 2. **Install Python:**
-   - Run the command to install Python (replace `3.x` with the version you want, e.g., `3.10`):
-     ```bash
-     sudo apt install python3.x
-     ```
-   - Install `pip`:
-     ```bash
-     sudo apt install python3-pip
-     ```
+
+    - Run the command to install Python (replace `3.x` with the version you want, e.g., `3.10`):
+        ```bash
+        sudo apt install python3.x
+        ```
+    - Install `pip`:
+        ```bash
+        sudo apt install python3-pip
+        ```
 
 3. **Verify the Installation:**
-   - Type `python3 --version` and press Enter. You should see the Python version you installed.
-   - Also, check `pip3` by typing `pip3 --version`.
-
+    - Type `python3 --version` and press Enter. You should see the Python version you installed.
+    - Also, check `pip3` by typing `pip3 --version`.
 
 </Steps>
 
@@ -113,20 +116,21 @@ These are various tutorials for setting up python on different operating systems
 
 1.  **Install `virtualenv`:**
 
-     ```bash
-     pip3 install virtualenv
-     ```
-     
+    ```bash
+    pip3 install virtualenv
+    ```
+
 2.  Create a virtual environment:
-    
-     ```bash
-     virtualenv myenv
-     ```
+
+    ```bash
+    virtualenv myenv
+    ```
+
 3.  Activate the virtual environment:
-     - Windows: `myenv\Scripts\activate`
-     - macOS/Linux: `source myenv/bin/activate`
-    
-    - Deactivate the virtual environment by typing `deactivate`.
+
+    -   Windows: `myenv\Scripts\activate`
+    -   macOS/Linux: `source myenv/bin/activate`
+    -   Deactivate the virtual environment by typing `deactivate`.
 
 </Steps>
 
@@ -158,23 +162,388 @@ pip install requests
 <Steps>
 
 1. **Install Packages Using `pip`:**
-   - To install a package:
-     ```bash
-     pip install package_name
-     ```
-   - To list installed packages:
-     ```bash
-     pip list
-     ```
+
+    - To install a package:
+        ```bash
+        pip install package_name
+        ```
+    - To list installed packages:
+        ```bash
+        pip list
+        ```
 
 2. **Upgrade `pip`:**
-   - Run the command:
-     ```bash
-     python -m pip install --upgrade pip
-     ```
+    - Run the command:
+        ```bash
+        python -m pip install --upgrade pip
+        ```
 
 </Steps>
 
 ---
 
+## FastAPI
 
+FastAPI is a modern and fast web framework designed for building APIs with Python 3.7+ using standard Python type hints.
+Offering high performance, FastAPI leverages asynchronous programming to achieve speeds comparable to those of Node.js and Go, making it ideal for developing scalable and efficient web applications.
+The framework is built on top of Starlette for handling web components and Pydantic for data validation and serialization, ensuring smooth data management.
+FastAPI stands out for its automatic interactive API documentation, featuring Swagger UI and ReDoc, which simplifies the process of exploring and testing API endpoints.
+The framework also supports OAuth2 authentication with JWT tokens, making it a robust choice for secure API development.
+Additionally, FastAPI's design focuses on developer productivity, reducing code duplication and enhancing maintainability.
+By providing built-in support for data validation, serialization, and interactive documentation, FastAPI accelerates the development process, making it a popular choice for both small projects and large-scale enterprise applications.
+
+### Tutorial on Setting Up FastAPI
+
+<Steps>
+
+0.  **Prepare Dev Environment**:
+
+    Ensure that Python 3.7 or later is installed on your system.
+    You can download the latest version from the [official Python website](https://www.python.org/).
+    Follow the installation instructions for your operating system.
+    Verify the installation by opening a terminal or command prompt and running:
+
+    ```sh
+    python --version
+    ```
+
+    This should display the installed Python version.
+
+    Creating a virtual environment is a good practice to manage project dependencies.
+    In your terminal or command prompt, navigate to your project directory and run:
+
+    ```sh
+    python -m venv env
+    ```
+
+    This command creates a virtual environment named `env`. Activate the virtual environment by running:
+
+        - On Windows:
+
+        ```sh
+        .\env\Scripts\activate
+        ```
+
+        - On macOS/Linux:
+        ```sh
+        source env/bin/activate
+        ```
+
+1.  **Install FastAPI and Uvicorn**:
+
+    FastAPI requires an ASGI server to run. Uvicorn is a recommended ASGI server for FastAPI. Install FastAPI and Uvicorn within your virtual environment by running:
+
+    ```sh
+    pip install fastapi uvicorn
+    ```
+
+    This command installs both FastAPI and Uvicorn, enabling you to build and serve your API.
+
+2.  **Create a Basic FastAPI Application**:
+
+    Organize your project directory with a simple file tree structure to keep everything neat and manageable.
+
+    <FileTree>
+
+    -   my_fastapi_project/
+        -   main.py
+        -   requirements.txt
+    -   .gitignore
+
+    </FileTree>
+
+    -   **main.py:** The main application file where the FastAPI app is defined.
+    -   **requirements.txt:** A file to list project dependencies, including `fastapi` and `uvicorn`.
+    -   **.gitignore:** A file to specify which files and directories to ignore in version control (optional, but recommended).
+
+    Create a new Python file in your project directory, for example, `main.py`.
+    Open this file in a text editor and add the following code:
+
+    ```python
+    from fastapi import FastAPI
+
+    app = FastAPI()
+
+    @app.get("/")
+    async def read_root():
+        return {"Hello": "World"}
+
+    @app.get("/items/{item_id}")
+    async def read_item(item_id: int, q: str = None):
+        return {"item_id": item_id, "q": q}
+    ```
+
+    This code defines a basic FastAPI application with two endpoints: a root endpoint (`/`) that returns a simple greeting and an endpoint (`/items/{item_id}`) that returns an item ID and an optional query parameter.
+
+3.  **Run the FastAPI Application**:
+
+    Use Uvicorn to run your FastAPI application. In your terminal or command prompt, navigate to your project directory and run:
+
+    ```shell
+    uvicorn main:app --reload
+    ```
+
+    The `--reload` option enables automatic reloads when code changes are detected, which is useful for development.
+    Open a web browser and navigate to `http://127.0.0.1:8000` to see the greeting message.
+    Visit `http://127.0.0.1:8000/items/1?q=test` to see the item endpoint in action.
+
+4.  **Explore Automatic Interactive API Documentation**:
+
+    FastAPI provides interactive API documentation automatically.
+    With your application running, navigate to `http://127.0.0.1:8000/docs` to see the Swagger UI.
+    This interface allows you to interact with your API endpoints directly from the browser.
+    Another documentation interface is available at `http://127.0.0.1:8000/redoc`.
+
+5.  **Add More Functionality**:
+
+    Expand your FastAPI application by adding more routes, handling different HTTP methods, and integrating data validation.
+    FastAPI’s documentation provides detailed guidance on various features, including path parameters, query parameters, request bodies, and response models.
+
+    Let us begin by installing `Pydantic`, here is a quick command to do so:
+
+    ```shell
+    pip install pydantic
+    ```
+
+    Next, to add a POST endpoint for creating items, modify `main.py`:
+
+    ```python
+    from fastapi import FastAPI, HTTPException
+    from pydantic import BaseModel
+
+    app = FastAPI()
+
+    class Item(BaseModel):
+        name: str
+        price: float
+        is_offer: bool = None
+
+    @app.post("/items/")
+    async def create_item(item: Item):
+        return item
+    ```
+
+    This code defines an `Item` model using Pydantic and a POST endpoint that accepts an `Item` and returns it.
+
+    By following these steps, you will have a fully functional FastAPI application ready for further development and customization.
+
+</Steps>
+
+---
+
+## Pydantic
+
+Pydantic is a powerful data validation and settings management library for Python, leveraging Python type annotations to ensure robust and reliable data handling.
+By defining data models through type hints, Pydantic automates the validation and parsing process, converting input data into the appropriate types and structures.
+This functionality is particularly beneficial in scenarios requiring strict data integrity, such as API development and configuration management.
+Pydantic supports various standard library types, custom data types, and even complex nested data structures.
+
+Built with performance in mind, Pydantic's core validation logic is implemented in Rust, making it one of the fastest data validation libraries available.
+The library also includes features like JSON Schema generation, custom validators, and the ability to run in strict or lax modes, allowing for flexible data coercion and validation.
+With broad adoption, including use by major companies and integration with popular frameworks like FastAPI, Pydantic has become a cornerstone in the Python ecosystem for data validation.
+
+
+### Pydantic Tutorial
+
+<Steps>
+
+0.  **Setting up your project**:
+
+    First, create a new directory for your project.
+
+    ```bash
+    mkdir pydantic_project
+    cd pydantic_project
+    ```
+
+    **Set Up a Virtual Environment**:
+    
+    Create and activate a virtual environment.
+
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    ```
+
+    **Install Pydantic**
+    Install Pydantic via pip.
+
+    ```bash
+    pip install pydantic
+    ```
+
+1.  **Project Structure**:
+
+    Create the following project structure:
+
+    <FileTree>
+
+    - pydantic_project/
+        - venv/
+        - main.py
+        - models/
+            - user.py
+        - utils/
+            - helpers.py
+    - .gitignore
+    - README.md
+    </FileTree>
+
+2.  **Create Pydantic Models**:
+        
+    Create a Pydantic model in `models/user.py`.
+
+    ```python
+    # models/user.py
+    from pydantic import BaseModel, EmailStr, Field
+    from typing import List, Optional
+    from datetime import date
+
+    class Address(BaseModel):
+        street: str
+        city: str
+        state: str
+        zip_code: str
+
+    class User(BaseModel):
+        id: int
+        name: str = Field(..., max_length=100)
+        email: EmailStr
+        is_active: bool = True
+        addresses: List[Address] = []
+        date_of_birth: Optional[date] = None
+
+        class Config:
+            schema_extra = {
+                "example": {
+                    "id": 1,
+                    "name": "John Doe",
+                    "email": "john.doe@example.com",
+                    "is_active": True,
+                    "addresses": [
+                        {
+                            "street": "123 Main St",
+                            "city": "Anytown",
+                            "state": "CA",
+                            "zip_code": "12345"
+                        }
+                    ],
+                    "date_of_birth": "1990-01-01"
+                }
+            }
+    ```
+
+3.  **Create Helper Functions**:
+
+    Create helper functions in `utils/helpers.py`.
+
+    ```python
+    # utils/helpers.py
+    from models.user import User, Address
+    from typing import List
+
+    def create_user(data: dict) -> User:
+        return User(**data)
+
+    def filter_active_users(users: List[User]) -> List[User]:
+        return [user for user in users if user.is_active]
+
+    def add_address_to_user(user: User, address_data: dict) -> User:
+        address = Address(**address_data)
+        user.addresses.append(address)
+        return user
+    ```
+
+4.  **Main Application Logic**:
+
+    Create the main application logic in `main.py`.
+        
+    ```python
+    # main.py
+    from models.user import User
+    from utils.helpers import create_user, filter_active_users, add_address_to_user
+
+    # Sample user data
+    user_data = {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "is_active": True,
+        "addresses": [
+            {
+                "street": "123 Main St",
+                "city": "Anytown",
+                "state": "CA",
+                "zip_code": "12345"
+            }
+        ],
+        "date_of_birth": "1990-01-01"
+    }
+
+    # Create a user
+    user = create_user(user_data)
+    print(user)
+
+    # Add a new address to the user
+    new_address = {
+        "street": "456 Elm St",
+        "city": "Othertown",
+        "state": "NY",
+        "zip_code": "67890"
+    }
+    user = add_address_to_user(user, new_address)
+    print(user)
+
+    # Filter active users
+    users = [user, create_user({**user_data, "id": 2, "is_active": False})]
+    active_users = filter_active_users(users)
+    print(active_users)
+    ```
+
+5.  **Run Your Application**:
+
+    Run your application using the following command:
+
+    ```bash
+    python main.py
+    ```
+
+6.  **Extending Valdiation**:
+
+    Pydantic automatically validates data. For instance, if you try to create a user with an invalid email, it will raise a `ValidationError`.
+
+    **Custom Validators**
+    You can add custom validation methods within your model.
+
+    ```python
+    from pydantic import validator
+
+    class User(BaseModel):
+        # ... (other fields)
+
+        @validator('name')
+        def name_must_be_capitalized(cls, v):
+            if not v.istitle():
+                raise ValueError('Name must be capitalized')
+            return v
+    ```
+
+    **Serialization and Deserialization**
+    Pydantic models can easily be serialized to and deserialized from JSON.
+
+    ```python
+    user_json = user.json()
+    new_user = User.parse_raw(user_json)
+    ```
+
+    **Schema Generation**
+    Pydantic can generate JSON Schemas for your models.
+
+    ```python
+    print(User.schema_json(indent=2))
+    ```
+
+</Steps>
+
+You now have a detailed setup for a Pydantic project with models, helper functions, and application logic.
+Do not forget, you can extend this project further by adding more models, complex validation, and integrating with other parts of your application.
