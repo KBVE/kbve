@@ -75,10 +75,10 @@ async def get():
 
 @app.get("/click")
 async def click_main():
-    # TODO Opps, need to replace this with the right image to click test.
     image_url = "https://utfs.io/f/0c0d1370-9d29-4ae4-965d-8969ef033dc1-a8zuzm.png"
     client = ScreenClient(image_url, timeout=3)
-    await client.find_and_click_image()
+    message = await client.find_and_click_image()
+    return {"message": message}
 
 @app.get("/echo")
 async def echo_main():

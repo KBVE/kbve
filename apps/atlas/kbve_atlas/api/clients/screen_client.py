@@ -25,9 +25,8 @@ class ScreenClient:
                 logger.error(error_msg)
                 return error_msg
 
-            template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
             screen = pyautogui.screenshot()
-            screen = cv2.cvtColor(np.array(screen), cv2.COLOR_RGB2GRAY)
+            screen = cv2.cvtColor(np.array(screen), cv2.COLOR_RGB2BGR)
 
             result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
