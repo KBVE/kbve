@@ -2,6 +2,7 @@ import pyautogui
 import cv2
 import numpy as np
 import logging
+import os
 from humancursor import SystemCursor
 from ...api.utils import ImageUtility
 
@@ -13,6 +14,9 @@ class ScreenClient:
         self.image_util = ImageUtility(timeout=timeout)
 
     async def find_and_click_image(self):
+
+        os.environ['DISPLAY'] = ':20'
+
         try:
             image_path = await self.image_util.download_and_cache_image_async(self.image_url)
             template = cv2.imread(image_path)
