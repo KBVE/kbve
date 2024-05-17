@@ -24,6 +24,18 @@ class RuneLiteClient:
             logger.error(f"Failed to start RuneLite: {e}")
             return f"Failed to start RuneLite: {e}"
 
+
+    async def stop_runelite_async(self):
+        try:
+            # Use pkill to terminate the process by its name or part of the name
+            #await asyncio.to_thread(subprocess.run, ["pkill", "-f", "runelite.jar"])
+            await asyncio.to_thread(subprocess.run, ["pkill", "java"])
+            logger.info("RuneLite stopped successfully.")
+            return "RuneLite stopped successfully."
+        except Exception as e:
+            logger.error(f"Failed to stop RuneLite: {e}")
+            return f"Failed to stop RuneLite: {e}"
+        
     async def close(self):
         # This method is required by the KRDecorator's pattern, even if it does nothing
         pass
