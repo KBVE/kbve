@@ -2,11 +2,10 @@ import pyautogui
 import cv2
 import numpy as np
 import logging
-#from humancursor import SystemCursor
+from humancursor import SystemCursor
 from ...api.utils import ImageUtility
 
 logger = logging.getLogger("uvicorn")
-
 
 class ScreenClient:
     def __init__(self, image_url, timeout=5):
@@ -18,20 +17,30 @@ class ScreenClient:
             image_path = await self.image_util.download_and_cache_image_async(self.image_url)
             template = cv2.imread(image_path)
             if template is None:
-                logger.error(
-                    "Failed to load image for path: {}".format(image_path))
-                return
+                error_msg = f"Failed to load image for path: {image_path}"
+                logger.error(error_msg)
+                return error_msg
+
             template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
             screen = pyautogui.screenshot()
             screen = cv2.cvtColor(np.array(screen), cv2.COLOR_RGB2GRAY)
 
             result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
-            _, _, _, max_loc = cv2.minMaxLoc(result)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
-            click_x, click_y = max_loc
-            #cursor = SystemCursor()
-            #cursor.click_on([click_x, click_y])
-            pyautogui.click(click_x, click_y)
-            logger.info(f"Clicked at position: ({click_x}, {click_y})")
+            # Define a threshold for template matching confidence
+            threshold = 0.8  # You can adjust this value according to your needs
+            if max_val >= threshold:
+                click_x, click_y = max_loc
+                cursor = SystemCursor()
+                cursor.click_on([click_x, click_y])  # or use pyautogui.click(click_x, click_y)
+                logger.info(f"Clicked at position: ({click_x}, {click_y})")
+                return "Click successful"
+            else:
+                error_msg = "Image not found with sufficient confidence."
+                logger.error(error_msg)
+                return error_msg
         except Exception as e:
-            logger.error(f"An error occurred: {e}")
+            error_msg = f"Failed to click image: {e}"
+            logger.error(error_msg)
+            return error_msg

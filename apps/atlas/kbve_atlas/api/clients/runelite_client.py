@@ -45,7 +45,7 @@ class RuneLiteClient:
         logger.info(start_message)
 
         # Wait for a reasonable amount of time for RuneLite to create profiles.json
-        await asyncio.sleep(30)  # Adjust the sleep time as necessary
+        await asyncio.sleep(60)  # Adjust the sleep time as necessary
 
         # Define the URLs and file paths
         url = 'https://kbve.com/data/outpost/runelite/default.properties'

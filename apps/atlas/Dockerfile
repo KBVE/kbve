@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     gnupg2 \
     gnome-terminal \
     gnome-session \
+    gnome-screenshot \
     openbox \
     openjdk-11-jdk
 

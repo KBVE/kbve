@@ -5,6 +5,9 @@ rm -f /tmp/.X1-lock /tmp/.X11-unix/X1 $XAUTHORITY
 touch $XAUTHORITY
 xauth generate $DISPLAY . trusted 2>/dev/null
 
+# Enable Wayland
+sed -i 's/^#WaylandEnable=false/WaylandEnable=false/' /etc/gdm3/custom.conf
+
 # Start Virtual Frame Buffer in the background
 # Added `-ac` to disable access control, i.e., allow connections from any host
 # You might need to be careful with security implications of -ac in a production environment
