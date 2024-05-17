@@ -116,3 +116,7 @@ def runelite_startup_message(startup_message):
 @kr_decorator.k_r("/stop-runelite", RuneLiteClient, "stop_runelite_async")
 def runelite_shutdown_message(shutdown_message):
     return {"message": shutdown_message}
+
+@kr_decorator.k_r("/config-runelite", RuneLiteClient, "start_and_configure_runelite")
+def runelite_configuration_message(configuration_message):
+    return {"message": configuration_message}

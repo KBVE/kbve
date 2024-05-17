@@ -28,6 +28,18 @@ We could offload the integration testing once it gets stable to portainer but ev
 After pushing the updated `default.properties` to the runelite outpost, we can pull it within our updated python script and place it where it needs to be.
 Current location : `https://kbve.com/data/outpost/runelite/default.properties`
 
+We know that the default profiles would be stored in this location: `~/.runelite/profiles2/` 
+
+When the Runelite loads, it creates a `profiles.json`, which is here: 
+
+```json
+
+{"profiles":[{"id":-1,"name":"$rsprofile","sync":true,"active":false,"rev":-1,"defaultForRsProfiles":[]},{"id":41056315715238,"name":"default","sync":false,"active":true,"rev":-1,"defaultForRsProfiles":[]}]}
+
+```
+
+I need to now download the default.properties from the outpost and then name it `default-41056315715238.properties` , with the id from the profiles.json.
+
 **LoL**
 
 League just did a major update with their patch 14.10!
