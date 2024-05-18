@@ -38,6 +38,11 @@ CORSUtil(app)
 
 app.mount("/novnc", StaticFiles(directory="/app/templates/novnc", html=True), name="novnc")
 
+@app.websocket("/")
+async def websocket_endpoint(websocket: WebSocket):
+    client = NoVNCClient(logger)
+    await client.ws_vnc_proxy(websocket, target_host="localhost", target_port=5900)
+
 
 @app.websocket("/websockify")
 async def websocket_proxy(websocket: WebSocket):
@@ -66,10 +71,6 @@ async def websocket_proxy(websocket: WebSocket):
         print(f"Error: {e}")
         await websocket.close()
 
-@app.websocket("/")
-async def chatroom_ws(websocket: WebSocket):
-    await websocket.accept()
-    await broadcast.send_messages(websocket, "chatroom")
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
