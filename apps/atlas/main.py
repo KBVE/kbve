@@ -6,6 +6,7 @@ import websockets
 import asyncio
 
 import uvicorn
+import os
 
 from contextlib import asynccontextmanager
 
@@ -15,6 +16,7 @@ from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, B
 import logging
 logger = logging.getLogger("uvicorn")
 
+os.environ['DISPLAY'] = ':20'
 
 # TODO : broadcast = ENV_REDIS_FILE For k8s/swarm.
 broadcast = BroadcastUtility()
@@ -75,10 +77,20 @@ async def get():
 
 @app.get("/click")
 async def click_main():
-    # TODO Opps, need to replace this with the right image to click test.
-    image_url = "http://example.com/path/to/image.png"
+    image_url = "https://utfs.io/f/f2af0bde-9e51-40e3-b68b-5a4e6805ac2e-a8zuzm.png"
     client = ScreenClient(image_url, timeout=3)
-    await client.find_and_click_image()
+    message = await client.find_and_click_image()
+    print(os.getenv('DISPLAY'))
+    return {"message": message}
+
+@app.get("/debug")
+async def click_debug():
+    print(os.getenv('DISPLAY'))
+    coordinates = [(100, 100), (200, 200), (300, 300), (400, 400), (500, 500)]
+    client = ScreenClient()
+    message = client.debug_mouse_move_and_click(coordinates, move_duration=1.5)
+    return {"message": message}
+
 
 @app.get("/echo")
 async def echo_main():
@@ -95,6 +107,7 @@ async def google_news():
     rss_utility = RSSUtility(base_url="https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")
     try:
         soup = await rss_utility.fetch_and_parse_rss()
+        
         rss_feed_model = await rss_utility.convert_to_model(soup)
         formatted_feed = RSSUtility.format_rss_feed(rss_feed_model)
         return {"news": formatted_feed}
@@ -120,3 +133,5 @@ def runelite_shutdown_message(shutdown_message):
 @kr_decorator.k_r("/config-runelite", RuneLiteClient, "start_and_configure_runelite")
 def runelite_configuration_message(configuration_message):
     return {"message": configuration_message}
+
+
