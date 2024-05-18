@@ -13,7 +13,9 @@ RUN apt-get update && apt-get install -y \
     dbus-x11 \
     xvfb \
     xauth \
-    tightvncserver \
+    tigervnc-scraping-server \
+    tigervnc-standalone-server \
+    tigervnc-common \
     novnc \
     net-tools \
     python3-tk \
@@ -47,7 +49,8 @@ ENV PATH="/root/.local/bin:${PATH}"
 # Additional Python TK/DEV Libraries
 RUN apt-get update && apt-get install -y \
     python3-tk \
-    python3-dev
+    python3-dev \
+    python3-xdg
 
 # Copy application source
 WORKDIR /app
@@ -64,15 +67,18 @@ EXPOSE 6080 8086
 #EXPOSE 8086
 
 
+# RUN apt-get update && apt-get -y install cron
+# RUN echo "@reboot export DISPLAY=:20 && poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5" > /etc/cron.d/cronjob
+# RUN chmod 0644 /etc/cron.d/cronjob
+# RUN crontab /etc/cron.d/cronjob
+
 # ENV DISPLAY=:20
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-RUN apt-get update && apt-get -y install cron
-RUN echo "@reboot /path/to/myscript.sh" > /etc/cron.d/cronjob
-RUN chmod 0644 /etc/cron.d/cronjob
-RUN crontab /etc/cron.d/cronjob
 
-CMD ["cron", "-f"]
+#CMD ["cron", "-f"]
+# CMD ["cron", "-l", "2", "-f"]
+
 #CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
 
 
