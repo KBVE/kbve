@@ -9,7 +9,7 @@ import requests
 logger = logging.getLogger("uvicorn")
 
 class RuneLiteClient:
-    def __init__(self, display=":20", jar_path="/usr/local/bin/runelite.jar"):
+    def __init__(self, display=":1", jar_path="/usr/local/bin/runelite.jar"):
         self.display = display
         self.jar_path = jar_path
 
