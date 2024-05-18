@@ -44,7 +44,7 @@ class ScreenClient:
                 center_y = max_loc[1] + template.shape[0] // 2
 
                 # Define the maximum radius for random offset
-                radius = 1
+                radius = 10
 
                 # Generate random offset within the circle
                 angle = random.uniform(0, 2 * math.pi)
@@ -56,15 +56,15 @@ class ScreenClient:
                 click_x = center_x + random_offset_x
                 click_y = center_y + random_offset_y
 
-                #cursor = SystemCursor()
-                #cursor.click_on([click_x, click_y])  # or use 
+                cursor = SystemCursor()
+                cursor.click_on([click_x, click_y])  # or use 
                 #pyautogui.click(click_x, click_y)
 
-                  # Add a small delay before clicking to ensure the application is focused
-                pyautogui.sleep(0.5)
-                pyautogui.click(click_x, click_y, button=button)
+                # Add a small delay before clicking to ensure the application is focused
+                #pyautogui.sleep(0.5)
+                #pyautogui.click(click_x, click_y, button=button)
                 # Add a small delay after clicking to ensure the click is registered
-                pyautogui.sleep(0.5)
+                #pyautogui.sleep(0.5)
 
 
                 logger.info(f"Clicked at position: ({click_x}, {click_y}) with offset ({random_offset_x}, {random_offset_y})")
