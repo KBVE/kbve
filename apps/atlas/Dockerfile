@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y \
     openbox \
     openjdk-11-jdk
 
-    # Install Python and Poetry using deadsnakes PPA
+# Install Python and Poetry using deadsnakes PPA
 RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get install -y python3.12 python3.12-venv python3.12-distutils python3-pip && \
@@ -58,13 +58,14 @@ COPY . /app
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+
 # Install dependencies with Poetry
 RUN poetry install
 
 # Expose necessary ports
-#EXPOSE 5900 6080 8000
 EXPOSE 6080 8086
-#EXPOSE 8086
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 
 # RUN apt-get update && apt-get -y install cron
@@ -73,7 +74,6 @@ EXPOSE 6080 8086
 # RUN crontab /etc/cron.d/cronjob
 
 # ENV DISPLAY=:20
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 
 #CMD ["cron", "-f"]
