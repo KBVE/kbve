@@ -1,7 +1,19 @@
-FROM lscr.io/linuxserver/chromium:latest
 
-RUN apt-get update && \
-    apt-get install -y \
+FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
+
+
+RUN \
+    add-apt-repository ppa:saiarcot895/chromium-beta && \
+    apt-get update
+
+RUN \
+    echo "**** add icon ****" && \
+    curl -o \
+        /kclient/public/icon.png \
+        https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/chromium-logo.png && \
+    echo "**** install packages ****" && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
     wget \
     python3 \
     python3-pip \
@@ -10,51 +22,39 @@ RUN apt-get update && \
     python3-dev \
     python3-venv \
     python3-distutils \
-    pulseaudio
+    chromium-browser && \
+    echo "**** cleanup ****" && \
+    apt-get autoclean && \
+    rm -rf \
+      /config/.cache \
+      /var/lib/apt/lists/* \
+      /var/tmp/* \
+      /tmp/*
+  
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-# Create a symlink for python3 to be called as python
-# RUN ln -s /usr/bin/python3 /usr/bin/python
-# Download RuneLite
+
+# add local files
+COPY /root /
+
 RUN wget -O /usr/local/bin/runelite.jar https://github.com/runelite/launcher/releases/download/2.7.1/RuneLite.jar
 
 # Poetry
 RUN curl -sSL https://install.python-poetry.org | python -
 
-# Ensure the Poetry bin directory is in the PATH
 ENV PATH="$HOME/.local/bin:$HOME/.poetry/bin:${PATH}"
 
-# Verify Poetry installation and print version
 RUN poetry --version
 
-# Copy application source
-WORKDIR /app
-COPY . /app
-#COPY entrypoint.sh /app/entrypoint.sh
-#RUN chmod +x /app/entrypoint.sh
+WORKDIR $HOME
+COPY . $HOME
 
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-
-# Setup PulseAudio
-RUN mkdir -p /var/run/pulse && \
-    pulseaudio --daemonize && \
-    pulseaudio --start
-
-# Install dependencies with Poetry
 RUN poetry install
 
-ENV PATH="/app/.venv/bin:$PATH"
-#RUN poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5
 
-ENV DISPLAY=:1 \
-    XAUTHORITY=$HOME/.Xauthority \
-    XDG_SESSION_TYPE=x11
+ENV PATH="$HOME/.venv/bin:$PATH"
 
 EXPOSE 3000 8086
-CMD ["/usr/local/bin/entrypoint.sh"]
-#ENTRYPOINT ["/app/entrypoint.sh"]
-#CMD ["pulseaudio", "--start", "--log-target=syslog", "--exit-idle-time=-1"]
-#CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
+
+VOLUME /config

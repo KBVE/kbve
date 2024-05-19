@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "Running AutoStart Home -> $HOME Display -> $DISPLAY"
+cd $HOME
+source /.local/bin/activate
+python3 poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5 | tee -a uvicorn.log &
