@@ -8,6 +8,8 @@ RUN apt-get update && \
     python3-tk \
     python3-xdg \
     python3-dev \
+    python3-venv \
+    python3-distutils \
     pulseaudio
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
@@ -29,8 +31,8 @@ RUN poetry --version
 # Copy application source
 WORKDIR /app
 COPY . /app
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Setup PulseAudio
 RUN mkdir -p /var/run/pulse && \
@@ -40,11 +42,12 @@ RUN mkdir -p /var/run/pulse && \
 # Install dependencies with Poetry
 RUN poetry install
 
+ENV PATH="/app/.venv/bin:$PATH"
 #RUN poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5
 
 ENV DISPLAY=:1
 
 EXPOSE 3000 8086
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+#ENTRYPOINT ["/app/entrypoint.sh"]
 #CMD ["pulseaudio", "--start", "--log-target=syslog", "--exit-idle-time=-1"]
-#CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
+CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
