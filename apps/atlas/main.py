@@ -10,7 +10,7 @@ import os
 
 from contextlib import asynccontextmanager
 
-from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient, RuneLiteClient
+from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient, RuneLiteClient, ChromeClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
 import logging
@@ -135,4 +135,14 @@ def runelite_shutdown_message(shutdown_message):
 def runelite_configuration_message(configuration_message):
     return {"message": configuration_message}
 
+@kr_decorator.k_r("/start-chrome", ChromeClient, "start_chrome_async")
+def chrome_startup_message(startup_message):
+    return {"message": startup_message}
 
+@kr_decorator.k_r("/stop-chrome", ChromeClient, "stop_chrome_async")
+def chrome_shutdown_message(shutdown_message):
+    return {"message": shutdown_message}
+
+@kr_decorator.k_r("/perform-chrome-task", ChromeClient, "perform_task_with_chrome")
+def chrome_task_message(task_message):
+    return {"message": task_message}
