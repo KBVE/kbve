@@ -30,46 +30,8 @@ RUN apt-get update && apt-get install -y \
     openjdk-11-jdk \
     ca-certificates \
     fonts-liberation \
-    libappindicator3-1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libcups2 \
-    libdrm2 \
-    libgbm1 \
-    libgtk-3-0 \
-    libnspr4 \
-    libnss3 \
-    libx11-xcb1 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxrandr2 \
-    libxss1 \
-    xdg-utils \
+    chromium-browser \
     --no-install-recommends
-
-# Add a non-root user to run Chrome
-RUN groupadd -r chrome && useradd -r -g chrome -G audio,video chrome && \
-    mkdir -p /home/chrome && chown -R chrome:chrome /home/chrome && \
-    mkdir -p /data && chown -R chrome:chrome /data
-
-# Install Google Chrome for x86_64 or ARM architecture
-RUN ARCHITECTURE=$(dpkg --print-architecture) && \
-    if [ "$ARCHITECTURE" = "amd64" ]; then \
-        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-        sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list' && \
-        apt-get update && \
-        apt-get install -y google-chrome-stable && \
-        rm -rf /var/lib/apt/lists/*; \
-    elif [ "$ARCHITECTURE" = "arm64" ]; then \
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_arm64.deb && \
-        apt-get update && \
-        apt-get install -y ./google-chrome-stable_current_arm64.deb && \
-        rm -rf /var/lib/apt/lists/*; \
-    else \
-        echo "Unsupported architecture: $ARCHITECTURE" && exit 1; \
-    fi
-
 
 # Install Python and Poetry using deadsnakes PPA
 RUN add-apt-repository ppa:deadsnakes/ppa && \
