@@ -31,8 +31,12 @@ RUN poetry --version
 # Copy application source
 WORKDIR /app
 COPY . /app
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+#COPY entrypoint.sh /app/entrypoint.sh
+#RUN chmod +x /app/entrypoint.sh
+
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 
 # Setup PulseAudio
 RUN mkdir -p /var/run/pulse && \
@@ -45,9 +49,12 @@ RUN poetry install
 ENV PATH="/app/.venv/bin:$PATH"
 #RUN poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5
 
-ENV DISPLAY=:1
+ENV DISPLAY=:1 \
+    XAUTHORITY=$HOME/.Xauthority \
+    XDG_SESSION_TYPE=x11
 
 EXPOSE 3000 8086
+CMD ["/usr/local/bin/entrypoint.sh"]
 #ENTRYPOINT ["/app/entrypoint.sh"]
 #CMD ["pulseaudio", "--start", "--log-target=syslog", "--exit-idle-time=-1"]
-CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
+#CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
