@@ -1,59 +1,74 @@
-# Use Ubuntu 22.04 LTS as the base image
-FROM ubuntu:22.04
+FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
 
-# Set non-interactive shell to avoid stuck builds on dialogs
-ENV DEBIAN_FRONTEND=noninteractive
+RUN \
+    add-apt-repository ppa:saiarcot895/chromium-beta && \
+    apt-get update
 
-# Install necessary packages for the environment
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    software-properties-common \
-    x11vnc \
-    dbus-x11 \
-    xvfb \
-    xauth \
-    tightvncserver \
-    novnc \
-    net-tools \
-    python3-tk \
-    python3-dev \
-    gnupg2 \
-    gnome-terminal \
-    gnome-session \
-    openbox \
-    openjdk-11-jdk
-
-# Install Python and Poetry using deadsnakes PPA
-RUN add-apt-repository ppa:deadsnakes/ppa && \
+RUN \
+    echo "**** add icon ****" && \
+    curl -o \
+    /kclient/public/icon.png \
+    https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/chromium-logo.png && \
+    echo "**** install packages ****" && \
     apt-get update && \
-    apt-get install -y python3.12 python3.12-venv python3.12-distutils python3-pip && \
-    curl -sSL https://install.python-poetry.org | python3.12 -
+    apt-get install -y --no-install-recommends \
+    wget \
+    nano \
+    python3 \
+    python3-pip \
+    python3-tk \
+    python3-xdg \
+    python3-dev \
+    python3-venv \
+    python3-distutils \
+    openjdk-11-jdk \
+    chromium-browser \ 
+    chromium-chromedriver && \
+    echo "**** cleanup ****" && \
+    apt-get autoclean && \
+    rm -rf \
+    /config/.cache \
+    /var/lib/apt/lists/* \
+    /var/tmp/* \
+    /tmp/*
 
-# Download RuneLite
+
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+COPY /root /
+
 RUN wget -O /usr/local/bin/runelite.jar https://github.com/runelite/launcher/releases/download/2.7.1/RuneLite.jar
 
-# Environment variables to configure
-ENV HOME=/root \
-    DISPLAY=:1 \
-    XAUTHORITY=$HOME/.Xauthority
+# Poetry
+RUN curl -sSL https://install.python-poetry.org | python -
 
-# Ensure the Poetry bin directory is in the PATH
-ENV PATH="/root/.local/bin:${PATH}"
+ENV PATH="$HOME/.local/bin:$HOME/.poetry/bin:${PATH}"
 
-# Copy application source
-WORKDIR /app
-COPY . /app
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN poetry --version
 
-# Install dependencies with Poetry
+WORKDIR $HOME
+COPY . $HOME
+
 RUN poetry install
 
-# Expose necessary ports
-#EXPOSE 5900 6080 8000
-EXPOSE 6080 8086
-#EXPOSE 8086
+ENV PATH="$HOME/.venv/bin:$PATH"
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8086", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
+EXPOSE 3000 8086
+
+VOLUME /config
+
+#RUN chmod +x /usr/bin/chromium-browser
+#RUN chmod +x /usr/bin/wrapped-chromium
+
+RUN \
+    chown -R abc:abc /config && \
+    chown -R abc:abc /usr/lib/chromium-browser/chromedriver && \
+    chown -R abc:abc /usr/bin/chromium-browser && \
+    chown -R abc:abc /usr/bin/wrapped-chromium && \
+    chmod +x /usr/lib/chromium-browser/chromedriver && \
+    chmod +x /usr/bin/chromium-browser && \
+    chmod +x /usr/bin/wrapped-chromium
+
+# RUN mkdir -p /home/abc/.local/share/undetected_chromedriver && \
+#     chown -R abc:abc /home/abc/.local/share/undetected_chromedriver
+RUN echo "root:password@" | chpasswd
