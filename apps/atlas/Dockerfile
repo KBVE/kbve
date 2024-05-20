@@ -1,6 +1,5 @@
 FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
 
-
 RUN \
     add-apt-repository ppa:saiarcot895/chromium-beta && \
     apt-get update
@@ -8,8 +7,8 @@ RUN \
 RUN \
     echo "**** add icon ****" && \
     curl -o \
-        /kclient/public/icon.png \
-        https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/chromium-logo.png && \
+    /kclient/public/icon.png \
+    https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/chromium-logo.png && \
     echo "**** install packages ****" && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -22,20 +21,19 @@ RUN \
     python3-venv \
     python3-distutils \
     openjdk-11-jdk \
-    chromium-browser && \
+    chromium-browser \ 
+    chromium-chromedriver && \
     echo "**** cleanup ****" && \
     apt-get autoclean && \
     rm -rf \
-      /config/.cache \
-      /var/lib/apt/lists/* \
-      /var/tmp/* \
-      /tmp/*
-  
+    /config/.cache \
+    /var/lib/apt/lists/* \
+    /var/tmp/* \
+    /tmp/*
+
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-
-# add local files
 COPY /root /
 
 RUN wget -O /usr/local/bin/runelite.jar https://github.com/runelite/launcher/releases/download/2.7.1/RuneLite.jar
@@ -52,13 +50,21 @@ COPY . $HOME
 
 RUN poetry install
 
-
 ENV PATH="$HOME/.venv/bin:$PATH"
 
 EXPOSE 3000 8086
 
 VOLUME /config
 
-RUN echo "root:password@" | chpasswd
-RUN chmod +x /usr/bin/chromium-browser
-RUN chmod +x /usr/bin/wrapped-chromium
+#RUN chmod +x /usr/bin/chromium-browser
+#RUN chmod +x /usr/bin/wrapped-chromium
+
+RUN chown -R abc:abc /config && \
+    chown -R abc:abc /usr/bin/chromium-browser && \
+    chown -R abc:abc /usr/bin/wrapped-chromium && \
+    chmod +x /usr/bin/chromium-browser && \
+    chmod +x /usr/bin/wrapped-chromium
+
+# RUN mkdir -p /home/abc/.local/share/undetected_chromedriver && \
+#     chown -R abc:abc /home/abc/.local/share/undetected_chromedriver
+# RUN echo "root:password@" | chpasswd
