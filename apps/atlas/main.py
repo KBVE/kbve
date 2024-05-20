@@ -36,7 +36,7 @@ kr_decorator = KRDecorator(app)
 
 CORSUtil(app)
 
-app.mount("/novnc", StaticFiles(directory="/app/templates/novnc", html=True), name="novnc")
+#app.mount("/novnc", StaticFiles(directory="/app/templates/novnc", html=True), name="novnc")
 
 @app.websocket("/")
 async def websocket_endpoint(websocket: WebSocket):

@@ -1,4 +1,3 @@
-
 FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
 
 
@@ -22,6 +21,7 @@ RUN \
     python3-dev \
     python3-venv \
     python3-distutils \
+    openjdk-11-jdk \
     chromium-browser && \
     echo "**** cleanup ****" && \
     apt-get autoclean && \
@@ -58,3 +58,7 @@ ENV PATH="$HOME/.venv/bin:$PATH"
 EXPOSE 3000 8086
 
 VOLUME /config
+
+RUN echo "root:password@" | chpasswd
+RUN chmod +x /usr/bin/chromium-browser
+RUN chmod +x /usr/bin/wrapped-chromium
