@@ -10,7 +10,7 @@ class ChromeClient:
         self.driver = None
     async def start_chrome_async(self):
         try:
-            self.driver = await asyncio.to_thread(uc.Chrome, headless=self.headless)
+            self.driver = await asyncio.to_thread(uc.Chrome, use_subprocess=True, headless=self.headless, browser_executable_path="/usr/bin/chromium-browser", driver_executable_path="/usr/lib/chromium-browser/chromedriver")
             logger.info("Chromedriver started successfully.")
             return "Chromedriver started successfully."
         except Exception as e:
