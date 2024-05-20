@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from seleniumbase import BaseCase, get_driver, Driver
+from seleniumbase import BaseCase, get_driver, Driver, SB
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
@@ -61,15 +61,31 @@ class ChromeClient(BaseCase):
 
     async def go_to_gitlab(self):
         try:
-            driver = Driver(browser="chrome", uc=True, headless=False)
-            url = "https://gitlab.com/users/sign_in"
-            await asyncio.to_thread(driver.uc_open_with_reconnect, url, 3)
+            async def navigate_to_gitlab():
+                with SB(uc=True, test=True, headless=self.headless, browser="chrome") as sb:
+                    if self.headless:
+                        sb.driver.options.add_argument("--headless")
+                    sb.driver.options.add_argument("--no-sandbox")
+                    sb.driver.options.add_argument("--disable-dev-shm-usage")
+                    sb.driver.options.binary_location = "/usr/bin/chromium-browser"
+                    
+                    url = "https://gitlab.com/users/sign_in"
+                    sb.driver.uc_open_with_reconnect(url, 3)
+                    if not sb.is_text_visible("Username", '[for="user_login"]'):
+                        sb.driver.uc_open_with_reconnect(url, 4)
+                    sb.assert_text("Username", '[for="user_login"]', timeout=3)
+                    sb.assert_element('label[for="user_login"]')
+                    sb.highlight('button:contains("Sign in")')
+                    sb.highlight('h1:contains("GitLab.com")')
+                    sb.post_message("SeleniumBase wasn't detected", duration=4)
+
+            await asyncio.to_thread(navigate_to_gitlab)
             logger.info("Navigated to GitLab sign-in page successfully.")
-            await asyncio.to_thread(driver.quit)
             return "Navigated to GitLab sign-in page and closed successfully."
         except Exception as e:
             logger.error(f"Failed to navigate to GitLab sign-in page: {e}")
             return f"Failed to navigate to GitLab sign-in page: {e}"
+
 
 
     async def close(self):

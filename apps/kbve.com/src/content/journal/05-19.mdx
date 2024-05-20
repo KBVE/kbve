@@ -83,3 +83,9 @@ This will open the two ports that we need and set the shm-size to 2G.
 Hmm, so we have two options:
 
 The --no-sandbox option is required, or --cap-add=SYS_ADMIN to docker run command
+
+Here is a quick chain command:
+
+```shell
+docker build . -t myapp && docker stop myapp_container && docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
+```
