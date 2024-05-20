@@ -61,10 +61,10 @@ VOLUME /config
 #RUN chmod +x /usr/bin/wrapped-chromium
 
 RUN \
-#    chown -R abc:abc /config && \
-#    chown -R abc:abc /usr/lib/chromium-browser/chromedriver && \
-#    chown -R abc:abc /usr/bin/chromium-browser && \
-#    chown -R abc:abc /usr/bin/wrapped-chromium && \
+    chown -R abc:abc /config && \
+    chown -R abc:abc /usr/lib/chromium-browser/chromedriver && \
+    chown -R abc:abc /usr/bin/chromium-browser && \
+    chown -R abc:abc /usr/bin/wrapped-chromium && \
     chmod +x /usr/lib/chromium-browser/chromedriver && \
     chmod +x /usr/bin/chromium-browser && \
     chmod +x /usr/bin/wrapped-chromium
