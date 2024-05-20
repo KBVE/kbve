@@ -16,6 +16,29 @@ tags:
 **Python**
 
 The next update to the python library will be to manage the VNC instance directly.
+While we wait for the next branch to reach production with the properties file for Runelite, I will start test casing the different click styles and the data movement.
+
+I decided to add a function to stop the runelite client, which follows the same logic as the start function.
+
+Incase I forget, the location to build the Atlas library is `/apps/atlas/` and the command to run the build is `docker build . -t myapp`.
+It really is taking a hit to my CPU, this might make development work a bit of a pain as the library grows.
+
+We could offload the integration testing once it gets stable to portainer but even then, there would be such a high usage in resources! Ugh!
+
+After pushing the updated `default.properties` to the runelite outpost, we can pull it within our updated python script and place it where it needs to be.
+Current location : `https://kbve.com/data/outpost/runelite/default.properties`
+
+We know that the default profiles would be stored in this location: `~/.runelite/profiles2/` 
+
+When the Runelite loads, it creates a `profiles.json`, which is here: 
+
+```json
+
+{"profiles":[{"id":-1,"name":"$rsprofile","sync":true,"active":false,"rev":-1,"defaultForRsProfiles":[]},{"id":41056315715238,"name":"default","sync":false,"active":true,"rev":-1,"defaultForRsProfiles":[]}]}
+
+```
+
+I need to now download the default.properties from the outpost and then name it `default-41056315715238.properties` , with the id from the profiles.json.
 
 **LoL**
 
@@ -25,6 +48,12 @@ I am kinda excited for the new items and the return of my old favorites.
 **Music**
 
 Going to try to aim at around 30 more songs into the jukebox this week.
+
+
+**Bullet Train 2022**
+
+Just finished watching the bullet train, it was a solid piece of work!
+The storyline ties together very well and I was entertained throughout the whole movie, it gets a solid 8 out of 10 in my review.
 
 ## 2023
 
