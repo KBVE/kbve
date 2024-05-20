@@ -1,21 +1,37 @@
 import asyncio
 import logging
-import undetected_chromedriver as uc
+from seleniumbase import BaseCase
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
 logger = logging.getLogger("uvicorn")
 
-class ChromeClient:
+class ChromeClient(BaseCase):
     def __init__(self, headless=False):
         self.headless = headless
         self.driver = None
+
     async def start_chrome_async(self):
         try:
-            self.driver = await asyncio.to_thread(uc.Chrome, use_subprocess=True, headless=self.headless, browser_executable_path="/usr/bin/chromium-browser", driver_executable_path="/usr/lib/chromium-browser/chromedriver")
+            options = Options()
+            if self.headless:
+                options.add_argument("--headless")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            options.binary_location = "/usr/bin/chromium-browser"
+            self.driver = await asyncio.to_thread(self.create_driver, ChromeDriverManager().install(), options)
             logger.info("Chromedriver started successfully.")
             return "Chromedriver started successfully."
         except Exception as e:
             logger.error(f"Failed to start Chromedriver: {e}")
             return f"Failed to start Chromedriver: {e}"
+
+    def create_driver(self, executable_path, options):
+        service = ChromeService(executable_path=executable_path)
+        return self.get_new_driver(service=service, options=options)
 
     async def stop_chrome_async(self):
         try:
