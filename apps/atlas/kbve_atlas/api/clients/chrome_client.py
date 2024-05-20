@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 
 logger = logging.getLogger("uvicorn")
 
+
 class ChromeClient(BaseCase):
     def __init__(self, headless=False):
         self.headless = headless
@@ -47,7 +48,8 @@ class ChromeClient(BaseCase):
         # Perform the desired task
         try:
             await asyncio.to_thread(self.driver.get, task_url)
-            logger.info(f"Task completed successfully: navigated to {task_url}")
+            logger.info(
+                f"Task completed successfully: navigated to {task_url}")
         except Exception as e:
             logger.error(f"Failed to perform task: {e}")
             await self.stop_chrome_async()
@@ -60,15 +62,17 @@ class ChromeClient(BaseCase):
         return "Chromedriver task completed and stopped successfully."
 
     async def go_to_gitlab(self):
-        try:
-            async def navigate_to_gitlab():
-                with SB(uc=True, test=True, headless=self.headless, browser="chrome") as sb:
-                    if self.headless:
-                        sb.driver.options.add_argument("--headless")
-                    sb.driver.options.add_argument("--no-sandbox")
-                    sb.driver.options.add_argument("--disable-dev-shm-usage")
-                    sb.driver.options.binary_location = "/usr/bin/chromium-browser"
-                    
+            try:
+                options = ["--no-sandbox", "--disable-dev-shm-usage"]
+                if self.headless:
+                    options.append("--headless")
+
+                with SB(uc=True, test=True, headless=self.headless, browser="chrome", binary_location="/usr/bin/chromium-browser") as sb:
+                    # Set custom options
+                    for option in options:
+                        sb.driver.options.add_argument(option)
+  
+                    # Navigate to GitLab sign-in page
                     url = "https://gitlab.com/users/sign_in"
                     sb.driver.uc_open_with_reconnect(url, 3)
                     if not sb.is_text_visible("Username", '[for="user_login"]'):
@@ -79,15 +83,12 @@ class ChromeClient(BaseCase):
                     sb.highlight('h1:contains("GitLab.com")')
                     sb.post_message("SeleniumBase wasn't detected", duration=4)
 
-            await asyncio.to_thread(navigate_to_gitlab)
-            logger.info("Navigated to GitLab sign-in page successfully.")
-            return "Navigated to GitLab sign-in page and closed successfully."
-        except Exception as e:
-            logger.error(f"Failed to navigate to GitLab sign-in page: {e}")
-            return f"Failed to navigate to GitLab sign-in page: {e}"
-
-
-
+                logger.info("Navigated to GitLab sign-in page successfully.")
+                return "Navigated to GitLab sign-in page and closed successfully."
+            except Exception as e:
+                logger.error(f"Failed to navigate to GitLab sign-in page: {e}")
+                return f"Failed to navigate to GitLab sign-in page: {e}"
+            
     async def close(self):
         # This method is required by the KRDecorator's pattern, even if it does nothing
         pass
