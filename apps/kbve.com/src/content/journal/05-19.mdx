@@ -68,3 +68,18 @@ I am going to keep a backup of the older dockerfile in this journal entry, so th
 
 I really wish I did not have to go on multiple quests to just get these small errors resolved.
 This makes me really hate Ubuntu, Python and their whole eco-system, way too many random configurations and not enough easy fallbacks.
+
+**Docker**
+
+When deploying the Dockerfile , we can pass the shim using `docker run -it --shm-size=256m` , the `--shm-size` flag.
+To run the application, we will use: 
+
+```shell 
+docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
+```
+
+This will open the two ports that we need and set the shm-size to 2G. 
+
+Hmm, so we have two options:
+
+The --no-sandbox option is required, or --cap-add=SYS_ADMIN to docker run command
