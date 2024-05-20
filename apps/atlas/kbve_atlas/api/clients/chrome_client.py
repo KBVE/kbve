@@ -1,11 +1,9 @@
 import asyncio
 import logging
-from seleniumbase import BaseCase
-from selenium.webdriver.chrome.service import Service as ChromeService
+from seleniumbase import BaseCase, get_driver, Driver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 
 logger = logging.getLogger("uvicorn")
 
@@ -21,17 +19,12 @@ class ChromeClient(BaseCase):
                 options.add_argument("--headless")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
-            options.binary_location = "/usr/bin/chromium-browser"
-            self.driver = await asyncio.to_thread(self.create_driver, ChromeDriverManager().install(), options)
+            self.driver = await asyncio.to_thread(get_driver, "chrome", headless=self.headless, options=options)
             logger.info("Chromedriver started successfully.")
             return "Chromedriver started successfully."
         except Exception as e:
             logger.error(f"Failed to start Chromedriver: {e}")
             return f"Failed to start Chromedriver: {e}"
-
-    def create_driver(self, executable_path, options):
-        service = ChromeService(executable_path=executable_path)
-        return self.get_new_driver(service=service, options=options)
 
     async def stop_chrome_async(self):
         try:
@@ -65,6 +58,19 @@ class ChromeClient(BaseCase):
         logger.info(stop_message)
 
         return "Chromedriver task completed and stopped successfully."
+
+    async def go_to_gitlab(self):
+        try:
+            driver = Driver(browser="chrome", uc=True, headless=False)
+            url = "https://gitlab.com/users/sign_in"
+            await asyncio.to_thread(driver.uc_open_with_reconnect, url, 3)
+            logger.info("Navigated to GitLab sign-in page successfully.")
+            await asyncio.to_thread(driver.quit)
+            return "Navigated to GitLab sign-in page and closed successfully."
+        except Exception as e:
+            logger.error(f"Failed to navigate to GitLab sign-in page: {e}")
+            return f"Failed to navigate to GitLab sign-in page: {e}"
+
 
     async def close(self):
         # This method is required by the KRDecorator's pattern, even if it does nothing
