@@ -146,3 +146,8 @@ def chrome_shutdown_message(shutdown_message):
 @kr_decorator.k_r("/perform-chrome-task", ChromeClient, "perform_task_with_chrome")
 def chrome_task_message(task_message):
     return {"message": task_message}
+
+
+@kr_decorator.k_r("/go-to-gitlab", ChromeClient, "go_to_gitlab")
+def gitlab_navigation_message(navigation_message):
+    return {"message": navigation_message}

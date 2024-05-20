@@ -1,13 +1,12 @@
 import asyncio
 import logging
-from seleniumbase import BaseCase
-from selenium.webdriver.chrome.service import Service as ChromeService
+from seleniumbase import BaseCase, get_driver, Driver, SB
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 
 logger = logging.getLogger("uvicorn")
+
 
 class ChromeClient(BaseCase):
     def __init__(self, headless=False):
@@ -21,17 +20,12 @@ class ChromeClient(BaseCase):
                 options.add_argument("--headless")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
-            options.binary_location = "/usr/bin/chromium-browser"
-            self.driver = await asyncio.to_thread(self.create_driver, ChromeDriverManager().install(), options)
+            self.driver = await asyncio.to_thread(get_driver, "chrome", headless=self.headless, options=options)
             logger.info("Chromedriver started successfully.")
             return "Chromedriver started successfully."
         except Exception as e:
             logger.error(f"Failed to start Chromedriver: {e}")
             return f"Failed to start Chromedriver: {e}"
-
-    def create_driver(self, executable_path, options):
-        service = ChromeService(executable_path=executable_path)
-        return self.get_new_driver(service=service, options=options)
 
     async def stop_chrome_async(self):
         try:
@@ -54,7 +48,8 @@ class ChromeClient(BaseCase):
         # Perform the desired task
         try:
             await asyncio.to_thread(self.driver.get, task_url)
-            logger.info(f"Task completed successfully: navigated to {task_url}")
+            logger.info(
+                f"Task completed successfully: navigated to {task_url}")
         except Exception as e:
             logger.error(f"Failed to perform task: {e}")
             await self.stop_chrome_async()
@@ -66,6 +61,34 @@ class ChromeClient(BaseCase):
 
         return "Chromedriver task completed and stopped successfully."
 
+    async def go_to_gitlab(self):
+            try:
+                options = ["--no-sandbox", "--disable-dev-shm-usage"]
+                if self.headless:
+                    options.append("--headless")
+
+                with SB(uc=True, test=True, headless=self.headless, browser="chrome", binary_location="/usr/bin/chromium-browser") as sb:
+                    # Set custom options
+                    for option in options:
+                        sb.driver.options.add_argument(option)
+  
+                    # Navigate to GitLab sign-in page
+                    url = "https://gitlab.com/users/sign_in"
+                    sb.driver.uc_open_with_reconnect(url, 3)
+                    if not sb.is_text_visible("Username", '[for="user_login"]'):
+                        sb.driver.uc_open_with_reconnect(url, 4)
+                    sb.assert_text("Username", '[for="user_login"]', timeout=3)
+                    sb.assert_element('label[for="user_login"]')
+                    sb.highlight('button:contains("Sign in")')
+                    sb.highlight('h1:contains("GitLab.com")')
+                    sb.post_message("SeleniumBase wasn't detected", duration=4)
+
+                logger.info("Navigated to GitLab sign-in page successfully.")
+                return "Navigated to GitLab sign-in page and closed successfully."
+            except Exception as e:
+                logger.error(f"Failed to navigate to GitLab sign-in page: {e}")
+                return f"Failed to navigate to GitLab sign-in page: {e}"
+            
     async def close(self):
         # This method is required by the KRDecorator's pattern, even if it does nothing
         pass
