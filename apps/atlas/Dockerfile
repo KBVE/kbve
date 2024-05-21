@@ -14,7 +14,6 @@ RUN \
     apt-get install -y --no-install-recommends \
     wget \
     nano \
-    xvfb \
     python3 \
     python3-pip \
     python3-tk \
@@ -54,12 +53,12 @@ RUN poetry install
 
 ENV PATH="$HOME/.venv/bin:$PATH"
 
+
+ENV TITLE="kbveATLASv1.42"
+
 EXPOSE 3000 8086
 
 VOLUME /config
-
-#RUN chmod +x /usr/bin/chromium-browser
-#RUN chmod +x /usr/bin/wrapped-chromium
 
 RUN \
     chown -R abc:abc /config && \
@@ -70,6 +69,4 @@ RUN \
     chmod +x /usr/bin/chromium-browser && \
     chmod +x /usr/bin/wrapped-chromium
 
-# RUN mkdir -p /home/abc/.local/share/undetected_chromedriver && \
-#     chown -R abc:abc /home/abc/.local/share/undetected_chromedriver
 RUN echo "root:password@" | chpasswd
