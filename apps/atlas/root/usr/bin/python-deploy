@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "Python Deploy"
+source $HOME/.venv/bin/activate
+poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5 | tee -a uvicorn.log &
