@@ -23,6 +23,20 @@ The whole ARM / x86 situation is rough for us developers but it keeps food on th
 
 When expanding the buildx documentation, I did not include a working step by step example of building ARM+x86, I think I will do that when I mess around with rust again.
 
+The updated shell for a quick reference: 
+
+```shell
+docker build . -t myapp && docker stop myapp_container && docker rm myapp_container && docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
+```
+
+```shell
+docker logs -f --until=2s -name myapp_container
+```
+
+This should become a tool that we can use in the future, making it easier to manage the container as well.
+
+In the dev cycle, we could pull the most recent "dev" branch and then do docker build test cases for it? 
+
 **4:34PM - Daily Scope**
 
 All of the general dockerfile cheatsheet information has been updated!
@@ -55,6 +69,6 @@ A trip to the caffine man is much needed, the question would be if I need any mo
 
 ## Tasks
 
-- [ ] Minor tweaks to the CSS.
+- [X] Minor tweaks to the CSS.
 
 
