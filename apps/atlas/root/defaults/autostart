@@ -8,6 +8,10 @@ if [ ! -f $HOME/.Xauthority ]; then
     chown abc:abc $HOME/.Xauthority
 fi
 
+# Launch KBVE
+
+wrapped-chromium "https://kbve.com/dashboard/" &
+
 # Set the DISPLAY environment variable to :1 if it's not already set
 export DISPLAY=${DISPLAY:-:1}
 

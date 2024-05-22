@@ -13,6 +13,7 @@ class CORSUtil:
             "http://localhost:8080",
             "https://automation.kbve.com",
             "https://rust.kbve.com",
+            "https://kbve.com",
         ],
         allow_credentials: bool = True,
         allow_methods: List[str] = ["*"],

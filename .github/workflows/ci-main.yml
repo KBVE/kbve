@@ -734,3 +734,43 @@ jobs:
                   cache-to: type=gha,mode=max
                   #cache-from: type=registry,ref=kbve/rustprofile:buildcache
                   #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
+
+
+    python_atlas_docker:
+        needs: ['python_atlas_publish', 'alter']
+        name: Atlas Docker Image Build
+        runs-on: ubuntu-latest
+        if: needs.alter.outputs.atlas == 'true'
+
+        permissions:
+            contents: read
+            packages: write
+        
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build Docker Image and Push
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./apps/atlas/
+                  push: true
+                  tags: kbve/atlas:latest
+                  #platforms: linux/amd64, linux/arm64
+                  platforms: linux/amd64
+                  file: ./apps/atlas/Dockerfile
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  #cache-from: type=registry,ref=kbve/rustprofile:buildcache
