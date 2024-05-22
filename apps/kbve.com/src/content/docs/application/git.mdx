@@ -1,7 +1,8 @@
 ---
 title: Git
 description: |
-     Git - This is gonna take a while!
+    Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
+    Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
 sidebar:
     label: Git
     order: 1000
@@ -11,19 +12,110 @@ tags:
     - cloud
 ---
 
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
 ## Information
 
-Everything you will need to prepare for git!
+Git, a powerful distributed version control system, excels in managing project history and facilitating collaboration among multiple developers.
+By efficiently tracking changes in source code, Git enables seamless coordination and conflict resolution, ensuring that every contribution is accounted for.
+Boasting lightning-fast performance and robust branching capabilities, Git supports a wide range of workflows, from individual development to large-scale enterprise projects.
+Renowned for its flexibility and reliability, Git has become an indispensable tool in modern software development, empowering teams to innovate and iterate with confidence.
 
+---
 
+<Aside>
+	Git commands can be powerful and sometimes destructive. Always make sure you
+	understand the implications of a command before running it, especially those
+	that alter history, such as **git reset**, **git rebase**, and **git
+	filter-branch**. It's often a good idea to create backups or work on a
+	separate branch when experimenting with these commands.
+</Aside>
+
+## Cheatsheet
+
+| Command                                                 | Description                                                                     |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `git init`                                              | Initializes a new Git repository.                                               |
+| `git clone <repo>`                                      | Clones an existing repository into a new directory.                             |
+| `git status`                                            | Displays the state of the working directory and the staging area.               |
+| `git add <file>`                                        | Stages changes to be committed.                                                 |
+| `git commit -m "message"`                               | Records the staged changes with a descriptive message.                          |
+| `git push`                                              | Uploads local repository content to a remote repository.                        |
+| `git pull`                                              | Fetches from and integrates with another repository or a local branch.          |
+| `git fetch`                                             | Downloads objects and refs from another repository.                             |
+| `git merge <branch>`                                    | Joins two or more development histories together.                               |
+| `git branch`                                            | Lists all branches in the repository.                                           |
+| `git branch <branch-name>`                              | Creates a new branch.                                                           |
+| `git checkout <branch-name>`                            | Switches to the specified branch.                                               |
+| `git checkout -b <branch-name>`                         | Creates and switches to a new branch.                                           |
+| `git log`                                               | Shows the commit logs.                                                          |
+| `git remote -v`                                         | Shows the URLs of the remote repositories.                                      |
+| `git remote add <name> <url>`                           | Adds a new remote repository.                                                   |
+| `git diff`                                              | Shows changes between commits, commit and working tree, etc.                    |
+| `git reset <file>`                                      | Unstages a file while retaining changes in the working directory.               |
+| `git reset --hard <commit>`                             | Resets the index and working directory to the specified commit.                 |
+| `git rm <file>`                                         | Removes a file from the working directory and the index.                        |
+| `git stash`                                             | Temporarily saves changes in a dirty working directory.                         |
+| `git stash pop`                                         | Restores the most recently stashed files.                                       |
+| `git tag <tag-name>`                                    | Creates a new tag.                                                              |
+| `git show <object>`                                     | Displays information about any Git object.                                      |
+| `git config --global user.name "name"`                  | Sets the user name for all repositories on the local machine.                   |
+| `git config --global user.email "email"`                | Sets the user email for all repositories on the local machine.                  |
+| `git rebase <branch>`                                   | Reapplies commits on top of another base tip.                                   |
+| `git cherry-pick <commit>`                              | Apply changes introduced by some existing commits.                              |
+| `git mv <old-file> <new-file>`                          | Renames a file and stages the move.                                             |
+| `git bisect start`                                      | Starts a binary search to find the commit that introduced a bug.                |
+| `git bisect bad`                                        | Marks the current commit as bad during bisecting.                               |
+| `git bisect good <commit>`                              | Marks a known good commit during bisecting.                                     |
+| `git blame <file>`                                      | Shows what revision and author last modified each line of a file.               |
+| `git clean -f`                                          | Removes untracked files from the working directory.                             |
+| `git reflog`                                            | Shows a log of changes to the tip of branches and other references.             |
+| `git shortlog`                                          | Summarizes git log output.                                                      |
+| `git describe --tags`                                   | Describes a commit using the most recent tag reachable from it.                 |
+| `git archive --format=zip --output=<file.zip> <commit>` | Creates an archive of files from a named tree.                                  |
+| `git gc`                                                | Runs a garbage collection on the repository.                                    |
+| `git fsck`                                              | Verifies the connectivity and validity of objects in the database.              |
+| `git apply <patch>`                                     | Applies a patch to files and/or to the index.                                   |
+| `git cherry <branch>`                                   | Lists commits not merged upstream on a given branch.                            |
+| `git ls-tree <tree-ish>`                                | Lists the contents of a tree object.                                            |
+| `git grep <pattern>`                                    | Searches for a pattern in the working directory and index.                      |
+| `git show-branch`                                       | Shows branches and their commits.                                               |
+| `git rev-list <commit>`                                 | Lists commit objects in reverse chronological order.                            |
+| `git commit --amend`                                    | Rewrites the most recent commit message or adds changes to the previous commit. |
+| `git submodule add <repo> <path>`                       | Adds a submodule to a repository.                                               |
+| `git submodule update --init`                           | Initializes, fetches and checks out the submodule.                              |
+| `git merge --abort`                                     | Aborts a conflicted merge.                                                      |
+| `git mergetool`                                         | Launches a merge conflict resolution tool.                                      |
+| `git archive --format=tar <commit> -o <file.tar>`       | Creates a tar archive of the files in a commit.                                 |
+| `git reset --soft <commit>`                             | Resets the index but not the working directory.                                 |
+| `git diff --staged`                                     | Shows the difference between the index and the last commit.                     |
+| `git blame -L <start>,<end> <file>`                     | Shows blame information for the specified line range of a file.                 |
+| `git rebase --interactive <commit>`                     | Starts an interactive rebase session.                                           |
+| `git checkout -- <file>`                                | Discards changes in the working directory for a specific file.                  |
+| `git filter-branch --tree-filter 'command' HEAD`        | Rewrites branches by applying a command on each tree.                           |
+| `git symbolic-ref HEAD <ref>`                           | Changes the current branch by updating the symbolic reference.                  |
+
+---
 
 ## Github
 
-## Github Actions
+GitHub, a leading platform for version control and collaboration, leverages Git to provide a seamless environment for developers to host, review, and manage code.
+Offering features like pull requests, code reviews, and integrated issue tracking, GitHub streamlines the development workflow and fosters collaboration among team members.
+With its robust community and extensive ecosystem of tools and integrations, GitHub enhances productivity and innovation, making it an essential resource for both open-source projects and private repositories.
+Additionally, GitHub's user-friendly interface and powerful features make it a popular choice for developers seeking to share their work and contribute to the global coding community.
+
+### Github Actions
 
 Github Actions are yaml files that help automate repetitive tasks with low-level intelligence / variables.
 
-### Itch
+#### Itch
 
 Github Action for deploying the application build onto the Itch platform!
 
@@ -135,7 +227,6 @@ Here is an Unity Test Runner as a Github Action!
 
 -   Remember that you will need a valid Unity license for this action!
 
-
 ### GoDot
 
 A couple quick references to github actions for GoDot!
@@ -150,10 +241,10 @@ A couple quick references to github actions for GoDot!
 
 ---
 
-
 ## SubModules
 
-These are notes and guides on how to build out submodules inside of Git, so that you can control certain plugins throughout multiple repos effortlessly. This can go into private packages later on, if we need to.
+These are notes and guides on how to build out submodules inside of Git, so that you can control certain plugins throughout multiple repos effortlessly.
+This can go into private packages later on, if we need to.
 
 The shift to the private packages will come as we grow bigger and require more control.
 
@@ -186,3 +277,53 @@ ln -s ../../submodules/UnitySubModules/Vuplex
 ```
 
 ---
+
+## CLI
+
+Here are some WIP CLI methods for Git
+
+### Commit
+
+```sh
+branch=$(git rev-parse --abbrev-ref HEAD) && git add . && git commit -m "Minor change sync" && git push origin $branch
+```
+
+This command does the following:
+
+<Steps>
+
+1.  **Environmentals**:
+
+    ```shell
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    ```
+
+    Stores the current branch name in the `branch` variable.
+
+2.  **Git Add**
+
+    ```shell
+    git add .
+    ```
+
+    Stages all changes.
+
+3.  **Commit**
+
+    ```shell
+    git commit -m "Minor change sync"
+    ```
+
+    : Commits the changes with the message "Minor change sync".
+
+4.  **Push**:
+
+    ```shell
+    git push origin $branch
+    ```
+
+    Pushes the changes to the current branch on the remote repository.
+
+</Steps>
+
+This way, you don't need to manually replace the branch name each time.
