@@ -221,7 +221,7 @@ This action allows you to run unit tests, integration tests, and play mode tests
 By incorporating the Unity Test Runner into your CI/CD pipeline, you can automate testing, catch bugs early, and maintain code quality with minimal effort.
 Elevate your Unity development process with this efficient and reliable testing solution!
 
-Here is a sample of the action below: 
+Below is a sample GitHub Actions configuration for running Unity tests, ensuring your game code maintains high quality and functionality through continuous integration.
 
 ```yaml
 
@@ -244,6 +244,120 @@ Here is a sample of the action below:
 
 -   Remember that you will need a valid Unity license for this action!
 
+Here is step-by-step breakdown of a Unity GitHub Action
+
+<Steps>
+1.  **Define the Workflow**
+
+    ```yaml
+    name: Unity Test Runner
+    ```
+    - The `name` field sets the name of the workflow, making it easier to identify in the GitHub Actions tab.
+
+2.  **Specify the Trigger Events**
+
+    ```yaml
+    on: [push, pull_request]
+    ```
+    - The `on` field specifies the events that trigger this workflow. Here, it triggers on `push` and `pull_request` events.
+
+3.  **Define the Job and Environment**
+
+    ```yaml
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+    ```
+    - The `jobs` field defines the jobs that will run as part of this workflow. The `test` job runs on the `ubuntu-latest` environment, which provides a clean and consistent Linux environment for running the tests.
+
+4.  **Set Up the Matrix Strategy**
+
+    ```yaml
+        strategy:
+          matrix:
+            projectPath: [path/to/your/project]
+            unityVersion: [2020.3.11f1, 2021.1.13f1]
+    ```
+    - The `matrix` strategy allows you to define multiple configurations for your jobs. 
+      Here, it sets up multiple Unity versions and project paths to test against, ensuring compatibility across different environments.
+
+5.  **Checkout the Repository**
+
+    ```yaml
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+    ```
+    - The `steps` field lists the steps in the job. 
+      The first step uses the `actions/checkout` action to clone the repository, providing access to the codebase for subsequent steps.
+
+6.  **Cache Unity Packages**
+
+    ```yaml
+        - name: Cache Unity packages
+          uses: actions/cache@v2
+          with:
+            path: ~/.local/share/unity3d/Unity/
+            key: ${{ runner.os }}-unity-${{ matrix.unityVersion }}
+            restore-keys: |
+              ${{ runner.os }}-unity-
+    ```
+    - Caching saves downloaded Unity packages between workflow runs, reducing the time needed for setup.
+      The cache is identified by a unique key based on the runner OS and Unity version.
+
+7.  **Run Unity Test Runner**
+
+    ```yaml
+        - name: Run Unity Test Runner
+          uses: game-ci/unity-test-runner@v2.1.0
+          id: testRunner
+          env:
+            UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          with:
+            projectPath: ${{ matrix.projectPath }}
+            unityVersion: ${{ matrix.unityVersion }}
+            githubToken: ${{ secrets.GITHUB_TOKEN }}
+            customParameters: '-nographics'
+    ```
+    - This step runs the Unity Test Runner action:
+      - `uses` specifies the action to run.
+      - `id` gives this step an identifier for later reference.
+      - `env` sets environment variables, including `UNITY_LICENSE`, which is essential for running Unity in batch mode.
+      - `with` specifies parameters for the action:
+        - `projectPath` sets the path to the Unity project.
+        - `unityVersion` specifies the Unity version.
+        - `githubToken` is used for authentication.
+        - `customParameters` allows passing additional parameters to Unity, such as `-nographics` for headless execution.
+
+8.  **Upload Test Results**
+
+    ```yaml
+        - name: Upload Test Results
+          uses: actions/upload-artifact@v2
+          if: always()
+          with:
+            name: Test results (all modes)
+            path: ${{ steps.testRunner.outputs.artifactsPath }}
+    ```
+    - This step uploads the test results as artifacts:
+      - `if: always()` ensures this step runs regardless of the previous step’s outcome.
+      - `with` specifies parameters for the upload:
+        - `name` sets the artifact's name.
+        - `path` specifies the file path to upload, using the output from the `testRunner` step.
+
+</Steps>
+
+<Aside>
+
+- **Unity License**: Ensure you have a valid Unity license stored as a GitHub Secret **UNITY_LICENSE**. This license is required to run Unity in batch mode.
+- **Matrix Strategy**: Testing against multiple Unity versions and project paths ensures comprehensive coverage and compatibility.
+- **Caching**: Utilizing the cache can significantly speed up workflow runs by reusing previously downloaded Unity packages.
+- **Artifact Upload**: Storing test results as artifacts allows you to review the outcomes of your tests even after the workflow completes, facilitating debugging and quality assurance.
+
+</Aside>
+
+When you finish following these steps, you will be setting up a robust and automated testing pipeline for your future Unity projects, enhancing your development workflow and ensuring higher code quality.
+
 #### Godot
 
 Boost your Godot development workflow with these handy GitHub Actions references! Automate your build, test, and deployment processes to streamline your project management.
@@ -253,6 +367,8 @@ Boost your Godot development workflow with these handy GitHub Actions references
 - **GitHub Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)**: Explore this detailed gist by doctor-g, showcasing a GitHub Actions workflow for exporting Godot projects to HTML5, making it easy to deploy your game on the web.
 
 These resources will help you integrate GitHub Actions into your Godot projects, ensuring efficient and reliable automation throughout your development process.
+
+#### Docker
 
 ---
 
