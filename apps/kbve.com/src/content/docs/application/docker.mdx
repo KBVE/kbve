@@ -9,6 +9,24 @@ unsplash: 1605745341112-85968b19335b
 img: https://images.unsplash.com/photo-1605745341112-85968b19335b?fit=crop&w=1400&h=700&q=75
 ---
 
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+
+## Tools
+
+<Aside type="danger" title="Docker Tool Inbound">
+
+This is just a short place holder for a docker tool that I am making!
+
+</Aside>
+
 ## Information
 
 In one sentence, we can describe docker as a hybrid-source application designed to deploy nested-virtual machines that are containerized applications.
@@ -80,69 +98,265 @@ It is not important to understand this cheetsheet until you have a couple sessio
 
 ## DockerFile
 
--   The `DockerFile` is a simple document that assembles the docker image using a specific base and a set of commands.
--   The idea being that the docker image is an isolated operating system for the specific application, with all the libraries required to be pre-install / pre-built.
+A Dockerfile is a crucial component in building Docker images, serving as a simple script that specifies the base image and a set of instructions to assemble the final image.
+Acting as an isolated operating system for specific applications, a Dockerfile ensures all necessary libraries and dependencies are pre-installed and pre-built.
+This document aims to provide a comprehensive guide for all Docker needs, catering to both new users and professionals, by covering essential concepts and advanced techniques for effective Docker usage.
 
--   ### FROM
+<Aside type="tip" title="Understanding the Dockerfile">
+	The Dockerfile is a simple document that assembles the Docker image using a
+	specific base and a set of commands. The concept is that the Docker image
+	acts as an isolated operating system for the specific application, with all
+	necessary libraries pre-installed and pre-built.
+</Aside>
 
-    -   There are 3 generic ways to use `FROM` :
-        -   `FROM {image}`
-        -   `FROM {image}:{tag}`
-        -   `FROM {image}@{digest}`
-            -   The `{image}` would be the base image title / reference.
-            -   The `{tag}` would be the version tag, if a specific version is required, such as `node:16` or `node:16-bullseye`
-            -   The `{digest}` would be the `sha-256` hash, used to verify the integrity of the application.
+### FROM
 
--   ### MAINTAINER
+The `FROM` instruction in a Dockerfile specifies the base image for the Docker image being built.
+There are four generic ways to use `FROM`:
 
--   ### RUN
+| Method                        | Description                                                                                                                                                                                                                                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. `FROM {image}`             | The `{image}` represents the base image title or reference, such as `ubuntu` or `alpine`.                                                                                                                                                                                                                       |
+| 2. `FROM {image}:{tag}`       | The `{tag}` specifies a particular version of the image, which can be useful for ensuring consistency. For example, `node:16` or `node:16-bullseye`.                                                                                                                                                            |
+| 3. `FROM {image}@{digest}`    | The `{digest}` is the `sha-256` hash used to verify the integrity of the image. It ensures that the image has not been altered and is exactly as expected.                                                                                                                                                      |
+| 4. `FROM {repository}#{hash}` | The `{repository}#{hash}` allows specifying a base image directly from a GitHub repository using a specific commit hash. This method is particularly useful when the base image is hosted in a repository and the exact state of the code is needed. For example, `FROM github.com/kbve/repo#abcdef1234567890`. |
 
--   ### CMD
+Using these methods, the `FROM` instruction provides flexibility and precision in defining the base image, ensuring that the Docker image is built upon a reliable and verified foundation.
 
--   ### LABEL
+### MAINTAINER
 
--   ### ENV
+<Aside type="caution" title="Caution: Deprecated Instruction">
+	The **MAINTAINER** instruction has been deprecated. For current best
+	practices, refer to the **LABEL** section.
+</Aside>
 
--   ### ADD
+The `MAINTAINER` instruction in a Dockerfile specifies the author or maintainer of the Docker image.
+Although deprecated in favor of using labels, it is still useful to know for legacy Dockerfiles.
+The `MAINTAINER` instruction provides metadata about the person or organization responsible for maintaining the image.
 
--   ### COPY
+| Option                              | Description                                                                                                                  |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `MAINTAINER {name}`                 | Specifies the name of the maintainer. For example, `MAINTAINER h0ly Byte`.                                                   |
+| `MAINTAINER {name} <email>`         | Provides both the name and email of the maintainer. For example, `MAINTAINER h0ly Byte <no.reply@kbve.com>`.                 |
+| `LABEL maintainer="{name} <email>"` | The recommended way to specify the maintainer using labels. For example, `LABEL maintainer="h0ly Byte <no.reply@kbve.com>"`. |
 
--   ### ENTRYPOINT
+This table illustrates the different ways to specify the maintainer information, emphasizing the shift towards using labels for better metadata management.
 
--   ### VOLUME
+### RUN
 
--   ### USER
+The `RUN` instruction in a Dockerfile is used to execute commands within the container during the image build process.
+It allows for the installation of software packages, modification of files, and other tasks required to set up the environment for the application.
 
--   ### WORKDIR
+| Method                                   | Description                                                                                                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RUN {command}`                          | Executes a command in a new layer on top of the current image and commits the results. For example, `RUN apt-get update && apt-get install -y nginx`.            |
+| `RUN ["executable", "param1", "param2"]` | Uses the exec form to run the command. This is typically preferred for commands that include arguments. For example, `RUN ["apt-get", "install", "-y", "curl"]`. |
 
--   ### ARG
+The table above illustrates the different ways to use the `RUN` instruction to execute commands during the build process, either using the shell form or the exec form, depending on the requirements.
 
--   ### ONBUILD
+<Aside type="tip" title="RUN vs. CMD">
+	The **RUN** and **CMD** instructions in a Dockerfile serve different
+	purposes. **RUN** executes commands during the build process to set up the
+	image, such as installing software or setting environment variables,
+	creating a new image layer each time it's used. In contrast, **CMD**
+	specifies the default command to run when the container starts, determining
+	the container's behavior at runtime. Use **RUN** for build-time
+	configurations and **CMD** for runtime configurations to ensure a clear and
+	effective Dockerfile.
+</Aside>
 
--   ### STOPSIGNAL
+### CMD
 
-    -   The `STOPSIGNAL` sets the system call signal that would stop the container / application from running.
-    -   The default setting is to send `SIGTERM` and wait for 10s to gracefully shutdown the then send the `SIGKILL`.
+The `CMD` instruction in a Dockerfile specifies the default command to run when a container is started.
+Unlike `RUN`, which is used during the build process, `CMD` is executed when the container runs.
+If multiple `CMD` instructions are specified, only the last one takes effect.
 
--   ### HEALTHCHECK
+| Method                                 | Description                                                                                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CMD ["executable","param1","param2"]` | Specifies the command to run in exec form. For example, `CMD ["nginx", "-g", "daemon off;"]`. This form is preferred for commands with arguments. |
+| `CMD ["param1","param2"]`              | Provides default parameters for the `ENTRYPOINT` instruction. For example, `CMD ["-d"]` when combined with `ENTRYPOINT ["nginx"]`.                |
+| `CMD command param1 param2`            | Specifies the command to run in shell form. For example, `CMD echo "Hello, World!"`. This form runs in a shell (`/bin/sh -c`).                    |
 
-    -   The concept of `HEALTHCHECK` is to provide the `health` of the container, letting the swarm or manager know the general status of the operating application.
-    -   The two main terms within the `HEALTHCHECK` are `healthy` and `unhealthy`
+The reference CMD table above explains the different ways to use the `CMD` instruction, either by specifying the command in exec form, providing default parameters for an `ENTRYPOINT`, or using shell form to run commands.
+
+Sure! Here are the detailed sections with markdown tables for each of the requested Dockerfile instructions:
+
+### LABEL
+
+The `LABEL` instruction in a Dockerfile is used to add metadata to the image.
+Labels can provide information such as the maintainer's name, version, description, and other key-value pairs.
+
+| Method                          | Description                                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------ |
+| `LABEL key=value`               | Adds a label with a key-value pair. For example, `LABEL version="1.0"`.                    |
+| `LABEL key1=value1 key2=value2` | Adds multiple labels at once. For example, `LABEL maintainer="John Doe" version="1.0"`.    |
+| `LABEL key="value with spaces"` | Adds a label with a value that includes spaces. For example, `LABEL description="My App"`. |
+
+### ENV
+
+The `ENV` instruction in a Dockerfile sets environment variables, which can be used by the running container.
+Environment variables set using `ENV` persist throughout the lifetime of the container.
+
+| Method                        | Description                                                                                           |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `ENV key=value`               | Sets an environment variable. For example, `ENV PATH=/usr/local/nginx/bin:$PATH`.                     |
+| `ENV key value`               | Sets an environment variable using key and value as separate arguments. For example, `ENV PORT 8080`. |
+| `ENV key1=value1 key2=value2` | Sets multiple environment variables at once. For example, `ENV LANG=C.UTF-8 LC_ALL=C.UTF-8`.          |
+
+<Aside type="tip" title="COPY vs. ADD">
+	While both **COPY** and **ADD** instructions in a Dockerfile are used to
+	copy files from the host to the container, there are key differences.
+	**COPY** simply copies local files and directories, ensuring a
+	straightforward and predictable behavior. **ADD**, on the other hand, can
+	also handle remote URLs and automatically extract compressed files (e.g.,
+	tar archives). For most use cases, **COPY** is preferred for its clarity and
+	simplicity, reserving `ADD` for scenarios where its additional features are
+	necessary.
+</Aside>
+
+### ADD
+
+The `ADD` instruction in a Dockerfile copies files, directories, or remote URLs from the source to the destination in the container.
+Unlike `COPY`, `ADD` can also handle remote URLs and extract tar archives.
+
+| Method                              | Description                                                                                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `ADD src dest`                      | Copies files or directories from `src` to `dest`. For example, `ADD myapp.tar.gz /app`.                                     |
+| `ADD ["src", "dest"]`               | Copies files or directories from `src` to `dest` using the exec form. For example, `ADD ["app.conf", "/etc/app.conf"]`.     |
+| `ADD http://example.com/file /file` | Downloads a file from a URL and copies it to the container. For example, `ADD http://example.com/file.tar.gz /file.tar.gz`. |
+
+### COPY
+
+The `COPY` instruction in a Dockerfile copies files and directories from the source on the host to the destination path in the container.
+Unlike `ADD`, `COPY` only supports copying local files and directories.
+
+| Method                 | Description                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `COPY src dest`        | Copies files or directories from `src` to `dest`. For example, `COPY myapp /app`.                                        |
+| `COPY ["src", "dest"]` | Copies files or directories from `src` to `dest` using the exec form. For example, `COPY ["app.conf", "/etc/app.conf"]`. |
+| `COPY src/ dest/`      | Copies contents of a directory from `src` to `dest`. For example, `COPY src/ /app/`.                                     |
+
+### ENTRYPOINT
+
+The `ENTRYPOINT` instruction in a Dockerfile specifies the command that will always be executed when the container starts.
+It allows configuring a container to run as an executable.
+
+| Method                                          | Description                                                                                                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ENTRYPOINT ["executable", "param1", "param2"]` | Specifies the command to run in exec form. For example, `ENTRYPOINT ["nginx", "-g", "daemon off;"]`. This form is preferred for commands with arguments. |
+| `ENTRYPOINT command param1 param2`              | Specifies the command to run in shell form. For example, `ENTRYPOINT /bin/sh -c "echo Hello"`. This form runs in a shell (`/bin/sh -c`).                 |
+
+### VOLUME
+
+The `VOLUME` instruction in a Dockerfile creates a mount point with a specified path and marks it as holding externally mounted volumes from native host or other containers.
+It is used to persist data generated by and used by the Docker container.
+
+| Method                      | Description                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------- |
+| `VOLUME ["/data"]`          | Creates a volume at the specified path. For example, `VOLUME ["/data"]`.                     |
+| `VOLUME /data`              | Creates a volume at the specified path using the string form. For example, `VOLUME /data`.   |
+| `VOLUME ["path1", "path2"]` | Creates multiple volumes at the specified paths. For example, `VOLUME ["/data", "/config"]`. |
+
+### USER
+
+The `USER` instruction in a Dockerfile sets the user name or UID (and optionally the group name or GID) to use when running the image and for any `RUN`, `CMD`, and `ENTRYPOINT` instructions that follow.
+
+| Method            | Description                                                                                    |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| `USER user`       | Sets the user to run the container as. For example, `USER nginx`.                              |
+| `USER user:group` | Sets the user and group to run the container as. For example, `USER nginx:nginx`.              |
+| `USER uid`        | Sets the user by UID to run the container as. For example, `USER 1001`.                        |
+| `USER uid:gid`    | Sets the user and group by UID and GID to run the container as. For example, `USER 1001:1001`. |
+
+### WORKDIR
+
+The `WORKDIR` instruction in a Dockerfile sets the working directory for any `RUN`, `CMD`, `ENTRYPOINT`, `COPY`, and `ADD` instructions that follow.
+If the directory does not exist, it will be created.
+
+| Method                     | Description                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| `WORKDIR /path/to/workdir` | Sets the working directory for subsequent instructions. For example, `WORKDIR /app`. |
+| `WORKDIR /path/to/workdir` | Creates the directory if it does not exist. For example, `WORKDIR /usr/src/app`.     |
+
+### ARG
+
+The `ARG` instruction in a Dockerfile defines a variable that users can pass at build-time to the builder with the `docker build` command.
+These variables can be used in the Dockerfile to customize the build process.
+
+| Method                          | Description                                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------ |
+| `ARG name`                      | Defines a build-time variable. For example, `ARG VERSION`.                                 |
+| `ARG name=default`              | Defines a build-time variable with a default value. For example, `ARG VERSION=latest`.     |
+| `ARG name1=value1 name2=value2` | Defines multiple build-time variables at once. For example, `ARG VERSION=1.0 BASE=alpine`. |
+
+### ONBUILD
+
+The `ONBUILD` instruction in a Dockerfile adds a trigger instruction to the image that will be executed when the image is used as a base for another build.
+It is useful for images that are intended to be used as a base for other images.
+
+| Method                 | Description                                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `ONBUILD INSTRUCTION`  | Adds a trigger instruction to be executed when the image is used as a base. For example, `ONBUILD COPY . /app`. |
+| `ONBUILD RUN command`  | Adds a trigger instruction to run a command. For example, `ONBUILD RUN echo "Building child image"`.            |
+| `ONBUILD ADD src dest` | Adds a trigger instruction to copy files. For example, `ONBUILD ADD . /src`.                                    |
+
+### STOPSIGNAL
+
+The `STOPSIGNAL` instruction in a Dockerfile sets the system call signal that is used to stop the container or application.
+The default setting sends `SIGTERM` and waits for 10 seconds to allow for a graceful shutdown before sending `SIGKILL`.
+
+| Method              | Description                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| `STOPSIGNAL signal` | Sets the system call signal to stop the container. For example, `STOPSIGNAL SIGINT`.              |
+| `STOPSIGNAL signal` | The default setting is `SIGTERM`, with a 10-second wait for a graceful shutdown before `SIGKILL`. |
+
+### HEALTHCHECK
+
+The `HEALTHCHECK` instruction in a Dockerfile provides a way to determine the health status of a container, informing the swarm or manager about the general status of the running application.
+The two primary statuses are `healthy` and `unhealthy`.
+
+| Method                                           | Description                                                                                                                                    |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | --- | -------- |
+| `HEALTHCHECK [options] CMD command`              | Defines a command to test the container's health. For example, `HEALTHCHECK CMD curl -f http://localhost/                                      |     | exit 1`. |
+| `HEALTHCHECK NONE`                               | Disables any health checks inherited from the base image.                                                                                      |
+| `HEALTHCHECK --interval=30s --timeout=10s \ CMD` | Specifies options such as interval, timeout, and retries. For example, `HEALTHCHECK --interval=30s --timeout=10s CMD curl -f http://localhost/ |     | exit 1`. |
+
+### SHELL
+
+The `SHELL` instruction allows changing the default shell used for the `RUN` instruction.
+
+| Method                          | Description                                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `SHELL ["executable", "param"]` | Changes the default shell for subsequent `RUN` instructions. For example, `SHELL ["powershell", "-Command"]`. |
+
+### EXPOSE
+
+The `EXPOSE` instruction informs Docker that the container listens on the specified network ports at runtime.
+This is a form of documentation and does not actually publish the port.
+
+| Method                 | Description                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| `EXPOSE port`          | Specifies a port to be listened to by the container. For example, `EXPOSE 80`. |
+| `EXPOSE port/protocol` | Specifies a port and protocol (TCP/UDP). For example, `EXPOSE 80/tcp`.         |
 
 ---
 
 ## GPU
 
--   Windows
-    -   GPU pass-through is still in the experimental stage but here are some quick ways to get the basics going.
-    -   We are assuming that you have WSL on the windows instance. [For WSL Help](https://kbve.com/application/wsl/)
-        -   Nvidia
-            -   Install the latest CUDA driver libraries from their official website. [Nvidia CUDA](https://developer.nvidia.com/cuda-downloads)
-            -   If the latest core that you installed was
+### Windows
+
+GPU pass-through on Windows is still in the experimental stage, but here are some quick ways to get started with the basics.
+This guide assumes you have WSL (Windows Subsystem for Linux) installed.
+If you need assistance with WSL, refer to [WSL Help](https://kbve.com/application/wsl/).
+
+#### Nvidia
+
+- Install the latest CUDA driver libraries from the official Nvidia website. Visit [Nvidia CUDA](https://developer.nvidia.com/cuda-downloads) for downloads and installation instructions.
+- Ensure you have installed the latest core libraries as per the provided instructions.
 
 ---
 
-## Install
+## Setup
 
 Docker is the future of application development because of how fast, easy and portable the software is.
 In this section of the document, we will focus on setting up the application on various operating systems, including linux, windows and mac.
@@ -181,9 +395,151 @@ The best way to setup `Docker` is by installing the engine through `Choco` becau
 
 ---
 
+## BuildX
+
+Buildx is an advanced Docker CLI plugin designed to enhance the container building experience by providing extended capabilities powered by BuildKit.
+Leveraging multi-node and multi-platform builds, Buildx facilitates the creation of containers optimized for diverse architectures, such as ARM and x86.
+The plugin supports cache export and import features, improving build efficiency and speeding up subsequent builds.
+Additionally, Buildx integrates seamlessly with Docker, allowing users to manage build environments with ease.
+The flexibility and power of Buildx make it an essential tool for developers seeking to streamline their containerization workflows and deploy applications across various environments.
+
+<Aside type="tip" title="Tip: Maximize Build Efficiency with Caching">
+	Take advantage of Buildx's cache export and import features to significantly
+	speed up your builds. By reusing previously built layers, cache can minimize
+	build times and reduce redundant processing. Ensure to set up cache
+	effectively to optimize development workflows.
+</Aside>
+
+<Steps>
+
+0. **Prerequisites**:
+
+    Make sure Docker is installed on your system.
+    If you need to install Docker, follow this [Docker installation guide](https://kbve.com/application/docker/#setup).
+
+1. **Verify Docker Installation**:
+
+    First, check if Docker is installed by running the following command in your terminal:
+
+    ```shell
+    docker --version
+    ```
+
+    You should see output similar to:
+
+    ```
+    Docker version 20.10.7, build f0df350
+    ```
+
+2. **Check for Buildx in the Apt List**:
+
+    Before installing Buildx, let's check if it is available in the apt package list. Run the following command:
+
+    ```shell
+    apt-cache search docker-buildx
+    ```
+
+    If Buildx is available, you should see an output similar to:
+
+    ```
+    docker-buildx - Docker CLI plugin for extended build capabilities with BuildKit
+    ```
+
+3. **Install Buildx (if available in apt)**:
+
+    If Buildx is available in the apt list, you can install it using:
+
+    ```shell
+    sudo apt-get install docker-buildx
+    ```
+
+    Verify the installation by running:
+
+    ```shell
+    docker buildx version
+    ```
+
+    You should see output indicating the version of Buildx installed.
+
+    An example of this output would be like this:
+
+    ```
+    github.com/docker/buildx 0.11.2 0.11.2-0ubuntu1^22.04.2
+    ```
+
+4. **Add Buildx (if not available in apt)**:
+
+    <Aside>This is only if Step 3 was not an option.</Aside>
+
+    If Buildx is not available in the apt package list, you can add it manually. Follow these steps:
+
+    1. **Download the Buildx Binary**:
+
+        Download the latest Buildx release from GitHub:
+
+        ```sh
+        mkdir -p ~/.docker/cli-plugins/
+        curl -Lo ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/latest/download/buildx-v0.10.0.linux-amd64
+        ```
+
+    2. **Make the Binary Executable**:
+
+        Make the downloaded binary executable:
+
+        ```sh
+        chmod +x ~/.docker/cli-plugins/docker-buildx
+        ```
+
+    3. **Verify the Installation**:
+
+        Check the Buildx version to ensure it was installed correctly:
+
+        ```sh
+        docker buildx version
+        ```
+
+        You should see output indicating the version of Buildx installed.
+
+5. **Create and Use a New Builder Instance**:
+
+    Create a new builder instance and switch to it:
+
+    ```sh
+    docker buildx create --name mybuilder --use
+    ```
+
+    You can verify that the new builder instance is being used by running:
+
+    ```sh
+    docker buildx inspect --bootstrap
+    ```
+
+6. **Build and Push Multi-Platform Images**:
+
+    With Buildx, you can now build and push multi-platform images. For example:
+
+    ```sh
+    docker buildx build --platform linux/amd64,linux/arm64 -t username/repository:tag . --push
+    ```
+
+    Congratulations! You have successfully set up Docker Buildx on your system.
+
+</Steps>
+
+---
+
 ## WatchTower
 
-Incase you need WatchTower to send Notifications, here is an example command that sets the environmental variables:
+WatchTower is a powerful utility designed to automatically update running Docker containers whenever new images are pushed to a repository.
+Ensuring that applications are always running the latest version, WatchTower reduces manual intervention and minimizes downtime.
+By continuously monitoring specified Docker containers, WatchTower detects updates, gracefully stops the container, pulls the latest image, and restarts the container with the new version.
+Maintaining a smooth and efficient deployment pipeline, WatchTower is especially beneficial in environments where applications frequently update.
+
+In addition to its core functionality, WatchTower can send notifications about the status of container updates.
+Notifications can be sent to various channels such as email, Slack, or other messaging services, keeping teams informed about the update process.
+This feature is particularly useful for maintaining transparency and ensuring that stakeholders are aware of the changes happening within the containerized environment.
+
+To enable WatchTower notifications, set the appropriate environmental variables in the command line. For example:
 
 ```shell
 docker run -d \
@@ -199,3 +555,9 @@ docker run -d \
   -e WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2 \
   containrrr/watchtower
 ```
+
+This command configures WatchTower to send email notifications regarding the status of container updates.
+Adjust the variables to suit the desired notification method and settings.
+By utilizing WatchTower and its notification features, administrators can ensure that their Docker environments remain up-to-date and secure with minimal effort.
+
+---
