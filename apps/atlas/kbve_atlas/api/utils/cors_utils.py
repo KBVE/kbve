@@ -8,6 +8,7 @@ class CORSUtil:
         app: FastAPI,
         origins: List[str] = [
             "http://localhost:8086",
+            "http://localhost:4321",
             "http://localhost:1337",
             "http://localhost",
             "http://localhost:8080",
