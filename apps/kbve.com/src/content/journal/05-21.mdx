@@ -33,6 +33,13 @@ docker build . -t myapp && docker stop myapp_container && docker rm myapp_contai
 docker logs -f --until=2s -name myapp_container
 ```
 
+To clean the docker workspace up:
+
+```shell
+docker system prune all -a
+```
+
+
 This should become a tool that we can use in the future, making it easier to manage the container as well.
 
 In the dev cycle, we could pull the most recent "dev" branch and then do docker build test cases for it? 
