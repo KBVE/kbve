@@ -53,7 +53,6 @@ RUN poetry install
 
 ENV PATH="$HOME/.venv/bin:$PATH"
 
-
 ENV TITLE="kbveATLASv1.42"
 
 EXPOSE 3000 8086

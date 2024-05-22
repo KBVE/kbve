@@ -20,8 +20,8 @@ class ChromeClient(BaseCase):
     async def start_chrome_async(self):
         try:
             self.set_display()
-            self.sb = SB(uc=True, test=True, headless=self.headless, browser="chrome", binary_location="/usr/bin/chromium-browser")
-            self.sb.setUp()
+            self.sb = SB(uc=True, test=True, headless=self.headless, headed=True, browser="chrome", binary_location="/usr/bin/chromium-browser")
+            self.sb.__enter__()  # Manually enter the context manager
             self.driver = self.sb.driver
             logger.info("Chromedriver started successfully using SeleniumBase.")
             return "Chromedriver started successfully using SeleniumBase."
@@ -33,7 +33,7 @@ class ChromeClient(BaseCase):
         try:
             if self.driver:
                 await asyncio.to_thread(self.driver.quit)
-                self.sb.tearDown()
+                self.sb.__exit__(None, None, None)  # Manually exit the context manager
                 logger.info("Chromedriver stopped successfully.")
                 return "Chromedriver stopped successfully."
             else:
@@ -74,7 +74,7 @@ class ChromeClient(BaseCase):
                 options.append("--headless")
 
             self.sb = SB(uc=True, test=True, headless=self.headless, browser="chrome", binary_location="/usr/bin/chromium-browser")
-            self.sb.setUp()
+            self.sb.__enter__()  # Manually enter the context manager
 
             for option in options:
                 self.sb.driver.options.add_argument(option)
@@ -107,7 +107,7 @@ class ChromeClient(BaseCase):
             logger.error(f"Failed to navigate to GitLab sign-in page: {e}")
             return f"Failed to navigate to GitLab sign-in page: {e}"
         finally:
-            self.sb.tearDown()
+            self.sb.__exit__(None, None, None)  # Manually exit the context manager
 
     async def close(self):
         # This method is required by the KRDecorator's pattern, even if it does nothing
