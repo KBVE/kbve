@@ -31,11 +31,9 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 ---
 
 <Aside>
-	Git commands can be powerful and sometimes destructive. Always make sure you
-	understand the implications of a command before running it, especially those
-	that alter history, such as **git reset**, **git rebase**, and **git
-	filter-branch**. It's often a good idea to create backups or work on a
-	separate branch when experimenting with these commands.
+Git commands can be powerful and sometimes destructive. 
+Always make sure you understand the implications of a command before running it, especially those that alter history, such as **git reset**, **git rebase**, and **git filter-branch**. 
+It's often a good idea to create backups or work on a separate branch when experimenting with these commands.
 </Aside>
 
 ## Cheatsheet
@@ -113,20 +111,27 @@ Additionally, GitHub's user-friendly interface and powerful features make it a p
 
 ### Github Actions
 
-Github Actions are yaml files that help automate repetitive tasks with low-level intelligence / variables.
+GitHub Actions are YAML files designed to automate repetitive tasks using predefined workflows and variables, enabling seamless integration and continuous deployment.
+They enhance productivity by managing build, test, and deployment processes directly within the GitHub environment.
 
 #### Itch
 
 Github Action for deploying the application build onto the Itch platform!
 
-Github Action - Itch.io Publish
+Deploying your application build to the Itch platform has never been easier, thanks to GitHub Actions!
+The **Itch.io Publish** GitHub Action automates the process, streamlining your workflow and ensuring that your latest builds are always up-to-date on Itch.io.
 
--   Marketplace [Action](https://github.com/marketplace/actions/itch-io-publish)
--   Dev [Repo](https://github.com/KikimoraGames/itch-publish)
+**GitHub Action - Itch.io Publish**
 
-Example Github Itch Workflow below! (Tabs might be out of sync!)
+- **Marketplace [Action](https://github.com/marketplace/actions/itch-io-publish)**: Discover the action on GitHub Marketplace, where you can integrate it directly into your repositories.
+- **Dev [Repo](https://github.com/KikimoraGames/itch-publish)**: Explore the development repository to understand the inner workings of the action, contribute, or customize it for your needs.
 
-KikimoraGames Example YAML:
+This powerful tool takes the manual effort out of deploying to Itch.io, allowing you to focus more on development and less on the repetitive tasks of deployment.
+Embrace automation and enhance your productivity with GitHub Actions and Itch.io!
+
+
+Below is an example of a GitHub Itch workflow configuration. Note that tab indentations might be out of sync!
+
 
 ```yaml
 name: Itch Deploy
@@ -164,6 +169,7 @@ jobs:
 ```
 
 Remember to add your secrets, `BUTLER_API_KEY`, before deploying to Itch.
+
 You can grab the `BUTLER_API_KEY` from Itch via [API Keys](https://itch.io/user/settings/api-keys) , which will allow Github Actions to communicate with Itch.io's API.
 
 KBVE Example:
@@ -202,9 +208,20 @@ jobs:
           buildNumber: ${{ needs.version.outputs.version_hash }}
 ```
 
-### Unity
+#### Unity
 
-Here is an Unity Test Runner as a Github Action!
+Introducing the Unity Test Runner as a GitHub Action, a seamless way to integrate automated testing into your Unity projects!
+This action allows you to run unit tests, integration tests, and play mode tests directly from your GitHub repository, ensuring your game code maintains high quality and functionality throughout development.
+
+**GitHub Action - Unity Test Runner**
+
+- **Marketplace [Action](https://github.com/marketplace/actions/unity-test-runner)**: Find the Unity Test Runner action on GitHub Marketplace, ready for easy integration into your workflows.
+- **Dev [Repo](https://github.com/webbertakken/unity-test-runner)**: Visit the development repository for detailed setup instructions, contribution guidelines, and customization options.
+
+By incorporating the Unity Test Runner into your CI/CD pipeline, you can automate testing, catch bugs early, and maintain code quality with minimal effort.
+Elevate your Unity development process with this efficient and reliable testing solution!
+
+Here is a sample of the action below: 
 
 ```yaml
 
@@ -227,30 +244,58 @@ Here is an Unity Test Runner as a Github Action!
 
 -   Remember that you will need a valid Unity license for this action!
 
-### GoDot
+#### Godot
 
-A couple quick references to github actions for GoDot!
+Boost your Godot development workflow with these handy GitHub Actions references! Automate your build, test, and deployment processes to streamline your project management.
 
--   Github Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)
+- **GitHub Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)**: Utilize the godot-ci action from the GitHub Marketplace to automate your Godot engine tasks, including exporting your project to multiple platforms.
+  
+- **GitHub Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)**: Explore this detailed gist by doctor-g, showcasing a GitHub Actions workflow for exporting Godot projects to HTML5, making it easy to deploy your game on the web.
 
--   Github Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)
-
----
-
-## Gitlab
+These resources will help you integrate GitHub Actions into your Godot projects, ensuring efficient and reliable automation throughout your development process.
 
 ---
 
-## SubModules
+## GitLab
 
+GitLab is a comprehensive DevOps platform that provides a wide range of tools for software development, continuous integration, and continuous delivery.
+With features like issue tracking, code review, and built-in CI/CD pipelines, GitLab enables teams to collaborate efficiently and accelerate their development cycles.
+GitLab's robust version control capabilities, combined with its scalable and flexible infrastructure, make it an ideal choice for both small teams and large enterprises.
+By integrating all stages of the DevOps lifecycle into a single application, GitLab simplifies workflow management, enhances productivity, and promotes seamless collaboration across the entire development process.
+
+---
+
+## Gitea
+
+Gitea is a lightweight, self-hosted Git service designed to provide a seamless and efficient way to manage version control for software projects.
+Offering features like issue tracking, code review, and a built-in wiki, Gitea supports collaborative development and project management.
+Its user-friendly interface and minimal resource requirements make it an excellent choice for small to medium-sized teams looking for a straightforward and customizable Git hosting solution.
+With easy installation and maintenance, Gitea empowers developers to host their own repositories and control their workflow, ensuring flexibility and security in their development processes.
+
+---
+
+## Submodules
+
+Git submodules are a powerful feature that allows you to include and manage external repositories within your own project.
+By embedding one Git repository as a subdirectory of another, submodules enable the use of libraries or dependencies while maintaining their own version control.
+This setup ensures that each submodule retains its history and can be updated independently, providing modularity and reducing code duplication.
+Managing submodules requires specific commands to clone, update, and commit changes, but it offers a robust way to handle complex projects with multiple dependencies, keeping the main repository clean and organized.
+
+
+<Aside>
 These are notes and guides on how to build out submodules inside of Git, so that you can control certain plugins throughout multiple repos effortlessly.
 This can go into private packages later on, if we need to.
 
 The shift to the private packages will come as we grow bigger and require more control.
+</Aside>
 
 ### Submodule Symbolic Link
 
-These are notes on how to symbolic link multiple directories without having to run into issues.
+Submodule symbolic links provide a method to seamlessly integrate multiple directories from different repositories without duplicating the contents.
+By creating symbolic links, you can reference submodules in a way that allows for easy navigation and management within your main project directory.
+This approach avoids the common pitfalls associated with managing multiple directories, such as redundancy and synchronization issues.
+Symbolic links effectively act as shortcuts, pointing to the actual location of the submodule, thereby streamlining your workflow and maintaining a clean project structure.
+Utilizing symbolic links in conjunction with submodules can significantly enhance the organization and efficiency of handling external dependencies in complex projects.
 
 #### KBVE Module Example
 
@@ -278,11 +323,17 @@ ln -s ../../submodules/UnitySubModules/Vuplex
 
 ---
 
-## CLI
+## Shell
 
-Here are some WIP CLI methods for Git
+Shell commands for Git act as powerful helper scripts that automate and streamline various Git operations.
+These commands can simplify complex workflows by combining multiple Git actions into a single executable script.
+For instance, shell commands can automate the process of staging changes, committing with a message, and pushing to the current branch, saving developers time and reducing the risk of errors.
+Thus, by leveraging the flexibility of shell scripting, developers can create custom workflows tailored to their specific needs, enhancing productivity and ensuring consistent Git practices across projects.
 
 ### Commit
+
+The `commit` command stages all changes, commits them with the message "Minor change sync," and pushes the commit to the current branch.
+This sequence ensures that all modifications are saved and synchronized with the remote repository.
 
 ```sh
 branch=$(git rev-parse --abbrev-ref HEAD) && git add . && git commit -m "Minor change sync" && git push origin $branch
