@@ -1,7 +1,8 @@
 ---
 title: Git
 description: |
-     Git - This is gonna take a while!
+    Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
+    Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
 sidebar:
     label: Git
     order: 1000
@@ -11,30 +12,126 @@ tags:
     - cloud
 ---
 
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
 ## Information
 
-Everything you will need to prepare for git!
+Git, a powerful distributed version control system, excels in managing project history and facilitating collaboration among multiple developers.
+By efficiently tracking changes in source code, Git enables seamless coordination and conflict resolution, ensuring that every contribution is accounted for.
+Boasting lightning-fast performance and robust branching capabilities, Git supports a wide range of workflows, from individual development to large-scale enterprise projects.
+Renowned for its flexibility and reliability, Git has become an indispensable tool in modern software development, empowering teams to innovate and iterate with confidence.
 
+---
 
+<Aside>
+Git commands can be powerful and sometimes destructive. 
+Always make sure you understand the implications of a command before running it, especially those that alter history, such as **git reset**, **git rebase**, and **git filter-branch**. 
+It's often a good idea to create backups or work on a separate branch when experimenting with these commands.
+</Aside>
+
+## Cheatsheet
+
+| Command                                                 | Description                                                                     |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `git init`                                              | Initializes a new Git repository.                                               |
+| `git clone <repo>`                                      | Clones an existing repository into a new directory.                             |
+| `git status`                                            | Displays the state of the working directory and the staging area.               |
+| `git add <file>`                                        | Stages changes to be committed.                                                 |
+| `git commit -m "message"`                               | Records the staged changes with a descriptive message.                          |
+| `git push`                                              | Uploads local repository content to a remote repository.                        |
+| `git pull`                                              | Fetches from and integrates with another repository or a local branch.          |
+| `git fetch`                                             | Downloads objects and refs from another repository.                             |
+| `git merge <branch>`                                    | Joins two or more development histories together.                               |
+| `git branch`                                            | Lists all branches in the repository.                                           |
+| `git branch <branch-name>`                              | Creates a new branch.                                                           |
+| `git checkout <branch-name>`                            | Switches to the specified branch.                                               |
+| `git checkout -b <branch-name>`                         | Creates and switches to a new branch.                                           |
+| `git log`                                               | Shows the commit logs.                                                          |
+| `git remote -v`                                         | Shows the URLs of the remote repositories.                                      |
+| `git remote add <name> <url>`                           | Adds a new remote repository.                                                   |
+| `git diff`                                              | Shows changes between commits, commit and working tree, etc.                    |
+| `git reset <file>`                                      | Unstages a file while retaining changes in the working directory.               |
+| `git reset --hard <commit>`                             | Resets the index and working directory to the specified commit.                 |
+| `git rm <file>`                                         | Removes a file from the working directory and the index.                        |
+| `git stash`                                             | Temporarily saves changes in a dirty working directory.                         |
+| `git stash pop`                                         | Restores the most recently stashed files.                                       |
+| `git tag <tag-name>`                                    | Creates a new tag.                                                              |
+| `git show <object>`                                     | Displays information about any Git object.                                      |
+| `git config --global user.name "name"`                  | Sets the user name for all repositories on the local machine.                   |
+| `git config --global user.email "email"`                | Sets the user email for all repositories on the local machine.                  |
+| `git rebase <branch>`                                   | Reapplies commits on top of another base tip.                                   |
+| `git cherry-pick <commit>`                              | Apply changes introduced by some existing commits.                              |
+| `git mv <old-file> <new-file>`                          | Renames a file and stages the move.                                             |
+| `git bisect start`                                      | Starts a binary search to find the commit that introduced a bug.                |
+| `git bisect bad`                                        | Marks the current commit as bad during bisecting.                               |
+| `git bisect good <commit>`                              | Marks a known good commit during bisecting.                                     |
+| `git blame <file>`                                      | Shows what revision and author last modified each line of a file.               |
+| `git clean -f`                                          | Removes untracked files from the working directory.                             |
+| `git reflog`                                            | Shows a log of changes to the tip of branches and other references.             |
+| `git shortlog`                                          | Summarizes git log output.                                                      |
+| `git describe --tags`                                   | Describes a commit using the most recent tag reachable from it.                 |
+| `git archive --format=zip --output=<file.zip> <commit>` | Creates an archive of files from a named tree.                                  |
+| `git gc`                                                | Runs a garbage collection on the repository.                                    |
+| `git fsck`                                              | Verifies the connectivity and validity of objects in the database.              |
+| `git apply <patch>`                                     | Applies a patch to files and/or to the index.                                   |
+| `git cherry <branch>`                                   | Lists commits not merged upstream on a given branch.                            |
+| `git ls-tree <tree-ish>`                                | Lists the contents of a tree object.                                            |
+| `git grep <pattern>`                                    | Searches for a pattern in the working directory and index.                      |
+| `git show-branch`                                       | Shows branches and their commits.                                               |
+| `git rev-list <commit>`                                 | Lists commit objects in reverse chronological order.                            |
+| `git commit --amend`                                    | Rewrites the most recent commit message or adds changes to the previous commit. |
+| `git submodule add <repo> <path>`                       | Adds a submodule to a repository.                                               |
+| `git submodule update --init`                           | Initializes, fetches and checks out the submodule.                              |
+| `git merge --abort`                                     | Aborts a conflicted merge.                                                      |
+| `git mergetool`                                         | Launches a merge conflict resolution tool.                                      |
+| `git archive --format=tar <commit> -o <file.tar>`       | Creates a tar archive of the files in a commit.                                 |
+| `git reset --soft <commit>`                             | Resets the index but not the working directory.                                 |
+| `git diff --staged`                                     | Shows the difference between the index and the last commit.                     |
+| `git blame -L <start>,<end> <file>`                     | Shows blame information for the specified line range of a file.                 |
+| `git rebase --interactive <commit>`                     | Starts an interactive rebase session.                                           |
+| `git checkout -- <file>`                                | Discards changes in the working directory for a specific file.                  |
+| `git filter-branch --tree-filter 'command' HEAD`        | Rewrites branches by applying a command on each tree.                           |
+| `git symbolic-ref HEAD <ref>`                           | Changes the current branch by updating the symbolic reference.                  |
+
+---
 
 ## Github
 
-## Github Actions
+GitHub, a leading platform for version control and collaboration, leverages Git to provide a seamless environment for developers to host, review, and manage code.
+Offering features like pull requests, code reviews, and integrated issue tracking, GitHub streamlines the development workflow and fosters collaboration among team members.
+With its robust community and extensive ecosystem of tools and integrations, GitHub enhances productivity and innovation, making it an essential resource for both open-source projects and private repositories.
+Additionally, GitHub's user-friendly interface and powerful features make it a popular choice for developers seeking to share their work and contribute to the global coding community.
 
-Github Actions are yaml files that help automate repetitive tasks with low-level intelligence / variables.
+### Github Actions
 
-### Itch
+GitHub Actions are YAML files designed to automate repetitive tasks using predefined workflows and variables, enabling seamless integration and continuous deployment.
+They enhance productivity by managing build, test, and deployment processes directly within the GitHub environment.
+
+#### Itch
 
 Github Action for deploying the application build onto the Itch platform!
 
-Github Action - Itch.io Publish
+Deploying your application build to the Itch platform has never been easier, thanks to GitHub Actions!
+The **Itch.io Publish** GitHub Action automates the process, streamlining your workflow and ensuring that your latest builds are always up-to-date on Itch.io.
 
--   Marketplace [Action](https://github.com/marketplace/actions/itch-io-publish)
--   Dev [Repo](https://github.com/KikimoraGames/itch-publish)
+**GitHub Action - Itch.io Publish**
 
-Example Github Itch Workflow below! (Tabs might be out of sync!)
+- **Marketplace [Action](https://github.com/marketplace/actions/itch-io-publish)**: Discover the action on GitHub Marketplace, where you can integrate it directly into your repositories.
+- **Dev [Repo](https://github.com/KikimoraGames/itch-publish)**: Explore the development repository to understand the inner workings of the action, contribute, or customize it for your needs.
 
-KikimoraGames Example YAML:
+This powerful tool takes the manual effort out of deploying to Itch.io, allowing you to focus more on development and less on the repetitive tasks of deployment.
+Embrace automation and enhance your productivity with GitHub Actions and Itch.io!
+
+
+Below is an example of a GitHub Itch workflow configuration. Note that tab indentations might be out of sync!
+
 
 ```yaml
 name: Itch Deploy
@@ -72,6 +169,7 @@ jobs:
 ```
 
 Remember to add your secrets, `BUTLER_API_KEY`, before deploying to Itch.
+
 You can grab the `BUTLER_API_KEY` from Itch via [API Keys](https://itch.io/user/settings/api-keys) , which will allow Github Actions to communicate with Itch.io's API.
 
 KBVE Example:
@@ -110,9 +208,20 @@ jobs:
           buildNumber: ${{ needs.version.outputs.version_hash }}
 ```
 
-### Unity
+#### Unity
 
-Here is an Unity Test Runner as a Github Action!
+Introducing the Unity Test Runner as a GitHub Action, a seamless way to integrate automated testing into your Unity projects!
+This action allows you to run unit tests, integration tests, and play mode tests directly from your GitHub repository, ensuring your game code maintains high quality and functionality throughout development.
+
+**GitHub Action - Unity Test Runner**
+
+- **Marketplace [Action](https://github.com/marketplace/actions/unity-test-runner)**: Find the Unity Test Runner action on GitHub Marketplace, ready for easy integration into your workflows.
+- **Dev [Repo](https://github.com/webbertakken/unity-test-runner)**: Visit the development repository for detailed setup instructions, contribution guidelines, and customization options.
+
+By incorporating the Unity Test Runner into your CI/CD pipeline, you can automate testing, catch bugs early, and maintain code quality with minimal effort.
+Elevate your Unity development process with this efficient and reliable testing solution!
+
+Below is a sample GitHub Actions configuration for running Unity tests, ensuring your game code maintains high quality and functionality through continuous integration.
 
 ```yaml
 
@@ -135,31 +244,174 @@ Here is an Unity Test Runner as a Github Action!
 
 -   Remember that you will need a valid Unity license for this action!
 
+Here is step-by-step breakdown of a Unity GitHub Action
 
-### GoDot
+<Steps>
+1.  **Define the Workflow**
 
-A couple quick references to github actions for GoDot!
+    ```yaml
+    name: Unity Test Runner
+    ```
+    - The `name` field sets the name of the workflow, making it easier to identify in the GitHub Actions tab.
 
--   Github Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)
+2.  **Specify the Trigger Events**
 
--   Github Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)
+    ```yaml
+    on: [push, pull_request]
+    ```
+    - The `on` field specifies the events that trigger this workflow. Here, it triggers on `push` and `pull_request` events.
+
+3.  **Define the Job and Environment**
+
+    ```yaml
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+    ```
+    - The `jobs` field defines the jobs that will run as part of this workflow. The `test` job runs on the `ubuntu-latest` environment, which provides a clean and consistent Linux environment for running the tests.
+
+4.  **Set Up the Matrix Strategy**
+
+    ```yaml
+        strategy:
+          matrix:
+            projectPath: [path/to/your/project]
+            unityVersion: [2020.3.11f1, 2021.1.13f1]
+    ```
+    - The `matrix` strategy allows you to define multiple configurations for your jobs. 
+      Here, it sets up multiple Unity versions and project paths to test against, ensuring compatibility across different environments.
+
+5.  **Checkout the Repository**
+
+    ```yaml
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+    ```
+    - The `steps` field lists the steps in the job. 
+      The first step uses the `actions/checkout` action to clone the repository, providing access to the codebase for subsequent steps.
+
+6.  **Cache Unity Packages**
+
+    ```yaml
+        - name: Cache Unity packages
+          uses: actions/cache@v2
+          with:
+            path: ~/.local/share/unity3d/Unity/
+            key: ${{ runner.os }}-unity-${{ matrix.unityVersion }}
+            restore-keys: |
+              ${{ runner.os }}-unity-
+    ```
+    - Caching saves downloaded Unity packages between workflow runs, reducing the time needed for setup.
+      The cache is identified by a unique key based on the runner OS and Unity version.
+
+7.  **Run Unity Test Runner**
+
+    ```yaml
+        - name: Run Unity Test Runner
+          uses: game-ci/unity-test-runner@v2.1.0
+          id: testRunner
+          env:
+            UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          with:
+            projectPath: ${{ matrix.projectPath }}
+            unityVersion: ${{ matrix.unityVersion }}
+            githubToken: ${{ secrets.GITHUB_TOKEN }}
+            customParameters: '-nographics'
+    ```
+    - This step runs the Unity Test Runner action:
+      - `uses` specifies the action to run.
+      - `id` gives this step an identifier for later reference.
+      - `env` sets environment variables, including `UNITY_LICENSE`, which is essential for running Unity in batch mode.
+      - `with` specifies parameters for the action:
+        - `projectPath` sets the path to the Unity project.
+        - `unityVersion` specifies the Unity version.
+        - `githubToken` is used for authentication.
+        - `customParameters` allows passing additional parameters to Unity, such as `-nographics` for headless execution.
+
+8.  **Upload Test Results**
+
+    ```yaml
+        - name: Upload Test Results
+          uses: actions/upload-artifact@v2
+          if: always()
+          with:
+            name: Test results (all modes)
+            path: ${{ steps.testRunner.outputs.artifactsPath }}
+    ```
+    - This step uploads the test results as artifacts:
+      - `if: always()` ensures this step runs regardless of the previous step’s outcome.
+      - `with` specifies parameters for the upload:
+        - `name` sets the artifact's name.
+        - `path` specifies the file path to upload, using the output from the `testRunner` step.
+
+</Steps>
+
+<Aside>
+
+- **Unity License**: Ensure you have a valid Unity license stored as a GitHub Secret **UNITY_LICENSE**. This license is required to run Unity in batch mode.
+- **Matrix Strategy**: Testing against multiple Unity versions and project paths ensures comprehensive coverage and compatibility.
+- **Caching**: Utilizing the cache can significantly speed up workflow runs by reusing previously downloaded Unity packages.
+- **Artifact Upload**: Storing test results as artifacts allows you to review the outcomes of your tests even after the workflow completes, facilitating debugging and quality assurance.
+
+</Aside>
+
+When you finish following these steps, you will be setting up a robust and automated testing pipeline for your future Unity projects, enhancing your development workflow and ensuring higher code quality.
+
+#### Godot
+
+Boost your Godot development workflow with these handy GitHub Actions references! Automate your build, test, and deployment processes to streamline your project management.
+
+- **GitHub Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)**: Utilize the godot-ci action from the GitHub Marketplace to automate your Godot engine tasks, including exporting your project to multiple platforms.
+  
+- **GitHub Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)**: Explore this detailed gist by doctor-g, showcasing a GitHub Actions workflow for exporting Godot projects to HTML5, making it easy to deploy your game on the web.
+
+These resources will help you integrate GitHub Actions into your Godot projects, ensuring efficient and reliable automation throughout your development process.
+
+#### Docker
 
 ---
 
-## Gitlab
+## GitLab
+
+GitLab is a comprehensive DevOps platform that provides a wide range of tools for software development, continuous integration, and continuous delivery.
+With features like issue tracking, code review, and built-in CI/CD pipelines, GitLab enables teams to collaborate efficiently and accelerate their development cycles.
+GitLab's robust version control capabilities, combined with its scalable and flexible infrastructure, make it an ideal choice for both small teams and large enterprises.
+By integrating all stages of the DevOps lifecycle into a single application, GitLab simplifies workflow management, enhances productivity, and promotes seamless collaboration across the entire development process.
 
 ---
 
+## Gitea
 
-## SubModules
+Gitea is a lightweight, self-hosted Git service designed to provide a seamless and efficient way to manage version control for software projects.
+Offering features like issue tracking, code review, and a built-in wiki, Gitea supports collaborative development and project management.
+Its user-friendly interface and minimal resource requirements make it an excellent choice for small to medium-sized teams looking for a straightforward and customizable Git hosting solution.
+With easy installation and maintenance, Gitea empowers developers to host their own repositories and control their workflow, ensuring flexibility and security in their development processes.
 
-These are notes and guides on how to build out submodules inside of Git, so that you can control certain plugins throughout multiple repos effortlessly. This can go into private packages later on, if we need to.
+---
+
+## Submodules
+
+Git submodules are a powerful feature that allows you to include and manage external repositories within your own project.
+By embedding one Git repository as a subdirectory of another, submodules enable the use of libraries or dependencies while maintaining their own version control.
+This setup ensures that each submodule retains its history and can be updated independently, providing modularity and reducing code duplication.
+Managing submodules requires specific commands to clone, update, and commit changes, but it offers a robust way to handle complex projects with multiple dependencies, keeping the main repository clean and organized.
+
+
+<Aside>
+These are notes and guides on how to build out submodules inside of Git, so that you can control certain plugins throughout multiple repos effortlessly.
+This can go into private packages later on, if we need to.
 
 The shift to the private packages will come as we grow bigger and require more control.
+</Aside>
 
 ### Submodule Symbolic Link
 
-These are notes on how to symbolic link multiple directories without having to run into issues.
+Submodule symbolic links provide a method to seamlessly integrate multiple directories from different repositories without duplicating the contents.
+By creating symbolic links, you can reference submodules in a way that allows for easy navigation and management within your main project directory.
+This approach avoids the common pitfalls associated with managing multiple directories, such as redundancy and synchronization issues.
+Symbolic links effectively act as shortcuts, pointing to the actual location of the submodule, thereby streamlining your workflow and maintaining a clean project structure.
+Utilizing symbolic links in conjunction with submodules can significantly enhance the organization and efficiency of handling external dependencies in complex projects.
 
 #### KBVE Module Example
 
@@ -186,3 +438,59 @@ ln -s ../../submodules/UnitySubModules/Vuplex
 ```
 
 ---
+
+## Scripts
+
+Script commands for Git act as powerful helper scripts that automate and streamline various Git operations.
+These commands can simplify complex workflows by combining multiple Git actions into a single executable script.
+For instance, shell commands can automate the process of staging changes, committing with a message, and pushing to the current branch, saving developers time and reducing the risk of errors.
+Thus, by leveraging the flexibility of shell scripting, developers can create custom workflows tailored to their specific needs, enhancing productivity and ensuring consistent Git practices across projects.
+
+### Commit
+
+The `commit` command stages all changes, commits them with the message "Minor change sync," and pushes the commit to the current branch.
+This sequence ensures that all modifications are saved and synchronized with the remote repository.
+
+```sh
+branch=$(git rev-parse --abbrev-ref HEAD) && git add . && git commit -m "Minor change sync" && git push origin $branch
+```
+
+This command does the following:
+
+<Steps>
+
+1.  **Environmentals**:
+
+    ```shell
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    ```
+
+    Stores the current branch name in the `branch` variable.
+
+2.  **Git Add**
+
+    ```shell
+    git add .
+    ```
+
+    Stages all changes.
+
+3.  **Commit**
+
+    ```shell
+    git commit -m "Minor change sync"
+    ```
+
+    : Commits the changes with the message "Minor change sync".
+
+4.  **Push**:
+
+    ```shell
+    git push origin $branch
+    ```
+
+    Pushes the changes to the current branch on the remote repository.
+
+</Steps>
+
+This way, you don't need to manually replace the branch name each time.

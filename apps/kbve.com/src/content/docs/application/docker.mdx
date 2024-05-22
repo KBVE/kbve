@@ -18,7 +18,6 @@ import {
 	FileTree,
 } from '@astrojs/starlight/components';
 
-
 ## Tools
 
 <Aside type="danger" title="Docker Tool Inbound">
@@ -93,6 +92,118 @@ It is not important to understand this cheetsheet until you have a couple sessio
     -   Docker Prune / Clean up
         -   `docker system prune` - The docker system will clean up any dead objects, such as containers, networks, ect..
             -   `docker system prune -a` - Incase you need to do a deep clean within the docker node.
+
+Full Table of Commands:
+
+# Docker CLI Commands Cheatsheet
+
+| Command                                    | Description                                                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `docker --version`                         | Show the Docker version information.                                                        |
+| `docker info`                              | Display system-wide information about Docker.                                               |
+| `docker login`                             | Log in to a Docker registry.                                                                |
+| `docker logout`                            | Log out from a Docker registry.                                                             |
+| `docker pull <image>`                      | Download an image from a Docker registry.                                                   |
+| `docker push <image>`                      | Upload an image to a Docker registry.                                                       |
+| `docker build <path>`                      | Build an image from a Dockerfile.                                                           |
+| `docker run <image>`                       | Run a command in a new container.                                                           |
+| `docker start <container>`                 | Start one or more stopped containers.                                                       |
+| `docker stop <container>`                  | Stop one or more running containers.                                                        |
+| `docker restart <container>`               | Restart one or more containers.                                                             |
+| `docker rm <container>`                    | Remove one or more containers.                                                              |
+| `docker rmi <image>`                       | Remove one or more images.                                                                  |
+| `docker ps`                                | List running containers.                                                                    |
+| `docker ps -a`                             | List all containers, including stopped ones.                                                |
+| `docker images`                            | List images.                                                                                |
+| `docker inspect <container>`               | Display detailed information on one or more containers or images.                           |
+| `docker logs <container>`                  | Fetch the logs of a container.                                                              |
+| `docker exec <container> <command>`        | Run a command in a running container.                                                       |
+| `docker cp <container>:<path> <host path>` | Copy files/folders between a container and the local filesystem.                            |
+| `docker commit <container> <new_image>`    | Create a new image from a container's changes.                                              |
+| `docker tag <source_image> <target_image>` | Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE.                                      |
+| `docker network ls`                        | List all networks.                                                                          |
+| `docker network create <name>`             | Create a new network.                                                                       |
+| `docker network rm <network>`              | Remove one or more networks.                                                                |
+| `docker volume ls`                         | List volumes.                                                                               |
+| `docker volume create <name>`              | Create a new volume.                                                                        |
+| `docker volume rm <volume>`                | Remove one or more volumes.                                                                 |
+| `docker top <container>`                   | Display the running processes of a container.                                               |
+| `docker stats`                             | Display a live stream of container(s) resource usage statistics.                            |
+| `docker pause <container>`                 | Pause all processes within one or more containers.                                          |
+| `docker unpause <container>`               | Unpause all processes within one or more containers.                                        |
+| `docker update <container>`                | Update configuration of one or more containers.                                             |
+| `docker wait <container>`                  | Block until one or more containers stop, then print their exit codes.                       |
+| `docker attach <container>`                | Attach local standard input, output, and error streams to a running container.              |
+| `docker kill <container>`                  | Kill one or more running containers.                                                        |
+| `docker rename <old_name> <new_name>`      | Rename a container.                                                                         |
+| `docker system prune`                      | Remove unused data.                                                                         |
+| `docker container prune`                   | Remove all stopped containers.                                                              |
+| `docker image prune`                       | Remove unused images.                                                                       |
+| `docker volume prune`                      | Remove all unused volumes.                                                                  |
+| `docker network prune`                     | Remove all unused networks.                                                                 |
+| `docker system df`                         | Show docker disk usage.                                                                     |
+| `docker image save <image> -o <file>`      | Save one or more images to a tar archive (streamed to STDOUT by default).                   |
+| `docker image load -i <file>`              | Load an image from a tar archive or STDIN.                                                  |
+| `docker history <image>`                   | Show the history of an image.                                                               |
+| `docker export <container> -o <file>`      | Export a container’s filesystem as a tar archive.                                           |
+| `docker import <file> <new_image>`         | Import the contents from a tarball to create a filesystem image.                            |
+| `docker buildx create`                     | Create a new builder instance.                                                              |
+| `docker buildx inspect`                    | Show information about a builder instance.                                                  |
+| `docker buildx use <builder>`              | Set the current builder instance.                                                           |
+| `docker buildx build`                      | Start a new build using the buildx builder.                                                 |
+| `docker-compose up`                        | Build, create, start, and attach to containers for a service defined in docker-compose.yml. |
+| `docker-compose down`                      | Stop and remove containers, networks, images, and volumes defined in docker-compose.yml.    |
+| `docker-compose logs`                      | View output from containers.                                                                |
+| `docker-compose ps`                        | List containers.                                                                            |
+| `docker-compose exec`                      | Execute a command in a running container.                                                   |
+| `docker-compose stop`                      | Stop services.                                                                              |
+| `docker-compose start`                     | Start services.                                                                             |
+| `docker-compose restart`                   | Restart services.                                                                           |
+| `docker-compose pull`                      | Pull service images.                                                                        |
+| `docker-compose build`                     | Build or rebuild services.                                                                  |
+| `docker-compose rm`                        | Remove stopped service containers.                                                          |
+| `docker-compose up -d`                     | Start containers in detached mode.                                                          |
+
+Swarm Cheatsheet Table for Swarm Mode
+
+| Command                                                                  | Description                                        |
+| ------------------------------------------------------------------------ | -------------------------------------------------- |
+| `docker swarm init`                                                      | Initialize a swarm.                                |
+| `docker swarm join --token <token> <manager_ip>`                         | Join a swarm as a node.                            |
+| `docker swarm leave`                                                     | Leave a swarm.                                     |
+| `docker swarm update`                                                    | Update the swarm configuration.                    |
+| `docker node ls`                                                         | List nodes in the swarm.                           |
+| `docker node inspect <node>`                                             | Display detailed information on one or more nodes. |
+| `docker node update --availability <active or paused or drained> <node>` | Update a node's availability.                      |
+| `docker node promote <node>`                                             | Promote a node to a manager.                       |
+| `docker node demote <node>`                                              | Demote a manager node to a worker.                 |
+| `docker service create --name <service_name> <image>`                    | Create a new service.                              |
+| `docker service ls`                                                      | List services.                                     |
+| `docker service inspect <service>`                                       | Display detailed information about a service.      |
+| `docker service update <service>`                                        | Update a service.                                  |
+| `docker service scale <service>=<replicas>`                              | Scale a service to a specified number of replicas. |
+| `docker service rm <service>`                                            | Remove a service.                                  |
+| `docker service logs <service>`                                          | Fetch the logs of a service.                       |
+| `docker service ps <service>`                                            | List the tasks of a service.                       |
+| `docker stack deploy -c <compose-file> <stack>`                          | Deploy a new stack or update an existing stack.    |
+| `docker stack ls`                                                        | List stacks.                                       |
+| `docker stack services <stack>`                                          | List the services in a stack.                      |
+| `docker stack ps <stack>`                                                | List the tasks in a stack.                         |
+| `docker stack rm <stack>`                                                | Remove a stack.                                    |
+| `docker config create <config_name> <file>`                              | Create a new config from a file.                   |
+| `docker config ls`                                                       | List configs.                                      |
+| `docker config inspect <config>`                                         | Display detailed information about a config.       |
+| `docker config rm <config>`                                              | Remove one or more configs.                        |
+| `docker secret create <secret_name> <file>`                              | Create a new secret from a file.                   |
+| `docker secret ls`                                                       | List secrets.                                      |
+| `docker secret inspect <secret>`                                         | Display detailed information about a secret.       |
+| `docker secret rm <secret>`                                              | Remove one or more secrets.                        |
+| `docker stack deploy --with-registry-auth -c <compose-file> <stack>`     | Deploy a stack using registry authentication.      |
+| `docker service rollback <service>`                                      | Revert a service to its previous version.          |
+| `docker service ps <service>`                                            | List the tasks of a service.                       |
+| `docker node ps <node>`                                                  | List the tasks running on a node.                  |
+| `docker swarm unlock`                                                    | Unlock a locked manager.                           |
+| `docker swarm unlock-key`                                                | Manage the unlock key for a swarm.                 |
 
 ---
 
@@ -351,8 +462,8 @@ If you need assistance with WSL, refer to [WSL Help](https://kbve.com/applicatio
 
 #### Nvidia
 
-- Install the latest CUDA driver libraries from the official Nvidia website. Visit [Nvidia CUDA](https://developer.nvidia.com/cuda-downloads) for downloads and installation instructions.
-- Ensure you have installed the latest core libraries as per the provided instructions.
+-   Install the latest CUDA driver libraries from the official Nvidia website. Visit [Nvidia CUDA](https://developer.nvidia.com/cuda-downloads) for downloads and installation instructions.
+-   Ensure you have installed the latest core libraries as per the provided instructions.
 
 ---
 
@@ -561,3 +672,94 @@ Adjust the variables to suit the desired notification method and settings.
 By utilizing WatchTower and its notification features, administrators can ensure that their Docker environments remain up-to-date and secure with minimal effort.
 
 ---
+
+## Scripts
+
+Shell or Bash scripts are powerful tools for automating Docker workflows. 
+These scripts allow you to string together multiple Docker commands into a single executable file, which can simplify and streamline complex operations. 
+or example, the script below demonstrates a series of Docker commands combined to build an image from the current directory, stop and remove a running container, and then run a new container with specific configurations. 
+This script builds the Docker image with the tag `myapp`, stops any running container named `myapp_container`, removes it, and finally starts a new container named `myapp_container` in detached mode with specified ports and shared memory size.
+
+**Build & Deploy**
+
+```shell
+docker build . -t myapp && docker stop myapp_container && docker rm myapp_container && docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
+```
+
+Additional parts of the script to include: 
+
+```shell
+docker logs -f --until=2s -name myapp_container
+```
+
+Clean Up: 
+
+```shell
+docker system prune all -a
+```
+
+Here is how it would look: 
+
+An updated version of the script that includes checks to ensure each step completes successfully before moving on to the next. 
+
+```shell
+#!/bin/bash
+
+# Variables
+IMAGE_NAME="myapp"
+CONTAINER_NAME="myapp_container"
+PORTS="-p 3000:3000 -p 8086:8086"
+SHM_SIZE="2g"
+
+# Build the Docker image
+echo "Building Docker image..."
+docker build . -t $IMAGE_NAME
+if [ $? -ne 0 ]; then
+    echo "Failed to build Docker image."
+    exit 1
+fi
+
+# Stop the running container if it exists
+if [ $(docker ps -q -f name=$CONTAINER_NAME) ]; then
+    echo "Stopping running container..."
+    docker stop $CONTAINER_NAME
+    if [ $? -ne 0 ]; then
+        echo "Failed to stop container $CONTAINER_NAME."
+        exit 1
+    fi
+else
+    echo "No running container named $CONTAINER_NAME found."
+fi
+
+# Remove the container if it exists
+if [ $(docker ps -a -q -f name=$CONTAINER_NAME) ]; then
+    echo "Removing existing container..."
+    docker rm $CONTAINER_NAME
+    if [ $? -ne 0 ]; then
+        echo "Failed to remove container $CONTAINER_NAME."
+        exit 1
+    fi
+else
+    echo "No existing container named $CONTAINER_NAME found."
+fi
+
+# Run a new container
+echo "Running a new container..."
+docker run --name $CONTAINER_NAME -d $PORTS --shm-size=$SHM_SIZE $IMAGE_NAME
+if [ $? -ne 0 ]; then
+    echo "Failed to run the container."
+    exit 1
+fi
+
+echo "Container $CONTAINER_NAME is up and running."
+```
+
+This script includes the following enhancements:
+1. **Variables:** Defined variables for the image name, container name, ports, and shared memory size for easier adjustments.
+2. **Build Step:** Checks if the Docker image builds successfully.
+3. **Stop Container Step:** Checks if the container is running before attempting to stop it and ensures the stop operation is successful.
+4. **Remove Container Step:** Checks if the container exists before attempting to remove it and ensures the removal operation is successful.
+5. **Run Container Step:** Runs a new container and checks if the operation is successful.
+
+Save this script to a file, for example, `docker_manage.sh`, make it executable with `chmod +x docker_manage.sh`, and then run it with `./docker_manage.sh`.
+
