@@ -697,3 +697,69 @@ Clean Up:
 ```shell
 docker system prune all -a
 ```
+
+Here is how it would look: 
+
+An updated version of the script that includes checks to ensure each step completes successfully before moving on to the next. 
+
+```shell
+#!/bin/bash
+
+# Variables
+IMAGE_NAME="myapp"
+CONTAINER_NAME="myapp_container"
+PORTS="-p 3000:3000 -p 8086:8086"
+SHM_SIZE="2g"
+
+# Build the Docker image
+echo "Building Docker image..."
+docker build . -t $IMAGE_NAME
+if [ $? -ne 0 ]; then
+    echo "Failed to build Docker image."
+    exit 1
+fi
+
+# Stop the running container if it exists
+if [ $(docker ps -q -f name=$CONTAINER_NAME) ]; then
+    echo "Stopping running container..."
+    docker stop $CONTAINER_NAME
+    if [ $? -ne 0 ]; then
+        echo "Failed to stop container $CONTAINER_NAME."
+        exit 1
+    fi
+else
+    echo "No running container named $CONTAINER_NAME found."
+fi
+
+# Remove the container if it exists
+if [ $(docker ps -a -q -f name=$CONTAINER_NAME) ]; then
+    echo "Removing existing container..."
+    docker rm $CONTAINER_NAME
+    if [ $? -ne 0 ]; then
+        echo "Failed to remove container $CONTAINER_NAME."
+        exit 1
+    fi
+else
+    echo "No existing container named $CONTAINER_NAME found."
+fi
+
+# Run a new container
+echo "Running a new container..."
+docker run --name $CONTAINER_NAME -d $PORTS --shm-size=$SHM_SIZE $IMAGE_NAME
+if [ $? -ne 0 ]; then
+    echo "Failed to run the container."
+    exit 1
+fi
+
+echo "Container $CONTAINER_NAME is up and running."
+```
+
+This script includes the following enhancements:
+1. **Variables:** Defined variables for the image name, container name, ports, and shared memory size for easier adjustments.
+2. **Build Step:** Checks if the Docker image builds successfully.
+3. **Stop Container Step:** Checks if the container is running before attempting to stop it and ensures the stop operation is successful.
+4. **Remove Container Step:** Checks if the container exists before attempting to remove it and ensures the removal operation is successful.
+5. **Run Container Step:** Runs a new container and checks if the operation is successful.
+
+Save this script to a file, for example, `docker_manage.sh`, make it executable with `chmod +x docker_manage.sh`, and then run it with `./docker_manage.sh`.
+
