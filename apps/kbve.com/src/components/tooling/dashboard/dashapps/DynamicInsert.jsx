@@ -23,7 +23,7 @@ const DynamicInsert = () => {
   const handleButtonClick = async () => {
     try {
       const response = await fetch('http://localhost:8086/start-runelite', {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
