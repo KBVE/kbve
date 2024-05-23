@@ -16,9 +16,8 @@ from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, B
 import logging
 logger = logging.getLogger("uvicorn")
 
-os.environ['DISPLAY'] = ':20'
+os.environ['DISPLAY'] = ':1'
 
-# TODO : broadcast = ENV_REDIS_FILE For k8s/swarm.
 broadcast = BroadcastUtility()
 
 @asynccontextmanager
