@@ -26,10 +26,13 @@ Okay! Added the github action to build atlas, which should execute on the `main`
 
 The next part of our adventure will be to be to connect our WASM build to our docker image!
 There are a couple ways that I am thinking of handling this, we could have the python script display a small box that shows the internal server is running.
-1
+
 Wait we can just drop the GUI! I just got the perfect idea, we could just have the default application open chrome and load our website.
 This way we can just have our website host our front facing application?
 
 Hmm, let me see if I can setup a quick test case for it.
 
 We want the image to talk to atlas directly without having any issues, hmm, maybe we have it go to the dashboard upon loading?
+
+While the main branch is building, I wonder if we could extend out some example buttons to provide for Atlas.
+Actually, while the Atlas loads the dashboard, we could pass somthing through the url?
