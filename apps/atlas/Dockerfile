@@ -21,6 +21,7 @@ RUN \
     python3-dev \
     python3-venv \
     python3-distutils \
+    gnome-screenshot \
     openjdk-11-jdk \
     chromium-browser \ 
     chromium-chromedriver && \
