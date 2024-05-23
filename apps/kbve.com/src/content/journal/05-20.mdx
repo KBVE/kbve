@@ -1,7 +1,7 @@
 ---
 title: 'May: 20'
 category: Daily
-date: 2024-05-19 12:00:00
+date: 2024-05-20 12:00:00
 client: Self
 unsplash: 1716112054546-3027ad687a62
 img: https://images.unsplash.com/photo-1716112054546-3027ad687a62?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -17,3 +17,51 @@ tags:
 
 The main issue with python this weekend was the fact that the docker image was running into ARM / M1 issues.
 Today, I decided to switch over to the x86 and its been cake walk.
+
+Shell script for running the docker container!
+
+```shell
+docker build . -t myapp && docker stop myapp_container && docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
+```
+
+**SB**
+
+We are migrating to SeleniumBase and its looking great so far!
+There are some minor changes that I need to address, including the display issue but its looking great so far.
+
+**Gentlemen**
+
+Finished the whole netflex tv show, it felt like a perfect mixture of a TV show and a movie.
+The classic Guy richie flow, a great way to setup the characters and overall storyline too.
+I am excited to see where he goes next!
+
+**Taxes**
+
+Just when I thought I was done with Uncle Sam, I am about to find out that I owe them even more money, ugh.
+The worst is not having the right calculated cash flow set aside and then having to sell assets to cover the liability.
+Those sold assets will also trigger another tax cycle next year, its starting to get rough out here.
+
+## 2023
+
+- 8:00am - I am slowly getting back into the flow of the EST time zone! Today was a bit slower day as I had a couple personal issues to handle.
+
+- 2:00pm - Going to take a break from programming and play some video games, I am thinking of heading back into Ascension and playing my duo-shadow bear tank build! The World of Warcraft private server is really great for just taking a solid break and getting into that fantasy brain rot of smashing buttons and eating elves lmfao!
+
+- 5:00pm - About to head out to car shop for my father because his SUV is about to reach its end of life. It is a bit weird to look at ICE vehicles after operating a Tesla for a couple years but he needs to move cargo around all day and does not feel comfortable yet with an electric mode of transport. I was really hoping that a 500 mile Tesla cyber truck at $40K would be on the market by 2023, but it seems that might be too far away from reality and his car is definitely going to die off before we get a chance to get him that. Our current strategy is find a mid-size SUV that is pre-owned within the past 2-3 years and has a solid history. The main car in our scope is the Acura RDX from 2020-2021 and decided to test drive one of them today. The car is smooth but the kick is a bit slow for me, I am too spoiled with my adult go-kart to even think about going back to this style of driving. 
+
+- 7:00pm - Time to refractor and start the register widget. I am going to go through the repos and servers, doing some general security updates and backups. It looks like my ansible scripts are doing a great job at keeping a rotating cluster of SQL databases, including storing the backups in multiple locations. However the `MongoDB` area is a bit rough, it looks like the backups might have failed, so I guess I will have to spend some time fixing those up tonight. 
+
+- 9:00pm - Going to read up on the patch notes for the new Astro version.
+
+- 10:00pm - Updating to Astro v2.5.1 and a couple other packages as well for the main website. It looks like most of the updates will not impact our website and the local build was a success, so I will go ahead and push everything all the way up to main. While I am doing that, going to throw up some quick WoW and maybe a league match in a bit? Hmm.
+
+## Quote
+
+> When you reach the end of your rope, tie a knot in it and hang on.
+> — <cite>Franklin D. Roosevelt</cite>
+
+---
+
+## Tasks
+
+- [ ] None Today! Chill day!

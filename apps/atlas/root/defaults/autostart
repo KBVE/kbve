@@ -1,18 +1,18 @@
 #!/bin/bash
-whoami
-echo "New Changes! 1.1"
-echo "Running AutoStart Home -> $HOME Display -> $DISPLAY"
 
+echo "[STARTING] : kbveATLASv1.42"
+echo "[ACTION] : AutoStart | Home -> $HOME Display -> $DISPLAY"
 
 if [ ! -f $HOME/.Xauthority ]; then
     touch $HOME/.Xauthority
     chown abc:abc $HOME/.Xauthority
 fi
-echo $XDG_SESSION_TYPE
-pwd
-echo $SHELL
-bash
-echo $SHELL
 
-. ~/.venv/bin/activate && poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5 | tee -a uvicorn.log &
-#/usr/bin/python-deploy
+# Launch KBVE
+
+wrapped-chromium "https://kbve.com/dashboard/" &
+
+# Set the DISPLAY environment variable to :1 if it's not already set
+export DISPLAY=${DISPLAY:-:1}
+
+. ~/.venv/bin/activate && DISPLAY=$DISPLAY poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5 | tee -a uvicorn.log &
