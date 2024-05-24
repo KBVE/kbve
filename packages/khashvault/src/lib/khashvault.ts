@@ -93,6 +93,27 @@ export async function updatePluginState(pluginId: number, state: 'active' | 'upd
 	atlas$.set({ ...currentState, plugin: updatedPlugins });
 }
 
+// Define the function to update a plugin's error
+export async function updatePluginError(pluginId: number, error: string) {
+	const currentState = atlas$.get();
+	const updatedPlugins = currentState.plugin ? [...currentState.plugin] : [];
+	if (updatedPlugins[pluginId]) {
+		updatedPlugins[pluginId].error = error;
+	}
+	atlas$.set({ ...currentState, plugin: updatedPlugins });
+}
+
+// Define the function to update a plugin's message
+export async function updatePluginMessage(pluginId: number, message: string) {
+	const currentState = atlas$.get();
+	const updatedPlugins = currentState.plugin ? [...currentState.plugin] : [];
+	if (updatedPlugins[pluginId]) {
+		updatedPlugins[pluginId].message = message;
+	}
+	atlas$.set({ ...currentState, plugin: updatedPlugins });
+}
+
+
 // JukeBox Default
 export const musicData$ = persistentAtom<MusicData>(
 	'musicData',
