@@ -1434,6 +1434,48 @@ export const buttonPopScopeCode = `<button class="relative inline-flex items-cen
 
 ---
 
+
+export const buttonNeonGlowCode = `<a href="#_" class="relative inline-flex items-center justify-center px-6 py-3 font-medium text-white transition-all duration-300 bg-cyan-600 rounded-full group">
+    <span class="absolute inset-0 w-full h-full transition-all duration-300 ease-in-out bg-gradient-to-br from-cyan-600 to-cyan-400 rounded-full blur-md opacity-75 group-hover:blur-none group-hover:opacity-100"></span>
+    <span class="relative">Button Text</span>
+</a>`;
+
+<DevCode htmlCode={buttonNeonGlowCode} />
+
+---
+
+
+export const buttonGlassmorphismCode = `<a href="#_" class="relative inline-flex items-center justify-center px-8 py-3 font-semibold text-white transition-all duration-300 bg-transparent border border-white rounded-lg backdrop-filter backdrop-blur-lg bg-opacity-10 border-opacity-30 hover:bg-opacity-30 hover:border-opacity-100">
+    <span class="absolute inset-0 w-full h-full transition-all duration-300 ease-in-out bg-gradient-to-r from-cyan-400 to-cyan-600 opacity-50 blur-md rounded-lg group-hover:opacity-100"></span>
+    <span class="relative">Button Text</span>
+</a>`;
+
+<DevCode htmlCode={buttonGlassmorphismCode} />
+
+<Aside>
+This button utilizes a glassmorphism effect with a subtle background blur and gradient overlay that intensifies on hover.
+</Aside>
+
+---
+
+
+export const buttonHolographicCode = `<button class="relative inline-flex items-center justify-center px-8 py-3 font-semibold text-white transition-transform duration-300 bg-gradient-to-r from-cyan-500 via-red-500 to-yellow-500 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 hover:rotate-2">
+    <span class="absolute inset-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-red-500 via-red-500 to-cyan-500 opacity-70 blur-xl"></span>
+    <span class="absolute inset-0 w-full h-full transition-opacity duration-300 bg-white opacity-0 group-hover:opacity-10"></span>
+    <span class="relative z-10">Button Text</span>
+</button>`;
+
+<DevCode htmlCode={buttonHolographicCode} />
+
+<Aside>
+This button features a holographic gradient effect with a radial blur that enhances the button’s vibrant colors and adds a dynamic visual appeal on hover. The button also includes a scaling and slight rotation effect when hovered to give it a more engaging and interactive look.
+</Aside>
+
+---
+
+Now, the button will scale up and slightly rotate when hovered, enhancing its dynamic visual appeal.
+
+
 ### TailwindCSS Form
 
 TailBlocks Contact Forms:
