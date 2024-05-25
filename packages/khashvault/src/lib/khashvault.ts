@@ -26,6 +26,19 @@ export interface Layout {
 	static?: boolean;
 }
 
+export interface AtlasItem {
+
+	error: string;
+	message: string;
+	state: 'active' | 'update' | 'disable' | 'process';
+
+
+}
+
+export interface AtlasData {
+	plugin: AtlasItem[];
+}
+
 export interface MusicItem {
 	id: string;
 	name: string;
@@ -43,6 +56,63 @@ export interface MusicData {
 
 import { atom, WritableAtom, task, keepMount } from 'nanostores'; // Importing from 'nanostores' for state management.
 import { persistentMap, persistentAtom } from '@nanostores/persistent'; // Importing 'persistentMap' for persistent state management.
+
+// Atlas Default
+
+export const atlas$ = persistentAtom<AtlasData>(
+	'atlas',
+	{ plugin: [] },
+	{
+		encode: JSON.stringify,
+		decode: JSON.parse,
+	},
+);
+
+// Define the function for adding or updating a plugin
+export async function addOrUpdatePlugin(pluginId: number, error: string, message: string, state: 'active' | 'update' | 'disable' | 'process') {
+	const currentState = atlas$.get();
+	const newPlugin = { error, message, state };
+	const updatedPlugins = currentState.plugin ? [...currentState.plugin] : [];
+	updatedPlugins[pluginId] = newPlugin;
+	atlas$.set({ ...currentState, plugin: updatedPlugins });
+}
+
+// Define the function to get a plugin
+export async function getPlugin(pluginId: number): Promise<AtlasItem | undefined> {
+	const currentState = atlas$.get();
+	return currentState.plugin ? currentState.plugin[pluginId] : undefined;
+}
+
+// Define the function to update a plugin's state
+export async function updatePluginState(pluginId: number, state: 'active' | 'update' | 'disable' | 'process') {
+	const currentState = atlas$.get();
+	const updatedPlugins = currentState.plugin ? [...currentState.plugin] : [];
+	if (updatedPlugins[pluginId]) {
+		updatedPlugins[pluginId].state = state;
+	}
+	atlas$.set({ ...currentState, plugin: updatedPlugins });
+}
+
+// Define the function to update a plugin's error
+export async function updatePluginError(pluginId: number, error: string) {
+	const currentState = atlas$.get();
+	const updatedPlugins = currentState.plugin ? [...currentState.plugin] : [];
+	if (updatedPlugins[pluginId]) {
+		updatedPlugins[pluginId].error = error;
+	}
+	atlas$.set({ ...currentState, plugin: updatedPlugins });
+}
+
+// Define the function to update a plugin's message
+export async function updatePluginMessage(pluginId: number, message: string) {
+	const currentState = atlas$.get();
+	const updatedPlugins = currentState.plugin ? [...currentState.plugin] : [];
+	if (updatedPlugins[pluginId]) {
+		updatedPlugins[pluginId].message = message;
+	}
+	atlas$.set({ ...currentState, plugin: updatedPlugins });
+}
+
 
 // JukeBox Default
 export const musicData$ = persistentAtom<MusicData>(
