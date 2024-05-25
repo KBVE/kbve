@@ -27,7 +27,7 @@ const ContentBlock = () => {
         </div>
         <button
           type="button"
-          className="flex items-center justify-center w-full p-3 font-semibold trackig rounded-md dark:bg-cyan-400 dark:text-gray-900"
+          className="flex items-center justify-center w-full p-3 font-semibold trackig rounded-md bg-cyan-200 dark:bg-cyan-400 dark:text-gray-900"
           onClick={handleButtonClick}
         >
           Launch RuneLite
