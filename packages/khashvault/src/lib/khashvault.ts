@@ -153,15 +153,15 @@ export const updateJukeBox$$$ = task(async () => {
 // Layout Default
 const defaultLayout: Layout[] = [
 	{ i: 'a', x: 0, y: 0, w: 4, h: 16, moved: false, static: true },
-	{ i: 'b', x: 4, y: 0, w: 4, h: 4, moved: false, static: false },
-	{ i: 'c', x: 4, y: 4, w: 4, h: 4, moved: false, static: false },
+	{ i: 'b', x: 4, y: 0, w: 4, h: 16, moved: false, static: true },
+	{ i: 'c', x: 8, y: 0, w: 4, h: 16, moved: false, static: true },
 	{ i: 'd', x: 4, y: 16, w: 4, h: 4, moved: false, static: false },
 	{ i: 'e', x: 4, y: 8, w: 4, h: 4, moved: false, static: false },
 	{ i: 'f', x: 8, y: 16, w: 4, h: 4, moved: false, static: false },
 	{ i: 'g', x: 4, y: 12, w: 4, h: 4, moved: false, static: false },
 	{ i: 'h', x: 8, y: 12, w: 4, h: 4, moved: false, static: false },
 	{ i: 'i', x: 0, y: 16, w: 4, h: 4, moved: false, static: false },
-	{ i: 'j', x: 8, y: 0, w: 4, h: 12, moved: false, static: false },
+	{ i: 'j', x: 8, y: 0, w: 4, h: 16, moved: false, static: false },
 ];
 
 export const layoutStore$ = persistentAtom<Layout[]>(
