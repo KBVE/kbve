@@ -9,7 +9,250 @@ unsplash: 1649429398909-db7ae841c386
 img: https://images.unsplash.com/photo-1649429398909-db7ae841c386?fit=crop&w=1400&h=700&q=75
 ---
 
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
 ## Information
+
+WireGuard is a modern, high-performance VPN application designed to be simple, fast, and secure.
+It utilizes state-of-the-art cryptography to establish encrypted connections between devices, ensuring privacy and security over the internet.
+Unlike traditional VPN solutions, WireGuard is lightweight, with a minimal codebase that reduces the potential for vulnerabilities and improves performance.
+It is cross-platform, supporting major operating systems like Linux, Windows, macOS, iOS, and Android, and is known for its ease of configuration and seamless integration into existing network infrastructures.
+WireGuard's efficiency and robust security make it an ideal choice for both personal and enterprise use.
+
+
+<Steps>
+
+0.  **Tutorial**:
+
+    This is a step-by-step tutorial on setting up WireGuard for a Kubernetes cluster to enable access to containers from different networks via WireGuard!
+
+1.  **Prepare Kubernetes Cluster**:
+
+    Ensure that you have a running Kubernetes cluster.
+    You can use a managed service like GKE, EKS, or AKS, or set up your cluster using tools like Minikube, kubeadm, or k3s.
+
+2.  **Install WireGuard on Nodes**:
+
+    Install WireGuard on all Kubernetes nodes.
+    The following instructions are for Ubuntu, but they can be adapted for other distributions.
+
+    ```bash
+    sudo apt update
+    sudo apt install -y wireguard
+    ```
+
+3.  **Configure WireGuard Keys**:
+
+    Generate WireGuard keys on each node. 
+    
+    This example below shows how to generate keys on a single node:
+
+    ```bash
+    umask 077
+    wg genkey | tee privatekey | wg pubkey > publickey
+    ```
+
+    Repeat this step for each node in the cluster and keep a record of each node's private and public keys.
+
+4.  **Create WireGuard Configuration**:
+
+    Create a WireGuard configuration file for each node.
+    Below is an example configuration (`wg0.conf`) for a node:
+
+    ```ini
+    [Interface]
+    PrivateKey = <Node_Private_Key>
+    Address = 10.0.0.1/24
+    ListenPort = 51820
+
+    [Peer]
+    PublicKey = <Peer_Node_Public_Key>
+    Endpoint = <Peer_Node_IP>:51820
+    AllowedIPs = 10.0.0.2/32
+    PersistentKeepalive = 25
+    ```
+
+    - Replace `<Node_Private_Key>` with the node's private key.
+    - Replace `<Peer_Node_Public_Key>` with the peer node's public key.
+    - Replace `<Peer_Node_IP>` with the peer node's IP address.
+    - Adjust the `Address` and `AllowedIPs` fields as needed.
+
+5.  **Deploy WireGuard DaemonSet**:
+
+    Create a Kubernetes DaemonSet to deploy WireGuard on all nodes.
+
+    Save the following YAML to a file named `wireguard-daemonset.yaml`:
+
+    ```yaml
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+    name: wireguard
+    namespace: kube-system
+    spec:
+    selector:
+        matchLabels:
+        name: wireguard
+    template:
+        metadata:
+        labels:
+            name: wireguard
+        spec:
+        hostNetwork: true
+        containers:
+        - name: wireguard
+            image: k8s.gcr.io/pause:3.1  # Use a pause container
+            securityContext:
+            privileged: true
+            volumeMounts:
+            - name: wireguard-config
+            mountPath: /etc/wireguard
+            - name: lib-modules
+            mountPath: /lib/modules
+        volumes:
+        - name: wireguard-config
+            hostPath:
+            path: /etc/wireguard
+        - name: lib-modules
+            hostPath:
+            path: /lib/modules
+    ```
+
+    Deploy the DaemonSet:
+
+    ```bash
+    kubectl apply -f wireguard-daemonset.yaml
+    ```
+
+
+6.  **Create WireGuard ConfigMap**:
+
+    Create a ConfigMap to store the WireGuard configuration files.
+    Save the following YAML to a file named `wireguard-configmap.yaml`, and include the configuration for each node:
+
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+    name: wireguard-config
+    namespace: kube-system
+    data:
+    wg0.conf: |
+        [Interface]
+        PrivateKey = <Node1_Private_Key>
+        Address = 10.0.0.1/24
+        ListenPort = 51820
+
+        [Peer]
+        PublicKey = <Node2_Public_Key>
+        Endpoint = <Node2_IP>:51820
+        AllowedIPs = 10.0.0.2/32
+        PersistentKeepalive = 25
+
+        [Peer]
+        PublicKey = <Node3_Public_Key>
+        Endpoint = <Node3_IP>:51820
+        AllowedIPs = 10.0.0.3/32
+        PersistentKeepalive = 25
+    ```
+
+    Replace the placeholders with actual keys and IPs.
+    
+    Apply the ConfigMap:
+
+    ```bash
+    kubectl apply -f wireguard-configmap.yaml
+    ```
+
+7.  **Create WireGuard Init Container**:
+
+    Modify the DaemonSet to include an init container that sets up WireGuard. 
+    
+    Update `wireguard-daemonset.yaml`:
+
+    ```yaml
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+    name: wireguard
+    namespace: kube-system
+    spec:
+    selector:
+        matchLabels:
+        name: wireguard
+    template:
+        metadata:
+        labels:
+            name: wireguard
+        spec:
+        hostNetwork: true
+        initContainers:
+        - name: setup-wireguard
+            image: busybox
+            command: ["sh", "-c", "cp /etc/wireguard-config/wg0.conf /etc/wireguard/wg0.conf && wg-quick up wg0"]
+            volumeMounts:
+            - name: wireguard-config
+            mountPath: /etc/wireguard-config
+            - name: wireguard
+            mountPath: /etc/wireguard
+        containers:
+        - name: wireguard
+            image: k8s.gcr.io/pause:3.1
+            securityContext:
+            privileged: true
+            volumeMounts:
+            - name: wireguard
+            mountPath: /etc/wireguard
+            - name: lib-modules
+            mountPath: /lib/modules
+        volumes:
+        - name: wireguard-config
+            configMap:
+            name: wireguard-config
+        - name: wireguard
+            hostPath:
+            path: /etc/wireguard
+        - name: lib-modules
+            hostPath:
+            path: /lib/modules
+    ```
+
+    Update the DaemonSet:
+
+    ```bash
+    kubectl apply -f wireguard-daemonset.yaml
+    ```
+
+8.  **Verify WireGuard Setup**:
+
+    Check the status of WireGuard on each node:
+
+    ```bash
+    sudo wg
+    ```
+
+    You should see the WireGuard interface `wg0` and its peers.
+
+9.  **Access Containers Across Networks**:
+
+    Now, your nodes are connected via WireGuard.
+    You can access containers across different networks by using the WireGuard IP addresses.
+    
+    For example, if you have a pod on Node 1 with a WireGuard IP of `10.0.0.1`, you can access it from Node 2 using that IP.
+
+10. **Conclusion**:
+
+    You have successfully set up WireGuard on a Kubernetes cluster, enabling secure communication between containers across different networks.
+    This setup can be expanded and customized to fit more complex networking requirements.
+
+</Steps>
 
 ## Docker
 
