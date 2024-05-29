@@ -138,15 +138,13 @@ const initialResume: Resume = {
       postalCode: '',
       city: '',
       countryCode: '',
-      region: '',
+      region: ''
     },
-    profiles: [
-      {
-        network: '',
-        username: '',
-        url: '',
-      },
-    ],
+    profiles: [{
+      network: '',
+      username: '',
+      url: ''
+    }]
   },
   work: [],
   volunteer: [],
@@ -158,7 +156,7 @@ const initialResume: Resume = {
   languages: [],
   interests: [],
   references: [],
-  projects: [],
+  projects: []
 };
 
 export const resume = persistentAtom<Resume>('resume', initialResume, {
@@ -171,12 +169,10 @@ export const resume = persistentAtom<Resume>('resume', initialResume, {
     } catch {
       return initialResume;
     }
-  },
+  }
 });
 
-
 // Helper functions
-
 export const updateBasics = (basics: Partial<Basics>) => {
   resume.set({
     ...resume.get(),
@@ -209,6 +205,18 @@ export const updateProfile = (index: number, profile: Partial<Profile>) => {
   });
 };
 
+export const removeProfile = (index: number) => {
+  const profiles = [...resume.get().basics.profiles];
+  profiles.splice(index, 1);
+  resume.set({
+    ...resume.get(),
+    basics: {
+      ...resume.get().basics,
+      profiles
+    }
+  });
+};
+
 export const addWorkExperience = (work: Work) => {
   resume.set({
     ...resume.get(),
@@ -225,6 +233,14 @@ export const updateWorkExperience = (index: number, work: Partial<Work>) => {
   });
 };
 
+export const removeWorkExperience = (index: number) => {
+  const workExperiences = [...resume.get().work];
+  workExperiences.splice(index, 1);
+  resume.set({
+    ...resume.get(),
+    work: workExperiences
+  });
+};
 
 export const addVolunteerExperience = (volunteer: Volunteer) => {
   resume.set({
@@ -236,6 +252,15 @@ export const addVolunteerExperience = (volunteer: Volunteer) => {
 export const updateVolunteerExperience = (index: number, volunteer: Partial<Volunteer>) => {
   const volunteerExperiences = [...resume.get().volunteer];
   volunteerExperiences[index] = { ...volunteerExperiences[index], ...volunteer };
+  resume.set({
+    ...resume.get(),
+    volunteer: volunteerExperiences
+  });
+};
+
+export const removeVolunteerExperience = (index: number) => {
+  const volunteerExperiences = [...resume.get().volunteer];
+  volunteerExperiences.splice(index, 1);
   resume.set({
     ...resume.get(),
     volunteer: volunteerExperiences
@@ -258,6 +283,15 @@ export const updateEducation = (index: number, education: Partial<Education>) =>
   });
 };
 
+export const removeEducation = (index: number) => {
+  const educations = [...resume.get().education];
+  educations.splice(index, 1);
+  resume.set({
+    ...resume.get(),
+    education: educations
+  });
+};
+
 export const addAward = (award: Award) => {
   resume.set({
     ...resume.get(),
@@ -268,6 +302,15 @@ export const addAward = (award: Award) => {
 export const updateAward = (index: number, award: Partial<Award>) => {
   const awards = [...resume.get().awards];
   awards[index] = { ...awards[index], ...award };
+  resume.set({
+    ...resume.get(),
+    awards
+  });
+};
+
+export const removeAward = (index: number) => {
+  const awards = [...resume.get().awards];
+  awards.splice(index, 1);
   resume.set({
     ...resume.get(),
     awards
@@ -290,6 +333,15 @@ export const updateCertificate = (index: number, certificate: Partial<Certificat
   });
 };
 
+export const removeCertificate = (index: number) => {
+  const certificates = [...resume.get().certificates];
+  certificates.splice(index, 1);
+  resume.set({
+    ...resume.get(),
+    certificates
+  });
+};
+
 export const addPublication = (publication: Publication) => {
   resume.set({
     ...resume.get(),
@@ -300,6 +352,15 @@ export const addPublication = (publication: Publication) => {
 export const updatePublication = (index: number, publication: Partial<Publication>) => {
   const publications = [...resume.get().publications];
   publications[index] = { ...publications[index], ...publication };
+  resume.set({
+    ...resume.get(),
+    publications
+  });
+};
+
+export const removePublication = (index: number) => {
+  const publications = [...resume.get().publications];
+  publications.splice(index, 1);
   resume.set({
     ...resume.get(),
     publications
@@ -322,6 +383,15 @@ export const updateSkill = (index: number, skill: Partial<Skill>) => {
   });
 };
 
+export const removeSkill = (index: number) => {
+  const skills = [...resume.get().skills];
+  skills.splice(index, 1);
+  resume.set({
+    ...resume.get(),
+    skills
+  });
+};
+
 export const addLanguage = (language: Language) => {
   resume.set({
     ...resume.get(),
@@ -332,6 +402,15 @@ export const addLanguage = (language: Language) => {
 export const updateLanguage = (index: number, language: Partial<Language>) => {
   const languages = [...resume.get().languages];
   languages[index] = { ...languages[index], ...language };
+  resume.set({
+    ...resume.get(),
+    languages
+  });
+};
+
+export const removeLanguage = (index: number) => {
+  const languages = [...resume.get().languages];
+  languages.splice(index, 1);
   resume.set({
     ...resume.get(),
     languages
@@ -354,6 +433,15 @@ export const updateInterest = (index: number, interest: Partial<Interest>) => {
   });
 };
 
+export const removeInterest = (index: number) => {
+  const interests = [...resume.get().interests];
+  interests.splice(index, 1);
+  resume.set({
+    ...resume.get(),
+    interests
+  });
+};
+
 export const addReference = (reference: Reference) => {
   resume.set({
     ...resume.get(),
@@ -370,6 +458,15 @@ export const updateReference = (index: number, reference: Partial<Reference>) =>
   });
 };
 
+export const removeReference = (index: number) => {
+  const references = [...resume.get().references];
+  references.splice(index, 1);
+  resume.set({
+    ...resume.get(),
+    references
+  });
+};
+
 export const addProject = (project: Project) => {
   resume.set({
     ...resume.get(),
@@ -380,6 +477,15 @@ export const addProject = (project: Project) => {
 export const updateProject = (index: number, project: Partial<Project>) => {
   const projects = [...resume.get().projects];
   projects[index] = { ...projects[index], ...project };
+  resume.set({
+    ...resume.get(),
+    projects
+  });
+};
+
+export const removeProject = (index: number) => {
+  const projects = [...resume.get().projects];
+  projects.splice(index, 1);
   resume.set({
     ...resume.get(),
     projects
