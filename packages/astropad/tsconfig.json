@@ -26,7 +26,15 @@
 		// Allow JavaScript files to be imported
 		"allowJs": true,
 		// Enable strict mode. This enables a few options at a time, see https://www.typescriptlang.org/tsconfig#strict for a list.
-		"strict": true
+		"strict": true,
+		// JSX Issues
+		"jsx": "preserve",
+		"jsxImportSource": "astro",
+		"plugins": [
+			{
+			  "name": "@astrojs/ts-plugin"
+			}],
 	},
-	"include": ["index.ts", "src"]
+	"include": ["index.ts", "src/**/*.ts", "src/**/*.astro", "src/**/*.svelte"],
+	"exclude": ["node_modules"]
 }
