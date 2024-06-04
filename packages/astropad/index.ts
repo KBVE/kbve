@@ -4,4 +4,8 @@
 export { default as Astropad } from './src/Astropad.astro';
 
 export { default as AstroPadResume } from './src/resume/AstroPadResume.astro';
+
+export { default as AdsenseArticle } from './src/adsense/AdsenseArticle.astro';
+export { default as Adsense } from './src/adsense/Adsense.astro';
 export { default as Giscus } from './src/giscus/Giscus.astro';
+
