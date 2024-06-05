@@ -38,6 +38,16 @@
 				],
 				"parallel": false
 			}
+		},
+		"music": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"chmod +x tools/scripts/public/music.sh",
+					"./tools/scripts/public/music.sh {args.name}"
+				],
+				"parallel": false
+			}
 		}
 	}
 }
