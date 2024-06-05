@@ -51,32 +51,21 @@ update_tracklist() {
   # Escape markdown special characters in the track title
   escaped_track_title=$(escape_markdown "$track_title")
 
-  # Read the entire file into a variable
-  file_content=$(cat "$input_file")
-
-  # Extract sections before TrackList, TrackList, and after TrackList
-  before_tracklist=$(echo "$file_content" | awk '/## TrackList/ {exit} {print}')
-  tracklist_table=$(echo "$file_content" | awk '/## TrackList/,/^---/ {print}' | grep -v "## TrackList" | grep -v "^---")
-  after_tracklist=$(echo "$file_content" | awk '/^---/, 0 {print}')
-
   # Check if the YouTube tag already exists in the TrackList
-  if echo "$tracklist_table" | grep -q "| $youtube_tag |"; then
+  if grep -q "| $youtube_tag |" "$input_file"; then
     echo "The YouTube tag $youtube_tag already exists in the TrackList. No changes made."
     return 0
   fi
 
-  # Add the new track entry to the TrackList table
+  # Add the new track entry to the TrackList table using sed
   new_track_entry="| $escaped_track_title | $youtube_tag | [Play Track ID $youtube_tag](https://kbve.com/music/?yt=$youtube_tag) |"
-  tracklist_table=$(echo -e "$tracklist_table\n$new_track_entry")
-
-  # Create the updated content
-  updated_content="$before_tracklist\n## TrackList\n$tracklist_table\n$after_tracklist"
-
-  # Write the updated content back to the file
-  echo -e "$updated_content" > "$input_file"
+  sed -i '' "/^| ---.*$/a\\
+$new_track_entry
+" "$input_file"
 
   echo "YouTube tag and track title have been added to the TrackList successfully."
 }
+
 
 
 # Parse arguments
