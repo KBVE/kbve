@@ -14,7 +14,6 @@ tags:
     - projects
 ---
 
-import Jukebox from '../../../components/tooling/music/Jukebox.astro';
 
 import {
 Card,
@@ -26,7 +25,13 @@ Tabs,
 TabItem,
 } from '@astrojs/starlight/components';
 
-<Jukebox />
+import { JukeBox, Giscus, Adsense } from '@kbve/astropad';
+
+<JukeBox />
+
+---
+
+<Adsense />
 
 ---
 
@@ -47,6 +52,8 @@ TabItem,
 
 </Card>
 </CardGrid>
+
+<Giscus />
 
 <Aside title='Note: Upcoming Patch Updates!'>
 
