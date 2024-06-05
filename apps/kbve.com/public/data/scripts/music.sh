@@ -7,22 +7,22 @@ escape_markdown() {
 
 # Function to display usage
 usage() {
-  echo "Usage: $0 file=<filename without extension> ytid=<youtube_tag> title=<track_title>"
+  echo "Usage: $0 --file=<filename without extension> --ytid=<youtube_tag> --title=<track_title>"
   exit 1
 }
 
 # Parse arguments
 for arg in "$@"; do
   case $arg in
-    file=*)
+    --file=*)
       file_name="${arg#*=}"
       shift
       ;;
-    ytid=*)
+    --ytid=*)
       youtube_tag="${arg#*=}"
       shift
       ;;
-    title=*)
+    --title=*)
       track_title="${arg#*=}"
       shift
       ;;
@@ -37,7 +37,7 @@ if [ -z "$file_name" ] || [ -z "$youtube_tag" ] || [ -z "$track_title" ]; then
   usage
 fi
 
-input_file="/apps/kbve.com/src/content/docs/music/${file_name}.mdx"
+input_file="./apps/kbve.com/src/content/docs/music/${file_name}.mdx"
 
 # Check if the file exists
 if [ ! -f "$input_file" ]; then
@@ -63,4 +63,24 @@ yt_tracks="$yt_tracks\n  - $escaped_youtube_tag"
 
 # Extract the content of the markdown file before and after the yt-tracks section
 before_yt_tracks=$(awk '/yt-tracks:/ {print; exit}' "$input_file")
-after_yt_tracks=$(awk '/yt-sets:/,0' "$input
+after_yt_tracks=$(awk '/yt-sets:/,0' "$input_file")
+
+# Extract the content of the markdown file before and after the TrackList table
+before_tracklist=$(awk '/## TrackList/ {print; exit}' "$input_file")
+after_tracklist=$(awk '/## SetList/,0' "$input_file")
+
+# Extract the existing TrackList table content
+tracklist_table=$(awk '/## TrackList/,/## SetList/' "$input_file")
+
+# Add the new track entry to the TrackList table
+new_track_entry="| $escaped_track_title | $escaped_youtube_tag | [Play Track ID $escaped_youtube_tag](https://kbve.com/music/?yt=$escaped_youtube_tag) |"
+tracklist_table=$(echo -e "$tracklist_table\n$new_track_entry")
+
+# Create the updated content
+updated_content="$before_yt_tracks\nyt-tracks:\n$yt_tracks\n$after_yt_tracks"
+updated_content=$(echo -e "$updated_content\n$before_tracklist\n## TrackList\n$tracklist_table\n$after_tracklist")
+
+# Write the updated content back to the file
+echo -e "$updated_content" > "$input_file"
+
+echo "YouTube tag and track title have been added successfully."

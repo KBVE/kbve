@@ -43,8 +43,16 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"chmod +x tools/scripts/public/music.sh",
-					"./tools/scripts/public/music.sh {args.name}"
+
+					{
+						"command": "chmod +x tools/scripts/public/music.sh",
+						"forwardAllArgs": false
+					},
+
+					{
+						"command": "./tools/scripts/public/music.sh",
+						"forwardAllArgs": true
+					}
 				],
 				"parallel": false
 			}
