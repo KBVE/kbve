@@ -22,7 +22,7 @@ update_frontmatter() {
   # Check if the YouTube tag already exists in yt-tracks
   if echo "$yt_tracks" | grep -q "  - $youtube_tag"; then
     echo "The YouTube tag $youtube_tag already exists in yt-tracks. No changes made."
-    return 0
+    return 1
   fi
 
   # Append the new YouTube tag to the yt-tracks section
@@ -35,6 +35,7 @@ update_frontmatter() {
   echo -e "$updated_content" > "$input_file"
 
   echo "YouTube tag has been added to the frontmatter successfully."
+  return 0
 }
 
 # Function to escape markdown special characters
@@ -50,23 +51,29 @@ update_tracklist() {
 
   # Escape markdown special characters in the track title
   escaped_track_title=$(escape_markdown "$track_title")
+  escaped_yt_id=$(escape_markdown "$youtube_tag")
 
   # Check if the YouTube tag already exists in the TrackList
-  if grep -q "| $youtube_tag |" "$input_file"; then
-    echo "The YouTube tag $youtube_tag already exists in the TrackList. No changes made."
-    return 0
+  if grep -q "| $escaped_yt_id |" "$input_file"; then
+    echo "The YouTube tag $escaped_yt_id already exists in the TrackList. No changes made."
+    return 1
   fi
 
+  # Use a temporary file for sed operations to ensure compatibility
+  tmp_file=$(mktemp)
+  new_track_entry="| $escaped_track_title | $escaped_yt_id | [Play Track ID $escaped_yt_id](https://kbve.com/music/?yt=$youtube_tag) |"
+
   # Add the new track entry to the TrackList table using sed
-  new_track_entry="| $escaped_track_title | $youtube_tag | [Play Track ID $youtube_tag](https://kbve.com/music/?yt=$youtube_tag) |"
-  sed -i '' "/^| ---.*$/a\\
+  sed "/## TrackList/,/^## /{/^| ---/a\\
 $new_track_entry
-" "$input_file"
+}" "$input_file" > "$tmp_file"
+
+  # Move the temporary file to the original file
+  mv "$tmp_file" "$input_file"
 
   echo "YouTube tag and track title have been added to the TrackList successfully."
+  return 0
 }
-
-
 
 # Parse arguments
 for arg in "$@"; do
@@ -104,6 +111,12 @@ fi
 
 # Update yt-tracks in the frontmatter
 update_frontmatter "$input_file" "$youtube_tag"
+if [ $? -ne 0 ]; then
+  exit 1
+fi
 
 # Update the TrackList section
 update_tracklist "$input_file" "$youtube_tag" "$track_title"
+if [ $? -ne 0 ]; then
+  exit 1
+fi
