@@ -9,3 +9,4 @@ export { default as AdsenseArticle } from './src/adsense/AdsenseArticle.astro';
 export { default as Adsense } from './src/adsense/Adsense.astro';
 export { default as Giscus } from './src/giscus/Giscus.astro';
 
+export { default as JukeBox} from './src/jukebox/Jukebox.astro';
