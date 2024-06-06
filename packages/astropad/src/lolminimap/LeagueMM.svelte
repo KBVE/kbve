@@ -64,14 +64,16 @@
   }
   .waypoint {
     position: absolute;
-    width: 20px;
-    height: 20px;
+    width: 20px; /* Adjust width and height as necessary */
+    height: 20px; /* Adjust width and height as necessary */
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 10px;
     border-radius: 50%;
+    margin-left: -10px; /* Half of the width */
+    margin-top: -10px; /* Half of the height */
   }
 </style>
 
