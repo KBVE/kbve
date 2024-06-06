@@ -105,11 +105,10 @@
       <div class="image-container relative mb-4" on:click={handleMapClick}>
         <img bind:this={imgElement} alt="Your Minimap for League" src="/assets/img/lol/rift_s14.webp" class="max-w-full rounded-md shadow-md" />
   
-        {#each $activeWaypoints as waypoint, index (waypoint)}
+        {#each $activeWaypoints as waypoint, index}
           <div
             class={`waypoint ${champions[$selectedChampionIndex].color}`}
-            style="left: ${(waypoint.x / imageWidth) * 100}%; top: ${(waypoint.y / imageHeight) * 100}%;"
-            key={index}
+            style="left: ${waypoint.x}px; top: ${waypoint.y}px;"
           >
             {champions[$selectedChampionIndex].name[0]}
           </div>
