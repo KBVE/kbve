@@ -104,6 +104,8 @@
       </button>
     </div>
 
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="image-container relative mb-4" on:click={handleMapClick}>
       <img bind:this={imgElement} alt="Your Minimap for League" src="/assets/img/lol/rift_s14.webp" class="max-w-full rounded-md shadow-md" />
 
