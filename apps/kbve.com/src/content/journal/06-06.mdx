@@ -66,3 +66,12 @@ Training Groq to help me expand the music collection is also another side missio
 ```
 
 It still needs help with just returning the shell command, I wonder if I need to be more exact with my prompt.
+
+The next step would be to establish a quick groq api inside of rust that will be able to communicate with the Github actions.
+I got this mapped out in my head but building it out, test casing and making sure all the pieces work without any issues will be a bit of a pain.
+
+First we will create the base `ai` folder within the `jedi` package and then afterwards, we can start the `groq.rs` file.
+Also, just so we do not forget, we will need to make sure that the `mod.rs` files are editted to make sure everything links up.
+
+We will avoid using the blocking part of the reqwest because we can just take advantage of tokio, at this point it would make sense to focus on building out the basic module.
+The initial lego piece will just focus on a basic or barebone restful api communication. 
