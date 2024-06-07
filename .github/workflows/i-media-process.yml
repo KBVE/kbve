@@ -1,0 +1,53 @@
+name: Process Media Issues
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  process_issue:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'media' || contains(github.event.issue.labels.*.name, 'media')
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Get issue contents
+      id: get_issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issue_number = context.payload.issue.number;
+          const issue = await github.issues.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: issue_number
+          });
+          return issue.data.body;
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Check for YouTube link
+      id: check_youtube
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issue_body = `${{ steps.get_issue.outputs.result }}`;
+          const youtube_regex = /https?:\/\/(www\.)?youtube\.com\/watch\?v=([\w-]+)/gi;
+          const match = youtube_regex.exec(issue_body);
+          const has_youtube_link = !!match;
+          const youtube_id = has_youtube_link ? match[2] : '';
+          return { has_youtube_link, youtube_id };
+
+    - name: Display issue contents
+      run: |
+        echo "Issue body: ${{ steps.get_issue.outputs.result }}"
+    
+    - name: Display YouTube link check result
+      run: |
+        echo "Contains YouTube link: ${{ steps.check_youtube.outputs.has_youtube_link }}"
+
+    - name: Extract and display YouTube ID if link is found
+      if: ${{ steps.check_youtube.outputs.has_youtube_link == 'true' }}
+      run: |
+        echo "YouTube ID: ${{ steps.check_youtube.outputs.youtube_id }}"

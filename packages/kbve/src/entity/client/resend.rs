@@ -1,4 +1,5 @@
 use reqwest::header::{ HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE };
+use reqwest::Client;
 use serde_json::json;
 use std::error::Error;
 use crate::db::Pool;
@@ -27,7 +28,7 @@ async fn resend_confirmation_email(email: &str, pool: &Arc<Pool>) -> Result<(), 
 
   // Handle the recovery process and generate a token
     
-  let recovery_token = match handle_recovery_process(email, pool) {
+  let recovery_token = match handle_recovery_process(email.to_string(), pool.clone()).await {
         Ok(token) => token,
         Err(_) => return Err("Password recovery failed".to_string()),
   };

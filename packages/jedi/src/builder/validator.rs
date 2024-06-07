@@ -1,11 +1,4 @@
-use std::sync::Arc;
-use async_trait::async_trait;
-use std::future::Future;
-use std::pin::Pin;
-
 extern crate ammonia;
-
-use crate::builder::RegexBuilder;
 
 use crate::entity::regex::{
   extract_email_from_regex,
