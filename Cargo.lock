@@ -2226,7 +2226,7 @@ dependencies = [
 
 [[package]]
 name = "jedi"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "ammonia",
  "async-trait",
