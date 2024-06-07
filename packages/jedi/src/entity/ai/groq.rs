@@ -65,8 +65,7 @@ impl GroqClient {
             let text = response.text().await?;
             
             Ok(text)
-        }
-        else {
+        } else {
             Err(Box::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 "No available clients",
