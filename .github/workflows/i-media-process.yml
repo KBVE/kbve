@@ -25,19 +25,19 @@ jobs:
             issue_number: issue_number
           });
           return issue.data.body;
-
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Check for YouTube link
       id: check_youtube
       uses: actions/github-script@v7
       with:
         script: |
-          const issue_body = `{{ steps.get_issue.outputs.result }}`;
+          const issue_body = `${{ steps.get_issue.outputs.result }}`;
           const youtube_regex = /https?:\/\/(www\.)?youtube\.com\/watch\?v=([\w-]+)/gi;
           const match = youtube_regex.exec(issue_body);
           const has_youtube_link = !!match;
           const youtube_id = has_youtube_link ? match[2] : '';
-          return { has_youtube_link: has_youtube_link, youtube_id: youtube_id };
-        result-encoding: json
+          return { has_youtube_link, youtube_id };
 
     - name: Display issue contents
       run: |
