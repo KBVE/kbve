@@ -35,6 +35,15 @@
 			"options": {
 				"target-dir": "dist/target/jedi"
 			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p jedi --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
 		}
 	}
 }
