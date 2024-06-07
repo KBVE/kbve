@@ -85,3 +85,26 @@ To test our package, we can use this command below:
 cargo publish -p jedi --dry-run --allow-dirty
 
 ```
+
+It seems there were some issues with this ubuntu container that I was ssh into, maybe I should extend the rust application install / tutorial to include a sub-section to help address the missing libraries.
+Yet it does say what libraries were missing, anyhow, I think it would make sense to add the dry run command into the nx, so we can call it almost anywhere.
+
+This will be easy, just take the command that we made for the `kbve.com:music` and instead of calling the `music.sh`, we would just call the command above.
+
+Here is the JSON for Nx to perform the dry run test for us.
+
+```json
+
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p jedi --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+
+```
+
+Afterwards, we will go into the `ci-beta.yml` and have it perform the dry run before adding the branch into the main.
