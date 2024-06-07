@@ -91,3 +91,20 @@ Yet it does say what libraries were missing, anyhow, I think it would make sense
 
 This will be easy, just take the command that we made for the `kbve.com:music` and instead of calling the `music.sh`, we would just call the command above.
 
+Here is the JSON for Nx to perform the dry run test for us.
+
+```json
+
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p jedi --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+
+```
+
+Afterwards, we will go into the `ci-beta.yml` and have it perform the dry run before adding the branch into the main.
