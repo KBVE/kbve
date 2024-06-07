@@ -55,4 +55,21 @@ jobs:
     - name: Extract and display YouTube ID if link is found
       if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
       run: |
-        echo "YouTube ID: ${{ env.youtube_id }}"
+          echo "YouTube ID: ${{ env.youtube_id }}"
+          curl -s -X POST https://rust.kbve.com/api/v1/call_groq/ \
+              -H "Content-Type: application/json" \
+              -d '{
+                    "message": "Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, and the characters `()`, `.`, and `-`.\n\n**Input:**\n```\n\n **Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=${{ env.youtube_id }}\nTitle: Hippie Sabotage - The Best of Chill Music (Mix)\nGenre: lofihiphop\n\n## Human\n\nFor supported genres, please visit [Music](https://kbve.com/music/)\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock\n\n\n```\n\n**Output:**\n\n```bash\n./kbve.sh -nx kbve.com:music --args=\"--file=lofihiphop --title='\''Hippie Sabotage - The Best of Chill Music (Mix)'\'' --ytid=${{ env.youtube_id }}\"```\n\nHere is the template for the command:\n```\n./kbve.sh -nx kbve.com:music --args=\"--file=[insert file/genre here] --title='\''[insert sanitized title here]'\'' --ytid=[insert YouTube ID here]\"```\n\nEnsure to:\n1. Extract the `File/Genre`, `Title`, and `YouTube ID` from the text.\n2. Sanitize the `Title` to only include numbers, letters, and the characters `()`, `.`, and `-`.\n3. Only acceptable genres/file are `dnb`, `chillstep`, `lofihiphop`, `nujazz`, `electroswing`, `edm`, `rock`\n4. Fill in the command template with the extracted and sanitized values.\n\n**Example Input:**\n```text\nFile/Genre: jazz\nTitle: Louis Armstrong - What a Wonderful World (Jazz Remix)\nYouTube ID: abc12345```\n\n**Example Output:**\n```bash\n./kbve.sh -nx kbve.com:music --args=\"--file=jazz --title='\''Louis Armstrong - What a Wonderful World (Jazz Remix)'\'' --ytid=abc12345\"```\n\n**Your Task:**\nPlease parse the provided text below and generate the command.\n\n**Input:**\n```text\n${{ github.event.issue.body }}```\n\n**Output:**\n```\n```\n"
+                  }' -o curl_output.txt
+  
+    - name: Capture and display curl output
+      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
+      run: |
+          CURL_OUTPUT=$(cat curl_output.txt)
+          echo "Curl Output: $CURL_OUTPUT"
+          echo "curl_output=$CURL_OUTPUT" >> $GITHUB_ENV
+  
+    - name: Use curl output in subsequent steps
+      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
+      run: |
+          echo "Using captured curl output: ${{ env.curl_output }}"

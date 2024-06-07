@@ -13,11 +13,9 @@ pub struct AiGroqRequest {
     model: String,
 }
 
-
-//pub async fn call_groq(api_key: String) {
 pub async fn groq_handler(
-    Json(payload): Json<AiGroqRequest>,
     Extension(client): Extension<Arc<GroqClient>>,
+    Json(payload): Json<AiGroqRequest>,
 ) -> impl IntoResponse {
 
 
@@ -30,9 +28,7 @@ pub async fn groq_handler(
         model: payload.model,
     };
 
-    // clone here ->
     let client_clone = Arc::clone(&client); 
-    // 
 
     let task1 = task::spawn(async move {
         match client_clone.test_request(&body).await {
@@ -57,12 +53,9 @@ pub async fn groq_handler(
 
 
 pub async fn setup_groqclient(api_key: String) -> Arc<GroqClient> {
-    
-    // TODO : Rate Limit Delay
-    //  let rate_limit_delay = Duration::from_secs(1);
-    //  let max_retries = 3;
+    let rate_limit_delay = Duration::from_secs(1);
+    let max_retries = 3;
     let client_pool = 5;
-    //  Arc::new(GroqClient::new(api_key, client_pool, rate_limit_delay, max_retries));
-    Arc::new(GroqClient::new(api_key, client_pool))
-
+    Arc::new(GroqClient::new(api_key, client_pool, rate_limit_delay, max_retries))
+    
 }

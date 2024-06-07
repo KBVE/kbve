@@ -14,7 +14,7 @@ use kbve::{
 	authentication::{ graceful },
 	utility::{ cors_service, fallback, global_map_init, root_endpoint },
 	runes::{ GLOBAL },
-	entity::{ KbveState },
+	entity::{ KbveState, setup_groqclient, groq_handler },
 	session::{ middleware_jwt },
 };
 
@@ -47,9 +47,15 @@ async fn main() {
 		Err(e) => println!("Global Map -> fail -> {}", e),
 	}
 
+	let global = GLOBAL.get().expect("GLOBAL not initialized");
+    let api_key = global.get("groq").expect("API key not found in GLOBAL").clone();
+
+    let groq_client = setup_groqclient(api_key).await;
+
 	let corslight = cors_service();
 
 	let api_routes = Router::new()
+		.route("/call_groq", post(groq_handler))
 		.route("/health", get(kbve::sys::system_health_check))
 		.route("/svg", get(kbve::entity::svg_handler))
 		.route("/jedi", get(kbve::entity::jedi_controller))
@@ -119,6 +125,7 @@ async fn main() {
 		.nest("/api/v2", apipanda_routes)
 		.route("/", get(root_endpoint))
 		.layer(Extension(shared_pool.clone()))
+		.layer(Extension(groq_client))
 		.layer(Extension(application_state))
 		.layer(corslight)
 		.fallback(fallback);
