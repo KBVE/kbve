@@ -2209,9 +2209,9 @@ checksum = "b1a46d1a171d865aa5f83f92695765caa047a9b4cbae2cbf37dbd613a793fd4c"
 
 [[package]]
 name = "jedi"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27cfa026dc6d13a2e586d890b9bd35b770ec3c8763ee4f7481d7b600f83574f1"
+checksum = "0a77b8464623e31767b1fe511685c8535843e653300d0d7a2b72cca3d4bc7a51"
 dependencies = [
  "ammonia",
  "async-trait",
@@ -2219,9 +2219,11 @@ dependencies = [
  "dashmap",
  "once_cell",
  "regex",
+ "reqwest 0.12.4",
  "serde",
  "serde_json",
  "thiserror",
+ "tokio",
 ]
 
 [[package]]
@@ -2311,7 +2313,7 @@ dependencies = [
  "dashmap",
  "diesel",
  "dotenvy",
- "jedi 0.1.7",
+ "jedi 0.1.8",
  "jsonwebtoken",
  "num-bigint",
  "once_cell",
@@ -3405,7 +3407,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "diesel",
- "jedi 0.1.7",
+ "jedi 0.1.8",
  "kbve",
  "r2d2",
  "serde",
