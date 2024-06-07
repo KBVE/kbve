@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::sync::Arc;
 use crossbeam::queue::SegQueue;
+use tracing::{info, warn, error};
 
 // Vars
 
@@ -73,6 +74,11 @@ impl GroqClient {
                 "No available clients",
             )))
         }
+    }
+
+    pub fn shutdown(&self) {
+        info!("Shutting down GroqClient and releasing all clients.");
+        while let Some(_) = self.client.pop() {}
     }
 
 
