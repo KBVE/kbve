@@ -35,6 +35,15 @@
 			"options": {
 				"target-dir": "dist/target/kbve"
 			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p kbve --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
 		}
 	}
 }

@@ -108,3 +108,7 @@ Here is the JSON for Nx to perform the dry run test for us.
 ```
 
 Afterwards, we will go into the `ci-beta.yml` and have it perform the dry run before adding the branch into the main.
+
+I figured I would do the same with the `kbve` package and making sure that the package can dry run.
+It might require some libraries that Github action might not provide, so I will have to double check it.
+Based upon my quick search, it seems that the Github actions default runner has the `libmysqlclient-dev` client ready to be linked.
