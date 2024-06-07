@@ -19,7 +19,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const issue_title = context.payload.issue.title;
-          const is_music_issue = issue_title.startsWith('[MUSIC]');
+          const is_music_issue = issue_title.includes('[MUSIC]');
           return { is_music_issue };
 
     - name: Stop if not a music issue
