@@ -63,6 +63,14 @@ jobs:
                     "model": "llama3-8b-8192"
                   }' -o curl_output.txt
   
+    - name: Sanitize curl output
+      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
+      run: |
+        sed -i 's/[\x00-\x1F]//g' curl_output.txt
+        CURL_OUTPUT=$(cat curl_output.txt)
+        echo "Curl Output: $CURL_OUTPUT"
+        echo "curl_output=$CURL_OUTPUT" >> $GITHUB_ENV
+
     - name: Capture and display curl output
       if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
       run: |
@@ -82,5 +90,5 @@ jobs:
       run: |
         curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" \
              -H "Content-Type: application/json" \
-             -d '{"body": "Here is the processed information:\n\n```bash\n'"${{ env.curl_output }}"'```"}' \
+             -d '{"body": "Here is the processed information:\n\n```\n'"${{ env.curl_output }}"'\n```"}' \
              "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
