@@ -12,72 +12,330 @@ tags:
     - technology
 ---
 
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@kbve/astropad';
+
 ## Information
 
+Rust is a modern systems programming language that aims to provide memory safety, concurrency, and high performance without sacrificing control over system resources.
+Developed by Mozilla and now maintained by the Rust Foundation, it is designed to address common issues found in other languages like C and C++, such as null pointer dereferencing and buffer overflows, through its powerful ownership model and strict compile-time checks.
+Rust's expressive type system, robust package manager (Cargo), and thriving ecosystem make it a popular choice for building reliable and efficient software, from operating systems and game engines to web servers and command-line tools.
+
+---
 
 ## Install
 
-**On Linux or MacOS or (WSL on Windows)**:
+<Aside>
 
--   [According to Chapter 1.1 from the Official Book](https://doc.rust-lang.org/stable/book/ch01-01-installation.html) to install rust you can use the following script:
+This tutorial is intended for users on Linux, MacOS, and WSL (Windows Subsystem for Linux). 
+Windows users should follow the instructions for setting up WSL to use this guide effectively.
 
--   Command to install via `curl`
+</Aside>
 
-    -   ```shell
-        curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
-        ```
+Installing Rust on Linux, MacOS, or WSL involves using the `rustup` tool, which manages the Rust installation and its associated tools.
+You can install `rustup` by running a simple `curl` command in the terminal and following the prompts to complete the setup.
+After configuring your shell and verifying the installation, you'll have a fully functional Rust development environment ready for use.
 
-    -> The command downloads a script and starts the installation of the `rustup` tool, which installs the latest stable version of Rust. You might be prompted for your password. If the installation is successful, the following line will appear:
-    -> `Rust is installed now. Great!`
+<Steps>
 
-    -   You will also need a _linker_, which is a program that Rust uses to join its compiled outputs into one file. It is likely you already have one. If you get linker errors, you should install a C compiler...
+1.  **Install Rust using `rustup`**:
 
-**On Windows**:
+    Open a terminal and run the following command to download and install the `rustup` tool, which will manage your Rust installation.
 
--   [Reference the Book's Chapter 1.1 'Installing `rustup` on Windows' section](https://doc.rust-lang.org/stable/book/ch01-01-installation.html#installing-rustup-on-windows)
+    ```shell
+    curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
+    ```
+
+    Follow the prompts during the installation process to proceed with the default installation options. If the installation is successful, you will see a message indicating that Rust has been installed.
+
+2.  **Configure Your Shell**:
+
+    After the installation is complete, you need to configure your current shell session to use Rust by running the following command:
+
+    ```shell
+    source $HOME/.cargo/env
+    ```
+
+    This command ensures that Rust and its associated tools are available in your shell environment.
+
+3.  **Verify the Installation**:
+
+    To confirm that Rust has been installed correctly, check the version of the Rust compiler with the following command:
+
+    ```shell
+    rustc --version
+    ```
+
+    This command should display the installed version of Rust, indicating that the installation was successful.
+
+4.  **Install Required Dependencies**:
+
+    Rust requires a linker to combine its compiled outputs into one file. You may need to install additional tools if you encounter linker errors.
+
+    **On Ubuntu/Debian**:
+
+    ```shell
+    sudo apt update
+    sudo apt install build-essential
+    ```
+
+    **On Fedora**:
+
+    ```shell
+    sudo dnf groupinstall 'Development Tools'
+    ```
+
+    **On Arch Linux**:
+
+    ```shell
+    sudo pacman -S base-devel
+    ```
+
+    **On MacOS**:
+
+    Install Xcode command line tools, which include a C compiler and linker.
+
+    ```shell
+    xcode-select --install
+    ```
+
+5.  **Update Rust**:
+
+    Keep your Rust installation up-to-date with the following command:
+
+    ```shell
+    rustup update
+    ```
+
+6.  **Configure Your Development Environment**:
+
+    To make the most of Rust, you should set up a development environment.
+
+    **Install Visual Studio Code** (optional):
+
+    VS Code is a popular code editor with excellent support for Rust.
+
+    **On Linux**:
+
+    ```shell
+    sudo snap install --classic code
+    ```
+
+    **On MacOS**:
+
+    Download and install from [the official website](https://code.visualstudio.com/).
+
+    **Install the Rust extension for VS Code**:
+
+    Open VS Code and install the "rust-analyzer" extension for Rust language support.
+
+    **Set up your first Rust project**:
+
+    ```shell
+    cargo new hello_world
+    cd hello_world
+    cargo run
+    ```
+
+    This will create a new Rust project named `hello_world`, navigate into the project directory, and run the sample application.
+
+7.  **Explore Rust Documentation**:
+
+    Rust has extensive documentation and a friendly community. Here are some resources to get you started:
+
+    - [The Rust Programming Language Book](https://doc.rust-lang.org/stable/book/)
+    - [Rust By Example](https://doc.rust-lang.org/stable/rust-by-example/)
+    - [Official Rust Documentation](https://doc.rust-lang.org/)
+
+
+</Steps>
+
 
 ---
 
 ## Update
 
-- Incase we need to update rust to the latest stable version, we will use `rustup` to update, via this command in shell:
+Updating Rust is simple and straightforward using the `rustup` tool.
+By running the `rustup update` command in your terminal, you can ensure that your Rust installation and all associated components are kept up-to-date with the latest stable versions.
 
-```shell
+<Steps>
+
+1. **Open a Terminal**:
+
+    Ensure that you have access to a terminal on your Linux, MacOS, or WSL system.
+
+2. **Run the `rustup` Update Command**:
+
+    Use the following command to update Rust and all installed components to the latest version:
+
+    ```shell
     rustup update
-```
+    ```
+
+    This command will download and install the latest stable version of Rust and update all installed toolchains.
+
+3. **Verify the Update**:
+
+    After the update process is complete, verify that Rust has been updated successfully by checking the version:
+
+    ```shell
+    rustc --version
+    ```
+
+    This command should display the latest version of Rust, confirming that the update was successful.
+
+4. **Clean Up Old Versions** (optional):
+
+    To free up disk space, you can remove older versions of Rust that are no longer needed by running:
+
+    ```shell
+    rustup self uninstall
+    ```
+
+    This command will prompt you to confirm the removal of old toolchains and components.
+
+</Steps>
 
 ---
 
 ## Cargo
 
+<Aside>
 > TLDR; Cargo is a package manager for Rust that handles the dependencies, compiling and distribution.
-> Cargo can publish your package to `crates.io` so that it can be used with other applications within Rust.
 
-To get started with Cargo, see if you have Cargo installed via running `cargo` with the help flag:
+> Cargo can publish your package to **crates.io** so that it can be used with other applications within Rust.
+</Aside>
 
-```shell
-        cargo help
-```
-    -   For `ubuntu` you might need to run `sudo cargo help`.
+Cargo is the Rust package manager and build system, designed to streamline the process of managing dependencies, compiling code, and building projects.
+It simplifies tasks like creating new projects, running tests, and generating documentation with easy-to-use commands.
+Cargo ensures that Rust developers can efficiently manage their projects' libraries and tools, maintaining consistency and reliability throughout the development lifecycle.
 
-### Cargo-Watch
+<Steps>
 
-**Watch**
+1. **Install Rust and Cargo**:
 
-Cargo-Watch will watch over the current project's source code for changes and then run Cargo commands when they occur.
-This will make building and development easier!
+    Cargo comes bundled with Rust, so installing Rust also installs Cargo. If you haven't installed Rust yet, follow the installation steps below:
 
-To install the cargo-watch, run this command below in shell on the dev operating system.
+    Open a terminal and run the following command:
 
-```shell
-cargo install cargo-watch
-```
+    ```shell
+    curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
+    ```
 
-The default cargo watch that we are currently using is:
+    Follow the prompts to complete the installation. Once Rust is installed, Cargo will be installed automatically.
 
-```shell
-cargo watch -q -c -x run
-```
+2. **Verify Cargo Installation**:
+
+    To ensure Cargo is installed correctly, check its version by running:
+
+    ```shell
+    cargo --version
+    ```
+
+    This command should display the installed version of Cargo, confirming the installation was successful.
+
+3. **Create a New Rust Project**:
+
+    Use Cargo to create a new Rust project by running:
+
+    ```shell
+    cargo new my_project
+    cd my_project
+    ```
+
+    This command creates a new directory named `my_project` with the necessary files and structure for a Rust project.
+
+4. **Build the Project**:
+
+    To compile your Rust project, navigate to your project directory and run:
+
+    ```shell
+    cargo build
+    ```
+
+    This command compiles your project and produces an executable in the `target/debug` directory.
+
+5. **Run the Project**:
+
+    After building your project, you can run it with:
+
+    ```shell
+    cargo run
+    ```
+
+    This command compiles (if necessary) and runs your project, displaying any output in the terminal.
+
+6. **Add Dependencies**:
+
+    To add external libraries (dependencies) to your project, edit the `Cargo.toml` file in your project directory and add the desired dependencies under the `[dependencies]` section. For example:
+
+    ```toml
+    [dependencies]
+    serde = "1.0"
+    ```
+
+    After adding dependencies, run:
+
+    ```shell
+    cargo build
+    ```
+
+    Cargo will download and compile the specified dependencies for your project.
+
+7. **Run Tests**:
+
+    To run tests defined in your project, use:
+
+    ```shell
+    cargo test
+    ```
+
+    This command compiles and runs any tests found in the `tests` directory or within your source files.
+
+8. **Generate Documentation**:
+
+    Cargo can generate documentation for your project and its dependencies. To generate and view the documentation, run:
+
+    ```shell
+    cargo doc --open
+    ```
+
+    This command generates HTML documentation and opens it in your default web browser.
+
+9. **(Optional) Install Cargo Watch**:
+
+    Cargo Watch automatically runs Cargo commands when file changes are detected, useful for continuous development.
+
+    **Install Cargo Watch**:
+
+    ```shell
+    cargo install cargo-watch
+    ```
+
+    **Use Cargo Watch**:
+
+    To automatically recompile your project when you make changes, run:
+
+    ```shell
+    cargo watch -x build
+    ```
+
+    For automatic testing on file changes, use:
+
+    ```shell
+    cargo watch -x test
+    ```
+
+</Steps>
 
 ---
 
@@ -161,3 +419,23 @@ This crate is a user-friendly, easy-to-integrate, immediate-mode GUI library des
             ```shell
             cargo install --locked trunk
             ```
+
+---
+
+## KBVE
+
+---
+
+## JEDI
+
+---
+
+## ERUST
+
+---
+
+## HOLY
+
+---
+
+<Giscus />

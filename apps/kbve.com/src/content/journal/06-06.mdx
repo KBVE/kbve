@@ -1,0 +1,77 @@
+---
+title: 'June: 06'
+category: Daily
+date: 2024-06-06 12:00:00
+client: Self
+unsplash: 1717297808345-b740e9846158
+img: https://images.unsplash.com/photo-1717297808345-b740e9846158?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   June 6th. League MiniMap.
+tags:
+    - daily
+---
+
+import {
+  Adsense
+} from '@kbve/astropad';
+
+
+## 2024
+
+**League Minimap**
+
+The current tool that I want to finish building out would be to quickly make possible "battleplans" or "battle layouts" using the minimap.
+Ideally I would want to include possible placements of wards and even find a unique way to save them and display them to others.
+
+Okay! I was able to get the waypoints to display within the minimap but it seems that they are a bit offset, which might be because of the size of the waypoint itself.
+Going to see if I can get ChatGPT to fix it!
+
+Perfect, I had a feeling that it was a CSS issue and it was able to resolve it.
+
+```css
+
+  .image-container {
+    position: relative;
+    display: inline-block;
+  }
+  .waypoint {
+    position: absolute;
+    width: 20px; /* Adjust width and height as necessary */
+    height: 20px; /* Adjust width and height as necessary */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    border-radius: 50%;
+    margin-left: -10px; /* Half of the width */
+    margin-top: -10px; /* Half of the height */
+  }
+
+```
+
+That additional css change resolved the offset, which makes sense considering the w and h are 20, we need to then move it by half that to get the center.
+
+Okay! The next step would be to save the coordinates and then figure out a way to render the waypoint pathing.
+
+
+**Music**
+
+Training Groq to help me expand the music collection is also another side mission that I need to focus on. 
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=lofihiphop --title='Post Malone - Money Made Me Do It (Lofi Remix)' --ytid=RltR_yNdZ-8"
+
+```
+
+It still needs help with just returning the shell command, I wonder if I need to be more exact with my prompt.
+
+The next step would be to establish a quick groq api inside of rust that will be able to communicate with the Github actions.
+I got this mapped out in my head but building it out, test casing and making sure all the pieces work without any issues will be a bit of a pain.
+
+First we will create the base `ai` folder within the `jedi` package and then afterwards, we can start the `groq.rs` file.
+Also, just so we do not forget, we will need to make sure that the `mod.rs` files are editted to make sure everything links up.
+
+We will avoid using the blocking part of the reqwest because we can just take advantage of tokio, at this point it would make sense to focus on building out the basic module.
+The initial lego piece will just focus on a basic or barebone restful api communication. 
