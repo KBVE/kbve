@@ -8,7 +8,7 @@ description = "Jedi is the Juggernaut Electronic Data Interchange package. This 
 homepage = "https://kbve.com/application/rust/#jedi"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/jedi"
 readme = "README.md"
-rust-version = "1.75"
+rust-version = "1.78"
 
 
 [dependencies]
