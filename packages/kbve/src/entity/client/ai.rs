@@ -11,6 +11,8 @@ use serde::Deserialize;
 pub struct AiGroqRequest {
     message: String,
     model: String,
+    // model: Option<String>,
+    system: Option<String>,
 }
 
 pub async fn groq_handler(
@@ -18,13 +20,22 @@ pub async fn groq_handler(
     Json(payload): Json<AiGroqRequest>,
 ) -> impl IntoResponse {
 
+    let mut messages = vec![];
+
+    if let Some(system_message) = payload.system {
+        messages.push(GroqMessage {
+            role: "system".to_string(),
+            content: system_message
+        });
+    }
+
+    messages.push(GroqMessage {
+        role: "user".to_string(),
+        content: payload.message,
+    });
 
     let body = GroqRequestBody {
-        messages: vec![GroqMessage {
-            // 
-            role: "user".to_string(),
-            content: payload.message,
-        }],
+        messages,
         model: payload.model,
     };
 
