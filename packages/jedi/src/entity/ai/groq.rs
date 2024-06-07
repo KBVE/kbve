@@ -38,7 +38,10 @@ impl GroqClient {
     pub fn new(api_key: String, num_clients: usize) -> Self {
         let queue = Arc::new(SegQueue::new());
         for _ in 0..num_clients {
-            queue.push(Client::new());
+            queue.push(Client::builder()
+            .use_rustls_tls()
+            .build()
+            .expect("Failed to build client within GroqClient"));
         }
         GroqClient {
             client: queue, 
@@ -46,9 +49,8 @@ impl GroqClient {
         }
     }
 
-    // Test case should be triggered by the the Python -> Atlas, making sure that the pydantic can verify the test result.
 
-    pub async fn test_request(&self, body: &GroqRequestBody) -> Result<String, Box<&dyn Error>> {
+    pub async fn test_request(&self, body: &GroqRequestBody) -> Result<String, Box<dyn Error>> {
         if let Some(client) = self.client.pop() {
             let url = format!("{}/openai/v1/chat/completions", BASE_URL);
             
@@ -65,8 +67,7 @@ impl GroqClient {
             let text = response.text().await?;
             
             Ok(text)
-        }
-        else {
+        } else {
             Err(Box::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 "No available clients",

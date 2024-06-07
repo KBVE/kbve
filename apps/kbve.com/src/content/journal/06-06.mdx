@@ -75,3 +75,13 @@ Also, just so we do not forget, we will need to make sure that the `mod.rs` file
 
 We will avoid using the blocking part of the reqwest because we can just take advantage of tokio, at this point it would make sense to focus on building out the basic module.
 The initial lego piece will just focus on a basic or barebone restful api communication. 
+
+The file would under `/packages/jedi/src/entity/ai/groq.rs` and we should focus on making sure that the `kbve` package would create a pool of clients that would interact with the Groq API.
+
+To test our package, we can use this command below:
+
+```shell
+
+cargo publish -p jedi --dry-run --allow-dirty
+
+```
