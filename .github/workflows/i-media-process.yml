@@ -4,54 +4,55 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  issues: read
+  contents: read
+
 jobs:
   process_issue:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2
 
     - name: Check if issue title contains [MUSIC]
       id: check_title
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const issue_title = github.event.issue.title;
-          const is_music_issue = issue_title.includes('[MUSIC]');
-          return { is_music_issue };
+      env:
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+      run: |
+        echo "Issue Title: $ISSUE_TITLE"
+        if echo "$ISSUE_TITLE" | grep -q "\[MUSIC\]"; then
+          echo "is_music_issue=true" >> $GITHUB_ENV
+        else
+          echo "is_music_issue=false" >> $GITHUB_ENV
+        fi
 
     - name: Stop if not a music issue
-      if: steps.check_title.outputs.is_music_issue == 'false'
-      run: |
-        echo "Not a music issue. Skipping further steps."
+      if: env.is_music_issue == 'false'
+      run: echo "Not a music issue. Skipping further steps."
 
     - name: Check for YouTube link in issue body
-      if: steps.check_title.outputs.is_music_issue == 'true'
+      if: env.is_music_issue == 'true'
       id: check_youtube
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const issue_body = github.event.issue.body;
-          const youtube_regex = /https?:\/\/(www\.)?youtube\.com\/watch\?v=([\w-]+)/gi;
-          const match = youtube_regex.exec(issue_body);
-          const has_youtube_link = !!match;
-          const youtube_id = has_youtube_link ? match[2] : '';
-          return { has_youtube_link, youtube_id };
-
-    - name: Display issue body
-      if: steps.check_title.outputs.is_music_issue == 'true'
+      env:
+        ISSUE_BODY: ${{ github.event.issue.body }}
       run: |
-        echo "Issue body: ${{ github.event.issue.body }}"
+        echo "Issue Body: $ISSUE_BODY"
+        if echo "$ISSUE_BODY" | grep -q "https://www.youtube.com/watch?v="; then
+          YOUTUBE_ID=$(echo "$ISSUE_BODY" | grep -oP 'https://www.youtube.com/watch\?v=\K[\w-]+')
+          echo "has_youtube_link=true" >> $GITHUB_ENV
+          echo "youtube_id=$YOUTUBE_ID" >> $GITHUB_ENV
+        else
+          echo "has_youtube_link=false" >> $GITHUB_ENV
+        fi
 
     - name: Display YouTube link check result
-      if: steps.check_title.outputs.is_music_issue == 'true'
+      if: env.is_music_issue == 'true'
       run: |
-        echo "Contains YouTube link: ${{ steps.check_youtube.outputs.has_youtube_link }}"
+        echo "Contains YouTube link: ${{ env.has_youtube_link }}"
 
     - name: Extract and display YouTube ID if link is found
-      if: steps.check_youtube.outputs.has_youtube_link == 'true' && steps.check_title.outputs.is_music_issue == 'true'
+      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
       run: |
-        echo "YouTube ID: ${{ steps.check_youtube.outputs.youtube_id }}"
+        echo "YouTube ID: ${{ env.youtube_id }}"
