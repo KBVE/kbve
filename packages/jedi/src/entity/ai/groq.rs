@@ -22,9 +22,42 @@ pub struct GroqRequestBody {
     pub model: String,
 }
 
+
+// Structs for Response
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GroqMessageContent {
+    role: String,
+    content: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GroqChoice {
+    index: u32,
+    message: GroqMessageContent,
+    finish_reason: String,
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GroqUsage {
+    prompt_tokens: u32,
+    prompt_time: f64,
+    completion_tokens: u32,
+    completion_time: f64,
+    total_tokens: u32,
+    total_time: f64,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GroqResponse {
-    pub result: String,
+    id: String,
+    object: String,
+    created: u64,
+    model: String,
+    choices: Vec<GroqChoice>,
+    usage: GroqUsage,
+    system_fingerprint: String,
+    x_groq: Option<serde_json::Value>, // Generic JSON value for unknown or optional fields
 }
 
 #[derive(Debug)]
@@ -77,7 +110,7 @@ impl GroqClient {
         self.client.push(client)
     }
 
-    pub async fn test_request(&self, body: &GroqRequestBody) -> Result<String, Box<dyn Error>> {
+    pub async fn test_request(&self, body: &GroqRequestBody) -> Result<GroqResponse, Box<dyn Error>> {
         if let Some(client) = self.pop_client() {
             let url = format!("{}/openai/v1/chat/completions", BASE_URL);
             let mut attempts = 0;
@@ -98,9 +131,9 @@ impl GroqClient {
                             warn!("Rate limited. Retrying in {} seconds...", self.rate_limit_delay.as_secs());
                             sleep(self.rate_limit_delay).await;
                         } else if resp.status().is_success() {
-                            let text = resp.text().await?;
+                            let groq_response: GroqResponse = resp.json().await?;
                             self.push_client(client);
-                            return Ok(text);
+                            return Ok(groq_response);
                         } else {
                             error!("Request failed with status: {}", resp.status());
                             self.push_client(client);
