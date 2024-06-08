@@ -63,7 +63,8 @@ jobs:
                     "model": "llama3-8b-8192"
                   }')
           echo "Raw GROQ Output: $GROQ_OUTPUT"
-          echo "$GROQ_OUTPUT" | jq '.' > sanitized_output.json
+          CLEAN_GROQ_OUTPUT=$(echo "$GROQ_OUTPUT" | tr -d '\000-\037')
+          echo "$CLEAN_GROQ_OUTPUT" | jq '.' > sanitized_output.json
           echo "groq_output=$(cat sanitized_output.json)" >> $GITHUB_ENV
 
     - name: Display sanitized JSON output
