@@ -118,12 +118,11 @@ jobs:
       with:
         script: |
           const { GROQ_OUTPUT } = process.env;
-          const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
           const issue_number = context.issue.number;
           const repo = context.repo.repo;
           const owner = context.repo.owner;
 
-          await octokit.rest.issues.createComment({
+          await github.rest.issues.createComment({
             owner,
             repo,
             issue_number,
