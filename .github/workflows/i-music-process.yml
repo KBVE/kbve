@@ -62,28 +62,13 @@ jobs:
                     "message": "Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, and the characters `()`, `.`, and `-`.\n\n**Input:**\n```\n\n **Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=ODXq4FtS-ys\nTitle: Hippie Sabotage - The Best of Chill Music (Mix)\nGenre: lofihiphop\n\n## Human\n\nFor supported genres, please visit [Music](https://kbve.com/music/)\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock\n\n\n```\n\n**Output:**\n\n```bash\n./kbve.sh -nx kbve.com:music --args=\"--file=lofihiphop --title='\''Hippie Sabotage - The Best of Chill Music (Mix)'\'' --ytid=ODXq4FtS-ys\"```\n\nHere is the template for the command:\n```\n./kbve.sh -nx kbve.com:music --args=\"--file=[insert file/genre here] --title='\''[insert sanitized title here]'\'' --ytid=[insert YouTube ID here]\"```\n\nEnsure to:\n1. Extract the `File/Genre`, `Title`, and `YouTube ID` from the text.\n2. Sanitize the `Title` to only include numbers, letters, and the characters `()`, `.`, and `-`.\n3. Only acceptable genres/file are `dnb`, `chillstep`, `lofihiphop`, `nujazz`, `electroswing`, `edm`, `rock`\n4. Fill in the command template with the extracted and sanitized values.\n\n**Example Input:**\n```text\nFile/Genre: jazz\nTitle: Louis Armstrong - What a Wonderful World (Jazz Remix)\nYouTube ID: abc12345```\n\n**Example Output:**\n```bash\n./kbve.sh -nx kbve.com:music --args=\"--file=jazz --title='\''Louis Armstrong - What a Wonderful World (Jazz Remix)'\'' --ytid=abc12345\"```\n\n**Your Task:**\nPlease parse the provided text below and generate the command.\n\n**Input:**\n```text\n${{ github.event.issue.body }}\n\n YTID Might be ${{ env.youtube_id }}```\n\n**Output:**\n```\n```\n",
                     "model": "llama3-8b-8192"
                   }')
-          echo "$GROQ_OUTPUT" | sed 's/[\x00-\x1F]//g' > sanitized_output.txt
-          echo "groq_output=$(cat sanitized_output.txt)" >> $GITHUB_ENV
-  
-    - name: Sanitize curl output
-      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
-      run: |
-        sed -i 's/[\x00-\x1F]//g' curl_output.txt
-        CURL_OUTPUT=$(cat curl_output.txt)
-        echo "Curl Output: $CURL_OUTPUT"
-        echo "curl_output=$CURL_OUTPUT" >> $GITHUB_ENV
+          echo "$GROQ_OUTPUT" | jq '.' > sanitized_output.json
+          echo "groq_output=$(cat sanitized_output.json)" >> $GITHUB_ENV
 
-    - name: Capture and display curl output
+    - name: Display sanitized JSON output
       if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
       run: |
-          CURL_OUTPUT=$(cat curl_output.txt)
-          echo "Curl Output: $CURL_OUTPUT"
-          echo "curl_output=$CURL_OUTPUT" >> $GITHUB_ENV
-  
-    - name: Use curl output in subsequent steps
-      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
-      run: |
-          echo "Using captured curl output: ${{ env.curl_output }}"
+        echo "Sanitized JSON Output: ${{ env.groq_output }}"
 
     - name: Post comment to issue
       if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
@@ -91,8 +76,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GROQ_OUTPUT: ${{ env.groq_output }}
       run: |
-            COMMENT_BODY_SANITIZED=$(echo "$GROQ_OUTPUT" | sed 's/"/\\"/g')
+            COMMENT_BODY_SANITIZED=$(echo "$GROQ_OUTPUT" | jq -r 'tojson | .')
             curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" \
                 -H "Content-Type: application/json" \
-                -d "{\"body\": \"Here is the processed information:\\n\\n\`\`\`bash\\n$COMMENT_BODY_SANITIZED\\n\`\`\`\"}" \
+                -d "{\"body\": \"Here is the processed information:\\n\\n\`\`\`json\\n$COMMENT_BODY_SANITIZED\\n\`\`\`\"}" \
                 "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"

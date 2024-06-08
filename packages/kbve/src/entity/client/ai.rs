@@ -2,9 +2,10 @@ use std::sync::Arc;
 use tokio::task;
 use tokio::time::Duration;
 use tracing::{info, warn, error};
-use jedi::groq::{GroqClient, GroqRequestBody, GroqMessage};
+use jedi::groq::{GroqClient, GroqRequestBody, GroqMessage, GroqResponse};
 use axum::{Json, extract::Extension, response::IntoResponse};
-use serde::Deserialize;
+use serde_json::Value;
+use serde::{Deserialize, Serialize};
 
 
 #[derive(Deserialize)]
@@ -14,6 +15,7 @@ pub struct AiGroqRequest {
     // model: Option<String>,
     system: Option<String>,
 }
+
 
 pub async fn groq_handler(
     Extension(client): Extension<Arc<GroqClient>>,
