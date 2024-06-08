@@ -24,7 +24,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        npm install marked dompurify jsdom
+        npm install marked dompurify jsdom axios
 
     - name: Check if issue title contains [MUSIC]
       uses: actions/github-script@v7
@@ -86,7 +86,7 @@ jobs:
                   return jsonSafeString;
               }
     
-              const issueBody = github.context.payload.issue.body;
+              const issueBody = context.payload.issue.body;
               const escapedIssueBody = markdownToJsonSafeString(issueBody);
               core.exportVariable('ESCAPED_ISSUE_BODY', escapedIssueBody);
 
