@@ -55,6 +55,7 @@ async fn main() {
 	let corslight = cors_service();
 
 	let api_routes = Router::new()
+		.route("/ai/groq", post(groq_handler))
 		.route("/call_groq", post(groq_handler))
 		.route("/health", get(kbve::sys::system_health_check))
 		.route("/svg", get(kbve::entity::svg_handler))
