@@ -1,0 +1,56 @@
+---
+title: 'June: 08'
+category: Daily
+date: 2024-06-08 12:00:00
+client: Self
+unsplash: 1717297808345-b740e9846158
+img: https://images.unsplash.com/photo-1717297808345-b740e9846158?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   June 8th. GHA Time.
+tags:
+    - daily
+---
+
+## 2024
+
+**Github Actions**
+
+Spending a decent time on refreshing my mind when it comes to github actions.
+
+Here is where we left off yesterday!
+
+```yaml
+    - name: Check if issue title contains [MUSIC]
+      id: check_title
+      env:
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+      run: |
+        echo "Issue Title: $ISSUE_TITLE"
+        if echo "$ISSUE_TITLE" | grep -q "\[MUSIC\]"; then
+          echo "is_music_issue=true" >> $GITHUB_ENV
+        else
+          echo "is_music_issue=false" >> $GITHUB_ENV
+        fi
+
+    - name: Stop if not a music issue
+      if: env.is_music_issue == 'false'
+      run: echo "Not a music issue. Skipping further steps."
+
+    - name: Check for YouTube link in issue body
+      if: env.is_music_issue == 'true'
+      id: check_youtube
+      env:
+        ISSUE_BODY: ${{ github.event.issue.body }}
+      run: |
+        echo "Issue Body: $ISSUE_BODY"
+        if echo "$ISSUE_BODY" | grep -q "https://www.youtube.com/watch?v="; then
+          YOUTUBE_ID=$(echo "$ISSUE_BODY" | grep -oP 'https://www.youtube.com/watch\?v=\K[\w-]+')
+          echo "has_youtube_link=true" >> $GITHUB_ENV
+          echo "youtube_id=$YOUTUBE_ID" >> $GITHUB_ENV
+        else
+          echo "has_youtube_link=false" >> $GITHUB_ENV
+        fi
+
+```
+
+Now I am thinking that it would make sense to turn these into smaller composite actions but that might take too long.
