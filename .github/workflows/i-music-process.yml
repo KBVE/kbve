@@ -169,9 +169,9 @@ jobs:
       with:
         script: |
           const { GITHUB_TOKEN } = process.env;
-          const issue_number = github.context.issue.number;
-          const repo = github.context.repo.repo;
-          const owner = github.context.repo.owner;
+          const issue_number = context.issue.number;
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
 
           // Get current labels
           const { data: labels } = await github.rest.issues.listLabelsOnIssue({
