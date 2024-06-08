@@ -30,7 +30,7 @@ The actual core of this is to then later expand it into a system of self improvi
 **Groq**
 
 When calling groq we have three main areas to focus on, the first is easy because it is just the model, which will probably be either the llama70b or mis7x8.
-However the other two will be interesting, one is the system, which is basically the prompt engineer and the other is the prompt. 
+However the other two will be interesting, one is the system, which is basically the prompt engineer and the other is the prompt.
 
 Now I am trying to work out the best way to use these, including how we should handle the prompts.
 
@@ -42,15 +42,27 @@ The next step would be to go back into the github actions for the music process 
 A quick reminder to myself, we still have to add in the middleware for the groq endpoint!
 We already have a generic endpoint setup, we can just extend it out to cover all the endpoints, I am thinking of migrating them over to `/ai/`.
 
+**Promot**
+
+Lets take a step back and maybe the issue is not the json that is being returned but rather the promopt that we are asking it do.
+
+```json
+{
+  "message": "Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, and the characters () . and -.\n\n**Input:**\n```\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=ODXq4FtS-ys\nTitle: Hippie Sabotage - The Best of Chill Music (Mix)\nGenre: lofihiphop\n\n## Human\n\nFor supported genres, please visit [Music](https://kbve.com/music/)\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock\n\n\n```\n\n**Output:**\n\n```bash\n./kbve.sh -nx kbve.com:music --args=\"--file=lofihiphop --title='Hippie Sabotage - The Best of Chill Music (Mix)' --ytid=ODXq4FtS-ys\"```\n\nHere is the template for the command:\n```\n./kbve.sh -nx kbve.com:music --args=\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\"```\n\nEnsure to:\n1. Extract the `File/Genre`, `Title`, and `YouTube ID` from the text.\n2. Sanitize the `Title` to only include numbers, letters, and the characters () . and -.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Example Input:**\n```text\nFile/Genre: jazz\nTitle: Louis Armstrong - What a Wonderful World (Jazz Remix)\nYouTube ID: abc12345```\n\n**Example Output:**\n```bash\n./kbve.sh -nx kbve.com:music --args=\"--file=jazz --title='Louis Armstrong - What a Wonderful World (Jazz Remix)' --ytid=abc12345\"```\n\n**Your Task:**\nPlease parse the provided text below and generate the command.\n\n**Input:**\n```text\n${{ github.event.issue.body }}\n```\n\n**Output:**\n```bash\n```\nTry to give the output in valid JSON.",
+  "model": "llama3-8b-8192"
+}
+
+```
+
 ## 2023
 
 - 8:00am - The blueberries are slowly coming out! I currently have a couple plants but I am excited to see them survive through the winter and can not wait to have even more in the future. My plan might be to turn all the edges into blueberry and blackberry bushes but getting the right plant genetics is still a bit out of my scope. Maybe I could ask GPT?
-- 11:00am - Before getting back into the deep end of programming, I need to do my monthly budgeting and balance sheet. By staying with India for almost two months, I was able to save over a couple thousand dollars! Furthermore, the general market value for all my portfolios have increased across the board, it seems some have made intense gains after recovering. I am looking at those $NVDA shares and I think it might be a good time to exit my position for a while. 
+- 11:00am - Before getting back into the deep end of programming, I need to do my monthly budgeting and balance sheet. By staying with India for almost two months, I was able to save over a couple thousand dollars! Furthermore, the general market value for all my portfolios have increased across the board, it seems some have made intense gains after recovering. I am looking at those $NVDA shares and I think it might be a good time to exit my position for a while.
 - 2:00pm - I am almost ready to pull the trigger on replacing the lottie files on the website with rive! There were a couple of areas that I wanted to read further into but having that cute bear animation for my login form is a definite must! I am not too sure how I feel about going from an open source animation library to something that feels a bit closed off. I might actually just keep both and refine them into a larger library. `Library/Animation/` and then add `Lottie.astro` and `Rive.astro` as the core astro files that I should call.
 - 11:00pm - Currently extending out my grandpa's visa for India. I have not yet uploaded a couple days worth of Journals, I will make sure to update them tonight before I go to sleep. The documents searching has taken already a hour or more, I am a bit stressed out in data fetching, going deep into the depths of my storage.
 - 11:30pm - The information that India requires for extending out the visa is a bit intense, I can not wait for my grandpa to get his OCI finished, because this is definitely a huge waste of time and resources.
 - 11:45pm - I should sync all the notes on my macbook as the battery is slowly dying off, its been on for over 30 hours!
-- 11:55pm - Future information regarding the extension of the VISA in India, you will need the proof of visa, passport-size photo, scan documents of passport, proof of residence and the reason for extending the stay. In this situation, I am extending my grandpa's visa because he recently got some medical work done and is not really suited for travel yet. In my request for the extension, I included the most recent medical report and a couple professional-style letters requesting for an extension, including one from a doctor here in the US and a doctor that is from a popular local hospital in India. I figured if I could reference enough people and have a surplus of documents, they would have a bit harder time declining his extension. The goal would be to do this while getting his OCI resolved, so that we will never have to do this visa meme stuff again. 
+- 11:55pm - Future information regarding the extension of the VISA in India, you will need the proof of visa, passport-size photo, scan documents of passport, proof of residence and the reason for extending the stay. In this situation, I am extending my grandpa's visa because he recently got some medical work done and is not really suited for travel yet. In my request for the extension, I included the most recent medical report and a couple professional-style letters requesting for an extension, including one from a doctor here in the US and a doctor that is from a popular local hospital in India. I figured if I could reference enough people and have a surplus of documents, they would have a bit harder time declining his extension. The goal would be to do this while getting his OCI resolved, so that we will never have to do this visa meme stuff again.
 
 ## Quote
 
