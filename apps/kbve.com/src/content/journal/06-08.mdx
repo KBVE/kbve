@@ -54,3 +54,10 @@ Here is where we left off yesterday!
 ```
 
 Now I am thinking that it would make sense to turn these into smaller composite actions but that might take too long.
+
+The plan is to try and make it as modular as possible, so that we can extend it out in the future.
+I am thinking that the user will go to the discussion page for each genre, and then post a comment with a youtube link with the song that they would like.
+This will then triggger an event for discussion creation, which will check if the discussion has the title of `/music` inside of title, after it does, it would parse the comment that is created and look for a youtube link.
+After it finds the youtube link, it will go to the page and extract the title and then create a github issue ticket for it?
+Once that issue ticket is created, which will be set with a priority of 0 and as we progress through these actions, we can raise the issue up!
+So in this case, if the ML is processed, we can add another label to this.
