@@ -2,7 +2,7 @@ use std::sync::Arc;
 use tokio::task;
 use tokio::time::Duration;
 use tracing::{info, warn, error};
-use jedi::groq::{GroqClient, GroqRequestBody, GroqMessage};
+use jedi::groq::{GroqClient, GroqRequestBody, GroqMessage, GroqResponse};
 use axum::{Json, extract::Extension, response::IntoResponse};
 use serde_json::Value;
 use serde::{Deserialize, Serialize};
@@ -16,12 +16,6 @@ pub struct AiGroqRequest {
     system: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct GroqResponse {
-    // Define the structure of your response
-    // For example:
-    result: String,
-}
 
 pub async fn groq_handler(
     Extension(client): Extension<Arc<GroqClient>>,
@@ -51,16 +45,7 @@ pub async fn groq_handler(
 
     let task1 = task::spawn(async move {
         match client_clone.test_request(&body).await {
-            Ok(response) => {
-                // Deserialize the response JSON to avoid double encoding
-                match serde_json::from_str::<Value>(&response) {
-                    Ok(json_value) => Ok(json_value),
-                    Err(e) => {
-                        error!("Failed to deserialize response: {:?}", e);
-                        Err("Failed to deserialize response".to_string())
-                    },
-                }
-            },
+            Ok(response) => Ok(response),
             Err(e) => {
                 error!("Error: {:?}", e);
                 Err("Error occurred".to_string())
