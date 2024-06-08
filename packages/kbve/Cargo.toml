@@ -1,7 +1,7 @@
 [package]
 name = "kbve"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.21"
+version = "0.1.22"
 edition = "2021"
 license = "MIT"
 description = "KBVE is an Axum and Diesel Boilerplate that helps produce backend APIs for micro services."
