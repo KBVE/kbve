@@ -2136,7 +2136,7 @@ dependencies = [
 
 [[package]]
 name = "jedi"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "ammonia",
  "async-trait",
@@ -2209,7 +2209,7 @@ dependencies = [
 
 [[package]]
 name = "kbve"
-version = "0.1.20"
+version = "0.1.21"
 dependencies = [
  "ammonia",
  "anyhow",
