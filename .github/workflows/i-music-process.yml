@@ -113,7 +113,7 @@ jobs:
           });
           core.exportVariable('GROQ_OUTPUT', response.data);
 
-    - name: Post comment to issue
+    - name: Post debug comment to issue
       if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
       uses: actions/github-script@v7
       env:
@@ -130,4 +130,30 @@ jobs:
             repo,
             issue_number,
             body: `Here is the JSON processed information:\n\n\`\`\`json\n${GROQ_OUTPUT}\n\`\`\``
+          });
+
+    - name: Post shell command to issue
+      if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+          const { GROQ_OUTPUT } = process.env;
+          const output = JSON.parse(GROQ_OUTPUT);
+          const messageContent = output.choices[0].message.content;
+
+          const shellCommandMatch = messageContent.match(/```bash\n([\s\S]*?)\n```/);
+          const shellCommand = shellCommandMatch ? shellCommandMatch[1] : 'No shell command found';
+
+
+          const issue_number = context.issue.number;
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
+
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body: `Here is the shell command extracted from the message:\n\n\`\`\`bash\n${shellCommand}\n\`\`\``
           });
