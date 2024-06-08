@@ -96,9 +96,8 @@ jobs:
       with:
         script: |
           const { YOUTUBE_ID, ESCAPED_ISSUE_BODY } = process.env;
-          const system = `Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, spaces, and the characters () . and -.\n\n**Input:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=ODXq4FtS-ys\nTitle: Hippie Sabotage - The Best of Chill Music (Mix)\nGenre: lofihiphop\n\n## Human\n\nFor supported genres, please visit [Music](https://kbve.com/music/)\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=lofihiphop --title='Hippie Sabotage - The Best of Chill Music (Mix)' --ytid=ODXq4FtS-ys\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, and the characters () . and -.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Example Input:**\n\`\`\`text\nFile/Genre: jazz\nTitle: Louis Armstrong - What a Wonderful World (Jazz Remix)\nYouTube ID: abc12345\`\`\`\n\n**Example Output:**\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=jazz --title='Louis Armstrong - What a Wonderful World (Jazz Remix)' --ytid=abc12345\\\"\"\n\n**Your Task:**\nPlease parse the provided text below and generate the command.\n\n`
+          const system = `Imagine three different data experts are answering this task. All experts will write down 1 step of their thinking, then share it with the group. Then all experts will go on to the next step, etc. If any expert realizes they're wrong at any point then they leave. Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, spaces, and the characters () . and -.\n\n**Example:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=<yt_id>\nTitle:  <title> \nGenre:  <genre>\n\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=<genre>--title='<title>' --ytid=<yt_id>\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, and the characters () . and -.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Your Task:**\nPlease parse the provided text below and generate the command. Make sure to wrap the command in bash code block\n\n`;
           const message = ESCAPED_ISSUE_BODY;
-
           const payload = JSON.stringify({
             system,
             message,
@@ -149,7 +148,7 @@ jobs:
           if (shellCommandMatch) {
             core.exportVariable('HAS_SHELL_COMMAND', 'true');
           }
-          
+
           const issue_number = context.issue.number;
           const repo = context.repo.repo;
           const owner = context.repo.owner;
@@ -158,5 +157,51 @@ jobs:
             owner,
             repo,
             issue_number,
-            body: `Here is the shell command extracted from the message:\n\n\`\`\`bash\n${shellCommand}\n\`\`\``
+            body: `Here is the message:\n${messageContent}\nHere is the shell command extracted from the message:\n\n\`\`\`bash\n${shellCommand}\n\`\`\``
+          });
+
+
+    - name: Update issue labels and comment
+      if: env.HAS_SHELL_COMMAND == 'true'
+      uses: actions/github-script@v7
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+          const { GITHUB_TOKEN } = process.env;
+          const issue_number = github.context.issue.number;
+          const repo = github.context.repo.repo;
+          const owner = github.context.repo.owner;
+
+          // Get current labels
+          const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+            owner,
+            repo,
+            issue_number,
+          });
+
+          // Remove label "0" if it exists
+          if (labels.some(label => label.name === '0')) {
+            await github.rest.issues.removeLabel({
+              owner,
+              repo,
+              issue_number,
+              name: '0'
+            });
+          }
+
+          // Add label "1"
+          await github.rest.issues.addLabels({
+            owner,
+            repo,
+            issue_number,
+            labels: ['1']
+          });
+
+          // Add a comment
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body: "The shell command has been identified and labels have been updated."
           });
