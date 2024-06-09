@@ -1,0 +1,91 @@
+---
+title: 'June: 08'
+category: Daily
+date: 2024-06-08 12:00:00
+client: Self
+unsplash: 1717297808345-b740e9846158
+img: https://images.unsplash.com/photo-1717297808345-b740e9846158?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   June 8th. GHA Time.
+tags:
+    - daily
+---
+
+## 2024
+
+**Github Actions**
+
+Spending a decent time on refreshing my mind when it comes to github actions.
+
+Here is where we left off yesterday!
+
+```yaml
+    - name: Check if issue title contains [MUSIC]
+      id: check_title
+      env:
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+      run: |
+        echo "Issue Title: $ISSUE_TITLE"
+        if echo "$ISSUE_TITLE" | grep -q "\[MUSIC\]"; then
+          echo "is_music_issue=true" >> $GITHUB_ENV
+        else
+          echo "is_music_issue=false" >> $GITHUB_ENV
+        fi
+
+    - name: Stop if not a music issue
+      if: env.is_music_issue == 'false'
+      run: echo "Not a music issue. Skipping further steps."
+
+    - name: Check for YouTube link in issue body
+      if: env.is_music_issue == 'true'
+      id: check_youtube
+      env:
+        ISSUE_BODY: ${{ github.event.issue.body }}
+      run: |
+        echo "Issue Body: $ISSUE_BODY"
+        if echo "$ISSUE_BODY" | grep -q "https://www.youtube.com/watch?v="; then
+          YOUTUBE_ID=$(echo "$ISSUE_BODY" | grep -oP 'https://www.youtube.com/watch\?v=\K[\w-]+')
+          echo "has_youtube_link=true" >> $GITHUB_ENV
+          echo "youtube_id=$YOUTUBE_ID" >> $GITHUB_ENV
+        else
+          echo "has_youtube_link=false" >> $GITHUB_ENV
+        fi
+
+```
+
+Now I am thinking that it would make sense to turn these into smaller composite actions but that might take too long.
+
+The plan is to try and make it as modular as possible, so that we can extend it out in the future.
+I am thinking that the user will go to the discussion page for each genre, and then post a comment with a youtube link with the song that they would like.
+This will then triggger an event for discussion creation, which will check if the discussion has the title of `/music` inside of title, after it does, it would parse the comment that is created and look for a youtube link.
+After it finds the youtube link, it will go to the page and extract the title and then create a github issue ticket for it?
+Once that issue ticket is created, which will be set with a priority of 0 and as we progress through these actions, we can raise the issue up!
+So in this case, if the ML stage one is processed, we can add another label to this, as label 1.
+
+The current problem is that the prompt is not the best to give us accurate results.
+I might have to look up different guides on the best way to generate a prompt that they will finish without having any issues, maybe extending it out a bit more? Hmm.
+
+The prompt technique that I will be using is a ToT aka Tree of Throught but I believe I will have to make some adjustments if I need this to create a zero execution.
+
+Before I forget, let me adjust the `music.md` to make sure that it is up-to-date, afterwards, I did place a note on creating the `japrock.mdx` for my future azn music collection.
+
+With the prompt, I might just go back and keep it simple because it seems that the ToT approach is causing some errors.
+
+```text
+Imagine three different data experts are answering this task. All experts will write down their steps of their thinking, then share it with the group. Then all experts will go on to the next step, etc. If any expert realizes they're wrong at any point then they leave. Remember the goal is to complete all of the steps provided.
+```
+
+I will keep looking up more prompt techinques on the side.
+Maybe we can switch up the model to use mixtral-8x7b-32768 for this situation.
+
+Here is the new prompt:
+
+```js
+    const system = `Imagine three different data experts are answering this task. All experts will write down their steps of their thinking, then share it with the group. Then all experts will go on to the next step, etc. If any expert realizes they're wrong at any point then they leave. Remember the goal is to complete all of the steps provided and generate the final command. \n\n Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, spaces, hyphens, and characters (, ), ., and -. Your task is to complete a finalized kbve.sh shell command with the extracted information. If you can not complete the command, go back and process the input data again. \n\n Hint: Titles may contain multiple words separated by quotes and hyphens. These words are often the band name and followed by the song. **Example:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=<yt_id>\nTitle:  <title> \nGenre:  <genre>\n\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=<genre>--title='<title>' --ytid=<yt_id>\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, spaces, hyphens, quotes, periods, the characters () . and -. Please do not replace spaces with any other characters and keep the spaces in the sanitized title.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Your Task:**\nPlease parse the provided text below and generate the command. You must follow all the steps that are stated and make sure to wrap the kbve.sh command in bash code block. \n\n`; 
+```
+
+This was the older prompt:
+
+```js
+    const system = `Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, spaces, hyphens, and the characters () . and -. Your task and goal should be to complete a finalized kbve.sh shell command\n\n**Example:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=<yt_id>\nTitle:  <title> \nGenre:  <genre>\n\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=<genre>--title='<title>' --ytid=<yt_id>\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, spaces, hyphens, quotes, periods, the characters () . and -. Please do not replace spaces with any other characters and keep the spaces in the sanitized title.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Your Task:**\nPlease parse the provided text below and generate the command. You must follow all the steps that are stated and make sure to wrap the kbve.sh command in bash code block. \n\n`;
+```
