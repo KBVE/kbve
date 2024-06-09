@@ -24,7 +24,26 @@ I am thinking that I might switch up the way that I was thinking of processing t
 Instead of directly having the ml build the command, I will instead use it to help parse the data in the first prompt.
 Afterwards, I will just use regex to pull the parsed data and then move forward from there?
 
+New prompt:
+
+```js
+
+const _system_data_experts = `Imagine three different data experts are answering this task. All experts will write down their steps of their thinking, then share it with the group. Then all the experts will go on to the next step, etc. If any expert realizes they're wrong at any point, then they leave.`;
+
+
+```
+
+
 **RSPS**
 
 The next function that i would like to add into Atlas would be for the ability to log into RS using the data from the database.
 I still would have to build out the vault but for the time being, I could just use global variables to help handle it.
+
+Building the `Atlas` / `RSPS` container and then running it with FastAPI, test casing its ability to communicate with the Rust backend.
+
+Example command for building the docker image.
+
+```shell
+docker build . -t myapp && docker stop myapp_container && docker rm myapp_container && docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
+```
+
