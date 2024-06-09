@@ -8,11 +8,10 @@ assignees: ''
 
 ---
 
-## **Fill out the Form**
+## **Music Suggestion Form**
 
 YouTube Link:
 Title:
 Genre:
 
-Pick only one of the different genres!
-dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock
+Hint: Only genres that are acceptable are: dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock

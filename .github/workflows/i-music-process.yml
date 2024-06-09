@@ -147,6 +147,7 @@ jobs:
 
           if (shellCommandMatch) {
             core.exportVariable('HAS_SHELL_COMMAND', 'true');
+            ore.exportVariable('RAW_SHELL_COMMAND', shellCommandMatch);
           }
 
           const issue_number = context.issue.number;
@@ -203,5 +204,28 @@ jobs:
             owner,
             repo,
             issue_number,
-            body: "The shell command has been identified and labels have been updated."
+            body: "The shell command has been identified and labels have been updated. Preparing to execute the next action."
           });
+
+    - name: Getting ready to run the command.
+      if: env.HAS_SHELL_COMMAND == 'true'
+      uses: actions/github-script@v7
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+              const { GITHUB_TOKEN, RAW_SHELL_COMMAND } = process.env;
+              const issue_number = context.issue.number;
+              const repo = context.repo.repo;
+              const owner = context.repo.owner;
+    
+              
+    
+              // Add a comment
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: "The shell command has been identified and labels have been updated. Preparing to execute the next action."
+              });
+    
