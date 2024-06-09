@@ -12,8 +12,15 @@ use serde::{Deserialize, Serialize};
 pub struct AiGroqRequest {
     message: String,
     model: String,
-    // model: Option<String>,
     system: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct GithubGroqRequest {
+    message: String,
+    model: Option<String>,
+    system: Option<String>,
+    api_key: Option<String>,
 }
 
 
