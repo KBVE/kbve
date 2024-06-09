@@ -80,3 +80,4 @@ pub async fn middleware_jwt<B>(
 	req.extensions_mut().insert(privatedata);
 	next.run(req).await.into_response()
 }
+

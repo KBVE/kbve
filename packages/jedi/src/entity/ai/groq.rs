@@ -20,6 +20,7 @@ pub struct GroqMessage {
 pub struct GroqRequestBody {
     pub messages: Vec<GroqMessage>,
     pub model: String,
+    pub response_format: Option<serde_json::Value>,
 }
 
 
