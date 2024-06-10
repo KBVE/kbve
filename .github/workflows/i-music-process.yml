@@ -16,72 +16,216 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Check if issue title contains [MUSIC]
-      id: check_title
-      env:
-        ISSUE_TITLE: ${{ github.event.issue.title }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
       run: |
-        echo "Issue Title: $ISSUE_TITLE"
-        if echo "$ISSUE_TITLE" | grep -q "\[MUSIC\]"; then
-          echo "is_music_issue=true" >> $GITHUB_ENV
-        else
-          echo "is_music_issue=false" >> $GITHUB_ENV
-        fi
+        npm install marked dompurify jsdom axios
+
+    - name: Check if issue title contains [MUSIC]
+      uses: actions/github-script@v7
+      with:
+        script: |
+            const issueTitle = context.payload.issue.title;
+            if (issueTitle.includes("[MUSIC]")) {
+              core.exportVariable('IS_MUSIC_ISSUE', 'true');
+            } else {
+              core.exportVariable('IS_MUSIC_ISSUE', 'false');
+            }
 
     - name: Stop if not a music issue
-      if: env.is_music_issue == 'false'
+      if: env.IS_MUSIC_ISSUE == 'false'
       run: echo "Not a music issue. Skipping further steps."
 
     - name: Check for YouTube link in issue body
-      if: env.is_music_issue == 'true'
-      id: check_youtube
-      env:
-        ISSUE_BODY: ${{ github.event.issue.body }}
-      run: |
-        echo "Issue Body: $ISSUE_BODY"
-        if echo "$ISSUE_BODY" | grep -q "https://www.youtube.com/watch?v="; then
-          YOUTUBE_ID=$(echo "$ISSUE_BODY" | grep -oP 'https://www.youtube.com/watch\?v=\K[\w-]+')
-          echo "has_youtube_link=true" >> $GITHUB_ENV
-          echo "youtube_id=$YOUTUBE_ID" >> $GITHUB_ENV
-        else
-          echo "has_youtube_link=false" >> $GITHUB_ENV
-        fi
+      if: env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueBody = context.payload.issue.body;
+          const youtubeLink = issueBody.match(/https:\/\/www.youtube.com\/watch\?v=([\w-]+)/);
+          if (youtubeLink) {
+            core.exportVariable('HAS_YOUTUBE_LINK', 'true');
+            core.exportVariable('YOUTUBE_ID', youtubeLink[1]);
+          } else {
+            core.exportVariable('HAS_YOUTUBE_LINK', 'false');
+          }
 
     - name: Display YouTube link check result
-      if: env.is_music_issue == 'true'
+      if: env.IS_MUSIC_ISSUE == 'true'
       run: |
-        echo "Contains YouTube link: ${{ env.has_youtube_link }}"
+          echo "Contains YouTube link: ${{ env.HAS_YOUTUBE_LINK }}"
 
     - name: Escape issue body for JSON
-      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
-      run: |
-        ESCAPED_ISSUE_BODY=$(echo "${{ github.event.issue.body }}" | jq -Rs .)
-        echo "escaped_issue_body=$ESCAPED_ISSUE_BODY" >> $GITHUB_ENV
+      if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+              const marked = require('marked');
+              const DOMPurify = require('dompurify')(new (require('jsdom').JSDOM)().window);
+              const { JSDOM } = require('jsdom');
+    
+              function markdownToJsonSafeString(markdownContent) {
+                  // Convert markdown to HTML
+                  const htmlContent = marked.parse(markdownContent);
+    
+                  // Sanitize the HTML content
+                  const sanitizedHtmlContent = DOMPurify.sanitize(htmlContent);
+    
+                  // Use jsdom to create a temporary DOM element to extract text content from sanitized HTML
+                  const dom = new JSDOM(sanitizedHtmlContent);
+                  const textContent = dom.window.document.body.textContent || '';
+    
+                  // Ensure the text content is JSON-safe
+                  const jsonSafeString = JSON.stringify(textContent);
+    
+                  return jsonSafeString;
+              }
+    
+              const issueBody = context.payload.issue.body;
+              const escapedIssueBody = markdownToJsonSafeString(issueBody);
+              core.exportVariable('ESCAPED_ISSUE_BODY', escapedIssueBody);
 
     - name: Extract and display YouTube ID if link is found
-      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
-      env:
-        ESCAPED_ISSUE_BODY: ${{ env.escaped_issue_body }}
-      run: |
-        echo "YouTube ID: ${{ env.youtube_id }}"
-        PAYLOAD=$(jq -n --arg message "Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, and the characters () . and -.\n\n**Input:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=${{ env.youtube_id }}\nTitle: Hippie Sabotage - The Best of Chill Music (Mix)\nGenre: lofihiphop\n\n## Human\n\nFor supported genres, please visit [Music](https://kbve.com/music/)\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=lofihiphop --title='Hippie Sabotage - The Best of Chill Music (Mix)' --ytid=${{ env.youtube_id }}\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, and the characters () . and -.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Example Input:**\n\`\`\`text\nFile/Genre: jazz\nTitle: Louis Armstrong - What a Wonderful World (Jazz Remix)\nYouTube ID: abc12345\`\`\`\n\n**Example Output:**\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=jazz --title='Louis Armstrong - What a Wonderful World (Jazz Remix)' --ytid=abc12345\\\"\"\n\n**Your Task:**\nPlease parse the provided text below and generate the command.\n\n**Input:**\n${{ env.escaped_issue_body }}\n\n**Output:**\n\`\`\`bash\n\`\`\`" \
-        --arg model "llama3-8b-8192" \
-        '{message: $message, model: $model}')
-        
-        echo "Payload: $PAYLOAD"
-        GROQ_OUTPUT=$(curl -s -X POST https://rust.kbve.com/api/v1/call_groq \
-          -H "Content-Type: application/json" \
-          -d "$PAYLOAD")
-        echo "groq_output=$GROQ_OUTPUT" >> $GITHUB_ENV
+      if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { YOUTUBE_ID, ESCAPED_ISSUE_BODY } = process.env;
+          const system = `Imagine three different data experts are answering this task. All experts will write down their steps of their thinking, then share it with the group. Then all experts will go on to the next step, etc. If any expert realizes they're wrong at any point then they leave. Remember the goal is to complete all of the steps provided and generate the final command. \n\n Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, spaces, hyphens, and characters (, ), ., and -. Your task is to complete a finalized kbve.sh shell command with the extracted information. If you can not complete the command, go back and process the input data again. \n\n Hint: Titles may contain multiple words separated by quotes and hyphens. These words are often the band name and followed by the song. **Example:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=<yt_id>\nTitle:  <title> \nGenre:  <genre>\n\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=<genre>--title='<title>' --ytid=<yt_id>\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, spaces, hyphens, quotes, periods, the characters () . and -. Please do not replace spaces with any other characters and keep the spaces in the sanitized title.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Your Task:**\nPlease parse the provided text below and generate the command. You must follow all the steps that are stated and make sure to wrap the kbve.sh command in bash code block. \n\n`; 
+          const message = ESCAPED_ISSUE_BODY;
+          const payload = JSON.stringify({
+            system,
+            message,
+            model: "mixtral-8x7b-32768"
+          });
 
-    - name: Post comment to issue
-      if: env.has_youtube_link == 'true' && env.is_music_issue == 'true'
+          const axios = require('axios');
+          const response = await axios.post('https://rust.kbve.com/api/v1/call_groq', payload, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          core.exportVariable('GROQ_OUTPUT', response.data);
+
+    - name: Post debug comment to issue
+      if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GROQ_OUTPUT: ${{ env.groq_output }}
-      run: |
-        COMMENT_BODY_SANITIZED=$(echo "$GROQ_OUTPUT" | sed 's/"/\\"/g')
-        curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" \
-             -H "Content-Type: application/json" \
-             -d "{\"body\": \"Here is the processed information:\\n\\n\`\`\`bash\\n$COMMENT_BODY_SANITIZED\\n\`\`\`\"}" \
-             "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
+      with:
+        script: |
+          const { GROQ_OUTPUT } = process.env;
+          const issue_number = context.issue.number;
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
+
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body: `Here is the JSON processed information:\n\n\`\`\`json\n${GROQ_OUTPUT}\n\`\`\``
+          });
+
+    - name: Post shell command to issue
+      if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+          const { GROQ_OUTPUT } = process.env;
+          const output = JSON.parse(GROQ_OUTPUT);
+          const messageContent = output.choices[0].message.content;
+
+          const shellCommandMatch = messageContent.match(/```bash\n([\s\S]*?)\n```/);
+          const shellCommand = shellCommandMatch ? shellCommandMatch[1] : 'No shell command found';
+
+          if (shellCommandMatch) {
+            core.exportVariable('HAS_SHELL_COMMAND', 'true');
+            ore.exportVariable('RAW_SHELL_COMMAND', shellCommandMatch);
+          }
+
+          const issue_number = context.issue.number;
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
+
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body: `Here is the message:\n${messageContent}\nHere is the shell command extracted from the message:\n\n\`\`\`bash\n${shellCommand}\n\`\`\``
+          });
+
+
+    - name: Update issue labels and comment
+      if: env.HAS_SHELL_COMMAND == 'true'
+      uses: actions/github-script@v7
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+          const { GITHUB_TOKEN } = process.env;
+          const issue_number = context.issue.number;
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
+
+          // Get current labels
+          const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+            owner,
+            repo,
+            issue_number,
+          });
+
+          // Remove label "0" if it exists
+          if (labels.some(label => label.name === '0')) {
+            await github.rest.issues.removeLabel({
+              owner,
+              repo,
+              issue_number,
+              name: '0'
+            });
+          }
+
+          // Add label "1"
+          await github.rest.issues.addLabels({
+            owner,
+            repo,
+            issue_number,
+            labels: ['1']
+          });
+
+          // Add a comment
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body: "The shell command has been identified and labels have been updated. Preparing to execute the next action."
+          });
+
+    - name: Getting ready to run the command.
+      if: env.HAS_SHELL_COMMAND == 'true'
+      uses: actions/github-script@v7
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+              const { GITHUB_TOKEN, RAW_SHELL_COMMAND } = process.env;
+              const issue_number = context.issue.number;
+              const repo = context.repo.repo;
+              const owner = context.repo.owner;
+    
+              
+    
+              // Add a comment
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: "The shell command has been identified and labels have been updated. Preparing to execute the next action."
+              });
+    
