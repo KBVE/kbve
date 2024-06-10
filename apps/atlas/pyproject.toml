@@ -36,7 +36,7 @@ autoSearchPaths = true
 
 [tool.poetry]
 name = "kbve"
-version = "1.0.12"
+version = "1.0.13"
 description = "ATLAS"
 authors = [ ]
 license = 'Proprietary'
