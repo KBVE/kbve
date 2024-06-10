@@ -25,6 +25,184 @@ One of the last issues that we are facing is how we would organize and store the
 I am thinking maybe placing them all inside of the frontmatter within the `ml.mdx` and then turning them into a json?
 This would be the best move for now, so let me start working that out.
 
+What we could do is include a `prompts` inside of each of the mdx document that would hold the prompts that we would be using for that subject.
+This way when we reference the `docker.mdx` document, we also have the prompt examples right there within the document.
+
+As for the different parts within the `prompts`, we would aim to include `name`, `description`, `items` and `task`.
+Putting it together, it would look like this:
+
+```md
+
+---
+prompts:
+    - name: Role Examples
+      description: Common role examples for text transformers.
+      items:
+        - Act as a javascript console
+        - Act as an excel sheet
+        - Act as a HR interviewer
+        - Act as an advertiser
+        - Act as a publisher
+        - Act as a music teacher
+        - Act as a relationship coach
+        - Act as a World of Warcraft player and limit the response to 50 characters
+      task: |
+        Define the role for the AI model and prompt it to perform actions specific to that role. For example, you can ask it to act as a JavaScript console and provide code snippets, or act as a music teacher and give lessons.
+---
+
+```
+
+Now the question would be if we need to expand it out? Maybe include pathways?
+
+The way that I was thinking of structuring the pathways was like this:
+
+```python
+
+pathways = {
+    "initial": {
+        "prompt": "Initial prompt",
+        "next": [
+            {"condition": r"regex1", "action": "pathway1"},
+            {"condition": r"regex2", "action": "pathway2"}
+        ]
+    },
+    "pathway1": {
+        "prompt": "Prompt for pathway 1",
+        "next": [
+            {"condition": r"regex3", "action": "pathway3"},
+            {"condition": r"regex4", "action": "pathway4"}
+        ]
+    },
+    "pathway2": {
+        "prompt": "Prompt for pathway 2",
+        "next": [
+            {"condition": r"regex5", "action": "pathway5"},
+            {"condition": r"regex6", "action": "pathway6"}
+        ]
+    },
+    # Add more pathways as needed
+}
+
+```
+
+Yet that might not be the best way to handle it, let me think what we could do for pathways that would help resolve the issues.
+Maybe we try out this method for now and then come back to it later on. The chaining might introduce more API calls then it would require, yet it might help us resolve edge cases.
+
+After adding pathways, we will add tools as a reference too.
+
+Example of the tools block is here below:
+
+```python
+
+tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_game_score",
+                "description": "Get the score for a given NBA game",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "team_name": {
+                            "type": "string",
+                            "description": "The name of the NBA team (e.g. 'Golden State Warriors')",
+                        }
+                    },
+                    "required": ["team_name"],
+                },
+            },
+        }
+]
+
+```
+
+This should be included within the prompt? I am thinking that it should not be help within the prompt but rather be something that the user would define within their codebase.
+We can add the tools aspect for the demo purpose.
+Oh! I forgot that we would include the output as well, okay to recap the prompt engine, we would have:
+
+- name
+- description
+- items
+- task
+- tools
+- output
+- pathways
+
+
+Here is an example of this prompt engine:
+
+```md
+
+---
+
+prompts:
+    - name: Role Examples
+      description: Common role examples for text transformers.
+      items:
+        - Act as a javascript console
+        - Act as an excel sheet
+        - Act as a HR interviewer
+        - Act as an advertiser
+        - Act as a publisher
+        - Act as a music teacher
+        - Act as a relationship coach
+        - Act as a World of Warcraft player and limit the response to 50 characters
+      task: |
+        Define the role for the AI model and prompt it to perform actions specific to that role. For example, you can ask it to act as a JavaScript console and provide code snippets, or act as a music teacher and give lessons.
+      tools: |
+        [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_role_specific_info",
+                    "description": "Get specific information for a given role",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "role_name": {
+                                "type": "string",
+                                "description": "The name of the role (e.g. 'JavaScript console')",
+                            }
+                        },
+                        "required": ["role_name"],
+                    },
+                },
+            }
+        ]
+      output: text
+      pathways: |
+        {
+            "initial": {
+                "prompt": "Choose a role for the AI to act as:",
+                "next": [
+                    {"condition": "javascript console", "action": "pathway1"},
+                    {"condition": "excel sheet", "action": "pathway2"}
+                ]
+            },
+            "pathway1": {
+                "prompt": "You chose JavaScript console. Provide a JavaScript code snippet:",
+                "next": [
+                    {"condition": "valid js code", "action": "pathway3"},
+                    {"condition": "invalid js code", "action": "pathway4"}
+                ]
+            },
+            "pathway2": {
+                "prompt": "You chose Excel sheet. What operation would you like to perform?",
+                "next": [
+                    {"condition": "create sheet", "action": "pathway5"},
+                    {"condition": "edit sheet", "action": "pathway6"}
+                ]
+            }
+        }
+
+---
+
+
+```
+
+I think this is a solid start to our prompt engine needs, we can then turn this into a `json` and call it from the custom action that we are building.
+
+
 
 **Groq Pooling**
 
