@@ -1,0 +1,62 @@
+---
+title: 'June: 10'
+category: Daily
+date: 2024-06-10 12:00:00
+client: Self
+unsplash: 1544383835-bda2bc66a55d
+img: https://images.unsplash.com/photo-1544383835-bda2bc66a55d?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   June 10th. Prompt Pathways.
+tags:
+    - daily
+---
+
+import {
+  Adsense
+} from '@kbve/astropad';
+
+
+
+## 2024
+
+**Prompt**
+
+One of the last issues that we are facing is how we would organize and store the different prompts that we intend to use.
+I am thinking maybe placing them all inside of the frontmatter within the `ml.mdx` and then turning them into a json?
+This would be the best move for now, so let me start working that out.
+
+
+**Groq Pooling**
+
+After building out the base pool, we would need to extend it out with a temporary chat storage, so that it could reference when doing the prompt chaining.
+The question would be how we would go about storing the chat, I suppose the type of vector database that we would use or should we write our own tiny vector database?
+Having a custom vector database that would work with different vector databases like pgvector and chromadb?
+
+
+<Adsense />
+
+## 2023
+
+- 12:30pm - Going over the login screen for KBVE, it looks like I am almost done! This was something that should have been really quick but I had to sit through and understand the whole OAuth situation, as we switched APIs. Now the whole setup is cleaner and easier to use! We can add and remove the components with just a couple quick lines and for the most part, everything seems to be on point! 
+- 1:40pm - The login with Github looks like it is working fine! I think we can move forward with the Login with Discord next. Afterwards I will double check what we need to finish up the Google and Twitch. Moving past the basic authentication, then its the Profile page. We will keep the objective for the profile page to a narrow scope before extending it out further. The key components that we could focus on would be the general information and vibe the profile page should produce, something unique and creative but not over loading the browser.
+- 2:30pm - Time for a quick coffee break! One of the other aspects that I was looking into was extending out the different page layouts, including starting the `blog.astro` and adding a couple unique blog articles onto our website. I also did postpone the webmaster tool for a bit too long, so I should look over that and get it going too! 
+- 2:45pm - It is interesting to see how Google OAuth2 does its integration, they seem to be very protective of it, which makes sense to me because they have a large scope and can be a target for various malpractice. We started with a test application and now are moving towards production, in this situation we would have to provider a lot of extra information that I did not expect. I am wondering if Google really needs me to create a YouTube video that shows why we need their login support?
+- 3:34pm - Yes! It looks like we are finally done with the basic production ready login screen. There are a couple CSS issues that I see, like the buttons not being exactly in the center? But I can address the style sheet problems later on, near the end. We got Github, Discord, Google and Twitch to be functional and operational! Now we can move straight forward with the next step, which is the profile.
+- 4:20pm - Currently looking around for some unique profile templates to base our KBVE one off of. While I was doing some generic research into the topic, I came across the million.js library, maybe we could add this into the KBVE repo? I am going to do a bit more research into how to integrate this library into Astro.
+- 6:30pm - Upgraded Astro.js to the latest version of 2.6.3 and decided to add Million.js into the project! This might help with improving the load time for complex react scripts. I will keep the integration of `Million.js` to a limit because it is a younger library and there might be issues down the line. This reminds me of the Preact < - > React situation, where certain components failed to render because of the dependencies. 
+- 9:45pm - Having a nice salad for dinner, about to hit 40 range on the pure and the profile page is coming out pretty cute! Its going to be a long night of programming and test casing, but I am thinking that it will be amazing!
+
+## Quote
+
+> Love demands infinitely less than friendship.
+> — <cite>George Jean Nathan</cite>
+
+---
+
+## Tasks
+
+- [x] Add Discord Login
+- [x] Add Google Login
+- [x] Add Github Login
+- [ ] Add Twitch Login
+- [ ] Prepare for Nephews Birthday Party
