@@ -204,6 +204,31 @@ I think this is a solid start to our prompt engine needs, we can then turn this 
 Okay, I will go ahead and add the prompts to the `ml.mdx`, and then begin to assemble them into a specific json file for each instance?
 Should we have it build it after each run, that might be a waste of resources, hmm but for now I will just do it that way.
 
+**Zod**
+
+With the base prompt data out of the way, we will have to update the zod with this information, so that it will be easy to reference throughout our website and external applications.
+The base zod that we have right now looks like this:
+
+```ts
+
+	docs: defineCollection({
+		schema: docsSchema({
+			extend: z.object({
+				// Make a built-in field required instead of optional.
+				tags: z.array(z.string()).optional(),
+				"yt-tracks" : z.array(z.string()).optional(),
+				"yt-sets": z.array(z.string()).optional(),
+				
+			}),
+		}),
+	}),
+
+```
+
+There are a couple ways we could extend this out, I am thinking of creating a couple `z.objects` that would hold the information.
+So let us extend out the `z.object` within the `docsSchema` to hold the prompt schema data set, defining it like this: `prompts: z.array(PromptSchema).optional(),`.
+
+After extending out the schema,
 
 **Groq Pooling**
 
