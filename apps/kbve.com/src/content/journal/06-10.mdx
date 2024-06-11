@@ -228,7 +228,21 @@ The base zod that we have right now looks like this:
 There are a couple ways we could extend this out, I am thinking of creating a couple `z.objects` that would hold the information.
 So let us extend out the `z.object` within the `docsSchema` to hold the prompt schema data set, defining it like this: `prompts: z.array(PromptSchema).optional(),`.
 
-After extending out the schema,
+After extending out the schema, we can move forward with setting up the json file with the prompts.
+We can split the prompts up into two areas, one being public prompts that anyone can use and the second would be private prompts that would be stored in our database.
+
+There could be additional options in the future to extend it out and let people setup their own shop or service through the usage of those prompts, hmm, for now we will just focus on the public prompt engine.
+
+To get started, we will go ahead and head into the `/apps/kbve.com/pages/api/` directory and take a look at the other two `.json.js` files that we made.
+Based upon the way we handled those two files, we could easily extend that core concept out to the prompt engine.
+Now the question would be if we want to have one central file with all the prompts or if we should isolate them, hmm, since we have not yet expanded too far, I think it would be safe to just have a `prompt.json.js` that will hold all our public prompts.
+We could create a nested json, where it uses the title of the mdx to help build out the prompts but I am not yet sure the best way to go about that.
+
+While I am thinking this through, I should go back and update my notes within `ml.mdx`, since I have yet to do a reform with a transform to starlight components.
+
+To make things easier to reference, we can extend the `z.objects` within the frontmatter `docsSchema` with a `prompt_index: z.string().optional(),` and this would be the key that we would use to help us build out the nested json.
+
+
 
 **Groq Pooling**
 

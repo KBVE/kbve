@@ -277,7 +277,29 @@ The official repo for `AUTOMATIC1111` [Stable Diffusion WEB UI](https://github.c
 
 Prompt engineering theory covers a wide range of different GPT concepts, including examples and short cuts to generate the right style of questions and content.
 
--   ### Roles
+### Engine
+
+The Prompt Engine is a versatile and structured framework designed to define, manage, and execute various prompt-based tasks.
+It is specifically built to handle a wide range of scenarios in machine learning and artificial intelligence applications, offering a high degree of flexibility and precision.
+The Prompt Engine is defined using a robust schema in TypeScript, leveraging Zod for validation.
+
+Core Aspects:
+
+- Name: Each prompt is uniquely identified by a name field, which allows for easy reference and management.
+
+- Description: Provides a detailed explanation of what the prompt is about, helping users understand its purpose and context.
+
+- Items: An array of strings that lists the key points or examples relevant to the prompt. This helps in outlining the scope and content of the prompt.
+
+- Task: A textual description of the specific task that the prompt is intended to perform. This includes detailed instructions and objectives, ensuring clarity in execution.
+
+- Tools: An optional array of tool definitions, where each tool is defined by its type, name, description, and required parameters. This allows the prompt to specify which tools or functions are needed to complete the task.
+
+- Output: Specifies the expected output format, which can either be text or json. This ensures that the results of the prompt are returned in a predictable and usable format.
+
+- Pathways: A structured object that defines the flow of actions based on user inputs or conditions. Each pathway contains a prompt and a set of conditions that determine the next action, enabling complex decision trees and logical flows.
+
+### Roles
 
     Common `role` examples for text transformers:
 
@@ -291,8 +313,9 @@ Prompt engineering theory covers a wide range of different GPT concepts, includi
     -   `Act as a World of Warcraft player and limit the response to 50 characters`
         > _`Warning :`_ Not all text transformers will let you assign roles, as it might create a security issue / risk.
 
--   ### Chaining
-    -   Common Terms include: Chain-of-Thought, Chained Prompt.
+### Chaining
+
+-   Common Terms include: Chain-of-Thought, Chained Prompt.
 
 ### Rewrite Prompt Example
 
