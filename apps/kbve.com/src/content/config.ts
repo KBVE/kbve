@@ -1,8 +1,58 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 
-//*         [Emil SF Docs]
+//*			[Prompt Scehmas]
 
+
+const FunctionSchema = z.object({
+	name: z.string(),
+	description: z.string(),
+	parameters: z.object({
+	  type: z.literal("object"),
+	  properties: z.record(
+		z.object({
+		  type: z.string(),
+		  description: z.string(),
+		})
+	  ),
+	  required: z.array(z.string()),
+	}),
+  });
+  
+  const ToolSchema = z.object({
+	type: z.literal("function"),
+	function: FunctionSchema,
+  });
+  
+  const PathwaySchema = z.object({
+	condition: z.string(),
+	action: z.string(),
+  });
+  
+  const PromptPathwaysSchema = z.record(
+	z.object({
+	  prompt: z.string(),
+	  next: z.array(PathwaySchema),
+	})
+  );
+  
+  const PromptSchema = z.object({
+	name: z.string(),
+	description: z.string(),
+	items: z.array(z.string()),
+	task: z.string(),
+	tools: z.array(ToolSchema).optional(),
+	output: z.enum(["text", "json"]),
+	pathways: PromptPathwaysSchema,
+  });
+
+export type Prompt = z.infer<typeof PromptSchema>;
+export type Tool = z.infer<typeof ToolSchema>;
+export type Function = z.infer<typeof FunctionSchema>;
+export type Pathway = z.infer<typeof PathwaySchema>;
+export type PromptPathways = z.infer<typeof PromptPathwaysSchema>;
+
+//*         [Emil SF Docs]
 const productsCollection = defineCollection({
 	type: 'content',
 	schema: ({ image }) =>
@@ -255,6 +305,7 @@ export const collections = {
 				tags: z.array(z.string()).optional(),
 				"yt-tracks" : z.array(z.string()).optional(),
 				"yt-sets": z.array(z.string()).optional(),
+				prompts: z.array(PromptSchema).optional(),
 			}),
 		}),
 	}),
