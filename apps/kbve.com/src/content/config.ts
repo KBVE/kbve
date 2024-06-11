@@ -3,6 +3,7 @@ import { docsSchema } from '@astrojs/starlight/schema';
 
 //*			[Prompt Scehmas]
 
+
 const FunctionSchema = z.object({
 	name: z.string(),
 	description: z.string(),
@@ -40,17 +41,11 @@ const FunctionSchema = z.object({
 	description: z.string(),
 	items: z.array(z.string()),
 	task: z.string(),
-	tools: z.array(ToolSchema).or(z.string().transform((str) => JSON.parse(str) as z.infer<typeof ToolSchema>[])).optional(),
+	tools: z.array(ToolSchema).optional(),
 	output: z.enum(["text", "json"]),
-	pathways: z.record(
-	  z.object({
-		prompt: z.string(),
-		next: z.array(PathwaySchema),
-	  })
-	).or(z.string().transform((str) => JSON.parse(str) as z.infer<typeof PromptPathwaysSchema>)),
+	pathways: PromptPathwaysSchema,
   });
 
-  
 export type Prompt = z.infer<typeof PromptSchema>;
 export type Tool = z.infer<typeof ToolSchema>;
 export type Function = z.infer<typeof FunctionSchema>;
