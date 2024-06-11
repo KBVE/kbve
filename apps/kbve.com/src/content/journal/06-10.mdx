@@ -242,6 +242,9 @@ While I am thinking this through, I should go back and update my notes within `m
 
 To make things easier to reference, we can extend the `z.objects` within the frontmatter `docsSchema` with a `prompt_index: z.string().optional(),` and this would be the key that we would use to help us build out the nested json.
 
+Going to run `./kbve.sh -nx kbve.com:build` to make sure that everything builds before adding in the new json file.
+
+The file that we created that holds the prompt will be accessible via `https://kbve.com/api/prompt.json`, now we need a way to filter it out.
 
 
 **Groq Pooling**
