@@ -306,6 +306,7 @@ export const collections = {
 				"yt-tracks" : z.array(z.string()).optional(),
 				"yt-sets": z.array(z.string()).optional(),
 				prompts: z.array(PromptSchema).optional(),
+				"prompt-index": z.string().optional(),
 			}),
 		}),
 	}),
