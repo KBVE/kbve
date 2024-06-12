@@ -2,6 +2,7 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const axios = require('axios');
 
+async function run() {
 try {
   const kbve_api = core.getInput('kbve_api');
   const system = core.getInput('system');
@@ -51,3 +52,6 @@ try {
 } catch (error) {
   core.setFailed(error.message);
 }
+}
+
+run();
