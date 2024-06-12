@@ -1,4 +1,4 @@
-name: Run Docker and Get Public IP
+name: v01d - Atlas e2e
 
 on: 
   workflow_dispatch:
