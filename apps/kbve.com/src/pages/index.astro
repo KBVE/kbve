@@ -24,146 +24,144 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 import { Adsense } from '@kbve/astropad';
 
 const avatarSrcs: Array<string> = [
-	'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
-	'https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
-	'https://images.unsplash.com/photo-1541101767792-f9b2b1c4f127?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&&auto=format&fit=facearea&facepad=3&w=300&h=300&q=80',
-	'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
+  'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
+  'https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
+  'https://images.unsplash.com/photo-1541101767792-f9b2b1c4f127?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&&auto=format&fit=facearea&facepad=3&w=300&h=300&q=80',
+  'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
 ];
 ---
 
 <MainLayout>
-	<AnnouncementBanner
-		btnId="dismiss-button"
-		btnTitle="Explore KBVE on GitHub"
-		url="https://github.com/kbve/kbve"
-	/>
+  <AnnouncementBanner
+    btnId="dismiss-button"
+    btnTitle="Explore KBVE on GitHub"
+    url="https://github.com/kbve/kbve"
+  />
 
-	<HeroSection
-		title=`Meet Your Dream <span
+  <HeroSection
+    title=`Meet Your Dream <span
         class="text-cyan-500 dark:text-cyan-400">Dev Team!</span>`
-		subTitle="Advanced gaming and software solutions - Elevate your experience with cutting-edge technology! From k8s to AI, we got you covered!"
-		primaryBtn="Start Exploring"
-		primaryBtnURL="/graph"
-		secondaryBtn="Join Our Discord"
-		secondaryBtnURL="/discord"
-		withReview={true}
-		avatars={avatarSrcs}
-		rating=`<span class="font-bold">4.8</span> / 5`
-		starCount={4}
-		reviews=`From Over <span class="font-bold">12.8k</span> Reviews`
-		src={heroImage}
-		alt="Stack of ScrewFast product boxes containing assorted hardware tools"
-	/>
+    subTitle="Advanced gaming and software solutions - Elevate your experience with cutting-edge technology! From k8s to AI, we got you covered!"
+    primaryBtn="Start Exploring"
+    primaryBtnURL="/graph"
+    secondaryBtn="Join Our Discord"
+    secondaryBtnURL="/discord"
+    withReview={true}
+    avatars={avatarSrcs}
+    rating=`<span class="font-bold">4.8</span> / 5`
+    starCount={4}
+    reviews=`From Over <span class="font-bold">12.8k</span> Reviews`
+    src={heroImage}
+    alt="Stack of ScrewFast product boxes containing assorted hardware tools"
+  />
 
-	<span class="flex items-center">
-		<hr
-			class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-cyan-500 via-indigo-500 to-yellow-500 border-0 rounded md:my-10"
-		/>
+  <span class="flex items-center">
+    <hr
+      class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-cyan-500 via-indigo-500 to-yellow-500 border-0 rounded md:my-10"
+    />
 
-		<span class="text-cyan-300 w-36">
-			<dotlottie-player
-				autoplay
-				loop
-				mode="normal"
-				src="/assets/lottie/beer.lottie"></dotlottie-player>
-		</span>
-		<hr
-			class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-yellow-500 via-indigo-500 to-cyan-500 border-0 rounded md:my-10"
-		/>
-	</span>
+    <span class="text-cyan-300 w-36">
+      <dotlottie-player
+        autoplay
+        loop
+        mode="normal"
+        src="/assets/lottie/beer.lottie"></dotlottie-player>
+    </span>
+    <hr
+      class="w-2/5 h-1 mx-auto my-4 bg-gradient-to-r from-yellow-500 via-indigo-500 to-cyan-500 border-0 rounded md:my-10"
+    />
+  </span>
 
-	<ClientsSection
-		title="KBVE Creations: Pioneering Digital Frontiers"
-		subTitle="Explore Our World of Groundbreaking Games, Dynamic Websites, and Innovative Applications"
-	/>
+  <ClientsSection
+    title="KBVE Creations: Pioneering Digital Frontiers"
+    subTitle="Explore Our World of Groundbreaking Games, Dynamic Websites, and Innovative Applications"
+  />
 
-	<FeaturesGeneral
-		title="Next-Gen Tech and Gaming with KBVE"
-		subTitle="At KBVE, we are at the forefront of developing cutting-edge applications, video games, and tools, designed to revolutionize both technology and gaming landscapes. With our innovative solutions and dedicated support services, we empower you to tackle challenges and excel in a digital era."
-		alt="KBVE products showcased in dynamic digital environment"
-		features={features}
-	/>
+  <FeaturesGeneral
+    title="Next-Gen Tech and Gaming with KBVE"
+    subTitle="At KBVE, we are at the forefront of developing cutting-edge applications, video games, and tools, designed to revolutionize both technology and gaming landscapes. With our innovative solutions and dedicated support services, we empower you to tackle challenges and excel in a digital era."
+    alt="KBVE products showcased in dynamic digital environment"
+    features={features}
+  />
 
-	<Adsense />
+  <Adsense />
 
-	<FeaturesNavs
-		title={`Customize <span class="text-yellow-500 dark:text-yellow-400">KBVE</span>'s offerings to perfectly suit your tech and gaming needs.`}
-		tabs={[
-			{
-				heading: 'Next-Generation Gaming',
-				content:
-					"Dive into new worlds with KBVE's state-of-the-art video games. Experience unparalleled immersion and gameplay, enhanced by our innovative gaming technologies.",
-				svg: 'tools',
-				src: tools,
-				alt: 'Vibrant gaming interface showcasing advanced graphics and gameplay',
-				first: true,
-			},
-			{
-				heading: 'Advanced Application Tools',
-				content:
-					"Streamline your development with KBVE's advanced application tools. Foster creativity and efficiency with our comprehensive suites designed for developers by developers.",
-				svg: 'dashboard',
-				src: dashboard,
-				alt: 'Screenshot of a sophisticated application development environment',
-				second: true,
-			},
-			{
-				heading: 'Support and Services',
-				content:
-					"Enhance your operational capabilities with KBVE's robust support services. From troubleshooting to upgrades, our team is dedicated to ensuring your tech performs at its peak.",
-				svg: 'house',
-				src: construction,
-				alt: 'Professional tech support team in action',
-			},
-		]}
-	/>
+  <FeaturesNavs
+    title={`Customize <span class="text-yellow-500 dark:text-yellow-400">KBVE</span>'s offerings to perfectly suit your tech and gaming needs.`}
+    tabs={[
+      {
+        heading: 'Next-Generation Gaming',
+        content:
+          "Dive into new worlds with KBVE's state-of-the-art video games. Experience unparalleled immersion and gameplay, enhanced by our innovative gaming technologies.",
+        svg: 'tools',
+        src: tools,
+        alt: 'Vibrant gaming interface showcasing advanced graphics and gameplay',
+        first: true,
+      },
+      {
+        heading: 'Advanced Application Tools',
+        content:
+          "Streamline your development with KBVE's advanced application tools. Foster creativity and efficiency with our comprehensive suites designed for developers by developers.",
+        svg: 'dashboard',
+        src: dashboard,
+        alt: 'Screenshot of a sophisticated application development environment',
+        second: true,
+      },
+      {
+        heading: 'Support and Services',
+        content:
+          "Enhance your operational capabilities with KBVE's robust support services. From troubleshooting to upgrades, our team is dedicated to ensuring your tech performs at its peak.",
+        svg: 'house',
+        src: construction,
+        alt: 'Professional tech support team in action',
+      },
+    ]}
+  />
 
-	<TestimonialsSection
-		title="Accelerate Your Software Development"
-		subTitle="At KBVE, we ensure a swift launch with instant account setup. Experience the speed of application development redefined."
-		testimonials={[
-			{
-				content:
-					'KBVE dramatically boosted our game development efficiency. Setup was instant, and their rapid response times are phenomenal. Truly a game-changer in gaming technology and support!',
-				author: 'Samantha Ruiz',
-				role: 'Chief Operating Officer | GamerTech Innovations',
-				avatarSrc:
-					'https://images.unsplash.com/photo-1593104547489-5cfb3839a3b5?q=80&w=1453&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80',
-			},
-		]}
-		statistics={[
-			{
-				count: '50k+',
-				description:
-					'Users engaged — from casual gamers to professional developers!',
-			},
-			{
-				count: '42%',
-				description:
-					"Boost in development speed with KBVE's advanced gaming tools and platforms.",
-			},
-			{
-				count: '15.3%',
-				description:
-					'Increase in revenue, thanks to our dedicated support services, which have enabled our team to resolve issues more efficiently, resulting in a significant reduction in downtime.',
-			},
-			{
-				count: '2x',
-				description:
-					'Faster go-to-market for games using our streamlined production processes!',
-			},
-		]}
-	/>
+  <TestimonialsSection
+    title="Accelerate Your Software Development"
+    subTitle="At KBVE, we ensure a swift launch with instant account setup. Experience the speed of application development redefined."
+    testimonials={[
+      {
+        content:
+          'KBVE dramatically boosted our game development efficiency. Setup was instant, and their rapid response times are phenomenal. Truly a game-changer in gaming technology and support!',
+        author: 'Samantha Ruiz',
+        role: 'Chief Operating Officer | GamerTech Innovations',
+        avatarSrc:
+          'https://images.unsplash.com/photo-1593104547489-5cfb3839a3b5?q=80&w=1453&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80',
+      },
+    ]}
+    statistics={[
+      {
+        count: '50k+',
+        description:
+          'Users engaged — from casual gamers to professional developers!',
+      },
+      {
+        count: '42%',
+        description:
+          "Boost in development speed with KBVE's advanced gaming tools and platforms.",
+      },
+      {
+        count: '15.3%',
+        description:
+          'Increase in revenue, thanks to our dedicated support services, which have enabled our team to resolve issues more efficiently, resulting in a significant reduction in downtime.',
+      },
+      {
+        count: '2x',
+        description:
+          'Faster go-to-market for games using our streamlined production processes!',
+      },
+    ]}
+  />
 
-	<PricingSection pricing={pricing} />
+  <PricingSection pricing={pricing} />
 
-	<FAQ title="Frequently<br />asked questions" faqs={faqs} />
+  <FAQ title="Frequently<br />asked questions" faqs={faqs} />
 
-	<Adsense />
-
-	<HeroSectionAlt
-		title="Let's Build Together"
-		subTitle="Join the collaborative effort in shaping KBVE, an open-source monorepo built using cutting-edge technologies like Rust, Astro, Tailwind CSS, and Preline UI. Your contributions make a difference!"
-		url="https://github.com/kbve/kbve"
-	/>
+  <HeroSectionAlt
+    title="Let's Build Together"
+    subTitle="Join the collaborative effort in shaping KBVE, an open-source monorepo built using cutting-edge technologies like Rust, Astro, Tailwind CSS, and Preline UI. Your contributions make a difference!"
+    url="https://github.com/kbve/kbve"
+  />
 </MainLayout>

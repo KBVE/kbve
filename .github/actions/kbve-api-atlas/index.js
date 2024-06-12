@@ -1,21 +1,62 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const axios = require('axios');
+const marked = require('marked');
+const DOMPurify = require('dompurify')(new (require('jsdom').JSDOM)().window);
+const { JSDOM } = require('jsdom');
+
+// A majority of these functions will be placed into our @kbve/gha library.
+
+// Function to check if the system input is a ULID
+function isULID(str) {
+  const ulidRegex = /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/;
+  return ulidRegex.test(str);
+}
+
+// Function to convert markdown to a JSON-safe string
+function markdownToJsonSafeString(markdownContent) {
+  // Convert markdown to HTML
+  const htmlContent = marked.parse(markdownContent);
+
+  // Sanitize the HTML content
+  const sanitizedHtmlContent = DOMPurify.sanitize(htmlContent);
+
+  // Use jsdom to create a temporary DOM element to extract text content from sanitized HTML
+  const dom = new JSDOM(sanitizedHtmlContent);
+  const textContent = dom.window.document.body.textContent || '';
+
+  // Ensure the text content is JSON-safe
+  const jsonSafeString = JSON.stringify(textContent);
+
+  return jsonSafeString;
+}
+
+// Function to strip everything except alphanumeric characters, spaces, and periods
+function stripNonAlphanumeric(text) {
+  return text.replace(/[^a-zA-Z0-9 .]/g, '');
+}
+
+// Composite function for sanitization level 9
+function markdownToJsonSafeStringThenStrip(text) {
+  const jsonSafeString = markdownToJsonSafeString(text);
+  return stripNonAlphanumeric(jsonSafeString);
+}
+
+const sanitizationFunctions = {
+  3: markdownToJsonSafeString,
+  9: markdownToJsonSafeStringThenStrip,
+  // More levels to come.
+};
 
 async function run() {
   try {
+    let system = core.getInput('system');
+    let message = core.getInput('message');
     const kbve_api = core.getInput('kbve_api');
-    const system = core.getInput('system');
-    const message = core.getInput('message');
     const model = core.getInput('model');
     const token = core.getInput('token');
-    const ulid = core.getInput('ulid');
-
-    const payload = JSON.stringify({
-      system,
-      message,
-      model,
-    });
+    //const sanitization = core.getBooleanInput('sanitization');
+    const sanitizationLevel = parseInt(core.getInput('sanitization'), 10);
 
     const headers = {
       'Content-Type': 'application/json',
@@ -25,17 +66,31 @@ async function run() {
       headers['Authorization'] = `Bearer ${kbve_api}`;
     }
 
-    // Preparing Prompt based upon ulid
+    if (isULID(system)) {
+      const response = await axios.get(
+        'https://kbve.com/api/prompt/engine.json',
+      );
+      const data = response.data.key;
 
-    const response = await axios.get('https://kbve.com/api/prompt/engine.json');
-    const data = response.data.key;
+      const prompt = data[system];
 
-    // Search for the prompt using the ulid
-    const prompt = data[ulid];
+      if (!prompt) {
+        throw new Error(`Prompt with ulid ${system} not found`);
+      }
 
-    if (!prompt) {
-      throw new Error(`Prompt with ulid ${ulid} not found`);
+      console.log('Found prompt:', prompt);
+      system = prompt.task;
     }
+
+    if (sanitizationFunctions[sanitizationLevel]) {
+      message = sanitizationFunctions[sanitizationLevel](message);
+    }
+
+    const payload = JSON.stringify({
+      system,
+      message,
+      model,
+    });
 
     console.log('Found prompt:', prompt);
 
