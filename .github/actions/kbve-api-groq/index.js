@@ -9,23 +9,31 @@ try {
   const model = core.getInput('model');
   const token = core.getInput('token');
 
-
   const payload = JSON.stringify({
     system,
     message,
-    model
+    model,
   });
 
-  // Example usage of axios
-  axios
-    .get('https://api.example.com/data')
-    .then((response) => {
-      console.log(response.data);
-      core.setOutput('response', response.data);
-    })
-    .catch((error) => {
-      core.setFailed(error.message);
-    });
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  if (kbve_api) {
+    headers['Authorization'] = `Bearer ${kbve_api}`;
+  }
+
+  const response = await axios.post(
+    'https://rust.kbve.com/api/v1/call_groq',
+    payload,
+    {
+      headers: headers,
+    },
+  );
+
+  core.setOutput('response', response.data);
+
+  // Going to include this below for test casing.
 
   // Example usage of @actions/github
   const context = github.context;
@@ -38,6 +46,8 @@ try {
   });
 
   console.log('Issues:', issues);
+
+
 } catch (error) {
   core.setFailed(error.message);
 }
