@@ -16,7 +16,7 @@ jobs:
 
     - name: Run Docker container
       run: |
-        docker run -d -p 3000:3000 kbve/atlas
+        docker run -d -p 3000:3000 --name atlas_container kbve/atlas
 
     - name: Get Public IP
       id: ip
@@ -26,3 +26,11 @@ jobs:
       run: |
         echo "Public IPv4: ${{ steps.ip.outputs.ipv4 }}"
         echo "Public IPv6: ${{ steps.ip.outputs.ipv6 }}"
+
+    - name: Sleep for 15 minutes
+      run: sleep 900
+
+    - name: Stop and remove Docker container
+      run: |
+        docker stop atlas_container
+        docker rm atlas_container
