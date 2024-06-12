@@ -14,29 +14,54 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
+
 
     - name: Set up Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: '20'
 
-    - name: Parse Issue Title
-      id: title-parser
-      uses: ./.github/actions/github-i-title-parse
+    - name: Install dependencies
+      run: |
+        npm install marked dompurify jsdom axios
+
+    - name: Check if issue title contains [MUSIC]
+      uses: actions/github-script@v7
       with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: ${{ github.event.issue.title }}
-          keyword: 'Music'
-        
+        script: |
+            const issueTitle = context.payload.issue.title;
+            if (issueTitle.includes("[MUSIC]")) {
+              core.exportVariable('IS_MUSIC_ISSUE', 'true');
+            } else {
+              core.exportVariable('IS_MUSIC_ISSUE', 'false');
+            }
 
     - name: Stop if not a music issue
-      if: steps.title-parser.outputs.boolean == 'false'
+      if: env.IS_MUSIC_ISSUE == 'false'
       run: echo "Not a music issue. Skipping further steps."
 
+    - name: Check for YouTube link in issue body
+      if: env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueBody = context.payload.issue.body;
+          const youtubeLink = issueBody.match(/https:\/\/www.youtube.com\/watch\?v=([\w-]+)/);
+          if (youtubeLink) {
+            core.exportVariable('HAS_YOUTUBE_LINK', 'true');
+            core.exportVariable('YOUTUBE_ID', youtubeLink[1]);
+          } else {
+            core.exportVariable('HAS_YOUTUBE_LINK', 'false');
+          }
+
+    - name: Display YouTube link check result
+      if: env.IS_MUSIC_ISSUE == 'true'
+      run: |
+          echo "Contains YouTube link: ${{ env.HAS_YOUTUBE_LINK }}"
 
     - name: Escape issue body for JSON
-      if: steps.title-parser.outputs.boolean == 'true'
+      if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
       uses: actions/github-script@v7
       with:
         script: |
