@@ -23,10 +23,6 @@ inputs:
   token:
     description: 'Github Token'
     required: true
-
-  prompt:
-    description: 'Prompt index for Atlas to utilize'
-    required: false
   
   ulid:
     description: 'Prompt key/ulid to reference for tasks.'

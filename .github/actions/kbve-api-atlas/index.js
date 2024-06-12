@@ -9,7 +9,6 @@ try {
   const message = core.getInput('message');
   const model = core.getInput('model');
   const token = core.getInput('token');
-  const prompt = core.getInput('prompt');
 
   const payload = JSON.stringify({
     system,
