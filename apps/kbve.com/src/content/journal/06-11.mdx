@@ -11,6 +11,10 @@ tags:
     - daily
 ---
 
+import {
+  Adsense
+} from '@kbve/astropad';
+
 ## 2024
 
 **Github Actions**
@@ -48,3 +52,26 @@ The other part is to include a couple different sanitization options, hopefully 
 
 We would extend out the `action.yml` within the `kbve-api-atlas` to include other options besides `groq` and a quick index to pull prompts from the `prompt.json`.
 
+Currently the nested prompts are under an array of 0 to n, this might become a problem as we scale the prompts in the future. I am thinking that it might make sense to assign them an ulid as a reference point. The ulid will act like a key and a reference point between the public facing prompts and any private ones that we decide to release in the future.
+
+Next, let us update the config.ts and zod for the vault and so we can store a better key to reference and search the prompts through. We know that it will be `ulid` as a field and we can save it as a `z.string`. Afterwards, we will have to go back and add the ulid variable to each of the prompts, so that zod does not fail the build.
+
+<Adsense />
+
+## 2023
+
+- 11:00am - Just got ready! Going to spend some time cleaning up the backyard and doing some general cleaning. Damn my room got a bit messy, not too much trash but my clean clothes are are not organized the way that I would want. I like to take small 5-15 min. blocks where I just tackle a specific area of my room, then rotate around. I do need to do inventory of my electronics again this weekend.
+- 2:30pm - Spent some time reading up on Aaron Swartz, thought I might include his open source manifesto and maybe take a couple jabs at improving it here and there. I found it to be interesting that it has been over 15 years since he released the document.
+- 4:30pm - Getting ready to go to the park! I need to enjoy some of this fresh air and weather before it becomes too hot. After the park, I will take a look at the resume issue and also see if I can get started on the next stage of development within the resume tool.
+
+## Quote
+
+> You yourself must strive. The Buddhas only point the way.
+> — <cite>The Buddha</cite>
+
+---
+
+## Tasks
+
+- [ ] Park Trip!
+- [ ] Start Development Stage of Resume
