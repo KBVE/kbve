@@ -13,7 +13,7 @@ pub struct AiGroqRequest {
     message: String,
     model: String,
     system: Option<String>,
-    //response_format: Option<serde_json::Value>,
+    response_format: Option<serde_json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -21,7 +21,7 @@ pub struct GithubGroqRequest {
     message: String,
     model: Option<String>,
     system: Option<String>,
-    //response_format: Option<serde_json::Value>,
+    response_format: Option<serde_json::Value>,
     api_key: Option<String>,
 }
 
@@ -48,7 +48,7 @@ pub async fn groq_handler(
     let body = GroqRequestBody {
         messages,
         model: payload.model,
-        //response_format: payload.response_format,
+        response_format: payload.response_format,
     };
 
     let client_clone = Arc::clone(&client); 

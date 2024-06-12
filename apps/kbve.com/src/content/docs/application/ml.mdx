@@ -1,7 +1,11 @@
 ---
 title: Machine Learning & Artificial Intelligence
 description: |
-    Linux. Da Penguin.
+    Get ready to explore the exciting world of Machine Learning and Artificial Intelligence.
+    Our guide covers everything from basic principles and key algorithms to the latest models and tools.
+    Whether you're just starting out or already have some experience, you'll find valuable insights and practical tips to help you navigate this dynamic field.
+    Learn about the newest advancements, popular frameworks, and real-world applications.
+    Perfect for anyone eager to deepen their understanding and skills in AI and ML, this resource is your go-to for all things AI and ML.
 sidebar:
     label: Machine Learning & AI
     order: 300
@@ -9,6 +13,153 @@ unsplash: 1620712943543-bcc4688e7485
 img: https://images.unsplash.com/photo-1620712943543-bcc4688e7485?fit=crop&w=1400&h=700&q=75
 tags:
     - ai
+prompt-index: example
+prompts:
+    - name: Role Examples
+      description: Common role examples for text transformers.
+      items:
+        - Act as a javascript console
+        - Act as an excel sheet
+        - Act as a HR interviewer
+        - Act as an advertiser
+        - Act as a publisher
+        - Act as a music teacher
+        - Act as a relationship coach
+        - Act as a World of Warcraft player and limit the response to 50 characters
+      task: |
+        Define the role for the AI model and prompt it to perform actions specific to that role. For example, you can ask it to act as a JavaScript console and provide code snippets, or act as a music teacher and give lessons.
+      tools: 
+        - type: "function"
+          function: 
+            name: "get_role_specific_info"
+            description: "Get specific information for a given role"
+            parameters: 
+              type: "object"
+              properties: 
+                role_name: 
+                  type: "string"
+                  description: "The name of the role (e.g. 'JavaScript console')"
+              required: ["role_name"]
+      output: text
+      pathways: 
+        initial: 
+          prompt: "Choose a role for the AI to act as:"
+          next: 
+            - condition: "javascript console"
+              action: "pathway1"
+            - condition: "excel sheet"
+              action: "pathway2"
+        pathway1: 
+          prompt: "You chose JavaScript console. Provide a JavaScript code snippet:"
+          next: 
+            - condition: "valid js code"
+              action: "pathway3"
+            - condition: "invalid js code"
+              action: "pathway4"
+        pathway2: 
+          prompt: "You chose Excel sheet. What operation would you like to perform?"
+          next: 
+            - condition: "create sheet"
+              action: "pathway5"
+            - condition: "edit sheet"
+              action: "pathway6"
+
+    - name: Rewrite Prompt Example
+      description: Example task to rewrite user-provided text with human-like perplexity and burstiness.
+      items:
+        - Maintain consistent and coherent narrative
+        - Incorporate unique perspectives and creativity
+        - Include personal anecdotes and emotions
+        - Understand and incorporate nuanced context
+        - Organize content with purposeful structure
+        - Include nuanced inconsistencies and idiosyncrasies
+      task: |
+        Task: Rewrite user-provided text with the most human-like perplexity and burstiness.
+
+        Objectives: Prompt the user to input a block of text. Use a language model to rewrite the text with the most human-like perplexity and burstiness. Provide the rewritten text to the user.
+
+        Rules: Keep burstiness as low as possible. Keep perplexity as low as possible. Go to extraordinary lengths to make the text more human-like. Burstiness is on a scale of 0-100. Perplexity is on a scale of 0-100. Burstiness starts at 0. Perplexity starts at 0. Don’t answer for user.
+
+        Roles: AI model responsible for rewriting the text. User: Provides the initial block of text to be rewritten.
+
+        Strategy: Use an AI model to generate the most human-like perplexity and burstiness. Prompt the user to input a block of text. Provide the rewritten text to the user. Additional Instructions: Ask the user to input a block of text that they would like to be rewritten. Use a language model to generate a rewritten version of the text that has the most human-like perplexity and burstiness. Provide the rewritten text to the user. Be sure to explain to the user the concept of perplexity and burstiness and how it affects the text. Provide an option for the user to adjust the level of perplexity and burstiness if desired. Perplexity and Burstiness start at 0.
+      tools: 
+        - type: "function"
+          function: 
+            name: "analyze_text"
+            description: "Analyze the provided text for perplexity and burstiness"
+            parameters: 
+              type: "object"
+              properties: 
+                text: 
+                  type: "string"
+                  description: "The text to be analyzed"
+              required: ["text"]
+      output: text
+      pathways: 
+        initial: 
+          prompt: "Please input a block of text you want rewritten:"
+          next: 
+            - condition: "text provided"
+              action: "pathway1"
+            - condition: "no text provided"
+              action: "pathway2"
+        pathway1: 
+          prompt: "Rewrite the provided text focusing on human-like perplexity and burstiness."
+          next: 
+            - condition: "good rewrite"
+              action: "pathway3"
+            - condition: "bad rewrite"
+              action: "pathway4"
+        pathway2: 
+          prompt: "No text provided. Please input a block of text to proceed."
+          next: 
+            - condition: "text provided"
+              action: "pathway1"
+
+    - name: Rewrite Prompt Follow-Up
+      description: Follow-up advice for the rewrite prompt to generate better content.
+      items:
+        - Consistency and Coherence - Human writing tends to maintain a consistent and coherent narrative throughout, reflecting a deeper understanding of context and topic.
+        - Creativity and Originality - While AI can be creative, humans often bring unique perspectives, experiences, and creativity to their writing that might be harder for AI to replicate authentically.
+        - Personal Touch - Human writing may include personal anecdotes, emotions, or subjective elements that are reflective of individual experiences and perspectives.
+        - Context Understanding - Humans excel at understanding nuanced context and incorporating it into their writing, whereas AI might sometimes produce contextually inaccurate or mismatched information.
+        - Purposeful Structure - Human writers often have a purposeful structure in their content, carefully organizing information for clarity and impact. AI might generate text that lacks intentional structure.
+        - Inconsistencies - Human writing may include nuanced inconsistencies, errors, or idiosyncrasies that reflect the natural variability present in human language, while AI-generated content may exhibit a higher degree of consistency.
+      task: |
+        Provide the rewritten text to the user with a focus on consistency, coherence, creativity, originality, personal touch, context understanding, purposeful structure, and natural inconsistencies. Explain how these factors contribute to making the text more human-like.
+      tools: 
+        - type: "function"
+          function: 
+            name: "evaluate_text_quality"
+            description: "Evaluate the quality of the rewritten text"
+            parameters: 
+              type: "object"
+              properties: 
+                text: 
+                  type: "string"
+                  description: "The text to be evaluated"
+              required: ["text"]
+      output: text
+      pathways: 
+        initial: 
+          prompt: "Here is the rewritten text:"
+          next: 
+            - condition: "positive feedback"
+              action: "pathway1"
+            - condition: "negative feedback"
+              action: "pathway2"
+        pathway1: 
+          prompt: "Great! If you need further assistance, feel free to ask."
+          next: []
+        pathway2: 
+          prompt: "What specific areas need improvement?"
+          next: 
+            - condition: "identified areas"
+              action: "pathway3"
+        pathway3: 
+          prompt: "Let's focus on improving those areas in the rewrite."
+          next: []
 ---
 
 import {
@@ -79,13 +230,29 @@ Note: This is an ever growing and evolving list of all `mL` / `ai` services, con
 
 ## GROQ
 
+Groq is an innovative company specializing in AI and machine learning (AI/ML) solutions, known for developing custom hardware designed to accelerate AI/ML workloads.
+Their hardware architecture, optimized for high performance and efficiency, enables rapid data processing and analysis, making it ideal for complex AI/ML tasks.
+Groq offers a free API that allows developers to leverage their powerful hardware infrastructure, providing an accessible entry point for integrating advanced AI capabilities into various applications without incurring initial costs.
 
+### Groq CookBooks
+
+The Groq Cookbook Examples provide a comprehensive collection of practical guides and code samples to help developers harness the full potential of Groq's AI/ML hardware.
+These examples cover a wide range of applications, from basic model deployment to advanced optimization techniques, demonstrating best practices and efficient workflows.
+For instance, developers can find detailed instructions on using Groq's hardware (via their API) to examine medical documents, enabling efficient processing and analysis of large volumes of medical data for improved diagnostics and patient care.
+Additionally, there are examples of utilizing Groq's capabilities to create sophisticated stock market tools, helping analysts and traders make data-driven decisions with enhanced speed and accuracy. Each recipe is designed to be easily followed, enabling users to quickly integrate Groq's powerful capabilities into their own projects, accelerate development, and achieve superior performance in their AI/ML tasks.
 
 ---
 
 ## LLaMa
 
-    - LLaMa, also known as, `Large Language Model Meta AI`, is actively being developed by Meta / Facebook and is a state-of-the-art foundational large language model that is designed to help researchers advance their work in natural language processing (NLP).
+<Aside>
+**TLDR;** LLaMa, also known as, **Large Language Model Meta AI**, is actively being developed by Meta / Facebook and is a state-of-the-art foundational large language model that is designed to help researchers advance their work in natural language processing (NLP).
+</Aside>
+
+LLaMa, short for Large Language Model Meta AI, is a cutting-edge foundational large language model developed by Meta, formerly known as Facebook.
+This state-of-the-art model is designed to assist researchers in advancing their work in natural language processing (NLP).
+By leveraging LLaMa, researchers can push the boundaries of NLP, exploring new possibilities and enhancing the capabilities of AI-driven language understanding and generation.
+Meta's commitment to innovation in AI is embodied in LLaMa, providing a powerful tool for the scientific community to develop more sophisticated and effective NLP applications.
 
 ---
 
@@ -111,7 +278,29 @@ The official repo for `AUTOMATIC1111` [Stable Diffusion WEB UI](https://github.c
 
 Prompt engineering theory covers a wide range of different GPT concepts, including examples and short cuts to generate the right style of questions and content.
 
--   ### Roles
+### Engine
+
+The Prompt Engine is a versatile and structured framework designed to define, manage, and execute various prompt-based tasks.
+It is specifically built to handle a wide range of scenarios in machine learning and artificial intelligence applications, offering a high degree of flexibility and precision.
+The Prompt Engine is defined using a robust schema in TypeScript, leveraging Zod for validation.
+
+Core Aspects:
+
+- Name: Each prompt is uniquely identified by a name field, which allows for easy reference and management.
+
+- Description: Provides a detailed explanation of what the prompt is about, helping users understand its purpose and context.
+
+- Items: An array of strings that lists the key points or examples relevant to the prompt. This helps in outlining the scope and content of the prompt.
+
+- Task: A textual description of the specific task that the prompt is intended to perform. This includes detailed instructions and objectives, ensuring clarity in execution.
+
+- Tools: An optional array of tool definitions, where each tool is defined by its type, name, description, and required parameters. This allows the prompt to specify which tools or functions are needed to complete the task.
+
+- Output: Specifies the expected output format, which can either be text or json. This ensures that the results of the prompt are returned in a predictable and usable format.
+
+- Pathways: A structured object that defines the flow of actions based on user inputs or conditions. Each pathway contains a prompt and a set of conditions that determine the next action, enabling complex decision trees and logical flows.
+
+### Roles
 
     Common `role` examples for text transformers:
 
@@ -125,8 +314,9 @@ Prompt engineering theory covers a wide range of different GPT concepts, includi
     -   `Act as a World of Warcraft player and limit the response to 50 characters`
         > _`Warning :`_ Not all text transformers will let you assign roles, as it might create a security issue / risk.
 
--   ### Chaining
-    -   Common Terms include: Chain-of-Thought, Chained Prompt.
+### Chaining
+
+-   Common Terms include: Chain-of-Thought, Chained Prompt.
 
 ### Rewrite Prompt Example
 
@@ -169,3 +359,9 @@ Inconsistencies: Human writing may include nuanced inconsistencies, errors, or i
 ```
 
 The combination of the initial task and the follow up advice, will help generate better content.
+
+---
+
+<Adsense />
+
+<Giscus />
