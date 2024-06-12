@@ -56,6 +56,11 @@ Currently the nested prompts are under an array of 0 to n, this might become a p
 
 Next, let us update the config.ts and zod for the vault and so we can store a better key to reference and search the prompts through. We know that it will be `ulid` as a field and we can save it as a `z.string`. Afterwards, we will have to go back and add the ulid variable to each of the prompts, so that zod does not fail the build.
 
+Went ahead and decided to create a folder to hold the prompts, and then renamed the original `prompts.json.js` to `collection.json.js` and created a new `engine.json.js`, this will hold an optimized json table of the data. This way we can have a bit of both and work through what we already have within the pipeline. I kept the original as a collection endpoint, so that the exisiting tools do not break and we will use the new engine endpoint in the newer toolings and github actions.
+
+Let me go ahead and sync those changes and create a new branch to work off of.
+
+
 <Adsense />
 
 ## 2023
