@@ -8,7 +8,7 @@ inputs:
     required: false
 
   system:
-    description: 'System prompt'
+    description: 'System prompt or api ulid as a reference for tasks.'
     required: false
 
   message:
@@ -24,9 +24,6 @@ inputs:
     description: 'Github Token'
     required: true
   
-  ulid:
-    description: 'Prompt key/ulid to reference for tasks.'
-    required: false
 
 
 outputs:

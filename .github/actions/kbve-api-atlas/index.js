@@ -4,18 +4,12 @@ const axios = require('axios');
 
 async function run() {
   try {
+    let system = core.getInput('system');
     const kbve_api = core.getInput('kbve_api');
-    const system = core.getInput('system');
     const message = core.getInput('message');
     const model = core.getInput('model');
     const token = core.getInput('token');
-    const ulid = core.getInput('ulid');
 
-    const payload = JSON.stringify({
-      system,
-      message,
-      model,
-    });
 
     const headers = {
       'Content-Type': 'application/json',
@@ -25,17 +19,30 @@ async function run() {
       headers['Authorization'] = `Bearer ${kbve_api}`;
     }
 
-    // Preparing Prompt based upon ulid
-
-    const response = await axios.get('https://kbve.com/api/prompt/engine.json');
-    const data = response.data.key;
-
-    // Search for the prompt using the ulid
-    const prompt = data[ulid];
-
-    if (!prompt) {
-      throw new Error(`Prompt with ulid ${ulid} not found`);
+    function isULID(str) {
+      const ulidRegex = /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/;
+      return ulidRegex.test(str);
     }
+
+    if (isULID(system)) {
+      const response = await axios.get('https://kbve.com/api/prompt/engine.json');
+      const data = response.data.key;
+
+      const prompt = data[system];
+
+      if (!prompt) {
+          throw new Error(`Prompt with ulid ${system} not found`);
+      }
+
+      console.log('Found prompt:', prompt);
+      system = prompt.task;
+  }
+
+    const payload = JSON.stringify({
+      system,
+      message,
+      model,
+    });
 
     console.log('Found prompt:', prompt);
 
