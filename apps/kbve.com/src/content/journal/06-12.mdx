@@ -28,6 +28,9 @@ Okay, enough of these nutty ideas, let us go ahead and update the music process 
 
 I will go ahead and save myself some future typing and rename the action for issue ticket parsing to a short hand, making it easier for us to reference. I really hope these actions do not fail on us in the future, but I already get that spiderman sense running through my mind that there will be a bunch of failures.
 
+While building out more of the github actions, I think it might be wise to do something creative and see if we can get Atlas up and running through github actions. This is just part of the test casing, hopefully jagspx launch goes as planned, but already had a couple failures in that area. We tried to grab the public ip address of the runner, yet that failed to certain extent but its good to know that we can grab that without any major problems. So the next idea is to throw up a ngrok and see if we can utilize that in our adventures, the first round of using it, uh, failed because I forgot to include the auth token. I believe in the future we should be able to just turn this into a new action, which I believe will be super useful!
+
+While building that out, I am currently fixing up the comment action but its going to suck if all these new actions fail because we are missing some sort of logical library or a weird step.
 
 **Python**
 
