@@ -5,6 +5,8 @@ const marked = require('marked');
 const DOMPurify = require('dompurify')(new (require('jsdom').JSDOM)().window);
 const { JSDOM } = require('jsdom');
 
+// A majority of these functions will be placed into our @kbve/gha library.
+
 // Function to check if the system input is a ULID
 function isULID(str) {
   const ulidRegex = /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/;
@@ -29,8 +31,21 @@ function markdownToJsonSafeString(markdownContent) {
   return jsonSafeString;
 }
 
+// Function to strip everything except alphanumeric characters, spaces, and periods
+function stripNonAlphanumeric(text) {
+  return text.replace(/[^a-zA-Z0-9 .]/g, '');
+}
+
+// Composite function for sanitization level 9
+function markdownToJsonSafeStringThenStrip(text) {
+  const jsonSafeString = markdownToJsonSafeString(text);
+  return stripNonAlphanumeric(jsonSafeString);
+}
+
 const sanitizationFunctions = {
   3: markdownToJsonSafeString,
+  9: markdownToJsonSafeStringThenStrip,
+  // More levels to come.
 };
 
 async function run() {
