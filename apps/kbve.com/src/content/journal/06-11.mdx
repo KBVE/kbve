@@ -16,7 +16,19 @@ tags:
 **Github Actions**
 
 I finally understand what would make github actions easier, that you can just directly call the javascript functions as a file within your custom actions.
-
-This will make building a bunch of different actions so much easier. This is something we have done in the past but in this case we will try to build a whole collection of possible actions that we would like to use in the future.
-
+This will make building a bunch of different actions so much easier.
+This is something we have done in the past but in this case we will try to build a whole collection of possible actions that we would like to use in the future.
 My goal will be to shift towards getting around 10-15 actions built this month, hopefully making it easier for us to call basic mL operations without any major pain points.
+
+The first function that we are creating will be the `kbve-api-groq`, which is located under the `.github/actions/kbve-api-groq/` and has three total files, well four once the lock is set.
+Part of me is thinking that we should create a new npm package that would be like `@kbve/gha` which would be a library for the github actions, making it easier to mass produce them without having issues.
+However for the first couple, we will avoid doing that until we get a full understanding of how it will operate within the pipeline.
+
+The core packages that we will be adding are these three:
+
+- `@actions/core`
+- `@actions/github`
+- `axios`
+
+I might include a couple more but later on, we will just use our custom library to help us with that.
+A wrapper around axios to make it easier for us to call, hmm, that might be interesting to look into.

@@ -1,0 +1,42 @@
+name: 'KBVE API Groq Action'
+description: 'An action to call Groq through KBVE API'
+author: 'KBVE'
+
+inputs:
+  kbve_api:
+    description: 'KBVE API Key'
+    required: false
+
+
+  system:
+    description: 'System prompt'
+    required: false
+
+  message:
+    description: 'Message to send to Groq'
+    required: true
+
+  model:
+    description: 'LLM Model'
+    default: 'mixtral-8x7b-32768'
+    required: false
+
+  token:
+    description: 'Github Token'
+    required: true
+
+
+outputs:
+  response:
+    description: 'API Response'
+  
+
+runs:
+  using: 'node20'
+  pre: 'npm install'
+  main: 'index.js'
+
+
+branding:
+  icon: 'terminal'
+  color: 'blue'
