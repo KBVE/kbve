@@ -7,7 +7,6 @@ inputs:
     description: 'KBVE API Key'
     required: false
 
-
   system:
     description: 'System prompt'
     required: false
@@ -25,18 +24,19 @@ inputs:
     description: 'Github Token'
     required: true
 
+  prompt:
+    description: 'Prompt ID for Atlas to utilize'
+    required: true
   
 
 outputs:
   response:
     description: 'API Response'
-  
 
 runs:
   using: 'node20'
   pre: 'npm install'
   main: 'index.js'
-
 
 branding:
   icon: 'terminal'
