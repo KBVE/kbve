@@ -45,3 +45,6 @@ Let me go ahead and push this through for now and maybe bring the process of upd
 I will review through the release branch and the 22 file changes, while I am doing that, I should prepare to rename the `kbve-api-groq` to `kbve-api-atlas` and extend out the functions within that action.
 The two parts that I want to extend out is defaulting the routes to `groq` but keeping future options open for `ollama` and `atlas`.
 The other part is to include a couple different sanitization options, hopefully providing some level of hardening against future threats.
+
+We would extend out the `action.yml` within the `kbve-api-atlas` to include other options besides `groq` and a quick index to pull prompts from the `prompt.json`.
+
