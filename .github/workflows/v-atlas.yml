@@ -14,33 +14,21 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    - name: Install jq (for parsing JSON)
-      run: sudo apt-get install jq -y
 
-    - name: Install ngrok
-      run: |
-        curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-        echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-        sudo apt-get update
-        sudo apt-get install ngrok
-
-    - name: Authenticate ngrok
-      run: |
-        ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
-  
-    
     - name: Run Docker container
       run: |
         docker run -d -p 3000:3000 --name atlas_container kbve/atlas
 
-    - name: Expose Docker container with ngrok
-      run: |
-        ngrok http 3000 &
-        sleep 5 # Give ngrok a few seconds to start
 
-    - name: Get ngrok URL
+    - name: Expose Docker container with Localtunnel
+      id: localtunnel
+      uses: ./.github/github-a-localtunnel
+      with:
+        port: 3000
+
+    - name: Print Tunnel URL
       run: |
-        curl -s http://localhost:4040/api/tunnels | jq -r .tunnels[0].public_url
+        echo "Tunnel URL: ${{ steps.localtunnel.outputs.tunnel_url }}"
 
     - name: Sleep for 6 hours
       run: sleep 21600

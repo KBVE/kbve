@@ -1,0 +1,16 @@
+name: 'Localtunnel Action'
+description: 'A GitHub Action to expose a local server to the public internet using localtunnel.'
+inputs:
+  port:
+    description: 'The port to expose.'
+    required: true
+outputs:
+  tunnel_url:
+    description: 'The URL of the localtunnel.'
+runs:
+  using: 'node20'
+  pre: 'npm install'
+  main: 'index.js'
+branding:
+  icon: 'terminal'
+  color: 'blue'
