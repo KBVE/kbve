@@ -25,9 +25,13 @@ inputs:
     required: true
 
   prompt:
-    description: 'Prompt ID for Atlas to utilize'
-    required: true
+    description: 'Prompt index for Atlas to utilize'
+    required: false
   
+  ulid:
+    description: 'Prompt key/ulid to reference for tasks.'
+    required: false
+
 
 outputs:
   response:
