@@ -1,0 +1,36 @@
+name: Run Docker and Get Public IP
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  run-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Run Docker container
+      run: |
+        docker run -d -p 3000:3000 --name atlas_container kbve/atlas
+
+    - name: Get Public IP
+      id: ip
+      uses: haythem/public-ip@v1.3
+
+    - name: Print Public IP
+      run: |
+        echo "Public IPv4: ${{ steps.ip.outputs.ipv4 }}"
+        echo "Public IPv6: ${{ steps.ip.outputs.ipv6 }}"
+
+    - name: Sleep for 15 minutes
+      run: sleep 900
+
+    - name: Stop and remove Docker container
+      run: |
+        docker stop atlas_container
+        docker rm atlas_container
