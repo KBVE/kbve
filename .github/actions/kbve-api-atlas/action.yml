@@ -23,7 +23,11 @@ inputs:
   token:
     description: 'Github Token'
     required: true
-  
+
+  sanitization:
+    description: 'Sanitization level for safety!'
+    required: false
+    default: '3'
 
 
 outputs:
