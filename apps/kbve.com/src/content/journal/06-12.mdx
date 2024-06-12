@@ -28,7 +28,48 @@ Okay, enough of these nutty ideas, let us go ahead and update the music process 
 
 I will go ahead and save myself some future typing and rename the action for issue ticket parsing to a short hand, making it easier for us to reference. I really hope these actions do not fail on us in the future, but I already get that spiderman sense running through my mind that there will be a bunch of failures.
 
+While building out more of the github actions, I think it might be wise to do something creative and see if we can get Atlas up and running through github actions. This is just part of the test casing, hopefully jagspx launch goes as planned, but already had a couple failures in that area. We tried to grab the public ip address of the runner, yet that failed to certain extent but its good to know that we can grab that without any major problems. So the next idea is to throw up a ngrok and see if we can utilize that in our adventures, the first round of using it, uh, failed because I forgot to include the auth token. I believe in the future we should be able to just turn this into a new action, which I believe will be super useful!
+
+While building that out, I am currently fixing up the comment action but its going to suck if all these new actions fail because we are missing some sort of logical library or a weird step.
 
 **Python**
 
 One of the other cool aspects of what we are building is that we should be able to even go as far as skipping a bulk of these current javascript issues and just run atlas directly inside of the github actions. I feel like having the javascript is really just a waste of resources and time but for this proof of concept, we will stick with javascript. However on my next rewrite, I will just run all of atlas, actually I might just run the whole damn docker image inside of an action and just have github handle it all for me, as if it was its own computer. Have it provide screenshots and everything! This first run is just to get the confidence to do some really whacky and crazy things later on. I am writing this all done so that I can reference it a year later and be like, damn I was right, these are some crazy times to be a programmer.
+
+**SV**
+
+Honestly watching Silicon Valley really puts me in the mood to grind out all night. Like I am not a huge motivation guy, but something about this tv show hits all those nerves and puts me into overdrive.
+
+**RSPS**
+
+We were able to get the base of the RSPS to launch through github actions! I decided to make this a different ticket.
+
+It seems that ngrok decided to limit our transfer out, so we will have to replace that.
+
+```yaml
+
+
+# - name: Install ngrok
+#   run: |
+#     curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+#     echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+#     sudo apt-get update
+#     sudo apt-get install ngrok
+
+# - name: Authenticate ngrok
+#   run: |
+#     ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+
+# - name: Expose Docker container with ngrok
+#   run: |
+#     ngrok http 3000 &
+#     sleep 5 # Give ngrok a few seconds to start
+
+# - name: Get ngrok URL
+#   run: |
+#     curl -s http://localhost:4040/api/tunnels | jq -r .tunnels[0].public_url
+
+
+```
+
+That was our older ngrok, but I will make my own custom action using localtunnel and hopefully that will let us keep the rocket up until the moon!
