@@ -39,3 +39,37 @@ One of the other cool aspects of what we are building is that we should be able 
 **SV**
 
 Honestly watching Silicon Valley really puts me in the mood to grind out all night. Like I am not a huge motivation guy, but something about this tv show hits all those nerves and puts me into overdrive.
+
+**RSPS**
+
+We were able to get the base of the RSPS to launch through github actions! I decided to make this a different ticket.
+
+It seems that ngrok decided to limit our transfer out, so we will have to replace that.
+
+```yaml
+
+
+# - name: Install ngrok
+#   run: |
+#     curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+#     echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+#     sudo apt-get update
+#     sudo apt-get install ngrok
+
+# - name: Authenticate ngrok
+#   run: |
+#     ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+
+# - name: Expose Docker container with ngrok
+#   run: |
+#     ngrok http 3000 &
+#     sleep 5 # Give ngrok a few seconds to start
+
+# - name: Get ngrok URL
+#   run: |
+#     curl -s http://localhost:4040/api/tunnels | jq -r .tunnels[0].public_url
+
+
+```
+
+That was our older ngrok, but I will make my own custom action using localtunnel and hopefully that will let us keep the rocket up until the moon!
