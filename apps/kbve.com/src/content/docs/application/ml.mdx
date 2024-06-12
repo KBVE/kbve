@@ -15,7 +15,8 @@ tags:
     - ai
 prompt-index: example
 prompts:
-    - name: Role Examples
+    - ulid: 01J05G1PCD6ZXPNHEFBDYHYS77
+      name: Role Examples
       description: Common role examples for text transformers.
       items:
         - Act as a javascript console
@@ -28,43 +29,44 @@ prompts:
         - Act as a World of Warcraft player and limit the response to 50 characters
       task: |
         Define the role for the AI model and prompt it to perform actions specific to that role. For example, you can ask it to act as a JavaScript console and provide code snippets, or act as a music teacher and give lessons.
-      tools: 
+      tools:
         - type: "function"
-          function: 
+          function:
             name: "get_role_specific_info"
             description: "Get specific information for a given role"
-            parameters: 
+            parameters:
               type: "object"
-              properties: 
-                role_name: 
+              properties:
+                role_name:
                   type: "string"
                   description: "The name of the role (e.g. 'JavaScript console')"
               required: ["role_name"]
       output: text
-      pathways: 
-        initial: 
+      pathways:
+        initial:
           prompt: "Choose a role for the AI to act as:"
-          next: 
+          next:
             - condition: "javascript console"
               action: "pathway1"
             - condition: "excel sheet"
               action: "pathway2"
-        pathway1: 
+        pathway1:
           prompt: "You chose JavaScript console. Provide a JavaScript code snippet:"
-          next: 
+          next:
             - condition: "valid js code"
               action: "pathway3"
             - condition: "invalid js code"
               action: "pathway4"
-        pathway2: 
+        pathway2:
           prompt: "You chose Excel sheet. What operation would you like to perform?"
-          next: 
+          next:
             - condition: "create sheet"
               action: "pathway5"
             - condition: "edit sheet"
               action: "pathway6"
 
-    - name: Rewrite Prompt Example
+    - ulid: 01J05G2G0NWW48HEV485DY63W5
+      name: Rewrite Prompt Example
       description: Example task to rewrite user-provided text with human-like perplexity and burstiness.
       items:
         - Maintain consistent and coherent narrative
@@ -83,41 +85,42 @@ prompts:
         Roles: AI model responsible for rewriting the text. User: Provides the initial block of text to be rewritten.
 
         Strategy: Use an AI model to generate the most human-like perplexity and burstiness. Prompt the user to input a block of text. Provide the rewritten text to the user. Additional Instructions: Ask the user to input a block of text that they would like to be rewritten. Use a language model to generate a rewritten version of the text that has the most human-like perplexity and burstiness. Provide the rewritten text to the user. Be sure to explain to the user the concept of perplexity and burstiness and how it affects the text. Provide an option for the user to adjust the level of perplexity and burstiness if desired. Perplexity and Burstiness start at 0.
-      tools: 
+      tools:
         - type: "function"
-          function: 
+          function:
             name: "analyze_text"
             description: "Analyze the provided text for perplexity and burstiness"
-            parameters: 
+            parameters:
               type: "object"
-              properties: 
-                text: 
+              properties:
+                text:
                   type: "string"
                   description: "The text to be analyzed"
               required: ["text"]
       output: text
-      pathways: 
-        initial: 
+      pathways:
+        initial:
           prompt: "Please input a block of text you want rewritten:"
-          next: 
+          next:
             - condition: "text provided"
               action: "pathway1"
             - condition: "no text provided"
               action: "pathway2"
-        pathway1: 
+        pathway1:
           prompt: "Rewrite the provided text focusing on human-like perplexity and burstiness."
-          next: 
+          next:
             - condition: "good rewrite"
               action: "pathway3"
             - condition: "bad rewrite"
               action: "pathway4"
-        pathway2: 
+        pathway2:
           prompt: "No text provided. Please input a block of text to proceed."
-          next: 
+          next:
             - condition: "text provided"
               action: "pathway1"
 
-    - name: Rewrite Prompt Follow-Up
+    - ulid: 01J05G2X0S673J53HWCPE6831J
+      name: Rewrite Prompt Follow-Up
       description: Follow-up advice for the rewrite prompt to generate better content.
       items:
         - Consistency and Coherence - Human writing tends to maintain a consistent and coherent narrative throughout, reflecting a deeper understanding of context and topic.
@@ -128,36 +131,36 @@ prompts:
         - Inconsistencies - Human writing may include nuanced inconsistencies, errors, or idiosyncrasies that reflect the natural variability present in human language, while AI-generated content may exhibit a higher degree of consistency.
       task: |
         Provide the rewritten text to the user with a focus on consistency, coherence, creativity, originality, personal touch, context understanding, purposeful structure, and natural inconsistencies. Explain how these factors contribute to making the text more human-like.
-      tools: 
+      tools:
         - type: "function"
-          function: 
+          function:
             name: "evaluate_text_quality"
             description: "Evaluate the quality of the rewritten text"
-            parameters: 
+            parameters:
               type: "object"
-              properties: 
-                text: 
+              properties:
+                text:
                   type: "string"
                   description: "The text to be evaluated"
               required: ["text"]
       output: text
-      pathways: 
-        initial: 
+      pathways:
+        initial:
           prompt: "Here is the rewritten text:"
-          next: 
+          next:
             - condition: "positive feedback"
               action: "pathway1"
             - condition: "negative feedback"
               action: "pathway2"
-        pathway1: 
+        pathway1:
           prompt: "Great! If you need further assistance, feel free to ask."
           next: []
-        pathway2: 
+        pathway2:
           prompt: "What specific areas need improvement?"
-          next: 
+          next:
             - condition: "identified areas"
               action: "pathway3"
-        pathway3: 
+        pathway3:
           prompt: "Let's focus on improving those areas in the rewrite."
           next: []
 ---
@@ -320,7 +323,7 @@ Core Aspects:
 
 ### Rewrite Prompt Example
 
-Start by giving it this task: 
+Start by giving it this task:
 
 ```
 Task: Rewrite user-provided text with the most human like perplexity and burstiness.

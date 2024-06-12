@@ -1,5 +1,5 @@
-name: 'KBVE API Groq Action'
-description: 'An action to call Groq through KBVE API'
+name: 'KBVE API Atlas Action'
+description: 'An action to call AI routes, like Groq or Ollama, through KBVE API'
 author: 'KBVE'
 
 inputs:
@@ -7,13 +7,12 @@ inputs:
     description: 'KBVE API Key'
     required: false
 
-
   system:
     description: 'System prompt'
     required: false
 
   message:
-    description: 'Message to send to Groq'
+    description: 'Message to send to Atlas'
     required: true
 
   model:
@@ -25,17 +24,23 @@ inputs:
     description: 'Github Token'
     required: true
 
+  prompt:
+    description: 'Prompt index for Atlas to utilize'
+    required: false
+  
+  ulid:
+    description: 'Prompt key/ulid to reference for tasks.'
+    required: false
+
 
 outputs:
   response:
     description: 'API Response'
-  
 
 runs:
   using: 'node20'
   pre: 'npm install'
   main: 'index.js'
-
 
 branding:
   icon: 'terminal'
