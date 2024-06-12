@@ -1,0 +1,28 @@
+name: 'Github Issue Ticket Title Parser'
+description: 'Parse the Github issue ticket title based upon the inputs and returns a boolean'
+author: 'KBVE'
+
+inputs:
+  token:
+    description: 'Github Token'
+    required: true
+  title:
+    description: 'Title to parse'
+    required: true
+  keyword:
+    description: 'Keyword to search for in the title'
+    required: true
+
+outputs:
+  boolean:
+    description: 'Boolean'
+
+
+runs:
+  using: 'node20'
+  pre: 'npm install'
+  main: 'index.js'
+
+branding:
+  icon: 'terminal'
+  color: 'blue'
