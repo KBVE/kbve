@@ -44,6 +44,7 @@ const FunctionSchema = z.object({
 	tools: z.array(ToolSchema).optional(),
 	output: z.enum(["text", "json"]),
 	pathways: PromptPathwaysSchema,
+	ulid: z.string(),
   });
 
 export type Prompt = z.infer<typeof PromptSchema>;
