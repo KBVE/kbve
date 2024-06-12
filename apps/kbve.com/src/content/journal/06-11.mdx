@@ -11,6 +11,10 @@ tags:
     - daily
 ---
 
+import {
+  Adsense
+} from '@kbve/astropad';
+
 ## 2024
 
 **Github Actions**
@@ -41,3 +45,38 @@ I should keep track of the different actions that we are building too.
 
 Okay! Forgot to include a top-level function for the index.js, going to add that into the script right now.
 Let me go ahead and push this through for now and maybe bring the process of updating the branch to main.
+
+I will review through the release branch and the 22 file changes, while I am doing that, I should prepare to rename the `kbve-api-groq` to `kbve-api-atlas` and extend out the functions within that action.
+The two parts that I want to extend out is defaulting the routes to `groq` but keeping future options open for `ollama` and `atlas`.
+The other part is to include a couple different sanitization options, hopefully providing some level of hardening against future threats.
+
+We would extend out the `action.yml` within the `kbve-api-atlas` to include other options besides `groq` and a quick index to pull prompts from the `prompt.json`.
+
+Currently the nested prompts are under an array of 0 to n, this might become a problem as we scale the prompts in the future. I am thinking that it might make sense to assign them an ulid as a reference point. The ulid will act like a key and a reference point between the public facing prompts and any private ones that we decide to release in the future.
+
+Next, let us update the config.ts and zod for the vault and so we can store a better key to reference and search the prompts through. We know that it will be `ulid` as a field and we can save it as a `z.string`. Afterwards, we will have to go back and add the ulid variable to each of the prompts, so that zod does not fail the build.
+
+Went ahead and decided to create a folder to hold the prompts, and then renamed the original `prompts.json.js` to `collection.json.js` and created a new `engine.json.js`, this will hold an optimized json table of the data. This way we can have a bit of both and work through what we already have within the pipeline. I kept the original as a collection endpoint, so that the exisiting tools do not break and we will use the new engine endpoint in the newer toolings and github actions.
+
+Let me go ahead and sync those changes and create a new branch to work off of.
+
+
+<Adsense />
+
+## 2023
+
+- 11:00am - Just got ready! Going to spend some time cleaning up the backyard and doing some general cleaning. Damn my room got a bit messy, not too much trash but my clean clothes are are not organized the way that I would want. I like to take small 5-15 min. blocks where I just tackle a specific area of my room, then rotate around. I do need to do inventory of my electronics again this weekend.
+- 2:30pm - Spent some time reading up on Aaron Swartz, thought I might include his open source manifesto and maybe take a couple jabs at improving it here and there. I found it to be interesting that it has been over 15 years since he released the document.
+- 4:30pm - Getting ready to go to the park! I need to enjoy some of this fresh air and weather before it becomes too hot. After the park, I will take a look at the resume issue and also see if I can get started on the next stage of development within the resume tool.
+
+## Quote
+
+> You yourself must strive. The Buddhas only point the way.
+> — <cite>The Buddha</cite>
+
+---
+
+## Tasks
+
+- [ ] Park Trip!
+- [ ] Start Development Stage of Resume
