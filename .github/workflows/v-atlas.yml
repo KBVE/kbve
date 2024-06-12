@@ -22,7 +22,7 @@ jobs:
 
     - name: Expose Docker container with Localtunnel
       id: localtunnel
-      uses: ./.github/github-a-localtunnel
+      uses: ./.github/actions/github-a-localtunnel
       with:
         port: 3000
 
