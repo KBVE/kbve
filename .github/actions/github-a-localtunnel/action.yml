@@ -8,9 +8,22 @@ outputs:
   tunnel_url:
     description: 'The URL of the localtunnel.'
 runs:
-  using: 'node20'
-  pre: 'npm install'
-  main: 'index.js'
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Install dependencies
+      run: npm install
+      working-directory: ${{ github.action_path }}
+    - name: Run Localtunnel
+      id: localtunnel
+      run: node index.js
+      working-directory: ${{ github.action_path }}
+    - name: Set output
+      run: echo "tunnel_url=${{ steps.localtunnel.outputs.tunnel_url }}" >> $GITHUB_ENV
+
 branding:
   icon: 'terminal'
   color: 'blue'
