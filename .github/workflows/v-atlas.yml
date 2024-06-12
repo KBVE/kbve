@@ -1,0 +1,28 @@
+name: Run Docker and Get Public IP
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  run-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Run Docker container
+      run: |
+        docker run -d -p 3000:3000 kbve/atlas
+
+    - name: Get Public IP
+      id: ip
+      uses: haythem/public-ip@v1.3
+
+    - name: Print Public IP
+      run: |
+        echo "Public IPv4: ${{ steps.ip.outputs.ipv4 }}"
+        echo "Public IPv6: ${{ steps.ip.outputs.ipv6 }}"
