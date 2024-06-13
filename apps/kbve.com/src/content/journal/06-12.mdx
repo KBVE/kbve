@@ -73,3 +73,7 @@ It seems that ngrok decided to limit our transfer out, so we will have to replac
 ```
 
 That was our older ngrok, but I will make my own custom action using localtunnel and hopefully that will let us keep the rocket up until the moon!
+
+It turns that localtunnel was also not good enough for this project, hmm, maybe I need to think a bit outside the box.
+We could create our own ingress and then integrate that directly into our Rust API, or maybe we could spin it up as a different container that communicates with our API.
+

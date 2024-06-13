@@ -18,5 +18,6 @@ tower-http = { version = "0.4.4", features = ["cors"] }
 r2d2 = "0.8.9"
 diesel = { version = "2.0.0", features = ["mysql", "chrono", "r2d2"] }
 jedi = "0.1.11"
+rathole = "0.5"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
