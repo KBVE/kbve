@@ -3,10 +3,10 @@ title: 'June: 13'
 category: Daily
 date: 2024-06-13 12:00:00
 client: Self
-unsplash: 1618401471353-b98afee0b2eb
-img: https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1559510981-10719ce4266a
+img: https://images.unsplash.com/photo-1559510981-10719ce4266a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: |
-  June 13th. MeFourGPT.
+  June 13th. MeFourGPT. Cleaning up the pipes, everyone has to do it.
 tags:
   - daily
 ---
@@ -22,7 +22,22 @@ As for the general rule of thumb, the mornings should always start with a fresh 
 An overloaded ice coffee is perfect for the start of the morning and I got another protein-mixed coffee blend in the kitchen that is almost ready for lunch time.
 AFter getting all wired up, it would be wise to start making some moves.
 
-**Itch**
+**Cleaning Pipes**
 
 Just to be safe from a quick repo revamp, we need a quick function to help us migrate out some of the core code base, but maybe that can be done at a later time.
 We want to make sure that none of our older games get effected by any random changes that we make moving forward.
+Let me update the title for this entry, I should call it updating and cleaning up the pipelines.
+I removed the actions to call the itch for deployment, this is just because we will shift gears and have the monorepo focus on steam deployment.
+The next part of the pipeline cleaning will be to move some of the notes and documentation into the `git.mdx` so that it can be referenced easily without directly going to the file.
+In the future, we want to basically move all the code comments and documentation out of the file itself and place it directly into the mdx docs.
+Granted, we would have to also offer the translations but that is so far in the year, 2026 probably xD
+
+It would be wise to sync the changes first with the initial branchs, like `dev` and `alpha`, maybe even include the `beta`.
+I will loop back around to the main branch next week, just to make sure that I do not break the whole CI/CD flow in a day.
+
+The new actions that we added are still broken, so let me push this through and then start fixing the broken actions.
+
+**Action Repair**
+
+It seems that the `pre` command within the `action.yml` is not supported for local-based actions!
+The solution would be to switch back to composite, let me sync up these current changes and push up to main.

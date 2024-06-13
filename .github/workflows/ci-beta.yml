@@ -1,321 +1,264 @@
 name: CI - Beta
 
 on:
-    push:
-        branches:
-                - "beta*"
+  push:
+    branches:
+      - 'beta*'
 
-                
 jobs:
-    handle:
-        name: "Beta to Main"
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Checkout
-                uses: actions/checkout@v4
+  handle:
+    name: 'Beta to Main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            -   name: Auto-Pull
-                id: open-pr
-                uses: diillson/auto-pull-request@v1.0.1
-                with:
-                    destination_branch: "main"
-                    pr_title: "Preparing Release Branch"
-                    pr_body: |
-                                        *An automated PR for Main Release*
-                                        This PR is for the main branch
-                    pr_label: "auto-pr"
+      - name: Auto-Pull
+        id: open-pr
+        uses: diillson/auto-pull-request@v1.0.1
+        with:
+          destination_branch: 'main'
+          pr_title: 'Preparing Release Branch'
+          pr_body: |
+            *An automated PR for Main Release*
+            This PR is for the main branch
+          pr_label: 'auto-pr'
 
-            -   name: output-url
-                run: echo ${{steps.open-pr.outputs.pr_url}}
-            -   name: output-number
-                run: echo ${{steps.open-pr.outputs.pr_number}}
-            -   name: output-created
-                run: echo ${{steps.open-pr.outputs.pr_created}}
-            -   name: output-has-changed-files
-                run: echo ${{steps.open-pr.outputs.has_changed_files}}
+      - name: output-url
+        run: echo ${{steps.open-pr.outputs.pr_url}}
+      - name: output-number
+        run: echo ${{steps.open-pr.outputs.pr_number}}
+      - name: output-created
+        run: echo ${{steps.open-pr.outputs.pr_created}}
+      - name: output-has-changed-files
+        run: echo ${{steps.open-pr.outputs.has_changed_files}}
 
-    alter:
-        name: "Beta Deployment Checks"
-        runs-on: ubuntu-latest
-        if: github.repository == 'kbve/kbve'
-        outputs:
-            rustwasmembed: ${{ steps.delta.outputs.rustwasmembed_any_changed }}
-            reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }}
-            reacttravelbox: ${{ steps.delta.outputs.reacttravelbox_any_changed }}
-            kbve: ${{ steps.delta.outputs.kbve_any_changed }}
-            rustkbve: ${{ steps.delta.outputs.rustkbve_any_changed }}
-            jedi: ${{ steps.delta.outputs.jedi_any_changed }}
+  alter:
+    name: 'Beta Deployment Checks'
+    runs-on: ubuntu-latest
+    if: github.repository == 'kbve/kbve'
+    outputs:
+      rustwasmembed: ${{ steps.delta.outputs.rustwasmembed_any_changed }}
+      kbve: ${{ steps.delta.outputs.kbve_any_changed }}
+      rustkbve: ${{ steps.delta.outputs.rustkbve_any_changed }}
+      jedi: ${{ steps.delta.outputs.jedi_any_changed }}
 
+    steps:
+      - name: Checkout the repository using git
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-        steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
-                with:
-                    fetch-depth: 1
-            
-            -   name: File Changes
-                id: delta
-                uses: tj-actions/changed-files@v39
-                with:
-                  files_yaml: |
-                      rustwasmembed:
-                          - 'apps/rust_wasm_embed/src/**'
-                      reactfishchip:
-                          - 'apps/react-phaser-fish-chip/src/**'
-                      reacttravelbox:
-                          - 'apps/react-phaser-travelbox/src/**'
-                      kbve:
-                          - 'apps/kbve.com/**'
-                      jedi:
-                          - 'packages/jedi/src/**'
-                      rustkbve:
-                          - 'packages/kbve/src/**'
-                
-    deploy:
-        needs: alter
-        name: "Processing Embed Builds and Pipeline"
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
+      - name: File Changes
+        id: delta
+        uses: tj-actions/changed-files@v39
+        with:
+          files_yaml: |
+            rustwasmembed:
+                - 'apps/rust_wasm_embed/src/**'
+            kbve:
+                - 'apps/kbve.com/**'
+            jedi:
+                - 'packages/jedi/src/**'
+            rustkbve:
+                - 'packages/kbve/src/**'
 
-            -   name: Setup Node v18
-                uses: actions/setup-node@v3
-                with:
-                    node-version: 18
+  deploy:
+    needs: alter
+    name: 'Processing Embed Builds and Pipeline'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository using git
+        uses: actions/checkout@v4
 
-            -   name: Setup pnpm
-                uses: pnpm/action-setup@v3
-                with:
-                    version: 9
-                    run_install: false
+      - name: Setup Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
 
-            #   @[CACHE]-> [PNPM] -> [START]
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            -   name: Get pnpm Store
-                shell: bash
-                run: |
-                      echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Setup pnpm Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-            -   name: Setup pnpm Cache
-                uses: actions/cache@v3
-                with:
-                      path: ${{ env.STORE_PATH }}
-                      key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                      restore-keys: |
-                          ${{ runner.os }}-pnpm-store-
+      - name: Install pnpm dependencies
+        run: pnpm install
 
-            #   @[CACHE] -> [PNPM] ->  [END]
-        
-            -   name: Install pnpm dependencies
-                run: pnpm install
+  rust_wasm_embed:
+    needs: ['alter', 'deploy']
+    name: 'Building and pushing updated Rust WASM Embed'
+    if: needs.alter.outputs.rustwasmembed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rust WASM TrunkSetup
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx rust_wasm_embed:trunksetup'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            #   [Rust WASM Embed]
+      - name: Rust WASM Embed Trunk Release
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx rust_wasm_embed:trunkrelease'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            -   name: Rust WASM Embed
-                if: needs.alter.outputs.rustwasmembed == 'true'
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-nx rust_wasm_embed:trunksetup'
-                    create_pull_request: false
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Rust WASM Embed Pipeline
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx rust_wasm_embed:pipe'
+          create_pull_request: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_request_title: 'rust-wasm-herbmail-dist-pipeline'
+          pull_request_body: 'Rust WASM Embed Distribution for Herbmail.com'
 
-            -   name: Rust WASM Embed Trunk Release
-                if: needs.alter.outputs.rustwasmembed == 'true'
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-nx rust_wasm_embed:trunkrelease'
-                    create_pull_request: false
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
-                
-            -   name: Rust WASM Embed Pipeline
-                if: needs.alter.outputs.rustwasmembed == 'true'
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-nx rust_wasm_embed:pipe'
-                    create_pull_request: true
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
-                    pull_request_title: 'rust-wasm-herbmail-dist-pipeline'
-                    pull_request_body: 'Rust WASM Embed Distribution for Herbmail.com'
+  kbve_website_e2e:
+    needs: ['alter', 'deploy']
+    name: 'Performing kbve.com e2e'
+    if: needs.alter.outputs.kbve == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository using git
+        uses: actions/checkout@v4
 
-            
+      - name: Setup Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-            #   [React] -> Fish & Chip
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
 
-            # -   name: React Fish & Chip
-            #     if: needs.alter.outputs.reactfishchip == 'true'
-            #     uses: ./.github/actions/kbve-shell
-            #     with:
-            #         flag: '-build react-phaser-fish-chip'
-            #         create_pull_request: true
-            #         github_token: ${{ secrets.GITHUB_TOKEN }}
-            #         pull_request_title: 'react-fish-chip-built-request'
-            #         pull_request_body: 'React Fish and Chip Built Request'
-                
-                    
-            #   [React] -> Travel Box
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            # -   name: React Travel Box
-            #     if: needs.alter.outputs.reacttravelbox == 'true'
-            #     uses: ./.github/actions/kbve-shell
-            #     with:
-            #         flag: '-build react-phaser-travelbox'
-            #         create_pull_request: true
-            #         github_token: ${{ secrets.GITHUB_TOKEN }}
-            #         pull_request_title: 'react-travelbox-built-request'
-            #         pull_request_body: 'React TravelBox Built Request'
-            
-            #  []
+      - name: Setup pnpm Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-    kbve_website_e2e:
-        needs: ['alter', 'deploy']
-        name: "Performing kbve.com e2e"
-        if: needs.alter.outputs.kbve == 'true'
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
+      - name: Install pnpm dependencies
+        run: pnpm install
 
-            -   name: Setup Node v20
-                uses: actions/setup-node@v4
-                with:
-                    node-version: 20
+      - name: Build KBVE.com Website
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx kbve.com:build'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            -   name: Setup pnpm
-                uses: pnpm/action-setup@v3
-                with:
-                    version: 9
-                    run_install: false
+      - name: Run KBVE.com e2e
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx kbve.com-e2e:e2e'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            #   @[CACHE]-> [PNPM] -> [START]
+  jedi_package_e2e:
+    needs: ['alter', 'deploy']
+    name: 'Performing Jedi package e2e'
+    if: needs.alter.outputs.jedi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository using git
+        uses: actions/checkout@v4
 
-            -   name: Get pnpm Store
-                shell: bash
-                run: |
-                      echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Setup Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-            -   name: Setup pnpm Cache
-                uses: actions/cache@v3
-                with:
-                      path: ${{ env.STORE_PATH }}
-                      key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                      restore-keys: |
-                          ${{ runner.os }}-pnpm-store-
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
 
-            #   @[CACHE] -> [PNPM] ->  [END]
-        
-            -   name: Install pnpm dependencies
-                run: pnpm install
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            -   name: Build KBVE.com Website
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-nx kbve.com:build'
-                    create_pull_request: false
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup pnpm Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-            -   name: Run KBVE.com e2e
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-nx kbve.com-e2e:e2e'
-                    create_pull_request: false
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
-            
-                        
-            
-    jedi_package_e2e:
-        needs: ['alter', 'deploy']
-        name: "Performing Jedi package e2e"
-        if: needs.alter.outputs.jedi == 'true'
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
+      - name: Install pnpm dependencies
+        run: pnpm install
 
-            -   name: Setup Node v20
-                uses: actions/setup-node@v4
-                with:
-                    node-version: 20
+      - name: Jedi Package Dry Run
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx jedi:dry'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            -   name: Setup pnpm
-                uses: pnpm/action-setup@v3
-                with:
-                    version: 9
-                    run_install: false
+  kbve_rust_package_e2e:
+    needs: ['alter', 'deploy']
+    name: 'Performing KBVE Package e2e'
+    if: needs.alter.outputs.rustkbve == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository using git
+        uses: actions/checkout@v4
 
-            #   @[CACHE]-> [PNPM] -> [START]
+      - name: Setup Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-            -   name: Get pnpm Store
-                shell: bash
-                run: |
-                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
 
-            -   name: Setup pnpm Cache
-                uses: actions/cache@v3
-                with:
-                    path: ${{ env.STORE_PATH }}
-                    key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                    restore-keys: |
-                        ${{ runner.os }}-pnpm-store-
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            #   @[CACHE] -> [PNPM] ->  [END]
-        
-            -   name: Install pnpm dependencies
-                run: pnpm install
+      - name: Setup pnpm Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-            -   name: Jedi Package Dry Run
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-nx jedi:dry'
-                    create_pull_request: false
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install pnpm dependencies
+        run: pnpm install
 
-
-            
-    kbve_rust_package_e2e:
-        needs: ['alter', 'deploy']
-        name: "Performing KBVE Package e2e"
-        if: needs.alter.outputs.rustkbve == 'true'
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Checkout the repository using git
-                uses: actions/checkout@v4
-
-            -   name: Setup Node v20
-                uses: actions/setup-node@v4
-                with:
-                    node-version: 20
-
-            -   name: Setup pnpm
-                uses: pnpm/action-setup@v3
-                with:
-                    version: 9
-                    run_install: false
-
-            #   @[CACHE]-> [PNPM] -> [START]
-
-            -   name: Get pnpm Store
-                shell: bash
-                run: |
-                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-            -   name: Setup pnpm Cache
-                uses: actions/cache@v3
-                with:
-                    path: ${{ env.STORE_PATH }}
-                    key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                    restore-keys: |
-                        ${{ runner.os }}-pnpm-store-
-
-            #   @[CACHE] -> [PNPM] ->  [END]
-        
-            -   name: Install pnpm dependencies
-                run: pnpm install
-
-            -   name: KBVE Package Dry Run
-                uses: ./.github/actions/kbve-shell
-                with:
-                    flag: '-nx kbve:dry'
-                    create_pull_request: false
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: KBVE Package Dry Run
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx kbve:dry'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
