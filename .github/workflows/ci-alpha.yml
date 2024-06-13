@@ -1,331 +1,331 @@
 name: CI - Alpha
 
 on:
-    push:
-        branches:
-            - 'alpha*'
+  push:
+    branches:
+      - 'alpha*'
 
 jobs:
-    setup:
-        name: 'Setup'
-        runs-on: ubuntu-latest
-        outputs:
-            build_unity: ${{ steps.set_output.outputs.build_unity }}
-        steps:
-            - id: set_output
-              shell: bash
-              run: |
-                  echo "build_unity=true" >> $GITHUB_OUTPUT
+  setup:
+    name: 'Setup'
+    runs-on: ubuntu-latest
+    outputs:
+      build_unity: ${{ steps.set_output.outputs.build_unity }}
+    steps:
+      - id: set_output
+        shell: bash
+        run: |
+          echo "build_unity=true" >> $GITHUB_OUTPUT
 
-    handle:
-        name: 'Alpha to Beta'
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  handle:
+    name: 'Alpha to Beta'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Auto-Pull
-              id: open-pr
-              uses: diillson/auto-pull-request@v1.0.1
-              with:
-                  destination_branch: 'beta'
-                  pr_title: 'Preparing Beta Branch'
-                  pr_body: |
-                      *An automated PR for Beta*
-                      This PR is for the beta branch
-                  pr_label: 'auto-pr'
+      - name: Auto-Pull
+        id: open-pr
+        uses: diillson/auto-pull-request@v1.0.1
+        with:
+          destination_branch: 'beta'
+          pr_title: 'Preparing Beta Branch'
+          pr_body: |
+            *An automated PR for Beta*
+            This PR is for the beta branch
+          pr_label: 'auto-pr'
 
-            - name: output-url
-              run: echo ${{steps.open-pr.outputs.pr_url}}
-            - name: output-number
-              run: echo ${{steps.open-pr.outputs.pr_number}}
-            - name: output-created
-              run: echo ${{steps.open-pr.outputs.pr_created}}
-            - name: output-has-changed-files
-              run: echo ${{steps.open-pr.outputs.has_changed_files}}
+      - name: output-url
+        run: echo ${{steps.open-pr.outputs.pr_url}}
+      - name: output-number
+        run: echo ${{steps.open-pr.outputs.pr_number}}
+      - name: output-created
+        run: echo ${{steps.open-pr.outputs.pr_created}}
+      - name: output-has-changed-files
+        run: echo ${{steps.open-pr.outputs.has_changed_files}}
 
-    alter:
-        name: 'Alpha Deployment Checks'
-        runs-on: ubuntu-latest
-        if: github.repository == 'kbve/kbve'
-        outputs:
-            herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
-            kbve: ${{ steps.delta.outputs.kbve_any_changed }}
-            rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
-            discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
-            atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
-            api: ${{ steps.delta.outputs.api_any_changed  }}
-            proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
-            saber: ${{ steps.delta.outputs.saber_any_changed  }}
-            rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
-            itchfishchip: ${{ steps.delta.outputs.itchfishchip_any_changed }}
-            reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }}
-            reacttravelbox: ${{ steps.delta.outputs.reacttravelbox_any_changed }}
-            expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
+  alter:
+    name: 'Alpha Deployment Checks'
+    runs-on: ubuntu-latest
+    if: github.repository == 'kbve/kbve'
+    outputs:
+      herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
+      kbve: ${{ steps.delta.outputs.kbve_any_changed }}
+      rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
+      discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
+      atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
+      api: ${{ steps.delta.outputs.api_any_changed  }}
+      proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
+      saber: ${{ steps.delta.outputs.saber_any_changed  }}
+      rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
+      itchfishchip: ${{ steps.delta.outputs.itchfishchip_any_changed }}
+      reactfishchip: ${{ steps.delta.outputs.reactfishchip_any_changed }}
+      reacttravelbox: ${{ steps.delta.outputs.reacttravelbox_any_changed }}
+      expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
 
-        steps:
-            - name: Checkout the repository using git
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
+    steps:
+      - name: Checkout the repository using git
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-            - name: File Changes
-              id: delta
-              uses: tj-actions/changed-files@v39
-              with:
-                  files_yaml: |
-                      herbmail:
-                          - 'apps/herbmail.com/**'
-                      kbve:
-                          - 'apps/kbve.com/**'
-                      rareicon:
-                          - 'apps/rareicon.com/**'
-                      discordsh:
-                          - 'apps/discord.sh/**'
-                      atlas:
-                          - 'apps/atlas/kbve_atlas/**'
-                      api:
-                          - 'apps/api/**'
-                      proxy:
-                          - 'apps/proxy/**'
-                      saber:
-                          - 'apps/saber/**'
-                      rustapiprofile:
-                          - 'apps/rust_api_profile/**'
-                      itchfishchip:
-                          - 'apps/next-itch-fishchip/**'
-                      reactfishchip:
-                          - 'apps/react-phaser-fish-chip/src/**'
-                      reacttravelbox:
-                          - 'apps/react-phaser-travelbox/src/**'
-                      expolcagents:
-                          - 'apps/expo-lcagents/**'
+      - name: File Changes
+        id: delta
+        uses: tj-actions/changed-files@v39
+        with:
+          files_yaml: |
+            herbmail:
+                - 'apps/herbmail.com/**'
+            kbve:
+                - 'apps/kbve.com/**'
+            rareicon:
+                - 'apps/rareicon.com/**'
+            discordsh:
+                - 'apps/discord.sh/**'
+            atlas:
+                - 'apps/atlas/kbve_atlas/**'
+            api:
+                - 'apps/api/**'
+            proxy:
+                - 'apps/proxy/**'
+            saber:
+                - 'apps/saber/**'
+            rustapiprofile:
+                - 'apps/rust_api_profile/**'
+            itchfishchip:
+                - 'apps/next-itch-fishchip/**'
+            reactfishchip:
+                - 'apps/react-phaser-fish-chip/src/**'
+            reacttravelbox:
+                - 'apps/react-phaser-travelbox/src/**'
+            expolcagents:
+                - 'apps/expo-lcagents/**'
 
-    # Alpha Builds
+  # Alpha Builds
 
-    buildSaber:
-        needs: [alter, setup]
-        name: 'Saber Alpha Build'
-        runs-on: ubuntu-latest
-        if: needs.alter.outputs.saber == 'true' && needs.setup.outputs.build_unity == 'true'
-        strategy:
-            fail-fast: false
-            matrix:
-                projectPath:
-                    - apps/saber
-                unityVersion:
-                    - 2022.3.12f1
-                targetPlatform:
-                    - StandaloneWindows64
-                    # - WebGL * Disabled WebGL for DoTs
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  token: ${{ secrets.UNITY_PAT  }}
-            - uses: actions/cache@v2
-              with:
-                  path: ${{ matrix.projectPath }}/Library
-                  key:
-                      Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-${{
-                      hashFiles(matrix.projectPath) }}
-                  restore-keys: |
-                      Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-
-                      Library-${{ matrix.projectPath }}-
-                      Library-
+  buildSaber:
+    needs: [alter, setup]
+    name: 'Saber Alpha Build'
+    runs-on: ubuntu-latest
+    if: needs.alter.outputs.saber == 'true' && needs.setup.outputs.build_unity == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        projectPath:
+          - apps/saber
+        unityVersion:
+          - 2022.3.12f1
+        targetPlatform:
+          - StandaloneWindows64
+          # - WebGL * Disabled WebGL for DoTs
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.UNITY_PAT  }}
+      - uses: actions/cache@v2
+        with:
+          path: ${{ matrix.projectPath }}/Library
+          key:
+            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-${{
+            hashFiles(matrix.projectPath) }}
+          restore-keys: |
+            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-
+            Library-${{ matrix.projectPath }}-
+            Library-
 
-            - uses: game-ci/unity-builder@v3
-              env:
-                  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-                  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-                  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-              with:
-                  projectPath: ${{ matrix.projectPath }}
-                  unityVersion: ${{ matrix.unityVersion }}
-                  targetPlatform: ${{ matrix.targetPlatform }}
+      - uses: game-ci/unity-builder@v3
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
 
-            # WebGL * Disalbed WebGL for DoTs
-            #
-            #- uses: actions/upload-artifact@v2
-            #  with:
-            #    name: build-WebGL
-            #    path: build/WebGL
+      # WebGL * Disalbed WebGL for DoTs
+      #
+      #- uses: actions/upload-artifact@v2
+      #  with:
+      #    name: build-WebGL
+      #    path: build/WebGL
 
-            - uses: actions/upload-artifact@v2
-              with:
-                  name: build-StandaloneWindows64
-                  path: build/StandaloneWindows64
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-StandaloneWindows64
+          path: build/StandaloneWindows64
 
-    deploy:
-        needs: alter
-        name: 'Process Alpha Branch'
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout the repository using git
-              uses: actions/checkout@v4
+  deploy:
+    needs: alter
+    name: 'Process Alpha Branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository using git
+        uses: actions/checkout@v4
 
-            - name: Setup Node v18
-              uses: actions/setup-node@v3
-              with:
-                  node-version: 18
+      - name: Setup Node v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v3
-              with:
-                  version: 9
-                  run_install: false
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
 
-            #   @[CACHE]-> [PNPM] -> [START]
+      #   @[CACHE]-> [PNPM] -> [START]
 
-            - name: Get pnpm Store
-              shell: bash
-              run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            - name: Setup pnpm Cache
-              uses: actions/cache@v3
-              with:
-                  path: ${{ env.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
+      - name: Setup pnpm Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-            #   @[CACHE] -> [PNPM] ->  [END]
+      #   @[CACHE] -> [PNPM] ->  [END]
 
-            - name: Install pnpm dependencies
-              run: pnpm install
+      - name: Install pnpm dependencies
+        run: pnpm install
 
-            #   @[REPORT] -> [START]
+      #   @[REPORT] -> [START]
 
-            - name: Generate NX Report
-              shell: bash
-              run: |
-                  pnpm nx report
+      - name: Generate NX Report
+        shell: bash
+        run: |
+          pnpm nx report
 
-            #   @[REPORT] -> [END]
+      #   @[REPORT] -> [END]
 
-            #   [SABER] -> [UNITY] -> [START]
-            - name: Saber Deployment
-              if: needs.alter.outputs.saber == 'true'
-              shell: bash
-              run: |
-                  echo "Deploying Saber..."
-            #   [SABER] -> [UNITY] -> [END]
-            - name: Itch Fish Chip Build
-              if: needs.alter.outputs.itchfishchip == 'true'
-              shell: bash
-              run: |
-                  pnpm nx build next-itch-fishchip
+      #   [SABER] -> [UNITY] -> [START]
+      - name: Saber Deployment
+        if: needs.alter.outputs.saber == 'true'
+        shell: bash
+        run: |
+          echo "Deploying Saber..."
+      #   [SABER] -> [UNITY] -> [END]
+      # - name: Itch Fish Chip Build
+      #   if: needs.alter.outputs.itchfishchip == 'true'
+      #   shell: bash
+      #   run: |
+      #       pnpm nx build next-itch-fishchip
 
-            - name: Itch Fish Chip Upload Deployment
-              if: needs.alter.outputs.itchfishchip == 'true'
-              uses: actions/upload-artifact@v2
-              with:
-                  name: build-WebGL
-                  path: apps/next-itch-fishchip/dist
+      # - name: Itch Fish Chip Upload Deployment
+      #   if: needs.alter.outputs.itchfishchip == 'true'
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #       name: build-WebGL
+      #       path: apps/next-itch-fishchip/dist
 
-            #    [React] Fish & Chip
+      #    [React] Fish & Chip
 
-            #    [React] Phaser TravelBox
+      #    [React] Phaser TravelBox
 
-            - name: Itch TravelBox Build
-              if: needs.alter.outputs.reacttravelbox == 'true'
-              shell: bash
-              run: |
-                  pnpm nx build react-phaser-travelbox
+      # - name: Itch TravelBox Build
+      #   if: needs.alter.outputs.reacttravelbox == 'true'
+      #   shell: bash
+      #   run: |
+      #       pnpm nx build react-phaser-travelbox
 
-            - name: Itch Fish Chip Upload Deployment
-              if: needs.alter.outputs.reacttravelbox == 'true'
-              uses: actions/upload-artifact@v2
-              with:
-                  name: build-WebGL
-                  path: apps/kbve.com/public/embed/js/travelbox
+      # - name: Itch Fish Chip Upload Deployment
+      #   if: needs.alter.outputs.reacttravelbox == 'true'
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #       name: build-WebGL
+      #       path: apps/kbve.com/public/embed/js/travelbox
 
-            #       [Build Test]
-            - name: Build KBVE.com
-              if: needs.alter.outputs.kbve == 'true'
-              shell: bash
-              run: |
-                  pnpm nx build kbve.com
+      #       [Build Test]
+      - name: Build KBVE.com
+        if: needs.alter.outputs.kbve == 'true'
+        shell: bash
+        run: |
+          pnpm nx build kbve.com
 
-    itchdev:
-        needs: ['alter', 'buildSaber', 'setup']
-        name: Itch Dev Saber Deployment
-        runs-on: ubuntu-latest
-        if: needs.alter.outputs.saber == 'true' && needs.setup.outputs.build_unity == 'true'
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  itchdev:
+    needs: ['alter', 'buildSaber', 'setup']
+    name: Itch Dev Saber Deployment
+    runs-on: ubuntu-latest
+    if: needs.alter.outputs.saber == 'true' && needs.setup.outputs.build_unity == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Download Windows Build
-              uses: actions/download-artifact@v3
-              id: download
-              with:
-                  name: build-StandaloneWindows64
-                  path: build/StandaloneWindows64
+      - name: Download Windows Build
+        uses: actions/download-artifact@v3
+        id: download
+        with:
+          name: build-StandaloneWindows64
+          path: build/StandaloneWindows64
 
-            #-   name: Download WebGL Build
-            #    uses: actions/download-artifact@v3
-            #    id: download
-            #    with:
-            #      name: build-WebGL
-            #      path: build/WebGL
+      #-   name: Download WebGL Build
+      #    uses: actions/download-artifact@v3
+      #    id: download
+      #    with:
+      #      name: build-WebGL
+      #      path: build/WebGL
 
-            - name: Itch Deploy
-              uses: KikimoraGames/itch-publish@v0.0.3
-              with:
-                  butlerApiKey: ${{ secrets.ITCH_API }}
-                  gameData: ${{steps.download.outputs.download-path}}
-                  itchUsername: kbve
-                  itchGameId: dev-saber
-                  #buildChannel: webgl
-                  buildChannel: windows
+      - name: Itch Deploy
+        uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{ secrets.ITCH_API }}
+          gameData: ${{steps.download.outputs.download-path}}
+          itchUsername: kbve
+          itchGameId: dev-saber
+          #buildChannel: webgl
+          buildChannel: windows
 
-    itchfishchipdeploy:
-        needs: ['alter', 'deploy']
-        name: Itch Fish Chip Deployment
-        runs-on: ubuntu-latest
-        if: needs.alter.outputs.itchfishchip == 'true'
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  # itchfishchipdeploy:
+  #     needs: ['alter', 'deploy']
+  #     name: Itch Fish Chip Deployment
+  #     runs-on: ubuntu-latest
+  #     if: needs.alter.outputs.itchfishchip == 'true'
+  #     steps:
+  #         - name: Checkout repository
+  #           uses: actions/checkout@v4
 
-            - name: Download WebGL Build
-              uses: actions/download-artifact@v3
-              id: download
-              with:
-                  name: build-WebGL
-                  path: apps/next-itch-fishchip/dist
+  #         - name: Download WebGL Build
+  #           uses: actions/download-artifact@v3
+  #           id: download
+  #           with:
+  #               name: build-WebGL
+  #               path: apps/next-itch-fishchip/dist
 
-            - name: Itch Deploy
-              uses: KikimoraGames/itch-publish@v0.0.3
-              with:
-                  butlerApiKey: ${{ secrets.ITCH_API }}
-                  gameData: ${{steps.download.outputs.download-path}}
-                  itchUsername: kbve
-                  itchGameId: fishchip
-                  buildChannel: webgl
+  #         - name: Itch Deploy
+  #           uses: KikimoraGames/itch-publish@v0.0.3
+  #           with:
+  #               butlerApiKey: ${{ secrets.ITCH_API }}
+  #               gameData: ${{steps.download.outputs.download-path}}
+  #               itchUsername: kbve
+  #               itchGameId: fishchip
+  #               buildChannel: webgl
 
-    itchtravelbox:
-        needs: ['alter', 'deploy']
-        name: Itch TravelBox Deployment
-        runs-on: ubuntu-latest
-        if: needs.alter.outputs.reacttravelbox == 'true'
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  # itchtravelbox:
+  #     needs: ['alter', 'deploy']
+  #     name: Itch TravelBox Deployment
+  #     runs-on: ubuntu-latest
+  #     if: needs.alter.outputs.reacttravelbox == 'true'
+  #     steps:
+  #         - name: Checkout repository
+  #           uses: actions/checkout@v4
 
-            - name: Download WebGL Build
-              uses: actions/download-artifact@v3
-              id: download
-              with:
-                  name: build-WebGL
-                  path: apps/kbve.com/public/embed/js/phaser
+  #         - name: Download WebGL Build
+  #           uses: actions/download-artifact@v3
+  #           id: download
+  #           with:
+  #               name: build-WebGL
+  #               path: apps/kbve.com/public/embed/js/phaser
 
-            - name: Itch Deploy
-              uses: KikimoraGames/itch-publish@v0.0.3
-              with:
-                  butlerApiKey: ${{ secrets.ITCH_API }}
-                  gameData: ${{steps.download.outputs.download-path}}
-                  itchUsername: kbve
-                  itchGameId: travelbox
-                  buildChannel: webgl
+  #         - name: Itch Deploy
+  #           uses: KikimoraGames/itch-publish@v0.0.3
+  #           with:
+  #               butlerApiKey: ${{ secrets.ITCH_API }}
+  #               gameData: ${{steps.download.outputs.download-path}}
+  #               itchUsername: kbve
+  #               itchGameId: travelbox
+  #               buildChannel: webgl

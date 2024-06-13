@@ -122,6 +122,64 @@ They enhance productivity by managing build, test, and deployment processes dire
 These are the custom notes on our github actions!
 
 
+#### ci-patch.yml
+
+The `ci-patch.yml` GitHub Action is designed to automate the process of creating pull requests for branches that follow a naming pattern starting with "patch".
+When a push event occurs on any of these branches, the action triggers and runs on the latest version of Ubuntu.
+It first checks out the code using the `actions/checkout` action. Then, it uses the `diillson/auto-pull-request` action to automatically create a pull request from the patch branch to the `dev` branch.
+The pull request will have a title indicating the source branch and a body containing the message "An automated PR".
+Additionally, the pull request will be labeled with "auto-pr".
+
+
+```yaml
+
+name: CI Patch
+
+on:
+  push:
+    branches:
+      - 'patch*'
+
+jobs:
+  handle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auto-Pull
+        uses: diillson/auto-pull-request@latest
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          destination_branch: 'dev'
+          pr_title: 'Pulling ${{ github.ref }} into Dev'
+          pr_body: |
+            *An automated PR*
+          pr_label: 'auto-pr'
+
+```
+
+### kbve-shell
+
+
+
+Example of calling the KBVE Shell
+
+```yaml
+
+-   name: React Fish & Chip
+    if: needs.alter.outputs.reactfishchip == 'true'
+    uses: ./.github/actions/kbve-shell
+    with:
+      flag: '-build react-phaser-fish-chip'
+      create_pull_request: true
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+      pull_request_title: 'react-fish-chip-built-request'
+      pull_request_body: 'React Fish and Chip Built Request'
+
+```
+
+
 #### Music
 
 These are brief notes on the `i-music-process.yml` within our monorepo.

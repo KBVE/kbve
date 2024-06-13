@@ -1,26 +1,25 @@
 name: CI Patch
 
-on:
-    push:
-        branches:
-            - "patch*"
+# Docs for this Github workflow is here https://kbve.com/application/git/#ci-patch.yml
 
-#permissions:
+on:
+  push:
+    branches:
+      - 'patch*'
 
 jobs:
-    handle:
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Checkout
-                uses: actions/checkout@v4
+  handle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            -   name: Auto-Pull
-                #uses: diillson/auto-pull-request@v1.0.1
-                uses: diillson/auto-pull-request@latest
-                with:
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
-                    destination_branch: "dev"
-                    pr_title: "Pulling ${{ github.ref }} into Dev"
-                    pr_body: |
-                        *An automated PR*
-                    pr_label: "auto-pr"
+      - name: Auto-Pull
+        uses: diillson/auto-pull-request@latest
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          destination_branch: 'dev'
+          pr_title: 'Pulling ${{ github.ref }} into Dev'
+          pr_body: |
+            *An automated PR*
+          pr_label: 'auto-pr'
