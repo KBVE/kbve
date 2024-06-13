@@ -6,17 +6,18 @@ client: Self
 unsplash: 1618401471353-b98afee0b2eb
 img: https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: |
-   June 12th. The Sun! It Burns! A reference for my fallout homies.
+  June 12th. The Sun! It Burns! A reference for my fallout homies.
 tags:
-    - daily
+  - daily
 ---
+
+import { Adsense } from '@kbve/astropad';
 
 ## 2024
 
 **GitHub Actions Musical**
 
 As the lack of sleep has been catching up to me, I think a musical called GitHub Actions would be amazing. It would be a bunch of robots making music, all controlled through github actions. Think about an animatronic character band that people can control via live stream and having it play to an audience that is all virtual? This is the next big thing, if KBVE ever has tech conferences, this is what we will do.
-
 
 **Cookin Show**
 
@@ -47,8 +48,6 @@ We were able to get the base of the RSPS to launch through github actions! I dec
 It seems that ngrok decided to limit our transfer out, so we will have to replace that.
 
 ```yaml
-
-
 # - name: Install ngrok
 #   run: |
 #     curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
@@ -68,8 +67,67 @@ It seems that ngrok decided to limit our transfer out, so we will have to replac
 # - name: Get ngrok URL
 #   run: |
 #     curl -s http://localhost:4040/api/tunnels | jq -r .tunnels[0].public_url
-
-
 ```
 
 That was our older ngrok, but I will make my own custom action using localtunnel and hopefully that will let us keep the rocket up until the moon!
+
+It turns that localtunnel was also not good enough for this project, hmm, maybe I need to think a bit outside the box.
+We could create our own ingress and then integrate that directly into our Rust API, or maybe we could spin it up as a different container that communicates with our API.
+
+Next 
+
+<Adsense />
+
+## 2023
+
+- 11:00am - Waiting to transfer out a couple hundred grand from the recent sale of tesla stocks. I ended up exiting 600 shares and plan to transfer the move to another brokerage.
+
+- 5:00pm - It seems that my grandpa's visa for India has some issues, so I shall try and resolve the issue as fast as I can. The documents requested are as following:
+
+  - Medical Certificate
+  - Request Letter
+  - Undertaking Letter
+  - Travel Document
+  - Certificate
+  - Minor Document
+  - Visa
+  - Others
+
+- 5:45pm - I should further breakdown the different components but there are some additional steps that need to be done.
+
+  - `Photo and Document(s) upload are mandatory`.
+    - There are a couple file formats that they support, it seems to be mainly PDF and JPEG.
+  - `Applicant must upload the photo before proceeding for appointment. `
+    - We will schedule the appoint within the city of Vadodara
+  - `Size of PDF document must be less than 200KB`
+  - `Photo Requirements:` which extends into `Format - JPEG, Size: Minimum 10 KB and Maximum 1 MB.` They go further into detail about how the photo should be a passport photo with a `white background` with no cropping / shadows.
+
+- 5:55pm - Quickly made a salad before I start to dive deeper into the full requirements. I will start with the `Medical Certificate`, which we already have, its in PDF format and is a total collection of all my grandpa's recent hospital checkups and doctor feedback. I think this collection should be enough under this requirement.
+
+- 6:00pm - Next, I will tackle both of the letters, `Request` and `Undertaking`, by quickly looking up examples from the Internet. It is a shame that the Reddit blackouts are making it a bit more painful to search through, I had to resort to looking at the cache / older screenshots, but I suppose that means their protest method is definitely working. I was able to find this amazing website, [Indian E Visa](https://indiaevisas.org/indian-visa-extension-online-application/) that provides the perfect set of examples and samples to help navigate through this process.
+
+- 6:15pm - Example of the Undertaking letter that I written:
+
+  - `**I, Mr. Holy Byte, grandson of, Mr. Grandpa Byte, want to inform you about my grandfather holding passport No: 420696969. I am taking full responsibility for my father while he is recovering in India because of his current medical status. Thus, I am requesting immigration of India to approve his Indian entry tourist visa for 6 months.**`
+  - I kept it straight forward and simple for now, as I do not think this will require much information/detail.
+
+- 6:30pm - Next requirement was the `Travel Document`, which might be a bit confusing for me. I am under the impression that it is the Passport and/or plane ticket. I will email one of the tourist companies that I know and see what they say. Maybe it might be under the Form C? I guess I will have to look further into that area as well, I filled out this form earlier last week but I will do it again just to be safe.
+
+- 6:40pm - Following that requirement is the Certificate, which I am going to assume falls under the Medical request / documents, in our situation, thus I will skip this as well as the minor document request. Finally the last remaining seems to be Visa and Others, thus it might be best to include any additional documents that I have within that relation. The specific office that we would be reporting to is the FRRO Ahmedabad, which is located `- Barrack No. 2, First Floor, Govt. Polytechnic Campus, Ambawadi, Ahmedabad,Gujarat-380015`. I never thought I would have to tell someone to visit a barrack within the polytechnic campus in real life but here we are.
+
+- 9:50pm - Added an additional undertaking letter from my uncle. Hopefully these are enough documents to get this process going. I already emailed the Embassy and reached out to a local tourism agency for further support.
+
+- 10:00pm - I forgot that someone, _cough_, made a script that automatically enters into class action lawsuits. Anyhow, that script is still running and someone may have gotten a recent check from that script. that person should make it into a weird side project / script for the future reference. Regardless there was a check from the `Celsius Class Action Settlement` and it was for an amazing total of $0.94! WoW!
+
+- 10:25pm - The new windows server is up and running but there are a couple issues that I am already running into. The first being that docker is extremely slow and I am not too sure why! I really do not want to spend the time to figure out, it might be something to do with the drivers but the amount of time that I would have to spend is starting to look a bit tiring. Damn I am getting old.
+
+## Quote
+
+> In the end we retain from our studies only that which we practically apply.
+> — <cite>Johann Wolfgang von Goethe</cite>
+
+---
+
+## Tasks
+
+- [ ]
