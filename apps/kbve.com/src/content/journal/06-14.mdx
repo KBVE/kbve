@@ -41,3 +41,11 @@ This sucks but the amount of random bugs and issues that I am running into is wa
 **Jukebox**
 
 The next update that I want to do for this weekend is for the jukebox.
+
+
+**NPM**
+
+The best solution that I can come up with would be to release a `npm` package under the `@kbve/gha` and then we will just call that for all our actions.
+I will make a bunch of custom functions within this library and then use action scripts to call it directly.
+
+After updating the nx to do independent releases and adding the npm token, we can start adding in the npm release via the ci-main.
