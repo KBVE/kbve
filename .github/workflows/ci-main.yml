@@ -52,6 +52,7 @@ jobs:
             expressdiscord: ${{ steps.delta.outputs.expressdiscord_any_changed }}
             expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
             dockervoid: ${{ steps.delta.outputs.dockervoid_any_changed }}
+            khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
 
         steps:
             - name: Checkout the repository using git
@@ -96,6 +97,8 @@ jobs:
                           - 'apps/expo-lcagents/src/**'
                       dockervoid:
                           - 'migrations/docker/v01d/**'
+                      khashvault:
+                          - 'packages/khashvault/package.json'
 
     debug:
         needs: ['alter', 'globals']
@@ -204,6 +207,57 @@ jobs:
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
                   rsync_option: '-avrh --delete'
+
+
+    #   [KHASHVAULT] -> Publish (As NPM)
+    khashvault_npm_publish:
+        needs: ['deploy', 'alter', 'globals']
+        name: KhashVault NPM Publish
+        if: needs.alter.outputs.khashvault == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+          contents: read
+          id-token: write
+        steps:
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            #   @[CACHE]->[START]
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v3
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            #   @[CACHE]->[END]
+
+            - name: Install pnpm dependencies
+              run: pnpm install
+
+            - name: Publish packages
+              run: npx nx release publish --projects=khashvault
+              shell: bash
+              env:
+                NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                NPM_CONFIG_PROVENANCE: true
 
     #   [ATLAS] -> Publish (As App)
     python_atlas_build:
