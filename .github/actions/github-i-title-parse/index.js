@@ -4,9 +4,12 @@ const core = require('@actions/core');
 async function run() {
   try {
     //const token = core.getInput('token', { required: true });
-    const title = core.getInput('title', { required: true });
-    const keyword = core.getInput('keyword', { required: true });
-    const debug = core.getInput('debug') === 'true';
+    // const title = core.getInput('title', { required: true });
+    // const keyword = core.getInput('keyword', { required: true });
+    // const debug = core.getInput('debug') === 'true';
+    const title = process.env.TITLE;
+    const keyword = process.env.KEYWORD;
+    const debug = process.env.DEBUG === 'true';
 
     if (debug) {
       console.log(`Title to parse: ${title}`);
