@@ -34,6 +34,13 @@ runs:
         npm install
       working-directory: ${{ github.action_path }}
 
+    - name: Set environment variables
+      shell: bash
+      run: |
+        echo "TITLE=${{ inputs.title }}" >> $GITHUB_ENV
+        echo "KEYWORD=${{ inputs.keyword }}" >> $GITHUB_ENV
+        echo "DEBUG=${{ inputs.debug }}" >> $GITHUB_ENV
+
     - name: Parse comment
       id: parse_boolean
       shell: bash
