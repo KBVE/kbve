@@ -48,10 +48,17 @@ runs:
         node index.js
       working-directory: ${{ github.action_path }}
 
+    # - name: Set output
+    #   shell: bash
+    #   run: |
+    #     echo "action=${{ steps.parse_action.outputs.action }}" >> $GITHUB_ENV
+
     - name: Set output
       shell: bash
+      id: set-output
       run: |
-        echo "action=${{ steps.parse_action.outputs.action }}" >> $GITHUB_ENV
+        echo "::set-output name=action::${{ steps.parse_action.outputs.action }}"
+     
 
 branding:
   icon: 'terminal'
