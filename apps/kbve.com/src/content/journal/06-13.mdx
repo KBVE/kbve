@@ -36,11 +36,19 @@ It would be wise to sync the changes first with the initial branchs, like `dev` 
 I will loop back around to the main branch next week, just to make sure that I do not break the whole CI/CD flow in a day.
 
 The new actions that we added are still broken, so let me push this through and then start fixing the broken actions.
+We can focus on getting the container up and running, which we have already, but we can at least do some of the basic functions within the container.
+The first step would be to add a screenshot function and also make sure that both port 3000 and 8086 are open.
+
+Before we can even get to that point, we still have to make sure our modular actions actual run.
 
 **Action Repair**
 
 It seems that the `pre` command within the `action.yml` is not supported for local-based actions!
 The solution would be to switch back to composite, let me sync up these current changes and push up to main.
+
+The way that we would want to launch `atlas` would be through the issue tickets, with the purpose of making sure that the container will run within the github actions.
+There might be concerns with how much this could scale but I do not think that there would be more than a couple issue tickets here and there, yet we can always improve upon this workflow!
+Now the way we would handle this would be to make sure that 
 
 **Sync**
 
@@ -54,3 +62,28 @@ The monorepo cloud environment does its well!
 Finally having some level of reporting in the PR comment section is dope, now we could also look back into the `codeseemap` integration!
 That will be on my list of tasks that I need to add back, 
 Oh nevermind, I forgot that codesee was acquired and that means I will have to find another solution to that graphing problem.
+
+
+
+<Adsense />
+
+## 2023
+
+- 9:00am - Today's market is going to be interesting, I really hope to see a dip but it could go any direction based off of what the feds say!
+- 10:00am - I started to watch the apple tv show, Silo and damn it is giving me some interesting game development vibes and concepts. The show is really well written so far and I am enjoying all the characters so far! I blew through the first couple episodes without even realizing it.
+- 11:00am - Going to take a nap for a while, I been up all night programming.
+- 2:00pm - Decided to take a quick break and visit a car dealership for my mom's new car. We are looking at a 2021 or newer model of an Acura MDX. The current price point is around $48,000 for their `Tech` package. Personally I would want them to switch over to electric but they are still on the fence with it. The 2024 models that we want have a mild waiting period of about 4 months and pre-owned that are certified are around $41,000. I am going to continue to search through different offers, I might just offer around $35,000 and see if they have anything within their system that fits the price point. I will take a model with a couple thousand miles on it, if I can get it at a decent rate. 
+- 4:30pm - Looks like my SPY put has expired and my TSLA puts are going to expire as well. I am thinking of rolling them into next week and collect that $1000~ premium. I might also sell another couple cover calls on TSLA going into next week, if this run continues.
+- 5:00pm - Going to get a bit deeper into the development cycle of RogueJester, but I am definitely feeling a bit of project overload already. I might have to switch up my work station and maybe migrate over to a coffee shop or café. A part of me is thinking of just driving to the beach and working from a boardwalk for a couple hours. 
+- 5:30pm - Appwrite Integration has replaced the Strapi Integration! Now I am going to test case some basic examples and see if I can play. One of the issues that I am currently facing is the Coroutine / Asynchronous problem but there are enough reference points to resolve it. 
+
+## Quote
+
+> Truth is powerful and it prevails.
+> — <cite>Sojourner Truth</cite>
+
+---
+
+## Tasks
+
+- [ ]
