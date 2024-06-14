@@ -1,0 +1,57 @@
+name: Process Atlas Commands
+
+on:
+    issues:
+        types: [opened]
+
+
+permissions:
+    issues: write
+    contents: read
+
+jobs:
+    process_atlas:
+        name: 'Process Atlas Issue'
+        runs-on: ubuntu-latest
+
+        outputs:
+            is_atlas_issue: ${{ steps.title-parser.outputs.boolean }}
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Set up Node.js
+                uses: actions/setup-node@v4
+                with:
+                    node-version: '20'
+
+            -   name: Parse Issue Title
+                id: title-parser
+                uses: ./.github/actions/github-i-title-parse
+                with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    title: ${{ github.event.issue.title }}
+                    keyword: 'Atlas'
+
+            -   name: Stop if not an atlas issue ticket
+                if: steps.title-parser.outputs.boolean == 'false'
+                run: echo "Not an atlas issue. Skipping further steps."
+
+    handle_atlas:
+        name: 'Handle Atlas Ticket'
+        runs-on: ubuntu-latest
+        needs: ['process_atlas']
+        if: needs.process_atlas.outputs.is_atlas_issue == 'true'
+
+        steps:
+            -   name: Comment on issue!
+                id: comment_id
+                uses: ./.github/actions/github-i-comment
+                with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    issue_number: ${{ github.event.issue.number }}
+                    comment_body: |
+                        Preparing to launch the shuttle.
+
+                    
