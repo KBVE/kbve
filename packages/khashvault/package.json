@@ -1,8 +1,8 @@
 {
-	"name": "@kbve/khashvault",
-	"version": "0.0.1",
-	"dependencies": {},
-	"main": "./index.js",
-	"module": "./index.mjs",
-	"typings": "./index.d.ts"
+  "name": "@kbve/khashvault",
+  "version": "1.0.0",
+  "dependencies": {},
+  "main": "./index.js",
+  "module": "./index.mjs",
+  "typings": "./index.d.ts"
 }
