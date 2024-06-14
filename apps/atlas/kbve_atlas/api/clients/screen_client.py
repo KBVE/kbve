@@ -5,6 +5,7 @@ import logging
 import os
 import random
 import math
+import tempfile
 from humancursor import SystemCursor
 from ...api.utils import ImageUtility
 
@@ -107,3 +108,18 @@ class ScreenClient:
             error_msg = f"Failed during mouse move and click test: {e}"
             logger.error(error_msg)
             return error_msg
+        
+    def take_screenshot(self):
+        os.environ['DISPLAY'] = ':1'
+
+        try:
+            screenshot = pyautogui.screenshot()
+            temp_dir = tempfile.mkdtemp()
+            screenshot_path = os.path.join(temp_dir, "screenshot.png")
+            screenshot.save(screenshot_path)
+            logger.info(f"Screenshot saved at: {screenshot_path}")
+            return screenshot_path
+        except Exception as e:
+            error_msg = f"Failed to take screenshot: {e}"
+            logger.error(error_msg)
+            return None
