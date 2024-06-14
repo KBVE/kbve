@@ -33,6 +33,14 @@ runs:
         npm install
       working-directory: ${{ github.action_path }}
 
+    - name: Set environment variables
+      shell: bash
+      run: |
+        echo "TOKEN=${{ inputs.token }}" >> $GITHUB_ENV
+        echo "ISSUE_NUMBER=${{ inputs.issue_number }}" >> $GITHUB_ENV
+        echo "COMMENT_BODY=${{ inputs.comment_body }}" >> $GITHUB_ENV
+        echo "DEBUG=${{ inputs.debug }}" >> $GITHUB_ENV
+
     - name: Create comment
       id: create_comment
       shell: bash
