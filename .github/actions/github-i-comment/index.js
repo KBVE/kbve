@@ -3,10 +3,10 @@ const github = require('@actions/github');
 
 async function run() {
   try {
-    const token = core.getInput('token', { required: true });
-    const issueNumber = core.getInput('issue_number', { required: true });
-    const commentBody = core.getInput('comment_body', { required: true });
-    const debug = core.getInput('debug') === 'true';
+    const token = process.env.TOKEN;
+    const issueNumber = process.env.ISSUE_NUMBER;
+    const commentBody = process.env.COMMENT_BODY;
+    const debug = process.env.DEBUG === 'true';
 
     if (debug) {
       console.log('Inputs:');
@@ -15,7 +15,6 @@ async function run() {
     }
 
     const octokit = github.getOctokit(token);
-
     const context = github.context;
 
     const response = await octokit.issues.createComment({
@@ -33,7 +32,6 @@ async function run() {
       console.log('----');
       console.log(`comment_id=${response.data.id}`);
     }
-
   } catch (error) {
     core.setFailed(error.message);
   }
