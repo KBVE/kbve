@@ -1,9 +1,9 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
+//const github = require('@actions/github');
 
 async function run() {
   try {
-    const token = core.getInput('token', { required: true });
+    //const token = core.getInput('token', { required: true });
     const title = core.getInput('title', { required: true });
     const keyword = core.getInput('keyword', { required: true });
     const debug = core.getInput('debug') === 'true';
