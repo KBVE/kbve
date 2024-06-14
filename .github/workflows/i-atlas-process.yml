@@ -32,7 +32,7 @@ jobs:
         uses: ./.github/actions/github-i-title-parse
         with:
           title: ${{ github.event.issue.title }}
-          keywords: '[{"keyword": "Atlas", "action": "atlas_action"}, {"keyword": "Music", "action": "music_action"}]'
+          keyword: '[{"keyword": "Atlas", "action": "atlas_action"}, {"keyword": "Music", "action": "music_action"}]'
 
       - name: Set matched_action environment variable
         run: echo "matched_action=${{ steps.title-parser.outputs.action }}" >> $GITHUB_ENV
