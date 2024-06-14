@@ -3,9 +3,6 @@ description: 'Parse the Github issue ticket title based upon the inputs and retu
 author: 'KBVE'
 
 inputs:
-  token:
-    description: 'Github Token'
-    required: true
   title:
     description: 'Title to parse'
     required: true
