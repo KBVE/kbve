@@ -34,8 +34,13 @@ jobs:
           title: ${{ github.event.issue.title }}
           keyword: 'https://kbve.com/data/json/keywordaction.json'
 
-      - name: Set matched_action environment variable
-        run: echo "matched_action=${{ steps.title-parser.outputs.action }}" >> $GITHUB_ENV
+      # - name: Set matched_action environment variable
+      #   run: echo "matched_action=${{ steps.title-parser.outputs.action }}" >> $GITHUB_ENV
+
+      - name: Debug matched action
+        run: |
+          echo "Matched action is: ${{ steps.title-parser.outputs.action }}"
+
 
   handle_atlas:
     name: 'Handle Atlas Ticket'
