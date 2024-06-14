@@ -1,31 +1,29 @@
 const core = require('@actions/core');
-//const github = require('@actions/github');
 
 async function run() {
   try {
-    //const token = core.getInput('token', { required: true });
-    // const title = core.getInput('title', { required: true });
-    // const keyword = core.getInput('keyword', { required: true });
-    // const debug = core.getInput('debug') === 'true';
     const title = process.env.TITLE;
-    const keyword = process.env.KEYWORD;
+    const keywords = JSON.parse(process.env.KEYWORDS);
     const debug = process.env.DEBUG === 'true';
 
     if (debug) {
       console.log(`Title to parse: ${title}`);
-      console.log(`Keyword to search for: ${keyword}`);
+      console.log(`Keywords: ${JSON.stringify(keywords)}`);
     }
 
-    const isTitleValid = parseTitle(title, keyword);
+    let matchedAction = 'none';
 
-    core.setOutput('boolean', isTitleValid);
+    for (const { keyword, action } of keywords) {
+      if (title.toLowerCase().includes(keyword.toLowerCase())) {
+        matchedAction = action;
+        break;
+      }
+    }
+
+    core.setOutput('action', matchedAction);
   } catch (error) {
     core.setFailed(error.message);
   }
-}
-
-function parseTitle(title, keyword) {
-  return title.toLowerCase().includes(keyword.toLowerCase());
 }
 
 run();
