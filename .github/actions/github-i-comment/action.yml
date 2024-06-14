@@ -11,7 +11,7 @@ inputs:
     description: 'The body of the comment.'
     required: true
   debug:
-    description: 'Enable debug loggin for action.'
+    description: 'Enable debug logging for action.'
     required: false
     default: 'false'
 

@@ -12,6 +12,11 @@ inputs:
   keyword:
     description: 'Keyword to search for in the title'
     required: true
+  debug:
+    description: 'Enable debug logging for action.'
+    required: false
+    default: 'false'
+
 
 outputs:
   boolean:
@@ -19,9 +24,32 @@ outputs:
 
 
 runs:
-  using: 'node20'
-  pre: 'npm install'
-  main: 'index.js'
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        npm install
+      working-directory: ${{ github.action_path }}
+
+    - name: Parse comment
+      id: parse_boolean
+      shell: bash
+      run: |
+        node index.js
+      working-directory: ${{ github.action_path }}
+
+    - name: Set output
+      shell: bash
+      run: |
+        echo "boolean=${{ steps.parse_boolean.outputs.boolean }}" >> $GITHUB_ENV
+
+
 
 branding:
   icon: 'terminal'
