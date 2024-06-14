@@ -1,10 +1,14 @@
 const core = require('@actions/core');
+const axios = require('axios');
 
 async function run() {
   try {
     const title = process.env.TITLE;
-    const keywords = JSON.parse(process.env.KEYWORD);
+    const keywords_location = process.env.KEYWORD;
     const debug = process.env.DEBUG === 'true';
+
+    const keywordResposne = await axios.get(keywords_location);
+    const keywords = keywordResposne.data;
 
     if (debug) {
       console.log(`Title to parse: ${title}`);
