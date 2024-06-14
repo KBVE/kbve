@@ -3,7 +3,7 @@ const core = require('@actions/core');
 async function run() {
   try {
     const title = process.env.TITLE;
-    const keywords = JSON.parse(process.env.KEYWORDS);
+    const keywords = JSON.parse(process.env.KEYWORD);
     const debug = process.env.DEBUG === 'true';
 
     if (debug) {
