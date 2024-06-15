@@ -221,36 +221,24 @@ jobs:
         steps:
             - name: Checkout the monorepo using git
               uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
 
             - name: Setup Node v20
               uses: actions/setup-node@v4
               with:
                   node-version: 20
+                  registry-url: https://registry.npmjs.org/
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v3
-              with:
-                  version: 9
-                  run_install: false
-
-            #   @[CACHE]->[START]
-            - name: Get pnpm Store
+            - name: Install dependencies
               shell: bash
               run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                npm install
 
-            - name: Setup pnpm Cache
-              uses: actions/cache@v3
-              with:
-                  path: ${{ env.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
-
-            #   @[CACHE]->[END]
-
-            - name: Install pnpm dependencies
-              run: pnpm install
+            - name: Print Environment Info
+              shell: bash
+              run: |
+                npx nx report
 
             - name: Publish packages
               run: npx nx release publish --projects=khashvault
