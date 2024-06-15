@@ -1,6 +1,6 @@
 {
   "name": "@kbve/khashvault",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "dependencies": {},
   "main": "./index.js",
   "module": "./index.mjs",
