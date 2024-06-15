@@ -1,15 +1,15 @@
 {
   "name": "@kbve/khashvault",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A client-side locker for data and information.",
   "keywords": ["hash", "vault", "security", "encryption"], 
   "homepage": "https://kbve.com/application/javascript#khashvault",
   "bugs": {
-    "url": "https://github.com/kbve/kbve/issues"
+    "url": "https://github.com/KBVE/kbve/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kbve/kbve.git"
+    "url": "git+https://github.com/KBVE/kbve.git"
   },
   "author": "KBVE <hello@kbve.com>",
   "license": "MIT",
