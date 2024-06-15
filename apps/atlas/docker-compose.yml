@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  atlas:
+    image: kbve/atlas:latest
+    networks:
+      - public
+      - atlas
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        # Base Traefik Labels
+        - traefik.enable=true
+        - traefik.constraint-label-stack=atlas
+        - traefik.docker.network=public
+        - traefik.http.services.atlas.loadbalancer.server.port=3000
+        - traefik.http.routers.atlas.rule=Host(`atlas.kbve.com`)
+        # http
+        - traefik.http.routers.atlas_http.entrypoints=web
+        - traefik.http.routers.atlas_http.rule=PathPrefix(`/`)
+        - traefik.http.routers.atlas_http.service=atlas
+        # https
+        - traefik.http.routers.atlas_https.entrypoints=websecure
+        - traefik.http.routers.atlas_https.rule=PathPrefix(`/`)
+        - traefik.http.routers.atlas_https.service=atlas
+        - traefik.http.routers.atlas_https.tls=true
+
+networks:
+  public:
+    external: true
+  atlas:
+    name: atlas
+    driver: overlay
+    attachable: true
