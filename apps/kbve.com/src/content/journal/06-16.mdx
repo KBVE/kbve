@@ -43,11 +43,29 @@ However, I believe that was not the issue, so I am going to revert that change t
 
 and then we will go ahead and add the `rollup-plugin-copy` package into the monorep.
 This plugin will help us patch the missing package.json? I am not too sure but we will give this a shot.
-
 To trigger another update, I will do a minor bump to the `GHA` library.
-
 We know that there are two or three more errors that we need to resolve, but getting past the NPM issues would be the best move right now.
 
+
+The error might have been in the way that I am doing the `release` overwrite?
+I went ahead and removed them for the time being, maybe it might help resolve some of the issues:
+
+This was my `khashvault` release information:
+
+```json
+
+"projectsRelationship": "independent",
+    "version": {
+      "preVersionCommand": "pnpm dlx nx run-many -t build"
+    }
+
+```
+
+yet, in this case, I will revert to having nothing inside of the brackets and see if that can help.
+Hmm, logically this does not make sense but we can give it a shot for now.
+I really might just move onto to another project and give this a bit of a break, I learned a decent amount from spending a couple hundred hours within this area but the errors are just a huge pain.
+
+The major issue that is holding us back is that for some reason the nx release process is not including a copy of the `package.json` within in the distrib
 
 **Apps**
 
