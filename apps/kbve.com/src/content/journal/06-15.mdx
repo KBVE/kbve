@@ -44,6 +44,41 @@ pnpm nx g @nx/js:lib gha --bundler=vite --importPath="@kbve/gha" --publishable=t
 
 ```
 
+This is the package json that we created for this library.
+
+```json
+
+{
+  "name": "@kbve/gha",
+  "version": "0.0.1",
+  "description": "A GHA helper library, providing better functions.",
+  "keywords": ["github", "actions", "helper"], 
+  "homepage": "https://kbve.com/application/javascript#gha",
+  "bugs": {
+    "url": "https://github.com/KBVE/kbve/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KBVE/kbve.git"
+  },
+  "author": "KBVE <hello@kbve.com>",
+  "license": "MIT",
+  "dependencies": {},
+  "peerDependencies": {
+  },
+  "main": "./index.js",
+  "module": "./index.mjs",
+  "typings": "./index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
+}
+
+```
+
+It seems that the bundler being `vite` is throwing some errors that I do not think we need to debug.
+Since this is the case, we could setup back and remove this library.
+
 
 ## 2023
 - 9:00am - Will SPY keep going up? Damn I am printing money from these covered cash puts. I was hoping to grab an assignment yesterday when I was selling the $434/435 but it closed at $437.
