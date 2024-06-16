@@ -22,5 +22,13 @@ Since Shaco keeps getting ban in Arena, I decided to pickup Sej and she is becom
 
 There seems to be an issue with how the GHA library is building the publishable `NPM` package, but I think I was able to resolve it.
 The [bug](https://github.com/nrwl/nx/issues/21855) seems to stem from where it places the published files.
-Also during the unit test, the less than 26 characters test fails, but I will get back to that once I get this pipeline to publish the workflow.
+Also during the unit test, the less than 26 characters test fails, but I will get back to3 that once I get this pipeline to publish the workflow.
 In order to trigger the build, I will have to do a quick minor bump of the `gha` library!
+
+It seems that the exact issue that we are facing is under `#21758` but that means we will have to migrate our nx to v19.
+So in order for us to resolve this vite build bug, we might have to break a bunch of other tooling.
+
+**Apps**
+
+We will probably want to migrate a decent chunk of the apps out of the monorepo.
+I will compile a list of applications and make an issue ticket revolving around the ones that we want to consolidate and migrate into just a couple applications.
