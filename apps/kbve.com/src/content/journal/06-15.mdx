@@ -32,6 +32,18 @@ Yay! We were able to get the main khashvault released as a NPM package.
 Yet there are still some errors that we need to fix, including the peer dependency.
 Now the question is how would we go about doing it within Nx development cycle, and then we also need to get the `gha` library out there.
 
+**GHA**
+
+Okay! It seems we will have to go back around and update our external libraries, so that will be easier to build and deploy them.
+
+In our case, we want to add the `gha` aka `github actions` library, so let us build out the basics of this lib.
+
+```shell
+
+pnpm nx g @nx/js:lib gha --bundler=vite --importPath="@kbve/gha" --publishable=true
+
+```
+
 
 ## 2023
 - 9:00am - Will SPY keep going up? Damn I am printing money from these covered cash puts. I was hoping to grab an assignment yesterday when I was selling the $434/435 but it closed at $437.
