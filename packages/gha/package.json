@@ -1,6 +1,6 @@
 {
   "name": "@kbve/gha",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A GHA helper library, providing better functions.",
   "keywords": ["github", "actions", "helper"], 
   "homepage": "https://kbve.com/application/javascript#gha",
