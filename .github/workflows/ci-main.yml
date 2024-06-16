@@ -268,7 +268,7 @@ jobs:
           npx nx report
 
       - name: Publish packages
-        run: npx nx release publish --projects=gha
+        run: npx nx release publish
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -332,7 +332,7 @@ jobs:
           npx nx report
 
       - name: Publish packages
-        run: npx nx release publish --projects=khashvault
+        run: npx nx release publish
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
