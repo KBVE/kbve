@@ -19,8 +19,7 @@
       "@kbve/astropad": ["packages/astropad/index.ts"],
       "@kbve/expo-bbq": ["packages/expo-bbq/src/index.ts"],
       "@kbve/gha": ["packages/gha/src/index.ts"],
-      "@kbve/khashvault": ["packages/khashvault/src/index.ts"],
-      "@kbve/react-appwrite": ["packages/react-appwrite/src/index.ts"]
+      "@kbve/khashvault": ["packages/khashvault/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
