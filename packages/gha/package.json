@@ -1,8 +1,25 @@
 {
   "name": "@kbve/gha",
   "version": "0.0.1",
+  "description": "A GHA helper library, providing better functions.",
+  "keywords": ["github", "actions", "helper"], 
+  "homepage": "https://kbve.com/application/javascript#gha",
+  "bugs": {
+    "url": "https://github.com/KBVE/kbve/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KBVE/kbve.git"
+  },
+  "author": "KBVE <hello@kbve.com>",
+  "license": "MIT",
   "dependencies": {},
+  "peerDependencies": {
+  },
   "main": "./index.js",
   "module": "./index.mjs",
-  "typings": "./index.d.ts"
+  "typings": "./index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
 }
