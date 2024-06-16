@@ -188,6 +188,7 @@
     "react-native-web": "~0.19.9",
     "react-native-webview": "^13.8.2",
     "reflect-metadata": "^0.1.13",
+    "rollup-plugin-copy": "^3.5.0",
     "rxjs": "^7.8.0",
     "shiki": "^1.5.2",
     "styled-components": "5.3.6",
