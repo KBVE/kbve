@@ -4,6 +4,9 @@ import dts from 'vite-plugin-dts';
 import * as path from 'path';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
+// Patch before nxm v19.
+import copy from 'rollup-plugin-copy';
+
 export default defineConfig({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/packages/gha',
@@ -41,6 +44,16 @@ export default defineConfig({
     rollupOptions: {
       // External packages that should not be bundled into your library.
       external: [],
+
+      // Patch before Nx v19 -> Added Copy as a plugin.
+      plugins: [
+        copy({
+          targets: [
+            { src: 'package.json', dest: '../../dist/packages/gha' }
+          ],
+          hook: 'writeBundle'
+        })
+      ]
     },
   },
 
