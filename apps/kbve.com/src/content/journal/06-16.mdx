@@ -28,7 +28,30 @@ In order to trigger the build, I will have to do a quick minor bump of the `gha`
 It seems that the exact issue that we are facing is under `#21758` but that means we will have to migrate our nx to v19.
 So in order for us to resolve this vite build bug, we might have to break a bunch of other tooling.
 
+We changed the output to :
+
+```json
+
+        "packageRoot": "dist/packages/{projectName}"
+```
+
+However, I believe that was not the issue, so I am going to revert that change to this:
+
+```json
+        "packageRoot": "dist/{projectRoot}"
+``` 
+
+and then we will go ahead and add the `rollup-plugin-copy` package into the monorep.
+This plugin will help us patch the missing package.json? I am not too sure but we will give this a shot.
+
+
+
 **Apps**
 
 We will probably want to migrate a decent chunk of the apps out of the monorepo.
 I will compile a list of applications and make an issue ticket revolving around the ones that we want to consolidate and migrate into just a couple applications.
+
+**Nx v19**
+
+It looks like there were way too many errors when migrating over to nx v19.
+The additional community plugins that were added into this monorepo are causing some additional errors with v19, a decent amount of the functions are broken too.
