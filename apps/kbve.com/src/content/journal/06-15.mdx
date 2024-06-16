@@ -3,8 +3,8 @@ title: 'June: 15'
 category: Daily
 date: 2024-06-15 12:00:00
 client: Self
-unsplash: 1559510981-10719ce4266a
-img: https://images.unsplash.com/photo-1559510981-10719ce4266a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1510442650500-93217e634e4c
+img: https://images.unsplash.com/photo-1510442650500-93217e634e4c?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: |
   June 15th. NPM.
 tags:
@@ -43,6 +43,41 @@ In our case, we want to add the `gha` aka `github actions` library, so let us bu
 pnpm nx g @nx/js:lib gha --bundler=vite --importPath="@kbve/gha" --publishable=true
 
 ```
+
+This is the package json that we created for this library.
+
+```json
+
+{
+  "name": "@kbve/gha",
+  "version": "0.0.1",
+  "description": "A GHA helper library, providing better functions.",
+  "keywords": ["github", "actions", "helper"], 
+  "homepage": "https://kbve.com/application/javascript#gha",
+  "bugs": {
+    "url": "https://github.com/KBVE/kbve/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KBVE/kbve.git"
+  },
+  "author": "KBVE <hello@kbve.com>",
+  "license": "MIT",
+  "dependencies": {},
+  "peerDependencies": {
+  },
+  "main": "./index.js",
+  "module": "./index.mjs",
+  "typings": "./index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
+}
+
+```
+
+It seems that the bundler being `vite` is throwing some errors that I do not think we need to debug.
+Since this is the case, we could setup back and remove this library.
 
 
 ## 2023
