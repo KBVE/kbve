@@ -6,6 +6,10 @@ services:
     networks:
       - public
       - atlas
+    secrets:
+      - KBVE_API_FILE
+    environment:
+      - KBVE_API_FILE: /run/secrets/KBVE_API_FILE
     deploy:
       mode: replicated
       replicas: 1
@@ -25,6 +29,10 @@ services:
         - traefik.http.routers.atlas_https.rule=PathPrefix(`/`)
         - traefik.http.routers.atlas_https.service=atlas
         - traefik.http.routers.atlas_https.tls=true
+
+secrets:
+  KBVE_API_FILE:
+    external: true
 
 networks:
   public:
