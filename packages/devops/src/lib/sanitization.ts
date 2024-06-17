@@ -70,3 +70,12 @@ export async function markdownToJsonSafeStringThenStrip(text: string): Promise<s
 export async function _md2json(markdownContent: string): Promise<string> {
     return await markdownToJsonSafeString(markdownContent);
   }
+
+/**
+ * Converts markdown content to a JSON-safe string and then strips non-alphanumeric characters.
+ * @param markdownContent - The markdown content to convert and strip.
+ * @returns Stripped JSON-safe string.
+ */
+export async function __md2json(markdownContent: string): Promise<string> {
+    return await markdownToJsonSafeStringThenStrip(markdownContent);
+  }
