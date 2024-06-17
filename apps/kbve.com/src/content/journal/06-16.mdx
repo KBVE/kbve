@@ -10,6 +10,7 @@ description: |
 tags:
   - daily
 ---
+
 import { Adsense } from '@kbve/astropad';
 
 ## 2024
@@ -17,6 +18,7 @@ import { Adsense } from '@kbve/astropad';
 **Arena**
 
 Since Shaco keeps getting ban in Arena, I decided to pickup Sej and she is becoming more of my favorite new champ to play.
+Just played a quick game of Naut and Sej, it was possibly the most broken arena session that I played in a long time.
 
 **GHA**
 
@@ -39,13 +41,12 @@ However, I believe that was not the issue, so I am going to revert that change t
 
 ```json
         "packageRoot": "dist/{projectRoot}"
-``` 
+```
 
 and then we will go ahead and add the `rollup-plugin-copy` package into the monorep.
 This plugin will help us patch the missing package.json? I am not too sure but we will give this a shot.
 To trigger another update, I will do a minor bump to the `GHA` library.
 We know that there are two or three more errors that we need to resolve, but getting past the NPM issues would be the best move right now.
-
 
 The error might have been in the way that I am doing the `release` overwrite?
 I went ahead and removed them for the time being, maybe it might help resolve some of the issues:
@@ -65,7 +66,7 @@ yet, in this case, I will revert to having nothing inside of the brackets and se
 Hmm, logically this does not make sense but we can give it a shot for now.
 I really might just move onto to another project and give this a bit of a break, I learned a decent amount from spending a couple hundred hours within this area but the errors are just a huge pain.
 
-The major issue that is holding us back is that for some reason the nx release process is not including a copy of the `package.json` within in the distrib
+The major issue that is holding us back is that for some reason the nx release process is not including a copy of the `package.json` within in the distribution.
 
 **Apps**
 
@@ -78,3 +79,26 @@ It looks like there were way too many errors when migrating over to nx v19.
 The additional community plugins that were added into this monorepo are causing some additional errors with v19, a decent amount of the functions are broken too.
 
 During the migration, we had two plugins give some rough errors, that is our rust plugin, which is still extremely outdated and the astro plugin but that has a fix in the pipeline.
+
+<Adsense />
+
+## 2023
+
+- 8:00am - Need to change my sheets again, damn weather is wild. In the summer heat, I am thinking every week the sheets might have to be changed.
+- 10:00am - I might be assigned on a couple call options for TSLA again this week! I will have to be very careful and maybe roll them out for another week, the premium of a couple hundred will be helpful to offset the RogueJester costs.
+- 1:30pm - Watching episode 8 of the Silo and doing some quick updates to the webmaster tool. I am currently thinking to just get a basic tool out there and then over time expand it to include various services.
+- 5:00pm - Grabbed a quick burger with @Mrock and we went over the GoPro equipment for a future session / podcast? This is still something that is in the works, but I am thinking we could some random events / stream some meme-style content and see where it goes from there? For the burger, we went to a local joint known as 30 Burgers! I went with my usual 12, which is a bacon & egg burger and he had gotten the 7. We would say they were a solid 7 out of 10, there could have been some improvements, the burger size was just a bit too small from my point of view.
+- 11:00pm - The basics of the webmaster tool is ready for a quick test casing, however I was unable to get the storage (`nanostores`) to work as intended. One of the concepts that I was thinking was to store the domains inside of the local storage and then call it via tasks.
+
+## Quote
+
+> The first step to getting the things you want out of life is this: decide what you want.
+> — <cite>Ben Stein</cite>
+
+---
+
+## Tasks
+
+- [x] Launch initial webmaster tool onto the main KBVE website.
+- [x] Begin migration towards the vCluster within the production-2 dedicated server.
+- [x] Grab food with @MRock and do a quick podcast session.
