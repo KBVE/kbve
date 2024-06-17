@@ -25,9 +25,10 @@ export function _isULID(ulid: string): boolean {
  * @param markdownContent - The markdown content to convert.
  * @returns JSON-safe string.
  */
-export function markdownToJsonSafeString(markdownContent: string): string {
+export async function markdownToJsonSafeString(markdownContent: string): Promise<string> {
   // Convert markdown to HTML
-  const htmlContent = marked.parse(markdownContent);
+  const htmlContent = await marked.parse(markdownContent);
+
 
   // Sanitize the HTML content
   const sanitizedHtmlContent = DOMPurify.sanitize(htmlContent);
@@ -56,7 +57,7 @@ export function stripNonAlphanumeric(text: string): string {
  * @param text - The text to sanitize.
  * @returns Sanitized text.
  */
-export function markdownToJsonSafeStringThenStrip(text: string): string {
-  const jsonSafeString = markdownToJsonSafeString(text);
+export async function markdownToJsonSafeStringThenStrip(text: string): Promise<string> {
+  const jsonSafeString = await markdownToJsonSafeString(text);
   return stripNonAlphanumeric(jsonSafeString);
 }
