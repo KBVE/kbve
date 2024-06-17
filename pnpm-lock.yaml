@@ -116,6 +116,9 @@ importers:
       cross-fetch:
         specifier: ^4.0.0
         version: 4.0.0
+      dompurify:
+        specifier: ^3.1.5
+        version: 3.1.5
       drizzle-orm:
         specifier: ^0.31.1
         version: 0.31.1(@planetscale/database@1.16.0)(@types/react@18.2.79)(mysql2@3.9.6)(react@18.2.0)
@@ -164,6 +167,9 @@ importers:
       http-proxy-middleware:
         specifier: ^2.0.6
         version: 2.0.6(@types/express@4.17.21)
+      marked:
+        specifier: ^13.0.0
+        version: 13.0.0
       matter-js:
         specifier: 0.17.1
         version: 0.17.1
@@ -7012,6 +7018,9 @@ packages:
     resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
     engines: {node: '>= 4'}
 
+  dompurify@3.1.5:
+    resolution: {integrity: sha512-lwG+n5h8QNpxtyrJW/gJWckL+1/DQiYMX8f7t8Z2AZTPw1esVrqjI63i7Zc2Gz0aKzLVMYC1V1PL/ky+aY/NgA==}
+
   domutils@3.1.0:
     resolution: {integrity: sha512-H78uMmQtI2AhgDJjWeQmHwJJ2bLPD3GMmO7Zja/ZZh84wkm+4ut+IUnUdRa8uCGX88DiVx1j6FRe1XfxEgjEZA==}
 
@@ -9831,6 +9840,11 @@ packages:
 
   markdown-table@3.0.3:
     resolution: {integrity: sha512-Z1NL3Tb1M9wH4XESsCDEksWoKTdlUafKc4pt0GRwjUyXaCFZ+dc3g2erqB6zm3szA2IUSi7VnPI+o/9jnxh9hw==}
+
+  marked@13.0.0:
+    resolution: {integrity: sha512-VTeDCd9txf4KLLljUZ0nljE/Incb9SrWuueE44QVuU0pkOdh4sfCeW1Z6lPcxyDRSVY6rm8db/0OPaN75RNUmw==}
+    engines: {node: '>= 18'}
+    hasBin: true
 
   marky@1.2.5:
     resolution: {integrity: sha512-q9JtQJKjpsVxCRVgQ+WapguSbKC3SQ5HEzFGPAJMStgh3QjCawp00UKv3MTTAArTmGmmPUvllHZoNbZ3gs0I+Q==}
@@ -23629,6 +23643,8 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
+  dompurify@3.1.5: {}
+
   domutils@3.1.0:
     dependencies:
       dom-serializer: 2.0.0
@@ -27302,6 +27318,8 @@ snapshots:
   markdown-extensions@2.0.0: {}
 
   markdown-table@3.0.3: {}
+
+  marked@13.0.0: {}
 
   marky@1.2.5: {}
 
