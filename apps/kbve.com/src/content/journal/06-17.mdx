@@ -1,0 +1,34 @@
+---
+title: 'June: 17'
+category: Daily
+date: 2024-06-17 12:00:00
+client: Self
+unsplash: 1633356122544-f134324a6cee
+img: https://images.unsplash.com/photo-1633356122544-f134324a6cee?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 17th. DevOps.
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**DevOps**
+
+Okay so for the current v18, there seems to be a build error in `gha` and I think we will just migrate this concept library over to the `devops` library.
+Let us start with the base command to create the library.
+
+```shell
+
+pnpm nx g @nx/js:lib devops --importPath="@kbve/devops" --publishable=true
+
+```
+
+We will keep track of this on [this issue](https://github.com/KBVE/kbve/issues/1955). 
+
+
+**Nx**
+
+I made an issue ticket to keep track of the [Nx v19 migration](https://github.com/KBVE/kbve/issues/1954)
