@@ -40,6 +40,19 @@ Added two more libraries into the monorepo, `marked` and `dompurify`, both of wh
 
 We added the `api.ts` and `sanitization.ts`, with the basic unit testing, and we can now rebuild the issue ticket processing.
 
+There was an error doing the release of the package, maybe it might have been the same version or a version bump error?
+Here is the error:
+
+```
+
+  npm dist-tag add error:
+  Something unexpected went wrong when processing the npm dist-tag add output
+   TypeError: Cannot read properties of undefined (reading 'summary')
+
+```
+
+Let us try going to version `0.0.4` and then seeing if we still get this error.
+
 **Nx**
 
 I made an issue ticket to keep track of the [Nx v19 migration](https://github.com/KBVE/kbve/issues/1954)
