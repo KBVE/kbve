@@ -1,6 +1,6 @@
 {
   "name": "@kbve/devops",
-  "version": "0.0.3-0",
+  "version": "0.0.3",
   "description": "A DevOps helper library, providing better functions and extensions.",
   "keywords": [
     "github",
@@ -23,7 +23,6 @@
     "jsdom": "~22.1.0",
     "marked": "^13.0.0",
     "dompurify": "^3.1.5"
-
   },
   "type": "commonjs",
   "main": "./src/index.js",
