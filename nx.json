@@ -161,5 +161,9 @@
       }
     }
   },
-  "nxCloudAccessToken": "MDVjYTYxYmUtNjU1OS00NTJjLWFhYzQtZWE4MDNlNDkwOGZhfHJlYWQ="
+  "nxCloudAccessToken": "MDVjYTYxYmUtNjU1OS00NTJjLWFhYzQtZWE4MDNlNDkwOGZhfHJlYWQ=",
+  "release": {
+    "projectsRelationship": "independent",
+    "projects": ["packages/*", "!astro-ve"]
+  }
 }
