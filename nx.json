@@ -164,9 +164,9 @@
   "nxCloudAccessToken": "MDVjYTYxYmUtNjU1OS00NTJjLWFhYzQtZWE4MDNlNDkwOGZhfHJlYWQ=",
   "release": {
     "projectsRelationship": "independent",
-    "projects": ["packages/*", "!astro-ve"],
+    "projects": ["packages/*", "!astro-ve", "!astropad", "!expo-bbq", "!erust", "!holy", "!kbve", "!jedi"],
     "version": {
-      "conventionalCommits": true
+      "conventionalCommits": false
   }
   }
 }
