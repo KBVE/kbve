@@ -1,8 +1,12 @@
 {
   "name": "@kbve/devops",
-  "version": "0.0.2-0",
+  "version": "0.0.3-0",
   "description": "A DevOps helper library, providing better functions and extensions.",
-  "keywords": ["github", "actions", "helper"], 
+  "keywords": [
+    "github",
+    "actions",
+    "helper"
+  ],
   "homepage": "https://kbve.com/application/git#devops",
   "bugs": {
     "url": "https://github.com/KBVE/kbve/issues"
