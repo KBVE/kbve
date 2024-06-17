@@ -53,7 +53,7 @@ jobs:
       expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
       dockervoid: ${{ steps.delta.outputs.dockervoid_any_changed }}
       khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
-      gha: ${{ steps.delta.outputs.gha_any_changed }}
+      devops: ${{ steps.delta.outputs.devops_any_changed }}
 
     steps:
       - name: Checkout the repository using git
@@ -100,8 +100,8 @@ jobs:
                 - 'migrations/docker/v01d/**'
             khashvault:
                 - 'packages/khashvault/package.json'
-            gha:
-                - 'packages/gha/package.json'
+            devops:
+                - 'packages/devops/package.json'
 
   debug:
     needs: ['alter', 'globals']
@@ -211,11 +211,11 @@ jobs:
           commit_message: ${{ github.event.head_commit.message }}
           rsync_option: '-avrh --delete'
 
-  #   [GHA] -> Publish (As NPM)
-  gha_npm_publish:
+  #   [Devops] -> Publish (As NPM)
+  devops_npm_publish:
     needs: ['deploy', 'alter', 'globals']
     name: Github Actions Helper Library
-    if: needs.alter.outputs.gha == 'true'
+    if: needs.alter.outputs.devops == 'true'
     runs-on: 'ubuntu-latest'
     permissions:
           contents: read
@@ -268,7 +268,7 @@ jobs:
           npx nx report
 
       - name: Publish packages
-        run: npx nx release publish
+        run: npx nx release publish --projects=devops
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -332,7 +332,7 @@ jobs:
           npx nx report
 
       - name: Publish packages
-        run: npx nx release publish
+        run: npx nx release publish --projects=khashvault
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
