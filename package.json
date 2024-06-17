@@ -173,6 +173,7 @@
     "gsap": "^3.12.5",
     "html-react-parser": "^5.1.10",
     "http-proxy-middleware": "^2.0.6",
+    "marked": "^13.0.0",
     "matter-js": "0.17.1",
     "next": "14.0.4",
     "phaser": "^3.80.1",
