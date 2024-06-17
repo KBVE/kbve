@@ -38,6 +38,8 @@ Looks like the library was built and was published into the NPM registry, now we
 Going to look through the different github actions that we were planning to add and slowly migrate all the custom functions into the `@kbve/devops` library, then go back and activate each one as we see fit.
 Added two more libraries into the monorepo, `marked` and `dompurify`, both of which will be used within the sanitization.ts to help clean up the inputs from the different variables, like the issue ticket's body.
 
+We added the `api.ts` and `sanitization.ts`, with the basic unit testing, and we can now rebuild the issue ticket processing.
+
 **Nx**
 
 I made an issue ticket to keep track of the [Nx v19 migration](https://github.com/KBVE/kbve/issues/1954)
