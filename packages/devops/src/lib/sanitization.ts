@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom';
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 
 // Regular expression to match ULID pattern
@@ -30,12 +30,18 @@ export async function markdownToJsonSafeString(markdownContent: string): Promise
   const htmlContent = await marked.parse(markdownContent);
 
 
+
+   // Create a JSDOM window for DOMPurify to use
+   const window = new JSDOM('').window;
+   const DOMPurifyInstance = DOMPurify(window);
+
   // Sanitize the HTML content
-  const sanitizedHtmlContent = DOMPurify.sanitize(htmlContent);
+const sanitizedHtmlContent = DOMPurifyInstance.sanitize(htmlContent);
+
 
   // Use jsdom to create a temporary DOM element to extract text content from sanitized HTML
   const dom = new JSDOM(sanitizedHtmlContent);
-  const textContent = dom.window.document.body.textContent || '';
+  const textContent = (dom.window.document.body.textContent || '').trim();
 
   // Ensure the text content is JSON-safe
   const jsonSafeString = JSON.stringify(textContent);
@@ -58,8 +64,9 @@ export function stripNonAlphanumeric(text: string): string {
  * @returns Sanitized text.
  */
 export async function markdownToJsonSafeStringThenStrip(text: string): Promise<string> {
-  const jsonSafeString = await markdownToJsonSafeString(text);
-  return stripNonAlphanumeric(jsonSafeString);
+    const jsonSafeString = await markdownToJsonSafeString(text);
+    const strippedString = stripNonAlphanumeric(jsonSafeString);
+    return strippedString;
 }
 
 /**
