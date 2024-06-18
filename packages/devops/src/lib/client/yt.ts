@@ -22,6 +22,15 @@ export async function fetchYoutubeTitle(url: string): Promise<string | null> {
   try {
     const response = await axios.get(url);
     const dom = new JSDOM(response.data);
+
+    const videoElement = dom.window.document.querySelector('meta[property="og:video:url"]');
+
+    // Check if the meta tag for the video is present
+    if (!videoElement) {
+      console.error('No valid video found on the page');
+      return null;
+    }
+
     const titleElement =
       dom.window.document.querySelector('meta[name="title"]') ||
       dom.window.document.querySelector('meta[property="og:title"]') ||
