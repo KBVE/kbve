@@ -50,5 +50,5 @@ describe('API Functions', () => {
     const result = await _groq(system, message, kbve_api, model, sanitizationLevel);
     console.log('API Response:', result);
     expect(result).toBeDefined();
-  });
+  }, { timeout: 10000 });
 });
