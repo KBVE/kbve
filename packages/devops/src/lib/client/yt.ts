@@ -5,7 +5,9 @@ import { JSDOM } from 'jsdom';
  * Regular expression to validate YouTube URLs.
  */
 const YOUTUBE_URL_REGEX =
-  /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+//  /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+    /https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/g;
+  
 
 /**
  * Fetches the title of a YouTube video without using the YouTube API.
@@ -45,3 +47,14 @@ export async function fetchYoutubeTitle(url: string): Promise<string | null> {
     return null;
   }
 }
+
+
+/**
+ * Extracts the first YouTube link found in a given message.
+ * @param message - The message string to search through.
+ * @returns The first YouTube link found in the message, or null if no link is found.
+ */
+export function extractYoutubeLink(message: string): string | null {
+    const urlMatches = message.match(YOUTUBE_URL_REGEX);
+    return urlMatches ? urlMatches[0] : null;
+  }
