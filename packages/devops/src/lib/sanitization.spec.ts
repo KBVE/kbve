@@ -1,4 +1,4 @@
-import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json } from './sanitization';
+import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json, _title} from './sanitization';
 
 describe('ulid', () => {
   it('should return false for non-string input', () => {
@@ -45,4 +45,43 @@ describe('__md2json', () => {
     const result = await __md2json(markdown);
     expect(result).toEqual('Hello World 2021');
   });
+});
+
+describe('_title', () => {
+  it('should clean the title by keeping only allowed characters', () => {
+    const title = 'This is a [test] title with 123 numbers, and special characters! @#$%^&*()';
+    const result = _title(title);
+    expect(result).toEqual('This is a [test] title with 123 numbers and special characters');
+  });
+
+  it('should truncate and clean the title if longer than 64 characters', () => {
+    const title = 'This is a very long title that exceeds sixty-four characters in length! @#$%^&*()';
+    const result = _title(title);
+    expect(result).toEqual('This is a very long title that exceeds sixty-four characters in');
+  });
+
+  it('should handle empty string input gracefully', () => {
+    const title = '';
+    const result = _title(title);
+    expect(result).toEqual('');
+  });
+
+  it('should handle input with only special characters', () => {
+    const title = '@#$%^&*()';
+    const result = _title(title);
+    expect(result).toEqual('');
+  });
+
+  it('should handle input with only allowed characters', () => {
+    const title = 'Allowed characters 123. - []';
+    const result = _title(title);
+    expect(result).toEqual('Allowed characters 123. - []');
+  });
+
+  it('should remove accented and special characters', () => {
+    const title = 'This title has accented characters: Æ, Ä, Â, Ɑ, Ʌ, Ɐ, ª!';
+    const result = _title(title);
+    expect(result).toEqual('This title has accented characters');
+  });
+
 });
