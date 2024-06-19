@@ -24,3 +24,29 @@ Now we still need to test the library out in our github action test case but the
 The next function that I am going to add into the library is the `_title` function and that will be used to clean up the issue ticket title before calling an action.
 We want to make sure that it gets trimmed down to 64 characters and avoid generic regex attacks.
 I am thinking there might be still some weird strings that might get through the filter, but we shall see.
+
+The next issue seems that the npm package does not actually build the javascript files but rather just uploads the typescript files.
+While this is okay, we still need it to build the actual javascript files too, which I think is because we do have not the right path setup within the `project.json`.
+
+The most recent package release failed but I think its because we need to manually trigger the build?
+Inside of the `ci-main.yml`, I went ahead and added a commmand to build the package.
+
+```yaml
+- name: Build KBVE DevOps NPM Package
+  uses: ./.github/actions/kbve-shell
+  with:
+    flag: '-nx devops:build'
+    create_pull_request: false
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+We will build the application before preparing to publish it.
+
+
+**Repo**
+
+We will have to clean up the monorepo and remove a bunch of older libraries and dead projects, I am thinking of doing it slowly and making sure to back it all up as I do so.
+Each instance should be saved in multiple areas, but we also want to make sure that we are not removing anything major that is required for anything in production.
+
+Furthermore, we have to make sure any of the apps that get removed, also do not trigger any specific build.
+I already went ahead and removed some of the itch builds, so our games would not get affected but I will have to go back and fix up the docker cicd builds.
