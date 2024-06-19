@@ -20,11 +20,11 @@ export function _$gha_findActionInTitle(
 }
 
 const defaultReferenceMap: GithubActionReferenceMap[] = [
-  { keyword: 'Atlas', action: 'atlas_action' },
-  { keyword: 'Music', action: 'music_action' },
+  { keyword: 'atlas', action: 'atlas_action' },
+  { keyword: 'music', action: 'music_action' },
   // Add more default mappings as needed
 ];
 
 export function _$gha_kbve_ActionProcess(title: string): string {
-  return _$gha_findActionInTitle(title, defaultReferenceMap);
+  return _$gha_findActionInTitle(title.toLowerCase(), defaultReferenceMap);
 }
