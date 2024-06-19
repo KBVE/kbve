@@ -267,6 +267,13 @@ jobs:
         run: |
           npx nx report
 
+      - name: Build KBVE DevOps NPM Package
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx devops:build'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Publish packages
         run: npx nx release publish --projects=devops
         shell: bash
