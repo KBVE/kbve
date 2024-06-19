@@ -28,6 +28,20 @@ I am thinking there might be still some weird strings that might get through the
 The next issue seems that the npm package does not actually build the javascript files but rather just uploads the typescript files.
 While this is okay, we still need it to build the actual javascript files too, which I think is because we do have not the right path setup within the `project.json`.
 
+The most recent package release failed but I think its because we need to manually trigger the build?
+Inside of the `ci-main.yml`, I went ahead and added a commmand to build the package.
+
+```yaml
+- name: Build KBVE DevOps NPM Package
+  uses: ./.github/actions/kbve-shell
+  with:
+    flag: '-nx devops:build'
+    create_pull_request: false
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+We will build the application before preparing to publish it.
+
 
 **Repo**
 
