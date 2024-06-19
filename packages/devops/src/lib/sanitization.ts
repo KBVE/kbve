@@ -86,3 +86,20 @@ export async function _md2json(markdownContent: string): Promise<string> {
 export async function __md2json(markdownContent: string): Promise<string> {
     return await markdownToJsonSafeStringThenStrip(markdownContent);
   }
+
+/**
+ * Cleans the title of an issue ticket, checking only the first 64 characters and 
+ * stripping out everything besides letters, numbers, periods, hyphens, brackets, and spaces.
+ * @param title - The title to clean.
+ * @returns Cleaned title.
+ */
+export function _title(title: string): string {
+  // Take the first 64 characters of the title
+  const truncatedTitle = title.slice(0, 64);
+
+  // Strip out everything besides letters, numbers, periods, hyphens, brackets, and spaces
+  // eslint-disable-next-line no-useless-escape
+  const cleanedTitle = truncatedTitle.replace(/[^a-zA-Z0-9.\- \[\]]/g, '');
+
+  return cleanedTitle.trim();
+}

@@ -1,0 +1,26 @@
+---
+title: 'June: 19'
+category: Daily
+date: 2024-06-19 12:00:00
+client: Self
+unsplash: 1684029621162-1705b37b51b6
+img: https://images.unsplash.com/photo-1684029621162-1705b37b51b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 19th. More Operations. More Pain.
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**DevOps**
+
+The library is officially released onto the NPM registry, you can see it [here](https://www.npmjs.com/package/@kbve/devops)!
+I did notice that the image was a bit too big for the page, so from 540x540, I decided to resize it to 400x400.
+
+Now we still need to test the library out in our github action test case but there are still some functions that are missing that we need to adjust for.
+The next function that I am going to add into the library is the `_title` function and that will be used to clean up the issue ticket title before calling an action.
+We want to make sure that it gets trimmed down to 64 characters and avoid generic regex attacks.
+I am thinking there might be still some weird strings that might get through the filter, but we shall see.
