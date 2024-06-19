@@ -25,7 +25,7 @@
     },
     "nx-release-publish": {
       "options": {
-        "packageRoot": "packages/devops"
+        "packageRoot": "dist/packages/devops"
       }
     }
   }
