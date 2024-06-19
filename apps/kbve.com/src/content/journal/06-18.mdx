@@ -29,6 +29,26 @@ This means we will focus on doing small patches throughout this month and maybe 
 We can start to expand out some of the utility class of the devops library through the `/client/` folder.
 I believe I will keep the structure similar to the way that I did atlas for now, without having to over think it.
 
+Added a quick little image for the library while I updated the readme, now we can go ahead and prepare a npm publish.
+
+**YT**
+
+Spent most of the day going through my notes, cleaning up and preparing the `yt.ts` file within the devops npm package.
+I added some decent bare functions, which I plan on extending out into the github actions once they get published and released!
+To be safe, I went ahead and added some generic test casing, which I am doing locally but have not yet integrated those unit tests within the CI/CD pipeline.
+
+The way to execute our unit tests, we just run this shell command:
+
+```shell
+
+./kbve.sh -nx devops:test
+
+```
+
+This will then run pnpm nx with arguments: devops:test and generate a cloud nx link with the test results.
+However, placing this within our main ci-cd pipeline, ideally inside of the `alpha`, and/or `beta` would make sense too.
+I have it in my notes to find a couple spots to do the unit tests, ugh, I just do not want to overload the actions.
+
 
 
 ## 2023
