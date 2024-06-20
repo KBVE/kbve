@@ -26,24 +26,6 @@ importers:
       '@colyseus/ws-transport':
         specifier: ^0.15.1
         version: 0.15.1(@colyseus/schema@2.0.30)
-      '@enable3d/ammo-on-nodejs':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/ammo-physics':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/common':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/phaser-extension':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(phaser@3.80.1)(poly-decomp@0.3.0)(three@0.161.0)
-      '@enable3d/three-graphics':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0)
-      '@enable3d/three-wrapper':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/three@0.161.2)(three@0.161.0)
       '@expo/metro-config':
         specifier: ~0.17.3
         version: 0.17.7(@react-native/babel-preset@0.74.83(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4)))
@@ -142,7 +124,7 @@ importers:
         version: 6.2.2(expo@51.0.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4)))
       expo-router:
         specifier: ^3.4.8
-        version: 3.4.8(@testing-library/jest-native@5.4.3(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react-test-renderer@18.2.0(react@18.2.0))(react@18.2.0))(expo-constants@16.0.1(expo@51.0.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))))(expo-linking@6.2.2(expo@51.0.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))))(expo-modules-autolinking@1.11.1)(expo-status-bar@1.11.1)(expo@51.0.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4)))(react-dom@18.2.0(react@18.2.0))(react-native-reanimated@3.8.1(@babel/core@7.24.4)(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0))(react-native-safe-area-context@4.9.0(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0))(react-native-screens@3.30.1(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0))(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0)
+        version: 3.4.8(gye3rqssojqykj2zaxjfml42ei)
       expo-splash-screen:
         specifier: ~0.26.1
         version: 0.26.4(expo-modules-autolinking@1.11.1)(expo@51.0.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4)))
@@ -371,7 +353,7 @@ importers:
         version: 18.0.1(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))
       '@nxtensions/astro':
         specifier: 18.2.1
-        version: 18.2.1(@nx/cypress@18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(cypress@13.8.0)(js-yaml@4.1.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)(verdaccio@5.31.1(typanion@3.14.0)))(@nx/devkit@18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))))(@nx/js@18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)(verdaccio@5.31.1(typanion@3.14.0)))(@nx/playwright@18.3.3(@babel/traverse@7.24.1)(@playwright/test@1.43.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(js-yaml@4.1.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)(verdaccio@5.31.1(typanion@3.14.0)))(astro@4.6.3(@types/node@18.19.17)(less@4.1.3)(lightningcss@1.22.0)(sass@1.75.0)(stylus@0.59.0)(terser@5.30.3)(typescript@5.4.4))(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)
+        version: 18.2.1(nwqlgw3t7b4wtxmcbq5uvl34yy)
       '@playwright/test':
         specifier: ^1.36.0
         version: 1.43.1
@@ -1666,12 +1648,6 @@ packages:
   '@emotion/unitless@0.7.5':
     resolution: {integrity: sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg==}
 
-  '@enable3d/ammo-on-nodejs@0.25.4':
-    resolution: {integrity: sha512-Ui/TqiTX5praDXiZNssSfOYXVTuuzs2sDnuo/S8iryqTY4tD8q+jvoKhR/MJnS4hSOXLXa3ceFtAKgpS5t+yuw==}
-    peerDependencies:
-      '@types/three': 0.156.0
-      three: 0.156.1
-
   '@enable3d/ammo-physics@0.25.4':
     resolution: {integrity: sha512-LQ67LE6eUxepFFUx6R0v7hPOE0UYWE5amnbaUzirzp4R9hkVmQb3ZFCjc1M3yg8ZAzuYAe/LSlmeU3VaKxpXpw==}
     peerDependencies:
@@ -1680,13 +1656,6 @@ packages:
 
   '@enable3d/common@0.25.4':
     resolution: {integrity: sha512-71IlGeQ/7gf7REfghgqdvaCPEiPXB6B5QkUKRs9Xqpl2m+ZsQXo2wdYsJOz0wXsSeydafGpIaDyOOB9d02RhDA==}
-
-  '@enable3d/phaser-extension@0.25.4':
-    resolution: {integrity: sha512-br0d7ocEUO/3S81f2Y61/VWlpB/9HJecwjqphZBEmOBHcK7Ywiejjtv54GQAKnhHaRrNAlHzDx6Lioae6un/MA==}
-    peerDependencies:
-      '@types/three': 0.156.0
-      phaser: ^3.55.2
-      three: 0.156.1
 
   '@enable3d/three-graphics@0.25.4':
     resolution: {integrity: sha512-eOPAmtfQ8ioHda/G13BcnkcXi54L4wwUEOVCyCp8FsgIfh7xkZZSuJHZkJkkZmL1i/NmhESvz/UwNlLVW/KNGw==}
@@ -15680,11 +15649,6 @@ snapshots:
 
   '@emotion/unitless@0.7.5': {}
 
-  '@enable3d/ammo-on-nodejs@0.25.4(@types/three@0.161.2)(three@0.161.0)':
-    dependencies:
-      '@types/three': 0.161.2
-      three: 0.161.0
-
   '@enable3d/ammo-physics@0.25.4(@types/three@0.161.2)(three@0.161.0)':
     dependencies:
       '@enable3d/common': 0.25.4(@types/three@0.161.2)(three@0.161.0)
@@ -15700,21 +15664,6 @@ snapshots:
     transitivePeerDependencies:
       - '@types/three'
       - three
-
-  '@enable3d/phaser-extension@0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(phaser@3.80.1)(poly-decomp@0.3.0)(three@0.161.0)':
-    dependencies:
-      '@enable3d/ammo-physics': 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/common': 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/three-graphics': 0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0)
-      '@enable3d/three-wrapper': 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@types/three': 0.161.2
-      '@yandeu/events': 0.0.5
-      phaser: 3.80.1
-      three: 0.161.0
-    transitivePeerDependencies:
-      - '@types/matter-js'
-      - matter-js
-      - poly-decomp
 
   '@enable3d/three-graphics@0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0)':
     dependencies:
@@ -18381,8 +18330,8 @@ snapshots:
       - '@swc/core'
       - debug
 
-  ? '@nxtensions/astro@18.2.1(@nx/cypress@18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(cypress@13.8.0)(js-yaml@4.1.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)(verdaccio@5.31.1(typanion@3.14.0)))(@nx/devkit@18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))))(@nx/js@18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)(verdaccio@5.31.1(typanion@3.14.0)))(@nx/playwright@18.3.3(@babel/traverse@7.24.1)(@playwright/test@1.43.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(js-yaml@4.1.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)(verdaccio@5.31.1(typanion@3.14.0)))(astro@4.6.3(@types/node@18.19.17)(less@4.1.3)(lightningcss@1.22.0)(sass@1.75.0)(stylus@0.59.0)(terser@5.30.3)(typescript@5.4.4))(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)'
-  : dependencies:
+  '@nxtensions/astro@18.2.1(nwqlgw3t7b4wtxmcbq5uvl34yy)':
+    dependencies:
       '@astrojs/compiler': 2.7.1
       '@nx/devkit': 18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))
       '@nx/js': 18.3.3(@babel/traverse@7.24.1)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.4.4))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.4.4)(verdaccio@5.31.1(typanion@3.14.0))
@@ -24539,8 +24488,8 @@ snapshots:
     dependencies:
       invariant: 2.2.4
 
-  ? expo-router@3.4.8(@testing-library/jest-native@5.4.3(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react-test-renderer@18.2.0(react@18.2.0))(react@18.2.0))(expo-constants@16.0.1(expo@51.0.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))))(expo-linking@6.2.2(expo@51.0.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))))(expo-modules-autolinking@1.11.1)(expo-status-bar@1.11.1)(expo@51.0.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4)))(react-dom@18.2.0(react@18.2.0))(react-native-reanimated@3.8.1(@babel/core@7.24.4)(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0))(react-native-safe-area-context@4.9.0(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0))(react-native-screens@3.30.1(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0))(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))(react@18.2.0)
-  : dependencies:
+  expo-router@3.4.8(gye3rqssojqykj2zaxjfml42ei):
+    dependencies:
       '@expo/metro-runtime': 3.1.3(react-native@0.73.2(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4))(react@18.2.0))
       '@expo/server': 0.3.1
       '@radix-ui/react-slot': 1.0.1(react@18.2.0)
