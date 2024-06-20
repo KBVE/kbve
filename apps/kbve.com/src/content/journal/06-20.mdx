@@ -25,3 +25,8 @@ We can work with the axum sockets and get better performance / stability than us
 
 Removing the `e2e` test case for the `expressdiscord` is the next step.
 While I am doing that, I will tackle the Adsense missing in the older journal entries.
+
+The best way to remove this without breaking anything is to do it in small parts.
+Slowly migrating the changes into the main branch, without doing it all at once!
+I am thinking of slowly removing the pieces that we do not need, but limit it to about a couple patches every week.
+This gives us time to backup everything but also make sure nothing is out of bounds or cause massive failures.
