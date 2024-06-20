@@ -22,6 +22,10 @@ We will have to remove enabled three js and maybe ammo too, these projects are s
 Next project we will be removing is the `expressdiscord` and maybe even most of the colyseus library.
 While I think its fine to use nodejs for small projects like this, I feel like the networking might be a bit of a pain via this library and it would make more sense to just use rust.
 We can work with the axum sockets and get better performance / stability than using the colyseus library.
+
+Removing the `e2e` test case for the `expressdiscord` is the next step.
+While I am doing that, I will tackle the Adsense missing in the older journal entries.
+
 The best way to remove this without breaking anything is to do it in small parts.
 Slowly migrating the changes into the main branch, without doing it all at once!
 I am thinking of slowly removing the pieces that we do not need, but limit it to about a couple patches every week.
