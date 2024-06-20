@@ -41,3 +41,21 @@ The error is because they did not update to the latest three js library and thei
 Now we will remove the whole application next since the main branch was updated.
 This next push will be the removal of about 19 files, but for the most part, it should be safe for now.
 
+**Disable The Enabled**
+
+Since we are moving away from the `enabled` library, it would make sense to document the removal of the said libraries.
+
+```shell
+
+pnpm remove @enable3d/ammo-on-nodejs
+
+```
+
+The first library that we will be removing is the `@enable3d/ammo-on-nodejs`.
+Next we will go back to our `03-19.mdx` notes and remove the colyseus from : 
+
+```shell
+
+pnpm remove colyseus @colyseus/monitor @colyseus/schema @colyseus/uwebsockets-transport @colyseus/ws-transport
+
+```
