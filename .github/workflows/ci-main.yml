@@ -49,7 +49,6 @@ jobs:
       holy: ${{ steps.delta.outputs.holy_any_changed  }}
       kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
       jedi: ${{ steps.delta.outputs.jedi_any_changed }}
-      expressdiscord: ${{ steps.delta.outputs.expressdiscord_any_changed }}
       expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
       dockervoid: ${{ steps.delta.outputs.dockervoid_any_changed }}
       khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
@@ -92,8 +91,6 @@ jobs:
                 - 'packages/kbve/src/**'
             jedi:
                 - 'packages/jedi/src/**'
-            expressdiscord:
-                - 'apps/express-colyseus-discord/**'
             expolcagents:
                 - 'apps/expo-lcagents/src/**'
             dockervoid:
@@ -717,45 +714,6 @@ jobs:
           cache-to: type=gha,mode=max
 
   # NodeJS
-
-  # Rust Profile Image Deployment
-  node-express-colyseus-image:
-    needs: ['monorepo-image', 'alter']
-    name: Build Node Express Colyseus Image
-    if: needs.alter.outputs.expressdiscord == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./apps/express-colyseus-discord/
-          push: true
-          tags: kbve/expresscolyseusdiscord:latest
-          #platforms: linux/amd64, linux/arm64
-          platforms: linux/amd64
-          file: ./apps/express-colyseus-discord/Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-          #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
 
   # [EXPO] -> [START]
 
