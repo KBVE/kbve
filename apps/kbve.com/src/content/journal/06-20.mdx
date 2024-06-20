@@ -1,0 +1,39 @@
+---
+title: 'June: 20'
+category: Daily
+date: 2024-06-20 12:00:00
+client: Self
+unsplash: 1684029621162-1705b37b51b6
+img: https://images.unsplash.com/photo-1684029621162-1705b37b51b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 20th. Monorepo Cleanup.
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Monorepo**
+
+Cleaning up some of the older projects within the monorepo!
+We will have to remove enabled three js and maybe ammo too, these projects are still a bit too early for what we were aimming for.
+Next project we will be removing is the `expressdiscord` and maybe even most of the colyseus library.
+While I think its fine to use nodejs for small projects like this, I feel like the networking might be a bit of a pain via this library and it would make more sense to just use rust.
+We can work with the axum sockets and get better performance / stability than using the colyseus library.
+
+Removing the `e2e` test case for the `expressdiscord` is the next step.
+While I am doing that, I will tackle the Adsense missing in the older journal entries.
+
+The best way to remove this without breaking anything is to do it in small parts.
+Slowly migrating the changes into the main branch, without doing it all at once!
+I am thinking of slowly removing the pieces that we do not need, but limit it to about a couple patches every week.
+This gives us time to backup everything but also make sure nothing is out of bounds or cause massive failures.
+
+**Express**
+
+Removing the `express-colyseus-discord` application from the monorepo, well the `e2e` test case for the application.
+I will swing back around after this release to remove the whole application.
+We should also start to take out the libraries that are causing the npm error, which is the `enable 3d` library.
+The error is because they did not update to the latest three js library and their types are a bit of a mismatch, and since we will not be using them, it just makes sense.
