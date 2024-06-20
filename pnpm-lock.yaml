@@ -26,21 +26,6 @@ importers:
       '@colyseus/ws-transport':
         specifier: ^0.15.1
         version: 0.15.1(@colyseus/schema@2.0.30)
-      '@enable3d/ammo-physics':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/common':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/phaser-extension':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(phaser@3.80.1)(poly-decomp@0.3.0)(three@0.161.0)
-      '@enable3d/three-graphics':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0)
-      '@enable3d/three-wrapper':
-        specifier: ^0.25.4
-        version: 0.25.4(@types/three@0.161.2)(three@0.161.0)
       '@expo/metro-config':
         specifier: ~0.17.3
         version: 0.17.7(@react-native/babel-preset@0.74.83(@babel/core@7.24.4)(@babel/preset-env@7.24.4(@babel/core@7.24.4)))
@@ -1671,13 +1656,6 @@ packages:
 
   '@enable3d/common@0.25.4':
     resolution: {integrity: sha512-71IlGeQ/7gf7REfghgqdvaCPEiPXB6B5QkUKRs9Xqpl2m+ZsQXo2wdYsJOz0wXsSeydafGpIaDyOOB9d02RhDA==}
-
-  '@enable3d/phaser-extension@0.25.4':
-    resolution: {integrity: sha512-br0d7ocEUO/3S81f2Y61/VWlpB/9HJecwjqphZBEmOBHcK7Ywiejjtv54GQAKnhHaRrNAlHzDx6Lioae6un/MA==}
-    peerDependencies:
-      '@types/three': 0.156.0
-      phaser: ^3.55.2
-      three: 0.156.1
 
   '@enable3d/three-graphics@0.25.4':
     resolution: {integrity: sha512-eOPAmtfQ8ioHda/G13BcnkcXi54L4wwUEOVCyCp8FsgIfh7xkZZSuJHZkJkkZmL1i/NmhESvz/UwNlLVW/KNGw==}
@@ -15686,21 +15664,6 @@ snapshots:
     transitivePeerDependencies:
       - '@types/three'
       - three
-
-  '@enable3d/phaser-extension@0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(phaser@3.80.1)(poly-decomp@0.3.0)(three@0.161.0)':
-    dependencies:
-      '@enable3d/ammo-physics': 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/common': 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@enable3d/three-graphics': 0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0)
-      '@enable3d/three-wrapper': 0.25.4(@types/three@0.161.2)(three@0.161.0)
-      '@types/three': 0.161.2
-      '@yandeu/events': 0.0.5
-      phaser: 3.80.1
-      three: 0.161.0
-    transitivePeerDependencies:
-      - '@types/matter-js'
-      - matter-js
-      - poly-decomp
 
   '@enable3d/three-graphics@0.25.4(@types/matter-js@0.17.6)(@types/three@0.161.2)(matter-js@0.17.1)(poly-decomp@0.3.0)(three@0.161.0)':
     dependencies:
