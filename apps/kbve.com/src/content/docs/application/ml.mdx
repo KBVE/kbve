@@ -1,168 +1,168 @@
 ---
 title: Machine Learning & Artificial Intelligence
 description: |
-    Get ready to explore the exciting world of Machine Learning and Artificial Intelligence.
-    Our guide covers everything from basic principles and key algorithms to the latest models and tools.
-    Whether you're just starting out or already have some experience, you'll find valuable insights and practical tips to help you navigate this dynamic field.
-    Learn about the newest advancements, popular frameworks, and real-world applications.
-    Perfect for anyone eager to deepen their understanding and skills in AI and ML, this resource is your go-to for all things AI and ML.
+  Get ready to explore the exciting world of Machine Learning and Artificial Intelligence.
+  Our guide covers everything from basic principles and key algorithms to the latest models and tools.
+  Whether you're just starting out or already have some experience, you'll find valuable insights and practical tips to help you navigate this dynamic field.
+  Learn about the newest advancements, popular frameworks, and real-world applications.
+  Perfect for anyone eager to deepen their understanding and skills in AI and ML, this resource is your go-to for all things AI and ML.
 sidebar:
-    label: Machine Learning & AI
-    order: 300
+  label: Machine Learning & AI
+  order: 300
 unsplash: 1620712943543-bcc4688e7485
 img: https://images.unsplash.com/photo-1620712943543-bcc4688e7485?fit=crop&w=1400&h=700&q=75
 tags:
-    - ai
+  - ai
 prompt-index: example
 prompts:
-    - ulid: 01J05G1PCD6ZXPNHEFBDYHYS77
-      name: Role Examples
-      description: Common role examples for text transformers.
-      items:
-        - Act as a javascript console
-        - Act as an excel sheet
-        - Act as a HR interviewer
-        - Act as an advertiser
-        - Act as a publisher
-        - Act as a music teacher
-        - Act as a relationship coach
-        - Act as a World of Warcraft player and limit the response to 50 characters
-      task: |
-        Define the role for the AI model and prompt it to perform actions specific to that role. For example, you can ask it to act as a JavaScript console and provide code snippets, or act as a music teacher and give lessons.
-      tools:
-        - type: "function"
-          function:
-            name: "get_role_specific_info"
-            description: "Get specific information for a given role"
-            parameters:
-              type: "object"
-              properties:
-                role_name:
-                  type: "string"
-                  description: "The name of the role (e.g. 'JavaScript console')"
-              required: ["role_name"]
-      output: text
-      pathways:
-        initial:
-          prompt: "Choose a role for the AI to act as:"
-          next:
-            - condition: "javascript console"
-              action: "pathway1"
-            - condition: "excel sheet"
-              action: "pathway2"
-        pathway1:
-          prompt: "You chose JavaScript console. Provide a JavaScript code snippet:"
-          next:
-            - condition: "valid js code"
-              action: "pathway3"
-            - condition: "invalid js code"
-              action: "pathway4"
-        pathway2:
-          prompt: "You chose Excel sheet. What operation would you like to perform?"
-          next:
-            - condition: "create sheet"
-              action: "pathway5"
-            - condition: "edit sheet"
-              action: "pathway6"
+  - ulid: 01J05G1PCD6ZXPNHEFBDYHYS77
+    name: Role Examples
+    description: Common role examples for text transformers.
+    items:
+      - Act as a javascript console
+      - Act as an excel sheet
+      - Act as a HR interviewer
+      - Act as an advertiser
+      - Act as a publisher
+      - Act as a music teacher
+      - Act as a relationship coach
+      - Act as a World of Warcraft player and limit the response to 50 characters
+    task: |
+      Define the role for the AI model and prompt it to perform actions specific to that role. For example, you can ask it to act as a JavaScript console and provide code snippets, or act as a music teacher and give lessons.
+    tools:
+      - type: 'function'
+        function:
+          name: 'get_role_specific_info'
+          description: 'Get specific information for a given role'
+          parameters:
+            type: 'object'
+            properties:
+              role_name:
+                type: 'string'
+                description: "The name of the role (e.g. 'JavaScript console')"
+            required: ['role_name']
+    output: text
+    pathways:
+      initial:
+        prompt: 'Choose a role for the AI to act as:'
+        next:
+          - condition: 'javascript console'
+            action: 'pathway1'
+          - condition: 'excel sheet'
+            action: 'pathway2'
+      pathway1:
+        prompt: 'You chose JavaScript console. Provide a JavaScript code snippet:'
+        next:
+          - condition: 'valid js code'
+            action: 'pathway3'
+          - condition: 'invalid js code'
+            action: 'pathway4'
+      pathway2:
+        prompt: 'You chose Excel sheet. What operation would you like to perform?'
+        next:
+          - condition: 'create sheet'
+            action: 'pathway5'
+          - condition: 'edit sheet'
+            action: 'pathway6'
 
-    - ulid: 01J05G2G0NWW48HEV485DY63W5
-      name: Rewrite Prompt Example
-      description: Example task to rewrite user-provided text with human-like perplexity and burstiness.
-      items:
-        - Maintain consistent and coherent narrative
-        - Incorporate unique perspectives and creativity
-        - Include personal anecdotes and emotions
-        - Understand and incorporate nuanced context
-        - Organize content with purposeful structure
-        - Include nuanced inconsistencies and idiosyncrasies
-      task: |
-        Task: Rewrite user-provided text with the most human-like perplexity and burstiness.
+  - ulid: 01J05G2G0NWW48HEV485DY63W5
+    name: Rewrite Prompt Example
+    description: Example task to rewrite user-provided text with human-like perplexity and burstiness.
+    items:
+      - Maintain consistent and coherent narrative
+      - Incorporate unique perspectives and creativity
+      - Include personal anecdotes and emotions
+      - Understand and incorporate nuanced context
+      - Organize content with purposeful structure
+      - Include nuanced inconsistencies and idiosyncrasies
+    task: |
+      Task: Rewrite user-provided text with the most human-like perplexity and burstiness.
 
-        Objectives: Prompt the user to input a block of text. Use a language model to rewrite the text with the most human-like perplexity and burstiness. Provide the rewritten text to the user.
+      Objectives: Prompt the user to input a block of text. Use a language model to rewrite the text with the most human-like perplexity and burstiness. Provide the rewritten text to the user.
 
-        Rules: Keep burstiness as low as possible. Keep perplexity as low as possible. Go to extraordinary lengths to make the text more human-like. Burstiness is on a scale of 0-100. Perplexity is on a scale of 0-100. Burstiness starts at 0. Perplexity starts at 0. Don’t answer for user.
+      Rules: Keep burstiness as low as possible. Keep perplexity as low as possible. Go to extraordinary lengths to make the text more human-like. Burstiness is on a scale of 0-100. Perplexity is on a scale of 0-100. Burstiness starts at 0. Perplexity starts at 0. Don’t answer for user.
 
-        Roles: AI model responsible for rewriting the text. User: Provides the initial block of text to be rewritten.
+      Roles: AI model responsible for rewriting the text. User: Provides the initial block of text to be rewritten.
 
-        Strategy: Use an AI model to generate the most human-like perplexity and burstiness. Prompt the user to input a block of text. Provide the rewritten text to the user. Additional Instructions: Ask the user to input a block of text that they would like to be rewritten. Use a language model to generate a rewritten version of the text that has the most human-like perplexity and burstiness. Provide the rewritten text to the user. Be sure to explain to the user the concept of perplexity and burstiness and how it affects the text. Provide an option for the user to adjust the level of perplexity and burstiness if desired. Perplexity and Burstiness start at 0.
-      tools:
-        - type: "function"
-          function:
-            name: "analyze_text"
-            description: "Analyze the provided text for perplexity and burstiness"
-            parameters:
-              type: "object"
-              properties:
-                text:
-                  type: "string"
-                  description: "The text to be analyzed"
-              required: ["text"]
-      output: text
-      pathways:
-        initial:
-          prompt: "Please input a block of text you want rewritten:"
-          next:
-            - condition: "text provided"
-              action: "pathway1"
-            - condition: "no text provided"
-              action: "pathway2"
-        pathway1:
-          prompt: "Rewrite the provided text focusing on human-like perplexity and burstiness."
-          next:
-            - condition: "good rewrite"
-              action: "pathway3"
-            - condition: "bad rewrite"
-              action: "pathway4"
-        pathway2:
-          prompt: "No text provided. Please input a block of text to proceed."
-          next:
-            - condition: "text provided"
-              action: "pathway1"
+      Strategy: Use an AI model to generate the most human-like perplexity and burstiness. Prompt the user to input a block of text. Provide the rewritten text to the user. Additional Instructions: Ask the user to input a block of text that they would like to be rewritten. Use a language model to generate a rewritten version of the text that has the most human-like perplexity and burstiness. Provide the rewritten text to the user. Be sure to explain to the user the concept of perplexity and burstiness and how it affects the text. Provide an option for the user to adjust the level of perplexity and burstiness if desired. Perplexity and Burstiness start at 0.
+    tools:
+      - type: 'function'
+        function:
+          name: 'analyze_text'
+          description: 'Analyze the provided text for perplexity and burstiness'
+          parameters:
+            type: 'object'
+            properties:
+              text:
+                type: 'string'
+                description: 'The text to be analyzed'
+            required: ['text']
+    output: text
+    pathways:
+      initial:
+        prompt: 'Please input a block of text you want rewritten:'
+        next:
+          - condition: 'text provided'
+            action: 'pathway1'
+          - condition: 'no text provided'
+            action: 'pathway2'
+      pathway1:
+        prompt: 'Rewrite the provided text focusing on human-like perplexity and burstiness.'
+        next:
+          - condition: 'good rewrite'
+            action: 'pathway3'
+          - condition: 'bad rewrite'
+            action: 'pathway4'
+      pathway2:
+        prompt: 'No text provided. Please input a block of text to proceed.'
+        next:
+          - condition: 'text provided'
+            action: 'pathway1'
 
-    - ulid: 01J05G2X0S673J53HWCPE6831J
-      name: Rewrite Prompt Follow-Up
-      description: Follow-up advice for the rewrite prompt to generate better content.
-      items:
-        - Consistency and Coherence - Human writing tends to maintain a consistent and coherent narrative throughout, reflecting a deeper understanding of context and topic.
-        - Creativity and Originality - While AI can be creative, humans often bring unique perspectives, experiences, and creativity to their writing that might be harder for AI to replicate authentically.
-        - Personal Touch - Human writing may include personal anecdotes, emotions, or subjective elements that are reflective of individual experiences and perspectives.
-        - Context Understanding - Humans excel at understanding nuanced context and incorporating it into their writing, whereas AI might sometimes produce contextually inaccurate or mismatched information.
-        - Purposeful Structure - Human writers often have a purposeful structure in their content, carefully organizing information for clarity and impact. AI might generate text that lacks intentional structure.
-        - Inconsistencies - Human writing may include nuanced inconsistencies, errors, or idiosyncrasies that reflect the natural variability present in human language, while AI-generated content may exhibit a higher degree of consistency.
-      task: |
-        Provide the rewritten text to the user with a focus on consistency, coherence, creativity, originality, personal touch, context understanding, purposeful structure, and natural inconsistencies. Explain how these factors contribute to making the text more human-like.
-      tools:
-        - type: "function"
-          function:
-            name: "evaluate_text_quality"
-            description: "Evaluate the quality of the rewritten text"
-            parameters:
-              type: "object"
-              properties:
-                text:
-                  type: "string"
-                  description: "The text to be evaluated"
-              required: ["text"]
-      output: text
-      pathways:
-        initial:
-          prompt: "Here is the rewritten text:"
-          next:
-            - condition: "positive feedback"
-              action: "pathway1"
-            - condition: "negative feedback"
-              action: "pathway2"
-        pathway1:
-          prompt: "Great! If you need further assistance, feel free to ask."
-          next: []
-        pathway2:
-          prompt: "What specific areas need improvement?"
-          next:
-            - condition: "identified areas"
-              action: "pathway3"
-        pathway3:
-          prompt: "Let's focus on improving those areas in the rewrite."
-          next: []
+  - ulid: 01J05G2X0S673J53HWCPE6831J
+    name: Rewrite Prompt Follow-Up
+    description: Follow-up advice for the rewrite prompt to generate better content.
+    items:
+      - Consistency and Coherence - Human writing tends to maintain a consistent and coherent narrative throughout, reflecting a deeper understanding of context and topic.
+      - Creativity and Originality - While AI can be creative, humans often bring unique perspectives, experiences, and creativity to their writing that might be harder for AI to replicate authentically.
+      - Personal Touch - Human writing may include personal anecdotes, emotions, or subjective elements that are reflective of individual experiences and perspectives.
+      - Context Understanding - Humans excel at understanding nuanced context and incorporating it into their writing, whereas AI might sometimes produce contextually inaccurate or mismatched information.
+      - Purposeful Structure - Human writers often have a purposeful structure in their content, carefully organizing information for clarity and impact. AI might generate text that lacks intentional structure.
+      - Inconsistencies - Human writing may include nuanced inconsistencies, errors, or idiosyncrasies that reflect the natural variability present in human language, while AI-generated content may exhibit a higher degree of consistency.
+    task: |
+      Provide the rewritten text to the user with a focus on consistency, coherence, creativity, originality, personal touch, context understanding, purposeful structure, and natural inconsistencies. Explain how these factors contribute to making the text more human-like.
+    tools:
+      - type: 'function'
+        function:
+          name: 'evaluate_text_quality'
+          description: 'Evaluate the quality of the rewritten text'
+          parameters:
+            type: 'object'
+            properties:
+              text:
+                type: 'string'
+                description: 'The text to be evaluated'
+            required: ['text']
+    output: text
+    pathways:
+      initial:
+        prompt: 'Here is the rewritten text:'
+        next:
+          - condition: 'positive feedback'
+            action: 'pathway1'
+          - condition: 'negative feedback'
+            action: 'pathway2'
+      pathway1:
+        prompt: 'Great! If you need further assistance, feel free to ask.'
+        next: []
+      pathway2:
+        prompt: 'What specific areas need improvement?'
+        next:
+          - condition: 'identified areas'
+            action: 'pathway3'
+      pathway3:
+        prompt: "Let's focus on improving those areas in the rewrite."
+        next: []
 ---
 
 import {
@@ -178,9 +178,9 @@ import { Giscus, Adsense } from '@kbve/astropad';
 
 ## ML
 
--   `Are you curious about the latest buzzword in the tech world?`
--   `Have you been wondering what machine learning is?`
--   `Let us take you on a journey to understand the basics of this revolutionary technology and its potential to revolutionize the future.`
+- `Are you curious about the latest buzzword in the tech world?`
+- `Have you been wondering what machine learning is?`
+- `Let us take you on a journey to understand the basics of this revolutionary technology and its potential to revolutionize the future.`
 
 `mL (machine learning)` is a subset of artificial intelligence and follows the theory of computational training, to understand core principles through computer science and statistics.
 These training methods can be broken down to supervised, unsupervised and reinforcement learning.
@@ -197,16 +197,34 @@ For [Python](https://kbve.com/application/python/)
 
 This documentation is a `reference guide` to the vast realm of machine learning and artificial general intelligence with examples, concepts and libraries to help you get started!
 We want to create this whole page as a one stop shop for all your mL needs xD!
-Note: This is an ever growing and evolving list of all `mL` / `ai` services, concepts and ideas that can be referenced for your experiences within the field.
+
+<Aside>
+Note: This is an ever growing and evolving list of all **mL / AI** services, concepts and ideas that can be referenced for your experiences within the field.
+</Aside>
+
+---
 
 ### AI
 
--   Artificial intelligence is an umbrella phrase that encapsulates various fields within computer science, mathematics, philosophy and information with the goal to emulate natural intelligence display by humans and animals.
+Artificial intelligence is an umbrella phrase that encapsulates various fields within computer science, mathematics, philosophy and information with the goal to emulate natural intelligence display by humans and animals.
+Since Artificial intelligence (AI) is a broad and multidisciplinary field that encompasses various domains, its primary objective is to create systems and machines (physical or virtual) that can perform tasks that would traditionally require human intelligence.
+These tasks include learning, reasoning, problem-solving, perception, language understanding, and even physical actions.
+
+The roots of AI can be traced back to ancient myths and stories about artificial beings endowed with intelligence.
+However, the formal foundation of AI as a scientific discipline was laid in the mid-20th century with the advent of digital computers.
+The term "artificial intelligence" was coined in 1956 during the [Dartmouth Conference](https://home.dartmouth.edu/about/artificial-intelligence-ai-coined-dartmouth), which is considered the birthplace of AI research.
+
+>> During the birthplace, John McCarthy, a mathematics professor, stated that the conference was: 
+>> “to proceed on the basis of the conjecture that every aspect of learning or any other feature of intelligence can in principle be so precisely described that a machine can be made to simulate it.”
+
+---
+
+<Adsense />
 
 ### Scope
 
--   The dream for many programmers, scientists, engineers and humans would be to create an entity that could scale past our natural intelligence.
--   This is a task that would define the 21st century and push the upper limits on humanity, naturism and metaphysics into the next industrial intelligence revolution.
+- The dream for many programmers, scientists, engineers and humans would be to create an entity that could scale past our natural intelligence.
+- This is a task that would define the 21st century and push the upper limits on humanity, naturism and metaphysics into the next industrial intelligence revolution.
 
 ---
 
@@ -249,7 +267,10 @@ Additionally, there are examples of utilizing Groq's capabilities to create soph
 ## LLaMa
 
 <Aside>
-**TLDR;** LLaMa, also known as, **Large Language Model Meta AI**, is actively being developed by Meta / Facebook and is a state-of-the-art foundational large language model that is designed to help researchers advance their work in natural language processing (NLP).
+  **TLDR;** LLaMa, also known as, **Large Language Model Meta AI**, is actively
+  being developed by Meta / Facebook and is a state-of-the-art foundational
+  large language model that is designed to help researchers advance their work
+  in natural language processing (NLP).
 </Aside>
 
 LLaMa, short for Large Language Model Meta AI, is a cutting-edge foundational large language model developed by Meta, formerly known as Facebook.
@@ -263,17 +284,29 @@ Meta's commitment to innovation in AI is embodied in LLaMa, providing a powerful
 
 Stable Diffusion is a python-based latent diffusion model that performs image generation through deep learning.
 
-### VOID-SD
+<Aside>
 
 VOID-SD has direct API access to various forks of Stable Diffusion, including waifu-diffusion, hosted on a hybrid-cloud.
 
+</Aside>
+
 ### Waifu Diffusion
+
+Waifu Diffusion is a specialized adaptation of stable diffusion models, finely tuned to generate high-quality anime and manga-style imagery.
+This model focuses on "weeb" content, catering to the aesthetic preferences and cultural nuances of anime enthusiasts.
+By leveraging advanced stable diffusion techniques, Waifu Diffusion excels in producing visually appealing characters, scenes, and artworks that resonate with fans of Japanese pop culture. Its precise fine-tuning ensures that the generated images maintain the distinctive art style and charm characteristic of popular anime and manga, making it an invaluable tool for creators and fans alike.
 
 The official Github repo for [Waifu-Diffusion](https://github.com/harubaru/waifu-diffusion).
 
 ### Stable Diffusion WebUI
 
 The official repo for `AUTOMATIC1111` [Stable Diffusion WEB UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
+
+### Fast Stable Diffusion
+
+Fast-stable-diffusion Notebooks offer a streamlined and efficient way to utilize various advanced AI tools for image generation and customization.
+Integrating Automatic1111 (A1111), ComfyUI, and DreamBooth, these notebooks provide a comprehensive platform for users to experiment with and refine their stable diffusion models. A1111 facilitates the management and deployment of these models, while ComfyUI offers an intuitive interface for seamless interaction. DreamBooth further enhances the capabilities by allowing fine-tuning and personalization of the models.
+Together, these tools enable users to create high-quality, stable diffusion images with ease and precision.
 
 ---
 
@@ -319,7 +352,7 @@ Core Aspects:
 
 ### Chaining
 
--   Common Terms include: Chain-of-Thought, Chained Prompt.
+- Common Terms include: Chain-of-Thought, Chained Prompt.
 
 ### Rewrite Prompt Example
 
@@ -365,6 +398,5 @@ The combination of the initial task and the follow up advice, will help generate
 
 ---
 
-<Adsense />
 
 <Giscus />
