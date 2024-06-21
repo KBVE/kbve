@@ -66,8 +66,12 @@ I just spotted a quick error, inside of this action script block:
           script: |
             const { _$gha_kbve_ActionProcess } = require('@kbve/devops');
             const title = context.payload.issue.title;
-            const action = _$gha_kbve_ActionProcess(title);
-            core.setOutput('action', action);
+            try {
+              const action = _$gha_kbve_ActionProcess(title);
+              core.setOutput('action', action);
+            } catch (error) {
+              core.setFailed(`Error processing title: ${error.message}`);
+            }
 
 ```
 

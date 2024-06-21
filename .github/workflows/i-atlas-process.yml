@@ -36,8 +36,14 @@ jobs:
           script: |
             const { _$gha_kbve_ActionProcess } = require('@kbve/devops');
             const title = context.payload.issue.title;
-            const action = _$gha_kbve_ActionProcess(title);
-            core.setOutput('action', action);
+            try {
+              const action = _$gha_kbve_ActionProcess(title);
+              core.setOutput('action', action);
+              core.setOutput('error', false);
+            } catch (error) {
+              core.setOutput('action', 'none');
+              core.setOutput('error', true);
+            }
 
       - name: Debug matched action
         run: |
