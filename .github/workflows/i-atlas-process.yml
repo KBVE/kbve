@@ -20,9 +20,6 @@ jobs:
       matched_action: ${{ steps.title-parser.outputs.action }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -53,8 +50,6 @@ jobs:
     needs: ['process_issue']
     if: needs.process_issue.outputs.matched_action == 'atlas_action'
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
