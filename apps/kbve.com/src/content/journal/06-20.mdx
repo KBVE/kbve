@@ -3,8 +3,8 @@ title: 'June: 20'
 category: Daily
 date: 2024-06-20 12:00:00
 client: Self
-unsplash: 1684029621162-1705b37b51b6
-img: https://images.unsplash.com/photo-1684029621162-1705b37b51b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1685052386750-902a081b99da
+img: https://images.unsplash.com/photo-1685052386750-902a081b99da?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: |
   June 20th. Monorepo Cleanup.
 tags:
@@ -12,6 +12,27 @@ tags:
 ---
 
 import { Adsense } from '@kbve/astropad';
+
+## Notes
+
+The `Atlas` project needs to process the tickets but without the monorepo.
+
+---
+
+## Quote
+
+> If I know what love is, it is because of you.
+> — <cite>Hermann Hesse</cite>
+
+---
+
+## Tasks
+
+- [x] Update Taxes, including the Annual Forms.
+- [x] Start Mother-in-Law Construction Research -> Moved Task.
+- [x] Start Living Trust Research -> Moved Task.
+
+---
 
 ## 2024
 
@@ -52,7 +73,7 @@ pnpm remove @enable3d/ammo-on-nodejs
 ```
 
 The first library that we will be removing is the `@enable3d/ammo-on-nodejs`.
-Next we will go back to our `03-19.mdx` notes and remove the colyseus from : 
+Next we will go back to our `03-19.mdx` notes and remove the colyseus from :
 
 ```shell
 
@@ -67,3 +88,21 @@ For the remaining `enabled` libraries, we will run this code:
 pnpm remove @enable3d/ammo-physics @enable3d/common @enable3d/phaser-extension @enable3d/three-graphics @enable3d/three-wrapper
 
 ```
+
+**Atlas**
+
+Ah the issue of the peer dependency is because we did not start with an empty folder, but rather the main branch.
+We could disable the repo checkout for a couple of the initial operations and then work around that?
+
+---
+
+<Adsense />
+
+## 2023
+
+- 11:00am - Woke up a bit late today! :C
+- 2:50pm - Getting ready to open up my midgame office hours! I started to update some of the unity projects and just did my first plastic merge. It was a bit scary, as I hate when I accidently do a rebase or something terrible lol. There were a couple issues that I ran into when merging the main branch into my dev branch. I believe I should have went the other direction but in the future we want to make sure that the main branch is functional before we put any changes onto it. We should also limit the off branch changes to a couple days, so that we are not stuck in a huge problem where the branch forks are really offset.
+- 4:20pm - Making quick plans for dinner! The craving for El Portal is real, I am dreaming about the Mexican restaurant! If you are ever in North Jersey, this is one of the best places to grab food, even if you are vegan.
+- 4:30pm - Updated Gena but it looks like the Unity main branch has a couple broken files. The HealthManager seems to be causing the project to load into Safe Mode. I will take a day break from Unity and switch back over to the main website, I am opening up the Postboy and Manga side projects for the website. I also noticed that the webmaster tools needs to be updated. The best option that I am seeing right now might be to just convert the older code base into the general tailwindcss and then migrate the typewriter effect into the react library, where I can reference it from there.
+- 6:30pm - El Portal with the homies, once I get back, I will make a decision on the the future of the Manga and how I should move forward with it.
+- 11:30pm - After testing a couple concepts out, I think having a MDX file for each page and then letting the writer(s) pick and choose options to display might be the best bet. This would help offset any future SEO issues and also give us the flexibility to add our own custom content, including videos! The big issue that I ran into was if we wanted to do a build-your-own path for the visual novel. The complex index system would be a bit more tough to do within React.
