@@ -163,6 +163,56 @@ prompts:
       pathway3:
         prompt: "Let's focus on improving those areas in the rewrite."
         next: []
+  - ulid: 01J0YEVWK8ZA1Z0Q8B0GDG6871
+    name: JSON Output Example
+    description: Task to create a JSON output with a provided data set.
+    items:
+      - Title - The title of the song
+      - Genre - The genre of the song, which must fit one of the specified genres - dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, jrock, studybeats
+      - YTID - The YouTube ID extracted from the provided YouTube link
+    task: |
+      Create a JSON output for a given dataset including a song's title, genre (selected from the specified set), and YouTube ID.
+
+      Objectives: Prompt the user to input a song title, select a genre from the specified set, and provide a YouTube link. Extract the YouTube ID from the link and generate a JSON output containing the title, genre, and YouTube ID.
+
+      Rules: The genre must be one of the specified genres. The YouTube link must be valid and the YouTube ID must be correctly extracted.
+
+      Roles: AI model responsible for creating the JSON output.
+    tools:
+      - type: 'function'
+        function:
+          name: 'create_json_output'
+          description: 'Create JSON output for the provided dataset'
+          parameters:
+            type: 'object'
+            properties:
+              title:
+                type: 'string'
+                description: 'The title of the song'
+              genre:
+                type: 'string'
+                description: 'The genre of the song'
+              youtube_link:
+                type: 'string'
+                description: 'The YouTube link of the song'
+            required: ['title', 'genre', 'youtube_link']
+    output: json
+    pathways:
+      initial:
+        prompt: 'Please provide the song title, genre, and YouTube link:'
+        next:
+          - condition: 'data provided'
+            action: 'pathway1'
+          - condition: 'no data provided'
+            action: 'pathway2'
+      pathway1:
+        prompt: 'Generating JSON output for the provided data.'
+        next: []
+      pathway2:
+        prompt: 'Incomplete data. Please provide the song title, genre, and YouTube link to proceed.'
+        next:
+          - condition: 'data provided'
+            action: 'pathway1'
 ---
 
 import {
@@ -199,7 +249,9 @@ This documentation is a `reference guide` to the vast realm of machine learning 
 We want to create this whole page as a one stop shop for all your mL needs xD!
 
 <Aside>
-Note: This is an ever growing and evolving list of all **mL / AI** services, concepts and ideas that can be referenced for your experiences within the field.
+  Note: This is an ever growing and evolving list of all **mL / AI** services,
+  concepts and ideas that can be referenced for your experiences within the
+  field.
 </Aside>
 
 ---
@@ -214,8 +266,8 @@ The roots of AI can be traced back to ancient myths and stories about artificial
 However, the formal foundation of AI as a scientific discipline was laid in the mid-20th century with the advent of digital computers.
 The term "artificial intelligence" was coined in 1956 during the [Dartmouth Conference](https://home.dartmouth.edu/about/artificial-intelligence-ai-coined-dartmouth), which is considered the birthplace of AI research.
 
->> During the birthplace, John McCarthy, a mathematics professor, stated that the conference was: 
->> “to proceed on the basis of the conjecture that every aspect of learning or any other feature of intelligence can in principle be so precisely described that a machine can be made to simulate it.”
+> > During the birthplace, John McCarthy, a mathematics professor, stated that the conference was:
+> > “to proceed on the basis of the conjecture that every aspect of learning or any other feature of intelligence can in principle be so precisely described that a machine can be made to simulate it.”
 
 ---
 
@@ -397,6 +449,5 @@ Inconsistencies: Human writing may include nuanced inconsistencies, errors, or i
 The combination of the initial task and the follow up advice, will help generate better content.
 
 ---
-
 
 <Giscus />
