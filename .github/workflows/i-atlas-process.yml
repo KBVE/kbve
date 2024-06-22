@@ -10,6 +10,9 @@ permissions:
 
 env:
   atlas_action: none
+  YTID: ''
+  GENRE: ''
+  TITLE: ''
 
 jobs:
   process_issue:
@@ -178,20 +181,25 @@ jobs:
                 });
               }
               if(extractedJson) {
-              await github.rest.issues.addLabels({
-                owner,
-                repo,
-                issue_number,
-                labels: ['2']
-              });
+                const extractedInfo = JSON.parse(extractedJson);
+                core.exportVariable('YTID', extractedInfo.YTID || '');
+                core.exportVariable('TITLE', extractedInfo.title || '');
+                core.exportVariable('GENRE', extractedInfo.genre || '');
+
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number,
+                  labels: ['2']
+                });
               } else {
                
-              await github.rest.issues.addLabels({
-                owner,
-                repo,
-                issue_number,
-                labels: ['1']
-              });
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number,
+                  labels: ['1']
+                });
               
               }
               
@@ -204,3 +212,9 @@ jobs:
                 body: `Error processing groq request: ${error.message}`
               });
             }
+
+      - name: Debug environment variables
+        run: |
+          echo "YTID: ${{ env.YTID }}"
+          echo "TITLE: ${{ env.TITLE }}"
+          echo "GENRE: ${{ env.GENRE }}"
