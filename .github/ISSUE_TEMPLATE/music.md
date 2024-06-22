@@ -14,4 +14,4 @@ YouTube Link:
 Title:
 Genre:
 
-Hint: Only genres that are acceptable are: dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock
+Hint: Only genres that are acceptable are: dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, jrock, studybeats, anime
