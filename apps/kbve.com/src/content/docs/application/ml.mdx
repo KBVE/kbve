@@ -167,13 +167,13 @@ prompts:
     name: JSON Output Example
     description: Task to create a JSON output with a provided data set.
     items:
-      - Title - The title of the song
+      - Title - The title of the song with artist or band.
       - Genre - The genre of the song, which must fit one of the specified genres - dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, jrock, studybeats, anime
       - YTID - The YouTube ID extracted from the provided YouTube link
     task: |
-      Create a JSON output for a given dataset including a song's title, genre (selected from the specified set), and YouTube ID.
+      Create a JSON output for a given dataset including a song's title with the band/artist, genre (selected from the specified set), and YouTube ID.
 
-      Objectives: Prompt the user to input a song title, select a genre from the specified set, and provide a YouTube link. Extract the YouTube ID from the link and generate a JSON output containing the title, genre, and YouTube ID.
+      Objectives: Prompt the user to input a song title with the band/artist within the title, select a genre from the specified set, and provide a YouTube link. Extract the YouTube ID from the link and generate a JSON output containing the title with artist/band, genre, and YouTube ID.
 
       Rules: The genre must be one of the specified genres. The YouTube link must be valid and the YouTube ID must be correctly extracted.
 
@@ -188,7 +188,7 @@ prompts:
             properties:
               title:
                 type: 'string'
-                description: 'The title of the song'
+                description: 'The title of the song with artist or band name'
               genre:
                 type: 'string'
                 description: 'The genre of the song'
