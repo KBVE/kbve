@@ -107,7 +107,7 @@ jobs:
             const issue_number = context.issue.number;
             const repo = context.repo.repo;
             const owner = context.repo.owner;
-            const body = '[DEBUG] Processing Music Action';
+            const body = '[DEBUG] Processing [Music](https://kbve.com/music/) Action';
 
             await github.rest.issues.createComment({
               owner,
@@ -116,7 +116,7 @@ jobs:
               body: body
               });
 
-      - name: Call Groq
+      - name: Call Groq for Music
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           KBVE_API: ''
@@ -143,6 +143,58 @@ jobs:
                 issue_number,
                 body: `Atlas Music Response:\n\`\`\`json\n${formattedResponse}\n\`\`\``
               });
+
+              const content = response.choices[0].message.content;
+
+              const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
+              const extractedJson = jsonMatch ? jsonMatch[1] : null;
+
+              let extractedInfoComment = "Extracted Song Information:\n";
+              if (extractedJson) {
+                extractedInfoComment += `\`\`\`json\n${extractedJson}\n\`\`\``;
+              } else {
+                extractedInfoComment += "Unable to extract song information from the response.";
+              }
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: extractedInfoComment
+              });
+
+              const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+                owner,
+                repo,
+                issue_number,
+              });
+
+              if (labels.some(label => label.name === '0')) {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number,
+                  name: '0'
+                });
+              }
+              if(extractedJson) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: ['2']
+              });
+              } else {
+               
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: ['1']
+              });
+              
+              }
+              
             } catch (error) {
               console.error('Error processing groq request:', error);
               await github.rest.issues.createComment({
