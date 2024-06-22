@@ -103,3 +103,23 @@ export function _title(title: string): string {
 
   return cleanedTitle.trim();
 }
+
+/**
+ * Makes a string safe for use in a markdown table row.
+ * @param row - The string to sanitize.
+ * @returns Markdown-safe string.
+ */
+export async function _md_safe_row(row: string): Promise<string> {
+  // Escape special markdown characters to prevent formatting issues
+  const mdSafeRow = row
+    .replace(/\\/g, '\\\\')  // Escape backslashes
+    .replace(/\|/g, '\\|')   // Escape pipe characters
+    .replace(/_/g, '\\_')    // Escape underscores
+    .replace(/\*/g, '\\*')   // Escape asterisks
+    .replace(/\[/g, '\\[')   // Escape opening square brackets
+    .replace(/\]/g, '\\]')   // Escape closing square brackets
+    .replace(/\(/g, '\\(')   // Escape opening parentheses
+    .replace(/\)/g, '\\)');  // Escape closing parentheses
+
+  return mdSafeRow;
+}
