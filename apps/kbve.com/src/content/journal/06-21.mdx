@@ -132,6 +132,11 @@ export async function _md_safe_row(row: string): Promise<string> {
 }
 ```
 
+We also do have an escape function added into the `music.sh` that will escape, but this is just to be safe in the future.
+
+The pull request was the last failed workflow and I also noticed it grabbed the actual song title, rather than keeping the artist / band.
+In our markdown table, we are keeping both the title of the song and the artist/band because breaking it down further might not be worth it right now.
+
 
 <Adsense />
 
