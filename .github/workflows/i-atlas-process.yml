@@ -159,7 +159,8 @@ jobs:
               const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
               const extractedJson = jsonMatch ? jsonMatch[1] : null;
 
-              let extractedInfoComment = "Extracted Song Information:\n";
+              let extractedInfoComment = `Dear Lord Commander:\n\`\`\`\n${content}\n\`\`\`\n\n`;
+              extractedInfoComment += "Extracted Song Information:\n";
               if (extractedJson) {
                 extractedInfoComment += `\`\`\`json\n${extractedJson}\n\`\`\``;
               } else {
