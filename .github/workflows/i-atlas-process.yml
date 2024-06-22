@@ -4,9 +4,7 @@ on:
   issues:
     types: [opened]
 
-permissions:
-  issues: write
-  contents: read
+
 
 env:
   atlas_action: none
@@ -18,7 +16,9 @@ jobs:
   process_issue:
     name: 'Process Issue'
     runs-on: ubuntu-latest
-
+    permissions:
+      issues: write
+      contents: read
     outputs:
       matched_action: ${{ steps.title-parser.outputs.action }}
 
@@ -56,6 +56,9 @@ jobs:
     name: 'Handle Atlas Ticket'
     runs-on: ubuntu-latest
     needs: ['process_issue']
+    permissions:
+      issues: write
+      contents: read
     if: needs.process_issue.outputs.matched_action == 'atlas_action'
     steps:
       - name: Set up Node.js
@@ -90,6 +93,9 @@ jobs:
     name: 'Handle Music Ticket'
     runs-on: ubuntu-latest
     needs: ['process_issue']
+    permissions:
+      issues: write
+      contents: read
     if: needs.process_issue.outputs.matched_action == 'music_action'
     outputs:
       YTID: ${{ steps.groq-call.outputs.YTID }}
@@ -123,10 +129,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { _groq, extractYoutubeId } = require('@kbve/devops');
-            const issue_number = context.issue.number;
-            const repo = context.repo.repo;
-            const owner = context.repo.owner;
+            const { _groq, extractYoutubeId, _$gha_createIssueComment, _$gha_removeLabel, _$gha_addLabel, _$gha_verifyMatrixLabel } = require('@kbve/devops');
+
             const system = '01J0YEVWK8ZA1Z0Q8B0GDG6871';
             const message = context.payload.issue.body;
             const kbve_api = process.env.KBVE_API;
@@ -137,12 +141,8 @@ jobs:
               const response = await _groq(system, message, kbve_api, model, sanitizationLevel);
               const formattedResponse = JSON.stringify(response, null, 2);
 
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body: `Atlas Music Response:\n\`\`\`json\n${formattedResponse}\n\`\`\``
-              });
+              const _stage_1_body = `Atlas Music Response:\n\`\`\`json\n${formattedResponse}\n\`\`\``;
+              await _$gha_createIssueComment(github, context, _stage_1_body);
 
               const content = response.choices[0].message.content;
 
@@ -159,59 +159,21 @@ jobs:
                 extractedInfoComment += "Unable to extract song information from the response.";
               }
 
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body: extractedInfoComment
-              });
-
-              const { data: labels } = await github.rest.issues.listLabelsOnIssue({
-                owner,
-                repo,
-                issue_number,
-              });
-
-              if (labels.some(label => label.name === '0')) {
-                await github.rest.issues.removeLabel({
-                  owner,
-                  repo,
-                  issue_number,
-                  name: '0'
-                });
-              }
+              await _$gha_createIssueComment(github, context, extractedInfoComment);
+              await _$gha_removeLabel(github, context, '0');
+             
               if(extractedJson) {
                 const extractedInfo = JSON.parse(extractedJson);
                 core.setOutput('YTID', extractedInfo.YTID || extractedInfo.youtube_id || YTID);
                 core.setOutput('TITLE', extractedInfo.title || '');
                 core.setOutput('GENRE', (extractedInfo.genre || '').toLowerCase());
-
-
-                await github.rest.issues.addLabels({
-                  owner,
-                  repo,
-                  issue_number,
-                  labels: ['2']
-                });
+                await _$gha_addLabel(github, context, '2');
               } else {
-               
-                await github.rest.issues.addLabels({
-                  owner,
-                  repo,
-                  issue_number,
-                  labels: ['1']
-                });
-              
+                await _$gha_addLabel(github, context, '1');
               }
               
             } catch (error) {
-              console.error('Error processing groq request:', error);
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body: `Error processing groq request: ${error.message}`
-              });
+              await _$gha_createIssueComment(github, context, `Error processing groq request: ${error.message}`);
             }
 
   
@@ -219,6 +181,13 @@ jobs:
     name: 'Execute Music Action'
     runs-on: ubuntu-latest
     needs: ['handle_music']
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+      issues: write
+      pull-requests: write
+
     steps:
 
       - name: Checkout repository
