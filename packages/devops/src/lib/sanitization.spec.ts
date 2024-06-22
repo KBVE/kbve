@@ -1,4 +1,4 @@
-import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json, _title} from './sanitization';
+import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json, _title, _md_safe_row} from './sanitization';
 
 describe('ulid', () => {
   it('should return false for non-string input', () => {
@@ -84,4 +84,48 @@ describe('_title', () => {
     expect(result).toEqual('This title has accented characters');
   });
 
+});
+
+describe('_md_safe_row', () => {
+  it('should escape pipe characters', async () => {
+    const row = 'Column 1 | Column 2';
+    const result = await _md_safe_row(row);
+    expect(result).toEqual('Column 1 \\| Column 2');
+  });
+
+  it('should escape underscore characters', async () => {
+    const row = 'This is a test_row';
+    const result = await _md_safe_row(row);
+    expect(result).toEqual('This is a test\\_row');
+  });
+
+  it('should escape asterisk characters', async () => {
+    const row = 'This is *bold* text';
+    const result = await _md_safe_row(row);
+    expect(result).toEqual('This is \\*bold\\* text');
+  });
+
+  it('should escape backslash characters', async () => {
+    const row = 'This is a backslash: \\';
+    const result = await _md_safe_row(row);
+    expect(result).toEqual('This is a backslash: \\\\');
+  });
+
+  it('should escape square bracket characters', async () => {
+    const row = 'This is a [link]';
+    const result = await _md_safe_row(row);
+    expect(result).toEqual('This is a \\[link\\]');
+  });
+
+  it('should escape parenthesis characters', async () => {
+    const row = 'Porter Robinson - Sad Machine (Official Lyric Video)';
+    const result = await _md_safe_row(row);
+    expect(result).toEqual('Porter Robinson - Sad Machine \\(Official Lyric Video\\)');
+  });
+
+  it('should handle multiple special characters', async () => {
+    const row = 'This is *bold* text with [link](url) and | pipe';
+    const result = await _md_safe_row(row);
+    expect(result).toEqual('This is \\*bold\\* text with \\[link\\]\\(url\\) and \\| pipe');
+  });
 });

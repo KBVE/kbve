@@ -130,7 +130,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { _groq } = require('@kbve/devops');
+            const { _groq, extractYoutubeId } = require('@kbve/devops');
             const issue_number = context.issue.number;
             const repo = context.repo.repo;
             const owner = context.repo.owner;
@@ -152,6 +152,8 @@ jobs:
               });
 
               const content = response.choices[0].message.content;
+
+              const YTID = extractYoutubeId(message);
 
               const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
               const extractedJson = jsonMatch ? jsonMatch[1] : null;
@@ -186,7 +188,7 @@ jobs:
               }
               if(extractedJson) {
                 const extractedInfo = JSON.parse(extractedJson);
-                core.exportVariable('YTID', extractedInfo.YTID || '');
+                core.exportVariable('YTID', extractedInfo.YTID || extractedInfo.youtube_id || YTID);
                 core.exportVariable('TITLE', extractedInfo.title || '');
                 core.exportVariable('GENRE', extractedInfo.genre || '');
 
@@ -259,3 +261,16 @@ jobs:
           echo "YTID: ${{ needs.handle_music.outputs.YTID }}"
           echo "TITLE: ${{ needs.handle_music.outputs.TITLE }}"
           echo "GENRE: ${{ needs.handle_music.outputs.GENRE }}"
+
+      - name: KBVE Shell - Execute Music Edit for Jukebox
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: "-nx kbve.com:music --args=\"--file=${{ needs.handle_music.outputs.GENRE }} --title='${{ needs.handle_music.outputs.TITLE }}' --ytid=${{ needs.handle_music.outputs.YTID }}\""
+          create_pull_request: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_request_title: 'music-action-ytid-${{ needs.handle_music.outputs.YTID }}'
+          pull_request_body: |
+              Execution of [Music](https://kbve.com/music/) Action.
+              [Link to the issue ticket](${{
+                github.event.issue.html_url
+              }})
