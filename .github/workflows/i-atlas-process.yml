@@ -108,7 +108,7 @@ jobs:
             const issue_number = context.issue.number;
             const repo = context.repo.repo;
             const owner = context.repo.owner;
-            const body = 'This is a comment added by the GitHub Action.';
+            const body = '[DEBUG] Processing Music Action';
 
             await github.rest.issues.createComment({
               owner,
