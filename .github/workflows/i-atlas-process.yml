@@ -92,9 +92,9 @@ jobs:
     needs: ['process_issue']
     if: needs.process_issue.outputs.matched_action == 'music_action'
     outputs:
-      YTID: ${{ steps.extract-info.outputs.YTID }}
-      TITLE: ${{ steps.extract-info.outputs.TITLE }}
-      GENRE: ${{ steps.extract-info.outputs.GENRE }}
+      YTID: ${{ steps.groq-call.outputs.YTID }}
+      TITLE: ${{ steps.groq-call.outputs.TITLE }}
+      GENRE: ${{ steps.groq-call.outputs.GENRE }}
     steps:
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -127,6 +127,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           KBVE_API: ''
+        id: groq-call
         uses: actions/github-script@v7
         with:
           script: |
@@ -188,9 +189,10 @@ jobs:
               }
               if(extractedJson) {
                 const extractedInfo = JSON.parse(extractedJson);
-                core.exportVariable('YTID', extractedInfo.YTID || extractedInfo.youtube_id || YTID);
-                core.exportVariable('TITLE', extractedInfo.title || '');
-                core.exportVariable('GENRE', extractedInfo.genre || '');
+                core.setOutput('YTID', extractedInfo.YTID || extractedInfo.youtube_id || YTID);
+                core.setOutput('TITLE', extractedInfo.title || '');
+                core.setOutput('GENRE', (extractedInfo.genre || '').toLowerCase());
+
 
                 await github.rest.issues.addLabels({
                   owner,
@@ -219,19 +221,6 @@ jobs:
               });
             }
 
-      - name: Debug environment variables
-        run: |
-          echo "YTID: ${{ env.YTID }}"
-          echo "TITLE: ${{ env.TITLE }}"
-          echo "GENRE: ${{ env.GENRE }}"
-
-      - name: Extract Info
-        id: extract-info
-        run: |
-          echo "YTID=${{ steps.groq-call.outputs.YTID }}" >> $GITHUB_ENV
-          echo "TITLE=${{ steps.groq-call.outputs.TITLE }}" >> $GITHUB_ENV
-          echo "GENRE=${{ steps.groq-call.outputs.GENRE }}" >> $GITHUB_ENV
-  
   
   execute_music_action:
     name: 'Execute Music Action'
