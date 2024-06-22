@@ -26,7 +26,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: | 
+        run: |
           npm install @kbve/devops
 
       - name: Check title of the ticket
@@ -36,13 +36,18 @@ jobs:
           script: |
             const { _$gha_kbve_ActionProcess } = require('@kbve/devops');
             const title = context.payload.issue.title;
-            const action = _$gha_kbve_ActionProcess(title);
-            core.setOutput('action', action);
+            try {
+              const action = _$gha_kbve_ActionProcess(title);
+              core.setOutput('action', action);
+              core.setOutput('error', false);
+            } catch (error) {
+              core.setOutput('action', 'none');
+              core.setOutput('error', true);
+            }
 
       - name: Debug matched action
         run: |
           echo "Matched action is: ${{ steps.title-parser.outputs.action }}"
-
 
   handle_atlas:
     name: 'Handle Atlas Ticket'
@@ -50,14 +55,13 @@ jobs:
     needs: ['process_issue']
     if: needs.process_issue.outputs.matched_action == 'atlas_action'
     steps:
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install dependencies
-        run: | 
+        run: |
           npm install @kbve/devops
 
       - name: Atlas Debug Comment
@@ -70,11 +74,81 @@ jobs:
             const issue_number = context.issue.number;
             const repo = context.repo.repo;
             const owner = context.repo.owner;
-            const body = 'This is a comment added by the GitHub Action.';
-            
+            const body = '[DEBUG] Starting the handle atlas comment';
+
             await github.rest.issues.createComment({
               owner,
               repo,
               issue_number,
               body: body
               });
+
+  handle_music:
+    name: 'Handle Music Ticket'
+    runs-on: ubuntu-latest
+    needs: ['process_issue']
+    if: needs.process_issue.outputs.matched_action == 'music_action'
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install @kbve/devops
+
+      - name: Music Debug Comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const body = '[DEBUG] Processing Music Action';
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body: body
+              });
+
+      - name: Call Groq
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KBVE_API: ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { _groq } = require('@kbve/devops');
+            const issue_number = context.issue.number;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const system = '01J0YEVWK8ZA1Z0Q8B0GDG6871';
+            const message = context.payload.issue.body;
+            const kbve_api = process.env.KBVE_API;
+            const model = 'mixtral-8x7b-32768';
+            const sanitizationLevel = 4;
+
+            try {
+              const response = await _groq(system, message, kbve_api, model, sanitizationLevel);
+              const formattedResponse = JSON.stringify(response, null, 2);
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: `Atlas Music Response:\n\`\`\`json\n${formattedResponse}\n\`\`\``
+              });
+            } catch (error) {
+              console.error('Error processing groq request:', error);
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: `Error processing groq request: ${error.message}`
+              });
+            }

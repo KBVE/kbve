@@ -2,12 +2,12 @@
 title: Android
 description: Android is an open source operating system based off of Linux that runs within the ARM architecture; the primary use-case is within the mobile/tablet eco-system but it has been expanding into server, desktop and embedables.
 sidebar:
-    label: Android
-    order: 105
+  label: Android
+  order: 105
 unsplash: 1607252650355-f7fd0460ccdb
 img: https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?fit=crop&w=1400&h=700&q=75
 tags:
-    - os
+  - os
 ---
 
 import {
@@ -31,27 +31,28 @@ Our job at KBVE will be to provide you with everything you need to deploy your o
 
 ## Cheatsheet
 
-The ADB cheatsheet provides a general list of basic commands for Android operating system and applications.
-Please note that certain commands require the device to be rooted, furthermore certain Android versions may require a tweak to the commands.
+The ADB cheatsheet is an essential resource for navigating and managing Android operating systems and applications via the Android Debug Bridge (ADB).
+It offers a comprehensive list of basic commands that facilitate various tasks such as installing apps, debugging issues, and accessing device logs. While the cheatsheet covers a wide range of functionalities, it's important to note that some commands require root access, and certain Android versions may necessitate specific tweaks to the standard commands.
+This makes the cheatsheet a versatile and indispensable tool for both novice users and experienced developers working with Android devices.
 
 ### Device Commands
 
 Android ADB Device commands are commands that you can use to control the Android device over USB from a computer.
 You can use them to list all devices, restart server and reboot!
 
--   `adb devices` - List all connected devices.
+- `adb devices` - List all connected devices.
 
-    -   `adb devices -l` - Query additional information from devices.
-    -   `adb get-state` - Information on the device state.
-    -   `adb get-serialno` - Query the device serial number.
+  - `adb devices -l` - Query additional information from devices.
+  - `adb get-state` - Information on the device state.
+  - `adb get-serialno` - Query the device serial number.
 
--   `adb root` - Launch module adbd with root permission.
-    -   Error 1: `adbd cannot run as root in production builds`
-        -   Resolution:
--   `adb start-server` - Start the adb server.
--   `adb kill-server` - Terminate the adb server.
--   `adb reboot` - Restart the current device.
--   `adb help` - Display additional information.
+- `adb root` - Launch module adbd with root permission.
+  - Error 1: `adbd cannot run as root in production builds`
+    - Resolution:
+- `adb start-server` - Start the adb server.
+- `adb kill-server` - Terminate the adb server.
+- `adb reboot` - Restart the current device.
+- `adb help` - Display additional information.
 
 ### Shell
 
@@ -62,29 +63,29 @@ You can use ADB shell commands to perform actions such as changing the resolutio
 
 > Remember to keep a backup of the commands that you run via shell, I recommend creating a `log.txt` file and output all the commands to that file.
 
--   `adb shell` - Launch the shell terminal for the device.
--   `adb -s $deviceString $deviceCommand` - Send the $deviceCommand to a specific device named $deviceString
--   `adb shell pwd` - Command to list current directory.
--   `adb shell ls` - Command to list all the directory contents of the device.
-    -   `adb shell ls -s` - Additional size information.
-    -   `adb shell ls -R` - Recursion of the folders.
--   `adb shell netstat` - Query the TCP information
--   `adb shell dumpsys` - An android tool that dumps information related to system services.
-    -   `adb shell dumpsys iphonesybinfo` - Query the IMEI information.
-    -   `adb shell dumpsys battery` - Query battery information.
-        -   `adb shell dumpsys battery set level $v` - Device battery level from 0 to 100.
-        -   `adb shell dumpsys battery reset` - Reset the device battery.
-    -   `adb shell dumpsys activity $package` - Query activity of package.
--   `adb shell pm list features` - Query device features.
--   `adb shell service list` - Query device services.
--   `adb shell wm` - ◈Null
-    -   `adb shell wm size` - Current device screen resolution.
-        -   `adb shell wm size $WxH` - Change device screen resolution.
-        -   `adb shell wm size reset` - Reset device screen resolution.
-    -   `adb shell wm density` - ◈Null
-        -   `adb shell wm density reset` - Reset device density.
--   `adb shell ps` - Query process status on the device.
--   `exit` - To exit ADB.
+- `adb shell` - Launch the shell terminal for the device.
+- `adb -s $deviceString $deviceCommand` - Send the $deviceCommand to a specific device named $deviceString
+- `adb shell pwd` - Command to list current directory.
+- `adb shell ls` - Command to list all the directory contents of the device.
+  - `adb shell ls -s` - Additional size information.
+  - `adb shell ls -R` - Recursion of the folders.
+- `adb shell netstat` - Query the TCP information
+- `adb shell dumpsys` - An android tool that dumps information related to system services.
+  - `adb shell dumpsys iphonesybinfo` - Query the IMEI information.
+  - `adb shell dumpsys battery` - Query battery information.
+    - `adb shell dumpsys battery set level $v` - Device battery level from 0 to 100.
+    - `adb shell dumpsys battery reset` - Reset the device battery.
+  - `adb shell dumpsys activity $package` - Query activity of package.
+- `adb shell pm list features` - Query device features.
+- `adb shell service list` - Query device services.
+- `adb shell wm` - ◈Null
+  - `adb shell wm size` - Current device screen resolution.
+    - `adb shell wm size $WxH` - Change device screen resolution.
+    - `adb shell wm size reset` - Reset device screen resolution.
+  - `adb shell wm density` - ◈Null
+    - `adb shell wm density reset` - Reset device density.
+- `adb shell ps` - Query process status on the device.
+- `exit` - To exit ADB.
 
 ### Key Events
 
@@ -92,32 +93,38 @@ Android Key Events - A quick breakdown for each event and how the operating syst
 
 Generic Android Keyevents:
 
--   `adb shell input keyevent`
+- `adb shell input keyevent`
 
-    -   `adb shell input keyevent 0` - Keycode 0
-    -   `adb shell input keyevent 1` - Soft Left
-    -   `adb shell input keyevent 2` - Soft Right
-    -   `adb shell input keyevent 3` - Home Button Event.
-    -   `adb shell input keyevent 4` - Back Button Event.
-    -   `adb shell input keyevent 5` - Call Event.
-    -   `adb shell input keyevent 6` - End Call / Hangup Event.
-    -   Events 7 to 18 are generic cell phone events.
-        -   `adb shell input keyevent 7` - Keycode 0
-        -   `adb shell input keyevent 8` - Keycode 1 aka Number 1
-        -   `adb shell input keyevent 9` - Keycode 2 aka Number 2
-        -   `adb shell input keyevent 10` - Keycode 3 aka Number 3
-        -   `adb shell input keyevent 11` - Keycode 4 aka Number 4
-        -   `adb shell input keyevent 12` - Keycode 5 aka Number 5
-        -   `adb shell input keyevent 13` - Keycode 6 aka Number 6
-        -   `adb shell input keyevent 14` - Keycode 7 aka Number 7
-        -   `adb shell input keyevent 15` - Keycode 8 aka Number 8
-        -   `adb shell input keyevent 16` - Keycode 9 aka Number 9
-        -   `adb shell input keyevent 17` - STAR Key
-        -   `adb shell input keyevent 18` - Pound Key
+  - `adb shell input keyevent 0` - Keycode 0
+  - `adb shell input keyevent 1` - Soft Left
+  - `adb shell input keyevent 2` - Soft Right
+  - `adb shell input keyevent 3` - Home Button Event.
+  - `adb shell input keyevent 4` - Back Button Event.
+  - `adb shell input keyevent 5` - Call Event.
+  - `adb shell input keyevent 6` - End Call / Hangup Event.
+  - Events 7 to 18 are generic cell phone events.
+    - `adb shell input keyevent 7` - Keycode 0
+    - `adb shell input keyevent 8` - Keycode 1 aka Number 1
+    - `adb shell input keyevent 9` - Keycode 2 aka Number 2
+    - `adb shell input keyevent 10` - Keycode 3 aka Number 3
+    - `adb shell input keyevent 11` - Keycode 4 aka Number 4
+    - `adb shell input keyevent 12` - Keycode 5 aka Number 5
+    - `adb shell input keyevent 13` - Keycode 6 aka Number 6
+    - `adb shell input keyevent 14` - Keycode 7 aka Number 7
+    - `adb shell input keyevent 15` - Keycode 8 aka Number 8
+    - `adb shell input keyevent 16` - Keycode 9 aka Number 9
+    - `adb shell input keyevent 17` - STAR Key
+    - `adb shell input keyevent 18` - Pound Key
 
--   Koltin: `open class KeyEvent: InputEvent, Parcelable`
+- Koltin: `open class KeyEvent: InputEvent, Parcelable`
 
--   Java: `public class KeyEvent extends InputEvent implements Parcelable`
+- Java: `public class KeyEvent extends InputEvent implements Parcelable`
 
+<Aside>
+  The ADB cheatsheet provides a general list of basic commands for Android
+  operating system and applications. Please note that certain commands require
+  the device to be rooted, furthermore certain Android versions may require a
+  tweak to the commands.
+</Aside>
 
 <Giscus />
