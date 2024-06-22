@@ -98,6 +98,13 @@ Taking this for a spin while I am about to sleep!
 So far, I am going to say that 3.5 sonnet is doing great, if anything, it might be fun to use it with groq and openai.
 It provides a great level of feedback and is able to pickup on what I am trying to do via github actions without any flaws.
 
+**Action**
+
+Switching back around to the github action, while the recent changes are being tested and pushed into main, I think it would be wise to start our execution job.
+After the music handle job is done within the `i-atlas-process.yml`, we can run a new execution job that will pull in the repo and make the pull request.
+The objective would be to smoothly make a minor change to the proper mdx file that the song is suppose to be in.
+Granted this will not happen right this second, but if we can lay down the foundation and make sure everything runs smoothly, than our goal of updating the jukebox via the static page itself will be near complete.
+I started to add the generic handle execution job, which I will push out now.
 
 <Adsense />
 
