@@ -47,6 +47,36 @@ Going to update the `i-atlas-process.yml` by removing the initial checkout for t
 
 This step within the job is not needed, so we can remove that for the time being.
 
+Okay we were able to get the comment to be placed onto the issue ticket and resolved the npm library issue that we were facing earlier.
+Now there will be a couple steps that we need to execute, it will be kind of like putting together a puzzle set.
+We already know that the pieces are functional but the orchestration has be secure, ensuring that there are not leaks or mismanagement amoung the different steps.
+
+In our first stage, the focus will be on only two actions that we want to execute, the `atlas_action` and the `music_action`.
+Once we get these resolved, we can move forward with the `herbmail_action` and `rareicon_action`.
+Granted we are very much behind schedule, maybe we can try to force some concepts through this weekend and get back on track.
+
+I just spotted a quick error, inside of this action script block:
+
+```yaml
+
+      - name: Check title of the ticket
+        id: title-parser
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { _$gha_kbve_ActionProcess } = require('@kbve/devops');
+            const title = context.payload.issue.title;
+            try {
+              const action = _$gha_kbve_ActionProcess(title);
+              core.setOutput('action', action);
+            } catch (error) {
+              core.setFailed(`Error processing title: ${error.message}`);
+            }
+
+```
+
+We need to wrap the `_$gha_` action within a try-catch, because it will throw an error.
+
 **mL**
 
 Just a minor shift in the mL docs, there is a decent amount of information and links that are missing from the whole document, but I think I will take a couple stabs at it slowly.
