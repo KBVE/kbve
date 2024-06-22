@@ -7,6 +7,59 @@ import {
   __md2json,
 } from './sanitization';
 
+// Prompt Engine Interface
+
+interface FunctionParameter {
+  type: string;
+  properties: {
+    [key: string]: {
+      type: string;
+      description: string;
+    };
+  };
+  required: string[];
+}
+
+interface ToolFunction {
+  name: string;
+  description: string;
+  parameters: FunctionParameter;
+}
+
+interface Tool {
+  type: string;
+  function: ToolFunction;
+}
+
+interface PathwayAction {
+  condition: string;
+  action: string;
+}
+
+interface Pathways {
+  [key: string]: {
+    prompt: string;
+    next: PathwayAction[];
+  };
+}
+
+interface PromptItem {
+  name: string;
+  description: string;
+  items: string[];
+  task: string;
+  tools: Tool[];
+  output: string;
+  pathways: Pathways;
+  ulid: string;
+}
+
+interface PromptEngine {
+  key: {
+    [key: string]: PromptItem;
+  };
+}
+
 const sanitizationFunctions: {
   [key: number]: (text: string) => Promise<string>;
 } = {
@@ -21,13 +74,13 @@ const sanitizationFunctions: {
  * @param ulid - The ULID to fetch the prompt for.
  * @returns The prompt object.
  */
-export async function _prompt(ulid: string): Promise<{ task: string }> {
+export async function _prompt(ulid: string): Promise<PromptItem> {
   if (!_isULID(ulid)) {
     throw new Error(`Invalid ULID: ${ulid}`);
   }
 
   try {
-    const response = await axios.get('https://kbve.com/api/prompt/engine.json');
+    const response = await axios.get<PromptEngine>('https://kbve.com/api/prompt/engine.json');
     const data = response.data.key;
 
     const prompt = data[ulid];
@@ -69,26 +122,26 @@ export function _headers(kbve_api?: string): object {
  * @throws Error if the response status is not successful.
  */
 export async function _post<T>(
-    url: string,
-    payload: object,
-    headers: object,
-  ): Promise<T> {
-    try {
-      const response = await axios.post<T>(url, payload, {
-        headers: headers,
-      });
-  
-      if (response.status < 200 || response.status >= 300) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      return response.data;
-    } catch (error) {
-      console.error(`Error making POST request to ${url}:`, error);
-      throw error;
+  url: string,
+  payload: object,
+  headers: object,
+): Promise<T> {
+  try {
+    const response = await axios.post<T>(url, payload, {
+      headers: headers,
+    });
+
+    if (response.status < 200 || response.status >= 300) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return response.data;
+  } catch (error) {
+    console.error(`Error making POST request to ${url}:`, error);
+    throw error;
   }
-  
+}
+
 /**
  * Sanitizes the message based on the specified sanitization level.
  * @param message - The message to sanitize.
