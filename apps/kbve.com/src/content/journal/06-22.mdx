@@ -18,6 +18,8 @@ import { Adsense } from '@kbve/astropad';
 
 **Switch Up**
 I been wondering if anyone else gets a bit bent when having to work in multiple languages, like having to switch from typescript, javascript, python, yaml, rust, all of which in a short peroid of time.
+The other issue with moving in between multiple languages is that the build cache gets a bit too big, but I am thinking we can resolve it by being a bit creative with how we would handle the cache storage.
+I am thinking of writing a custom `node_modules` and `python` cache system, basically holding our storage within a 3rd party location, pulling it only when doing safe builds.
 
 **Prompt**
 The prompt for the jukebox is still having some issues that we need to resolve, it seems to output a python script when we need it to output just a json.
