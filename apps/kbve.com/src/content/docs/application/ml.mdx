@@ -171,13 +171,24 @@ prompts:
       - Genre - The genre of the song, which must fit one of the specified genres - dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, jrock, studybeats, anime
       - YTID - The YouTube ID extracted from the provided YouTube link
     task: |
-      Create a JSON output for a given dataset including a song's title with the band/artist, genre (selected from the specified set), and YouTube ID.
+        Create a JSON output for a given dataset including a song's title with the band/artist, genre (selected from the specified set), and YouTube ID.
 
-      Objectives: Prompt the user to input a song title with the band/artist within the title, select a genre from the specified set, and provide a YouTube link. Extract the YouTube ID from the link and generate a JSON output containing the title with artist/band, genre, and YouTube ID.
+        Objectives: Prompt the user to input a song title with the band/artist within the title, select a genre from the specified set, and provide a YouTube link. Extract the YouTube ID from the link and generate a JSON output containing the following keys: "title", "genre", and "youtube_id".
 
-      Rules: The genre must be one of the specified genres. The YouTube link must be valid and the YouTube ID must be correctly extracted.
+        Rules: 
+          - The genre must be one of the specified genres. dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, jrock, studybeats, anime
+          - The YouTube link must be valid and the YouTube ID must be correctly extracted.
+          - The JSON output must use the exact keys: "title", "genre", and "youtube_id".
 
-      Roles: AI model responsible for creating the JSON output.
+        Example JSON Output:
+        ```json
+        {
+          "title": "<Song Title with Artist/Band>",
+          "genre": "<specified_genre>",
+          "youtube_id": "<valid_youtube_id>"
+        }
+        ```
+        Thanks!
     tools:
       - type: 'function'
         function:
