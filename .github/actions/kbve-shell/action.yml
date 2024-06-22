@@ -46,6 +46,7 @@ runs:
 
         git checkout -b "patch-atomic-gha-${{ inputs.pull_request_title }}"
         git add .
-        git commit -m "Automated Atomic Patch via ./kbve.sh ${{ inputs.flag }}"
+        ESCAPED_FLAG=$(echo "${{ inputs.flag }}" | sed "s/'/'\"'\"'/g")
+        git commit -m 'Automated Atomic Patch via ./kbve.sh '"$ESCAPED_FLAG"
         git push -u origin "patch-atomic-gha-${{ inputs.pull_request_title }}"
         gh pr create -B dev -H "patch-atomic-gha-${{ inputs.pull_request_title }}" --title "Automated Atomic Patch : ${{ inputs.pull_request_title }} " --body "This PR includes an automated atomic patch for the monorepo. ${{ inputs.pull_request_body }}"
