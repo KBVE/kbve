@@ -111,17 +111,9 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const issue_number = context.issue.number;
-            const repo = context.repo.repo;
-            const owner = context.repo.owner;
-            const body = '[DEBUG] Processing [Music](https://kbve.com/music/) Action';
-
-            await github.rest.issues.createComment({
-              owner,
-              repo,
-              issue_number,
-              body: body
-              });
+            const { _$gha_createIssueComment } = require('@kbve/devops');
+            const body = '[DEBUG] Processing [Music](https://kbve.com/music/) Action v0.0.10';
+            await _$gha_createIssueComment(github, context, body);
 
       - name: Call Groq for Music
         env:

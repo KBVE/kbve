@@ -176,11 +176,13 @@ prompts:
         Objectives: Prompt the user to input a song title with the band/artist within the title, select a genre from the specified set, and provide a YouTube link. Extract the YouTube ID from the link and generate a JSON output containing the following keys: "title", "genre", and "youtube_id".
 
         Rules: 
-          - The genre must be one of the specified genres. dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, jrock, studybeats, anime
+          - The genre must be one of the specified genres: dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, jrock, studybeats, anime
           - The YouTube link must be valid and the YouTube ID must be correctly extracted.
           - The JSON output must use the exact keys: "title", "genre", and "youtube_id".
+          - The output must be in valid JSON format, not Python code or any other format.
 
         Example JSON Output:
+        Your response should be in the following JSON format:
         ```json
         {
           "title": "<Song Title with Artist/Band>",
@@ -188,7 +190,8 @@ prompts:
           "youtube_id": "<valid_youtube_id>"
         }
         ```
-        Thanks!
+
+        Note: Ensure that your output is a valid JSON object, not Python code or any other format.
     tools:
       - type: 'function'
         function:
