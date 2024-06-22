@@ -91,6 +91,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: ['process_issue']
     if: needs.process_issue.outputs.matched_action == 'music_action'
+    outputs:
+      YTID: ${{ steps.extract-info.outputs.YTID }}
+      TITLE: ${{ steps.extract-info.outputs.TITLE }}
+      GENRE: ${{ steps.extract-info.outputs.GENRE }}
     steps:
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -218,3 +222,40 @@ jobs:
           echo "YTID: ${{ env.YTID }}"
           echo "TITLE: ${{ env.TITLE }}"
           echo "GENRE: ${{ env.GENRE }}"
+
+      - name: Extract Info
+        id: extract-info
+        run: |
+          echo "YTID=${{ steps.groq-call.outputs.YTID }}" >> $GITHUB_ENV
+          echo "TITLE=${{ steps.groq-call.outputs.TITLE }}" >> $GITHUB_ENV
+          echo "GENRE=${{ steps.groq-call.outputs.GENRE }}" >> $GITHUB_ENV
+  
+  
+  execute_music_action:
+    name: 'Execute Music Action'
+    runs-on: ubuntu-latest
+    needs: ['handle_music']
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+            version: 9
+            run_install: false
+
+      - name: Install pnpm dependencies
+        run: pnpm install
+
+      - name: Use Extracted Variables
+        run: |
+          echo "YTID: ${{ needs.handle_music.outputs.YTID }}"
+          echo "TITLE: ${{ needs.handle_music.outputs.TITLE }}"
+          echo "GENRE: ${{ needs.handle_music.outputs.GENRE }}"
