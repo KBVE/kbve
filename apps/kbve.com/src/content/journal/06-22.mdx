@@ -11,7 +11,6 @@ tags:
   - daily
 ---
 
-
 import { Adsense } from '@kbve/astropad';
 
 ## 2024
@@ -33,17 +32,26 @@ The worst part is that I am going to make more changes in the wrapper, but for n
 
 **Merge**
 
-While the pull requests seem to be fine, there seems to be a merge conflict, it might be from the fact that its pulling from `main`, instead of dev? 
+While the pull requests seem to be fine, there seems to be a merge conflict, it might be from the fact that its pulling from `main`, instead of dev?
 We should update it so that it is checking out the `dev` branch instead.
 
+```yaml
+- name: Checkout repository
+  uses: actions/checkout@v4
+  with:
+    ref: dev
+```
+
+This should help prevent some of the merge conflicts but it wont resolve all of them.
 
 <Adsense />
 
 ## 2023
+
 - 9:00am - Time to look through the backyard and do some general upkeep. The lawn looks healthy but part of me wants to start replacing certain aspects of it. One of my dream concepts would be to expand the mint garden, to the point where there is a natural aura of mint that flows through the property.
-- 10:00am - I should really think about placing a quick recipe onto KBVE for my amazing mint tea. Hmm should I go with a generic tea style and then build upon it? Maybe include various ways to show it off too. 
-- 6:00pm - I was a bit slacking on the note taking but there is a general flow of how I would want to improve upon that. 
-- 8:00pm - One of my side projects look like it is on the verge of failure. This is a point where it gets a bit tough, the letting go. Part of any project is knowing when it ends, when it stales and when it dies. Death and ending are two different concepts when I look at a project, with one being sudden and unexpected, while the other being a bit planned. 
+- 10:00am - I should really think about placing a quick recipe onto KBVE for my amazing mint tea. Hmm should I go with a generic tea style and then build upon it? Maybe include various ways to show it off too.
+- 6:00pm - I was a bit slacking on the note taking but there is a general flow of how I would want to improve upon that.
+- 8:00pm - One of my side projects look like it is on the verge of failure. This is a point where it gets a bit tough, the letting go. Part of any project is knowing when it ends, when it stales and when it dies. Death and ending are two different concepts when I look at a project, with one being sudden and unexpected, while the other being a bit planned.
 
 ## Quote
 
