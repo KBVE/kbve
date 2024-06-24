@@ -21,9 +21,21 @@
 	let player: any;
 	let scriptsLoaded = false;
 	let mounted = false;
+	let currentVideoId = '';
 
 	let playTracks = true; // Toggle for playing tracks
 	let playSets = false; // Toggle for playing sets
+
+
+	function getQueryParameter(name: string): string | null {
+		const urlParams = new URLSearchParams(window.location.search);
+		return urlParams.get(name);
+	}
+
+	function isValidYouTubeId(id: string): boolean {
+		const regex = /^[a-zA-Z0-9_-]{11}$/;
+		return regex.test(id);
+	}
 
 	onMount(() => {
 		mounted = true;
@@ -122,11 +134,12 @@
 
 	function initializePlayer() {
 		if (typeof videojs !== 'undefined' && videojs.getTech('youtube')) {
+			const queryVideoId = getQueryParameter('yt');
 			const allVideos = getActiveVideos();
-			if (allVideos.length === 0) return; // Prevent initialization if no videos are available
+			if (allVideos.length === 0 && (!queryVideoId || !isValidYouTubeId(queryVideoId))) return; // Prevent initialization if no videos are available or the query ID is invalid
 
-			const randomIndex = Math.floor(Math.random() * allVideos.length); // Select a random index
-			const initialVideoId = allVideos[randomIndex]; // Use the random index to fetch an ID
+			const initialVideoId = queryVideoId && isValidYouTubeId(queryVideoId) ? queryVideoId : allVideos[Math.floor(Math.random() * allVideos.length)]; // Use query parameter if valid or select a random index
+
 
 			player = videojs('video-js', {
 				techOrder: ['youtube'],
@@ -143,6 +156,8 @@
 			});
 
 			player.on('ended', loadNextVideo); // Load next video when one ends
+			// Set the current video ID
+			currentVideoId = initialVideoId;
 		} else {
 			setTimeout(initializePlayer, 100); // Retry after 100ms
 		}
@@ -183,6 +198,9 @@
 			src: `https://www.youtube.com/watch?v=${nextVideoId}`,
 		});
 		player.play();
+
+		currentVideoId = nextVideoId;
+
 	}
 
 	function toggleTag(tag: string | number) {
@@ -251,6 +269,10 @@
 		on:click={() => (playSets = !playSets)}>
 		Play Sets
 	</button>
+</div>
+
+<div class="mt-4">
+    <strong>Currently Playing Video ID:</strong> {currentVideoId}
 </div>
 
 <!-- svelte-ignore a11y-media-has-caption -->
