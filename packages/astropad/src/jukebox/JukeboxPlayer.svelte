@@ -26,6 +26,17 @@
 	let playTracks = true; // Toggle for playing tracks
 	let playSets = false; // Toggle for playing sets
 
+
+	function getQueryParameter(name: string): string | null {
+		const urlParams = new URLSearchParams(window.location.search);
+		return urlParams.get(name);
+	}
+
+	function isValidYouTubeId(id: string): boolean {
+		const regex = /^[a-zA-Z0-9_-]{11}$/;
+		return regex.test(id);
+	}
+
 	onMount(() => {
 		mounted = true;
 		console.log('Mounted');
@@ -123,11 +134,12 @@
 
 	function initializePlayer() {
 		if (typeof videojs !== 'undefined' && videojs.getTech('youtube')) {
+			const queryVideoId = getQueryParameter('yt');
 			const allVideos = getActiveVideos();
-			if (allVideos.length === 0) return; // Prevent initialization if no videos are available
+			if (allVideos.length === 0 && (!queryVideoId || !isValidYouTubeId(queryVideoId))) return; // Prevent initialization if no videos are available or the query ID is invalid
 
-			const randomIndex = Math.floor(Math.random() * allVideos.length); // Select a random index
-			const initialVideoId = allVideos[randomIndex]; // Use the random index to fetch an ID
+			const initialVideoId = queryVideoId && isValidYouTubeId(queryVideoId) ? queryVideoId : allVideos[Math.floor(Math.random() * allVideos.length)]; // Use query parameter if valid or select a random index
+
 
 			player = videojs('video-js', {
 				techOrder: ['youtube'],
