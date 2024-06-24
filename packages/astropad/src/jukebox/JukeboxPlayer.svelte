@@ -21,6 +21,7 @@
 	let player: any;
 	let scriptsLoaded = false;
 	let mounted = false;
+	let currentVideoId = '';
 
 	let playTracks = true; // Toggle for playing tracks
 	let playSets = false; // Toggle for playing sets
@@ -143,6 +144,8 @@
 			});
 
 			player.on('ended', loadNextVideo); // Load next video when one ends
+			// Set the current video ID
+			currentVideoId = initialVideoId;
 		} else {
 			setTimeout(initializePlayer, 100); // Retry after 100ms
 		}
@@ -183,6 +186,9 @@
 			src: `https://www.youtube.com/watch?v=${nextVideoId}`,
 		});
 		player.play();
+
+		currentVideoId = nextVideoId;
+
 	}
 
 	function toggleTag(tag: string | number) {
@@ -251,6 +257,10 @@
 		on:click={() => (playSets = !playSets)}>
 		Play Sets
 	</button>
+</div>
+
+<div class="mt-4">
+    <strong>Currently Playing Video ID:</strong> {currentVideoId}
 </div>
 
 <!-- svelte-ignore a11y-media-has-caption -->
