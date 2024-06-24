@@ -30,6 +30,10 @@ During the most recent pull request, it seems like the execution handler was not
 What we could do is migrate the permissions down to an individual job level within the workflow and see if that can help resolve this issue.
 The worst part is that I am going to make more changes in the wrapper, but for now we can test case both in the next push.
 
+Yay! We are finally getting the base system built out and tested.
+There are still some concepts that I need to improve upon, but we are getting the gist of it out of the way.
+Now the next part will be the discussion integration, which has two parts to it.
+
 **Merge**
 
 While the pull requests seem to be fine, there seems to be a merge conflict, it might be from the fact that its pulling from `main`, instead of dev?
@@ -43,6 +47,15 @@ We should update it so that it is checking out the `dev` branch instead.
 ```
 
 This should help prevent some of the merge conflicts but it wont resolve all of them.
+I wonder if we could do some level of automatic management of the pull request.
+We know it should only edit one file and then maybe find a way to help resolve the merge conflict, if it appears?
+
+Okay the `dev` checkout is working as intended, but we still have to be a bit careful when it comes to the issue tickets.
+I think the best move would be to limit the amount of executions and back to back genre additions.
+
+Lets wrap back around and prepare the discussion and auto resolving.
+For the automatic resolving, we could run a diff check and force it to automatically accept both merges but this might not be worth it for now.
+As for the discussion based trigger, the idea would be to post a youtube link under the discussion thread and then have it automatically parse and add it into the jukebox.
 
 <Adsense />
 
