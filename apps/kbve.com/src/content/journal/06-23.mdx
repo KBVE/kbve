@@ -23,12 +23,38 @@ I believe we want to also automate the assignee management for issues, which wil
 
 Went ahead and updated the action to remove the debug message, since we will not need that for now.
 
+**Music**
+
+Okay we did a couple live test cases with the issue tickets and almost all of them went through except one of them.
+It seems that songs with quotes will cause an escape to occur, which we will need to resolve and fix around that issue.
+However the amount of time that I have spent trying to move this aspect of the project forward is getting a bit too long and it might be time for a break.
+
+To be exact, when a song title has a `'` or just a general quote, it needs to be escaped.
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=edm --title='Fred again.. - Billie (Loving Arms)' --ytid=XqUZcHBsU5I"
+
+```
+
+The escape has to be during the args section of the command.
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=lofihiphop --title='Post Malone - Motley Crew (Lofi Remix)' --ytid=uBYFYhHFoW8"
+
+```
+
+Next update will be in the jukebox play via URL.
+
 <Adsense />
 
 ## 2023
-- 11:00am - I woke up a bit late and missing my morning meeting, which is starting to become a bad habit. I will have to make sure that I attend every meeting for the next couple months, it was a bit rough to adjust my sleep and schedule for the meetings but that is no real excuse. I can be caught into a various reasons for my procrastination. What should I do? Well I was able to re-arrange my tasks and maybe look into postponing certain non-important tasks to a later date. I might try to use another layer of numbering or just be honest within my soul, time to put some projects to stale. 
-- 7:30pm - I updated the repository for RogueJester and removed my older branch. One of the concepts that I was thinking of was keeping the patches to a limited amount, maybe just one or two max. This way I do not have to keep going back and forth, plus keeps me focused on what needs to be done. 
+
+- 11:00am - I woke up a bit late and missing my morning meeting, which is starting to become a bad habit. I will have to make sure that I attend every meeting for the next couple months, it was a bit rough to adjust my sleep and schedule for the meetings but that is no real excuse. I can be caught into a various reasons for my procrastination. What should I do? Well I was able to re-arrange my tasks and maybe look into postponing certain non-important tasks to a later date. I might try to use another layer of numbering or just be honest within my soul, time to put some projects to stale.
+- 7:30pm - I updated the repository for RogueJester and removed my older branch. One of the concepts that I was thinking of was keeping the patches to a limited amount, maybe just one or two max. This way I do not have to keep going back and forth, plus keeps me focused on what needs to be done.
 - 8:00pm - When the application launches, I am thinking of having the basic manga open up and let the reader go through it. This part of the launcher could focus on the notes and latest updates? I suppose we could also sneak in this journal, a bit of offsetting but it could be an idea that we could look into later down the line.
+
 ## Quote
 
 > Nothing diminishes anxiety faster than action.
