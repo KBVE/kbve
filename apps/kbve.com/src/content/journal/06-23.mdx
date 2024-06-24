@@ -23,6 +23,29 @@ I believe we want to also automate the assignee management for issues, which wil
 
 Went ahead and updated the action to remove the debug message, since we will not need that for now.
 
+**Music**
+
+Okay we did a couple live test cases with the issue tickets and almost all of them went through except one of them.
+It seems that songs with quotes will cause an escape to occur, which we will need to resolve and fix around that issue.
+However the amount of time that I have spent trying to move this aspect of the project forward is getting a bit too long and it might be time for a break.
+
+To be exact, when a song title has a `'` or just a general quote, it needs to be escaped.
+
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=edm --title='Fred again.. - Billie (Loving Arms)' --ytid=XqUZcHBsU5I"
+
+```
+
+The escape has to be during the args section of the command.
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=lofihiphop --title='Post Malone - Motley Crew (Lofi Remix)' --ytid=uBYFYhHFoW8"
+
+```
+
 <Adsense />
 
 ## 2023
