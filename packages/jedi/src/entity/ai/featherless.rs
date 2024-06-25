@@ -1,10 +1,10 @@
 use tokio::sync::Semaphore;
 use std::error::Error;
 use std::sync::{ Arc, Mutex };
-use reqwest::{ Client, StatusCode };
+use reqwest::Client;
 use serde::{ Serialize, Deserialize };
 use crossbeam::queue::SegQueue;
-use tokio::time::{sleep, Duration};
+use tokio::time::Duration;
 
 
 // Constants
@@ -86,7 +86,7 @@ impl FeatherlessClient {
   pub async fn send_request(
     &self,
     request_body: &FeatherlessRequestBody
-  ) -> Result<FeatherlessResponseBody, reqwest::Error> {
+  ) -> Result<FeatherlessResponseBody, Box<dyn Error>> {
     let _permit = self.semaphore.acquire().await.unwrap();
 
     let response = self.client
@@ -105,9 +105,17 @@ impl FeatherlessClient {
   }
 
   pub fn get_queue_status(&self) -> Vec<String> {
-    self.queue
-      .iter()
-      .map(|url| url.clone())
-      .collect()
-  }
+    let mut status = Vec::new();
+    let queue_clone = self.queue.clone();
+
+    while let Some(url) = queue_clone.pop() {
+        status.push(url);
+    }
+
+    for url in &status {
+        self.queue.push(url.clone());
+    }
+
+    status
+}
 }
