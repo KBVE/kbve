@@ -236,25 +236,6 @@
   />
 </svelte:head>
 
-<button
-  on:click={syncData}
-  class="px-4 py-2 bg-blue-500 border text-white rounded hover:scale-110 ease-in-out duration-500"
->
-  Sync
-</button>
-
-<div class="space-x-2">
-  {#each Object.keys($tagSetting$) as tag}
-    <button
-      class="px-3 py-1 text-sm font-medium border rounded-md hover:scale-110 ease-in-out duration-500"
-      class:opacity-100={$tagSetting$[tag]}
-      class:opacity-50={!$tagSetting$[tag]}
-      on:click={() => toggleTag(tag)}
-    >
-      {tag}
-    </button>
-  {/each}
-</div>
 
 <div class="space-x-2 my-4">
   <button
@@ -273,23 +254,39 @@
   >
     Play Sets
   </button>
+
+<button
+on:click={syncData}
+class="px-4 py-2 bg-blue-500 border text-white rounded hover:scale-110 ease-in-out duration-500"
+>
+Sync
+</button>
+
+<strong>Currently Playing Video ID:</strong>
+{currentVideoId} 
+<button
+  on:click={loadNextVideo}
+  class="px-4 py-2 bg-red-500 text-white rounded hover:scale-110 ease-in-out duration-500"
+>
+  Skip
+</button>
+
 </div>
 
-<div class="mt-4">
-  <strong>Currently Playing Video ID:</strong>
-  {currentVideoId} 
-  <button
-    on:click={loadNextVideo}
-    class="px-4 py-2 bg-red-500 text-white rounded hover:scale-110 ease-in-out duration-500"
-  >
-    Skip
-  </button>
+
+<div class="space-x-2">
+  {#each Object.keys($tagSetting$) as tag}
+    <button
+      class="relative z-1 px-3 py-1 text-sm font-medium border rounded-md hover:scale-110 ease-in-out duration-500"
+      class:opacity-100={$tagSetting$[tag]}
+      class:opacity-50={!$tagSetting$[tag]}
+      on:click={() => toggleTag(tag)}
+    >
+     {tag}
+    </button>
+  {/each}
 </div>
 
-<div class="mt-4">
-	<JukeboxButton />
-	<JukeboxButton />
-</div>
 
 <!-- svelte-ignore a11y-media-has-caption -->
 <video
