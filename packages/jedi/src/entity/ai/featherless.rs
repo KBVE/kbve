@@ -6,7 +6,6 @@ use serde::{ Serialize, Deserialize };
 use crossbeam::queue::SegQueue;
 use tokio::time::Duration;
 
-
 // Constants
 const BASE_URL: &str = "https://api.featherless.ai/v1";
 
@@ -47,19 +46,22 @@ pub struct FeatherlessClient {
 
 #[derive(Debug)]
 pub enum FeatherlessError {
-    ClientError(String),
-    NoAvailableClients,
+  ClientError(String),
+  HttpError(reqwest::StatusCode),
+  JsonError(String),
+  NoAvailableClients,
 }
 
 impl std::fmt::Display for FeatherlessError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FeatherlessError::ClientError(msg) => write!(f, "Client Error: {}", msg),
-            FeatherlessError::NoAvailableClients => write!(f, "No available clients"),
-        }
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+        FeatherlessError::ClientError(msg) => write!(f, "Client Error: {}", msg),
+        FeatherlessError::HttpError(status) => write!(f, "HTTP Error: {}", status),
+        FeatherlessError::JsonError(msg) => write!(f, "JSON Error: {}", msg),
+        FeatherlessError::NoAvailableClients => write!(f, "No available clients"),
     }
+  }
 }
-
 
 impl FeatherlessClient {
   pub fn new(
@@ -89,8 +91,10 @@ impl FeatherlessClient {
   ) -> Result<FeatherlessResponseBody, Box<dyn Error>> {
     let _permit = self.semaphore.acquire().await.unwrap();
 
+    let url = format!("{}/completions", BASE_URL);
+
     let response = self.client
-      .post("https://api.featherless.ai/v1/completions")
+      .post(&url)
       .header("Authorization", format!("Bearer {}", self.api_key))
       .header("Content-type", "application/json")
       .json(request_body)
@@ -109,13 +113,13 @@ impl FeatherlessClient {
     let queue_clone = self.queue.clone();
 
     while let Some(url) = queue_clone.pop() {
-        status.push(url);
+      status.push(url);
     }
 
     for url in &status {
-        self.queue.push(url.clone());
+      self.queue.push(url.clone());
     }
 
     status
-}
+  }
 }
