@@ -25,6 +25,7 @@
   let scriptsLoaded = false;
   let mounted = false;
   let currentVideoId = '';
+  let forcePlay = false;
 
   let playTracks = true; // Toggle for playing tracks
   let playSets = false; // Toggle for playing sets
@@ -159,6 +160,10 @@
         preload: 'auto',
       });
 
+      player.on('pause', () => {
+          if(forcePlay) player.play();
+      });
+
       player.on('ended', loadNextVideo); // Load next video when one ends
       // Set the current video ID
       currentVideoId = initialVideoId;
@@ -262,13 +267,20 @@ class="px-4 py-2 bg-blue-500 border text-white rounded hover:scale-110 ease-in-o
 Sync
 </button>
 
-<strong>Currently Playing Video ID:</strong>
-{currentVideoId} 
 <button
   on:click={loadNextVideo}
   class="px-4 py-2 bg-red-500 text-white rounded hover:scale-110 ease-in-out duration-500"
 >
   Skip
+</button>
+
+<button
+    on:click={() => (forcePlay = !forcePlay)}
+    class="px-4 py-2 bg-cyan-600 border text-white rounded hover:scale-110 ease-in-out duration-500"
+    class:opacity-100={forcePlay}
+    class:opacity-50={!forcePlay}
+  >
+    {forcePlay ? 'Disable Force Play' : 'Enable Force Play'}
 </button>
 
 </div>
@@ -305,3 +317,6 @@ Sync
     </a>
   </p>
 </video>
+
+<strong>Currently Playing Video ID:</strong>
+{currentVideoId} 
