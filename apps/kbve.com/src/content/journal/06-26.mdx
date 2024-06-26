@@ -29,12 +29,39 @@ To test case the library against a dry run, we use this command:
 
 ```
 
+Okay, we released the latest jedi crate under `v0.1.12` , with a small update to the readme and the foundation of the [Featherless](https://docs.rs/jedi/latest/jedi/entity/ai/featherless/struct.FeatherlessClient.html).
+However I did notice a couple issues at hand, the documentation that gets auto-generated on the `docs.rs` is not the greatest, so I will have to find a way to improve that.
+I am sure there is a minor markdown style that I need to include within the source code or something of that nature, I will keep that in my future notes.
+
+
 **Conch**
 
 This is my second official rewrite of the conch, I will be placing the it directly into the `astropad` library so that I can call it on other websites if I need to.
 We will be pushing the recent assets into the production branch, so we can hotlink them directly in the code.
 The relative path is going to break during some of the test casing and we want to make sure that everything works as smoothly as possible.
 The idea here would be to pitch this meme application to featherless.ai and maybe they might be willing to sponsor it.
+
+After pushing up to the `main` branch, we have our assets loaded into the `embed/conch` path and now we can hotlink all of them within our source code.
+The default background for the conch shell will be `https://kbve.com/embed/conch/bg.jpg`.
+For now, we have two default song clips in OGG format, 
+
+```js
+
+    onMount(() => {
+      yesAudio = new Audio("https://kbve.com/embed/conch/yes.ogg");
+      noAudio = new Audio("https://kbve.com/embed/conch/no.ogg");
+    });
+```
+
+I think we should look for a couple more song effects, like the pulling of the string and maybe some evil / shadow effects.
+
+While I am creating the new music effects, I should also build out the prompt that will get executed during the questioning process.
+Oh I forgot to add the conch, let me do that quickly too.
+
+**Jukebox**
+
+There seems to be an issue where the jukebox either crashes or fails to load the next song, maybe we should account that with a timer?
+If nothing is playing within the past 3000ms, have it automatically load the next song?
 
 ## 2023
 
