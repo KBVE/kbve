@@ -47,6 +47,55 @@ The escape has to be during the args section of the command.
 
 Next update will be in the jukebox play via URL.
 
+Noo! We had some errors in the jukebox and it seems that copyrighted songs seem to crash the player.
+I am thinking that we should have a report function for removing or replacing a video? Hmm.
+Also fixed direct linking to a song via the idea, so [Post Malone - Motley Crew](https://kbve.com/music/?yt=uBYFYhHFoW8) should load the song dynamically.
+But given that certain songs are getting removed or banned, maybe we should also include a ULID style system for each of the songs?
+This could be done later on, as we expand the collection, but it might end up making them too large, hmm.
+
+Here is the bash ->
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=rock --title='Rise Against - Like the Angel' --ytid=1B2N0rxp25I"
+./kbve.sh -nx kbve.com:music --args="--file=rock --title='CKY - Plastic Plan' --ytid=AlDCT_1u7hU"
+./kbve.sh -nx kbve.com:music --args="--file=rock --title='CKY - Escape from Hellview' --ytid=ZYk7vwdwtm8"
+./kbve.sh -nx kbve.com:music --args="--file=rock --title='CKY - 96 Quite Bitter Beings' --ytid=aVdR6JeEyT8"
+./kbve.sh -nx kbve.com:music --args="--file=rock --title='CKY - Disengage the Simulator' --ytid=yXrFH9agq14"
+
+
+```
+
+The part that fails is within the way we are handling the single quote. 
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=rock --title='Dirty Heads - Life\'s Been Good ' --ytid=R70b1XYuSvQ"
+pnpm nx run kbve.com:music --args=--file=rock --title="Dirty Heads - Life's Been Good" --ytid=R70b1XYuSvQ
+
+```
+
+So there are a couple ways we could handle this, let me sleep on it and maybe tomorrow I will have a better solution.
+We could just escape it with another character and then adjust it later on.
+Let me try it like this:
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=rock --title='Dirty Heads - Life◈s Been Good ' --ytid=R70b1XYuSvQ"
+
+```
+
+That seems to pass without any issues for now, okay we can work with that for now.
+
+```bash
+
+./kbve.sh -nx kbve.com:music --args="--file=rock --title='Rise Against - Paper Wings' --ytid=ZJwy9jTiyu4"
+
+```
+
+Let me run another quick command against the rock.mdx and see if that would run into any errors, it seems we do not.
+
+
 <Adsense />
 
 ## 2023
