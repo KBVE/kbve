@@ -21,6 +21,14 @@ Time to upgrade the jedi library and release our featherless instance?
 While I prepare do that, we also need to release the core of the conch shell application.
 The best step to make right now is to push the most recent changes into production, as blank templates or shells and then slowly add to that foundation.
 
+To test case the library against a dry run, we use this command:
+
+```shell
+
+./kbve.sh -nx jedi:dry --no-cloud
+
+```
+
 **Conch**
 
 This is my second official rewrite of the conch, I will be placing the it directly into the `astropad` library so that I can call it on other websites if I need to.
