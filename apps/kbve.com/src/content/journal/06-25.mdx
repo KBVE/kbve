@@ -19,7 +19,21 @@ import { Adsense } from '@kbve/astropad';
 **Featherless**
 
 Updating the `jedi` crate to use the featherless api, however as I am building it out, it might make sense to make a general OpenAI wrapper and then just adjust that based upon these different models.
+We will be using a combination of Semaphore from Tokio and SegQueue from Crossbeams to handle our concurrent queue but this is still a bit new for me!
 
+**Jukebox**
+
+The UI for the Jukebox needs to be rebuilt but I will take some small steps towards that.
+I am thinking of a neumorphism style within tailwindcss but getting the customization down is a bit of a pain.
+This would be a great way for me to learn a bit of abstract UI design but the time it will take is something that might not be worth it right now.
+The skip button will be the first attempt at a neumorphic style and then I will go from there, plus it does look tough to do in a dark style because of the way the shadows would be handled.
+
+**Haystack**
+
+The next part of the atlas upgrade will be with expanding the haystack integration, mainly haystack 2.0 but that might come with its own set of issues and problems.
+We are currently using a custom api wrapper around groq, ollama and a couple other libraries, so maybe we would have to create a single uniformed wrapper around those that would work directly within the haystack eco-system?
+
+<Adsense />
 
 ## 2023
 

@@ -14,7 +14,7 @@
   
     async function getAnswer() {
       try {
-        const response = await fetch('https://your-api-endpoint.com/get-answer');
+        const response = await fetch('https://rust.kbve.com/api/v1/featherless');
         const data = await response.json();
         playAnswer(data.answer);
       } catch (error) {

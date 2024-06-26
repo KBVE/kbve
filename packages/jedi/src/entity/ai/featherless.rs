@@ -55,10 +55,10 @@ pub enum FeatherlessError {
 impl std::fmt::Display for FeatherlessError {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
-        FeatherlessError::ClientError(msg) => write!(f, "Client Error: {}", msg),
-        FeatherlessError::HttpError(status) => write!(f, "HTTP Error: {}", status),
-        FeatherlessError::JsonError(msg) => write!(f, "JSON Error: {}", msg),
-        FeatherlessError::NoAvailableClients => write!(f, "No available clients"),
+      FeatherlessError::ClientError(msg) => write!(f, "Client Error: {}", msg),
+      FeatherlessError::HttpError(status) => write!(f, "HTTP Error: {}", status),
+      FeatherlessError::JsonError(msg) => write!(f, "JSON Error: {}", msg),
+      FeatherlessError::NoAvailableClients => write!(f, "No available clients"),
     }
   }
 }
@@ -88,7 +88,7 @@ impl FeatherlessClient {
   pub async fn send_request(
     &self,
     request_body: &FeatherlessRequestBody
-  ) -> Result<FeatherlessResponseBody, Box<dyn Error>> {
+  ) -> Result<FeatherlessResponseBody, FeatherlessError> {
     let _permit = self.semaphore.acquire().await.unwrap();
 
     let url = format!("{}/completions", BASE_URL);
@@ -98,10 +98,21 @@ impl FeatherlessClient {
       .header("Authorization", format!("Bearer {}", self.api_key))
       .header("Content-type", "application/json")
       .json(request_body)
-      .send().await?;
+      .send().await;
 
-    let response_body = response.json::<FeatherlessResponseBody>().await?;
-    Ok(response_body)
+    match response {
+      Ok(resp) => {
+        if resp.status().is_success() {
+          match resp.json::<FeatherlessResponseBody>().await {
+            Ok(body) => Ok(body),
+            Err(e) => Err(FeatherlessError::JsonError(e.to_string())),
+          }
+        } else {
+          Err(FeatherlessError::HttpError(resp.status()))
+        }
+      }
+      Err(e) => Err(FeatherlessError::ClientError(e.to_string())),
+    }
   }
 
   pub fn add_to_queue(&self, url: String) {
