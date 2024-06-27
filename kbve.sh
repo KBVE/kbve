@@ -379,11 +379,18 @@ execmdx_function() {
 #     pnpm nx run "$argument"
 # }
 
-# Function to run pnpm nx with additiona arguments.
+
+# Function to run pnpm nx with additional arguements under the cloud.
+run_pnpm_nxc() {
+    echo "Running pnpm nx with arguments: $@"
+    pnpm nx run "$@"
+}
+
+# Function to run pnpm nx with additional arguments without the cloud.
 run_pnpm_nx() {
     # Note: "$@" passes all arguments received by the function as-is
     echo "Running pnpm nx with arguments: $@"
-    pnpm nx run "$@"
+    pnpm nx run "$@" --no-cloud
 }
 
 # Function to build pnpm nx with an argument
@@ -506,6 +513,14 @@ case "$1" in
         fi
         run_pnpm_nx "$@"  # Pass all remaining arguments to the function.
         ;;
+    -nxc)
+        shift  # This discards "-nxc", shifting all other arguments left.
+        if [ $# -eq 0 ]; then  # Check if there are any arguments left.
+            echo "No command specified. Usage: $0 -nx [command] [args...]"
+            exit 1
+        fi
+        run_pnpm_nxc "$@"  # Pass all remaining arguments to the function.
+        ;;    
 
     -build)
          [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }

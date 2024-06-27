@@ -1,0 +1,41 @@
+---
+title: 'June: 27'
+category: Daily
+date: 2024-06-27 12:00:00
+client: Self
+unsplash: 1718871395011-32cafdd68d4b
+img: https://images.unsplash.com/photo-1718871395011-32cafdd68d4b?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 27th. Conch Groq.
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Shell**
+
+I was working on this earlier yesterday night into the middle of the morning.
+We want to move all the generic commands out of the cloud, so that `-nx` flag will run the commands without invoking the cloud credits.
+I added a new command, `-nxc` that will run the commands with the cloud / cache instance, moving forward we can isolate the exact cases where we want to utilize the cloud.
+One of the plans would be to automatically move the errors that get generated from the `-nxc` into a Github issue ticket and then let a couple different LLMs work on resolving the said issue.
+
+**Groq**
+
+Since we do not have the feather integration, I am thinking we can atleast throw in the groq integration.
+The bigger issue would be to control the endpoint and have it not get abused by other 3rd party users.
+
+**Music**
+
+The next genre that we need to add is the study beats.
+The base template for the studybeats genre will be under the `/docs/music/studybeats.mdx` and I will try to expand it out to about 10-20 songs for now.
+We should explore all of `DeKobe` first, just grabbing some of his best work would be right move.
+
+```shell
+
+./kbve.sh -nx kbve.com:music --args="--file=studybeats --title='DeKobe - Small Problems' --ytid=A0DHLDjQhaU"
+./kbve.sh -nx kbve.com:music --args="--file=studybeats --title='DeKobe - Stars in the Forest' --ytid=XhhtsViFbfE"
+
+```
