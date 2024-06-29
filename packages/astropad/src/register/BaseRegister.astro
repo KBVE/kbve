@@ -1,0 +1,18 @@
+---
+import RegisterReact from './RegisterReact';
+
+const labels = {
+  username: 'Username',
+  email: 'Email',
+  password: 'Password',
+  submit: 'Register',
+};
+
+const errors = {
+  username: 'Username is required',
+  email: 'Email is required',
+  password: 'Password is required',
+};
+---
+
+<RegisterReact client:only="react" labels={labels} errors={errors} />
