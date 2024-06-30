@@ -646,6 +646,30 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
 
+  python_fudster_publish:
+    needs: ['deploy', 'alter', 'python_fudster_build']
+    name: Pypi Publish
+    if: needs.alter.outputs.fudster == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/fudster
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: fudster-python-package-distributions
+          path: dist/
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+
+
   # Monorepo Image from https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
   monorepo-image:
     needs: ['deploy']
