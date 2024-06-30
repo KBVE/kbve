@@ -1,0 +1,9 @@
+---
+
+import DevCodeCore from './DevCodeCore';
+
+const { htmlCode } = Astro.props;
+
+---
+
+<DevCodeCore htmlCode={htmlCode} client:only="react" />

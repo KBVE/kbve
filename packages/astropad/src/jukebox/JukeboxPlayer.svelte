@@ -161,7 +161,7 @@
       });
 
       player.on('pause', () => {
-          if(forcePlay) player.play();
+          // if(forcePlay) player.play();
       });
 
       player.on('ended', loadNextVideo); // Load next video when one ends
