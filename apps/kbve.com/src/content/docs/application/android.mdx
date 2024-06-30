@@ -127,4 +127,297 @@ Generic Android Keyevents:
   tweak to the commands.
 </Aside>
 
+---
+
+## Android Data Storage
+
+In Android, there are several ways to store data persistently.
+The choice of storage mechanism depends on the nature of the data and the requirements of the app.
+Below are the primary methods for data storage in Android:
+
+**Comparison of Storage Options**
+
+| Storage Method    | Visibility | Persistence            | Complexity  | Best For                                 |
+| ----------------- | ---------- | ---------------------- | ----------- | ---------------------------------------- |
+| SharedPreferences | Private    | Until app uninstall    | Low         | Small key-value pairs                    |
+| Internal Storage  | Private    | Until app uninstall    | Low         | Private files                            |
+| External Storage  | Public     | Until manually deleted | Medium      | Large/shared files                       |
+| SQLite Database   | Private    | Until app uninstall    | High        | Structured data                          |
+| Room              | Private    | Until app uninstall    | Medium-High | Structured data with compile-time safety |
+
+When choosing a storage method, consider the type of data you're storing, how much data you need to store, the required level of security, and the complexity you're willing to manage in your app.
+
+1. SharedPreferences
+
+SharedPreferences is a framework that allows you to save and retrieve key-value pairs of primitive data types.
+
+**Use Cases**
+
+- Storing user preferences.
+- Saving settings or configuration data.
+
+**Advantages:**
+- Simple to use for small amounts of data
+- Data persists across app restarts
+
+**Disadvantages:**
+- Not suitable for large or complex data structures
+- Not encrypted by default
+
+
+**Java Code Example**
+
+```java
+// Saving data to SharedPreferences
+SharedPreferences sharedPref = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+SharedPreferences.Editor editor = sharedPref.edit();
+editor.putString("key_name", "value");
+editor.apply();
+
+// Retrieving data from SharedPreferences
+SharedPreferences sharedPref = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+String value = sharedPref.getString("key_name", "default_value");
+```
+
+2. Internal Storage
+
+Internal Storage is used to store private data within the device's internal memory.
+
+**Use Cases**
+
+- Storing sensitive data.
+- Files that should not be accessible to other apps.
+
+**Advantages:**
+- Data is private to the app.
+- Files are removed when the app is uninstalled.
+
+**Disadvantages:**
+- Limited by device storage.
+- Not easily accessible for backup.
+
+**Java Code Example**
+
+```java
+// Writing to internal storage
+String filename = "myfile";
+String fileContents = "Hello, World!";
+FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
+fos.write(fileContents.getBytes());
+fos.close();
+
+// Reading from internal storage
+FileInputStream fis = openFileInput(filename);
+InputStreamReader isr = new InputStreamReader(fis);
+BufferedReader br = new BufferedReader(isr);
+StringBuilder sb = new StringBuilder();
+String line;
+while ((line = br.readLine()) != null) {
+    sb.append(line);
+}
+String fileContents = sb.toString();
+fis.close();
+```
+
+3. External Storage
+
+External Storage is used to store public data on the shared external storage.
+It's typically used for storing larger files.
+
+**Use Cases**
+
+- Storing media files (images, videos, audio)
+- Documents that need to be shared with other apps.
+
+**Advantages:**
+- Larger storage capacity
+- Files can be shared with other apps
+
+**Disadvantages:**
+- Not secure, as other apps can access the files
+- Files may remain after app uninstallation
+
+**Permissions**
+
+```xml
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+```
+
+**Java Code Example**
+
+```java
+// Writing to external storage
+String filename = "myfile";
+String fileContents = "Hello, World!";
+File file = new File(getExternalFilesDir(null), filename);
+FileOutputStream fos = new FileOutputStream(file);
+fos.write(fileContents.getBytes());
+fos.close();
+
+// Reading from external storage
+File file = new File(getExternalFilesDir(null), filename);
+FileInputStream fis = new FileInputStream(file);
+InputStreamReader isr = new InputStreamReader(fis);
+BufferedReader br = new BufferedReader(isr);
+StringBuilder sb = new StringBuilder();
+String line;
+while ((line = br.readLine()) != null) {
+    sb.append(line);
+}
+String fileContents = sb.toString();
+fis.close();
+```
+
+4. SQLite Database
+
+SQLite is a lightweight relational database embedded within Android.
+
+**Use Cases**
+
+- Structured data storage.
+- Complex querying requirements.
+- Managing complex data relationships
+
+**Advantages:**
+- Efficient for complex queries and large datasets
+- Supports transactions and data integrity
+
+**Disadvantages:**
+- More complex to set up and use compared to other options
+- Overkill for simple data storage needs
+
+
+**Java Code Example**
+
+```java
+// Creating a database helper
+public class MyDatabaseHelper extends SQLiteOpenHelper {
+    private static final String DATABASE_NAME = "mydatabase.db";
+    private static final int DATABASE_VERSION = 1;
+
+    public MyDatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE mytable (id INTEGER PRIMARY KEY, name TEXT)");
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS mytable");
+        onCreate(db);
+    }
+}
+
+// Using the database helper
+MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);
+SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+// Inserting data
+ContentValues values = new ContentValues();
+values.put("name", "John Doe");
+long newRowId = db.insert("mytable", null, values);
+
+// Querying data
+Cursor cursor = db.query("mytable", new String[]{"id", "name"}, null, null, null, null, null);
+while (cursor.moveToNext()) {
+    long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+    String itemName = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+}
+cursor.close();
+db.close();
+```
+
+5. Room Database
+
+Room is an abstraction layer over SQLite that provides a more robust database access while harnessing the full power of SQLite.
+
+**Use Cases:**
+- When you need a robust database solution but want to avoid the complexity of raw SQLite
+
+**Advantages:**
+- Compile-time verification of SQL queries
+- Convenient annotations to define database structure
+- Easy integration with other Architecture components
+
+**Disadvantages:**
+- Adds additional dependencies to your project
+- May be overkill for very simple data storage needs
+
+**Java Code Example**
+
+```java
+// Define Entity
+@Entity(tableName = "user")
+public class User {
+    @PrimaryKey
+    public int id;
+    public String name;
+}
+
+// Define DAO
+@Dao
+public interface UserDao {
+    @Insert
+    void insert(User user);
+
+    @Query("SELECT * FROM user WHERE id = :id")
+    User getUserById(int id);
+}
+
+// Define Database
+@Database(entities = {User.class}, version = 1)
+public abstract class AppDatabase extends RoomDatabase {
+    public abstract UserDao userDao();
+}
+
+// Using Room
+AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+        AppDatabase.class, "mydatabase").build();
+UserDao userDao = db.userDao();
+
+// Inserting data
+User user = new User();
+user.id = 1;
+user.name = "John Doe";
+userDao.insert(user);
+
+// Querying data
+User user = userDao.getUserById(1);
+```
+
+6. Content Providers
+
+Content Providers manage access to a structured set of data. They encapsulate the data and provide mechanisms for defining data security.
+
+**Use Cases**
+
+- Sharing data between different applications.
+- Accessing data from other applications.
+
+**Java Code Example**
+
+```java
+// Querying a content provider
+Cursor cursor = getContentResolver().query(
+        ContactsContract.Contacts.CONTENT_URI,
+        null,
+        null,
+        null,
+        null);
+
+while (cursor.moveToNext()) {
+    String id = cursor.getString(
+            cursor.getColumnIndex(ContactsContract.Contacts._ID));
+    String name = cursor.getString(
+            cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+}
+cursor.close();
+```
+
+---
+
 <Giscus />
