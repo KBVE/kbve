@@ -15,4 +15,4 @@ export { default as LeagueMiniMap } from  './src/lolminimap/LoLMiniMap.astro';
 
 export { default as ConchShell } from './src/conchshell/ConchShell.astro';
 
-export { default as Devcode} from './src/devcode/DevCode.astro';
+export { default as DevCode} from './src/devcode/DevCode.astro';
