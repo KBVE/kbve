@@ -53,6 +53,7 @@ jobs:
       dockervoid: ${{ steps.delta.outputs.dockervoid_any_changed }}
       khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
       devops: ${{ steps.delta.outputs.devops_any_changed }}
+      fudster: ${{ steps.delta.outputs.fudster_any_changed }}
 
     steps:
       - name: Checkout the repository using git
@@ -99,6 +100,8 @@ jobs:
                 - 'packages/khashvault/package.json'
             devops:
                 - 'packages/devops/package.json'
+            fudster:
+                - 'apps/fudster/fudster/**'
 
   debug:
     needs: ['alter', 'globals']
@@ -409,6 +412,76 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pull_request_title: 'python-atlas-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
           pull_request_body: 'Bumping up the minor version of the Python ATLAS package.'
+
+
+  #   [Fudster] -> Publish (As App)
+  python_fudster_build:
+    needs: ['deploy', 'alter', 'globals']
+    name: Python Fudster Module Publish
+    if: needs.alter.outputs.fudster == 'true'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Checkout the repository using git
+        uses: actions/checkout@v4
+
+      - name: Setup Node v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
+      #   @[CACHE]->[START]
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      #   @[CACHE]->[END]
+
+      - name: Install pnpm dependencies
+        run: pnpm install
+
+      - name: Python Install
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Poetry Install
+        uses: snok/install-poetry@v1
+
+      - name: Fudster Build
+        shell: bash
+        run: |
+          pnpm nx build fudster
+
+      - name: Store the Fudster distribution packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: fudster-python-package-distributions
+          path: apps/fudster/dist/
+
+      - name: KBVE Shell
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-pythonbump apps/fudster'
+          create_pull_request: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_request_title: 'python-fudster-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
+          pull_request_body: 'Bumping up the minor version of the Python fudster package.'
+
 
   #   @[ERust] -> Publish
   erustpublish:
