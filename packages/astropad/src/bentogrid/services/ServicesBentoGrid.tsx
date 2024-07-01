@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import React from 'react';
 import { cn } from '../../utils/cn';
 import {
@@ -14,12 +15,9 @@ export function BentoGridDemo() {
     return (
         <BentoGrid className="max-w-4xl mx-auto">
             {items.map((item, i) => (
-                <BentoGridItem
+                <BentoGridItemWrapper
                     key={i}
-                    title={item.title}
-                    description={item.description}
-                    header={item.header}
-                    icon={item.icon}
+                    item={item}
                     className={i === 3 || i === 6 ? "md:col-span-2" : ""}
                 />
             ))}
@@ -123,5 +121,20 @@ const BentoGridItem: React.FC<BentoGridItemProps> = ({
         </div>
     );
 };
+
+interface BentoGridItemWrapperProps {
+    item: BentoGridItemProps;
+    className?: string;
+}
+
+const BentoGridItemWrapper: React.FC<BentoGridItemWrapperProps> = ({ item, className }) => (
+    <BentoGridItem
+        className={className}
+        title={item.title}
+        description={item.description}
+        header={item.header}
+        icon={item.icon}
+    />
+);
 
 export default BentoGridDemo;
