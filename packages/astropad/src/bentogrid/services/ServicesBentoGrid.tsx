@@ -10,13 +10,15 @@ import {
     IconFileBroken,
     IconSignature,
     IconTableColumn,
+    IconCloud,
+    IconSun,
+    IconMoon,
 } from "@tabler/icons-react";
 import { motion } from "framer-motion";
 
-
 export function ServicesBentoGrid() {
     return (
-        <BentoGrid className="max-w-4xl mx-auto md:auto-rows-[20rem]">
+        <BentoGrid className="max-w-6xl mx-auto md:auto-rows-[20rem]">
             {items.map((item, i) => (
                 <BentoGridItemWrapper
                     key={i}
@@ -166,11 +168,32 @@ const items = [
         className: "md:col-span-1",
         icon: <IconBoxAlignRightFilled className="h-4 w-4 text-neutral-500" />,
     },
+    {
+        title: "Cloud Computing",
+        description: <span className="text-sm">Leverage the power of cloud computing for scalable solutions.</span>,
+        header: <Skeleton />,
+        className: "md:col-span-1",
+        icon: <IconCloud className="h-4 w-4 text-neutral-500" />,
+    },
+    {
+        title: "Solar Energy",
+        description: <span className="text-sm">Harness solar energy for a sustainable future.</span>,
+        header: <Skeleton />,
+        className: "md:col-span-1",
+        icon: <IconSun className="h-4 w-4 text-neutral-500" />,
+    },
+    {
+        title: "Night Mode",
+        description: <span className="text-sm">Switch to night mode for a better viewing experience in low light.</span>,
+        header: <Skeleton />,
+        className: "md:col-span-1",
+        icon: <IconMoon className="h-4 w-4 text-neutral-500" />,
+    },
 ];
 
 const BentoGrid: React.FC<{ className?: string; children?: React.ReactNode }> = ({ className, children }) => {
     return (
-        <div className={cn("grid md:auto-rows-[18rem] grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto", className)}>
+        <div className={cn("grid md:auto-rows-[18rem] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-7xl mx-auto", className)}>
             {children}
         </div>
     );
