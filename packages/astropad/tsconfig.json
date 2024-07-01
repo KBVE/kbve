@@ -35,6 +35,6 @@
 			  "name": "@astrojs/ts-plugin"
 			}],
 	},
-	"include": ["index.ts", "src/**/*.ts", "src/**/*.astro", "src/**/*.svelte"],
+	"include": ["index.ts", "src/**/*.ts", "src/**/*.astro", "src/**/*.svelte", "src/**/*.tsx"],
 	"exclude": ["node_modules"]
 }

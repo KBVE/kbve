@@ -17,6 +17,8 @@ import progressBuilding from "../images/progress-building.avif";
 import underConstruction from "../images/under-construction.avif";
 import { SITE } from "../data_files/constants";
 
+import {BentoGridService} from '@kbve/astropad'; 
+
 interface Article {
   isRightSection: boolean;
   title: string;
@@ -123,6 +125,9 @@ const pageDescription: string = 'Combining expert knowledge with your vision, KB
   btnTitle="Schedule a Call on our Discord"
   btnURL="/discord/"
 />
+
+
+<BentoGridService />
 
   <!-- RightSection and LeftSection contain details about various services along with pertinent imagery.
   They alternate for variety in design.
