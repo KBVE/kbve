@@ -317,6 +317,8 @@ export const collections = {
 				prompts: z.array(PromptSchema).optional(),
 				"prompt-index": z.string().optional(),
 				stats: z.array(statSchema).optional(),
+				img: z.string().optional(),
+				lottie: z.string().optional(),
 			}),
 		}),
 	}),
