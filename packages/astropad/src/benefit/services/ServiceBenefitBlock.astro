@@ -1,0 +1,46 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  collectionID: string;
+  collectionTag: string;
+}
+
+const { collectionID, collectionTag } = Astro.props;
+
+const servicesCollection = await getCollection(collectionID);
+
+const filteredItems = servicesCollection.items.filter(
+  (item: { tags: string | string[] }) =>
+    Array.isArray(item.tags)
+      ? item.tags.includes(collectionTag)
+      : item.tags === collectionTag
+);
+
+const hasItems = filteredItems.length > 0;
+const displayItems = hasItems
+  ? filteredItems.map(
+      (item: { id?: string; name?: string; slug?: string }) => ({
+        id: item.id || item.slug || 'missing-id',
+        name: item.name || item.slug || 'Missing id, name, or slug',
+      })
+    )
+  : [];
+---
+
+<section>
+  <h2>Service Benefits</h2>
+  <ul>
+    {
+      hasItems ? (
+        displayItems.map(
+          (item: { id: string | null | undefined; name: unknown }) => (
+            <li id={item.id}>{item.name}</li>
+          )
+        )
+      ) : (
+        <li>No items found with the tag "{collectionTag}"</li>
+      )
+    }
+  </ul>
+</section>
