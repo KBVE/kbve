@@ -18,3 +18,5 @@ export { default as ConchShell } from './src/conchshell/ConchShell.astro';
 export { default as DevCode} from './src/devcode/DevCode.astro';
 
 export { default as BentoGridService } from './src/bentogrid/services/BentoGridService.astro';
+
+export { default as ServiceBenefitBlock } from './src/benefit/services/ServiceBenefitBlock.astro';
