@@ -11,9 +11,12 @@ module.exports = {
       'src/**/!(*.stories|*.spec).{astro,html,js,jsx,md,svelte,ts,tsx,vue}',
     ),
     ...createGlobPatternsForDependencies(__dirname),
+		join(__dirname, '../../node_modules/preline/dist/*.js'),
   ],
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    require('preline/plugin')
+  ],
 };
