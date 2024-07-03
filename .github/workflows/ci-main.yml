@@ -54,6 +54,7 @@ jobs:
       khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
       devops: ${{ steps.delta.outputs.devops_any_changed }}
       fudster: ${{ steps.delta.outputs.fudster_any_changed }}
+      cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
 
     steps:
       - name: Checkout the repository using git
@@ -102,6 +103,8 @@ jobs:
                 - 'packages/devops/package.json'
             fudster:
                 - 'apps/fudster/fudster/**'
+            cryptothone:
+                - 'apps/cryptothrone.com/src/**'
 
   debug:
     needs: ['alter', 'globals']
@@ -210,6 +213,72 @@ jobs:
           user_name: 'h0lybyte'
           commit_message: ${{ github.event.head_commit.message }}
           rsync_option: '-avrh --delete'
+
+  #   [CryptoThrone]
+  cryptothrone_build_process:
+    needs: ['deploy', 'alter', 'globals']
+    name: CryptoThrone Build and Deployment
+    if: needs.alter.outputs.cryptothrone == 'true'
+    runs-on: 'ubuntu-latest'
+    permissions:
+        contents: read
+        id-token: write
+    steps:
+      - name: Checkout the monorepo using git
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+        
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install pnpm dependencies
+        shell: bash
+        run: |
+          pnpm install
+
+      - name: Build CryptoThrone.com
+        shell: bash
+        run: |
+          pnpm nx build cryptothrone.com
+        
+      - name: CryptoThrone.com -> Deployment
+        uses: dobbelina/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+        with:
+          source_file: 'dist/apps/cryptothrone.com/'
+          destination_repo: 'kbve/cryptothrone.com'
+          destination_folder: '/docs'
+          destination_branch: 'main'
+          destination_branch_create: 'patch-cryptothrone-deploy-${{ needs.globals.outputs.sha256head }}'
+          user_email: '5599058+h0lybyte@users.noreply.github.com'
+          user_name: 'h0lybyte'
+          commit_message: ${{ github.event.head_commit.message }}
+          rsync_option: '-avrh --delete'
+
+
 
   #   [Devops] -> Publish (As NPM)
   devops_npm_publish:
