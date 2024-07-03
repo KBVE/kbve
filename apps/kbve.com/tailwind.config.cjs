@@ -15,6 +15,9 @@ module.exports = {
 			'src/**/!(*.stories|*.spec).{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'
 		),
 		...createGlobPatternsForDependencies(__dirname),
+		// Include the flowbite files from the node_modules directory higher up in the monorepo
+		// join(__dirname, '../../node_modules/flowbite/**/*.js'),
+		join(__dirname, '../../node_modules/preline/dist/*.js'),
 	],
 	darkMode: "class",
 	theme: {
@@ -96,6 +99,7 @@ module.exports = {
 		require('@tailwindcss/typography'),
 		require("tailwindcss/nesting"),
 		require("preline/plugin"),
+		//require('flowbite/plugin'),
 		require("@tailwindcss/forms"),	
 		function ({ addUtilities }) {
 			const newUtilities = {

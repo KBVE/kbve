@@ -282,8 +282,8 @@ const comic = defineCollection({
 
 //* Stats Schema
 const statSchema = z.object({
-	title: z.string(),
-	data: z.string(),
+	title: z.string().optional(),
+	data: z.string().optional(),
 	html: z.string().optional(),
 });
   

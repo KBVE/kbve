@@ -9,8 +9,8 @@ interface Props {
 }
 
 const statSchema = z.object({
-  title: z.string(),
-  data: z.string(),
+  title: z.string().optional(),
+  data: z.string().optional(),
   html: z.string().optional(),
 });
 
@@ -122,26 +122,33 @@ const displayItems = hasItems
               style={`background-image: url(https://images.unsplash.com/photo-${item.unsplash}?fit=crop&w=1400&h=500&q=75)`}
               id={item.id}
             >
-              <div class={`flex flex-col justify-center flex-1 p-6`}>
-                <div class="bg-cyan-400/90 p-4 inline-block">
-                  <h3 class="text-3xl font-bold">{item.name}</h3>
+              <div class={`flex flex-col justify-center flex-1 p-2 md:p-6`}>
+                <div class="bg-cyan-400/90 p-2 md:p-4 inline-block">
+                  <h3 class="text-lg lg:text-3xl font-bold">{item.name}</h3>
                 </div>
-                <div class="bg-cyan-400/60 p-4 inline-block">
-                  <p class="my-6 text-gray-200">{item.description}</p>
+                <div class="bg-cyan-400/60 p-2 md:p-4 inline-block">
+                  <p class="my-2 md:my-6 text-sm md:text-md text-gray-200 line-clamp-3">
+                    {item.description}
+                  </p>
                 </div>
 
-                <div class="flex flex-wrap bg-cyan-400/10 p-4 space-x-4">
+                <div class="flex flex-wrap bg-cyan-400/10 p-1 md:p-4 space-x-4 scale-75 md:scale-100">
                   {item.stats.map((stat, i) => (
                     <div class="flex items-center flex-col space-x-2">
-                      <div class="text-xl font-semibold">{stat.title}</div>
+                      <div class="text-sm md:text-xl font-semibold">
+                        {stat.title}
+                      </div>
                       <div class="text-gray-200">{stat.data}</div>
                       {stat.html && <Fragment set:html={stat.html} />}
                     </div>
                   ))}
                 </div>
-                <div class="w-96 m-4">
-                <Fragment set:html={item.button} />
-              </div>
+                
+                
+
+                <div class="md:w-96 scale-75 m-4 md:scale-110">
+                  <Fragment set:html={item.button} />
+                </div>
               </div>
 
               <div class="object-scale-down shrink">
