@@ -106,6 +106,29 @@ export default defineConfig({
 					],
 				},
 
+				
+				{
+					label: 'Shop',
+					collapsed: true,
+					items: [
+						{
+							label: 'Services',
+							collapsed: false,
+							autogenerate: { directory: 'shop/services' },
+						},
+						{
+							label: 'Hardware',
+							collapsed: false,
+							autogenerate: { directory: 'shop/hardware' },
+						},
+						{
+							label: 'Merch',
+							collapsed: false,
+							autogenerate: { directory: 'shop/merch' },
+						},
+					],
+				},
+
 				{
 					label: 'Tools & Equipment',
 					autogenerate: { directory: 'tools' },
