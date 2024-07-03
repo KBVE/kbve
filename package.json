@@ -173,7 +173,7 @@
     "next": "14.0.4",
     "phaser": "^3.80.1",
     "poly-decomp": "^0.3.0",
-    "preline": "^2.1.0",
+    "preline": "^2.3.0",
     "react-force-graph": "^1.44.3",
     "react-grid-layout": "^1.4.4",
     "react-helmet-async": "^2.0.4",
