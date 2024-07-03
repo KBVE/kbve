@@ -284,6 +284,7 @@ const comic = defineCollection({
 const statSchema = z.object({
 	title: z.string(),
 	data: z.string(),
+	html: z.string().optional(),
 });
   
 
@@ -317,6 +318,7 @@ export const collections = {
 				prompts: z.array(PromptSchema).optional(),
 				"prompt-index": z.string().optional(),
 				stats: z.array(statSchema).optional(),
+				//stats: z.array(z.string()).optional(),
 				img: z.string().optional(),
 				lottie: z.string().optional(),
 			}),
