@@ -280,6 +280,14 @@ const comic = defineCollection({
 // 	}),
 // });
 
+//* Stats Schema
+const statSchema = z.object({
+	title: z.string(),
+	data: z.string(),
+	html: z.string().optional(),
+});
+  
+
 export const collections = {
 	//*     [Applications]
 	//      application: application,
@@ -303,11 +311,17 @@ export const collections = {
 		schema: docsSchema({
 			extend: z.object({
 				// Make a built-in field required instead of optional.
+				unsplash: z.string().optional(),
 				tags: z.array(z.string()).optional(),
 				"yt-tracks" : z.array(z.string()).optional(),
 				"yt-sets": z.array(z.string()).optional(),
 				prompts: z.array(PromptSchema).optional(),
 				"prompt-index": z.string().optional(),
+				stats: z.array(statSchema).optional(),
+				//stats: z.array(z.string()).optional(),
+				img: z.string().optional(),
+				lottie: z.string().optional(),
+				button: z.string().optional(),
 			}),
 		}),
 	}),
