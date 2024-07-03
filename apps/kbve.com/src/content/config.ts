@@ -321,6 +321,7 @@ export const collections = {
 				//stats: z.array(z.string()).optional(),
 				img: z.string().optional(),
 				lottie: z.string().optional(),
+				button: z.string().optional(),
 			}),
 		}),
 	}),

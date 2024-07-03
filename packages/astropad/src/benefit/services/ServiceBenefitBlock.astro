@@ -37,9 +37,11 @@ const filteredItems = servicesEntries.map(
       img: any;
       lottie: any;
       stats: any;
+      button: any;
     };
   }) => ({
     id: entry.slug,
+    slug: entry.slug,
     unsplash: entry.data.unsplash,
     name: entry.data.title,
     description: entry.data.description,
@@ -49,6 +51,7 @@ const filteredItems = servicesEntries.map(
     stats: entry.data['stats']
       ? entry.data['stats'].map((stat: any) => statSchema.parse(stat))
       : [],
+    button: entry.data.button,
   })
 );
 
@@ -64,8 +67,10 @@ const displayItems = hasItems
         img?: string;
         lottie?: string;
         stats?: { title: string; data: string; html?: string }[];
+        button?: string;
       }) => ({
         id: item.id || item.slug || 'missing-id',
+        slug: item.slug,
         name: item.name || item.slug || 'Missing id, name, or slug',
         description: item.description || 'No description available',
         unsplash: item.unsplash || '',
@@ -81,6 +86,14 @@ const displayItems = hasItems
 			</dotlottie-player>`,
         img: item.img || '',
         stats: item.stats || [],
+        button:
+          item.button ||
+          `
+       <button class="relative rounded px-5 py-2.5 overflow-hidden group bg-cyan-500 relative hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-cyan-400 transition-all ease-out duration-300">
+<span class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-96 ease"></span>
+<span class="relative">Default Button</span>
+</button>
+        `,
       })
     )
   : [];
@@ -100,34 +113,35 @@ const displayItems = hasItems
               img: string;
               lottie: string;
               stats: { title: string; data: string; html?: string }[];
+              button: string;
             },
             index: number
           ) => (
             <div
               class={`flex flex-col overflow-hidden rounded-md shadow-sm lg:${index % 2 === 0 ? 'flex-row' : 'flex-row'} bg-cover max-h-[500px]`}
               style={`background-image: url(https://images.unsplash.com/photo-${item.unsplash}?fit=crop&w=1400&h=500&q=75)`}
-              id={item.id}>
+              id={item.id}
+            >
               <div class={`flex flex-col justify-center flex-1 p-6`}>
-                <div class="bg-cyan-400/60 p-4 inline-block">
+                <div class="bg-cyan-400/90 p-4 inline-block">
                   <h3 class="text-3xl font-bold">{item.name}</h3>
                 </div>
-                <div class="bg-cyan-400/40 p-4 inline-block">
-                  <p class="my-6 dark:text-gray-200">{item.description}</p>
+                <div class="bg-cyan-400/60 p-4 inline-block">
+                  <p class="my-6 text-gray-200">{item.description}</p>
                 </div>
 
                 <div class="flex flex-wrap bg-cyan-400/10 p-4 space-x-4">
                   {item.stats.map((stat, i) => (
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center flex-col space-x-2">
                       <div class="text-xl font-semibold">{stat.title}</div>
                       <div class="text-gray-200">{stat.data}</div>
                       {stat.html && <Fragment set:html={stat.html} />}
                     </div>
                   ))}
                 </div>
-
-                <button type="button" class="self-start">
-                  Action
-                </button>
+                <div class="w-96 m-4">
+                <Fragment set:html={item.button} />
+              </div>
               </div>
 
               <div class="object-scale-down shrink">
