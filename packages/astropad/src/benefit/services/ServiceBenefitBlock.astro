@@ -108,28 +108,21 @@ const displayItems = hasItems
               style={`background-image: url(https://images.unsplash.com/photo-${item.unsplash}?fit=crop&w=1400&h=500&q=75)`}
               id={item.id}>
               <div class={`flex flex-col justify-center flex-1 p-6`}>
-                <div class="bg-cyan-400/20 p-4 inline-block">
+                <div class="bg-cyan-400/60 p-4 inline-block">
                   <h3 class="text-3xl font-bold">{item.name}</h3>
                 </div>
-                <div class="bg-cyan-400/10 p-4 inline-block">
+                <div class="bg-cyan-400/40 p-4 inline-block">
                   <p class="my-6 dark:text-gray-200">{item.description}</p>
                 </div>
-                <div class="bg-cyan-400/10 p-4 inline-block space-y-2">
-                  {item.stats.length > 0 && (
-                    <div>
-                      <ul class="list-disc list-inside">
-                        {item.stats.slice(1).map((stat, i) => (
-                          <div class="flex items-center space-x-2">
-                            <div class="text-xl font-semibold">
-                              Title: {stat.title}
-                            </div>
-                            <div class="text-gray-200">Data: {stat.data}</div>
-                            {stat.html && <Fragment set:html={stat.html} />}
-                          </div>
-                        ))}
-                      </ul>
+
+                <div class="flex flex-wrap bg-cyan-400/10 p-4 space-x-4">
+                  {item.stats.map((stat, i) => (
+                    <div class="flex items-center space-x-2">
+                      <div class="text-xl font-semibold">{stat.title}</div>
+                      <div class="text-gray-200">{stat.data}</div>
+                      {stat.html && <Fragment set:html={stat.html} />}
                     </div>
-                  )}
+                  ))}
                 </div>
 
                 <button type="button" class="self-start">
