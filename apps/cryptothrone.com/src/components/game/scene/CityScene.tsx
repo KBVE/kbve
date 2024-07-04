@@ -1,25 +1,24 @@
 import { Scene } from 'phaser';
 import Phaser from 'phaser';
+import { Quadtree, type Bounds, type Point, type Range } from '@kbve/laser';
+import { PlayerController } from '../PlayerController';
 
-import GridEngine from 'grid-engine';
-
-import { useStore } from '@nanostores/react';
-
-//import { score } from './data/score';
+// import GridEngine from 'grid-engine';
+// import { useStore } from '@nanostores/react';
 
 declare global {
   interface Window {
-    __GRID_ENGINE__?: any; // Use a more specific type instead of any if possible
+    __GRID_ENGINE__?: any;
   }
 }
 
-interface ScoreEntry {
-  wpm: number;
-  score: number;
-}
+// interface ScoreEntry {
+//   wpm: number;
+//   score: number;
+// }
 
 class ExtendedSprite extends Phaser.GameObjects.Sprite {
-  textBubble?: Phaser.GameObjects.Container; // Assuming it's a Container
+  textBubble?: Phaser.GameObjects.Container;
 }
 
 export class CityScene extends Scene {
@@ -27,14 +26,16 @@ export class CityScene extends Scene {
   fishNpcSprite: ExtendedSprite | undefined;
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
+  quadtree: Quadtree;
+  playerController: PlayerController | undefined;
 
   constructor() {
     super({ key: 'CityScene' });
+    const bounds: Bounds = { xMin: 0, xMax: 20, yMin: 0, yMax: 20 };
+    this.quadtree = new Quadtree(bounds);
   }
 
   create() {
-    //const currentScore = score.get();
-
     const cloudCityTilemap = this.make.tilemap({ key: 'cloud-city-map' });
     cloudCityTilemap.addTilesetImage('Cloud City', 'tiles');
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
@@ -51,9 +52,6 @@ export class CityScene extends Scene {
     this.npcSprite = this.add.sprite(0, 0, 'player');
     this.npcSprite.scale = 1.5;
 
-    // this.npcSprite = this.add.sprite(0, 0, "player");
-    // this.npcSprite.scale = 1.5;
-
     this.fishNpcSprite = this.add.sprite(0, 0, 'player');
     this.fishNpcSprite.scale = 1.5;
 
@@ -69,39 +67,73 @@ export class CityScene extends Scene {
           id: 'player',
           sprite: playerSprite,
           walkingAnimationMapping: 6,
-          startPosition: { x: 5, y: 12 }, //Initial position 8,8, Lamp position 14 x, 11 y
+          startPosition: { x: 5, y: 12 },
         },
         {
           id: 'npc',
           sprite: this.npcSprite,
           walkingAnimationMapping: 5,
-          startPosition: { x: 4, y: 10 }, //Initial position 8,8
+          startPosition: { x: 4, y: 10 },
           speed: 3,
         },
         {
           id: 'fishNpc',
           sprite: this.fishNpcSprite,
           walkingAnimationMapping: 4,
-          startPosition: { x: 8, y: 14 }, //Initial position 8,8
+          startPosition: { x: 8, y: 14 },
           speed: 3,
         },
       ],
     };
 
     this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
+    this.loadRanges();
 
-    //const scoreStr = localStorage.getItem('totalScore');
-    //const scores: ScoreEntry[] = scoreStr ? JSON.parse(scoreStr) : [];
+    this.playerController = new PlayerController(
+      this,
+      this.gridEngine,
+      this.quadtree,
+    );
 
     this.createTextBubble(
       this.npcSprite,
       'Enter the sand pit to start fishing! Go near it and press F!',
     );
+
     // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly('npc', 1500, 3);
 
     this.gridEngine.moveRandomly('fishNpc', 1500, 3);
     window.__GRID_ENGINE__ = this.gridEngine;
+  }
+
+  loadRanges() {
+    const ranges: Range[] = [
+      {
+        name: 'well',
+        bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
+        action: () => this.scene.start('FishChipScene'),
+      },
+      {
+        name: 'sign',
+        bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
+        action: () => this.scene.start('CreditsScene'),
+      },
+      {
+        name: 'building',
+        bounds: { xMin: 13, xMax: 13, yMin: 6, yMax: 7 },
+        action: () => console.log('Enter the Building?'),
+      },
+      {
+        name: 'tombstone',
+        bounds: { xMin: 7, xMax: 10, yMin: 9, yMax: 10 },
+        action: () => console.log('Samson Statue!'),
+      },
+    ];
+
+    for (const range of ranges) {
+      this.quadtree.insert(range);
+    }
   }
 
   createTextBubble(sprite: ExtendedSprite, text: string | string[]) {
@@ -137,111 +169,9 @@ export class CityScene extends Scene {
       container.y = sprite.y - sprite.height - container.height / 2;
     }
   }
-
   update() {
-    if (this.input.keyboard) {
-      this.cursor = this.input.keyboard.createCursorKeys();
-    }
-    const cursors = this.cursor;
+    this.playerController?.handleMovement();
 
-    function isWithinRangeOfWell(point: { x: number; y: number }) {
-      // Define the bounds
-      const xMin = 2,
-        xMax = 5;
-      const yMin = 10,
-        yMax = 14;
-
-      // Check if the point is within the bounds
-      return (
-        point.x >= xMin && point.x <= xMax && point.y >= yMin && point.y <= yMax
-      );
-    }
-
-    function isWithinRangeOfSign(point: { x: number; y: number }) {
-      // Define the bounds
-      const xMin = 2,
-        xMax = 5;
-      const yMin = 2,
-        yMax = 5;
-
-      // Check if the point is within the bounds
-      return (
-        point.x >= xMin && point.x <= xMax && point.y >= yMin && point.y <= yMax
-      );
-    }
-
-    function isWithinRangeOfBuilding(point: { x: number; y: number }) {
-      // Define the bounds
-      const xMin = 13,
-        xMax = 13;
-      const yMin = 6,
-        yMax = 7;
-
-      // Check if the point is within the bounds
-      return (
-        point.x >= xMin && point.x <= xMax && point.y >= yMin && point.y <= yMax
-      );
-    }
-
-    function isWithinRangeOfTombstone(point: { x: number; y: number }) {
-      //  Define the bounds
-      const xMin = 7,
-        xMax = 10;
-      const yMin = 9,
-        yMax = 10;
-      // Check if the point is within the bounds
-      return (
-        point.x >= xMin && point.x <= xMax && point.y >= yMin && point.y <= yMax
-      );
-    }
-
-    if (this.input.keyboard && this.input.keyboard.addKey('F').isDown) {
-      const position = this.gridEngine.getPosition('player');
-
-      const withinRangeOfWell = isWithinRangeOfWell(position);
-      if (withinRangeOfWell) {
-        this.scene.start('FishChipScene');
-      }
-
-      const withinRangeOfSign = isWithinRangeOfSign(position);
-      if (withinRangeOfSign) {
-        this.scene.start('CreditsScene');
-      }
-
-      const withinRangeOfBuilding = isWithinRangeOfBuilding(position);
-      if (withinRangeOfBuilding) {
-        console.log('Enter the Building?');
-      }
-
-      const withinRangeOfTombstone = isWithinRangeOfTombstone(position);
-      if (withinRangeOfTombstone) {
-        console.log('Samson Statue!');
-      }
-    }
-    // Incase we need W A S D -> this.input.keyboard.addKey('A').isDown)
-    if (
-      (cursors && cursors.left.isDown) ||
-      (this.input.keyboard && this.input.keyboard.addKey('A').isDown)
-    ) {
-      this.gridEngine.move('player', 'left');
-    } else if (
-      (cursors && cursors.right.isDown) ||
-      (this.input.keyboard && this.input.keyboard.addKey('D').isDown)
-    ) {
-      this.gridEngine.move('player', 'right');
-    } else if (
-      (cursors && cursors.up.isDown) ||
-      (this.input.keyboard && this.input.keyboard.addKey('W').isDown)
-    ) {
-      this.gridEngine.move('player', 'up');
-    } else if (
-      (cursors && cursors.down.isDown) ||
-      (this.input.keyboard && this.input.keyboard.addKey('S').isDown)
-    ) {
-      this.gridEngine.move('player', 'down');
-    }
-
-    // Update the speech bubble positions for both NPCs
     if (this.npcSprite && this.npcSprite.textBubble) {
       this.updateTextBubblePosition(this.npcSprite);
     }
