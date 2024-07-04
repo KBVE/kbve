@@ -12,6 +12,7 @@ import { createTextBubble, updateTextBubblePosition } from '@kbve/laser';
 
 import { getBirdNum, isBird, createBirdSprites, createShadowSprites, createBirdAnimation } from '@kbve/laser';
 
+import {EventEmitter,  type OpenModalEventData } from '@kbve/laser';
 
 declare global {
   interface Window {
@@ -168,22 +169,34 @@ export class CityScene extends Scene {
       {
         name: 'well',
         bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
-        action: () => this.scene.start('FishChipScene'),
+        action: (() => {
+          const eventData: OpenModalEventData = { message: 'Seems like there are no fish in the sand pits.' };
+          EventEmitter.emit('openModal', eventData);
+        }),
       },
       {
         name: 'sign',
         bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
-        action: () => this.scene.start('CreditsScene'),
+        action: (() => {
+          const eventData: OpenModalEventData = { message: 'Sign does not have much to say' };
+          EventEmitter.emit('openModal', eventData);
+        }),
       },
       {
         name: 'building',
         bounds: { xMin: 13, xMax: 13, yMin: 6, yMax: 7 },
-        action: () => console.log('Enter the Building?'),
+        action: (() => {
+          const eventData: OpenModalEventData = { message: 'Sorry, we are closed!' };
+          EventEmitter.emit('openModal', eventData);
+        }),
       },
       {
         name: 'tombstone',
         bounds: { xMin: 7, xMax: 10, yMin: 9, yMax: 10 },
-        action: () => console.log('Samson Statue!'),
+        action: (() => {
+          const eventData: OpenModalEventData = { message: 'Samson the great statue!' };
+          EventEmitter.emit('openModal', eventData);
+        }),
       },
     ];
 
