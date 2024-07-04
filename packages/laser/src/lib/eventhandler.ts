@@ -48,4 +48,7 @@ class EventEmitter<T extends Record<string, any>> {
   }
 }
 
-export default new EventEmitter<EventData>();
+const eventEmitterInstance = new EventEmitter<EventData>();
+
+export { eventEmitterInstance as EventEmitter };
+export default eventEmitterInstance;
