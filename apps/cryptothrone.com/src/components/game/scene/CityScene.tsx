@@ -1,13 +1,17 @@
 import { Scene } from 'phaser';
 import Phaser from 'phaser';
-import { Quadtree, type Bounds, type Point, type Range } from '@kbve/laser';
-// NOT YET ADDED INTO LASER
-import { PlayerController } from '../PlayerController';
-import { NPCEngine, type NPCConfig } from '../NPCEngine';
+import {
+  Quadtree,
+  type Bounds,
+  type Point,
+  type Range,
+  PlayerController,
+} from '@kbve/laser';
 
+import { createTextBubble, updateTextBubblePosition } from '@kbve/laser';
 
-// import GridEngine from 'grid-engine';
-// import { useStore } from '@nanostores/react';
+import { getBirdNum, isBird, createBirdSprites, createShadowSprites, createBirdAnimation } from '@kbve/laser';
+
 
 declare global {
   interface Window {
@@ -15,29 +19,39 @@ declare global {
   }
 }
 
-// interface ScoreEntry {
-//   wpm: number;
-//   score: number;
-// }
-
 class ExtendedSprite extends Phaser.GameObjects.Sprite {
   textBubble?: Phaser.GameObjects.Container;
+}
+
+interface PositionChangeEvent {
+  charId: string;
+  exitTile: { x: number; y: number };
+  enterTile: { x: number; y: number };
 }
 
 export class CityScene extends Scene {
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite | undefined;
+  monsterBirdSprites: Phaser.GameObjects.Sprite[] = [];
+  monsterBirdShadows: Phaser.GameObjects.Sprite[] = [];
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
   quadtree: Quadtree;
   playerController: PlayerController | undefined;
-  npcEngine: NPCEngine | undefined;
-
 
   constructor() {
     super({ key: 'CityScene' });
     const bounds: Bounds = { xMin: 0, xMax: 20, yMin: 0, yMax: 20 };
     this.quadtree = new Quadtree(bounds);
+  }
+
+  preload() {
+    
+    this.load.spritesheet("monster_bird", "/assets/monster/bird_original.png", {
+      frameWidth: 61,
+      frameHeight: 57,
+    });
+
   }
 
   create() {
@@ -66,6 +80,13 @@ export class CityScene extends Scene {
       -playerSprite.height,
     );
 
+    createBirdAnimation(this);
+
+    this.monsterBirdSprites = createBirdSprites(this);
+    this.monsterBirdShadows = createShadowSprites(this);
+
+    this.anims.staggerPlay("bird", this.monsterBirdSprites, 100);
+
     const gridEngineConfig = {
       characters: [
         {
@@ -88,7 +109,24 @@ export class CityScene extends Scene {
           startPosition: { x: 8, y: 14 },
           speed: 3,
         },
+        ...this.monsterBirdSprites.map((sprite, i) => ({
+          id: "monster_bird_" + i,
+          sprite,
+          startPosition: { x: 7, y: 7 + i },
+          speed: 5,
+          collides: false,
+          //charLayer: 'sky'
+        })),
+        ...this.monsterBirdShadows.map((sprite, i) => ({
+          id: "monster_bird_shadow_" + i,
+          sprite,
+          startPosition: { x: 7, y: 7 + i },
+          speed: 5,
+          //charLayer: 'ground',
+          collides: false
+        })),
       ],
+      numberOfDirections: 8,
     };
 
     this.gridEngine.create(cloudCityTilemap, gridEngineConfig);
@@ -100,15 +138,28 @@ export class CityScene extends Scene {
       this.quadtree,
     );
 
-    this.createTextBubble(
+    createTextBubble(
+      this,
       this.npcSprite,
       'Enter the sand pit to start fishing! Go near it and press F!',
     );
 
     // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly('npc', 1500, 3);
-
     this.gridEngine.moveRandomly('fishNpc', 1500, 3);
+
+    for (let i = 0; i < 10; i++) {
+      this.gridEngine.moveRandomly("monster_bird_" + i, 1000, 10);
+    }
+
+    this.gridEngine
+      .positionChangeStarted()
+      .subscribe(({ charId, exitTile, enterTile }: PositionChangeEvent) => {
+        if (isBird(charId)) {
+          this.gridEngine.moveTo('monster_bird_shadow_' + getBirdNum(charId), { x: enterTile.x, y: enterTile.y });
+        }
+      });
+      
     window.__GRID_ENGINE__ = this.gridEngine;
   }
 
@@ -141,47 +192,14 @@ export class CityScene extends Scene {
     }
   }
 
-  createTextBubble(sprite: ExtendedSprite, text: string | string[]) {
-    const bubbleWidth = 200;
-    const bubbleHeight = 60;
-    const bubblePadding = 10;
-
-    const bubble = this.add.graphics();
-    bubble.fillStyle(0xffffff, 1);
-    bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 16);
-    bubble.setDepth(99);
-
-    const content = this.add.text(100, 30, text, {
-      fontFamily: 'Arial',
-      fontSize: 16,
-      color: '#000000',
-    });
-    content.setOrigin(0.5);
-    content.setWordWrapWidth(bubbleWidth - bubblePadding * 2);
-    content.setDepth(100);
-
-    const container = this.add.container(0, 0, [bubble, content]);
-    container.setDepth(100);
-
-    sprite.textBubble = container;
-    this.updateTextBubblePosition(sprite);
-  }
-
-  updateTextBubblePosition(sprite: ExtendedSprite) {
-    const container = sprite.textBubble;
-    if (container) {
-      container.x = sprite.x;
-      container.y = sprite.y - sprite.height - container.height / 2;
-    }
-  }
   update() {
     this.playerController?.handleMovement();
 
     if (this.npcSprite && this.npcSprite.textBubble) {
-      this.updateTextBubblePosition(this.npcSprite);
+      updateTextBubblePosition(this.npcSprite);
     }
     if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
-      this.updateTextBubblePosition(this.fishNpcSprite);
+      updateTextBubblePosition(this.fishNpcSprite);
     }
   }
 }
