@@ -12,7 +12,7 @@ import { createTextBubble, updateTextBubblePosition } from '@kbve/laser';
 
 import { getBirdNum, isBird, createBirdSprites, createShadowSprites, createBirdAnimation } from '@kbve/laser';
 
-import {EventEmitter,  type OpenModalEventData } from '@kbve/laser';
+import {EventEmitter,  type OpenModalEventData, type CharacterEventData } from '@kbve/laser';
 
 declare global {
   interface Window {
@@ -170,32 +170,32 @@ export class CityScene extends Scene {
         name: 'well',
         bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
         action: (() => {
-          const eventData: OpenModalEventData = { message: 'Seems like there are no fish in the sand pits.' };
-          EventEmitter.emit('openModal', eventData);
+          const eventData: CharacterEventData = { message: 'Seems like there are no fish in the sand pits.' };
+          EventEmitter.emit('charEvent', eventData);
         }),
       },
       {
         name: 'sign',
         bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
         action: (() => {
-          const eventData: OpenModalEventData = { message: 'Sign does not have much to say' };
-          EventEmitter.emit('openModal', eventData);
+          const eventData: CharacterEventData = { message: 'Sign does not have much to say', character_name: 'Evee The BarKeep', character_image: '/assets/npc/barkeep.webp', background_image: '/assets/background/woodensign.webp' };
+          EventEmitter.emit('charEvent', eventData);
         }),
       },
       {
         name: 'building',
         bounds: { xMin: 13, xMax: 13, yMin: 6, yMax: 7 },
         action: (() => {
-          const eventData: OpenModalEventData = { message: 'Sorry, we are closed!' };
-          EventEmitter.emit('openModal', eventData);
+          const eventData: CharacterEventData = { message: 'Sorry, we are closed!', character_name: 'Evee The BarKeep', character_image: '/assets/npc/barkeep.webp', background_image: '/assets/background/animebar.webp'};
+          EventEmitter.emit('charEvent', eventData);
         }),
       },
       {
         name: 'tombstone',
         bounds: { xMin: 7, xMax: 10, yMin: 9, yMax: 10 },
         action: (() => {
-          const eventData: OpenModalEventData = { message: 'Samson the great statue!' };
-          EventEmitter.emit('openModal', eventData);
+          const eventData: CharacterEventData = { message: 'Samson the Great was an amazing sailer, died drinking dat drank.', character_name: 'Samson Statue', character_image: '/assets/npc/samson.png', background_image: '/assets/background/animetombstone.webp'};
+          EventEmitter.emit('charEvent', eventData);
         }),
       },
     ];
