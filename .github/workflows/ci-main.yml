@@ -103,7 +103,7 @@ jobs:
                 - 'packages/devops/package.json'
             fudster:
                 - 'apps/fudster/fudster/**'
-            cryptothone:
+            cryptothrone:
                 - 'apps/cryptothrone.com/src/**'
 
   debug:
