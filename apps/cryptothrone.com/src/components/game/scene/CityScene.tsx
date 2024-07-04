@@ -10,8 +10,20 @@ import {
 
 import { createTextBubble, updateTextBubblePosition } from '@kbve/laser';
 
-import { getBirdNum, isBird, createBirdSprites, createShadowSprites, createBirdAnimation } from '@kbve/laser';
+import {
+  getBirdNum,
+  isBird,
+  createBirdSprites,
+  createShadowSprites,
+  createBirdAnimation,
+} from '@kbve/laser';
 
+import {
+  EventEmitter,
+  type OpenModalEventData,
+  type CharacterEventData,
+  type PlayerEventData,
+} from '@kbve/laser';
 
 declare global {
   interface Window {
@@ -46,12 +58,19 @@ export class CityScene extends Scene {
   }
 
   preload() {
-    
-    this.load.spritesheet("monster_bird", "/assets/monster/bird_original.png", {
+    this.load.spritesheet('monster_bird', '/assets/monster/bird_original.png', {
       frameWidth: 61,
       frameHeight: 57,
     });
 
+    const __playerData: PlayerEventData = {
+      health: '100',
+      account: 'Guest',
+      mana: '100',
+      inventory: [],
+    };
+    EventEmitter.emit('playerEvent', __playerData);
+    
   }
 
   create() {
@@ -85,7 +104,7 @@ export class CityScene extends Scene {
     this.monsterBirdSprites = createBirdSprites(this);
     this.monsterBirdShadows = createShadowSprites(this);
 
-    this.anims.staggerPlay("bird", this.monsterBirdSprites, 100);
+    this.anims.staggerPlay('bird', this.monsterBirdSprites, 100);
 
     const gridEngineConfig = {
       characters: [
@@ -110,7 +129,7 @@ export class CityScene extends Scene {
           speed: 3,
         },
         ...this.monsterBirdSprites.map((sprite, i) => ({
-          id: "monster_bird_" + i,
+          id: 'monster_bird_' + i,
           sprite,
           startPosition: { x: 7, y: 7 + i },
           speed: 5,
@@ -118,12 +137,12 @@ export class CityScene extends Scene {
           //charLayer: 'sky'
         })),
         ...this.monsterBirdShadows.map((sprite, i) => ({
-          id: "monster_bird_shadow_" + i,
+          id: 'monster_bird_shadow_' + i,
           sprite,
           startPosition: { x: 7, y: 7 + i },
           speed: 5,
           //charLayer: 'ground',
-          collides: false
+          collides: false,
         })),
       ],
       numberOfDirections: 8,
@@ -149,17 +168,20 @@ export class CityScene extends Scene {
     this.gridEngine.moveRandomly('fishNpc', 1500, 3);
 
     for (let i = 0; i < 10; i++) {
-      this.gridEngine.moveRandomly("monster_bird_" + i, 1000, 10);
+      this.gridEngine.moveRandomly('monster_bird_' + i, 1000, 10);
     }
 
     this.gridEngine
       .positionChangeStarted()
       .subscribe(({ charId, exitTile, enterTile }: PositionChangeEvent) => {
         if (isBird(charId)) {
-          this.gridEngine.moveTo('monster_bird_shadow_' + getBirdNum(charId), { x: enterTile.x, y: enterTile.y });
+          this.gridEngine.moveTo('monster_bird_shadow_' + getBirdNum(charId), {
+            x: enterTile.x,
+            y: enterTile.y,
+          });
         }
       });
-      
+
     window.__GRID_ENGINE__ = this.gridEngine;
   }
 
@@ -168,22 +190,52 @@ export class CityScene extends Scene {
       {
         name: 'well',
         bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
-        action: () => this.scene.start('FishChipScene'),
+        action: () => {
+          const eventData: CharacterEventData = {
+            message: 'Seems like there are no fish in the sand pits.',
+          };
+          EventEmitter.emit('charEvent', eventData);
+        },
       },
       {
         name: 'sign',
         bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
-        action: () => this.scene.start('CreditsScene'),
+        action: () => {
+          const eventData: CharacterEventData = {
+            message: 'Sign does not have much to say',
+            character_name: 'Evee The BarKeep',
+            character_image: '/assets/npc/barkeep.webp',
+            background_image: '/assets/background/woodensign.webp',
+          };
+          EventEmitter.emit('charEvent', eventData);
+        },
       },
       {
         name: 'building',
         bounds: { xMin: 13, xMax: 13, yMin: 6, yMax: 7 },
-        action: () => console.log('Enter the Building?'),
+        action: () => {
+          const eventData: CharacterEventData = {
+            message: 'Sorry, we are closed!',
+            character_name: 'Evee The BarKeep',
+            character_image: '/assets/npc/barkeep.webp',
+            background_image: '/assets/background/animebar.webp',
+          };
+          EventEmitter.emit('charEvent', eventData);
+        },
       },
       {
         name: 'tombstone',
         bounds: { xMin: 7, xMax: 10, yMin: 9, yMax: 10 },
-        action: () => console.log('Samson Statue!'),
+        action: () => {
+          const eventData: CharacterEventData = {
+            message:
+              'Samson the Great was an amazing sailer, died drinking dat drank.',
+            character_name: 'Samson Statue',
+            character_image: '/assets/npc/samson.png',
+            background_image: '/assets/background/animetombstone.webp',
+          };
+          EventEmitter.emit('charEvent', eventData);
+        },
       },
     ];
 
