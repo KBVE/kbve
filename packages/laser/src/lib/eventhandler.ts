@@ -2,6 +2,20 @@ export interface OpenModalEventData {
   message: string;
 }
 
+export interface PlayerEventData {
+  health: string;
+  account: string;
+  mana: string;
+  inventory: string[];
+}
+
+export interface CharacterEventData {
+  message: string;
+  character_name?: string;
+  character_image?: string;
+  background_image?: string;
+}
+
 export interface WASMEventData {
   result: {
     value: number;
@@ -21,6 +35,8 @@ export type EventData = {
   openModal: OpenModalEventData;
   wasmEvent: WASMEventData;
   gameEvent: GameEvent;
+  charEvent: CharacterEventData;
+  playerEvent: PlayerEventData;
 };
 
 type EventHandler<T> = (data?: T) => void;
