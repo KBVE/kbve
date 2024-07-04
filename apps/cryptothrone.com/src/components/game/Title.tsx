@@ -11,7 +11,7 @@ export class Title extends Scene {
         this.load.image('mainBg', 'https://utfs.io/f/2c17f660-7f39-4edf-b83e-122a71014d99-6gflls.webp'); // Ensure you have a correct path to your logo image
         this.load.image('scroll', 'https://kbve.com/assets/img/fishchip/scroll.webp');
         this.load.audio('music', 'https://kbve.com/assets/img/fishchip/bg.ogg');
-        this.load.image('creditsBg', 'https://cdn.discordapp.com/attachments/1213306326290010112/1213992501166350466/itchcover.png?ex=65f77d9f&is=65e5089f&hm=1118240df1bba0735961a514a40d5293e91710f95d3746a1e32f61b218d63a30&');
+        this.load.image('creditsBg', 'https://utfs.io/f/2c17f660-7f39-4edf-b83e-122a71014d99-6gflls.webp');
         this.load.audio('type', 'https://kbve.com/assets/img/fishchip/type.mp3');
         this.load.spritesheet('fishing', 'https://kbve.com/assets/img/fishchip/animate.png', { frameWidth: 800, frameHeight: 600 });
         this.load.image('fish', 'https://kbve.com/assets/img/letter_logo.png');
