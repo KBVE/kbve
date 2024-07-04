@@ -1,7 +1,10 @@
 import { Scene } from 'phaser';
 import Phaser from 'phaser';
 import { Quadtree, type Bounds, type Point, type Range } from '@kbve/laser';
+// NOT YET ADDED INTO LASER
 import { PlayerController } from '../PlayerController';
+import { NPCEngine, type NPCConfig } from '../NPCEngine';
+
 
 // import GridEngine from 'grid-engine';
 // import { useStore } from '@nanostores/react';
@@ -28,6 +31,8 @@ export class CityScene extends Scene {
   gridEngine: any;
   quadtree: Quadtree;
   playerController: PlayerController | undefined;
+  npcEngine: NPCEngine | undefined;
+
 
   constructor() {
     super({ key: 'CityScene' });

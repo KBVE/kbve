@@ -1,4 +1,3 @@
-// quadtree.spec.ts
 import { Quadtree, Bounds, Point, Range } from './quadtree';
 
 describe('Quadtree', () => {
@@ -84,5 +83,54 @@ describe('Quadtree', () => {
     const found1 = quadtree.query(point);
     const found2 = quadtree.query(point);
     expect(found1).toBe(found2); // Should be the same reference due to caching
+  });
+
+  it('should query ranges within a bounding box', () => {
+    const ranges: Range[] = [
+      {
+        name: 'range1',
+        bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
+        action: () => { console.log('range1 action'); }
+      },
+      {
+        name: 'range2',
+        bounds: { xMin: 10, xMax: 15, yMin: 10, yMax: 15 },
+        action: () => { console.log('range2 action'); }
+      },
+      {
+        name: 'range3',
+        bounds: { xMin: 14, xMax: 16, yMin: 14, yMax: 16 },
+        action: () => { console.log('range3 action'); }
+      }
+    ];
+    for (const range of ranges) {
+      quadtree.insert(range);
+    }
+    const boundingBox: Bounds = { xMin: 8, xMax: 18, yMin: 8, yMax: 18 };
+    const found = quadtree.queryRange(boundingBox);
+    expect(found.length).toBe(2);
+    expect(found.some(r => r.name === 'range2')).toBe(true);
+    expect(found.some(r => r.name === 'range3')).toBe(true);
+  });
+
+  it('should return empty array for bounding boxes not within any range', () => {
+    const ranges: Range[] = [
+      {
+        name: 'range1',
+        bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
+        action: () => { console.log('range1 action'); }
+      },
+      {
+        name: 'range2',
+        bounds: { xMin: 10, xMax: 15, yMin: 10, yMax: 15 },
+        action: () => { console.log('range2 action'); }
+      }
+    ];
+    for (const range of ranges) {
+      quadtree.insert(range);
+    }
+    const boundingBox: Bounds = { xMin: 16, xMax: 18, yMin: 16, yMax: 18 };
+    const found = quadtree.queryRange(boundingBox);
+    expect(found.length).toBe(0);
   });
 });
