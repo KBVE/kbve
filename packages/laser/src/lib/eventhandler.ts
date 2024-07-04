@@ -9,6 +9,11 @@ export interface PlayerEventData {
   inventory: string[];
 }
 
+export interface SceneTransitionEventData {
+  newSceneKey: string;
+  additionalInfo?: string;
+}
+
 export interface CharacterEventData {
   message: string;
   character_name?: string;
@@ -37,6 +42,7 @@ export type EventData = {
   gameEvent: GameEvent;
   charEvent: CharacterEventData;
   playerEvent: PlayerEventData;
+  sceneTransition: SceneTransitionEventData;
 };
 
 type EventHandler<T> = (data?: T) => void;

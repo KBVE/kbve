@@ -41,7 +41,7 @@ interface PositionChangeEvent {
   enterTile: { x: number; y: number };
 }
 
-export class CityScene extends Scene {
+export class CloudCity extends Scene {
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite | undefined;
   monsterBirdSprites: Phaser.GameObjects.Sprite[] = [];
@@ -52,7 +52,7 @@ export class CityScene extends Scene {
   playerController: PlayerController | undefined;
 
   constructor() {
-    super({ key: 'CityScene' });
+    super({ key: 'CloudCity' });
     const bounds: Bounds = { xMin: 0, xMax: 20, yMin: 0, yMax: 20 };
     this.quadtree = new Quadtree(bounds);
   }
@@ -73,10 +73,10 @@ export class CityScene extends Scene {
   }
 
   create() {
-    const cloudCityTilemap = this.make.tilemap({ key: 'cloud-city-map' });
-    cloudCityTilemap.addTilesetImage('Cloud City', 'tiles');
+    const cloudCityTilemap = this.make.tilemap({ key: 'cloud-city-map-large' });
+    cloudCityTilemap.addTilesetImage('cloud_tileset', 'cloud-city-tiles');
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-      const layer = cloudCityTilemap.createLayer(i, 'Cloud City', 0, 0);
+      const layer = cloudCityTilemap.createLayer(i, 'cloud_tileset', 0, 0);
       if (layer) {
         layer.scale = 3;
       } else {
@@ -86,11 +86,8 @@ export class CityScene extends Scene {
     const playerSprite = this.add.sprite(0, 0, 'player');
     playerSprite.scale = 1.5;
 
-    this.npcSprite = this.add.sprite(0, 0, 'player');
+    this.npcSprite = this.add.sprite(0, 0, 'monks');
     this.npcSprite.scale = 1.5;
-
-    this.fishNpcSprite = this.add.sprite(0, 0, 'player');
-    this.fishNpcSprite.scale = 1.5;
 
     this.cameras.main.startFollow(playerSprite, true);
     this.cameras.main.setFollowOffset(
@@ -116,17 +113,11 @@ export class CityScene extends Scene {
         {
           id: 'npc',
           sprite: this.npcSprite,
-          walkingAnimationMapping: 5,
+          walkingAnimationMapping: 0,
           startPosition: { x: 4, y: 10 },
           speed: 3,
         },
-        {
-          id: 'fishNpc',
-          sprite: this.fishNpcSprite,
-          walkingAnimationMapping: 4,
-          startPosition: { x: 8, y: 14 },
-          speed: 3,
-        },
+      
         ...this.monsterBirdSprites.map((sprite, i) => ({
           id: 'monster_bird_' + i,
           sprite,
@@ -164,10 +155,9 @@ export class CityScene extends Scene {
 
     // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly('npc', 1500, 3);
-    this.gridEngine.moveRandomly('fishNpc', 1500, 3);
 
     for (let i = 0; i < 10; i++) {
-      this.gridEngine.moveRandomly('monster_bird_' + i, 1000, 10);
+      this.gridEngine.moveRandomly('monster_bird_' + i, 1000, 20);
     }
 
     this.gridEngine
@@ -191,7 +181,7 @@ export class CityScene extends Scene {
         bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
         action: () => {
           const eventData: CharacterEventData = {
-            message: 'Seems like there are no fish in the sand pits.',
+            message: 'Seems like there are no fish in the sand pits. You know null, this area could be fixed up a bit too.',
           };
           EventEmitter.emit('charEvent', eventData);
         },
