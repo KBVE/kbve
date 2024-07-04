@@ -1,10 +1,28 @@
 {
   "name": "@kbve/laser",
   "version": "0.0.1",
+  "description": "A comprehensive game development toolkit for Node.js. Laser is a powerful npm package designed to streamline game development processes, with a focus on efficient game client management. It provides essential tools and utilities to enhance your game creation workflow, including an event handler, quadtree, client management and performance utilities.",
+  "keywords": [
+    "phaser",
+    "gamedev"
+  ],
+  "homepage": "https://kbve.com/application/javascript/",
+  "bugs": {
+    "url": "https://github.com/KBVE/kbve/issues" 
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KBVE/kbve.git"
+  },
+  "author": "KBVE <hello@kbve.com>",
+  "license": "MIT",
   "dependencies": {
     "tslib": "^2.3.0"
   },
   "type": "commonjs",
   "main": "./src/index.js",
-  "typings": "./src/index.d.ts"
+  "typings": "./src/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
 }
