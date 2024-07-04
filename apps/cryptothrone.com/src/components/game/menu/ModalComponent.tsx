@@ -63,11 +63,9 @@ const ModalComponent: React.FC = () => {
             </div>
 
             <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t">
-              <button type="button" className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-yellow-500 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none" data-hs-overlay="#hs-stacked-overlays" onClick={closeModal}>
-                Close
-              </button>
-              <button type="button" className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-yellow-500 bg-yellow-600 text-white hover:bg-yellow-700 disabled:opacity-50 disabled:pointer-events-none">
-                Okay
+              <button className="relative rounded px-5 py-2.5 overflow-hidden group bg-yellow-500 relative hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all ease-out duration-300 disabled:pointer-events-none" data-hs-overlay="#hs-stacked-overlays" onClick={closeModal}>
+              <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+              <span className="relative">Okay.</span>
               </button>
             </div>
           </div>
