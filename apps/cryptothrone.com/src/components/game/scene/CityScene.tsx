@@ -70,7 +70,6 @@ export class CityScene extends Scene {
       inventory: [],
     };
     EventEmitter.emit('playerEvent', __playerData);
-    
   }
 
   create() {
@@ -200,14 +199,30 @@ export class CityScene extends Scene {
       {
         name: 'sign',
         bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
-        action: () => {
-          const eventData: CharacterEventData = {
-            message: 'Sign does not have much to say',
-            character_name: 'Evee The BarKeep',
-            character_image: '/assets/npc/barkeep.webp',
-            background_image: '/assets/background/woodensign.webp',
-          };
-          EventEmitter.emit('charEvent', eventData);
+        action: async () => {
+          try {
+            const response = await fetch(
+              'https://api.cryptothrone.com/api/v1/speed',
+            );
+            const data = await response.json();
+            const eventData = {
+              message: `The Database Response time: ${data.message.time_ms} ms`,
+              character_name: 'Planets Be Scalin',
+              character_image: '/assets/npc/barkeep.webp',
+              background_image: '/assets/background/woodensign.webp',
+            };
+            EventEmitter.emit('charEvent', eventData);
+          } catch (error) {
+            console.error('Error fetching data:', error);
+            const eventData = {
+              message:
+                'Sign does not have much to say. Failed to fetch response time.',
+              character_name: 'Evee The BarKeep',
+              character_image: '/assets/npc/barkeep.webp',
+              background_image: '/assets/background/woodensign.webp',
+            };
+            EventEmitter.emit('charEvent', eventData);
+          }
         },
       },
       {
