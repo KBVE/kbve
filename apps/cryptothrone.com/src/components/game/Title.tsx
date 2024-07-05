@@ -20,12 +20,33 @@ export class Title extends Scene {
 
         //  Cloud TileSet -> cloud_tileset.png
         this.load.image("tiles", "https://kbve.com/assets/img/fishchip/desert_tileset_1.png");
+        this.load.image("cloud-city-tiles", "/assets/map/cloud_tileset.png");
+
+        this.load.tilemapTiledJSON(
+            "cloud-city-map-large",
+            "/assets/map/cloud_city_large.json",
+        );
         this.load.tilemapTiledJSON(
             "cloud-city-map",
             "https://kbve.com/assets/img/fishchip/cloud_city.json",
         );
         // /assets/img/fishchip/characters_filter.png
         this.load.spritesheet("player", "https://kbve.com/assets/img/fishchip/chip_charactersheet_warmer.png", {
+            frameWidth: 52,
+            frameHeight: 72,
+        });
+
+        this.load.spritesheet("knights", "/assets/entity/knights.png", {
+            frameWidth: 52,
+            frameHeight: 72,
+        });
+
+        this.load.spritesheet("jacko", "/assets/entity/jacko.png", {
+            frameWidth: 52,
+            frameHeight: 72,
+        });
+
+        this.load.spritesheet("monks", "/assets/entity/monks.png", {
             frameWidth: 52,
             frameHeight: 72,
         });
@@ -39,12 +60,12 @@ export class Title extends Scene {
         this.add.image(480, 480, 'mainBg').setScale(0.1);
 
         this.mainMenuButtonImage = this.add.image(480, 480, 'scroll').setAlpha(0.9).setScale(0.7, 0.2).setInteractive({ useHandCursor: true });
-
+        ``
         this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
             fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         this.mainMenuButtonText.on('pointerdown', () => {
-            this.scene.start('CityScene');
+            this.scene.start('SandCity');
         }, this);
     }
 }

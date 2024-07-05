@@ -6,7 +6,8 @@ import Phaser from 'phaser';
 import GridEngine from 'grid-engine';
 
 import {Title} from './Title';
-import {CityScene} from './scene/CityScene';
+import {SandCity} from './scene/SandCity';
+import { CloudCity } from './scene/CloudCity';
 
 const StyledApp = styled.div`
   // Your style here
@@ -64,7 +65,7 @@ export function Game() {
           ],
         },
         /// TownScene, CreditsScene, FishScene, GameOver,
-        scene: [Title, CityScene], // Add other scenes as needed
+        scene: [Title, SandCity, CloudCity], // Add other scenes as needed
 
         input: {
           mouse: {
