@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
 import { EventEmitter, type PlayerMoveEventData } from '../../eventhandler';
+import { updatePlayerStats } from '../../localdb';
 
 export class PlayerController {
   private scene: Scene;

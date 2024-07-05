@@ -1,4 +1,10 @@
-import type { IPlayerData } from './localdb';
+import type { IPlayerData, NotificationType } from './localdb';
+
+export interface NotificationEventData {
+  title: string;
+  message: string;
+  notificationType: NotificationType;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface NPCInteractionEventData<T = any> {
@@ -62,6 +68,7 @@ export type EventData = {
   taskCompletion: TaskCompletionEventData;
   npcInteraction: NPCInteractionEventData;
   playerMove: PlayerMoveEventData;
+  notification: NotificationEventData;
 };
 
 type EventHandler<T> = (data?: T) => void;

@@ -84,6 +84,21 @@ export interface IPlayerData {
   state: IPlayerState;
 }
 
+export interface NotificationType {
+  type: 'caution' | 'warning' | 'danger' | 'success' | 'info';
+  color: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  svg: any;
+}
+
+
+export interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  notificationType: NotificationType;
+}
+
 /**
  *
  *  IQuest - Slay 15 Goblins in the Castle and kill their leader.
@@ -264,6 +279,8 @@ export const itemStore = createPersistentAtom<Record<string, IObject>>(
   _initialItems,
 );
 
+export const notificationsStore = createPersistentAtom<Notification[]>('notifications', []);
+
 export function addItemToBackpack(itemId: string) {
   const player = playerData.get();
   player.inventory.backpack.push(itemId);
@@ -331,3 +348,16 @@ export function updatePlayerState(updates: Partial<IPlayerState>) {
   export function isPlayerResting(): boolean {
     return playerData.get().state.isResting;
   }
+
+  export function updatePlayerStats(updates: Partial<IPlayerStats>) {
+    const player = playerData.get();
+    player.stats = { ...player.stats, ...updates };
+    playerData.set(player);
+  }
+
+  export function setPlayerStat(stat: keyof IPlayerStats, value: string) {
+    const player = playerData.get();
+    player.stats[stat] = value;
+    playerData.set(player);
+  }
+

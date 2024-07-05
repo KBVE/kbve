@@ -23,11 +23,15 @@ import {
   type OpenModalEventData,
   type CharacterEventData,
   type PlayerEventData,
+  type NotificationType
 } from '@kbve/laser';
+
+
 
 //import { TooltipMenu } from '@kbve/laser';
 
 import { npcHandler } from '@kbve/laser';
+import { notificationTypes } from '../menu/EventNotification';
 
 declare global {
   interface Window {
@@ -67,6 +71,12 @@ export class SandCity extends Scene {
     this.load.spritesheet('monster_bird', '/assets/monster/bird_original.png', {
       frameWidth: 61,
       frameHeight: 57,
+    });
+
+    EventEmitter.emit('notification', {
+      title: 'Success',
+      message: 'You arrived safely to SandCity',
+      notificationType: notificationTypes.success,
     });
 
     // const __playerData: PlayerEventData = {
