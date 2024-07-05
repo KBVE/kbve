@@ -1,5 +1,7 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
+import { EventEmitter, type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent } from '../../eventhandler';
+import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, type IObject } from '../../localdb';
 
 export class PlayerController {
   private scene: Scene;
@@ -15,6 +17,7 @@ export class PlayerController {
     this.quadtree = quadtree;
     this.cursor = this.scene.input.keyboard?.createCursorKeys();
     this.initializeWASDKeys();
+    this.registerEventHandlers();
   }
 
   private initializeWASDKeys() {
@@ -26,6 +29,84 @@ export class PlayerController {
         S: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
         D: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
       };
+    }
+  }
+
+  private registerEventHandlers() {
+    
+    //! Broken
+    EventEmitter.on('playerMove', this.handlePlayerMove.bind(this));
+
+    //TODO Steal
+    EventEmitter.on('playerSteal', this.handlePlayerSteal.bind(this));
+    EventEmitter.on('playerReward', this.handlePlayerReward.bind(this));
+
+    //* READY
+    EventEmitter.on('playerDamage', this.handlePlayerCombatDamage.bind(this));
+  }
+
+  private handlePlayerReward(data?: PlayerRewardEvent) {
+    console.log(`Rewarding the player`);
+    if(data) 
+    {
+      EventEmitter.emit('notification', {
+        title: 'Success',
+        message: data.message,
+        notificationType: notificationType['success'],
+      });
+       
+      createAndAddItemToBackpack(data.item);
+    }
+  }
+
+  private handlePlayerCombatDamage(data?: PlayerCombatDamage )
+  {
+    if(data) {
+      decreasePlayerHealth(parseInt(data.damage));
+      EventEmitter.emit('notification', {
+        title: 'Danger',
+        message: `You taken ${data.damage} points of damage!`,
+        notificationType: notificationType['danger'],
+      });
+    }
+  }
+  
+  private handlePlayerSteal(data?: PlayerStealEventData)
+  {
+    if(data) {
+      if (Math.random() > 0.5) {
+        EventEmitter.emit('playerReward', {
+          message: 'You stole a fish!',
+          item: {
+            name: 'Fish',
+            type: 'food',
+            description: 'A yummy fish',
+            durability: 100,
+            weight: 5,
+            consumable: true,
+            id: ''
+          }
+        });
+      }
+      else
+      {
+           // console.log('Performing the Action to Steal');
+        // Fail for now.
+        EventEmitter.emit('notification', {
+          title: 'Danger',
+          message: `You failed to steal from ${data.npcName}!`,
+          notificationType: notificationType['danger'],
+        });
+        EventEmitter.emit('playerDamage', {
+          damage: '1'
+        });
+      }
+    }
+  }
+
+  private handlePlayerMove(data?: PlayerMoveEventData) {
+    if (data) {
+    this.gridEngine.moveTo('player', { x: data.x, y: data.y });
     }
   }
 

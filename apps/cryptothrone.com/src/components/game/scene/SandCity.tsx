@@ -8,7 +8,7 @@ import {
   PlayerController,
 } from '@kbve/laser';
 
-import { createTextBubble, updateTextBubblePosition } from '@kbve/laser';
+import { createTextBubble, updateTextBubblePosition, createMessageBubble } from '@kbve/laser';
 
 import {
   getBirdNum,
@@ -23,9 +23,18 @@ import {
   type OpenModalEventData,
   type CharacterEventData,
   type PlayerEventData,
+  notificationType
 } from '@kbve/laser';
 
-import { TooltipMenu } from '@kbve/laser';
+import {
+  createULID
+} from '@kbve/laser'
+
+
+
+//import { TooltipMenu } from '@kbve/laser';
+
+import { npcHandler } from '@kbve/laser';
 
 declare global {
   interface Window {
@@ -67,6 +76,12 @@ export class SandCity extends Scene {
       frameHeight: 57,
     });
 
+    EventEmitter.emit('notification', {
+      title: 'Success',
+      message: `You arrived safely to SandCity Passport: ${createULID()}`,
+      notificationType: notificationType.success,
+    });
+
     // const __playerData: PlayerEventData = {
     //   health: '100',
     //   account: 'Guest',
@@ -91,9 +106,11 @@ export class SandCity extends Scene {
     playerSprite.scale = 1.5;
 
     this.npcSprite = this.add.sprite(0, 0, 'player');
+    this.npcSprite.name = 'npc';
     this.npcSprite.scale = 1.5;
 
     this.fishNpcSprite = this.add.sprite(0, 0, 'player');
+    this.fishNpcSprite.name = 'fishNpc';
     this.fishNpcSprite.scale = 1.5;
 
     this.cameras.main.startFollow(playerSprite, true);
@@ -160,10 +177,11 @@ export class SandCity extends Scene {
       this.quadtree,
     );
 
-    createTextBubble(
+    createMessageBubble(
       this,
       this.npcSprite,
       'Enter the sand pit to start fishing! Go near it and press F!',
+      3000
     );
 
     // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
@@ -185,16 +203,35 @@ export class SandCity extends Scene {
         }
       });
     
+      const attachNPCEventWithCoords = (sprite: ExtendedSprite, title: string, actions: { label: string }[]) => {
+        const position = this.gridEngine.getPosition(sprite.name);
+        npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
+      };
+  
+      attachNPCEventWithCoords(this.npcSprite, 'FisherMan', [
+        { label: 'Talk' },
+        { label: 'Trade' },
+        { label: 'Move to' },
+        { label: 'Steal' },
+        { label: 'Combat' }
+      ]);
+  
+      attachNPCEventWithCoords(this.fishNpcSprite, 'Fish NPC Actions', [
+        { label: 'Check Fish' },
+        { label: 'Move to' }
+      ]);
+
+      
     // this.gridEngine.follow("player", "npc", 0, true);
 
     // Add tooltip menu functionality
-    TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
-      { label: "Talk", callback: () => console.log("Talking to NPC") },
-      { label: "Trade", callback: () => console.log("Trading with NPC") }
-    ]);
-    TooltipMenu.attachToSprite(this, this.fishNpcSprite, "Fish NPC Actions", [
-      { label: "Check Fish", callback: () => console.log("Checking fish count") }
-    ]);
+    // TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
+    //   { label: "Talk", callback: () => console.log("Talking to NPC") },
+    //   { label: "Trade", callback: () => console.log("Trading with NPC") }
+    // ]);
+    // TooltipMenu.attachToSprite(this, this.fishNpcSprite, "Fish NPC Actions", [
+    //   { label: "Check Fish", callback: () => console.log("Checking fish count") }
+    // ]);
 
     window.__GRID_ENGINE__ = this.gridEngine;
   }
@@ -262,12 +299,12 @@ export class SandCity extends Scene {
   update() {
     this.playerController?.handleMovement();
 
-    if (this.npcSprite && this.npcSprite.textBubble) {
-      updateTextBubblePosition(this.npcSprite);
-    }
-    if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
-      updateTextBubblePosition(this.fishNpcSprite);
-    }
-    TooltipMenu.updateAllTooltipPositions(this);
+    // if (this.npcSprite && this.npcSprite.textBubble) {
+    //   updateTextBubblePosition(this.npcSprite);
+    // }
+    // if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
+    //   updateTextBubblePosition(this.fishNpcSprite);
+    // }
+    // TooltipMenu.updateAllTooltipPositions(this);
   }
 }
