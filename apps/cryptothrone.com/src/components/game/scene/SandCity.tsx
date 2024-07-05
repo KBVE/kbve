@@ -184,6 +184,8 @@ export class SandCity extends Scene {
           });
         }
       });
+    
+    // this.gridEngine.follow("player", "npc", 0, true);
 
     // Add tooltip menu functionality
     TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
