@@ -1,12 +1,23 @@
+import type { IPlayerData } from './localdb';
+
+export interface NPCInteractionEventData {
+  npcId: string;
+  npcName: string;
+  actions: string[]; // List of actions available for the NPC (e.g., 'talk', 'trade', 'combat', 'steal')
+}
+
+
 export interface OpenModalEventData {
   message: string;
 }
 
-export interface PlayerEventData {
-  health: string;
+export interface PlayerEventData extends IPlayerData {
   account: string;
-  mana: string;
-  inventory: string[];
+}
+
+export interface SceneTransitionEventData {
+  newSceneKey: string;
+  additionalInfo?: string;
 }
 
 export interface CharacterEventData {
@@ -31,12 +42,20 @@ export interface GameEvent {
   };
 }
 
+export interface TaskCompletionEventData {
+  taskId: string;
+  isComplete: boolean;
+}
+
 export type EventData = {
   openModal: OpenModalEventData;
   wasmEvent: WASMEventData;
   gameEvent: GameEvent;
   charEvent: CharacterEventData;
   playerEvent: PlayerEventData;
+  sceneTransition: SceneTransitionEventData;
+  taskCompletion: TaskCompletionEventData;
+  npcInteraction: NPCInteractionEventData; 
 };
 
 type EventHandler<T> = (data?: T) => void;

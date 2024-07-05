@@ -25,6 +25,8 @@ import {
   type PlayerEventData,
 } from '@kbve/laser';
 
+import { TooltipMenu } from '@kbve/laser';
+
 declare global {
   interface Window {
     __GRID_ENGINE__?: any;
@@ -33,6 +35,8 @@ declare global {
 
 class ExtendedSprite extends Phaser.GameObjects.Sprite {
   textBubble?: Phaser.GameObjects.Container;
+  tooltip?: Phaser.GameObjects.Container;
+
 }
 
 interface PositionChangeEvent {
@@ -41,7 +45,7 @@ interface PositionChangeEvent {
   enterTile: { x: number; y: number };
 }
 
-export class CityScene extends Scene {
+export class SandCity extends Scene {
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite | undefined;
   monsterBirdSprites: Phaser.GameObjects.Sprite[] = [];
@@ -52,7 +56,7 @@ export class CityScene extends Scene {
   playerController: PlayerController | undefined;
 
   constructor() {
-    super({ key: 'CityScene' });
+    super({ key: 'SandCity' });
     const bounds: Bounds = { xMin: 0, xMax: 20, yMin: 0, yMax: 20 };
     this.quadtree = new Quadtree(bounds);
   }
@@ -63,14 +67,13 @@ export class CityScene extends Scene {
       frameHeight: 57,
     });
 
-    const __playerData: PlayerEventData = {
-      health: '100',
-      account: 'Guest',
-      mana: '100',
-      inventory: [],
-    };
-    EventEmitter.emit('playerEvent', __playerData);
-    
+    // const __playerData: PlayerEventData = {
+    //   health: '100',
+    //   account: 'Guest',
+    //   mana: '100',
+    //   inventory: [],
+    // };
+    // EventEmitter.emit('playerEvent', __playerData);
   }
 
   create() {
@@ -181,6 +184,17 @@ export class CityScene extends Scene {
           });
         }
       });
+    
+    // this.gridEngine.follow("player", "npc", 0, true);
+
+    // Add tooltip menu functionality
+    TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
+      { label: "Talk", callback: () => console.log("Talking to NPC") },
+      { label: "Trade", callback: () => console.log("Trading with NPC") }
+    ]);
+    TooltipMenu.attachToSprite(this, this.fishNpcSprite, "Fish NPC Actions", [
+      { label: "Check Fish", callback: () => console.log("Checking fish count") }
+    ]);
 
     window.__GRID_ENGINE__ = this.gridEngine;
   }
@@ -192,7 +206,7 @@ export class CityScene extends Scene {
         bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
         action: () => {
           const eventData: CharacterEventData = {
-            message: 'Seems like there are no fish in the sand pits.',
+            message: 'Seems like there are no fish in the sand pits. You know null, this area could be fixed up a bit too.',
           };
           EventEmitter.emit('charEvent', eventData);
         },
@@ -201,13 +215,14 @@ export class CityScene extends Scene {
         name: 'sign',
         bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
         action: () => {
-          const eventData: CharacterEventData = {
-            message: 'Sign does not have much to say',
-            character_name: 'Evee The BarKeep',
-            character_image: '/assets/npc/barkeep.webp',
-            background_image: '/assets/background/woodensign.webp',
-          };
-          EventEmitter.emit('charEvent', eventData);
+          const eventData = {
+              message:
+                'Sign does not have much to say.',
+              character_name: 'Evee The BarKeep',
+              character_image: '/assets/npc/barkeep.webp',
+              background_image: '/assets/background/woodensign.webp',
+            };
+            EventEmitter.emit('charEvent', eventData);
         },
       },
       {
@@ -253,5 +268,6 @@ export class CityScene extends Scene {
     if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
       updateTextBubblePosition(this.fishNpcSprite);
     }
+    TooltipMenu.updateAllTooltipPositions(this);
   }
 }
