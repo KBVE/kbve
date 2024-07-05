@@ -63,13 +63,13 @@ export class SandCity extends Scene {
       frameHeight: 57,
     });
 
-    const __playerData: PlayerEventData = {
-      health: '100',
-      account: 'Guest',
-      mana: '100',
-      inventory: [],
-    };
-    EventEmitter.emit('playerEvent', __playerData);
+    // const __playerData: PlayerEventData = {
+    //   health: '100',
+    //   account: 'Guest',
+    //   mana: '100',
+    //   inventory: [],
+    // };
+    // EventEmitter.emit('playerEvent', __playerData);
   }
 
   create() {
