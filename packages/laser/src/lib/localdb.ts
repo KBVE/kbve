@@ -35,6 +35,18 @@ const _IPlayerStats: IPlayerStats = {
   faith: '0',
 };
 
+export interface IPlayerState {
+    inCombat: boolean;
+    isDead: boolean;
+    isResting: boolean;
+  }
+  
+const _IPlayerState: IPlayerState = {
+    inCombat: false,
+    isDead: false,
+    isResting: false,
+  };
+
 export interface IObject {
   id: string; // ULID
   name: string;
@@ -69,6 +81,7 @@ export interface IPlayerInventory {
 export interface IPlayerData {
   stats: IPlayerStats;
   inventory: IPlayerInventory;
+  state: IPlayerState;
 }
 
 /**
@@ -138,6 +151,7 @@ const _initialItems: Record<string, IObject> = {};
 const _IPlayerData: IPlayerData = {
   stats: _IPlayerStats,
   inventory: _IPlayerInventory,
+  state: _IPlayerState
 };
 
 export function completeTask<T>(
@@ -299,3 +313,21 @@ export function removeItemFromBackpack(itemId: string) {
     console.log('Cannot remove item that is currently equipped.');
   }
 }
+
+export function updatePlayerState(updates: Partial<IPlayerState>) {
+    const player = playerData.get();
+    player.state = { ...player.state, ...updates };
+    playerData.set(player);
+  }
+  
+  export function isPlayerInCombat(): boolean {
+    return playerData.get().state.inCombat;
+  }
+  
+  export function isPlayerDead(): boolean {
+    return playerData.get().state.isDead;
+  }
+  
+  export function isPlayerResting(): boolean {
+    return playerData.get().state.isResting;
+  }

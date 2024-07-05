@@ -25,6 +25,8 @@ import {
   type PlayerEventData,
 } from '@kbve/laser';
 
+import { TooltipMenu } from '@kbve/laser';
+
 declare global {
   interface Window {
     __GRID_ENGINE__?: any;
@@ -33,6 +35,8 @@ declare global {
 
 class ExtendedSprite extends Phaser.GameObjects.Sprite {
   textBubble?: Phaser.GameObjects.Container;
+  tooltip?: Phaser.GameObjects.Container;
+
 }
 
 interface PositionChangeEvent {
@@ -181,6 +185,15 @@ export class SandCity extends Scene {
         }
       });
 
+    // Add tooltip menu functionality
+    TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
+      { label: "Talk", callback: () => console.log("Talking to NPC") },
+      { label: "Trade", callback: () => console.log("Trading with NPC") }
+    ]);
+    TooltipMenu.attachToSprite(this, this.fishNpcSprite, "Fish NPC Actions", [
+      { label: "Check Fish", callback: () => console.log("Checking fish count") }
+    ]);
+
     window.__GRID_ENGINE__ = this.gridEngine;
   }
 
@@ -199,30 +212,15 @@ export class SandCity extends Scene {
       {
         name: 'sign',
         bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
-        action: async () => {
-          try {
-            const response = await fetch(
-              'https://api.cryptothrone.com/api/v1/speed',
-            );
-            const data = await response.json();
-            const eventData = {
-              message: `The Database Response time: ${data.message.time_ms} ms`,
-              character_name: 'Planets Be Scalin',
-              character_image: '/assets/npc/barkeep.webp',
-              background_image: '/assets/background/woodensign.webp',
-            };
-            EventEmitter.emit('charEvent', eventData);
-          } catch (error) {
-            console.error('Error fetching data:', error);
-            const eventData = {
+        action: () => {
+          const eventData = {
               message:
-                'Sign does not have much to say. Failed to fetch response time.',
+                'Sign does not have much to say.',
               character_name: 'Evee The BarKeep',
               character_image: '/assets/npc/barkeep.webp',
               background_image: '/assets/background/woodensign.webp',
             };
             EventEmitter.emit('charEvent', eventData);
-          }
         },
       },
       {
@@ -268,5 +266,6 @@ export class SandCity extends Scene {
     if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
       updateTextBubblePosition(this.fishNpcSprite);
     }
+    TooltipMenu.updateAllTooltipPositions(this);
   }
 }
