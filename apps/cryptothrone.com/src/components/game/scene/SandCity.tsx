@@ -8,7 +8,7 @@ import {
   PlayerController,
 } from '@kbve/laser';
 
-import { createTextBubble, updateTextBubblePosition } from '@kbve/laser';
+import { createTextBubble, updateTextBubblePosition, createMessageBubble } from '@kbve/laser';
 
 import {
   getBirdNum,
@@ -164,10 +164,11 @@ export class SandCity extends Scene {
       this.quadtree,
     );
 
-    createTextBubble(
+    createMessageBubble(
       this,
       this.npcSprite,
       'Enter the sand pit to start fishing! Go near it and press F!',
+      3000
     );
 
     // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
@@ -285,12 +286,12 @@ export class SandCity extends Scene {
   update() {
     this.playerController?.handleMovement();
 
-    if (this.npcSprite && this.npcSprite.textBubble) {
-      updateTextBubblePosition(this.npcSprite);
-    }
-    if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
-      updateTextBubblePosition(this.fishNpcSprite);
-    }
+    // if (this.npcSprite && this.npcSprite.textBubble) {
+    //   updateTextBubblePosition(this.npcSprite);
+    // }
+    // if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
+    //   updateTextBubblePosition(this.fishNpcSprite);
+    // }
     // TooltipMenu.updateAllTooltipPositions(this);
   }
 }
