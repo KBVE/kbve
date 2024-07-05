@@ -33,7 +33,7 @@ export const OG = {
   locale: "en_US",
   type: "website",
   url: SITE.url,
-  title: `${SITE.title}: : Hardware Tools & Construction Services`,
-  description: "Equip your projects with ScrewFast's top-quality hardware tools and expert construction services. Trusted by industry leaders, ScrewFast offers simplicity, affordability, and reliability. Experience the difference with user-centric design and cutting-edge tools. Start exploring now!",
+  title: `${SITE.title}: : DevTeam & Software Services`,
+  description: "Equip your projects with KBVE's top-notch development team and software services. Specializing in machine learning, app design, development, and comprehensive hardware and backend solutions, KBVE is trusted by industry leaders. Discover simplicity, affordability, and reliability with our user-centric design and cutting-edge technology. Start exploring now!",
   image: ogImageSrc,
 };

@@ -1,12 +1,12 @@
+import type { IPlayerData } from './localdb';
+
+
 export interface OpenModalEventData {
   message: string;
 }
 
-export interface PlayerEventData {
-  health: string;
+export interface PlayerEventData extends IPlayerData {
   account: string;
-  mana: string;
-  inventory: string[];
 }
 
 export interface SceneTransitionEventData {
@@ -36,6 +36,11 @@ export interface GameEvent {
   };
 }
 
+export interface TaskCompletionEventData {
+  taskId: string;
+  isComplete: boolean;
+}
+
 export type EventData = {
   openModal: OpenModalEventData;
   wasmEvent: WASMEventData;
@@ -43,6 +48,8 @@ export type EventData = {
   charEvent: CharacterEventData;
   playerEvent: PlayerEventData;
   sceneTransition: SceneTransitionEventData;
+  taskCompletion: TaskCompletionEventData;
+
 };
 
 type EventHandler<T> = (data?: T) => void;

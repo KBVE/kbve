@@ -1,7 +1,7 @@
 export * from './lib/laser';
 export * from './lib/quadtree';
 export * from './lib/eventhandler';
-
+export * from './lib/localdb';
 
 // Phaser
 
