@@ -189,16 +189,22 @@ export class SandCity extends Scene {
         }
       });
     
-    npcHandler.attachNPCEvent(this.npcSprite, 'FisherMan', [
+      const attachNPCEventWithCoords = (sprite: ExtendedSprite, title: string, actions: { label: string }[]) => {
+        const position = this.gridEngine.getPosition(sprite.name);
+        npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
+      };
+  
+      attachNPCEventWithCoords(this.npcSprite, 'FisherMan', [
         { label: 'Talk' },
         { label: 'Trade' },
         { label: 'Move to' },
         { label: 'Steal' },
         { label: 'Combat' }
       ]);
-
-    npcHandler.attachNPCEvent(this.fishNpcSprite, 'Fish NPC Actions', [
-        { label: 'Check Fish' }
+  
+      attachNPCEventWithCoords(this.fishNpcSprite, 'Fish NPC Actions', [
+        { label: 'Check Fish' },
+        { label: 'Move to' }
       ]);
 
       

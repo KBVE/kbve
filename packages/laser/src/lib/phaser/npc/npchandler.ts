@@ -56,22 +56,25 @@ class NPCHandler {
     // Implement check fish logic here
   }
 
-  attachNPCEvent(sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[]) {
+  attachNPCEvent<T>(sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[], data?: T) {
     sprite.setInteractive();
     sprite.on('pointerover', () => {
-      const npcInteractionData: NPCInteractionEventData = {
+      console.log(`Hovering over NPC: ${sprite.name}, Data: ${JSON.stringify(data)}`); // Debug log
+      const npcInteractionData: NPCInteractionEventData<T> = {
         npcId: sprite.name || '',
         npcName: title,
         actions: actions.map(action => action.label),
-        data: { coords: { x: sprite.x, y: sprite.y } } // Example additional data
+        data: data || {} as T // Use provided data or an empty object
       };
       EventEmitter.emit('npcInteraction', npcInteractionData);
     });
 
     sprite.on('pointerout', () => {
-      //EventEmitter.emit('npcInteraction', null);
+      // EventEmitter.emit('npcInteraction', null);
     });
   }
+
+
 }
 
 export const npcHandler = new NPCHandler();
