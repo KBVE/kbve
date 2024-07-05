@@ -93,9 +93,11 @@ export class SandCity extends Scene {
     playerSprite.scale = 1.5;
 
     this.npcSprite = this.add.sprite(0, 0, 'player');
+    this.npcSprite.name = 'npc';
     this.npcSprite.scale = 1.5;
 
     this.fishNpcSprite = this.add.sprite(0, 0, 'player');
+    this.fishNpcSprite.name = 'fishNpc';
     this.fishNpcSprite.scale = 1.5;
 
     this.cameras.main.startFollow(playerSprite, true);
