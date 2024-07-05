@@ -1,5 +1,6 @@
 import type { IPlayerData, NotificationType, IObject } from './localdb';
 
+
 export interface NotificationEventData {
   title: string;
   message: string;
@@ -29,6 +30,7 @@ export interface NPCInteractionEventData<T = any> {
   actions: string[];
   data?: T;
 }
+
 export interface PlayerMoveEventData {
   x: number;
   y: number;
