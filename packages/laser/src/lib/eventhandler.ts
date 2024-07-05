@@ -8,7 +8,7 @@ export interface NotificationEventData {
 
 export interface PlayerRewardEvent {
   message: string;
-  data: IObject;
+  item: IObject;
 }
 
 export interface PlayerCombatDamage {
