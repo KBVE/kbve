@@ -1,5 +1,11 @@
 import type { IPlayerData } from './localdb';
 
+export interface NPCInteractionEventData {
+  npcId: string;
+  npcName: string;
+  actions: string[]; // List of actions available for the NPC (e.g., 'talk', 'trade', 'combat', 'steal')
+}
+
 
 export interface OpenModalEventData {
   message: string;
@@ -49,7 +55,7 @@ export type EventData = {
   playerEvent: PlayerEventData;
   sceneTransition: SceneTransitionEventData;
   taskCompletion: TaskCompletionEventData;
-
+  npcInteraction: NPCInteractionEventData; 
 };
 
 type EventHandler<T> = (data?: T) => void;
