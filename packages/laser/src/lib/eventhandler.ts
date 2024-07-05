@@ -1,11 +1,38 @@
-import type { IPlayerData } from './localdb';
+import type { IPlayerData, NotificationType, IObject } from './localdb';
 
-export interface NPCInteractionEventData {
-  npcId: string;
-  npcName: string;
-  actions: string[]; // List of actions available for the NPC (e.g., 'talk', 'trade', 'combat', 'steal')
+export interface NotificationEventData {
+  title: string;
+  message: string;
+  notificationType: NotificationType;
 }
 
+export interface PlayerRewardEvent {
+  message: string;
+  data: IObject;
+}
+
+export interface PlayerCombatDamage {
+  damage: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface PlayerStealEventData<T = any> {
+  npcId: string;
+  npcName: string;
+  data?: T;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface NPCInteractionEventData<T = any> {
+  npcId: string;
+  npcName: string;
+  actions: string[];
+  data?: T;
+}
+export interface PlayerMoveEventData {
+  x: number;
+  y: number;
+}
 
 export interface OpenModalEventData {
   message: string;
@@ -55,7 +82,12 @@ export type EventData = {
   playerEvent: PlayerEventData;
   sceneTransition: SceneTransitionEventData;
   taskCompletion: TaskCompletionEventData;
-  npcInteraction: NPCInteractionEventData; 
+  npcInteraction: NPCInteractionEventData;
+  playerMove: PlayerMoveEventData;
+  notification: NotificationEventData;
+  playerSteal: PlayerStealEventData;
+  playerDamage: PlayerCombatDamage;
+  playerReward: PlayerRewardEvent;
 };
 
 type EventHandler<T> = (data?: T) => void;
