@@ -6,6 +6,17 @@ export interface NotificationEventData {
   notificationType: NotificationType;
 }
 
+export interface PlayerCombatDamage {
+  damage: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface PlayerStealEventData<T = any> {
+  npcId: string;
+  npcName: string;
+  data?: T;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface NPCInteractionEventData<T = any> {
   npcId: string;
@@ -69,6 +80,8 @@ export type EventData = {
   npcInteraction: NPCInteractionEventData;
   playerMove: PlayerMoveEventData;
   notification: NotificationEventData;
+  playerSteal: PlayerStealEventData;
+  playerDamage: PlayerCombatDamage;
 };
 
 type EventHandler<T> = (data?: T) => void;

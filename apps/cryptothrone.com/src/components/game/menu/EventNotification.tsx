@@ -1,114 +1,8 @@
 import React, { useEffect } from 'react';
-import { EventEmitter, type Notification, type NotificationType, type NotificationEventData, notificationsStore } from '@kbve/laser';
+import { EventEmitter, type Notification, type NotificationType, type NotificationEventData, notificationsStore, type notificationType } from '@kbve/laser';
 import { useStore } from '@nanostores/react';
 import { persistentAtom } from '@nanostores/persistent';
 
-export const notificationTypes: Record<string, NotificationType> = {
-    caution: {
-      type: 'caution',
-      color: 'bg-yellow-200 border-yellow-300 text-yellow-700',
-      svg: (
-        <svg
-          className="flex-shrink-0 size-4"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M10.29 3.86L1.82 18a1.18 1.18 0 001 1.76h19.36a1.18 1.18 0 001-1.76l-8.47-14.14a1.18 1.18 0 00-2.04 0zM12 9v4"></path>
-          <path d="M12 17h.01"></path>
-        </svg>
-      ),
-    },
-    warning: {
-      type: 'warning',
-      color: 'bg-orange-200 border-orange-300 text-orange-700',
-      svg: (
-        <svg
-          className="flex-shrink-0 size-4"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 9v2"></path>
-          <path d="M12 15h.01"></path>
-          <path d="M5 12h14"></path>
-          <path d="M12 5v2"></path>
-        </svg>
-      ),
-    },
-    danger: {
-      type: 'danger',
-      color: 'bg-red-200 border-red-300 text-red-700',
-      svg: (
-        <svg
-          className="flex-shrink-0 size-4"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 12v-2m0-4h.01"></path>
-        </svg>
-      ),
-    },
-    success: {
-      type: 'success',
-      color: 'bg-green-200 border-green-300 text-green-700',
-      svg: (
-        <svg
-          className="flex-shrink-0 size-4"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 20a8 8 0 110-16 8 8 0 010 16zm-1-9l3 3 3-3m-3 3V9"></path>
-        </svg>
-      ),
-    },
-    info: {
-      type: 'info',
-      color: 'bg-blue-200 border-blue-300 text-blue-700',
-      svg: (
-        <svg
-          className="flex-shrink-0 size-4"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 14v-4m0-4h.01"></path>
-        </svg>
-      ),
-    },
-  };
 
 
 const EventNotification: React.FC = () => {
@@ -118,7 +12,7 @@ const EventNotification: React.FC = () => {
     const handleNotification = (notification?: NotificationEventData) => {
      if(notification)
      {
-      const id = Date.now();
+      const id = Date.now() + Math.random();
       notificationsStore.set([...notificationsStore.get(), { id, ...notification }]);
 
       setTimeout(() => {
@@ -146,7 +40,7 @@ const EventNotification: React.FC = () => {
           role="alert"
         >
           <div className="flex p-4">
-            {notification.notificationType.svg}
+            <img src={notification.notificationType.imgUrl} alt={notification.notificationType.type} className="flex-shrink-0 size-4" />
             <div className="ms-2">
               <h3 className="text-sm font-bold">{notification.title}</h3>
               <p className="text-sm">{notification.message}</p>

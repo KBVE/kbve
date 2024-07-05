@@ -1,7 +1,7 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
-import { EventEmitter, type PlayerMoveEventData } from '../../eventhandler';
-import { updatePlayerStats } from '../../localdb';
+import { EventEmitter, type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage } from '../../eventhandler';
+import { decreasePlayerHealth, notificationType } from '../../localdb';
 
 export class PlayerController {
   private scene: Scene;
@@ -34,6 +34,36 @@ export class PlayerController {
 
   private registerEventHandlers() {
     EventEmitter.on('playerMove', this.handlePlayerMove.bind(this));
+    EventEmitter.on('playerSteal', this.handlePlayerSteal.bind(this));
+    EventEmitter.on('playerDamage', this.handlePlayerCombatDamage.bind(this));
+  }
+
+  private handlePlayerCombatDamage(data?: PlayerCombatDamage )
+  {
+    if(data) {
+      decreasePlayerHealth(parseInt(data.damage));
+      EventEmitter.emit('notification', {
+        title: 'Danger',
+        message: `You taken ${data.damage} points of damage!`,
+        notificationType: notificationType['danger'],
+      });
+    }
+  }
+  
+  private handlePlayerSteal(data?: PlayerStealEventData)
+  {
+    if(data) {
+      // console.log('Performing the Action to Steal');
+      // Fail for now.
+      EventEmitter.emit('notification', {
+        title: 'Danger',
+        message: `You failed to steal from ${data.npcName}!`,
+        notificationType: notificationType['danger'],
+      });
+      EventEmitter.emit('playerDamage', {
+        damage: '1'
+      });
+    }
   }
 
   private handlePlayerMove(data?: PlayerMoveEventData) {

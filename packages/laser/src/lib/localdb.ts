@@ -1,5 +1,6 @@
 // import { useStore } from '@nanostores/react';
 import { persistentAtom } from '@nanostores/persistent';
+import { task } from 'nanostores';
 import { EventEmitter } from './eventhandler';
 
 export interface IPlayerStats {
@@ -20,12 +21,12 @@ export interface IPlayerStats {
 }
 const _IPlayerStats: IPlayerStats = {
   username: 'Guest',
-  health: '1000',
-  mana: '1000',
-  energy: '1000',
-  maxHealth: '1000',
-  maxMana: '1000',
-  maxEnergy: '1000',
+  health: '100',
+  mana: '100',
+  energy: '100',
+  maxHealth: '100',
+  maxMana: '100',
+  maxEnergy: '100',
   armour: '0',
   agility: '0',
   strength: '0',
@@ -88,7 +89,7 @@ export interface NotificationType {
   type: 'caution' | 'warning' | 'danger' | 'success' | 'info';
   color: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  svg: any;
+  imgUrl: string;
 }
 
 
@@ -281,61 +282,72 @@ export const itemStore = createPersistentAtom<Record<string, IObject>>(
 
 export const notificationsStore = createPersistentAtom<Notification[]>('notifications', []);
 
-export function addItemToBackpack(itemId: string) {
-  const player = playerData.get();
-  player.inventory.backpack.push(itemId);
-  playerData.set(player);
-}
+export const addItemToBackpack = (itemId: string) => {
+  task(async () => {
+    const player = playerData.get();
+    player.inventory.backpack.push(itemId);
+    playerData.set({ ...player });
+  });
+};
 
-export function equipItem(
-  slot: keyof IPlayerInventory['equipment'],
-  itemId: string,
-) {
-  const player = playerData.get();
-  const item = itemStore.get()[itemId];
-
-  if (item) {
-    item.equipped = true;
-    itemStore.set({ ...itemStore.get(), [item.id]: item });
-    player.inventory.equipment[slot] = itemId;
-    playerData.set(player);
-  }
-}
-
-export function unequipItem(slot: keyof IPlayerInventory['equipment']) {
-  const player = playerData.get();
-  const itemId = player.inventory.equipment[slot];
-
-  if (itemId) {
+export const equipItem = (slot: keyof IPlayerInventory['equipment'], itemId: string) => {
+  task(async () => {
+    const player = playerData.get();
     const item = itemStore.get()[itemId];
+
     if (item) {
-      item.equipped = false;
+      item.equipped = true;
       itemStore.set({ ...itemStore.get(), [item.id]: item });
-      player.inventory.equipment[slot] = null;
-      playerData.set(player);
+      player.inventory.equipment[slot] = itemId;
+      playerData.set({ ...player }); 
     }
-  }
-}
+  });
+};
 
-export function removeItemFromBackpack(itemId: string) {
-  const player = playerData.get();
-  const item = itemStore.get()[itemId];
+export const unequipItem = (slot: keyof IPlayerInventory['equipment']) => {
+  task(async () => {
+    const player = playerData.get();
+    const itemId = player.inventory.equipment[slot];
 
-  if (item && !item.equipped) {
-    player.inventory.backpack = player.inventory.backpack.filter(
-      (id) => id !== itemId,
-    );
-    playerData.set(player);
-  } else {
-    console.log('Cannot remove item that is currently equipped.');
-  }
-}
+    if (itemId) {
+      const item = itemStore.get()[itemId];
+      if (item) {
+        item.equipped = false;
+        itemStore.set({ ...itemStore.get(), [item.id]: item });
+        player.inventory.equipment[slot] = null;
+        playerData.set({ ...player });
+      }
+    }
+  });
+};
 
-export function updatePlayerState(updates: Partial<IPlayerState>) {
+export const removeItemFromBackpack = (itemId: string) => {
+  task(async () => {
+    const player = playerData.get();
+    const item = itemStore.get()[itemId];
+
+    if (item && !item.equipped) {
+      player.inventory.backpack = player.inventory.backpack.filter(
+        (id) => id !== itemId,
+      );
+      playerData.set({ ...player }); 
+    } else {
+      EventEmitter.emit('notification', {
+        title: 'Warning',
+        message: `Cannot remove item that is currently equipped.`,
+        notificationType: notificationType['warning'],
+      });
+    }
+  });
+};
+
+export const updatePlayerState = (updates: Partial<IPlayerState>) => {
+  task(async () => {
     const player = playerData.get();
     player.state = { ...player.state, ...updates };
-    playerData.set(player);
-  }
+    playerData.set({ ...player }); 
+  });
+};
   
   export function isPlayerInCombat(): boolean {
     return playerData.get().state.inCombat;
@@ -349,15 +361,59 @@ export function updatePlayerState(updates: Partial<IPlayerState>) {
     return playerData.get().state.isResting;
   }
 
-  export function updatePlayerStats(updates: Partial<IPlayerStats>) {
-    const player = playerData.get();
-    player.stats = { ...player.stats, ...updates };
-    playerData.set(player);
-  }
+  export const updatePlayerStats = (updates: Partial<IPlayerStats>) => {
+    task(async () => {
+      const player = playerData.get();
+      player.stats = { ...player.stats, ...updates };
+      playerData.set({ ...player }); 
+    });
+  };
+  
+  export const setPlayerStat = (stat: keyof IPlayerStats, value: string) => {
+    task(async () => {
+      const player = playerData.get();
+      player.stats = { ...player.stats, [stat]: value };
+      playerData.set({ ...player }); 
+    });
+  };
+  
 
-  export function setPlayerStat(stat: keyof IPlayerStats, value: string) {
-    const player = playerData.get();
-    player.stats[stat] = value;
-    playerData.set(player);
-  }
+  export const decreasePlayerHealth = (amount: number) => {
+    task(async () => {
+      const player = playerData.get();
+      const currentHealth = parseInt(player.stats.health, 10);
+      const newHealth = Math.max(currentHealth - amount, 0); 
+      player.stats = { ...player.stats, health: newHealth.toString() };
+      playerData.set({ ...player }); 
+    });
+  };
+
+  export const notificationType: Record<string, NotificationType> = {
+    caution: {
+      type: 'caution',
+      color: 'bg-yellow-200 border-yellow-300 text-yellow-700',
+      imgUrl: '/assets/icons/notification.svg',
+    },
+    warning: {
+      type: 'warning',
+      color: 'bg-orange-200 border-orange-300 text-orange-700',
+      imgUrl: '/assets/icons/notification.svg',
+    },
+    danger: {
+      type: 'danger',
+      color: 'bg-red-200 border-red-300 text-red-700',
+      imgUrl: '/assets/icons/notification.svg',
+    },
+    success: {
+      type: 'success',
+      color: 'bg-green-200 border-green-300 text-green-700',
+      imgUrl: '/assets/icons/notification.svg',
+    },
+    info: {
+      type: 'info',
+      color: 'bg-blue-200 border-blue-300 text-blue-700',
+      imgUrl: '/assets/icons/notification.svg',
+    },
+  };
+
 

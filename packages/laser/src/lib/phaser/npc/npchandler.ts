@@ -1,9 +1,9 @@
 // NPCHandler.ts
-import { EventEmitter, type PlayerMoveEventData, type NPCInteractionEventData } from '../../eventhandler';
+import { EventEmitter, type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData} from '../../eventhandler';
 
 interface NPCActionHandlers {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [action: string]: (npcId: string, data?: any) => void;
+    [action: string]: (npcId: string, npcName: string, data?: any) => void;
 }
 
 class NPCHandler {
@@ -21,7 +21,7 @@ class NPCHandler {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getActionHandler(action: string): (npcId: string, data?: any) => void | undefined {
+  getActionHandler(action: string): (npcId: string, npcName: string, data?: any) => void | undefined {
     return this.actionHandlers[action];
   }
   talkToNPC(npcId: string, data?: any) {
@@ -41,8 +41,15 @@ class NPCHandler {
     EventEmitter.emit('playerMove', eventData);
   }
 
-  stealFromNPC(npcId: string, data?: any) {
-    console.log(`Attempting to steal from NPC with ID: ${npcId}`);
+  stealFromNPC(npcId: string, npcName: string, data?: any) {
+    //console.log(`Attempting to steal from NPC with ID: ${npcId}`);
+    const eventData: PlayerStealEventData = {
+      npcId,
+      npcName,
+      data
+    };
+    EventEmitter.emit('playerSteal', eventData);
+
     // Implement stealing logic here
   }
 
@@ -59,7 +66,7 @@ class NPCHandler {
   attachNPCEvent<T>(sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[], data?: T) {
     sprite.setInteractive();
     sprite.on('pointerover', () => {
-      console.log(`Hovering over NPC: ${sprite.name}, Data: ${JSON.stringify(data)}`); // Debug log
+      //console.log(`Hovering over NPC: ${sprite.name}, Data: ${JSON.stringify(data)}`); // Debug log
       const npcInteractionData: NPCInteractionEventData<T> = {
         npcId: sprite.name || '',
         npcName: title,

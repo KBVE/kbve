@@ -23,7 +23,7 @@ import {
   type OpenModalEventData,
   type CharacterEventData,
   type PlayerEventData,
-  type NotificationType
+  notificationType
 } from '@kbve/laser';
 
 
@@ -31,7 +31,6 @@ import {
 //import { TooltipMenu } from '@kbve/laser';
 
 import { npcHandler } from '@kbve/laser';
-import { notificationTypes } from '../menu/EventNotification';
 
 declare global {
   interface Window {
@@ -76,7 +75,7 @@ export class SandCity extends Scene {
     EventEmitter.emit('notification', {
       title: 'Success',
       message: 'You arrived safely to SandCity',
-      notificationType: notificationTypes.success,
+      notificationType: notificationType.success,
     });
 
     // const __playerData: PlayerEventData = {

@@ -20,9 +20,7 @@ const ActionMenu: React.FC = () => {
     const handleNPCInteraction = (data?: NPCInteractionEventData) => {
       if (data) {
         npcInteractionStore.set(data);
-      } else {
-        npcInteractionStore.set(null);
-      }
+      } 
     };
 
     EventEmitter.on('npcInteraction', handleNPCInteraction);
@@ -35,12 +33,7 @@ const ActionMenu: React.FC = () => {
     if (_npc$) {
       const actionHandler = npcHandler.getActionHandler(action);
       if (actionHandler) {
-        console.log(
-          `Debug Handler: NPCName: ${_npc$.npcName}NPCID: ${_npc$.npcId}, NPCData: ${_npc$.data}`,
-        );
-        actionHandler(_npc$.npcId, _npc$.data);
-      } else {
-        console.log(`No handler found for action: ${action}`);
+        actionHandler(_npc$.npcId, _npc$.npcName, _npc$.data);
       }
     }
   };
