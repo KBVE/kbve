@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 
-import { EventEmitter } from '../../eventhandler';
+import { EventEmitter , type NPCInteractionEventData} from '../../eventhandler';
+
 
 export class TooltipMenu extends Phaser.GameObjects.Container {
   background: Phaser.GameObjects.Rectangle;
@@ -42,6 +43,13 @@ export class TooltipMenu extends Phaser.GameObjects.Container {
   static attachToSprite(scene: Scene, sprite: Phaser.GameObjects.Sprite, text: string, actions: { label: string, callback: () => void }[]) {
     sprite.setInteractive();
     sprite.on('pointerover', () => {
+      const npcInteractionData: NPCInteractionEventData = {
+        npcId: sprite.name,
+        npcName: text,
+        actions: actions.map(action => action.label),
+      };
+      EventEmitter.emit('npcInteraction', npcInteractionData);
+      // Code to show the tooltip
       if (!sprite.getData('tooltipMenu')) {
         const tooltipMenu = new TooltipMenu(scene, sprite, text, actions);
         sprite.setData('tooltipMenu', tooltipMenu);

@@ -39,7 +39,7 @@ const StickySidebar: React.FC = () => {
 
 
   return (
-    <div className="transition ease-in-out duration-500 fixed top-12 left-0 transform translate-y-12 translate-x-10 w-[300px] p-4 bg-zinc-800 opacity-50 hover:opacity-100 text-yellow-400 border border-yellow-300 rounded-lg z-50">
+    <div className="transition ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-12 left-0 transform translate-y-12 translate-x-10 w-[300px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-50">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Stats</h2>
         <p className="text-sm text-green-400">{`HP: ${_playerStore$.stats.health || '0'} / ${_playerStore$.stats.maxHealth}`}</p>
