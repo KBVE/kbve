@@ -8,7 +8,7 @@ import {
   PlayerController,
 } from '@kbve/laser';
 
-import { createTextBubble, updateTextBubblePosition } from '@kbve/laser';
+import { createTextBubble, updateTextBubblePosition, createMessageBubble } from '@kbve/laser';
 
 import {
   getBirdNum,
@@ -23,7 +23,18 @@ import {
   type OpenModalEventData,
   type CharacterEventData,
   type PlayerEventData,
+  notificationType
 } from '@kbve/laser';
+
+import {
+  createULID
+} from '@kbve/laser'
+
+
+
+//import { TooltipMenu } from '@kbve/laser';
+
+import { npcHandler } from '@kbve/laser';
 
 declare global {
   interface Window {
@@ -33,6 +44,8 @@ declare global {
 
 class ExtendedSprite extends Phaser.GameObjects.Sprite {
   textBubble?: Phaser.GameObjects.Container;
+  tooltip?: Phaser.GameObjects.Container;
+
 }
 
 interface PositionChangeEvent {
@@ -41,7 +54,7 @@ interface PositionChangeEvent {
   enterTile: { x: number; y: number };
 }
 
-export class CityScene extends Scene {
+export class SandCity extends Scene {
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite | undefined;
   monsterBirdSprites: Phaser.GameObjects.Sprite[] = [];
@@ -52,7 +65,7 @@ export class CityScene extends Scene {
   playerController: PlayerController | undefined;
 
   constructor() {
-    super({ key: 'CityScene' });
+    super({ key: 'SandCity' });
     const bounds: Bounds = { xMin: 0, xMax: 20, yMin: 0, yMax: 20 };
     this.quadtree = new Quadtree(bounds);
   }
@@ -63,14 +76,19 @@ export class CityScene extends Scene {
       frameHeight: 57,
     });
 
-    const __playerData: PlayerEventData = {
-      health: '100',
-      account: 'Guest',
-      mana: '100',
-      inventory: [],
-    };
-    EventEmitter.emit('playerEvent', __playerData);
-    
+    EventEmitter.emit('notification', {
+      title: 'Success',
+      message: `You arrived safely to SandCity Passport: ${createULID()}`,
+      notificationType: notificationType.success,
+    });
+
+    // const __playerData: PlayerEventData = {
+    //   health: '100',
+    //   account: 'Guest',
+    //   mana: '100',
+    //   inventory: [],
+    // };
+    // EventEmitter.emit('playerEvent', __playerData);
   }
 
   create() {
@@ -88,9 +106,11 @@ export class CityScene extends Scene {
     playerSprite.scale = 1.5;
 
     this.npcSprite = this.add.sprite(0, 0, 'player');
+    this.npcSprite.name = 'npc';
     this.npcSprite.scale = 1.5;
 
     this.fishNpcSprite = this.add.sprite(0, 0, 'player');
+    this.fishNpcSprite.name = 'fishNpc';
     this.fishNpcSprite.scale = 1.5;
 
     this.cameras.main.startFollow(playerSprite, true);
@@ -157,10 +177,11 @@ export class CityScene extends Scene {
       this.quadtree,
     );
 
-    createTextBubble(
+    createMessageBubble(
       this,
       this.npcSprite,
       'Enter the sand pit to start fishing! Go near it and press F!',
+      3000
     );
 
     // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
@@ -181,6 +202,36 @@ export class CityScene extends Scene {
           });
         }
       });
+    
+      const attachNPCEventWithCoords = (sprite: ExtendedSprite, title: string, actions: { label: string }[]) => {
+        const position = this.gridEngine.getPosition(sprite.name);
+        npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
+      };
+  
+      attachNPCEventWithCoords(this.npcSprite, 'FisherMan', [
+        { label: 'Talk' },
+        { label: 'Trade' },
+        { label: 'Move to' },
+        { label: 'Steal' },
+        { label: 'Combat' }
+      ]);
+  
+      attachNPCEventWithCoords(this.fishNpcSprite, 'Fish NPC Actions', [
+        { label: 'Check Fish' },
+        { label: 'Move to' }
+      ]);
+
+      
+    // this.gridEngine.follow("player", "npc", 0, true);
+
+    // Add tooltip menu functionality
+    // TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
+    //   { label: "Talk", callback: () => console.log("Talking to NPC") },
+    //   { label: "Trade", callback: () => console.log("Trading with NPC") }
+    // ]);
+    // TooltipMenu.attachToSprite(this, this.fishNpcSprite, "Fish NPC Actions", [
+    //   { label: "Check Fish", callback: () => console.log("Checking fish count") }
+    // ]);
 
     window.__GRID_ENGINE__ = this.gridEngine;
   }
@@ -192,7 +243,7 @@ export class CityScene extends Scene {
         bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
         action: () => {
           const eventData: CharacterEventData = {
-            message: 'Seems like there are no fish in the sand pits.',
+            message: 'Seems like there are no fish in the sand pits. You know null, this area could be fixed up a bit too.',
           };
           EventEmitter.emit('charEvent', eventData);
         },
@@ -201,13 +252,14 @@ export class CityScene extends Scene {
         name: 'sign',
         bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
         action: () => {
-          const eventData: CharacterEventData = {
-            message: 'Sign does not have much to say',
-            character_name: 'Evee The BarKeep',
-            character_image: '/assets/npc/barkeep.webp',
-            background_image: '/assets/background/woodensign.webp',
-          };
-          EventEmitter.emit('charEvent', eventData);
+          const eventData = {
+              message:
+                'Sign does not have much to say.',
+              character_name: 'Evee The BarKeep',
+              character_image: '/assets/npc/barkeep.webp',
+              background_image: '/assets/background/woodensign.webp',
+            };
+            EventEmitter.emit('charEvent', eventData);
         },
       },
       {
@@ -247,11 +299,12 @@ export class CityScene extends Scene {
   update() {
     this.playerController?.handleMovement();
 
-    if (this.npcSprite && this.npcSprite.textBubble) {
-      updateTextBubblePosition(this.npcSprite);
-    }
-    if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
-      updateTextBubblePosition(this.fishNpcSprite);
-    }
+    // if (this.npcSprite && this.npcSprite.textBubble) {
+    //   updateTextBubblePosition(this.npcSprite);
+    // }
+    // if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
+    //   updateTextBubblePosition(this.fishNpcSprite);
+    // }
+    // TooltipMenu.updateAllTooltipPositions(this);
   }
 }
