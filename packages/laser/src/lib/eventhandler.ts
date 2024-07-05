@@ -1,9 +1,14 @@
-import type { IPlayerData, NotificationType } from './localdb';
+import type { IPlayerData, NotificationType, IObject } from './localdb';
 
 export interface NotificationEventData {
   title: string;
   message: string;
   notificationType: NotificationType;
+}
+
+export interface PlayerRewardEvent {
+  message: string;
+  data: IObject;
 }
 
 export interface PlayerCombatDamage {
@@ -82,6 +87,7 @@ export type EventData = {
   notification: NotificationEventData;
   playerSteal: PlayerStealEventData;
   playerDamage: PlayerCombatDamage;
+  playerReward: PlayerRewardEvent;
 };
 
 type EventHandler<T> = (data?: T) => void;

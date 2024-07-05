@@ -62,6 +62,7 @@ export interface IObject {
   durability?: number;
   weight?: number;
   equipped?: boolean;
+  consumable?: boolean;
 }
 
 export interface IPlayerInventory {
@@ -251,9 +252,11 @@ export function removeJournal<T>(
   return { ...quest, journals: updatedJournals };
 }
 
-export function addItemToStore(item: IObject) {
-  itemStore.set({ ...itemStore.get(), [item.id]: item });
-}
+export const addItemToStore = (item: IObject) => {
+  task(async () => {
+    itemStore.set({ ...itemStore.get(), [item.id]: item });
+  });
+};
 
 export function createPersistentAtom<T>(key: string, defaultValue: T) {
   return persistentAtom<T>(key, defaultValue, {
@@ -287,6 +290,24 @@ export const addItemToBackpack = (itemId: string) => {
     const player = playerData.get();
     player.inventory.backpack.push(itemId);
     playerData.set({ ...player });
+  });
+};
+
+export const createAndAddItemToBackpack = (item: Omit<IObject, 'id'>) => {
+  task(async () => {
+    const id = createULID();
+    const newItem: IObject = { ...item, id };
+
+    addItemToStore(newItem);
+
+    addItemToBackpack(newItem.id);
+
+    EventEmitter.emit('notification', {
+      title: 'Success',
+      message: `You got a ${newItem.name}, verified by E Corp ID ${newItem.id}`,
+      notificationType: notificationType['success'],
+    });
+    
   });
 };
 
@@ -416,4 +437,42 @@ export const updatePlayerState = (updates: Partial<IPlayerState>) => {
     },
   };
 
+  const crockford32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+
+  function padStart(str: string, length: number, pad: string): string {
+    while (str.length < length) {
+      str = pad + str;
+    }
+    return str;
+  }
+  
+  function randomChar(): string {
+    const random = Math.floor(Math.random() * crockford32.length);
+    return crockford32.charAt(random);
+  }
+  
+  function randomChars(count: number): string {
+    let str = '';
+    for (let i = 0; i < count; i++) {
+      str += randomChar();
+    }
+    return str;
+  }
+  
+  function encodeTime(time: number, length: number): string {
+    let str = '';
+    for (let i = length - 1; i >= 0; i--) {
+      const mod = time % crockford32.length;
+      str = crockford32.charAt(mod) + str;
+      time = Math.floor(time / crockford32.length);
+    }
+    return padStart(str, length, crockford32[0]);
+  }
+  
+  export function createULID(): string {
+    const timestamp = Date.now();
+    const timePart = encodeTime(timestamp, 10); // 48-bit timestamp
+    const randomPart = randomChars(16); // 80-bit randomness
+    return timePart + randomPart;
+  }
 

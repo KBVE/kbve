@@ -26,6 +26,10 @@ import {
   notificationType
 } from '@kbve/laser';
 
+import {
+  createULID
+} from '@kbve/laser'
+
 
 
 //import { TooltipMenu } from '@kbve/laser';
@@ -74,7 +78,7 @@ export class SandCity extends Scene {
 
     EventEmitter.emit('notification', {
       title: 'Success',
-      message: 'You arrived safely to SandCity',
+      message: `You arrived safely to SandCity Passport: ${createULID()}`,
       notificationType: notificationType.success,
     });
 
