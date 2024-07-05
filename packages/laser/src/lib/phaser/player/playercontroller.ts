@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
+import { EventEmitter, type PlayerMoveEventData } from '../../eventhandler';
 
 export class PlayerController {
   private scene: Scene;
@@ -15,6 +16,7 @@ export class PlayerController {
     this.quadtree = quadtree;
     this.cursor = this.scene.input.keyboard?.createCursorKeys();
     this.initializeWASDKeys();
+    this.registerEventHandlers();
   }
 
   private initializeWASDKeys() {
@@ -26,6 +28,16 @@ export class PlayerController {
         S: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
         D: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
       };
+    }
+  }
+
+  private registerEventHandlers() {
+    EventEmitter.on('playerMove', this.handlePlayerMove.bind(this));
+  }
+
+  private handlePlayerMove(data?: PlayerMoveEventData) {
+    if (data) {
+    this.gridEngine.moveTo('player', { x: data.x, y: data.y });
     }
   }
 

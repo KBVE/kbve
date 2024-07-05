@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { EventEmitter, type PlayerEventData, playerData, type NPCInteractionEventData} from '@kbve/laser';
+import { EventEmitter, type PlayerEventData, playerData, type NPCInteractionEventData, npcHandler} from '@kbve/laser';
 import { atom } from 'nanostores';
 
 const npcInteractionStore = atom<NPCInteractionEventData | null>(null);
@@ -28,26 +28,21 @@ const ActionMenu: React.FC = () => {
  }, []);
 
  const handleAction = (action: string) => {
-    console.log(`Performing action: ${action}`);
-    // Implement the respective functionality for each action
-  };
-  
-
-  const handleTrade = () => {
-    // Implement trade functionality
-    console.log('Trading with player');
-  };
-
-  const handleCombat = () => {
-    // Implement combat functionality
-    console.log('Entering combat with player');
+    if (_npc$) {
+      const actionHandler = npcHandler.getActionHandler(action);
+      if (actionHandler) {
+        actionHandler(_npc$.npcId, _npc$.data);
+      } else {
+        console.log(`No handler found for action: ${action}`);
+      }
+    }
   };
 
   return (
     <div className="transition ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-12 right-0 transform translate-y-12 -translate-x-10 w-[300px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-50">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Actions</h2>
-        {_npc$ && _npc$.npcName && (
+        {_npc$ && _npc$.npcName ? (
           <div className="mb-4">
             <h3 className="text-md font-semibold">{`Actions for ${_npc$.npcName}`}</h3>
             {_npc$.actions.map((action, index) => (
@@ -60,6 +55,10 @@ const ActionMenu: React.FC = () => {
               </button>
             ))}
           </div>
+        ) : (
+            <div>
+                <p>No actions available</p>
+            </div>
         )}
       </div>
     </div>

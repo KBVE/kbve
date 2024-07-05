@@ -1,11 +1,16 @@
 import type { IPlayerData } from './localdb';
 
-export interface NPCInteractionEventData {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface NPCInteractionEventData<T = any> {
   npcId: string;
   npcName: string;
-  actions: string[]; // List of actions available for the NPC (e.g., 'talk', 'trade', 'combat', 'steal')
+  actions: string[];
+  data?: T;
 }
-
+export interface PlayerMoveEventData {
+  x: number;
+  y: number;
+}
 
 export interface OpenModalEventData {
   message: string;
@@ -55,7 +60,8 @@ export type EventData = {
   playerEvent: PlayerEventData;
   sceneTransition: SceneTransitionEventData;
   taskCompletion: TaskCompletionEventData;
-  npcInteraction: NPCInteractionEventData; 
+  npcInteraction: NPCInteractionEventData;
+  playerMove: PlayerMoveEventData;
 };
 
 type EventHandler<T> = (data?: T) => void;

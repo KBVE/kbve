@@ -25,7 +25,9 @@ import {
   type PlayerEventData,
 } from '@kbve/laser';
 
-import { TooltipMenu } from '@kbve/laser';
+//import { TooltipMenu } from '@kbve/laser';
+
+import { npcHandler } from '@kbve/laser';
 
 declare global {
   interface Window {
@@ -185,16 +187,29 @@ export class SandCity extends Scene {
         }
       });
     
+    npcHandler.attachNPCEvent(this.npcSprite, 'FisherMan', [
+        { label: 'Talk' },
+        { label: 'Trade' },
+        { label: 'Move to' },
+        { label: 'Steal' },
+        { label: 'Combat' }
+      ]);
+
+    npcHandler.attachNPCEvent(this.fishNpcSprite, 'Fish NPC Actions', [
+        { label: 'Check Fish' }
+      ]);
+
+      
     // this.gridEngine.follow("player", "npc", 0, true);
 
     // Add tooltip menu functionality
-    TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
-      { label: "Talk", callback: () => console.log("Talking to NPC") },
-      { label: "Trade", callback: () => console.log("Trading with NPC") }
-    ]);
-    TooltipMenu.attachToSprite(this, this.fishNpcSprite, "Fish NPC Actions", [
-      { label: "Check Fish", callback: () => console.log("Checking fish count") }
-    ]);
+    // TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
+    //   { label: "Talk", callback: () => console.log("Talking to NPC") },
+    //   { label: "Trade", callback: () => console.log("Trading with NPC") }
+    // ]);
+    // TooltipMenu.attachToSprite(this, this.fishNpcSprite, "Fish NPC Actions", [
+    //   { label: "Check Fish", callback: () => console.log("Checking fish count") }
+    // ]);
 
     window.__GRID_ENGINE__ = this.gridEngine;
   }
@@ -268,6 +283,6 @@ export class SandCity extends Scene {
     if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
       updateTextBubblePosition(this.fishNpcSprite);
     }
-    TooltipMenu.updateAllTooltipPositions(this);
+    // TooltipMenu.updateAllTooltipPositions(this);
   }
 }
