@@ -1,6 +1,6 @@
 import { completeTask, addTask, updateTask, removeTask, addJournal, updateJournal, removeJournal, createPersistentAtom } from './localdb';
 import { EventEmitter } from './eventhandler';
-import type { IQuest, IJournal, ITask, IPlayerStats, IPlayerInventory } from './localdb';
+import type { IQuest, IJournal, ITask, IPlayerData, IPlayerStats, IPlayerInventory } from './localdb';
 
 describe('localdb.ts', () => {
     let quest: IQuest;
@@ -85,27 +85,45 @@ describe('localdb.ts', () => {
         expect(updatedQuest.journals.length).toBe(0);
     });
 
-    it('should create a persistent atom and handle JSON parsing', () => {
-        const playerStats: IPlayerStats = {
-            username: 'TestUser',
-            health: '1000',
-            mana: '1000',
-            energy: '1000',
-            maxHealth: '1000',
-            maxMana: '1000',
-            maxEnergy: '1000',
-            armour: '0',
-            agility: '0',
-            strength: '0',
-            intelligence: '0',
-            experience: '0',
-            reputation: '0',
-            faith: '0',
+    it('should create a persistent atom for player data and handle JSON parsing', () => {
+        const playerData: IPlayerData = {
+            stats: {
+                username: 'TestUser',
+                health: '1000',
+                mana: '1000',
+                energy: '1000',
+                maxHealth: '1000',
+                maxMana: '1000',
+                maxEnergy: '1000',
+                armour: '0',
+                agility: '0',
+                strength: '0',
+                intelligence: '0',
+                experience: '0',
+                reputation: '0',
+                faith: '0'
+            },
+            inventory: {
+                backpack: ['sword', 'shield'],
+                equipment: {
+                    head: null,
+                    body: null,
+                    legs: null,
+                    feet: null,
+                    hands: null,
+                    weapon: null,
+                    shield: null,
+                    accessory: null
+                }
+            }
         };
-        const playerAtom = createPersistentAtom<IPlayerStats>('testPlayer', playerStats);
-        expect(playerAtom.get()).toEqual(playerStats);
+        const playerAtom = createPersistentAtom<IPlayerData>('testPlayerData', playerData);
+        expect(playerAtom.get()).toEqual(playerData);
         
-        playerAtom.set({ ...playerStats, username: 'UpdatedUser' });
-        expect(playerAtom.get().username).toBe('UpdatedUser');
+        playerAtom.set({ 
+            ...playerData, 
+            stats: { ...playerData.stats, username: 'UpdatedUser' } 
+        });
+        expect(playerAtom.get().stats.username).toBe('UpdatedUser');
     });
 });

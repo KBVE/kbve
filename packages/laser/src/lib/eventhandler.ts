@@ -1,12 +1,12 @@
+import type { IPlayerData } from './localdb';
+
+
 export interface OpenModalEventData {
   message: string;
 }
 
-export interface PlayerEventData {
-  health: string;
+export interface PlayerEventData extends IPlayerData {
   account: string;
-  mana: string;
-  inventory: string[];
 }
 
 export interface SceneTransitionEventData {

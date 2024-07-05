@@ -1,4 +1,5 @@
-import eventEmitterInstance, { EventEmitter, EventData, OpenModalEventData, WASMEventData, GameEvent, CharacterEventData, PlayerEventData, SceneTransitionEventData } from './eventhandler';
+import eventEmitterInstance, { EventEmitter, EventData, OpenModalEventData, WASMEventData, GameEvent, CharacterEventData, PlayerEventData, SceneTransitionEventData, TaskCompletionEventData } from './eventhandler';
+import { IPlayerStats, IPlayerInventory } from './localdb';
 
 describe('EventEmitter', () => {
   it('should register and call an event handler', () => {
@@ -90,7 +91,38 @@ describe('EventEmitter', () => {
     const playerHandler = vi.fn();
     eventEmitterInstance.on('playerEvent', playerHandler);
 
-    const playerData: PlayerEventData = { health: '100', account: 'player1', mana: '50', inventory: ['sword', 'shield'] };
+    const playerData: PlayerEventData = {
+      stats: {
+        username: 'TestUser',
+        health: '100',
+        mana: '50',
+        energy: '75',
+        maxHealth: '150',
+        maxMana: '75',
+        maxEnergy: '100',
+        armour: '10',
+        agility: '20',
+        strength: '30',
+        intelligence: '40',
+        experience: '1000',
+        reputation: '500',
+        faith: '200'
+      },
+      inventory: {
+        backpack: ['sword', 'shield'],
+        equipment: {
+          head: null,
+          body: null,
+          legs: null,
+          feet: null,
+          hands: null,
+          weapon: null,
+          shield: null,
+          accessory: null
+        }
+      },
+      account: 'player1'
+    };
     eventEmitterInstance.emit('playerEvent', playerData);
 
     expect(playerHandler).toHaveBeenCalledWith(playerData);
@@ -108,5 +140,17 @@ describe('EventEmitter', () => {
     expect(sceneHandler).toHaveBeenCalledWith(sceneData);
 
     eventEmitterInstance.off('sceneTransition', sceneHandler);
+  });
+
+  it('should emit task completion events correctly', () => {
+    const taskHandler = vi.fn();
+    eventEmitterInstance.on('taskCompletion', taskHandler);
+
+    const taskData: TaskCompletionEventData = { taskId: 'task-1', isComplete: true };
+    eventEmitterInstance.emit('taskCompletion', taskData);
+
+    expect(taskHandler).toHaveBeenCalledWith(taskData);
+
+    eventEmitterInstance.off('taskCompletion', taskHandler);
   });
 });

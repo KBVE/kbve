@@ -51,6 +51,12 @@ export interface IPlayerInventory {
     };
 }
 
+// Player data interface
+export interface IPlayerData {
+    stats: IPlayerStats;
+    inventory: IPlayerInventory;
+}
+
 /** 
  * 
  *  IQuest - Slay 15 Goblins in the Castle and kill their leader.
@@ -116,6 +122,11 @@ const _IPlayerInventory: IPlayerInventory = {
     }
 }
 
+
+const _IPlayerData: IPlayerData = {
+    stats: _IPlayerStats,
+    inventory: _IPlayerInventory,
+};
 
 export function completeTask<T>(quest: IQuest<T>, journalId: string, taskId: string): IQuest<T> {
     const updatedJournals = quest.journals.map(journal => {
@@ -189,6 +200,5 @@ export function createPersistentAtom<T>(key: string, defaultValue: T) {
     });
 }
 
-export const player = createPersistentAtom<IPlayerStats>('player', _IPlayerStats);
-export const inventory = createPersistentAtom<IPlayerInventory>('inventory', _IPlayerInventory);
+export const playerData = createPersistentAtom<IPlayerData>('playerData', _IPlayerData);
 export const quest = createPersistentAtom<IQuest>('quest', _IQuest);
