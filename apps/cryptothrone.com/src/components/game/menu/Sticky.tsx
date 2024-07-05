@@ -33,8 +33,8 @@ const StickySidebar: React.FC = () => {
     <div className="fixed top-1/2 left-0 transform -translate-y-1/2  translate-x-10 w-64 p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-50">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Stats</h2>
-        <p className="text-sm text-green-400">{`HP: ${playerStore$.health || '0'} / 100`}</p>
-        <p className="text-sm text-blue-400">{`MP: ${playerStore$.mana || '0'} / 100`}</p>
+        <p className="text-sm text-green-400">{`HP: ${playerStore$.health || '0'} / 1000`}</p>
+        <p className="text-sm text-blue-400">{`MP: ${playerStore$.mana || '0'} / 1000`}</p>
 
       </div>
       <div className="mb-4">

@@ -36,6 +36,11 @@ export interface GameEvent {
   };
 }
 
+export interface TaskCompletionEventData {
+  taskId: string;
+  isComplete: boolean;
+}
+
 export type EventData = {
   openModal: OpenModalEventData;
   wasmEvent: WASMEventData;
@@ -43,6 +48,8 @@ export type EventData = {
   charEvent: CharacterEventData;
   playerEvent: PlayerEventData;
   sceneTransition: SceneTransitionEventData;
+  taskCompletion: TaskCompletionEventData;
+
 };
 
 type EventHandler<T> = (data?: T) => void;

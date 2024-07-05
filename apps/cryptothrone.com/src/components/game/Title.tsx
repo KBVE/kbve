@@ -60,12 +60,12 @@ export class Title extends Scene {
         this.add.image(480, 480, 'mainBg').setScale(0.1);
 
         this.mainMenuButtonImage = this.add.image(480, 480, 'scroll').setAlpha(0.9).setScale(0.7, 0.2).setInteractive({ useHandCursor: true });
-
+        ``
         this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
             fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         this.mainMenuButtonText.on('pointerdown', () => {
-            this.scene.start('CloudCity');
+            this.scene.start('SandCity');
         }, this);
     }
 }
