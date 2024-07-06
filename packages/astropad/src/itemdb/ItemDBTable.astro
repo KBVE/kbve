@@ -49,7 +49,7 @@ try {
     {validatedItemDB.map(item => (
       <div id={item.id} class="bg-white shadow-md rounded-lg p-4 flex flex-col">
         <h2 class="text-2xl font-bold mb-2">{item.name}</h2>
-        {item.img && <img src={item.img} alt={item.name} class="mb-2 w-full h-48 object-cover rounded-md" />}
+        {item.img && <img src={item.img} alt={item.name} class="mb-2 w-[32px] object-cover rounded-md" />}
         <p class="mb-2"><strong>Type:</strong> {item.type}</p>
         {item.category && <p class="mb-2"><strong>Category:</strong> {item.category}</p>}
         {item.description && <p class="mb-2"><strong>Description:</strong> {item.description}</p>}
