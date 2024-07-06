@@ -5,6 +5,10 @@ export interface ItemActionEventData {
   action: 'consume' | 'equip' | 'unequip' | 'discard' | 'view';
 }
 
+export interface PlayerViewItem {
+  itemId: string;
+}
+
 export interface NotificationEventData {
   title: string;
   message: string;
