@@ -19,6 +19,12 @@ export interface IPlayerStats {
   reputation: string;
   faith: string;
 }
+
+export interface IStatBoost extends Partial<IPlayerStats> {
+  duration: number;
+  expiry?: number; 
+}
+
 const _IPlayerStats: IPlayerStats = {
   username: 'Guest',
   health: '100',
@@ -37,16 +43,18 @@ const _IPlayerStats: IPlayerStats = {
 };
 
 export interface IPlayerState {
-    inCombat: boolean;
-    isDead: boolean;
-    isResting: boolean;
-  }
-  
+  inCombat: boolean;
+  isDead: boolean;
+  isResting: boolean;
+  activeBoosts: Record<string, IStatBoost>;
+}
+
 const _IPlayerState: IPlayerState = {
-    inCombat: false,
-    isDead: false,
-    isResting: false,
-  };
+  inCombat: false,
+  isDead: false,
+  isResting: false,
+  activeBoosts: {},
+};
 
 export interface IObject {
   id: string; // ULID
@@ -63,6 +71,18 @@ export interface IObject {
   weight?: number;
   equipped?: boolean;
   consumable?: boolean;
+}
+
+export interface IConsumable extends IObject {
+  type: 'food' | 'scroll' | 'drink' | 'potion';
+  effects: {
+    health?: number;
+    mana?: number;
+    energy?: number;
+    [key: string]: number | undefined;
+  };
+  boost?: IStatBoost;
+  duration?: number;
 }
 
 export interface IPlayerInventory {
@@ -92,7 +112,6 @@ export interface NotificationType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   imgUrl: string;
 }
-
 
 export interface Notification {
   id: number;
@@ -168,7 +187,7 @@ const _initialItems: Record<string, IObject> = {};
 const _IPlayerData: IPlayerData = {
   stats: _IPlayerStats,
   inventory: _IPlayerInventory,
-  state: _IPlayerState
+  state: _IPlayerState,
 };
 
 export function completeTask<T>(
@@ -283,7 +302,10 @@ export const itemStore = createPersistentAtom<Record<string, IObject>>(
   _initialItems,
 );
 
-export const notificationsStore = createPersistentAtom<Notification[]>('notifications', []);
+export const notificationsStore = createPersistentAtom<Notification[]>(
+  'notifications',
+  [],
+);
 
 export const addItemToBackpack = (itemId: string) => {
   task(async () => {
@@ -291,6 +313,17 @@ export const addItemToBackpack = (itemId: string) => {
     player.inventory.backpack.push(itemId);
     playerData.set({ ...player });
   });
+};
+
+export const getItemDetails = (itemId: string): IObject | undefined => {
+  const items = itemStore.get();
+  const item = items[itemId];
+  if (item) {
+    return item;
+  } else {
+    console.warn(`Item with ID ${itemId} not found.`);
+    return undefined;
+  }
 };
 
 export const createAndAddItemToBackpack = (item: Omit<IObject, 'id'>) => {
@@ -307,20 +340,29 @@ export const createAndAddItemToBackpack = (item: Omit<IObject, 'id'>) => {
       message: `You got a ${newItem.name}, verified by E Corp ID ${newItem.id}`,
       notificationType: notificationType['success'],
     });
-    
   });
 };
 
-export const equipItem = (slot: keyof IPlayerInventory['equipment'], itemId: string) => {
+export const equipItem = (
+  slot: keyof IPlayerInventory['equipment'],
+  itemId: string,
+) => {
   task(async () => {
     const player = playerData.get();
     const item = itemStore.get()[itemId];
 
     if (item) {
+      const currentItemId = player.inventory.equipment[slot];
+      if (currentItemId) {
+        const currentItem = itemStore.get()[currentItemId];
+        currentItem.equipped = false;
+        itemStore.set({ ...itemStore.get(), [currentItem.id]: currentItem });
+      }
+
       item.equipped = true;
       itemStore.set({ ...itemStore.get(), [item.id]: item });
       player.inventory.equipment[slot] = itemId;
-      playerData.set({ ...player }); 
+      playerData.set({ ...player });
     }
   });
 };
@@ -351,7 +393,7 @@ export const removeItemFromBackpack = (itemId: string) => {
       player.inventory.backpack = player.inventory.backpack.filter(
         (id) => id !== itemId,
       );
-      playerData.set({ ...player }); 
+      playerData.set({ ...player });
     } else {
       EventEmitter.emit('notification', {
         title: 'Warning',
@@ -366,113 +408,292 @@ export const updatePlayerState = (updates: Partial<IPlayerState>) => {
   task(async () => {
     const player = playerData.get();
     player.state = { ...player.state, ...updates };
-    playerData.set({ ...player }); 
+    playerData.set({ ...player });
   });
 };
-  
-  export function isPlayerInCombat(): boolean {
-    return playerData.get().state.inCombat;
-  }
-  
-  export function isPlayerDead(): boolean {
-    return playerData.get().state.isDead;
-  }
-  
-  export function isPlayerResting(): boolean {
-    return playerData.get().state.isResting;
-  }
 
-  export const updatePlayerStats = (updates: Partial<IPlayerStats>) => {
-    task(async () => {
-      const player = playerData.get();
-      player.stats = { ...player.stats, ...updates };
-      playerData.set({ ...player }); 
-    });
-  };
-  
-  export const setPlayerStat = (stat: keyof IPlayerStats, value: string) => {
-    task(async () => {
-      const player = playerData.get();
-      player.stats = { ...player.stats, [stat]: value };
-      playerData.set({ ...player }); 
-    });
-  };
-  
+export function isPlayerInCombat(): boolean {
+  return playerData.get().state.inCombat;
+}
 
-  export const decreasePlayerHealth = (amount: number) => {
-    task(async () => {
-      const player = playerData.get();
-      const currentHealth = parseInt(player.stats.health, 10);
-      const newHealth = Math.max(currentHealth - amount, 0); 
-      player.stats = { ...player.stats, health: newHealth.toString() };
-      playerData.set({ ...player }); 
-    });
-  };
+export function isPlayerDead(): boolean {
+  return playerData.get().state.isDead;
+}
 
-  export const notificationType: Record<string, NotificationType> = {
-    caution: {
-      type: 'caution',
-      color: 'bg-yellow-200 border-yellow-300 text-yellow-700',
-      imgUrl: '/assets/icons/notification.svg',
-    },
-    warning: {
-      type: 'warning',
-      color: 'bg-orange-200 border-orange-300 text-orange-700',
-      imgUrl: '/assets/icons/notification.svg',
-    },
-    danger: {
-      type: 'danger',
-      color: 'bg-red-200 border-red-300 text-red-700',
-      imgUrl: '/assets/icons/notification.svg',
-    },
-    success: {
-      type: 'success',
-      color: 'bg-green-200 border-green-300 text-green-700',
-      imgUrl: '/assets/icons/notification.svg',
-    },
-    info: {
-      type: 'info',
-      color: 'bg-blue-200 border-blue-300 text-blue-700',
-      imgUrl: '/assets/icons/notification.svg',
-    },
-  };
+export function isPlayerResting(): boolean {
+  return playerData.get().state.isResting;
+}
 
-  const crockford32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+export const updatePlayerStats = (updates: Partial<IPlayerStats>) => {
+  task(async () => {
+    const player = playerData.get();
+    player.stats = { ...player.stats, ...updates };
+    playerData.set({ ...player });
+  });
+};
 
-  function padStart(str: string, length: number, pad: string): string {
-    while (str.length < length) {
-      str = pad + str;
+export const setPlayerStat = (stat: keyof IPlayerStats, value: string) => {
+  task(async () => {
+    const player = playerData.get();
+    player.stats = { ...player.stats, [stat]: value };
+    playerData.set({ ...player });
+  });
+};
+
+export const decreasePlayerHealth = (amount: number) => {
+  task(async () => {
+    const player = playerData.get();
+    const currentHealth = parseInt(player.stats.health, 10);
+    const newHealth = Math.max(currentHealth - amount, 0);
+    player.stats = { ...player.stats, health: newHealth.toString() };
+    playerData.set({ ...player });
+  });
+};
+
+
+export const increasePlayerHealth = (amount: number) => {
+  task(async () => {
+    const player = playerData.get();
+    const currentHealth = parseInt(player.stats.health, 10);
+    const maxHealth = parseInt(player.stats.maxHealth, 10);
+    const newHealth = Math.min(currentHealth + amount, maxHealth);
+    player.stats = { ...player.stats, health: newHealth.toString() };
+    playerData.set({ ...player });
+  });
+};
+
+export const decreasePlayerMana = (amount: number) => {
+  task(async () => {
+    const player = playerData.get();
+    const currentMana = parseInt(player.stats.mana, 10);
+    const newMana = Math.max(currentMana - amount, 0);
+    player.stats = { ...player.stats, mana: newMana.toString() };
+    playerData.set({ ...player });
+  });
+};
+
+export const increasePlayerMana = (amount: number) => {
+  task(async () => {
+    const player = playerData.get();
+    const currentMana = parseInt(player.stats.mana, 10);
+    const maxMana = parseInt(player.stats.maxMana, 10);
+    const newMana = Math.min(currentMana + amount, maxMana);
+    player.stats = { ...player.stats, mana: newMana.toString() };
+    playerData.set({ ...player });
+  });
+};
+
+export const decreasePlayerEnergy = (amount: number) => {
+  task(async () => {
+    const player = playerData.get();
+    const currentEnergy = parseInt(player.stats.energy, 10);
+    const newEnergy = Math.max(currentEnergy - amount, 0);
+    player.stats = { ...player.stats, energy: newEnergy.toString() };
+    playerData.set({ ...player });
+  });
+};
+
+export const increasePlayerEnergy = (amount: number) => {
+  task(async () => {
+    const player = playerData.get();
+    const currentEnergy = parseInt(player.stats.energy, 10);
+    const maxEnergy = parseInt(player.stats.maxEnergy, 10);
+    const newEnergy = Math.min(currentEnergy + amount, maxEnergy);
+    player.stats = { ...player.stats, energy: newEnergy.toString() };
+    playerData.set({ ...player });
+  });
+};
+
+export const applyImmediateEffects = (effects: Partial<IPlayerStats>) => {
+  if (effects.health !== undefined) {
+    const healthAmount = parseInt(effects.health as unknown as string, 10);
+    if (healthAmount > 0) {
+      increasePlayerHealth(healthAmount);
+    } else {
+      decreasePlayerHealth(Math.abs(healthAmount));
     }
-    return str;
-  }
-  
-  function randomChar(): string {
-    const random = Math.floor(Math.random() * crockford32.length);
-    return crockford32.charAt(random);
-  }
-  
-  function randomChars(count: number): string {
-    let str = '';
-    for (let i = 0; i < count; i++) {
-      str += randomChar();
-    }
-    return str;
-  }
-  
-  function encodeTime(time: number, length: number): string {
-    let str = '';
-    for (let i = length - 1; i >= 0; i--) {
-      const mod = time % crockford32.length;
-      str = crockford32.charAt(mod) + str;
-      time = Math.floor(time / crockford32.length);
-    }
-    return padStart(str, length, crockford32[0]);
-  }
-  
-  export function createULID(): string {
-    const timestamp = Date.now();
-    const timePart = encodeTime(timestamp, 10); // 48-bit timestamp
-    const randomPart = randomChars(16); // 80-bit randomness
-    return timePart + randomPart;
   }
 
+  if (effects.mana !== undefined) {
+    const manaAmount = parseInt(effects.mana as unknown as string, 10);
+    if (manaAmount > 0) {
+      increasePlayerMana(manaAmount);
+    } else {
+      decreasePlayerMana(Math.abs(manaAmount));
+    }
+  }
+
+  if (effects.energy !== undefined) {
+    const energyAmount = parseInt(effects.energy as unknown as string, 10);
+    if (energyAmount > 0) {
+      increasePlayerEnergy(energyAmount);
+    } else {
+      decreasePlayerEnergy(Math.abs(energyAmount));
+    }
+  }
+};
+
+export const addStatBoost = (boost: IStatBoost) => {
+  task(async () => {
+    const boostId = createULID();
+    applyStatBoost(boost, boostId);
+  });
+};
+
+const applyStatBoost = (boost: IStatBoost, boostId: string) => {
+  const player = playerData.get();
+  Object.keys(boost).forEach((key) => {
+    if (key !== 'duration' && key !== 'expiry') {
+      const statKey = key as keyof IPlayerStats;
+      const originalValue = parseInt(player.stats[statKey], 10) || 0;
+      const boostValue = boost[statKey] as unknown as number || 0;
+      player.stats[statKey] = (originalValue + boostValue).toString();
+    }
+  });
+
+  // Add the boost to activeBoosts with an expiry time
+  player.state.activeBoosts[boostId] = {
+    ...boost,
+    expiry: Date.now() + boost.duration * 1000, // Convert duration to milliseconds
+  };
+
+  playerData.set({ ...player });
+};
+
+export const removeStatBoost = (boostId: string) => {
+  task(async () => {
+    const player = playerData.get();
+    const boost = player.state.activeBoosts[boostId];
+
+    if (boost) {
+      // Remove the boost from player stats
+      Object.keys(boost).forEach((key) => {
+        if (key !== 'duration' && key !== 'expiry') {
+          const statKey = key as keyof IPlayerStats;
+          const originalValue = parseInt(player.stats[statKey], 10) || 0;
+          const boostValue = boost[statKey] as unknown as number || 0; // Ensure boost value is a number
+          player.stats[statKey] = (originalValue - boostValue).toString();
+        }
+      });
+
+      // Remove the boost from activeBoosts
+      delete player.state.activeBoosts[boostId];
+
+      playerData.set({ ...player });
+    }
+  });
+};
+
+export const handleBoostExpiry = () => {
+  task(async () => {
+    const player = playerData.get();
+    const now = Date.now();
+    let stateChanged = false;
+
+    Object.keys(player.state.activeBoosts).forEach((boostId) => {
+      const boost = player.state.activeBoosts[boostId];
+
+      // If boost duration has expired, remove it
+      if (boost.expiry && now >= boost.expiry) {
+        removeStatBoost(boostId);
+        stateChanged = true;
+      }
+    });
+
+    if (stateChanged) {
+      playerData.set({ ...player });
+    }
+  });
+};
+
+export const applyConsumableEffects = (item: IConsumable) => {
+  task(async () => {
+    const player = playerData.get();
+    const effects = item.effects;
+
+    // Convert effects to string format for applyImmediateEffects
+    const effectsAsStrings: Partial<IPlayerStats> = {
+      health: effects.health !== undefined ? effects.health.toString() : undefined,
+      mana: effects.mana !== undefined ? effects.mana.toString() : undefined,
+      energy: effects.energy !== undefined ? effects.energy.toString() : undefined
+    };
+
+    // Apply immediate effects
+    applyImmediateEffects(effectsAsStrings);
+
+    // Apply temporary boosts
+    if (item.boost) {
+      addStatBoost(item.boost);
+    }
+
+    playerData.set({ ...player });
+  });
+};
+
+export const notificationType: Record<string, NotificationType> = {
+  caution: {
+    type: 'caution',
+    color: 'bg-yellow-200 border-yellow-300 text-yellow-700',
+    imgUrl: '/assets/icons/notification.svg',
+  },
+  warning: {
+    type: 'warning',
+    color: 'bg-orange-200 border-orange-300 text-orange-700',
+    imgUrl: '/assets/icons/notification.svg',
+  },
+  danger: {
+    type: 'danger',
+    color: 'bg-red-200 border-red-300 text-red-700',
+    imgUrl: '/assets/icons/notification.svg',
+  },
+  success: {
+    type: 'success',
+    color: 'bg-green-200 border-green-300 text-green-700',
+    imgUrl: '/assets/icons/notification.svg',
+  },
+  info: {
+    type: 'info',
+    color: 'bg-blue-200 border-blue-300 text-blue-700',
+    imgUrl: '/assets/icons/notification.svg',
+  },
+};
+
+
+const crockford32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+
+function padStart(str: string, length: number, pad: string): string {
+  while (str.length < length) {
+    str = pad + str;
+  }
+  return str;
+}
+
+function randomChar(): string {
+  const random = Math.floor(Math.random() * crockford32.length);
+  return crockford32.charAt(random);
+}
+
+function randomChars(count: number): string {
+  let str = '';
+  for (let i = 0; i < count; i++) {
+    str += randomChar();
+  }
+  return str;
+}
+
+function encodeTime(time: number, length: number): string {
+  let str = '';
+  for (let i = length - 1; i >= 0; i--) {
+    const mod = time % crockford32.length;
+    str = crockford32.charAt(mod) + str;
+    time = Math.floor(time / crockford32.length);
+  }
+  return padStart(str, length, crockford32[0]);
+}
+
+export function createULID(): string {
+  const timestamp = Date.now();
+  const timePart = encodeTime(timestamp, 10); // 48-bit timestamp
+  const randomPart = randomChars(16); // 80-bit randomness
+  return timePart + randomPart;
+}
