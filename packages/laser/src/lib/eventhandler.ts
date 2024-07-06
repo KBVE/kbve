@@ -39,6 +39,12 @@ export interface NPCInteractionEventData<T = any> {
   data?: T;
 }
 
+export interface NPCMessageEventData {
+  npcId: string;
+  npcName: string;
+  message: string;
+}
+
 export interface PlayerMoveEventData {
   x: number;
   y: number;

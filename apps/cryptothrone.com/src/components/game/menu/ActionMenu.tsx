@@ -33,7 +33,7 @@ const ActionMenu: React.FC = () => {
     if (_npc$) {
       const actionHandler = npcHandler.getActionHandler(action);
       if (actionHandler) {
-        actionHandler(_npc$.npcId, _npc$.npcName, _npc$.data);
+        actionHandler(_npc$);
       }
     }
   };

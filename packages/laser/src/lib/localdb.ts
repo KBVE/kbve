@@ -59,6 +59,7 @@ export interface IObject {
   id: string; // ULID
   name: string;
   type: string;
+  category?: string;
   description?: string;
   img?: string;
   bonuses?: {
@@ -71,6 +72,9 @@ export interface IObject {
   weight?: number;
   equipped?: boolean;
   consumable?: boolean;
+  cooldown?: number;
+  craftingMaterials?: string[];
+  rarity?: string;
 }
 
 export interface IConsumable extends IObject {
@@ -83,6 +87,8 @@ export interface IConsumable extends IObject {
   };
   boost?: IStatBoost;
   duration?: number;
+  action?: string;
+
 }
 
 export interface IPlayerInventory {
@@ -624,6 +630,11 @@ export const applyConsumableEffects = (item: IConsumable) => {
     // Apply temporary boosts
     if (item.boost) {
       addStatBoost(item.boost);
+    }
+
+    if (item.action) {
+      console.log(`Action: ${item.action}`);
+      // Implement your action handling logic here
     }
 
     playerData.set({ ...player });
