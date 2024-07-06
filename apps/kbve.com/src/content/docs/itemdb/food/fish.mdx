@@ -1,0 +1,46 @@
+---
+title: Fish ItemDB
+description: |
+    All the Fish within the game.
+sidebar:
+    label: Fish
+    order: 40
+unsplash: 1590840960672-db24958eef9a
+img: https://images.unsplash.com/photo-1590840960672-db24958eef9a?fit=crop&w=1400&h=700&q=75
+tags:
+    - gamedev
+    - itemdb
+itemdb:
+    - id: "02G9NECHZX3TBDSZ7VXSMCJ7X2"
+      name: "Salmon"
+      type: "food"
+      category: "consumable"
+      description: "A nutritious fish that boosts the consumer's agility and vitality."
+      img: "/assets/items/food/salmon.png"
+      bonuses:
+        health: 25
+        agility: 5
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Heals 25 health and increases agility by 5 for 10 minutes."
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 60
+      cooldown: 120
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import {ItemDB, Giscus, Adsense } from '@kbve/astropad';
+
+
+<ItemDB itemdb={frontmatter.itemdb} />

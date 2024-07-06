@@ -11,8 +11,12 @@ export const GET = async () => {
     promptEntries.forEach(entry => {
         entry.data.itemdb.forEach(prompt => {
             if (prompt.id && prompt.name) {
-                key[prompt.id] = prompt;
-                key[prompt.name] = prompt;
+                const promptWithSlug = {
+                    ...prompt,
+                    slug: entry.slug,
+                };
+                key[prompt.id] = promptWithSlug;
+                key[prompt.name] = promptWithSlug;
             }
         });
     });

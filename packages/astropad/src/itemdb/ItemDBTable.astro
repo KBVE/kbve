@@ -1,4 +1,5 @@
 ---
+// bg-[var(--sl-color-black)]
 import { z } from 'zod';
 
 const bonusesSchema = z.object({
@@ -42,36 +43,46 @@ try {
 }
 
 ---
-
 <div class="container mx-auto p-4">
   <h1 class="text-3xl font-bold mb-4">Food Items Database</h1>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="space-y-4">
     {validatedItemDB.map(item => (
-      <div id={item.id} class="bg-white shadow-md rounded-lg p-4 flex flex-col">
-        <h2 class="text-2xl font-bold mb-2">{item.name}</h2>
-        {item.img && <img src={item.img} alt={item.name} class="mb-2 w-[32px] object-cover rounded-md" />}
-        <p class="mb-2"><strong>Type:</strong> {item.type}</p>
-        {item.category && <p class="mb-2"><strong>Category:</strong> {item.category}</p>}
-        {item.description && <p class="mb-2"><strong>Description:</strong> {item.description}</p>}
-        {item.bonuses && (
-          <div class="mb-2">
-            <strong>Bonuses:</strong>
-            <ul class="list-disc list-inside">
-              {Object.entries(item.bonuses).map(([key, value]) => (
-                <li id={key}>{key}: {value}</li>
-              ))}
-            </ul>
+      <div id={item.id} class="flex flex-col md:flex-row bg-[var(--sl-color-black)] shadow-md rounded-lg p-4">
+       
+        <div class="flex flex-col flex-grow">
+          <p class="text-lg font-bold object-contain">{item.name} {item.img && <img src={item.img} alt={item.name} class="h-[32px] rounded-md" />}</p>
+
+          <div class="flex flex-wrap mt-2">
+            <div class="w-full md:w-1/2 lg:w-1/3 p-1">
+              <p><strong>Type:</strong> <span class="capitalize">{item.type}</span></p>
+              {item.category && <p><strong>Category:</strong> {item.category}</p>}
+              {item.description && <p><strong>Description:</strong> {item.description}</p>}
+              {item.durability !== undefined && <p><strong>Durability:</strong> {item.durability}</p>}
+              {item.weight !== undefined && <p><strong>Weight:</strong> {item.weight}</p>}
+              {item.consumable !== undefined && <p><strong>Consumable:</strong> {item.consumable ? 'Yes' : 'No'}</p>}
+            </div>
+            <div class="w-full md:w-1/2 lg:w-1/3 p-1">
+              {item.effects && <p><strong>Effects:</strong> {item.effects}</p>}
+              {item.stackable !== undefined && <p><strong>Stackable:</strong> {item.stackable ? 'Yes' : 'No'}</p>}
+              {item.rarity && <p><strong>Rarity:</strong> {item.rarity}</p>}
+              {item.levelRequirement && <p><strong>Level Requirement:</strong> {item.levelRequirement}</p>}
+              {item.price && <p><strong>Price:</strong> {item.price}</p>}
+              {item.cooldown !== undefined && <p><strong>Cooldown:</strong> {item.cooldown} seconds</p>}
+            </div>
+            <div class="w-full md:w-1/2 lg:w-1/3 p-1">
+              {item.bonuses && (
+                <div>
+                  <strong>Bonuses:</strong>
+                  <ul class="list-disc list-inside">
+                    {Object.entries(item.bonuses).map(([key, value]) => (
+                      <li id={key}>{key}: {value}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-        {item.durability && <p class="mb-2"><strong>Durability:</strong> {item.durability}</p>}
-        {item.weight && <p class="mb-2"><strong>Weight:</strong> {item.weight}</p>}
-        {item.consumable !== undefined && <p class="mb-2"><strong>Consumable:</strong> {item.consumable ? 'Yes' : 'No'}</p>}
-        {item.effects && <p class="mb-2"><strong>Effects:</strong> {item.effects}</p>}
-        {item.stackable !== undefined && <p class="mb-2"><strong>Stackable:</strong> {item.stackable ? 'Yes' : 'No'}</p>}
-        {item.rarity && <p class="mb-2"><strong>Rarity:</strong> {item.rarity}</p>}
-        {item.levelRequirement && <p class="mb-2"><strong>Level Requirement:</strong> {item.levelRequirement}</p>}
-        {item.price && <p class="mb-2"><strong>Price:</strong> {item.price}</p>}
-        {item.cooldown && <p class="mb-2"><strong>Cooldown:</strong> {item.cooldown} seconds</p>}
+        </div>
       </div>
     ))}
   </div>
