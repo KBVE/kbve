@@ -315,6 +315,17 @@ export const addItemToBackpack = (itemId: string) => {
   });
 };
 
+export const getItemDetails = (itemId: string): IObject | undefined => {
+  const items = itemStore.get();
+  const item = items[itemId];
+  if (item) {
+    return item;
+  } else {
+    console.warn(`Item with ID ${itemId} not found.`);
+    return undefined;
+  }
+};
+
 export const createAndAddItemToBackpack = (item: Omit<IObject, 'id'>) => {
   task(async () => {
     const id = createULID();

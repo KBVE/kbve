@@ -1,5 +1,9 @@
 import type { IPlayerData, NotificationType, IObject } from './localdb';
 
+export interface ItemActionEventData {
+  itemId: string;
+  action: 'consume' | 'equip' | 'unequip' | 'discard' | 'view';
+}
 
 export interface NotificationEventData {
   title: string;
@@ -90,6 +94,7 @@ export type EventData = {
   playerSteal: PlayerStealEventData;
   playerDamage: PlayerCombatDamage;
   playerReward: PlayerRewardEvent;
+  itemAction: ItemActionEventData;
 };
 
 type EventHandler<T> = (data?: T) => void;
