@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import { EventEmitter, type Notification, type NotificationType, type NotificationEventData, notificationsStore, type notificationType } from '@kbve/laser';
 import { useStore } from '@nanostores/react';
-import { persistentAtom } from '@nanostores/persistent';
-
 
 
 const EventNotification: React.FC = () => {
@@ -33,7 +31,7 @@ const EventNotification: React.FC = () => {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 m-4 space-y-2">
-      {notifications.map((notification) => (
+      {Array.isArray(notifications) && notifications.map((notification) => (
         <div
           key={notification.id}
           className={`hs-removing:translate-x-5 hs-removing:opacity-0 transition duration-300 max-w-xs border rounded-xl shadow-lg ${notification.notificationType.color}`}

@@ -22,3 +22,5 @@ export { default as BentoGridService } from './src/bentogrid/services/BentoGridS
 export { default as ServiceBenefitBlock } from './src/benefit/services/ServiceBenefitBlock.astro';
 
 export { default as Preline } from './src/utils/Preline.astro';
+
+export { default as ItemDB } from './src/itemdb/ItemDBTable.astro';
