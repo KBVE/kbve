@@ -313,6 +313,7 @@ const IObjectSchema = z.object({
   levelRequirement: z.number().optional(),
   price: z.number().optional(),
   cooldown: z.number().optional(),
+  action: z.string().optional(),
   craftingMaterials: z.array(z.string()).optional(),
 });
 

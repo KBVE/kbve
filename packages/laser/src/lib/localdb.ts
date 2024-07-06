@@ -87,6 +87,8 @@ export interface IConsumable extends IObject {
   };
   boost?: IStatBoost;
   duration?: number;
+  action?: string;
+
 }
 
 export interface IPlayerInventory {
@@ -628,6 +630,11 @@ export const applyConsumableEffects = (item: IConsumable) => {
     // Apply temporary boosts
     if (item.boost) {
       addStatBoost(item.boost);
+    }
+
+    if (item.action) {
+      console.log(`Action: ${item.action}`);
+      // Implement your action handling logic here
     }
 
     playerData.set({ ...player });
