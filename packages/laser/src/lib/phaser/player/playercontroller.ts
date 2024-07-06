@@ -82,6 +82,9 @@ export class PlayerController {
             type: 'food',
             description: 'A yummy fish',
             durability: 100,
+            bonuses: {
+              health: 10
+            },
             weight: 5,
             consumable: true,
             id: ''
