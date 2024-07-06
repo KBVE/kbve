@@ -5,6 +5,10 @@ export interface ItemActionEventData {
   action: 'consume' | 'equip' | 'unequip' | 'discard' | 'view';
 }
 
+export interface PlayerViewItem {
+  itemId: string;
+}
+
 export interface NotificationEventData {
   title: string;
   message: string;
@@ -33,6 +37,12 @@ export interface NPCInteractionEventData<T = any> {
   npcName: string;
   actions: string[];
   data?: T;
+}
+
+export interface NPCMessageEventData {
+  npcId: string;
+  npcName: string;
+  message: string;
 }
 
 export interface PlayerMoveEventData {

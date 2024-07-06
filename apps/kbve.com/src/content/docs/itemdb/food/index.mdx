@@ -1,0 +1,64 @@
+---
+title: Food Items Database
+description: |
+    This is the Food Items Database that contains all the information for food items within our various games, like CryptoThrone, RareIcon and a couple others.
+sidebar:
+    label: Food
+    order: 40
+unsplash: 1590840960672-db24958eef9a
+img: https://images.unsplash.com/photo-1590840960672-db24958eef9a?fit=crop&w=1400&h=700&q=75
+tags:
+    - gamedev
+    - itemdb
+itemdb:
+    - id: "01F8MECHZX3TBDSZ7VXSMCJ7X0"
+      name: "Elven Bread"
+      type: "food"
+      category: "consumable"
+      description: "A magical bread that heals wounds and restores energy."
+      img: "https://images.unsplash.com/photo-1604152135912-04a873413ca5?fit=crop&w=500&h=500&q=75"
+      bonuses:
+        health: 20
+        mana: 10
+      durability: 1
+      weight: 0.5
+      consumable: true
+      effects: "Heals 20 health and restores 10 mana."
+      stackable: true
+      rarity: "rare"
+      levelRequirement: 5
+      price: 50
+      cooldown: 60
+    - id: "01F8MECHZX3TBDSZ7VXSMCJ7X1"
+      name: "Dwarven Stew"
+      type: "food"
+      category: "consumable"
+      description: "A hearty stew that boosts the consumer's strength and resilience."
+      img: "https://images.unsplash.com/photo-1612803550574-2d5b641f9b48?fit=crop&w=500&h=500&q=75"
+      bonuses:
+        health: 30
+        armor: 5
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Heals 30 health and increases armor by 5 for 10 minutes."
+      stackable: false
+      rarity: "common"
+      levelRequirement: 10
+      price: 75
+      cooldown: 120
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import {ItemDB, Giscus, Adsense } from '@kbve/astropad';
+
+
+<ItemDB itemdb={frontmatter.itemdb} />
