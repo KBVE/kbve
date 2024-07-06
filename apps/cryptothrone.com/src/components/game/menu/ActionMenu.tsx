@@ -39,7 +39,7 @@ const ActionMenu: React.FC = () => {
   };
 
   return (
-    <div className="transition ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-12 right-0 transform translate-y-12 -translate-x-10 w-[300px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-50">
+    <div className="transition ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-12 right-0 transform translate-y-12 -translate-x-10 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-50">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Actions</h2>
         {_npc$ && _npc$.npcName ? (

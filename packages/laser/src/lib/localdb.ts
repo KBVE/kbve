@@ -1,4 +1,3 @@
-// import { useStore } from '@nanostores/react';
 import { persistentAtom } from '@nanostores/persistent';
 import { task } from 'nanostores';
 import { EventEmitter } from './eventhandler';
@@ -61,6 +60,7 @@ export interface IObject {
   name: string;
   type: string;
   description?: string;
+  img?: string;
   bonuses?: {
     armor?: number;
     intelligence?: number;

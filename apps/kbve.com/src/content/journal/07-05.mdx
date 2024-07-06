@@ -26,6 +26,10 @@ For the item management, we should create an `itemdatabase` that would store all
 Furthermore, I am thinking of having those said items stored within the `cryptothrone` mdx on KBVE and utilizing the zod to manage them?
 In the future, we could also extend this out to a more advance item engine that can be used in multiple games, without having to recreate the wheel.
 
+For the item viewpoint, we can build the database within KBVE, we could go as far as having the items be used in all our various games?
+This would make building and expanding the game much easier, including getting new users and adding a couple different abstractions onto our project.
+The itemdb will start with a markdown collection that gets turned into a json file and then finally we would call it for storage. 
+There are a couple minor things that we would have to account for, like the ability to replace descriptions and certain apsects of the item, yet that can be done through an ommit.
 
 ## 2023
 - 6:00pm - Building out the basic RareIcon.com NextJS template. I am thinking that I might also build out a general template / concept for a majority of my websites as I prepare for my Resume / CV builder. I should aim for about 3-5 live projects that I can shift through and utilize! One of the core concepts that I want to test is the multi-tenant core within the Appwrite eco-system and how far I can extend out the API.
