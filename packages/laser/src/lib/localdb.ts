@@ -59,6 +59,7 @@ export interface IObject {
   id: string; // ULID
   name: string;
   type: string;
+  category?: string;
   description?: string;
   img?: string;
   bonuses?: {
@@ -71,6 +72,9 @@ export interface IObject {
   weight?: number;
   equipped?: boolean;
   consumable?: boolean;
+  cooldown?: number;
+  craftingMaterials?: string[];
+  rarity?: string;
 }
 
 export interface IConsumable extends IObject {

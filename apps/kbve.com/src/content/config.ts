@@ -287,6 +287,34 @@ const statSchema = z.object({
 	html: z.string().optional(),
 });
   
+//* Item Database Schema
+const bonusesSchema = z.object({
+  armor: z.number().optional(),
+  intelligence: z.number().optional(),
+  health: z.number().optional(),
+  mana: z.number().optional(),
+});
+
+const IObjectSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.string(),
+  category: z.string().optional(),
+  description: z.string().optional(),
+  img: z.string().optional(),
+  bonuses: bonusesSchema.optional(),
+  durability: z.number().optional(),
+  weight: z.number().optional(),
+  equipped: z.boolean().optional(),
+  consumable: z.boolean().optional(),
+  effects: z.string().optional(),
+  stackable: z.boolean().optional(),
+  rarity: z.string().optional(),
+  levelRequirement: z.number().optional(),
+  price: z.number().optional(),
+  cooldown: z.number().optional(),
+  craftingMaterials: z.array(z.string()).optional(),
+});
 
 export const collections = {
 	//*     [Applications]
@@ -322,6 +350,8 @@ export const collections = {
 				img: z.string().optional(),
 				lottie: z.string().optional(),
 				button: z.string().optional(),
+				// ItemDB
+				itemdb: z.array(IObjectSchema).optional(),
 			}),
 		}),
 	}),
