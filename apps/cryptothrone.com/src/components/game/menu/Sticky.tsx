@@ -6,7 +6,9 @@ import {
   playerData,
   quest,
   itemStore,
+  type IPlayerInventory,
   type ItemActionEventData,
+  type IEquipment,
   getItemDetails,
 } from '@kbve/laser';
 
@@ -32,6 +34,23 @@ const renderTooltip = (
     </div>
   );
 };
+
+const renderAllEquipment = (
+  equipment: Record<keyof IPlayerInventory['equipment'], string | null>,
+  showTooltip: (itemId: string, event: React.MouseEvent) => void,
+  hideTooltip: () => void,
+  handleItemClick: (itemId: string, event: React.MouseEvent) => void
+) => {
+  return (
+    <ul className="grid grid-cols-2 gap-2">
+      {Object.keys(equipment).map((key) => {
+        const itemId = equipment[key as keyof IPlayerInventory['equipment']];
+        return renderEquipment(itemId, showTooltip, hideTooltip, handleItemClick);
+      })}
+    </ul>
+  );
+};
+
 const renderEquipment = (
   itemId: string | null,
   showTooltip: (itemId: string, event: React.MouseEvent) => void,
@@ -104,7 +123,7 @@ const StickySidebar: React.FC = () => {
 
   const showTooltip = (itemId: string, event: React.MouseEvent) => {
     setTooltipItemId(itemId);
-    setTooltipPosition({ x: event.clientX + 10, y: event.clientY + 10 });
+    setTooltipPosition({ x: event.clientX + 10, y: event.clientY - 100 });
   };
 
   const hideTooltip = () => {
@@ -113,7 +132,7 @@ const StickySidebar: React.FC = () => {
 
   const handleItemClick = (itemId: string, event: React.MouseEvent) => {
     setSubmenuItemId(itemId);
-    setSubmenuPosition({ x: event.clientX, y: event.clientY });
+    setSubmenuPosition({ x: event.clientX, y: event.clientY - 100 });
   };
 
   const closeSubmenu = () => {
@@ -170,56 +189,12 @@ const StickySidebar: React.FC = () => {
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Equipment</h2>
-        <ul className="grid grid-cols-2 gap-2">
-          {renderEquipment(
-            _playerStore$.inventory.equipment.head,
-            showTooltip,
-            hideTooltip,
-            handleItemClick,
-          )}
-          {renderEquipment(
-            _playerStore$.inventory.equipment.body,
-            showTooltip,
-            hideTooltip,
-            handleItemClick,
-          )}
-          {renderEquipment(
-            _playerStore$.inventory.equipment.legs,
-            showTooltip,
-            hideTooltip,
-            handleItemClick,
-          )}
-          {renderEquipment(
-            _playerStore$.inventory.equipment.feet,
-            showTooltip,
-            hideTooltip,
-            handleItemClick,
-          )}
-          {renderEquipment(
-            _playerStore$.inventory.equipment.hands,
-            showTooltip,
-            hideTooltip,
-            handleItemClick,
-          )}
-          {renderEquipment(
-            _playerStore$.inventory.equipment.weapon,
-            showTooltip,
-            hideTooltip,
-            handleItemClick,
-          )}
-          {renderEquipment(
-            _playerStore$.inventory.equipment.shield,
-            showTooltip,
-            hideTooltip,
-            handleItemClick,
-          )}
-          {renderEquipment(
-            _playerStore$.inventory.equipment.accessory,
-            showTooltip,
-            hideTooltip,
-            handleItemClick,
-          )}
-        </ul>
+        {renderAllEquipment(
+          _playerStore$.inventory.equipment,
+          showTooltip,
+          hideTooltip,
+          handleItemClick
+        )}
       </div>
       {tooltipItemId && renderTooltip(tooltipItemId, tooltipPosition)}
       {submenuItemId && (

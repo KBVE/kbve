@@ -91,6 +91,19 @@ export interface IConsumable extends IObject {
 
 }
 
+export interface IEquipment extends IObject {
+  type: 'head' | 'body' | 'legs' | 'feet' | 'hands' | 'weapon' | 'shield' | 'accessory';
+  bonuses?: {
+    armor?: number;
+    intelligence?: number;
+    health?: number;
+    mana?: number;
+    [key: string]: number | undefined;
+  };
+  durability?: number;
+  weight?: number;
+}
+
 export interface IPlayerInventory {
   backpack: string[];
   equipment: {
@@ -321,7 +334,7 @@ export const addItemToBackpack = (itemId: string) => {
   });
 };
 
-export const getItemDetails = (itemId: string): IObject | undefined => {
+export const getItemDetails = (itemId: string): IObject | IEquipment | undefined => {
   const items = itemStore.get();
   const item = items[itemId];
   if (item) {
