@@ -42,7 +42,7 @@ const renderAllEquipment = (
   handleItemClick: (itemId: string, event: React.MouseEvent) => void
 ) => {
   return (
-    <ul className="grid grid-cols-2 gap-2">
+    <ul className="grid grid-cols-8 gap-2">
       {Object.keys(equipment).map((key) => {
         const itemId = equipment[key as keyof IPlayerInventory['equipment']];
         return renderEquipment(itemId, showTooltip, hideTooltip, handleItemClick);
@@ -79,6 +79,37 @@ const renderEquipment = (
       Durability: {item.durability} - Weight: {item.weight}
     </li>
   ) : null;
+};
+
+const renderInventory = (
+  backpack: string[],
+  showTooltip: (itemId: string, event: React.MouseEvent) => void,
+  hideTooltip: () => void,
+  handleItemClick: (itemId: string, event: React.MouseEvent) => void
+) => {
+  return (
+    <ul className="grid grid-cols-8 gap-1">
+      {backpack.map((itemId, index) => {
+        const item = getItemDetails(itemId);
+        return item ? (
+          <li
+            key={index}
+            className="text-sm relative"
+            onMouseEnter={(e) => showTooltip(item.id, e)}
+            onMouseLeave={hideTooltip}
+            onClick={(e) => handleItemClick(item.id, e)}
+          >
+            <img
+              src={item.img}
+              alt={item.name}
+              style={{ width: '32px', height: '32px' }}
+              className="inline-block border border-yellow-400/50"
+            />
+          </li>
+        ) : null;
+      })}
+    </ul>
+  );
 };
 
 const handleItemAction = (
@@ -169,23 +200,12 @@ const StickySidebar: React.FC = () => {
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Inventory</h2>
-        <ul className="flex space-x-2">
-          {_playerStore$.inventory.backpack.map((itemId, index) => {
-            const item = getItemDetails(itemId);
-            return item ? (
-              <li
-                key={index}
-                className="text-sm relative"
-                onMouseEnter={(e) => showTooltip(item.id, e)}
-                onMouseLeave={hideTooltip}
-                onClick={(e) => handleItemClick(item.id, e)}
-              >
-                {item.name} ({item.type}) - Durability: {item.durability} -
-                Weight: {item.weight}
-              </li>
-            ) : null;
-          })}
-        </ul>
+        {renderInventory(
+          _playerStore$.inventory.backpack,
+          showTooltip,
+          hideTooltip,
+          handleItemClick
+        )}
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Equipment</h2>
