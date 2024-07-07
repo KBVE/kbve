@@ -219,7 +219,7 @@ export const addItemToBackpack = (itemId: string) => {
   });
 };
 
-export const getItemDetails = (itemId: string): IObject | IEquipment | undefined => {
+export const getItemDetails = (itemId: string): IObject | IEquipment | IConsumable | undefined => {
   const items = itemStore.get();
   const item = items[itemId];
   if (item) {

@@ -126,7 +126,6 @@ const handleItemAction = (
 ) => {
   const item = getItemDetails(itemId);
   if (item) {
-    console.log('Item Clicked!');
     const eventData: ItemActionEventData = {
       itemId: item.id,
       action: action,
