@@ -1,7 +1,8 @@
 import { Scene } from 'phaser';
 
-import { EventEmitter , type NPCInteractionEventData} from '../../eventhandler';
+import { EventEmitter } from '../../eventhandler';
 
+import { type NPCInteractionEventData } from '../../../types';
 
 export class TooltipMenu extends Phaser.GameObjects.Container {
   background: Phaser.GameObjects.Rectangle;

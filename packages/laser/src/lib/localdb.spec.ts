@@ -1,12 +1,22 @@
-import { completeTask, addTask, updateTask, removeTask, addJournal, updateJournal, removeJournal, createPersistentAtom } from './localdb';
+import {
+    completeTask, addTask, updateTask, removeTask, addJournal, updateJournal, removeJournal,
+    createPersistentAtom, addItemToStore, reloadItemDB, queryItemDB, addItemToBackpack,
+    getItemDetails, createAndAddItemToBackpack, equipItem, unequipItem, removeItemFromBackpack,
+    updatePlayerState, isPlayerInCombat, isPlayerDead, isPlayerResting, updatePlayerStats,
+    setPlayerStat, decreasePlayerHealth, increasePlayerHealth, decreasePlayerMana,
+    increasePlayerMana, decreasePlayerEnergy, increasePlayerEnergy, applyImmediateEffects,
+    addStatBoost, removeStatBoost, handleBoostExpiry, applyConsumableEffects, notificationType, createULID, getEffectiveStats,
+    playerData
+} from './localdb';
 import { EventEmitter } from './eventhandler';
-import type { IQuest, IJournal, ITask, IPlayerData, IPlayerStats, IPlayerInventory } from './localdb';
+import type { IQuest, IJournal, ITask, IPlayerData, IPlayerStats, IPlayerInventory, IObject, IStatBoost, IConsumable, NotificationType } from '../types';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('localdb.ts', () => {
     let quest: IQuest;
     let journal: IJournal;
     let task: ITask;
-    
+
     beforeEach(() => {
         task = {
             id: 'task-1',
@@ -115,6 +125,12 @@ describe('localdb.ts', () => {
                     shield: null,
                     accessory: null
                 }
+            },
+            state: {
+                inCombat: false,
+                isDead: false,
+                isResting: false,
+                activeBoosts: {}
             }
         };
         const playerAtom = createPersistentAtom<IPlayerData>('testPlayerData', playerData);
@@ -125,5 +141,124 @@ describe('localdb.ts', () => {
             stats: { ...playerData.stats, username: 'UpdatedUser' } 
         });
         expect(playerAtom.get().stats.username).toBe('UpdatedUser');
+    });
+
+    it('should handle adding and querying items in the item store', async () => {
+        const item: IObject = {
+            id: 'item-1',
+            name: 'Sword of Testing',
+            type: 'weapon',
+            description: 'A powerful test weapon',
+        };
+
+        await addItemToStore(item);
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the task to complete
+        const storedItem = queryItemDB('item-1');
+        expect(storedItem).toEqual(item);
+    });
+
+    it('should reload item database from API', async () => {
+        await reloadItemDB();
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for the task to complete
+        const items = queryItemDB('Salmon'); // Use an actual item ID from your API response
+        expect(items).toBeDefined();
+    });
+
+    it('should handle player inventory and equipment', async () => {
+        const item: IObject = {
+            id: 'item-1',
+            name: 'Helmet of Testing',
+            type: 'head',
+            description: 'A test helmet',
+            equipped: false
+        };
+
+        await addItemToStore(item);
+        await addItemToBackpack(item.id);
+        await equipItem('head', item.id);
+
+        const player = playerData.get();
+        expect(player.inventory.backpack).toContain(item.id);
+        expect(player.inventory.equipment.head).toBe(item.id);
+
+        await unequipItem('head');
+        expect(player.inventory.equipment.head).toBe(null);
+    });
+
+    it('should handle player state updates', async () => {
+        await updatePlayerState({ inCombat: true });
+        expect(isPlayerInCombat()).toBe(true);
+        await updatePlayerState({ isDead: true });
+        expect(isPlayerDead()).toBe(true);
+        await updatePlayerState({ isResting: true });
+        expect(isPlayerResting()).toBe(true);
+    });
+
+    it('should handle player stats updates and stat boosts', async () => {
+        await updatePlayerStats({ health: '900', strength: '50' });
+        let player = playerData.get();
+        expect(player.stats.health).toBe('900');
+        expect(player.stats.strength).toBe('50');
+
+        const statBoost: IStatBoost = {
+            health: '100',
+            strength: '10',
+            duration: 1 // 1 second for testing
+        };
+        await addStatBoost(statBoost);
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the task to complete
+        player = playerData.get();
+        const effectiveStats = getEffectiveStats();
+        expect(effectiveStats.health).toBe('1000'); // 900 + 100
+        expect(effectiveStats.strength).toBe('60'); // 50 + 10
+    });
+
+    it('should handle consumable effects', async () => {
+        const consumable: IConsumable = {
+            id: 'consumable-1',
+            name: 'Healing Potion',
+            type: 'potion',
+            description: 'Restores health',
+            effects: { health: 50 },
+            boost: { strength: '5', duration: 10 },
+        };
+
+        await applyConsumableEffects(consumable);
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the task to complete
+
+        const effectiveStats = getEffectiveStats();
+        expect(effectiveStats.health).toBe('950'); // 900 + 50
+        expect(effectiveStats.strength).toBe('55'); // 50 + 5
+    });
+
+    it('should generate a ULID', () => {
+        const ulid = createULID();
+        expect(ulid).toHaveLength(26);
+        expect(typeof ulid).toBe('string');
+    });
+
+    it('should handle boost expiry correctly', async () => {
+        const statBoost: IStatBoost = {
+            health: '100',
+            strength: '10',
+            duration: 1 // 1 second for testing
+        };
+        await addStatBoost(statBoost);
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the task to complete
+
+        let effectiveStats = getEffectiveStats();
+        expect(effectiveStats.health).toBe('200'); 
+        expect(effectiveStats.strength).toBe('60');
+
+        // Fast forward time to simulate expiry
+        vi.useFakeTimers();
+        vi.advanceTimersByTime(2000); // 2 seconds
+        await handleBoostExpiry();
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the task to complete
+
+        effectiveStats = getEffectiveStats();
+        expect(effectiveStats.health).toBe('900'); // back to original
+        expect(effectiveStats.strength).toBe('50'); // back to original
+        vi.useRealTimers();
     });
 });

@@ -46,6 +46,22 @@ export interface IEquipment extends IObject {
 ```
 
 We can work with that for now and then extend it out later on.
+Next we will add an action for the IObject.
+
+```ts
+export interface IObjectAction {
+  itemId: string;
+  itemObject: IObject;
+  actionEvent: 'consume' | 'equip' | 'unequip' | 'discard' | 'view';
+  actionPerformedAt: number;
+  performedBy: string;
+  actionDetails?: string;
+}
+
+```
+
+The equipment test casing seems to be throwing some errors, that might have to do with the fact that we did not yet add items to be equipped.
+I am going to take a break on this area and maybe come back around when we have more items to test case.
 
 
 **UI**
