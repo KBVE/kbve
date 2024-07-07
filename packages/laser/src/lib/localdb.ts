@@ -2,183 +2,9 @@ import { persistentAtom } from '@nanostores/persistent';
 import { task } from 'nanostores';
 import { EventEmitter } from './eventhandler';
 import axios from 'axios';
+import { IConsumable, IEquipment, IJournal, IObject, IPlayerData, IPlayerInventory, IPlayerState, IPlayerStats, IQuest, IStatBoost, ITask, ItemAction, NotificationType } from '../types';
 
 
-export interface IPlayerStats {
-  username: string;
-  health: string;
-  mana: string;
-  energy: string;
-  maxHealth: string;
-  maxMana: string;
-  maxEnergy: string;
-  armour: string;
-  agility: string;
-  strength: string;
-  intelligence: string;
-  experience: string;
-  reputation: string;
-  faith: string;
-}
-
-export interface IStatBoost extends Partial<IPlayerStats> {
-  duration: number;
-  expiry?: number; 
-}
-
-const _IPlayerStats: IPlayerStats = {
-  username: 'Guest',
-  health: '100',
-  mana: '100',
-  energy: '100',
-  maxHealth: '100',
-  maxMana: '100',
-  maxEnergy: '100',
-  armour: '0',
-  agility: '0',
-  strength: '0',
-  intelligence: '0',
-  experience: '0',
-  reputation: '0',
-  faith: '0',
-};
-
-export interface IPlayerState {
-  inCombat: boolean;
-  isDead: boolean;
-  isResting: boolean;
-  activeBoosts: Record<string, IStatBoost>;
-}
-
-const _IPlayerState: IPlayerState = {
-  inCombat: false,
-  isDead: false,
-  isResting: false,
-  activeBoosts: {},
-};
-
-export interface IObject {
-  id: string; // ULID
-  name: string;
-  type: string;
-  category?: string;
-  description?: string;
-  img?: string;
-  bonuses?: {
-    armor?: number;
-    intelligence?: number;
-    health?: number;
-    mana?: number;
-  };
-  durability?: number;
-  weight?: number;
-  equipped?: boolean;
-  consumable?: boolean;
-  cooldown?: number;
-  craftingMaterials?: string[];
-  rarity?: string;
-}
-
-export interface IConsumable extends IObject {
-  type: 'food' | 'scroll' | 'drink' | 'potion';
-  effects: {
-    health?: number;
-    mana?: number;
-    energy?: number;
-    [key: string]: number | undefined;
-  };
-  boost?: IStatBoost;
-  duration?: number;
-  action?: string;
-
-}
-
-export interface IEquipment extends IObject {
-  type: 'head' | 'body' | 'legs' | 'feet' | 'hands' | 'weapon' | 'shield' | 'accessory';
-  bonuses?: {
-    armor?: number;
-    intelligence?: number;
-    health?: number;
-    mana?: number;
-    [key: string]: number | undefined;
-  };
-  durability?: number;
-  weight?: number;
-}
-
-export interface IPlayerInventory {
-  backpack: string[];
-  equipment: {
-    head: string | null;
-    body: string | null;
-    legs: string | null;
-    feet: string | null;
-    hands: string | null;
-    weapon: string | null;
-    shield: string | null;
-    accessory: string | null;
-  };
-}
-
-// Player data interface
-export interface IPlayerData {
-  stats: IPlayerStats;
-  inventory: IPlayerInventory;
-  state: IPlayerState;
-}
-
-export interface NotificationType {
-  type: 'caution' | 'warning' | 'danger' | 'success' | 'info';
-  color: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  imgUrl: string;
-}
-
-export interface Notification {
-  id: number;
-  title: string;
-  message: string;
-  notificationType: NotificationType;
-}
-
-/**
- *
- *  IQuest - Slay 15 Goblins in the Castle and kill their leader.
- *     - IJournal 1 - Go to the Castle
- *          - ITask (1) -> (is X, Y Zone within Castle)
- *     - IJournal 2 - KIll 15 Goblins
- *          - ITask (15) -> Kill a Goblin
- *     - IJournal 3 - Slay The Goblin Leader
- *          - ITask (1) -> Kill Goblin Leader
- *
- */
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface ITask<T = any> {
-  id: string; // ULID
-  name: string;
-  description: string;
-  isComplete: boolean;
-  action: T;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface IJournal<T = any> {
-  id: string; // ULID
-  title: string;
-  tasks: ITask<T>[];
-  isComplete: boolean;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface IQuest<T = any> {
-  id: string; // ULID
-  title: string;
-  description: string;
-  journals: IJournal<T>[];
-  isComplete: boolean;
-  reward: string;
-}
 
 const _IQuest: IQuest = {
   id: '',
@@ -205,11 +31,39 @@ const _IPlayerInventory: IPlayerInventory = {
 
 const _initialItems: Record<string, IObject> = {};
 
+
+const _IPlayerState: IPlayerState = {
+  inCombat: false,
+  isDead: false,
+  isResting: false,
+  activeBoosts: {},
+};
+
+
+const _IPlayerStats: IPlayerStats = {
+  username: 'Guest',
+  health: '100',
+  mana: '100',
+  energy: '100',
+  maxHealth: '100',
+  maxMana: '100',
+  maxEnergy: '100',
+  armour: '0',
+  agility: '0',
+  strength: '0',
+  intelligence: '0',
+  experience: '0',
+  reputation: '0',
+  faith: '0',
+};
+
 const _IPlayerData: IPlayerData = {
   stats: _IPlayerStats,
   inventory: _IPlayerInventory,
   state: _IPlayerState,
 };
+
+
 
 export function completeTask<T>(
   quest: IQuest<T>,
@@ -223,8 +77,6 @@ export function completeTask<T>(
       );
 
       const isJournalComplete = updatedTasks.every((task) => task.isComplete);
-
-      // Emit task completion event
       EventEmitter.emit('taskCompletion', { taskId, isComplete: true });
 
       return { ...journal, tasks: updatedTasks, isComplete: isJournalComplete };
@@ -298,6 +150,14 @@ export const addItemToStore = (item: IObject) => {
   });
 };
 
+export const removeItemFromStore = (itemId: string) => {
+  task(async () => {
+    const currentStore = itemStore.get();
+    const { [itemId]: _, ...remainingItems } = currentStore;
+    itemStore.set(remainingItems);
+  });
+};
+
 export function createPersistentAtom<T>(key: string, defaultValue: T) {
   return persistentAtom<T>(key, defaultValue, {
     encode(value) {
@@ -340,7 +200,6 @@ export const reloadItemDB = () => {
       const items: Record<string, Record<string, IObject>> = response.data;
       const flattenedItems: Record<string, IObject> = {};
 
-      // Flatten the items object
       Object.keys(items['key']).forEach((key) => {
         const item = items['key'][key];
         flattenedItems[item.id] = item;
@@ -368,7 +227,7 @@ export const addItemToBackpack = (itemId: string) => {
   });
 };
 
-export const getItemDetails = (itemId: string): IObject | IEquipment | undefined => {
+export const getItemDetails = (itemId: string): IObject | IEquipment | IConsumable | undefined => {
   const items = itemStore.get();
   const item = items[itemId];
   if (item) {
@@ -447,6 +306,7 @@ export const removeItemFromBackpack = (itemId: string) => {
         (id) => id !== itemId,
       );
       playerData.set({ ...player });
+      removeItemFromStore(itemId);
     } else {
       EventEmitter.emit('notification', {
         title: 'Warning',
@@ -477,13 +337,25 @@ export function isPlayerResting(): boolean {
   return playerData.get().state.isResting;
 }
 
-export const updatePlayerStats = (updates: Partial<IPlayerStats>) => {
+
+export const updatePlayerStats = async (updates: Partial<IPlayerStats>) => {
   task(async () => {
     const player = playerData.get();
-    player.stats = { ...player.stats, ...updates };
+    const updatedStats: Partial<IPlayerStats> = { ...player.stats, ...updates };
+
+    // Ensure all stats are strings
+    (Object.keys(updatedStats) as Array<keyof IPlayerStats>).forEach((key) => {
+      const value = updatedStats[key];
+      updatedStats[key] = value?.toString() as string;
+    });
+
+    player.stats = updatedStats as IPlayerStats;
     playerData.set({ ...player });
   });
 };
+
+
+
 
 export const setPlayerStat = (stat: keyof IPlayerStats, value: string) => {
   task(async () => {
@@ -586,58 +458,49 @@ export const applyImmediateEffects = (effects: Partial<IPlayerStats>) => {
   }
 };
 
-export const addStatBoost = (boost: IStatBoost) => {
-  task(async () => {
-    const boostId = createULID();
-    applyStatBoost(boost, boostId);
-  });
-};
-
-const applyStatBoost = (boost: IStatBoost, boostId: string) => {
-  const player = playerData.get();
-  Object.keys(boost).forEach((key) => {
-    if (key !== 'duration' && key !== 'expiry') {
-      const statKey = key as keyof IPlayerStats;
-      const originalValue = parseInt(player.stats[statKey], 10) || 0;
-      const boostValue = boost[statKey] as unknown as number || 0;
-      player.stats[statKey] = (originalValue + boostValue).toString();
-    }
-  });
-
-  // Add the boost to activeBoosts with an expiry time
-  player.state.activeBoosts[boostId] = {
-    ...boost,
-    expiry: Date.now() + boost.duration * 1000, // Convert duration to milliseconds
-  };
-
-  playerData.set({ ...player });
-};
-
-export const removeStatBoost = (boostId: string) => {
+export const addStatBoost = async (boost: IStatBoost) => {
+  const boostId = createULID();
   task(async () => {
     const player = playerData.get();
-    const boost = player.state.activeBoosts[boostId];
 
-    if (boost) {
-      // Remove the boost from player stats
-      Object.keys(boost).forEach((key) => {
-        if (key !== 'duration' && key !== 'expiry') {
-          const statKey = key as keyof IPlayerStats;
-          const originalValue = parseInt(player.stats[statKey], 10) || 0;
-          const boostValue = boost[statKey] as unknown as number || 0; // Ensure boost value is a number
-          player.stats[statKey] = (originalValue - boostValue).toString();
-        }
-      });
+    player.state.activeBoosts[boostId] = {
+      ...boost,
+      expiry: Date.now() + boost.duration * 1000,
+    };
 
-      // Remove the boost from activeBoosts
+    playerData.set({ ...player });
+  });
+};
+
+export const removeStatBoost = async (boostId: string) => {
+  task(async () => {
+    const player = playerData.get();
+    if (player.state.activeBoosts[boostId]) {
       delete player.state.activeBoosts[boostId];
-
       playerData.set({ ...player });
     }
   });
 };
 
-export const handleBoostExpiry = () => {
+export const getEffectiveStats = (): IPlayerStats => {
+  const player = playerData.get();
+  const effectiveStats = { ...player.stats };
+
+  Object.values(player.state.activeBoosts).forEach(boost => {
+    Object.keys(boost).forEach(key => {
+      if (key !== 'duration' && key !== 'expiry') {
+        const statKey = key as keyof IPlayerStats;
+        const boostValue = parseInt(boost[statKey] as unknown as string, 10) || 0;
+        effectiveStats[statKey] = (parseInt(effectiveStats[statKey], 10) + boostValue).toString();
+      }
+    });
+  });
+
+  return effectiveStats;
+};
+
+
+export const handleBoostExpiry = async () => {
   task(async () => {
     const player = playerData.get();
     const now = Date.now();
@@ -646,9 +509,8 @@ export const handleBoostExpiry = () => {
     Object.keys(player.state.activeBoosts).forEach((boostId) => {
       const boost = player.state.activeBoosts[boostId];
 
-      // If boost duration has expired, remove it
       if (boost.expiry && now >= boost.expiry) {
-        removeStatBoost(boostId);
+        delete player.state.activeBoosts[boostId];
         stateChanged = true;
       }
     });
@@ -659,33 +521,60 @@ export const handleBoostExpiry = () => {
   });
 };
 
+
 export const applyConsumableEffects = (item: IConsumable) => {
   task(async () => {
     const player = playerData.get();
-    const effects = item.effects;
+    // const effects = item.effects;
 
-    // Convert effects to string format for applyImmediateEffects
-    const effectsAsStrings: Partial<IPlayerStats> = {
-      health: effects.health !== undefined ? effects.health.toString() : undefined,
-      mana: effects.mana !== undefined ? effects.mana.toString() : undefined,
-      energy: effects.energy !== undefined ? effects.energy.toString() : undefined
+    // const effectsAsStrings: Partial<IPlayerStats> = {
+    //   health: effects.health !== undefined ? effects.health.toString() : undefined,
+    //   mana: effects.mana !== undefined ? effects.mana.toString() : undefined,
+    //   energy: effects.energy !== undefined ? effects.energy.toString() : undefined
+    // };
+
+    const bonuses = item.bonuses;
+
+    const bonusesAsStrings: Partial<IPlayerStats> = {
+      health: bonuses?.health !== undefined ? bonuses.health.toString() : undefined,
+      mana: bonuses?.mana !== undefined ? bonuses.mana.toString() : undefined,
+      energy: bonuses?.energy !== undefined ? bonuses.energy.toString() : undefined
     };
 
-    // Apply immediate effects
-    applyImmediateEffects(effectsAsStrings);
+    applyImmediateEffects(bonusesAsStrings);
 
-    // Apply temporary boosts
+    //applyImmediateEffects(effectsAsStrings);
+
     if (item.boost) {
       addStatBoost(item.boost);
     }
 
     if (item.action) {
       console.log(`Action: ${item.action}`);
-      // Implement your action handling logic here
     }
 
     playerData.set({ ...player });
   });
+};
+
+export const getActionEvents = (itemId: string): ItemAction['actionEvent'][] => {
+  const item = getItemDetails(itemId);
+  if (!item) {
+    return [];
+  }
+
+  const actions: ItemAction['actionEvent'][] = ['view', 'discard'];
+
+  if (item.consumable) {
+    actions.push('consume');
+  }
+  if (item.equipped) {
+    actions.push('unequip');
+  } else if (!item.consumable) {
+    actions.push('equip');
+  }
+
+  return actions;
 };
 
 export const notificationType: Record<string, NotificationType> = {
@@ -751,7 +640,7 @@ function encodeTime(time: number, length: number): string {
 
 export function createULID(): string {
   const timestamp = Date.now();
-  const timePart = encodeTime(timestamp, 10); // 48-bit timestamp
-  const randomPart = randomChars(16); // 80-bit randomness
+  const timePart = encodeTime(timestamp, 10); 
+  const randomPart = randomChars(16); 
   return timePart + randomPart;
 }
