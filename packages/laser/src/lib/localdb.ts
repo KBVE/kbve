@@ -150,6 +150,14 @@ export const addItemToStore = (item: IObject) => {
   });
 };
 
+export const removeItemFromStore = (itemId: string) => {
+  task(async () => {
+    const currentStore = itemStore.get();
+    const { [itemId]: _, ...remainingItems } = currentStore;
+    itemStore.set(remainingItems);
+  });
+};
+
 export function createPersistentAtom<T>(key: string, defaultValue: T) {
   return persistentAtom<T>(key, defaultValue, {
     encode(value) {
@@ -298,6 +306,7 @@ export const removeItemFromBackpack = (itemId: string) => {
         (id) => id !== itemId,
       );
       playerData.set({ ...player });
+      removeItemFromStore(itemId);
     } else {
       EventEmitter.emit('notification', {
         title: 'Warning',

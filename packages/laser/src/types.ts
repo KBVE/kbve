@@ -47,6 +47,7 @@ export interface IObject {
   equipped?: boolean;
   consumable?: boolean;
   cooldown?: string;
+  slug?: string;
   craftingMaterials?: string[];
   rarity?: string;
 }
