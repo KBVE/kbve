@@ -136,6 +136,7 @@ const StickySidebar: React.FC = () => {
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">User Information</h2>
+        
         <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>
       </div>
       <div className="mb-4">
