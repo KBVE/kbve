@@ -337,21 +337,27 @@ export const reloadItemDB = () => {
   task(async () => {
     try {
       const response = await axios.get('https://kbve.com/api/itemdb.json');
-      const items: Record<string, IObject> = response.data;
-      itemDB.set(items);
+      const items: Record<string, Record<string, IObject>> = response.data;
+      const flattenedItems: Record<string, IObject> = {};
+
+      // Flatten the items object
+      Object.keys(items['key']).forEach((key) => {
+        const item = items['key'][key];
+        flattenedItems[item.id] = item;
+        flattenedItems[item.name] = item;
+      });
+
+      itemDB.set(flattenedItems);
     } catch (error) {
       console.error('Failed to reload item database:', error);
     }
   });
 };
 
+
 export const queryItemDB = (itemId: string): IObject | undefined => {
-  let item;
-  task(() => {
-    const items = itemDB.get();
-    item = items[itemId];
-  });
-  return item;
+  const items = itemDB.get();
+  return items[itemId];
 };
 
 export const addItemToBackpack = (itemId: string) => {
