@@ -1,0 +1,49 @@
+---
+title: Candy ItemDB
+description: |
+    All the different types of candies within the game.
+sidebar:
+    label: Candy
+    order: 69
+unsplash: 1590840960672-db24958eef9a
+img: https://images.unsplash.com/photo-1590840960672-db24958eef9a?fit=crop&w=1400&h=700&q=75
+tags:
+    - gamedev
+    - itemdb
+itemdb:
+    - id: "01J269HKM0BGP3J6TPZ584EYC7"
+      name: "Blue Candy"
+      type: "food"
+      category: "consumable"
+      description: "A magical substance that is trapped in a blue wrapper."
+      img: "/assets/items/food/blue_candy.png"
+      bonuses:
+        health: 1
+        mana: 75
+        energy: 50
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Restores 75 mana , gives 50 energy and in the future, something else!"
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 500
+      cooldown: 120
+      credits: |
+        Blue candy asset is from FinalBossBlues (finalbossblues.itch.io).
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import {ItemDB, Giscus, Adsense } from '@kbve/astropad';
+
+
+<ItemDB itemdb={frontmatter.itemdb} />
