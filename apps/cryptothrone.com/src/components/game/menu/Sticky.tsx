@@ -39,13 +39,18 @@ const renderAllEquipment = (
   equipment: Record<keyof IPlayerInventory['equipment'], string | null>,
   showTooltip: (itemId: string, event: React.MouseEvent) => void,
   hideTooltip: () => void,
-  handleItemClick: (itemId: string, event: React.MouseEvent) => void
+  handleItemClick: (itemId: string, event: React.MouseEvent) => void,
 ) => {
   return (
     <ul className="grid grid-cols-8 gap-2">
       {Object.keys(equipment).map((key) => {
         const itemId = equipment[key as keyof IPlayerInventory['equipment']];
-        return renderEquipment(itemId, showTooltip, hideTooltip, handleItemClick);
+        return renderEquipment(
+          itemId,
+          showTooltip,
+          hideTooltip,
+          handleItemClick,
+        );
       })}
     </ul>
   );
@@ -85,7 +90,7 @@ const renderInventory = (
   backpack: string[],
   showTooltip: (itemId: string, event: React.MouseEvent) => void,
   hideTooltip: () => void,
-  handleItemClick: (itemId: string, event: React.MouseEvent) => void
+  handleItemClick: (itemId: string, event: React.MouseEvent) => void,
 ) => {
   return (
     <ul className="grid grid-cols-8 gap-1">
@@ -204,7 +209,7 @@ const StickySidebar: React.FC = () => {
           _playerStore$.inventory.backpack,
           showTooltip,
           hideTooltip,
-          handleItemClick
+          handleItemClick,
         )}
       </div>
       <div className="mb-4">
@@ -213,16 +218,24 @@ const StickySidebar: React.FC = () => {
           _playerStore$.inventory.equipment,
           showTooltip,
           hideTooltip,
-          handleItemClick
+          handleItemClick,
         )}
       </div>
       {tooltipItemId && renderTooltip(tooltipItemId, tooltipPosition)}
       {submenuItemId && (
         <div
           style={{ top: submenuPosition.y, left: submenuPosition.x }}
-          className="absolute bg-gray-700 text-white p-2 rounded shadow-lg z-50"
+          className="absolute bg-gray-700  text-white p-2 rounded shadow-lg z-50"
         >
-          <p className="text-sm">Actions:</p>
+          {/* Close button at the top */}
+          <button
+            onClick={closeSubmenu}
+            className="absolute top-1 right-1 translate-x-6 bg-yellow-400 p-1 text-white hover:text-gray-400"
+          >
+            X
+          </button>
+
+          <p className="text-sm strong">Actions:</p>
           <ul className="text-xs">
             <li
               onClick={() => handleItemAction(submenuItemId, 'consume')}
@@ -253,6 +266,13 @@ const StickySidebar: React.FC = () => {
               className="cursor-pointer hover:bg-gray-600"
             >
               View
+            </li>
+            {/* Close option at the bottom */}
+            <li
+              onClick={closeSubmenu}
+              className="cursor-pointer hover:bg-gray-600"
+            >
+              Close
             </li>
           </ul>
         </div>
