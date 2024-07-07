@@ -2,7 +2,7 @@ import { persistentAtom } from '@nanostores/persistent';
 import { task } from 'nanostores';
 import { EventEmitter } from './eventhandler';
 import axios from 'axios';
-import { IConsumable, IEquipment, IJournal, IObject, IPlayerData, IPlayerInventory, IPlayerState, IPlayerStats, IQuest, IStatBoost, ITask, NotificationType } from '../types';
+import { IConsumable, IEquipment, IJournal, IObject, IPlayerData, IPlayerInventory, IPlayerState, IPlayerStats, IQuest, IStatBoost, ITask, ItemAction, NotificationType } from '../types';
 
 
 
@@ -77,8 +77,6 @@ export function completeTask<T>(
       );
 
       const isJournalComplete = updatedTasks.every((task) => task.isComplete);
-
-      // Emit task completion event
       EventEmitter.emit('taskCompletion', { taskId, isComplete: true });
 
       return { ...journal, tasks: updatedTasks, isComplete: isJournalComplete };
@@ -194,7 +192,6 @@ export const reloadItemDB = () => {
       const items: Record<string, Record<string, IObject>> = response.data;
       const flattenedItems: Record<string, IObject> = {};
 
-      // Flatten the items object
       Object.keys(items['key']).forEach((key) => {
         const item = items['key'][key];
         flattenedItems[item.id] = item;
@@ -519,28 +516,44 @@ export const applyConsumableEffects = (item: IConsumable) => {
     const player = playerData.get();
     const effects = item.effects;
 
-    // Convert effects to string format for applyImmediateEffects
     const effectsAsStrings: Partial<IPlayerStats> = {
       health: effects.health !== undefined ? effects.health.toString() : undefined,
       mana: effects.mana !== undefined ? effects.mana.toString() : undefined,
       energy: effects.energy !== undefined ? effects.energy.toString() : undefined
     };
 
-    // Apply immediate effects
     applyImmediateEffects(effectsAsStrings);
 
-    // Apply temporary boosts
     if (item.boost) {
       addStatBoost(item.boost);
     }
 
     if (item.action) {
       console.log(`Action: ${item.action}`);
-      // Implement your action handling logic here
     }
 
     playerData.set({ ...player });
   });
+};
+
+export const getActionEvents = (itemId: string): ItemAction['actionEvent'][] => {
+  const item = getItemDetails(itemId);
+  if (!item) {
+    return [];
+  }
+
+  const actions: ItemAction['actionEvent'][] = ['view', 'discard'];
+
+  if (item.consumable) {
+    actions.push('consume');
+  }
+  if (item.equipped) {
+    actions.push('unequip');
+  } else if (!item.consumable) {
+    actions.push('equip');
+  }
+
+  return actions;
 };
 
 export const notificationType: Record<string, NotificationType> = {
@@ -606,7 +619,7 @@ function encodeTime(time: number, length: number): string {
 
 export function createULID(): string {
   const timestamp = Date.now();
-  const timePart = encodeTime(timestamp, 10); // 48-bit timestamp
-  const randomPart = randomChars(16); // 80-bit randomness
+  const timePart = encodeTime(timestamp, 10); 
+  const randomPart = randomChars(16); 
   return timePart + randomPart;
 }

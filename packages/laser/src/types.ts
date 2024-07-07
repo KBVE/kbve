@@ -62,13 +62,17 @@ export interface IConsumable extends IObject {
   action?: string;
 }
 
-export interface IObjectAction {
-  itemId: string;
-  itemObject: IObject;
+export interface ItemAction {
   actionEvent: 'consume' | 'equip' | 'unequip' | 'discard' | 'view';
-  actionId: string;
   actionDetails?: string;
 }
+
+export interface IObjectAction extends ItemAction {
+  itemId: string;
+  itemObject: IObject;
+  actionId: string;
+}
+
 
 export interface IEquipment extends IObject {
   type:
