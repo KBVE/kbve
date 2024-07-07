@@ -3,7 +3,7 @@ import { EventEmitter, type PlayerMoveEventData, type NPCInteractionEventData, t
 
 interface NPCActionHandlers {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [action: string]: (npcId: string, npcName: string, data?: any) => void;
+    [action: string]: (eventData: NPCInteractionEventData) => void;
 }
 
 class NPCHandler {
@@ -20,53 +20,52 @@ class NPCHandler {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getActionHandler(action: string): (npcId: string, npcName: string, data?: any) => void | undefined {
+  getActionHandler(action: string): (eventData: NPCInteractionEventData) => void | undefined {
     return this.actionHandlers[action];
   }
-  talkToNPC(npcId: string, data?: any) {
-    console.log(`Talking to NPC with ID: ${npcId}`);
+
+  talkToNPC(eventData: NPCInteractionEventData) {
+    console.log(`Talking to NPC with ID: ${eventData.npcId}`);
     // Implement talking logic here
   }
 
-  tradeWithNPC(npcId: string, data?: any) {
-    console.log(`Trading with NPC with ID: ${npcId}`);
+  tradeWithNPC(eventData: NPCInteractionEventData) {
+    console.log(`Trading with NPC with ID: ${eventData.npcId}`);
     // Implement trading logic here
   }
 
-  moveToNPC(npcId: string, data?: any) {
-    // Get NPC coordinates based on npcId, for example purposes we use fixed coords
-    const coords = data?.coords || { x: 10, y: 15 };
-    const eventData: PlayerMoveEventData = coords;
-    EventEmitter.emit('playerMove', eventData);
+  moveToNPC(eventData: NPCInteractionEventData) {
+    // Get NPC coordinates from eventData
+    const coords = eventData.data?.coords || { x: 10, y: 15 };
+    const playerMoveEventData: PlayerMoveEventData = coords;
+    EventEmitter.emit('playerMove', playerMoveEventData);
   }
 
-  stealFromNPC(npcId: string, npcName: string, data?: any) {
-    //console.log(`Attempting to steal from NPC with ID: ${npcId}`);
-    const eventData: PlayerStealEventData = {
-      npcId,
-      npcName,
-      data
+  stealFromNPC(eventData: NPCInteractionEventData) {
+    console.log(`Attempting to steal from NPC with ID: ${eventData.npcId}`);
+    const playerStealEventData: PlayerStealEventData = {
+      npcId: eventData.npcId,
+      npcName: eventData.npcName,
+      data: eventData.data
     };
-    EventEmitter.emit('playerSteal', eventData);
+    EventEmitter.emit('playerSteal', playerStealEventData);
 
     // Implement stealing logic here
   }
 
-  startCombat(npcId: string, data?: any) {
-    console.log(`Starting combat with NPC with ID: ${npcId}`);
+  startCombat(eventData: NPCInteractionEventData) {
+    console.log(`Starting combat with NPC with ID: ${eventData.npcId}`);
     // Implement combat logic here
   }
 
-  checkFish(npcId: string, data?: any) {
-    console.log(`Checking fish for NPC with ID: ${npcId}`);
+  checkFish(eventData: NPCInteractionEventData) {
+    console.log(`Checking fish for NPC with ID: ${eventData.npcId}`);
     // Implement check fish logic here
   }
 
   attachNPCEvent<T>(sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[], data?: T) {
     sprite.setInteractive();
     sprite.on('pointerover', () => {
-      //console.log(`Hovering over NPC: ${sprite.name}, Data: ${JSON.stringify(data)}`); // Debug log
       const npcInteractionData: NPCInteractionEventData<T> = {
         npcId: sprite.name || '',
         npcName: title,
@@ -80,8 +79,6 @@ class NPCHandler {
       // EventEmitter.emit('npcInteraction', null);
     });
   }
-
-
 }
 
 export const npcHandler = new NPCHandler();
