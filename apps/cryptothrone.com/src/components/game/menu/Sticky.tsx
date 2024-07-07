@@ -54,11 +54,8 @@ const renderTooltip = (
   </div>
 );
 
-const renderEquipment = (
-  itemId: string | null,
-  showTooltip: (itemId: string, event: React.MouseEvent) => void,
-  hideTooltip: () => void,
-) => {
+
+const renderEquipment = (itemId: string | null, showTooltip: (itemId: string, event: React.MouseEvent) => void, hideTooltip: () => void) => {
   if (!itemId) {
     return (
       <li
@@ -76,8 +73,7 @@ const renderEquipment = (
       onMouseEnter={(e) => showTooltip(item.id, e)}
       onMouseLeave={hideTooltip}
     >
-      {item.name} ({item.type}) - Bonuses: {JSON.stringify(item.bonuses)} -
-      Durability: {item.durability} - Weight: {item.weight}
+      {item.name} ({item.type}) - Bonuses: {JSON.stringify(item.bonuses)} - Durability: {item.durability} - Weight: {item.weight}
     </li>
   ) : null;
 };
@@ -167,7 +163,7 @@ const StickySidebar: React.FC = () => {
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Equipment</h2>
-        <ul>
+        <ul className="grid grid-cols-8 gap-2">
           {renderEquipment(
             _playerStore$.inventory.equipment.head,
             showTooltip,
