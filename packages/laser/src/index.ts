@@ -1,3 +1,7 @@
+// Types
+
+export * from './types';
+
 export * from './lib/laser';
 export * from './lib/quadtree';
 export * from './lib/eventhandler';
