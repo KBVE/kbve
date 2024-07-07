@@ -1,5 +1,11 @@
-import eventEmitterInstance, { EventEmitter, EventData, OpenModalEventData, WASMEventData, GameEvent, CharacterEventData, PlayerEventData, SceneTransitionEventData, TaskCompletionEventData } from './eventhandler';
-import { IPlayerStats, IPlayerInventory } from './localdb';
+import eventEmitterInstance, { EventEmitter, EventData } from './eventhandler';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { 
+  OpenModalEventData, WASMEventData, GameEvent, CharacterEventData, PlayerEventData, 
+  SceneTransitionEventData, TaskCompletionEventData, NPCInteractionEventData, 
+  PlayerMoveEventData, NotificationEventData, PlayerStealEventData, PlayerCombatDamage, 
+  PlayerRewardEvent, ItemActionEventData 
+} from '../types';
 
 describe('EventEmitter', () => {
   it('should register and call an event handler', () => {
@@ -121,6 +127,12 @@ describe('EventEmitter', () => {
           accessory: null
         }
       },
+      state: {
+        inCombat: false,
+        isDead: false,
+        isResting: false,
+        activeBoosts: {}
+      },
       account: 'player1'
     };
     eventEmitterInstance.emit('playerEvent', playerData);
@@ -152,5 +164,89 @@ describe('EventEmitter', () => {
     expect(taskHandler).toHaveBeenCalledWith(taskData);
 
     eventEmitterInstance.off('taskCompletion', taskHandler);
+  });
+
+  it('should emit NPC interaction events correctly', () => {
+    const npcHandler = vi.fn();
+    eventEmitterInstance.on('npcInteraction', npcHandler);
+
+    const npcData: NPCInteractionEventData = { npcId: 'npc-1', npcName: 'Goblin', actions: ['talk', 'fight'] };
+    eventEmitterInstance.emit('npcInteraction', npcData);
+
+    expect(npcHandler).toHaveBeenCalledWith(npcData);
+
+    eventEmitterInstance.off('npcInteraction', npcHandler);
+  });
+
+  it('should emit player move events correctly', () => {
+    const moveHandler = vi.fn();
+    eventEmitterInstance.on('playerMove', moveHandler);
+
+    const moveData: PlayerMoveEventData = { x: 10, y: 20 };
+    eventEmitterInstance.emit('playerMove', moveData);
+
+    expect(moveHandler).toHaveBeenCalledWith(moveData);
+
+    eventEmitterInstance.off('playerMove', moveHandler);
+  });
+
+  it('should emit notification events correctly', () => {
+    const notificationHandler = vi.fn();
+    eventEmitterInstance.on('notification', notificationHandler);
+
+    const notificationData: NotificationEventData = { title: 'Test', message: 'This is a test notification', notificationType: { type: 'info', color: 'blue', imgUrl: '/img/test.png' } };
+    eventEmitterInstance.emit('notification', notificationData);
+
+    expect(notificationHandler).toHaveBeenCalledWith(notificationData);
+
+    eventEmitterInstance.off('notification', notificationHandler);
+  });
+
+  it('should emit player steal events correctly', () => {
+    const stealHandler = vi.fn();
+    eventEmitterInstance.on('playerSteal', stealHandler);
+
+    const stealData: PlayerStealEventData = { npcId: 'npc-1', npcName: 'Goblin' };
+    eventEmitterInstance.emit('playerSteal', stealData);
+
+    expect(stealHandler).toHaveBeenCalledWith(stealData);
+
+    eventEmitterInstance.off('playerSteal', stealHandler);
+  });
+
+  it('should emit player damage events correctly', () => {
+    const damageHandler = vi.fn();
+    eventEmitterInstance.on('playerDamage', damageHandler);
+
+    const damageData: PlayerCombatDamage = { damage: '20' };
+    eventEmitterInstance.emit('playerDamage', damageData);
+
+    expect(damageHandler).toHaveBeenCalledWith(damageData);
+
+    eventEmitterInstance.off('playerDamage', damageHandler);
+  });
+
+  it('should emit player reward events correctly', () => {
+    const rewardHandler = vi.fn();
+    eventEmitterInstance.on('playerReward', rewardHandler);
+
+    const rewardData: PlayerRewardEvent = { message: 'You received an item!', item: { id: 'item-1', name: 'Sword', type: 'weapon' } };
+    eventEmitterInstance.emit('playerReward', rewardData);
+
+    expect(rewardHandler).toHaveBeenCalledWith(rewardData);
+
+    eventEmitterInstance.off('playerReward', rewardHandler);
+  });
+
+  it('should emit item action events correctly', () => {
+    const itemActionHandler = vi.fn();
+    eventEmitterInstance.on('itemAction', itemActionHandler);
+
+    const itemActionData: ItemActionEventData = { itemId: 'item-1', action: 'consume' };
+    eventEmitterInstance.emit('itemAction', itemActionData);
+
+    expect(itemActionHandler).toHaveBeenCalledWith(itemActionData);
+
+    eventEmitterInstance.off('itemAction', itemActionHandler);
   });
 });

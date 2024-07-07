@@ -1,7 +1,8 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
 import { EventEmitter, type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent } from '../../eventhandler';
-import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, type IObject, queryItemDB } from '../../localdb';
+import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, queryItemDB } from '../../localdb';
+import { type IObject } from '../../../types'
 
 export class PlayerController {
   private scene: Scene;
