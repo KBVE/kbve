@@ -35,16 +35,19 @@ export interface IObject {
   description?: string;
   img?: string;
   bonuses?: {
-    armor?: number;
-    intelligence?: number;
-    health?: number;
-    mana?: number;
+    armor?: string;
+    intelligence?: string;
+    health?: string;
+    mana?: string;
+    energy?: string;
+    [key: string]: string | undefined;
   };
-  durability?: number;
-  weight?: number;
+  durability?: string;
+  weight?: string;
   equipped?: boolean;
   consumable?: boolean;
-  cooldown?: number;
+  cooldown?: string;
+  slug?: string;
   craftingMaterials?: string[];
   rarity?: string;
 }
@@ -85,14 +88,14 @@ export interface IEquipment extends IObject {
     | 'shield'
     | 'accessory';
   bonuses?: {
-    armor?: number;
-    intelligence?: number;
-    health?: number;
-    mana?: number;
-    [key: string]: number | undefined;
+    armor?: string;
+    intelligence?: string;
+    health?: string;
+    mana?: string;
+    [key: string]: string | undefined;
   };
-  durability?: number;
-  weight?: number;
+  durability?: string;
+  weight?: string;
 }
 
 export interface IPlayerInventory {

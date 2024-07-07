@@ -71,7 +71,12 @@ export class PlayerController {
   private handleView(itemId: string) {
     const item = getItemDetails(itemId);
     if (item) {
-      console.log(`Viewing item: ${item.name}`);
+      console.log(`Viewing item: ${item.name} with ${item.slug}`);
+      if (item.slug) {
+        const url = `https://kbve.com/${item.slug}`;
+        window.open(url, '_blank');
+      }
+      // https://kbve.com/itemdb/food/fish/
       // Implement view logic, e.g., show item details in UI
     }
   }
