@@ -102,7 +102,7 @@ const renderInventory = (
         return item ? (
           <li
             key={index}
-            className="text-sm relative"
+            className="text-sm relative hover:scale-[1.3] transition ease-in-out duration-100"
             onMouseEnter={(e) => showTooltip(item.id, e)}
             onMouseLeave={hideTooltip}
             onClick={(e) => handleItemClick(item.id, e)}
@@ -120,19 +120,7 @@ const renderInventory = (
   );
 };
 
-const handleItemAction = (
-  itemId: string,
-  action: ItemAction['actionEvent']
-) => {
-  const item = getItemDetails(itemId);
-  if (item) {
-    const eventData: ItemActionEventData = {
-      itemId: item.id,
-      action: action,
-    };
-    EventEmitter.emit('itemAction', eventData);
-  }
-};
+
 
 const StickySidebar: React.FC = () => {
   const _playerStore$ = useStore(playerData);
@@ -180,6 +168,21 @@ const StickySidebar: React.FC = () => {
 
   const closeSubmenu = () => {
     setSubmenuItemId(null);
+  };
+
+  const handleItemAction = (
+    itemId: string,
+    action: ItemAction['actionEvent']
+  ) => {
+    const item = getItemDetails(itemId);
+    if (item) {
+      const eventData: ItemActionEventData = {
+        itemId: item.id,
+        action: action,
+      };
+      EventEmitter.emit('itemAction', eventData);
+      closeSubmenu();
+    }
   };
 
   // Check if _playerStore$ is defined and has stats
