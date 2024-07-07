@@ -1,7 +1,7 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
 import { EventEmitter, type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent } from '../../eventhandler';
-import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, type IObject } from '../../localdb';
+import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, type IObject, queryItemDB } from '../../localdb';
 
 export class PlayerController {
   private scene: Scene;
@@ -75,21 +75,17 @@ export class PlayerController {
   {
     if(data) {
       if (Math.random() > 0.5) {
-        EventEmitter.emit('playerReward', {
-          message: 'You stole a fish!',
-          item: {
-            name: 'Fish',
-            type: 'food',
-            description: 'A yummy fish',
-            durability: 100,
-            bonuses: {
-              health: 10
-            },
-            weight: 5,
-            consumable: true,
-            id: ''
-          }
-        });
+
+        const item = queryItemDB('Salmon')
+
+        if (item) {
+          EventEmitter.emit('playerReward', {
+            message: `You stole a ${item.name}!`,
+            item: item,
+          });
+        } else {
+          console.warn('Item not found in ItemDB');
+        }
       }
       else
       {
