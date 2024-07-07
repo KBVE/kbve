@@ -120,19 +120,7 @@ const renderInventory = (
   );
 };
 
-const handleItemAction = (
-  itemId: string,
-  action: ItemAction['actionEvent']
-) => {
-  const item = getItemDetails(itemId);
-  if (item) {
-    const eventData: ItemActionEventData = {
-      itemId: item.id,
-      action: action,
-    };
-    EventEmitter.emit('itemAction', eventData);
-  }
-};
+
 
 const StickySidebar: React.FC = () => {
   const _playerStore$ = useStore(playerData);
@@ -180,6 +168,21 @@ const StickySidebar: React.FC = () => {
 
   const closeSubmenu = () => {
     setSubmenuItemId(null);
+  };
+
+  const handleItemAction = (
+    itemId: string,
+    action: ItemAction['actionEvent']
+  ) => {
+    const item = getItemDetails(itemId);
+    if (item) {
+      const eventData: ItemActionEventData = {
+        itemId: item.id,
+        action: action,
+      };
+      EventEmitter.emit('itemAction', eventData);
+      closeSubmenu();
+    }
   };
 
   // Check if _playerStore$ is defined and has stats
