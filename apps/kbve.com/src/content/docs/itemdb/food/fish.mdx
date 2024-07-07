@@ -11,24 +11,46 @@ tags:
     - gamedev
     - itemdb
 itemdb:
-    - id: "02G9NECHZX3TBDSZ7VXSMCJ7X2"
+    - id: "01J263RE1NYHDYDH82RW39G357"
       name: "Salmon"
       type: "food"
       category: "consumable"
-      description: "A nutritious fish that boosts the consumer's agility and vitality."
+      description: "A nutritious fish that heals the consumer's health and provides a little mana."
       img: "/assets/items/food/salmon.png"
       bonuses:
         health: 25
-        agility: 5
+        mana: 5
       durability: 1
       weight: 1
       consumable: true
-      effects: "Heals 25 health and increases agility by 5 for 10 minutes."
+      effects: "Heals 25 health and increases mana by 5 for 10 minutes."
       stackable: false
       rarity: "common"
       levelRequirement: 0
       price: 60
       cooldown: 120
+      credits: |
+        Salmon fish asset was by Roku6 - https://roku6.itch.io/pixelfishes
+    - id: "01J263S362R0Q3TV8T4DFMR8Z5"
+      name: "Blue Shark"
+      type: "food"
+      category: "consumable"
+      description: "A heavy fish that heals the consumer's health and provides mana."
+      img: "/assets/items/food/blue_shark.png"
+      bonuses:
+        health: 50
+        mana: 25
+      durability: 1
+      weight: 10
+      consumable: true
+      effects: "Heals 25 health and increases mana by 5 for 10 minutes."
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 500
+      cooldown: 120
+      credits: |
+        Shark fish asset was by Roku6 - https://roku6.itch.io/pixelfishes
 ---
 
 import {
