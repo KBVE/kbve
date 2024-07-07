@@ -20,10 +20,10 @@ export class PlayerController {
     this.cursor = this.scene.input.keyboard?.createCursorKeys();
     this.initializeWASDKeys();
     this.registerEventHandlers();
-    this.tooltip = this.scene.add.text(0, 0, 'Press F', {
+    this.tooltip = this.scene.add.text(0, 0, 'Press [F]', {
       font: '16px Arial',
       backgroundColor: '#000000',
-    }).setVisible(false);
+    }).setDepth(4).setPadding(3,2,2,3).setVisible(false);
   }
 
   private initializeWASDKeys() {
