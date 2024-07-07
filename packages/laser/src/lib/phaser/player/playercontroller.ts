@@ -10,6 +10,7 @@ export class PlayerController {
   private quadtree: Quadtree;
   private cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private wasdKeys!: { [key: string]: Phaser.Input.Keyboard.Key; };
+  private tooltip: Phaser.GameObjects.Text;
 
 
   constructor(scene: Scene, gridEngine: any, quadtree: Quadtree) {
@@ -19,6 +20,10 @@ export class PlayerController {
     this.cursor = this.scene.input.keyboard?.createCursorKeys();
     this.initializeWASDKeys();
     this.registerEventHandlers();
+    this.tooltip = this.scene.add.text(0, 0, 'Press [F]', {
+      font: '16px Arial',
+      backgroundColor: '#000000',
+    }).setDepth(4).setPadding(3,2,2,3).setVisible(false);
   }
 
   private initializeWASDKeys() {
@@ -73,7 +78,7 @@ export class PlayerController {
     if (item) {
       console.log(`Viewing item: ${item.name} with ${item.slug}`);
       if (item.slug) {
-        const url = `https://kbve.com/${item.slug}`;
+        const url = `https://kbve.com/${item.slug}#${item.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')}`;
         window.open(url, '_blank');
       }
       // https://kbve.com/itemdb/food/fish/
@@ -161,7 +166,7 @@ export class PlayerController {
           EventEmitter.emit('playerReward', {
             message: `You stole a ${item.name}!`,
             item: item,
-          });
+          }, 2000);
         } else {
           console.warn('Item not found in ItemDB');
         }
@@ -188,6 +193,20 @@ export class PlayerController {
     }
   }
 
+  private checkForNearbyObjects() {
+    const tileSize = 48; // Adjust this based on your game's tile size
+    const playerPosition = this.gridEngine.getPosition('player') as Point;
+    const screenX = playerPosition.x * tileSize;
+    const screenY = playerPosition.y * tileSize;
+  
+    const foundRanges = this.quadtree.query(playerPosition);
+  
+    if (foundRanges.length > 0) {
+      this.tooltip.setPosition(screenX, screenY - 60).setVisible(true);
+    } else {
+      this.tooltip.setVisible(false);
+    }
+  }
 
   handleMovement() {
     if (!this.cursor) return;
@@ -221,5 +240,7 @@ export class PlayerController {
     } else if (cursors.down.isDown || wasd['S'].isDown) {
       this.gridEngine.move('player', 'down');
     }
+
+    this.checkForNearbyObjects();
   }
 }

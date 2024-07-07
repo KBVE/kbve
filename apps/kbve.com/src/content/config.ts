@@ -315,6 +315,7 @@ const IObjectSchema = z.object({
   cooldown: z.number().optional(),
   action: z.string().optional(),
   craftingMaterials: z.array(z.string()).optional(),
+  credits: z.string().optional(),
 });
 
 export const collections = {
