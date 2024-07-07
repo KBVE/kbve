@@ -332,19 +332,21 @@ export function isPlayerResting(): boolean {
 export const updatePlayerStats = async (updates: Partial<IPlayerStats>) => {
   task(async () => {
     const player = playerData.get();
-    const updatedStats = { ...player.stats, ...updates };
+    const updatedStats: Partial<IPlayerStats> = { ...player.stats, ...updates };
 
     // Ensure all stats are strings
-    (Object.keys(updatedStats) as Array<keyof IPlayerStats>).forEach(key => {
-      if (typeof updatedStats[key] === 'number') {
-        updatedStats[key] = updatedStats[key]?.toString();
-      }
+    (Object.keys(updatedStats) as Array<keyof IPlayerStats>).forEach((key) => {
+      const value = updatedStats[key];
+      updatedStats[key] = value?.toString() as string;
     });
 
-    player.stats = updatedStats;
+    player.stats = updatedStats as IPlayerStats;
     playerData.set({ ...player });
   });
 };
+
+
+
 
 export const setPlayerStat = (stat: keyof IPlayerStats, value: string) => {
   task(async () => {
@@ -514,15 +516,25 @@ export const handleBoostExpiry = async () => {
 export const applyConsumableEffects = (item: IConsumable) => {
   task(async () => {
     const player = playerData.get();
-    const effects = item.effects;
+    // const effects = item.effects;
 
-    const effectsAsStrings: Partial<IPlayerStats> = {
-      health: effects.health !== undefined ? effects.health.toString() : undefined,
-      mana: effects.mana !== undefined ? effects.mana.toString() : undefined,
-      energy: effects.energy !== undefined ? effects.energy.toString() : undefined
+    // const effectsAsStrings: Partial<IPlayerStats> = {
+    //   health: effects.health !== undefined ? effects.health.toString() : undefined,
+    //   mana: effects.mana !== undefined ? effects.mana.toString() : undefined,
+    //   energy: effects.energy !== undefined ? effects.energy.toString() : undefined
+    // };
+
+    const bonuses = item.bonuses;
+
+    const bonusesAsStrings: Partial<IPlayerStats> = {
+      health: bonuses?.health !== undefined ? bonuses.health.toString() : undefined,
+      mana: bonuses?.mana !== undefined ? bonuses.mana.toString() : undefined,
+      energy: bonuses?.energy !== undefined ? bonuses.energy.toString() : undefined
     };
 
-    applyImmediateEffects(effectsAsStrings);
+    applyImmediateEffects(bonusesAsStrings);
+
+    //applyImmediateEffects(effectsAsStrings);
 
     if (item.boost) {
       addStatBoost(item.boost);
