@@ -7,6 +7,11 @@ export * from './lib/quadtree';
 export * from './lib/eventhandler';
 export * from './lib/localdb';
 
+// Icons
+
+export { default as CollapseIcon } from './lib/icon/CollapseIcon';
+export { default as ExpandIcon } from './lib/icon/ExpandIcon';
+
 // Phaser
 
 export * from './lib/phaser/player/playercontroller';

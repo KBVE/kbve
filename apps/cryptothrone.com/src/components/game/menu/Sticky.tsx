@@ -11,6 +11,10 @@ import {
   type IEquipment,
   type IObjectAction,
   type ItemAction,
+  type IconProps,
+  CollapseIcon,
+  ExpandIcon,
+
   getItemDetails,
   getActionEvents,
 } from '@kbve/laser';
@@ -120,8 +124,6 @@ const renderInventory = (
   );
 };
 
-
-
 const StickySidebar: React.FC = () => {
   const _playerStore$ = useStore(playerData);
   const _quest$ = useStore(quest);
@@ -138,6 +140,8 @@ const StickySidebar: React.FC = () => {
     x: number;
     y: number;
   }>({ x: 0, y: 0 });
+
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
     const handlePlayerData = (data?: PlayerEventData) => {
@@ -172,7 +176,7 @@ const StickySidebar: React.FC = () => {
 
   const handleItemAction = (
     itemId: string,
-    action: ItemAction['actionEvent']
+    action: ItemAction['actionEvent'],
   ) => {
     const item = getItemDetails(itemId);
     if (item) {
@@ -194,78 +198,90 @@ const StickySidebar: React.FC = () => {
   const actions = submenuItemId ? getActionEvents(submenuItemId) : [];
 
   return (
-    <div className="transition transform ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Stats</h2>
-        <p className="text-sm text-green-400">{`HP: ${
-          _playerStore$.stats.health || '0'
-        } / ${_playerStore$.stats.maxHealth}`}</p>
-        <p className="text-sm text-blue-400">{`MP: ${
-          _playerStore$.stats.mana || '0'
-        } / ${_playerStore$.stats.maxMana}`}</p>
-        <p className="text-sm text-yellow-400">{`EP: ${
-          _playerStore$.stats.energy || '0'
-        } / ${_playerStore$.stats.maxEnergy}`}</p>
-      </div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">User Information</h2>
-        <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>
-      </div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">General Information</h2>
-        <p className="text-sm">{``}</p>
-      </div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Inventory</h2>
-        {renderInventory(
-          _playerStore$.inventory.backpack,
-          showTooltip,
-          hideTooltip,
-          handleItemClick,
-        )}
-      </div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Equipment</h2>
-        {renderAllEquipment(
-          _playerStore$.inventory.equipment,
-          showTooltip,
-          hideTooltip,
-          handleItemClick,
-        )}
-      </div>
-      {tooltipItemId && renderTooltip(tooltipItemId, tooltipPosition)}
-      {submenuItemId && (
-        <div
-          style={{ top: submenuPosition.y, left: submenuPosition.x }}
-          className="absolute bg-gray-700  text-white p-2 rounded shadow-lg z-50"
-        >
-          {/* Close button at the top */}
-          <button
-            onClick={closeSubmenu}
-            className="absolute top-1 right-1 translate-x-6 bg-yellow-400 p-1 text-white hover:text-gray-400"
-          >
-            X
-          </button>
-
-          <p className="text-sm strong">Actions:</p>
-          <ul className="text-xs">
-            {actions.map((event) => (
-              <li
-                key={event}
-                onClick={() => handleItemAction(submenuItemId, event)}
-                className="cursor-pointer hover:bg-gray-600"
-              >
-                {event.charAt(0).toUpperCase() + event.slice(1)}
-              </li>
-            ))}
-            {/* Close option at the bottom */}
-            <li
-              onClick={closeSubmenu}
-              className="cursor-pointer hover:bg-gray-600"
+    <div className="fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20 transition transform ease-in-out duration-500 opacity-50 hover:opacity-100">
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="bg-yellow-500 text-white p-2 rounded"
+      >
+        {isCollapsed ? <ExpandIcon styleClass='w-8' /> : <CollapseIcon styleClass='w-8' />}
+      </button>
+      {!isCollapsed && (
+        <div className={`transition transform duration-1000 ease-in-out overflow-hidden ${
+          isCollapsed ? 'max-h-0' : 'max-h-screen'
+        }`}>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold mb-2">Stats</h2>
+            <p className="text-sm text-green-400">{`HP: ${
+              _playerStore$.stats.health || '0'
+            } / ${_playerStore$.stats.maxHealth}`}</p>
+            <p className="text-sm text-blue-400">{`MP: ${
+              _playerStore$.stats.mana || '0'
+            } / ${_playerStore$.stats.maxMana}`}</p>
+            <p className="text-sm text-yellow-400">{`EP: ${
+              _playerStore$.stats.energy || '0'
+            } / ${_playerStore$.stats.maxEnergy}`}</p>
+          </div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold mb-2">User Information</h2>
+            <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>
+          </div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold mb-2">General Information</h2>
+            <p className="text-sm">{``}</p>
+          </div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold mb-2">Inventory</h2>
+            {renderInventory(
+              _playerStore$.inventory.backpack,
+              showTooltip,
+              hideTooltip,
+              handleItemClick,
+            )}
+          </div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold mb-2">Equipment</h2>
+            {renderAllEquipment(
+              _playerStore$.inventory.equipment,
+              showTooltip,
+              hideTooltip,
+              handleItemClick,
+            )}
+          </div>
+          {tooltipItemId && renderTooltip(tooltipItemId, tooltipPosition)}
+          {submenuItemId && (
+            <div
+              style={{ top: submenuPosition.y, left: submenuPosition.x }}
+              className="absolute bg-gray-700 text-white p-2 rounded shadow-lg z-50"
             >
-              Close
-            </li>
-          </ul>
+              {/* Close button at the top */}
+              <button
+                onClick={closeSubmenu}
+                className="absolute top-1 right-1 translate-x-6 bg-yellow-400 p-1 text-white hover:text-gray-400"
+              >
+                X
+              </button>
+
+              <p className="text-sm strong">Actions:</p>
+              <ul className="text-xs">
+                {actions.map((event) => (
+                  <li
+                    key={event}
+                    onClick={() => handleItemAction(submenuItemId, event)}
+                    className="cursor-pointer hover:bg-gray-600"
+                  >
+                    {event.charAt(0).toUpperCase() + event.slice(1)}
+                  </li>
+                ))}
+                {/* Close option at the bottom */}
+                <li
+                  onClick={closeSubmenu}
+                  className="cursor-pointer hover:bg-gray-600"
+                >
+                  Close
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>

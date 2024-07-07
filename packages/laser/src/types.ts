@@ -15,6 +15,15 @@ export interface IPlayerStats {
   faith: string;
 }
 
+export interface IconProps {
+  styleClass?: string;
+  size?: number;
+  color?: string;
+  onClick?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; 
+}
+
 export interface IStatBoost extends Partial<IPlayerStats> {
   duration: number;
   expiry?: number;
