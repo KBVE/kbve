@@ -73,7 +73,7 @@ export class PlayerController {
     if (item) {
       console.log(`Viewing item: ${item.name} with ${item.slug}`);
       if (item.slug) {
-        const url = `https://kbve.com/${item.slug}`;
+        const url = `https://kbve.com/${item.slug}#${item.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')}`;
         window.open(url, '_blank');
       }
       // https://kbve.com/itemdb/food/fish/
