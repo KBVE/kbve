@@ -102,7 +102,7 @@ const renderInventory = (
         return item ? (
           <li
             key={index}
-            className="text-sm relative"
+            className="text-sm relative hover:scale-[1.3] transition ease-in-out duration-100"
             onMouseEnter={(e) => showTooltip(item.id, e)}
             onMouseLeave={hideTooltip}
             onClick={(e) => handleItemClick(item.id, e)}

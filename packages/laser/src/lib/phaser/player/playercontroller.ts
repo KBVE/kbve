@@ -166,7 +166,7 @@ export class PlayerController {
           EventEmitter.emit('playerReward', {
             message: `You stole a ${item.name}!`,
             item: item,
-          });
+          }, 2000);
         } else {
           console.warn('Item not found in ItemDB');
         }
