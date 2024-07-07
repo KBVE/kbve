@@ -1,6 +1,8 @@
 import { persistentAtom } from '@nanostores/persistent';
 import { task } from 'nanostores';
 import { EventEmitter } from './eventhandler';
+import axios from 'axios';
+
 
 export interface IPlayerStats {
   username: string;
@@ -89,6 +91,19 @@ export interface IConsumable extends IObject {
   duration?: number;
   action?: string;
 
+}
+
+export interface IEquipment extends IObject {
+  type: 'head' | 'body' | 'legs' | 'feet' | 'hands' | 'weapon' | 'shield' | 'accessory';
+  bonuses?: {
+    armor?: number;
+    intelligence?: number;
+    health?: number;
+    mana?: number;
+    [key: string]: number | undefined;
+  };
+  durability?: number;
+  weight?: number;
 }
 
 export interface IPlayerInventory {
@@ -313,6 +328,38 @@ export const notificationsStore = createPersistentAtom<Notification[]>(
   [],
 );
 
+export const itemDB = createPersistentAtom<Record<string, IObject>>(
+  'itemDB',
+  _initialItems,
+);
+
+export const reloadItemDB = () => {
+  task(async () => {
+    try {
+      const response = await axios.get('https://kbve.com/api/itemdb.json');
+      const items: Record<string, Record<string, IObject>> = response.data;
+      const flattenedItems: Record<string, IObject> = {};
+
+      // Flatten the items object
+      Object.keys(items['key']).forEach((key) => {
+        const item = items['key'][key];
+        flattenedItems[item.id] = item;
+        flattenedItems[item.name] = item;
+      });
+
+      itemDB.set(flattenedItems);
+    } catch (error) {
+      console.error('Failed to reload item database:', error);
+    }
+  });
+};
+
+
+export const queryItemDB = (itemId: string): IObject | undefined => {
+  const items = itemDB.get();
+  return items[itemId];
+};
+
 export const addItemToBackpack = (itemId: string) => {
   task(async () => {
     const player = playerData.get();
@@ -321,7 +368,7 @@ export const addItemToBackpack = (itemId: string) => {
   });
 };
 
-export const getItemDetails = (itemId: string): IObject | undefined => {
+export const getItemDetails = (itemId: string): IObject | IEquipment | undefined => {
   const items = itemStore.get();
   const item = items[itemId];
   if (item) {

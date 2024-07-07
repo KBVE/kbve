@@ -12,10 +12,15 @@ interface Props {
 const statSchema = z.object({
   title: z.string().optional(),
   data: z.string().optional(),
-  html: z.string().optional()
+  html: z.string().optional(),
 });
 
-const { collectionID, collectionTag, featured = true, background = false } = Astro.props;
+const {
+  collectionID,
+  collectionTag,
+  featured = true,
+  background = false,
+} = Astro.props;
 
 const servicesCollection = await getCollection(collectionID);
 
@@ -120,7 +125,11 @@ const displayItems = hasItems
           ) => (
             <div
               class={`flex flex-col overflow-hidden rounded-md shadow-sm lg:${index % 2 === 0 ? 'flex-row' : 'flex-row'} bg-zinc-100 dark:bg-zinc-900 bg-cover max-h-[500px]`}
-              style={background ? `background-image: url(https://images.unsplash.com/photo-${item.unsplash}?fit=crop&w=1400&h=500&q=75)` : ''}
+              style={
+                background
+                  ? `background-image: url(https://images.unsplash.com/photo-${item.unsplash}?fit=crop&w=1400&h=500&q=75)`
+                  : ''
+              }
               id={item.id}>
               <div class={`flex flex-col justify-center flex-1 p-2 md:p-6`}>
                 <div class="bg-cyan-400/90 p-2 md:p-4 inline-block">

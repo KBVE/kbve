@@ -23,6 +23,38 @@ import { Adsense } from '@kbve/astropad';
 For now, we should focus on getting the items to pull from the json and then save them on into the localdb.
 We can do this quickly, as I push the static api route up into the production.
 
+**Equipment**
+
+The equipment aspect of the game will be a bit tricky to render right this second, but we could still handle it within the text mode?
+Here is what I am thinking we would do for the interface:
+
+```ts
+
+export interface IEquipment extends IObject {
+  type: 'head' | 'body' | 'legs' | 'feet' | 'hands' | 'weapon' | 'shield' | 'accessory';
+  bonuses?: {
+    armor?: number;
+    intelligence?: number;
+    health?: number;
+    mana?: number;
+    [key: string]: number | undefined;
+  };
+  durability?: number;
+  weight?: number;
+}
+
+```
+
+We can work with that for now and then extend it out later on.
+
+
+**UI**
+
+For the game's UI/UX, we will have to maintain a submenu system that can be extended and utilized across this game and maybe even future games?
+Right now, we have this seperated from the laser library, I think it would be best to keep it isolated because different games will have different UI elements.
+There was a bug where the tooltip did not display exactly where the user had clicked, which seems a bit weird of a bug, but I was able to adjust the client's x and y to help with that.
+In the future, we could add some extra options to help with this customization, maybe different settings for offsets and things of that nature.
+
 ## 2023
 - 9:30am - Quick coffee trip before sitting down for a meeting and programming session. My general go to breakfast is some egg-form sandwich, coffee and sugar free red bulls!
 - 10:00am - Looks like a minor update came out for Astro! Going to read through that and then update the website. I am thinking I might also go back and migrate the RareIcon.com website from the general node package manager to yarn.
