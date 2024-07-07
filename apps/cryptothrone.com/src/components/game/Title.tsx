@@ -1,5 +1,7 @@
 import { Scene } from 'phaser';
 
+import { reloadItemDB } from '@kbve/laser';
+
 export class Title extends Scene {
     mainMenuButtonImage: Phaser.GameObjects.Image | undefined;
     mainMenuButtonText: Phaser.GameObjects.Text | undefined;
@@ -50,6 +52,8 @@ export class Title extends Scene {
             frameWidth: 52,
             frameHeight: 72,
         });
+
+        reloadItemDB();
 
     }
 

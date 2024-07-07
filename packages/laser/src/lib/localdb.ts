@@ -1,6 +1,8 @@
 import { persistentAtom } from '@nanostores/persistent';
 import { task } from 'nanostores';
 import { EventEmitter } from './eventhandler';
+import axios from 'axios';
+
 
 export interface IPlayerStats {
   username: string;
@@ -325,6 +327,32 @@ export const notificationsStore = createPersistentAtom<Notification[]>(
   'notifications',
   [],
 );
+
+export const itemDB = createPersistentAtom<Record<string, IObject>>(
+  'itemDB',
+  _initialItems,
+);
+
+export const reloadItemDB = () => {
+  task(async () => {
+    try {
+      const response = await axios.get('https://kbve.com/api/itemdb.json');
+      const items: Record<string, IObject> = response.data;
+      itemDB.set(items);
+    } catch (error) {
+      console.error('Failed to reload item database:', error);
+    }
+  });
+};
+
+export const queryItemDB = (itemId: string): IObject | undefined => {
+  let item;
+  task(() => {
+    const items = itemDB.get();
+    item = items[itemId];
+  });
+  return item;
+};
 
 export const addItemToBackpack = (itemId: string) => {
   task(async () => {
