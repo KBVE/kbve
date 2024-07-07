@@ -171,7 +171,7 @@ export interface IQuest<T = any> {
 
 export interface ItemActionEventData {
   itemId: string;
-  action: 'consume' | 'equip' | 'unequip' | 'discard' | 'view';
+  action: ItemAction['actionEvent'];
 }
 
 export interface PlayerViewItem {

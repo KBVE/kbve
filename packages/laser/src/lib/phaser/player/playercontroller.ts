@@ -1,8 +1,8 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
-import { EventEmitter, type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent } from '../../eventhandler';
+import { EventEmitter } from '../../eventhandler';
 import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, queryItemDB } from '../../localdb';
-import { type IObject } from '../../../types'
+import { type IObject,  type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent, type ItemActionEventData } from '../../../types'
 
 export class PlayerController {
   private scene: Scene;
@@ -35,6 +35,9 @@ export class PlayerController {
 
   private registerEventHandlers() {
     
+    //? Test Case
+    EventEmitter.on('itemAction', this.handleItemAction.bind(this));
+
     //! Broken
     EventEmitter.on('playerMove', this.handlePlayerMove.bind(this));
 
@@ -44,6 +47,15 @@ export class PlayerController {
 
     //* READY
     EventEmitter.on('playerDamage', this.handlePlayerCombatDamage.bind(this));
+  }
+
+  private handleItemAction(data?: ItemActionEventData )
+  {
+    console.log('Item Action');
+    if(data)
+      {
+        console.log('We are here');
+      }
   }
 
   private handlePlayerReward(data?: PlayerRewardEvent) {
