@@ -13,49 +13,31 @@ import {
 const renderTooltip = (
   itemId: string,
   tooltipPosition: { x: number; y: number },
-) => (
-  <div
-    style={{ top: tooltipPosition.y, left: tooltipPosition.x }}
-    className="absolute bg-gray-700 text-white p-2 rounded shadow-lg z-50"
-  >
-    <p className="text-sm">Actions:</p>
-    <ul className="text-xs">
-      <li
-        onClick={() => handleItemAction(itemId, 'consume')}
-        className="cursor-pointer hover:bg-gray-600"
-      >
-        Consume
-      </li>
-      <li
-        onClick={() => handleItemAction(itemId, 'equip')}
-        className="cursor-pointer hover:bg-gray-600"
-      >
-        Equip
-      </li>
-      <li
-        onClick={() => handleItemAction(itemId, 'unequip')}
-        className="cursor-pointer hover:bg-gray-600"
-      >
-        Unequip
-      </li>
-      <li
-        onClick={() => handleItemAction(itemId, 'discard')}
-        className="cursor-pointer hover:bg-gray-600"
-      >
-        Discard
-      </li>
-      <li
-        onClick={() => handleItemAction(itemId, 'view')}
-        className="cursor-pointer hover:bg-gray-600"
-      >
-        View
-      </li>
-    </ul>
-  </div>
-);
+) => {
+  const item = getItemDetails(itemId);
+  if (!item) {
+    return null;
+  }
 
-
-const renderEquipment = (itemId: string | null, showTooltip: (itemId: string, event: React.MouseEvent) => void, hideTooltip: () => void) => {
+  return (
+    <div
+      style={{ top: tooltipPosition.y, left: tooltipPosition.x }}
+      className="absolute bg-gray-700 text-white p-2 rounded shadow-lg z-50"
+    >
+      <p className="text-sm font-semibold">{item.name}</p>
+      <p className="text-xs">Type: {item.type}</p>
+      <p className="text-xs">Bonuses: {JSON.stringify(item.bonuses)}</p>
+      <p className="text-xs">Durability: {item.durability}</p>
+      <p className="text-xs">Weight: {item.weight}</p>
+    </div>
+  );
+};
+const renderEquipment = (
+  itemId: string | null,
+  showTooltip: (itemId: string, event: React.MouseEvent) => void,
+  hideTooltip: () => void,
+  handleItemClick: (itemId: string, event: React.MouseEvent) => void,
+) => {
   if (!itemId) {
     return (
       <li
@@ -72,8 +54,10 @@ const renderEquipment = (itemId: string | null, showTooltip: (itemId: string, ev
       className="text-sm relative"
       onMouseEnter={(e) => showTooltip(item.id, e)}
       onMouseLeave={hideTooltip}
+      onClick={(e) => handleItemClick(item.id, e)}
     >
-      {item.name} ({item.type}) - Bonuses: {JSON.stringify(item.bonuses)} - Durability: {item.durability} - Weight: {item.weight}
+      {item.name} ({item.type}) - Bonuses: {JSON.stringify(item.bonuses)} -
+      Durability: {item.durability} - Weight: {item.weight}
     </li>
   ) : null;
 };
@@ -95,6 +79,12 @@ const StickySidebar: React.FC = () => {
 
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{
+    x: number;
+    y: number;
+  }>({ x: 0, y: 0 });
+
+  const [submenuItemId, setSubmenuItemId] = useState<string | null>(null);
+  const [submenuPosition, setSubmenuPosition] = useState<{
     x: number;
     y: number;
   }>({ x: 0, y: 0 });
@@ -121,22 +111,37 @@ const StickySidebar: React.FC = () => {
     setTooltipItemId(null);
   };
 
+  const handleItemClick = (itemId: string, event: React.MouseEvent) => {
+    setSubmenuItemId(itemId);
+    setSubmenuPosition({ x: event.clientX, y: event.clientY });
+  };
+
+  const closeSubmenu = () => {
+    setSubmenuItemId(null);
+  };
+
   // Check if _playerStore$ is defined and has stats
   if (!_playerStore$ || !_playerStore$.stats) {
     return null; // Or render a loading state
   }
 
   return (
-    <div className="transition ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-12 left-0 transform translate-y-12 translate-x-10 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20">
+    <div className="transition transform ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Stats</h2>
-        <p className="text-sm text-green-400">{`HP: ${_playerStore$.stats.health || '0'} / ${_playerStore$.stats.maxHealth}`}</p>
-        <p className="text-sm text-blue-400">{`MP: ${_playerStore$.stats.mana || '0'} / ${_playerStore$.stats.maxMana}`}</p>
-        <p className="text-sm text-yellow-400">{`EP: ${_playerStore$.stats.energy || '0'} / ${_playerStore$.stats.maxEnergy}`}</p>
+        <p className="text-sm text-green-400">{`HP: ${
+          _playerStore$.stats.health || '0'
+        } / ${_playerStore$.stats.maxHealth}`}</p>
+        <p className="text-sm text-blue-400">{`MP: ${
+          _playerStore$.stats.mana || '0'
+        } / ${_playerStore$.stats.maxMana}`}</p>
+        <p className="text-sm text-yellow-400">{`EP: ${
+          _playerStore$.stats.energy || '0'
+        } / ${_playerStore$.stats.maxEnergy}`}</p>
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">User Information</h2>
-        
+
         <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>
       </div>
       <div className="mb-4">
@@ -145,7 +150,7 @@ const StickySidebar: React.FC = () => {
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Inventory</h2>
-        <ul>
+        <ul className="flex space-x-2">
           {_playerStore$.inventory.backpack.map((itemId, index) => {
             const item = getItemDetails(itemId);
             return item ? (
@@ -154,6 +159,7 @@ const StickySidebar: React.FC = () => {
                 className="text-sm relative"
                 onMouseEnter={(e) => showTooltip(item.id, e)}
                 onMouseLeave={hideTooltip}
+                onClick={(e) => handleItemClick(item.id, e)}
               >
                 {item.name} ({item.type}) - Durability: {item.durability} -
                 Weight: {item.weight}
@@ -164,50 +170,98 @@ const StickySidebar: React.FC = () => {
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Equipment</h2>
-        <ul className="grid grid-cols-8 gap-2">
+        <ul className="grid grid-cols-2 gap-2">
           {renderEquipment(
             _playerStore$.inventory.equipment.head,
             showTooltip,
             hideTooltip,
+            handleItemClick,
           )}
           {renderEquipment(
             _playerStore$.inventory.equipment.body,
             showTooltip,
             hideTooltip,
+            handleItemClick,
           )}
           {renderEquipment(
             _playerStore$.inventory.equipment.legs,
             showTooltip,
             hideTooltip,
+            handleItemClick,
           )}
           {renderEquipment(
             _playerStore$.inventory.equipment.feet,
             showTooltip,
             hideTooltip,
+            handleItemClick,
           )}
           {renderEquipment(
             _playerStore$.inventory.equipment.hands,
             showTooltip,
             hideTooltip,
+            handleItemClick,
           )}
           {renderEquipment(
             _playerStore$.inventory.equipment.weapon,
             showTooltip,
             hideTooltip,
+            handleItemClick,
           )}
           {renderEquipment(
             _playerStore$.inventory.equipment.shield,
             showTooltip,
             hideTooltip,
+            handleItemClick,
           )}
           {renderEquipment(
             _playerStore$.inventory.equipment.accessory,
             showTooltip,
             hideTooltip,
+            handleItemClick,
           )}
         </ul>
       </div>
       {tooltipItemId && renderTooltip(tooltipItemId, tooltipPosition)}
+      {submenuItemId && (
+        <div
+          style={{ top: submenuPosition.y, left: submenuPosition.x }}
+          className="absolute bg-gray-700 text-white p-2 rounded shadow-lg z-50"
+        >
+          <p className="text-sm">Actions:</p>
+          <ul className="text-xs">
+            <li
+              onClick={() => handleItemAction(submenuItemId, 'consume')}
+              className="cursor-pointer hover:bg-gray-600"
+            >
+              Consume
+            </li>
+            <li
+              onClick={() => handleItemAction(submenuItemId, 'equip')}
+              className="cursor-pointer hover:bg-gray-600"
+            >
+              Equip
+            </li>
+            <li
+              onClick={() => handleItemAction(submenuItemId, 'unequip')}
+              className="cursor-pointer hover:bg-gray-600"
+            >
+              Unequip
+            </li>
+            <li
+              onClick={() => handleItemAction(submenuItemId, 'discard')}
+              className="cursor-pointer hover:bg-gray-600"
+            >
+              Discard
+            </li>
+            <li
+              onClick={() => handleItemAction(submenuItemId, 'view')}
+              className="cursor-pointer hover:bg-gray-600"
+            >
+              View
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
