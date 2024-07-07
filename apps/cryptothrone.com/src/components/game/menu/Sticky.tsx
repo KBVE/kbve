@@ -9,7 +9,10 @@ import {
   type IPlayerInventory,
   type ItemActionEventData,
   type IEquipment,
+  type IObjectAction,
+  type ItemAction,
   getItemDetails,
+  getActionEvents,
 } from '@kbve/laser';
 
 const renderTooltip = (
@@ -119,11 +122,15 @@ const renderInventory = (
 
 const handleItemAction = (
   itemId: string,
-  action: 'consume' | 'equip' | 'unequip' | 'discard' | 'view',
+  action: ItemAction['actionEvent']
 ) => {
   const item = getItemDetails(itemId);
   if (item) {
-    EventEmitter.emit('itemAction', { itemId: item.id, action });
+    const eventData: ItemActionEventData = {
+      itemId: item.id,
+      action: action,
+    };
+    EventEmitter.emit('itemAction', eventData);
   }
 };
 
@@ -180,6 +187,9 @@ const StickySidebar: React.FC = () => {
     return null; // Or render a loading state
   }
 
+  // Get action events dynamically
+  const actions = submenuItemId ? getActionEvents(submenuItemId) : [];
+
   return (
     <div className="transition transform ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20">
       <div className="mb-4">
@@ -196,7 +206,6 @@ const StickySidebar: React.FC = () => {
       </div>
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">User Information</h2>
-
         <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>
       </div>
       <div className="mb-4">
@@ -237,36 +246,15 @@ const StickySidebar: React.FC = () => {
 
           <p className="text-sm strong">Actions:</p>
           <ul className="text-xs">
-            <li
-              onClick={() => handleItemAction(submenuItemId, 'consume')}
-              className="cursor-pointer hover:bg-gray-600"
-            >
-              Consume
-            </li>
-            <li
-              onClick={() => handleItemAction(submenuItemId, 'equip')}
-              className="cursor-pointer hover:bg-gray-600"
-            >
-              Equip
-            </li>
-            <li
-              onClick={() => handleItemAction(submenuItemId, 'unequip')}
-              className="cursor-pointer hover:bg-gray-600"
-            >
-              Unequip
-            </li>
-            <li
-              onClick={() => handleItemAction(submenuItemId, 'discard')}
-              className="cursor-pointer hover:bg-gray-600"
-            >
-              Discard
-            </li>
-            <li
-              onClick={() => handleItemAction(submenuItemId, 'view')}
-              className="cursor-pointer hover:bg-gray-600"
-            >
-              View
-            </li>
+            {actions.map((event) => (
+              <li
+                key={event}
+                onClick={() => handleItemAction(submenuItemId, event)}
+                className="cursor-pointer hover:bg-gray-600"
+              >
+                {event.charAt(0).toUpperCase() + event.slice(1)}
+              </li>
+            ))}
             {/* Close option at the bottom */}
             <li
               onClick={closeSubmenu}

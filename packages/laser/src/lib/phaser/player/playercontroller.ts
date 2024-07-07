@@ -1,7 +1,8 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
-import { EventEmitter, type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent } from '../../eventhandler';
-import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, type IObject, queryItemDB } from '../../localdb';
+import { EventEmitter } from '../../eventhandler';
+import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, queryItemDB, applyConsumableEffects, equipItem, getItemDetails, removeItemFromBackpack, unequipItem } from '../../localdb';
+import { type IObject,  type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent, type ItemActionEventData, IConsumable } from '../../../types'
 
 export class PlayerController {
   private scene: Scene;
@@ -32,8 +33,59 @@ export class PlayerController {
     }
   }
 
+
+  private handleConsume(itemId: string) {
+    const item = getItemDetails(itemId) as IConsumable;
+    if (item && item.consumable) {
+      console.log(`Consuming item: ${item.name}`);
+      applyConsumableEffects(item);
+      removeItemFromBackpack(item.id);
+    } else {
+      console.log(`Item ${itemId} is not consumable`);
+    }
+  }
+
+  private handleEquip(itemId: string) {
+    const item = getItemDetails(itemId) as IObject;
+    if (item) {
+      console.log(`Equipping item: ${item.name}`);
+      // Assuming 'weapon' slot as an example, update according to your slots
+      equipItem('weapon', item.id);
+    }
+  }
+
+  private handleUnequip(itemId: string) {
+    const item = getItemDetails(itemId) as IObject;
+    if (item) {
+      console.log(`Unequipping item: ${item.name}`);
+      // Assuming 'weapon' slot as an example, update according to your slots
+      unequipItem('weapon');
+    }
+  }
+
+  private handleDiscard(itemId: string) {
+    console.log(`Discarding item: ${itemId}`);
+    removeItemFromBackpack(itemId);
+  }
+
+  private handleView(itemId: string) {
+    const item = getItemDetails(itemId);
+    if (item) {
+      console.log(`Viewing item: ${item.name} with ${item.slug}`);
+      if (item.slug) {
+        const url = `https://kbve.com/${item.slug}`;
+        window.open(url, '_blank');
+      }
+      // https://kbve.com/itemdb/food/fish/
+      // Implement view logic, e.g., show item details in UI
+    }
+  }
+  
   private registerEventHandlers() {
     
+    //? Test Case
+    EventEmitter.on('itemAction', this.handleItemAction.bind(this));
+
     //! Broken
     EventEmitter.on('playerMove', this.handlePlayerMove.bind(this));
 
@@ -43,6 +95,33 @@ export class PlayerController {
 
     //* READY
     EventEmitter.on('playerDamage', this.handlePlayerCombatDamage.bind(this));
+  }
+
+  private handleItemAction(data?: ItemActionEventData )
+  {
+    if(data)
+      {
+        console.log(`Preparing Action: ${data.itemId} with ${data.action}`);
+        switch (data.action) {
+          case 'consume':
+            this.handleConsume(data.itemId);
+            break;
+          case 'equip':
+            this.handleEquip(data.itemId);
+            break;
+          case 'unequip':
+            this.handleUnequip(data.itemId);
+            break;
+          case 'discard':
+            this.handleDiscard(data.itemId);
+            break;
+          case 'view':
+            this.handleView(data.itemId);
+            break;
+          default:
+            console.log(`Unknown action: ${data.action}`);
+        }
+      }
   }
 
   private handlePlayerReward(data?: PlayerRewardEvent) {

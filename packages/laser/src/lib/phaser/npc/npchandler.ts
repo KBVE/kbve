@@ -1,5 +1,7 @@
 // NPCHandler.ts
-import { EventEmitter, type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData} from '../../eventhandler';
+import { EventEmitter } from '../../eventhandler';
+
+import { type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData } from '../../../types';
 
 interface NPCActionHandlers {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
