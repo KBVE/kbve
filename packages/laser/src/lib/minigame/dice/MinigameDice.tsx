@@ -22,7 +22,7 @@ const MinigameDice: React.FC<MinigameDiceProps> = (props) => {
   }, []);
 
   return (
-    <div className={`flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100 ${styleClass}`}>
+    <div className={`flex flex-col items-center justify-center ${styleClass}`}>
       <h1 className="text-2xl font-bold mb-4">Pixelated Spinning Dice</h1>
       <Canvas className="w-full h-full" camera={{ position: [0, 0, 5] }}>
         <ambientLight intensity={0.5} />

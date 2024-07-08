@@ -294,6 +294,8 @@ export interface PixelatedDiceProps {
   side4: string;
   side5: string;
   side6: string;
+  isRolling: boolean;
+  dice: number;
 }
 
 export interface MinigameDiceProps extends PixelatedDiceProps {

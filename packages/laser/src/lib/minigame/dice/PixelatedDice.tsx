@@ -5,8 +5,10 @@ import * as THREE from 'three';
 
 import { PixelatedDiceProps } from '../../../types';
 
-const PixelatedDice: React.FC<PixelatedDiceProps> = ({ side1, side2, side3, side4, side5, side6 }) => {
+
+const PixelatedDice: React.FC<PixelatedDiceProps> = ({ side1, side2, side3, side4, side5, side6, isRolling, dice }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const positionRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0, z: 0 });
 
   useEffect(() => {
     const loader = new THREE.TextureLoader();
@@ -25,10 +27,24 @@ const PixelatedDice: React.FC<PixelatedDiceProps> = ({ side1, side2, side3, side
     }
   }, [side1, side2, side3, side4, side5, side6]);
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     if (meshRef.current) {
-      meshRef.current.rotation.x += 0.01;
-      meshRef.current.rotation.y += 0.01;
+      if (isRolling) {
+        // Randomize position and rotation while rolling
+        positionRef.current.x += (Math.random() - 0.5) * delta * 10;
+        positionRef.current.y += (Math.random() - 0.5) * delta * 10;
+        positionRef.current.z += (Math.random() - 0.5) * delta * 10;
+        meshRef.current.rotation.x += 0.2;
+        meshRef.current.rotation.y += 0.2;
+      } else {
+        // Reset to initial position and rotation
+        positionRef.current.x = THREE.MathUtils.lerp(positionRef.current.x, 0, 0.1);
+        positionRef.current.y = THREE.MathUtils.lerp(positionRef.current.y, 0, 0.1);
+        positionRef.current.z = THREE.MathUtils.lerp(positionRef.current.z, 0, 0.1);
+        meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, 0, 0.1);
+        meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, 0, 0.1);
+      }
+      meshRef.current.position.set(positionRef.current.x, positionRef.current.y, positionRef.current.z);
     }
   });
 
