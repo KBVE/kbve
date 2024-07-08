@@ -12,6 +12,10 @@ export * from './lib/localdb';
 export { default as CollapseIcon } from './lib/icon/CollapseIcon';
 export { default as ExpandIcon } from './lib/icon/ExpandIcon';
 
+// MiniGames
+
+export { default as MinigameDice } from './lib/minigame/dice/MinigameDice';
+
 // Phaser
 
 export * from './lib/phaser/player/playercontroller';
