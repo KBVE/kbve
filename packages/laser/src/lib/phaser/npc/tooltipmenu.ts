@@ -43,11 +43,12 @@ export class TooltipMenu extends Phaser.GameObjects.Container {
 
   static attachToSprite(scene: Scene, sprite: Phaser.GameObjects.Sprite, text: string, actions: { label: string, callback: () => void }[]) {
     sprite.setInteractive();
-    sprite.on('pointerover', () => {
+    sprite.on('pointerover', (pointer: { x: number; y: number; }) => {
       const npcInteractionData: NPCInteractionEventData = {
         npcId: sprite.name,
         npcName: text,
         actions: actions.map(action => action.label),
+        coords: { x: pointer.x, y: pointer.y}
       };
       EventEmitter.emit('npcInteraction', npcInteractionData);
       // Code to show the tooltip
