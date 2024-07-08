@@ -188,14 +188,11 @@ const StickySidebar: React.FC = () => {
     }
   };
 
-  // Check if _playerStore$ is defined and has stats
   if (!_playerStore$ || !_playerStore$.stats) {
+    // Check if _playerStore$ is defined and has stats
     return null; // Or render a loading state
   }
 
-  // Get action events dynamically
-  //  const actions = submenuItemId ? getActionEvents(submenuItemId) : [];
-  //const actions = getUserSetting('submenuItem').id ? getActionEvents(getUserSetting('submenuItem').id) : [];
   const submenuItem = getUserSetting('submenuItem');
   const actions = submenuItem.id ? getActionEvents(submenuItem.id) : [];
 
@@ -219,7 +216,7 @@ const StickySidebar: React.FC = () => {
         )}
       </button>
       <div
-        className={`transition transform duration-1000 ease-in-out overflow-hidden ${getUserSetting('isStatsMenuCollapsed') ? 'max-h-0' : 'max-h-screen'}`}
+        className={`transition transform duration-1000 ease-in-out ${getUserSetting('isStatsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
       >
         <div className="mb-4">
           <h2 className="text-lg font-semibold mb-2">Stats</h2>
