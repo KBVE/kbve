@@ -3,14 +3,7 @@ import React, { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-interface PixelatedDiceProps {
-  side1: string;
-  side2: string;
-  side3: string;
-  side4: string;
-  side5: string;
-  side6: string;
-}
+import { PixelatedDiceProps } from '../../../types';
 
 const PixelatedDice: React.FC<PixelatedDiceProps> = ({ side1, side2, side3, side4, side5, side6 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
