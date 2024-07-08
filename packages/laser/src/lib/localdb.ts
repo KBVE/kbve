@@ -17,7 +17,13 @@ import {
   ItemAction,
   NotificationType,
   UserSettings,
+  MinigameState,
+  GameMode,
+  MinigameAction,
+  MinigameTextures
 } from '../types';
+
+import { createULID } from './utils/ulid';
 
 const _IQuest: IQuest = {
   id: '',
@@ -79,6 +85,24 @@ const defaultSettings: UserSettings = {
   submenuItem: { id: null, position: { x: 0, y: 0 } },
   tooltipNPC: { id: null, position: { x: 0, y: 0 } },
   isStatsMenuCollapsed: false,
+};
+
+
+export const initialMinigameState: MinigameState = {
+  gamemode: 'Idle',
+  action: {
+    type: 'ROLL_DICE',
+    diceValues: [],
+    isRolling: false,
+  },
+  textures: {
+    side1: '',
+    side2: '',
+    side3: '',
+    side4: '',
+    side5: '',
+    side6: '',
+  },
 };
 
 export function completeTask<T>(
@@ -215,6 +239,12 @@ export const settings = createPersistentAtom<UserSettings>(
   'settings',
   defaultSettings,
 );
+
+export const minigameState = createPersistentAtom<MinigameState>(
+  'minigameState',
+  initialMinigameState
+);
+
 
 export const getUserSetting = <T extends keyof UserSettings>(key: T): UserSettings[T] => {
   return settings.get()[key];
@@ -640,41 +670,46 @@ export const notificationType: Record<string, NotificationType> = {
   },
 };
 
-const crockford32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+//** MiniGames */
 
-function padStart(str: string, length: number, pad: string): string {
-  while (str.length < length) {
-    str = pad + str;
+
+export function updateMinigameState(updates: Partial<MinigameState>) {
+  try {
+    task(async () => {
+      const state = minigameState.get();
+      minigameState.set({ ...state, ...updates });
+    });
+  } catch (error) {
+    console.error('Error updating minigame state:', error);
   }
-  return str;
 }
 
-function randomChar(): string {
-  const random = Math.floor(Math.random() * crockford32.length);
-  return crockford32.charAt(random);
+export function setGameMode(gamemode: GameMode) {
+  updateMinigameState({ gamemode });
 }
 
-function randomChars(count: number): string {
-  let str = '';
-  for (let i = 0; i < count; i++) {
-    str += randomChar();
+export function setAction(action: MinigameAction) {
+  updateMinigameState({ action });
+}
+
+export function setTextures(textures: MinigameTextures) {
+  updateMinigameState({ textures });
+}
+
+export function updateDiceValues(diceValues: number[]) {
+  const state = minigameState.get();
+  if (state.gamemode === 'Dice' && state.action.type === 'ROLL_DICE') {
+    updateMinigameState({
+      action: { ...state.action, diceValues } as MinigameAction,
+    });
   }
-  return str;
 }
 
-function encodeTime(time: number, length: number): string {
-  let str = '';
-  for (let i = length - 1; i >= 0; i--) {
-    const mod = time % crockford32.length;
-    str = crockford32.charAt(mod) + str;
-    time = Math.floor(time / crockford32.length);
+export function setRollingStatus(isRolling: boolean) {
+  const state = minigameState.get();
+  if (state.gamemode === 'Dice' && state.action.type === 'ROLL_DICE') {
+    updateMinigameState({
+      action: { ...state.action, isRolling } as MinigameAction,
+    });
   }
-  return padStart(str, length, crockford32[0]);
-}
-
-export function createULID(): string {
-  const timestamp = Date.now();
-  const timePart = encodeTime(timestamp, 10);
-  const randomPart = randomChars(16);
-  return timePart + randomPart;
 }

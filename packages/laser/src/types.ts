@@ -287,22 +287,14 @@ export interface TaskCompletionEventData {
   isComplete: boolean;
 }
 
-export interface PixelatedDiceProps {
-  side1: string;
-  side2: string;
-  side3: string;
-  side4: string;
-  side5: string;
-  side6: string;
-  isRolling: boolean;
-  dice: number;
-}
 
-export interface MinigameDiceProps extends PixelatedDiceProps {
+export interface MinigameDiceProps {
   styleClass?: string;
+  textures: DiceTextures;
+  diceCount: number;
 }
 
-export type GameMode = 'Dice' | 'Slot' | 'War';
+export type GameMode = 'Idle' | 'Dice' | 'Slot' | 'War';
 
 export interface DiceAction {
   type: 'ROLL_DICE';
@@ -350,4 +342,11 @@ export interface MinigameState {
   gamemode: GameMode;
   action: MinigameAction;
   textures: MinigameTextures;
+}
+
+
+// Type Guards
+
+export function isDiceAction(action: MinigameAction): action is DiceAction {
+  return action.type === 'ROLL_DICE';
 }

@@ -1,41 +1,107 @@
+import React, { useEffect, useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useStore } from '@nanostores/react';
+import { minigameState, setGameMode, setAction, setTextures, updateDiceValues, setRollingStatus } from '../../localdb';
+import { DiceTextures, MinigameDiceProps, isDiceAction } from '../../../types';
+import * as THREE from 'three';
 
-import React, { useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import PixelatedDice from './PixelatedDice';
+const PixelatedDice: React.FC<{ diceValues: number[], isRolling: boolean, textures: DiceTextures }> = ({ diceValues, isRolling, textures }) => {
+  const diceRefs = useRef<THREE.Mesh[]>([]);
+  const materialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
 
-import  { MinigameDiceProps } from '../../../types';
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    materialsRef.current = [
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side1) }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side2) }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side3) }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side4) }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side5) }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side6) }),
+    ];
 
+    diceRefs.current.forEach((dice) => {
+      if (dice) {
+        dice.material = materialsRef.current;
+      }
+    });
+  }, [textures]);
 
-const MinigameDice: React.FC<MinigameDiceProps> = (props) => {
-  const { styleClass, ...diceProps } = props;
-  const [isRolling, setIsRolling] = useState(false);
+  useFrame(() => {
+    diceRefs.current.forEach(dice => {
+      if (dice) {
+        if (isRolling) {
+          dice.rotation.x += 0.2;
+          dice.rotation.y += 0.2;
+        } else {
+          dice.rotation.x = THREE.MathUtils.lerp(dice.rotation.x, 0, 0.1);
+          dice.rotation.y = THREE.MathUtils.lerp(dice.rotation.y, 0, 0.1);
+        }
+      }
+    });
+  });
+
+  return (
+    <>
+      {diceValues.map((value, index) => (
+        <mesh
+          key={index}
+          ref={el => diceRefs.current[index] = el!}
+          position={[index * 2 - (diceValues.length - 1), 0, 0]}
+          rotation={new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI)}
+        >
+          <boxGeometry args={[1, 1, 1]} />
+          {materialsRef.current.map((material, i) => (
+            <meshStandardMaterial attach={`material-${i}`} map={material.map} key={i} />
+          ))}
+        </mesh>
+      ))}
+    </>
+  );
+};
+
+const MinigameDice: React.FC<MinigameDiceProps> = ({ styleClass, textures, diceCount }) => {
+  const state = useStore(minigameState);
+
+  useEffect(() => {
+    setGameMode('Dice');
+    setTextures(textures);
+    setAction({
+      type: 'ROLL_DICE',
+      diceValues: Array(diceCount).fill(1),
+      isRolling: false,
+    });
+  }, [textures, diceCount]);
 
   const rollDice = () => {
-    setIsRolling(true);
+    setRollingStatus(true);
     setTimeout(() => {
-      setIsRolling(false);
+      const newValues = Array.from({ length: diceCount }, () => Math.floor(Math.random() * 6) + 1);
+      console.log('New dice values:', newValues);
+      updateDiceValues(newValues);
+      setRollingStatus(false);
     }, 2000); // Duration matches the animation
   };
 
-  useEffect(() => {
-    rollDice();
-  }, []);
-
   return (
-    <div className={`flex flex-col items-center justify-center ${styleClass}`}>
+    <div className={`flex flex-col items-center justify-center p-4 ${styleClass}`}>
       <h1 className="text-2xl font-bold mb-4">Pixelated Spinning Dice</h1>
       <Canvas className="w-full h-full" camera={{ position: [0, 0, 5] }}>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
-        <PixelatedDice {...diceProps} />
+        {isDiceAction(state.action) && (
+          <PixelatedDice diceValues={state.action.diceValues} isRolling={state.action.isRolling} textures={state.textures as DiceTextures} />
+        )}
       </Canvas>
-      <button
-        onClick={rollDice}
-        className={`mt-4 p-2 border border-gray-300 rounded ${isRolling ? 'opacity-50' : ''}`}
-        disabled={isRolling}
-      >
-        Roll Dice
-      </button>
+      {isDiceAction(state.action) && (
+        <button
+          onClick={rollDice}
+          className={`mt-4 p-2 border border-gray-300 rounded ${state.action.isRolling ? 'opacity-50' : ''}`}
+          disabled={state.action.isRolling}
+        >
+          Roll Dice
+        </button>
+      )}
     </div>
   );
 };
