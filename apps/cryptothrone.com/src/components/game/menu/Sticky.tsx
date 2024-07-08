@@ -216,7 +216,7 @@ const StickySidebar: React.FC = () => {
         )}
       </button>
       <div
-        className={`transition transform duration-1000 ease-in-out overflow-hidden ${getUserSetting('isStatsMenuCollapsed') ? 'max-h-0' : 'max-h-screen'}`}
+        className={`transition transform duration-1000 ease-in-out ${getUserSetting('isStatsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
       >
         <div className="mb-4">
           <h2 className="text-lg font-semibold mb-2">Stats</h2>

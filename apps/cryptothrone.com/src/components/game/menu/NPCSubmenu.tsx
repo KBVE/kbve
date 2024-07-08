@@ -4,6 +4,7 @@ import { useStore } from '@nanostores/react';
 import { npcHandler, type NPCInteractionEventData } from '@kbve/laser';
 import { npcInteractionStore } from './tempstore';
 
+
 const NPCSubmenu: React.FC = () => {
   const _npc$ = useStore(npcInteractionStore);
 

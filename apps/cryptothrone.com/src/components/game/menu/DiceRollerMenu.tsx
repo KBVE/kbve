@@ -4,6 +4,9 @@ import { useStore } from '@nanostores/react';
 import { npcInteractionStore, playerStealDiceRoll} from './tempstore';
 import { EventEmitter, notificationType, queryItemDB} from '@kbve/laser';
 
+
+import { MinigameDice } from '@kbve/laser';
+
 const DiceRollModal: React.FC = () => {
   const [diceRoll, setDiceRoll] = useState<number | null>(null);
 
@@ -51,8 +54,20 @@ const DiceRollModal: React.FC = () => {
   if (!_npc$ || !_stolen$) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white p-4 rounded-lg shadow-lg max-w-xs w-full">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-zinc-800 bg-opacity-50">
+      <div className="bg-zinc-800 p-4 rounded-lg shadow-lg max-w-xs w-full">
+        <MinigameDice
+            textures={{
+            side1: '/assets/items/set/dice/dice1.png',
+            side2: '/assets/items/set/dice/dice2.png',
+            side3: '/assets/items/set/dice/dice3.png',
+            side4: '/assets/items/set/dice/dice4.png',
+            side5: '/assets/items/set/dice/dice5.png',
+            side6: '/assets/items/set/dice/dice6.png'
+            }}
+            styleClass="h-96"
+            diceCount={2}
+        />
         <h2 className="text-lg font-bold mb-4">Steal Attempt</h2>
         <p className="mb-4">Roll the dice to steal from {_npc$.npcName}. You need a total of 7 or higher to succeed.</p>
         <button
@@ -71,6 +86,7 @@ const DiceRollModal: React.FC = () => {
           Close
         </button>
       </div>
+     
     </div>
   );
 };
