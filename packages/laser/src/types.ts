@@ -295,3 +295,7 @@ export interface PixelatedDiceProps {
   side5: string;
   side6: string;
 }
+
+export interface MinigameDiceProps extends PixelatedDiceProps {
+  styleClass?: string;
+}
