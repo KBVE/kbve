@@ -5,6 +5,15 @@ import { minigameState, setGameMode, setAction, setTextures, updateDiceValues, s
 import { DiceTextures, MinigameDiceProps, isDiceAction } from '../../../types';
 import * as THREE from 'three';
 
+const diceOrientations = [
+  new THREE.Euler(0, 0, 0), // 1
+  new THREE.Euler(Math.PI / 2, 0, 0), // 2
+  new THREE.Euler(-Math.PI / 2, 0, 0), // 3
+  new THREE.Euler(0, Math.PI / 2, 0), // 4
+  new THREE.Euler(0, -Math.PI / 2, 0), // 5
+  new THREE.Euler(Math.PI, 0, 0) // 6
+];
+
 const PixelatedDice: React.FC<{ diceValues: number[], isRolling: boolean, textures: DiceTextures }> = ({ diceValues, isRolling, textures }) => {
   const diceRefs = useRef<THREE.Mesh[]>([]);
   const materialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
@@ -28,14 +37,16 @@ const PixelatedDice: React.FC<{ diceValues: number[], isRolling: boolean, textur
   }, [textures]);
 
   useFrame(() => {
-    diceRefs.current.forEach(dice => {
+    diceRefs.current.forEach((dice, index) => {
       if (dice) {
         if (isRolling) {
           dice.rotation.x += 0.2;
           dice.rotation.y += 0.2;
         } else {
-          dice.rotation.x = THREE.MathUtils.lerp(dice.rotation.x, 0, 0.1);
-          dice.rotation.y = THREE.MathUtils.lerp(dice.rotation.y, 0, 0.1);
+          const targetRotation = diceOrientations[diceValues[index] - 1];
+          dice.rotation.x = THREE.MathUtils.lerp(dice.rotation.x, targetRotation.x, 0.1);
+          dice.rotation.y = THREE.MathUtils.lerp(dice.rotation.y, targetRotation.y, 0.1);
+          dice.rotation.z = THREE.MathUtils.lerp(dice.rotation.z, targetRotation.z, 0.1);
         }
       }
     });
@@ -48,10 +59,9 @@ const PixelatedDice: React.FC<{ diceValues: number[], isRolling: boolean, textur
           key={index}
           ref={el => diceRefs.current[index] = el!}
           position={[index * 2 - (diceValues.length - 1), 0, 0]}
-          rotation={new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI)}
         >
           <boxGeometry args={[1, 1, 1]} />
-          {materialsRef.current.map((material, i) => (
+          {materialsRef.current.length === 6 && materialsRef.current.map((material, i) => (
             <meshStandardMaterial attach={`material-${i}`} map={material.map} key={i} />
           ))}
         </mesh>
