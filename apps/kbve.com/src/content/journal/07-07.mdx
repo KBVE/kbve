@@ -109,3 +109,27 @@ Now the next fun begins, which will be to find a way to implement the dice rolli
 I am thinking we should do this whole Dice rolling using just React and Three, so that we can utilize this dice rolling in the future and across other applications, like Unity.
 After drafting out the dice plans, I was going to originally do a multi-dye , with the option of swapping out different ranges to create that perfect illusion of dice rolling.
 Yet for some reason, I felt the need to just use a simple 6 face set of dice, we could adjust the 
+
+We got to this part so far:
+
+```ts 
+dice.rotation.set(Math.PI, 0, 0);  // shows 6
+dice.rotation.set(0, 0, -Math.PI / 2) // Shows a 5
+          dice.rotation.set(Math.PI / 2, Math.PI, Math.PI)  // shows a 4
+dice.rotation.set(0, -Math.PI / 2, -Math.PI / 2) // shows a 3
+dice.rotation.set(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2)  // shows a 1
+
+ ```
+
+ Getting closer
+
+ ```ts 
+
+   1: new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2),          // Face 1 on top
+  2: new THREE.Euler(Math.PI / 2, 0, 0), // Face 2 on top
+  3: new THREE.Euler(0, -Math.PI / 2, -Math.PI / 2), // Face 3 on top
+  4: new THREE.Euler(Math.PI / 2, Math.PI, Math.PI),// Face 4 on top
+  5: new THREE.Euler(0, 0, -Math.PI / 2),// Face 5 on top
+  6: new THREE.Euler(Math.PI, 0, 0),    // Face 6 on top
+
+  ```
