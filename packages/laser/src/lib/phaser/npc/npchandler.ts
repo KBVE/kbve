@@ -65,20 +65,35 @@ class NPCHandler {
     // Implement check fish logic here
   }
 
+  
   attachNPCEvent<T>(sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[], data?: T) {
     sprite.setInteractive();
-    sprite.on('pointerover', () => {
+    sprite.on('pointerover', (pointer: { x: number; y: number; }) => {
       const npcInteractionData: NPCInteractionEventData<T> = {
         npcId: sprite.name || '',
         npcName: title,
         actions: actions.map(action => action.label),
-        data: data || {} as T // Use provided data or an empty object
+        data: data || {} as T ,
+        coords: { x: pointer.x, y: pointer.y}
       };
       EventEmitter.emit('npcInteraction', npcInteractionData);
     });
 
     sprite.on('pointerout', () => {
       // EventEmitter.emit('npcInteraction', null);
+    });
+
+    sprite.on('pointerdown', (pointer: { x: number; y: number; }) => {
+      const npcInteractionData: NPCInteractionEventData<T> = {
+        npcId: sprite.name || '',
+        npcName: title,
+        actions: actions.map(action => action.label),
+        data: data || {} as T,
+        coords: { x: pointer.x, y: pointer.y}
+      };
+      console.log(`Click Registered at X: ${npcInteractionData.coords.x} Y: ${npcInteractionData.coords.y}`);
+      EventEmitter.emit('npcInteractionClick', npcInteractionData, 1000);
+      
     });
   }
 }

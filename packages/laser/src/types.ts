@@ -234,6 +234,10 @@ export interface NPCInteractionEventData<T = any> {
   npcName: string;
   actions: string[];
   data?: T;
+  coords: {
+    x: number;
+    y: number;
+  };
 }
 
 export interface NPCMessageEventData {

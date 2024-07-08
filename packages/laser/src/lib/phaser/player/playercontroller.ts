@@ -95,7 +95,7 @@ export class PlayerController {
     EventEmitter.on('playerMove', this.handlePlayerMove.bind(this));
 
     //TODO Steal
-    EventEmitter.on('playerSteal', this.handlePlayerSteal.bind(this));
+    //EventEmitter.on('playerSteal', this.handlePlayerSteal.bind(this));
     EventEmitter.on('playerReward', this.handlePlayerReward.bind(this));
 
     //* READY
@@ -155,37 +155,37 @@ export class PlayerController {
     }
   }
   
-  private handlePlayerSteal(data?: PlayerStealEventData)
-  {
-    if(data) {
-      if (Math.random() > 0.5) {
+  // private handlePlayerSteal(data?: PlayerStealEventData)
+  // {
+  //   if(data) {
+  //     if (Math.random() > 0.5) {
 
-        const item = queryItemDB('Salmon')
+  //       const item = queryItemDB('Salmon')
 
-        if (item) {
-          EventEmitter.emit('playerReward', {
-            message: `You stole a ${item.name}!`,
-            item: item,
-          }, 2000);
-        } else {
-          console.warn('Item not found in ItemDB');
-        }
-      }
-      else
-      {
-           // console.log('Performing the Action to Steal');
-        // Fail for now.
-        EventEmitter.emit('notification', {
-          title: 'Danger',
-          message: `You failed to steal from ${data.npcName}!`,
-          notificationType: notificationType['danger'],
-        });
-        EventEmitter.emit('playerDamage', {
-          damage: '1'
-        });
-      }
-    }
-  }
+  //       if (item) {
+  //         EventEmitter.emit('playerReward', {
+  //           message: `You stole a ${item.name}!`,
+  //           item: item,
+  //         }, 2000);
+  //       } else {
+  //         console.warn('Item not found in ItemDB');
+  //       }
+  //     }
+  //     else
+  //     {
+  //          // console.log('Performing the Action to Steal');
+  //       // Fail for now.
+  //       EventEmitter.emit('notification', {
+  //         title: 'Danger',
+  //         message: `You failed to steal from ${data.npcName}!`,
+  //         notificationType: notificationType['danger'],
+  //       });
+  //       EventEmitter.emit('playerDamage', {
+  //         damage: '1'
+  //       });
+  //     }
+  //   }
+  // }
 
   private handlePlayerMove(data?: PlayerMoveEventData) {
     if (data) {

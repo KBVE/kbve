@@ -9,6 +9,7 @@ export type EventData = {
   sceneTransition: SceneTransitionEventData;
   taskCompletion: TaskCompletionEventData;
   npcInteraction: NPCInteractionEventData;
+  npcInteractionClick: NPCInteractionEventData;
   playerMove: PlayerMoveEventData;
   notification: NotificationEventData;
   playerSteal: PlayerStealEventData;

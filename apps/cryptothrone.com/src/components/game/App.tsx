@@ -17,7 +17,7 @@ export function App() {
   return (
     <StyledApp>
       <Sticky />
-      <MinigameDice
+      {/* <MinigameDice
         textures={{
           side1: '/assets/items/set/dice/dice1.png',
           side2: '/assets/items/set/dice/dice2.png',
@@ -28,7 +28,7 @@ export function App() {
         }}
         styleClass="h-96"
         diceCount={2}
-      />
+      /> */}
       <div className="flex justify-center items-center h-screen">
       <div className="border-4 border-yellow-500 rounded-xl">
       <GameWindow />

@@ -188,14 +188,11 @@ const StickySidebar: React.FC = () => {
     }
   };
 
-  // Check if _playerStore$ is defined and has stats
   if (!_playerStore$ || !_playerStore$.stats) {
+    // Check if _playerStore$ is defined and has stats
     return null; // Or render a loading state
   }
 
-  // Get action events dynamically
-  //  const actions = submenuItemId ? getActionEvents(submenuItemId) : [];
-  //const actions = getUserSetting('submenuItem').id ? getActionEvents(getUserSetting('submenuItem').id) : [];
   const submenuItem = getUserSetting('submenuItem');
   const actions = submenuItem.id ? getActionEvents(submenuItem.id) : [];
 
