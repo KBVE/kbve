@@ -1,4 +1,4 @@
-import type { IPlayerData, NotificationType, IObject, CharacterEventData, GameEvent, ItemActionEventData, NPCInteractionEventData, NotificationEventData, OpenModalEventData, PlayerCombatDamage, PlayerEventData, PlayerMoveEventData, PlayerRewardEvent, PlayerStealEventData, SceneTransitionEventData, TaskCompletionEventData, WASMEventData } from '../types';
+import type { IPlayerData, NotificationType, IObject, DiceRollResultEventData, CharacterEventData, GameEvent, ItemActionEventData, NPCInteractionEventData, NotificationEventData, OpenModalEventData, PlayerCombatDamage, PlayerEventData, PlayerMoveEventData, PlayerRewardEvent, PlayerStealEventData, SceneTransitionEventData, TaskCompletionEventData, WASMEventData } from '../types';
 
 export type EventData = {
   openModal: OpenModalEventData;
@@ -9,12 +9,14 @@ export type EventData = {
   sceneTransition: SceneTransitionEventData;
   taskCompletion: TaskCompletionEventData;
   npcInteraction: NPCInteractionEventData;
+  npcInteractionClick: NPCInteractionEventData;
   playerMove: PlayerMoveEventData;
   notification: NotificationEventData;
   playerSteal: PlayerStealEventData;
   playerDamage: PlayerCombatDamage;
   playerReward: PlayerRewardEvent;
   itemAction: ItemActionEventData;
+  diceRollResult: DiceRollResultEventData;
 };
 
 type EventHandler<T> = (data?: T) => void;
