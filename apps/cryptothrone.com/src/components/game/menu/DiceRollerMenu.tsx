@@ -1,24 +1,33 @@
 // DiceRollModal.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { npcInteractionStore} from './tempstore';
-import { EventEmitter, notificationType, queryItemDB} from '@kbve/laser';
+import { EventEmitter, notificationType, queryItemDB, minigameState, type DiceRollResultEventData, isDiceAction, type MinigameAction} from '@kbve/laser';
 
 
-import { MinigameDice } from '@kbve/laser';
+import { MinigameDice, setRollingStatus, updateDiceValues } from '@kbve/laser';
 
 const DiceRollModal: React.FC = () => {
-  const [diceRoll, setDiceRoll] = useState<number | null>(null);
-
+ 
   const _npc$ = useStore(npcInteractionStore);
 
-  const rollDice = () => {
-    const roll = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
-    setDiceRoll(roll);
-    handleRollResult(roll);
-  };
 
-  const handleRollResult = (roll: number) => {
+  useEffect(() => {
+    const handleDiceRollResult = (newValues?: DiceRollResultEventData) => {
+        if(newValues){
+            handleRollResult(newValues.diceValues);
+        }
+    };
+
+    EventEmitter.on('diceRollResult', handleDiceRollResult);
+    return () => {
+      EventEmitter.off('diceRollResult', handleDiceRollResult);
+    };
+  }, [_npc$]);
+
+
+  const handleRollResult = (newValues: number[]) => {
+    const roll = newValues.reduce((acc, val) => acc + val, 0);
     if (_npc$) {
       if (roll >= 7) {
         const item = queryItemDB('Salmon');
@@ -26,8 +35,7 @@ const DiceRollModal: React.FC = () => {
           EventEmitter.emit('playerReward', {
             message: `You successfully stole a ${item.name}!`,
             item: item,
-          }, 2000);
-         
+          });
         } else {
           console.warn('Item not found in ItemDB');
         }
@@ -42,14 +50,17 @@ const DiceRollModal: React.FC = () => {
         });
       }
     }
-    
   };
 
+
+
   const handleClose = () => {
+    updateDiceValues([]);
     npcInteractionStore.set(null);
   };
 
   if (!_npc$) return null;
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-zinc-800 bg-opacity-50">
@@ -57,25 +68,25 @@ const DiceRollModal: React.FC = () => {
         <h2 className="text-lg font-bold mb-4">Steal Attempt</h2>
         <p className="mb-4">Roll the dice to steal from {_npc$.npcName}. You need a total of 7 or higher to succeed.</p>
         <MinigameDice
-            textures={{
+          textures={{
             side1: '/assets/items/set/dice/dice1.png',
             side2: '/assets/items/set/dice/dice2.png',
             side3: '/assets/items/set/dice/dice3.png',
             side4: '/assets/items/set/dice/dice4.png',
             side5: '/assets/items/set/dice/dice5.png',
             side6: '/assets/items/set/dice/dice6.png'
-            }}
-            styleClass="h-96"
-            diceCount={2}
+          }}
+          styleClass="h-96"
+          diceCount={2}
         />
+        
         <button
           onClick={handleClose}
-          className="block w-full py-2 bg-red-500 text-white rounded hover:bg-red-700"
+          className="block w-full py-2 bg-red-500 text-white rounded hover:bg-red-700 mt-2"
         >
           Close
         </button>
       </div>
-     
     </div>
   );
 };

@@ -348,9 +348,13 @@ export interface MinigameState {
   textures: MinigameTextures;
 }
 
+export interface DiceRollResultEventData {
+  diceValues: number[];
+}
 
 // Type Guards
 
 export function isDiceAction(action: MinigameAction): action is DiceAction {
   return action.type === 'ROLL_DICE';
 }
+
