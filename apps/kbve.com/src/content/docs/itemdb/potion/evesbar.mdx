@@ -1,0 +1,92 @@
+---
+title: Eve's Bar and Her Potions - ItemDB Database
+description: |
+    The collection of various potions from Eve's bar, she is a magical and dangerous barkeep, be careful when drinking them!
+sidebar:
+    label: Potions
+    order: 420
+unsplash: 1590840960672-db24958eef9a
+img: https://images.unsplash.com/photo-1590840960672-db24958eef9a?fit=crop&w=1400&h=700&q=75
+tags:
+    - gamedev
+    - itemdb
+itemdb:
+    - id: "01J27QABD2GPFNRVK69S51HSGB"
+      name: "Ecto Cooler Drank Type 95"
+      type: "potion"
+      category: "consumable"
+      description: |
+        A magical ectoplasmic brew that heals wounds and restores energy.
+      img: "/assets/items/potion/evesbar/ecto_cooler_drank_type_95.png"
+      bonuses:
+        health: 20
+        energy: 10
+      durability: 1
+      weight: 0.5
+      consumable: true
+      effects: "Heals 20 health and restores 10 energy."
+      stackable: false
+      rarity: "rare"
+      levelRequirement: 5
+      price: 50
+      cooldown: 60
+      credits: |
+        The Ecto Cooler recipe was created by AndSam and the asset was provided by CraftPix.net (https://free-game-assets.itch.io/48-free-magic-potions-pixel-art-icons).
+    - id: "01J27QN2KZG1RDZW4CE9Q9Z3YQ"
+      name: "Hydro Homie Drank Type 97"
+      type: "potion"
+      category: "consumable"
+      description: |
+        Water from the shrine of Odin.
+      img: "/assets/items/potion/evesbar/ecto_cooler_drank_type_95.png"
+      bonuses:
+        health: 20
+        energy: 10
+      durability: 1
+      weight: 0.5
+      consumable: true
+      effects: "Heals 20 health and restores 10 energy."
+      stackable: false
+      rarity: "rare"
+      levelRequirement: 5
+      price: 50
+      cooldown: 60
+      credits: |
+        The Hydro Homie recipe was created by AndSam and the asset was provided by CraftPix.net (https://free-game-assets.itch.io/48-free-magic-potions-pixel-art-icons).
+    - id: "01J27QVA4FMP2AJ14ZBW5MK100"
+      name: "Pirate Rum Aged 7"
+      type: "potion"
+      category: "consumable"
+      description: |
+        Rum made from the sugar cane of West Kora.
+        The sweet nectar provides a boost in energy and health.
+      img: "/assets/items/potion/evesbar/pirate_rum.png"
+      bonuses:
+        health: 30
+        energy: 70
+      durability: 1
+      weight: 0.5
+      consumable: true
+      effects: "Heals 20 health and restores 10 energy."
+      stackable: false
+      rarity: "rare"
+      levelRequirement: 5
+      price: 50
+      cooldown: 60
+      credits: |
+        The pixel asset was provided by CraftPix.net (https://free-game-assets.itch.io/free-pirate-stuff-pixel-art-icons).
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import {ItemDB, Giscus, Adsense } from '@kbve/astropad';
+
+
+<ItemDB itemdb={frontmatter.itemdb} />
