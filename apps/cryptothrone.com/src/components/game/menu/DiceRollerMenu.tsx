@@ -1,7 +1,7 @@
 // DiceRollModal.tsx
 import React, { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { npcInteractionStore, diceRoll } from './tempstore';
+import { npcInteractionStore, diceRoll, playerStealDiceRoll } from './tempstore';
 import {
   EventEmitter,
   notificationType,
@@ -15,8 +15,7 @@ import {
 import { MinigameDice, setRollingStatus, updateDiceValues } from '@kbve/laser';
 
 const DiceRollModal: React.FC = () => {
-  const _npc$ = useStore(npcInteractionStore);
-
+  const _npc$ = useStore(playerStealDiceRoll);
   useEffect(() => {
     const handleDiceRollResult = (newValues?: DiceRollResultEventData) => {
       if (newValues) {
@@ -94,7 +93,8 @@ const DiceRollModal: React.FC = () => {
 
   const handleClose = () => {
     updateDiceValues([]);
-    npcInteractionStore.set(null);
+    playerStealDiceRoll.set(null);
+   // npcInteractionStore.set(null);
   };
 
   if (!_npc$) return null;
