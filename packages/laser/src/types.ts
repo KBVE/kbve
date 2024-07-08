@@ -234,6 +234,10 @@ export interface NPCInteractionEventData<T = any> {
   npcName: string;
   actions: string[];
   data?: T;
+  coords: {
+    x: number;
+    y: number;
+  };
 }
 
 export interface NPCMessageEventData {
@@ -344,9 +348,13 @@ export interface MinigameState {
   textures: MinigameTextures;
 }
 
+export interface DiceRollResultEventData {
+  diceValues: number[];
+}
 
 // Type Guards
 
 export function isDiceAction(action: MinigameAction): action is DiceAction {
   return action.type === 'ROLL_DICE';
 }
+

@@ -1,8 +1,10 @@
+// MinigameDice.tsx
 import React, { useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useStore } from '@nanostores/react';
+import { EventEmitter } from '../../eventhandler';
 import { minigameState, setGameMode, setAction, setTextures, updateDiceValues, setRollingStatus } from '../../localdb';
-import { DiceTextures, MinigameDiceProps, isDiceAction } from '../../../types';
+import { DiceTextures, MinigameDiceProps, isDiceAction, DiceRollResultEventData } from '../../../types';
 import * as THREE from 'three';
 
 const diceOrientations = [
@@ -90,6 +92,10 @@ const MinigameDice: React.FC<MinigameDiceProps> = ({ styleClass, textures, diceC
       console.log('New dice values:', newValues);
       updateDiceValues(newValues);
       setRollingStatus(false);
+
+      // Emit the roll result
+      const rollResult: DiceRollResultEventData = { diceValues: newValues };
+      EventEmitter.emit('diceRollResult', rollResult);
     }, 2000); // Duration matches the animation
   };
 
