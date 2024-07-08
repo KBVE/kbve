@@ -2,9 +2,22 @@ import { persistentAtom } from '@nanostores/persistent';
 import { task } from 'nanostores';
 import { EventEmitter } from './eventhandler';
 import axios from 'axios';
-import { IConsumable, IEquipment, IJournal, IObject, IPlayerData, IPlayerInventory, IPlayerState, IPlayerStats, IQuest, IStatBoost, ITask, ItemAction, NotificationType } from '../types';
-
-
+import {
+  IConsumable,
+  IEquipment,
+  IJournal,
+  IObject,
+  IPlayerData,
+  IPlayerInventory,
+  IPlayerState,
+  IPlayerStats,
+  IQuest,
+  IStatBoost,
+  ITask,
+  ItemAction,
+  NotificationType,
+  UserSettings,
+} from '../types';
 
 const _IQuest: IQuest = {
   id: '',
@@ -31,14 +44,12 @@ const _IPlayerInventory: IPlayerInventory = {
 
 const _initialItems: Record<string, IObject> = {};
 
-
 const _IPlayerState: IPlayerState = {
   inCombat: false,
   isDead: false,
   isResting: false,
   activeBoosts: {},
 };
-
 
 const _IPlayerStats: IPlayerStats = {
   username: 'Guest',
@@ -63,7 +74,12 @@ const _IPlayerData: IPlayerData = {
   state: _IPlayerState,
 };
 
-
+const defaultSettings: UserSettings = {
+  tooltipItem: { id: null, position: { x: 0, y: 0 } },
+  submenuItem: { id: null, position: { x: 0, y: 0 } },
+  tooltipNPC: { id: null, position: { x: 0, y: 0 } },
+  isStatsMenuCollapsed: false,
+};
 
 export function completeTask<T>(
   quest: IQuest<T>,
@@ -173,6 +189,8 @@ export function createPersistentAtom<T>(key: string, defaultValue: T) {
   });
 }
 
+// Stores
+
 export const playerData = createPersistentAtom<IPlayerData>(
   'playerData',
   _IPlayerData,
@@ -192,6 +210,22 @@ export const itemDB = createPersistentAtom<Record<string, IObject>>(
   'itemDB',
   _initialItems,
 );
+
+export const settings = createPersistentAtom<UserSettings>(
+  'settings',
+  defaultSettings,
+);
+
+export const getUserSetting = <T extends keyof UserSettings>(key: T): UserSettings[T] => {
+  return settings.get()[key];
+};
+
+export const setUserSetting = <T extends keyof UserSettings>(key: T, value: UserSettings[T]): void => {
+  task(async () => {
+    const currentSettings = settings.get();
+    settings.set({ ...currentSettings, [key]: value });
+  });
+};
 
 export const reloadItemDB = () => {
   task(async () => {
@@ -213,7 +247,6 @@ export const reloadItemDB = () => {
   });
 };
 
-
 export const queryItemDB = (itemId: string): IObject | undefined => {
   const items = itemDB.get();
   return items[itemId];
@@ -227,7 +260,9 @@ export const addItemToBackpack = (itemId: string) => {
   });
 };
 
-export const getItemDetails = (itemId: string): IObject | IEquipment | IConsumable | undefined => {
+export const getItemDetails = (
+  itemId: string,
+): IObject | IEquipment | IConsumable | undefined => {
   const items = itemStore.get();
   const item = items[itemId];
   if (item) {
@@ -337,7 +372,6 @@ export function isPlayerResting(): boolean {
   return playerData.get().state.isResting;
 }
 
-
 export const updatePlayerStats = async (updates: Partial<IPlayerStats>) => {
   task(async () => {
     const player = playerData.get();
@@ -353,9 +387,6 @@ export const updatePlayerStats = async (updates: Partial<IPlayerStats>) => {
     playerData.set({ ...player });
   });
 };
-
-
-
 
 export const setPlayerStat = (stat: keyof IPlayerStats, value: string) => {
   task(async () => {
@@ -374,7 +405,6 @@ export const decreasePlayerHealth = (amount: number) => {
     playerData.set({ ...player });
   });
 };
-
 
 export const increasePlayerHealth = (amount: number) => {
   task(async () => {
@@ -486,19 +516,21 @@ export const getEffectiveStats = (): IPlayerStats => {
   const player = playerData.get();
   const effectiveStats = { ...player.stats };
 
-  Object.values(player.state.activeBoosts).forEach(boost => {
-    Object.keys(boost).forEach(key => {
+  Object.values(player.state.activeBoosts).forEach((boost) => {
+    Object.keys(boost).forEach((key) => {
       if (key !== 'duration' && key !== 'expiry') {
         const statKey = key as keyof IPlayerStats;
-        const boostValue = parseInt(boost[statKey] as unknown as string, 10) || 0;
-        effectiveStats[statKey] = (parseInt(effectiveStats[statKey], 10) + boostValue).toString();
+        const boostValue =
+          parseInt(boost[statKey] as unknown as string, 10) || 0;
+        effectiveStats[statKey] = (
+          parseInt(effectiveStats[statKey], 10) + boostValue
+        ).toString();
       }
     });
   });
 
   return effectiveStats;
 };
-
 
 export const handleBoostExpiry = async () => {
   task(async () => {
@@ -521,7 +553,6 @@ export const handleBoostExpiry = async () => {
   });
 };
 
-
 export const applyConsumableEffects = (item: IConsumable) => {
   task(async () => {
     const player = playerData.get();
@@ -536,9 +567,11 @@ export const applyConsumableEffects = (item: IConsumable) => {
     const bonuses = item.bonuses;
 
     const bonusesAsStrings: Partial<IPlayerStats> = {
-      health: bonuses?.health !== undefined ? bonuses.health.toString() : undefined,
+      health:
+        bonuses?.health !== undefined ? bonuses.health.toString() : undefined,
       mana: bonuses?.mana !== undefined ? bonuses.mana.toString() : undefined,
-      energy: bonuses?.energy !== undefined ? bonuses.energy.toString() : undefined
+      energy:
+        bonuses?.energy !== undefined ? bonuses.energy.toString() : undefined,
     };
 
     applyImmediateEffects(bonusesAsStrings);
@@ -557,7 +590,9 @@ export const applyConsumableEffects = (item: IConsumable) => {
   });
 };
 
-export const getActionEvents = (itemId: string): ItemAction['actionEvent'][] => {
+export const getActionEvents = (
+  itemId: string,
+): ItemAction['actionEvent'][] => {
   const item = getItemDetails(itemId);
   if (!item) {
     return [];
@@ -605,7 +640,6 @@ export const notificationType: Record<string, NotificationType> = {
   },
 };
 
-
 const crockford32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
 function padStart(str: string, length: number, pad: string): string {
@@ -640,7 +674,7 @@ function encodeTime(time: number, length: number): string {
 
 export function createULID(): string {
   const timestamp = Date.now();
-  const timePart = encodeTime(timestamp, 10); 
-  const randomPart = randomChars(16); 
+  const timePart = encodeTime(timestamp, 10);
+  const randomPart = randomChars(16);
   return timePart + randomPart;
 }

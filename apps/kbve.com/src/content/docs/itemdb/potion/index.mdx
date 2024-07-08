@@ -1,0 +1,47 @@
+---
+title: Potion Database
+description: |
+    The Potion Database within the ItemDB
+sidebar:
+    label: Potions
+    order: 420
+unsplash: 1590840960672-db24958eef9a
+img: https://images.unsplash.com/photo-1590840960672-db24958eef9a?fit=crop&w=1400&h=700&q=75
+tags:
+    - gamedev
+    - itemdb
+itemdb:
+    - id: "01J27N2KCG8FXRDQAJRJNGEAFX"
+      name: "Test Potion"
+      type: "potion"
+      category: "consumable"
+      description: "A magical bread that heals wounds and restores energy."
+      img: "https://images.unsplash.com/photo-1604152135912-04a873413ca5?fit=crop&w=500&h=500&q=75"
+      bonuses:
+        health: 20
+        mana: 10
+      durability: 1
+      weight: 0.5
+      consumable: true
+      effects: "Heals 20 health and restores 10 mana."
+      stackable: true
+      rarity: "rare"
+      levelRequirement: 5
+      price: 50
+      cooldown: 60
+
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import {ItemDB, Giscus, Adsense } from '@kbve/astropad';
+
+
+<ItemDB itemdb={frontmatter.itemdb} />
