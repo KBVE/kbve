@@ -287,17 +287,66 @@ export interface TaskCompletionEventData {
   isComplete: boolean;
 }
 
-export interface PixelatedDiceProps {
+
+export interface MinigameDiceProps {
+  styleClass?: string;
+  textures: DiceTextures;
+  diceCount: number;
+}
+
+export type GameMode = 'Idle' | 'Dice' | 'Slot' | 'War';
+
+export interface DiceAction {
+  type: 'ROLL_DICE';
+  diceValues: number[];
+  isRolling: boolean;
+}
+
+export interface SlotAction {
+  type: 'SPIN_SLOT';
+  slotValues: number[];
+}
+
+export interface WarAction {
+  type: 'PLAY_WAR';
+  playerCard: string;
+  opponentCard: string;
+}
+
+export type MinigameAction = DiceAction | SlotAction | WarAction;
+
+export interface DiceTextures {
   side1: string;
   side2: string;
   side3: string;
   side4: string;
   side5: string;
   side6: string;
-  isRolling: boolean;
-  dice: number;
 }
 
-export interface MinigameDiceProps extends PixelatedDiceProps {
-  styleClass?: string;
+export interface SlotTextures {
+  reel1: string;
+  reel2: string;
+  reel3: string;
+}
+
+export interface WarTextures {
+  cardBack: string;
+  playerCards: { [key: string]: string }; // Mapping of card names to URLs
+  opponentCards: { [key: string]: string }; // Mapping of card names to URLs
+}
+
+export type MinigameTextures = DiceTextures | SlotTextures | WarTextures;
+
+export interface MinigameState {
+  gamemode: GameMode;
+  action: MinigameAction;
+  textures: MinigameTextures;
+}
+
+
+// Type Guards
+
+export function isDiceAction(action: MinigameAction): action is DiceAction {
+  return action.type === 'ROLL_DICE';
 }
