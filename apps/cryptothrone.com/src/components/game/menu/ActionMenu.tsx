@@ -35,7 +35,7 @@ const ActionMenu: React.FC = () => {
       EventEmitter.off('npcInteractionClick', handleNPCInteractionClick);
       EventEmitter.off('playerSteal', handleShowDiceRollModal);
     };
-  }, [_npc$, _stolen$]);
+  }, []);
 
   return (
     <div>
