@@ -1,0 +1,72 @@
+---
+title: 'July: 07'
+category: Daily
+date: 2024-07-07 12:00:00
+client: Self
+unsplash: 1688040831954-3656d0544270
+img: https://images.unsplash.com/photo-1688040831954-3656d0544270?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  July 7th. More Items!
+tags:
+  - daily
+---
+
+
+import { Adsense } from '@kbve/astropad';
+
+## Notes
+
+## 2024
+
+**Items**
+
+I adjusted the items a bit today, adding a couple from AndSam's Eve Guild Campaign!
+After we add a couple more items for Eves guild, we could open up the bar and let users come into it and buy those potions, maybe we can do a barter system.
+
+I am also trying to avoid dumping a bunch of random pixel art without making sure it has an exact usage and with credits.
+
+**Settings**
+
+The next update should be organizing all of the settings into a single interface, making it easier to call through out the game and any future game.
+I believe we should also include another function that will wipe all the save data, just to do a clear restart during each session.
+
+```ts
+
+export interface UserSettings {
+  tooltipItemId: string | null;
+  tooltipItemPosition: {
+    x: number;
+    y: number;
+  };
+  submenuItemId: string | null;
+  submenuItemPosition: {
+    x: number;
+    y: number;
+  };
+  isStatsMenuCollapsed: boolean;
+}
+
+```
+
+Now that I am thinking about it, we could introduce the submenu for the different NPC characters too, upon clicking them and then rendering the actions for them?
+This would free up the action menu and make things a bit easier for us to manage.
+With that being said, let us go ahead and update the types again but this time something along these lines?
+
+```ts
+
+export interface UserGenericMenu {
+  id: string | null;
+  position: {
+    x: number;
+    y: number;
+  };
+}
+
+export interface UserSettings {
+  tooltipItem: UserGenericMenu;
+  submenuItem: UserGenericMenu;
+  tooltipNPC: UserGenericMenu;
+  isStatsMenuCollapsed: boolean;
+}
+
+```

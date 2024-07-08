@@ -24,6 +24,22 @@ export interface IconProps {
   [key: string]: any; 
 }
 
+
+export interface UserGenericMenu {
+  id: string | null;
+  position: {
+    x: number;
+    y: number;
+  };
+}
+
+export interface UserSettings {
+  tooltipItem: UserGenericMenu;
+  submenuItem: UserGenericMenu;
+  tooltipNPC: UserGenericMenu;
+  isStatsMenuCollapsed: boolean;
+}
+
 export interface IStatBoost extends Partial<IPlayerStats> {
   duration: number;
   expiry?: number;
