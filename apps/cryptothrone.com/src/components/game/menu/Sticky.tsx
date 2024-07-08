@@ -14,7 +14,9 @@ import {
   type IconProps,
   CollapseIcon,
   ExpandIcon,
-
+  settings,
+  getUserSetting,
+  setUserSetting,
   getItemDetails,
   getActionEvents,
 } from '@kbve/laser';
@@ -126,6 +128,7 @@ const renderInventory = (
 
 const StickySidebar: React.FC = () => {
   const _playerStore$ = useStore(playerData);
+  const userSettings = useStore(settings);
   const _quest$ = useStore(quest);
   const _itemStore$ = useStore(itemStore);
 
