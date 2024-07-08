@@ -6,11 +6,11 @@ import { DiceTextures, MinigameDiceProps, isDiceAction } from '../../../types';
 import * as THREE from 'three';
 
 const diceOrientations = [
-  new THREE.Euler(0, 0, 0), // 1
-  new THREE.Euler(Math.PI / 2, 0, 0), // 2
-  new THREE.Euler(-Math.PI / 2, 0, 0), // 3
-  new THREE.Euler(0, Math.PI / 2, 0), // 4
-  new THREE.Euler(0, -Math.PI / 2, 0), // 5
+  new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2), // 1
+  new THREE.Euler(0, Math.PI / 2, 0), // 2
+  new THREE.Euler(0, -Math.PI / 2, -Math.PI / 2), // 3
+  new THREE.Euler(Math.PI / 2, Math.PI, Math.PI), // 4
+  new THREE.Euler(0, 0, -Math.PI / 2), // 5
   new THREE.Euler(Math.PI, 0, 0) // 6
 ];
 
