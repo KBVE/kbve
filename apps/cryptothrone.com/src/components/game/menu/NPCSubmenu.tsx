@@ -13,6 +13,7 @@ const NPCSubmenu: React.FC = () => {
       const actionHandler = npcHandler.getActionHandler(action);
       if (actionHandler) {
         actionHandler(_npc$);
+        handleClose();
       }
     }
   };

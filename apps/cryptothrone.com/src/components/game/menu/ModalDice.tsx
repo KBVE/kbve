@@ -14,7 +14,7 @@ import {
 
 import { MinigameDice, setRollingStatus, updateDiceValues } from '@kbve/laser';
 
-const DiceRollModal: React.FC = () => {
+const ModalDice: React.FC = () => {
   const _npc$ = useStore(playerStealDiceRoll);
   useEffect(() => {
     const handleDiceRollResult = (newValues?: DiceRollResultEventData) => {
@@ -131,4 +131,4 @@ const DiceRollModal: React.FC = () => {
   );
 };
 
-export default DiceRollModal;
+export default ModalDice;
