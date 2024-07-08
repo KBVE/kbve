@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   EventEmitter,
@@ -11,6 +11,12 @@ import {
   type IEquipment,
   type IObjectAction,
   type ItemAction,
+  type IconProps,
+  CollapseIcon,
+  ExpandIcon,
+  settings,
+  getUserSetting,
+  setUserSetting,
   getItemDetails,
   getActionEvents,
 } from '@kbve/laser';
@@ -120,24 +126,11 @@ const renderInventory = (
   );
 };
 
-
-
 const StickySidebar: React.FC = () => {
   const _playerStore$ = useStore(playerData);
+  const userSettings = useStore(settings);
   const _quest$ = useStore(quest);
   const _itemStore$ = useStore(itemStore);
-
-  const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState<{
-    x: number;
-    y: number;
-  }>({ x: 0, y: 0 });
-
-  const [submenuItemId, setSubmenuItemId] = useState<string | null>(null);
-  const [submenuPosition, setSubmenuPosition] = useState<{
-    x: number;
-    y: number;
-  }>({ x: 0, y: 0 });
 
   useEffect(() => {
     const handlePlayerData = (data?: PlayerEventData) => {
@@ -153,26 +146,36 @@ const StickySidebar: React.FC = () => {
   }, []);
 
   const showTooltip = (itemId: string, event: React.MouseEvent) => {
-    setTooltipItemId(itemId);
-    setTooltipPosition({ x: event.clientX + 10, y: event.clientY - 100 });
+    setUserSetting('tooltipItem', {
+      id: itemId,
+      position: { x: event.clientX + 10, y: event.clientY - 150 },
+    });
   };
 
   const hideTooltip = () => {
-    setTooltipItemId(null);
+    setUserSetting('tooltipItem', {
+      ...getUserSetting('tooltipItem'),
+      id: null,
+    });
   };
 
   const handleItemClick = (itemId: string, event: React.MouseEvent) => {
-    setSubmenuItemId(itemId);
-    setSubmenuPosition({ x: event.clientX, y: event.clientY - 100 });
+    setUserSetting('submenuItem', {
+      id: itemId,
+      position: { x: event.clientX, y: event.clientY - 150 },
+    });
   };
 
   const closeSubmenu = () => {
-    setSubmenuItemId(null);
+    setUserSetting('submenuItem', {
+      ...getUserSetting('submenuItem'),
+      id: null,
+    });
   };
 
   const handleItemAction = (
     itemId: string,
-    action: ItemAction['actionEvent']
+    action: ItemAction['actionEvent'],
   ) => {
     const item = getItemDetails(itemId);
     if (item) {
@@ -191,83 +194,103 @@ const StickySidebar: React.FC = () => {
   }
 
   // Get action events dynamically
-  const actions = submenuItemId ? getActionEvents(submenuItemId) : [];
+  //  const actions = submenuItemId ? getActionEvents(submenuItemId) : [];
+  //const actions = getUserSetting('submenuItem').id ? getActionEvents(getUserSetting('submenuItem').id) : [];
+  const submenuItem = getUserSetting('submenuItem');
+  const actions = submenuItem.id ? getActionEvents(submenuItem.id) : [];
+
+  const tooltipItem = getUserSetting('tooltipItem');
 
   return (
-    <div className="transition transform ease-in-out duration-500 opacity-50 hover:opacity-100 fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Stats</h2>
-        <p className="text-sm text-green-400">{`HP: ${
-          _playerStore$.stats.health || '0'
-        } / ${_playerStore$.stats.maxHealth}`}</p>
-        <p className="text-sm text-blue-400">{`MP: ${
-          _playerStore$.stats.mana || '0'
-        } / ${_playerStore$.stats.maxMana}`}</p>
-        <p className="text-sm text-yellow-400">{`EP: ${
-          _playerStore$.stats.energy || '0'
-        } / ${_playerStore$.stats.maxEnergy}`}</p>
-      </div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">User Information</h2>
-        <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>
-      </div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">General Information</h2>
-        <p className="text-sm">{``}</p>
-      </div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Inventory</h2>
-        {renderInventory(
-          _playerStore$.inventory.backpack,
-          showTooltip,
-          hideTooltip,
-          handleItemClick,
+    <div className="fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20 transition transform ease-in-out duration-500 opacity-50 hover:opacity-100">
+      <button
+        onClick={() =>
+          setUserSetting(
+            'isStatsMenuCollapsed',
+            !getUserSetting('isStatsMenuCollapsed'),
+          )
+        }
+        className="bg-yellow-500 text-white p-2 rounded"
+      >
+        {getUserSetting('isStatsMenuCollapsed') ? (
+          <ExpandIcon styleClass="w-8" />
+        ) : (
+          <CollapseIcon styleClass="w-8" />
         )}
-      </div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Equipment</h2>
-        {renderAllEquipment(
-          _playerStore$.inventory.equipment,
-          showTooltip,
-          hideTooltip,
-          handleItemClick,
-        )}
-      </div>
-      {tooltipItemId && renderTooltip(tooltipItemId, tooltipPosition)}
-      {submenuItemId && (
-        <div
-          style={{ top: submenuPosition.y, left: submenuPosition.x }}
-          className="absolute bg-gray-700  text-white p-2 rounded shadow-lg z-50"
-        >
-          {/* Close button at the top */}
-          <button
-            onClick={closeSubmenu}
-            className="absolute top-1 right-1 translate-x-6 bg-yellow-400 p-1 text-white hover:text-gray-400"
+      </button>
+      <div
+        className={`transition transform duration-1000 ease-in-out overflow-hidden ${getUserSetting('isStatsMenuCollapsed') ? 'max-h-0' : 'max-h-screen'}`}
+      >
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">Stats</h2>
+          <p className="text-sm text-green-400">{`HP: ${_playerStore$.stats.health || '0'} / ${_playerStore$.stats.maxHealth}`}</p>
+          <p className="text-sm text-blue-400">{`MP: ${_playerStore$.stats.mana || '0'} / ${_playerStore$.stats.maxMana}`}</p>
+          <p className="text-sm text-yellow-400">{`EP: ${_playerStore$.stats.energy || '0'} / ${_playerStore$.stats.maxEnergy}`}</p>
+        </div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">User Information</h2>
+          <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>
+        </div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">General Information</h2>
+          <p className="text-sm">{``}</p>
+        </div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">Inventory</h2>
+          {renderInventory(
+            _playerStore$.inventory.backpack,
+            showTooltip,
+            hideTooltip,
+            handleItemClick,
+          )}
+        </div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">Equipment</h2>
+          {renderAllEquipment(
+            _playerStore$.inventory.equipment,
+            showTooltip,
+            hideTooltip,
+            handleItemClick,
+          )}
+        </div>
+        {tooltipItem.id && renderTooltip(tooltipItem.id, tooltipItem.position)}
+        {submenuItem.id && (
+          <div
+            style={{
+              top: submenuItem.position.y,
+              left: submenuItem.position.x,
+            }}
+            className="absolute bg-gray-700 text-white p-2 rounded shadow-lg z-50"
           >
-            X
-          </button>
-
-          <p className="text-sm strong">Actions:</p>
-          <ul className="text-xs">
-            {actions.map((event) => (
+            <button
+              onClick={closeSubmenu}
+              className="absolute top-1 right-1 translate-x-6 bg-yellow-400 p-1 text-white hover:text-gray-400"
+            >
+              X
+            </button>
+            <p className="text-sm strong">Actions:</p>
+            <ul className="text-xs">
+              {actions.map((event) => (
+                <li
+                  key={event}
+                  onClick={() =>
+                    submenuItem.id && handleItemAction(submenuItem.id, event)
+                  }
+                  className="cursor-pointer hover:bg-gray-600"
+                >
+                  {event.charAt(0).toUpperCase() + event.slice(1)}
+                </li>
+              ))}
               <li
-                key={event}
-                onClick={() => handleItemAction(submenuItemId, event)}
+                onClick={closeSubmenu}
                 className="cursor-pointer hover:bg-gray-600"
               >
-                {event.charAt(0).toUpperCase() + event.slice(1)}
+                Close
               </li>
-            ))}
-            {/* Close option at the bottom */}
-            <li
-              onClick={closeSubmenu}
-              className="cursor-pointer hover:bg-gray-600"
-            >
-              Close
-            </li>
-          </ul>
-        </div>
-      )}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
