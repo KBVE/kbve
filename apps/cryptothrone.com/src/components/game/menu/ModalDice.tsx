@@ -8,6 +8,7 @@ import {
   queryItemDB,
   minigameState,
   type DiceRollResultEventData,
+  type PlayerStealEventData,
   isDiceAction,
   type MinigameAction,
 } from '@kbve/laser';
@@ -16,21 +17,32 @@ import { MinigameDice, setRollingStatus, updateDiceValues } from '@kbve/laser';
 
 const ModalDice: React.FC = () => {
   const _npc$ = useStore(playerStealDiceRoll);
+  // const [_roll, setRoll] = useState('');
   useEffect(() => {
+    const handlePlayerSteal = (data?: PlayerStealEventData) => {
+      if(data){
+        playerStealDiceRoll.set(data);
+      }
+    };
+
     const handleDiceRollResult = (newValues?: DiceRollResultEventData) => {
       if (newValues) {
         handleRollResult(newValues.diceValues);
       }
     };
 
+    EventEmitter.on('playerSteal', handlePlayerSteal);
     EventEmitter.on('diceRollResult', handleDiceRollResult);
+
     return () => {
+      EventEmitter.off('playerSteal', handlePlayerSteal);
       EventEmitter.off('diceRollResult', handleDiceRollResult);
     };
   }, [_npc$]);
 
   const handleRollResult = (newValues: number[]) => {
     const roll = newValues.reduce((acc, val) => acc + val, 0);
+    // setRoll(roll.toString());
 
     if (!_npc$) return;
 
