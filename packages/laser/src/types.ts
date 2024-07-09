@@ -375,9 +375,20 @@ export interface INPCData {
   speed: number;
   scale: number;
   actions: NPCAction[];
-  effects?: NPCEffect[];
+  effects?: string[];
   stats?: IPlayerStats;
-  spriteImage?: Blob; // Optional field to store sprite image as Blob
+  //spriteImage?: Blob; // Optional field to store sprite image as Blob
+  spriteImageId?: string;
+}
+
+export interface ISprite {
+  id: string; // ULID
+  spriteName: string;
+  assetLocation: string;
+  frameWidth: number;
+  frameHeight: number;
+  scale?: number;
+  spriteData?: Blob;
 }
 
 export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal';
