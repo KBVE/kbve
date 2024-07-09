@@ -358,3 +358,29 @@ export function isDiceAction(action: MinigameAction): action is DiceAction {
   return action.type === 'ROLL_DICE';
 }
 
+
+// NPC Engine
+
+export interface INPCPosition {
+  x: number;
+  y: number;
+}
+
+export interface INPCData {
+  id: string;
+  name: string;
+  spriteKey: string;
+  walkingAnimationMapping: number;
+  startPosition: INPCPosition;
+  speed: number;
+  scale: number;
+  actions: NPCAction[];
+  effects?: NPCEffect[];
+  stats?: IPlayerStats;
+  spriteImage?: Blob; // Optional field to store sprite image as Blob
+}
+
+export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal';
+export type NPCEffect = 'increaseHealth' | 'decreaseHealth' | 'increaseMana' | 'decreaseMana' | 'boostStrength' | 'reduceStrength';
+
+// Define other interfaces as needed
