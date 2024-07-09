@@ -1,5 +1,5 @@
 // DiceRollModal.tsx
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useStore } from '@nanostores/react';
 import { playerStealDiceRoll } from './tempstore';
 import {
@@ -14,7 +14,7 @@ import { MinigameDice, updateDiceValues } from '@kbve/laser';
 const ModalDice: React.FC = () => {
   const _npc$ = useStore(playerStealDiceRoll);
   const [diceValues, setDiceValues] = useState<number[]>([]);
-  const rollRef = useRef<number | null>(null);
+  const [currentRoll, setCurrentRoll] = useState<number | null>(null);
 
   useEffect(() => {
     const handlePlayerSteal = (data?: PlayerStealEventData) => {
@@ -46,7 +46,7 @@ const ModalDice: React.FC = () => {
 
   const handleRollResult = (newValues: number[]) => {
     const roll = newValues.reduce((acc, val) => acc + val, 0);
-    rollRef.current = roll;
+    setCurrentRoll(roll);
 
     if (!_npc$) return;
 
@@ -110,6 +110,7 @@ const ModalDice: React.FC = () => {
   const handleClose = () => {
     updateDiceValues([]);
     setDiceValues([]);
+    setCurrentRoll(null);
     playerStealDiceRoll.set(null);
   };
 
@@ -118,7 +119,7 @@ const ModalDice: React.FC = () => {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-zinc-800 bg-opacity-50">
       <div className="bg-zinc-800 p-4 rounded-lg shadow-lg max-w-xs w-full">
-        <DiceRollMessage npcName={_npc$.npcName} />
+        <DiceRollMessage npcName={_npc$.npcName} roll={currentRoll} />
         <MemoizedMinigameDiceComponent />
         <CloseButton handleClose={handleClose} />
       </div>
@@ -126,12 +127,17 @@ const ModalDice: React.FC = () => {
   );
 };
 
-const DiceRollMessage: React.FC<{ npcName: string }> = ({ npcName }) => (
+const DiceRollMessage: React.FC<{ npcName: string, roll: number | null }> = ({ npcName, roll }) => (
   <div>
-    <h2 className="text-lg font-bold mb-4">Steal Attempt</h2>
+    <h2 className="text-lg text-yellow-400 font-bold mb-4">Steal Attempt</h2>
     <p className="mb-4">
       Roll the dice to steal from {npcName}. You need a total of 7 or higher to succeed.
     </p>
+    {roll !== null && (
+      <p className="mb-4">
+        Your roll: {roll}
+      </p>
+    )}
   </div>
 );
 
