@@ -391,6 +391,12 @@ export interface ISprite {
   spriteData?: Blob;
 }
 
+export interface IAvatar {
+  id: string; // ULID
+  avatarData: Blob;
+}
+
+
 export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal';
 export type NPCEffect = 'increaseHealth' | 'decreaseHealth' | 'increaseMana' | 'decreaseMana' | 'boostStrength' | 'reduceStrength';
 
