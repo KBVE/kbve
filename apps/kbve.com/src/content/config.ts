@@ -311,6 +311,9 @@ export const collections = {
 				lottie: z.string().optional(),
 				button: z.string().optional(),
 				itemdb: z.array(IObjectSchema).optional(),
+				npcdb: z.array(NPCDataSchema).optional(),
+				sprite: z.array(SpriteSchema).optional(),
+				avatar: z.array(AvatarSchema).optional()
 			}),
 		}),
 	}),
