@@ -258,6 +258,7 @@ const SpriteSchema = z.object({
 
 const AvatarSchema = z.object({
 	id: z.string(), // Assuming the ULID is validated elsewhere
+	avatarName: z.string(),
 	avatarLocation: z.string(),
 	avatarData: z.instanceof(Blob).optional(),
 });
