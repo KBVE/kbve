@@ -131,6 +131,7 @@ export default defineConfig({
 
 				{
 					label: 'Tools & Equipment',
+					collapsed: true,
 					autogenerate: { directory: 'tools' },
 				},
 
@@ -138,12 +139,33 @@ export default defineConfig({
 					label: 'Projects',
 					autogenerate: { directory: 'project' },
 				},
+				
+				{
+					label: 'ItemDB',
+					collapsed: true,
+					items: [
+						{
+							label: 'Potions',
+							collapsed: false,
+							autogenerate: { directory: 'itemdb/potion' },
+						},
+						{
+							label: 'Food',
+							collapsed: false,
+							autogenerate: { directory: 'itemdb/food' },
+						},
+						
+					],
+				},
+
 				{
 					label: 'Construction Services',
+					collapsed: true,
 					autogenerate: { directory: 'construction' },
 				},
 				{
 					label: 'Advanced Topics',
+					collapsed: true,
 					autogenerate: { directory: 'advanced' },
 				},
 			],

@@ -6,6 +6,7 @@ import ModalComponent from './menu/ModalComponent';
 import Sticky from './menu/Sticky';
 import ActionMenu from './menu/ActionMenu';
 import EventNotification from './menu/EventNotification';
+import ModalDice from './menu/ModalDice';
 
 
 const StyledApp = styled.div`
@@ -19,6 +20,7 @@ export function App() {
 
       <div className="flex justify-center items-center h-screen">
       <div className="border-4 border-yellow-500 rounded-xl">
+      <ModalDice />
       <GameWindow />
       <EventNotification />
       </div></div>

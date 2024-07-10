@@ -50,6 +50,7 @@ class NPCHandler {
       npcName: eventData.npcName,
       data: eventData.data
     };
+    
     EventEmitter.emit('playerSteal', playerStealEventData);
 
     // Implement stealing logic here
@@ -90,6 +91,7 @@ class NPCHandler {
         actions: actions.map(action => action.label),
         data: data || {} as T,
         coords: { x: pointer.x, y: pointer.y}
+        //coords: { x: event.clientX, y: event.clientY }
       };
       console.log(`Click Registered at X: ${npcInteractionData.coords.x} Y: ${npcInteractionData.coords.y}`);
       EventEmitter.emit('npcInteractionClick', npcInteractionData, 1000);
