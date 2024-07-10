@@ -30,7 +30,9 @@
     "react-spring": "^9.7.3",
     "@react-three/drei": "^9.108.3",
     "@react-three/fiber": "^8.16.2",
-    "@react-three/flex": "^1.0.1"
+    "@react-three/flex": "^1.0.1",
+    "dexie": "^4.0.7",
+    "dexie-react-hooks": "^1.1.7"
   },
   "type": "commonjs",
   "main": "./src/index.js",

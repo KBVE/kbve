@@ -22,13 +22,15 @@ const PixelatedDice: React.FC<{ diceValues: number[], isRolling: boolean, textur
 
   useEffect(() => {
     const loader = new THREE.TextureLoader();
+    const yellowTint = new THREE.Color(0xffff00);
     materialsRef.current = [
-      new THREE.MeshStandardMaterial({ map: loader.load(textures.side1) }),
-      new THREE.MeshStandardMaterial({ map: loader.load(textures.side2) }),
-      new THREE.MeshStandardMaterial({ map: loader.load(textures.side3) }),
-      new THREE.MeshStandardMaterial({ map: loader.load(textures.side4) }),
-      new THREE.MeshStandardMaterial({ map: loader.load(textures.side5) }),
-      new THREE.MeshStandardMaterial({ map: loader.load(textures.side6) }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side1), color: yellowTint }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side2), color: yellowTint }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side3), color: yellowTint }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side4), color: yellowTint }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side5), color: yellowTint }),
+      new THREE.MeshStandardMaterial({ map: loader.load(textures.side6), color: yellowTint }),
+  
     ];
 
     diceRefs.current.forEach((dice) => {
@@ -101,9 +103,9 @@ const MinigameDice: React.FC<MinigameDiceProps> = ({ styleClass, textures, diceC
 
   return (
     <div className={`flex flex-col items-center justify-center p-4 ${styleClass}`}>
-      <h1 className="text-2xl font-bold mb-4">Pixelated Spinning Dice</h1>
+      <h1 className="text-2xl font-bold mb-4">Dice Roller</h1>
       <Canvas className="w-full h-full" camera={{ position: [0, 0, 5] }}>
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={2.5} />
         <pointLight position={[10, 10, 10]} />
         {isDiceAction(state.action) && (
           <PixelatedDice diceValues={state.action.diceValues} isRolling={state.action.isRolling} textures={state.textures as DiceTextures} />
@@ -112,7 +114,7 @@ const MinigameDice: React.FC<MinigameDiceProps> = ({ styleClass, textures, diceC
       {isDiceAction(state.action) && (
         <button
           onClick={rollDice}
-          className={`mt-4 p-2 border border-gray-300 rounded ${state.action.isRolling ? 'opacity-50' : ''}`}
+          className={`mt-4 p-2 border border-yellow-300 rounded text-yellow-400 ${state.action.isRolling ? 'opacity-50' : ''}`}
           disabled={state.action.isRolling}
         >
           Roll Dice
