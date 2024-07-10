@@ -1,19 +1,22 @@
 import Dexie from 'dexie';
 import axios from 'axios';
-import { INPCData, ISprite } from '../../../types';
+import { INPCData, ISprite, IAvatar } from '../../../types';
 
 class NPCDatabase extends Dexie {
     npcs: Dexie.Table<INPCData, string>;
     sprites: Dexie.Table<ISprite, string>;
+    avatars: Dexie.Table<IAvatar, string>;
 
     constructor() {
         super('NPCDatabase');
-        this.version(2).stores({
+        this.version(3).stores({
             npcs: 'id',
-            sprites: 'id'
+            sprites: 'id',
+            avatars: 'id'
         });
         this.npcs = this.table('npcs');
         this.sprites = this.table('sprites');
+        this.avatars = this.table('avatars');
     }
 
     async addNPC(npcData: INPCData) {
@@ -60,6 +63,18 @@ class NPCDatabase extends Dexie {
         return await this.sprites.toArray();
     }
 
+    async addAvatar(avatar: IAvatar): Promise<void> {
+        await this.avatars.put(avatar);
+    }
+
+    async getAvatar(id: string): Promise<IAvatar | undefined> {
+        return await this.avatars.get(id);
+    }
+
+    async getAllAvatars(): Promise<IAvatar[]> {
+        return await this.avatars.toArray();
+    }
+
     async urlToBlob(url: string): Promise<Blob | undefined> {
         try {
             const response = await axios.get(url, { responseType: 'blob' });
@@ -83,12 +98,81 @@ class NPCDatabase extends Dexie {
         return undefined;
     }
 
-    async addNewNPC(npcDetails: Omit<INPCData, 'spriteImageId'>, spriteImageId: string): Promise<void> {
+    async addNewNPC(npcDetails: Omit<INPCData, 'spriteImageId' | 'avatarImageId'>, spriteImageId: string, avatarImageId: string): Promise<void> {
         const newNPC: INPCData = {
             ...npcDetails,
-            spriteImageId
+            spriteImageId,
+            avatarImageId
         };
         await this.addNPC(newNPC);
+    }
+
+    async addNewAvatar(url: string, avatarDetails: Omit<IAvatar, 'avatarData'>): Promise<string | undefined> {
+        const avatarBlob = await this.urlToBlob(url);
+        if (avatarBlob) {
+            const newAvatar: IAvatar = {
+                ...avatarDetails,
+                avatarData: avatarBlob
+            };
+            await this.addAvatar(newAvatar);
+            return newAvatar.id;
+        }
+        return undefined;
+    }
+
+    async fetchAvatars(url: string): Promise<void> {
+        try {
+            const response = await axios.get(url);
+            const avatars = response.data.key;
+            for (const key in avatars) {
+                const avatarDetails = avatars[key];
+                let avatarBlob = await this.urlToBlob(avatarDetails.avatarLocation);
+                if (!avatarBlob) {
+                    avatarBlob = await this.urlToBlob(`https://kbve.com${avatarDetails.avatarLocation}`);
+                }
+                if (avatarBlob) {
+                    const newAvatar: IAvatar = {
+                        id: avatarDetails.id,
+                        avatarName: avatarDetails.avatarName,
+                        avatarLocation: avatarDetails.avatarLocation,
+                        avatarData: avatarBlob,
+                        slug: avatarDetails.slug
+                    };
+                    await this.addAvatar(newAvatar);
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to fetch avatars from ${url}:`, error);
+        }
+    }
+
+    async fetchSprites(url: string): Promise<void> {
+        try {
+            const response = await axios.get(url);
+            const sprites = response.data.key;
+            for (const key in sprites) {
+                const spriteDetails = sprites[key];
+                let spriteBlob = await this.urlToBlob(spriteDetails.assetLocation);
+                if (!spriteBlob) {
+                    spriteBlob = await this.urlToBlob(`https://kbve.com${spriteDetails.assetLocation}`);
+                }
+                if (spriteBlob) {
+                    const newSprite: ISprite = {
+                        id: spriteDetails.id,
+                        spriteName: spriteDetails.spriteName,
+                        assetLocation: spriteDetails.assetLocation,
+                        frameWidth: spriteDetails.frameWidth,
+                        frameHeight: spriteDetails.frameHeight,
+                        scale: spriteDetails.scale,
+                        slug: spriteDetails.slug,
+                        spriteData: spriteBlob
+                    };
+                    await this.addSprite(newSprite);
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to fetch sprites from ${url}:`, error);
+        }
     }
 }
 
