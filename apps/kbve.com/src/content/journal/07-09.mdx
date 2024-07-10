@@ -23,6 +23,60 @@ The market might finally see some of the value within the `ai` and `energy` area
 I am adding another couple layers of complexity to the NPC engine but I think the time invested now will pay off in the future.
 The plan will be similar to how we moved the items out of the games core and now we can create new items through the MDX.
 
+The schema looks like this right now:
+
+```ts
+
+
+const NPCPositionSchema = z.object({
+	x: z.number(),
+	y: z.number(),
+	z: z.number().optional(),
+	d: z.number().optional(),
+  });
+
+const PlayerStatsSchema = z.object({
+	health: z.number(),
+	mana: z.number(),
+  });
+
+const NPCDataSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	spriteKey: z.string(),
+	walkingAnimationMapping: z.number(),
+	startPosition: NPCPositionSchema,
+	speed: z.number(),
+	scale: z.number(),
+	actions: z.array(z.enum(['talk', 'quest', 'trade', 'combat', 'heal', 'steal'])),
+	effects: z.array(z.string()).optional(),
+	stats: PlayerStatsSchema.optional(),
+	spriteImageId: z.string().optional(),
+	avatarImageId: z.string().optional(),
+  });
+
+const SpriteSchema = z.object({
+	id: z.string(), // Assuming the ULID is validated elsewhere
+	spriteName: z.string(),
+	assetLocation: z.string(),
+	frameWidth: z.number(),
+	frameHeight: z.number(),
+	scale: z.number().optional(),
+	spriteData: z.instanceof(Blob).optional(),
+  });
+
+const AvatarSchema = z.object({
+	id: z.string(), // Assuming the ULID is validated elsewhere
+	avatarLocation: z.string(),
+	avatarData: z.instanceof(Blob).optional(),
+});
+  
+  
+```
+
+I am thinking that we could split the three schemas into their own `z.objects` , then just having the `NPC` reference the sprite and the avatar.
+This schema is not yet complete because we still have to do the dialogue system.
+
 
 **DevOps**
 
@@ -31,3 +85,26 @@ I still need to work out the exact steps and logic that would be involved in get
 Also we could expand groq by having it build out items for our game using the mdx layout.
 The user would make an issue ticket for the item that they would want to add into the game, then have it parse through the mdx contents and add the variables/data points to the itemdb.
 There is still some work that would go into it, hmm, maybe I am writing a bit too much and need to do some more coding.
+
+
+**ItemsDB - Fish**
+
+The next couple items to add into the `Fish.mdx` will be these:
+
+- Nemo Fish
+- Zebra Fish
+- Ghost Lobster
+- Warhammer Shark
+- Blue Angular
+- Rainforest Frog
+- Koi
+- Blood Octopus
+- Bowhead Whale
+- Seahorse
+- Blue Seahorse
+- Posion Seashorse
+- Pink Shrimp
+- White Squid
+- Starfish De Patrick
+
+These are the generic items that we can add into the category, I am just making this list so that I can remind myself to add them into the itemdb.

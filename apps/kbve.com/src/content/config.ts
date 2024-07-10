@@ -1,8 +1,7 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 
-//*			[Prompt Scehmas]
-
+//*			[Prompt Schemas]
 
 const FunctionSchema = z.object({
 	name: z.string(),
@@ -146,27 +145,6 @@ const insightsCollection = defineCollection({
 		}),
 });
 
-//*         [Applications]
-// const application = defineCollection({
-// 	schema: z.object({
-// 		title: z.string(),
-// 		description: z.string(),
-// 		tags: z.array(z.string()),
-// 		category: z.string(),
-// 		footnote: z.string().optional(),
-// 		author: z.string().default('KBVE Team'),
-// 		unsplash: z.string().default(''),
-// 		img: z.string().default(''),
-// 		date: z.string().optional(),
-// 		url: z.string().optional(),
-// 		information: z.string().optional(),
-// 		media: z.any().optional(),
-// 		lottie: z.string().optional(),
-// 		featured: z.boolean().default(false),
-// 		draft: z.boolean().default(false),
-// 		promoted: z.boolean().default(false),
-// 	}),
-// });
 
 //*         [Arcade]
 
@@ -194,25 +172,6 @@ const arcade = defineCollection({
 
 //*         [Assets]
 
-//?         {Crypto}
-// const crypto = defineCollection({
-// 	schema: z.object({
-// 		ticker: z.string(),
-// 		title: z.string(),
-// 		description: z.string(),
-// 		isin: z.string().optional(),
-// 		cusip: z.string().optional(),
-// 		exchange: z.string(),
-// 		tags: z.array(z.string()),
-// 		footnote: z.string().optional(),
-// 		author: z.string().default('KBVE Team'),
-// 		unsplash: z.string().default(''),
-// 		img: z.string().default(''),
-// 		date: z.string().optional(),
-// 		url: z.string().optional(),
-// 	}),
-// });
-
 //?         {Journal}
 const journal = defineCollection({
 	schema: z.object({
@@ -229,17 +188,7 @@ const journal = defineCollection({
 	}),
 });
 
-//*         [Tools]
-// const tools = defineCollection({
-// 	schema: z.object({
-// 		title: z.string(),
-// 		description: z.string(),
-// 		js_integrity: z.string().optional(),
-// 		js_file: z.string().optional(),
-// 		wasm_integrity: z.string().optional(),
-// 		wasm_file: z.string().optional(),
-// 	}),
-// });
+
 
 //*         [Comic]
 const comic = defineCollection({
@@ -262,32 +211,58 @@ const comic = defineCollection({
 	}),
 });
 
-//*         [Project]
-// const project = defineCollection({
-// 	schema: z.object({
-// 		title: z.string(),
-// 		status: z.boolean().optional(),
-// 		description: z.string(),
-// 		tags: z.array(z.string()),
-// 		footnote: z.string().optional(),
-// 		author: z.string().default('KBVE Team'),
-// 		img: z.string().default(''),
-// 		unsplash: z.string().default(''),
-// 		date: z.string().optional(),
-// 		url: z.string().optional(),
-// 		featured: z.boolean().default(false),
-// 		draft: z.boolean().default(false),
-// 	}),
-// });
 
-//* Stats Schema
 const statSchema = z.object({
 	title: z.string().optional(),
 	data: z.string().optional(),
 	html: z.string().optional(),
 });
   
-//* Item Database Schema
+
+const NPCPositionSchema = z.object({
+	x: z.number(),
+	y: z.number(),
+	z: z.number().optional(),
+	d: z.number().optional(),
+  });
+
+const PlayerStatsSchema = z.object({
+	health: z.number(),
+	mana: z.number(),
+  });
+
+const NPCDataSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	spriteKey: z.string(),
+	walkingAnimationMapping: z.number(),
+	startPosition: NPCPositionSchema,
+	speed: z.number(),
+	scale: z.number(),
+	actions: z.array(z.enum(['talk', 'quest', 'trade', 'combat', 'heal', 'steal'])),
+	effects: z.array(z.string()).optional(),
+	stats: PlayerStatsSchema.optional(),
+	spriteImageId: z.string().optional(),
+	avatarImageId: z.string().optional(),
+  });
+
+const SpriteSchema = z.object({
+	id: z.string(), // Assuming the ULID is validated elsewhere
+	spriteName: z.string(),
+	assetLocation: z.string(),
+	frameWidth: z.number(),
+	frameHeight: z.number(),
+	scale: z.number().optional(),
+	spriteData: z.instanceof(Blob).optional(),
+  });
+
+const AvatarSchema = z.object({
+	id: z.string(), // Assuming the ULID is validated elsewhere
+	avatarLocation: z.string(),
+	avatarData: z.instanceof(Blob).optional(),
+});
+  
+
 const bonusesSchema = z.object({
   armor: z.number().optional(),
   intelligence: z.number().optional(),
@@ -319,28 +294,12 @@ const IObjectSchema = z.object({
 });
 
 export const collections = {
-	//*     [Applications]
-	//      application: application,
 	arcade: arcade,
-
-	//*     [Assets]
-	//crypto: crypto,
-
-	//*     [Blog]
 	journal: journal,
-	//project: project,
-
-	//*     [Tools]
-	//tools: tools,
-
-	//*     [Comic]
 	comic: comic,
-
-	//*     [SF]
 	docs: defineCollection({
 		schema: docsSchema({
 			extend: z.object({
-				// Make a built-in field required instead of optional.
 				unsplash: z.string().optional(),
 				tags: z.array(z.string()).optional(),
 				"yt-tracks" : z.array(z.string()).optional(),
@@ -348,11 +307,9 @@ export const collections = {
 				prompts: z.array(PromptSchema).optional(),
 				"prompt-index": z.string().optional(),
 				stats: z.array(statSchema).optional(),
-				//stats: z.array(z.string()).optional(),
 				img: z.string().optional(),
 				lottie: z.string().optional(),
 				button: z.string().optional(),
-				// ItemDB
 				itemdb: z.array(IObjectSchema).optional(),
 			}),
 		}),
