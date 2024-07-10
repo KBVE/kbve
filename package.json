@@ -165,6 +165,8 @@
     "colyseus": "^0.15.15",
     "colyseus.js": "^0.15.18",
     "cross-fetch": "^4.0.0",
+    "dexie": "^4.0.7",
+    "dexie-react-hooks": "^1.1.7",
     "dompurify": "^3.1.5",
     "drizzle-orm": "^0.31.1",
     "drizzle-zod": "^0.5.1",
