@@ -275,7 +275,7 @@ class NPCDatabase extends Dexie {
     
             const npcSprite = scene.add.sprite(x ?? npcData.startPosition.x, y ?? npcData.startPosition.y, npcData.spriteKey);
             npcSprite.scale = npcData.scale || 1.5;
-            npcSprite.name = npcData.name || 'Error Missing Name';
+            npcSprite.name = npcData.id || 'Error Missing Name';
     
             console.log(`NPC Sprite created with texture key ${npcData.spriteKey} at position (${npcData.startPosition.x}, ${npcData.startPosition.y})`);
     
