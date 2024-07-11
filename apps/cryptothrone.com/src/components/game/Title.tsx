@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 
-import { reloadItemDB } from '@kbve/laser';
+import { reloadItemDB, npcDatabase  } from '@kbve/laser';
 
 export class Title extends Scene {
     mainMenuButtonImage: Phaser.GameObjects.Image | undefined;
@@ -55,9 +55,14 @@ export class Title extends Scene {
 
         reloadItemDB();
 
+        npcDatabase.initializeDatabase();
+
     }
 
-    create() {
+    async create() {
+
+        await npcDatabase.initializeDatabase();
+        
         if (!this.sound.get('music')?.isPlaying) {
             this.sound.add('music', { loop: true, volume: 0.1 }).play();
         }
@@ -71,5 +76,6 @@ export class Title extends Scene {
         this.mainMenuButtonText.on('pointerdown', () => {
             this.scene.start('SandCity');
         }, this);
+        
     }
 }

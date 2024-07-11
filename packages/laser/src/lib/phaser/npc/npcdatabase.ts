@@ -1,6 +1,12 @@
 import Dexie from 'dexie';
 import axios from 'axios';
 import { INPCData, ISprite, IAvatar } from '../../../types';
+import { Scene } from 'phaser';
+import { npcHandler } from './npchandler';
+
+interface ExtendedScene extends Scene {
+    gridEngine: any;
+}
 
 class NPCDatabase extends Dexie {
     npcs: Dexie.Table<INPCData, string>;
@@ -174,6 +180,97 @@ class NPCDatabase extends Dexie {
             console.error(`Failed to fetch sprites from ${url}:`, error);
         }
     }
+
+    async fetchNPCs(url: string): Promise<void> {
+        try {
+            const response = await axios.get(url);
+            const npcs = response.data.key;
+            for (const key in npcs) {
+                const npcDetails = npcs[key];
+                const newNPC: INPCData = {
+                    id: npcDetails.id,
+                    name: npcDetails.name,
+                    spriteKey: npcDetails.spriteKey,
+                    walkingAnimationMapping: npcDetails.walkingAnimationMapping,
+                    startPosition: npcDetails.startPosition,
+                    speed: npcDetails.speed,
+                    scale: npcDetails.scale,
+                    slug: npcDetails.slug,
+                    actions: npcDetails.actions,
+                    effects: npcDetails.effects,
+                    stats: npcDetails.stats,
+                    spriteImageId: npcDetails.spriteImageId,
+                    avatarImageId: npcDetails.avatarImageId
+                };
+                await this.addNPC(newNPC);
+            }
+        } catch (error) {
+            console.error(`Failed to fetch NPCs from ${url}:`, error);
+        }
+    }
+
+    async initializeDatabase(baseURL = 'https://kbve.com') {
+        // Fetch and add all avatars from the given URL
+        await this.fetchAvatars(`${baseURL}/api/avatardb.json`);
+
+        // Fetch and add all sprites from the given URL
+        await this.fetchSprites(`${baseURL}/api/spritedb.json`);
+
+        // Fetch and add all NPCs from the given URL
+        await this.fetchNPCs(`${baseURL}/api/npcdb.json`);
+    }
+
+    
+    async loadCharacter(scene: ExtendedScene, npcId: string) {
+        try {
+            const npcData = await this.getNPC(npcId);
+            if (!npcData) {
+                throw new Error(`NPC with ID ${npcId} not found`);
+            }
+
+            let texture = scene.textures.get(npcData.spriteKey);
+            if (!texture) {
+                const spriteData = await this.getSprite(npcData.spriteImageId!);
+                if (spriteData && spriteData.spriteData) {
+                    const url = URL.createObjectURL(spriteData.spriteData);
+                    scene.textures.addBase64(npcData.spriteKey, url);
+                    texture = scene.textures.get(npcData.spriteKey);
+                } else {
+                    throw new Error(`Sprite with ID ${npcData.spriteImageId} not found`);
+                }
+            }
+
+            const npcSprite = scene.add.sprite(0, 0, npcData.spriteKey);
+            npcSprite.scale = npcData.scale;
+
+            const gridEngineConfig = {
+                id: npcData.id,
+                sprite: npcSprite,
+                walkingAnimationMapping: npcData.walkingAnimationMapping,
+                startPosition: npcData.startPosition,
+                speed: npcData.speed,
+            };
+
+            scene.gridEngine.addCharacter(gridEngineConfig);
+
+            const attachNPCEventWithCoords = (sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[]) => {
+                const position = scene.gridEngine.getPosition(sprite.name);
+                npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
+            };
+
+            attachNPCEventWithCoords(npcSprite, npcData.name, npcData.actions.map(action => ({ label: action })));
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error(`Failed to load NPC: ${error.message}`);
+            } else {
+                console.error('Failed to load NPC:', error);
+            }
+        }
+    }
 }
 
+// Export the class itself
+export { NPCDatabase };
+
+// Export a singleton instance
 export const npcDatabase = new NPCDatabase();
