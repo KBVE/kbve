@@ -4,6 +4,7 @@ import { INPCData, ISprite, IAvatar } from '../../../types';
 import { Scene } from 'phaser';
 import { npcHandler } from './npchandler';
 
+// Extending the Phaser.Scene type to include gridEngine
 interface ExtendedScene extends Scene {
     gridEngine: any;
 }
@@ -220,7 +221,6 @@ class NPCDatabase extends Dexie {
         await this.fetchNPCs(`${baseURL}/api/npcdb.json`);
     }
 
-    
     async loadCharacter(scene: ExtendedScene, npcId: string) {
         try {
             const npcData = await this.getNPC(npcId);
@@ -228,7 +228,7 @@ class NPCDatabase extends Dexie {
                 throw new Error(`NPC with ID ${npcId} not found`);
             }
 
-            let texture = scene.textures.get(npcData.spriteKey);
+            const texture = scene.textures.get(npcData.spriteKey);
             if (!texture) {
                 const spriteData = await this.getSprite(npcData.spriteImageId!);
                 if (spriteData && spriteData.spriteData) {
