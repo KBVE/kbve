@@ -27,6 +27,7 @@ export * from './lib/phaser/player/playercontroller';
 export * from './lib/phaser/npc/tooltipmenu';
 export * from './lib/phaser/npc/chatbubble';
 export * from './lib/phaser/npc/npchandler';
+export * from './lib/phaser/npc/npcdatabase';
 
 
 
