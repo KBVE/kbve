@@ -23,6 +23,11 @@ While we want to load the NPC via the Map, we also need to figure out how to han
 These are steps that we can probably handle through ulid-style relationships and just making sure each aspect works.
 I am sure just like how we were able to abstract away the item creation, we are getting a step closer for doing the same with the map and NPCs.
 
+Updated the engine to also accept an optional x and y coordinate.
+As for the loot table, we can keep that as an additional table to be added into the `indexedDB` on a later date.
+The goal for that loot table should be handled outside of the placement for the NPC.
+We can always create multiple clones of the NPCs in the future with different loot tables based upon the map and location, rather than make the loot table too expansive.
+But I could be lying because I am finding this part of the whole structure to be fun :D
 
 **Map**
 

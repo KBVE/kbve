@@ -221,7 +221,7 @@ class NPCDatabase extends Dexie {
         await this.fetchNPCs(`${baseURL}/api/npcdb.json`);
     }
 
-    async loadCharacter(scene: ExtendedScene, npcId: string) {
+    async loadCharacter(scene: ExtendedScene, npcId: string, x?: number, y?: number) {
         try {
             const npcData = await this.getNPC(npcId);
             if (!npcData) {
@@ -235,14 +235,14 @@ class NPCDatabase extends Dexie {
                     const url = URL.createObjectURL(spriteData.spriteData);
                     scene.load.image(npcData.spriteKey, url);
                     scene.load.once('complete', () => {
-                        this.addNPCToScene(scene, npcData);
+                        this.addNPCToScene(scene, npcData, x, y);
                     });
                     scene.load.start();
                 } else {
                     throw new Error(`Sprite with ID ${npcData.spriteImageId} not found`);
                 }
             } else {
-                this.addNPCToScene(scene, npcData);
+                this.addNPCToScene(scene, npcData, x, y);
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -253,15 +253,15 @@ class NPCDatabase extends Dexie {
         }
     }
 
-    addNPCToScene(scene: ExtendedScene, npcData: INPCData) {
-        const npcSprite = scene.add.sprite(0, 0, npcData.spriteKey);
+    addNPCToScene(scene: ExtendedScene, npcData: INPCData, x?: number, y?: number) {
+        const npcSprite = scene.add.sprite(x ?? npcData.startPosition.x, y ?? npcData.startPosition.y, npcData.spriteKey);
         npcSprite.scale = npcData.scale;
 
         const gridEngineConfig = {
             id: npcData.id,
             sprite: npcSprite,
             walkingAnimationMapping: npcData.walkingAnimationMapping,
-            startPosition: npcData.startPosition,
+            startPosition: { x: x ?? npcData.startPosition.x, y: y ?? npcData.startPosition.y },
             speed: npcData.speed,
         };
 
