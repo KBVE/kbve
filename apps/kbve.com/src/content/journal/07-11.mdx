@@ -1,0 +1,35 @@
+---
+title: 'July: 11'
+category: Daily
+date: 2024-07-11 12:00:00
+client: Self
+unsplash: 1687731216321-8265eacdc6ca
+img: https://images.unsplash.com/photo-1687731216321-8265eacdc6ca?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  July 11th. NPC Engine Demo
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+
+## 2024
+
+**NPC**
+
+Still working on the NPC Engine and making it just a bit easier to load characters dynamically.
+The path for loading the NPCs will shift towards the Map class or factory, not yet sure which approach we will take.
+While we want to load the NPC via the Map, we also need to figure out how to handle the loot table and then we have to figure out the combat.
+These are steps that we can probably handle through ulid-style relationships and just making sure each aspect works.
+I am sure just like how we were able to abstract away the item creation, we are getting a step closer for doing the same with the map and NPCs.
+
+
+**Map**
+
+The map generation will be in two forms, the first will be static cities, villas and towns and the second will be a dynamic and random dungeon crawler style.
+This should give the game a bit more depth and create unique play back, since the each cave will be unique.
+
+**jRPG**
+
+The combat system is still a long way from being complete.
+I am currently trying the multi dev environment, building a couple different javascript classes on different machines within the same time.
