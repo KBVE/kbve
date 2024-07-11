@@ -34,7 +34,7 @@ import {
 
 //import { TooltipMenu } from '@kbve/laser';
 
-import { npcHandler } from '@kbve/laser';
+import { npcHandler, npcDatabase } from '@kbve/laser';
 
 declare global {
   interface Window {
@@ -91,7 +91,7 @@ export class SandCity extends Scene {
     // EventEmitter.emit('playerEvent', __playerData);
   }
 
-  create() {
+  async create() {
     const cloudCityTilemap = this.make.tilemap({ key: 'cloud-city-map' });
     cloudCityTilemap.addTilesetImage('Cloud City', 'tiles');
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
@@ -184,6 +184,7 @@ export class SandCity extends Scene {
       3000
     );
 
+    await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM');
     // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly('npc', 1500, 3);
     this.gridEngine.moveRandomly('fishNpc', 1500, 3);

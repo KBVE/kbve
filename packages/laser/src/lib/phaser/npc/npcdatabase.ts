@@ -168,8 +168,8 @@ class NPCDatabase extends Dexie {
                         id: spriteDetails.id,
                         spriteName: spriteDetails.spriteName,
                         assetLocation: spriteDetails.assetLocation,
-                        frameWidth: spriteDetails.frameWidth,
-                        frameHeight: spriteDetails.frameHeight,
+                        frameWidth: 52, //spriteDetails.frameWidth,
+                        frameHeight: 72, // spriteDetails.frameHeight,
                         scale: spriteDetails.scale,
                         slug: spriteDetails.slug,
                         spriteData: spriteBlob
@@ -220,28 +220,42 @@ class NPCDatabase extends Dexie {
         // Fetch and add all NPCs from the given URL
         await this.fetchNPCs(`${baseURL}/api/npcdb.json`);
     }
-
     async loadCharacter(scene: ExtendedScene, npcId: string, x?: number, y?: number) {
         try {
+            console.log(`Loading NPC with ID: ${npcId}`);
             const npcData = await this.getNPC(npcId);
             if (!npcData) {
                 throw new Error(`NPC with ID ${npcId} not found`);
             }
-
-            const texture = scene.textures.get(npcData.spriteKey);
+            console.log(`NPC Data: ${JSON.stringify(npcData)}`);
+    
+            const textureKey = npcData.spriteKey;
+            const texture = scene.textures.get(textureKey);
+    
             if (!texture) {
+                console.log(`Texture with key ${textureKey} not found, attempting to load.`);
                 const spriteData = await this.getSprite(npcData.spriteImageId!);
                 if (spriteData && spriteData.spriteData) {
+                    console.log(`Sprite Data: ${JSON.stringify(spriteData)}`);
                     const url = URL.createObjectURL(spriteData.spriteData);
-                    scene.load.image(npcData.spriteKey, url);
+    
+                    // Load the spritesheet using frameWidth and frameHeight from spriteData
+                    scene.load.spritesheet(textureKey, url, {
+                        frameWidth: spriteData.frameWidth,
+                        frameHeight: spriteData.frameHeight,
+                    });
+    
                     scene.load.once('complete', () => {
+                        console.log(`Texture ${textureKey} loaded successfully.`);
                         this.addNPCToScene(scene, npcData, x, y);
                     });
+    
                     scene.load.start();
                 } else {
                     throw new Error(`Sprite with ID ${npcData.spriteImageId} not found`);
                 }
             } else {
+                console.log(`Texture with key ${textureKey} already loaded.`);
                 this.addNPCToScene(scene, npcData, x, y);
             }
         } catch (error) {
@@ -252,27 +266,36 @@ class NPCDatabase extends Dexie {
             }
         }
     }
-
+    
     addNPCToScene(scene: ExtendedScene, npcData: INPCData, x?: number, y?: number) {
-        const npcSprite = scene.add.sprite(x ?? npcData.startPosition.x, y ?? npcData.startPosition.y, npcData.spriteKey);
-        npcSprite.scale = npcData.scale;
-
-        const gridEngineConfig = {
-            id: npcData.id,
-            sprite: npcSprite,
-            walkingAnimationMapping: npcData.walkingAnimationMapping,
-            startPosition: { x: x ?? npcData.startPosition.x, y: y ?? npcData.startPosition.y },
-            speed: npcData.speed,
-        };
-
-        scene.gridEngine.addCharacter(gridEngineConfig);
-
-        const attachNPCEventWithCoords = (sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[]) => {
-            const position = scene.gridEngine.getPosition(sprite.name);
-            npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
-        };
-
-        attachNPCEventWithCoords(npcSprite, npcData.name, npcData.actions.map(action => ({ label: action })));
+        try {
+            console.log(`Adding NPC to scene: ${JSON.stringify(npcData)}`);
+            const npcSprite = scene.add.sprite(0, 0, npcData.spriteKey);
+            npcSprite.scale = npcData.scale;
+    
+            const gridEngineConfig = {
+                id: npcData.id,
+                sprite: npcSprite,
+                walkingAnimationMapping: npcData.walkingAnimationMapping,
+                startPosition: { x: x ?? npcData.startPosition.x, y: y ?? npcData.startPosition.y },
+                speed: npcData.speed,
+            };
+    
+            scene.gridEngine.addCharacter(gridEngineConfig);
+    
+            const attachNPCEventWithCoords = (sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[]) => {
+                const position = scene.gridEngine.getPosition(sprite.name);
+                npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
+            };
+    
+            attachNPCEventWithCoords(npcSprite, npcData.name, npcData.actions.map(action => ({ label: action })));
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error(`Error adding NPC to scene: ${error.message}`);
+            } else {
+                console.error('Error adding NPC to scene:', error);
+            }
+        }
     }
 }
 

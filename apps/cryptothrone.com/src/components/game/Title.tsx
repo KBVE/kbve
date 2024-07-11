@@ -55,7 +55,7 @@ export class Title extends Scene {
 
         reloadItemDB();
 
-        npcDatabase.initializeDatabase();
+        //npcDatabase.initializeDatabase();
 
     }
 
