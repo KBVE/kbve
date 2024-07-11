@@ -1,6 +1,12 @@
 import Dexie from 'dexie';
 import axios from 'axios';
 import { INPCData, ISprite, IAvatar } from '../../../types';
+import { Scene } from 'phaser';
+import { npcHandler } from './npchandler';
+
+interface ExtendedScene extends Scene {
+    gridEngine: any;
+}
 
 class NPCDatabase extends Dexie {
     npcs: Dexie.Table<INPCData, string>;
@@ -212,6 +218,54 @@ class NPCDatabase extends Dexie {
 
         // Fetch and add all NPCs from the given URL
         await this.fetchNPCs(`${baseURL}/api/npcdb.json`);
+    }
+
+    
+    async loadCharacter(scene: ExtendedScene, npcId: string) {
+        try {
+            const npcData = await this.getNPC(npcId);
+            if (!npcData) {
+                throw new Error(`NPC with ID ${npcId} not found`);
+            }
+
+            let texture = scene.textures.get(npcData.spriteKey);
+            if (!texture) {
+                const spriteData = await this.getSprite(npcData.spriteImageId!);
+                if (spriteData && spriteData.spriteData) {
+                    const url = URL.createObjectURL(spriteData.spriteData);
+                    scene.textures.addBase64(npcData.spriteKey, url);
+                    texture = scene.textures.get(npcData.spriteKey);
+                } else {
+                    throw new Error(`Sprite with ID ${npcData.spriteImageId} not found`);
+                }
+            }
+
+            const npcSprite = scene.add.sprite(0, 0, npcData.spriteKey);
+            npcSprite.scale = npcData.scale;
+
+            const gridEngineConfig = {
+                id: npcData.id,
+                sprite: npcSprite,
+                walkingAnimationMapping: npcData.walkingAnimationMapping,
+                startPosition: npcData.startPosition,
+                speed: npcData.speed,
+            };
+
+            scene.gridEngine.addCharacter(gridEngineConfig);
+
+            const attachNPCEventWithCoords = (sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[]) => {
+                const position = scene.gridEngine.getPosition(sprite.name);
+                npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
+            };
+
+            attachNPCEventWithCoords(npcSprite, npcData.name, npcData.actions.map(action => ({ label: action })));
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error(`Failed to load NPC: ${error.message}`);
+            } else {
+                console.error('Failed to load NPC:', error);
+            }
+        }
     }
 }
 
