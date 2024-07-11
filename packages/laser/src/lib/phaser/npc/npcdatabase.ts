@@ -174,6 +174,49 @@ class NPCDatabase extends Dexie {
             console.error(`Failed to fetch sprites from ${url}:`, error);
         }
     }
+
+    async fetchNPCs(url: string): Promise<void> {
+        try {
+            const response = await axios.get(url);
+            const npcs = response.data.key;
+            for (const key in npcs) {
+                const npcDetails = npcs[key];
+                const newNPC: INPCData = {
+                    id: npcDetails.id,
+                    name: npcDetails.name,
+                    spriteKey: npcDetails.spriteKey,
+                    walkingAnimationMapping: npcDetails.walkingAnimationMapping,
+                    startPosition: npcDetails.startPosition,
+                    speed: npcDetails.speed,
+                    scale: npcDetails.scale,
+                    slug: npcDetails.slug,
+                    actions: npcDetails.actions,
+                    effects: npcDetails.effects,
+                    stats: npcDetails.stats,
+                    spriteImageId: npcDetails.spriteImageId,
+                    avatarImageId: npcDetails.avatarImageId
+                };
+                await this.addNPC(newNPC);
+            }
+        } catch (error) {
+            console.error(`Failed to fetch NPCs from ${url}:`, error);
+        }
+    }
+
+    async initializeDatabase(baseURL = 'https://kbve.com') {
+        // Fetch and add all avatars from the given URL
+        await this.fetchAvatars(`${baseURL}/api/avatardb.json`);
+
+        // Fetch and add all sprites from the given URL
+        await this.fetchSprites(`${baseURL}/api/spritedb.json`);
+
+        // Fetch and add all NPCs from the given URL
+        await this.fetchNPCs(`${baseURL}/api/npcdb.json`);
+    }
 }
 
+// Export the class itself
+export { NPCDatabase };
+
+// Export a singleton instance
 export const npcDatabase = new NPCDatabase();
