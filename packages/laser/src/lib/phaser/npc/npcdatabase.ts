@@ -220,6 +220,7 @@ class NPCDatabase extends Dexie {
         // Fetch and add all NPCs from the given URL
         await this.fetchNPCs(`${baseURL}/api/npcdb.json`);
     }
+    
     async loadCharacter(scene: ExtendedScene, npcId: string, x?: number, y?: number) {
         try {
             console.log(`Loading NPC with ID: ${npcId}`);
@@ -230,9 +231,9 @@ class NPCDatabase extends Dexie {
             console.log(`NPC Data: ${JSON.stringify(npcData)}`);
     
             const textureKey = npcData.spriteKey;
-            const texture = scene.textures.get(textureKey);
     
-            if (!texture) {
+            // Ensure the texture is loaded
+            if (!scene.textures.exists(textureKey)) {
                 console.log(`Texture with key ${textureKey} not found, attempting to load.`);
                 const spriteData = await this.getSprite(npcData.spriteImageId!);
                 if (spriteData && spriteData.spriteData) {
@@ -270,8 +271,12 @@ class NPCDatabase extends Dexie {
     addNPCToScene(scene: ExtendedScene, npcData: INPCData, x?: number, y?: number) {
         try {
             console.log(`Adding NPC to scene: ${JSON.stringify(npcData)}`);
-            const npcSprite = scene.add.sprite(0, 0, npcData.spriteKey);
-            npcSprite.scale = npcData.scale;
+            console.log(`Using sprite key: ${npcData.spriteKey}`);
+    
+            const npcSprite = scene.add.sprite(x ?? npcData.startPosition.x, y ?? npcData.startPosition.y, npcData.spriteKey);
+            npcSprite.scale = npcData.scale || 1.5;
+    
+            console.log(`NPC Sprite created with texture key ${npcData.spriteKey} at position (${npcData.startPosition.x}, ${npcData.startPosition.y})`);
     
             const gridEngineConfig = {
                 id: npcData.id,
@@ -281,17 +286,29 @@ class NPCDatabase extends Dexie {
                 speed: npcData.speed,
             };
     
+            console.log(`Grid engine config: ${JSON.stringify(gridEngineConfig)}`);
+    
+            // Check if the texture is available before adding to grid engine
+            if (!scene.textures.exists(npcData.spriteKey)) {
+                throw new Error(`Texture with key ${npcData.spriteKey} does not exist in the scene`);
+            }
+    
             scene.gridEngine.addCharacter(gridEngineConfig);
+    
+            console.log(`NPC added to grid engine with ID ${npcData.id}`);
     
             const attachNPCEventWithCoords = (sprite: Phaser.GameObjects.Sprite, title: string, actions: { label: string }[]) => {
                 const position = scene.gridEngine.getPosition(sprite.name);
+                console.log(`Attaching NPC events to ${title} at position: ${JSON.stringify(position)}`);
                 npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
             };
     
             attachNPCEventWithCoords(npcSprite, npcData.name, npcData.actions.map(action => ({ label: action })));
+    
+            console.log(`NPC ${npcData.name} added to scene successfully`);
         } catch (error) {
             if (error instanceof Error) {
-                console.error(`Error adding NPC to scene: ${error.message}`);
+                console.error(`Error adding NPC to scene from addNPCToScene: ${error.message}`);
             } else {
                 console.error('Error adding NPC to scene:', error);
             }
