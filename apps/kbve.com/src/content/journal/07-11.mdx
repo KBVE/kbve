@@ -1,0 +1,57 @@
+---
+title: 'July: 11'
+category: Daily
+date: 2024-07-11 12:00:00
+client: Self
+unsplash: 1687731216321-8265eacdc6ca
+img: https://images.unsplash.com/photo-1687731216321-8265eacdc6ca?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  July 11th. NPC Engine Demo
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+
+## 2024
+
+**NPC**
+
+Still working on the NPC Engine and making it just a bit easier to load characters dynamically.
+The path for loading the NPCs will shift towards the Map class or factory, not yet sure which approach we will take.
+While we want to load the NPC via the Map, we also need to figure out how to handle the loot table and then we have to figure out the combat.
+These are steps that we can probably handle through ulid-style relationships and just making sure each aspect works.
+I am sure just like how we were able to abstract away the item creation, we are getting a step closer for doing the same with the map and NPCs.
+
+Updated the engine to also accept an optional x and y coordinate.
+As for the loot table, we can keep that as an additional table to be added into the `indexedDB` on a later date.
+The goal for that loot table should be handled outside of the placement for the NPC.
+We can always create multiple clones of the NPCs in the future with different loot tables based upon the map and location, rather than make the loot table too expansive.
+But I could be lying because I am finding this part of the whole structure to be fun :D
+
+After some more test casing and some key issues, we were able to get the `Chip` character to load and display the actions.
+The current actions do not yet work but that is because of another key mismatch, one that I will fix later today.
+The issue behind the sprite-key is a bit confusing because we a couple different ids, names and keys that represent the object within the grid engine itself, phaser, client-side database and also the static-side.
+I have not even gotten to the management of the NPCs from the server-side, but these are all small steps towards building this abstracted layer.
+
+**Map**
+
+The map generation will be in two forms, the first will be static cities, villas and towns and the second will be a dynamic and random dungeon crawler style.
+This should give the game a bit more depth and create unique play back, since the each cave will be unique.
+
+As progress is being made with the NPC engine and after a couple more NPCs are added, we can move forward with setting up the map system.
+This part of the code will start off simple, with focus on the city maps and then expand into the villas & towns.
+If we can get about three to five cities out of the way within this week, then adding the base random crawler system could be achieved within a couple days.
+We are not too sure what type of problems we will face with the map generation, but I am hoping that they will be small in scale. 
+
+**jRPG**
+
+The combat system is still a long way from being complete.
+I am currently trying the multi dev environment, building a couple different javascript classes on different machines within the same time.
+
+**Loot Table**
+
+After finishing up the base map system, I will have to come back around and expand the NPC engine, with a loot table.
+I am thinking about how I would want to handle the loot tables, if we should do isolated tables for each action?
+So a different loot table for stealing, combat, trade and quest?
+We could set the interface up for the loot table to be fairly generic, then expand the type / inter out for the different actions.
