@@ -374,11 +374,13 @@ export interface INPCData {
   startPosition: INPCPosition;
   speed: number;
   scale: number;
+  slug: string;
   actions: NPCAction[];
   effects?: string[];
   stats?: IPlayerStats;
   //spriteImage?: Blob; // Optional field to store sprite image as Blob
   spriteImageId?: string;
+  avatarImageId?: string; 
 }
 
 export interface ISprite {
@@ -389,11 +391,15 @@ export interface ISprite {
   frameHeight: number;
   scale?: number;
   spriteData?: Blob;
+  slug: string;
 }
 
 export interface IAvatar {
   id: string; // ULID
+  avatarName: string;
+  avatarLocation: string;
   avatarData: Blob;
+  slug: string;
 }
 
 
