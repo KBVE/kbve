@@ -152,7 +152,7 @@ const MinigameDiceComponent: React.FC = () => (
       side6: '/assets/items/set/dice/dice6.png',
     }}
     styleClass="h-96"
-    diceCount={8}
+    diceCount={4}
   />
 );
 
