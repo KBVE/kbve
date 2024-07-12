@@ -1,5 +1,136 @@
 ---
-import { ServicesBentoGrid } from './ServicesBentoGrid';
+const items = [
+  {
+    title: 'System Admin',
+    icon: '/services-icons/system-admin.svg',
+    description:
+      'Production ready and indexable by search engines while giving the feeling of an app to the end-users.',
+  },
+  {
+    title: 'System Admin',
+    icon: '/services-icons/system-admin.svg',
+    description:
+      'Production ready and indexable by search engines while giving the feeling of an app to the end-users.',
+  },
+  {
+    title: 'System Admin',
+    icon: '/services-icons/system-admin.svg',
+    description:
+      'Production ready and indexable by search engines while giving the feeling of an app to the end-users.',
+  },
+  {
+    title: 'System Admin',
+    icon: '/services-icons/system-admin.svg',
+    description:
+      'Production ready and indexable by search engines while giving the feeling of an app to the end-users.',
+  },
+  {
+    title: 'System Admin',
+    icon: '/services-icons/system-admin.svg',
+    description:
+      'Production ready and indexable by search engines while giving the feeling of an app to the end-users.',
+  },
+  {
+    title: 'System Admin',
+    icon: '/services-icons/system-admin.svg',
+    description:
+      'Production ready and indexable by search engines while giving the feeling of an app to the end-users.',
+  },
+  {
+    title: 'System Admin',
+    icon: '/services-icons/system-admin.svg',
+    description:
+      'Production ready and indexable by search engines while giving the feeling of an app to the end-users.',
+  },
+  {
+    title: 'System Admin',
+    icon: '/services-icons/system-admin.svg',
+    description:
+      'Production ready and indexable by search engines while giving the feeling of an app to the end-users.',
+  },
+];
 ---
 
-<ServicesBentoGrid client:only="react" />
+<section class="grid-container">
+  {
+    items.map((item) => (
+      <div class="grid-item">
+        <img class="grid-item-image" src="/assets/services/system-admin.png" />
+        <div class="grid-item-header">
+          <img
+            class="grid-item-header-icon"
+            src="/assets/icons/services/system-admin.svg"
+          />
+          <h1 class="grid-item-title">{item.title}</h1>
+        </div>
+        <p class="grid-item-text">{item.description}</p>
+        <button class="grid-item-button">Our Offer</button>
+      </div>
+    ))
+  }
+</section>
+
+<style>
+  .grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 2rem;
+
+    margin: 0 0 8rem;
+  }
+
+  .grid-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 0.5rem;
+
+    padding: 1.5rem;
+
+    border-radius: 10px;
+
+    background-color: #1c1c1c;
+    color: white;
+
+    box-shadow: 0 0 20px 0 rgba(black, 0.1);
+  }
+
+  .grid-item-image {
+    border-radius: 10px;
+  }
+
+  .grid-item-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1rem;
+
+    margin: 1rem 0 0.25rem;
+  }
+
+  .grid-item-title {
+    margin: 0;
+
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .grid-item-text {
+    margin: 0 0 1.5rem;
+
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .grid-item-button {
+    padding: 0.5rem 2rem;
+
+    border-radius: 3px;
+
+    font-size: 0.75rem;
+    background-color: #06b6d4;
+    color: white;
+  }
+</style>
