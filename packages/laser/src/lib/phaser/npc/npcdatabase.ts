@@ -168,8 +168,8 @@ class NPCDatabase extends Dexie {
                         id: spriteDetails.id,
                         spriteName: spriteDetails.spriteName,
                         assetLocation: spriteDetails.assetLocation,
-                        frameWidth: 52, //spriteDetails.frameWidth,
-                        frameHeight: 72, // spriteDetails.frameHeight,
+                        frameWidth: spriteDetails.frameWidth,
+                        frameHeight: spriteDetails.frameHeight,
                         scale: spriteDetails.scale,
                         slug: spriteDetails.slug,
                         spriteData: spriteBlob
@@ -273,7 +273,9 @@ class NPCDatabase extends Dexie {
             console.log(`Adding NPC to scene: ${JSON.stringify(npcData)}`);
             console.log(`Using sprite key: ${npcData.spriteKey}`);
     
-            const npcSprite = scene.add.sprite(x ?? npcData.startPosition.x, y ?? npcData.startPosition.y, npcData.spriteKey);
+            //const npcSprite = scene.add.sprite(x ?? npcData.startPosition.x, y ?? npcData.startPosition.y, npcData.spriteKey);
+            const npcSprite = scene.add.sprite(0, 0, npcData.spriteKey);
+
             npcSprite.scale = npcData.scale || 1.5;
             npcSprite.name = npcData.id || 'Error Missing Name';
     
