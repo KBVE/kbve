@@ -1,0 +1,71 @@
+---
+title: The Alchemist Potions
+description: |
+    All the unique alchemist potions within the CryptoThrone realm.
+sidebar:
+    label: Alchemy Potions
+    order: 420
+unsplash: 1590840960672-db24958eef9a
+img: https://images.unsplash.com/photo-1590840960672-db24958eef9a?fit=crop&w=1400&h=700&q=75
+tags:
+    - gamedev
+    - itemdb
+itemdb:
+    - id: "01J2JKCERT1ND5JBG0VW7HT5VM"
+      name: "Gilding Draught"
+      type: "potion"
+      category: "consumable"
+      description: |
+        A magical ectoplasmic brew that allows the wizard to convert items into gold.
+      img: "/assets/items/potion/alchemist/gilding_draught.png"
+      bonuses:
+        health: 20
+        mana: 10
+      durability: 1
+      weight: 0.5
+      consumable: true
+      effects: "Turns objects into gold!"
+      stackable: false
+      rarity: "rare"
+      levelRequirement: 5
+      price: 50
+      cooldown: 60
+      credits: |
+        The Gilding Draught recipe was created by Saltyswines & h0lybyte ; the pixel art and asset was provided by CraftPix.net (https://free-game-assets.itch.io/48-free-magic-potions-pixel-art-icons).
+    - id: "01J2JKCN75B7NQ05K1QVDETYH5"
+      name: "Verdant Vitality Potion"
+      type: "potion"
+      category: "consumable"
+      description: |
+        The green bull of energy, boosting your EP and HP!
+      img: "/assets/items/potion/alchemist/verdant_vitality_potion.png"
+      bonuses:
+        health: 69
+        energy: 69
+      durability: 1
+      weight: 0.5
+      consumable: true
+      effects: "Heals 69 health and restores 69 energy."
+      stackable: false
+      rarity: "rare"
+      levelRequirement: 5
+      price: 50
+      cooldown: 60
+      credits: |
+        The Verdant Vitality Potion recipe was created by Saltyswines and the asset was provided by CraftPix.net (https://free-game-assets.itch.io/48-free-magic-potions-pixel-art-icons). 
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import {ItemDB, Giscus, Adsense } from '@kbve/astropad';
+
+## The Alchemist Potions
+
+<ItemDB itemdb={frontmatter.itemdb} />

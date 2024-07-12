@@ -1,29 +1,37 @@
 // NPCHandler.ts
 import { EventEmitter } from '../../eventhandler';
 
-import { type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData } from '../../../types';
+import { type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData, type NPCAction} from '../../../types';
 
-interface NPCActionHandlers {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [action: string]: (eventData: NPCInteractionEventData) => void;
-}
+type NPCActionHandlers = Record<NPCAction, (eventData: NPCInteractionEventData) => void>;
+
 
 class NPCHandler {
   private actionHandlers: NPCActionHandlers;
 
   constructor() {
     this.actionHandlers = {
-        Talk: this.talkToNPC.bind(this),
-        Trade: this.tradeWithNPC.bind(this),
-        "Move to": this.moveToNPC.bind(this),
-        Steal: this.stealFromNPC.bind(this),
-        Combat: this.startCombat.bind(this),
-        "Check Fish": this.checkFish.bind(this)  
-    };
+        talk: this.talkToNPC.bind(this),
+        quest: this.questWithNPC.bind(this),
+        trade: this.tradeWithNPC.bind(this),
+        combat: this.startCombat.bind(this),
+        heal: this.healNPC.bind(this),
+        steal: this.stealFromNPC.bind(this)
+    } as NPCActionHandlers; // Type assertion to satisfy the mapped type constraint
   }
 
-  getActionHandler(action: string): (eventData: NPCInteractionEventData) => void | undefined {
+  getActionHandler(action: NPCAction): (eventData: NPCInteractionEventData) => void {
     return this.actionHandlers[action];
+  }
+
+  questWithNPC(eventData: NPCInteractionEventData) {
+    console.log(`Starting quest with NPC with ID: ${eventData.npcId}`);
+    // Implement q
+    
+  }
+  healNPC(eventData: NPCInteractionEventData) {
+    console.log(`Healing NPC with ID: ${eventData.npcId}`);
+    // Implement healing logic here
   }
 
   talkToNPC(eventData: NPCInteractionEventData) {
