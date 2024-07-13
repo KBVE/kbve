@@ -18,6 +18,11 @@ import { Adsense } from '@kbve/astropad';
 
 The yellow material over the dice shows up on the initial load but after the roll animation, it seems to revert.
 I am wondering if there is an issue with the object itself or the animation is resetting the material on the dice.
+The max amount of dice that we can roll would be about 4, which gives us a low range of 4 and a max of 48.
+Having this be our scope of rolls would be the best move, then having the additional rigged dice to help over some of the issues.
+So a crit fail will be a 4 and a perfect crit will be a 48.
+However we could work out a better formula to determine the critical chance, maybe roll an additional d100 style dice to handle the critial chance.
+There are still a decent amount of options, but I will try to look through each one.
 
 **Sprites**
 
@@ -25,6 +30,10 @@ Thanks to the recent purchase of finalbossblue's complete asset collection, we h
 This means that the only thing left is to slowly focus on the different core mechanics of the game engine, we can tackle the map builder and the dialogue system next.
 
 The animation engine for different characters will be an interesting test case, I am not yet ready to handle this, I might have to visit the forest of 420 and embark on a hazy trip.
+For the animation system we will have a couple options but I think we could find a way to use either the threejs or a direct function to control the movement of the assets.
+I am trying my best to think through the best course of action but it seems that we do not want to create a situation where every new item would require a vast shift in animation.
+
+Replacing Fudster's in-game character from a `monk` set to the `jesus` set would be fine.
 
 **Dialogue**
 
@@ -139,6 +148,17 @@ export interface IDialogueOption {
 
 Okay for the future of this system, I am thinking that it would make sense to include a `style` and a `backgroundImage` for all three of the interfaces.
 This will help us with rendering out the dialogue on the client-side.
+
+Next step would be to setup the `DialogueDatabase`, we will follow the same structure as our NPCDatabse.
+My goal would be try and keep some of the logic on the client-side as similar as possible, so that it would be easier to maintain in the future.
+
+
+**House of Dragons**
+
+Season 2 is shaping up to be a great season so far!
+I am enjoying episode 3 and 4, its getting solid and the dragon fights were top notch this season.
+
+
 
 ## 2023
 - 6:00pm - H to V to the A-C. HVAC was not yet done, I am still a bit afraid of getting electrocuted to death.
