@@ -381,6 +381,7 @@ export interface INPCData {
   //spriteImage?: Blob; // Optional field to store sprite image as Blob
   spriteImageId?: string;
   avatarImageId?: string; 
+  dialogues?: INPCDialogue[];
 }
 
 export interface ISprite {
@@ -404,6 +405,11 @@ export interface IAvatar {
 
 export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal' | 'lore';
 export type NPCEffect = 'increaseHealth' | 'decreaseHealth' | 'increaseMana' | 'decreaseMana' | 'boostStrength' | 'reduceStrength';
+
+export interface INPCDialogue {
+  dialogueId: string;
+  read: boolean;
+}
 
 export interface IDialogueObject {
   id: string;
