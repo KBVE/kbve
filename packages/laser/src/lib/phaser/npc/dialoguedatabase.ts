@@ -8,7 +8,7 @@ class DialogueDatabase extends Dexie {
     constructor() {
         super('DialogueDatabase');
         this.version(1).stores({
-            dialogues: 'id'
+            dialogues: 'id,title,actionType,questId'
         });
         this.dialogues = this.table('dialogues');
     }
@@ -62,10 +62,20 @@ class DialogueDatabase extends Dexie {
             console.error(`Failed to fetch dialogues from ${url}:`, error);
         }
     }
+
+    async findDialoguesByTitle(title: string): Promise<IDialogueObject[]> {
+        return await this.dialogues.where('title').equalsIgnoreCase(title).toArray();
+    }
+
+    async findDialoguesByActionType(actionType: string): Promise<IDialogueObject[]> {
+        return await this.dialogues.where('actionType').equalsIgnoreCase(actionType).toArray();
+    }
+
+    async findDialoguesByQuestId(questId: string): Promise<IDialogueObject[]> {
+        return await this.dialogues.where('questId').equals(questId).toArray();
+    }
 }
 
-// Export the class itself
 export { DialogueDatabase };
 
-// Export a singleton instance
 export const dialogueDatabase = new DialogueDatabase();
