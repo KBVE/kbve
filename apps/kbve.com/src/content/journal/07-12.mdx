@@ -19,6 +19,127 @@ import { Adsense } from '@kbve/astropad';
 The yellow material over the dice shows up on the initial load but after the roll animation, it seems to revert.
 I am wondering if there is an issue with the object itself or the animation is resetting the material on the dice.
 
+**Sprites**
+
+Thanks to the recent purchase of finalbossblue's complete asset collection, we have a decent chunk of characters, animations and tilesets to work with.
+This means that the only thing left is to slowly focus on the different core mechanics of the game engine, we can tackle the map builder and the dialogue system next.
+
+The animation engine for different characters will be an interesting test case, I am not yet ready to handle this, I might have to visit the forest of 420 and embark on a hazy trip.
+
+**Dialogue**
+
+I am thinking that the dialogue system should be something along the lines of a semi-complex data structure that would link other structures together creating a nested web of nodes.
+We could use the ULIDs to help us keep track of the different dialogue options and then work around that, but try to include ways to `skip`, `actions` and `effects` based upon how the dialogue is setup.
+
+This would be the general `IDialogueObject` that we would use to store the different talks that the player would have with the NPCS.
+
+```ts
+
+export interface IDialogueObject {
+  id: string;
+  title: string;
+  message: string;
+  actions: string[];
+  options: string[];
+}
+
+export interface IAction {
+  id: string;
+  description: string;
+  nextDialogueId: string;
+}
+
+// Interface for Option Object
+export interface IOption {
+  id: string;
+  description: string;
+  nextDialogueId: string | null;
+}
+
+```
+
+Actually, just to be safe, we should rename the two other interfaces with a better name, like `IDialogueAction` and `IDialogueOption`.
+After thinking it through, maybe we step a bit back and do something like this:
+
+```ts
+
+// Interface for Dialogue Object
+export interface IDialogueObject {
+  id: string;
+  title: string;
+  message: string;
+  actions: IDialogueAction[];
+  options: IDialogueOption[];
+}
+
+// Interface for Dialogue Action
+export interface IDialogueAction {
+  id: string;
+  description: string;
+  nextDialogueId: string;
+  actionType?: 'giveItem' | 'startQuest' | 'updateQuest' | 'completeQuest';
+  itemType?: string; // Type of item to be given (if actionType is 'giveItem')
+  quantity?: number; // Quantity of the item (if actionType is 'giveItem')
+  questId?: string; // ID of the quest (if actionType is related to quests)
+  questStatus?: 'start' | 'update' | 'complete'; // Status of the quest (if actionType is related to quests)
+}
+
+// Interface for Dialogue Option
+export interface IDialogueOption {
+  id: string;
+  description: string;
+  nextDialogueId: string | null;
+}
+
+```
+
+This would let us keep the initial object of the conversation the same without having too many different objects.
+This is what I am thinking would be the core dialogue object now, as of the end of the day:
+
+```ts
+
+// Interface for Dialogue Object
+export interface IDialogueObject {
+  id: string;
+  title: string;
+  message: string;
+  actions: IDialogueAction[];
+  options: IDialogueOption[];
+  style?: string;
+  backgroundImage?: string;
+}
+
+// Interface for Dialogue Action
+export interface IDialogueAction {
+  id: string;
+  title: string;
+  message: string;
+  nextDialogueId: string;
+  actionType?: 'giveItem' | 'startQuest' | 'updateQuest' | 'completeQuest';
+  itemType?: string; // Type of item to be given (if actionType is 'giveItem')
+  quantity?: number; // Quantity of the item (if actionType is 'giveItem')
+  questId?: string; // ID of the quest (if actionType is related to quests)
+  questStatus?: 'start' | 'update' | 'complete'; // Status of the quest (if actionType is related to quests)
+  style?: string;
+  backgroundImage?: string;
+}
+
+// Interface for Dialogue Option
+export interface IDialogueOption {
+  id: string;
+  title: string;
+  message: string;
+  nextDialogueId?: string;
+  style?: string;
+  backgroundImage?: string;
+}
+
+
+```
+
+Okay for the future of this system, I am thinking that it would make sense to include a `style` and a `backgroundImage` for all three of the interfaces.
+This will help us with rendering out the dialogue on the client-side.
+
 ## 2023
 - 6:00pm - H to V to the A-C. HVAC was not yet done, I am still a bit afraid of getting electrocuted to death.
 - 6:35pm - I am thinking of converting the whole `TypeWriter` concept into a `MangaTextHandler` which will act as the component for all the unique text styles and logos.
