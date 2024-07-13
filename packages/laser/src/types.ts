@@ -381,6 +381,7 @@ export interface INPCData {
   //spriteImage?: Blob; // Optional field to store sprite image as Blob
   spriteImageId?: string;
   avatarImageId?: string; 
+  dialogues?: INPCDialogue[];
 }
 
 export interface ISprite {
@@ -405,7 +406,11 @@ export interface IAvatar {
 export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal' | 'lore';
 export type NPCEffect = 'increaseHealth' | 'decreaseHealth' | 'increaseMana' | 'decreaseMana' | 'boostStrength' | 'reduceStrength';
 
-// Interface for Dialogue Object
+export interface INPCDialogue {
+  dialogueId: string;
+  read: boolean;
+}
+
 export interface IDialogueObject {
   id: string;
   title: string;
@@ -416,27 +421,25 @@ export interface IDialogueObject {
   backgroundImage?: string;
 }
 
-// Interface for Dialogue Action
 export interface IDialogueAction {
   id: string;
   title: string;
   message: string;
   nextDialogueId: string;
   actionType?: 'giveItem' | 'startQuest' | 'updateQuest' | 'completeQuest';
-  itemType?: string; // Type of item to be given (if actionType is 'giveItem')
-  quantity?: number; // Quantity of the item (if actionType is 'giveItem')
-  questId?: string; // ID of the quest (if actionType is related to quests)
-  questStatus?: 'start' | 'update' | 'complete'; // Status of the quest (if actionType is related to quests)
+  itemType?: string;
+  quantity?: number;
+  questId?: string;
+  questStatus?: 'start' | 'update' | 'complete';
   style?: string; 
   backgroundImage?: string; 
 }
 
-// Interface for Dialogue Option
 export interface IDialogueOption {
   id: string;
   title: string;
   message: string;
-  nextDialogueId?: string; // Next dialogue ID can be undefined to indicate end of conversation
+  nextDialogueId?: string; 
   style?: string; 
   backgroundImage?: string; 
 }
