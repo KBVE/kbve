@@ -412,8 +412,8 @@ export interface IDialogueObject {
   message: string;
   actions: IDialogueAction[];
   options: IDialogueOption[];
-  style?: string; // Additional style options
-  backgroundImage?: string; // Background image
+  style?: string; 
+  backgroundImage?: string;
 }
 
 // Interface for Dialogue Action
@@ -427,8 +427,8 @@ export interface IDialogueAction {
   quantity?: number; // Quantity of the item (if actionType is 'giveItem')
   questId?: string; // ID of the quest (if actionType is related to quests)
   questStatus?: 'start' | 'update' | 'complete'; // Status of the quest (if actionType is related to quests)
-  style?: string; // Additional style options
-  backgroundImage?: string; // Background image
+  style?: string; 
+  backgroundImage?: string; 
 }
 
 // Interface for Dialogue Option
@@ -437,6 +437,6 @@ export interface IDialogueOption {
   title: string;
   message: string;
   nextDialogueId?: string; // Next dialogue ID can be undefined to indicate end of conversation
-  style?: string; // Additional style options
-  backgroundImage?: string; // Background image
+  style?: string; 
+  backgroundImage?: string; 
 }
