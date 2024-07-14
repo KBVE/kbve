@@ -1,0 +1,35 @@
+---
+title: 'July: 14'
+category: Daily
+date: 2024-07-14 12:00:00
+client: Self
+unsplash: 1686672605288-f83df6f815f7
+img: https://images.unsplash.com/photo-1686672605288-f83df6f815f7?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  July 14th. Dialogue System.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Zod**
+
+The dialogue zod is still a pain to create but we are getting there slowly.
+Maybe we just have one structure for the dialogue node and then have it include possible actions as an optional ulid.
+
+For this case, we can just do this:
+
+```ts 
+
+export interface IDialogueObject {
+  id: string;
+  title: string;
+  message: string;
+  actions?: string[];  // Array of ULIDs pointing to actions/effects
+  options?: string[];  // Array of ULIDs pointing to other dialogue objects
+  style?: string; 
+  backgroundImage?: string;
+}
+```
