@@ -18,7 +18,7 @@ class NPCDatabase extends Dexie {
   constructor() {
     super('NPCDatabase');
     this.version(3).stores({
-      npcs: 'id',
+      npcs: 'id,name',
       sprites: 'id',
       avatars: 'id',
       dialogues: 'id',
@@ -35,6 +35,10 @@ class NPCDatabase extends Dexie {
 
   async getNPC(id: string): Promise<INPCData | undefined> {
     return await this.npcs.get(id);
+  }
+
+  async getNPCByName(name: string): Promise<INPCData | undefined> {
+    return await this.npcs.where('name').equals(name).first();
   }
 
   async getAllNPCs(): Promise<INPCData[]> {
@@ -237,6 +241,32 @@ class NPCDatabase extends Dexie {
     // TODO: Fetch dialogues from the given URL
     await this.fetchDialogues(`${baseURL}/api/dialogue.json`);
   }
+
+
+  async loadNPC(
+    scene: ExtendedScene,
+    npcName: string,
+    x?: number,
+    y?: number
+  ): Promise<void> {
+    try {
+      console.log(`Loading NPC with name: ${npcName}`);
+      const npcData = await this.getNPCByName(npcName);
+      if (!npcData) {
+        throw new Error(`NPC with name ${npcName} not found`);
+      }
+      console.log(`NPC Data: ${JSON.stringify(npcData)}`);
+      
+      await this.loadCharacter(scene, npcData.id, x, y);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`Failed to load NPC: ${error.message}`);
+      } else {
+        console.error('Failed to load NPC:', error);
+      }
+    }
+  }
+  
 
   async loadCharacter(
     scene: ExtendedScene,
