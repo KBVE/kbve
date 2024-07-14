@@ -381,6 +381,7 @@ export interface INPCData {
   //spriteImage?: Blob; // Optional field to store sprite image as Blob
   spriteImageId?: string;
   avatarImageId?: string; 
+  dialogues?: INPCDialogue[];
 }
 
 export interface ISprite {
@@ -402,8 +403,21 @@ export interface IAvatar {
   slug: string;
 }
 
+export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal' | 'lore';
 
-export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal';
-export type NPCEffect = 'increaseHealth' | 'decreaseHealth' | 'increaseMana' | 'decreaseMana' | 'boostStrength' | 'reduceStrength';
+export interface INPCDialogue {
+  dialogueId: string;
+  read: boolean;
+  priority: number;
+}
 
-// Define other interfaces as needed
+export interface IDialogueObject {
+  id: string;
+  title: string;
+  message: string;
+  playerResponse?: string;
+  actions?: string[];  // Array of ULIDs pointing to actions/effects
+  options?: string[];  // Array of ULIDs pointing to other dialogue objects
+  style?: string; 
+  backgroundImage?: string;
+}

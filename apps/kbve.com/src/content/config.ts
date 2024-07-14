@@ -225,6 +225,12 @@ const PlayerStatsSchema = z.object({
   mana: z.number(),
 });
 
+const NPCDialogueSchema = z.object({
+  dialogueId: z.string(),
+  read: z.boolean(),
+  priority: z.number(),
+});
+
 const NPCDataSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -240,6 +246,7 @@ const NPCDataSchema = z.object({
   stats: PlayerStatsSchema.optional(),
   spriteImageId: z.string().optional(),
   avatarImageId: z.string().optional(),
+  dialogues: z.array(NPCDialogueSchema).optional()
 });
 
 const SpriteSchema = z.object({
@@ -289,6 +296,18 @@ const IObjectSchema = z.object({
   credits: z.string().optional(),
 });
 
+const DialogueObjectSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  message: z.string(),
+  playerResponse: z.string().optional(),
+  actions: z.array(z.string()).optional(), 
+  options: z.array(z.string()).optional(),
+  style: z.string().optional(),
+  backgroundImage: z.string().optional(),
+});
+
+
 export const collections = {
   arcade: arcade,
   journal: journal,
@@ -310,6 +329,7 @@ export const collections = {
         npcdb: z.array(NPCDataSchema).optional(),
         sprite: z.array(SpriteSchema).optional(),
         avatar: z.array(AvatarSchema).optional(),
+        dialogue: z.array(DialogueObjectSchema).optional(),
       }),
     }),
   }),

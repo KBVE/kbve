@@ -16,12 +16,18 @@ class NPCHandler {
         trade: this.tradeWithNPC.bind(this),
         combat: this.startCombat.bind(this),
         heal: this.healNPC.bind(this),
-        steal: this.stealFromNPC.bind(this)
+        steal: this.stealFromNPC.bind(this),
+        lore: this.loreFromNPC.bind(this)
     } as NPCActionHandlers; // Type assertion to satisfy the mapped type constraint
   }
 
   getActionHandler(action: NPCAction): (eventData: NPCInteractionEventData) => void {
     return this.actionHandlers[action];
+  }
+
+  loreFromNPC(eventData: NPCInteractionEventData)
+  {
+    console.log(`Pulling up the lore of the NPC with ID: ${eventData.npcId}`)
   }
 
   questWithNPC(eventData: NPCInteractionEventData) {
