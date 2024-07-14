@@ -133,4 +133,22 @@ const items = [
     background-color: #06b6d4;
     color: white;
   }
+
+  @media only screen and (max-width: 1300px) {
+    .grid-container {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+
+  @media only screen and (max-width: 1000px) {
+    .grid-container {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media only screen and (max-width: 600px) {
+    .grid-container {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
