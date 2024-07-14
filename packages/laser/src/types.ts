@@ -404,42 +404,20 @@ export interface IAvatar {
 }
 
 export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal' | 'lore';
-export type NPCEffect = 'increaseHealth' | 'decreaseHealth' | 'increaseMana' | 'decreaseMana' | 'boostStrength' | 'reduceStrength';
 
 export interface INPCDialogue {
   dialogueId: string;
   read: boolean;
+  priority: number;
 }
 
 export interface IDialogueObject {
   id: string;
   title: string;
   message: string;
-  actions: IDialogueAction[];
-  options: IDialogueOption[];
+  playerResponse?: string;
+  actions?: string[];  // Array of ULIDs pointing to actions/effects
+  options?: string[];  // Array of ULIDs pointing to other dialogue objects
   style?: string; 
   backgroundImage?: string;
-}
-
-export interface IDialogueAction {
-  id: string;
-  title: string;
-  message: string;
-  nextDialogueId: string;
-  actionType?: 'giveItem' | 'startQuest' | 'updateQuest' | 'completeQuest';
-  itemType?: string;
-  quantity?: number;
-  questId?: string;
-  questStatus?: 'start' | 'update' | 'complete';
-  style?: string; 
-  backgroundImage?: string; 
-}
-
-export interface IDialogueOption {
-  id: string;
-  title: string;
-  message: string;
-  nextDialogueId?: string; 
-  style?: string; 
-  backgroundImage?: string; 
 }
