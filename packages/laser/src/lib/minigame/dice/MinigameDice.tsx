@@ -22,7 +22,8 @@ const PixelatedDice: React.FC<{ diceValues: number[], isRolling: boolean, textur
 
   useEffect(() => {
     const loader = new THREE.TextureLoader();
-    const yellowTint = new THREE.Color(0xffff00);
+    //const yellowTint = new THREE.Color(0xffff00);
+    const yellowTint = new THREE.Color(0xFFD700);
     materialsRef.current = [
       new THREE.MeshStandardMaterial({ map: loader.load(textures.side1), color: yellowTint }),
       new THREE.MeshStandardMaterial({ map: loader.load(textures.side2), color: yellowTint }),
@@ -66,7 +67,7 @@ const PixelatedDice: React.FC<{ diceValues: number[], isRolling: boolean, textur
         >
           <boxGeometry args={[1, 1, 1]} />
           {materialsRef.current.length === 6 && materialsRef.current.map((material, i) => (
-            <meshStandardMaterial attach={`material-${i}`} map={material.map} key={i} />
+            <meshStandardMaterial attach={`material-${i}`} key={i}  {...material} />
           ))}
         </mesh>
       ))}
