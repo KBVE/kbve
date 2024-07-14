@@ -188,6 +188,8 @@ export class SandCity extends Scene {
     
     await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
 
+    await npcDatabase.loadCharacter(this, '01J2HQJBMBGEEMWDBDWATRCY3T', 8, 15);
+
     // this.gridEngine.follow('01J2HCTMQ58JBMJGW9YA3FBQCG', '01J2DT4G871KJ0VNSHCNC5REDM', 0, true);
 
     // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
