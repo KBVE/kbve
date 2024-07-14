@@ -32,4 +32,22 @@ export interface IDialogueObject {
   style?: string; 
   backgroundImage?: string;
 }
+
+```
+
+Actually we could add in the playerResponse as a string too.
+
+```ts
+
+const DialogueObjectSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  message: z.string(),
+  playerResponse: z.string().optional(),
+  actions: z.array(z.string()).optional(), 
+  options: z.array(z.string()).optional(),
+  style: z.string().optional(),
+  backgroundImage: z.string().optional(),
+});
+
 ```

@@ -408,13 +408,14 @@ export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal'
 export interface INPCDialogue {
   dialogueId: string;
   read: boolean;
-
+  priority: number;
 }
 
 export interface IDialogueObject {
   id: string;
   title: string;
   message: string;
+  playerResponse?: string;
   actions?: string[];  // Array of ULIDs pointing to actions/effects
   options?: string[];  // Array of ULIDs pointing to other dialogue objects
   style?: string; 
