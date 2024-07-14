@@ -242,12 +242,11 @@ class NPCDatabase extends Dexie {
     await this.fetchDialogues(`${baseURL}/api/dialogue.json`);
   }
 
-
   async loadNPC(
     scene: ExtendedScene,
     npcName: string,
     x?: number,
-    y?: number
+    y?: number,
   ): Promise<void> {
     try {
       console.log(`Loading NPC with name: ${npcName}`);
@@ -256,7 +255,7 @@ class NPCDatabase extends Dexie {
         throw new Error(`NPC with name ${npcName} not found`);
       }
       console.log(`NPC Data: ${JSON.stringify(npcData)}`);
-      
+
       await this.loadCharacter(scene, npcData.id, x, y);
     } catch (error) {
       if (error instanceof Error) {
@@ -266,7 +265,6 @@ class NPCDatabase extends Dexie {
       }
     }
   }
-  
 
   async loadCharacter(
     scene: ExtendedScene,
