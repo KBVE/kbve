@@ -18,7 +18,7 @@ class NPCDatabase extends Dexie {
   constructor() {
     super('NPCDatabase');
     this.version(3).stores({
-      npcs: 'id',
+      npcs: 'id,name',
       sprites: 'id',
       avatars: 'id',
       dialogues: 'id',
@@ -35,6 +35,10 @@ class NPCDatabase extends Dexie {
 
   async getNPC(id: string): Promise<INPCData | undefined> {
     return await this.npcs.get(id);
+  }
+
+  async getNPCByName(name: string): Promise<INPCData | undefined> {
+    return await this.npcs.where('name').equals(name).first();
   }
 
   async getAllNPCs(): Promise<INPCData[]> {
@@ -235,15 +239,41 @@ class NPCDatabase extends Dexie {
     await this.fetchNPCs(`${baseURL}/api/npcdb.json`);
 
     // TODO: Fetch dialogues from the given URL
-    // await this.fetchDialogues(`${baseURL}/api/dialoguedb.json`);
+    await this.fetchDialogues(`${baseURL}/api/dialogue.json`);
   }
+
+
+  async loadNPC(
+    scene: ExtendedScene,
+    npcName: string,
+    x?: number,
+    y?: number
+  ): Promise<void> {
+    try {
+      console.log(`Loading NPC with name: ${npcName}`);
+      const npcData = await this.getNPCByName(npcName);
+      if (!npcData) {
+        throw new Error(`NPC with name ${npcName} not found`);
+      }
+      console.log(`NPC Data: ${JSON.stringify(npcData)}`);
+      
+      await this.loadCharacter(scene, npcData.id, x, y);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`Failed to load NPC: ${error.message}`);
+      } else {
+        console.error('Failed to load NPC:', error);
+      }
+    }
+  }
+  
 
   async loadCharacter(
     scene: ExtendedScene,
     npcId: string,
     x?: number,
     y?: number,
-  ) {
+  ): Promise<void> {
     try {
       console.log(`Loading NPC with ID: ${npcId}`);
       const npcData = await this.getNPC(npcId);
@@ -297,7 +327,7 @@ class NPCDatabase extends Dexie {
     npcData: INPCData,
     x?: number,
     y?: number,
-  ) {
+  ): void {
     try {
       console.log(`Adding NPC to scene: ${JSON.stringify(npcData)}`);
       console.log(`Using sprite key: ${npcData.spriteKey}`);
@@ -381,7 +411,7 @@ class NPCDatabase extends Dexie {
 
   async getDialoguesForNPC(npcId: string): Promise<IDialogueObject[]> {
     const npc = await this.getNPC(npcId);
-    if (!npc) throw new Error();
+    if (!npc) throw new Error(`NPC with ID ${npcId} not found`);
     const dialogues = await Promise.all(
       (npc.dialogues || []).map((dialogue) =>
         this.getDialogue(dialogue.dialogueId),
