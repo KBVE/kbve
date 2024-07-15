@@ -39,7 +39,7 @@ const DialogueComponent: React.FC = () => {
   return (
     <>
       <div id="hs-stacked-overlays-dialogue" className="hs-overlay hs-overlay-backdrop-open:bg-gray-900/50 hidden size-full fixed top-0 start-0 z-[60] overflow-x-hidden overflow-y-auto pointer-events-none [--overlay-backdrop:static]" data-hs-overlay-keyboard="false">
-        <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto">
+        <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto md:min-w-fit">
           <div className="flex flex-col lg:flex-row  bg-zinc-950 border border-yellow-500 shadow-sm rounded-xl pointer-events-auto bg-cover" style={{backgroundImage: `url(${dialogue$?.dialogue.backgroundImage || "https://kbve.com/assets/img/curved-images/wave.jpg"})`}}>
 
             
