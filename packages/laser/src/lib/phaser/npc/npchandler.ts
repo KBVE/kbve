@@ -3,6 +3,8 @@ import { EventEmitter } from '../../eventhandler';
 
 import { type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData, type NPCAction} from '../../../types';
 
+import { npcDatabase } from './npcdatabase';
+
 type NPCActionHandlers = Record<NPCAction, (eventData: NPCInteractionEventData) => void>;
 
 
@@ -40,9 +42,15 @@ class NPCHandler {
     // Implement healing logic here
   }
 
-  talkToNPC(eventData: NPCInteractionEventData) {
-    console.log(`Talking to NPC with ID: ${eventData.npcId}`);
-    // Implement talking logic here
+  async talkToNPC(eventData: NPCInteractionEventData) {
+    try {
+      console.log(`Talking to NPC with ID: ${eventData.npcId}`);
+      const dialogues = await npcDatabase.getDialoguesForNPC(eventData.npcId);
+      console.log(dialogues);
+      // Implement further dialogue handling logic here
+    } catch (error) {
+      console.error(`Failed to fetch dialogues for NPC with ID ${eventData.npcId}:`, error);
+    }
   }
 
   tradeWithNPC(eventData: NPCInteractionEventData) {
