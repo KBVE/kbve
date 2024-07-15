@@ -4,6 +4,7 @@ import { useStore } from '@nanostores/react';
 import {
   EventEmitter,
   type NPCInteractionEventData,
+  type NPCAction,
   npcHandler,
 } from '@kbve/laser';
 
@@ -64,7 +65,7 @@ const ActionMenu: React.FC = () => {
   
 
 
-  const handleAction = (action: string) => {
+  const handleAction = (action: NPCAction) => {
     if (_npc$) {
       const actionHandler = npcHandler.getActionHandler(action);
       if (actionHandler) {
@@ -106,7 +107,7 @@ const ActionMenu: React.FC = () => {
         {actions.map((action, index) => (
           <button
             key={index}
-            onClick={() => handleAction(action)}
+            onClick={() => handleAction(action as NPCAction)}
             className="block w-full text-xs py-1 px-2 mb-1 bg-yellow-500 hover:bg-yellow-400 rounded"
           >
             {action}
