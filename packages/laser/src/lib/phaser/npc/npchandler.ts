@@ -52,6 +52,7 @@ class NPCHandler {
       if (prioritizedDialogues.length > 0) {
         const dialogueToDisplay = prioritizedDialogues[0];
         // Display the dialogueToDisplay
+        EventEmitter.emit('npcDialogue', { npcId: eventData.npcId, dialogue: dialogueToDisplay }, 1000);
         console.log(`Displaying dialogue with ID: ${dialogueToDisplay.id}`);
       } else {
         console.log('No dialogues available for this NPC.');

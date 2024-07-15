@@ -184,7 +184,7 @@ export class SandCity extends Scene {
       3000
     );
 
-    await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM');
+    await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM', 6,6);
     
     await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
 
