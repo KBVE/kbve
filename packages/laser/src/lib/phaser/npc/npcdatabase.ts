@@ -443,6 +443,38 @@ class NPCDatabase extends Dexie {
       console.error(`Failed to fetch dialogues from ${url}:`, error);
     }
   }
+
+  async getPrioritizedDialoguesForNPC(npcId: string): Promise<(IDialogueObject & { priority: number; read: boolean })[]> {
+    try {
+      const npc = await this.getNPC(npcId);
+      if (!npc) throw new Error(`NPC with ID ${npcId} not found`);
+  
+      const dialoguesWithMetadata = await Promise.all(
+        (npc.dialogues || []).map(async dialogueMeta => {
+          const dialogue = await this.getDialogue(dialogueMeta.dialogueId);
+          if (dialogue) {
+            return {
+              ...dialogue,
+              priority: dialogueMeta.priority,
+              read: dialogueMeta.read,
+            };
+          }
+          return null;
+        })
+      );
+  
+      // Filter out any null values
+      const validDialogues = dialoguesWithMetadata.filter(dialogue => dialogue !== null) as (IDialogueObject & { priority: number; read: boolean })[];
+  
+      // Sort the dialogues by priority
+      validDialogues.sort((a, b) => a.priority - b.priority);
+  
+      return validDialogues;
+    } catch (error) {
+      console.error(`Failed to get prioritized dialogues for NPC with ID ${npcId}:`, error);
+      return [];
+    }
+  }
 }
 
 // Export the class itself

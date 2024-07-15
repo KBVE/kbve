@@ -45,9 +45,18 @@ class NPCHandler {
   async talkToNPC(eventData: NPCInteractionEventData) {
     try {
       console.log(`Talking to NPC with ID: ${eventData.npcId}`);
-      const dialogues = await npcDatabase.getDialoguesForNPC(eventData.npcId);
-      console.log(dialogues);
-      // Implement further dialogue handling logic here
+      const prioritizedDialogues = await npcDatabase.getPrioritizedDialoguesForNPC(eventData.npcId);
+      console.log(prioritizedDialogues);
+      
+      // Implement further dialogue handling logic here, e.g., display the first dialogue in the list
+      if (prioritizedDialogues.length > 0) {
+        const dialogueToDisplay = prioritizedDialogues[0];
+        // Display the dialogueToDisplay
+        EventEmitter.emit('npcDialogue', { npcId: eventData.npcId, dialogue: dialogueToDisplay }, 1000);
+        console.log(`Displaying dialogue with ID: ${dialogueToDisplay.id}`);
+      } else {
+        console.log('No dialogues available for this NPC.');
+      }
     } catch (error) {
       console.error(`Failed to fetch dialogues for NPC with ID ${eventData.npcId}:`, error);
     }
