@@ -9,7 +9,7 @@ export const GET = async () => {
 
     const key = {};
     dataEntries.forEach(entry => {
-        entry.data.npcdb.forEach(_dialogue => {
+        entry.data.dialogue.forEach(_dialogue => {
             if (_dialogue.id) {
                 const _dialogueWithSlug = {
                     ..._dialogue,
