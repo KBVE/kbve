@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "journal/02-08.mdx",
+                "file": "journal/07-14.mdx",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "journal/02-08.mdx",
+                "file": "journal/07-14.mdx",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "journal/02-08.mdx",
+                "file": "journal/07-14.mdx",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "journal/02-08.mdx"
+                "file": "journal/07-14.mdx"
               }
             }
           }
@@ -149,8 +149,8 @@
   },
   "active": "ac487b4f15663f55",
   "lastOpenFiles": [
-    "journal/02-07.mdx",
     "journal/02-08.mdx",
+    "journal/02-07.mdx",
     "journal/02-03.mdx",
     "journal/02-02.mdx",
     "journal/12-22.mdx",
