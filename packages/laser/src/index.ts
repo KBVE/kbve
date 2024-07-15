@@ -9,6 +9,7 @@ export * from './lib/localdb';
 
 // Utils
 export * from './lib/utils/ulid'; // ULID
+export * from './lib/utils/debug'; // Debug
 
 // Icons
 

@@ -38,6 +38,7 @@ export interface UserSettings {
   submenuItem: UserGenericMenu;
   tooltipNPC: UserGenericMenu;
   isStatsMenuCollapsed: boolean;
+  debugMode: boolean;
 }
 
 export interface IStatBoost extends Partial<IPlayerStats> {

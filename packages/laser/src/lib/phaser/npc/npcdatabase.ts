@@ -475,6 +475,13 @@ class NPCDatabase extends Dexie {
       return [];
     }
   }
+
+  async getNPCNameById(npcId: string): Promise<string | undefined> {
+    const npc = await this.getNPC(npcId);
+    return npc?.name;
+  }
+  
+
 }
 
 // Export the class itself
