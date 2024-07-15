@@ -251,4 +251,27 @@ const displayItems = hasItems
     background-position: center;
     background-size: cover;
   }
+
+  @media only screen and (max-width: 1024px) {
+    .benefit-container {
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .benefit-text {
+      width: 100%;
+    }
+
+    .benefit-stat-data {
+      font-size: 1.5rem;
+    }
+
+    .benefit-stat-title {
+      font-size: 0.75rem;
+    }
+
+    .benefit-lottie {
+      display: none;
+    }
+  }
 </style>
