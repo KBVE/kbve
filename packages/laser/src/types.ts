@@ -421,3 +421,8 @@ export interface IDialogueObject {
   style?: string; 
   backgroundImage?: string;
 }
+
+export interface NPCDialogueEventData {
+  npcId: string;
+  dialogue: IDialogueObject & { priority: number; read: boolean };
+}
