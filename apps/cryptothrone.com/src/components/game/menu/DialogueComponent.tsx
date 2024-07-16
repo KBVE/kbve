@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { atom } from 'nanostores';
-import { EventEmitter, type NPCDialogueEventData } from '@kbve/laser';
+import { EventEmitter, type NPCDialogueEventData, npcDatabase } from '@kbve/laser';
 
 // Define an atom to store the dialogue event data
 const $dialogueEvent = atom<NPCDialogueEventData | null>(null);

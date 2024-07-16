@@ -85,6 +85,7 @@ const defaultSettings: UserSettings = {
   submenuItem: { id: null, position: { x: 0, y: 0 } },
   tooltipNPC: { id: null, position: { x: 0, y: 0 } },
   isStatsMenuCollapsed: false,
+  debugMode: false,
 };
 
 
