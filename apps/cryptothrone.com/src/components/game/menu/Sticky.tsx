@@ -6,6 +6,7 @@ import {
   playerData,
   quest,
   itemStore,
+  type UserSettings,
   type IPlayerInventory,
   type ItemActionEventData,
   type IEquipment,
@@ -20,6 +21,13 @@ import {
   getItemDetails,
   getActionEvents,
 } from '@kbve/laser';
+
+
+import ToggleButton from './components/ToggleButton';
+import StatsSection from './components/StatsSection';
+
+
+
 
 const renderTooltip = (
   itemId: string,
@@ -200,30 +208,16 @@ const StickySidebar: React.FC = () => {
 
   return (
     <div className="fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20 transition transform ease-in-out duration-500 opacity-50 hover:opacity-100">
-      <button
-        onClick={() =>
-          setUserSetting(
-            'isStatsMenuCollapsed',
-            !getUserSetting('isStatsMenuCollapsed'),
-          )
-        }
-        className="bg-yellow-500 text-white p-2 rounded"
-      >
-        {getUserSetting('isStatsMenuCollapsed') ? (
-          <ExpandIcon styleClass="w-8" />
-        ) : (
-          <CollapseIcon styleClass="w-8" />
-        )}
-      </button>
+      
+      <div className="flex flex-row space-y-2 align-top">
+      <ToggleButton settingKey="isStatsMenuCollapsed" label="Stats" />
+      <ToggleButton settingKey="isSettingsMenuCollapsed" label="Settings" />
+      </div>
       <div
         className={`transition transform duration-1000 ease-in-out ${getUserSetting('isStatsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
       >
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-2">Stats</h2>
-          <p className="text-sm text-green-400">{`HP: ${_playerStore$.stats.health || '0'} / ${_playerStore$.stats.maxHealth}`}</p>
-          <p className="text-sm text-blue-400">{`MP: ${_playerStore$.stats.mana || '0'} / ${_playerStore$.stats.maxMana}`}</p>
-          <p className="text-sm text-yellow-400">{`EP: ${_playerStore$.stats.energy || '0'} / ${_playerStore$.stats.maxEnergy}`}</p>
-        </div>
+               <StatsSection stats={_playerStore$.stats} />
+
         <div className="mb-4">
           <h2 className="text-lg font-semibold mb-2">User Information</h2>
           <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>

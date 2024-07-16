@@ -16,6 +16,26 @@ import { Adsense } from '@kbve/astropad';
 **Settings**
 The game needs a settings menu and then an option to enable and disable debug mode.
 We will use the debug mode to switch between enabling and disabling the events, logs, data, ect... through-out the game.
+So we extended out the `UserSettings` interface within the `types.ts` with a couple new variables.
+
+```ts
+export interface UserSettings {
+  tooltipItem: UserGenericMenu;
+  submenuItem: UserGenericMenu;
+  tooltipNPC: UserGenericMenu;
+  isStatsMenuCollapsed: boolean;
+  isSettingsMenuCollapsed: boolean;
+  debugMode: boolean;
+}
+```
+
+**Stats**
+
+We want to move the stats section into its own modular function that we can extend out in the future.
+The issue that we might run into is the race condition of updating the stats and making sure that they render on time, yet we also do not want to continuously render them.
+The render should only occur when the stats are changed.
+
+
 
 <Adsense />
 
