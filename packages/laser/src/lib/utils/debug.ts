@@ -29,9 +29,13 @@ const warn = (message: string | object) => {
   }
 };
 
-const error = (message: string | object) => {
+const error = (message: string | object, error?: unknown) => {
   if (isDebugModeEnabled()) {
-    console.error(`[DEBUG] ${formatMessage(message)}`);
+    if (error instanceof Error) {
+      console.error(`[DEBUG] ${formatMessage(message)} - Error: ${error.message}\n${error.stack}`);
+    } else {
+      console.error(`[DEBUG] ${formatMessage(message)}`);
+    }
   }
 };
 

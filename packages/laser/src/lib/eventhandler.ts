@@ -20,6 +20,8 @@ import type {
   NPCDialogueEventData,
 } from '../types';
 
+import { Debug } from './utils/debug';
+
 export type EventData = {
   openModal: OpenModalEventData;
   wasmEvent: WASMEventData;
@@ -60,7 +62,7 @@ class EventEmitter<T extends Record<string, any>> {
     this.events[event] = this.events[event]?.filter((h) => h !== handler);
   }
 
-  emit<K extends keyof T>(event: K, data?: T[K], throttleTime = 0) {
+  emit<K extends keyof T>(event: K, data?: T[K], throttleTime = 0, message?: string) {
     const now = Date.now();
     const lastEmitTime = this.lastEmitted.get(event) || 0;
 
@@ -68,6 +70,15 @@ class EventEmitter<T extends Record<string, any>> {
       if (!this.events[event]) return;
 
       this.events[event]?.forEach((handler) => handler(data));
+
+      if (message && Debug.isEnabled()) {
+        Debug.log(`Event: ${String(event)} - Message: ${message}`);
+      }
+
+      if (Debug.isEnabled()) {
+        Debug.log(`Event Data: ${String(event)} - Data: ${data ? JSON.stringify(data) : 'No data'}`);
+      }
+      
       this.lastEmitted.set(event, now);
     }
   }
