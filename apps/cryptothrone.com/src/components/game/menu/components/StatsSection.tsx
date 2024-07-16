@@ -1,8 +1,8 @@
 import React from 'react';
-import { type IPlayerStats } from '@kbve/laser';
+import * as Laser from '@kbve/laser';
 
 interface StatsSectionProps {
-    stats: IPlayerStats
+    stats: Laser.IPlayerStats
 }
 
 const StatsSection: React.FC<StatsSectionProps> = ({stats}) => {
