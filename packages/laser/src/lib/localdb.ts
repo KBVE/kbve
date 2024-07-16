@@ -15,6 +15,7 @@ import {
   IStatBoost,
   ITask,
   ItemAction,
+  INotification,
   NotificationType,
   UserSettings,
   MinigameState,
@@ -227,7 +228,7 @@ export const itemStore = createPersistentAtom<Record<string, IObject>>(
   _initialItems,
 );
 
-export const notificationsStore = createPersistentAtom<Notification[]>(
+export const notificationsStore = createPersistentAtom<INotification[]>(
   'notifications',
   [],
 );

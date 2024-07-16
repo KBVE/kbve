@@ -35,6 +35,11 @@ We want to move the stats section into its own modular function that we can exte
 The issue that we might run into is the race condition of updating the stats and making sure that they render on time, yet we also do not want to continuously render them.
 The render should only occur when the stats are changed.
 
+**Notification**
+
+I was running into this weird bug for the Notification function that we had built.
+It turns out that the issue was because there is another `Notification` class that already exisits, thus causing some naming conflicts.
+For now, the solution was to rename our Notification to `INotification` and move forward with the dynamic imports.
 
 
 <Adsense />
