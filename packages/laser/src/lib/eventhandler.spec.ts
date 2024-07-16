@@ -170,7 +170,13 @@ describe('EventEmitter', () => {
     const npcHandler = vi.fn();
     eventEmitterInstance.on('npcInteraction', npcHandler);
 
-    const npcData: NPCInteractionEventData = { npcId: 'npc-1', npcName: 'Goblin', actions: ['talk', 'fight'] };
+    const npcData: NPCInteractionEventData = {
+      npcId: 'npc-1', npcName: 'Goblin', actions: ['talk', 'fight'],
+      coords: {
+        x: 0,
+        y: 0
+      }
+    };
     eventEmitterInstance.emit('npcInteraction', npcData);
 
     expect(npcHandler).toHaveBeenCalledWith(npcData);
