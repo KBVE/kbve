@@ -1,0 +1,59 @@
+---
+title: "July: 16"
+category: Daily
+date: 2024-07-16 12:00:00
+client: Self
+unsplash: 1721046583031-07296af14cc7
+img: https://images.unsplash.com/photo-1721046583031-07296af14cc7?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: July 15th. Dialogue System.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Settings**
+The game needs a settings menu and then an option to enable and disable debug mode.
+We will use the debug mode to switch between enabling and disabling the events, logs, data, ect... through-out the game.
+So we extended out the `UserSettings` interface within the `types.ts` with a couple new variables.
+
+```ts
+export interface UserSettings {
+  tooltipItem: UserGenericMenu;
+  submenuItem: UserGenericMenu;
+  tooltipNPC: UserGenericMenu;
+  isStatsMenuCollapsed: boolean;
+  isSettingsMenuCollapsed: boolean;
+  debugMode: boolean;
+}
+```
+
+**Stats**
+
+We want to move the stats section into its own modular function that we can extend out in the future.
+The issue that we might run into is the race condition of updating the stats and making sure that they render on time, yet we also do not want to continuously render them.
+The render should only occur when the stats are changed.
+
+
+
+<Adsense />
+
+## 2023
+- 6:30am - Started to add state management through nanostores into the React Native application. 
+- 6:41am - Removing the `react-hook-form` from the RentEarth repo because I was having some issues getting it to work with the Tamagui framework. There was a solution to use a 3rd party plugin, but I felt like it might best to step away from that for now and use write something a bit more simple. 
+- 6:50am - Renaming the `/auth/` path to `/account/` to keep the same naming convention across the multiple tenets. I should note that I am thinking of renaming the RogueJester to RentEarth and pivoting the gaming to be a bit more focused on this concept. It would be an interesting shift per say, but it seems that the marketing potential is definitely higher with this name. I suppose the RJ is a codename for the project and is not the final title name. I find it interesting how even the name of a video game can help determine its future, at least to an extent that falls under the branding. 
+- 8:27am - The next step within the RentEarth saga will be to build out the state / storage, I am thinking that I might use nanostores library for this, as it also has a very solid task system. 
+- 10:52am - I created an issue ticket related to the storage situation, it would be called inside of various platforms from React to our mobile apps to Unity. Thinking through how we would go about setting it up, I am also thinking that while we do it, we should also build a proof of concept. I suppose we could look into making it a npm package? That way we could reference it anywhere we would want. 
+- 2:30pm - Taco bell is a double edge sword and in some cases the most dangerous offering that a person can give. We know how bad it can be for the body but if anyone offers to pick you up some taco bell? Are you going to say no? But that is something that I need to learn and understand. It is okay to deny food, definitely if afterwards you know your friend next to the da pepe will suffer. 
+
+## Quote
+
+> Every time you smile at someone, it is an action of love, a gift to that person, a beautiful thing.
+> — <cite>Mother Teresa</cite>
+
+---
+
+## Tasks
+
+- [ ]
