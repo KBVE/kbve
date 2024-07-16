@@ -1,4 +1,24 @@
-import type { IPlayerData, NotificationType, IObject, DiceRollResultEventData, CharacterEventData, GameEvent, ItemActionEventData, NPCInteractionEventData, NotificationEventData, OpenModalEventData, PlayerCombatDamage, PlayerEventData, PlayerMoveEventData, PlayerRewardEvent, PlayerStealEventData, SceneTransitionEventData, TaskCompletionEventData, WASMEventData } from '../types';
+import type {
+  IPlayerData,
+  NotificationType,
+  IObject,
+  DiceRollResultEventData,
+  CharacterEventData,
+  GameEvent,
+  ItemActionEventData,
+  NPCInteractionEventData,
+  NotificationEventData,
+  OpenModalEventData,
+  PlayerCombatDamage,
+  PlayerEventData,
+  PlayerMoveEventData,
+  PlayerRewardEvent,
+  PlayerStealEventData,
+  SceneTransitionEventData,
+  TaskCompletionEventData,
+  WASMEventData,
+  NPCDialogueEventData,
+} from '../types';
 
 export type EventData = {
   openModal: OpenModalEventData;
@@ -17,10 +37,12 @@ export type EventData = {
   playerReward: PlayerRewardEvent;
   itemAction: ItemActionEventData;
   diceRollResult: DiceRollResultEventData;
+  npcDialogue: NPCDialogueEventData;
 };
 
 type EventHandler<T> = (data?: T) => void;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 class EventEmitter<T extends Record<string, any>> {
   private events: { [K in keyof T]?: EventHandler<T[K]>[] } = {};
   private lastEmitted: Map<keyof T, number> = new Map();

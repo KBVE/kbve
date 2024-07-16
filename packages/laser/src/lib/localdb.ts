@@ -15,6 +15,7 @@ import {
   IStatBoost,
   ITask,
   ItemAction,
+  INotification,
   NotificationType,
   UserSettings,
   MinigameState,
@@ -85,6 +86,8 @@ const defaultSettings: UserSettings = {
   submenuItem: { id: null, position: { x: 0, y: 0 } },
   tooltipNPC: { id: null, position: { x: 0, y: 0 } },
   isStatsMenuCollapsed: false,
+  isSettingsMenuCollapsed: false,
+  debugMode: false,
 };
 
 
@@ -225,7 +228,7 @@ export const itemStore = createPersistentAtom<Record<string, IObject>>(
   _initialItems,
 );
 
-export const notificationsStore = createPersistentAtom<Notification[]>(
+export const notificationsStore = createPersistentAtom<INotification[]>(
   'notifications',
   [],
 );

@@ -184,7 +184,7 @@ export class SandCity extends Scene {
       3000
     );
 
-    await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM');
+    await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM', 6,6);
     
     await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
 
@@ -211,23 +211,23 @@ export class SandCity extends Scene {
         }
       });
     
-      const attachNPCEventWithCoords = (sprite: ExtendedSprite, title: string, actions: { label: string }[]) => {
-        const position = this.gridEngine.getPosition(sprite.name);
-        npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
-      };
+      // const attachNPCEventWithCoords = (sprite: ExtendedSprite, title: string, actions: { label: string }[]) => {
+      //   const position = this.gridEngine.getPosition(sprite.name);
+      //   npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
+      // };
   
-      attachNPCEventWithCoords(this.npcSprite, 'FisherMan', [
-        { label: 'Talk' },
-        { label: 'Trade' },
-        { label: 'Move to' },
-        { label: 'Steal' },
-        { label: 'Combat' }
-      ]);
+      // attachNPCEventWithCoords(this.npcSprite, 'FisherMan', [
+      //   { label: 'Talk' },
+      //   { label: 'Trade' },
+      //   { label: 'Move to' },
+      //   { label: 'Steal' },
+      //   { label: 'Combat' }
+      // ]);
   
-      attachNPCEventWithCoords(this.fishNpcSprite, 'Fish NPC Actions', [
-        { label: 'Check Fish' },
-        { label: 'Move to' }
-      ]);
+      // attachNPCEventWithCoords(this.fishNpcSprite, 'Fish NPC Actions', [
+      //   { label: 'Check Fish' },
+      //   { label: 'Move to' }
+      // ]);
 
       
     // this.gridEngine.follow("player", "npc", 0, true);
