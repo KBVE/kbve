@@ -1,13 +1,9 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import * as Laser from '@kbve/laser';
-
-
 import ToggleButton from './components/ToggleButton';
 import StatsSection from './components/StatsSection';
-
-
-
+import UserSettingsToggleSwitch from './components/UserSettingsToggleSwitch';
 
 const renderTooltip = (
   itemId: string,
@@ -114,6 +110,18 @@ const renderInventory = (
   );
 };
 
+const SettingsPanel: React.FC = () => {
+  return (
+    <div className="transition transform duration-1000 ease-in-out">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold mb-2">Settings</h2>
+        <p className="text-sm">Additional settings can go here.</p>
+        <UserSettingsToggleSwitch settingKey="debugMode" label="Debug Mode" />
+      </div>
+    </div>
+  );
+};
+
 const StickySidebar: React.FC = () => {
   const _playerStore$ = useStore(Laser.playerData);
   const userSettings = useStore(Laser.settings);
@@ -193,11 +201,17 @@ const StickySidebar: React.FC = () => {
       <ToggleButton settingKey="isStatsMenuCollapsed" label="Stats" />
       <ToggleButton settingKey="isSettingsMenuCollapsed" label="Settings" />
       </div>
+
+      <div
+  className={`transition transform duration-1000 ease-in-out ${Laser.getUserSetting('isSettingsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
+>
+  <SettingsPanel />
+</div>
+
       <div
         className={`transition transform duration-1000 ease-in-out ${Laser.getUserSetting('isStatsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
       >
                <StatsSection stats={_playerStore$.stats} />
-
         <div className="mb-4">
           <h2 className="text-lg font-semibold mb-2">User Information</h2>
           <p className="text-sm">{_playerStore$.stats.username || 'Guest'}</p>
