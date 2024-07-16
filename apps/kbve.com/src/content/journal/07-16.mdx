@@ -29,6 +29,8 @@ export interface UserSettings {
 }
 ```
 
+Under the `Settings` , we want to toggle the debugMode on and off, after we get that setup, we can move forward with updating the different classes to pass around the debug messages?
+
 **Stats**
 
 We want to move the stats section into its own modular function that we can extend out in the future.
@@ -42,6 +44,9 @@ We could try to build a quick progress bar for the stats?
 I was running into this weird bug for the Notification function that we had built.
 It turns out that the issue was because there is another `Notification` class that already exisits, thus causing some naming conflicts.
 For now, the solution was to rename our Notification to `INotification` and move forward with the dynamic imports.
+
+**eBPF**
+One of the areas that I was looking to expand the Rust API into was the `eBPF` area, maybe integrating the packet level of filtering and management. This would make the multiplayer aspect of the game easier but also allows us to look into the anti-cheat concept a bit more, since we could see all the packets that are coming in and out. Once more, this is just a proof of concept but we can work out the kinks on a later date.
 
 
 <Adsense />
