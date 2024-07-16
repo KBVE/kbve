@@ -45,6 +45,7 @@ const SettingsPanel: React.FC = () => {
 };
 ```
 
+After loading that new settings panel, we can add a new `debugMode` that will help us handle any of the debug messages. Now we can go back and extend out the `eventhandler.ts` within the `@kbve/laser` package to utilize the debug mode and send back any additional information based upon the events that are being triggered.
 
 **Stats**
 
@@ -67,6 +68,8 @@ The plan will be to extend out the API to include Aya and some level of eBPF int
 
 **Character**
 There seems to be an issue with loading the characters that are a single sheet, I am thinking that either the image settings are wrong or my configurations for the image are wrong. The best thing that we can do for now is keep track of this frame bug and then come back to it when we finish up some of the core features for the game.
+
+Okay it looks like this is no longer an issue and it was in fact patched. I believe we had an older cache and updating / clearing it all helped resolve the frame issue. Next we will need to start loading in new characters and making sure that we do not run into any issues with that.
 
 
 <Adsense />
