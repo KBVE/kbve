@@ -5,6 +5,7 @@ import GameWindow from './GameWindow';
 import ModalComponent from './menu/ModalComponent';
 import Sticky from './menu/Sticky';
 import ActionMenu from './menu/ActionMenu';
+import DialogueComponent from './menu/DialogueComponent';
 import EventNotification from './menu/EventNotification';
 import ModalDice from './menu/ModalDice';
 
@@ -20,6 +21,7 @@ export function App() {
 
       <div className="flex justify-center items-center h-screen">
       <div className="border-4 border-yellow-500 rounded-xl">
+      <DialogueComponent />
       <ModalDice />
       <GameWindow />
       <EventNotification />

@@ -38,6 +38,8 @@ export interface UserSettings {
   submenuItem: UserGenericMenu;
   tooltipNPC: UserGenericMenu;
   isStatsMenuCollapsed: boolean;
+  isSettingsMenuCollapsed: boolean;
+  debugMode: boolean;
 }
 
 export interface IStatBoost extends Partial<IPlayerStats> {
@@ -147,11 +149,10 @@ export interface IPlayerData {
 export interface NotificationType {
   type: 'caution' | 'warning' | 'danger' | 'success' | 'info';
   color: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   imgUrl: string;
 }
 
-export interface Notification {
+export interface INotification {
   id: number;
   title: string;
   message: string;
@@ -420,4 +421,9 @@ export interface IDialogueObject {
   options?: string[];  // Array of ULIDs pointing to other dialogue objects
   style?: string; 
   backgroundImage?: string;
+}
+
+export interface NPCDialogueEventData {
+  npcId: string;
+  dialogue: IDialogueObject & { priority: number; read: boolean };
 }

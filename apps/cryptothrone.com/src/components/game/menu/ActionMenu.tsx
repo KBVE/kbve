@@ -1,11 +1,7 @@
 // ActionMenu.tsx
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import {
-  EventEmitter,
-  type NPCInteractionEventData,
-  npcHandler,
-} from '@kbve/laser';
+import * as Laser from '@kbve/laser';
 
 import { npcInteractionStore } from './tempstore';
 
@@ -14,16 +10,16 @@ const ActionMenu: React.FC = () => {
   const [submenuPosition, setSubmenuPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const handleNPCInteractionClick = (data?: NPCInteractionEventData) => {
+    const handleNPCInteractionClick = (data?: Laser.NPCInteractionEventData) => {
       if (data) {
         npcInteractionStore.set(data);
         setSubmenuPosition(calculatePosition(data.coords.x ,data.coords.y));
       }
     };
 
-    EventEmitter.on('npcInteractionClick', handleNPCInteractionClick);
+    Laser.EventEmitter.on('npcInteractionClick', handleNPCInteractionClick);
     return () => {
-      EventEmitter.off('npcInteractionClick', handleNPCInteractionClick);
+      Laser.EventEmitter.off('npcInteractionClick', handleNPCInteractionClick);
     };
   }, []);
 
@@ -64,9 +60,9 @@ const ActionMenu: React.FC = () => {
   
 
 
-  const handleAction = (action: string) => {
+  const handleAction = (action: Laser.NPCAction) => {
     if (_npc$) {
-      const actionHandler = npcHandler.getActionHandler(action);
+      const actionHandler = Laser.npcHandler.getActionHandler(action);
       if (actionHandler) {
         actionHandler(_npc$);
         handleClose();
@@ -106,7 +102,7 @@ const ActionMenu: React.FC = () => {
         {actions.map((action, index) => (
           <button
             key={index}
-            onClick={() => handleAction(action)}
+            onClick={() => handleAction(action as Laser.NPCAction)}
             className="block w-full text-xs py-1 px-2 mb-1 bg-yellow-500 hover:bg-yellow-400 rounded"
           >
             {action}

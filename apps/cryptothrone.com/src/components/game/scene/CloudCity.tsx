@@ -183,7 +183,7 @@ export class CloudCity extends Scene {
           const eventData: CharacterEventData = {
             message: 'Seems like there are no fish in the sand pits. You know null, this area could be fixed up a bit too.',
           };
-          EventEmitter.emit('charEvent', eventData);
+          EventEmitter.emit('charEvent', eventData, 1000);
         },
       },
       {
@@ -201,7 +201,7 @@ export class CloudCity extends Scene {
               character_image: '/assets/npc/barkeep.webp',
               background_image: '/assets/background/woodensign.webp',
             };
-            EventEmitter.emit('charEvent', eventData);
+            EventEmitter.emit('charEvent', eventData, 1000);
           } catch (error) {
             console.error('Error fetching data:', error);
             const eventData = {
@@ -211,7 +211,7 @@ export class CloudCity extends Scene {
               character_image: '/assets/npc/barkeep.webp',
               background_image: '/assets/background/woodensign.webp',
             };
-            EventEmitter.emit('charEvent', eventData);
+            EventEmitter.emit('charEvent', eventData, 1000);
           }
         },
       },
@@ -225,7 +225,7 @@ export class CloudCity extends Scene {
             character_image: '/assets/npc/barkeep.webp',
             background_image: '/assets/background/animebar.webp',
           };
-          EventEmitter.emit('charEvent', eventData);
+          EventEmitter.emit('charEvent', eventData, 1000);
         },
       },
       {
@@ -239,7 +239,7 @@ export class CloudCity extends Scene {
             character_image: '/assets/npc/samson.png',
             background_image: '/assets/background/animetombstone.webp',
           };
-          EventEmitter.emit('charEvent', eventData);
+          EventEmitter.emit('charEvent', eventData, 1000);
         },
       },
     ];
