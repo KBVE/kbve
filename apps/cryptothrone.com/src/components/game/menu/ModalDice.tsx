@@ -2,13 +2,7 @@
 import React, { useState, useEffect, memo } from 'react';
 import { useStore } from '@nanostores/react';
 import { playerStealDiceRoll } from './tempstore';
-import {
-  EventEmitter,
-  notificationType,
-  queryItemDB,
-  type DiceRollResultEventData,
-  type PlayerStealEventData,
-} from '@kbve/laser';
+import * as Laser from '@kbve/laser';
 import { MinigameDice, updateDiceValues } from '@kbve/laser';
 
 const ModalDice: React.FC = () => {
@@ -17,24 +11,24 @@ const ModalDice: React.FC = () => {
   const [currentRoll, setCurrentRoll] = useState<number | null>(null);
 
   useEffect(() => {
-    const handlePlayerSteal = (data?: PlayerStealEventData) => {
+    const handlePlayerSteal = (data?: Laser.PlayerStealEventData) => {
       if (data) {
         playerStealDiceRoll.set(data);
       }
     };
 
-    const handleDiceRollResult = (newValues?: DiceRollResultEventData) => {
+    const handleDiceRollResult = (newValues?: Laser.DiceRollResultEventData) => {
       if (newValues) {
         setDiceValues(newValues.diceValues);
       }
     };
 
-    EventEmitter.on('playerSteal', handlePlayerSteal);
-    EventEmitter.on('diceRollResult', handleDiceRollResult);
+    Laser.EventEmitter.on('playerSteal', handlePlayerSteal);
+    Laser.EventEmitter.on('diceRollResult', handleDiceRollResult);
 
     return () => {
-      EventEmitter.off('playerSteal', handlePlayerSteal);
-      EventEmitter.off('diceRollResult', handleDiceRollResult);
+      Laser.EventEmitter.off('playerSteal', handlePlayerSteal);
+      Laser.EventEmitter.off('diceRollResult', handleDiceRollResult);
     };
   }, []);
 
@@ -54,51 +48,51 @@ const ModalDice: React.FC = () => {
     let message = '';
 
     switch (true) {
-      case roll === 12:
+      case roll >= 45:
         itemName = '01J27QABD2GPFNRVK69S51HSGB';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll === 11:
+      case roll >= 40:
         itemName = '01J27QN2KZG1RDZW4CE9Q9Z3YQ';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll === 10:
+      case roll >= 35:
         itemName = '01J269PK47V1DWX2S1251DEASD';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll === 9:
+      case roll >= 30:
         itemName = 'Blue Shark';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 7:
+      case roll >= 25:
         itemName = 'Salmon';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll === 2:
-        EventEmitter.emit('notification', {
+      case roll <= 8:
+        Laser.EventEmitter.emit('notification', {
           title: 'Danger',
           message: `You crit failed to steal from ${_npc$.npcName}!`,
-          notificationType: notificationType['danger'],
+          notificationType: Laser.notificationType['danger'],
         });
-        EventEmitter.emit('playerDamage', {
+        Laser.EventEmitter.emit('playerDamage', {
           damage: '5',
         });
         break;
       default:
-        EventEmitter.emit('notification', {
+        Laser.EventEmitter.emit('notification', {
           title: 'Danger',
           message: `You failed to steal from ${_npc$.npcName}!`,
-          notificationType: notificationType['danger'],
+          notificationType: Laser.notificationType['danger'],
         });
-        EventEmitter.emit('playerDamage', {
+        Laser.EventEmitter.emit('playerDamage', {
           damage: '1',
         });
         return;
     }
 
-    const item = queryItemDB(itemName);
+    const item = Laser.queryItemDB(itemName);
     if (item) {
-      EventEmitter.emit('playerReward', {
+      Laser.EventEmitter.emit('playerReward', {
         message: message,
         item: item,
       });
@@ -131,7 +125,7 @@ const DiceRollMessage: React.FC<{ npcName: string, roll: number | null }> = ({ n
   <div>
     <h2 className="text-lg text-yellow-400 font-bold mb-4">Steal Attempt</h2>
     <p className="mb-4">
-      Roll the dice to steal from {npcName}. You need a total of 7 or higher to succeed.
+      Roll the dice to steal from {npcName}. You need a total of 25 or higher to succeed.
     </p>
     {roll !== null && (
       <p className="mb-4">

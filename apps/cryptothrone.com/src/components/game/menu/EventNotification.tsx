@@ -1,32 +1,32 @@
 import React, { useEffect } from 'react';
-import { EventEmitter, type Notification, type NotificationType, type NotificationEventData, notificationsStore, type notificationType } from '@kbve/laser';
+import * as Laser from '@kbve/laser';
 import { useStore } from '@nanostores/react';
 
 
 const EventNotification: React.FC = () => {
-  const notifications = useStore(notificationsStore);
+  const notifications = useStore(Laser.notificationsStore) as Laser.INotification[];
 
   useEffect(() => {
-    const handleNotification = (notification?: NotificationEventData) => {
-     if(notification)
-     {
-      const id = Date.now() + Math.random();
-      notificationsStore.set([...notificationsStore.get(), { id, ...notification }]);
-
-      setTimeout(() => {
-        notificationsStore.set(notificationsStore.get().filter((n) => n.id !== id));
-      }, 5000); // Adjust the timeout duration as needed
-    }
+    const handleNotification = (notification?: Laser.NotificationEventData) => {
+      if (notification) {
+        const id = Date.now() + Math.random();
+        const newNotification: Laser.INotification = { id, ...notification };
+        Laser.notificationsStore.set([...Laser.notificationsStore.get(), newNotification]);
+    
+        setTimeout(() => {
+          Laser.notificationsStore.set(Laser.notificationsStore.get().filter((n) => n.id !== id));
+        }, 5000); // Adjust the timeout duration as needed
+      }
     };
 
-    EventEmitter.on('notification', handleNotification);
+    Laser.EventEmitter.on('notification', handleNotification);
     return () => {
-      EventEmitter.off('notification', handleNotification);
+      Laser.EventEmitter.off('notification', handleNotification);
     };
   }, []);
 
   const removeNotification = (id: number) => {
-    notificationsStore.set(notificationsStore.get().filter((notification) => notification.id !== id));
+    Laser.notificationsStore.set(Laser.notificationsStore.get().filter((notification) => notification.id !== id));
   };
 
   return (

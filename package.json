@@ -151,6 +151,7 @@
     "@react-three/drei": "^9.108.3",
     "@react-three/fiber": "^8.16.2",
     "@react-three/flex": "^1.0.1",
+    "@stylexjs/stylex": "^0.7.5",
     "@supabase/supabase-js": "^2.39.8",
     "@swc/helpers": "~0.5.2",
     "@tabler/icons-react": "^2.47.0",

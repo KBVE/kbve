@@ -42,6 +42,7 @@ export type EventData = {
 
 type EventHandler<T> = (data?: T) => void;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 class EventEmitter<T extends Record<string, any>> {
   private events: { [K in keyof T]?: EventHandler<T[K]>[] } = {};
   private lastEmitted: Map<keyof T, number> = new Map();
