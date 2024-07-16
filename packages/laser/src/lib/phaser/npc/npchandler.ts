@@ -1,12 +1,9 @@
-// NPCHandler.ts
 import { EventEmitter } from '../../eventhandler';
-
 import { type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData, type NPCAction} from '../../../types';
-
 import { npcDatabase } from './npcdatabase';
+import { Debug } from '../../utils/debug';
 
 type NPCActionHandlers = Record<NPCAction, (eventData: NPCInteractionEventData) => void>;
-
 
 class NPCHandler {
   private actionHandlers: NPCActionHandlers;
@@ -29,41 +26,40 @@ class NPCHandler {
 
   loreFromNPC(eventData: NPCInteractionEventData)
   {
-    console.log(`Pulling up the lore of the NPC with ID: ${eventData.npcId}`)
+    Debug.log(`Pulling up the lore of the NPC with ID: ${eventData.npcId}`)
   }
 
   questWithNPC(eventData: NPCInteractionEventData) {
-    console.log(`Starting quest with NPC with ID: ${eventData.npcId}`);
+    Debug.log(`Starting quest with NPC with ID: ${eventData.npcId}`);
     // Implement q
     
   }
   healNPC(eventData: NPCInteractionEventData) {
-    console.log(`Healing NPC with ID: ${eventData.npcId}`);
+    Debug.log(`Healing NPC with ID: ${eventData.npcId}`);
     // Implement healing logic here
   }
 
   async talkToNPC(eventData: NPCInteractionEventData) {
     try {
-      console.log(`Talking to NPC with ID: ${eventData.npcId}`);
+      Debug.log(`Talking to NPC with ID: ${eventData.npcId}`);
       const prioritizedDialogues = await npcDatabase.getPrioritizedDialoguesForNPC(eventData.npcId);
-      console.log(prioritizedDialogues);
+      Debug.log(prioritizedDialogues);
       
       // Implement further dialogue handling logic here, e.g., display the first dialogue in the list
       if (prioritizedDialogues.length > 0) {
         const dialogueToDisplay = prioritizedDialogues[0];
         // Display the dialogueToDisplay
         EventEmitter.emit('npcDialogue', { npcId: eventData.npcId, dialogue: dialogueToDisplay }, 1000);
-        console.log(`Displaying dialogue with ID: ${dialogueToDisplay.id}`);
       } else {
-        console.log('No dialogues available for this NPC.');
+        Debug.log('No dialogues available for this NPC.');
       }
     } catch (error) {
-      console.error(`Failed to fetch dialogues for NPC with ID ${eventData.npcId}:`, error);
+      Debug.error(`Failed to fetch dialogues for NPC with ID ${eventData.npcId}:`, error);
     }
   }
 
   tradeWithNPC(eventData: NPCInteractionEventData) {
-    console.log(`Trading with NPC with ID: ${eventData.npcId}`);
+    Debug.log(`Trading with NPC with ID: ${eventData.npcId}`);
     // Implement trading logic here
   }
 
@@ -75,7 +71,7 @@ class NPCHandler {
   }
 
   stealFromNPC(eventData: NPCInteractionEventData) {
-    console.log(`Attempting to steal from NPC with ID: ${eventData.npcId}`);
+    Debug.log(`Attempting to steal from NPC with ID: ${eventData.npcId}`);
     const playerStealEventData: PlayerStealEventData = {
       npcId: eventData.npcId,
       npcName: eventData.npcName,
@@ -88,12 +84,12 @@ class NPCHandler {
   }
 
   startCombat(eventData: NPCInteractionEventData) {
-    console.log(`Starting combat with NPC with ID: ${eventData.npcId}`);
+    Debug.log(`Starting combat with NPC with ID: ${eventData.npcId}`);
     // Implement combat logic here
   }
 
   checkFish(eventData: NPCInteractionEventData) {
-    console.log(`Checking fish for NPC with ID: ${eventData.npcId}`);
+    Debug.log(`Checking fish for NPC with ID: ${eventData.npcId}`);
     // Implement check fish logic here
   }
 
@@ -124,7 +120,7 @@ class NPCHandler {
         coords: { x: pointer.x, y: pointer.y}
         //coords: { x: event.clientX, y: event.clientY }
       };
-      console.log(`Click Registered at X: ${npcInteractionData.coords.x} Y: ${npcInteractionData.coords.y}`);
+      Debug.log(`Click Registered at X: ${npcInteractionData.coords.x} Y: ${npcInteractionData.coords.y}`);
       EventEmitter.emit('npcInteractionClick', npcInteractionData, 1000);
       
     });
