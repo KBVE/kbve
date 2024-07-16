@@ -2,16 +2,16 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { atom } from 'nanostores';
-import { EventEmitter, type NPCDialogueEventData, npcDatabase } from '@kbve/laser';
+import * as Laser from '@kbve/laser';
 
 // Define an atom to store the dialogue event data
-const $dialogueEvent = atom<NPCDialogueEventData | null>(null);
+const $dialogueEvent = atom<Laser.NPCDialogueEventData | null>(null);
 
 const DialogueComponent: React.FC = () => {
   const dialogue$ = useStore($dialogueEvent);
 
   useEffect(() => {
-    const handleOpenDialogue = (data?: NPCDialogueEventData) => {
+    const handleOpenDialogue = (data?: Laser.NPCDialogueEventData) => {
       if (data) {
         $dialogueEvent.set(data);
         const overlayElement = document.querySelector('#hs-stacked-overlays-dialogue');
@@ -22,9 +22,9 @@ const DialogueComponent: React.FC = () => {
       }
     };
 
-    EventEmitter.on('npcDialogue', handleOpenDialogue);
+    Laser.EventEmitter.on('npcDialogue', handleOpenDialogue);
     return () => {
-      EventEmitter.off('npcDialogue', handleOpenDialogue);
+      Laser.EventEmitter.off('npcDialogue', handleOpenDialogue);
     };
   }, []);
 
