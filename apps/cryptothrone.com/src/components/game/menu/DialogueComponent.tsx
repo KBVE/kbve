@@ -79,12 +79,12 @@ const DialogueComponent: React.FC = () => {
     <>
       <div
         id="hs-stacked-overlays-dialogue"
-        className="hs-overlay hs-overlay-backdrop-open:bg-gray-900/50 size-full fixed top-0 start-0 z-[60] overflow-x-hidden overflow-y-auto pointer-events-none [--overlay-backdrop:static]"
+        className="hs-overlay hs-overlay-backdrop-open:bg-gray-900/50 w-full h-full fixed top-0 start-0 z-[60] overflow-x-hidden overflow-y-auto pointer-events-none [--overlay-backdrop:static]"
         data-hs-overlay-keyboard="false"
       >
-        <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto md:min-w-fit">
+        <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all w-full h-full sm:max-w-lg sm:w-full m-3 sm:mx-auto md:min-w-fit">
           <div
-            className="flex flex-col lg:flex-row bg-zinc-950 border border-yellow-500 shadow-sm rounded-xl pointer-events-auto bg-cover"
+            className="flex flex-col lg:flex-row bg-zinc-950 border border-yellow-500 shadow-sm rounded-xl pointer-events-auto bg-cover min-w-[800px] min-h-[500px]"
             style={{
               backgroundImage: `url(${dialogue$?.dialogue.backgroundImage || 'https://kbve.com/assets/img/curved-images/wave.jpg'})`,
             }}
@@ -92,7 +92,7 @@ const DialogueComponent: React.FC = () => {
             {dialogue$ ? (
               <>
                 <div className="w-full lg:w-1/3 p-4 rounded-l-xl flex flex-col items-center justify-center relative">
-                  <h3 className="font-bold text-yellow-400 bg-zinc-950/80 rounded-2xl text-center mb-4 p-4">
+                  <h3 className="font-bold text-yellow-400 bg-zinc-950/80 rounded-2xl text-center mb-4 p-4 absolute top-2 left-2">
                     {dialogue$.npcId &&
                     dialogueSession$[`${dialogue$.npcId}_name`]
                       ? dialogueSession$[`${dialogue$.npcId}_name`]
