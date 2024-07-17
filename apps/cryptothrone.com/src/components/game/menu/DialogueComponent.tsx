@@ -142,7 +142,7 @@ const DialogueComponent: React.FC = () => {
 
                   <div className="p-4 overflow-y-auto">
                     <div className="flex flex-col">
-                      <div className="mt-1 mb-2 text-white bg-zinc-950/40 text-shadow-outline-white rounded-xl p-4 flex w-1/2">
+                      <div className="mt-1 mb-2 text-white bg-zinc-950/40 text-shadow-outline-white rounded-xl p-4 flex w-3/4">
                         <div className="w-full">
                           {dialogue$.dialogue.message && !npcTypingComplete && (
                             <NPCDialogue
@@ -157,7 +157,7 @@ const DialogueComponent: React.FC = () => {
                       </div>
 
                       <div className="flex justify-end">
-                        <div className="w-1/2 mt-1 mb-2 text-yellow-400 text-shadow-outline-whites bg-zinc-950/40 rounded-xl p-4  text-right">
+                        <div className="w-3/4 mt-1 mb-2 text-yellow-400 text-shadow-outline-whites bg-zinc-950/40 rounded-xl p-4  text-right">
                           {dialogue$.dialogue.playerResponse &&
                             npcTypingComplete &&
                             !playerTypingComplete && (
