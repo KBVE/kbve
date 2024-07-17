@@ -40,7 +40,9 @@ const DialogueComponent: React.FC = () => {
     const handleOpenDialogue = (data?: DialogueEventData) => {
       if (data) {
         $dialogueEvent.set(data);
-        const overlayElement = document.querySelector('#hs-stacked-overlays-dialogue');
+        const overlayElement = document.querySelector(
+          '#hs-stacked-overlays-dialogue',
+        );
         if (overlayElement) {
           (overlayElement as HTMLElement).classList.remove('hidden');
           (overlayElement as HTMLElement).classList.add('open');
@@ -60,7 +62,9 @@ const DialogueComponent: React.FC = () => {
   }, []);
 
   const closeDialogue = () => {
-    const overlayElement = document.querySelector('#hs-stacked-overlays-dialogue');
+    const overlayElement = document.querySelector(
+      '#hs-stacked-overlays-dialogue',
+    );
     if (overlayElement) {
       (overlayElement as HTMLElement).classList.add('hidden');
       (overlayElement as HTMLElement).classList.remove('open');
@@ -89,10 +93,18 @@ const DialogueComponent: React.FC = () => {
               <>
                 <div className="w-full lg:w-1/3 p-4 rounded-l-xl flex flex-col items-center justify-center">
                   <h3 className="font-bold text-yellow-400 bg-zinc-950/80 rounded-2xl text-center mb-4 p-4">
-                    {dialogue$.npcId && dialogueSession$[`${dialogue$.npcId}_name`] ? dialogueSession$[`${dialogue$.npcId}_name`] : 'Unknown'}
+                    {dialogue$.npcId &&
+                    dialogueSession$[`${dialogue$.npcId}_name`]
+                      ? dialogueSession$[`${dialogue$.npcId}_name`]
+                      : 'Unknown'}
                   </h3>
                   <img
-                    src={dialogue$.npcId && dialogueSession$[`${dialogue$.npcId}_avatar`] ? dialogueSession$[`${dialogue$.npcId}_avatar`] : '/assets/npc/barkeep.webp'}
+                    src={
+                      dialogue$.npcId &&
+                      dialogueSession$[`${dialogue$.npcId}_avatar`]
+                        ? dialogueSession$[`${dialogue$.npcId}_avatar`]
+                        : '/assets/npc/barkeep.webp'
+                    }
                     alt="Character"
                     className="w-full h-auto rounded-md"
                   />
@@ -100,7 +112,7 @@ const DialogueComponent: React.FC = () => {
 
                 <div className="w-full md:w-2/3 p-4 bg-cover bg-center rounded-r-xl">
                   <div className="flex justify-between items-center pb-3 border-b">
-                    <h3 className="font-bold text-yellow-400">
+                    <h3 className="font-bold text-yellow-400 text-shadow-outline-white">
                       {dialogue$.dialogue.title || 'Dialogue'}
                     </h3>
                     <button
@@ -129,27 +141,36 @@ const DialogueComponent: React.FC = () => {
                   </div>
 
                   <div className="p-4 overflow-y-auto">
-                    <div className="mt-1 mb-2 text-yellow-400 bg-zinc-950/80 rounded-xl p-4">
-                      {dialogue$.dialogue.message && !npcTypingComplete && (
-                        <NPCDialogue
-                          text={dialogue$.dialogue.message}
-                          onComplete={() => setNpcTypingComplete(true)}
-                        />
-                      )}
-                      {npcTypingComplete && (
-                        <div>{dialogue$.dialogue.message}</div>
-                      )}
-                    </div>
-                    <div className="mt-1 mb-2 text-yellow-400 bg-zinc-950/80 rounded-xl p-4">
-                      {dialogue$.dialogue.playerResponse && npcTypingComplete && !playerTypingComplete && (
-                        <PlayerDialogue
-                          text={dialogue$.dialogue.playerResponse}
-                          onComplete={() => setPlayerTypingComplete(true)}
-                        />
-                      )}
-                      {playerTypingComplete && (
-                        <div>{dialogue$.dialogue.playerResponse}</div>
-                      )}
+                    <div className="flex flex-col">
+                      <div className="mt-1 mb-2 text-white bg-zinc-950/40 text-shadow-outline-white rounded-xl p-4 flex w-1/2">
+                        <div className="w-full">
+                          {dialogue$.dialogue.message && !npcTypingComplete && (
+                            <NPCDialogue
+                              text={dialogue$.dialogue.message}
+                              onComplete={() => setNpcTypingComplete(true)}
+                            />
+                          )}
+                          {npcTypingComplete && (
+                            <div>{dialogue$.dialogue.message}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <div className="w-1/2 mt-1 mb-2 text-yellow-400 text-shadow-outline-whites bg-zinc-950/40 rounded-xl p-4  text-right">
+                          {dialogue$.dialogue.playerResponse &&
+                            npcTypingComplete &&
+                            !playerTypingComplete && (
+                              <PlayerDialogue
+                                text={`${dialogue$.dialogue.playerResponse}`}
+                                onComplete={() => setPlayerTypingComplete(true)}
+                              />
+                            )}
+                          {playerTypingComplete && (
+                            <div>{dialogue$.dialogue.playerResponse}</div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -161,7 +182,11 @@ const DialogueComponent: React.FC = () => {
                       disabled={!playerTypingComplete}
                     >
                       <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-                      <span className="relative">Okay.</span>
+                      <span
+                        className={`relative ${!playerTypingComplete ? 'text-gray-500' : ''}`}
+                      >
+                        Okay.
+                      </span>
                     </button>
                   </div>
                 </div>
