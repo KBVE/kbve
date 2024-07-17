@@ -11,6 +11,9 @@ const $dialogueSession = atom<Record<string, string>>({});
 const $npcDisplayedText = atom<JSX.Element[]>([]);
 const $playerDisplayedText = atom<JSX.Element[]>([]);
 
+
+const MemoizedTypewriterComponent = React.memo(Laser.TypewriterComponent);
+
 const DialogueComponent: React.FC = () => {
   const dialogue$ = useStore($dialogueEvent);
   const dialogueSession$ = useStore($dialogueSession);
@@ -53,6 +56,10 @@ const DialogueComponent: React.FC = () => {
       (overlayElement as HTMLElement).classList.add('hidden');
       (overlayElement as HTMLElement).classList.remove('open');
     }
+    $npcDisplayedText.set([]);
+    $playerDisplayedText.set([]);
+    $dialogueEvent.set(null);
+    $dialogueSession.set({});
   };
 
   return (
@@ -113,7 +120,7 @@ const DialogueComponent: React.FC = () => {
               <div className="p-4 overflow-y-auto">
                 <div className="mt-1 mb-2 text-yellow-400 bg-zinc-950/80 rounded-xl p-4">
                   {dialogue$?.dialogue.message ? (
-                    <Laser.TypewriterComponent
+                    <MemoizedTypewriterComponent
                       key={dialogueSession$[`${dialogue$.npcId}_messageKey`]}
                       text={dialogue$.dialogue.message}
                       textAtom={$npcDisplayedText}
@@ -131,7 +138,7 @@ const DialogueComponent: React.FC = () => {
                 </div>
                 <div className="mt-1 mb-2 text-yellow-400 bg-zinc-950/80 rounded-xl p-4">
                 {dialogue$?.dialogue.playerResponse && $dialogueSession.get()[`${dialogue$.npcId}_talking`] === 'done' && $dialogueSession.get()[`${dialogue$.npcId}_playerTalking`] === 'yes' && (
-                  <Laser.TypewriterComponent
+                  <MemoizedTypewriterComponent
                     key={dialogueSession$[`${dialogue$.npcId}_playerResponseKey`]}
                     text={`${dialogue$.dialogue.playerResponse} okay i will leave ya alone`}
                     textAtom={$playerDisplayedText}

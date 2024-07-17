@@ -9,7 +9,7 @@ interface TypewriterComponentProps {
   textAtom: WritableAtom;
 }
 
-const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed = 50, onComplete, textAtom }) => {
+const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed = 80, onComplete, textAtom }) => {
   const displayedText = useStore(textAtom);
   const displayedTextRef = useRef<JSX.Element[]>([]);
 
@@ -49,7 +49,6 @@ const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed =
 
     return () => {
       window.clearTimeout(timeoutId);
-      textAtom.set([]); // Reset the atom when the component is unmounted
     };
   }, [text, speed, onComplete]);
 
