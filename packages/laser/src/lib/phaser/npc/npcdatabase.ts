@@ -1,5 +1,6 @@
 import Dexie from 'dexie';
 import axios from 'axios';
+import { atom, WritableAtom } from 'nanostores';
 import { INPCData, ISprite, IAvatar, IDialogueObject } from '../../../types';
 import { Scene } from 'phaser';
 import { npcHandler } from './npchandler';
@@ -484,6 +485,46 @@ class NPCDatabase extends Dexie {
     return npc?.name;
   }
   
+  async getNPCAvatarById(npcId: string): Promise<Blob | undefined> {
+    const npc = await this.getNPC(npcId);
+    if (npc?.avatarImageId) {
+      const avatar = await this.getAvatar(npc.avatarImageId);
+      return avatar?.avatarData;
+    }
+    return undefined;
+  }
+
+  async getNPCSlugById(npcId: string): Promise<string | undefined> {
+    const npc = await this.getNPC(npcId);
+    return npc?.slug;
+  }
+
+  async createNPCSession(SessionAtom: WritableAtom<Record<string, string>>, npcId: string): Promise<void> {
+    try {
+      const namePromise = this.getNPCNameById(npcId);
+      const slugPromise = this.getNPCSlugById(npcId);
+      const avatarPromise = this.getNPCAvatarById(npcId);
+
+      const [name, slug, avatar] = await Promise.all([namePromise, slugPromise, avatarPromise]);
+
+      const newSession = { 
+        ...SessionAtom.get(), 
+        [`${npcId}_name`]: name || 'Unknown', 
+        [`${npcId}_slug`]: slug || 'Unknown', 
+        [`${npcId}_avatar`]: avatar ? URL.createObjectURL(avatar) : 'Unknown'
+      };
+
+      SessionAtom.set(newSession);
+    } catch (error) {
+      const newSession = { 
+        ...SessionAtom.get(), 
+        [`${npcId}_name`]: 'Unknown', 
+        [`${npcId}_slug`]: 'Unknown', 
+        [`${npcId}_avatar`]: 'Unknown'
+      };
+      SessionAtom.set(newSession);
+    }
+  }
 
 }
 
