@@ -115,7 +115,7 @@ const MinigameDice: React.FC<MinigameDiceProps> = ({ styleClass, textures, diceC
       {isDiceAction(state.action) && (
         <button
           onClick={rollDice}
-          className={`mt-4 p-2 border border-yellow-300 rounded text-yellow-400 ${state.action.isRolling ? 'opacity-50' : ''}`}
+          className={`mt-4 p-2 border border-yellow-300 rounded text-yellow-400 hover:scale-110 ${state.action.isRolling ? 'opacity-50' : ''}`}
           disabled={state.action.isRolling}
         >
           Roll Dice

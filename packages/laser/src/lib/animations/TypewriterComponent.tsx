@@ -17,12 +17,18 @@ const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed =
     const parts = text.split(/(<\/?span[^>]*>)/g).filter(Boolean);
     const characters: JSX.Element[] = [];
 
-    parts.forEach((part) => {
+    parts.forEach((part, index) => {
       if (part.startsWith('<span') || part.startsWith('</span')) {
-        characters.push(<span key={currentIndex++} dangerouslySetInnerHTML={{ __html: part }} />);
+        const tagMatch = part.match(/<span class="([^"]*)">/);
+        if (tagMatch) {
+          const className = tagMatch[1];
+          characters.push(<span key={`span-${index}`} className={className}></span>);
+        } else {
+          characters.push(<span key={`span-${index}`}></span>);
+        }
       } else {
-        part.split('').forEach(char => {
-          characters.push(<span key={currentIndex++}>{char}</span>);
+        part.split('').forEach((char, charIndex) => {
+          characters.push(<span key={`char-${index}-${charIndex}`}>{char}</span>);
         });
       }
     });
