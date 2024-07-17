@@ -79,7 +79,7 @@ const DialogueComponent: React.FC = () => {
     <>
       <div
         id="hs-stacked-overlays-dialogue"
-        className="hs-overlay hs-overlay-backdrop-open:bg-gray-900/50  fixed top-0 start-0 z-[60] overflow-x-hidden overflow-y-auto pointer-events-none [--overlay-backdrop:static]"
+        className="hs-overlay hs-overlay-backdrop-open:bg-gray-900/50 size-full fixed top-0 start-0 z-[60] overflow-x-hidden overflow-y-auto pointer-events-none [--overlay-backdrop:static]"
         data-hs-overlay-keyboard="false"
       >
         <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto md:min-w-fit">
@@ -91,7 +91,7 @@ const DialogueComponent: React.FC = () => {
           >
             {dialogue$ ? (
               <>
-                <div className="w-full lg:w-1/3 p-4 rounded-l-xl flex flex-col items-center justify-center">
+                <div className="w-full lg:w-1/3 p-4 rounded-l-xl flex flex-col items-center justify-center relative">
                   <h3 className="font-bold text-yellow-400 bg-zinc-950/80 rounded-2xl text-center mb-4 p-4">
                     {dialogue$.npcId &&
                     dialogueSession$[`${dialogue$.npcId}_name`]
@@ -106,7 +106,7 @@ const DialogueComponent: React.FC = () => {
                         : '/assets/npc/barkeep.webp'
                     }
                     alt="Character"
-                    className="w-full h-auto rounded-md"
+                    className="w-full h-auto rounded-md absolute bottom-0 left-0"
                   />
                 </div>
 
