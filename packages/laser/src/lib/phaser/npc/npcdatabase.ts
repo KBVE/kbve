@@ -1,8 +1,12 @@
 import Dexie from 'dexie';
 import axios from 'axios';
+import { atom, WritableAtom } from 'nanostores';
 import { INPCData, ISprite, IAvatar, IDialogueObject } from '../../../types';
 import { Scene } from 'phaser';
 import { npcHandler } from './npchandler';
+
+import { Debug } from '../../utils/debug';
+
 
 // Extending the Phaser.Scene type to include gridEngine
 interface ExtendedScene extends Scene {
@@ -60,7 +64,7 @@ class NPCDatabase extends Dexie {
       const response = await axios.get<INPCData>(url);
       return response.data;
     } catch (error) {
-      console.error(`Failed to fetch NPC data from ${url}:`, error);
+      Debug.error(`Failed to fetch NPC data from ${url}:`, error);
       return undefined;
     }
   }
@@ -94,7 +98,7 @@ class NPCDatabase extends Dexie {
       const response = await axios.get(url, { responseType: 'blob' });
       return response.data;
     } catch (error) {
-      console.error(`Failed to fetch blob from ${url}:`, error);
+      Debug.error(`Failed to fetch blob from ${url}:`, error);
       return undefined;
     }
   }
@@ -168,7 +172,7 @@ class NPCDatabase extends Dexie {
         }
       }
     } catch (error) {
-      console.error(`Failed to fetch avatars from ${url}:`, error);
+      Debug.error(`Failed to fetch avatars from ${url}:`, error);
     }
   }
 
@@ -199,7 +203,7 @@ class NPCDatabase extends Dexie {
         }
       }
     } catch (error) {
-      console.error(`Failed to fetch sprites from ${url}:`, error);
+      Debug.error(`Failed to fetch sprites from ${url}:`, error);
     }
   }
 
@@ -228,7 +232,7 @@ class NPCDatabase extends Dexie {
         await this.addNPC(newNPC);
       }
     } catch (error) {
-      console.error(`Failed to fetch NPCs from ${url}:`, error);
+      Debug.error(`Failed to fetch NPCs from ${url}:`, error);
     }
   }
 
@@ -249,19 +253,19 @@ class NPCDatabase extends Dexie {
     y?: number,
   ): Promise<void> {
     try {
-      console.log(`Loading NPC with name: ${npcName}`);
+      Debug.log(`Loading NPC with name: ${npcName}`);
       const npcData = await this.getNPCByName(npcName);
       if (!npcData) {
         throw new Error(`NPC with name ${npcName} not found`);
       }
-      console.log(`NPC Data: ${JSON.stringify(npcData)}`);
+      Debug.log(`NPC Data: ${JSON.stringify(npcData)}`);
 
       await this.loadCharacter(scene, npcData.id, x, y);
     } catch (error) {
       if (error instanceof Error) {
-        console.error(`Failed to load NPC: ${error.message}`);
+        Debug.error(`Failed to load NPC: ${error.message}`);
       } else {
-        console.error('Failed to load NPC:', error);
+        Debug.error('Failed to load NPC:', error);
       }
     }
   }
@@ -273,23 +277,23 @@ class NPCDatabase extends Dexie {
     y?: number,
   ): Promise<void> {
     try {
-      console.log(`Loading NPC with ID: ${npcId}`);
+      Debug.log(`Loading NPC with ID: ${npcId}`);
       const npcData = await this.getNPC(npcId);
       if (!npcData) {
         throw new Error(`NPC with ID ${npcId} not found`);
       }
-      console.log(`NPC Data: ${JSON.stringify(npcData)}`);
+      Debug.log(`NPC Data: ${JSON.stringify(npcData)}`);
 
       const textureKey = npcData.spriteKey;
 
       // Ensure the texture is loaded
       if (!scene.textures.exists(textureKey)) {
-        console.log(
+        Debug.log(
           `Texture with key ${textureKey} not found, attempting to load.`,
         );
         const spriteData = await this.getSprite(npcData.spriteImageId!);
         if (spriteData && spriteData.spriteData) {
-          console.log(`Sprite Data: ${JSON.stringify(spriteData)}`);
+          Debug.log(`Sprite Data: ${JSON.stringify(spriteData)}`);
           const url = URL.createObjectURL(spriteData.spriteData);
 
           // Load the spritesheet using frameWidth and frameHeight from spriteData
@@ -299,7 +303,7 @@ class NPCDatabase extends Dexie {
           });
 
           scene.load.once('complete', () => {
-            console.log(`Texture ${textureKey} loaded successfully.`);
+            Debug.log(`Texture ${textureKey} loaded successfully.`);
             this.addNPCToScene(scene, npcData, x, y);
           });
 
@@ -308,14 +312,14 @@ class NPCDatabase extends Dexie {
           throw new Error(`Sprite with ID ${npcData.spriteImageId} not found`);
         }
       } else {
-        console.log(`Texture with key ${textureKey} already loaded.`);
+        Debug.log(`Texture with key ${textureKey} already loaded.`);
         this.addNPCToScene(scene, npcData, x, y);
       }
     } catch (error) {
       if (error instanceof Error) {
-        console.error(`Failed to load NPC: ${error.message}`);
+        Debug.error(`Failed to load NPC: ${error.message}`);
       } else {
-        console.error('Failed to load NPC:', error);
+        Debug.error('Failed to load NPC:', error);
       }
     }
   }
@@ -327,8 +331,8 @@ class NPCDatabase extends Dexie {
     y?: number,
   ): void {
     try {
-      console.log(`Adding NPC to scene: ${JSON.stringify(npcData)}`);
-      console.log(`Using sprite key: ${npcData.spriteKey}`);
+      Debug.log(`Adding NPC to scene: ${JSON.stringify(npcData)}`);
+      Debug.log(`Using sprite key: ${npcData.spriteKey}`);
 
       //const npcSprite = scene.add.sprite(x ?? npcData.startPosition.x, y ?? npcData.startPosition.y, npcData.spriteKey);
       const npcSprite = scene.add.sprite(0, 0, npcData.spriteKey);
@@ -336,7 +340,7 @@ class NPCDatabase extends Dexie {
       npcSprite.scale = npcData.scale || 1.5;
       npcSprite.name = npcData.id || 'Error Missing Name';
 
-      console.log(
+      Debug.log(
         `NPC Sprite created with texture key ${npcData.spriteKey} at position (${npcData.startPosition.x}, ${npcData.startPosition.y})`,
       );
 
@@ -351,7 +355,7 @@ class NPCDatabase extends Dexie {
         speed: npcData.speed,
       };
 
-      console.log(`Grid engine config: ${JSON.stringify(gridEngineConfig)}`);
+      Debug.log(`Grid engine config: ${JSON.stringify(gridEngineConfig)}`);
 
       // Check if the texture is available before adding to grid engine
       if (!scene.textures.exists(npcData.spriteKey)) {
@@ -362,7 +366,7 @@ class NPCDatabase extends Dexie {
 
       scene.gridEngine.addCharacter(gridEngineConfig);
 
-      console.log(`NPC added to grid engine with ID ${npcData.id}`);
+      Debug.log(`NPC added to grid engine with ID ${npcData.id}`);
 
       const attachNPCEventWithCoords = (
         sprite: Phaser.GameObjects.Sprite,
@@ -370,7 +374,7 @@ class NPCDatabase extends Dexie {
         actions: { label: string }[],
       ) => {
         const position = scene.gridEngine.getPosition(sprite.name);
-        console.log(
+        Debug.log(
           `Attaching NPC events to ${title} at position: ${JSON.stringify(position)}`,
         );
         npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
@@ -382,14 +386,14 @@ class NPCDatabase extends Dexie {
         npcData.actions.map((action) => ({ label: action })),
       );
 
-      console.log(`NPC ${npcData.name} added to scene successfully`);
+      Debug.log(`NPC ${npcData.name} added to scene successfully`);
     } catch (error) {
       if (error instanceof Error) {
-        console.error(
+        Debug.error(
           `Error adding NPC to scene from addNPCToScene: ${error.message}`,
         );
       } else {
-        console.error('Error adding NPC to scene:', error);
+        Debug.error('Error adding NPC to scene:', error);
       }
     }
   }
@@ -440,7 +444,7 @@ class NPCDatabase extends Dexie {
       );
       await this.dialogues.bulkPut(newDialogues);
     } catch (error) {
-      console.error(`Failed to fetch dialogues from ${url}:`, error);
+      Debug.error(`Failed to fetch dialogues from ${url}:`, error);
     }
   }
 
@@ -471,7 +475,7 @@ class NPCDatabase extends Dexie {
   
       return validDialogues;
     } catch (error) {
-      console.error(`Failed to get prioritized dialogues for NPC with ID ${npcId}:`, error);
+      Debug.error(`Failed to get prioritized dialogues for NPC with ID ${npcId}:`, error);
       return [];
     }
   }
@@ -481,6 +485,46 @@ class NPCDatabase extends Dexie {
     return npc?.name;
   }
   
+  async getNPCAvatarById(npcId: string): Promise<Blob | undefined> {
+    const npc = await this.getNPC(npcId);
+    if (npc?.avatarImageId) {
+      const avatar = await this.getAvatar(npc.avatarImageId);
+      return avatar?.avatarData;
+    }
+    return undefined;
+  }
+
+  async getNPCSlugById(npcId: string): Promise<string | undefined> {
+    const npc = await this.getNPC(npcId);
+    return npc?.slug;
+  }
+
+  async createNPCSession(SessionAtom: WritableAtom<Record<string, string>>, npcId: string): Promise<void> {
+    try {
+      const namePromise = this.getNPCNameById(npcId);
+      const slugPromise = this.getNPCSlugById(npcId);
+      const avatarPromise = this.getNPCAvatarById(npcId);
+
+      const [name, slug, avatar] = await Promise.all([namePromise, slugPromise, avatarPromise]);
+
+      const newSession = { 
+        ...SessionAtom.get(), 
+        [`${npcId}_name`]: name || 'Unknown', 
+        [`${npcId}_slug`]: slug || 'Unknown', 
+        [`${npcId}_avatar`]: avatar ? URL.createObjectURL(avatar) : 'Unknown'
+      };
+
+      SessionAtom.set(newSession);
+    } catch (error) {
+      const newSession = { 
+        ...SessionAtom.get(), 
+        [`${npcId}_name`]: 'Unknown', 
+        [`${npcId}_slug`]: 'Unknown', 
+        [`${npcId}_avatar`]: 'Unknown'
+      };
+      SessionAtom.set(newSession);
+    }
+  }
 
 }
 
