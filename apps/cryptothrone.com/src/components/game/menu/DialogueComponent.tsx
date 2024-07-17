@@ -70,16 +70,20 @@ const DialogueComponent: React.FC = () => {
                 </button>
               </div>
 
-            <div className="p-4 overflow-y-auto">
+              <div className="p-4 overflow-y-auto">
               <p className="mt-1 mb-2 text-yellow-400 bg-zinc-950/80 rounded-xl p-4">
-                {dialogue$?.dialogue.message || 'No Message'}
-              </p>
-              {dialogue$?.dialogue.playerResponse && (
-                <p className="mt-1 mb-2 text-yellow-400 bg-zinc-950/80 rounded-xl p-4">
-                  {dialogue$?.dialogue.playerResponse}
+                {dialogue$?.dialogue.message ? (
+                  <Laser.TypewriterComponent text={dialogue$.dialogue.message} />
+                ) : (
+                  <p className="mt-1 mb-2 text-yellow-400 bg-zinc-950/80 rounded-xl p-4">No Message</p>
+                )}
                 </p>
-              )}
-            </div>
+                {dialogue$?.dialogue.playerResponse && (
+                  <p className="mt-1 mb-2 text-yellow-400 bg-zinc-950/80 rounded-xl p-4">
+                    {dialogue$?.dialogue.playerResponse}
+                  </p>
+                )}
+              </div>
 
             <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t">
               <button className="relative rounded px-5 py-2.5 overflow-hidden group bg-yellow-500 relative hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all ease-out duration-300 disabled:pointer-events-none" data-hs-overlay="#hs-stacked-overlays-dialogue" onClick={closeDialogue}>
