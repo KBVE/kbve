@@ -6,6 +6,7 @@ import { EventEmitter } from '../../eventhandler';
 import { minigameState, setGameMode, setAction, setTextures, updateDiceValues, setRollingStatus } from '../../localdb';
 import { DiceTextures, MinigameDiceProps, isDiceAction, DiceRollResultEventData } from '../../../types';
 import * as THREE from 'three';
+import { Debug } from '../../utils/debug';
 
 const diceOrientations = [
   new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2), // 1
@@ -92,7 +93,6 @@ const MinigameDice: React.FC<MinigameDiceProps> = ({ styleClass, textures, diceC
     setRollingStatus(true);
     setTimeout(() => {
       const newValues = Array.from({ length: diceCount }, () => Math.floor(Math.random() * 6) + 1);
-      console.log('New dice values:', newValues);
       updateDiceValues(newValues);
       setRollingStatus(false);
 
@@ -115,7 +115,7 @@ const MinigameDice: React.FC<MinigameDiceProps> = ({ styleClass, textures, diceC
       {isDiceAction(state.action) && (
         <button
           onClick={rollDice}
-          className={`mt-4 p-2 border border-yellow-300 rounded text-yellow-400 ${state.action.isRolling ? 'opacity-50' : ''}`}
+          className={`mt-4 p-2 border border-yellow-300 rounded text-yellow-400 hover:scale-110 ${state.action.isRolling ? 'opacity-50' : ''}`}
           disabled={state.action.isRolling}
         >
           Roll Dice
