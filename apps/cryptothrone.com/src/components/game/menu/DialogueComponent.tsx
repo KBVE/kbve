@@ -6,9 +6,11 @@ import * as Laser from '@kbve/laser';
 
 // Define an atom to store the dialogue event data
 const $dialogueEvent = atom<Laser.NPCDialogueEventData | null>(null);
+const $dialogueSession = atom<Record<string, string>>({});
 
 const DialogueComponent: React.FC = () => {
   const dialogue$ = useStore($dialogueEvent);
+  const dialogueSession$ = useStore($dialogueSession);
 
   useEffect(() => {
     const handleOpenDialogue = (data?: Laser.NPCDialogueEventData) => {
@@ -19,14 +21,18 @@ const DialogueComponent: React.FC = () => {
           (overlayElement as HTMLElement).classList.remove('hidden');
           (overlayElement as HTMLElement).classList.add('open');
         }
+        if (data.npcId) {
+          Laser.npcDatabase.createNPCSession($dialogueSession, data.npcId);
+        }
       }
     };
-
+  
     Laser.EventEmitter.on('npcDialogue', handleOpenDialogue);
     return () => {
       Laser.EventEmitter.off('npcDialogue', handleOpenDialogue);
     };
   }, []);
+  
 
   const closeDialogue = () => {
     const overlayElement = document.querySelector('#hs-stacked-overlays-dialogue');
@@ -44,13 +50,13 @@ const DialogueComponent: React.FC = () => {
 
             
             <div className="w-full lg:w-1/3 p-4 rounded-l-xl flex flex-col items-center justify-center">
-              <h3 className="font-bold text-yellow-400 bg-zinc-950/80 rounded-2xl text-center mb-4">
-              {`NPC: ${dialogue$?.npcId || 'Unknown'}`}
+              <h3 className="font-bold text-yellow-400 bg-zinc-950/80 rounded-2xl text-center mb-4 p-4">
+              {`${dialogue$?.npcId ? dialogueSession$[`${dialogue$.npcId}_name`] : 'Unknown'}`}
               </h3>
               <img src={dialogue$?.dialogue.backgroundImage || '/assets/npc/barkeep.webp'} alt="Character" className="w-full h-auto rounded-md" />
             </div>
 
-            <div className="w-full lg:w-2/3 p-4 bg-cover bg-center rounded-r-xl">
+            <div className="w-full md:w-2/3 p-4 bg-cover bg-center rounded-r-xl">
               <div className="flex justify-between items-center pb-3 border-b">
                 <h3 className="font-bold text-yellow-400">
                   {`${dialogue$?.dialogue.title || 'Dialogue'}`}
