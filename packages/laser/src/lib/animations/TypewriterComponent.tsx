@@ -1,16 +1,13 @@
-import React, { useEffect, useRef } from 'react';
-import { useStore } from '@nanostores/react';
-import { WritableAtom } from 'nanostores';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface TypewriterComponentProps {
   text: string;
   speed?: number;
   onComplete?: () => void;
-  textAtom: WritableAtom;
 }
 
-const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed = 80, onComplete, textAtom }) => {
-  const displayedText = useStore(textAtom);
+const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed = 80, onComplete }) => {
+  const [displayedText, setDisplayedText] = useState<JSX.Element[]>([]);
   const displayedTextRef = useRef<JSX.Element[]>([]);
 
   useEffect(() => {
@@ -35,7 +32,7 @@ const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed =
     const typeNextCharacter = () => {
       if (currentIndex < characters.length) {
         displayedTextRef.current = [...displayedTextRef.current, characters[currentIndex]];
-        textAtom.set(displayedTextRef.current);
+        setDisplayedText([...displayedTextRef.current]);
         currentIndex++;
         timeoutId = window.setTimeout(typeNextCharacter, speed);
       } else if (onComplete) {
@@ -44,7 +41,7 @@ const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed =
     };
 
     displayedTextRef.current = [];
-    textAtom.set(displayedTextRef.current);
+    setDisplayedText([]);
     typeNextCharacter();
 
     return () => {
@@ -55,4 +52,4 @@ const TypewriterComponent: React.FC<TypewriterComponentProps> = ({ text, speed =
   return <div>{displayedText}</div>;
 };
 
-export default TypewriterComponent;
+export default React.memo(TypewriterComponent);
