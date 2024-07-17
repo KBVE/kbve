@@ -103,7 +103,7 @@ const ActionMenu: React.FC = () => {
           <button
             key={index}
             onClick={() => handleAction(action as Laser.NPCAction)}
-            className="block w-full text-xs py-1 px-2 mb-1 bg-yellow-500 hover:bg-yellow-400 rounded"
+            className="block w-full text-sm py-1 px-2 mb-1 bg-yellow-500 hover:bg-yellow-400 rounded capitalize"
           >
             {action}
           </button>
