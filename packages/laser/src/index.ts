@@ -12,16 +12,16 @@ export * from './lib/utils/ulid'; // ULID
 export * from './lib/utils/debug'; // Debug
 
 // Icons
-
 export { default as CollapseIcon } from './lib/icon/CollapseIcon';
 export { default as ExpandIcon } from './lib/icon/ExpandIcon';
 
 // MiniGames
-
 export { default as MinigameDice } from './lib/minigame/dice/MinigameDice';
 
-// Phaser
+// Animations
+export { default as TypewriterComponent} from './lib/animations/TypewriterComponent';
 
+// Phaser
 export * from './lib/phaser/player/playercontroller';
 
 // NPC
