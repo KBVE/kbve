@@ -3,6 +3,7 @@ import { Quadtree, type Point, type Range } from '../../quadtree';
 import { EventEmitter } from '../../eventhandler';
 import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, queryItemDB, applyConsumableEffects, equipItem, getItemDetails, removeItemFromBackpack, unequipItem } from '../../localdb';
 import { type IObject,  type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent, type ItemActionEventData, IConsumable } from '../../../types'
+import { Debug } from '../../utils/debug';
 
 export class PlayerController {
   private scene: Scene;
@@ -42,18 +43,18 @@ export class PlayerController {
   private handleConsume(itemId: string) {
     const item = getItemDetails(itemId) as IConsumable;
     if (item && item.consumable) {
-      console.log(`Consuming item: ${item.name}`);
+      Debug.log(`Consuming item: ${item.name}`);
       applyConsumableEffects(item);
       removeItemFromBackpack(item.id);
     } else {
-      console.log(`Item ${itemId} is not consumable`);
+      Debug.log(`Item ${itemId} is not consumable`);
     }
   }
 
   private handleEquip(itemId: string) {
     const item = getItemDetails(itemId) as IObject;
     if (item) {
-      console.log(`Equipping item: ${item.name}`);
+      Debug.log(`Equipping item: ${item.name}`);
       // Assuming 'weapon' slot as an example, update according to your slots
       equipItem('weapon', item.id);
     }
@@ -62,21 +63,21 @@ export class PlayerController {
   private handleUnequip(itemId: string) {
     const item = getItemDetails(itemId) as IObject;
     if (item) {
-      console.log(`Unequipping item: ${item.name}`);
+      Debug.log(`Unequipping item: ${item.name}`);
       // Assuming 'weapon' slot as an example, update according to your slots
       unequipItem('weapon');
     }
   }
 
   private handleDiscard(itemId: string) {
-    console.log(`Discarding item: ${itemId}`);
+    Debug.log(`Discarding item: ${itemId}`);
     removeItemFromBackpack(itemId);
   }
 
   private handleView(itemId: string) {
     const item = getItemDetails(itemId);
     if (item) {
-      console.log(`Viewing item: ${item.name} with ${item.slug}`);
+      Debug.log(`Viewing item: ${item.name} with ${item.slug}`);
       if (item.slug) {
         const url = `https://kbve.com/${item.slug}#${item.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')}`;
         window.open(url, '_blank');
@@ -106,7 +107,7 @@ export class PlayerController {
   {
     if(data)
       {
-        console.log(`Preparing Action: ${data.itemId} with ${data.action}`);
+        Debug.log(`Preparing Action: ${data.itemId} with ${data.action}`);
         switch (data.action) {
           case 'consume':
             this.handleConsume(data.itemId);
@@ -124,13 +125,13 @@ export class PlayerController {
             this.handleView(data.itemId);
             break;
           default:
-            console.log(`Unknown action: ${data.action}`);
+            Debug.log(`Unknown action: ${data.action}`);
         }
       }
   }
 
   private handlePlayerReward(data?: PlayerRewardEvent) {
-    console.log(`Rewarding the player`);
+    Debug.log(`Rewarding the player`);
     if(data) 
     {
       EventEmitter.emit('notification', {
@@ -168,12 +169,12 @@ export class PlayerController {
   //           item: item,
   //         }, 2000);
   //       } else {
-  //         console.warn('Item not found in ItemDB');
+  //         Debug.warn('Item not found in ItemDB');
   //       }
   //     }
   //     else
   //     {
-  //          // console.log('Performing the Action to Steal');
+  //          // Debug.log('Performing the Action to Steal');
   //       // Fail for now.
   //       EventEmitter.emit('notification', {
   //         title: 'Danger',
