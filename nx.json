@@ -175,7 +175,7 @@
       "!jedi"
     ],
     "version": {
-      "conventionalCommits": false
+      "conventionalCommits": true
     }
   }
 }

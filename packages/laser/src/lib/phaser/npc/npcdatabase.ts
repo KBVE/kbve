@@ -470,8 +470,8 @@ class NPCDatabase extends Dexie {
       // Filter out any null values
       const validDialogues = dialoguesWithMetadata.filter(dialogue => dialogue !== null) as (IDialogueObject & { priority: number; read: boolean })[];
   
-      // Sort the dialogues by priority
-      validDialogues.sort((a, b) => a.priority - b.priority);
+      // Sort the dialogues by priority in descending order
+      validDialogues.sort((a, b) => b.priority - a.priority);
   
       return validDialogues;
     } catch (error) {
@@ -479,6 +479,7 @@ class NPCDatabase extends Dexie {
       return [];
     }
   }
+  
 
   async getNPCNameById(npcId: string): Promise<string | undefined> {
     const npc = await this.getNPC(npcId);
