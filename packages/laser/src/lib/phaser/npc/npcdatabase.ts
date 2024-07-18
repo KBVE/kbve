@@ -500,19 +500,45 @@ class NPCDatabase extends Dexie {
     return npc?.slug;
   }
 
+  async getNPCHealthById(npcId: string): Promise<string | undefined> {
+    try {
+      const npc = await this.getNPC(npcId);
+      return npc?.stats?.health;
+    } catch (error) {
+      Debug.error(`Failed to get health for NPC with ID ${npcId}:`, error);
+      return undefined;
+    }
+  }
+
+  async getNPCManaById(npcId: string): Promise<string | undefined> {
+    try {
+      const npc = await this.getNPC(npcId);
+      return npc?.stats?.mana;
+    } catch (error) {
+      Debug.error(`Failed to get mana for NPC with ID ${npcId}:`, error);
+      return undefined;
+    }
+  }
+
   async createNPCSession(SessionAtom: WritableAtom<Record<string, string>>, npcId: string): Promise<void> {
     try {
       const namePromise = this.getNPCNameById(npcId);
       const slugPromise = this.getNPCSlugById(npcId);
       const avatarPromise = this.getNPCAvatarById(npcId);
+      const hpPromise = this.getNPCHealthById(npcId);
+      const manaPromise = this.getNPCManaById(npcId);
 
-      const [name, slug, avatar] = await Promise.all([namePromise, slugPromise, avatarPromise]);
+
+      const [name, slug, avatar, hp, mana] = await Promise.all([namePromise, slugPromise, avatarPromise, hpPromise, manaPromise]);
 
       const newSession = { 
         ...SessionAtom.get(), 
         [`${npcId}_name`]: name || 'Unknown', 
         [`${npcId}_slug`]: slug || 'Unknown', 
-        [`${npcId}_avatar`]: avatar ? URL.createObjectURL(avatar) : 'Unknown'
+        [`${npcId}_avatar`]: avatar ? URL.createObjectURL(avatar) : 'Unknown',
+        [`${npcId}_health`]: hp || '100',
+        [`${npcId}_mana`]: mana || '100',
+
       };
 
       SessionAtom.set(newSession);
@@ -521,7 +547,10 @@ class NPCDatabase extends Dexie {
         ...SessionAtom.get(), 
         [`${npcId}_name`]: 'Unknown', 
         [`${npcId}_slug`]: 'Unknown', 
-        [`${npcId}_avatar`]: 'Unknown'
+        [`${npcId}_avatar`]: 'Unknown',
+        [`${npcId}_hp`]: '100',
+        [`${npcId}_mana`]: '100',
+
       };
       SessionAtom.set(newSession);
     }
