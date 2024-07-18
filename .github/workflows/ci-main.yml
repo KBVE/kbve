@@ -55,7 +55,7 @@ jobs:
       devops: ${{ steps.delta.outputs.devops_any_changed }}
       fudster: ${{ steps.delta.outputs.fudster_any_changed }}
       cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
-
+      laser: ${{ steps.delta.outputs.laser_any_changed }}
     steps:
       - name: Checkout the repository using git
         uses: actions/checkout@v4
@@ -105,6 +105,8 @@ jobs:
                 - 'apps/fudster/fudster/**'
             cryptothrone:
                 - 'apps/cryptothrone.com/src/**'
+            laser:
+                - 'packages/laser/package.json'
 
   debug:
     needs: ['alter', 'globals']
@@ -278,7 +280,75 @@ jobs:
           commit_message: ${{ github.event.head_commit.message }}
           rsync_option: '-avrh --delete'
 
+  #   [Laser] -> Publish (As NPM)
+  laser_npm_publish:
+    needs: ['deploy', 'alter', 'globals']
+    name: Laser Phaser React Library Publish
+    if: needs.alter.outputs.laser == 'true'
+    runs-on: 'ubuntu-latest'
+    permissions:
+          contents: read
+          id-token: write
+    steps:
+      - name: Checkout the monorepo using git
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: Setup Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
+      #   @[CACHE]->[START]
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+          #   @[CACHE]->[END]
+
+      - name: Install pnpm dependencies
+        run: |
+          pnpm install
+
+      - name: Install npm
+        run: |
+          npm install --legacy-peer-deps
+
+      - name: Print Environment Info
+        shell: bash
+        run: |
+          npx nx report
+
+      - name: Build KBVE Laser NPM Package
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx laser:build'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Publish packages
+        run: npx nx release publish --projects=laser
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
 
   #   [Devops] -> Publish (As NPM)
   devops_npm_publish:
