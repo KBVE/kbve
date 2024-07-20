@@ -1,12 +1,9 @@
 import styled from 'styled-components';
 import React, { useEffect, useRef } from 'react';
-
 import Phaser from 'phaser';
-
 import GridEngine from 'grid-engine';
-
-import {Title} from './Title';
-import {SandCity} from './scene/SandCity';
+import { Title } from './Title';
+import { SandCity } from './scene/SandCity';
 import { CloudCity } from './scene/CloudCity';
 
 const StyledApp = styled.div`
@@ -14,44 +11,32 @@ const StyledApp = styled.div`
 `;
 
 export function Game() {
-  const gameRef = useRef(null);
+  const gameRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let game: Phaser.Game | null = null;
+
     if (gameRef.current) {
       const gameParent = gameRef.current;
 
-      const config = {
+      const config: Phaser.Types.Core.GameConfig = {
         title: 'CryptoThrone',
         render: {
           antialias: false,
         },
-
         scale: {
-          mode: Phaser.Scale.RESIZE,
-          //mode: Phaser.Scale.FIT,
-          //autoCenter: Phaser.Scale.CENTER_BOTH,
-
-          min: {
-            width: 1024,
-            height: 768,
-          },
-
-          max: {
-            width: 1600,
-            height: 1200,
-          },
-
+          mode: Phaser.Scale.FIT,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
           zoom: 1,
         },
-
         type: Phaser.AUTO,
         transparent: true,
-        width: 800,
-        height: 600,
+        width: window.innerWidth,
+        height: window.innerHeight,
         physics: {
           default: 'arcade',
           arcade: {
-            gravity: { x: 0, y: 0 }, // TownScene seems to be a top-down game, so no gravity
+            gravity: { x: 0, y: 0 }, 
             debug: false,
           },
         },
@@ -64,32 +49,42 @@ export function Game() {
             },
           ],
         },
-        /// TownScene, CreditsScene, FishScene, GameOver,
-        scene: [Title, SandCity, CloudCity], // Add other scenes as needed
-
+        scene: [Title, SandCity, CloudCity],
         input: {
           mouse: {
             preventDefaultWheel: false,
           },
           touch: {
-            capture: false,
+            capture: true,
           },
         },
+        parent: gameParent,
       };
 
-      const gameConfig = { ...config, parent: gameParent };
-      const game = new Phaser.Game(gameConfig);
+      game = new Phaser.Game(config);
+
+      const resizeGame = () => {
+        if (game) {
+          game.scale.resize(window.innerWidth, window.innerHeight);
+        }
+      };
+
+      window.addEventListener('resize', resizeGame);
 
       return () => {
-        // Cleanup the game when the component is unmounted
-        game.destroy(true);
+        window.removeEventListener('resize', resizeGame);
+        if (game) {
+          game.destroy(true);
+        }
       };
     }
   }, []);
 
   return (
     <StyledApp>
-      <div ref={gameRef} />
+       <div className="w-full h-full flex justify-center items-center">
+        <div className="aspect-w-16 aspect-h-9 w-full max-w-full" ref={gameRef} />
+      </div>
     </StyledApp>
   );
 }

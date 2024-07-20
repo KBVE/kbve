@@ -2,12 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import Card from '../components/Card.astro';
 import App from '../components/game/App';
+// 	<!-- <main> Tag was removed -->
 ---
 
 <Layout title="Welcome to CryptoThrone.">
-	<main >
 		<App client:only="react" />
-	</main>
 </Layout>
 
 <style>
