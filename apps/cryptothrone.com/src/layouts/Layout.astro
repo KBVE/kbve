@@ -5,6 +5,7 @@ interface Props {
 
 const { title } = Astro.props;
 import { Preline } from '@kbve/astropad';
+import Header from './Header.astro';
 ---
 
 <!doctype html>
@@ -20,7 +21,7 @@ import { Preline } from '@kbve/astropad';
   </head>
 
   <!-- ========== HEADER ========== -->
-  
+   <Header />
   <!-- ========== END HEADER ========== -->
 
   <body>

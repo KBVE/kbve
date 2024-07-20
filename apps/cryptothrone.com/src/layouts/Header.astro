@@ -1,9 +1,9 @@
 ---
 ---
 <header
-    class="sticky top-4 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full text-sm">
+    class="absolute top-4 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full text-sm">
     <nav
-      class="relative max-w-[85rem] w-full bg-zinc-950 border border-yellow-500 rounded-[36px] mx-2 py-3 px-4 md:flex md:items-center md:justify-between md:py-0 md:px-6 lg:px-8 xl:mx-auto hexgrid-background"
+      class="relative max-w-[85rem] w-full bg-zinc-950 hover:opacity-100 opacity-50 transition transform ease-in-out duration-500 border border-yellow-500 rounded-[36px] mx-2 py-3 px-4 md:flex md:items-center md:justify-between md:py-0 md:px-6 lg:px-8 xl:mx-auto hexgrid-background"
       aria-label="Global">
       <div class="flex items-center justify-between">
         <a
@@ -56,12 +56,7 @@
         class="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:block">
         <div
           class="flex flex-col md:flex-row md:items-center md:justify-end py-2 md:py-0 md:ps-7">
-          <a
-            class="py-3 ps-px md:px-3 font-medium text-yellow-300"
-            href="https://kbve.com/project/cryptothrone/"
-            target="_blank"
-            aria-current="page">Project</a
-          >
+          
 
           <div
             class="hs-dropdown [--strategy:static] md:[--strategy:fixed] [--adaptive:none] md:[--trigger:hover] py-3 ps-px md:px-3">
@@ -90,8 +85,18 @@
                 href="#">
                 About
               </a>
+              <a
+                class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-yellow-300 hover:bg-yellow-300 hover:text-zinc-950 focus:ring-2 focus:ring-yellow-500"
+                href="#">
+                Downloads
+              </a>
+              <a
+                class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-yellow-300 hover:bg-yellow-300 hover:text-zinc-950 focus:ring-2 focus:ring-yellow-500"
+                href="#">
+                Team Account
+              </a>
               <div
-                class="hs-dropdown [--strategy:static] md:[--strategy:absolute] [--adaptive:none] md:[--trigger:hover] relative">
+                class="hs-dropdown [--strategy:static] md:[--strategy:sticky] [--adaptive:none] md:[--trigger:hover] relative">
                 <button
                   type="button"
                   class="w-full flex justify-between items-center text-sm text-yellow-300 rounded-lg py-2 px-3 hover:bg-yellow-300 hover:text-zinc-950 focus:ring-2 focus:ring-yellow-500">
@@ -130,16 +135,7 @@
                 </div>
               </div>
 
-              <a
-                class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-yellow-300 hover:bg-yellow-300 hover:text-zinc-950 focus:ring-2 focus:ring-yellow-500"
-                href="#">
-                Downloads
-              </a>
-              <a
-                class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-yellow-300 hover:bg-yellow-300 hover:text-zinc-950 focus:ring-2 focus:ring-yellow-500"
-                href="#">
-                Team Account
-              </a>
+              
             </div>
           </div>
 
@@ -149,22 +145,6 @@
             href="https://webenclave.com/"
             >Blog
           </a>
-
-          <a
-            class="py-3 ps-px md:px-3 font-medium text-yellow-300 hover:text-yellow-500"
-            target="_blank"
-            href="https://kbve.com/account/">Account</a
-          >
-          <a
-            class="py-3 ps-px md:px-3 font-medium text-yellow-300 hover:text-yellow-500"
-            target="_blank"
-            href="https://github.com/kbve/kbve/">GitHub</a
-          >
-          <a
-            class="py-3 ps-px md:px-3 font-medium text-yellow-300 hover:text-yellow-500"
-            target="_blank"
-            href="https://kbve.com/discord/">Discord</a
-          >
 
           <a
             class="flex items-center gap-x-2 font-medium text-yellow-300 hover:text-yellow-500 md:border-s md:border-yellow-500 py-2 md:py-0 md:my-6 md:ps-6"
