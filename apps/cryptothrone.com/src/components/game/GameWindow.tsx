@@ -7,7 +7,8 @@ import { SandCity } from './scene/SandCity';
 import { CloudCity } from './scene/CloudCity';
 
 const StyledApp = styled.div`
-  // Your style here
+  width: 100vw;
+  height: 100vh;
 `;
 
 export function Game() {
@@ -82,9 +83,9 @@ export function Game() {
 
   return (
     <StyledApp>
-       <div className="w-full h-full flex justify-center items-center">
-        <div className="aspect-w-16 aspect-h-9 w-full max-w-full" ref={gameRef} />
-      </div>
+      
+        <div className="w-full h-full" ref={gameRef} />
+     
     </StyledApp>
   );
 }
