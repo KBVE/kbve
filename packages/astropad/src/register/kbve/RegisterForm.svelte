@@ -89,6 +89,7 @@
     }
     if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
   });
+  
 </script>
 
 <svelte:head>

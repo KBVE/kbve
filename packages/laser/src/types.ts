@@ -442,7 +442,7 @@ export enum CaptchaTheme {
   LIGHT = 'light', // Represents the light theme.
 }
 
-export interface UIState {
+export interface UIRegiserState {
   email: string;
   password: string;
   confirm: string;
