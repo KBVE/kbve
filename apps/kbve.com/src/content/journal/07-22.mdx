@@ -29,6 +29,20 @@ We could include a DDR style game and tetris as two initial options, but the coo
 I will try to reframe from add a text box because we might not want people to spam or cause problems but at the same time, I think it would be cool, hmm.
 There are a decent amount of ideas that can come from this but we will get there slowly within this week.
 
+**Loader**
+
+With the addition of the loader, we should release the next minor patch for the laser package, this it the command that we will run.
+
+```shell
+
+pnpm nx release --projects=laser
+
+```
+
+This will give us a couple options and for this case, we will bump the package up to version `0.0.7`.
+
+
+
 ## 2023
 - 7:35am - The goal for this weekend will be to finish up most of the basics within RentEarth and get it up to date. This includes the login, register and general profile scope for now. We want to at least get the bare components resolved and then work on expanding the rest. I am not too sure if I want to add SSO to the website for now, but it might be something that I will look into in the future. 
 - 8:27am - We would look or make the minion class to be that of all encompassing? That does not feel like it would be the best, hmm. Okay as I am re-writing this out, I am thinking that it would make more sense to isolate the possible commands into different tasks, yet how would we handle the data that is being sent over? Would there have to be specific styles of input/output per say that we would have to handle? Like are we sending a `Data` map/array filled with different atoms , i.e string, number, boolean? There still has to be some level of logic and thought to this, one that makes the most sense. 
