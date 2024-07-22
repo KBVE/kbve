@@ -427,3 +427,27 @@ export interface NPCDialogueEventData {
   npcId: string;
   dialogue: IDialogueObject & { priority: number; read: boolean };
 }
+
+export interface CaptchaConfig {
+  hl: string;
+  sitekey: string;
+  apihost: string;
+  reCaptchaCompat: boolean;
+  theme: CaptchaTheme;
+  size: 'normal' | 'compact' | 'invisible';
+}
+
+export enum CaptchaTheme {
+  DARK = 'dark', // Represents the dark theme.
+  LIGHT = 'light', // Represents the light theme.
+}
+
+export interface UIState {
+  email: string;
+  password: string;
+  confirm: string;
+  username: string;
+  captchaToken: string;
+  svelte_internal_message: string;
+  successful_message: string;
+}
