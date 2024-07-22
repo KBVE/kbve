@@ -442,7 +442,7 @@ export enum CaptchaTheme {
   LIGHT = 'light', // Represents the light theme.
 }
 
-export interface UIState {
+export interface UIRegiserState {
   email: string;
   password: string;
   confirm: string;
@@ -450,4 +450,10 @@ export interface UIState {
   captchaToken: string;
   svelte_internal_message: string;
   successful_message: string;
+}
+
+export interface LoaderOptions {
+  elementIdOrName: string;
+  duration?: number; // in milliseconds, default to 500
+  onComplete?: () => void; // optional callback function
 }

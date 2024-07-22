@@ -80,6 +80,44 @@
     'disabled:pointer-events-none disabled:opacity-50 disabled:animate-pulse';
   export let ringClasses: string = 'ring-zinc-500 dark:ring-zinc-200';
 
+  onMount(() => {
+		const loader = Laser.removeLoader({ elementIdOrName: 'skeleton_login_loader', duration: 500 });
+
+		if (document.getElementById('astro_error_message')) {
+			errorMessageAstro = document.getElementById('astro_error_message');
+		}
+		
+
+		// Setting up global functions for captcha callbacks.
+		if (browser) {
+			window.hcaptchaOnLoad = () => {
+				dispatch('load'); // Dispatching 'load' event.
+				loaded = true; // Marking captcha as loaded.
+			};
+
+			window.onSuccess = (token: any) => {
+				dispatch('success', { token: token }); // Dispatching 'success' event with token.
+				uiRegiserState.captchaToken = token; // Storing the captcha token.
+			};
+
+			window.onError = () => {
+				dispatch('error'); // Dispatching 'error' event.
+			};
+
+			window.onClose = () => {
+				dispatch('close'); // Dispatching 'close' event.
+			};
+
+			window.onExpired = () => {
+				dispatch('expired'); // Dispatching 'expired' event.
+				reset(); // Resetting captcha on expiration.
+			};
+		}
+
+		dispatch('mount');
+		mounted = true;
+	});
+
   onDestroy(() => {
     if (browser) {
       //@ts-ignore
@@ -89,6 +127,7 @@
     }
     if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
   });
+  
 </script>
 
 <svelte:head>
