@@ -451,3 +451,9 @@ export interface UIRegiserState {
   svelte_internal_message: string;
   successful_message: string;
 }
+
+export interface LoaderOptions {
+  elementIdOrName: string;
+  duration?: number; // in milliseconds, default to 500
+  onComplete?: () => void; // optional callback function
+}
