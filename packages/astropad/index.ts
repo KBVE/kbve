@@ -27,3 +27,5 @@ export { default as ItemDB } from './src/itemdb/ItemDBTable.astro';
 
 // Register
 export { default as Register } from './src/register/Register.astro';
+// Login
+export { default as Login } from './src/login/Login.astro';
