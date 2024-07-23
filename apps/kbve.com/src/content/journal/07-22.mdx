@@ -1,0 +1,68 @@
+---
+title: "July: 22"
+category: Daily
+date: 2024-07-22 12:00:00
+client: Self
+unsplash: 1721046583031-07296af14cc7
+img: https://images.unsplash.com/photo-1721046583031-07296af14cc7?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: July 22nd.
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Register**
+
+The register form and onboarding process has to be rebuilt once more, this time we will be adding more animations and effects.
+I am trying to make this look as amazing as possible but also super fast and re-usable.
+We will have this added onto about 4 or 5 websites at the same time, so it might be a bit of a pain at first but I think it will be worth it in the long run.
+This is part of the multi project dev environment.
+
+**YT**
+
+The next update to the music app aka jukebox will be the music room.
+I think it would be cool to turn it all into a video game with a couple other options for the person that is listening to the music.
+We could include a DDR style game and tetris as two initial options, but the cool part will be making the whole room a multiplayer experience.
+I will try to reframe from add a text box because we might not want people to spam or cause problems but at the same time, I think it would be cool, hmm.
+There are a decent amount of ideas that can come from this but we will get there slowly within this week.
+
+**Loader**
+
+With the addition of the loader, we should release the next minor patch for the laser package, this it the command that we will run.
+
+```shell
+
+pnpm nx release --projects=laser
+
+```
+
+This will give us a couple options and for this case, we will bump the package up to version `0.0.7`.
+
+
+
+## 2023
+- 7:35am - The goal for this weekend will be to finish up most of the basics within RentEarth and get it up to date. This includes the login, register and general profile scope for now. We want to at least get the bare components resolved and then work on expanding the rest. I am not too sure if I want to add SSO to the website for now, but it might be something that I will look into in the future. 
+- 8:27am - We would look or make the minion class to be that of all encompassing? That does not feel like it would be the best, hmm. Okay as I am re-writing this out, I am thinking that it would make more sense to isolate the possible commands into different tasks, yet how would we handle the data that is being sent over? Would there have to be specific styles of input/output per say that we would have to handle? Like are we sending a `Data` map/array filled with different atoms , i.e string, number, boolean? There still has to be some level of logic and thought to this, one that makes the most sense. 
+- 9:00am - While I am programming, I am listening to a couple different podcasts with some lofi-jams and it is nearly perfect, I really should just stream this as a 24/7 style session, where its just random podcasts and the lofi-beat. Granted there would be some copyright issues, so I suppose we would have to have someone break down the podcasts and provide input? Like a deep dive style where we take a single podcast episode and expand it out by going deeper into the content. 
+- 11:08am - Got my coffee and moved up some of the pipelines that were in private/public. We are making progress in some areas but are still a bit held back in others, specifically the client storage. I am still working out the logical flow on how we should handle it all, but maybe isolating it all into different files might not be the best idea. I will try to keep it small and easy for now.
+- 2:04pm - I have returned back to my programming zone. The next task would be to setup `v0id` and `minion`. With void being the main task handler and minion being the task wrapper. I do need to transfer over some of the written notes that I have to this journal sheet but damn sometimes I am just getting lazy, huh. Okay so minion calls `minionLogin` which will handle the client-side validation before calling the API to login? This will help put a bit less stress onto the API and it just makes sense to do. I am thinking we could pass validation through as a regex string? It is a shame that we can not call React Hook Forms directly or this would be a lot easier and I am not going to pay for their private source takeout. Ugh.
+- 2:40pm - Migrating the Sheet/Toast modal from the home screen into the Form, with the purpose of utilizing it in between the submissions of each form. This way the modal opens when the form is busy? There are a couple ways that I can go about handling this. The other idea that I am thinking about right now would be to just (a) merge the sheet and toast into the FormForm class and (b) remove the `useState` and utilize the `useStore` to handle the control of modal / sheet and toast message. I noticed a couple errors with the current build that I have but this might be a better way to resolve the issue without overcomplicating the situation. 
+- 2:50pm - I believe it is time to take a quick break and play a quick round of the H. But before I do, let me convert this upper left hand box for tomorrow. "&" This epic idea that I am thinking could work great would be to build/expand a couple of the Postboy foundlings (typo?) and add a couple new structures into the mix. Now on a/ai side note, I should finish the three manga's that I had planned out. The first being the fintech A-Z and then the Japanese A-Z Conch Manga. After doing those two, I can migrate one of the threads, which is for the Rogue Jester/Rent Earth. After the break, I will address this issue: Warning: Cannot update a component (`FormToast`) while rendering a different component (`FormToast`). To locate the bad setState() call inside `FormToast`, follow the stack trace as described in https://reactjs.org/link/setstate-in-render. I am aware of the reason this issue exists, it was how I handled the code migration.
+- 5:49pm - Okay, it seems that I was able to resolve that render issue by migrating some of the general react states into the nano stores. The plan was to replace the Boolean for the toast and numeric value for position, however I am not too sure how I should handle the error code reset. Currently on the dismissal of the modal, I am resetting the `toast$` back to false and the `error$` back to `undefined`. Yet as I am working through the current code base... I am taking a bit of time to be reflective. Am I being the most optimized or letting myself overthink and overengineer? Besides the insecurities that come with a new project and/or new code-base, I have to make sure I find a decent balance of hackery and professionalism.
+- 6:40pm - As I am watching some Trigun, I am definitely thinking of throwing in some references! It would only be fun and a fair tribute to one of the best shows out there lol. Damn the show has some of the best lines / quotes, all of them are straight bangers. I am enjoying how they are building up to the story's main antagonist / villain, I really forgot how great the writing has been for this show. Also, Wolfwood is still one of the best side characters in manga history, a perfect story arch. Okay today's important function will be `FormForm`, which currently takes 4 stores as the main state and information slot. I believe this would be a good time to look over the codebase as well, looking for specific areas to refactor. We should definitely place one of the future storages after the priest, I guess I will have to do that asap before I forget.
+- 7:57pm - Test casing on line 92, `OnPress` seems to work fine when attached to the trigger and the next move would be to dismiss the keyboard when the button gets pressed, thus we know that there are two ways that we can handle the `event`. I am still figuring out what would be the best way to go about it, looking through the docs right now. 
+- 10:05pm - Switching over to the cyberpunk series! It has been a while since I saw the series, but damn its epic. Going from Trigun to Edgerunner was the wave!
+
+## Quote
+
+> But man is not made for defeat. A man can be destroyed but not defeated.
+> — <cite>Ernest Hemingway</cite>
+
+---
+
+## Tasks
+
+- [x] Finish RentEarth.com Login / Register - Postpone.
