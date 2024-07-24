@@ -32,6 +32,14 @@ npcdb:
         mana: 50
       spriteImageId: "01J2DT5FNQSG7BGTYYQJMBQMDP"
       avatarImageId: "01J2DT5X4ZW8NXHJPPRK9QVX4V"
+      dialogues:
+        - dialogueId: "01J3HF6292ND91RFWDAWC0NJ97"
+          read: false
+          priority: 1
+        - dialogueId: "01J3HF72P4K44A3XYYMZFYBDQH"
+          read: false
+          priority: 0
+        
 sprite:
     - id: "01J2DT5FNQSG7BGTYYQJMBQMDP"
       spriteName: "Chip Sprite"
@@ -41,7 +49,24 @@ sprite:
 avatar:
     - id: "01J2DT5X4ZW8NXHJPPRK9QVX4V"
       avatarName: "Chip"
-      avatarLocation: "/assets/items/npc/avatars/chip_g.webp"
+      avatarLocation: "/assets/items/npc/avatars/chip_bard.webp"
+dialogue:
+    - id: "01J3HF6292ND91RFWDAWC0NJ97"
+      title: "Mexcian food?"
+      message: |
+        I need some of that amazing and spicy mexican food, can you help me?
+        If you do, I will write you a song!
+      playerResponse: "Hello, Chipster!"
+      options: []
+      style: "greeting"
+      backgroundImage: "/assets/backgrounds/chip-background.jpg"
+    - id: "01J3HF72P4K44A3XYYMZFYBDQH"
+      title: "Cook me some of that good good?!"
+      message: "Grab some fish and see if you can make me something that gonna make cry in happy tears. I will sing your name as it fills up my stomach."
+      playerResponse: "..."
+      options: []
+      style: "greeting"
+      backgroundImage: "/assets/backgrounds/chip-background.jpg"
 ---
 
 ## Chip
