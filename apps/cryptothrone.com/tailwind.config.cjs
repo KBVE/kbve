@@ -26,7 +26,7 @@ module.exports = {
   },
   plugins: [
     require('preline/plugin'),
-    plugin(function ({ matchUtilities, theme }) {
+    plugin(function ({ matchUtilities, theme, addUtilities }) {
       matchUtilities(
         {
           'text-shadow': (value) => ({
@@ -35,6 +35,21 @@ module.exports = {
         },
         { values: theme('textShadow') }
       );
+
+      addUtilities({
+        '.scrollbar-hide': {
+          /* IE and Edge */
+          '-ms-overflow-style': 'none',
+
+          /* Firefox */
+          'scrollbar-width': 'none',
+
+          /* Safari and Chrome */
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        }
+      });
     }),
   ],
 };
