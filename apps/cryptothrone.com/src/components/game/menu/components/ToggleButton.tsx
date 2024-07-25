@@ -1,19 +1,19 @@
 import React from 'react';
-import * as Laser from '@kbve/laser';
+import {type UserSettings, CollapseIcon, ExpandIcon, getUserSetting, setUserSetting } from '@kbve/laser';
 
 const ToggleButton: React.FC<{
-  settingKey: keyof Laser.UserSettings;
+  settingKey: keyof UserSettings;
   label: string;
   collapseIcon?: React.ElementType;
   expandIcon?: React.ElementType;
 }> = ({
   settingKey,
   label,
-  collapseIcon: Collapse = Laser.CollapseIcon,
-  expandIcon: Expand = Laser.ExpandIcon,
+  collapseIcon: Collapse = CollapseIcon,
+  expandIcon: Expand = ExpandIcon,
 }) => {
-  const isCollapsed = Laser.getUserSetting(settingKey);
-  const toggleSetting = () => Laser.setUserSetting(settingKey, !isCollapsed);
+  const isCollapsed = getUserSetting(settingKey);
+  const toggleSetting = () => setUserSetting(settingKey, !isCollapsed);
   
   return (
     <button onClick={toggleSetting} className="bg-yellow-500 text-white text-sm p-2 rounded ml-2 flex items-center w-20 h-10">
