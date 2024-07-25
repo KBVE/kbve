@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import * as Laser from '@kbve/laser';
+import { EventEmitter, getActionEvents, getItemDetails, getUserSetting, itemStore, playerData, quest, settings, setUserSetting, type IPlayerInventory, type ItemAction, type ItemActionEventData, type PlayerEventData } from '@kbve/laser';
 import ToggleButton from './components/ToggleButton';
 import StatsSection from './components/StatsSection';
 import UserSettingsToggleSwitch from './components/UserSettingsToggleSwitch';
@@ -9,7 +9,7 @@ const renderTooltip = (
   itemId: string,
   tooltipPosition: { x: number; y: number },
 ) => {
-  const item = Laser.getItemDetails(itemId);
+  const item = getItemDetails(itemId);
   if (!item) {
     return null;
   }
@@ -29,7 +29,7 @@ const renderTooltip = (
 };
 
 const renderAllEquipment = (
-  equipment: Record<keyof Laser.IPlayerInventory['equipment'], string | null>,
+  equipment: Record<keyof IPlayerInventory['equipment'], string | null>,
   showTooltip: (itemId: string, event: React.MouseEvent) => void,
   hideTooltip: () => void,
   handleItemClick: (itemId: string, event: React.MouseEvent) => void,
@@ -37,7 +37,7 @@ const renderAllEquipment = (
   return (
     <ul className="grid grid-cols-8 gap-2">
       {Object.keys(equipment).map((key) => {
-        const itemId = equipment[key as keyof Laser.IPlayerInventory['equipment']];
+        const itemId = equipment[key as keyof IPlayerInventory['equipment']];
         return renderEquipment(
           itemId,
           showTooltip,
@@ -64,7 +64,7 @@ const renderEquipment = (
       ></li>
     );
   }
-  const item = Laser.getItemDetails(itemId);
+  const item = getItemDetails(itemId);
   return item ? (
     <li
       key={item.id}
@@ -88,7 +88,7 @@ const renderInventory = (
   return (
     <ul className="grid grid-cols-8 gap-1">
       {backpack.map((itemId, index) => {
-        const item = Laser.getItemDetails(itemId);
+        const item = getItemDetails(itemId);
         return item ? (
           <li
             key={index}
@@ -123,63 +123,63 @@ const SettingsPanel: React.FC = () => {
 };
 
 const StickySidebar: React.FC = () => {
-  const _playerStore$ = useStore(Laser.playerData);
-  const userSettings = useStore(Laser.settings);
-  const _quest$ = useStore(Laser.quest);
-  const _itemStore$ = useStore(Laser.itemStore);
+  const _playerStore$ = useStore(playerData);
+  const userSettings = useStore(settings);
+  const _quest$ = useStore(quest);
+  const _itemStore$ = useStore(itemStore);
 
   useEffect(() => {
-    const handlePlayerData = (data?: Laser.PlayerEventData) => {
+    const handlePlayerData = (data?: PlayerEventData) => {
       if (data) {
         // $playerStore.set(data);
       }
     };
 
-    Laser.EventEmitter.on('playerEvent', handlePlayerData);
+    EventEmitter.on('playerEvent', handlePlayerData);
     return () => {
-      Laser.EventEmitter.off('playerEvent', handlePlayerData);
+      EventEmitter.off('playerEvent', handlePlayerData);
     };
   }, []);
 
   const showTooltip = (itemId: string, event: React.MouseEvent) => {
-    Laser.setUserSetting('tooltipItem', {
+    setUserSetting('tooltipItem', {
       id: itemId,
       position: { x: event.clientX + 10, y: event.clientY - 150 },
     });
   };
 
   const hideTooltip = () => {
-    Laser.setUserSetting('tooltipItem', {
-      ...Laser.getUserSetting('tooltipItem'),
+    setUserSetting('tooltipItem', {
+      ...getUserSetting('tooltipItem'),
       id: null,
     });
   };
 
   const handleItemClick = (itemId: string, event: React.MouseEvent) => {
-    Laser.setUserSetting('submenuItem', {
+    setUserSetting('submenuItem', {
       id: itemId,
       position: { x: event.clientX, y: event.clientY - 150 },
     });
   };
 
   const closeSubmenu = () => {
-    Laser.setUserSetting('submenuItem', {
-      ...Laser.getUserSetting('submenuItem'),
+    setUserSetting('submenuItem', {
+      ...getUserSetting('submenuItem'),
       id: null,
     });
   };
 
   const handleItemAction = (
     itemId: string,
-    action: Laser.ItemAction['actionEvent'],
+    action: ItemAction['actionEvent'],
   ) => {
-    const item = Laser.getItemDetails(itemId);
+    const item = getItemDetails(itemId);
     if (item) {
-      const eventData: Laser.ItemActionEventData = {
+      const eventData: ItemActionEventData = {
         itemId: item.id,
         action: action,
       };
-     Laser.EventEmitter.emit('itemAction', eventData);
+     EventEmitter.emit('itemAction', eventData);
       closeSubmenu();
     }
   };
@@ -189,10 +189,10 @@ const StickySidebar: React.FC = () => {
     return null; // Or render a loading state
   }
 
-  const submenuItem = Laser.getUserSetting('submenuItem');
-  const actions = submenuItem.id ? Laser.getActionEvents(submenuItem.id) : [];
+  const submenuItem = getUserSetting('submenuItem');
+  const actions = submenuItem.id ? getActionEvents(submenuItem.id) : [];
 
-  const tooltipItem = Laser.getUserSetting('tooltipItem');
+  const tooltipItem = getUserSetting('tooltipItem');
 
   return (
     <div className="fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20 transition transform ease-in-out duration-500 opacity-50 hover:opacity-100">
@@ -203,13 +203,13 @@ const StickySidebar: React.FC = () => {
       </div>
 
       <div
-  className={`transition transform duration-1000 ease-in-out ${Laser.getUserSetting('isSettingsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
+  className={`transition transform duration-1000 ease-in-out ${getUserSetting('isSettingsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
 >
   <SettingsPanel />
 </div>
 
       <div
-        className={`transition transform duration-1000 ease-in-out ${Laser.getUserSetting('isStatsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
+        className={`transition transform duration-1000 ease-in-out ${getUserSetting('isStatsMenuCollapsed') ? 'max-h-0 overflow-hidden' : 'max-h-screen'}`}
       >
                <StatsSection stats={_playerStore$.stats} />
         <div className="mb-4">
