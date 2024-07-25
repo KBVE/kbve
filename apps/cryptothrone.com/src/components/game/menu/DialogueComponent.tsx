@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { atom } from 'nanostores';
-import * as Laser from '@kbve/laser';
+import { TypewriterComponent, npcDatabase, EventEmitter} from '@kbve/laser';
 
 interface DialogueEventData {
   npcId?: string;
@@ -20,14 +20,14 @@ const NPCDialogue: React.FC<{
   text: string;
   onComplete: () => void;
 }> = React.memo(({ text, onComplete }) => {
-  return <Laser.TypewriterComponent text={text} onComplete={onComplete} />;
+  return <TypewriterComponent text={text} onComplete={onComplete} />;
 });
 
 const PlayerDialogue: React.FC<{
   text: string;
   onComplete: () => void;
 }> = React.memo(({ text, onComplete }) => {
-  return <Laser.TypewriterComponent text={text} onComplete={onComplete} />;
+  return <TypewriterComponent text={text} onComplete={onComplete} />;
 });
 
 const DialogueComponent: React.FC = () => {
@@ -48,16 +48,16 @@ const DialogueComponent: React.FC = () => {
           (overlayElement as HTMLElement).classList.add('open');
         }
         if (data.npcId) {
-          Laser.npcDatabase.createNPCSession($dialogueSession, data.npcId);
+          npcDatabase.createNPCSession($dialogueSession, data.npcId);
           setNpcTypingComplete(false);
           setPlayerTypingComplete(false);
         }
       }
     };
 
-    Laser.EventEmitter.on('npcDialogue', handleOpenDialogue);
+    EventEmitter.on('npcDialogue', handleOpenDialogue);
     return () => {
-      Laser.EventEmitter.off('npcDialogue', handleOpenDialogue);
+      EventEmitter.off('npcDialogue', handleOpenDialogue);
     };
   }, []);
 

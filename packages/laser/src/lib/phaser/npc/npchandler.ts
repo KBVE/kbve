@@ -2,6 +2,7 @@ import { EventEmitter } from '../../eventhandler';
 import { type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData, type NPCAction} from '../../../types';
 import { npcDatabase } from './npcdatabase';
 import { Debug } from '../../utils/debug';
+// import Phaser from 'phaser';
 
 type NPCActionHandlers = Record<NPCAction, (eventData: NPCInteractionEventData) => void>;
 
