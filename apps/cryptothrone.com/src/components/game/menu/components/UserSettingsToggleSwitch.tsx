@@ -1,17 +1,17 @@
 // components/ToggleSwitch.tsx
 import React from 'react';
-import * as Laser from '@kbve/laser';
+import {type UserSettings, getUserSetting, setUserSetting} from '@kbve/laser';
 
 interface ToggleSwitchProps {
-  settingKey: keyof Laser.UserSettings;
+  settingKey: keyof UserSettings;
   label: string;
 }
 
 const UserSettingsToggleSwitch: React.FC<ToggleSwitchProps> = ({ settingKey, label }) => {
-  const isEnabled = Laser.getUserSetting(settingKey) as boolean;
+  const isEnabled = getUserSetting(settingKey) as boolean;
 
   const handleToggle = () => {
-    Laser.setUserSetting(settingKey, !isEnabled);
+    setUserSetting(settingKey, !isEnabled);
   };
 
   return (
