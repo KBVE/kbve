@@ -467,3 +467,9 @@ export interface IResponse {
 	message: string; // Message associated with the response.
 	data: any; // Data payload of the response. 'any' type allows flexibility.
 }
+
+export interface LootableObject {
+  ulid?: string;
+  name?: string;
+  chance: number; 
+}
