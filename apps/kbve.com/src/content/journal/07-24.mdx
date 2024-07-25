@@ -21,6 +21,15 @@ I am thinking the structure the table with an array of objects that represent th
 We could include a chance on steal, drop from combat and tradable for a certain gold value.
 The best idea would be to start small and then expand from there based upon the different options.
 
+```ts
+
+export interface LootableObject {
+  ulid?: string;
+  name?: string;
+  chance: number; 
+}
+
+```
 
 ## 2023
 - 5:45am - The morning was a bit too hot for my blood, I made the mistake of not running the AC over night at a set temp, but I woke up in a pool of sodium-fused run off. The goal for today will be to keep things simple and hit a couple minor tasks.
