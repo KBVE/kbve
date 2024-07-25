@@ -84,7 +84,7 @@ export function Game() {
   return (
     <StyledApp>
       
-        <div className="w-full h-full" ref={gameRef} />
+        <div className="w-full h-full scrollbar-hide" ref={gameRef} />
      
     </StyledApp>
   );

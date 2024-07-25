@@ -19,13 +19,12 @@ export function App() {
     <StyledApp>
       <Sticky />
 
-      <div className="flex justify-center items-center h-screen">
-      <div className="border-4 border-yellow-500 rounded-xl">
+      <div className="flex justify-center items-center h-screen overflow-hidden">
       <DialogueComponent />
       <ModalDice />
       <GameWindow />
       <EventNotification />
-      </div></div>
+      </div>
       <ActionMenu />
       <ModalComponent />
     </StyledApp>

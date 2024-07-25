@@ -24,3 +24,8 @@ export { default as ServiceBenefitBlock } from './src/benefit/services/ServiceBe
 export { default as Preline } from './src/utils/Preline.astro';
 
 export { default as ItemDB } from './src/itemdb/ItemDBTable.astro';
+
+// Register
+export { default as Register } from './src/register/Register.astro';
+// Login
+export { default as Login } from './src/login/Login.astro';
