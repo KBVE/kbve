@@ -21,9 +21,8 @@ export interface IconProps {
   color?: string;
   onClick?: () => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any; 
+  [key: string]: any;
 }
-
 
 export interface UserGenericMenu {
   id: string | null;
@@ -102,7 +101,6 @@ export interface IObjectAction extends ItemAction {
   itemObject: IObject;
   actionId: string;
 }
-
 
 export interface IEquipment extends IObject {
   type:
@@ -292,7 +290,6 @@ export interface TaskCompletionEventData {
   isComplete: boolean;
 }
 
-
 export interface MinigameDiceProps {
   styleClass?: string;
   textures: DiceTextures;
@@ -359,7 +356,6 @@ export function isDiceAction(action: MinigameAction): action is DiceAction {
   return action.type === 'ROLL_DICE';
 }
 
-
 // NPC Engine
 
 export interface INPCPosition {
@@ -381,7 +377,7 @@ export interface INPCData {
   stats?: IPlayerStats;
   //spriteImage?: Blob; // Optional field to store sprite image as Blob
   spriteImageId?: string;
-  avatarImageId?: string; 
+  avatarImageId?: string;
   dialogues?: INPCDialogue[];
 }
 
@@ -404,7 +400,14 @@ export interface IAvatar {
   slug: string;
 }
 
-export type NPCAction = 'talk' | 'quest' | 'trade' | 'combat' | 'heal' | 'steal' | 'lore';
+export type NPCAction =
+  | 'talk'
+  | 'quest'
+  | 'trade'
+  | 'combat'
+  | 'heal'
+  | 'steal'
+  | 'lore';
 
 export interface INPCDialogue {
   dialogueId: string;
@@ -417,9 +420,9 @@ export interface IDialogueObject {
   title: string;
   message: string;
   playerResponse?: string;
-  actions?: string[];  // Array of ULIDs pointing to actions/effects
-  options?: string[];  // Array of ULIDs pointing to other dialogue objects
-  style?: string; 
+  actions?: string[]; // Array of ULIDs pointing to actions/effects
+  options?: string[]; // Array of ULIDs pointing to other dialogue objects
+  style?: string;
   backgroundImage?: string;
 }
 
@@ -456,4 +459,11 @@ export interface LoaderOptions {
   elementIdOrName: string;
   duration?: number; // in milliseconds, default to 500
   onComplete?: () => void; // optional callback function
+}
+
+export interface IResponse {
+	status: number; // Numeric status code of the response.
+	error: boolean; // Boolean flag indicating whether there was an error.
+	message: string; // Message associated with the response.
+	data: any; // Data payload of the response. 'any' type allows flexibility.
 }

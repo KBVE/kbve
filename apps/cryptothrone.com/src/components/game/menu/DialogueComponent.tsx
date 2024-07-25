@@ -139,27 +139,11 @@ const DialogueComponent: React.FC = () => {
                       </svg>
                     </button>
                   </div>
-
                   <div className="p-4 overflow-y-auto">
                     <div className="flex flex-col">
-                      <div className="mt-1 mb-2 text-white bg-zinc-950/40 text-shadow-outline-white rounded-xl p-4 flex w-3/4">
-                        <div className="w-full">
-                          {dialogue$.dialogue.message && !npcTypingComplete && (
-                            <NPCDialogue
-                              text={dialogue$.dialogue.message}
-                              onComplete={() => setNpcTypingComplete(true)}
-                            />
-                          )}
-                          {npcTypingComplete && (
-                            <div>{dialogue$.dialogue.message}</div>
-                          )}
-                        </div>
-                      </div>
-
                       <div className="flex justify-end">
-                        <div className="w-3/4 mt-1 mb-2 text-yellow-400 text-shadow-outline-whites bg-zinc-950/40 rounded-xl p-4  text-right">
+                        <div className="w-3/4 mt-1 mb-2 text-yellow-400 text-shadow-outline-whites bg-zinc-950/40 rounded-xl p-4 text-right">
                           {dialogue$.dialogue.playerResponse &&
-                            npcTypingComplete &&
                             !playerTypingComplete && (
                               <PlayerDialogue
                                 text={`${dialogue$.dialogue.playerResponse}`}
@@ -168,6 +152,22 @@ const DialogueComponent: React.FC = () => {
                             )}
                           {playerTypingComplete && (
                             <div>{dialogue$.dialogue.playerResponse}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-1 mb-2 text-white bg-zinc-950/40 text-shadow-outline-white rounded-xl p-4 flex w-3/4">
+                        <div className="w-full">
+                          {dialogue$.dialogue.message &&
+                            playerTypingComplete &&
+                            !npcTypingComplete && (
+                              <NPCDialogue
+                                text={dialogue$.dialogue.message}
+                                onComplete={() => setNpcTypingComplete(true)}
+                              />
+                            )}
+                          {npcTypingComplete && (
+                            <div>{dialogue$.dialogue.message}</div>
                           )}
                         </div>
                       </div>
