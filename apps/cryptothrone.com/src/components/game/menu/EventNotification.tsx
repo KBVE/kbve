@@ -1,32 +1,33 @@
 import React, { useEffect } from 'react';
-import * as Laser from '@kbve/laser';
 import { useStore } from '@nanostores/react';
+import { EventEmitter, type INotification, type NotificationEventData, notificationsStore} from '@kbve/laser';
+
 
 
 const EventNotification: React.FC = () => {
-  const notifications = useStore(Laser.notificationsStore) as Laser.INotification[];
+  const notifications = useStore(notificationsStore) as INotification[];
 
   useEffect(() => {
-    const handleNotification = (notification?: Laser.NotificationEventData) => {
+    const handleNotification = (notification?: NotificationEventData) => {
       if (notification) {
         const id = Date.now() + Math.random();
-        const newNotification: Laser.INotification = { id, ...notification };
-        Laser.notificationsStore.set([...Laser.notificationsStore.get(), newNotification]);
+        const newNotification: INotification = { id, ...notification };
+        notificationsStore.set([...notificationsStore.get(), newNotification]);
     
         setTimeout(() => {
-          Laser.notificationsStore.set(Laser.notificationsStore.get().filter((n) => n.id !== id));
+          notificationsStore.set(notificationsStore.get().filter((n) => n.id !== id));
         }, 5000); // Adjust the timeout duration as needed
       }
     };
 
-    Laser.EventEmitter.on('notification', handleNotification);
+    EventEmitter.on('notification', handleNotification);
     return () => {
-      Laser.EventEmitter.off('notification', handleNotification);
+      EventEmitter.off('notification', handleNotification);
     };
   }, []);
 
   const removeNotification = (id: number) => {
-    Laser.notificationsStore.set(Laser.notificationsStore.get().filter((notification) => notification.id !== id));
+    notificationsStore.set(notificationsStore.get().filter((notification) => notification.id !== id));
   };
 
   return (
