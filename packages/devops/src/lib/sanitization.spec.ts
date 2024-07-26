@@ -1,4 +1,4 @@
-import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json, _title, _md_safe_row, sanitizePort} from './sanitization';
+import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json, _title, _md_safe_row, sanitizePort, sanitizeContainerName} from './sanitization';
 
 describe('ulid', () => {
   it('should return false for non-string input', () => {
@@ -161,5 +161,35 @@ describe('sanitizePort', () => {
   it('should throw an error for additional restricted ports', () => {
     const port = '3000';
     expect(() => sanitizePort(port, [3000])).toThrow('Port 3000 is restricted and cannot be used.');
+  });
+});
+
+describe('sanitizeContainerName', () => {
+  it('should return a valid container name', () => {
+    const name = 'valid_container_name';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('valid_container_name');
+  });
+
+  it('should remove invalid characters from the container name', () => {
+    const name = 'invalid!@#$%^&*()container';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('invalidcontainer');
+  });
+
+  it('should throw an error for an empty container name', () => {
+    const name = '';
+    expect(() => sanitizeContainerName(name)).toThrow('Invalid container name. Container name must be alphanumeric and can include underscores.');
+  });
+
+  it('should throw an error for a container name with only invalid characters', () => {
+    const name = '!@#$%^&*()';
+    expect(() => sanitizeContainerName(name)).toThrow('Invalid container name. Container name must be alphanumeric and can include underscores.');
+  });
+
+  it('should allow alphanumeric characters and underscores in the container name', () => {
+    const name = 'valid_Container123';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('valid_Container123');
   });
 });

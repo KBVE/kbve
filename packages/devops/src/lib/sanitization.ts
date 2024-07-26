@@ -147,3 +147,18 @@ export function sanitizePort(port: string, additionalRestrictedPorts: number[] =
 
   return portNumber;
 }
+
+/**
+ * Sanitizes the container name ensuring it is alphanumeric and can include underscores.
+ * @param name - The container name to sanitize.
+ * @returns Sanitized container name or throws an error if the name is invalid.
+ */
+export function sanitizeContainerName(name: string): string {
+  const sanitizedName = name.replace(/[^a-zA-Z0-9_]/g, '');
+  
+  if (!sanitizedName || sanitizedName.length === 0) {
+    throw new Error('Invalid container name. Container name must be alphanumeric and can include underscores.');
+  }
+
+  return sanitizedName;
+}
