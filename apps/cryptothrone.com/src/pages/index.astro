@@ -1,11 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Card from '../components/Card.astro';
-import App from '../components/game/App';
+import App from '../components/game/App.tsx';
 // 	<!-- <main> Tag was removed -->
 ---
 
 <Layout title="Welcome to CryptoThrone.">
+	<script is:inline type="module">
+		import phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.80.1/+esm'
+	</script>
+		
 		<App client:only="react" />
 </Layout>
 
