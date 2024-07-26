@@ -18,13 +18,19 @@ import Header from './Header.astro';
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <Preline />
+    <!-- <script
+    is:inline
+    data-astro-rerun
+    src="https://cdn.jsdelivr.net/npm/preline@2.3.0/dist/preline.min.js"
+    ></script> -->
+
   </head>
 
   <!-- ========== HEADER ========== -->
    <Header />
   <!-- ========== END HEADER ========== -->
 
-  <body class="">
+  <body>
     <slot />
   </body>
 
