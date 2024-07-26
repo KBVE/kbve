@@ -88,3 +88,46 @@ As for the name and image, we can perform a quick regex check to make sure the n
 
 We also want the ability to issue commands to the container via the issue ticket, with the final goal for this patch to visit a website and take a screenshot for us.
 This will give us a solid production level testing right in our issue tickets!
+
+An additional function for checking new comments:
+
+```ts
+
+export async function _$gha_checkForNewComments(
+  github: any,
+  context: any,
+  lastChecked: Date
+): Promise<void> {
+  try {
+    const { repo, owner } = context.repo;
+    const issue_number = context.issue.number;
+
+    const { data: comments } = await github.rest.issues.listComments({
+      owner,
+      repo,
+      issue_number,
+      since: lastChecked.toISOString(),
+    });
+
+    for (const comment of comments) {
+      const runCommandMatch = comment.body.match(/run docker (.+)/);
+      if (runCommandMatch) {
+        const [port, name, image] = runCommandMatch[1].split(' ');
+        await _$gha_runDockerContainer(parseInt(port), name, image);
+      }
+
+      const stopCommandMatch = comment.body.match(/stop docker (.+)/);
+      if (stopCommandMatch) {
+        const name = stopCommandMatch[1];
+        await _$gha_stopDockerContainer(name);
+      }
+    }
+  } catch (error) {
+    console.error('Error checking for new comments:', error);
+    throw error;
+  }
+}
+
+```
+
+I will include this in our notes for now. We still need a couple more functions to get this patch ready for a release.
