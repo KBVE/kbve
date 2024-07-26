@@ -16,7 +16,7 @@
 
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import * as Laser from '@kbve/laser';
+  import { CaptchaTheme, hcaptcha_api, kbve_hcaptcha_site_key, removeLoader, type CaptchaConfig, type UIRegiserState } from '@kbve/laser';
 
   const dispatch = createEventDispatcher();
 
@@ -41,16 +41,16 @@
   let errorMessageAstro: any;
   let widgetID: any;
 
-  const captchaConfig: Laser.CaptchaConfig = {
+  const captchaConfig: CaptchaConfig = {
     hl: '',
-    sitekey: Laser.kbve_hcaptcha_site_key,
-    apihost: Laser.hcaptcha_api,
+    sitekey: kbve_hcaptcha_site_key,
+    apihost: hcaptcha_api,
     reCaptchaCompat: true,
-    theme: Laser.CaptchaTheme.DARK,
+    theme: CaptchaTheme.DARK,
     size: 'compact',
   };
 
-  let uiRegiserState: Laser.UIRegiserState = {
+  let uiRegiserState: UIRegiserState = {
     email: '',
     password: '',
     confirm: '',
@@ -81,7 +81,7 @@
   export let ringClasses: string = 'ring-zinc-500 dark:ring-zinc-200';
 
   onMount(() => {
-		const loader = Laser.removeLoader({ elementIdOrName: 'skeleton_login_loader', duration: 500 });
+		const loader = removeLoader({ elementIdOrName: 'skeleton_login_loader', duration: 500 });
 
 		if (document.getElementById('astro_error_message')) {
 			errorMessageAstro = document.getElementById('astro_error_message');
