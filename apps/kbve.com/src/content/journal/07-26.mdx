@@ -1,0 +1,90 @@
+---
+title: "July: 26"
+category: Daily
+date: 2024-07-26 12:00:00
+client: Self
+unsplash: 1505236732171-72a5b19c4981
+img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: July 26th. DevOps.
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**DevOps**
+
+The plan for today is to work on the DevOps library, it is due for some changes.
+The major patch that we want to add into the library would be the docker container management.
+We will start by adding the `exec` library into the core of the `github.ts` as an import.
+
+```ts
+import { exec } from 'child_process';
+```
+
+I am thinking to avoid any `fs` / FileSystem management for the logs and have them be placed directly into the issue ticket that spawns the docker container.
+In the future, I might also set it up so that it will then connect to a hybrid cluster / cloud, maybe even spin up a tiny vcluster to help us with that.
+
+Okay, next would be the core functions, these are the base functions right now:
+
+
+```ts
+
+export async function _$gha_runDockerContainer(github: any, context: any, port: number, name: string, image: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const command = `docker run -d -p ${port}:${port} --name ${name} ${image}`;
+    
+    exec(command, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error running Docker container:', error);
+        await _$gha_createIssueComment(github, context, `Error running Docker container: ${error.message}`);
+        reject(error);
+      } else {
+        console.log('Docker container started successfully:', stdout);
+        await _$gha_createIssueComment(github, context, `Docker container started successfully: ${stdout}`);
+        resolve();
+      }
+    });
+  });
+}
+
+export async function _$gha_stopDockerContainer(github: any, context: any, name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const stopCommand = `docker stop ${name}`;
+    const removeCommand = `docker rm ${name}`;
+
+    exec(stopCommand, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error stopping Docker container:', error);
+        await _$gha_createIssueComment(github, context, `Error stopping Docker container: ${error.message}`);
+        reject(error);
+      } else {
+        console.log('Docker container stopped successfully:', stdout);
+        await _$gha_createIssueComment(github, context, `Docker container stopped successfully: ${stdout}`);
+
+        exec(removeCommand, async (error, stdout, stderr) => {
+          if (error) {
+            console.error('Error removing Docker container:', error);
+            await _$gha_createIssueComment(github, context, `Error removing Docker container: ${error.message}`);
+            reject(error);
+          } else {
+            console.log('Docker container removed successfully:', stdout);
+            await _$gha_createIssueComment(github, context, `Docker container removed successfully: ${stdout}`);
+            resolve();
+          }
+        });
+      }
+    });
+  });
+}
+
+```
+
+However, we want to work around them a bit! We need to make sure that port, name and image are being sanitized before we execute the commands.
+For the port, we can easily do a quick range check and make sure that the ports avoid any of the default range, this should be easy, maybe limit it to the `2500` and `50000` range?
+As for the name and image, we can perform a quick regex check to make sure the name will be a valid container name and the image being in a valid docker format.
+
+We also want the ability to issue commands to the container via the issue ticket, with the final goal for this patch to visit a website and take a screenshot for us.
+This will give us a solid production level testing right in our issue tickets!
