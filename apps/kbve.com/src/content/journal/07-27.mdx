@@ -3,8 +3,8 @@ title: "July: 27"
 category: Daily
 date: 2024-07-27 12:00:00
 client: Self
-unsplash: 1505236732171-72a5b19c4981
-img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1689071594546-7cbe97a3442e
+img: https://images.unsplash.com/photo-1689071594546-7cbe97a3442e?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: July 27th. Virtual Joystick.
 tags:
   - daily
@@ -22,3 +22,56 @@ I was debating over either having a click to move or a virtual joystick to move 
 **Funding**
 
 There seems to be a bit of a mistake when it comes to funding, I think we might need to fix that up!
+For now we will accept funding through Pateron and Github, but we can expand upon that in a later time.
+
+**Sanitize Container Image**
+
+For deploying the container image, we need to make sure that we also sanitize the image name.
+This is the function that I am going to add into the `sanitization.ts`.
+
+```ts
+
+/**
+ * Sanitizes the container image name ensuring it is alphanumeric and can include underscores, slashes, colons, and periods.
+ * @param image - The container image name to sanitize.
+ * @returns Sanitized container image name or throws an error if the name is invalid.
+ */
+export function sanitizeContainerImage(image: string): string {
+  const sanitizedImage = image.replace(/[^a-zA-Z0-9_:/.]/g, '');
+
+  if (!sanitizedImage || sanitizedImage.length === 0) {
+    throw new Error('Invalid container image name. Image name must be alphanumeric and can include underscores, slashes, colons, and periods.');
+  }
+
+  return sanitizedImage;
+}
+
+```
+
+After adding this function, we can go ahead and add the test code for it via vitest / jest.
+Then we will test the library using our nx command.
+
+```bash
+./kbve.sh -nx devops:test
+```
+
+<Adsense />
+
+## 2023
+- 2:30pm - Going through the base scene on the RogueJester aka RentEarth, trying to resolve the bug issue with Vuplex. The bug is being triggered by two points of interest, it seems to be related to a CORS policy, which is the No `Access-Control-Allow-Origin` header, yet instead of it being a yellow caution, it seems be a red warning. The other issue is that the mouse is not being registered by the frame, so the mouse clicks are not passing through. I believe both of these can be resolved within a week or so, hopefully we can get it resolved sooner so we can move forward. 
+- 2:57pm - As I am writing these notes down, I think it would be wise to publish this patch out and then sync the codebase? Hopefully it will not cause any major error, ah shit as I was writing this, I see that there is a merge conflict that is already appearing. Sometimes I do wish working with git would be easier. We need that AI agent to come in and do some general git cherry picking for us.
+- 3:49pm - Okay there are a couple issues that we have to address with how we want to handle the scenes within RJ. I am thinking we would do a couple, maybe around 3-5 scenes within the base scene. As for the mission selection, we will try to display that through the UI/UX.
+- 4:00pm - I suppose the market draw back from the increased rates, maybe we might see more 25bps rate increases throughout the year. 
+- 11:06pm - Going to push the generic blog post patch and rotate over to the patch for tomorrow. On my test list, I need to research a bit more about a couple different topics, including `microwave pyrolysis` and how it can be used to recycle plastics.
+
+## Quote
+
+> TV and the Internet are good because they keep stupid people from spending too much time out in public.
+> — <cite>Douglas Coupland</cite>
+
+---
+
+## Tasks
+
+- [X] Finish loading the base scene inside of the RJ.
+- [ ] Finish DevOps Library sanitization functions.
