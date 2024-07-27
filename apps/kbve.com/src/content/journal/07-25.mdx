@@ -31,6 +31,15 @@ The error we are having right now is:
 
 The plan now will be to change the hydration layout, I am thinking that we place a state around the gamewindow and make sure that everything is loaded before hand?
 
+Ended up spending a whole night trying to debug it, which turns out to be a couple issues with the current astro version and the different repo structure.
+Currently parts of the repo on this WSL are running on an updated astro and the actual astro that was being executed was an older one.
+For now, I am going to downgrade the astro to the older version and during the next couple weeks, update to the latest Astro.
+
+**Island**
+The plan is to make parts of the game have multiplayer, a bit of an island hydration but only if the player is able to connect to the server.
+This means that certain buildings will have two instances, an offline default instance and an online instance if the server is up and running.
+There are still major changes that we would have to do to get this to work without any issues but I will handle those on a later date.
+
 
 <Adsense />
 

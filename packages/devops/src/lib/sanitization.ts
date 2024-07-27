@@ -123,3 +123,42 @@ export async function _md_safe_row(row: string): Promise<string> {
 
   return mdSafeRow;
 }
+
+
+/**
+ * Sanitizes the port number ensuring it is a valid number within the valid range (1-65535) 
+ * and not one of the restricted ports.
+ * @param port - The port number to sanitize.
+ * @param additionalRestrictedPorts - An optional array of additional restricted ports.
+ * @returns Sanitized port number or throws an error if the port is invalid.
+ */
+export function sanitizePort(port: string, additionalRestrictedPorts: number[] = []): number {
+  const portNumber = parseInt(port, 10);
+  const defaultRestrictedPorts = [443, 80, 22];
+  const restrictedPorts = [...defaultRestrictedPorts, ...additionalRestrictedPorts];
+
+  if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
+    throw new Error('Invalid port number. Port must be a number between 1 and 65535.');
+  }
+
+  if (restrictedPorts.includes(portNumber)) {
+    throw new Error(`Port ${portNumber} is restricted and cannot be used.`);
+  }
+
+  return portNumber;
+}
+
+/**
+ * Sanitizes the container name ensuring it is alphanumeric and can include underscores.
+ * @param name - The container name to sanitize.
+ * @returns Sanitized container name or throws an error if the name is invalid.
+ */
+export function sanitizeContainerName(name: string): string {
+  const sanitizedName = name.replace(/[^a-zA-Z0-9_]/g, '');
+  
+  if (!sanitizedName || sanitizedName.length === 0) {
+    throw new Error('Invalid container name. Container name must be alphanumeric and can include underscores.');
+  }
+
+  return sanitizedName;
+}
