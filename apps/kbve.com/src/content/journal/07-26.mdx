@@ -149,3 +149,104 @@ I will include this in our notes for now. We still need a couple more functions 
 ## Tasks
 
 - [ ] - Robo Foodie Day.
+
+**Sanitization**
+To help with making sure that the inputs are a bit cleaner, we will create a couple helper functions within our `sanitization.ts`.
+I am thinking that we can add about three simple functions that we can call to help us with securing the functions a bit.
+Granted this will not stop all vector attacks but it would make sense to at least make sure everything flows without bugs or errors.
+For example, what if a user places a port 90000? Well here is our function to make sure the ports will not be an issue.
+
+```ts
+
+/**
+ * Sanitizes the port number ensuring it is a valid number within the valid range (1-65535).
+ * @param port - The port number to sanitize.
+ * @returns Sanitized port number or throws an error if the port is invalid.
+ */
+export function sanitizePort(port: string): number {
+  const portNumber = parseInt(port, 10);
+  
+  if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
+    throw new Error('Invalid port number. Port must be a number between 1 and 65535.');
+  }
+  
+  return portNumber;
+}
+
+```
+
+Next question that I had was what if the pass through a port like 22?
+Well in this case, lets go ahead and update the function to account for those ports.
+
+```ts
+/**
+ * Sanitizes the port number ensuring it is a valid number within the valid range (1-65535) 
+ * and not one of the restricted ports.
+ * @param port - The port number to sanitize.
+ * @param additionalRestrictedPorts - An optional array of additional restricted ports.
+ * @returns Sanitized port number or throws an error if the port is invalid.
+ */
+export function sanitizePort(port: string, additionalRestrictedPorts: number[] = []): number {
+  const portNumber = parseInt(port, 10);
+  const defaultRestrictedPorts = [443, 80, 22];
+  const restrictedPorts = [...defaultRestrictedPorts, ...additionalRestrictedPorts];
+
+  if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
+    throw new Error('Invalid port number. Port must be a number between 1 and 65535.');
+  }
+
+  if (restrictedPorts.includes(portNumber)) {
+    throw new Error(`Port ${portNumber} is restricted and cannot be used.`);
+  }
+
+  return portNumber;
+}
+```
+
+This should give us a solid function to sanitize the ports!
+Since we will be adding this function into the library, we also want to include the tests for it:
+
+```ts
+
+describe('sanitizePort', () => {
+  it('should return a valid port number', () => {
+    const port = '8080';
+    const result = sanitizePort(port);
+    expect(result).toEqual(8080);
+  });
+
+  it('should throw an error for a non-numeric port', () => {
+    const port = 'abc';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for a port number less than 1', () => {
+    const port = '0';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for a port number greater than 65535', () => {
+    const port = '70000';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for restricted ports', () => {
+    const port = '443';
+    expect(() => sanitizePort(port)).toThrow('Port 443 is restricted and cannot be used.');
+  });
+
+  it('should throw an error for additional restricted ports', () => {
+    const port = '3000';
+    expect(() => sanitizePort(port, [3000])).toThrow('Port 3000 is restricted and cannot be used.');
+  });
+});
+
+```
+
+With these tests added, we can go ahead and run the test casing with this command:
+
+```bash
+./kbve.sh -nx devops:test
+```
+
+Everything looks passing, lets move on with adding the next sanitization functions.

@@ -1,4 +1,4 @@
-import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json, _title, _md_safe_row} from './sanitization';
+import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json, _title, _md_safe_row, sanitizePort, sanitizeContainerName} from './sanitization';
 
 describe('ulid', () => {
   it('should return false for non-string input', () => {
@@ -127,5 +127,69 @@ describe('_md_safe_row', () => {
     const row = 'This is *bold* text with [link](url) and | pipe';
     const result = await _md_safe_row(row);
     expect(result).toEqual('This is \\*bold\\* text with \\[link\\]\\(url\\) and \\| pipe');
+  });
+  
+});
+
+describe('sanitizePort', () => {
+  it('should return a valid port number', () => {
+    const port = '8080';
+    const result = sanitizePort(port);
+    expect(result).toEqual(8080);
+  });
+
+  it('should throw an error for a non-numeric port', () => {
+    const port = 'abc';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for a port number less than 1', () => {
+    const port = '0';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for a port number greater than 65535', () => {
+    const port = '70000';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for restricted ports', () => {
+    const port = '443';
+    expect(() => sanitizePort(port)).toThrow('Port 443 is restricted and cannot be used.');
+  });
+
+  it('should throw an error for additional restricted ports', () => {
+    const port = '3000';
+    expect(() => sanitizePort(port, [3000])).toThrow('Port 3000 is restricted and cannot be used.');
+  });
+});
+
+describe('sanitizeContainerName', () => {
+  it('should return a valid container name', () => {
+    const name = 'valid_container_name';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('valid_container_name');
+  });
+
+  it('should remove invalid characters from the container name', () => {
+    const name = 'invalid!@#$%^&*()container';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('invalidcontainer');
+  });
+
+  it('should throw an error for an empty container name', () => {
+    const name = '';
+    expect(() => sanitizeContainerName(name)).toThrow('Invalid container name. Container name must be alphanumeric and can include underscores.');
+  });
+
+  it('should throw an error for a container name with only invalid characters', () => {
+    const name = '!@#$%^&*()';
+    expect(() => sanitizeContainerName(name)).toThrow('Invalid container name. Container name must be alphanumeric and can include underscores.');
+  });
+
+  it('should allow alphanumeric characters and underscores in the container name', () => {
+    const name = 'valid_Container123';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('valid_Container123');
   });
 });
