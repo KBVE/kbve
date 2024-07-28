@@ -162,3 +162,18 @@ export function sanitizeContainerName(name: string): string {
 
   return sanitizedName;
 }
+
+/**
+ * Sanitizes the container image name ensuring it is alphanumeric and can include underscores, slashes, colons, and periods.
+ * @param image - The container image name to sanitize.
+ * @returns Sanitized container image name or throws an error if the name is invalid.
+ */
+export function sanitizeContainerImage(image: string): string {
+  const sanitizedImage = image.replace(/[^a-zA-Z0-9_:/.]/g, '');
+
+  if (!sanitizedImage || sanitizedImage.length === 0) {
+    throw new Error('Invalid container image name. Image name must be alphanumeric and can include underscores, slashes, colons, and periods.');
+  }
+
+  return sanitizedImage;
+}
