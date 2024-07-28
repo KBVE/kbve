@@ -1,4 +1,4 @@
-import { _title } from '../sanitization';
+import { _title, sanitizePort, sanitizeContainerName, sanitizeContainerImage } from '../sanitization';
 import { exec } from 'child_process';
 
 export interface GithubActionReferenceMap {
@@ -327,7 +327,21 @@ export async function _$gha_runDockerContainer(
   
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const command = `docker run -d -p ${port}:${port} --name ${name} ${image}`;
+
+    let sanitizedPort, sanitizedName, sanitizedImage;
+
+    try {
+      sanitizedPort = sanitizePort(port);
+      sanitizedName = sanitizeContainerName(name);
+      sanitizedImage = sanitizeContainerImage(image);
+    } catch (error) {
+      console.error('Error sanitizing input:', error);
+      reject(error);
+      return;
+    }
+    
+
+    const command = `docker run -d -p ${sanitizedPort}:${sanitizedPort} --name ${sanitizedName} ${sanitizedImage}`;
 
     exec(command, async (error, stdout, stderr) => {
       if (error) {
@@ -359,8 +373,18 @@ export async function _$gha_stopDockerContainer(
   name: string,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const stopCommand = `docker stop ${name}`;
-    const removeCommand = `docker rm ${name}`;
+    let sanitizedName: string;
+
+    try {
+      sanitizedName = sanitizeContainerName(name);
+    } catch (error) {
+      console.error('Error sanitizing container name:', error);
+      reject(error);
+      return;
+    }
+
+    const stopCommand = `docker stop ${sanitizedName}`;
+    const removeCommand = `docker rm ${sanitizedName}`;
 
     exec(stopCommand, async (error, stdout, stderr) => {
       if (error) {
