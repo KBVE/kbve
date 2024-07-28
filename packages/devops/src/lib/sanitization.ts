@@ -132,20 +132,19 @@ export async function _md_safe_row(row: string): Promise<string> {
  * @param additionalRestrictedPorts - An optional array of additional restricted ports.
  * @returns Sanitized port number or throws an error if the port is invalid.
  */
-export function sanitizePort(port: string, additionalRestrictedPorts: number[] = []): number {
-  const portNumber = parseInt(port, 10);
+export function sanitizePort(port: number, additionalRestrictedPorts: number[] = []): number {
   const defaultRestrictedPorts = [443, 80, 22];
   const restrictedPorts = [...defaultRestrictedPorts, ...additionalRestrictedPorts];
 
-  if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
+  if (isNaN(port) || port < 1 || port > 65535) {
     throw new Error('Invalid port number. Port must be a number between 1 and 65535.');
   }
 
-  if (restrictedPorts.includes(portNumber)) {
-    throw new Error(`Port ${portNumber} is restricted and cannot be used.`);
+  if (restrictedPorts.includes(port)) {
+    throw new Error(`Port ${port} is restricted and cannot be used.`);
   }
 
-  return portNumber;
+  return port;
 }
 
 /**
