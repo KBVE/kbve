@@ -1,0 +1,42 @@
+---
+title: "July: 28"
+category: Daily
+date: 2024-07-28 12:00:00
+client: Self
+unsplash: 1690221115995-8c80b43aac01
+img: https://images.unsplash.com/photo-1690221115995-8c80b43aac01?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: July 28th. Virtual Joystick.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Deadpool**
+
+Was up all night watching deadpool 3!
+The movie was a perfect blend of action and comedy, I am super excited for possible Blade + Deadpool movie?!
+They could just have a 10-15min scene of them killing vampires and it would be epic.
+Also Dogpool, 100% perfect.
+
+
+## 2023
+- 10:00am - The VContainer and general injection seems to be too much of an issue right now within Unity 2021, so I am going to take a different approach and try to see if I can get Unity 2022 with DOTS to help resolve the issue? There are two ways we can go about this, one would be to build out the netcode and continue to use 3rd party integrations OR we could start a new project under the Unity 2022 and migrate 2021 assets over. There would be some drawbacks, as if Opsive might not work as well in 2022, but we can just let those go for the time being. I will continue to go through the C# codebase and see what I can do on that end.
+- 11:15am - I am still having some issues with dependency injections, so I might take a look at the 2nd option this weekend and see where I can get with it.  The injections were plan to be done via the VContainer but DOTS really seems to be production ready.
+- 4:00pm - Looks like my put insurance has done great wonders this week, but next week might seem a bit more rough. I will let them expire gracefully and look back at it Monday.
+- 4:36pm - Currently updating to the latest Unity 2022.3 LTS on this laptop, but it might not have enough ram to handle everything that I want to do. For now we will run with both and see where we can get within the scope of a weekend or two. There still needs to be a couple updates that have to be done on the main website, so that it can interact with the Unity, but I could sync those updates, such that it would work on both scenes without any major issue. The scene management and naming structure would have to still remain the same, so there has to be abstract documentation that can help keep track of the different scenes. We will keep to at least 5 general scenes, which would be the Menu, Base, Island, City and Misc? I suppose there could be a bit more edits here and there but these should work fine for the time being. 
+- 4:53pm - Cloning the MegaCity repo right now and going to use that as the base for the RentEarth repo. Let us see if we can get this migrated over a bit faster than what I would have hoped? This would be an interesting test case of how to move a project from an older version of Unity to a new one. I suppose the main repo push will be in relation to? Uhh... I will first have to create the project in the Unity dashboard, then clone the Megacity Multiplayer over via Github, then migrate the codebase over to RentEarth? Well let us see how fast I can do this all, while still doing other things in the background. This is a high level of multi-task that I was not expecting to do today. I might even have to upgrade the computer in the basement, so that it would be easier to build this out in. 
+- 5:11pm - Damn I installed 2022.3.5 but the project seems to be on 2022.3.3, so I will have to install that editor again. I am not too sure if I want to do any updates besides what they have provided, i.e it might break things that I do not want to repair later down the line. One of the other things that I am going to do is keep this to a local play only, as I really do not want to enable their UGS, burn through $800 in idle credits, plus it would be fun to keep this game kinda like a classic, per say. The fact that the code-base could support upwards of 200+ players is interesting, 64 is what their readme says.... I want to see where I can go with pushing those limits. As the install is preparing, I am going to brush up on some of the tutorials and links, I figured reading through and consuming as much information as I can before taking on this complexity will be its own adventure. Getting the project to open and run will be the first step tonight, once I get that resolved, I will do the first test build and see how it performs on my laptop. After the test local build, I suppose I could plan out different paths to take. Two of the major ones that I would see are in the scope of the client and server builds, with the server build having some levels of complexity that I should look into. Going from an automated pipeline build of the game to a server-ready image, then having it automatically become hosted on a dedicated server would be really the bees knees.
+- 8:30pm - I believe that I might not have enough resources to handle the larger version of the game. Just loading the map takes forever, but there are a couple interesting things that I like about the newer version of unity. Furthermore this Megacity build has some interesting examples of UI components that extend out of the general TextMeshPro, but I did not get enough time to dive deeper into how they work. 
+
+## Quote
+
+> It is not in the stars to hold our destiny but in ourselves.
+> — <cite>William Shakespeare</cite>
+
+---
+
+## Tasks
+
+- [ ] Tasks? Oh this might be a bit too much to say right now.
