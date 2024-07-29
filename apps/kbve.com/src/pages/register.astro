@@ -28,29 +28,28 @@ const pageDescription: string = `Register | KBVE.com`;
 >
   <div class="py-16">
     <div
-      class="px-16 flex flex-column justify-between items-center lg:flex-row"
+      class="px-16 flex flex-row justify-center items-center gap-x-16 lg:justify-between"
     >
       <div>
-        <h3 class="page-subtitle mb-1">Sign up</h3>
-        <h1 class="page-title text-white font-bold text-5xl mb-5">
+        <h3 class="text-blue-400 mb-1">Sign up</h3>
+        <h1
+          class="page-title text-white font-bold text-3xl mb-5 lg:text-3xl xl:text-4xl 2xl:text-5xl"
+        >
           KBVE Authentication Portal
         </h1>
         <RegisterForm client:only="svelte" />
       </div>
-      <img class="register-img" src="/assets/auth-img.png" />
+      <img
+        class="register-img rounded-full hidden lg:block"
+        src="/assets/auth-img.png"
+      />
     </div>
   </div>
 </MainLayout>
 
 <style>
-  .page-subtitle {
-    color: #06b6d4;
-  }
-
   .register-img {
     height: 30rem;
     width: 30rem;
-
-    border-radius: 1000px;
   }
 </style>

@@ -97,9 +97,9 @@
 
 	// Styles from ScrewFast
 	const baseClasses =
-		'inline-flex w-full items-center justify-center gap-x-2 rounded-lg px-4 py-1 text-sm font-bold text-neutral-700 focus-visible:ring outline-none transition duration-300';
+		'inline-flex w-full items-center justify-center gap-x-2 rounded-lg px-4 py-1 text-sm font-bold text-blue-400 focus-visible:ring outline-none transition duration-300';
 	const borderClasses = 'border border-transparent';
-	const bgColorClasses = 'bg-yellow-400 dark:focus:outline-none';
+	const bgColorClasses = 'bg-blue-100 dark:focus:outline-none';
 	const hoverClasses = 'hover:bg-yellow-500';
 	const fontSizeClasses = '2xl:text-base';
 	const disabledClasses =
@@ -406,20 +406,10 @@
 
 			<button
 				type="submit"
-				class={`${baseClasses} ${borderClasses} ${bgColorClasses} ${hoverClasses} ${fontSizeClasses} ${disabledClasses} ${ringClasses} button-register`}
+				class={`${baseClasses} ${borderClasses} ${bgColorClasses} ${hoverClasses} ${fontSizeClasses} ${disabledClasses} ${ringClasses} button-register font-normal py-3`}
 				disabled={loading}>
 				{loading ? 'Loading...' : 'Register'}
 			</button>
 		</div>
 	</form>
 </div>
-
-<style>
-.button-register {
-	padding: 0.75rem 0;
-
-	font-weight: 400;
-	background-color: rgba(6, 182, 212, 0.2);
-	color: #06B6D4;
-}
-</style>
