@@ -152,46 +152,47 @@ describe('_md_safe_row', () => {
 
 describe('sanitizePort', () => {
   it('should return a valid port number', () => {
-    const port = '8080';
+    const port = 8080;
     const result = sanitizePort(port);
     expect(result).toEqual(8080);
   });
 
   it('should throw an error for a non-numeric port', () => {
-    const port = 'abc';
+    const port = NaN;
     expect(() => sanitizePort(port)).toThrow(
       'Invalid port number. Port must be a number between 1 and 65535.',
     );
   });
 
   it('should throw an error for a port number less than 1', () => {
-    const port = '0';
+    const port = 0;
     expect(() => sanitizePort(port)).toThrow(
       'Invalid port number. Port must be a number between 1 and 65535.',
     );
   });
 
   it('should throw an error for a port number greater than 65535', () => {
-    const port = '70000';
+    const port = 70000;
     expect(() => sanitizePort(port)).toThrow(
       'Invalid port number. Port must be a number between 1 and 65535.',
     );
   });
 
   it('should throw an error for restricted ports', () => {
-    const port = '443';
+    const port = 443;
     expect(() => sanitizePort(port)).toThrow(
       'Port 443 is restricted and cannot be used.',
     );
   });
 
   it('should throw an error for additional restricted ports', () => {
-    const port = '3000';
+    const port = 3000;
     expect(() => sanitizePort(port, [3000])).toThrow(
       'Port 3000 is restricted and cannot be used.',
     );
   });
 });
+
 
 describe('sanitizeContainerName', () => {
   it('should return a valid container name', () => {
