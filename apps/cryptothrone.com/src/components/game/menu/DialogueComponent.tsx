@@ -98,6 +98,7 @@ const DialogueComponent: React.FC = () => {
                       ? dialogueSession$[`${dialogue$.npcId}_name`]
                       : 'Unknown'}
                   </h3>
+                  <a href={`https://kbve.com/${dialogueSession$[`${dialogue$.npcId}_slug`]}`} target="_blank">
                   <img
                     src={
                       dialogue$.npcId &&
@@ -106,8 +107,9 @@ const DialogueComponent: React.FC = () => {
                         : '/assets/npc/barkeep.webp'
                     }
                     alt="Character"
-                    className="w-full h-auto rounded-md absolute bottom-0 left-0"
+                    className="w-full h-auto rounded-md absolute bottom-0 left-0 hover:sepia"
                   />
+                  </a>
                 </div>
 
                 <div className="w-full md:w-2/3 p-4 bg-cover bg-center rounded-r-xl">
