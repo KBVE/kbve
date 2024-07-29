@@ -1,4 +1,5 @@
 import { _title } from '../sanitization';
+import { exec } from 'child_process';
 
 export interface GithubActionReferenceMap {
   keyword: string;
@@ -137,12 +138,11 @@ export async function _$gha_addLabel(
   }
 }
 
-
 export async function _$gha_verifyMatrixLabel(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   github: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  context: any
+  context: any,
 ): Promise<void> {
   try {
     const { repo, owner } = context.repo;
@@ -312,4 +312,93 @@ export async function _$gha_unlockIssue(
     console.error('Error unlocking issue:', error);
     throw error;
   }
+}
+
+//! - Github Docker Commands - Proof of Concept - 07-26-2024
+
+export async function _$gha_runDockerContainer(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  github: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any,
+  port: number,
+  name: string,
+  image: string,
+  
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const command = `docker run -d -p ${port}:${port} --name ${name} ${image}`;
+
+    exec(command, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error running Docker container:', error);
+        await _$gha_createIssueComment(
+          github,
+          context,
+          `Error running Docker container: ${error.message}`,
+        );
+        reject(error);
+      } else {
+        console.log('Docker container started successfully:', stdout);
+        await _$gha_createIssueComment(
+          github,
+          context,
+          `Docker container started successfully: ${stdout}`,
+        );
+        resolve();
+      }
+    });
+  });
+}
+
+export async function _$gha_stopDockerContainer(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  github: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any,
+  name: string,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const stopCommand = `docker stop ${name}`;
+    const removeCommand = `docker rm ${name}`;
+
+    exec(stopCommand, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error stopping Docker container:', error);
+        await _$gha_createIssueComment(
+          github,
+          context,
+          `Error stopping Docker container: ${error.message}`,
+        );
+        reject(error);
+      } else {
+        console.log('Docker container stopped successfully:', stdout);
+        await _$gha_createIssueComment(
+          github,
+          context,
+          `Docker container stopped successfully: ${stdout}`,
+        );
+
+        exec(removeCommand, async (error, stdout, stderr) => {
+          if (error) {
+            console.error('Error removing Docker container:', error);
+            await _$gha_createIssueComment(
+              github,
+              context,
+              `Error removing Docker container: ${error.message}`,
+            );
+            reject(error);
+          } else {
+            console.log('Docker container removed successfully:', stdout);
+            await _$gha_createIssueComment(
+              github,
+              context,
+              `Docker container removed successfully: ${stdout}`,
+            );
+            resolve();
+          }
+        });
+      }
+    });
+  });
 }

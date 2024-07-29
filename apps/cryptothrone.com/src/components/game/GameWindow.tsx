@@ -52,6 +52,7 @@ export function Game() {
         },
         scene: [Title, SandCity, CloudCity],
         input: {
+          
           mouse: {
             preventDefaultWheel: false,
           },

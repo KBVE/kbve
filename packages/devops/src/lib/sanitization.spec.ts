@@ -1,4 +1,15 @@
-import { _isULID, markdownToJsonSafeString, markdownToJsonSafeStringThenStrip, _md2json, __md2json, _title, _md_safe_row} from './sanitization';
+import {
+  _isULID,
+  markdownToJsonSafeString,
+  markdownToJsonSafeStringThenStrip,
+  _md2json,
+  __md2json,
+  _title,
+  _md_safe_row,
+  sanitizePort,
+  sanitizeContainerName,
+  sanitizeContainerImage,
+} from './sanitization';
 
 describe('ulid', () => {
   it('should return false for non-string input', () => {
@@ -49,15 +60,21 @@ describe('__md2json', () => {
 
 describe('_title', () => {
   it('should clean the title by keeping only allowed characters', () => {
-    const title = 'This is a [test] title with 123 numbers, and special characters! @#$%^&*()';
+    const title =
+      'This is a [test] title with 123 numbers, and special characters! @#$%^&*()';
     const result = _title(title);
-    expect(result).toEqual('This is a [test] title with 123 numbers and special characters');
+    expect(result).toEqual(
+      'This is a [test] title with 123 numbers and special characters',
+    );
   });
 
   it('should truncate and clean the title if longer than 64 characters', () => {
-    const title = 'This is a very long title that exceeds sixty-four characters in length! @#$%^&*()';
+    const title =
+      'This is a very long title that exceeds sixty-four characters in length! @#$%^&*()';
     const result = _title(title);
-    expect(result).toEqual('This is a very long title that exceeds sixty-four characters in');
+    expect(result).toEqual(
+      'This is a very long title that exceeds sixty-four characters in',
+    );
   });
 
   it('should handle empty string input gracefully', () => {
@@ -83,7 +100,6 @@ describe('_title', () => {
     const result = _title(title);
     expect(result).toEqual('This title has accented characters');
   });
-
 });
 
 describe('_md_safe_row', () => {
@@ -120,12 +136,129 @@ describe('_md_safe_row', () => {
   it('should escape parenthesis characters', async () => {
     const row = 'Porter Robinson - Sad Machine (Official Lyric Video)';
     const result = await _md_safe_row(row);
-    expect(result).toEqual('Porter Robinson - Sad Machine \\(Official Lyric Video\\)');
+    expect(result).toEqual(
+      'Porter Robinson - Sad Machine \\(Official Lyric Video\\)',
+    );
   });
 
   it('should handle multiple special characters', async () => {
     const row = 'This is *bold* text with [link](url) and | pipe';
     const result = await _md_safe_row(row);
-    expect(result).toEqual('This is \\*bold\\* text with \\[link\\]\\(url\\) and \\| pipe');
+    expect(result).toEqual(
+      'This is \\*bold\\* text with \\[link\\]\\(url\\) and \\| pipe',
+    );
+  });
+});
+
+describe('sanitizePort', () => {
+  it('should return a valid port number', () => {
+    const port = '8080';
+    const result = sanitizePort(port);
+    expect(result).toEqual(8080);
+  });
+
+  it('should throw an error for a non-numeric port', () => {
+    const port = 'abc';
+    expect(() => sanitizePort(port)).toThrow(
+      'Invalid port number. Port must be a number between 1 and 65535.',
+    );
+  });
+
+  it('should throw an error for a port number less than 1', () => {
+    const port = '0';
+    expect(() => sanitizePort(port)).toThrow(
+      'Invalid port number. Port must be a number between 1 and 65535.',
+    );
+  });
+
+  it('should throw an error for a port number greater than 65535', () => {
+    const port = '70000';
+    expect(() => sanitizePort(port)).toThrow(
+      'Invalid port number. Port must be a number between 1 and 65535.',
+    );
+  });
+
+  it('should throw an error for restricted ports', () => {
+    const port = '443';
+    expect(() => sanitizePort(port)).toThrow(
+      'Port 443 is restricted and cannot be used.',
+    );
+  });
+
+  it('should throw an error for additional restricted ports', () => {
+    const port = '3000';
+    expect(() => sanitizePort(port, [3000])).toThrow(
+      'Port 3000 is restricted and cannot be used.',
+    );
+  });
+});
+
+describe('sanitizeContainerName', () => {
+  it('should return a valid container name', () => {
+    const name = 'valid_container_name';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('valid_container_name');
+  });
+
+  it('should remove invalid characters from the container name', () => {
+    const name = 'invalid!@#$%^&*()container';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('invalidcontainer');
+  });
+
+  it('should throw an error for an empty container name', () => {
+    const name = '';
+    expect(() => sanitizeContainerName(name)).toThrow(
+      'Invalid container name. Container name must be alphanumeric and can include underscores.',
+    );
+  });
+
+  it('should throw an error for a container name with only invalid characters', () => {
+    const name = '!@#$%^&*()';
+    expect(() => sanitizeContainerName(name)).toThrow(
+      'Invalid container name. Container name must be alphanumeric and can include underscores.',
+    );
+  });
+
+  it('should allow alphanumeric characters and underscores in the container name', () => {
+    const name = 'valid_Container123';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('valid_Container123');
+  });
+});
+
+describe('sanitizeContainerImage', () => {
+  it('should return a valid container image name', () => {
+    const image = 'valid_image/name:tag';
+    const result = sanitizeContainerImage(image);
+    expect(result).toEqual('valid_image/name:tag');
+  });
+
+  it('should remove invalid characters from the container image name', () => {
+    const image = 'invalid!@#$%^&*()image/name:tag';
+    const result = sanitizeContainerImage(image);
+    expect(result).toEqual('invalidimage/name:tag');
+  });
+
+  it('should throw an error for an empty container image name', () => {
+    const image = '';
+    expect(() => sanitizeContainerImage(image)).toThrow('Invalid container image name. Image name must be alphanumeric and can include underscores, slashes, colons, and periods.');
+  });
+
+  it('should throw an error for a container image name with only invalid characters', () => {
+    const image = '!@#$%^&*()';
+    expect(() => sanitizeContainerImage(image)).toThrow('Invalid container image name. Image name must be alphanumeric and can include underscores, slashes, colons, and periods.');
+  });
+
+  it('should allow alphanumeric characters, underscores, slashes, colons, and periods in the container image name', () => {
+    const image = 'valid_image/name:1.0';
+    const result = sanitizeContainerImage(image);
+    expect(result).toEqual('valid_image/name:1.0');
+  });
+
+  it('should allow periods in the container image name', () => {
+    const image = 'valid.image/name:1.0';
+    const result = sanitizeContainerImage(image);
+    expect(result).toEqual('valid.image/name:1.0');
   });
 });
