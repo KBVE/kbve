@@ -12,9 +12,9 @@ export class Title extends Scene {
     preload() {
         this.load.image('mainBg', 'https://utfs.io/f/2c17f660-7f39-4edf-b83e-122a71014d99-6gflls.webp'); // Ensure you have a correct path to your logo image
         this.load.image('scroll', 'https://kbve.com/assets/img/fishchip/scroll.webp');
-        this.load.audio('music', 'https://kbve.com/assets/img/fishchip/bg.ogg');
+        //this.load.audio('music', 'https://kbve.com/assets/img/fishchip/bg.ogg');
         this.load.image('creditsBg', 'https://utfs.io/f/2c17f660-7f39-4edf-b83e-122a71014d99-6gflls.webp');
-        this.load.audio('type', 'https://kbve.com/assets/img/fishchip/type.mp3');
+        //this.load.audio('type', 'https://kbve.com/assets/img/fishchip/type.mp3');
         this.load.spritesheet('fishing', 'https://kbve.com/assets/img/fishchip/animate.png', { frameWidth: 800, frameHeight: 600 });
         this.load.image('fish', 'https://kbve.com/assets/img/letter_logo.png');
         this.load.image('background', 'https://kbve.com/assets/img/fishchip/scaled_fish_menu_minigame.webp');
@@ -63,13 +63,14 @@ export class Title extends Scene {
 
         await npcDatabase.initializeDatabase();
         
-        if (!this.sound.get('music')?.isPlaying) {
-            this.sound.add('music', { loop: true, volume: 0.1 }).play();
-        }
+        // if (!this.sound.get('music')?.isPlaying) {
+        //     this.sound.add('music', { loop: true, volume: 0.1 }).play();
+        // }
+
         this.add.image(480, 480, 'mainBg').setScale(0.1);
 
         this.mainMenuButtonImage = this.add.image(480, 480, 'scroll').setAlpha(0.9).setScale(0.7, 0.2).setInteractive({ useHandCursor: true });
-        ``
+        
         this.mainMenuButtonText = this.add.text(480, 480, 'Start Game', {
             fontFamily: 'Arial Black', fontSize: 50, color: '#ffffff', stroke: '#000000', strokeThickness: 6,
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });

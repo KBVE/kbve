@@ -2,7 +2,7 @@
 import React, { useState, useEffect, memo } from 'react';
 import { useStore } from '@nanostores/react';
 import { playerStealDiceRoll } from './tempstore';
-import * as Laser from '@kbve/laser';
+import { EventEmitter, notificationType, queryItemDB, type DiceRollResultEventData, type PlayerStealEventData } from '@kbve/laser';
 import { MinigameDice, updateDiceValues } from '@kbve/laser';
 
 const ModalDice: React.FC = () => {
@@ -11,24 +11,24 @@ const ModalDice: React.FC = () => {
   const [currentRoll, setCurrentRoll] = useState<number | null>(null);
 
   useEffect(() => {
-    const handlePlayerSteal = (data?: Laser.PlayerStealEventData) => {
+    const handlePlayerSteal = (data?: PlayerStealEventData) => {
       if (data) {
         playerStealDiceRoll.set(data);
       }
     };
 
-    const handleDiceRollResult = (newValues?: Laser.DiceRollResultEventData) => {
+    const handleDiceRollResult = (newValues?: DiceRollResultEventData) => {
       if (newValues) {
         setDiceValues(newValues.diceValues);
       }
     };
 
-    Laser.EventEmitter.on('playerSteal', handlePlayerSteal);
-    Laser.EventEmitter.on('diceRollResult', handleDiceRollResult);
+    EventEmitter.on('playerSteal', handlePlayerSteal);
+    EventEmitter.on('diceRollResult', handleDiceRollResult);
 
     return () => {
-      Laser.EventEmitter.off('playerSteal', handlePlayerSteal);
-      Laser.EventEmitter.off('diceRollResult', handleDiceRollResult);
+      EventEmitter.off('playerSteal', handlePlayerSteal);
+      EventEmitter.off('diceRollResult', handleDiceRollResult);
     };
   }, []);
 
@@ -69,30 +69,30 @@ const ModalDice: React.FC = () => {
         message = `You successfully stole a ${itemName}!`;
         break;
       case roll <= 4:
-        Laser.EventEmitter.emit('notification', {
+        EventEmitter.emit('notification', {
           title: 'Danger',
           message: `You crit failed to steal from ${_npc$.npcName}!`,
-          notificationType: Laser.notificationType['danger'],
+          notificationType: notificationType['danger'],
         });
-        Laser.EventEmitter.emit('playerDamage', {
+        EventEmitter.emit('playerDamage', {
           damage: '5',
         });
         break;
       default:
-        Laser.EventEmitter.emit('notification', {
+        EventEmitter.emit('notification', {
           title: 'Danger',
           message: `You failed to steal from ${_npc$.npcName}!`,
-          notificationType: Laser.notificationType['danger'],
+          notificationType: notificationType['danger'],
         });
-        Laser.EventEmitter.emit('playerDamage', {
+        EventEmitter.emit('playerDamage', {
           damage: '1',
         });
         return;
     }
 
-    const item = Laser.queryItemDB(itemName);
+    const item = queryItemDB(itemName);
     if (item) {
-      Laser.EventEmitter.emit('playerReward', {
+      EventEmitter.emit('playerReward', {
         message: message,
         item: item,
       });

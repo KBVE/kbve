@@ -2,6 +2,7 @@ import { EventEmitter } from '../../eventhandler';
 import { type PlayerMoveEventData, type NPCInteractionEventData, type PlayerStealEventData, type NPCAction} from '../../../types';
 import { npcDatabase } from './npcdatabase';
 import { Debug } from '../../utils/debug';
+// import Phaser from 'phaser';
 
 type NPCActionHandlers = Record<NPCAction, (eventData: NPCInteractionEventData) => void>;
 
@@ -105,9 +106,12 @@ class NPCHandler {
         coords: { x: pointer.x, y: pointer.y}
       };
       EventEmitter.emit('npcInteraction', npcInteractionData);
+      //Debug.log(`Mouse over the character`);
+      sprite.setTint(0x00ff00);
     });
 
     sprite.on('pointerout', () => {
+      sprite.clearTint();
       // EventEmitter.emit('npcInteraction', null);
     });
 
@@ -122,7 +126,7 @@ class NPCHandler {
       };
       Debug.log(`Click Registered at X: ${npcInteractionData.coords.x} Y: ${npcInteractionData.coords.y}`);
       EventEmitter.emit('npcInteractionClick', npcInteractionData, 1000);
-      
+      // sprite.setTint(0x00ff00);
     });
   }
 }

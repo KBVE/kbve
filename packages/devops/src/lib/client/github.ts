@@ -1,4 +1,5 @@
-import { _title } from '../sanitization';
+import { _title, sanitizePort, sanitizeContainerName, sanitizeContainerImage } from '../sanitization';
+import { exec } from 'child_process';
 
 export interface GithubActionReferenceMap {
   keyword: string;
@@ -137,12 +138,11 @@ export async function _$gha_addLabel(
   }
 }
 
-
 export async function _$gha_verifyMatrixLabel(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   github: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  context: any
+  context: any,
 ): Promise<void> {
   try {
     const { repo, owner } = context.repo;
@@ -312,4 +312,117 @@ export async function _$gha_unlockIssue(
     console.error('Error unlocking issue:', error);
     throw error;
   }
+}
+
+//! - Github Docker Commands - Proof of Concept - 07-26-2024
+
+export async function _$gha_runDockerContainer(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  github: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any,
+  port: number,
+  name: string,
+  image: string,
+  
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+
+    let sanitizedPort, sanitizedName, sanitizedImage;
+
+    try {
+      sanitizedPort = sanitizePort(port);
+      sanitizedName = sanitizeContainerName(name);
+      sanitizedImage = sanitizeContainerImage(image);
+    } catch (error) {
+      console.error('Error sanitizing input:', error);
+      reject(error);
+      return;
+    }
+    
+
+    const command = `docker run -d -p ${sanitizedPort}:${sanitizedPort} --name ${sanitizedName} ${sanitizedImage}`;
+
+    exec(command, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error running Docker container:', error);
+        await _$gha_createIssueComment(
+          github,
+          context,
+          `Error running Docker container: ${error.message}`,
+        );
+        reject(error);
+      } else {
+        console.log('Docker container started successfully:', stdout);
+        await _$gha_createIssueComment(
+          github,
+          context,
+          `Docker container started successfully: ${stdout}`,
+        );
+        resolve();
+      }
+    });
+  });
+}
+
+export async function _$gha_stopDockerContainer(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  github: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any,
+  name: string,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let sanitizedName: string;
+
+    try {
+      sanitizedName = sanitizeContainerName(name);
+    } catch (error) {
+      console.error('Error sanitizing container name:', error);
+      reject(error);
+      return;
+    }
+
+    const stopCommand = `docker stop ${sanitizedName}`;
+    const removeCommand = `docker rm ${sanitizedName}`;
+
+    exec(stopCommand, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error stopping Docker container:', error);
+        await _$gha_createIssueComment(
+          github,
+          context,
+          `Error stopping Docker container: ${error.message}`,
+        );
+        reject(error);
+      } else {
+        console.log('Docker container stopped successfully:', stdout);
+        await _$gha_createIssueComment(
+          github,
+          context,
+          `Docker container stopped successfully: ${stdout}`,
+        );
+
+        exec(removeCommand, async (error, stdout, stderr) => {
+          if (error) {
+            console.error('Error removing Docker container:', error);
+            await _$gha_createIssueComment(
+              github,
+              context,
+              `Error removing Docker container: ${error.message}`,
+            );
+            reject(error);
+          } else {
+            console.log('Docker container removed successfully:', stdout);
+            await _$gha_createIssueComment(
+              github,
+              context,
+              `Docker container removed successfully: ${stdout}`,
+            );
+            resolve();
+          }
+        });
+      }
+    });
+  });
 }
