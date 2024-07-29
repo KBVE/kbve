@@ -291,6 +291,7 @@ class NPCDatabase extends Dexie {
         Debug.log(
           `Texture with key ${textureKey} not found, attempting to load.`,
         );
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const spriteData = await this.getSprite(npcData.spriteImageId!);
         if (spriteData && spriteData.spriteData) {
           Debug.log(`Sprite Data: ${JSON.stringify(spriteData)}`);
