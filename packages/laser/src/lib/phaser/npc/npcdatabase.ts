@@ -559,13 +559,21 @@ class NPCDatabase extends Dexie {
 
   async getNPCDialogueOptionsByULID(dialogueId: string): Promise<string> {
     try {
-      const dialogueOptions = await this.getAllDialogueOptions(dialogueId);
-      return JSON.stringify(dialogueOptions);
+      const dialogue = await this.getDialogue(dialogueId);
+      if (!dialogue || !dialogue.options) return '[]';
+  
+      const dialogueOptions = await Promise.all(
+        dialogue.options.map(async (optionId) => {
+          return this.getDialogue(optionId);
+        })
+      );
+  
+      return JSON.stringify(dialogueOptions.filter(option => option !== undefined));
     } catch (error) {
       Debug.error(`Failed to get dialogue options for ID ${dialogueId}:`, error);
       return '[]';
     }
-  }
+}
 
 
   async getAllDialogueOptions(dialogueId: string): Promise<IDialogueObject[]> {
