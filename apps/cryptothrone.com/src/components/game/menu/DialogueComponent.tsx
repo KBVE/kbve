@@ -51,10 +51,15 @@ const DialogueComponent: React.FC = () => {
           setNpcTypingComplete(false);
           setPlayerTypingComplete(false);
 
-          npcDatabase.createDialogueSession(
-            $dialogueOptionsSession,
-            data.dialogue.id,
-          );
+          if (data.dialogue.options) {
+            npcDatabase
+              .getNPCDialogueOptionsByULID(data.dialogue.id)
+              .then((options) => {
+                $dialogueOptionsSession.set({
+                  [`${data.dialogue.id}_options`]: options,
+                });
+              });
+          }
         }
       }
     };
@@ -222,16 +227,19 @@ const DialogueComponent: React.FC = () => {
                       ))}
 
                     <button
-                      className="relative rounded px-5 py-2.5 overflow-hidden group bg-yellow-500 relative hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all ease-out duration-300 disabled:pointer-events-none"
+                      className="relative rounded px-5 py-2.5 overflow-hidden group bg-red-500 relative hover:bg-gradient-to-r hover:from-red-500 hover:to-red-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-red-400 transition-all ease-out duration-300 disabled:pointer-events-none"
                       data-hs-overlay="#hs-stacked-overlays-dialogue"
                       onClick={closeDialogue}
-                      disabled={!playerTypingComplete}
+                      disabled={!npcTypingComplete}
                     >
                       <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                       <span
-                        className={`relative ${!playerTypingComplete ? 'text-gray-500' : ''}`}
+                        className={`relative ${!npcTypingComplete ? 'text-gray-500' : ''}`}
                       >
-                        Okay.
+                        Good Bye {dialogue$.npcId &&
+                    dialogueSession$[`${dialogue$.npcId}_name`]
+                      ? dialogueSession$[`${dialogue$.npcId}_name`]
+                      : 'Unknown'}
                       </span>
                     </button>
                   </div>
