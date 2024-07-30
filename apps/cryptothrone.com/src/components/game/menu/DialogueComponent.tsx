@@ -70,36 +70,15 @@ const DialogueComponent: React.FC = () => {
     if (newDialogue && dialogue$) {
       const newEventData: NPCDialogueEventData = {
         npcId: dialogue$.npcId!,
-        dialogue: { ...newDialogue, priority: 0, read: false }, // Adjust priority and read as needed
+        dialogue: { ...newDialogue, priority: 0, read: false },
       };
       $dialogueEvent.set(newEventData);
+      setNpcTypingComplete(false);
+      setPlayerTypingComplete(false);
       npcDatabase.createDialogueSession(
         $dialogueOptionsSession,
         newDialogue.id,
       );
-    }
-  };
-
-  const handleOpenDialogue = (data?: NPCDialogueEventData) => {
-    if (data) {
-      $dialogueEvent.set(data);
-      const overlayElement = document.querySelector(
-        '#hs-stacked-overlays-dialogue',
-      );
-      if (overlayElement) {
-        (overlayElement as HTMLElement).classList.remove('hidden');
-        (overlayElement as HTMLElement).classList.add('open');
-      }
-      if (data.npcId) {
-        npcDatabase.createNPCSession($dialogueSession, data.npcId);
-        setNpcTypingComplete(false);
-        setPlayerTypingComplete(false);
-
-        npcDatabase.createDialogueSession(
-          $dialogueOptionsSession,
-          data.dialogue.id,
-        );
-      }
     }
   };
 
