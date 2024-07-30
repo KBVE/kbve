@@ -1,20 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { atom } from 'nanostores';
-import { TypewriterComponent, npcDatabase, EventEmitter} from '@kbve/laser';
+import { TypewriterComponent, npcDatabase, EventEmitter, type NPCDialogueEventData} from '@kbve/laser';
 
-interface DialogueEventData {
-  npcId?: string;
-  dialogue: {
-    title: string;
-    message: string;
-    playerResponse?: string;
-    backgroundImage?: string;
-  };
-}
 
-const $dialogueEvent = atom<DialogueEventData | null>(null);
+const $dialogueEvent = atom<NPCDialogueEventData | null>(null);
 const $dialogueSession = atom<Record<string, string>>({});
+const $dialogueOptionsSession = atom<Record<string, string>>({});
 
 const NPCDialogue: React.FC<{
   text: string;
@@ -33,11 +25,13 @@ const PlayerDialogue: React.FC<{
 const DialogueComponent: React.FC = () => {
   const dialogue$ = useStore($dialogueEvent);
   const dialogueSession$ = useStore($dialogueSession);
+  const dialogueOptionsSession$ = useStore($dialogueOptionsSession);
+
   const [npcTypingComplete, setNpcTypingComplete] = useState(false);
   const [playerTypingComplete, setPlayerTypingComplete] = useState(false);
 
   useEffect(() => {
-    const handleOpenDialogue = (data?: DialogueEventData) => {
+    const handleOpenDialogue = (data?: NPCDialogueEventData) => {
       if (data) {
         $dialogueEvent.set(data);
         const overlayElement = document.querySelector(
@@ -51,6 +45,9 @@ const DialogueComponent: React.FC = () => {
           npcDatabase.createNPCSession($dialogueSession, data.npcId);
           setNpcTypingComplete(false);
           setPlayerTypingComplete(false);
+
+          npcDatabase.createDialogueSession($dialogueOptionsSession, data.dialogue.id);
+    
         }
       }
     };
@@ -71,6 +68,7 @@ const DialogueComponent: React.FC = () => {
     }
     $dialogueEvent.set(null);
     $dialogueSession.set({});
+    $dialogueOptionsSession.set({});
     setNpcTypingComplete(false);
     setPlayerTypingComplete(false);
   };
