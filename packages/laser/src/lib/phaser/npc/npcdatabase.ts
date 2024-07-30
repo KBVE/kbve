@@ -557,6 +557,67 @@ class NPCDatabase extends Dexie {
     }
   }
 
+  async getNPCDialogueOptionsByULID(dialogueId: string): Promise<string> {
+    try {
+      const dialogue = await this.getDialogue(dialogueId);
+      if (!dialogue || !dialogue.options) return '[]';
+  
+      const dialogueOptions = await Promise.all(
+        dialogue.options.map(async (optionId) => {
+          return this.getDialogue(optionId);
+        })
+      );
+  
+      return JSON.stringify(dialogueOptions.filter(option => option !== undefined));
+    } catch (error) {
+      Debug.error(`Failed to get dialogue options for ID ${dialogueId}:`, error);
+      return '[]';
+    }
+}
+
+
+  async getAllDialogueOptions(dialogueId: string): Promise<IDialogueObject[]> {
+    const result: IDialogueObject[] = [];
+    const visited: Set<string> = new Set();
+
+    const traverseDialogueOptions = async (id: string) => {
+      if (visited.has(id)) return;
+      visited.add(id);
+
+      const dialogue = await this.getDialogue(id);
+      if (!dialogue) return;
+
+      result.push(dialogue);
+
+      if (dialogue.options && dialogue.options.length > 0) {
+        for (const optionId of dialogue.options) {
+          await traverseDialogueOptions(optionId);
+        }
+      }
+    };
+
+    await traverseDialogueOptions(dialogueId);
+
+    return result;
+  }
+
+  async createDialogueSession(DialogueSessionAtom: WritableAtom<Record<string, string>>, dialogueId: string): Promise<void> {
+    try {
+      const dialogueOptions = await this.getNPCDialogueOptionsByULID(dialogueId);
+      const newDialogueSession = { 
+        ...DialogueSessionAtom.get(), 
+        [`${dialogueId}_options`]: dialogueOptions || '[]', 
+      };
+      DialogueSessionAtom.set(newDialogueSession);
+    } catch (error) {
+      const newDialogueSession = { 
+        ...DialogueSessionAtom.get(), 
+        [`${dialogueId}_options`]: '[]', 
+      };
+      DialogueSessionAtom.set(newDialogueSession);
+    }
+  }
+
 }
 
 // Export the class itself
