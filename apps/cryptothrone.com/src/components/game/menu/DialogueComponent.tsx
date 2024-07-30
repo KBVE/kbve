@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { atom } from 'nanostores';
-import { TypewriterComponent, npcDatabase, EventEmitter, type NPCDialogueEventData} from '@kbve/laser';
-
+import {
+  TypewriterComponent,
+  npcDatabase,
+  EventEmitter,
+  type NPCDialogueEventData,
+  type IDialogueObject,
+} from '@kbve/laser';
 
 const $dialogueEvent = atom<NPCDialogueEventData | null>(null);
 const $dialogueSession = atom<Record<string, string>>({});
@@ -46,8 +51,10 @@ const DialogueComponent: React.FC = () => {
           setNpcTypingComplete(false);
           setPlayerTypingComplete(false);
 
-          npcDatabase.createDialogueSession($dialogueOptionsSession, data.dialogue.id);
-    
+          npcDatabase.createDialogueSession(
+            $dialogueOptionsSession,
+            data.dialogue.id,
+          );
         }
       }
     };
@@ -57,6 +64,44 @@ const DialogueComponent: React.FC = () => {
       EventEmitter.off('npcDialogue', handleOpenDialogue);
     };
   }, []);
+
+  const handleOptionClick = async (optionId: string) => {
+    const newDialogue = await npcDatabase.getDialogue(optionId);
+    if (newDialogue && dialogue$) {
+      const newEventData: NPCDialogueEventData = {
+        npcId: dialogue$.npcId!,
+        dialogue: { ...newDialogue, priority: 0, read: false }, // Adjust priority and read as needed
+      };
+      $dialogueEvent.set(newEventData);
+      npcDatabase.createDialogueSession(
+        $dialogueOptionsSession,
+        newDialogue.id,
+      );
+    }
+  };
+
+  const handleOpenDialogue = (data?: NPCDialogueEventData) => {
+    if (data) {
+      $dialogueEvent.set(data);
+      const overlayElement = document.querySelector(
+        '#hs-stacked-overlays-dialogue',
+      );
+      if (overlayElement) {
+        (overlayElement as HTMLElement).classList.remove('hidden');
+        (overlayElement as HTMLElement).classList.add('open');
+      }
+      if (data.npcId) {
+        npcDatabase.createNPCSession($dialogueSession, data.npcId);
+        setNpcTypingComplete(false);
+        setPlayerTypingComplete(false);
+
+        npcDatabase.createDialogueSession(
+          $dialogueOptionsSession,
+          data.dialogue.id,
+        );
+      }
+    }
+  };
 
   const closeDialogue = () => {
     const overlayElement = document.querySelector(
@@ -96,17 +141,20 @@ const DialogueComponent: React.FC = () => {
                       ? dialogueSession$[`${dialogue$.npcId}_name`]
                       : 'Unknown'}
                   </h3>
-                  <a href={`https://kbve.com/${dialogueSession$[`${dialogue$.npcId}_slug`]}`} target="_blank">
-                  <img
-                    src={
-                      dialogue$.npcId &&
-                      dialogueSession$[`${dialogue$.npcId}_avatar`]
-                        ? dialogueSession$[`${dialogue$.npcId}_avatar`]
-                        : '/assets/npc/barkeep.webp'
-                    }
-                    alt="Character"
-                    className="w-full h-auto rounded-md absolute bottom-0 left-0 hover:sepia"
-                  />
+                  <a
+                    href={`https://kbve.com/${dialogueSession$[`${dialogue$.npcId}_slug`]}`}
+                    target="_blank"
+                  >
+                    <img
+                      src={
+                        dialogue$.npcId &&
+                        dialogueSession$[`${dialogue$.npcId}_avatar`]
+                          ? dialogueSession$[`${dialogue$.npcId}_avatar`]
+                          : '/assets/npc/barkeep.webp'
+                      }
+                      alt="Character"
+                      className="w-full h-auto rounded-md absolute bottom-0 left-0 hover:sepia"
+                    />
                   </a>
                 </div>
 
@@ -175,6 +223,25 @@ const DialogueComponent: React.FC = () => {
                   </div>
 
                   <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t">
+                    {dialogue$.npcId &&
+                      dialogueOptionsSession$[
+                        `${dialogue$.dialogue.id}_options`
+                      ] &&
+                      JSON.parse(
+                        dialogueOptionsSession$[
+                          `${dialogue$.dialogue.id}_options`
+                        ],
+                      ).map((option: IDialogueObject) => (
+                        <button
+                          key={option.id}
+                          className="relative rounded px-5 py-2.5 overflow-hidden group bg-yellow-500 relative hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all ease-out duration-300 disabled:pointer-events-none"
+                          onClick={() => handleOptionClick(option.id)}
+                        >
+                          <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+                          <span className="relative">{option.title}</span>
+                        </button>
+                      ))}
+
                     <button
                       className="relative rounded px-5 py-2.5 overflow-hidden group bg-yellow-500 relative hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all ease-out duration-300 disabled:pointer-events-none"
                       data-hs-overlay="#hs-stacked-overlays-dialogue"
