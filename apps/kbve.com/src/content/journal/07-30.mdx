@@ -25,6 +25,10 @@ My goal would be to perform these emulations in both Rust and Python, with diffe
 The python based HID will go into Atlas, making it easier for future developers to call and utilize, we would probably wrap the ada fruit library into a custom restful api via fastapi.
 As for the rust based, I am going to aim at creating a powerful emulation program written in rust for private usage.
 
+**NPCDB**
+The sidebar for the KBVE Docs need to be updated to include a direct link to the NPCDatabase.
+
+
 ## 2023
 - 3:15pm - Currently looking at the structure for the account setup under KBVE.com repo. I believe the next move would be to just migrate the different concepts into their own MDX file. The reason we want to do this right now is because in the future, we can make it easier to add i18n into the core source. The migration of the `*.astro*` files into their own MDX file should be isolated into their own issue? This way we could maintain a structure for future developers that might want to see how I would go about it. 
 - 3:37pm - The initial files would be structured so that majority of the content would be inside of the MDX file, so that when we go about doing the translations, we have a central location for all the text. This means that if there are any errors messages, we would have the default aka English ones ready and then if there are any other languages that we would want to adapt, then those would be added on as their own MDX file. 
