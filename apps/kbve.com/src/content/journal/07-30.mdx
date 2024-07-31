@@ -24,9 +24,16 @@ At the same time I am working on the Cryptothrone project, I am also looking int
 My goal would be to perform these emulations in both Rust and Python, with different goals in mind for both!
 The python based HID will go into Atlas, making it easier for future developers to call and utilize, we would probably wrap the ada fruit library into a custom restful api via fastapi.
 As for the rust based, I am going to aim at creating a powerful emulation program written in rust for private usage.
+The next problem that we are facing with the HID is that the ability to grab the current screen and process what is going on!
+Getting the program to be reactive and fast enough is tough if its all based upon pixels and sounds.
 
 **NPCDB**
 The sidebar for the KBVE Docs need to be updated to include a direct link to the NPCDatabase.
+
+**Action System**
+I started to map out the action system that will trigger when certain dialogue objects are triggered via the chaining.
+My initial concept for the action system would be to keep it simple and have it be an ULID to a factory or singleton that would execute upon clicking the action.
+It is still a bit tough to write it out without actually placing the concept into production.
 
 
 ## 2023
