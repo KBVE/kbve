@@ -17,3 +17,69 @@ import { Adsense } from '@kbve/astropad';
 Action system for the dialgoue system.
 I am going to start the base interface and then extend it around to see if we can utilize it with the event handler.
 The best approach would be to split the Action system into its own dexie database and then work from there?
+
+**Credit**
+It is the that time of the month and we need to pay off our credit cards!
+I am making sure that everything has a payment but I am thinking of placing all the credit balances back into a negative.
+So instead of having just a $0 balance on the cards, the plan is to send them all a couple thousand and have them operate such that they owe me credit.
+
+**Optimization**
+We can do a couple more unique tricks for the javascript optimization within Cryptothrone.
+The first approach will be to expand and improve the movement of javascript objects, including the ability to save them into the indexeddb and manually ensure they are sent to destruction.
+While working directly with the javascript `Uint8Array` and rust `Vec<u8>`, we can setup two unique instances of Spinoza style objects.
+For this we could use `Deku` for `Binary` and `Serde` for `JSON`, and all of this should be placed into our `JEDI` crate.
+As GPT stated, Storing objects as JSON is a straightforward and commonly used approach because it preserves the structure and data types of JavaScript objects.
+However, for certain types of data, such as images, files, or large arrays of numbers, it might be more efficient to store them in a binary format.
+This can reduce storage size and improve performance when handling large amounts of data.
+We already place the npc images into the indexeddb already, but to avoid having our code break, we could build a new part of the package to focus on it.
+This was the original optimization function:
+
+```ts
+
+function serializeObject(obj) {
+    return new Blob([JSON.stringify(obj)], { type: 'application/json' });
+}
+
+```
+
+However we could use this basic function:
+
+```ts
+
+function serializeToBinary(obj) {
+    if (obj instanceof ArrayBuffer) {
+        return new Blob([obj]);
+    } else {
+        return new Blob([JSON.stringify(obj)], { type: 'application/json' });
+    }
+}
+
+```
+
+A little bit of a cleaner function:
+
+```ts
+
+function serializeObject(obj) {
+    try {
+        if (obj instanceof ArrayBuffer) {
+            return { type: 'ArrayBuffer', data: new Blob([obj]) };
+        } else if (obj instanceof Blob) {
+            const supportedTypes = ['image/png', 'image/jpeg', 'image/gif', 'audio/ogg', 'audio/mp3'];
+            if (supportedTypes.includes(obj.type)) {
+                return { type: obj.type, data: obj };
+            } else {
+                throw new Error('Unsupported Blob type: ' + obj.type);
+            }
+        } else {
+            return { type: 'application/json', data: new Blob([JSON.stringify(obj)], { type: 'application/json' }) };
+        }
+    } catch (error) {
+        console.error('Serialization error:', error);
+        return null;
+    }
+}
+
+```
+
+Hmm, we should move the `supportedTypes` as an optional type, thus making this a more extendable function.
