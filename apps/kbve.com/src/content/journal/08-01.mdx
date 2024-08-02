@@ -21,6 +21,23 @@ I am thinking if the priority of less than 10 be stored within the localStorage 
 Then once those objects are stored within their respective areas, we can pull & push the json or binary in either WASM or JS.
 There is the problem with race conditions but I think we can also handle those internally. 
 
+We could set the structure up as these classes:
+
+```ts
+
+class Serializer {}
+
+class Deserializer {}
+
+class Pool {}
+
+```
+
+Afterwards, we coulkd make it so that the pool is directly referenced within both of the `Serializer` and `Deserializer` class but it might be wise to keep the pool out of them.
+We want to avoid a circular dependency and also there could be a couple different pools that we could design.
+Outside of the pool class, we will setup the `Juggernaut` class that will help with managing the data, in this case json and binary and the pool?
+Now that I am thinking about it, hmm, there could be a better way to handle all of it through a different setup.
+
 **Click2Move**
 We can add a quick option to allow players to move via clicking as well.
 For this, I am thinking we also enable touch movement too, both of these should be options within the user settings.
