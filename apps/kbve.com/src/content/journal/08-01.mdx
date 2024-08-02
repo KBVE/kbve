@@ -1,0 +1,22 @@
+---
+title: "August: 1st"
+category: Daily
+date: 2024-08-01 12:00:00
+client: Self
+unsplash: 1675351085230-ab39b2289ff4
+img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 1st. Singleton.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Singleton**
+Working off of yesterday, I am thinking that we could migrate the serialization and deserialization from function to a global singleton, then setup an object pool?
+There might be some risk with how we handle this because of the limits that a browser window provides us, yet I think we can get pretty creative with it.
+One of the goals would be to offload the objects into two different types of storage, the indexeddb and localstorage.
+I am thinking if the priority of less than 10 be stored within the localStorage and anything 10 or higher be moved into indexeddb.
+Then once those objects are stored within their respective areas, we can pull & push the json or binary in either WASM or JS.
+There is the problem with race conditions but I think we can also handle those internally. 

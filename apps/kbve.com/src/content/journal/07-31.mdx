@@ -83,3 +83,120 @@ function serializeObject(obj) {
 ```
 
 Hmm, we should move the `supportedTypes` as an optional type, thus making this a more extendable function.
+The updated serialize function that we will be using.
+
+```ts
+function serializeObject(obj, options = {}) {
+    try {
+        if (obj instanceof ArrayBuffer) {
+            return { type: 'ArrayBuffer', data: new Blob([obj]) };
+        } else if (obj instanceof Blob) {
+            if (options.supportedTypes && options.supportedTypes.includes(obj.type)) {
+                return { type: obj.type, data: obj };
+            } else if (!options.supportedTypes) {
+                return { type: obj.type, data: obj };
+            } else {
+                throw new Error('Unsupported Blob type: ' + obj.type);
+            }
+        } else {
+            return { type: 'application/json', data: new Blob([JSON.stringify(obj)], { type: 'application/json' }) };
+        }
+    } catch (error) {
+        console.error('Serialization error:', error);
+        return null;
+    }
+}
+
+//
+const options = {
+    supportedTypes: ['image/png', 'image/jpeg', 'audio/ogg', 'audio/mp3'] // Customizable supported types
+};
+
+// Additional exampls of usage!
+
+// 1. Regular JavaScript object
+const myObject = { name: 'example', data: [1, 2, 3] };
+const serializedObject = serializeObject(myObject, options);
+console.log('Serialized Object:', serializedObject);
+
+// 2. ArrayBuffer
+const myArrayBuffer = new Uint8Array([1, 2, 3]).buffer;
+const serializedArrayBuffer = serializeObject(myArrayBuffer, options);
+console.log('Serialized ArrayBuffer:', serializedArrayBuffer);
+
+// 3. PNG file (Blob)
+const pngBlob = new Blob([/* binary data */], { type: 'image/png' });
+const serializedPngBlob = serializeObject(pngBlob, options);
+console.log('Serialized PNG Blob:', serializedPngBlob);
+
+// 4. JPEG file (Blob)
+const jpegBlob = new Blob([/* binary data */], { type: 'image/jpeg' });
+const serializedJpegBlob = serializeObject(jpegBlob, options);
+console.log('Serialized JPEG Blob:', serializedJpegBlob);
+
+// 5. MP3 file (Blob)
+const mp3Blob = new Blob([/* binary data */], { type: 'audio/mp3' });
+const serializedMp3Blob = serializeObject(mp3Blob, options);
+console.log('Serialized MP3 Blob:', serializedMp3Blob);
+
+```
+
+Next, here is the updated deserialize object function.
+
+```ts
+
+function deserializeObject(serialized, options = {}) {
+    try {
+        if (!serialized || !serialized.type || !serialized.data) {
+            throw new Error('Invalid serialized object format');
+        }
+
+        const { type, data } = serialized;
+
+        if (type === 'ArrayBuffer') {
+            return data.arrayBuffer().then(buffer => buffer);
+        } else if (type === 'application/json') {
+            return data.text().then(text => JSON.parse(text));
+        } else if (options.supportedTypes && options.supportedTypes.includes(type)) {
+            return data;
+        } else if (!options.supportedTypes) {
+            return data;
+        } else {
+            throw new Error('Unsupported type for deserialization: ' + type);
+        }
+    } catch (error) {
+        console.error('Deserialization error:', error);
+        return null;
+    }
+}
+
+const deserializationOptions = {
+    supportedTypes: ['image/png', 'image/jpeg', 'audio/ogg', 'audio/mp3'] 
+};
+
+deserializeObject(serializedObject, deserializationOptions).then(deserialized => {
+    console.log('Deserialized Object:', deserialized);
+});
+
+```
+
+
+
+## 2023
+- 9:30am - Prepare legal documents for my uncle? Ugh this was a task that I hate doing because talking to lawyers has always been a pain. 
+- 10:33am - I need to redo my gym schedule, I might have to do something a bit more hardcore and maybe do the duel trips? Aim for both a day and night trip, just to get out of the house and get some more data on FSD. 
+- 2:30pm - The lag on league of legends is starting to get to me! It just seems to be way too much recently, the spikes are a bit draining. 
+- 2:37pm - I will finish up this basic account page and get it functional enough to push to the main branch. 
+- 3:06pm - I noticed that I was running out of space on my computer, so I think it might be time to do a bit of quick cleaning. I was at 72gb free and now I am at 134gb free, however I could remove some of the games on my computer but we all know that will not be happening. Cleaned up my downloads folder and now I am at around 170gb free. This should be enough for now, once I tackle my github folder, that will sum up a decent chunk.
+- 9:05pm - The most recent `patch-july-30-2023` patch was a bit too much code, I am going to scale it back to smaller patches, so that there will not be massive changes inside of just one patch.
+
+## Quote
+
+> For it was not into my ear you whispered, but into my heart. It was not my lips you kissed, but my soul.
+> — <cite>Judy Garland</cite>
+
+---
+
+## Tasks
+
+- [ ]
