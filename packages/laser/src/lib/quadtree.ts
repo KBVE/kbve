@@ -1,20 +1,4 @@
-interface Bounds {
-    xMin: number;
-    xMax: number;
-    yMin: number;
-    yMax: number;
-  }
-  
-  interface Point {
-    x: number;
-    y: number;
-  }
-  
-  interface Range {
-    name: string;
-    bounds: Bounds;
-    action: () => void;
-  }
+import { type Bounds, type Point, type Range } from '../types';
   
   class Quadtree {
     private bounds: Bounds;

@@ -474,3 +474,23 @@ export interface LootableObject {
   name?: string;
   chance: number; 
 }
+
+//* MapData
+
+export interface Bounds {
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+}
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Range {
+  name: string;
+  bounds: Bounds;
+  action: () => void;
+}
