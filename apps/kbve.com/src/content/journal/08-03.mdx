@@ -1,0 +1,108 @@
+---
+title: "August: 3rd"
+category: Daily
+date: 2024-08-03 12:00:00
+client: Self
+unsplash: 1675351085230-ab39b2289ff4
+img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 3rd. MapDB.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**MapDB**
+Todays plan will be create the final `MapData` interface and the `MapDB` class within `Phaser`.
+We could call this the `Environmental` handler? I will think about the name while I work this out.
+First we need to move the types from the `quadtree.ts` into the `types.ts`:
+
+```ts
+
+interface Bounds {
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+  }
+  
+  interface Point {
+    x: number;
+    y: number;
+  }
+  
+  interface Range {
+    name: string;
+    bounds: Bounds;
+    action: () => void;
+  }
+
+```
+
+With the types moved, we slap the export onto them and I am thinking we could fix up some of the references in the future.
+For example, `INPCPosition` can be updated to extend the `Point`.
+
+```ts
+
+export interface INPCPosition {
+  x: number;
+  y: number;
+}
+
+// To this
+
+export interface INPCPosition extends Point {
+  id?: string;
+}
+
+``` 
+
+The current mapdb / mapdata interface will be this:
+
+```ts
+
+export interface INPCObjectGPS {
+  ulid: string;
+  position: INPCPosition;
+}
+
+export interface IMapData {
+  bounds: Bounds;
+  tilemapKey: string;
+  tilesetName: string;
+  tilesetLayer: string;
+  scale: number;
+  npcs: INPCObjectGPS[];
+}
+
+```
+
+The new `INPCObjectGPS` interface will help us with keeping track of the NPC from the client-side, but the absolute truth will be on the server side.
+Given that this game plays in both single player and multiplayer with an island approach, we need to make sure that the client-side GPS can be corrected within reason.
+Next we can setup the zod for the map data , so that it would be easier to manage!
+While building this out, I realized that I need to preload the json and tileset png per map, so we need to update the IMapData to hold those two additional variables.
+
+<Adsense />
+
+
+
+## 2023
+- 1:00pm - I am a bit excited to see how AAPL does during their earnings call. I am hoping that it at least breaks past the $195 mark, so I can offload the shares, but if it does not, then I will keep covering 200 shares until they get sold. My small goal would be to just get in and out for around $200 a week, which I will dump into my $O pool. 
+- 2:26pm - Going to install the r3f into the KBVE.com repo, however I feel like it might make the repo a bit too heavy. I shall see what we can do moving forward, there could be a bit better way to handle it. 
+- 2:32pm - I will go ahead and install all the libraries that I would want to use for the Three.js integration onto the website and extend out the Canvas via a couple different elements, including a portal and some unique examples. I would like to see how they look under the Unity video game as well.
+- 2:51pm - We should place the models that we want to use for the R3F inside of the `public/assets/model` and there I will build out some of the general models that we will be using for the test casing. For the time being I will place some of the generic content that I find on the internet there but try my best to keep the licensing within those folders. This will be to help avoid any major issues. 
+- 3:20pm - Coffee break and then when I come back, I will begin to install the R3F, I noticed that there might be some issues with how I would want to go about it, so I might have to think a bit about how I would want to handle it. Maybe having an isolated repo for each instance could be better? The Widget style setup would be interesting doe. 
+- 6:49pm - Installed the basic libraries for r3f and looking at how they will perform on various browsers. It seems that general mainstream browsers that are are chromium based have a decent ability to render and run the r3f examples. However, it seems that OperaGX was not able to render the portal example at a functional level. I am not too sure if its because I have something disabled OR if OperaGX does not support this type of library. I will have to do a couple more browser test casing, including Safari!
+- 10:33pm - Test casing some of the general r3f libraries. Going to push through a general save state as patch `patch-r3f-install` and then going to continue to work from this branch until tomorrow.
+
+## Quote
+
+> The conditions of conquest are always easy. We have but to toil awhile, endure awhile, believe always, and never turn back.
+> — <cite>Seneca the Younger</cite>
+
+---
+
+## Tasks
+
+- [x] Install r3f libraries.
