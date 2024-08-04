@@ -1,0 +1,89 @@
+---
+title: "August: 1st"
+category: Daily
+date: 2024-08-01 12:00:00
+client: Self
+unsplash: 1675351085230-ab39b2289ff4
+img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 1st. Singleton.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Singleton**
+Working off of yesterday, I am thinking that we could migrate the serialization and deserialization from function to a global singleton, then setup an object pool?
+There might be some risk with how we handle this because of the limits that a browser window provides us, yet I think we can get pretty creative with it.
+One of the goals would be to offload the objects into two different types of storage, the indexeddb and localstorage.
+I am thinking if the priority of less than 10 be stored within the localStorage and anything 10 or higher be moved into indexeddb.
+Then once those objects are stored within their respective areas, we can pull & push the json or binary in either WASM or JS.
+There is the problem with race conditions but I think we can also handle those internally. 
+
+We could set the structure up as these classes:
+
+```ts
+
+class Serializer {}
+
+class Deserializer {}
+
+class Pool {}
+
+```
+
+Afterwards, we coulkd make it so that the pool is directly referenced within both of the `Serializer` and `Deserializer` class but it might be wise to keep the pool out of them.
+We want to avoid a circular dependency and also there could be a couple different pools that we could design.
+Outside of the pool class, we will setup the `Juggernaut` class that will help with managing the data, in this case json and binary and the pool?
+Now that I am thinking about it, hmm, there could be a better way to handle all of it through a different setup.
+
+**Click2Move**
+We can add a quick option to allow players to move via clicking as well.
+For this, I am thinking we also enable touch movement too, both of these should be options within the user settings.
+Okay after working through the code and performance issues, it might not be worth doing the click to move directgly from the tiles but instead keep it as an NPC action.
+
+**Text Speed**
+I was told that the text speed was too fast, I am thinking that we make it a setting for the person that is reading.
+We already have the text speed value as a hardcoded number, which we can keep but we can also pull from the user settings interface the speed that we would want.
+The user interface for the text speed has to be added.
+
+```ts
+
+const defaultSettings: UserSettings = {
+  tooltipItem: { id: null, position: { x: 0, y: 0 } },
+  submenuItem: { id: null, position: { x: 0, y: 0 } },
+  tooltipNPC: { id: null, position: { x: 0, y: 0 } },
+  isStatsMenuCollapsed: false,
+  isSettingsMenuCollapsed: false,
+  debugMode: false,
+  textSpeed: 40,
+};
+
+```
+
+The `UserSettings` will have the `textSpeed` as a new setting and then we can just call that key to grab the speed for the text.
+
+
+
+**HID**
+While doing some of the combat testing, I been doing some hardware emulation.
+The goal here is just to test the differnt ways to emulate USB equipment, mainly setting up the base drivers.
+
+
+## 2023
+- 4:34am - I got up super early and started to work on the svelte migration for the react components. I also wanted to see the pre-market but I am a bit off-put with the current situation, I believe we are in the perfect mixture of events that create a decent chunk of profits for the irons condor gangs.
+- 2:28pm - Doing a couple quick syncs within the public and private repos. 
+- 3:29pm - Okay got my mother back from the dentist, it has been like three trips so far but everything is good to go. She feels better and that is one less stress point that I have to deal with.
+- 3:34pm - I should look into setting up certain changes via github actions, going to map out two or three to build in the future.
+
+## Quote
+
+> In friendship as well as love, ignorance very often contributes more to our happiness than knowledge.
+> — <cite>François de La Rochefoucauld</cite>
+
+---
+
+## Tasks
+
+- [ ]
