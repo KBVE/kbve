@@ -39,6 +39,7 @@ export interface UserSettings {
   isStatsMenuCollapsed: boolean;
   isSettingsMenuCollapsed: boolean;
   debugMode: boolean;
+  textSpeed: number;
 }
 
 export interface IStatBoost extends Partial<IPlayerStats> {
