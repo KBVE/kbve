@@ -40,6 +40,52 @@ interface Bounds {
 
 ```
 
+With the types moved, we slap the export onto them and I am thinking we could fix up some of the references in the future.
+For example, `INPCPosition` can be updated to extend the `Point`.
+
+```ts
+
+export interface INPCPosition {
+  x: number;
+  y: number;
+}
+
+// To this
+
+export interface INPCPosition extends Point {
+  id?: string;
+}
+
+``` 
+
+The current mapdb / mapdata interface will be this:
+
+```ts
+
+export interface INPCObjectGPS {
+  ulid: string;
+  position: INPCPosition;
+}
+
+export interface IMapData {
+  bounds: Bounds;
+  tilemapKey: string;
+  tilesetName: string;
+  tilesetLayer: string;
+  scale: number;
+  npcs: INPCObjectGPS[];
+}
+
+```
+
+The new `INPCObjectGPS` interface will help us with keeping track of the NPC from the client-side, but the absolute truth will be on the server side.
+Given that this game plays in both single player and multiplayer with an island approach, we need to make sure that the client-side GPS can be corrected within reason.
+Next we can setup the zod for the map data , so that it would be easier to manage!
+While building this out, I realized that I need to preload the json and tileset png per map, so we need to update the IMapData to hold those two additional variables.
+
+<Adsense />
+
+
 
 ## 2023
 - 1:00pm - I am a bit excited to see how AAPL does during their earnings call. I am hoping that it at least breaks past the $195 mark, so I can offload the shares, but if it does not, then I will keep covering 200 shares until they get sold. My small goal would be to just get in and out for around $200 a week, which I will dump into my $O pool. 
