@@ -364,6 +364,11 @@ export interface INPCPosition {
   y: number;
 }
 
+//* 08-03-2024 Extension
+// export interface INPCPosition extends Point {
+//   id?: string;
+// }
+
 export interface INPCData {
   id: string;
   name: string;
@@ -456,6 +461,7 @@ export interface UIRegiserState {
   successful_message: string;
 }
 
+
 export interface LoaderOptions {
   elementIdOrName: string;
   duration?: number; // in milliseconds, default to 500
@@ -469,14 +475,32 @@ export interface IResponse {
 	data: any; // Data payload of the response. 'any' type allows flexibility.
 }
 
+//* Loot Table */
+
 export interface LootableObject {
   ulid?: string;
   name?: string;
   chance: number; 
 }
 
-//* MapData
+//* MapData */
 
+export interface INPCObjectGPS {
+  ulid: string;
+  position: INPCPosition;
+}
+
+export interface IMapData {
+  bounds: Bounds;
+  tilemapKey: string;
+  tilesetName: string;
+  tilesetLayer: string;
+  scale: number;
+  npcs: INPCObjectGPS[];
+}
+
+
+//* QuadTree */
 export interface Bounds {
   xMin: number;
   xMax: number;
