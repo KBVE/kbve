@@ -497,6 +497,9 @@ export interface IMapData {
   tilesetLayer: string;
   scale: number;
   npcs: INPCObjectGPS[];
+  jsonDataUrl: string;
+  tilesetImageUrl: string;
+  tilesetKey: string;
 }
 
 
