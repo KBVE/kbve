@@ -1,6 +1,44 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 
+//*     [MapData Zod] - 08-06-2024
+
+
+const PointSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+});
+
+const INPCPositionSchema = PointSchema.extend({
+  id: z.string().optional(),
+});
+
+const INPCObjectGPSSchema = z.object({
+  ulid: z.string(),
+  position: INPCPositionSchema,
+});
+
+const BoundsSchema = z.object({
+  xMin: z.number(),
+  xMax: z.number(),
+  yMin: z.number(),
+  yMax: z.number(),
+});
+
+const IMapDataSchema = z.object({
+  bounds: BoundsSchema,
+  tilemapKey: z.string(),
+  tilesetName: z.string(),
+  tilesetLayer: z.string(),
+  tilesetImageUrl: z.string(),
+  tilesetKey: z.string(),
+  scale: z.number(),
+  npcs: z.array(INPCObjectGPSSchema),
+  jsonDataUrl: z.string(),
+});
+
+
+
 //*			[Prompt Schemas]
 
 const FunctionSchema = z.object({
@@ -330,6 +368,7 @@ export const collections = {
         sprite: z.array(SpriteSchema).optional(),
         avatar: z.array(AvatarSchema).optional(),
         dialogue: z.array(DialogueObjectSchema).optional(),
+        mapdb: z.array(IMapDataSchema).optional(),
       }),
     }),
   }),
