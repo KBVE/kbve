@@ -88,6 +88,7 @@ const defaultSettings: UserSettings = {
   isStatsMenuCollapsed: false,
   isSettingsMenuCollapsed: false,
   debugMode: false,
+  textSpeed: 40,
 };
 
 

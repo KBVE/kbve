@@ -18,6 +18,7 @@ class NPCHandler {
         heal: this.healNPC.bind(this),
         steal: this.stealFromNPC.bind(this),
         lore: this.loreFromNPC.bind(this)
+        // oath: this.oathFromNPC.bind(this)
     } as NPCActionHandlers; // Type assertion to satisfy the mapped type constraint
   }
 
@@ -32,14 +33,21 @@ class NPCHandler {
 
   questWithNPC(eventData: NPCInteractionEventData) {
     Debug.log(`Starting quest with NPC with ID: ${eventData.npcId}`);
-    // Implement q
+    // Implement quest from NPC ID -> Dialogue System.
     
   }
   healNPC(eventData: NPCInteractionEventData) {
     Debug.log(`Healing NPC with ID: ${eventData.npcId}`);
-    // Implement healing logic here
+    // Implement healing logic here. -> Test case with Jesus.
   }
 
+  oathFromNPC(eventData: NPCInteractionEventData)
+  {
+    Debug.log(`Oath from NPC with ID: ${eventData.npcId}`);
+    // TODO: Implement oath.
+  }
+
+  
   async talkToNPC(eventData: NPCInteractionEventData) {
     try {
       Debug.log(`Talking to NPC with ID: ${eventData.npcId}`);

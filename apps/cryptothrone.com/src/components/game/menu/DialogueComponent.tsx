@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { atom } from 'nanostores';
-import { TypewriterComponent, npcDatabase, EventEmitter} from '@kbve/laser';
+import {
+  TypewriterComponent,
+  npcDatabase,
+  EventEmitter,
+  type NPCDialogueEventData,
+  type IDialogueObject,
+} from '@kbve/laser';
 
-interface DialogueEventData {
-  npcId?: string;
-  dialogue: {
-    title: string;
-    message: string;
-    playerResponse?: string;
-    backgroundImage?: string;
-  };
-}
-
-const $dialogueEvent = atom<DialogueEventData | null>(null);
+const $dialogueEvent = atom<NPCDialogueEventData | null>(null);
 const $dialogueSession = atom<Record<string, string>>({});
+const $dialogueOptionsSession = atom<Record<string, string>>({});
 
 const NPCDialogue: React.FC<{
   text: string;
@@ -33,11 +30,13 @@ const PlayerDialogue: React.FC<{
 const DialogueComponent: React.FC = () => {
   const dialogue$ = useStore($dialogueEvent);
   const dialogueSession$ = useStore($dialogueSession);
+  const dialogueOptionsSession$ = useStore($dialogueOptionsSession);
+
   const [npcTypingComplete, setNpcTypingComplete] = useState(false);
   const [playerTypingComplete, setPlayerTypingComplete] = useState(false);
 
   useEffect(() => {
-    const handleOpenDialogue = (data?: DialogueEventData) => {
+    const handleOpenDialogue = (data?: NPCDialogueEventData) => {
       if (data) {
         $dialogueEvent.set(data);
         const overlayElement = document.querySelector(
@@ -51,6 +50,16 @@ const DialogueComponent: React.FC = () => {
           npcDatabase.createNPCSession($dialogueSession, data.npcId);
           setNpcTypingComplete(false);
           setPlayerTypingComplete(false);
+
+          if (data.dialogue.options) {
+            npcDatabase
+              .getNPCDialogueOptionsByULID(data.dialogue.id)
+              .then((options) => {
+                $dialogueOptionsSession.set({
+                  [`${data.dialogue.id}_options`]: options,
+                });
+              });
+          }
         }
       }
     };
@@ -60,6 +69,23 @@ const DialogueComponent: React.FC = () => {
       EventEmitter.off('npcDialogue', handleOpenDialogue);
     };
   }, []);
+
+  const handleOptionClick = async (optionId: string) => {
+    const newDialogue = await npcDatabase.getDialogue(optionId);
+    if (newDialogue && dialogue$) {
+      const newEventData: NPCDialogueEventData = {
+        npcId: dialogue$.npcId!,
+        dialogue: { ...newDialogue, priority: 0, read: false },
+      };
+      $dialogueEvent.set(newEventData);
+      setNpcTypingComplete(false);
+      setPlayerTypingComplete(false);
+      npcDatabase.createDialogueSession(
+        $dialogueOptionsSession,
+        newDialogue.id,
+      );
+    }
+  };
 
   const closeDialogue = () => {
     const overlayElement = document.querySelector(
@@ -71,6 +97,7 @@ const DialogueComponent: React.FC = () => {
     }
     $dialogueEvent.set(null);
     $dialogueSession.set({});
+    $dialogueOptionsSession.set({});
     setNpcTypingComplete(false);
     setPlayerTypingComplete(false);
   };
@@ -98,16 +125,21 @@ const DialogueComponent: React.FC = () => {
                       ? dialogueSession$[`${dialogue$.npcId}_name`]
                       : 'Unknown'}
                   </h3>
-                  <img
-                    src={
-                      dialogue$.npcId &&
-                      dialogueSession$[`${dialogue$.npcId}_avatar`]
-                        ? dialogueSession$[`${dialogue$.npcId}_avatar`]
-                        : '/assets/npc/barkeep.webp'
-                    }
-                    alt="Character"
-                    className="w-full h-auto rounded-md absolute bottom-0 left-0"
-                  />
+                  <a
+                    href={`https://kbve.com/${dialogueSession$[`${dialogue$.npcId}_slug`]}`}
+                    target="_blank"
+                  >
+                    <img
+                      src={
+                        dialogue$.npcId &&
+                        dialogueSession$[`${dialogue$.npcId}_avatar`]
+                          ? dialogueSession$[`${dialogue$.npcId}_avatar`]
+                          : '/assets/npc/barkeep.webp'
+                      }
+                      alt="Character"
+                      className="w-full h-auto rounded-md absolute bottom-0 left-0 hover:sepia"
+                    />
+                  </a>
                 </div>
 
                 <div className="w-full md:w-2/3 p-4 bg-cover bg-center rounded-r-xl">
@@ -175,17 +207,39 @@ const DialogueComponent: React.FC = () => {
                   </div>
 
                   <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t">
+                    {dialogue$.npcId &&
+                      dialogueOptionsSession$[
+                        `${dialogue$.dialogue.id}_options`
+                      ] &&
+                      JSON.parse(
+                        dialogueOptionsSession$[
+                          `${dialogue$.dialogue.id}_options`
+                        ],
+                      ).map((option: IDialogueObject) => (
+                        <button
+                          key={option.id}
+                          className="relative rounded px-5 py-2.5 overflow-hidden group bg-yellow-500 relative hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all ease-out duration-300 disabled:pointer-events-none"
+                          onClick={() => handleOptionClick(option.id)}
+                        >
+                          <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+                          <span className="relative">{option.title}</span>
+                        </button>
+                      ))}
+
                     <button
-                      className="relative rounded px-5 py-2.5 overflow-hidden group bg-yellow-500 relative hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all ease-out duration-300 disabled:pointer-events-none"
+                      className="relative rounded px-5 py-2.5 overflow-hidden group bg-red-500 relative hover:bg-gradient-to-r hover:from-red-500 hover:to-red-400 text-white hover:ring-2 hover:ring-offset-2 hover:ring-red-400 transition-all ease-out duration-300 disabled:pointer-events-none"
                       data-hs-overlay="#hs-stacked-overlays-dialogue"
                       onClick={closeDialogue}
-                      disabled={!playerTypingComplete}
+                      disabled={!npcTypingComplete}
                     >
                       <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                       <span
-                        className={`relative ${!playerTypingComplete ? 'text-gray-500' : ''}`}
+                        className={`relative ${!npcTypingComplete ? 'text-gray-500' : ''}`}
                       >
-                        Okay.
+                        Good Bye {dialogue$.npcId &&
+                    dialogueSession$[`${dialogue$.npcId}_name`]
+                      ? dialogueSession$[`${dialogue$.npcId}_name`]
+                      : 'Unknown'}
                       </span>
                     </button>
                   </div>
