@@ -97,10 +97,10 @@
 
 	// Styles from ScrewFast
 	const baseClasses =
-		'inline-flex w-full items-center justify-center gap-x-2 rounded-lg px-4 py-1 text-sm font-bold text-neutral-700 focus-visible:ring outline-none transition duration-300';
+		'inline-flex w-full items-center justify-center gap-x-2 rounded-lg px-4 py-1 text-sm font-normal text-blue-400 focus-visible:ring outline-none transition duration-300 py-3';
 	const borderClasses = 'border border-transparent';
-	const bgColorClasses = 'bg-yellow-400 dark:focus:outline-none';
-	const hoverClasses = 'hover:bg-yellow-500';
+	const bgColorClasses = 'bg-blue-100 dark:focus:outline-none';
+	const hoverClasses = 'hover:bg-blue-400 hover:text-white';
 	const fontSizeClasses = '2xl:text-base';
 	const disabledClasses =
 		'disabled:pointer-events-none disabled:opacity-50 disabled:animate-pulse';
@@ -281,7 +281,7 @@
 	{/if}
 </svelte:head>
 
-<div class="mt-5">
+<div>
 
 	{#if svelte_internal_message}
 		<div class="flex">
@@ -313,10 +313,6 @@
 		</div>
 	{/if}
 
-	<div
-		class="flex items-center py-3 text-xs uppercase text-neutral-400 before:me-6 before:flex-[1_1_0%] before:border-t before:border-neutral-200 after:ms-6 after:flex-[1_1_0%] after:border-t after:border-neutral-200 dark:text-neutral-500 dark:before:border-neutral-600 dark:after:border-neutral-600">
-		Or
-	</div>
 
 	
 	<form
@@ -324,61 +320,34 @@
 		action="#"
 		on:submit|preventDefault={handleRegister}>
 		<div class="grid gap-y-2 md:gap-y-4">
-			<!--TODO Username - START -->
 			<div>
 				<label
 					for="login-username"
-					class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+					class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
 					Username
 				</label>
 
-				<div class="relative">
+				<div>
 					<input
 						type="text"
 						id="register-username"
 						name="username"
 						autocomplete="username"
-						class="block w-full h-4 md:h-12  rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
 						required
 						aria-describedby="register-username"
 						bind:value={username} />
-					<!-- Hidden error icon -->
-					<div
-						class="pointer-events-none absolute inset-y-0 end-0 hidden pe-3">
-						<svg
-							class="h-5 w-5 text-red-500"
-							width="16"
-							height="16"
-							fill="currentColor"
-							viewBox="0 0 16 16"
-							aria-hidden="true">
-							<path
-								d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z">
-							</path>
-						</svg>
-					</div>
-					<p
-						class="mt-2 hidden text-xs text-red-600"
-						id="register-username-error">
-						Please include a valid username!
-					</p>
 				</div>
 			</div>
 
-			<!-- Username - END -->
-
-			<!--? Email - START -->
-
 			<div>
-				<!-- Label for the email input field -->
 				<label
 					for="register-email"
-					class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+					class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
 					Email Address
 				</label>
-				<!-- Label for the email input field -->
-				<div class="relative">
-					<!-- Email input field -->
+
+				<div>
 					<input
 						type="email"
 						id="register-email"
@@ -388,34 +357,8 @@
 						required
 						aria-describedby="register-email"
 						bind:value={email} />
-					<!-- Hidden error icon -->
-					<div
-						class="pointer-events-none absolute inset-y-0 end-0 hidden pe-3">
-						<svg
-							class="h-5 w-5 text-red-500"
-							width="16"
-							height="16"
-							fill="currentColor"
-							viewBox="0 0 16 16"
-							aria-hidden="true">
-							<path
-								d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z">
-							</path>
-						</svg>
-					</div>
 				</div>
-				<!-- Validation message which is hidden by default -->
-				<p
-					class="mt-2 hidden text-xs text-red-600"
-					id="register-email-error">
-					Please include a valid email address so we can get back to
-					you
-				</p>
 			</div>
-
-			<!-- Email - END -->
-
-			<!--? Password START -->
 
 			<div>
 				<div class="flex items-center justify-between">
@@ -425,7 +368,7 @@
 						Password
 					</label>
 				</div>
-				<div class="relative">
+				<div>
 					<input
 						type="password"
 						id="register-password"
@@ -434,31 +377,8 @@
 						required
 						aria-describedby="register-password"
 						bind:value={password} />
-					<div
-						class="pointer-events-none absolute inset-y-0 end-0 hidden pe-3">
-						<svg
-							class="h-5 w-5 text-red-500"
-							width="16"
-							height="16"
-							fill="currentColor"
-							viewBox="0 0 16 16"
-							aria-hidden="true">
-							<path
-								d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z">
-							</path>
-						</svg>
-					</div>
 				</div>
-				<p
-					class="mt-2 hidden text-xs text-red-600"
-					id="register-password-error">
-					8+ characters required
-				</p>
 			</div>
-
-			<!-- Password END -->
-
-			<!-- Confirm START -->
 
 			<div>
 				<div class="flex items-center justify-between">
@@ -468,7 +388,7 @@
 						Confirm Password
 					</label>
 				</div>
-				<div class="relative">
+				<div>
 					<input
 						type="password"
 						id="confirm-register-password"
@@ -477,42 +397,13 @@
 						required
 						aria-describedby="confirm-register-password"
 						bind:value={confirm} />
-					<div
-						class="pointer-events-none absolute inset-y-0 end-0 hidden pe-3">
-						<svg
-							class="h-5 w-5 text-red-500"
-							width="16"
-							height="16"
-							fill="currentColor"
-							viewBox="0 0 16 16"
-							aria-hidden="true">
-							<path
-								d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z">
-							</path>
-						</svg>
-					</div>
 				</div>
-				<p
-					class="mt-2 hidden text-xs text-red-600"
-					id="confirm-register-password-error">
-					8+ characters required
-				</p>
 			</div>
 
-			<!--! Confirm END -->
-
-			<!--TODO Captcha START -->
 			<div>
 				<div id="h-captcha-{id}" class="flex justify-center scale-75 md:scale-100" />
 			</div>
 
-			<!--! Captcha END -->
-
-			<!--TODO Legal START -->
-			<div></div>
-			<!--! Legal END -->
-
-			<!--TODO Submit -->
 			<button
 				type="submit"
 				class={`${baseClasses} ${borderClasses} ${bgColorClasses} ${hoverClasses} ${fontSizeClasses} ${disabledClasses} ${ringClasses}`}
