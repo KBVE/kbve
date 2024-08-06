@@ -5,7 +5,7 @@ date: 2024-08-05 12:00:00
 client: Self
 unsplash: 1689308271349-e685f6ec405a
 img: https://images.unsplash.com/photo-1689308271349-e685f6ec405a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
-description: August 5th. Sunday Funday.
+description: August 5th. MunsDay.
 tags:
   - daily
 ---
@@ -74,6 +74,16 @@ const IMapDataSchema = z.object({
 
 I am going add these zod configurations into the `types.ts` and I will then call it via the `mapdb` option.
 Thus we will call the mapdb in the frontmatter like this : `mapdb: z.array(IMapDataSchema).optional(),`
+
+**Login**
+The new login page seems a bit okay but I think the modal was not too bad.
+The register page makes sense for us to focus on but the login might feel like it is a step back?
+
+**Register**
+The next part of the `register` page update should include a link to the privacy and terms of service.
+We want the future user to agree to all our legal terms, including the EULA and any additional future requests that we plan to place on the website.
+I will come back around and look over it again tomorrow morning, I suppose a quick check box that links to all those documents for approval?
+Hmm will we need to check if the checkbox is pressed on the backend as well?
 
 ## 2023
 - 4:40pm - The first couple of Ubuntu GitLab actions had worked fine but a couple of the latter
