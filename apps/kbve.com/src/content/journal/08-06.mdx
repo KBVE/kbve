@@ -16,6 +16,28 @@ import { Adsense } from '@kbve/astropad';
 **RockHaus**
 Nothing says we have entered the deep parts of the wowcraft than a bunch of us streaming ourselves playing all day.
 
+**Gaming**
+The gaming docs section of the KBVE collection needs to be updated, I will try to fix that up right now.
+One of the things we can do is make sure to import everything from starlight that we might need for the document.
+Here is the generic imports that we commonly use:
+
+```js
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+  LinkCard,
+  Tabs,
+  TabItem,
+} from '@astrojs/starlight/components';
+```
+
+
+
+<Adsense />
 
 ## 2023
 - 12:05pm - I should find a way to combine the weekly reports that I get into one? I suppose we could do that via Postboy? Have it shift through the reports that get generated? Maybe make it a bit more modular and then work from there. I suppose we could utilize a bit of creativity to handle this. I believe the best way to approach this would to be a module that would initially scope out the data and then place it into a Google sheet based, this way we could organize and refine the data we would want to display onto our 
