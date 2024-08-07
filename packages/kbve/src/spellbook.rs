@@ -3,7 +3,7 @@
 
 #[macro_export]
 macro_rules! spellbook_create_jwt {
-	($ulid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {
+  ($ulid:expr, $email:expr, $username:expr, $secret:expr, $hours:expr) => {
 		{
 
 		use jsonwebtoken::{encode, EncodingKey, Header};
@@ -25,24 +25,24 @@ macro_rules! spellbook_create_jwt {
 
 		jwt_token
 		}
-	};
+  };
 }
 
 #[macro_export]
 macro_rules! spellbook_create_cookie {
-	($name:expr, $token:expr, $duration:expr) => {
+  ($name:expr, $token:expr, $duration:expr) => {
 		axum_extra::extract::cookie::Cookie::build($name, $token)
 			.path("/")
 			.max_age(time::Duration::hours($duration))
 			.same_site(axum_extra::extract::cookie::SameSite::Lax)
 			.http_only(true)
 			.finish()
-	};
+  };
 }
 
 #[macro_export]
 macro_rules! spellbook_get_global {
-	($key:expr, $err:expr) => {
+  ($key:expr, $err:expr) => {
         match crate::runes::GLOBAL.get() {
             Some(global_map) => match global_map.get($key) {
                 Some(value) => Ok(value.value().clone()), // Assuming you want to clone the value
@@ -50,20 +50,21 @@ macro_rules! spellbook_get_global {
             },
             None => Err("invalid_global_map"),
         }
-	};
+  };
 }
 
 // The `spellbook_error` macro is designed for use in Axum-based web applications.
 // It simplifies the creation of HTTP error responses. When invoked, it creates
-// an Axum response with a specified HTTP status code and a JSON body containing 
-// an error message. Additionally, it sets a custom header "x-kbve-shield" with 
-// the error message as its value. This macro is useful for consistently handling 
+// an Axum response with a specified HTTP status code and a JSON body containing
+// an error message. Additionally, it sets a custom header "x-kbve-shield" with
+// the error message as its value. This macro is useful for consistently handling
 // error responses throughout your web application.
 
 #[macro_export]
- macro_rules! spellbook_error {
-     // The macro takes two parameters: `$status` for the HTTP status code, and `$error` for the error message.
-     ($status:expr, $error:expr) => {{
+macro_rules! spellbook_error {
+  // The macro takes two parameters: `$status` for the HTTP status code, and `$error` for the error message.
+  ($status:expr, $error:expr) => {
+    {
          // Creates a JSON body with the provided error message.
          let response_body = axum::Json(serde_json::json!({ "error": $error }));
 
@@ -79,9 +80,9 @@ macro_rules! spellbook_get_global {
 
          // Returns the modified response.
          response
-     }};
+    }
+  };
 }
-
 
 // #[macro_export]
 // macro_rules! spellbook_get_pool {
@@ -104,8 +105,8 @@ macro_rules! spellbook_get_global {
 // This macro is designed to simplify the process of obtaining a database connection from a connection pool.
 #[macro_export]
 macro_rules! spellbook_pool {
-	// The macro takes a single argument, `$pool`, which represents the connection pool.
-	($pool:expr) => {
+  // The macro takes a single argument, `$pool`, which represents the connection pool.
+  ($pool:expr) => {
         // Attempt to get a database connection from the pool.
         match $pool.get() {
             // If successful, the obtained connection (`conn`) is returned for use.
@@ -125,77 +126,75 @@ macro_rules! spellbook_pool {
                 // Converts the tuple into an Axum response type.
             ).into_response(),
         }
-	};
+  };
 }
 
 #[macro_export]
 macro_rules! spellbook_pool_conn {
-	($pool:expr) => {
+  ($pool:expr) => {
         match $pool.get() {
             Ok(conn) => conn,
             Err(_) => return Err("Failed to get a connection from the pool!"),
         }
-	};
+  };
 }
-
 
 #[macro_export]
 macro_rules! spellbook_complete {
-	($spell:expr) => {
+  ($spell:expr) => {
         return (axum::http::StatusCode::OK, axum::Json(serde_json::json!({"data": $spell}))).into_response()
-	};
+  };
 }
 
 #[macro_export]
 macro_rules! spellbook_username {
-	($username:expr) => {
+  ($username:expr) => {
         match crate::utility::sanitize_username($username) {
             Ok(username) => username,
             Err(e) => return (axum::http::StatusCode::UNAUTHORIZED, axum::Json(serde_json::json!({"error": format!("{}",e)}))).into_response()
         }
-	};
+  };
 }
 
 #[macro_export]
 macro_rules! spellbook_ulid {
-	($ulid:expr) => {
+  ($ulid:expr) => {
         match crate::utility::sanitizie_ulid($ulid) {
             Ok(ulid) => ulid,
             Err(e) => return (axum::http::StatusCode::UNAUTHORIZED, axum::Json(serde_json::json!({"error": format!("{}",e)}))).into_response()
         }
-	};
+  };
 }
 
 #[macro_export]
 macro_rules! spellbook_email {
-	($email:expr) => {
+  ($email:expr) => {
         match crate::utility::sanitize_email($email) {
             Ok(email) => email,
             Err(e) => return (axum::http::StatusCode::UNAUTHORIZED, axum::Json(serde_json::json!({"error": format!("{}",e)}))).into_response()
         }
-	};
+  };
 }
 
 #[macro_export]
 macro_rules! spellbook_generate_ulid_bytes {
-    () => {
+  () => {
         {
             // Call the generate_ulid_as_bytes function
             crate::utility::generate_ulid_as_bytes()
         }
-    };
+  };
 }
 
 #[macro_export]
 macro_rules! spellbook_generate_ulid_string {
-    () => {
+  () => {
         {
             // Call the generate_ulid_as_string function
             crate::utility::generate_ulid_as_string()
         }
-    };
+  };
 }
-
 
 /**
 
@@ -211,10 +210,10 @@ In the spellbook_sanitize_fields macro:
 // It is designed to generalize the process of sanitizing fields in a struct.
 #[macro_export]
 macro_rules! spellbook_sanitize_fields {
-	// The macro takes two types of input:
-	// 1. $struct:expr, which represents the struct instance whose fields need sanitizing.
-	// 2. $($field:ident),+, which is a variadic list of field identifiers that need to be sanitized.
-	($struct:expr, $($field:ident),+) => {
+  // The macro takes two types of input:
+  // 1. $struct:expr, which represents the struct instance whose fields need sanitizing.
+  // 2. $($field:ident),+, which is a variadic list of field identifiers that need to be sanitized.
+  ($struct:expr, $($field:ident),+) => {
         $(
             // This loop iterates over each field specified in the macro invocation.
             if let Some(ref mut value) = $struct.$field {
@@ -225,22 +224,15 @@ macro_rules! spellbook_sanitize_fields {
                 *value = crate::utility::sanitize_string_limit(value);
             }
         )+
-	};
+  };
 }
-
 
 ///     !   [Hazardous]
 ///     ?	Macro -> Hazardous_Booleans
 
 #[macro_export]
 macro_rules! spellbook_hazardous_boolean_exist_via_ulid {
-	(
-		$func_name:ident,
-		$table:ident,
-		$column:ident,
-		$param:ident,
-		$param_type:ty
-	) => {
+  ($func_name:ident, $table:ident, $column:ident, $param:ident, $param_type:ty) => {
         pub async fn $func_name(
             $param: $param_type,
             pool: Arc<Pool>
@@ -257,21 +249,21 @@ macro_rules! spellbook_hazardous_boolean_exist_via_ulid {
                 Err(_) => Err("db_error"),
             }
         }
-	};
+  };
 }
 
 ///     ?       Macro -> Hazardous Task Fetch
 
 #[macro_export]
 macro_rules! spellbook_hazardous_task_fetch {
-	(
-		$func_name:ident,
-		$table:ident,
-		$column:ident,
-		$param:ident,
-		$param_type:ty,
-		$return_type:ty
-	) => {
+  (
+    $func_name:ident,
+    $table:ident,
+    $column:ident,
+    $param:ident,
+    $param_type:ty,
+    $return_type:ty
+  ) => {
 		pub async fn $func_name(
 			$param: $param_type,
 			pool: Arc<Pool>
@@ -289,5 +281,50 @@ macro_rules! spellbook_hazardous_task_fetch {
 				}
 
 		}
-	};
+  };
+}
+
+#[macro_export]
+macro_rules! spellbook_env_load {
+  ($var_name:expr, $default:expr) => {
+        {
+            let env_val = std::env::var($var_name).unwrap_or_else(|_| $default.to_string());
+            let file_var_name = format!("{}_FILE", $var_name);
+            if let Ok(file_path) = std::env::var(&file_var_name) {
+                std::fs::read_to_string(file_path)
+                    .unwrap_or(env_val)
+                    .trim()
+                    .to_string()
+                    .parse()
+                    .unwrap_or($default)
+            } else {
+                env_val.parse().unwrap_or($default)
+            }
+        }
+  };
+}
+
+#[macro_export]
+macro_rules! spellbook_env_load_duration {
+  ($var_name:expr, $default:expr) => {
+        {
+            let default_secs = $default.as_secs().to_string();
+            let env_val = std::env::var($var_name).unwrap_or_else(|_| default_secs);
+            
+            let file_var_name = format!("{}_FILE", $var_name);
+            if let Ok(file_path) = std::env::var(&file_var_name) {
+                std::fs::read_to_string(file_path)
+                    .unwrap_or(env_val)
+                    .trim()
+                    .to_string()
+                    .parse::<u64>()
+                    .map(Duration::from_secs)
+                    .unwrap_or($default)
+            } else {
+                env_val.parse::<u64>()
+                    .map(Duration::from_secs)
+                    .unwrap_or($default)
+            }
+        }
+  };
 }
