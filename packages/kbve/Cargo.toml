@@ -32,7 +32,7 @@ jsonwebtoken = "8.3.0"
 rand_core = { version = "0.6.4", features = ["std"] }
 tokio = { version = "1.0", features = ["full"] }
 thiserror = "1"
-time = "0.3.30"
+time = "0.3.36"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
     "rustls-tls",
