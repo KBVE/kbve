@@ -23,6 +23,20 @@ One of my yearly goals is to generate pools of capital that will generate around
 Time to do some big boy programming and by this, I mean some lower level programming!
 I am going to see if I can change up the heap allocation within the `rust_api_profile` image to help debug this memory usage bug that I am having with the application.
 The solution to this problem might be a change the default allocator over to jemallocator but we will have to make sure that the docker image and the chisel container will not have any issues.
+A huge shout out to Tom Hacohen from Svix.com for explaining the heap allocation issue that I am running into.
+Updating the Dockerfile so that Ubuntu will have `libjemalloc-dev` installed ahead of time.
+Then under the chisel image, we will move over the `libjemalloc.so.2` as well after the base build.
+Now with the `jemalloc` library that we are using, we might want to also make sure that the `LD_PRELOAD` is setup and we can set that with this line:
+`ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2`.
+After updating all the docker files, we can go ahead and start the test casing of the libjemalloc.
+The shell command that we are going to use to run this application is this:
+
+```shell
+./kbve.sh -nx rust_api_profile:run
+```
+
+The local test cases have passed and now we can look at the docker build next.
+
 
 <Adsense />
 

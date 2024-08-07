@@ -23,10 +23,12 @@ WORKDIR /usr/src/app
 COPY --from=kbve /usr/src/app/dist/target/rust_api_profile/release/rust_api_profile ./rust_api_profile
 
 RUN apt-get update \
-      && apt-get install -y --no-install-recommends curl libmysqlclient-dev pkg-config libssl-dev \
+      && apt-get install -y --no-install-recommends curl libmysqlclient-dev pkg-config libssl-dev libjemalloc-dev \
       && apt-get autoremove -y \
       && apt-get purge -y --auto-remove \
       && rm -rf /var/lib/apt/lists/*
+
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 
 EXPOSE 3000
 ENTRYPOINT ["./rust_api_profile"]
