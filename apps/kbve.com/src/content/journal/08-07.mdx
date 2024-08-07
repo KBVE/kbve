@@ -61,7 +61,15 @@ I did a couple test cases with the ram profile on the new heap allocation and we
 
 **Cargo**
 There was a cargo mismatch with the dependencies, so we will have to quickly update that with this patch.
+After cleaning up some of the rust code and updating `time-rs` crate to the `0.3.36` version, ugh this should fix the build failure.
+Let us go ahead and test this with:
 
+```shell
+./kbve.sh -nx rust_api_profile:build
+./kbve.sh -nx rust_api_profile:dev
+```
+
+A quick build and dev command, let me push this all up and maybe it will trigger the build of the image.
 
 <Adsense />
 
