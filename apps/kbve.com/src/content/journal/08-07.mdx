@@ -19,6 +19,36 @@ I am going to bet almost a yearly salary towards this and making it the goal of 
 With the capital that I gain from this trade, I will move it directly into another pool of monthly dividend stocks and aiming to reach another net goal of $1000 a month in dividends.
 One of my yearly goals is to generate pools of capital that will generate around $1000 a month or 10 blocks a month and with Q4 around the corner, I want to see if I can accomplish this within two months.
 
+**Heap**
+Time to do some big boy programming and by this, I mean some lower level programming!
+I am going to see if I can change up the heap allocation within the `rust_api_profile` image to help debug this memory usage bug that I am having with the application.
+The solution to this problem might be a change the default allocator over to jemallocator but we will have to make sure that the docker image and the chisel container will not have any issues.
+A huge shout out to Tom Hacohen from Svix.com for explaining the heap allocation issue that I am running into.
+Updating the Dockerfile so that Ubuntu will have `libjemalloc-dev` installed ahead of time.
+Then under the chisel image, we will move over the `libjemalloc.so.2` as well after the base build.
+Now with the `jemalloc` library that we are using, we might want to also make sure that the `LD_PRELOAD` is setup and we can set that with this line:
+`ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2`.
+After updating all the docker files, we can go ahead and start the test casing of the libjemalloc.
+The shell command that we are going to use to run this application is this:
+
+```shell
+./kbve.sh -nx rust_api_profile:run
+```
+
+The local test cases have passed and now we can look at the docker build next.
+
+```shell
+docker build -t rust_api_profile .
+```
+
+After the build, we can go ahead and run the docker image locally and make sure that it works without any issues.
+Then move the changes up to the `dev` branch.
+
+The curl command that we will be using to hit the `rust_api_profile` docker image: `for i in {1..100000}; do curl -s -o /dev/null http://localhost:3000/api/v1/speed & done
+wait`.
+
+
+<Adsense />
 
 ## 2023
 - 4:20pm - Time for some of the classics League memes! 
