@@ -52,8 +52,13 @@ Next test case will be a quick 1000 on the main API, here is the code that we wi
 Actually, now that I am thinking about this, we could probably add this into the KBVE shell file or maybe a custom script to help us handle these requests / test cases.
 
 
+**Chisel**
+The next update will be to the docker container that would be in charge of chisel.
+I am debating if it would be worth increasing the size of the binary but that performance gain might be offset by an extremely large binary, which may impact the spin up time.
+
 **RAM**
 I did a couple test cases with the ram profile on the new heap allocation and we are sitting at around 6MB start and then hitting 25MB at base usage, then leveling off to around 15MB average and finally, near idle of 11MB.
+
 
 <Adsense />
 
