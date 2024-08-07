@@ -83,6 +83,14 @@ Given that this game plays in both single player and multiplayer with an island 
 Next we can setup the zod for the map data , so that it would be easier to manage!
 While building this out, I realized that I need to preload the json and tileset png per map, so we need to update the IMapData to hold those two additional variables.
 
+**Tracking**
+
+While we can extend out the `INPCObjectGPS` , we also need to attach a quick ID to the object, that would be referenced by the server.
+Keeping track of the NPCs should be easy for now because we did not yet add death or any complex systems, like combat.
+However, if we are planning to do that, then we should plan ahead for these said actions and states!
+The pool of objects could be saved into the SQL database and also kept within the RAM or a redis-structure?
+I am not yet 100% sure how we would want to handle it.
+
 <Adsense />
 
 

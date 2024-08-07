@@ -1,0 +1,72 @@
+---
+title: "August: 7th"
+category: Daily
+date: 2024-08-07 12:00:00
+client: Self
+unsplash: 1691178879907-f6f1ff57de2e
+img: https://images.unsplash.com/photo-1691178879907-f6f1ff57de2e?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 7th. Memory Allocation.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Nvidia**
+Making an educated bet that Nvidia will rise above $109 before the end of this year.
+I am going to bet almost a yearly salary towards this and making it the goal of swinging in and out for around mid five figure profit.
+With the capital that I gain from this trade, I will move it directly into another pool of monthly dividend stocks and aiming to reach another net goal of $1000 a month in dividends.
+One of my yearly goals is to generate pools of capital that will generate around $1000 a month or 10 blocks a month and with Q4 around the corner, I want to see if I can accomplish this within two months.
+
+**Heap**
+Time to do some big boy programming and by this, I mean some lower level programming!
+I am going to see if I can change up the heap allocation within the `rust_api_profile` image to help debug this memory usage bug that I am having with the application.
+The solution to this problem might be a change the default allocator over to jemallocator but we will have to make sure that the docker image and the chisel container will not have any issues.
+A huge shout out to Tom Hacohen from Svix.com for explaining the heap allocation issue that I am running into.
+Updating the Dockerfile so that Ubuntu will have `libjemalloc-dev` installed ahead of time.
+Then under the chisel image, we will move over the `libjemalloc.so.2` as well after the base build.
+Now with the `jemalloc` library that we are using, we might want to also make sure that the `LD_PRELOAD` is setup and we can set that with this line:
+`ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2`.
+After updating all the docker files, we can go ahead and start the test casing of the libjemalloc.
+The shell command that we are going to use to run this application is this:
+
+```shell
+./kbve.sh -nx rust_api_profile:run
+```
+
+The local test cases have passed and now we can look at the docker build next.
+
+```shell
+docker build -t rust_api_profile .
+```
+
+After the build, we can go ahead and run the docker image locally and make sure that it works without any issues.
+Then move the changes up to the `dev` branch.
+
+The curl command that we will be using to hit the `rust_api_profile` docker image: `for i in {1..100000}; do curl -s -o /dev/null http://localhost:3000/api/v1/speed & done
+wait`.
+
+
+<Adsense />
+
+## 2023
+- 4:20pm - Time for some of the classics League memes! 
+- 4:51pm - After a couple quick sessions of the H, going to switch back to general programming and chilling. It will be a slow week this month, but I am a bit glad that it is because sometimes the extra stress is just not worth it. I been trying to find creative ways to break through those complacent loops, that might also be an interesting app concept for the future. Oh going to clean up some of the branches on the repo as well, now let us think about the general task for the day.
+- 5:02pm - We could migrate the structure for the `{content}` folder so that there is a bit of isolation among the different documentation, which would make it easier to implement future tools to help build out the eco-system. One of the concepts I was thinking of was to expand the folder options and letting n8n create new md files without alternating the main `mdx` files. I am writing this idea out as it has been in my head for a bit , yet it would make sense to include it as it could expand the library a bit more and also make it easier to introduce unique tooling examples. The test case that I wanted to introduce was having an `ai` model that would gather information and then store it as its own entity file, then have someone review and parse through it before migrating it over to the documentation. This would mean that the future `ai` tools would not directly produce the content but rather help with the research and data mining. This would mean that the final documentation still has a researcher or human entity element to it and avoid some of the hallucinations that we would run into.  
+- 5:22pm - Took a quick break and decided to make a protein smoothie! Now the current issue that I am facing is a bit slower development cycle because of 404 errors that are crashing astro a bit. I wonder if there is a better way to handle that but also those 404 errors are also an issue on the production branch too. I suppose I really should focus to address those 404 errors that keep appearing.
+- 5:43pm - I believe I will use a `@l\Shell.astro` for the layout and then wrap each of the md files inside their own notes document. I believe that might be the best course of action in this situation but I could be wrong to an extent? Let me think it through while I drink my smoothie and ponder a bit of life. Hmm, would I want to add each note as its own entity or should I just import them as a bulk metric? I suppose that will be the next step in this adventure.
+- 6:16pm - The `@l/Shell.astro` was created and it has the barebone templating system for now, however I am thinking about how I would want to include the glob concept moving forward. There are a couple ways that I could go about it. The current error is `Error: Invalid glob import syntax: Could only use literals`.
+- 7:30pm - Need to double check my current credit card balances and make sure that all my money is on point for this month, it feels so weird that we are already a week past the month. 
+- 12:00am - Okay it might be the 8th, so I will move these notes over to the next day. But I was able to figure out what would be the best way to handle this situation with the glob and make sure that it would work moving forward. Part of this example will be to keep the `Shell.astro` but add a new `MDX.astro` file to work with! I believe that it should resolve that problem that I was having with Astro globs earlier. 
+
+## Quote
+
+> Let the beauty of what you love be what you do.
+> — <cite>Rumi</cite>
+
+---
+
+## Tasks
+
+- [ ] Cover Widget + Astro Concept

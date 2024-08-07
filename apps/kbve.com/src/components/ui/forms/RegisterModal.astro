@@ -1,19 +1,19 @@
 ---
 // Import necessary components from individual files
-import EmailInput from "./input/EmailInput.astro";
-import PasswordInput from "./input/PasswordInput.astro";
-import Checkbox from "./input/Checkbox.astro";
-import GoogleBtn from "../../../components/ui/buttons/GoogleBtn.astro";
-import AuthBtn from "../../../components/ui/buttons/AuthBtn.astro";
+import EmailInput from './input/EmailInput.astro';
+import PasswordInput from './input/PasswordInput.astro';
+import Checkbox from './input/Checkbox.astro';
+import GoogleBtn from '../../../components/ui/buttons/GoogleBtn.astro';
+import AuthBtn from '../../../components/ui/buttons/AuthBtn.astro';
 
-import RegisterForm from "./RegisterForm.svelte";
+import RegisterForm from './RegisterForm.svelte';
 // Config object for customization of the component
 const config = {
-  id: "hs-toggle-between-modals-register-modal", // Modal identifier
-  title: "Sign up", // Main heading
-  subTitle: "Already have an account?", // Sub-heading text
-  loginBtn: "Sign in here", // Text for login button
-  loginBtnDataHS: "#hs-toggle-between-modals-login-modal", // Target link for login button
+  id: 'hs-toggle-between-modals-register-modal', // Modal identifier
+  title: 'Sign up', // Main heading
+  subTitle: 'Already have an account?', // Sub-heading text
+  loginBtn: 'Sign in here', // Text for login button
+  loginBtnDataHS: '#hs-toggle-between-modals-login-modal', // Target link for login button
 };
 ---
 
@@ -49,7 +49,7 @@ const config = {
           </div>
           <!-- The form for user registration -->
           <RegisterForm client:only="svelte" />
-<!--
+          <!--
           <div class="mt-5">
             <GoogleBtn title="Sign up with Google" />
             <div
