@@ -106,6 +106,12 @@ export default defineConfig({
 					],
 				},
 
+				{
+					label: 'Gaming',
+					collapsed: true,
+					autogenerate: { directory: 'gaming' },
+				},
+
 				
 				{
 					label: 'Shop',
