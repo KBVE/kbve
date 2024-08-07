@@ -44,9 +44,16 @@ docker build -t rust_api_profile .
 After the build, we can go ahead and run the docker image locally and make sure that it works without any issues.
 Then move the changes up to the `dev` branch.
 
-The curl command that we will be using to hit the `rust_api_profile` docker image: `for i in {1..100000}; do curl -s -o /dev/null http://localhost:3000/api/v1/speed & done
-wait`.
+The curl command that we will be using to hit the `rust_api_profile` docker image: `for i in {1..100000}; do curl -s -o /dev/null http://localhost:3000/api/v1/speed & done wait`.
 
+Next test case will be a quick 1000 on the main API, here is the code that we will run for this:
+`for i in {1..100}; do curl -s -o /dev/null https://rust.kbve.com/api/v1/speed & done`.
+
+Actually, now that I am thinking about this, we could probably add this into the KBVE shell file or maybe a custom script to help us handle these requests / test cases.
+
+
+**RAM**
+I did a couple test cases with the ram profile on the new heap allocation and we are sitting at around 6MB start and then hitting 25MB at base usage, then leveling off to around 15MB average and finally, near idle of 11MB.
 
 <Adsense />
 
