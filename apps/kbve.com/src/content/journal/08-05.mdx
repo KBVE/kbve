@@ -1,0 +1,106 @@
+---
+title: "August: 5th"
+category: Daily
+date: 2024-08-05 12:00:00
+client: Self
+unsplash: 1689308271349-e685f6ec405a
+img: https://images.unsplash.com/photo-1689308271349-e685f6ec405a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 5th. MunsDay.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Market**
+The market was brutal this morning, but I see it as a quick sale!
+I am going to load up my 2024 Roth today, quickly grabbing what I can for around $7K but I might also be above the income to contribute.
+If I end up going too high for this year, then I will just sell out and readjust or pay the fees, it is what it is.
+
+**Margin**
+The margin on one of my accounts is starting to creep up a bit and after a couple CDs clear up within the next couple months, I should plan to wipe that out.
+That would mean that I am now really debt free within my personal name.
+I was hoping to keep that margin afloat until the end of the year but there just isnt anything worth trading that makes enough to cover the interest on the capital.
+
+**MemoryLeak**
+When pulling back the data points, I noticed that the KBVE API was at around 35MB and not the 14MB that a fresh API would have.
+I am trying to figure out the 20MB+ increase in the usage of the API running for over 2 months was from caching, maybe a static hash map increasing in size or the worse case, a memory leak.
+While the memory leak would not be the end of the world, I believe it would be wise to look over the code and keep track of the changes.
+The most recent parts that we added were Groq / mL / ai helper routes, but I do not think that they would cause that issue.
+I am thinking that it is an Arc pointer issue or the way that I am handling the application state.
+When I put my rusty hat back on, it will require a decent deep dive.
+
+**Zod**
+Here is the MapData as a Zod:
+
+```ts
+
+const PointSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+});
+
+const INPCPositionSchema = PointSchema.extend({
+  id: z.string().optional(),
+});
+
+const INPCObjectGPSSchema = z.object({
+  ulid: z.string(),
+  position: INPCPositionSchema,
+});
+
+const BoundsSchema = z.object({
+  xMin: z.number(),
+  xMax: z.number(),
+  yMin: z.number(),
+  yMax: z.number(),
+});
+
+const IMapDataSchema = z.object({
+  bounds: BoundsSchema,
+  tilemapKey: z.string(),
+  tilesetName: z.string(),
+  tilesetLayer: z.string(),
+  tilesetImageUrl: z.string(),
+  tilesetKey: z.string(),
+  scale: z.number(),
+  npcs: z.array(INPCObjectGPSSchema),
+  jsonDataUrl: z.string(),
+});
+
+
+```
+
+I am going add these zod configurations into the `types.ts` and I will then call it via the `mapdb` option.
+Thus we will call the mapdb in the frontmatter like this : `mapdb: z.array(IMapDataSchema).optional(),`
+
+**Login**
+The new login page seems a bit okay but I think the modal was not too bad.
+The register page makes sense for us to focus on but the login might feel like it is a step back?
+
+**Register**
+The next part of the `register` page update should include a link to the privacy and terms of service.
+We want the future user to agree to all our legal terms, including the EULA and any additional future requests that we plan to place on the website.
+I will come back around and look over it again tomorrow morning, I suppose a quick check box that links to all those documents for approval?
+Hmm will we need to check if the checkbox is pressed on the backend as well?
+
+## 2023
+- 4:40pm - The first couple of Ubuntu GitLab actions had worked fine but a couple of the latter
+- 6:45pm - All my chores are done and I believe it might be time for a couple quick league matches. I did some off the record journal entries because I wanted to take a bit of a break from the screen, so I will have to migrate them back to this md document. I feel like this is one of the only major drawbacks with doing a daily journal, it is trying to remember to take your physical notes and then convert them over to a digital format. I suppose the other side of it is realizing some of the notes are a bit stupid, but then again, even if they are a bit out of the norm, it might still make sense to document them. 
+- 6:49pm - Should I go AP shaco or another round of tank shaco? Hmm, I also think the two new skins are okay, they could have done a bit more with the effects, I feel like the animation game was a bit weak but that might be just on my end. About to hit that 2 million mastery, which is a bit scary to think about. 
+- 6:59pm - After I finish up the tag system, I should go back and refactor some of the media content, maybe that might give me a really good static API base to work with. One of the random ideas that I was thinking to add into the Discord music bot was to pull the json data for the YouTube content and basically play music from those tags? I could do a `musicbot` specific tag and extend it out? Hmm, I suppose how would I go about a duel tag search, so if object is on tag A and tag B? I guess this goes into the relationship style of tagging, such that, multiple entities could be linked via cross-tag. These are some questions that I have to think through as I build it out.
+- 9:51pm - Seeing Futurama come back after being canceled over and over, I am surprised and somewhat glad the show is back... ugh again after being canceled? So far it is exactly the perfect balance of science and meme.  
+- 10:36pm  - Going to sync the patch and preparing the next patch for tomorrow..
+- 11:30pm - I should look into libraries that help the movement of the mouse, the two that I was looking at where pyHM and WindMouse, both could be combined into just one unique package? I suppose this would be something that we would operate under NodePy later down the line, in terms of automation as well.
+
+## Quote
+
+> Even if you're on the right track, you'll get run over if you just sit there.
+> — <cite>Will Rogers</cite>
+
+---
+
+## Tasks
+
+- [ ]
