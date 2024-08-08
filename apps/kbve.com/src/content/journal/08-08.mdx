@@ -1,0 +1,87 @@
+---
+title: "August: 8th"
+category: Daily
+date: 2024-08-08 12:00:00
+client: Self
+unsplash: 1688764896020-c448693ec24e
+img: https://images.unsplash.com/photo-1688764896020-c448693ec24e?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 8th. Portainer.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Portainer**
+The traefik stack needs to be updated because of a pathing issue.
+I will be restarting n8n as well afterwards and then come back around to profiling.
+Under the labels section of the docker compose, we need to update the host rule to include a path, so here is the updated version:
+
+```yaml 
+
+        - traefik.http.routers.rust_api_http.entrypoints=web
+        - traefik.http.routers.rust_api_http.rule=Host(`rust.kbve.com`) && PathPrefix(`/`)
+        - traefik.http.routers.rust_api_http.service=rust_api
+
+```
+
+This will have to be applied to our chisel container as well, and then we can stress test both to see the performance of them in a more real world condition.
+I will also split the chisel docker compose into its own file as a reference for future updating.
+One of the more interesting aspects would be to build out CI/CD pipeline that can update the portainer based upon the docker compose changes without directly portainer.
+Now let us handle the scaling ability of each container, we will start with setting up the `sysctls` within the chisel container!
+Side note, we can also set it up so that we have a cluster of possible containers spread out of just the OVH dedicated server.
+Once we get the profiling out of the way, we can use fly to deploy a couple of our containers in more remote areas.
+
+- 7:38am - We tried to deploy the `sysctls` within the docker container and the deployment failed, so it might be either on the Portainer side or our docker enigne binarys are a bit out of date.
+
+**loadtest.sh**
+For testing out the loads, I am thinking that we could make a quick shell script to help us handle this.
+Furthermore, we could extend out the `devops` library to include a quick method to perform the load test against certain applications.
+Having the `loadtest` be its own file within the package is ideal, but what name should we make it?
+
+**n8n**
+Time to update the n8n instance and the compose for it.
+We will try to operate it under the `automation.kbve.com` subdomain.
+Updated to the version of `1.52.2` and everything seems to be operational, tested one of the workflows and did not have any major issues.
+
+**Git**
+Updated the `git.mdx` with a quick cheatsheet for Conventional Commits.
+There might be some that are missing, I will wrap back around and update those.
+
+**Cafe**
+Time to take a quick break and grab some food and caffine.
+
+**Memory Fragmentation**
+Lets see if we can update the memory fragmentation aspect of the jemalloc and hope to get better performance.
+For this issue, I went ahead and set the `ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000"` to help with the faster fragmentation.
+This should then allow us to run multiple replicas that can eat and release hits without any major issues.
+
+
+<Adsense />
+
+## 2023
+
+- 7:30am - There are a couple issues that the RSPS project is facing, one of them would be the general management, which I know could be resolved with creating a custom docker image with NodePy as the base. We know that the python scripts can perform fairly well for general tasks but the deployment and overall management still has to be worked out. Ideally I should look into isolating the modules, such that, they are not specific to any project. I.e NodePy should have its own control panel and the custom python scripts that we use would be just drop in replacements. 
+- 8:44am - Going through my emails and I am content with the automated labeling and migration. My total inbox is currently sitting at 68 emails, a couple of the emails did not get filtered through or labeled but one of my n8n workflows was able to unsubscribe from a couple random newsletters.
+- 10:42am - I have to map out my call options for this week and it seems that I might have to roll them again for next week. The credit and return is starting to diminish down to less than $500 a week, which would make sense because some of the puts that I am rolling are already a bit deep in the red. I could extend them out until next month and migrate the strike down a bit too but that is something that I would have to over look.
+- 12:21pm - I have a major meeting to attend to later today, hopefully it will go well and will not require a huge chunk of my brain cells. To prepare for the meeting, I decided to skip lunch and keep my diet fairly relaxed, so that meant being light on water too. Why would I want to prepare so much for a meeting? I just did not want to randomly have a bathroom break.
+- 4:39pm - Okay my total inbox is at around 46 emails, I will see how this performs within the next month! My goal will be to get almost near less than 10 emails, with a majority of them being filtered! The signal base automation seems to be working fine, but I need to prepare for the next staging route, where the automation tools can make issue tickets and even pull requests based upon the emails! 
+- 5:05pm - This meeting is still going on! I feel so fucking bored, listening to people talk, throw shade and loop around topics. This is slowly breaking my faith in humanity, the levels of abstract conversation but limited actions have a profound 
+- 7:47pm - Watching `Corner Office` right now while doing some general programming! Besides using the new glob Astro layout for tags and applications, I am thinking that I could use for legal too! I should migrate the disclaimer message into a mdx file? I will hold off on it for now, because I want to make sure that it all works in those two scopes before putting legal into the mixture. 
+- 8:41pm - I decided to let go of my current padfolio and replace it with two new ones, a specific one for a new laptop and another for storing my journal sheets! The objective will be to make it even easier to look over those notes later down the line. The padfolio that I ended up getting has a small three ring binder inside of it too, but I will hold off on the review until I get the item. 
+- 11:07pm - It seems that my method of using glob within a namespace would not work currently, thus I will be closing out the [issue](https://github.com/KBVE/kbve.com/issues/753).
+- 11:15pm - Going to push this out and then prepare a new patch for tomorrow.
+
+---
+
+## Quote
+
+> He who angers you conquers you.
+> — <cite>Elizabeth Kenny</cite>
+
+---
+
+## Tasks
+
+- [x] - Review the Email Automation Software.

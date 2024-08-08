@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  rust-chisel:
+    image: kbve/rustprofilechisel:latest
+    networks:
+      - public
+      - chisel
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        # Base Traefik Labels
+        - traefik.enable=true
+        - traefik.constraint-label-stack=chisel
+        - traefik.docker.network=public
+        - traefik.http.services.rust_chisel.loadbalancer.server.port=3000
+        - traefik.http.routers.rust_chisel.rule=Host(`chisel.kbve.com`)
+        #http
+        - traefik.http.routers.rust_chisel_http.entrypoints=web
+        - traefik.http.routers.rust_chisel_http.rule=Host(`chisel.kbve.com`) && PathPrefix(`/`)
+        - traefik.http.routers.rust_chisel_http.service=rust_chisel
+        # https
+        - traefik.http.routers.rust_chisel_https.entrypoints=websecure
+        - traefik.http.routers.rust_chisel_https.rule=Host(`chisel.kbve.com`) && PathPrefix(`/`)
+        - traefik.http.routers.rust_chisel_https.service=rust_chisel
+        - traefik.http.routers.rust_chisel_https.tls=true
+    secrets:
+      - DATABASE_PROD_URL
+    environment:
+      - DATABASE_URL_PROD_FILE=/run/secrets/DATABASE_PROD_URL
+    # sysctls:
+    #   - net.ipv4.tcp_syncookies=1
+    #   - vm.swappiness=10
+    #   - vm.vfs_cache_pressure=50
+    #   - vm.overcommit_memory=1
+    #   - vm.dirty_ratio=15
+    #   - vm.dirty_background_ratio=5  
+
+secrets:
+  DATABASE_PROD_URL:
+    external: true
+
+networks:
+  public:
+    external: true
+  chisel:
+    name: chisel
+    driver: overlay
+    attachable: true
