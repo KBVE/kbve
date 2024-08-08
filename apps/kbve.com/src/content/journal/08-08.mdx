@@ -52,6 +52,11 @@ There might be some that are missing, I will wrap back around and update those.
 **Cafe**
 Time to take a quick break and grab some food and caffine.
 
+**Memory Fragmentation**
+Lets see if we can update the memory fragmentation aspect of the jemalloc and hope to get better performance.
+For this issue, I went ahead and set the `ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000"` to help with the faster fragmentation.
+This should then allow us to run multiple replicas that can eat and release hits without any major issues.
+
 
 <Adsense />
 

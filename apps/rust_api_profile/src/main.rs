@@ -33,7 +33,6 @@ mod allocator {
 async fn main() {
 	println!("◈ [LAUNCH] 🚀🚀");
 
-	//let api_session_store = Arc::new(APISessionStore::new());
 	let shared_pool = Arc::new(db::establish_connection_pool());
 	let shared_validator_builder = Arc::new(ValidatorBuilder::<String, String>::new());
 

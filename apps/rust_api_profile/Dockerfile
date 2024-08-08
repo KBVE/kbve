@@ -29,6 +29,8 @@ RUN apt-get update \
       && rm -rf /var/lib/apt/lists/*
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000"
+
 
 EXPOSE 3000
 ENTRYPOINT ["./rust_api_profile"]
