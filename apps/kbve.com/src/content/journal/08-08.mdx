@@ -29,6 +29,21 @@ Under the labels section of the docker compose, we need to update the host rule 
 This will have to be applied to our chisel container as well, and then we can stress test both to see the performance of them in a more real world condition.
 I will also split the chisel docker compose into its own file as a reference for future updating.
 One of the more interesting aspects would be to build out CI/CD pipeline that can update the portainer based upon the docker compose changes without directly portainer.
+Now let us handle the scaling ability of each container, we will start with setting up the `sysctls` within the chisel container!
+Side note, we can also set it up so that we have a cluster of possible containers spread out of just the OVH dedicated server.
+Once we get the profiling out of the way, we can use fly to deploy a couple of our containers in more remote areas.
+
+- 7:38am - We tried to deploy the `sysctls` within the docker container and the deployment failed, so it might be either on the Portainer side or our docker enigne binarys are a bit out of date.
+
+
+
+**n8n**
+Time to update the n8n instance and the compose for it.
+We will try to operate it under the `automation.kbve.com` subdomain.
+Updated to the version of `1.52.2` and everything seems to be operational, tested one of the workflows and did not have any major issues.
+
+
+<Adsense />
 
 ## 2023
 
