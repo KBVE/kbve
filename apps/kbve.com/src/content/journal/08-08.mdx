@@ -35,6 +35,10 @@ Once we get the profiling out of the way, we can use fly to deploy a couple of o
 
 - 7:38am - We tried to deploy the `sysctls` within the docker container and the deployment failed, so it might be either on the Portainer side or our docker enigne binarys are a bit out of date.
 
+**loadtest.sh**
+For testing out the loads, I am thinking that we could make a quick shell script to help us handle this.
+Furthermore, we could extend out the `devops` library to include a quick method to perform the load test against certain applications.
+Having the `loadtest` be its own file within the package is ideal, but what name should we make it?
 
 **n8n**
 Time to update the n8n instance and the compose for it.
@@ -44,6 +48,14 @@ Updated to the version of `1.52.2` and everything seems to be operational, teste
 **Git**
 Updated the `git.mdx` with a quick cheatsheet for Conventional Commits.
 There might be some that are missing, I will wrap back around and update those.
+
+**Cafe**
+Time to take a quick break and grab some food and caffine.
+
+**Memory Fragmentation**
+Lets see if we can update the memory fragmentation aspect of the jemalloc and hope to get better performance.
+For this issue, I went ahead and set the `ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000"` to help with the faster fragmentation.
+This should then allow us to run multiple replicas that can eat and release hits without any major issues.
 
 
 <Adsense />
