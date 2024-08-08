@@ -30,6 +30,10 @@ This will have to be applied to our chisel container as well, and then we can st
 I will also split the chisel docker compose into its own file as a reference for future updating.
 One of the more interesting aspects would be to build out CI/CD pipeline that can update the portainer based upon the docker compose changes without directly portainer.
 
+**n8n**
+Time to update the n8n instance and the compose for it.
+We will try to operate it under the `automation.kbve.com` subdomain.
+
 ## 2023
 
 - 7:30am - There are a couple issues that the RSPS project is facing, one of them would be the general management, which I know could be resolved with creating a custom docker image with NodePy as the base. We know that the python scripts can perform fairly well for general tasks but the deployment and overall management still has to be worked out. Ideally I should look into isolating the modules, such that, they are not specific to any project. I.e NodePy should have its own control panel and the custom python scripts that we use would be just drop in replacements. 
