@@ -18,11 +18,11 @@ services:
         - traefik.http.routers.n8n.rule=Host(`automation.kbve.com`)
         # HTTP
         - traefik.http.routers.n8n_http.entrypoints=web
-        - traefik.http.routers.n8n_http.rule=PathPrefix(`/`)
+        - traefik.http.routers.n8n_http.rule=Host(`automation.kbve.com`) && PathPrefix(`/`)
         - traefik.http.routers.n8n_http.service=n8n
         # HTTPS
         - traefik.http.routers.n8n_https.entrypoints=websecure
-        - traefik.http.routers.n8n_https.rule=PathPrefix(`/`)
+        - traefik.http.routers.n8n_https.rule=Host(`automation.kbve.com`) && PathPrefix(`/`)
         - traefik.http.routers.n8n_https.service=n8n
         - traefik.http.routers.n8n_https.tls=true
 

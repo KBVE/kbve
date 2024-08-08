@@ -1,28 +1,27 @@
 ---
 title: Git
 description: |
-    Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
-    Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
+  Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
+  Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
 sidebar:
-    label: Git
-    order: 1000
+  label: Git
+  order: 1000
 unsplash: 1618401479427-c8ef9465fbe1
 img: https://images.unsplash.com/photo-1618401479427-c8ef9465fbe1?fit=crop&w=1400&h=700&q=75
 tags:
-    - cloud
+  - cloud
 ---
 
 import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
 } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@kbve/astropad';
-
 
 ## Information
 
@@ -34,9 +33,11 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 ---
 
 <Aside>
-Git commands can be powerful and sometimes destructive. 
-Always make sure you understand the implications of a command before running it, especially those that alter history, such as **git reset**, **git rebase**, and **git filter-branch**. 
-It's often a good idea to create backups or work on a separate branch when experimenting with these commands.
+  Git commands can be powerful and sometimes destructive. Always make sure you
+  understand the implications of a command before running it, especially those
+  that alter history, such as **git reset**, **git rebase**, and **git
+  filter-branch**. It's often a good idea to create backups or work on a
+  separate branch when experimenting with these commands.
 </Aside>
 
 ## Cheatsheet
@@ -105,6 +106,28 @@ It's often a good idea to create backups or work on a separate branch when exper
 
 ---
 
+## Conventional Commits Cheatsheet
+
+| Commit Message                     | Description                                                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `feat: new feature`                | Introduce a new feature                                                                                       |
+| `feat!: breaking change`           | Introduce a breaking change                                                                                   |
+| `feat(scope)!: rework API`         | Rework API with a breaking change                                                                             |
+| `chore(deps): update dependencies` | Update dependencies                                                                                           |
+| `build`                            | Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)           |
+| `ci`                               | Changes to CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)       |
+| `chore`                            | Changes which don't change source code or tests e.g. changes to the build process, auxiliary tools, libraries |
+| `docs`                             | Documentation only changes                                                                                    |
+| `fix`                              | A bug fix                                                                                                     |
+| `fix(scope): bug in scope`         | Fix a bug within a specific scope                                                                             |
+| `perf`                             | A code change that improves performance                                                                       |
+| `refactor`                         | A code change that neither fixes a bug nor adds a feature                                                     |
+| `revert`                           | Revert something                                                                                              |
+| `style`                            | Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)        |
+| `test`                             | Adding missing tests or correcting existing tests                                                             |
+
+---
+
 ## Github
 
 GitHub, a leading platform for version control and collaboration, leverages Git to provide a seamless environment for developers to host, review, and manage code.
@@ -121,7 +144,6 @@ They enhance productivity by managing build, test, and deployment processes dire
 
 These are the custom notes on our github actions!
 
-
 #### ci-patch.yml
 
 The `ci-patch.yml` GitHub Action is designed to automate the process of creating pull requests for branches that follow a naming pattern starting with "patch".
@@ -130,9 +152,7 @@ It first checks out the code using the `actions/checkout` action. Then, it uses 
 The pull request will have a title indicating the source branch and a body containing the message "An automated PR".
 Additionally, the pull request will be labeled with "auto-pr".
 
-
 ```yaml
-
 name: CI Patch
 
 on:
@@ -156,29 +176,23 @@ jobs:
           pr_body: |
             *An automated PR*
           pr_label: 'auto-pr'
-
 ```
 
 ### kbve-shell
 
-
-
 Example of calling the KBVE Shell
 
 ```yaml
-
--   name: React Fish & Chip
-    if: needs.alter.outputs.reactfishchip == 'true'
-    uses: ./.github/actions/kbve-shell
-    with:
-      flag: '-build react-phaser-fish-chip'
-      create_pull_request: true
-      github_token: ${{ secrets.GITHUB_TOKEN }}
-      pull_request_title: 'react-fish-chip-built-request'
-      pull_request_body: 'React Fish and Chip Built Request'
-
+- name: React Fish & Chip
+  if: needs.alter.outputs.reactfishchip == 'true'
+  uses: ./.github/actions/kbve-shell
+  with:
+    flag: '-build react-phaser-fish-chip'
+    create_pull_request: true
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+    pull_request_title: 'react-fish-chip-built-request'
+    pull_request_body: 'React Fish and Chip Built Request'
 ```
-
 
 #### Music
 
@@ -197,24 +211,24 @@ The first is design to parse the body of the created issue ticket and prepare it
               const marked = require('marked');
               const DOMPurify = require('dompurify')(new (require('jsdom').JSDOM)().window);
               const { JSDOM } = require('jsdom');
-    
+
               function markdownToJsonSafeString(markdownContent) {
                   // Convert markdown to HTML
                   const htmlContent = marked.parse(markdownContent);
-    
+
                   // Sanitize the HTML content
                   const sanitizedHtmlContent = DOMPurify.sanitize(htmlContent);
-    
+
                   // Use jsdom to create a temporary DOM element to extract text content from sanitized HTML
                   const dom = new JSDOM(sanitizedHtmlContent);
                   const textContent = dom.window.document.body.textContent || '';
-    
+
                   // Ensure the text content is JSON-safe
                   const jsonSafeString = JSON.stringify(textContent);
-    
+
                   return jsonSafeString;
               }
-    
+
               const issueBody = context.payload.issue.body;
               const escapedIssueBody = markdownToJsonSafeString(issueBody);
               core.exportVariable('ESCAPED_ISSUE_BODY', escapedIssueBody);
@@ -225,7 +239,7 @@ The first is design to parse the body of the created issue ticket and prepare it
       with:
         script: |
           const { YOUTUBE_ID, ESCAPED_ISSUE_BODY } = process.env;
-          const system = `Imagine three different data experts are answering this task. All experts will write down their steps of their thinking, then share it with the group. Then all experts will go on to the next step, etc. If any expert realizes they're wrong at any point then they leave. Remember the goal is to complete all of the steps provided and generate the final command. \n\n Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, spaces, hyphens, and characters (, ), ., and -. Your task is to complete a finalized kbve.sh shell command with the extracted information. If you can not complete the command, go back and process the input data again. \n\n Hint: Titles may contain multiple words separated by quotes and hyphens. These words are often the band name and followed by the song. **Example:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=<yt_id>\nTitle:  <title> \nGenre:  <genre>\n\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=<genre>--title='<title>' --ytid=<yt_id>\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, spaces, hyphens, quotes, periods, the characters () . and -. Please do not replace spaces with any other characters and keep the spaces in the sanitized title.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Your Task:**\nPlease parse the provided text below and generate the command. You must follow all the steps that are stated and make sure to wrap the kbve.sh command in bash code block. \n\n`; 
+          const system = `Imagine three different data experts are answering this task. All experts will write down their steps of their thinking, then share it with the group. Then all experts will go on to the next step, etc. If any expert realizes they're wrong at any point then they leave. Remember the goal is to complete all of the steps provided and generate the final command. \n\n Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, spaces, hyphens, and characters (, ), ., and -. Your task is to complete a finalized kbve.sh shell command with the extracted information. If you can not complete the command, go back and process the input data again. \n\n Hint: Titles may contain multiple words separated by quotes and hyphens. These words are often the band name and followed by the song. **Example:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=<yt_id>\nTitle:  <title> \nGenre:  <genre>\n\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=<genre>--title='<title>' --ytid=<yt_id>\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, spaces, hyphens, quotes, periods, the characters () . and -. Please do not replace spaces with any other characters and keep the spaces in the sanitized title.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Your Task:**\nPlease parse the provided text below and generate the command. You must follow all the steps that are stated and make sure to wrap the kbve.sh command in bash code block. \n\n`;
           const message = ESCAPED_ISSUE_BODY;
           const payload = JSON.stringify({
             system,
@@ -243,7 +257,6 @@ The first is design to parse the body of the created issue ticket and prepare it
 
 ```
 
-
 #### Itch
 
 Github Action for deploying the application build onto the Itch platform!
@@ -259,9 +272,7 @@ The **Itch.io Publish** GitHub Action automates the process, streamlining your w
 This powerful tool takes the manual effort out of deploying to Itch.io, allowing you to focus more on development and less on the repetitive tasks of deployment.
 Embrace automation and enhance your productivity with GitHub Actions and Itch.io!
 
-
 Below is an example of a GitHub Itch workflow configuration. Note that tab indentations might be out of sync!
-
 
 ```yaml
 name: Itch Deploy
@@ -372,7 +383,7 @@ Below is a sample GitHub Actions configuration for running Unity tests, ensuring
 
 ```
 
--   Remember that you will need a valid Unity license for this action!
+- Remember that you will need a valid Unity license for this action!
 
 Here is step-by-step breakdown of a Unity GitHub Action
 
@@ -389,6 +400,7 @@ Here is step-by-step breakdown of a Unity GitHub Action
     ```yaml
     on: [push, pull_request]
     ```
+
     - The `on` field specifies the events that trigger this workflow. Here, it triggers on `push` and `pull_request` events.
 
 3.  **Define the Job and Environment**
@@ -398,57 +410,62 @@ Here is step-by-step breakdown of a Unity GitHub Action
       test:
         runs-on: ubuntu-latest
     ```
+
     - The `jobs` field defines the jobs that will run as part of this workflow. The `test` job runs on the `ubuntu-latest` environment, which provides a clean and consistent Linux environment for running the tests.
 
 4.  **Set Up the Matrix Strategy**
 
     ```yaml
-        strategy:
-          matrix:
-            projectPath: [path/to/your/project]
-            unityVersion: [2020.3.11f1, 2021.1.13f1]
+    strategy:
+      matrix:
+        projectPath: [path/to/your/project]
+        unityVersion: [2020.3.11f1, 2021.1.13f1]
     ```
-    - The `matrix` strategy allows you to define multiple configurations for your jobs. 
+
+    - The `matrix` strategy allows you to define multiple configurations for your jobs.
       Here, it sets up multiple Unity versions and project paths to test against, ensuring compatibility across different environments.
 
 5.  **Checkout the Repository**
 
     ```yaml
-        steps:
-        - name: Checkout repository
-          uses: actions/checkout@v2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
     ```
-    - The `steps` field lists the steps in the job. 
+
+    - The `steps` field lists the steps in the job.
       The first step uses the `actions/checkout` action to clone the repository, providing access to the codebase for subsequent steps.
 
 6.  **Cache Unity Packages**
 
     ```yaml
-        - name: Cache Unity packages
-          uses: actions/cache@v2
-          with:
-            path: ~/.local/share/unity3d/Unity/
-            key: ${{ runner.os }}-unity-${{ matrix.unityVersion }}
-            restore-keys: |
-              ${{ runner.os }}-unity-
+    - name: Cache Unity packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.local/share/unity3d/Unity/
+        key: ${{ runner.os }}-unity-${{ matrix.unityVersion }}
+        restore-keys: |
+          ${{ runner.os }}-unity-
     ```
+
     - Caching saves downloaded Unity packages between workflow runs, reducing the time needed for setup.
       The cache is identified by a unique key based on the runner OS and Unity version.
 
 7.  **Run Unity Test Runner**
 
     ```yaml
-        - name: Run Unity Test Runner
-          uses: game-ci/unity-test-runner@v2.1.0
-          id: testRunner
-          env:
-            UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          with:
-            projectPath: ${{ matrix.projectPath }}
-            unityVersion: ${{ matrix.unityVersion }}
-            githubToken: ${{ secrets.GITHUB_TOKEN }}
-            customParameters: '-nographics'
+    - name: Run Unity Test Runner
+      uses: game-ci/unity-test-runner@v2.1.0
+      id: testRunner
+      env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      with:
+        projectPath: ${{ matrix.projectPath }}
+        unityVersion: ${{ matrix.unityVersion }}
+        githubToken: ${{ secrets.GITHUB_TOKEN }}
+        customParameters: '-nographics'
     ```
+
     - This step runs the Unity Test Runner action:
       - `uses` specifies the action to run.
       - `id` gives this step an identifier for later reference.
@@ -462,13 +479,14 @@ Here is step-by-step breakdown of a Unity GitHub Action
 8.  **Upload Test Results**
 
     ```yaml
-        - name: Upload Test Results
-          uses: actions/upload-artifact@v2
-          if: always()
-          with:
-            name: Test results (all modes)
-            path: ${{ steps.testRunner.outputs.artifactsPath }}
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: Test results (all modes)
+        path: ${{ steps.testRunner.outputs.artifactsPath }}
     ```
+
     - This step uploads the test results as artifacts:
       - `if: always()` ensures this step runs regardless of the previous step’s outcome.
       - `with` specifies parameters for the upload:
@@ -493,7 +511,6 @@ When you finish following these steps, you will be setting up a robust and autom
 Boost your Godot development workflow with these handy GitHub Actions references! Automate your build, test, and deployment processes to streamline your project management.
 
 - **GitHub Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)**: Utilize the godot-ci action from the GitHub Marketplace to automate your Godot engine tasks, including exporting your project to multiple platforms.
-  
 - **GitHub Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)**: Explore this detailed gist by doctor-g, showcasing a GitHub Actions workflow for exporting Godot projects to HTML5, making it easy to deploy your game on the web.
 
 These resources will help you integrate GitHub Actions into your Godot projects, ensuring efficient and reliable automation throughout your development process.
@@ -527,12 +544,12 @@ By embedding one Git repository as a subdirectory of another, submodules enable 
 This setup ensures that each submodule retains its history and can be updated independently, providing modularity and reducing code duplication.
 Managing submodules requires specific commands to clone, update, and commit changes, but it offers a robust way to handle complex projects with multiple dependencies, keeping the main repository clean and organized.
 
-
 <Aside>
 These are notes and guides on how to build out submodules inside of Git, so that you can control certain plugins throughout multiple repos effortlessly.
 This can go into private packages later on, if we need to.
 
 The shift to the private packages will come as we grow bigger and require more control.
+
 </Aside>
 
 ### Submodule Symbolic Link
@@ -624,7 +641,6 @@ This command does the following:
 </Steps>
 
 This way, you don't need to manually replace the branch name each time.
-
 
 ---
 
