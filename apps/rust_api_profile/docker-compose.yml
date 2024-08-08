@@ -18,11 +18,11 @@ services:
         - traefik.http.routers.rust_api.rule=Host(`rust.kbve.com`)
         #http
         - traefik.http.routers.rust_api_http.entrypoints=web
-        - traefik.http.routers.rust_api_http.rule=PathPrefix(`/`)
+        - traefik.http.routers.rust_api_http.rule=Host(`rust.kbve.com`) && PathPrefix(`/`)
         - traefik.http.routers.rust_api_http.service=rust_api
         # https
         - traefik.http.routers.rust_api_https.entrypoints=websecure
-        - traefik.http.routers.rust_api_https.rule=PathPrefix(`/`)
+        - traefik.http.routers.rust_api_https.rule=Host(`rust.kbve.com`) && PathPrefix(`/`)
         - traefik.http.routers.rust_api_https.service=rust_api
         - traefik.http.routers.rust_api_https.tls=true
     secrets:
