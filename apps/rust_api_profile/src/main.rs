@@ -33,20 +33,14 @@ mod allocator {
 async fn main() {
 	println!("◈ [LAUNCH] 🚀🚀");
 
-	let pool = db::establish_connection_pool();
-	let shared_pool = Arc::new(pool);
 	//let api_session_store = Arc::new(APISessionStore::new());
+	let shared_pool = Arc::new(db::establish_connection_pool());
+	let shared_validator_builder = Arc::new(ValidatorBuilder::<String, String>::new());
 
-	let validator_builder = ValidatorBuilder::<String, String>::new();
-	let shared_validator_builder = Arc::new(validator_builder);
-
-	// Create KbveState
-	let kbve_state = KbveState::new(
-		shared_pool.clone(),
-		shared_validator_builder
-	);
-
-	let application_state = Arc::new(kbve_state);
+	let application_state = Arc::new(KbveState::new(
+        shared_pool.clone(),
+        shared_validator_builder
+    ));
 
 	match global_map_init(shared_pool.clone()).await {
 		Ok(map) => {
