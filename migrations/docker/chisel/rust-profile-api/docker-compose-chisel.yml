@@ -29,6 +29,13 @@ services:
       - DATABASE_PROD_URL
     environment:
       - DATABASE_URL_PROD_FILE=/run/secrets/DATABASE_PROD_URL
+    # sysctls:
+    #   - net.ipv4.tcp_syncookies=1
+    #   - vm.swappiness=10
+    #   - vm.vfs_cache_pressure=50
+    #   - vm.overcommit_memory=1
+    #   - vm.dirty_ratio=15
+    #   - vm.dirty_background_ratio=5  
 
 secrets:
   DATABASE_PROD_URL:
