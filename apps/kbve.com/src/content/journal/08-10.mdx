@@ -22,6 +22,23 @@ While making the new mdx document for the capital city of clouds, I am going to 
 I might roll these three out as an optional frontmatter and then have the `Notes`, `Quotes` and `Tasks` under the astropad as a component.
 This would be a similar way to handle the `ItemDB` and this would make it easier for ai / ml functions to actively edit the changes without causing the document to break.
 
+**Rust API**
+We are going to be testing the api out with two different sets:
+
+```shell
+
+cd /tools/scripts/public/
+./loadtest.sh -u https://rust.kbve.com/ -n 1000
+./loadtest.sh -u https://rust.kbve.com/api/v1/speed -n 1000
+
+```
+
+The two routes are important because the first is just testing the `API` as a bare application without having to connect to a remote database, while the second connects directly to planetscale and runs a basic query.
+We can expand this loadtest shell file to test a large json query on a production application.
+After running the test, we see the performance of the application directly through `Portainer` and we can see that the memory usage after the burst is calming down.
+I am also limiting the hits to around `1000` because I do not plan on having more than that hit the specific container at once.
+On `Idle-Boot` would sit at around 19MB, after the first hit, it hits around `26.3MB` and then after the second hit, it hits `21.6MB`.
+
 
 <Adsense />
 
