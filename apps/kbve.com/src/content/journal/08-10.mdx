@@ -39,6 +39,16 @@ After running the test, we see the performance of the application directly throu
 I am also limiting the hits to around `1000` because I do not plan on having more than that hit the specific container at once.
 On `Idle-Boot` would sit at around 19MB, after the first hit, it hits around `26.3MB` and then after the second hit, it hits `21.6MB`.
 
+**Laser**
+Releasing the next laser patch with the updates for mapdb.
+The command for setting up the patch release is:
+
+```shell
+pnpm nx release --projects=laser
+```
+
+Then we go through the cli and select the minor patch update.
+Version bump was successful, we can loop back around and make sure that the new mapdb data works as intended.
 
 <Adsense />
 
