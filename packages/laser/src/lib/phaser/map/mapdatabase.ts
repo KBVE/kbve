@@ -1,5 +1,6 @@
 import Dexie from 'dexie';
 import axios from 'axios';
+import { Debug } from '../../utils/debug';
 import { IMapData } from '../../../types';
 
 class MapDatabase extends Dexie {
@@ -59,7 +60,7 @@ class MapDatabase extends Dexie {
       const response = await axios.get<IMapData>(url);
       return response.data;
     } catch (error) {
-      console.error(`Failed to fetch map data from ${url}:`, error);
+      Debug.error(`Failed to fetch map data from ${url}:`, error);
       return undefined;
     }
   }
@@ -70,7 +71,7 @@ class MapDatabase extends Dexie {
       const response = await axios.get<string>(url);
       return response.data;
     } catch (error) {
-      console.error(`Failed to fetch JSON data from ${url}:`, error);
+      Debug.error(`Failed to fetch JSON data from ${url}:`, error);
       return undefined;
     }
   }
@@ -81,7 +82,7 @@ class MapDatabase extends Dexie {
       const response = await axios.get(url, { responseType: 'blob' });
       return response.data;
     } catch (error) {
-      console.error(`Failed to fetch tileset image from ${url}:`, error);
+      Debug.error(`Failed to fetch tileset image from ${url}:`, error);
       return undefined;
     }
   }
@@ -102,7 +103,7 @@ class MapDatabase extends Dexie {
         }
       }
     } catch (error) {
-      console.error('Failed to initialize map database:', error);
+      Debug.error('Failed to initialize map database:', error);
     }
   }
 
@@ -110,19 +111,19 @@ class MapDatabase extends Dexie {
   async loadMapIntoScene(scene: Phaser.Scene, tilemapKey: string) {
     const mapData = await this.getMap(tilemapKey);
     if (!mapData) {
-      console.error(`Map with key ${tilemapKey} not found`);
+      Debug.error(`Map with key ${tilemapKey} not found`);
       return;
     }
 
     const jsonData = await this.getJsonData(tilemapKey);
     if (!jsonData) {
-      console.error(`JSON data for map ${tilemapKey} not found`);
+      Debug.error(`JSON data for map ${tilemapKey} not found`);
       return;
     }
 
     const tilesetImage = await this.getTilesetImage(tilemapKey);
     if (!tilesetImage) {
-      console.error(`Tileset image for map ${tilemapKey} not found`);
+      Debug.error(`Tileset image for map ${tilemapKey} not found`);
       return;
     }
 
@@ -135,13 +136,18 @@ class MapDatabase extends Dexie {
     scene.load.once('complete', () => {
       const map = scene.make.tilemap({ key: tilemapKey });
       const tileset = map.addTilesetImage(mapData.tilesetName, mapData.tilesetKey);
-      for (let i = 0; i < map.layers.length; i++) {
-        const layer = map.createLayer(i, tileset, 0, 0);
-        if (layer) {
-          layer.scale = mapData.scale;
-        } else {
-          console.error(`Layer ${i} could not be created.`);
+      if (tileset) {
+        // Use the tileset here, now TypeScript knows it's not null
+        for (let i = 0; i < map.layers.length; i++) {
+          const layer = map.createLayer(i, tileset, 0, 0);
+          if (layer) {
+            layer.scale = mapData.scale;
+          } else {
+            Debug.error(`Layer ${i} could not be created.`);
+          }
         }
+      } else {
+        Debug.error(`Tileset ${mapData.tilesetName} could not be created.`);
       }
     });
 
