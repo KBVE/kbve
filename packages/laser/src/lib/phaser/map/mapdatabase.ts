@@ -126,8 +126,21 @@ class MapDatabase extends Dexie {
       Debug.error(`Tileset image for map ${tilemapKey} not found`);
       return;
     }
-
-    const tilesetImageUrl = URL.createObjectURL(tilesetImage);
+  
+    let tilesetImageUrl: string | null = null;
+    try {
+      tilesetImageUrl = URL.createObjectURL(tilesetImage);
+    } catch (error) {
+      Debug.error(`Failed to create object URL for tileset image: ${error}`);
+      return;
+    }
+  
+    // If tilesetImageUrl is still null, something went wrong
+    if (!tilesetImageUrl) {
+      Debug.error(`Tileset image URL for map ${tilemapKey} could not be created.`);
+      return;
+    }
+  
 
     // Load the JSON data and tileset image into the Phaser scene
     scene.load.tilemapTiledJSON(tilemapKey, jsonData);
