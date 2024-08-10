@@ -1,0 +1,66 @@
+---
+title: "August: 10th"
+category: Daily
+date: 2024-08-10 12:00:00
+client: Self
+unsplash: 1688764896020-c448693ec24e
+img: https://images.unsplash.com/photo-1688764896020-c448693ec24e?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 10th. MapDB Zod
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Capital Cloud City**
+The name might be better as Cloud Capital City? or Capital City of Clouds?
+Within the different parts of the dialogue, we can reference it in latin or maybe our own style of languague.
+
+**Zod**
+While making the new mdx document for the capital city of clouds, I am going to see if I can make updates to the zod configuration to move the notes and quotes into the frontmatter.
+I might roll these three out as an optional frontmatter and then have the `Notes`, `Quotes` and `Tasks` under the astropad as a component.
+This would be a similar way to handle the `ItemDB` and this would make it easier for ai / ml functions to actively edit the changes without causing the document to break.
+
+**Rust API**
+We are going to be testing the api out with two different sets:
+
+```shell
+
+cd /tools/scripts/public/
+./loadtest.sh -u https://rust.kbve.com/ -n 1000
+./loadtest.sh -u https://rust.kbve.com/api/v1/speed -n 1000
+
+```
+
+The two routes are important because the first is just testing the `API` as a bare application without having to connect to a remote database, while the second connects directly to planetscale and runs a basic query.
+We can expand this loadtest shell file to test a large json query on a production application.
+After running the test, we see the performance of the application directly through `Portainer` and we can see that the memory usage after the burst is calming down.
+I am also limiting the hits to around `1000` because I do not plan on having more than that hit the specific container at once.
+On `Idle-Boot` would sit at around 19MB, after the first hit, it hits around `26.3MB` and then after the second hit, it hits `21.6MB`.
+
+
+<Adsense />
+
+## 2023
+- 4:30am - The premarket is looking rough but I am going to get ready this early morning to do some general checks around the house .
+- 5:15am - I need to look over my current workout, my body is not getting sore and I think that is because my workouts are too isolated and are not yet pushing it to the limits. I should add on more reps and maybe go till failure more often.
+- 6:05am - Morning trip to get some breakfast! Today will be a great day, the air is filled with peaceful vibes.
+- 9:00am - I am doing a bit of whiteboard style mapping for the Supabase migration, I call this part of my tri-force structure, with that being said, I still need to update the public Strapi docker image and maybe migrate the name to something along the lines of a Logging API or something within that nature? Our holy trinity stack is Strapi, Appwrite and Supabase for now! This feels like a bit overkill within certain scopes but I have isolated each of the elements to be more specific to their purpose. We will be using Supabase as the core authentication for the user management, Strapi to handle the log system and general moderation and finally Appwrite to handle all our edge functions and their abstractions. While Supabase does provide some unique instances of edge functions, definitely within the AI eco-system, I found that having complete control over that eco-system to be a bit more impactful and allows a bit more freedom when building out those micro-services.
+- 3:00pm - Lunch time! Break time. I am going to make myself some quick and dirty ramen. I definitely should add more veggies into my diet doe. 
+- 6:15pm - I should migrate over the next patch for development, as well as avoid any larger pushes that might hurt the base. 
+- 7:00pm - To stay on schedule, I will push through this daily patch and wrap up some of the storage mechanisms that I wanted to deploy. 
+- 8:19pm - Started the Login setup for Supabase! I decided that I would try to build it out in Svelte instead of React, just to see how it would work out!
+
+---
+
+## Quote
+
+> You have to believe in yourself.
+> — <cite>Sun Tzu</cite>
+
+---
+
+## Tasks
+
+- [ ]
