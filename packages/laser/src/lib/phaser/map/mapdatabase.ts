@@ -4,25 +4,64 @@ import { Debug } from '../../utils/debug';
 import { IMapData } from '../../../types';
 
 class MapDatabase extends Dexie {
+  maps: Dexie.Table<IMapData, string>;
+  jsonFiles: Dexie.Table<{ tilemapKey: string; jsonData: string }, string>;
+  tilesetImages: Dexie.Table<{ tilemapKey: string; imageData: Blob }, string>;
 
-    maps: Dexie.Table<IMapData, string>;
-    jsonFiles: Dexie.Table<{ tilemapKey: string; jsonData: string }, string>;
-    tilesetImages: Dexie.Table<{ tilemapKey: string; imageData: Blob }, string>;
+  constructor() {
+    super('MapDatabase');
+    this.version(1).stores({
+      maps: 'tilemapKey',
+      jsonFiles: 'tilemapKey',
+      tilesetImages: 'tilemapKey',
+    });
+    this.maps = this.table('maps');
+    this.jsonFiles = this.table('jsonFiles');
+    this.tilesetImages = this.table('tilesetImages');
+  }
+
+  async initializeMapDatabase() {
+    const localUrl = '/api/mapdb.json';
+    const fallbackUrl = 'https://kbve.com/api/mapdb.json';
+    let mapDatabaseJson;
   
-
-    constructor() {
-        super('MapDatabase');
-        this.version(1).stores({
-        maps: 'tilemapKey',
-        jsonFiles: 'tilemapKey',
-        tilesetImages: 'tilemapKey',
-        });
-        this.maps = this.table('maps');
-        this.jsonFiles = this.table('jsonFiles');
-        this.tilesetImages = this.table('tilesetImages');
+    try {
+      const response = await axios.get(localUrl);
+      mapDatabaseJson = response.data;
+      Debug.log(`Map database loaded from ${localUrl}`);
+    } catch (error) {
+      Debug.warn(`Failed to load map database from ${localUrl}, trying fallback URL.`);
+      try {
+        const fallbackResponse = await axios.get(fallbackUrl);
+        mapDatabaseJson = fallbackResponse.data;
+        Debug.log(`Map database loaded from ${fallbackUrl}`);
+      } catch (fallbackError) {
+        Debug.error(`Failed to load map database from both ${localUrl} and ${fallbackUrl}`);
+        return;
+      }
     }
+  
+    // Assuming mapDatabaseJson contains the structure as shown in your example
+    if (mapDatabaseJson && mapDatabaseJson.key) {
+      for (const tilemapKey in mapDatabaseJson.key) {
+        if (Object.prototype.hasOwnProperty.call(mapDatabaseJson.key, tilemapKey)) {
+          const mapData = mapDatabaseJson.key[tilemapKey];
+          await this.addMap(mapData);
+          await this.addJsonData(tilemapKey, mapData.jsonDataUrl);
+          const tilesetImage = await this.fetchTilesetImage(mapData.tilesetImageUrl);
+          if (tilesetImage) {
+            await this.addTilesetImage(tilemapKey, tilesetImage);
+          }
+        }
+      }
+      Debug.log('Map database initialized and data loaded.');
+    } else {
+      Debug.error('Invalid map database format.');
+    }
+  }  
 
-     // Adding or updating map data
+  
+  // Adding or updating map data
   async addMap(mapData: IMapData) {
     await this.maps.put(mapData);
   }
@@ -88,7 +127,12 @@ class MapDatabase extends Dexie {
   }
 
   // Initialize the map database with data from URLs
-  async initializeMap(tilemapKey: string, mapDataUrl: string, jsonDataUrl: string, tilesetImageUrl: string) {
+  async initializeMap(
+    tilemapKey: string,
+    mapDataUrl: string,
+    jsonDataUrl: string,
+    tilesetImageUrl: string,
+  ) {
     try {
       const mapData = await this.fetchMapData(mapDataUrl);
       if (mapData) {
@@ -126,7 +170,7 @@ class MapDatabase extends Dexie {
       Debug.error(`Tileset image for map ${tilemapKey} not found`);
       return;
     }
-  
+
     let tilesetImageUrl: string | null = null;
     try {
       tilesetImageUrl = URL.createObjectURL(tilesetImage);
@@ -134,13 +178,14 @@ class MapDatabase extends Dexie {
       Debug.error(`Failed to create object URL for tileset image: ${error}`);
       return;
     }
-  
+
     // If tilesetImageUrl is still null, something went wrong
     if (!tilesetImageUrl) {
-      Debug.error(`Tileset image URL for map ${tilemapKey} could not be created.`);
+      Debug.error(
+        `Tileset image URL for map ${tilemapKey} could not be created.`,
+      );
       return;
     }
-  
 
     // Load the JSON data and tileset image into the Phaser scene
     scene.load.tilemapTiledJSON(tilemapKey, jsonData);
@@ -148,7 +193,10 @@ class MapDatabase extends Dexie {
 
     scene.load.once('complete', () => {
       const map = scene.make.tilemap({ key: tilemapKey });
-      const tileset = map.addTilesetImage(mapData.tilesetName, mapData.tilesetKey);
+      const tileset = map.addTilesetImage(
+        mapData.tilesetName,
+        mapData.tilesetKey,
+      );
       if (tileset) {
         // Use the tileset here, now TypeScript knows it's not null
         for (let i = 0; i < map.layers.length; i++) {
@@ -166,7 +214,6 @@ class MapDatabase extends Dexie {
 
     scene.load.start();
   }
-
 }
 
 // Export the class itself

@@ -47,8 +47,14 @@ Still ends up having the application crash, so maybe it needs even more ram, but
 We might want to move the navigation bar up within the z-index?
 There are a couple graphical bugs that seem to be caused by an overloading the `z-index`.
 
+**Laser**
+Updated the `index.ts` to have the exported MapDatabase.ts , `export * from './lib/phaser/map/mapdatabase';`.
+I am thinking that we would have to also build out an initilize function that would load the map data.
+
 **MapDB**
 Next update will be for using the new tilemap setup!
 The bigger issue will be the loading of the `1000x1000` within the browser memory, but this is part of the test casing.
 
- 
+**DevOps**
+The next update to the `devops` package should be ready to be released and deployed within the next couple of hours.
+I am going to finish up the base of the map loading and then work around the map issue.
