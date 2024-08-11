@@ -168,3 +168,9 @@ class MapDatabase extends Dexie {
   }
 
 }
+
+// Export the class itself
+export { MapDatabase };
+
+// Export a singleton instance
+export const mapDatabase = new MapDatabase();

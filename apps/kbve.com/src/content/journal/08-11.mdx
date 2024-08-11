@@ -1,0 +1,44 @@
+---
+title: "August: 11th"
+category: Daily
+date: 2024-08-11 12:00:00
+client: Self
+unsplash: 1688764896020-c448693ec24e
+img: https://images.unsplash.com/photo-1688764896020-c448693ec24e?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 11th. Map DB Integration.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Atlas CT**
+Next bug to handle is the loading of the `https://cryptothrone.com` within the atlas project.
+The error that we are getting is `Error code: SIGTRAP`
+
+Here is the compose that we are using right now:
+
+```yaml
+
+version: '3.8'
+
+services:
+  atlas:
+    image: kbve/atlas:latest
+    networks:
+      - public
+      - atlas
+    shm_size: '2gb'
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          memory: 4g
+
+```
+
+However we are still getting a bunch of the `SIGTRAP` errors when going through the different test cases.
+Still ends up having the application crash, so maybe it needs even more ram, but if that is the case then it be best not to use it.
