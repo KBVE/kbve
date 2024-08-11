@@ -19,16 +19,7 @@ declare global {
   }
 }
 
-class ExtendedSprite extends Phaser.GameObjects.Sprite {
-  textBubble?: Phaser.GameObjects.Container;
-  tooltip?: Phaser.GameObjects.Container;
-}
-
-
-
 export class SandCity extends Scene {
-
-
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
   quadtree: Quadtree;
@@ -66,7 +57,6 @@ export class SandCity extends Scene {
     const playerSprite = this.add.sprite(0, 0, 'player');
     playerSprite.scale = 1.5;
 
-
     this.cameras.main.startFollow(playerSprite, true);
     this.cameras.main.setFollowOffset(
       -playerSprite.width,
@@ -81,7 +71,6 @@ export class SandCity extends Scene {
           walkingAnimationMapping: 6,
           startPosition: { x: 5, y: 12 },
         },
-
       ],
       numberOfDirections: 8,
     };
@@ -100,8 +89,6 @@ export class SandCity extends Scene {
     await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
 
     await npcDatabase.loadCharacter(this, '01J2HQJBMBGEEMWDBDWATRCY3T', 8, 15);
-
-   
 
     window.__GRID_ENGINE__ = this.gridEngine;
   }
