@@ -19,21 +19,7 @@ declare global {
   }
 }
 
-class ExtendedSprite extends Phaser.GameObjects.Sprite {
-  textBubble?: Phaser.GameObjects.Container;
-  tooltip?: Phaser.GameObjects.Container;
-}
-
-interface PositionChangeEvent {
-  charId: string;
-  exitTile: { x: number; y: number };
-  enterTile: { x: number; y: number };
-}
-
 export class SandCity extends Scene {
-  npcSprite: ExtendedSprite | undefined;
-  fishNpcSprite: ExtendedSprite | undefined;
-
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
   quadtree: Quadtree;
@@ -46,17 +32,14 @@ export class SandCity extends Scene {
   }
 
   preload() {
-    
     EventEmitter.emit('notification', {
       title: 'Success',
       message: `You arrived safely to SandCity Passport: ${createULID()}`,
       notificationType: notificationType.success,
     });
-
   }
 
   async create() {
-
     let cloudCityTilemap: Phaser.Tilemaps.Tilemap | null = null;
 
     try {
@@ -71,26 +54,14 @@ export class SandCity extends Scene {
       return;
     }
 
-
     const playerSprite = this.add.sprite(0, 0, 'player');
     playerSprite.scale = 1.5;
-
-    this.npcSprite = this.add.sprite(0, 0, 'player');
-    this.npcSprite.name = 'npc';
-    this.npcSprite.scale = 1.5;
-
-    this.fishNpcSprite = this.add.sprite(0, 0, 'player');
-    this.fishNpcSprite.name = 'fishNpc';
-    this.fishNpcSprite.scale = 1.5;
 
     this.cameras.main.startFollow(playerSprite, true);
     this.cameras.main.setFollowOffset(
       -playerSprite.width,
       -playerSprite.height,
     );
-
-
- 
 
     const gridEngineConfig = {
       characters: [
@@ -100,21 +71,6 @@ export class SandCity extends Scene {
           walkingAnimationMapping: 6,
           startPosition: { x: 5, y: 12 },
         },
-        {
-          id: 'npc',
-          sprite: this.npcSprite,
-          walkingAnimationMapping: 5,
-          startPosition: { x: 4, y: 10 },
-          speed: 3,
-        },
-        {
-          id: 'fishNpc',
-          sprite: this.fishNpcSprite,
-          walkingAnimationMapping: 4,
-          startPosition: { x: 8, y: 14 },
-          speed: 3,
-        },
-
       ],
       numberOfDirections: 8,
     };
@@ -128,21 +84,11 @@ export class SandCity extends Scene {
       this.quadtree,
     );
 
-
     await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM', 6, 6);
 
     await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
 
     await npcDatabase.loadCharacter(this, '01J2HQJBMBGEEMWDBDWATRCY3T', 8, 15);
-
-    this.gridEngine.moveRandomly('npc', 1500, 3);
-    this.gridEngine.moveRandomly('fishNpc', 1500, 3);
-
-
-
-
-
-
 
     window.__GRID_ENGINE__ = this.gridEngine;
   }
@@ -209,6 +155,5 @@ export class SandCity extends Scene {
 
   update() {
     this.playerController?.handleMovement();
-
   }
 }
