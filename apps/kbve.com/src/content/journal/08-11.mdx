@@ -1,0 +1,63 @@
+---
+title: "August: 11th"
+category: Daily
+date: 2024-08-11 12:00:00
+client: Self
+unsplash: 1688764896020-c448693ec24e
+img: https://images.unsplash.com/photo-1688764896020-c448693ec24e?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 11th. Map DB Integration.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Atlas CT**
+Next bug to handle is the loading of the `https://cryptothrone.com` within the atlas project.
+The error that we are getting is `Error code: SIGTRAP`
+
+Here is the compose that we are using right now:
+
+```yaml
+
+version: '3.8'
+
+services:
+  atlas:
+    image: kbve/atlas:latest
+    networks:
+      - public
+      - atlas
+    shm_size: '2gb'
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          memory: 4g
+
+```
+
+However we are still getting a bunch of the `SIGTRAP` errors when going through the different test cases.
+Still ends up having the application crash, so maybe it needs even more ram, but if that is the case then it be best not to use it.
+
+**NavBar**
+We might want to move the navigation bar up within the z-index?
+There are a couple graphical bugs that seem to be caused by an overloading the `z-index`.
+
+**Laser**
+Updated the `index.ts` to have the exported MapDatabase.ts , `export * from './lib/phaser/map/mapdatabase';`.
+I am thinking that we would have to also build out an initilize function that would load the map data.
+
+**MapDB**
+Next update will be for using the new tilemap setup!
+The bigger issue will be the loading of the `1000x1000` within the browser memory, but this is part of the test casing.
+After looking through the possible refactors of the `MapDB`, the next step would be to move the ability to load a specific map as a function from the database?
+I am thinking that it would make more sense to do it using a web worker but since this a core part of the game, it would make sense to have it on the main thread.
+The function of `loadMap` should be in the `mapdatabase.ts` to help us quickly load the json-based map data.
+
+**DevOps**
+The next update to the `devops` package should be ready to be released and deployed within the next couple of hours.
+I am going to finish up the base of the map loading and then work around the map issue.
