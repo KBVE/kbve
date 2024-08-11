@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 
-import { reloadItemDB, npcDatabase  } from '@kbve/laser';
+import { reloadItemDB, npcDatabase, mapDatabase  } from '@kbve/laser';
 
 export class Title extends Scene {
     mainMenuButtonImage: Phaser.GameObjects.Image | undefined;
@@ -20,18 +20,18 @@ export class Title extends Scene {
         this.load.image('background', 'https://kbve.com/assets/img/fishchip/scaled_fish_menu_minigame.webp');
         //this.load.image('fish', 'https://kbve.com/assets/img/letter_logo.png');
 
-        //  Cloud TileSet -> cloud_tileset.png
-        this.load.image("tiles", "https://kbve.com/assets/img/fishchip/desert_tileset_1.png");
-        this.load.image("cloud-city-tiles", "/assets/map/cloud_tileset.png");
+        // //  Cloud TileSet -> cloud_tileset.png
+        // this.load.image("tiles", "https://kbve.com/assets/img/fishchip/desert_tileset_1.png");
+        // this.load.image("cloud-city-tiles", "/assets/map/cloud_tileset.png");
 
-        this.load.tilemapTiledJSON(
-            "cloud-city-map-large",
-            "/assets/map/cloud_city_large.json",
-        );
-        this.load.tilemapTiledJSON(
-            "cloud-city-map",
-            "https://kbve.com/assets/img/fishchip/cloud_city.json",
-        );
+        // this.load.tilemapTiledJSON(
+        //     "cloud-city-map-large",
+        //     "/assets/map/cloud_city_large.json",
+        // );
+        // this.load.tilemapTiledJSON(
+        //     "cloud-city-map",
+        //     "https://kbve.com/assets/img/fishchip/cloud_city.json",
+        // );
         // /assets/img/fishchip/characters_filter.png
         this.load.spritesheet("player", "https://kbve.com/assets/img/fishchip/chip_charactersheet_warmer.png", {
             frameWidth: 52,
@@ -62,6 +62,7 @@ export class Title extends Scene {
     async create() {
 
         await npcDatabase.initializeDatabase();
+        await mapDatabase.initializeMapDatabase();
         
         // if (!this.sound.get('music')?.isPlaying) {
         //     this.sound.add('music', { loop: true, volume: 0.1 }).play();

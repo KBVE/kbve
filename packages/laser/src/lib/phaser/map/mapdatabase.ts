@@ -24,31 +24,39 @@ class MapDatabase extends Dexie {
     const localUrl = '/api/mapdb.json';
     const fallbackUrl = 'https://kbve.com/api/mapdb.json';
     let mapDatabaseJson;
-  
+
     try {
       const response = await axios.get(localUrl);
       mapDatabaseJson = response.data;
       Debug.log(`Map database loaded from ${localUrl}`);
     } catch (error) {
-      Debug.warn(`Failed to load map database from ${localUrl}, trying fallback URL.`);
+      Debug.warn(
+        `Failed to load map database from ${localUrl}, trying fallback URL.`,
+      );
       try {
         const fallbackResponse = await axios.get(fallbackUrl);
         mapDatabaseJson = fallbackResponse.data;
         Debug.log(`Map database loaded from ${fallbackUrl}`);
       } catch (fallbackError) {
-        Debug.error(`Failed to load map database from both ${localUrl} and ${fallbackUrl}`);
+        Debug.error(
+          `Failed to load map database from both ${localUrl} and ${fallbackUrl}`,
+        );
         return;
       }
     }
-  
+
     // Assuming mapDatabaseJson contains the structure as shown in your example
     if (mapDatabaseJson && mapDatabaseJson.key) {
       for (const tilemapKey in mapDatabaseJson.key) {
-        if (Object.prototype.hasOwnProperty.call(mapDatabaseJson.key, tilemapKey)) {
+        if (
+          Object.prototype.hasOwnProperty.call(mapDatabaseJson.key, tilemapKey)
+        ) {
           const mapData = mapDatabaseJson.key[tilemapKey];
           await this.addMap(mapData);
           await this.addJsonData(tilemapKey, mapData.jsonDataUrl);
-          const tilesetImage = await this.fetchTilesetImage(mapData.tilesetImageUrl);
+          const tilesetImage = await this.fetchTilesetImage(
+            mapData.tilesetImageUrl,
+          );
           if (tilesetImage) {
             await this.addTilesetImage(tilemapKey, tilesetImage);
           }
@@ -58,9 +66,8 @@ class MapDatabase extends Dexie {
     } else {
       Debug.error('Invalid map database format.');
     }
-  }  
+  }
 
-  
   // Adding or updating map data
   async addMap(mapData: IMapData) {
     await this.maps.put(mapData);
@@ -214,6 +221,62 @@ class MapDatabase extends Dexie {
 
     scene.load.start();
   }
+
+  async loadMap(scene: Phaser.Scene, tilemapKey: string): Promise<Phaser.Tilemaps.Tilemap | null> {
+    const mapData = await this.getMap(tilemapKey);
+    if (!mapData) {
+      throw new Error(`Map with key ${tilemapKey} not found`);
+    }
+  
+    const jsonData = await this.getJsonData(tilemapKey);
+    if (!jsonData) {
+      throw new Error(`JSON data for map ${tilemapKey} not found`);
+    }
+  
+    const tilesetImage = await this.getTilesetImage(tilemapKey);
+    if (!tilesetImage) {
+      throw new Error(`Tileset image for map ${tilemapKey} not found`);
+    }
+  
+    let tilesetImageUrl: string | null = null;
+    try {
+      tilesetImageUrl = URL.createObjectURL(tilesetImage);
+    } catch (error) {
+      throw new Error(`Failed to create object URL for tileset image: ${error}`);
+    }
+  
+    if (!tilesetImageUrl) {
+      throw new Error(`Tileset image URL for map ${tilemapKey} could not be created.`);
+    }
+  
+    // Load the JSON data and tileset image into the Phaser scene
+    scene.load.tilemapTiledJSON(tilemapKey, jsonData);
+    scene.load.image(mapData.tilesetKey, tilesetImageUrl);
+  
+    return new Promise<Phaser.Tilemaps.Tilemap | null>((resolve) => {
+      scene.load.once('complete', () => {
+        const map = scene.make.tilemap({ key: tilemapKey });
+        const tileset = map.addTilesetImage(mapData.tilesetName, mapData.tilesetKey);
+        if (tileset) {
+          for (let i = 0; i < map.layers.length; i++) {
+            const layer = map.createLayer(i, mapData.tilesetName, 0, 0);
+            if (layer) {
+              layer.scale = mapData.scale;
+            } else {
+              console.error(`Layer ${i} could not be created.`);
+            }
+          }
+          resolve(map); // Return the created tilemap
+        } else {
+          console.error(`Tileset ${mapData.tilesetName} could not be created.`);
+          resolve(null);
+        }
+      });
+  
+      scene.load.start();
+    });
+  }
+  
 }
 
 // Export the class itself
