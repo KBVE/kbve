@@ -54,6 +54,9 @@ I am thinking that we would have to also build out an initilize function that wo
 **MapDB**
 Next update will be for using the new tilemap setup!
 The bigger issue will be the loading of the `1000x1000` within the browser memory, but this is part of the test casing.
+After looking through the possible refactors of the `MapDB`, the next step would be to move the ability to load a specific map as a function from the database?
+I am thinking that it would make more sense to do it using a web worker but since this a core part of the game, it would make sense to have it on the main thread.
+The function of `loadMap` should be in the `mapdatabase.ts` to help us quickly load the json-based map data.
 
 **DevOps**
 The next update to the `devops` package should be ready to be released and deployed within the next couple of hours.
