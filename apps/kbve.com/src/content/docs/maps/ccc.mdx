@@ -1,0 +1,100 @@
+---
+title: Capital City of Clouds
+description: |
+  The Capital City of Clouds stands as a shimmering beacon where the sleek, neon aesthetics of cyberpunk blend seamlessly with the lush, green architecture of solarpunk.
+  Towering skyscrapers, adorned with solar panels and vertical gardens, pierce the sky, their bases cloaked in mist and digital advertisements.
+  Autonomous drones buzz through the air, delivering goods while wind turbines and solar arrays power the entire city.
+  The streets are a mix of bustling marketplaces and serene green spaces, where advanced technology and sustainable living coalesce in harmony.
+  Above it all, floating platforms connected by sky bridges create an elevated network, offering breathtaking views of the cityscape and the surrounding wilderness.
+sidebar:
+  label: Capital City of Clouds
+  order: 1
+unsplash: 1590840960672-db24958eef9a
+img: https://images.unsplash.com/photo-1633421878925-ac220d8f6e4f?fit=crop&w=1400&h=700&q=75
+tags:
+  - gamedev
+  - mapdb
+mapdb:
+    -   bounds:
+            xMin: 0
+            xMax: 1000
+            yMin: 0
+            yMax: 1000
+        tilemapKey: cloud-city-map
+        tilesetName: Cloud City
+        tilesetLayer: Cloud City
+        tilesetImageUrl: /assets/items/map/ccc/cloud_tileset.png
+        tilesetKey: ccc-tiles
+        scale: 3
+        npcs:
+            -   ulid: 01J2DT4G871KJ0VNSHCNC5REDM
+                position:
+                    x: 6
+                    y: 6
+            -   ulid: 01J2HCTMQ58JBMJGW9YA3FBQCG
+                position:
+                    x: 8
+                    y: 8
+            -   ulid: 01J2HQJBMBGEEMWDBDWATRCY3T
+                position:
+                    x: 20
+                    y: 20   
+        jsonDataUrl: /assets/items/map/ccc/cloud_city.json
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+  LinkCard,
+  Tabs,
+  TabItem,
+} from '@astrojs/starlight/components';
+
+import { Adsense } from '@kbve/astropad';
+
+## CCC
+
+The Capital City of Clouds, or CCC, is a historical city characterized by its towering, green-clad skyscrapers and advanced technology, serving as a foundational pillar within our games' lore.
+Often called Cloud City Capital, its blend of cyberpunk aesthetics and solarpunk sustainability shapes the narrative and environment throughout the game.
+
+### History
+
+---
+
+<Aside>
+
+Remember this map is open source! Feel free to contribute to the history and lore!
+
+</Aside>
+
+## Dev
+
+For the development side of this map, here are the core locations for the raw map data.
+
+<FileTree>
+
+    -   apps/
+        -   kbve.com/
+            -   public/
+                -   assets/
+                    -   items/
+                        -   map/
+                            -   ccc/
+                                -   cloud_tileset.png
+                                -   cloud_city.json
+        -   README.md
+    -   README.md
+
+</FileTree>
+
+The `CCC` map is being used in both games, `CryptoThrone` and `RareIcon`, but it is open source and can be used with other maps, yet a direct link to this document is still required.
+
+---
+
+## LICENSE
+
+- The CCC Map is still missing a license attribution, but that will be a while until we get all the map and the assets resolved.
