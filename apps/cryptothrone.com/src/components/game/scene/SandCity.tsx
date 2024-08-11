@@ -5,19 +5,10 @@ import {
   type Bounds,
   type Range,
   PlayerController,
-  createMessageBubble,
-  getBirdNum,
-  isBird,
-  createBirdSprites,
-  createShadowSprites,
-  createBirdAnimation,
   EventEmitter,
-  type OpenModalEventData,
   type CharacterEventData,
-  type PlayerEventData,
   notificationType,
   createULID,
-  npcHandler,
   npcDatabase,
   mapDatabase,
 } from '@kbve/laser';
@@ -42,8 +33,7 @@ interface PositionChangeEvent {
 export class SandCity extends Scene {
   npcSprite: ExtendedSprite | undefined;
   fishNpcSprite: ExtendedSprite | undefined;
-  monsterBirdSprites: Phaser.GameObjects.Sprite[] = [];
-  monsterBirdShadows: Phaser.GameObjects.Sprite[] = [];
+
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
   quadtree: Quadtree;
@@ -51,16 +41,12 @@ export class SandCity extends Scene {
 
   constructor() {
     super({ key: 'SandCity' });
-    const bounds: Bounds = { xMin: 0, xMax: 20, yMin: 0, yMax: 20 };
+    const bounds: Bounds = { xMin: 0, xMax: 100, yMin: 0, yMax: 100 };
     this.quadtree = new Quadtree(bounds);
   }
 
   preload() {
-    this.load.spritesheet('monster_bird', '/assets/monster/bird_original.png', {
-      frameWidth: 61,
-      frameHeight: 57,
-    });
-
+    
     EventEmitter.emit('notification', {
       title: 'Success',
       message: `You arrived safely to SandCity Passport: ${createULID()}`,
@@ -72,17 +58,6 @@ export class SandCity extends Scene {
   async create() {
 
     let cloudCityTilemap: Phaser.Tilemaps.Tilemap | null = null;
-
-    // const cloudCityTilemap = this.make.tilemap({ key: 'cloud-city-map' });
-    // cloudCityTilemap.addTilesetImage('Cloud City', 'tiles');
-    // for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-    //   const layer = cloudCityTilemap.createLayer(i, 'Cloud City', 0, 0);
-    //   if (layer) {
-    //     layer.scale = 3;
-    //   } else {
-    //     console.error(`Layer ${i} could not be created.`);
-    //   }
-    // }
 
     try {
       cloudCityTilemap = await mapDatabase.loadMap(this, 'cloud-city-map');
@@ -114,12 +89,8 @@ export class SandCity extends Scene {
       -playerSprite.height,
     );
 
-    createBirdAnimation(this);
 
-    this.monsterBirdSprites = createBirdSprites(this);
-    this.monsterBirdShadows = createShadowSprites(this);
-
-    this.anims.staggerPlay('bird', this.monsterBirdSprites, 100);
+ 
 
     const gridEngineConfig = {
       characters: [
@@ -143,22 +114,7 @@ export class SandCity extends Scene {
           startPosition: { x: 8, y: 14 },
           speed: 3,
         },
-        ...this.monsterBirdSprites.map((sprite, i) => ({
-          id: 'monster_bird_' + i,
-          sprite,
-          startPosition: { x: 7, y: 7 + i },
-          speed: 5,
-          collides: false,
-          //charLayer: 'sky'
-        })),
-        ...this.monsterBirdShadows.map((sprite, i) => ({
-          id: 'monster_bird_shadow_' + i,
-          sprite,
-          startPosition: { x: 7, y: 7 + i },
-          speed: 5,
-          //charLayer: 'ground',
-          collides: false,
-        })),
+
       ],
       numberOfDirections: 8,
     };
@@ -182,20 +138,9 @@ export class SandCity extends Scene {
     this.gridEngine.moveRandomly('npc', 1500, 3);
     this.gridEngine.moveRandomly('fishNpc', 1500, 3);
 
-    for (let i = 0; i < 10; i++) {
-      this.gridEngine.moveRandomly('monster_bird_' + i, 1000, 10);
-    }
 
-    this.gridEngine
-      .positionChangeStarted()
-      .subscribe(({ charId, exitTile, enterTile }: PositionChangeEvent) => {
-        if (isBird(charId)) {
-          this.gridEngine.moveTo('monster_bird_shadow_' + getBirdNum(charId), {
-            x: enterTile.x,
-            y: enterTile.y,
-          });
-        }
-      });
+
+
 
 
 
