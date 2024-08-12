@@ -1,7 +1,7 @@
 import Dexie from 'dexie';
 import axios from 'axios';
 import { Debug } from '../../utils/debug';
-import { IMapData } from '../../../types';
+import { IMapData, type Bounds, type INPCObjectGPS, type GridEngineScene } from '../../../types';
 
 class MapDatabase extends Dexie {
   maps: Dexie.Table<IMapData, string>;
@@ -45,7 +45,6 @@ class MapDatabase extends Dexie {
       }
     }
 
-    // Assuming mapDatabaseJson contains the structure as shown in your example
     if (mapDatabaseJson && mapDatabaseJson.key) {
       for (const tilemapKey in mapDatabaseJson.key) {
         if (
@@ -98,6 +97,26 @@ class MapDatabase extends Dexie {
   async getTilesetImage(tilemapKey: string): Promise<Blob | undefined> {
     const image = await this.tilesetImages.get(tilemapKey);
     return image?.imageData;
+  }
+
+  // Fetching the bounds for a map
+  async getBounds(tilemapKey: string): Promise<Bounds | undefined> {
+    const mapData = await this.maps.get(tilemapKey);
+    return mapData?.bounds;
+  }
+
+  // Fetching the NPCs for a map
+  async getNpcsForTilesetKey(
+    tilesetKey: string,
+  ): Promise<INPCObjectGPS[] | undefined> {
+    const mapData = await mapDatabase.getMap(tilesetKey);
+
+    if (!mapData) {
+      Debug.error(`No map data found for tilesetKey: ${tilesetKey}`);
+      return undefined;
+    }
+
+    return mapData.npcs || [];
   }
 
   // Fetching map data from a URL
@@ -222,41 +241,51 @@ class MapDatabase extends Dexie {
     scene.load.start();
   }
 
-  async loadMap(scene: Phaser.Scene, tilemapKey: string): Promise<Phaser.Tilemaps.Tilemap | null> {
+  async loadMap(
+    scene: Phaser.Scene,
+    tilemapKey: string,
+  ): Promise<Phaser.Tilemaps.Tilemap | null> {
     const mapData = await this.getMap(tilemapKey);
     if (!mapData) {
       throw new Error(`Map with key ${tilemapKey} not found`);
     }
-  
+
     const jsonData = await this.getJsonData(tilemapKey);
     if (!jsonData) {
       throw new Error(`JSON data for map ${tilemapKey} not found`);
     }
-  
+
     const tilesetImage = await this.getTilesetImage(tilemapKey);
     if (!tilesetImage) {
       throw new Error(`Tileset image for map ${tilemapKey} not found`);
     }
-  
+
     let tilesetImageUrl: string | null = null;
     try {
       tilesetImageUrl = URL.createObjectURL(tilesetImage);
     } catch (error) {
-      throw new Error(`Failed to create object URL for tileset image: ${error}`);
+      throw new Error(
+        `Failed to create object URL for tileset image: ${error}`,
+      );
     }
-  
+
     if (!tilesetImageUrl) {
-      throw new Error(`Tileset image URL for map ${tilemapKey} could not be created.`);
+      throw new Error(
+        `Tileset image URL for map ${tilemapKey} could not be created.`,
+      );
     }
-  
+
     // Load the JSON data and tileset image into the Phaser scene
     scene.load.tilemapTiledJSON(tilemapKey, jsonData);
     scene.load.image(mapData.tilesetKey, tilesetImageUrl);
-  
+
     return new Promise<Phaser.Tilemaps.Tilemap | null>((resolve) => {
       scene.load.once('complete', () => {
         const map = scene.make.tilemap({ key: tilemapKey });
-        const tileset = map.addTilesetImage(mapData.tilesetName, mapData.tilesetKey);
+        const tileset = map.addTilesetImage(
+          mapData.tilesetName,
+          mapData.tilesetKey,
+        );
         if (tileset) {
           for (let i = 0; i < map.layers.length; i++) {
             const layer = map.createLayer(i, mapData.tilesetName, 0, 0);
@@ -272,10 +301,39 @@ class MapDatabase extends Dexie {
           resolve(null);
         }
       });
-  
+
       scene.load.start();
     });
   }
+
+  async loadNpcsToScene(scene: GridEngineScene, tilesetKey: string) {
+    const mapData = await this.getMap(tilesetKey);
+
+    if (!mapData || !mapData.npcs || mapData.npcs.length === 0) {
+      console.error(`No NPCs found for tilesetKey: ${tilesetKey}`);
+      return;
+    }
+
+    if (!scene.gridEngine) {
+      console.error('Grid Engine is not loaded in the scene.');
+      return;
+    }
+
+    for (const npc of mapData.npcs) {
+      const { ulid, position } = npc;
+      try {
+        await scene.gridEngine.addCharacter({
+          id: ulid,
+          sprite: scene.add.sprite(position.x, position.y, 'npcSprite'), // Adjust sprite key as needed
+          startPosition: { x: position.x, y: position.y },
+        });
+        console.log(`Loaded NPC with ULID: ${ulid} at position (${position.x}, ${position.y})`);
+      } catch (error) {
+        console.error(`Failed to load NPC with ULID: ${ulid}`, error);
+      }
+    }
+  }
+
   
 }
 

@@ -7,6 +7,7 @@ import {
   PlayerController,
   EventEmitter,
   type CharacterEventData,
+  type GridEngineScene,
   notificationType,
   createULID,
   npcDatabase,
@@ -22,13 +23,11 @@ declare global {
 export class SandCity extends Scene {
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
-  quadtree: Quadtree;
+  quadtree: Quadtree | undefined;
   playerController: PlayerController | undefined;
 
   constructor() {
     super({ key: 'SandCity' });
-    const bounds: Bounds = { xMin: 0, xMax: 100, yMin: 0, yMax: 100 };
-    this.quadtree = new Quadtree(bounds);
   }
 
   preload() {
@@ -52,6 +51,14 @@ export class SandCity extends Scene {
     if (!cloudCityTilemap) {
       console.error('Tilemap could not be loaded.');
       return;
+    }
+
+    const bounds = await mapDatabase.getBounds('cloud-city-map');
+    if (bounds) {
+        this.quadtree = new Quadtree(bounds);
+    } else {
+        console.error('Bounds could not be retrieved.');
+        return;
     }
 
     const playerSprite = this.add.sprite(0, 0, 'player');
@@ -91,6 +98,7 @@ export class SandCity extends Scene {
     await npcDatabase.loadCharacter(this, '01J2HQJBMBGEEMWDBDWATRCY3T', 8, 15);
 
     window.__GRID_ENGINE__ = this.gridEngine;
+
   }
 
   loadRanges() {
@@ -149,6 +157,7 @@ export class SandCity extends Scene {
     ];
 
     for (const range of ranges) {
+      if(this.quadtree != undefined)
       this.quadtree.insert(range);
     }
   }
