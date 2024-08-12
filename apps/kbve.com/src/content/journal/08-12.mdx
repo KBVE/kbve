@@ -41,13 +41,39 @@ async getNpcsForTilesetKey(
 It seems that putting the full function into this document, causes MDX to bug out xD.
 Anyhow, moving forward, after grabbing the NPC details and their position on the map, we can then load the NPCs.
 There are two options that we could use, one is having the NPCDatabase aka the `npcdatabase.ts` load the NPCs or we could try to use the Scene itself to handle the loading, hmm.
+The next issue we are having is that it is taking a bit too long to load the player into the game and load up the NPCs, maybe we need to see if there might be a better way to load them into the game?
 
 **Player**
 Within the player controller, we could also add a function setup the player controller and the player sprite?
 I was thinking that it could be its own library but for this situation, it might make more sense to continue using the playercontroller, eventually this class will evolve into the whole player class.
 One of the things that I wanted to avoid was building out too many files, trying to keep it isolated but also easier to understand without having to jump all around amoung different classes and files.
+Next we need to update the camera to help with the async loading, I am thinking that we could setup a couple effects / event systems to help with the camera panning.
+This means we would have to build a future library class known as `camerahandler` and have it perform some calculations on our behalf.
 
+```ts
+    const playerSprite = this.add.sprite(0, 0, 'player');
+    playerSprite.scale = 1.5;
 
+    const playerBounds = playerSprite.getBounds();
+
+    const targetX = playerBounds.centerX + (playerSprite.width * 3);
+    const targetY = playerBounds.centerY + (playerSprite.height * 3);
+
+    this.cameras.main.pan(targetX, targetY, 1000, 'Power2');
+
+    this.cameras.main.once('camerapancomplete', () => {
+      this.cameras.main.startFollow(playerSprite, true);
+      this.cameras.main.setFollowOffset(
+        -playerSprite.width,
+        -playerSprite.height,
+      );
+    });
+
+```
+
+For now, we will keep this simple function and move forward with the next part of the code base that needs to be updated.
+
+<Adsense />
 
 
 ## 2023

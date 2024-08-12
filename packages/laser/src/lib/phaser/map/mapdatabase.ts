@@ -1,7 +1,12 @@
 import Dexie from 'dexie';
 import axios from 'axios';
 import { Debug } from '../../utils/debug';
-import { IMapData, type Bounds, type INPCObjectGPS, type GridEngineScene } from '../../../types';
+import {
+  IMapData,
+  type Bounds,
+  type INPCObjectGPS,
+  type GridEngineScene,
+} from '../../../types';
 
 class MapDatabase extends Dexie {
   maps: Dexie.Table<IMapData, string>;
@@ -106,7 +111,7 @@ class MapDatabase extends Dexie {
   }
 
   // Fetching the NPCs for a map
-  async getNpcsForTilesetKey(
+  async getNpcsFromTilesetKey(
     tilesetKey: string,
   ): Promise<INPCObjectGPS[] | undefined> {
     const mapData = await mapDatabase.getMap(tilesetKey);
@@ -116,7 +121,7 @@ class MapDatabase extends Dexie {
       return undefined;
     }
 
-    return mapData.npcs || [];
+    return mapData.npcs;
   }
 
   // Fetching map data from a URL
@@ -304,34 +309,6 @@ class MapDatabase extends Dexie {
 
       scene.load.start();
     });
-  }
-
-  async loadNpcsToScene(scene: GridEngineScene, tilesetKey: string) {
-    const mapData = await this.getMap(tilesetKey);
-
-    if (!mapData || !mapData.npcs || mapData.npcs.length === 0) {
-      console.error(`No NPCs found for tilesetKey: ${tilesetKey}`);
-      return;
-    }
-
-    if (!scene.gridEngine) {
-      console.error('Grid Engine is not loaded in the scene.');
-      return;
-    }
-
-    for (const npc of mapData.npcs) {
-      const { ulid, position } = npc;
-      try {
-        await scene.gridEngine.addCharacter({
-          id: ulid,
-          sprite: scene.add.sprite(position.x, position.y, 'npcSprite'), // Adjust sprite key as needed
-          startPosition: { x: position.x, y: position.y },
-        });
-        console.log(`Loaded NPC with ULID: ${ulid} at position (${position.x}, ${position.y})`);
-      } catch (error) {
-        console.error(`Failed to load NPC with ULID: ${ulid}`, error);
-      }
-    }
   }
 
   
