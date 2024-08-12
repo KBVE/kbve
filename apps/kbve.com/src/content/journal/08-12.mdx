@@ -18,6 +18,63 @@ During the test casing for the memory usage, we were able to solve a decent amou
 Yet, we still need to go back around and look at how we are handling the async code && functions, furthermore there is the whole issue with the delay with planetscale.
 I trying to figure out what would be the best way to lower the speed that it would take for establishing a connection to the remote database but also we should offload some of the resources to a cache-style service.
 
+**Bounds**
+The next update to the `mapdatabase.ts` will be the `getBounds` function, which would look something like this:
+
+```ts
+async getBounds(tilemapKey: string): Promise<Bounds | undefined> {
+  const mapData = await this.maps.get(tilemapKey);
+  return mapData?.bounds;
+}
+```
+
+Afterwards, we will update the bounds of the map and then move towards loading up the NPCs, and to do that, we will need a function to help us pull the NPC data from the map database.
+
+```ts
+
+async getNpcsForTilesetKey(
+    tilesetKey: string,
+  ): Promise<INPCObjectGPS[] | undefined> {}
+
+```
+
+It seems that putting the full function into this document, causes MDX to bug out xD.
+Anyhow, moving forward, after grabbing the NPC details and their position on the map, we can then load the NPCs.
+There are two options that we could use, one is having the NPCDatabase aka the `npcdatabase.ts` load the NPCs or we could try to use the Scene itself to handle the loading, hmm.
+The next issue we are having is that it is taking a bit too long to load the player into the game and load up the NPCs, maybe we need to see if there might be a better way to load them into the game?
+
+**Player**
+Within the player controller, we could also add a function setup the player controller and the player sprite?
+I was thinking that it could be its own library but for this situation, it might make more sense to continue using the playercontroller, eventually this class will evolve into the whole player class.
+One of the things that I wanted to avoid was building out too many files, trying to keep it isolated but also easier to understand without having to jump all around amoung different classes and files.
+Next we need to update the camera to help with the async loading, I am thinking that we could setup a couple effects / event systems to help with the camera panning.
+This means we would have to build a future library class known as `camerahandler` and have it perform some calculations on our behalf.
+
+```ts
+    const playerSprite = this.add.sprite(0, 0, 'player');
+    playerSprite.scale = 1.5;
+
+    const playerBounds = playerSprite.getBounds();
+
+    const targetX = playerBounds.centerX + (playerSprite.width * 3);
+    const targetY = playerBounds.centerY + (playerSprite.height * 3);
+
+    this.cameras.main.pan(targetX, targetY, 1000, 'Power2');
+
+    this.cameras.main.once('camerapancomplete', () => {
+      this.cameras.main.startFollow(playerSprite, true);
+      this.cameras.main.setFollowOffset(
+        -playerSprite.width,
+        -playerSprite.height,
+      );
+    });
+
+```
+
+For now, we will keep this simple function and move forward with the next part of the code base that needs to be updated.
+
+<Adsense />
+
 
 ## 2023
 - 12:31am - I spent most of the day setting up and understanding the core concepts of Supabase! The holy trinity is almost ready to be pushed out to the masses, I suppose the next step will be to test case a couple different instances, including the mobile platform. 

@@ -7,10 +7,12 @@ import {
   PlayerController,
   EventEmitter,
   type CharacterEventData,
+  type GridEngineScene,
   notificationType,
   createULID,
   npcDatabase,
   mapDatabase,
+  Debug,
 } from '@kbve/laser';
 
 declare global {
@@ -22,13 +24,11 @@ declare global {
 export class SandCity extends Scene {
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
-  quadtree: Quadtree;
+  quadtree: Quadtree | undefined;
   playerController: PlayerController | undefined;
 
   constructor() {
     super({ key: 'SandCity' });
-    const bounds: Bounds = { xMin: 0, xMax: 100, yMin: 0, yMax: 100 };
-    this.quadtree = new Quadtree(bounds);
   }
 
   preload() {
@@ -45,23 +45,40 @@ export class SandCity extends Scene {
     try {
       cloudCityTilemap = await mapDatabase.loadMap(this, 'cloud-city-map');
     } catch (error) {
-      console.error('Failed to load map:', error);
+      Debug.error('Failed to load map:', error);
       return;
     }
 
     if (!cloudCityTilemap) {
-      console.error('Tilemap could not be loaded.');
+      Debug.error('Tilemap could not be loaded.');
+      return;
+    }
+
+    const bounds = await mapDatabase.getBounds('cloud-city-map');
+    if (bounds) {
+      this.quadtree = new Quadtree(bounds);
+    } else {
+      Debug.error('Bounds could not be retrieved.');
       return;
     }
 
     const playerSprite = this.add.sprite(0, 0, 'player');
     playerSprite.scale = 1.5;
 
-    this.cameras.main.startFollow(playerSprite, true);
-    this.cameras.main.setFollowOffset(
-      -playerSprite.width,
-      -playerSprite.height,
-    );
+    const playerBounds = playerSprite.getBounds();
+
+    const targetX = playerBounds.centerX + (playerSprite.width * 3);
+    const targetY = playerBounds.centerY + (playerSprite.height * 3);
+
+    this.cameras.main.pan(targetX, targetY, 1000, 'Power2');
+
+    this.cameras.main.once('camerapancomplete', () => {
+      this.cameras.main.startFollow(playerSprite, true);
+      this.cameras.main.setFollowOffset(
+        -playerSprite.width,
+        -playerSprite.height,
+      );
+    });
 
     const gridEngineConfig = {
       characters: [
@@ -84,11 +101,27 @@ export class SandCity extends Scene {
       this.quadtree,
     );
 
-    await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM', 6, 6);
+    // Retrieve NPCs from mapDatabase
+    const npcs = await mapDatabase.getNpcsFromTilesetKey('cloud-city-map');
 
-    await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
+    if (npcs) {
+      for (const npc of npcs) {
+        try {
+          await npcDatabase.loadCharacter(
+            this,
+            npc.ulid,
+            npc.position.x,
+            npc.position.y,
+          );
+        } catch (error) {
+          Debug.error(`Failed to load NPC with ULID: ${npc.ulid}`, error);
+        }
+      }
+    }
 
-    await npcDatabase.loadCharacter(this, '01J2HQJBMBGEEMWDBDWATRCY3T', 8, 15);
+    // await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM', 6, 6);
+    // await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
+    // await npcDatabase.loadCharacter(this, '01J2HQJBMBGEEMWDBDWATRCY3T', 8, 15);
 
     window.__GRID_ENGINE__ = this.gridEngine;
   }
@@ -149,7 +182,7 @@ export class SandCity extends Scene {
     ];
 
     for (const range of ranges) {
-      this.quadtree.insert(range);
+      if (this.quadtree != undefined) this.quadtree.insert(range);
     }
   }
 
