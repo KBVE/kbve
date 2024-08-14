@@ -1,3 +1,9 @@
+import { Scene } from 'phaser';
+
+export interface GridEngineScene extends Scene {
+  gridEngine: any;
+}
+
 export interface IPlayerStats {
   username: string;
   health: string;
@@ -359,15 +365,15 @@ export function isDiceAction(action: MinigameAction): action is DiceAction {
 
 // NPC Engine
 
-export interface INPCPosition {
-  x: number;
-  y: number;
-}
+// export interface INPCPosition {
+//   x: number;
+//   y: number;
+// }
 
 //* 08-03-2024 Extension
-// export interface INPCPosition extends Point {
-//   id?: string;
-// }
+export interface INPCPosition extends Point {
+   id?: string;
+}
 
 export interface INPCData {
   id: string;

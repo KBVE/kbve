@@ -3,38 +3,17 @@ import Phaser from 'phaser';
 import {
   Quadtree,
   type Bounds,
-  type Point,
   type Range,
   PlayerController,
-} from '@kbve/laser';
-
-import { createTextBubble, updateTextBubblePosition, createMessageBubble } from '@kbve/laser';
-
-import {
-  getBirdNum,
-  isBird,
-  createBirdSprites,
-  createShadowSprites,
-  createBirdAnimation,
-} from '@kbve/laser';
-
-import {
   EventEmitter,
-  type OpenModalEventData,
   type CharacterEventData,
-  type PlayerEventData,
-  notificationType
+  type GridEngineScene,
+  notificationType,
+  createULID,
+  npcDatabase,
+  mapDatabase,
+  Debug,
 } from '@kbve/laser';
-
-import {
-  createULID
-} from '@kbve/laser'
-
-
-
-//import { TooltipMenu } from '@kbve/laser';
-
-import { npcHandler, npcDatabase } from '@kbve/laser';
 
 declare global {
   interface Window {
@@ -42,89 +21,64 @@ declare global {
   }
 }
 
-class ExtendedSprite extends Phaser.GameObjects.Sprite {
-  textBubble?: Phaser.GameObjects.Container;
-  tooltip?: Phaser.GameObjects.Container;
-
-}
-
-interface PositionChangeEvent {
-  charId: string;
-  exitTile: { x: number; y: number };
-  enterTile: { x: number; y: number };
-}
-
 export class SandCity extends Scene {
-  npcSprite: ExtendedSprite | undefined;
-  fishNpcSprite: ExtendedSprite | undefined;
-  monsterBirdSprites: Phaser.GameObjects.Sprite[] = [];
-  monsterBirdShadows: Phaser.GameObjects.Sprite[] = [];
   cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   gridEngine: any;
-  quadtree: Quadtree;
+  quadtree: Quadtree | undefined;
   playerController: PlayerController | undefined;
 
   constructor() {
     super({ key: 'SandCity' });
-    const bounds: Bounds = { xMin: 0, xMax: 20, yMin: 0, yMax: 20 };
-    this.quadtree = new Quadtree(bounds);
   }
 
   preload() {
-    this.load.spritesheet('monster_bird', '/assets/monster/bird_original.png', {
-      frameWidth: 61,
-      frameHeight: 57,
-    });
-
     EventEmitter.emit('notification', {
       title: 'Success',
       message: `You arrived safely to SandCity Passport: ${createULID()}`,
       notificationType: notificationType.success,
     });
-
-    // const __playerData: PlayerEventData = {
-    //   health: '100',
-    //   account: 'Guest',
-    //   mana: '100',
-    //   inventory: [],
-    // };
-    // EventEmitter.emit('playerEvent', __playerData);
   }
 
   async create() {
-    const cloudCityTilemap = this.make.tilemap({ key: 'cloud-city-map' });
-    cloudCityTilemap.addTilesetImage('Cloud City', 'tiles');
-    for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-      const layer = cloudCityTilemap.createLayer(i, 'Cloud City', 0, 0);
-      if (layer) {
-        layer.scale = 3;
-      } else {
-        console.error(`Layer ${i} could not be created.`);
-      }
+    let cloudCityTilemap: Phaser.Tilemaps.Tilemap | null = null;
+
+    try {
+      cloudCityTilemap = await mapDatabase.loadMap(this, 'cloud-city-map');
+    } catch (error) {
+      Debug.error('Failed to load map:', error);
+      return;
     }
+
+    if (!cloudCityTilemap) {
+      Debug.error('Tilemap could not be loaded.');
+      return;
+    }
+
+    const bounds = await mapDatabase.getBounds('cloud-city-map');
+    if (bounds) {
+      this.quadtree = new Quadtree(bounds);
+    } else {
+      Debug.error('Bounds could not be retrieved.');
+      return;
+    }
+
     const playerSprite = this.add.sprite(0, 0, 'player');
     playerSprite.scale = 1.5;
 
-    this.npcSprite = this.add.sprite(0, 0, 'player');
-    this.npcSprite.name = 'npc';
-    this.npcSprite.scale = 1.5;
+    const playerBounds = playerSprite.getBounds();
 
-    this.fishNpcSprite = this.add.sprite(0, 0, 'player');
-    this.fishNpcSprite.name = 'fishNpc';
-    this.fishNpcSprite.scale = 1.5;
+    const targetX = playerBounds.centerX + (playerSprite.width * 3);
+    const targetY = playerBounds.centerY + (playerSprite.height * 3);
 
-    this.cameras.main.startFollow(playerSprite, true);
-    this.cameras.main.setFollowOffset(
-      -playerSprite.width,
-      -playerSprite.height,
-    );
+    this.cameras.main.pan(targetX, targetY, 1000, 'Power2');
 
-    createBirdAnimation(this);
-
-    this.monsterBirdSprites = createBirdSprites(this);
-    this.monsterBirdShadows = createShadowSprites(this);
-
-    this.anims.staggerPlay('bird', this.monsterBirdSprites, 100);
+    this.cameras.main.once('camerapancomplete', () => {
+      this.cameras.main.startFollow(playerSprite, true);
+      this.cameras.main.setFollowOffset(
+        -playerSprite.width,
+        -playerSprite.height,
+      );
+    });
 
     const gridEngineConfig = {
       characters: [
@@ -134,36 +88,6 @@ export class SandCity extends Scene {
           walkingAnimationMapping: 6,
           startPosition: { x: 5, y: 12 },
         },
-        {
-          id: 'npc',
-          sprite: this.npcSprite,
-          walkingAnimationMapping: 5,
-          startPosition: { x: 4, y: 10 },
-          speed: 3,
-        },
-        {
-          id: 'fishNpc',
-          sprite: this.fishNpcSprite,
-          walkingAnimationMapping: 4,
-          startPosition: { x: 8, y: 14 },
-          speed: 3,
-        },
-        ...this.monsterBirdSprites.map((sprite, i) => ({
-          id: 'monster_bird_' + i,
-          sprite,
-          startPosition: { x: 7, y: 7 + i },
-          speed: 5,
-          collides: false,
-          //charLayer: 'sky'
-        })),
-        ...this.monsterBirdShadows.map((sprite, i) => ({
-          id: 'monster_bird_shadow_' + i,
-          sprite,
-          startPosition: { x: 7, y: 7 + i },
-          speed: 5,
-          //charLayer: 'ground',
-          collides: false,
-        })),
       ],
       numberOfDirections: 8,
     };
@@ -177,69 +101,27 @@ export class SandCity extends Scene {
       this.quadtree,
     );
 
-    createMessageBubble(
-      this,
-      this.npcSprite,
-      'Enter the sand pit to start fishing! Go near it and press F!',
-      3000
-    );
+    // Retrieve NPCs from mapDatabase
+    const npcs = await mapDatabase.getNpcsFromTilesetKey('cloud-city-map');
 
-    await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM', 6,6);
-    
-    await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
-
-    await npcDatabase.loadCharacter(this, '01J2HQJBMBGEEMWDBDWATRCY3T', 8, 15);
-
-    // this.gridEngine.follow('01J2HCTMQ58JBMJGW9YA3FBQCG', '01J2DT4G871KJ0VNSHCNC5REDM', 0, true);
-
-    // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
-    this.gridEngine.moveRandomly('npc', 1500, 3);
-    this.gridEngine.moveRandomly('fishNpc', 1500, 3);
-
-    for (let i = 0; i < 10; i++) {
-      this.gridEngine.moveRandomly('monster_bird_' + i, 1000, 10);
+    if (npcs) {
+      for (const npc of npcs) {
+        try {
+          await npcDatabase.loadCharacter(
+            this,
+            npc.ulid,
+            npc.position.x,
+            npc.position.y,
+          );
+        } catch (error) {
+          Debug.error(`Failed to load NPC with ULID: ${npc.ulid}`, error);
+        }
+      }
     }
 
-    this.gridEngine
-      .positionChangeStarted()
-      .subscribe(({ charId, exitTile, enterTile }: PositionChangeEvent) => {
-        if (isBird(charId)) {
-          this.gridEngine.moveTo('monster_bird_shadow_' + getBirdNum(charId), {
-            x: enterTile.x,
-            y: enterTile.y,
-          });
-        }
-      });
-    
-      // const attachNPCEventWithCoords = (sprite: ExtendedSprite, title: string, actions: { label: string }[]) => {
-      //   const position = this.gridEngine.getPosition(sprite.name);
-      //   npcHandler.attachNPCEvent(sprite, title, actions, { coords: position });
-      // };
-  
-      // attachNPCEventWithCoords(this.npcSprite, 'FisherMan', [
-      //   { label: 'Talk' },
-      //   { label: 'Trade' },
-      //   { label: 'Move to' },
-      //   { label: 'Steal' },
-      //   { label: 'Combat' }
-      // ]);
-  
-      // attachNPCEventWithCoords(this.fishNpcSprite, 'Fish NPC Actions', [
-      //   { label: 'Check Fish' },
-      //   { label: 'Move to' }
-      // ]);
-
-      
-    // this.gridEngine.follow("player", "npc", 0, true);
-
-    // Add tooltip menu functionality
-    // TooltipMenu.attachToSprite(this, this.npcSprite, "NPC Actions", [
-    //   { label: "Talk", callback: () => console.log("Talking to NPC") },
-    //   { label: "Trade", callback: () => console.log("Trading with NPC") }
-    // ]);
-    // TooltipMenu.attachToSprite(this, this.fishNpcSprite, "Fish NPC Actions", [
-    //   { label: "Check Fish", callback: () => console.log("Checking fish count") }
-    // ]);
+    // await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM', 6, 6);
+    // await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
+    // await npcDatabase.loadCharacter(this, '01J2HQJBMBGEEMWDBDWATRCY3T', 8, 15);
 
     window.__GRID_ENGINE__ = this.gridEngine;
   }
@@ -251,7 +133,8 @@ export class SandCity extends Scene {
         bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
         action: () => {
           const eventData: CharacterEventData = {
-            message: 'Seems like there are no fish in the sand pits. You know null, this area could be fixed up a bit too.',
+            message:
+              'Seems like there are no fish in the sand pits. You know null, this area could be fixed up a bit too.',
           };
           EventEmitter.emit('charEvent', eventData);
         },
@@ -261,13 +144,12 @@ export class SandCity extends Scene {
         bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
         action: () => {
           const eventData = {
-              message:
-                'Sign does not have much to say.',
-              character_name: 'Evee The BarKeep',
-              character_image: '/assets/npc/barkeep.webp',
-              background_image: '/assets/background/woodensign.webp',
-            };
-            EventEmitter.emit('charEvent', eventData);
+            message: 'Sign does not have much to say.',
+            character_name: 'Evee The BarKeep',
+            character_image: '/assets/npc/barkeep.webp',
+            background_image: '/assets/background/woodensign.webp',
+          };
+          EventEmitter.emit('charEvent', eventData);
         },
       },
       {
@@ -300,19 +182,11 @@ export class SandCity extends Scene {
     ];
 
     for (const range of ranges) {
-      this.quadtree.insert(range);
+      if (this.quadtree != undefined) this.quadtree.insert(range);
     }
   }
 
   update() {
     this.playerController?.handleMovement();
-
-    // if (this.npcSprite && this.npcSprite.textBubble) {
-    //   updateTextBubblePosition(this.npcSprite);
-    // }
-    // if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
-    //   updateTextBubblePosition(this.fishNpcSprite);
-    // }
-    // TooltipMenu.updateAllTooltipPositions(this);
   }
 }
