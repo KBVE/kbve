@@ -10,9 +10,13 @@ services:
       - KBVE_API_FILE
     environment:
       - KBVE_API_FILE: /run/secrets/KBVE_API_FILE
+    shm_size: '2gb'
     deploy:
       mode: replicated
       replicas: 1
+      resources:
+        limits:
+          memory: 4g
       labels:
         # Base Traefik Labels
         - traefik.enable=true
@@ -22,11 +26,11 @@ services:
         - traefik.http.routers.atlas.rule=Host(`atlas.kbve.com`)
         # http
         - traefik.http.routers.atlas_http.entrypoints=web
-        - traefik.http.routers.atlas_http.rule=PathPrefix(`/`)
+        - traefik.http.routers.atlas_http.rule=Host(`atlas.kbve.com`) && PathPrefix(`/`)
         - traefik.http.routers.atlas_http.service=atlas
         # https
         - traefik.http.routers.atlas_https.entrypoints=websecure
-        - traefik.http.routers.atlas_https.rule=PathPrefix(`/`)
+        - traefik.http.routers.atlas_https.rule=Host(`atlas.kbve.com`) && PathPrefix(`/`)
         - traefik.http.routers.atlas_https.service=atlas
         - traefik.http.routers.atlas_https.tls=true
 

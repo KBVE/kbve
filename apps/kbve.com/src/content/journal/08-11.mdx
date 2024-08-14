@@ -1,0 +1,85 @@
+---
+title: "August: 11th"
+category: Daily
+date: 2024-08-11 12:00:00
+client: Self
+unsplash: 1689509293411-b199bdbf96fb
+img: https://images.unsplash.com/photo-1689509293411-b199bdbf96fb?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 11th. Map DB Integration.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Atlas CT**
+Next bug to handle is the loading of the `https://cryptothrone.com` within the atlas project.
+The error that we are getting is `Error code: SIGTRAP`
+
+Here is the compose that we are using right now:
+
+```yaml
+
+version: '3.8'
+
+services:
+  atlas:
+    image: kbve/atlas:latest
+    networks:
+      - public
+      - atlas
+    shm_size: '2gb'
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          memory: 4g
+
+```
+
+However we are still getting a bunch of the `SIGTRAP` errors when going through the different test cases.
+Still ends up having the application crash, so maybe it needs even more ram, but if that is the case then it be best not to use it.
+
+**NavBar**
+We might want to move the navigation bar up within the z-index?
+There are a couple graphical bugs that seem to be caused by an overloading the `z-index`.
+
+**Laser**
+Updated the `index.ts` to have the exported MapDatabase.ts , `export * from './lib/phaser/map/mapdatabase';`.
+I am thinking that we would have to also build out an initilize function that would load the map data.
+
+**MapDB**
+Next update will be for using the new tilemap setup!
+The bigger issue will be the loading of the `1000x1000` within the browser memory, but this is part of the test casing.
+After looking through the possible refactors of the `MapDB`, the next step would be to move the ability to load a specific map as a function from the database?
+I am thinking that it would make more sense to do it using a web worker but since this a core part of the game, it would make sense to have it on the main thread.
+The function of `loadMap` should be in the `mapdatabase.ts` to help us quickly load the json-based map data.
+
+**DevOps**
+The next update to the `devops` package should be ready to be released and deployed within the next couple of hours.
+I am going to finish up the base of the map loading and then work around the map issue.
+
+
+## 2023
+- 4:50am - FRIDAY! FRIDAY! It is ducking Friday. This will be an interesting morning as I have to test case the migration of `Supabase`, but honestly it has not been too rough. Svelte has been an interesting route to take because it will be another new framework for me to test out. 
+- 6:00am - My sleep schedule has been a bit offsetting lately, I am getting these random urges of just getting to the AI area of the project! I know that I need to catch up to the rest of the team, but at the same time, I have a rather interesting way of approaching the problem. I call it the hackers take, where I need to break the software down and guess and check until I get what I want. The downside of this method means that I have to go through a couple rounds of getting beat up and silly mistakes, BUT it will be worth it in the long run, I know of it. 
+- 8:30am - I forgot that I was assigned on one of my TSLA puts, I am glad to have those shares added into my account but the cost basis was a bit too high for my taste. I will roll these shares at the same price point that I was assigned, hopefully I can get rid of them at a decent price.
+- 11:07am - We reviewed the migration plan for the Docker eco-system at work and I feel overly confident that it will be able to scale and auto-repair without any major hic-ups. During the development cycle, I was able to spawn a couple quorums of docker swarm, each with around 5 nodes each. We were able to loop, backup and stress test them , achieving a solid network consistency of under 200ms. There are improves that we could do to get it even further down but at this point it is not worth it because the end-users and businesses can not really tell the difference in the speeds, as if you account for the JavaScript rendering on the browser, it alone takes around 900ms, so this is more than optimal speeds. I have to be careful on how I go about this, because I know that I can not share too much information as it would be under the realm of trade secrets but I have done all of this outside of the company's scope and majority of the tools are open source.
+- 2:00pm - I am going to test case the front end for KBVE and see if I can at least get through some of the main issues that the company might face. My goal is not to just build out a better front end but one that would minimize the overall usage of Supabase and have some levels of flexibility, including the usage of react components with svelte. 
+- 4:30pm - While I take a brief break from the madness, I should look into the directus integration once more for Supabase but there are some issues that I can already see happening, including the large amount of data that will be flowing in and out of the Supabase's db. This might be where I could implement Pocketbase and Surrealdb into the mixture, both of these databases will provide a way to offload the main burden that is held on Supabase, I would think of them as helpers. I suppose another way to look at this would be to implement a proxy-like data fetching component that could be utilized in other areas, similar to the redis-rust-n8n concept that I showed at a meeting earlier this week. 
+- 7:42pm - Svelte hCaptcha seems to be resolved, I was able to figure out how to load external javascript files and then interact with them using svelte. I can see where Astro really shines, the fact that I can easily integrate among different javascript libraries is brilliant and make things far more interesting! We will see the true scale of how far we can push the boundaries when I start to integrate 3D modeling into the front-end base. We did this earlier with the Unity Webgl but I want to take things further, mainly to see how far I can improve my front end experience. 
+- 9:00pm - I am going to wrap this day's journal up from here and start working on tomorrows journal. 
+
+## Quote
+
+> Nothing is softer or more flexible than water, yet nothing can resist it.
+> — <cite>Laozi</cite>
+
+---
+
+## Tasks
+
+- [x] Integrate Supabase into the final tri-force.
