@@ -41,6 +41,65 @@ const journal = defineCollection({
 
 We can extend out `quotes` and `tasks` as arrays.
 Lets start with the first zod for quotes and then we can look into the `tasks` and `archived`.
+The quotes schema could look like this:
+
+```ts
+
+const QuotesSchema = z.object({
+  quote: z.string(),
+  author: z.string().optional(),
+  date: z.date().optional(),
+});
+
+```
+
+but we could extend it out to include a footnote, as well, which will be a `z.string().optional()`.
+I asked GPT to create a base schema and this is what it came up with:
+
+```ts
+const QuotesSchema = z.object({
+  quote: z.string(),
+  author: z.string().optional(),
+  date: z.date().optional(),
+  footnote: z.string().optional(),
+  source: z.string().optional(),
+  context: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  id: z.string().optional(),
+  importance: z.enum(['high', 'medium', 'low']).optional(),
+  language: z.string().optional(),
+  page: z.number().optional(),
+});
+
+```
+
+These are the breakdowns for teach of the schema suggestions, I will this noted for now.
+
+Source: If you need to track where the quote was taken from (e.g., a book, speech, article), you could add a source field.
+Example: source: z.string().optional()
+
+Context: A field to provide additional context or background information for the quote.
+Example: context: z.string().optional()
+
+Tags: To categorize or label quotes, a tags array could be useful.
+Example: tags: z.array(z.string()).optional()
+
+
+ID: If you plan to reference quotes elsewhere or need a unique identifier, you could add an id field.
+Example: id: z.string().optional()
+
+
+Importance/Priority: A field to denote the significance of the quote (e.g., primary, secondary).
+Example: importance: z.enum(['high', 'medium', 'low']).optional()
+
+
+Language: If the project is multilingual, specifying the language of the quote might be useful.
+Example: language: z.string().optional()
+
+
+Page Number:For quotes from books or documents, a page field could track the page number.
+Example: page: z.number().optional()
+
 
 <Adsense />
 
