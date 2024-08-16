@@ -59,6 +59,9 @@ We can now call it via `export { default as Tasks } from './src/tasks/Tasks.astr
 The tasks look a bit better now and moving them into the frontmatter will help us in the long term!
 Next we need to setup the archive but before I get to that point, let me see if I can adjust the looks for the tasks.
 
+As for the tasks that are completed, we want to automatically move those into a different array within the schema.
+The new array would be archive or archived, which will still be the array of taskschemas but we will keep them compact and slightly hidden.
+
 **Wg-Easy**
 While I am updating the task schema system, I need to finish test casing the wireguard system.
 We want to make sure that all our applications are connected at the wireguard level and that our abstracted mesh system can communicate without having major problems.
