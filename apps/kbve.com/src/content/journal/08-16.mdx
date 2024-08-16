@@ -1,5 +1,5 @@
 ---
-title: "August: 16th"
+title: 'August: 16th'
 category: Daily
 date: 2024-08-16 12:00:00
 client: Self
@@ -9,18 +9,29 @@ description: August 16th. Configs.
 tags:
   - daily
 tasks:
-  - id: "task-001"
-    title: "Update Configurations"
-    description: "Update the project configuration files to the latest standards."
+  - id: 'task-001'
+    title: 'Update Configurations'
+    description: 'Update the project configuration files to the latest standards.'
     dueDate: 2024-08-16T15:00:00Z
     completed: false
     priority: 3
     tags:
       - config
       - update
-    assignee: "Self"
+    assignee: 'Self'
+  - id: 'task-002'
+    title: 'Update Task Style'
+    description: 'Update the task style settings when being displayed on the website.'
+    dueDate: 2024-08-16T15:00:00Z
+    completed: false
+    priority: 3
+    tags:
+      - config
+      - update
+    assignee: 'Self'
 ---
-import { Adsense } from '@kbve/astropad';
+
+import { Adsense, Tasks } from '@kbve/astropad';
 
 ## 2024
 
@@ -29,7 +40,6 @@ The task module will be similar to the quote and itemdb, I will throw it into th
 The current task schema would look like this:
 
 ```ts
-
 const TaskSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -40,18 +50,34 @@ const TaskSchema = z.object({
   tags: z.array(z.string()).optional(),
   assignee: z.string().optional(),
 });
-
 ```
 
 We could write an additional helper function for the `id` to make sure that they are a valid ulid.
 Also the priority can be changed to a max of 6 or 7, but I do not think we need that level of an extreme.
 I am going to copyleft the `ItemDBTable.astro` and turn it into the `Tasks.astro`, then going to updated the `astropad` package.
 We can now call it via `export { default as Tasks } from './src/tasks/Tasks.astro';` and thus import it via `Tasks`.
+The tasks look a bit better now and moving them into the frontmatter will help us in the long term!
+Next we need to setup the archive but before I get to that point, let me see if I can adjust the looks for the tasks.
+
+**Wg-Easy**
+While I am updating the task schema system, I need to finish test casing the wireguard system.
+We want to make sure that all our applications are connected at the wireguard level and that our abstracted mesh system can communicate without having major problems.
+There was a wireguard mesh that was setup almost two years ago but its a bit outdated and needs to be improved.
+I should get into the habit of updated the daily journals a bit faster and making sure everything stays into a proper sync.
+
+<Adsense />
 
 ## 2023
 
-- 5:00am - I am up and ready! I do need to prepare my mornings a bit better, so I am thinking of adding a couple quick ToDos into the mix. 
-- 6:01am  - After SSS, I am going to quickly grab some coffee and slowly shift my mind over to the minor development issues that we are running into on the main `kbve.com` repo. 
-- 8:18am - Damn it took a bit too long to finally resolve the dev hang! 
-- 12:25pm - Going to shift over to the `n8n` and also look over some of the documentation for the hackathon this weekend! I definitely want to make sure that everything is good to go by Thursday night, I am currently taking a bit of a hybrid mixture of notes, some digital and some analog. 
-- 1:10pm - I might have to put some constraints on how I will work on the main repo, I believe that while using the mdx files for i18n integration might not be worth it right now. I may have to go back to it later on, in a different date? This part of the project planning and pathway is a bit tough on a developer's standpoint. I see the benefit of using the mdx files for structuring some of the static content but I can also see where the issues can arise, definitely in the scope of certain projects and their styles. 
+- 5:00am - I am up and ready! I do need to prepare my mornings a bit better, so I am thinking of adding a couple quick ToDos into the mix.
+
+- 6:01am - After SSS, I am going to quickly grab some coffee and slowly shift my mind over to the minor development issues that we are running into on the main `kbve.com` repo.
+
+- 8:18am - Damn it took a bit too long to finally resolve the dev hang!
+
+- 12:25pm - Going to shift over to the `n8n` and also look over some of the documentation for the hackathon this weekend! I definitely want to make sure that everything is good to go by Thursday night, I am currently taking a bit of a hybrid mixture of notes, some digital and some analog.
+
+- 1:10pm - I might have to put some constraints on how I will work on the main repo, I believe that while using the mdx files for i18n integration might not be worth it right now. I may have to go back to it later on, in a different date? This part of the project planning and pathway is a bit tough on a developer's standpoint. I see the benefit of using the mdx files for structuring some of the static content but I can also see where the issues can arise, definitely in the scope of certain projects and their styles.
+
+
+<Tasks tasks={frontmatter.tasks}  />
