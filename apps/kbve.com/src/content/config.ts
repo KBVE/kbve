@@ -1,8 +1,8 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 
-//*     [MapData Zod] - 08-06-2024
 
+//*     [Map Schema]
 
 const PointSchema = z.object({
   x: z.number(),
@@ -209,6 +209,19 @@ const arcade = defineCollection({
 
 //*         [Assets]
 
+
+//*     [Journal Extension Schema] - 08-16-2024
+const TaskSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  dueDate: z.date().optional(),
+  completed: z.boolean().default(false),
+  priority: z.number().int().min(0).max(5).default(0),  // Number-based priority from 0 to 5, default 0
+  tags: z.array(z.string()).optional(),
+  assignee: z.string().optional(),
+});
+
 //?         {Journal}
 const journal = defineCollection({
   schema: z.object({
@@ -222,6 +235,8 @@ const journal = defineCollection({
     img: z.string().default(''),
     date: z.date().optional(),
     url: z.string().optional(),
+    tasks: z.array(TaskSchema).optional(),
+    archived: z.array(TaskSchema).optional(),
   }),
 });
 
