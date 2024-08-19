@@ -46,6 +46,18 @@ Hmm, let me go through all the generic break downs of the services:
 - `analytics` - This seems fine at around `logflare:1.4.0`
 - `vector` - This seems fine - `0.28.1-alpine`.
 
+Even though I can see some of the pain points that Supabase will bring to our eco-system, the tradeoffs will be worth it in the long term.
+
+**ZeroCopy**
+While preparing to launch the internal supabase, I need to start preparing the rewrite of the rust api and the zero-copy reference fun!
+I would be a bit concerned with how I will handle the supabase interaction within the api but during my test casing, we were able to get a small api up and running that was under 20MB!
+The size of the image was also smaller and the jemalloc made it so much easier to scale out, oohhh the next month will be so much fun.
+
+**Realtime**
+The realtime configuration will be fun to build out within Cryptothrone and having each of the NPCs have their own edge functions.
+This would make each NPC have unique abilities that could be written in different languages without having major drawbacks.
+Granted a python or nodejs process would be slow to run, even at edge, there are a couple cute and cool tricks that we can use!
+Having cloudflare deploy wrangler-style functions will be a dope prize for us to obtain this year.
 
 
 
