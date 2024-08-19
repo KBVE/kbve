@@ -1,0 +1,66 @@
+---
+title: 'August: 19th'
+category: Daily
+date: 2024-08-19 12:00:00
+client: Self
+unsplash: 1692317785860-2ec5796434f2
+img: https://images.unsplash.com/photo-1692317785860-2ec5796434f2?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 19th. Worker.
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Worker**
+Time to execute the worker library, I been holding the command off for a bit.
+
+```shell 
+pnpm nx g @nx/js:lib worker --importPath="@kbve/worker" --publishable=true
+```
+
+**Vault**
+The vault seems operational, I am going to double check it again right before I leave!
+It does scare me a little bit because it is important for me to make sure that I can grab the important details anywhere from the world.
+I can not come back to my pc magically when I am floating around.
+
+
+**Supabase**
+The version of `supabase/postgres` needs to be updated on the docker compose to be around `15.6` rather than the `15.1` that was stated within the default compose.
+Hmm, let me go through all the generic break downs of the services:
+
+- `studio` - the iamge that was being set from the start was `supabase/studio` but we might want to update that to the `20240729-ce42139` version.
+- `auth` - The `gotrue` version that we the docker compose has is set to `v2.151.0` and could be upgrated to `v2.158.1` ? We can look further into this.
+- `rest` - The stack version is `v12.0.1` but the latest compose example image has it set to `v12.2.0`, so we will have to see what is getting upgraded.
+- `realtime` - Once more the current version is `v2.28.32` and latest version seems to be `v2.30.23`.
+- `meta` - The outdated compose has it set to `v0.80.0` and the latest version from the example stack is `v0.83.2`.
+- `functions` - Seems to be the same situation for the `edge`, i.e needs to be bumped up to `supabase/edge-runtime:v1.56.0`
+- `db` - The big one, it seems that the version they are recommending for the self hosted is `15.1.1.78` and the one that is under the compose is `15.1.1.61`.
+
+
+- `kong` - `kong:2.8.1` that seems like it will be okay for the current version, so we can keep that the way it is. Could be a good reference to keep track of.
+- `storage` - This seems fine at `v1.0.6`.
+- `imgproxy` - The darthsim/imgproxy at `v3.8.0` seems fine currently.
+- `analytics` - This seems fine at around `logflare:1.4.0`
+- `vector` - This seems fine - `0.28.1-alpine`.
+
+
+
+
+## 2023
+
+- 3:37PM - Fixing up the Login system so that it works across multiple domains. I will have to delay any major notes for today because of the current project.
+
+
+## Quote
+
+> Neatness begets order; but from order to taste there is the same difference as from taste to genius, or from love to friendship.
+> — <cite>Johann Kaspar Lavater</cite>
+
+---
+
+## Tasks
+
+- [ ]
