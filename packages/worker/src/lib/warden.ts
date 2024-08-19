@@ -1,7 +1,6 @@
-// warden.ts
 import * as Comlink from 'comlink';
 import Dexie, { Table } from 'dexie';
-import { generateULID } from './ulid';  // Import the ULID generator
+import { generateULID } from './ulid'; 
 import Minion from './minion';
 
 interface Task {
