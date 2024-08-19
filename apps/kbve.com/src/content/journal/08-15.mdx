@@ -1,0 +1,48 @@
+---
+title: "August: 15th"
+category: Daily
+date: 2024-08-15 12:00:00
+client: Self
+unsplash: 1690148887466-f371e1c80896
+img: https://images.unsplash.com/photo-1690148887466-f371e1c80896?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 15th. Quote & Task.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Quotes**
+The quotes plugin for the journal entries should be similar to how we are doing `itemdb.astro`, where it grabs the front matter quote data and then displays.
+
+**PasteBin**
+We should place the a KBVE pastebin as a test case, maybe even include the ability to have it cross post onto the Discord?
+There could be additional requirements like password protection via AES?
+Ideally this would be a test on our ability to utilize the SQL database and also we do need to test out the transactions against the planetscale model.
+
+**FlyIO**
+It seems thast the FlyIO service also seemed to remove their free service, according to them it was because of abuse.
+For now they have a `pay-as-you-go` plan and will cover about $5 worth of expenses each month.
+Now that I am thinking it would still make sense to at least deploy 3 VMs that would act like cache end points to help offset any heavy load.
+The 256mb should be enough for us to handle around 10000 active connections each, so the cache pool would be around 30,000 active connections. 
+I will try to formulate a way to call those cache endpoints without having it affect the main script, we could setup a simple client side algo to help with that.
+As for the flyio deployments, it should still be all done via the github actions?
+We could also make it so that it gets deployed as dev branches, this way we can test case our dev APIs.
+
+## 2023
+- 6:00am - Still need to clean a bit of my room up, the only mess that is getting me annoyed is around by work bench. 
+- 7:27am - Time to clear up the Layout issue with the MDX files. Oh man, the joys :/
+- 8:24am - I should make another patch with the `layout:` killer.
+- 7:23pm - I been at this for almost 12 hours and I am still running into random errors, ugh! This day is extremely lame.
+
+## Quote
+
+> Nothing diminishes anxiety faster than action.
+> — <cite>Walter Inglis Anderson</cite>
+
+---
+
+## Tasks
+
+- [ ]
