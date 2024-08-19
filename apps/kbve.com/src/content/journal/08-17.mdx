@@ -44,6 +44,16 @@ I had to plan around this issue and find a cleaner that was way too far from my 
 **Worker**
 The next library that we want to release would be the worker library, which will take the place of `khashvault` and `db`.
 We will be moving all the indexeddb actions into this library, but also extend it out to do websockets, sse and a couple more advance techniques.
+The worker library will be deployed using this command: 
+
+```shell 
+pnpm nx g @nx/js:lib worker --importPath="@kbve/worker" --publishable=true
+```
+
+I was thinking maybe calling the library orc or ork for short? A bit of play on words for an Orc and Worker but I think we can move forward without it.
+
+
+
 
 
 

@@ -1,0 +1,49 @@
+---
+title: 'August: 18th'
+category: Daily
+date: 2024-08-18 12:00:00
+client: Self
+unsplash: 1690320276492-08823be529d1
+img: https://images.unsplash.com/photo-1690320276492-08823be529d1?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 18th. SupaBase.
+tags:
+  - daily
+tasks:
+  - id: 'task-0818-01'
+    title: 'Migrating back to Supabase'
+    description: 'Preparing the plans to rewrite everything back into Supabase.'
+    dueDate: 2024-08-18T15:00:00Z
+    completed: false
+    priority: 3
+    tags:
+      - config
+      - update
+    assignee: 'Self'
+  
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Supabase**
+One of the most boring aspects of development is going through the point of a rewrite and we might be doing it again.
+Migrating from the current planetscale and very minimal image setup to something a bit more advance with postgres.
+I did some intense test casing and found that my own version has a better performance but its so small at scale, that it does not seem to matter.
+We will go ahead and grab the base docker compose and then look into setting up our own internal supabase for us to use and mess around with.
+
+**Worker**
+The command that we want to execute for the worker library will be in the next patch, as I want to get this super base up and running before I have to fly.
+I can make it a task to start the execution of the workers after I get some clothes and my haircut later tonight.
+
+```shell 
+pnpm nx g @nx/js:lib worker --importPath="@kbve/worker" --publishable=true
+```
+
+**Vault**
+While I am traveling around the EU, I should make sure that I can still access the vault without having any major issues.
+I will double check the access point later tonight before I go to sleep.
+
+**Rustrewrite**
+Nothing will be more fun than starting a zero-copy postgres rewrite of the kbve api.
+This will make the air flight so much more interesting and I am a excited for the challenge, hopefully I can get the application running before we have to leave.
