@@ -1,4 +1,4 @@
-# Supabase Docker Compose Configuration
+# Supabase Docker Compose Configuration by Paillat-dev , modified by h0lybyte@kbve. - We might want to swap out the environment variables to _FILE format.
 version: "3.8"
 
 services:
@@ -47,15 +47,15 @@ services:
         - "traefik.enable=true"
         - "traefik.constraint-label=traefik-public"
         - "traefik.docker.network=traefik-public"
-        - "traefik.http.routers.supabase-paill-at.rule=Host(`supabase.paill.at`)"
-        - "traefik.http.routers.supabase-paill-at.entrypoints=http"
-        - "traefik.http.routers.supabase-paill-at.middlewares=https-redirect"
-        - "traefik.http.routers.supabase-paill-at-https.rule=Host(`supabase.paill.at`)"
-        - "traefik.http.routers.supabase-paill-at-https.entrypoints=https"
-        - "traefik.http.routers.supabase-paill-at-https.middlewares=crowdsec@file"
-        - "traefik.http.routers.supabase-paill-at-https.tls=true"
-        - "traefik.http.routers.supabase-paill-at-https.tls.certresolver=le"
-        - "traefik.http.services.supabase-paill-at-https.loadbalancer.server.port=8000"
+        - "traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)"
+        - "traefik.http.routers.supabase-kbve.entrypoints=http"
+        - "traefik.http.routers.supabase-kbve.middlewares=https-redirect"
+        - "traefik.http.routers.supabase-kbve-https.rule=Host(`supabase.kbve.com`)"
+        - "traefik.http.routers.supabase-kbve-https.entrypoints=https"
+        - "traefik.http.routers.supabase-kbve-https.middlewares=crowdsec@file"
+        - "traefik.http.routers.supabase-kbve-https.tls=true"
+        - "traefik.http.routers.supabase-kbve-https.tls.certresolver=le"
+        - "traefik.http.services.supabase-kbve-https.loadbalancer.server.port=8000"
       placement:
         constraints: [node.labels.node-type == primary]
     environment:
