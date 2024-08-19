@@ -21,6 +21,14 @@ Time to execute the worker library, I been holding the command off for a bit.
 pnpm nx g @nx/js:lib worker --importPath="@kbve/worker" --publishable=true
 ```
 
+Let us start with the base library, I am thinking a singleton to handle the workers?
+We would create a singleton worker manager class and then have that manage the different pool of workers.
+I am thinking that we split the worker library into two unique classes, the `minion` and the `warden`.
+Each browser will only have a single warden that is running but can have a pool of these minions?
+The initial load will be a single warden and two minions, but if the user has the resources, we can increase the pool size.
+The warden would be the first class that our future main scripts would initialize and that would provide a pool of minion instances for us to reference.
+
+
 **Vault**
 The vault seems operational, I am going to double check it again right before I leave!
 It does scare me a little bit because it is important for me to make sure that I can grab the important details anywhere from the world.
