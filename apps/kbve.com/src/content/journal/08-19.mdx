@@ -21,6 +21,18 @@ Time to execute the worker library, I been holding the command off for a bit.
 pnpm nx g @nx/js:lib worker --importPath="@kbve/worker" --publishable=true
 ```
 
+Let us start with the base library, I am thinking a singleton to handle the workers?
+We would create a singleton worker manager class and then have that manage the different pool of workers.
+I am thinking that we split the worker library into two unique classes, the `minion` and the `warden`.
+Each browser will only have a single warden that is running but can have a pool of these minions?
+The initial load will be a single warden and two minions, but if the user has the resources, we can increase the pool size.
+The warden would be the first class that our future main scripts would initialize and that would provide a pool of minion instances for us to reference.
+
+Okay mapping out the different aspects of the task system and warden system, we are getting closer to a functional setup.
+For now, let me throw up a bunch of these base files for the general concept.
+Afterwards, I will try to test case and see where we can establish a working proof of concept.
+Besides adding in the comlink, we also need to make sure that the tanstack query core is also included in this setup!
+
 **Vault**
 The vault seems operational, I am going to double check it again right before I leave!
 It does scare me a little bit because it is important for me to make sure that I can grab the important details anywhere from the world.
@@ -59,6 +71,13 @@ This would make each NPC have unique abilities that could be written in differen
 Granted a python or nodejs process would be slow to run, even at edge, there are a couple cute and cool tricks that we can use!
 Having cloudflare deploy wrangler-style functions will be a dope prize for us to obtain this year.
 
+**Flight**
+Preparing to venture to Zurich and then eventually to Italy!
+I will try to take a bunch of photos and maybe keep a written travel log that I can convert over.
+
+**KiloBase**
+The idea of setting up a postgres / supabase image that has additional plugins already setup and ready.
+I am thinking that we could call this the kilobase for the time being.
 
 
 ## 2023
@@ -75,4 +94,4 @@ Having cloudflare deploy wrangler-style functions will be a dope prize for us to
 
 ## Tasks
 
-- [ ]
+- [ ]import { notBetween } from 'drizzle-orm';
