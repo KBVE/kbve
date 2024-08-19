@@ -159,6 +159,7 @@
     "@tamagui/config": "^1.92.0",
     "@tamagui/lucide-icons": "^1.92.0",
     "@tamagui/metro-plugin": "^1.92.0",
+    "@tanstack/query-core": "^5.51.24",
     "@types/matter-js": "0.17.6",
     "@types/three": "0.161.2",
     "axios": "1.6.7",

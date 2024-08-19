@@ -29,6 +29,9 @@ The initial load will be a single warden and two minions, but if the user has th
 The warden would be the first class that our future main scripts would initialize and that would provide a pool of minion instances for us to reference.
 
 Okay mapping out the different aspects of the task system and warden system, we are getting closer to a functional setup.
+For now, let me throw up a bunch of these base files for the general concept.
+Afterwards, I will try to test case and see where we can establish a working proof of concept.
+Besides adding in the comlink, we also need to make sure that the tanstack query core is also included in this setup!
 
 **Vault**
 The vault seems operational, I am going to double check it again right before I leave!
@@ -91,4 +94,4 @@ I am thinking that we could call this the kilobase for the time being.
 
 ## Tasks
 
-- [ ]
+- [ ]import { notBetween } from 'drizzle-orm';
