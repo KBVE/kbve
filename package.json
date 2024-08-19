@@ -165,6 +165,7 @@
     "clsx": "^2.1.0",
     "colyseus": "^0.15.15",
     "colyseus.js": "^0.15.18",
+    "comlink": "^4.4.1",
     "cross-fetch": "^4.0.0",
     "dexie": "^4.0.7",
     "dexie-react-hooks": "^1.1.7",
