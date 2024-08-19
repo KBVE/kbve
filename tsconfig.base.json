@@ -20,7 +20,8 @@
       "@kbve/devops": ["packages/devops/src/index.ts"],
       "@kbve/expo-bbq": ["packages/expo-bbq/src/index.ts"],
       "@kbve/khashvault": ["packages/khashvault/src/index.ts"],
-      "@kbve/laser": ["packages/laser/src/index.ts"]
+      "@kbve/laser": ["packages/laser/src/index.ts"],
+      "@kbve/worker": ["packages/worker/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
