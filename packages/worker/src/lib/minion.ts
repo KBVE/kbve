@@ -1,22 +1,13 @@
-// minion.ts
 import * as Comlink from 'comlink';
 import Dexie, { Table } from 'dexie';
 import { getWardenInstance } from './wardenSingleton';
 
-interface MyData {
-    id: string;
-    value: string;
-}
-
-interface Task {
-    id: string;
-    payload: MyData;
-}
+import { DataTome, Task } from './types';
 
 class Minion {
     private static instance: Minion;
     private db: Dexie;
-    private myData: Table<MyData, string>;
+    private myData: Table<DataTome, string>;
     private warden: Comlink.Remote<typeof import('./warden').default>;
 
     private constructor() {
@@ -24,7 +15,7 @@ class Minion {
         this.db.version(1).stores({
             myData: 'id, value',
         });
-        this.myData = this.db.table('myData');
+        this.myData = this.db.table('DataTome');
     }
 
     public static async getInstance(): Promise<Minion> {
@@ -43,20 +34,19 @@ class Minion {
         await this.warden.notifyTaskCompletion(this, task.id);
     }
 
-    public async addData(data: MyData): Promise<void> {
+    public async addData(data: DataTome): Promise<void> {
         await this.myData.add(data);
     }
 
-    public async getDataById(id: string): Promise<MyData | undefined> {
+    public async getDataById(id: string): Promise<DataTome | undefined> {
         return await this.myData.get(id);
     }
 
-    public async migrateDataToWarden(data: MyData): Promise<void> {
+    public async migrateDataToWarden(data: DataTome): Promise<void> {
         await this.warden.addDataToWarden(data);
         await this.warden.updateMinionState({ id: 'minion1', status: 'data migrated', lastProcessedDataId: data.id });
     }
 
-    // Add more methods as needed to handle Minion-specific logic
 }
 
 Comlink.expose(Minion.getInstance());

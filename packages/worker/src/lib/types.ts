@@ -1,3 +1,5 @@
+import * as Comlink from 'comlink';
+
 export interface DataTome {
   id: string;
   value: string;
@@ -50,4 +52,37 @@ export interface ErrorHandling {
   errorCode: string;
   errorMessage: string;
   timestamp: Date;
+}
+
+
+export interface Warden {
+    assignTask(payload: any): Promise<string>;
+    getAvailableMinion(): Promise<Comlink.Remote<Minion> | null>;
+    markMinionAsFree(minion: Comlink.Remote<Minion>, taskId: string): void;
+    notifyTaskCompletion(minion: Comlink.Remote<Minion>, taskId: string): void;
+    getTaskStatus(taskId: string): 'queued' | 'in-progress' | 'completed' | 'not-found';
+}
+
+export interface Minion {
+    processTask(task: Task): Promise<void>;
+    addData(data: DataTome): Promise<void>;
+    getDataById(id: string): Promise<DataTome | undefined>;
+    migrateDataToWarden(data: DataTome): Promise<void>;
+}
+
+export type MinionInstance = Comlink.Remote<Minion>;
+
+export interface WardenConfig {
+    maxMinions: number;
+    taskQueueLimit?: number;
+}
+
+export interface TaskQueue {
+    tasks: Task[];
+    maxQueueSize?: number;
+}
+
+export interface MinionInitParams {
+    dbName: string;
+    maxDataEntries?: number;
 }
