@@ -61,6 +61,8 @@ export interface Warden {
     markMinionAsFree(minion: Comlink.Remote<Minion>, taskId: string): void;
     notifyTaskCompletion(minion: Comlink.Remote<Minion>, taskId: string): void;
     getTaskStatus(taskId: string): 'queued' | 'in-progress' | 'completed' | 'not-found';
+    updateMinionState(state: MinionState): Promise<void>;
+    addDataToWarden(data: DataTome): Promise<void>; 
 }
 
 export interface Minion {

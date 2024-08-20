@@ -1,37 +1,37 @@
 import * as Comlink from 'comlink';
 import Dexie, { Table } from 'dexie';
 import { getWardenInstance } from './wardenSingleton';
+import { DataTome, Task, Warden, Minion } from './types';
 
-import { DataTome, Task } from './types';
-
-class Minion {
-    private static instance: Minion;
+class MinionImpl implements Minion {
+    private static instance: MinionImpl;
     private db: Dexie;
     private myData: Table<DataTome, string>;
-    private warden: Comlink.Remote<typeof import('./warden').default>;
+    private warden!: Comlink.Remote<Warden>;
 
     private constructor() {
         this.db = new Dexie(`MinionDatabase_${Math.random()}`);
         this.db.version(1).stores({
             myData: 'id, value',
         });
-        this.myData = this.db.table('DataTome');
+        this.myData = this.db.table('myData');
     }
 
-    public static async getInstance(): Promise<Minion> {
-        if (!Minion.instance) {
-            Minion.instance = new Minion();
-            Minion.instance.warden = await getWardenInstance(); // Get the shared Warden instance
+    public static async getInstance(): Promise<MinionImpl> {
+        if (!MinionImpl.instance) {
+            MinionImpl.instance = new MinionImpl();
+            MinionImpl.instance.warden = await getWardenInstance(); // Get the shared Warden instance
         }
-        return Minion.instance;
+        return MinionImpl.instance;
     }
 
     public async processTask(task: Task): Promise<void> {
-        // Process the task
         await this.addData(task.payload);
 
-        // Notify the Warden that the task is complete
-        await this.warden.notifyTaskCompletion(this, task.id);
+        // Call notifyTaskCompletion without passing `this` directly
+        // Instead, pass a reference to the Minion's state or identifier
+        const minionState = { id: 'minion1', status: 'busy' };
+        await this.warden.notifyTaskCompletion(minionState, task.id);
     }
 
     public async addData(data: DataTome): Promise<void> {
@@ -44,9 +44,11 @@ class Minion {
 
     public async migrateDataToWarden(data: DataTome): Promise<void> {
         await this.warden.addDataToWarden(data);
-        await this.warden.updateMinionState({ id: 'minion1', status: 'data migrated', lastProcessedDataId: data.id });
-    }
 
+        // Update the state in Warden
+        const minionState = { id: 'minion1', status: 'data migrated', lastProcessedDataId: data.id };
+        await this.warden.updateMinionState(minionState);
+    }
 }
 
-Comlink.expose(Minion.getInstance());
+Comlink.expose(MinionImpl.getInstance());
