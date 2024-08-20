@@ -1,6 +1,7 @@
 import * as Comlink from 'comlink';
 import Dexie, { Table } from 'dexie';
 import { Warden, Task, MinionState, SharedData } from './types';
+import { generateULID } from './ulid';
 
 class WardenImpl implements Warden {
     private db: Dexie;
@@ -10,7 +11,7 @@ class WardenImpl implements Warden {
     private taskQueue: Task[] = [];
     private maxMinions: number;
 
-    constructor(maxMinions: number = 4) {
+    constructor(maxMinions = 4) {
         this.db = new Dexie('WardenDatabase');
         this.db.version(1).stores({
             sharedData: 'id, value',
