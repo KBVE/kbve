@@ -1,0 +1,16 @@
+{
+  "name": "expo-cityvote",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/expo-cityvote/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/expo-cityvote/jest.config.ts"
+      }
+    }
+  }
+}
