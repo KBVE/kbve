@@ -1,6 +1,7 @@
 {
   "name": "expo-cityvote",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "main": "expo-router/entry",
   "sourceRoot": "apps/expo-cityvote/src",
   "projectType": "application",
   "tags": [],
@@ -11,6 +12,17 @@
       "options": {
         "jestConfig": "apps/expo-cityvote/jest.config.ts"
       }
-    }
+    },
+    "export": {
+			"executor": "@nx/expo:export",
+			"outputs": ["{options.outputDir}"],
+			"options": {
+				"platform": "web",
+				"bundler": "metro",
+				"outputDir": "dist/apps/expo-cityvote",
+				"clear": true
+			},
+			"dependsOn": ["sync-deps"]
+		}
   }
 }
