@@ -3,7 +3,11 @@ const { getDefaultConfig } = require('@expo/metro-config');
 const { mergeConfig } = require('metro-config');
 const { withTamagui } = require('@tamagui/metro-plugin');
 
+
+// Get the default config from Expo
 const defaultConfig = getDefaultConfig(__dirname);
+
+// Extract relevant properties for easier manipulation
 const { assetExts, sourceExts } = defaultConfig.resolver;
 
 /**
@@ -21,6 +25,19 @@ const customConfig = {
     sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg'],
   },
 };
+
+let mergedConfig = mergeConfig(defaultConfig, customConfig);
+
+
+// Enable CSS support and configure for Tamagui
+const tamaguiConfig = getDefaultConfig(__dirname, {
+  isCSSEnabled: false, // [Web-only]: Enables CSS support in Metro.
+});
+
+
+mergedConfig = mergeConfig(mergedConfig, tamaguiConfig);
+
+
 
 module.exports = withNxMetro(mergeConfig(defaultConfig, customConfig), {
   // Change this to true to see debugging info.
