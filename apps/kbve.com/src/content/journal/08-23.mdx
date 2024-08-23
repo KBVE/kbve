@@ -32,6 +32,21 @@ This is actually super useful, saves me a bunch of headaches and indirectly a bu
 In the future we could extend the shell script to create a new branch off the dev, run the update and then make a pull request with that update?
 I suppose in that situation, we could also have it run a bunch of tests and handle some of the dev cycles for us as well?
 
+For future reference, the command is:
+
+```shell
+pnpm nx install expo-cityvote --check
+```
+
+But I am thinking we could extend it out into:
+
+```shell
+./kbve.sh -autodate
+```
+
+This could then be done via github actions too, that would be an interesting avenue to take?
+We are getting a step closer to self learning and self building code!
+
 
 ## 2023
 
