@@ -26,6 +26,7 @@ export { default as Preline } from './src/utils/Preline.astro';
 export { default as ItemDB } from './src/itemdb/ItemDBTable.astro';
 
 export { default as Tasks } from './src/tasks/Tasks.astro';
+export { default as ArchivedTasks } from './src/tasks/ArchiveTasks.astro';
 
 // Register
 // export { default as Register } from './src/register/Register.astro';
