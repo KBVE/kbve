@@ -8,7 +8,7 @@ import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 
 const handleUpworkButton = () => {
-	const url = 'https://www.example.com'; // Your URL here
+	const url = 'https://api.cityvote.com/'; 
 	Linking.openURL(url).catch((err) =>
 		console.error('Failed to open URL:', err),
 	);

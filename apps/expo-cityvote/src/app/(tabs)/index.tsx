@@ -6,7 +6,7 @@ function HomeCards() {
 	return (
 		<XStack $sm={{ flexDirection: 'column' }} paddingHorizontal="$4" space>
 			<TamaCard
-				title="Consulting"
+				title="FreeDOM Post"
 				paragraph="Discover innovative solutions with LaMorte Consults, a versatile consulting firm specializing in groundbreaking construction projects and cutting-edge website design."
 				buttonText="Read More!"
 				animation="bouncy"
@@ -74,8 +74,8 @@ export default function TabOneScreen() {
 			<View flex={1} alignItems="center">
 				<TamaHero
 					backgroundImageUri="https://images.unsplash.com/photo-1711029028695-6db032f5c476?q=80&w=2056&auto=format&fit=crop"
-					title="LaMorte Consults LLC"
-					description="L & C Agency"
+					title="CityVote"
+					description="Freedom of Information"
 					buttonOneText="Contact"
 					buttonTwoText="Support"
 				/>
