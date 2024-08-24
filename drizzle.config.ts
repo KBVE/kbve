@@ -22,3 +22,6 @@ export default defineConfig({
     url: process.env.DATABASE_URL,
   }
 });
+
+
+// We are changing the database out from MySQL and over to pg.

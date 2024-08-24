@@ -10,6 +10,8 @@ tags:
   - daily
 ---
 
+
+
 import { Adsense, Tasks } from '@kbve/astropad';
 
 ## 2024
@@ -20,6 +22,18 @@ Time to execute the worker library, I been holding the command off for a bit.
 ```shell 
 pnpm nx g @nx/js:lib worker --importPath="@kbve/worker" --publishable=true
 ```
+
+Let us start with the base library, I am thinking a singleton to handle the workers?
+We would create a singleton worker manager class and then have that manage the different pool of workers.
+I am thinking that we split the worker library into two unique classes, the `minion` and the `warden`.
+Each browser will only have a single warden that is running but can have a pool of these minions?
+The initial load will be a single warden and two minions, but if the user has the resources, we can increase the pool size.
+The warden would be the first class that our future main scripts would initialize and that would provide a pool of minion instances for us to reference.
+
+Okay mapping out the different aspects of the task system and warden system, we are getting closer to a functional setup.
+For now, let me throw up a bunch of these base files for the general concept.
+Afterwards, I will try to test case and see where we can establish a working proof of concept.
+Besides adding in the comlink, we also need to make sure that the tanstack query core is also included in this setup!
 
 **Vault**
 The vault seems operational, I am going to double check it again right before I leave!
@@ -59,7 +73,41 @@ This would make each NPC have unique abilities that could be written in differen
 Granted a python or nodejs process would be slow to run, even at edge, there are a couple cute and cool tricks that we can use!
 Having cloudflare deploy wrangler-style functions will be a dope prize for us to obtain this year.
 
+**Flight**
+Preparing to venture to Zurich and then eventually to Italy!
+I will try to take a bunch of photos and maybe keep a written travel log that I can convert over.
 
+**KiloBase**
+The idea of setting up a postgres / supabase image that has additional plugins already setup and ready.
+I am thinking that we could call this the kilobase for the time being.
+
+**Airport**
+Family got through the airport terminal and the new systems that they have in place makes going through TSA painless.
+Furthermore, having some decent internet speeds too, this might be the first time that my airport journey has been amazing.
+Well this time and of course the airports in Amsterdam!
+
+**Warden**
+The major focus for the worker package will be the warden system and how it will handle the minion scaling system.
+I am still a bit on the fence for the amount of resources and power that it will be using, yet I think it will be worth it in the long term.
+Next, we have the new types.ts to add into the Worker library, which will start with the very basics and then update it again later on.
+I am not too sure if we need to use enums for the TaskStatus but for now it would be fine.
+Actually we could use a better way to handle it by having an integer value but we can loop back.
+
+**WriteOnFlight**
+Since I will be in the air for a couple hours, I wonder how I will balance out the mini jail.
+My usual plan would be to get wasted and pass out, but since the flight is not really that long, the second best option would be to just write away.
+I am thinking about how much I will be able to write without having internet?
+
+About to board the flight in about another 20mins.
+
+**PostGres**
+
+I am trying to run postgres from my laptop but I made a big mistake.
+I forgot to download all of the extensions, so now I am stuck without being able to run pgvector on the 8 hour flight.
+Its okay but I was really hoping to have this resolved in this flight but damn, we have not even taken off.
+
+
+<Adsense />
 
 ## 2023
 
