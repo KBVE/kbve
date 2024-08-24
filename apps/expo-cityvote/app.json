@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "expo-lcagents",
-    "slug": "expo-lcagents",
+    "name": "expo-cityvote",
+    "slug": "expo-cityvote",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "lcagents",
+    "scheme":"cityvote",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -18,27 +18,27 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.kbve.expo-lcagents"
+      "bundleIdentifier": "com.kbve.expo-cityvote"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.kbve.expolcagents"
+      "package": "com.kbve.cityvote"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
-      "output": "static"
+      "outpuit": "static"
     },
     "plugins": [
       "expo-router",
       "expo-font"
     ],
-    "experiments": {
+    "experiments" : {
       "tsconfigPaths": true,
-      "typedRoutes": true
+      "typeRoutes": true
     }
   }
 }
