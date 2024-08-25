@@ -37,7 +37,7 @@ services:
     hostname: kong
     networks:
       - supabase-net
-      - traefik-public
+      - public
     image: kong:2.8.1
     restart: unless-stopped
     entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
@@ -45,8 +45,8 @@ services:
       replicas: 1
       labels:
         - 'traefik.enable=true'
-        - 'traefik.constraint-label=traefik-public'
-        - 'traefik.docker.network=traefik-public'
+        - 'traefik.constraint-label-stack=traefik-public'
+        - 'traefik.docker.network=public'
         - 'traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)'
         - 'traefik.http.routers.supabase-kbve.entrypoints=http'
         - 'traefik.http.routers.supabase-kbve.middlewares=https-redirect'
@@ -297,13 +297,16 @@ services:
 
   # Database
   db:
+    hostname: db
     container_name: supabase-db
     networks:
-      - supabase-net
+      supabase-net:
+        aliases:
+          supabase-db
     deploy:
       placement:
         constraints: [node.labels.node-type == primary]
-    image: supabase/postgres:15.1.1.61
+    image: supabase/postgres:15.1.1.78
     healthcheck:
       test: pg_isready -U postgres -h localhost
       interval: 5s
@@ -329,7 +332,8 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data:Z
       - db-config:/etc/postgresql-custom
-      - db-scripts:/docker-entrypoint-initdb.d:Z
+      - db-migrations:/docker-entrypoint-initdb.d/migrations:Z
+      - db-init-scripts:/docker-entrypoint-initdb.d/init-scripts:Z
 
   # Vector - Log collection and forwarding
   vector:
@@ -354,49 +358,23 @@ services:
 
 volumes:
   kong-config:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /var/lib/docker/volumes/kong-config/_data
+    external: true
   storage-data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /var/lib/docker/volumes/storage-data/_data
+    external: true
   functions-data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /var/lib/docker/volumes/functions-data/_data
+    external: true
   db-data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /var/lib/docker/volumes/db-data/_data
+    external: true
   db-config:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /var/lib/docker/volumes/db-config/_data
-  db-scripts:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /var/lib/docker/volumes/db-scripts/_data
+    external: true
+  db-migrations:
+    external: true
+  db-init-scripts:
+    external: true
   vector-config:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /var/lib/docker/volumes/vector-config/_data
+    external: true
 
 networks:
   supabase-net:
-  traefik-public:
+  public:
     external: true
