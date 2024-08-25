@@ -70,7 +70,7 @@ services:
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
     volumes:
-      - /mnt/data/supabase/api/kong.yml:/home/kong/temp.yml:ro
+      - kong-config:/home/kong/temp.yml:ro
 
   # GoTrue - Auth Service
   auth:
@@ -206,7 +206,7 @@ services:
       ENABLE_IMAGE_TRANSFORMATION: 'true'
       IMGPROXY_URL: http://imgproxy:5001
     volumes:
-      - /mnt/data/supabase/storage:/var/lib/storage:z
+      - storage-data:/var/lib/storage:z
 
   # Image Proxy
   imgproxy:
@@ -228,7 +228,7 @@ services:
       IMGPROXY_USE_ETAG: 'true'
       IMGPROXY_ENABLE_WEBP_DETECTION: ${IMGPROXY_ENABLE_WEBP_DETECTION}
     volumes:
-      - /mnt/data/supabase/storage:/var/lib/storage:z
+      - storage-data:/var/lib/storage:z
 
   # Meta API
   meta:
@@ -261,7 +261,7 @@ services:
       SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       VERIFY_JWT: '${FUNCTIONS_VERIFY_JWT}'
     volumes:
-      - /mnt/data/supabase/functions:/home/deno/functions:Z
+      - functions-data:/home/deno/functions:Z
     command:
       - start
       - --main-service
@@ -327,13 +327,9 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXP: ${JWT_EXPIRY}
     volumes:
-      - /mnt/data/supabase/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
-      - /mnt/data/supabase/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
-      - /mnt/data/supabase/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
-      - /mnt/data/supabase/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
-      - /mnt/data/supabase/db/data:/var/lib/postgresql/data:Z
-      - /mnt/data/supabase/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
+      - db-data:/var/lib/postgresql/data:Z
       - db-config:/etc/postgresql-custom
+      - db-scripts:/docker-entrypoint-initdb.d:Z
 
   # Vector - Log collection and forwarding
   vector:
