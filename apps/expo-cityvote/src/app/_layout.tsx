@@ -57,7 +57,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="menu" options={{ presentation: 'modal' }} />
           <Stack.Screen name="consulting" />
-          <Stack.Screen name="projects"
+          {/* <Stack.Screen name="projects"
            options={{
             headerShown: true, // Ensure the header is shown
             title: 'Projects', // Set the title for the header
@@ -65,7 +65,7 @@ function RootLayoutNav() {
             headerLeft: () => (
               <NavBar />
             ),
-          }}  />
+          }}  /> */}
         </Stack>
       </ThemeProvider>
     </TamaguiProvider>
