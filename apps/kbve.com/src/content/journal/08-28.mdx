@@ -35,6 +35,12 @@ I forgot to setup metro to use the tamagui configuration, which would explain pa
 This is the first time that an AI really got a problem resolved that was way out of bounds for it to understand.
 I am amazed with this setup!
 
+The animations need to be replaced, but what type of library will we use to help with that?
+I am thinking we could expand out the `expo-bbq` package and include a bunch of animation integrations that we can then call in our apps.
+We could try to get the animations on the main ui thread too, since we can move all the complex logic off to a worker thread?
+Let me zeta this journal entry and switch back to a proof of concept.
+
+
 **KiloBase**
 The idea behind deployment of `kilobase` is that we take the exisiting supabase image and then wrap around our custom changes.
 Since we want this postgres database to be large and powerful, we can make changes at this core level, thus making it easier to maintain.
