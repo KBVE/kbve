@@ -1,0 +1,16 @@
+{
+  "name": "expo-hqplan-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/expo-hqplan-e2e/src",
+  "implicitDependencies": ["expo-hqplan"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/playwright:playwright",
+      "outputs": ["{workspaceRoot}/dist/.playwright/apps/expo-hqplan-e2e"],
+      "options": {
+        "config": "apps/expo-hqplan-e2e/playwright.config.ts"
+      }
+    }
+  }
+}
