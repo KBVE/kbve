@@ -96,6 +96,7 @@ cache/
 # apps/expo-lcagents/.tamagui/*
 # /apps/expo-lcagents/.tamagui
 
+apps/expo-cityvote/.tamagui/css/*
 
 # NuGetScracthroot
 NuGetScratchroot/
