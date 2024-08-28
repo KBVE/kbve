@@ -19,6 +19,11 @@ Running around the city again today and just looking at all the sights.
 I found out that office 21 was closed and its a shame because I really wanted to work out from there.
 Now I need to find a place in rome that has an epic view , amazing wifi and is not too expensive.
 
+**Villa Doria Pamphili**
+Decided to make a quick date with a lady that I befriended!
+We did a couple sandwiches and a general walk around the park, it was actually super fun and we had this amazing connection.
+Rome is truely a magical city, the moments you can just build those connections, its actually wild.
+
 **Expo**
 The other update that I have to do for the repo is to make sure that all of expo will build without having to download anything.
 I believe we need to create a prebuild folder for ios and android, then setup the files for it.
@@ -29,3 +34,9 @@ Lets go ahead and have groq update the app.json, and slowly perform the changes 
 The idea behind deployment of `kilobase` is that we take the exisiting supabase image and then wrap around our custom changes.
 Since we want this postgres database to be large and powerful, we can make changes at this core level, thus making it easier to maintain.
 Furthermore, we could also create another image called `cachebase` that would be focused on providing a read only instance of supabase / postgres, that has further tweaks to focus on providing a cache of the data.
+For setting up the core kilobase, we should make the .ts file that would be similar to our planetscale file.
+My idea would be to have all the base postgres configuration inside of this file, including the model design and initial migrations.
+
+As I am writing it out, it feels like we might be going backwards.
+The usage of drizzle is making the supabase / postgres interaction a bit too rough, maybe we can find a better way to handle this?
+We could setup the postgres to operate with the raw variables and then work around that.
