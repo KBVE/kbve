@@ -1,5 +1,5 @@
 # Supabase Docker Compose Configuration by Paillat-dev , modified by h0lybyte@kbve. - We might want to swap out the environment variables to _FILE format.
-version: "3.8"
+version: '3.8'
 
 services:
   # Supabase Studio - Web-based UI
@@ -37,29 +37,29 @@ services:
     hostname: kong
     networks:
       - supabase-net
-      - traefik-public
+      - public
     image: kong:2.8.1
     restart: unless-stopped
     entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
     deploy:
       replicas: 1
       labels:
-        - "traefik.enable=true"
-        - "traefik.constraint-label=traefik-public"
-        - "traefik.docker.network=traefik-public"
-        - "traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)"
-        - "traefik.http.routers.supabase-kbve.entrypoints=http"
-        - "traefik.http.routers.supabase-kbve.middlewares=https-redirect"
-        - "traefik.http.routers.supabase-kbve-https.rule=Host(`supabase.kbve.com`)"
-        - "traefik.http.routers.supabase-kbve-https.entrypoints=https"
-        - "traefik.http.routers.supabase-kbve-https.middlewares=crowdsec@file"
-        - "traefik.http.routers.supabase-kbve-https.tls=true"
-        - "traefik.http.routers.supabase-kbve-https.tls.certresolver=le"
-        - "traefik.http.services.supabase-kbve-https.loadbalancer.server.port=8000"
+        - 'traefik.enable=true'
+        - 'traefik.constraint-label-stack=traefik-public'
+        - 'traefik.docker.network=public'
+        - 'traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)'
+        - 'traefik.http.routers.supabase-kbve.entrypoints=http'
+        - 'traefik.http.routers.supabase-kbve.middlewares=https-redirect'
+        - 'traefik.http.routers.supabase-kbve-https.rule=Host(`supabase.kbve.com`)'
+        - 'traefik.http.routers.supabase-kbve-https.entrypoints=https'
+        - 'traefik.http.routers.supabase-kbve-https.middlewares=crowdsec@file'
+        - 'traefik.http.routers.supabase-kbve-https.tls=true'
+        - 'traefik.http.routers.supabase-kbve-https.tls.certresolver=le'
+        - 'traefik.http.services.supabase-kbve-https.loadbalancer.server.port=8000'
       placement:
         constraints: [node.labels.node-type == primary]
     environment:
-      KONG_DATABASE: "off"
+      KONG_DATABASE: 'off'
       KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
       KONG_DNS_ORDER: LAST,A,CNAME
       KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
@@ -70,7 +70,7 @@ services:
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
     volumes:
-      - /mnt/data/supabase/api/kong.yml:/home/kong/temp.yml:ro
+      - kong-config:/home/kong/temp.yml:ro
 
   # GoTrue - Auth Service
   auth:
@@ -81,12 +81,12 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://auth:9999/health"
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://auth:9999/health',
         ]
       timeout: 5s
       interval: 5s
@@ -134,10 +134,10 @@ services:
       PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS}
       PGRST_DB_ANON_ROLE: anon
       PGRST_JWT_SECRET: ${JWT_SECRET}
-      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_DB_USE_LEGACY_GUCS: 'false'
       PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
       PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY}
-    command: "postgrest"
+    command: 'postgrest'
 
   # Realtime - Real-time subscriptions
   realtime:
@@ -146,7 +146,11 @@ services:
       - supabase-net
     image: supabase/realtime:v2.28.32
     healthcheck:
-      test: ["CMD-SHELL", 'curl -sSfL --head -o /dev/null -H "Authorization: Bearer $$ANON_KEY" http://localhost:4000/api/tenants/realtime-dev/health']
+      test:
+        [
+          'CMD-SHELL',
+          'curl -sSfL --head -o /dev/null -H "Authorization: Bearer $$ANON_KEY" http://localhost:4000/api/tenants/realtime-dev/health',
+        ]
       timeout: 5s
       interval: 5s
       retries: 3
@@ -165,7 +169,7 @@ services:
       FLY_APP_NAME: realtime
       SECRET_KEY_BASE: UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq
       ERL_AFLAGS: -proto_dist inet_tcp
-      ENABLE_TAILSCALE: "false"
+      ENABLE_TAILSCALE: 'false'
       DNS_NODES: "''"
       ANON_KEY: ${ANON_KEY}
     command: >
@@ -199,10 +203,10 @@ services:
       TENANT_ID: stub
       REGION: stub
       GLOBAL_S3_BUCKET: stub
-      ENABLE_IMAGE_TRANSFORMATION: "true"
+      ENABLE_IMAGE_TRANSFORMATION: 'true'
       IMGPROXY_URL: http://imgproxy:5001
     volumes:
-      - /mnt/data/supabase/storage:/var/lib/storage:z
+      - storage-data:/var/lib/storage:z
 
   # Image Proxy
   imgproxy:
@@ -214,17 +218,17 @@ services:
       placement:
         constraints: [node.labels.node-type == primary]
     healthcheck:
-      test: [ "CMD", "imgproxy", "health" ]
+      test: ['CMD', 'imgproxy', 'health']
       timeout: 5s
       interval: 5s
       retries: 3
     environment:
-      IMGPROXY_BIND: ":5001"
+      IMGPROXY_BIND: ':5001'
       IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
-      IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_USE_ETAG: 'true'
       IMGPROXY_ENABLE_WEBP_DETECTION: ${IMGPROXY_ENABLE_WEBP_DETECTION}
     volumes:
-      - /mnt/data/supabase/storage:/var/lib/storage:z
+      - storage-data:/var/lib/storage:z
 
   # Meta API
   meta:
@@ -255,9 +259,9 @@ services:
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
       SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-      VERIFY_JWT: "${FUNCTIONS_VERIFY_JWT}"
+      VERIFY_JWT: '${FUNCTIONS_VERIFY_JWT}'
     volumes:
-      - /mnt/data/supabase/functions:/home/deno/functions:Z
+      - functions-data:/home/deno/functions:Z
     command:
       - start
       - --main-service
@@ -270,7 +274,7 @@ services:
       - supabase-net
     image: supabase/logflare:1.4.0
     healthcheck:
-      test: [ "CMD", "curl", "http://localhost:4000/health" ]
+      test: ['CMD', 'curl', 'http://localhost:4000/health']
       timeout: 5s
       interval: 5s
       retries: 10
@@ -284,8 +288,8 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_SCHEMA: _analytics
       LOGFLARE_API_KEY: ${LOGFLARE_API_KEY}
-      LOGFLARE_SINGLE_TENANT: "true"
-      LOGFLARE_SUPABASE_MODE: "true"
+      LOGFLARE_SINGLE_TENANT: 'true'
+      LOGFLARE_SUPABASE_MODE: 'true'
       LOGFLARE_MIN_CLUSTER_SIZE: 1
       POSTGRES_BACKEND_URL: postgresql://supabase_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       POSTGRES_BACKEND_SCHEMA: _analytics
@@ -293,13 +297,16 @@ services:
 
   # Database
   db:
+    hostname: db
     container_name: supabase-db
     networks:
-      - supabase-net
+      supabase-net:
+        aliases:
+          supabase-db
     deploy:
       placement:
         constraints: [node.labels.node-type == primary]
-    image: supabase/postgres:15.1.1.61
+    image: supabase/postgres:15.1.1.78
     healthcheck:
       test: pg_isready -U postgres -h localhost
       interval: 5s
@@ -323,13 +330,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXP: ${JWT_EXPIRY}
     volumes:
-      - /mnt/data/supabase/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
-      - /mnt/data/supabase/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
-      - /mnt/data/supabase/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
-      - /mnt/data/supabase/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
-      - /mnt/data/supabase/db/data:/var/lib/postgresql/data:Z
-      - /mnt/data/supabase/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
+      - db-data:/var/lib/postgresql/data:Z
       - db-config:/etc/postgresql-custom
+      - db-migrations:/docker-entrypoint-initdb.d/migrations:Z
+      - db-init-scripts:/docker-entrypoint-initdb.d/init-scripts:Z
 
   # Vector - Log collection and forwarding
   vector:
@@ -346,16 +350,31 @@ services:
       interval: 5s
       retries: 3
     volumes:
-      - /mnt/data/supabase/logs/vector.yml:/etc/vector/vector.yml:ro
+      - vector-config:/etc/vector/vector.yml:ro
       - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro
     environment:
       LOGFLARE_API_KEY: ${LOGFLARE_API_KEY}
-    command: [ "--config", "etc/vector/vector.yml" ]
+    command: ['--config', 'etc/vector/vector.yml']
 
 volumes:
+  kong-config:
+    external: true
+  storage-data:
+    external: true
+  functions-data:
+    external: true
+  db-data:
+    external: true
   db-config:
+    external: true
+  db-migrations:
+    external: true
+  db-init-scripts:
+    external: true
+  vector-config:
+    external: true
 
 networks:
   supabase-net:
-  traefik-public:
+  public:
     external: true
