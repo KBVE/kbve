@@ -30,6 +30,11 @@ I believe we need to create a prebuild folder for ios and android, then setup th
 We will have to do this off of wifi because I do not want to burn through my data.
 Lets go ahead and have groq update the app.json, and slowly perform the changes to prepare the general build.
 
+O M G! 
+I forgot to setup metro to use the tamagui configuration, which would explain part of that bug I was having earlier.
+This is the first time that an AI really got a problem resolved that was way out of bounds for it to understand.
+I am amazed with this setup!
+
 **KiloBase**
 The idea behind deployment of `kilobase` is that we take the exisiting supabase image and then wrap around our custom changes.
 Since we want this postgres database to be large and powerful, we can make changes at this core level, thus making it easier to maintain.
