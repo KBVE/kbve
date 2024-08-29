@@ -34,6 +34,35 @@ Actually this would mean that working remotely and traveling around Italy for sh
 Now I just need to find a girlfriend that can the same with me, ideally another software engineer and we would be set.
 
 
+**Minions**
+
+Going to focus on the minions folder for the worker script.
+While I am working on that, I am also preparing the next batch of updates for the postgres and hqplan revamp.
+Ugh there are a ton of moving parts that need to be cleaned up and updated but there is never enough time.
+I am going to split the minions concept into a folder with about three to five files that will be the core of the whole system.
+This is the current breakdown for these files within the Minions folder:
+
+- minion.ts handles the creation and setup of Web Workers.
+
+- minionWorker.ts is responsible for the worker's entry point and exposing the MinionImpl.
+
+- minionImplementation.ts contains the actual business logic for the MinionImpl class.
+
+The new `minion.ts` will look like this:
+
+```ts
+
+import * as Comlink from 'comlink';
+import { MinionImpl } from './minionImplementation';
+
+export function createMinion(id: string) {
+  const workerUrl = new URL('./minionWorker.ts', import.meta.url);
+  const minionWorker = new Worker(workerUrl, { type: 'module' });
+  return Comlink.wrap<Comlink.Remote<MinionImpl>>(minionWorker);
+}
+
+```
+
 <Adsense />
 
 ## 2023
