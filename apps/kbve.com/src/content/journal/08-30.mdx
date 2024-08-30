@@ -41,7 +41,52 @@ Then we can move forward with setting up the edge functions and supabase integra
 The edge functions will be split into a various collection of global and local servers, the goal would be to pull in and out as much information as we can for now.
 Having the focus on speed is something that we can overlook for now because we will not have enough data to perform the changes that we will require.
 Once the supabase is ready, we can start to expand out and collect users, aiming for around 10,000 users before the end of the year is a bit of a strech but I think we can do it.
+To test case the worker library, we will be using this command to help us:
 
+```shell
+
+pnpm exec nx run worker:test 
+
+```
+
+or in the case of the kbve shell, it would be:
+
+```shell
+
+./kbve.sh -nx worker:test
+
+```
+
+The next issue with setting up our test casing is that we are have debug the `indexedDB` and it seems that our current testing environment does not support it.
+After doing some quick research, it seems that the best approach would be to use `fake-indexeddb` to help fill in the gaps.
+This makes me a bit worried about the concept of testing this library if we need to need use more third party tooling but we should go on this adventure regardless.
+The goal would be make sure that our 30 example tests are all functional and we can move forward with publishing the package that we will be using in the future.
+
+To install the `indexedDB` for test casing, we will be running this command:
+
+```shell
+
+pnpm install -D fake-indexeddb
+
+```
+
+which will be providing us with the fake database to play with.
+It will be a bit painful to keep adding more extensions and as this project grows, but I can see each package that is being added and I understand its premise.
+
+**Warden**
+
+I will move the notes for warden over to an official documentation once its built out.
+
+
+**New Items**
+
+Taking a break from the design and building of warden, we can look at adding new NPCs and items to our tiled map but this goes back to another issue where we need to fix the map.
+Loading the map tiles into png and then having them merge into a final map is a bit annoying, so I am going to give Unity a huge plus one for making it so much easier to optimize the maps.
+I can not believe the biggest hurdle ends up pushing us back to doing code inside of Unity 6, but I will wait for that, maybe do a whole new game for that engine.
+We want to finish at least one game before the year ends, then once its published and gets its weekly updates, we can focus on adding a new 2nd game.
+Actually, I take back the weekly updates and think that it would make more sense to do a full monthly update but roll in the updates in small minor changes without breaking the game.
+Common monthly updates should include new NPCs, Quests, Items and nomial changes to the game play before we get deeper into the combat.
+After getting combat resolved, we will have a working demo within a couple weeks, since a good portion of the game loop is done.
 
 <Adsense />
 
