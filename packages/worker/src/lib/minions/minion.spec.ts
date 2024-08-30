@@ -1,9 +1,5 @@
-// Importing fake-indexeddb to mock IndexedDB in the test environment
 import 'fake-indexeddb/auto';
-
-// Importing Vitest's Web Worker support
 import '@vitest/web-worker';
-
 import { createMinion } from './minion';
 import * as Comlink from 'comlink';
 import { describe, it, expect } from 'vitest';

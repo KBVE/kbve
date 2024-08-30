@@ -2,7 +2,6 @@ import * as Comlink from 'comlink';
 import Dexie, { Table } from 'dexie';
 import { Warden, Task, TaskStatus, MinionState, SharedData, Minion } from '../types';
 import { generateULID } from '../ulid';
-import { createMinion } from '../minions/minion';
 
 export class WardenImpl implements Warden {
     private db: Dexie;
@@ -28,9 +27,19 @@ export class WardenImpl implements Warden {
     private async initializeMinionPool() {
         for (let i = 0; i < this.maxMinions; i++) {
             const id = `minion_${i + 1}`;
-            const minionProxy = await createMinion(id);
+            const minionProxy = await this.createMinion(id);
             this.minions.push({ proxy: minionProxy, busy: false });
         }
+    }
+
+    private async createMinion(id: string): Promise<Comlink.Remote<Minion>> {
+        const workerUrl = new URL('../minions/minionWorker.ts', import.meta.url);
+        const minionWorker = new Worker(workerUrl, { type: 'module' });
+        const minionProxy = Comlink.wrap<Comlink.Remote<{ initialize: (id: string) => void }>>(minionWorker);
+    
+        await minionProxy.initialize(id);
+    
+        return minionProxy as unknown as Comlink.Remote<Minion>;
     }
 
 
@@ -39,19 +48,19 @@ export class WardenImpl implements Warden {
         const task: Task = {
             id: taskId,
             payload,
-            status: TaskStatus.Queued // Use TaskStatus enum
+            status: TaskStatus.Queued
         };
         this.taskQueue.push(task);
-        await this.assignNextTask(); // Assign tasks as they are added to the queue
+        await this.assignNextTask();
         return taskId;
     }
 
     private async assignNextTask() {
-        const nextTask = this.taskQueue.find(task => task.status === TaskStatus.Queued); // Use TaskStatus enum
+        const nextTask = this.taskQueue.find(task => task.status === TaskStatus.Queued);
         if (nextTask) {
             const minion = await this.getAvailableMinion();
             if (minion) {
-                nextTask.status = TaskStatus.InProgress; // Use TaskStatus enum
+                nextTask.status = TaskStatus.InProgress;
                 await minion['processTask'](nextTask);
             }
         }
@@ -107,4 +116,5 @@ export class WardenImpl implements Warden {
 }
 
 // Expose the Warden implementation to be used as a worker
-Comlink.expose(WardenImpl);
+// Comlink.expose(WardenImpl);
+Comlink.expose(new WardenImpl());
