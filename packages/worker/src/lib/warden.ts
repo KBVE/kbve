@@ -2,12 +2,13 @@ import * as Comlink from 'comlink';
 import Dexie, { Table } from 'dexie';
 import { Warden, Task, MinionState, SharedData } from './types';
 import { generateULID } from './ulid';
+import { createMinion } from './minion';
 
 class WardenImpl implements Warden {
     private db: Dexie;
     private sharedData: Table<SharedData, string>;
     private minionStates: Table<MinionState, string>;
-    private minions: { proxy: Comlink.Remote<Warden>, busy: boolean }[] = [];
+    private minions: { proxy: Comlink.Remote<any>, busy: boolean }[] = [];
     private taskQueue: Task[] = [];
     private maxMinions: number;
 
@@ -26,38 +27,36 @@ class WardenImpl implements Warden {
 
     private async initializeMinionPool() {
         for (let i = 0; i < this.maxMinions; i++) {
-            const minionWorker = new Worker(new URL('./minion.ts', import.meta.url), { type: 'module' });
-            const minionProxy = Comlink.wrap<Comlink.Remote<Warden>>(minionWorker);
+            const id = `minion_${i + 1}`;
+            const minionProxy = await createMinion(id);
             this.minions.push({ proxy: minionProxy, busy: false });
         }
     }
 
     public async assignTask(payload: any): Promise<string> {
-        const taskId = generateULID();  // Assume generateULID is a function you have defined
+        const taskId = generateULID(); // Generate a unique task ID
         const task: Task = {
             id: taskId,
             payload,
             status: 'queued'
         };
         this.taskQueue.push(task);
-        this.assignNextTask();
+        await this.assignNextTask(); // Assign tasks as they are added to the queue
         return taskId;
     }
 
     private async assignNextTask() {
-        if (this.taskQueue.length > 0) {
-            const nextTask = this.taskQueue.find(task => task.status === 'queued');
-            if (nextTask) {
-                const minion = await this.getAvailableMinion();
-                if (minion) {
-                    nextTask.status = 'in-progress';
-                    await minion.processTask(nextTask);
-                }
+        const nextTask = this.taskQueue.find(task => task.status === 'queued');
+        if (nextTask) {
+            const minion = await this.getAvailableMinion();
+            if (minion) {
+                nextTask.status = 'in-progress';
+                await minion.processTask(nextTask);
             }
         }
     }
 
-    public async getAvailableMinion(): Promise<Comlink.Remote<Warden> | null> {
+    public async getAvailableMinion(): Promise<Comlink.Remote<any> | null> {
         for (const minion of this.minions) {
             if (!minion.busy) {
                 minion.busy = true;
@@ -67,7 +66,7 @@ class WardenImpl implements Warden {
         return null;
     }
 
-    public markMinionAsFree(minion: Comlink.Remote<Warden>, taskId: string) {
+    public markMinionAsFree(minion: Comlink.Remote<any>, taskId: string) {
         for (const m of this.minions) {
             if (m.proxy === minion) {
                 m.busy = false;
@@ -75,7 +74,7 @@ class WardenImpl implements Warden {
             }
         }
         this.updateTaskStatus(taskId, 'completed');
-        this.assignNextTask();
+        this.assignNextTask(); // Continue assigning tasks after marking a minion as free
     }
 
     private updateTaskStatus(taskId: string, status: 'queued' | 'in-progress' | 'completed') {
@@ -85,7 +84,7 @@ class WardenImpl implements Warden {
         }
     }
 
-    public async notifyTaskCompletion(minion: Comlink.Remote<Warden>, taskId: string) {
+    public async notifyTaskCompletion(minion: Comlink.Remote<any>, taskId: string) {
         this.markMinionAsFree(minion, taskId);
     }
 

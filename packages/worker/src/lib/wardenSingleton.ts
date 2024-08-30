@@ -1,6 +1,7 @@
 // wardenSingleton.ts
 import * as Comlink from 'comlink';
 import Warden from './warden';
+import { type Warden } from './types';
 
 let wardenProxy: Comlink.Remote<typeof Warden> | null = null;
 
