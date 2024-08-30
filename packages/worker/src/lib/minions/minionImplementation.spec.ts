@@ -1,7 +1,8 @@
+import 'fake-indexeddb/auto';
 import { MinionImpl } from './minionImplementation';
 import { DataTome, Task, TaskStatus } from '../types';
 import Dexie from 'dexie';
-import { QueryClient } from '@tanstack/query-core';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'; // Import from Vitest
 
 describe('MinionImpl Integration Tests', () => {
   let minion: MinionImpl;
@@ -65,8 +66,13 @@ describe('MinionImpl Integration Tests', () => {
   it('should migrate data to Warden', async () => {
     const data: DataTome = { id: 'data-5', value: 'migrate this' };
 
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
+    const logMessages: any[] = [];
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(
+      (message?: any, ...optionalParams: any[]) => {
+        logMessages.push({ message, optionalParams });
+      }
+    );
+    
     await minion.migrateDataToWarden(data);
 
     expect(consoleSpy).toHaveBeenCalledWith(`Migrating data to Warden: ${data.id}`);
