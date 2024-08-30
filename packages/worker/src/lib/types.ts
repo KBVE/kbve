@@ -10,6 +10,7 @@ export enum TaskStatus {
   InProgress = 'in-progress',
   Completed = 'completed',
   Failed = 'failed',
+  NotFound = 'not-found',
 }
 
 export interface Task {
@@ -60,7 +61,7 @@ export interface Warden {
     getAvailableMinion(): Promise<Comlink.Remote<Minion> | null>;
     markMinionAsFree(minion: Comlink.Remote<Minion>, taskId: string): void;
     notifyTaskCompletion(minion: Comlink.Remote<Minion>, taskId: string): void;
-    getTaskStatus(taskId: string): 'queued' | 'in-progress' | 'completed' | 'not-found';
+    getTaskStatus(taskId: string): TaskStatus;
     updateMinionState(state: MinionState): Promise<void>;
     addDataToWarden(data: DataTome): Promise<void>; 
 }

@@ -1,14 +1,14 @@
 import * as Comlink from 'comlink';
 import Dexie, { Table } from 'dexie';
-import { Warden, Task, MinionState, SharedData } from './types';
-import { generateULID } from './ulid';
-import { createMinion } from './minion';
+import { Warden, Task, TaskStatus, MinionState, SharedData, Minion } from '../types';
+import { generateULID } from '../ulid';
+import { createMinion } from '../minions/minion';
 
-class WardenImpl implements Warden {
+export class WardenImpl implements Warden {
     private db: Dexie;
     private sharedData: Table<SharedData, string>;
     private minionStates: Table<MinionState, string>;
-    private minions: { proxy: Comlink.Remote<any>, busy: boolean }[] = [];
+    private minions: { proxy: Comlink.Remote<Minion>, busy: boolean }[] = []; 
     private taskQueue: Task[] = [];
     private maxMinions: number;
 
@@ -33,12 +33,13 @@ class WardenImpl implements Warden {
         }
     }
 
+
     public async assignTask(payload: any): Promise<string> {
-        const taskId = generateULID(); // Generate a unique task ID
+        const taskId = generateULID();
         const task: Task = {
             id: taskId,
             payload,
-            status: 'queued'
+            status: TaskStatus.Queued // Use TaskStatus enum
         };
         this.taskQueue.push(task);
         await this.assignNextTask(); // Assign tasks as they are added to the queue
@@ -46,52 +47,55 @@ class WardenImpl implements Warden {
     }
 
     private async assignNextTask() {
-        const nextTask = this.taskQueue.find(task => task.status === 'queued');
+        const nextTask = this.taskQueue.find(task => task.status === TaskStatus.Queued); // Use TaskStatus enum
         if (nextTask) {
             const minion = await this.getAvailableMinion();
             if (minion) {
-                nextTask.status = 'in-progress';
-                await minion.processTask(nextTask);
+                nextTask.status = TaskStatus.InProgress; // Use TaskStatus enum
+                await minion['processTask'](nextTask);
             }
         }
     }
-
-    public async getAvailableMinion(): Promise<Comlink.Remote<any> | null> {
+    
+    public async getAvailableMinion(): Promise<Comlink.Remote<Minion> | null> {
         for (const minion of this.minions) {
             if (!minion.busy) {
                 minion.busy = true;
-                return minion.proxy;
+                return minion.proxy; 
             }
         }
         return null;
     }
 
-    public markMinionAsFree(minion: Comlink.Remote<any>, taskId: string) {
+    public markMinionAsFree(minion: Comlink.Remote<Minion>, taskId: string) {
         for (const m of this.minions) {
             if (m.proxy === minion) {
                 m.busy = false;
                 break;
             }
         }
-        this.updateTaskStatus(taskId, 'completed');
-        this.assignNextTask(); // Continue assigning tasks after marking a minion as free
+        this.updateTaskStatus(taskId, TaskStatus.Completed); 
+        this.assignNextTask(); 
     }
+    
 
-    private updateTaskStatus(taskId: string, status: 'queued' | 'in-progress' | 'completed') {
+    private updateTaskStatus(taskId: string, status: TaskStatus) {
         const task = this.taskQueue.find(task => task.id === taskId);
         if (task) {
             task.status = status;
         }
     }
 
-    public async notifyTaskCompletion(minion: Comlink.Remote<any>, taskId: string) {
+    public async notifyTaskCompletion(minion: Comlink.Remote<Minion>, taskId: string) {
         this.markMinionAsFree(minion, taskId);
     }
+    
 
-    public getTaskStatus(taskId: string): 'queued' | 'in-progress' | 'completed' | 'not-found' {
+    public getTaskStatus(taskId: string): TaskStatus {
         const task = this.taskQueue.find(task => task.id === taskId);
-        return task ? task.status : 'not-found';
+        return task ? task.status : TaskStatus.NotFound;
     }
+    
 
     public async updateMinionState(state: MinionState): Promise<void> {
         await this.minionStates.put(state);
@@ -102,4 +106,5 @@ class WardenImpl implements Warden {
     }
 }
 
-Comlink.expose(new WardenImpl());
+// Expose the Warden implementation to be used as a worker
+Comlink.expose(WardenImpl);
