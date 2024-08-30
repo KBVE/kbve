@@ -3,8 +3,8 @@ title: 'August: 29th'
 category: Daily
 date: 2024-08-29 12:00:00
 client: Self
-unsplash: 1690859577314-ddcd385ee050
-img: https://images.unsplash.com/photo-1690859577314-ddcd385ee050?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1692364042693-bd5aed6360d3
+img: https://images.unsplash.com/photo-1692364042693-bd5aed6360d3?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: August 29th. 
 tags:
   - daily
@@ -20,9 +20,66 @@ Leaving Rome once more, its been almost a decade since I was last here.
 Next time I am going to come here with a bunch of helper notes.
 A world wide scavengar hunt is also a cool idea for promoting Rent Earth.
 
-
 **Postgres**
 
 We could split the global key value storage but I think it might be fine to just use it within the postgres database.
 Having it stored and saved at a core level within the postgres but then being pulled out and into redis would just save us time in the long term.
 
+**Florence**
+We are about to arrive in my favorite city in the world!
+Well, Rome is not bad at all, I do believe it holds a great place in my heart, there is just something about Flora.
+Maybe a trip to Siena next? 
+Hmm, that is making me wonder if its worth the time investment to plan around a quick day trip.
+Actually this would mean that working remotely and traveling around Italy for short bursts is possible without any major pain points.
+Now I just need to find a girlfriend that can the same with me, ideally another software engineer and we would be set.
+
+
+**Minions**
+
+Going to focus on the minions folder for the worker script.
+While I am working on that, I am also preparing the next batch of updates for the postgres and hqplan revamp.
+Ugh there are a ton of moving parts that need to be cleaned up and updated but there is never enough time.
+I am going to split the minions concept into a folder with about three to five files that will be the core of the whole system.
+This is the current breakdown for these files within the Minions folder:
+
+- minion.ts handles the creation and setup of Web Workers.
+
+- minionWorker.ts is responsible for the worker's entry point and exposing the MinionImpl.
+
+- minionImplementation.ts contains the actual business logic for the MinionImpl class.
+
+The new `minion.ts` will look like this:
+
+```ts
+
+import * as Comlink from 'comlink';
+import { MinionImpl } from './minionImplementation';
+
+export function createMinion(id: string) {
+  const workerUrl = new URL('./minionWorker.ts', import.meta.url);
+  const minionWorker = new Worker(workerUrl, { type: 'module' });
+  return Comlink.wrap<Comlink.Remote<MinionImpl>>(minionWorker);
+}
+
+```
+
+<Adsense />
+
+## 2023
+
+- 9:13am - Getting ready for the markets to open up, but before I do that, I should make sure everything is in sync. I will publish out this branch really quick before going a bit deeper into the deployments.
+
+- 12:40pm - It seems that everyone at work was pleased with the backup plan and writeup that I did, I played deeper into the "Trump" style presentation, keeping to simple and short words that got the point across. I r regarded.
+
+- 5:15pm - I am currently doing a bit of R&D on the different paths we could take for the file system management, which would also include the backup storage and the restoration. While my documentation can provide a decent roadmap for where we want to go, I think sometimes the time spent mapping out should not be overloaded because there will always be interesting and unique edge cases that will take a large chunk of time out of the implementation. This is just really a note to my future self on how to tackle those issues. 
+
+## Quote
+
+> There is no greater harm than that of time wasted.
+> — <cite>Michelangelo</cite>
+
+---
+
+## Tasks
+
+- [ ] Research File Management
