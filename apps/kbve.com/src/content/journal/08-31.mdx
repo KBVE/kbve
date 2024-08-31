@@ -175,6 +175,172 @@ The plan would be to go from NJ to California, stay in LA for a weeken or two, j
 Maybe I can be super clutch and get it done this year?
 I really should improve my camera skills and be able to capture these moments.
 
+**CICD**
+
+Quickly update the core of the hq plan deployment and the deployment of the cityvote.
+Both of these will be the same application and website, since they are expo related and will share the same core codebase, we can publish them together.
+My goal would be to have a decent amount of code sync among these projects, allowing us to deploy them all and launch them at once.
+If we can throw 5-10 apps onto the board and see which one would stick around?
+I think if we can get cityvote up and running before the electon season then it could be poised from the traffic boost related to that drama.
+Since we will be launching the worker package as well, I will include that in there for now:
+
+```yaml
+
+  alter:
+    needs: ['globals']
+    runs-on: ubuntu-latest
+    name: File Alterations
+    if: github.repository == 'kbve/kbve'
+    outputs:
+      worker: ${{ steps.delta.outputs.worker_any_changed }}
+      expo-hqplan: ${{ steps.delta.outputs.expo-hqplan }}
+      expo-cityvote:  ${{ steps.delta.outputs.expo-cityvote }}
+
+```
+
+Next define the regex for changes.
+
+```yaml
+
+      - name: File Changes
+        id: delta
+        uses: tj-actions/changed-files@v39
+        with:
+          files_yaml: |
+            herbmail:
+                - 'apps/herbmail.com/**'
+            kbve:
+                - 'apps/kbve.com/**'
+            rareicon:
+                - 'apps/rareicon.com/**'
+            discordsh:
+                - 'apps/discord.sh/**'
+            atlas:
+                - 'apps/atlas/kbve_atlas/**'
+            worker:
+                - 'packages/worker/package.json'
+            expo-hqplan:
+                - 'apps/expo-hqplan/src/**'
+            expo-cityvote:
+                - 'apps/expo-cityvote/src/**'
+```
+
+I wonder if we could migrate the alter operations to our npm package but I feel like that might be too much inner loop / god repo complex.
+We want to isolate some of the projects and concepts or we will never get anything done.
+
+
+These are the three checks that we want to implement before we start to build out their cicd pipeline, we want to have these ready right now so that we can easily plug them into our pipeline and see what it is able to produce.
+
+The run on sentences are mainly because I am shifting my thought process and the plane is just not making it easier.
+Maybe I will drink something nice and cold to snap me back into the flow.
+
+
+**Expo Actions**
+
+```yaml
+
+
+  expo-lcagents-web-build:
+    needs: ['alter', 'globals']
+    name: Expo LC Agents Web Build
+    runs-on: ubuntu-latest
+    if: needs.alter.outputs.expolcagents == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install react-native-cli globally
+        run: pnpm add -g react-native-cli
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Watchman (if applicable)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y watchman
+          watchman --version
+
+      - name: NX Command
+        shell: bash
+        continue-on-error: true
+        run: |
+          pnpm nx run expo-lcagents:export --verbose
+
+      - name: NX Command - 2
+        shell: bash
+        continue-on-error: true
+        run: |
+          pnpm nx run expo-lcagents:export --verbose
+
+      - name: LCA Expo Build
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx expo-lcagents:export'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create .nojekyll file
+        run: |
+          mkdir -p dist/apps/expo-lcagents/
+          touch dist/apps/expo-lcagents/.nojekyll
+
+      - name: Create CNAME file
+        run: |
+          mkdir -p dist/apps/expo-lcagents/
+          echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
+
+      - name: LC Agents -> Deployment
+        uses: dobbelina/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+        with:
+          source_file: 'dist/apps/expo-lcagents/'
+          destination_repo: 'kbve/lc-agents.com'
+          destination_folder: '/docs'
+          destination_branch: 'main'
+          destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
+          user_email: '5599058+h0lybyte@users.noreply.github.com'
+          user_name: 'h0lybyte'
+          commit_message: ${{ github.event.head_commit.message }}
+          rsync_option: '-avrh --delete'
+
+```
+
+I am going to take this part of the lc agents and see if I can turn it something more meaningful for we are trying to build.
+We could just trim down the steps and focus on getting a future action called `expo-hqplan-web-build` that will handle everything we need for deploying our changes directly to the main repo.
+Getting it moving faster and faster will be our key, we should have a whole podcast in the future where we just work on the monorepo.
+The newer guys that come into the podcast, the objective is to help them get into the full devops flow and maybe even look into it as bizops?
+We push the BizOps to the max and have it pump out profit generating websites? 
+I am going to focus on a couple core ones but the skills and this corebase would make it easier for anyone to do it.
+The part where this will help us a lot will be in the i18n aspect of the build process, since we will have to look through a bunch of different languages.
+
+
+**UnityWorker**
+
+While I am going through the `cicd` pipeline, we can take a look back at the unity flow we were using ... oh the sleep juju is hitting hard.
+and once unity 6 comes around and we get this worker published, we could look at integrating the unity wasm into the minion thread.
+Actually, I believe that be an interesting way to get that dual level of multi-connection that some game companies are after for mobile first video games.
+However we will have some issues when trying to get the game load from cdns, so we will have to be extremely careful on how we handle it.
+
+
+**SD&ME**
+
+Both of those projects will continue to be on hold until we can get the backend up and running with around 100 memebers?
+The frontend would have to be 3-5 projects as well, so that when we go ahead and add more projects, they all have their place in the eco-system.
+
+
 
 <Adsense />
 
