@@ -58,6 +58,111 @@ I think cornering the market on the data points would be great, giving people bo
 Actually, thank god for net neutrality or we would have seen some wild monoploies from, like a "Free Netflix In Flight" and ... well actually that could be a good case against net neutrality.
 
 
+**Items**
+
+When we plan around releasing new tiems, I think that it be fine if we focus on adding new items and adjusting the item values. 
+However, we should do our best to limit the removal items, as we should find more creative ways of using each of items within our eco-system.
+We eventually want to grow our own internal in-game economics but that will also require a vast amount of thinking and planning.
+Nothing makes it more fun than having to play the federal reserve simulator.
+
+Here is an example of the frontmatter of the magic nemo:
+
+
+```yaml
+
+    - id: "01J269PK47V1DWX2S1251DEASD"
+      name: "Magic Nemo"
+      type: "food"
+      category: "consumable"
+      description: "A magical fish that will fuel your wizard powers. You are now a harry wizard, becarful of pots."
+      img: "/assets/items/food/fish/magic_nemo.png"
+      bonuses:
+        health: 10
+        mana: 100
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Heals 10 health and 100 mp, but be warn, there are dangerous to be had."
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 500
+      cooldown: 120
+      credits: |
+        Magic nemo asset was made by Roku6 - https://roku6.itch.io/pixelfishes    
+
+```
+
+
+The item goes by the ulid of `01J269PK47V1DWX2S1251DEASD` aka the `Magic Nemo`, however the item should include another ulid as a reference for any action or effects.
+This then goes back to structuring the itemdb and making it easier to process in the future, also adaptable enough to shift the requirements without breaking the whole game.
+I am going to keep working on this part of the code base until I get it nearly perfect, but even then I know that will not happen.
+
+We will have to come back around again in the future and update the itemdb again because we have to account for item equipment , durability and rarity abit more.
+
+**Atlantic Blue Marlin**
+
+```yaml
+    - id: "-generate-new-one"
+      name: "Atlantic Blue Marlin"
+      type: "food"
+      category: "consumable"
+      description: "A marlin from the East Blue Sea, once home to the greatest chefs of the old era. A fish that should be shared with everyone, even those in need."
+      img: "/assets/items/food/fish/atlantic_blue_marlin.png"
+      bonuses:
+        health: 100
+        mana: 100
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Heals 100hp and 100 mp, for you and another 50 hp and 50mp for everyone around you!ß"
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 500
+      cooldown: 120
+      credits: |
+        The blue marlin asset was made by Roku6 - https://roku6.itch.io/pixelfishes    
+```
+
+This fish will have a special mana effect that will happen when eaten, which will give everyone near the person that eats it a bonus amount of mana.
+I am thinking that these could be carried by a mage / support in the future to provide mana for everyone in the party.
+
+
+**Dora**
+
+```yaml
+    - id: "-generate-new-one"
+      name: "Dora"
+      type: "food"
+      category: "consumable"
+      description: "A fish that might cause confusion."
+      img: "/assets/items/food/fish/dora.png"
+      bonuses:
+        health: 10
+        mana: 100
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Heals 10 health and 100 mp, but be warn, there are dangerous to be had."
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 500
+      cooldown: 120
+      credits: |
+        The dora fish asset was made by Roku6 - https://roku6.itch.io/pixelfishes    
+```
+
+There were a couple more fish that will be added into the game this month of September!
+We want to make sure that we can have these two get added into the game without having any hicups.
+
+
+**Fish Stats**
+
+The initial stats will be off when we add them into the game but that should be fine because we can use that is part of the rolling patch concept.
+Introduce the item into the game with the base stats and then nerf / rework as we test it out.
+
 <Adsense />
 
 ## 2023
