@@ -1,6 +1,12 @@
-import { MinionImpl } from './minionImplementation';
 import * as Comlink from 'comlink';
+import { MinionImpl } from './minionImplementation';
 
-Comlink.expose({
-  createMinion: (id: string) => new MinionImpl(id),
-});
+let minion: MinionImpl;
+
+// Function to initialize the minion with an ID
+function initialize(id: string) {
+  minion = new MinionImpl(id);
+  Comlink.expose(minion);
+}
+
+Comlink.expose({ initialize });

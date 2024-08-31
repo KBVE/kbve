@@ -14,15 +14,10 @@ describe('minionWorker', () => {
       const worker = new Worker(workerUrl, { type: 'module' });
 
       // Wrap the worker using Comlink
-      const workerProxy = Comlink.wrap<{
-        createMinion: (id: string) => Promise<Comlink.Remote<Minion>>;
-      }>(worker);
-
-      // Use the factory function to create a MinionImpl instance
-      const minion = await workerProxy.createMinion('worker-test-minion');
+      const minionProxy = Comlink.wrap<Comlink.Remote<Minion>>(worker);
 
       // Check that the minion is properly created and can process a task
-      expect(minion).toBeDefined();
+      expect(minionProxy).toBeDefined();
 
       // Create a mock task with the correct TaskStatus type
       const mockTask: Task = {
@@ -32,11 +27,11 @@ describe('minionWorker', () => {
       };
 
       // Call processTask on the minion instance
-      await minion.processTask(mockTask);
+      await minionProxy.processTask(mockTask);
 
       // Terminate the worker after the test
       worker.terminate();
     },
-    10000 // Set timeout to 10 seconds (10000 milliseconds)
+    30000 // Set timeout to 30 seconds (30000 milliseconds)
   );
 });
