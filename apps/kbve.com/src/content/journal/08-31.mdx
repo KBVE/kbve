@@ -327,7 +327,6 @@ Fixed up the command to export the hqplan generic website, but we will not know 
 Tonight I am going to focus on the supabase deployment and then will switch back around to the hq plan. 
 
 
-
 **UnityWorker**
 
 While I am going through the `cicd` pipeline, we can take a look back at the unity flow we were using ... oh the sleep juju is hitting hard.
@@ -335,6 +334,8 @@ and once unity 6 comes around and we get this worker published, we could look at
 Actually, I believe that be an interesting way to get that dual level of multi-connection that some game companies are after for mobile first video games.
 However we will have some issues when trying to get the game load from cdns, so we will have to be extremely careful on how we handle it.
 
+The way that we were calling the unity wasm was through the react unity webgl library, but there might be another way to do it with unity 6 exports.
+Unity should have resolved it by now but the worry that they have not yet is always a possibility.
 
 **SD&ME**
 
