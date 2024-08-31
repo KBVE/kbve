@@ -240,19 +240,19 @@ Maybe I will drink something nice and cold to snap me back into the flow.
 ```yaml
 
 
-  expo-lcagents-web-build:
+  expo-hqplan-web-build-and-deploy:
     needs: ['alter', 'globals']
-    name: Expo LC Agents Web Build
+    name: HQPlan.com Web Deployment
     runs-on: ubuntu-latest
-    if: needs.alter.outputs.expolcagents == 'true'
+    if: needs.alter.outputs.expo-hqplan == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Setup PNPM
         uses: pnpm/action-setup@v3
@@ -260,12 +260,14 @@ Maybe I will drink something nice and cold to snap me back into the flow.
           version: 9
           run_install: false
 
+      # Not too sure if we will need the react-native-cli globally? I need to double check this.
       - name: Install react-native-cli globally
         run: pnpm add -g react-native-cli
 
       - name: Install dependencies
         run: pnpm install
 
+      # Not sure if we need watchman but is fine.
       - name: Setup Watchman (if applicable)
         run: |
           sudo apt-get update
@@ -276,41 +278,42 @@ Maybe I will drink something nice and cold to snap me back into the flow.
         shell: bash
         continue-on-error: true
         run: |
-          pnpm nx run expo-lcagents:export --verbose
+          pnpm nx run expo-hqplan:export --verbose
 
       - name: NX Command - 2
         shell: bash
         continue-on-error: true
         run: |
-          pnpm nx run expo-lcagents:export --verbose
+          pnpm nx run expo-hqplan:export --verbose
 
-      - name: LCA Expo Build
+      - name: HQPlan Build
         uses: ./.github/actions/kbve-shell
         with:
-          flag: '-nx expo-lcagents:export'
+          flag: '-nx expo-hqplan:export'
           create_pull_request: false
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      # We should migrate the .nojekyll creation into the build process, as well as the CNAME.
       - name: Create .nojekyll file
         run: |
-          mkdir -p dist/apps/expo-lcagents/
-          touch dist/apps/expo-lcagents/.nojekyll
+          mkdir -p dist/apps/expo-hqplan/
+          touch dist/apps/expo-hqplan/.nojekyll
 
       - name: Create CNAME file
         run: |
-          mkdir -p dist/apps/expo-lcagents/
-          echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
+          mkdir -p dist/apps/expo-hqplan/
+          echo "hqplan.com" > dist/apps/expo-hqplan/CNAME
 
-      - name: LC Agents -> Deployment
+      - name: HQPlan.com -> Deployment
         uses: dobbelina/copy_file_to_another_repo_action@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
         with:
-          source_file: 'dist/apps/expo-lcagents/'
-          destination_repo: 'kbve/lc-agents.com'
+          source_file: 'dist/apps/expo-hqplan/'
+          destination_repo: 'kbve/hqplan.com'
           destination_folder: '/docs'
           destination_branch: 'main'
-          destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
+          destination_branch_create: 'patch-kbve-hqplan-deploy-${{ needs.globals.outputs.sha256head }}'
           user_email: '5599058+h0lybyte@users.noreply.github.com'
           user_name: 'h0lybyte'
           commit_message: ${{ github.event.head_commit.message }}
@@ -322,6 +325,7 @@ I am going to take this part of the lc agents and see if I can turn it something
 We could just trim down the steps and focus on getting a future action called `expo-hqplan-web-build` that will handle everything we need for deploying our changes directly to the main repo.
 Fixed up the command to export the hqplan generic website, but we will not know exactly how it will perform until we get more of the codebase up and running.
 Tonight I am going to focus on the supabase deployment and then will switch back around to the hq plan. 
+
 
 
 **UnityWorker**
@@ -341,6 +345,12 @@ The newer guys that come into the podcast, the objective is to help them get int
 We push the BizOps to the max and have it pump out profit generating websites? 
 I am going to focus on a couple core ones but the skills and this corebase would make it easier for anyone to do it.
 The part where this will help us a lot will be in the i18n aspect of the build process, since we will have to look through a bunch of different languages.
+
+**References**
+I am starting to become a reference floor, I am just using them in almost everything!
+Proof of concepts, complex tasks, everything could just be a reference to another reference, one cell to another.
+Two more hours left in this flight and I am doing everything that I can to keep the flow going before I eventually go home and passout.
+
 
 
 <Adsense />
