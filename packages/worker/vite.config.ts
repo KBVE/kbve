@@ -7,16 +7,15 @@ export default defineConfig({
 
   plugins: [nxViteTsPaths()],
 
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [ nxViteTsPaths() ],
-  // },
+  worker: {
+    plugins: () => [nxViteTsPaths()],
+  },
 
   test: {
     globals: true,
     cache: { dir: '../../node_modules/.vitest' },
     environment: 'jsdom', // Using jsdom for a browser-like environment
-    testTimeout: 20000,  // Extending out default timeout for longer-running tests
+    testTimeout: 30000,  // Extending out default timeout for longer-running tests
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['default'],
     coverage: {

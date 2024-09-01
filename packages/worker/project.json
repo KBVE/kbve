@@ -6,7 +6,7 @@
   "release": {
     "version": {
       "generatorOptions": {
-        "packageRoot": "packages/laser",
+        "packageRoot": "packages/worker",
         "currentVersionResolver": "disk"
       }
     }
