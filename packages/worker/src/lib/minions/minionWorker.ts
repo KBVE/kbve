@@ -1,12 +1,7 @@
 import * as Comlink from 'comlink';
 import { MinionImpl } from './minionImplementation';
 
-let minion: MinionImpl;
-
-// Function to initialize the minion with an ID
-function initialize(id: string) {
-  minion = new MinionImpl(id);
-  Comlink.expose(minion);
-}
-
-Comlink.expose({ initialize });
+// Directly expose a function that returns a new MinionImpl instance
+Comlink.expose({
+  createMinion: (id: string) => new MinionImpl(id)
+});
