@@ -45,7 +45,7 @@ services:
       replicas: 1
       labels:
         - 'traefik.enable=true'
-        - 'traefik.constraint-label-stack=supabase'
+        - 'traefik.constraint-label-stack=public'
         - 'traefik.docker.network=public'
         - 'traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)'
         - 'traefik.http.routers.supabase-kbve.entrypoints=http'
@@ -69,8 +69,9 @@ services:
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
-    volumes:
-      - kong-config:/home/kong/temp.yml:ro
+    configs:
+      - source: kong.yml
+        target: /home/kong/temp.yml
 
   # GoTrue - Auth Service
   auth:
@@ -250,9 +251,9 @@ services:
     container_name: supabase-edge-functions
     image: supabase/edge-runtime:v1.54.2
     restart: unless-stopped
-    #deploy:
-      #placement:
-        #constraints: [node.labels.node-type == primary]
+    deploy:
+      placement:
+        constraints: [node.labels.node-type == primary]
     environment:
       JWT_SECRET: ${JWT_SECRET}
       SUPABASE_URL: http://kong:8000
@@ -303,9 +304,9 @@ services:
       supabase-net:
         aliases:
           - supabase-db
-    #deploy:
-      #placement:
-        #constraints: [node.labels.node-type == primary]
+    deploy:
+      placement:
+        constraints: [node.labels.node-type == primary]
     image: supabase/postgres:15.1.1.61
     healthcheck:
       test: pg_isready -U postgres -h localhost
@@ -332,8 +333,17 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data:Z
       - db-config:/etc/postgresql-custom
-      - db-migrations:/docker-entrypoint-initdb.d/migrations:Z
-      - db-init-scripts:/docker-entrypoint-initdb.d/init-scripts:Z
+    configs:
+      - source: 99-logs.sql
+        target: /docker-entrypoint-initdb.d/migrations/99-logs.sql
+      - source: 99-realtime.sql
+        target: /docker-entrypoint-initdb.d/migrations/99-realtime.sql
+      - source: 99-roles.sql
+        target: /docker-entrypoint-initdb.d/init-scripts/99-roles.sql
+      - source: 98-webhooks.sql
+        target: /docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql
+      - source: 99-jwt.sql
+        target: /docker-entrypoint-initdb.d/init-scripts/99-jwt.sql
 
   # Vector - Log collection and forwarding
   vector:
@@ -350,15 +360,15 @@ services:
       interval: 5s
       retries: 3
     volumes:
-      - vector-config:/etc/vector/vector.yml:ro
       - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro
+    configs:
+      - source: vector.yml
+        target: /etc/vector/vector.yml
     environment:
       LOGFLARE_API_KEY: ${LOGFLARE_API_KEY}
     command: ['--config', 'etc/vector/vector.yml']
 
 volumes:
-  kong-config:
-    external: true
   storage-data:
     external: true
   functions-data:
@@ -367,16 +377,25 @@ volumes:
     external: true
   db-config:
     external: true
-  db-migrations:
-    external: true
-  db-init-scripts:
-    external: true
-  vector-config:
-    external: true
-
-
 
 networks:
   supabase-net:
   public:
+    external: true
+
+
+configs:
+  99-logs.sql:
+    external: true
+  99-realtime.sql:
+    external: true
+  99-roles.sql:
+    external: true
+  98-webhooks.sql:
+    external: true
+  99-jwt.sql:
+    external: true
+  vector.yml:
+    external: true
+  kong.yml:
     external: true
