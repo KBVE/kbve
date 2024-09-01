@@ -45,7 +45,7 @@ services:
       replicas: 1
       labels:
         - 'traefik.enable=true'
-        - 'traefik.constraint-label-stack=traefik-public'
+        - 'traefik.constraint-label-stack=supabase'
         - 'traefik.docker.network=public'
         - 'traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)'
         - 'traefik.http.routers.supabase-kbve.entrypoints=http'
@@ -250,9 +250,9 @@ services:
     container_name: supabase-edge-functions
     image: supabase/edge-runtime:v1.54.2
     restart: unless-stopped
-    deploy:
-      placement:
-        constraints: [node.labels.node-type == primary]
+    #deploy:
+      #placement:
+        #constraints: [node.labels.node-type == primary]
     environment:
       JWT_SECRET: ${JWT_SECRET}
       SUPABASE_URL: http://kong:8000
@@ -302,11 +302,11 @@ services:
     networks:
       supabase-net:
         aliases:
-          supabase-db
-    deploy:
-      placement:
-        constraints: [node.labels.node-type == primary]
-    image: supabase/postgres:15.1.1.78
+          - supabase-db
+    #deploy:
+      #placement:
+        #constraints: [node.labels.node-type == primary]
+    image: supabase/postgres:15.1.1.61
     healthcheck:
       test: pg_isready -U postgres -h localhost
       interval: 5s
@@ -373,6 +373,8 @@ volumes:
     external: true
   vector-config:
     external: true
+
+
 
 networks:
   supabase-net:
