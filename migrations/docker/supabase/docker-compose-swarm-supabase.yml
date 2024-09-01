@@ -42,20 +42,27 @@ services:
     restart: unless-stopped
     entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
     deploy:
+      mode: replicated
       replicas: 1
       labels:
-        - 'traefik.enable=true'
-        - 'traefik.constraint-label-stack=public'
-        - 'traefik.docker.network=public'
-        - 'traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)'
-        - 'traefik.http.routers.supabase-kbve.entrypoints=http'
-        - 'traefik.http.routers.supabase-kbve.middlewares=https-redirect'
-        - 'traefik.http.routers.supabase-kbve-https.rule=Host(`supabase.kbve.com`)'
-        - 'traefik.http.routers.supabase-kbve-https.entrypoints=https'
-        - 'traefik.http.routers.supabase-kbve-https.middlewares=crowdsec@file'
-        - 'traefik.http.routers.supabase-kbve-https.tls=true'
-        - 'traefik.http.routers.supabase-kbve-https.tls.certresolver=le'
-        - 'traefik.http.services.supabase-kbve-https.loadbalancer.server.port=8000'
+        # Traefik Labels
+        - traefik.enable=true
+        - traefik.constraint-label-stack=supabase-net
+        - traefik.docker.network=public
+        - traefik.http.services.supabase-net.loadbalancer.server.port=8000
+        - traefik.http.routers.supabase-net.rule=Host(`supabase.kbve.com`)
+        # HTTP
+        - traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)
+        - traefik.http.routers.supabase-kbve.entrypoints=web
+        - traefik.http.routers.supabase-kbve.middlewares=https-redirect
+        - traefik.http.routers.supabase-kbve.service=supabase-net
+        # HTTPS
+        - traefik.http.routers.supabase-kbve-https.rule=Host(`supabase.kbve.com`)
+        - traefik.http.routers.supabase-kbve-https.entrypoints=websecure
+        - traefik.http.routers.supabase-kbve-https.middlewares=crowdsec@file
+        - traefik.http.routers.supabase-kbve-https.tls=true
+        - traefik.http.routers.supabase-kbve-https.tls.certresolver=le
+        - traefik.http.routers.supabase-kbve-https.service=supabase-net
       placement:
         constraints: [node.labels.node-type == primary]
     environment:
@@ -249,7 +256,7 @@ services:
   # Edge Functions
   functions:
     container_name: supabase-edge-functions
-    image: supabase/edge-runtime:v1.54.2
+    image: supabase/edge-runtime:v1.56.1
     restart: unless-stopped
     deploy:
       placement:
@@ -380,6 +387,9 @@ volumes:
 
 networks:
   supabase-net:
+    name: supabase-net
+    driver: overlay
+    attachable: true
   public:
     external: true
 
