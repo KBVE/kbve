@@ -1,0 +1,92 @@
+---
+title: 'August: 28th'
+category: Daily
+date: 2024-08-28 12:00:00
+client: Self
+unsplash: 1690859577314-ddcd385ee050
+img: https://images.unsplash.com/photo-1690859577314-ddcd385ee050?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 28th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Roma**
+Running around the city again today and just looking at all the sights.
+I found out that office 21 was closed and its a shame because I really wanted to work out from there.
+Now I need to find a place in rome that has an epic view , amazing wifi and is not too expensive.
+
+**Villa Doria Pamphili**
+Decided to make a quick date with a lady that I befriended!
+We did a couple sandwiches and a general walk around the park, it was actually super fun and we had this amazing connection.
+Rome is truely a magical city, the moments you can just build those connections, its actually wild.
+
+**Expo**
+The other update that I have to do for the repo is to make sure that all of expo will build without having to download anything.
+I believe we need to create a prebuild folder for ios and android, then setup the files for it.
+We will have to do this off of wifi because I do not want to burn through my data.
+Lets go ahead and have groq update the app.json, and slowly perform the changes to prepare the general build.
+
+O M G! 
+I forgot to setup metro to use the tamagui configuration, which would explain part of that bug I was having earlier.
+This is the first time that an AI really got a problem resolved that was way out of bounds for it to understand.
+I am amazed with this setup!
+
+The animations need to be replaced, but what type of library will we use to help with that?
+I am thinking we could expand out the `expo-bbq` package and include a bunch of animation integrations that we can then call in our apps.
+We could try to get the animations on the main ui thread too, since we can move all the complex logic off to a worker thread?
+Let me zeta this journal entry and switch back to a proof of concept.
+
+Cleaned up some of the metro configurations and made it a bit easier to read.
+I am going to swing back around and make some open source documentation that will be in our javascript application mdx.
+
+
+**KiloBase**
+The idea behind deployment of `kilobase` is that we take the exisiting supabase image and then wrap around our custom changes.
+Since we want this postgres database to be large and powerful, we can make changes at this core level, thus making it easier to maintain.
+Furthermore, we could also create another image called `cachebase` that would be focused on providing a read only instance of supabase / postgres, that has further tweaks to focus on providing a cache of the data.
+For setting up the core kilobase, we should make the .ts file that would be similar to our planetscale file.
+My idea would be to have all the base postgres configuration inside of this file, including the model design and initial migrations.
+
+As I am writing it out, it feels like we might be going backwards.
+The usage of drizzle is making the supabase / postgres interaction a bit too rough, maybe we can find a better way to handle this?
+We could setup the postgres to operate with the raw variables and then work around that.
+
+**Nx**
+
+Trying to migrate the repo over to v19 but I am have a bit trouble finidng a strong internet connection to do it with.
+Sadly the wifi is too slow to perform these migration tests.
+However we are still waiting on a couple packages to either update or move to a later version of v19.
+
+**Warden**
+
+<Adsense />
+
+
+
+
+## 2023
+
+- 8:30am - Getting ready for the day, I been slacking on the daily journal entries because I been so backlogged with learning a bunch of random new things! We had to skip a hackathon recently because it felt very unrated and I just did not have the time for it. I suppose doing a couple hackathons back to back is not yet in my timeline, plus my sleep schedule has been taking a hit.  
+
+- 9:45am - Besides doing my morning trade setup, which includes selling weekly call options, I been thinking that I really need to start expanding out my time table and switch over to a more specific block time. 
+
+- 11:00am - Updating Astro to the latest version! Let us see if we are able to run the `v2.10.14`!
+
+- 9:35pm - Going to update the repository and make sure that we are able to run Astro at the latest version.
+
+- 11:17pm - Okay everything was pushed through for this repo.
+
+## Quote
+
+> If you are out to describe the truth, leave elegance to the tailor.
+> — <cite>Albert Einstein</cite>
+
+---
+
+## Tasks
+
+- [ ]

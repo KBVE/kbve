@@ -1,50 +1,52 @@
+// Documentation: https://kbve.com/application/javascript/#rn
+
 const { withNxMetro } = require('@nx/expo');
 const { getDefaultConfig } = require('@expo/metro-config');
 const { mergeConfig } = require('metro-config');
 const { withTamagui } = require('@tamagui/metro-plugin');
 
+// Constants for repeated values
+const TAMAGUI_CONFIG_PATH = './tamagui.config.ts';
+const TAMAGUI_OUTPUT_CSS_PATH = './tamagui-web.css';
 
-// Get the default config from Expo
+function getCustomResolverConfig(defaultConfig) {
+  const { assetExts, sourceExts } = defaultConfig.resolver;
+  return {
+    resolver: {
+      assetExts: assetExts.filter((ext) => ext !== 'svg'),
+      sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg'],
+    },
+  };
+}
+
+function getCustomTransformerConfig() {
+  return {
+    transformer: {
+      babelTransformerPath: require.resolve('react-native-svg-transformer'),
+    },
+  };
+}
+
+function getTamaguiConfig() {
+  return getDefaultConfig(__dirname, {
+    isCSSEnabled: true,
+  });
+}
+
 const defaultConfig = getDefaultConfig(__dirname);
+let mergedConfig = mergeConfig(defaultConfig, getCustomResolverConfig(defaultConfig));
+mergedConfig = mergeConfig(mergedConfig, getCustomTransformerConfig());
+mergedConfig = mergeConfig(mergedConfig, getTamaguiConfig());
 
-// Extract relevant properties for easier manipulation
-const { assetExts, sourceExts } = defaultConfig.resolver;
-
-/**
- * Metro configuration
- * https://facebook.github.io/metro/docs/configuration
- *
- * @type {import('metro-config').MetroConfig}
- */
-const customConfig = {
-  transformer: {
-    babelTransformerPath: require.resolve('react-native-svg-transformer'),
-  },
-  resolver: {
-    assetExts: assetExts.filter((ext) => ext !== 'svg'),
-    sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg'],
-  },
-};
-
-let mergedConfig = mergeConfig(defaultConfig, customConfig);
-
-
-// Enable CSS support and configure for Tamagui
-const tamaguiConfig = getDefaultConfig(__dirname, {
-  isCSSEnabled: false, // [Web-only]: Enables CSS support in Metro.
-});
-
-
-mergedConfig = mergeConfig(mergedConfig, tamaguiConfig);
-
-
-
-module.exports = withNxMetro(mergeConfig(defaultConfig, customConfig), {
-  // Change this to true to see debugging info.
-  // Useful if you have issues resolving modules
-  debug: false,
-  // all the file extensions used for imports other than 'ts', 'tsx', 'js', 'jsx', 'json'
-  extensions: [],
-  // Specify folders to watch, in addition to Nx defaults (workspace libraries and node_modules)
-  watchFolders: [],
-});
+module.exports = withNxMetro(
+  withTamagui(mergedConfig, {
+    components: ['tamagui'],
+    config: TAMAGUI_CONFIG_PATH,
+    outputCSS: TAMAGUI_OUTPUT_CSS_PATH,
+  }),
+  {
+    debug: false,
+    extensions: [],
+    watchFolders: [],
+  }
+);
