@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { QueryClient, QueryObserver } from '@tanstack/query-core';
+import { QueryClient, QueryObserver, QueryClientConfig } from '@tanstack/query-core';
 import { DataTome, Task, Minion } from '../types';
 
 export class MinionImpl implements Minion {
@@ -13,9 +13,27 @@ export class MinionImpl implements Minion {
       myData: 'id, value',
     });
     this.myData = this.db.table('myData');
-    this.queryClient = new QueryClient();
 
-    // Optionally observe any query for reactivity
+    const queryClientConfig: QueryClientConfig = {
+      defaultOptions: {
+        queries: {
+          queryFn: async ({ queryKey }) => {
+            const [key, taskId] = queryKey;
+            if (key === 'taskResult') {
+              return this.fetchQueryData(taskId as string);
+            }
+            else if (key === 'minionData') {
+              // Handle the 'minionData' query key appropriately or return a mock value
+              return { data: `Mock data for ${key}` };
+            }
+            throw new Error(`Unknown query key: ${key}`);
+          },
+        },
+      },
+    };
+
+    this.queryClient = new QueryClient(queryClientConfig);
+
     const observer = new QueryObserver(this.queryClient, { queryKey: ['minionData'] });
     observer.subscribe((result) => {
       console.log('Query result:', result);
@@ -25,16 +43,13 @@ export class MinionImpl implements Minion {
   public async processTask(task: Task): Promise<void> {
     await this.addData(task.payload);
 
-    // Simulate processing the task
     console.log(`Processing task ${task.id} with data: ${task.payload.value}`);
 
-    // After processing, store the result in TanStack Query
     this.queryClient.setQueryData(['taskResult', task.id], {
       success: true,
       result: `Processed data: ${task.payload.value}`,
     });
 
-    // Migrate processed data to Warden if needed
     await this.migrateDataToWarden(task.payload);
   }
 
@@ -50,13 +65,10 @@ export class MinionImpl implements Minion {
   }
 
   public async migrateDataToWarden(data: DataTome): Promise<void> {
-    // Example logic to migrate data to Warden
     console.log(`Migrating data to Warden: ${data.id}`);
-    // Implement the actual migration logic
   }
 
   public async fetchQueryData(taskId: string): Promise<any> {
-    // Fetch the result from the query client, for testing purposes
     return this.queryClient.getQueryData(['taskResult', taskId]);
   }
 }

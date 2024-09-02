@@ -1,8 +1,16 @@
 import * as Comlink from 'comlink';
-import { MinionImpl } from './minionImplementation';
+import { Minion } from '../types';
 
-export function createMinion(id: string) {
+export async function createMinion(id: string): Promise<Comlink.Remote<Minion>> {
   const workerUrl = new URL('./minionWorker.ts', import.meta.url);
   const minionWorker = new Worker(workerUrl, { type: 'module' });
-  return Comlink.wrap<Comlink.Remote<MinionImpl>>(minionWorker);
+
+  // Initialize the Minion in the worker
+  const minionProxy = Comlink.wrap<Comlink.Remote<{ initialize: (id: string) => void }>>(minionWorker);
+
+  // Pass the ID to the Minion Worker for initialization
+  await minionProxy.initialize(id);
+
+  // Return the fully initialized Minion proxy
+  return minionProxy as unknown as Comlink.Remote<Minion>;
 }

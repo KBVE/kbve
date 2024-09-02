@@ -1,4 +1,7 @@
-import { MinionImpl } from './minionImplementation';
 import * as Comlink from 'comlink';
+import { MinionImpl } from './minionImplementation';
 
-Comlink.expose(MinionImpl);
+// Directly expose a function that returns a new MinionImpl instance
+Comlink.expose({
+  createMinion: (id: string) => new MinionImpl(id)
+});

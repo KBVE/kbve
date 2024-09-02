@@ -1,0 +1,108 @@
+---
+title: 'August: 30th'
+category: Daily
+date: 2024-08-30 12:00:00
+client: Self
+unsplash: 1692627806647-2ca49614fa44
+img: https://images.unsplash.com/photo-1692627806647-2ca49614fa44?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 30th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Firenze**
+I am so used to calling this place florance that I forgot how fire the original name sounds.
+We will be here for the last of our trip, flying out tomorrow and I am going to miss parts of this city.
+The only way that I can think of ending this perfect trip is to do some work in my favorite movie theather.
+Followed by the best espresso right next door, I can not think of a better place in the world to do work. 
+The amount of style here could also compete with japan.
+Now with any good time, we have to take it with a fair and balance approach, I would not want to live here doe.
+
+
+**Portainer**
+I am currently mapping out the portainer changes that we will need to deploy for the rancher / kube stack.
+The best suggestion would be to get all the main proxmox instances up and then work from there.
+I believe we also need to get a couple more of the expo applications built out and deployed when entering the dev and main branch.
+There might be a weird feeling of having to do multiple apps at the same time but it makes it easier to test case different parts of the build and to see how they affect performance.
+
+**NotAllWeb**
+The otherside of this build process would be to remove the core focus on mobile + app , and just have an amazing astro application that runs near native on the phone.
+The Worker library will be in charge of making that happen.
+
+**Worker**
+Going to grab a quick expresso, enjoy a bit of the outside before coming back into the Odeon.
+The goal today will be to finish up the warden class, whom will be in charge of the minions!
+Part of the test casing will be to have the warden issue off-thread commands and processing to the minions and return back the results.
+Then we can move forward with setting up the edge functions and supabase integration.
+The edge functions will be split into a various collection of global and local servers, the goal would be to pull in and out as much information as we can for now.
+Having the focus on speed is something that we can overlook for now because we will not have enough data to perform the changes that we will require.
+Once the supabase is ready, we can start to expand out and collect users, aiming for around 10,000 users before the end of the year is a bit of a strech but I think we can do it.
+To test case the worker library, we will be using this command to help us:
+
+```shell
+
+pnpm exec nx run worker:test 
+
+```
+
+or in the case of the kbve shell, it would be:
+
+```shell
+
+./kbve.sh -nx worker:test
+
+```
+
+The next issue with setting up our test casing is that we are have debug the `indexedDB` and it seems that our current testing environment does not support it.
+After doing some quick research, it seems that the best approach would be to use `fake-indexeddb` to help fill in the gaps.
+This makes me a bit worried about the concept of testing this library if we need to need use more third party tooling but we should go on this adventure regardless.
+The goal would be make sure that our 30 example tests are all functional and we can move forward with publishing the package that we will be using in the future.
+
+To install the `indexedDB` for test casing, we will be running this command:
+
+```shell
+
+pnpm install -D fake-indexeddb
+
+```
+
+which will be providing us with the fake database to play with.
+It will be a bit painful to keep adding more extensions and as this project grows, but I can see each package that is being added and I understand its premise.
+
+**Warden**
+
+I will move the notes for warden over to an official documentation once its built out.
+
+
+**New Items**
+
+Taking a break from the design and building of warden, we can look at adding new NPCs and items to our tiled map but this goes back to another issue where we need to fix the map.
+Loading the map tiles into png and then having them merge into a final map is a bit annoying, so I am going to give Unity a huge plus one for making it so much easier to optimize the maps.
+I can not believe the biggest hurdle ends up pushing us back to doing code inside of Unity 6, but I will wait for that, maybe do a whole new game for that engine.
+We want to finish at least one game before the year ends, then once its published and gets its weekly updates, we can focus on adding a new 2nd game.
+Actually, I take back the weekly updates and think that it would make more sense to do a full monthly update but roll in the updates in small minor changes without breaking the game.
+Common monthly updates should include new NPCs, Quests, Items and nomial changes to the game play before we get deeper into the combat.
+After getting combat resolved, we will have a working demo within a couple weeks, since a good portion of the game loop is done.
+
+<Adsense />
+
+## 2023
+
+- 7:32am - Going over some work emails and getting a general vibe going to today's hackathon! It is a 24-hour Audiocraft hackathon with no major prizes but I always wanted to generate music, so I figured this would be fun regardless.
+
+- 7:51am - Migrate the notes and general flow of the hackathon into just one area that we can look over and use to communicate / reference.
+
+- 9:30am - Updated the main repo to Astro v3.0.0 and now I am going back to the general updating of the music hackathon. We might not use Astro for the time being until I can make sure that I am comfortable with the v3.0 series from them, but they definitely handled it really well! The breaking changes were really easy to resolve and their approach of granular tweaks is amazing, definitely one of the best examples of version control on the market to this date. 
+
+- 11:00am - The realm of browser extensions seems to be hurt by the different levels of version control within the manifest. It seems to me that Google is making it way too complicated with their version 3 and as they scope into the different permissions vectors, they are adding a bit too much complexity to the whole structure. I suppose there are concerns with privacy and the levels of which extensions can undermine? Why surf the web with a VPN but have insecure browser extensions?
+
+
+
+## Quote
+
+> A noble one produces an abundance of merit by having a compassionate mind towards all living beings.
+> — <cite>The Buddha</cite>

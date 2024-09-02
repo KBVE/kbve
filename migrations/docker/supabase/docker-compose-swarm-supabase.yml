@@ -42,20 +42,27 @@ services:
     restart: unless-stopped
     entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
     deploy:
+      mode: replicated
       replicas: 1
       labels:
-        - 'traefik.enable=true'
-        - 'traefik.constraint-label-stack=traefik-public'
-        - 'traefik.docker.network=public'
-        - 'traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)'
-        - 'traefik.http.routers.supabase-kbve.entrypoints=http'
-        - 'traefik.http.routers.supabase-kbve.middlewares=https-redirect'
-        - 'traefik.http.routers.supabase-kbve-https.rule=Host(`supabase.kbve.com`)'
-        - 'traefik.http.routers.supabase-kbve-https.entrypoints=https'
-        - 'traefik.http.routers.supabase-kbve-https.middlewares=crowdsec@file'
-        - 'traefik.http.routers.supabase-kbve-https.tls=true'
-        - 'traefik.http.routers.supabase-kbve-https.tls.certresolver=le'
-        - 'traefik.http.services.supabase-kbve-https.loadbalancer.server.port=8000'
+        # Traefik Labels
+        - traefik.enable=true
+        - traefik.constraint-label-stack=supabase-net
+        - traefik.docker.network=public
+        - traefik.http.services.supabase-net.loadbalancer.server.port=8000
+        - traefik.http.routers.supabase-net.rule=Host(`supabase.kbve.com`)
+        # HTTP
+        - traefik.http.routers.supabase-kbve.rule=Host(`supabase.kbve.com`)
+        - traefik.http.routers.supabase-kbve.entrypoints=web
+        - traefik.http.routers.supabase-kbve.middlewares=https-redirect
+        - traefik.http.routers.supabase-kbve.service=supabase-net
+        # HTTPS
+        - traefik.http.routers.supabase-kbve-https.rule=Host(`supabase.kbve.com`)
+        - traefik.http.routers.supabase-kbve-https.entrypoints=websecure
+        - traefik.http.routers.supabase-kbve-https.middlewares=crowdsec@file
+        - traefik.http.routers.supabase-kbve-https.tls=true
+        - traefik.http.routers.supabase-kbve-https.tls.certresolver=le
+        - traefik.http.routers.supabase-kbve-https.service=supabase-net
       placement:
         constraints: [node.labels.node-type == primary]
     environment:
@@ -69,8 +76,9 @@ services:
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
-    volumes:
-      - kong-config:/home/kong/temp.yml:ro
+    configs:
+      - source: kong.yml
+        target: /home/kong/temp.yml
 
   # GoTrue - Auth Service
   auth:
@@ -248,7 +256,7 @@ services:
   # Edge Functions
   functions:
     container_name: supabase-edge-functions
-    image: supabase/edge-runtime:v1.54.2
+    image: supabase/edge-runtime:v1.58.1
     restart: unless-stopped
     deploy:
       placement:
@@ -302,11 +310,11 @@ services:
     networks:
       supabase-net:
         aliases:
-          supabase-db
+          - supabase-db
     deploy:
       placement:
         constraints: [node.labels.node-type == primary]
-    image: supabase/postgres:15.1.1.78
+    image: supabase/postgres:15.1.1.61
     healthcheck:
       test: pg_isready -U postgres -h localhost
       interval: 5s
@@ -332,8 +340,17 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data:Z
       - db-config:/etc/postgresql-custom
-      - db-migrations:/docker-entrypoint-initdb.d/migrations:Z
-      - db-init-scripts:/docker-entrypoint-initdb.d/init-scripts:Z
+    configs:
+      - source: 99-logs.sql
+        target: /docker-entrypoint-initdb.d/migrations/99-logs.sql
+      - source: 99-realtime.sql
+        target: /docker-entrypoint-initdb.d/migrations/99-realtime.sql
+      - source: 99-roles.sql
+        target: /docker-entrypoint-initdb.d/init-scripts/99-roles.sql
+      - source: 98-webhooks.sql
+        target: /docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql
+      - source: 99-jwt.sql
+        target: /docker-entrypoint-initdb.d/init-scripts/99-jwt.sql
 
   # Vector - Log collection and forwarding
   vector:
@@ -350,15 +367,15 @@ services:
       interval: 5s
       retries: 3
     volumes:
-      - vector-config:/etc/vector/vector.yml:ro
       - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro
+    configs:
+      - source: vector.yml
+        target: /etc/vector/vector.yml
     environment:
       LOGFLARE_API_KEY: ${LOGFLARE_API_KEY}
     command: ['--config', 'etc/vector/vector.yml']
 
 volumes:
-  kong-config:
-    external: true
   storage-data:
     external: true
   functions-data:
@@ -367,14 +384,28 @@ volumes:
     external: true
   db-config:
     external: true
-  db-migrations:
-    external: true
-  db-init-scripts:
-    external: true
-  vector-config:
-    external: true
 
 networks:
   supabase-net:
+    name: supabase-net
+    driver: overlay
+    attachable: true
   public:
+    external: true
+
+
+configs:
+  99-logs.sql:
+    external: true
+  99-realtime.sql:
+    external: true
+  99-roles.sql:
+    external: true
+  98-webhooks.sql:
+    external: true
+  99-jwt.sql:
+    external: true
+  vector.yml:
+    external: true
+  kong.yml:
     external: true
