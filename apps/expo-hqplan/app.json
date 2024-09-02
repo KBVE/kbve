@@ -1,32 +1,44 @@
 {
   "expo": {
-    "name": "ExpoHqplan",
+    "name": "expo-hqplan",
     "slug": "expo-hqplan",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme":"hqplan",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "userInterfaceStyle": "automatic",
     "updates": {
       "fallbackToCacheTimeout": 0
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+       "bundleIdentifier": "com.kbve.expo-hqplan"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.kbve.hqplan"
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "outpuit": "static"
     },
-    "plugins": []
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments" : {
+      "tsconfigPaths": true,
+      "typeRoutes": true
+    }
   }
 }

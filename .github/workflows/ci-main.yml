@@ -56,6 +56,8 @@ jobs:
       fudster: ${{ steps.delta.outputs.fudster_any_changed }}
       cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
       laser: ${{ steps.delta.outputs.laser_any_changed }}
+      worker: ${{ steps.delta.outputs.worker_any_changed }}
+      
     steps:
       - name: Checkout the repository using git
         uses: actions/checkout@v4
@@ -1028,6 +1030,8 @@ jobs:
           user_name: 'h0lybyte'
           commit_message: ${{ github.event.head_commit.message }}
           rsync_option: '-avrh --delete'
+
+  #   [Expo] -> [HQ Plan]
 
   #   [Docker]
   void-docker-base-image:

@@ -1,11 +1,7 @@
-export * from './lib/worker';
+// Minion 
+export { createMinion } from './lib/minions/minion';
+export { MinionImpl } from './lib/minions/minionImplementation';
 
-// Warden
-export * from './lib/warden';
-export * from './lib/wardenSingleton';
-
-// Minion
-export * from './lib/minion';
 
 // Utility.
 export * from './lib/ulid';
