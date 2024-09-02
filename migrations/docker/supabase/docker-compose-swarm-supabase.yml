@@ -256,7 +256,7 @@ services:
   # Edge Functions
   functions:
     container_name: supabase-edge-functions
-    image: supabase/edge-runtime:v1.56.1
+    image: supabase/edge-runtime:v1.58.1
     restart: unless-stopped
     deploy:
       placement:
