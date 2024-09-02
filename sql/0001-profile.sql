@@ -7,7 +7,9 @@ create table profiles (
     avatar_url text,
     website text,
     -- Constraints for username
-    constraint username_length check (char_length(username) >= 3)
+    constraint username_length check (char_length(username) >= 5)
+    constraint username_format check (username ~ '^[A-Za-z0-9_-]+$')
+
 );
 
 alter table profiles
@@ -47,9 +49,11 @@ create policy "Public ledgers are viewable by everyone." on ledger
 create function public.handle_new_user()
     returns trigger as $$
         begin
-             -- Validate the username
-            if new.raw_user_meta_data->>'username' is null or char_length(new.raw_user_meta_data->>'username') < 3 then
-                raise exception 'Invalid username: must be at least 3 characters long';
+            -- Validate the username
+            if new.raw_user_meta_data->>'username' is null or 
+            char_length(new.raw_user_meta_data->>'username') < 5 or 
+            not (new.raw_user_meta_data->>'username' ~ '^[A-Za-z0-9_-]+$') then
+                raise exception 'Invalid username: must be at least 5 characters long and can only contain letters, numbers, underscores, and hyphens.';
             end if;
 
             -- Insert into profiles table
