@@ -13,3 +13,19 @@ tags:
 import { Adsense, Tasks } from '@kbve/astropad';
 
 ## 2024
+
+**Supabase**
+
+The self hosted swarm is up and running, ish.
+Now we need to mess around with it!
+The biggest issue that was a stupid docker mistake on my end, I accidentally replaced a bunch of the migration and init scripts when setting it up.
+
+**Edges**
+
+The edge functions need to be fixed as well.
+I realized that this was also a mistake on my end, we should have this part of the code running without any major problems.
+
+**Hybrid**
+
+After thinking through with the plans, it would make sense to hybrid cloud out the whole supabase!
+We can run a bunch of instances throughout our eco-system, even try to get some really cool concepts in the lower levels, like a k2d instance.
