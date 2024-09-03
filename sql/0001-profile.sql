@@ -1,3 +1,7 @@
+-- Extensions
+create extension if not exists moddatetime schema extensions;
+
+
 -- Create a table for public profiles
 
 create table profiles (
@@ -24,7 +28,54 @@ create policy "Users can insert their own profile." on profiles
 create policy "Users can update own profile." on profiles
     for update using (auth.uid() = id);
 
---- Create a table for public ledgers
+-- Createa table for user settings
+
+create table user_settings (
+    id uuid references auth.users on delete cascade not null primary key,
+    settings jsonb not null default '{}',
+    
+    -- Constraints for settings
+    constraint settings_valid check (
+        jsonb_typeof(settings) = 'object' and 
+        octet_length(settings::text) <= 10000
+    )
+);
+
+alter table user_settings
+    enable row level security;
+
+create policy "User can view own settings" on user_settings
+    for select using (auth.uid() = id);
+
+create policy "User can update own settings" on user_settings
+    for update using (auth.uid() = id);
+
+create policy "User can insert own settings" on user_settings
+    for insert with check (auth.uid() = id);
+
+-- Create a table for moderation logs
+
+create table moderation (
+    id uuid references auth.users on delete cascade not null primary key,
+    notes text,
+    warnings text,
+    updated_at timestamp with time zone
+);
+
+alter table moderation
+    enable row level security;
+
+create policy "User can view own moderation record" on moderation
+    for select using (auth.uid() = id);
+
+
+create trigger handle_last_updated
+    before update on moderation
+    for each row
+    execute procedure moddatetime(updated_at);
+
+
+-- Create a table for public ledgers
 
 create table ledger (
     id uuid references auth.users on delete cascade not null primary key,
@@ -36,7 +87,6 @@ create table ledger (
     constraint chk_khash_minimum check (khash >= 100),
     constraint chk_credits_minimum check (credits >= 100),
     constraint chk_coupon_non_negative check (coupon >= 0)
-
 );
 
 alter table ledger
