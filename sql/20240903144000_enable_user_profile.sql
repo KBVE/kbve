@@ -10,66 +10,64 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 
     -- Constraints for username
     CONSTRAINT username_length CHECK (char_length(username) >= 5 AND char_length(username) <= 24),
-    CONSTRAINT username_format CHECK (username ~ '^[A-Za-z0-9_-]+$'),
+    CONSTRAINT username_format CHECK (username ~ '^[a-zA-Z0-9_-]+$'),
     CONSTRAINT avatar_url_length CHECK (char_length(avatar_url) <= 128),
     CONSTRAINT avatar_url_format CHECK (avatar_url ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')
 );
 
-alter table user_profiles
-    enable row level security;
+ALTER TABLE user_profiles
+    ENABLE ROW LEVEL SECURITY;
 
-create policy "Public user_profiles are viewable by everyone." on user_profiles
-    for select using (true);
+CREATE POLICY "Public user_profiles are viewable by everyone." ON user_profiles
+    FOR SELECT USING (true);
 
-create policy "Users can insert their own profile." on user_profiles
-    for insert with check (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile." ON user_profiles
+    FOR INSERT WITH CHECK (auth.uid() = id);
 
-create policy "Users can update own profile." on user_profiles
-    for update using (auth.uid() = id);
+CREATE POLICY "Users can update own profile." ON user_profiles
+    FOR UPDATE USING (auth.uid() = id);
 
-create trigger handle_user_profiles_update
-    before update on user_profiles
-    for each row
-    execute procedure moddatetime(updated_at);
+CREATE TRIGGER handle_user_profiles_update
+    BEFORE UPDATE ON user_profiles
+    FOR EACH ROW
+    EXECUTE PROCEDURE moddatetime(updated_at);
 
--- inserts a row into public users
-create function public.handle_new_user()
-    returns trigger as $$
-        begin
+-- Function to handle new user creation and validation
+CREATE FUNCTION public.handle_new_user()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        -- Validate the username
+        IF new.raw_user_meta_data->>'username' IS NULL OR 
+           char_length(new.raw_user_meta_data->>'username') < 5 OR 
+           char_length(new.raw_user_meta_data->>'username') > 24 OR 
+           NOT (new.raw_user_meta_data->>'username' ~ '^[a-zA-Z0-9_-]+$') THEN
+            RAISE EXCEPTION 'invalid_username';
+        END IF;
 
-             -- Validate the username
-            if new.raw_user_meta_data->>'username' is null or 
-               char_length(new.raw_user_meta_data->>'username') < 5 or 
-               char_length(new.raw_user_meta_data->>'username') > 24 or 
-               not (new.raw_user_meta_data->>'username' ~ '^[A-Za-z0-9_-]+$') then
-                raise exception 'invalid_username';
-            end if;
+        -- Validate the avatar_url (if applicable)
+        IF new.raw_user_meta_data->>'avatar_url' IS NOT NULL AND
+           (char_length(new.raw_user_meta_data->>'avatar_url') > 128 OR
+            NOT (new.raw_user_meta_data->>'avatar_url' ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')) THEN
+            RAISE EXCEPTION 'invalid_avatar';
+        END IF;
 
-            -- Validate the avatar_url (if applicable)
-            if new.raw_user_meta_data->>'avatar_url' is not null and
-               (char_length(new.raw_user_meta_data->>'avatar_url') > 128 or
-                not (new.raw_user_meta_data->>'avatar_url' ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')) then
-                raise exception 'invalid_avatar';
-            end if;
+        -- Insert into user_profiles table
+        BEGIN
+            INSERT INTO public.user_profiles (id, username, avatar_url)
+            VALUES (
+                new.id,
+                new.raw_user_meta_data->>'username',
+                COALESCE(new.raw_user_meta_data->>'avatar_url', 'https://kbve.com/asset/guest.png')
+            );
+        EXCEPTION WHEN unique_violation THEN
+            RAISE EXCEPTION 'username_taken';
+        END;
 
-         
-            -- Insert into user_profiles table
-            begin
-                insert into public.user_profiles (id, username, avatar_url)
-                values (
-                    new.id,
-                    new.raw_user_meta_data->>'username',
-                    coalesce(new.raw_user_meta_data->>'avatar_url', 'https://kbve.com/asset/guest.png'),
-                );
-            exception when unique_violation then
-                raise exception 'username_taken';
-            end;
+        RETURN new;
+    END;
+    $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-            return new;
-        end;
-    $$ language plpgsql security definer;
-
--- trigger the function every time a user is created
-create trigger on_auth_user_created
-    after insert on auth.users
-    for each row execute procedure public.handle_new_user();
+-- Trigger the function every time a user is created
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
