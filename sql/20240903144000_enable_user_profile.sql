@@ -1,3 +1,4 @@
+-- NOT DONE! MISSING SAFETY CHECKS
 -- Extensions Check
 CREATE EXTENSION IF NOT EXISTS moddatetime SCHEMA extensions;
 

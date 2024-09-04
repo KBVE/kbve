@@ -1,3 +1,4 @@
+-- NOT DONE!
 -- Extension Check
 CREATE EXTENSION IF NOT EXISTS moddatetime SCHEMA extensions;
 
@@ -30,3 +31,4 @@ CREATE FUNCTION public.handle_new_user_moderation_table()
         RETURN NEW;
     END;
     $$ LANGUAGE plpgsql SECURITY DEFINER;
+
