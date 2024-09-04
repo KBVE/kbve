@@ -1,32 +1,4 @@
--- Extensions
-create extension if not exists moddatetime schema extensions;
 
-
--- Create a table for public profiles
-
-create table profiles (
-    id uuid references auth.users on delete cascade not null primary key,
-    updated_at timestamp with time zone,
-    username text unique,
-    avatar_url text,
-    website text,
-    -- Constraints for username
-    constraint username_length check (char_length(username) >= 5)
-    constraint username_format check (username ~ '^[A-Za-z0-9_-]+$')
-
-);
-
-alter table profiles
-    enable row level security;
-
-create policy "Public profiles are viewable by everyone." on profiles
-    for select using (true);
-
-create policy "Users can insert their own profile." on profiles
-    for insert with check (auth.uid() = id);
-
-create policy "Users can update own profile." on profiles
-    for update using (auth.uid() = id);
 
 -- Createa table for user settings
 
@@ -53,28 +25,6 @@ create policy "User can update own settings" on user_settings
 create policy "User can insert own settings" on user_settings
     for insert with check (auth.uid() = id);
 
--- Create a table for moderation logs
-
-create table moderation (
-    id uuid references auth.users on delete cascade not null primary key,
-    notes text,
-    warnings text,
-    updated_at timestamp with time zone
-);
-
-alter table moderation
-    enable row level security;
-
-create policy "User can view own moderation record" on moderation
-    for select using (auth.uid() = id);
-
-
-create trigger handle_last_updated
-    before update on moderation
-    for each row
-    execute procedure moddatetime(updated_at);
-
-
 -- Create a table for public ledgers
 
 create table ledger (
@@ -99,20 +49,35 @@ create policy "Public ledgers are viewable by everyone." on ledger
 create function public.handle_new_user()
     returns trigger as $$
         begin
-            -- Validate the username
+             -- Validate the username
             if new.raw_user_meta_data->>'username' is null or 
-            char_length(new.raw_user_meta_data->>'username') < 5 or 
-            not (new.raw_user_meta_data->>'username' ~ '^[A-Za-z0-9_-]+$') then
-                raise exception 'Invalid username: must be at least 5 characters long and can only contain letters, numbers, underscores, and hyphens.';
+               char_length(new.raw_user_meta_data->>'username') < 5 or 
+               char_length(new.raw_user_meta_data->>'username') > 24 or 
+               not (new.raw_user_meta_data->>'username' ~ '^[A-Za-z0-9_-]+$') then
+                raise exception 'Invalid username: must be between 5 and 24 characters long and can only contain letters, numbers, underscores, and hyphens.';
+            end if;
+
+            -- Validate the avatar_url and website (if applicable)
+            if new.raw_user_meta_data->>'avatar_url' is not null and
+               (char_length(new.raw_user_meta_data->>'avatar_url') > 32 or
+                not (new.raw_user_meta_data->>'avatar_url' ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')) then
+                raise exception 'Invalid avatar URL: must be a valid URL with a maximum length of 32 characters.';
+            end if;
+
+            if new.raw_user_meta_data->>'website' is not null and
+               (char_length(new.raw_user_meta_data->>'website') > 32 or
+                not (new.raw_user_meta_data->>'website' ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')) then
+                raise exception 'Invalid website URL: must be a valid URL with a maximum length of 32 characters.';
             end if;
 
             -- Insert into profiles table
             begin
-                insert into public.profiles (id, username, avatar_url)
+                insert into public.profiles (id, username, avatar_url, website)
                 values (
-                new.id,
-                new.raw_user_meta_data->>'username',
-                coalesce(new.raw_user_meta_data->>'avatar_url', 'https://kbve.com/asset/guest.png')
+                    new.id,
+                    new.raw_user_meta_data->>'username',
+                    coalesce(new.raw_user_meta_data->>'avatar_url', 'https://kbve.com/asset/guest.png'),
+                    new.raw_user_meta_data->>'website'
                 );
             exception when unique_violation then
                 raise exception 'Username % already exists.', new.raw_user_meta_data->>'username';
@@ -120,9 +85,16 @@ create function public.handle_new_user()
 
             -- Insert into ledger table
             insert into public.ledger (id)
-                values (
-                    new.id
-                );
+            values (
+                new.id
+            );
+
+            -- Insert into user_settings table
+            insert into public.user_settings (id, settings)
+            values (
+                new.id,
+                '{}'::jsonb
+            );
 
             return new;
         end;
