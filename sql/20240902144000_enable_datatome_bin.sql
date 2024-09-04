@@ -1,5 +1,4 @@
 -- Extensions Check
-CREATE EXTENSION IF NOT EXISTS moddatetime SCHEMA extensions;
 CREATE EXTENSION IF NOT EXISTS pg_jsonschema SCHEMA extensions;
 
 -- JSON Schema Definition Table (Check for existence)
@@ -24,7 +23,7 @@ INSERT INTO json_schemas (schema_name, schema)
 -- Main Table for storing datatome data
 CREATE TABLE IF NOT EXISTS datatome_bin (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     datatome JSONB NOT NULL,
     
     -- Constraints
@@ -32,11 +31,6 @@ CREATE TABLE IF NOT EXISTS datatome_bin (
 
 );
 
--- Trigger for handling last updated timestamp
-CREATE TRIGGER IF NOT EXISTS handle_last_updated_datatome_bin
-    BEFORE UPDATE ON datatome_bin
-    FOR EACH ROW
-    EXECUTE PROCEDURE moddatetime(created_at);
 
 -- Function to validate JSON schema
 CREATE OR REPLACE FUNCTION validate_datatome_json_schema()
