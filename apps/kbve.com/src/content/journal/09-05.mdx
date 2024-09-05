@@ -19,12 +19,24 @@ import { Adsense, Tasks } from '@kbve/astropad';
 We were able to get longhorn installed or deployed into our cluster but we have not yet setup a use case for it.
 My goal might be to use it for a three cluster postgres and see how it performs.
 
-
 **Grafana**
 
 Initially we were going to deploy our own grafana isntance and then have it be the core location of the metrics, but decided to backtrack and use the exisiting one that rancher provides.
 This way it already has a pre-configured data source and we can just extend out from there.
 
+**VaultWarden**
+
+I am going to aim at trying to do two different deployments, the first is the vault warden.
+The goal would then be to migrate the secerts out of the instance that is running under the portianer and into this vault warden.
+After that migration, I will shutdown the portainer and begin the process of shutting down the docker swarm, giving us around 150GB space back and a decent chunk of ram.
+
+**Supabase**
+
+Besides preparing to run the vault warden, I will need to start the supabase helm deployment on the stack.
+The first step would be to look over the supabase chart and our previous docker swarm compose, then see if we can formulate a solid chart that can help us deploy the instance.
+
+
+---
 
 ## 2023
 - 7:40am - I need to make sure the camera is ready for maybe morning trips? I am thinking of building a creative way to express artwork through a combination of digital frames and a decent camera. This was a shower thought but I just wanted to get it written down before I forget.
