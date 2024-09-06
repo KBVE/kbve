@@ -3,8 +3,8 @@ title: 'September: 4th'
 category: Daily
 date: 2024-09-04 12:00:00
 client: Self
-unsplash: 1692806511236-a142a098ec9e
-img: https://images.unsplash.com/photo-1692806511236-a142a098ec9e?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1691122581579-1dda33266c1c
+img: https://images.unsplash.com/photo-1691122581579-1dda33266c1c?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: September 4th. 
 tags:
   - daily
@@ -19,15 +19,52 @@ import { Adsense, Tasks } from '@kbve/astropad';
 Todays goal will be to switch the k cluster over from deckhouse setup to rancher.
 The initial plan is to setup a master node with two worker nodes, thus a simple 3-node cluster and then expand it out with a 3 master and 2 worker node setup.
 This is before we go ahead and build out a more advance structure.
+I lied, we ended up with a 5 node cluster, 3 of them being master and 2 of them being worker.
+After we got those five setup, we still need to go back and fix up the backup system.
+
+**Helm** 
+
+On my mac, we needed to setup the kube config and helm, so that we can control the cluster from our local machine.
+The best solution was to replace the kube config from my macbook's local instance of orb with the remote instance!
+For that and helm, both were installed using brew but I am positive it will be a pain to do using windows.
+Now that everything is working locally and remotely, we can start deploying applications.
+
+
+**Rancher**
+
+Once we got the cluster deployed and everything was smooth sailing, the next part was setting up the rancher dashboard.
+Using our local machines, we were able to deploy and configure Rancher.
+It has been a couple years since I last saw the rancher dashboard, but damn is it amazing!
+A huge shoutout to suse and the devs that worked on it, I am amazed at how it looks and performs.
 
 **shell**
 
 We can also expand the `/tools/scripts/public` to hold more automated shell scripts?
 I am also thinking we can add a folder for playbooks and other iaac code.
 The first script that we will create is the `ubuntu_install_master.sh` and that will be for quickly deploying a master node in rke2.
+Next shell that we could make is for the worker node and have that handle each of our slave nodes, hmm, we will call this the `ubuntu_install_worker.sh`.
 
 **Nvdia**
 
 With nvidia dropping in value, I am going to pick those 10 option contracts back up and see if I can leverage them for another quick couple thousand.
 The goal with this swing is to make a bit of side cash.
 The strike will be 109c 2025 Jan again, but I am going to sell those out really quick on the next pop, maybe walk away with a 2000.
+
+**Keyboard**
+There was an issue with my keyboard earlier and I updated my drivers and there is still this delay that appears when I type-in the words.
+We tried to update the graphics driver, keyboard driver and a bunch of other things, but still no luck.
+I am thinking that it might just be my CPU and its inability to handle all of this computation!
+The CPU spikes are getting bad and I might also need to clean out the PC.
+
+
+## 2023
+- 5:26am - Monday Meme Day!
+- 7:07am - Cleaning up the KBVE.com repo a bit, took out the astro-compress library as Astro v3 now default compresses the data that is being outputted. I believe we could remove a couple of the react libraries and lottie, then migrate it over to a custom widget package.
+- 8:02am - Weaviate + Unstructured Data integration time! We were able to establish the weaviate connection using the appwrite database, so the next step will be to see if we can add data into the database cluster. 
+
+## Quote
+
+> Happiness is not in the mere possession of money; it lies in the joy of achievement, in the thrill of creative effort.
+> — <cite>Franklin D. Roosevelt</cite>
+
+---

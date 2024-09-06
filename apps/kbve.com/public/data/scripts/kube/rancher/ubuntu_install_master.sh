@@ -59,11 +59,39 @@ install_rke2() {
     echo "RKE2 installation complete."
 }
 
+
+# Function to configure kubectl and check node status
+configure_kubectl() {
+    echo "Configuring kubectl..."
+
+    # Create symlink for kubectl
+    KUBECTL_PATH=$(find /var/lib/rancher/rke2/data/ -name kubectl)
+    if ! ln -s $KUBECTL_PATH /usr/local/bin/kubectl; then
+        echo "Error: Failed to symlink kubectl."
+        exit 1
+    fi
+
+    # Add kubectl configuration to .bashrc with persistence
+    if ! echo "export KUBECONFIG=/etc/rancher/rke2/rke2.yaml PATH=\$PATH:/usr/local/bin/:/var/lib/rancher/rke2/bin/" >> ~/.bashrc; then
+        echo "Error: Failed to update .bashrc with kubectl config."
+        exit 1
+    fi
+
+    # Source the updated .bashrc
+    source ~/.bashrc
+
+    # Check node status
+    kubectl get node
+    echo "kubectl configuration and node status check complete."
+}
+
+
 # Main script execution
 main() {
     check_ubuntu_version
     prepare_server
     install_rke2
+    configure_kubectl
 }
 
 # Run the main function
