@@ -270,6 +270,9 @@ services:
       VERIFY_JWT: '${FUNCTIONS_VERIFY_JWT}'
     volumes:
       - functions-data:/home/deno/functions:Z
+    configs:
+      - source: main.ts
+        target: /home/deno/functions/main/index.ts
     command:
       - start
       - --main-service
@@ -408,4 +411,6 @@ configs:
   vector.yml:
     external: true
   kong.yml:
+    external: true
+  main.ts:
     external: true
