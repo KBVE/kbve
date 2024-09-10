@@ -3,12 +3,11 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/kilobase/src",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@monodon/rust:build",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "outputs": ["{options.target-dir}"],
       "options": {
         "target-dir": "dist/target/kilobase"
       },
@@ -20,9 +19,7 @@
     },
     "test": {
       "executor": "@monodon/rust:test",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "outputs": ["{options.target-dir}"],
       "options": {
         "target-dir": "dist/target/kilobase"
       },
@@ -34,18 +31,14 @@
     },
     "lint": {
       "executor": "@monodon/rust:lint",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "outputs": ["{options.target-dir}"],
       "options": {
         "target-dir": "dist/target/kilobase"
       }
     },
     "run": {
       "executor": "@monodon/rust:run",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "outputs": ["{options.target-dir}"],
       "options": {
         "target-dir": "dist/target/kilobase"
       },
@@ -54,7 +47,37 @@
           "release": true
         }
       }
+    },
+    "container": {
+      "executor": "@nx-tools/nx-container:build",
+      "dependsOn": ["build"],
+      "defaultConfiguration": "local",
+      "options": {
+        "engine": "docker",
+        "context": "dist/target/kilobase",
+        "file": "apps/kilobase/Dockerfile",
+        "metadata": {
+          "images": ["kilobase"],
+          "load": true,
+          "tags": [
+            "type=schedule",
+            "type=ref,event=branch",
+            "type=ref,event=tag",
+            "type=ref,event=pr",
+            "type=sha,prefix=sha-"
+          ]
+        },
+        "configurations": {
+          "local": {
+            "tags": ["my-app:latest"],
+            "push": false
+          },
+          "production": {
+            "tags": ["my.image-registry.com/my-app:latest"],
+            "push": true
+          }
+      }
+      }
     }
-  },
-  "tags": []
+  }
 }
