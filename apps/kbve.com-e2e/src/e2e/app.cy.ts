@@ -31,8 +31,8 @@ describe('API JSON Format Tests', () => {
 		const apiEndpoints = [
 			'/api/graph.json',
 			'/api/music.json',
-			'https://rust.kbve.com/api/v1/health',
-			'https://rust.kbve.com/api/v1/speed',
+			//'https://rust.kbve.com/api/v1/health', - Moving endpoints to k8s.
+			//'https://rust.kbve.com/api/v1/speed', - Moving endpoints to k8s.
 			// Add more API endpoints as needed
 		];
 		checkJSONendpointAPI(apiEndpoints);

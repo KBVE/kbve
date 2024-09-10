@@ -8,6 +8,7 @@ members = [
 	'packages/erust',
 	'packages/holy',
 	'packages/jedi',
+	'apps/kilobase',
 ]
 
 [profile.release]
