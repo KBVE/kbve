@@ -17,6 +17,12 @@
         }
       }
     },
+    "copy-requirements": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cp apps/kilobase/requirements.txt dist/target/kilobase/requirements.txt"
+      }
+    },
     "test": {
       "executor": "@monodon/rust:test",
       "outputs": ["{options.target-dir}"],
@@ -50,7 +56,7 @@
     },
     "container": {
       "executor": "@nx-tools/nx-container:build",
-      "dependsOn": ["build"],
+      "dependsOn": ["build", "copy-requirements"],
       "defaultConfiguration": "local",
       "options": {
         "engine": "docker",
@@ -69,11 +75,11 @@
         },
         "configurations": {
           "local": {
-            "tags": ["my-app:latest"],
+            "tags": ["kilobase:latest"],
             "push": false
           },
           "production": {
-            "tags": ["my.image-registry.com/my-app:latest"],
+            "tags": ["kbve/kilobase:latest"],
             "push": true
           }
       }
