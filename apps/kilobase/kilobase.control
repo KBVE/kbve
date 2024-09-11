@@ -1,0 +1,6 @@
+comment = 'KiloBase:  Created by KBVE & PGRX'
+default_version = '@CARGO_VERSION@'
+module_pathname = '$libdir/kilobase'
+relocatable = false
+superuser = true
+trusted = false
