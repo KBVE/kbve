@@ -41,3 +41,44 @@ We want to go ahead and shift this over to a nx run command.
 }
 
 ```
+
+This happens to run postgres on port 28815 or sometimes another random port, thus I think we can update the command to pass the default port of 5432.
+Actually nevermind, I like their system of having the base port be 28800 and then the final number representing the different postgres versions, so 28816 is postgres 16.
+Replacing this system or making any changes would not be helpful, instead we could just run a test bouncer on 5432 and then have it route to the other instances.
+
+Okay after setting up the dev and testing environment, we can begin the base production pipeline!
+I am thinking that we focus on getting the image deployed into the docker hub and then we can go back and look for optimizations.
+Furthermore, I know the supabase base image is both x86 and aarm, but for now, we will just focus on the x86 deployment.
+This does mean that there might be some issues test casing on the m1 mac because we would not be supporting the aarm version of kilobase but the m1 can still help with debugging and the dev cycle.
+
+I just realized that the default postgres that is on my WSL is v14, which means we need to make adjustments to our code, since we will be only supporting the version 15, the supabase version.
+Once supabase releases a base 16 version of their aio postgres, we can come back around and update this library for that.
+
+Under the toml, we will go ahead and remove the other versions of postgres.
+
+```toml
+
+[features]
+default = ["pg15"]
+pg12 = ["pgrx/pg12", "pgrx-tests/pg12" ]
+pg13 = ["pgrx/pg13", "pgrx-tests/pg13" ]
+pg14 = ["pgrx/pg14", "pgrx-tests/pg14" ]
+pg15 = ["pgrx/pg15", "pgrx-tests/pg15" ]
+pg16 = ["pgrx/pg16", "pgrx-tests/pg16" ]
+pg17 = ["pgrx/pg17", "pgrx-tests/pg17" ]
+pg_test = []
+
+```
+
+and now the new features toml will be just pg15.
+
+```toml
+
+[features]
+default = ["pg15"]
+pg15 = ["pgrx/pg15", "pgrx-tests/pg15" ]
+pg_test = []
+
+```
+
+Afterwards, we will go ahead and make sure that we are running postgres 15, with the `pg_config` returning the postgres 15 headers.
