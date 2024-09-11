@@ -1,5 +1,11 @@
 ####################
-# Stage 1 - Setup Postgres PPA
+# Stage 1 - Kilobase Extension Builder
+####################
+
+
+
+####################
+# Stage 2 - Setup Postgres PPA
 ####################
 FROM ubuntu:focal as ppa
 ARG postgresql_major=15
@@ -23,7 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ####################
-# Stage 2: Copy the pg_failover_slots to the final image (Supabase Postgres)
+# Stage 3: Copy the pg_failover_slots to the final image (Supabase Postgres)
 ####################
 FROM supabase/postgres:15.1.1.78 AS supabase
 
@@ -42,7 +48,7 @@ COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so
 COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
 
 ####################
-# Stage 3: Setup Python 3.11
+# Stage 4: Setup Python 3.11
 ####################
 # Add the deadsnakes PPA for Python 3.11
 RUN apt-get update && apt-get install -y software-properties-common curl && \
@@ -58,7 +64,7 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 ####################
-# Stage 4: Install Barman Cloud
+# Stage 5: Install Barman Cloud
 ####################
 
 # Install Barman Cloud dependencies and Barman itself
@@ -76,6 +82,7 @@ RUN set -xe; \
     python3.11 -m pip install --upgrade pip; \
 	# We require barman-cloud, install the package with no dependencies
 	python3.11 -m pip install --no-deps -r requirements.txt; \
+    #python3.11 -m pip install -r requirements.txt; \
 	# Remove build dependencies to reduce the image size
 	apt-get remove -y --purge --autoremove \
 		build-essential \
