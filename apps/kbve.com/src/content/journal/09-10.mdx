@@ -44,6 +44,18 @@ For setting up barman, we had to make sure the `requirements.txt` was included i
 
 This copies over the requirements.txt from the kilobase folder into the distribution folder.
 Now we can start building out the basic pgrx extension, which will be a bit empty for now, just to make sure everything works before we add more heavy lifting into it.
+Before getting started, we will need a couple of predefined libraries to help us build the rust extension, including additional libraries that will help us ffi into c.
+
+```shell
+
+sudo apt-get install build-essential libreadline-dev zlib1g-dev flex bison libxml2-dev libxslt-dev libssl-dev libxml2-utils xsltproc ccache pkg-config libclang-dev
+
+```
+
+This command should grab everything we would need within an Ubuntu 20/22/24 instance.
+Side note, on my macbook, I had to do `brew install git icu4c pkg-config`.
+
+
 
 ## 2023
 
