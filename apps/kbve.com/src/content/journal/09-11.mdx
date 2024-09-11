@@ -1,0 +1,43 @@
+---
+title: 'September: 11th'
+category: Daily
+date: 2024-09-11 12:00:00
+client: Self
+unsplash: 1693884642068-98443d05b78f
+img: https://images.unsplash.com/photo-1693884642068-98443d05b78f?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 11th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**PGRX**
+
+Going to spend a decent amount of the time going through the pgrx documentation and notes, doing my best to build out a simple extension and then make minor improvements upon it.
+The command to start up a pgrx session is:
+
+```shell
+cd ./apps/kilobase/
+cargo pgrx run
+```
+
+We want to go ahead and shift this over to a nx run command.
+
+```json
+
+"pgrx": {
+    "executor": "nx:run-commands",
+    "options": {
+        "cwd": "apps/kilobase",
+        "commands": [
+          
+          "cargo pgrx run"
+        ],
+        "parallel": false
+    }
+}
+
+```

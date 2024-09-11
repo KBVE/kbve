@@ -7,6 +7,11 @@ fn hello_kilobase() -> &'static str {
     "Hello, kilobase, this is an example query that is being called from rust!"
 }
 
+#[pg_extern]
+fn bust_selling_propane() -> &'static str {
+    "Bust is selling the best propane"
+}
+
 #[pg_extern(immutable, parallel_safe)]
 fn pgrx_extract_email(email: &str) -> &str {
     match extract_email_from_regex_zero_copy(email) {

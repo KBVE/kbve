@@ -20,7 +20,9 @@
     "pgrx": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": "dist/target/kilobase"
+        "cwd": "apps/kilobase",
+        "commands": ["cargo pgrx run"],
+        "parallel": false
       }
     },
     "copy-requirements": {
@@ -88,7 +90,7 @@
             "tags": ["kbve/kilobase:latest"],
             "push": true
           }
-      }
+        }
       }
     }
   }
