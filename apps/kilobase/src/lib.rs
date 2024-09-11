@@ -1,10 +1,40 @@
 use pgrx::prelude::*;
-
+use jedi::lazyregex::{extract_email_from_regex_zero_copy, extract_github_username_from_regex_zero_copy};
 ::pgrx::pg_module_magic!();
 
 #[pg_extern]
 fn hello_kilobase() -> &'static str {
     "Hello, kilobase, this is an example query that is being called from rust!"
+}
+
+#[pg_extern(immutable, parallel_safe)]
+fn pgrx_extract_email(email: &str) -> &str {
+    match extract_email_from_regex_zero_copy(email) {
+        Ok(result) => result,
+        Err(err_msg) => {
+            ereport!(
+                PgLogLevel::ERROR,
+                PgSqlErrorCode::ERRCODE_INTERNAL_ERROR,
+                &format!("{}", err_msg)
+            );
+            ""
+        }
+    }
+}
+
+#[pg_extern(immutable, parallel_safe)]
+fn pgrx_extract_github_username(url: &str) -> &str {
+    match extract_github_username_from_regex_zero_copy(url) {
+        Ok(result) => result,
+        Err(err_msg) => {
+            ereport!(
+                PgLogLevel::ERROR,
+                PgSqlErrorCode::ERRCODE_INTERNAL_ERROR,
+                &format!("{}", err_msg)
+            );
+            ""
+        }
+    }
 }
 
 #[cfg(any(test, feature = "pg_test"))]
