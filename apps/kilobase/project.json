@@ -17,6 +17,12 @@
         }
       }
     },
+    "pgrx": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": "dist/target/kilobase"
+      }
+    },
     "copy-requirements": {
       "executor": "nx:run-commands",
       "options": {
