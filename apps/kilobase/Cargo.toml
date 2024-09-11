@@ -22,6 +22,7 @@ pg_test = []
 
 [dependencies]
 pgrx = "=0.12.3"
+jedi = { path = "../../packages/jedi" }
 
 [dev-dependencies]
 pgrx-tests = "=0.12.3"
