@@ -4,6 +4,8 @@ use reqwest::blocking::Client;
 use jedi::lazyregex::{extract_email_from_regex_zero_copy, extract_github_username_from_regex_zero_copy};
 use std::time::Duration;
 use std::ffi::CString;
+use serde::{Deserialize, Serialize};
+
 ::pgrx::pg_module_magic!();
 
 // TODO : Part A - Remove unsafe code by migrating over to a table that uses some queue system.
