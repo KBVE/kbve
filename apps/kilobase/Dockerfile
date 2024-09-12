@@ -1,13 +1,13 @@
 ####################
 # Stage 1 - Kilobase Extension Builder
 ####################
-
-
+# FROM ubuntu:focal as kilobase
+# SKIPPING STAGE 1 - Using the CICD Pipeline to build the extension and then copying it over.
 
 ####################
 # Stage 2 - Setup Postgres PPA
 ####################
-FROM ubuntu:focal as ppa
+FROM ubuntu:focal AS ppa
 ARG postgresql_major=15
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
@@ -46,6 +46,13 @@ LABEL org.opencontainers.image.description="This Docker image contains PostgreSQ
 
 COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
 COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
+
+####################
+# Stage 3.5: Skipping Stage 1 and copying over the <so> file directly from the ci-cd pipeline
+####################
+
+COPY /usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
+COPY /usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
 
 ####################
 # Stage 4: Setup Python 3.11
