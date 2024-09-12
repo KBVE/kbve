@@ -18,6 +18,9 @@ pg_test = []
 [dependencies]
 pgrx = "=0.12.3"
 jedi = { path = "../../packages/jedi" }
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+tokio = { version = "1", features = ["full"] }
+serde = "1.0"
 
 [dev-dependencies]
 pgrx-tests = "=0.12.3"
