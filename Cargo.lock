@@ -2627,6 +2627,7 @@ dependencies = [
  "pgrx",
  "pgrx-tests",
  "reqwest",
+ "serde",
  "tokio",
 ]
 
