@@ -1,0 +1,70 @@
+---
+title: 'September: 12th'
+category: Daily
+date: 2024-09-12 12:00:00
+client: Self
+unsplash: 1691862867327-d07c3fe827f5
+img: https://images.unsplash.com/photo-1691862867327-d07c3fe827f5?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 12th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Zoids**
+
+The best way to keep the day flowing is by watching zoids, I am actually super excited to watch the rest of the show later tonight.
+Granted its over two decades old at this point but I think the story and character flow still holds strong in 2024 and honestly, its unlocking those childhood memories too.
+While watching the show, I had to look up the lore on how the zoids are created and it was rather interesting, they eat metal and have this cyber-spirtual connection to the environment.
+
+**Nvdia**
+
+Good to see $NVDA move up to the $120 mark, I am looking to dump my 10 calls once it hits around $123.00 or $125.00, but I think I am being a bit greedy.
+This next swing should net me around $7K but no where near the ealier swing of almost $10K in profit.
+Its basically paying for my trip to japan!
+
+**PGRX**
+
+Back to development work, this time its converting over the postgres extension to operate a shared library!
+The idea here would be to run a background worker within the database that would handle some async functions like HTTPs requests and managing some tables.
+Normally I would handle this within the API, but I think it would make more sense to migrate this over to the database side, I might even sneak in some other concepts here and there.
+The part that I am currently stuck on is handling the table generation, I would like pgrx to create the SQL schema based upon what I provide it, rather than manually doing it via a SQL file.
+Okay, to wrap back around the main issue that we had yesterday, the `pg_sys::Datum` is an opaque data type and that makes things a bit rough for rust and its type safety.
+The solution would be to design a table within the sql database that operates as a data queue, I believe there are a couple more parts of this that can be extended out in the future.
+When getting the datum via the arguments, we need a function to help us process it to a string.
+
+```rust
+
+fn datum_to_string(arg: pg_sys::Datum) -> String {
+  unsafe {
+    let cstr = pg_sys::text_to_cstring(arg as *mut pg_sys::text);
+    CString::from_raw(cstr).to_string_lossy().into_owned()
+  }
+}
+
+```
+
+Yet we can also toss all of this out and pivot to the table method, putting us back into the safe rust zone.
+Once the data that we want to process is inside of the table, we can safely assume the type and then move forward from there.
+There might be some issues with the locks, but I think we can handle that as well.
+
+## 2023
+
+- 8:49am - Backend updates should be automated but I am running into a couple different issues, including the backups and data management. The next move would be to build out self-hosted Github runners that we could call within the repo? They would handle the migration of data but outside the scope or control of Github. Furthermore, I think there should be a backup plan for the Github repos themselves, which I have noted.
+- 11:30am - First time in a while where we had a solid lunch with the co-workers, I am always excited to hear the interesting hobbies that people are involved in! I did not know that you could easily build your own in-house hardware because circuit boards can be printed on demand per unit?! I knew it was a service but never realized that it is not just a B2B but a growing B2C operations.
+- 1:09pm - Watching the Apple event! It makes me want to make apps for their products a bit more, its like a motivational speech for tech nerds.
+- 1:36pm - Adding Scene management into virtual engine file, I am also thinking of just making the whole VE file be something that I can reference almost anywhere in the future. It feels weird to merge everything into just one file but slowly it just seems to make more sense as I am going through it. 
+
+## Quote
+
+> But friendship is precious, not only in the shade, but in the sunshine of life, and thanks to a benevolent arrangement the greater part of life is sunshine.
+> — <cite>Thomas Jefferson</cite>
+
+---
+
+## Tasks
+
+- [ ]
