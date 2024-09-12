@@ -6,21 +6,19 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@monodon/rust:build",
-      "outputs": ["{options.target-dir}"],
+      "executor": "nx:run-commands",
       "options": {
-        "target-dir": "dist/target/kilobase"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
+        "cwd": "apps/kilobase",
+        "commands": ["cargo pgrx package --out-dir='../../dist/target/kilobase'"],
+        "parallel": false
       }
     },
     "pgrx": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": "dist/target/kilobase"
+        "cwd": "apps/kilobase",
+        "commands": ["cargo pgrx run"],
+        "parallel": false
       }
     },
     "copy-requirements": {
@@ -88,7 +86,7 @@
             "tags": ["kbve/kilobase:latest"],
             "push": true
           }
-      }
+        }
       }
     }
   }
