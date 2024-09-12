@@ -6,6 +6,8 @@ use std::time::Duration;
 use std::ffi::CString;
 ::pgrx::pg_module_magic!();
 
+// TODO : Part A - Remove unsafe code by migrating over to a table that uses some queue system.
+// TODO : Part B - Refactor and clean up the core of the lib.rs after migrating to safe-rust code.
 
 fn example_task(arg: i32) -> Result<(), String> {
     log!("Executing HTTP task with arg: {}", arg);
