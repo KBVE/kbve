@@ -52,13 +52,13 @@ jobs:
             ${{ steps.get_commits.outputs.commits }}
           pr_label: 'auto-pr'
 
-       - name: Update PR Body After Opening
-         run: |
+      - name: Update PR Body After Opening
+        run: |
             commits=$(git log --oneline origin/dev..HEAD | tr '\n' '\n')
             pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
             gh pr edit $pr_number --body "Initial PR body with commits: \n\n$commits"
-         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update_pr:
     if: github.event.action == 'synchronize'
