@@ -56,10 +56,41 @@ jobs:
       - name: Fetch dev branch
         run: git fetch origin alpha
 
-      - name: Update PR Body on Synchronize
+      - name: Categorize and Update PR Body
         run: |
-          commits=$(git log --oneline origin/alpha..HEAD | tr '\n' '\n')
-          gh pr edit ${{ github.event.pull_request.number }} --body "Updated PR body with new commits: \n\n$commits"
+          pr_number=${{ github.event.pull_request.number }}
+
+          # Categorize commits
+          ci_commits=$(git log --oneline origin/alpha..HEAD | grep "^ci" | tr '\n' '\n')
+          fix_commits=$(git log --oneline origin/alpha..HEAD | grep "^fix" | tr '\n' '\n')
+          docs_commits=$(git log --oneline origin/alpha..HEAD | grep "^docs" | tr '\n' '\n')
+          feat_commits=$(git log --oneline origin/alpha..HEAD | grep "^feat" | tr '\n' '\n')
+          merge_commits=$(git log --oneline origin/alpha..HEAD | grep "^Merge pull request" | tr '\n' '\n')
+          other_commits=$(git log --oneline origin/alpha..HEAD | grep -vE "^(ci|fix|docs|feat|Merge pull request)" | tr '\n' '\n')
+
+          # Build the generic PR body for this situation.
+          pr_body="## Updated PR body with categorized commits:\n\n"
+          if [ -n "$ci_commits" ]; then
+            pr_body+="### CI Changes:\n$ci_commits\n\n"
+          fi
+          if [ -n "$fix_commits" ]; then
+            pr_body+="### Fixes:\n$fix_commits\n\n"
+          fi
+          if [ -n "$docs_commits" ]; then
+            pr_body+="### Documentation:\n$docs_commits\n\n"
+          fi
+          if [ -n "$feat_commits" ]; then
+            pr_body+="### Features:\n$feat_commits\n\n"
+          fi
+          if [ -n "$merge_commits" ]; then
+            pr_body+="### Merge Commits:\n$merge_commits\n\n"
+          fi
+          if [ -n "$other_commits" ]; then
+            pr_body+="### Other Commits:\n$other_commits\n\n"
+          fi
+
+          # Update the PR body
+          gh pr edit $pr_number --body "$pr_body"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
