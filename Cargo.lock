@@ -566,6 +566,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "base62"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f879ef8fc74665ed7f0e6127cb106315888fc2744f68e14b74f83edbb2a08992"
+
+[[package]]
 name = "base64"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2623,6 +2629,7 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 name = "kilobase"
 version = "0.0.2"
 dependencies = [
+ "base62",
  "jedi 0.1.13",
  "pgrx",
  "pgrx-tests",
