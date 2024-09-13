@@ -33,46 +33,55 @@ jobs:
 
       - name: Fetch dev branch
         run: git fetch origin alpha
-        
+
       - name: Update PR Body After Opening
         run: |
-          # Get the PR number
           pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
 
-          # Categorize commits
-          ci_commits=$(git log --oneline origin/alpha..HEAD | grep "^ci" | tr '\n' '\n')
-          fix_commits=$(git log --oneline origin/alpha..HEAD | grep "^fix" | tr '\n' '\n')
-          docs_commits=$(git log --oneline origin/alpha..HEAD | grep "^docs" | tr '\n' '\n')
-          feat_commits=$(git log --oneline origin/alpha..HEAD | grep "^feat" | tr '\n' '\n')
-          merge_commits=$(git log --oneline origin/alpha..HEAD | grep "^Merge pull request" | tr '\n' '\n')
-          other_commits=$(git log --oneline origin/alpha..HEAD | grep -vE "^(ci|fix|docs|feat|Merge pull request)" | tr '\n' '\n')
+          
+          echo "Raw commits (before cleaning):"
+          git log --oneline origin/alpha..HEAD
+
+          cleaned_commits=$(git log --oneline origin/alpha..HEAD | sed -E 's/^[a-f0-9]{7} \([^)]*\) //')
+
+          echo "Cleaned commits:"
+          echo "$cleaned_commits"
+
+          ci_commits=$(echo "$cleaned_commits" | grep -i " ci(" | tr '\n' '\n')
+          fix_commits=$(echo "$cleaned_commits" | grep -i " fix(" | tr '\n' '\n')
+          docs_commits=$(echo "$cleaned_commits" | grep -i " docs(" | tr '\n' '\n')
+          feat_commits=$(echo "$cleaned_commits" | grep -i " feat(" | tr '\n' '\n')
+          merge_commits=$(echo "$cleaned_commits" | grep -i " Merge pull request" | tr '\n' '\n')
+          other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
 
           # Build the PR body
-          pr_body="## Initial PR body for Alpha with categorized commits:\n\n"
+          pr_body="## Initial PR body for Alpha with categorized commits:  \n  \n  "
           if [ -n "$ci_commits" ]; then
-            pr_body+="### CI Changes:\n$ci_commits\n\n"
+            pr_body+="### CI Changes: \n  $ci_commits  \n  \n  "
           fi
           if [ -n "$fix_commits" ]; then
-            pr_body+="### Fixes:\n$fix_commits\n\n"
+            pr_body+="### Fixes:  \n  $fix_commits  \n  \n  "
           fi
           if [ -n "$docs_commits" ]; then
-            pr_body+="### Documentation:\n$docs_commits\n\n"
+            pr_body+="### Documentation:  \n  $docs_commits  \n  \n  "
           fi
           if [ -n "$feat_commits" ]; then
-            pr_body+="### Features:\n$feat_commits\n\n"
+            pr_body+="### Features:  \n  $feat_commits  \n  \n"
           fi
           if [ -n "$merge_commits" ]; then
-            pr_body+="### Merge Commits:\n$merge_commits\n\n"
+            pr_body+="### Merge Commits:  \n  $merge_commits  \n  \n"
           fi
           if [ -n "$other_commits" ]; then
-            pr_body+="### Other Commits:\n$other_commits\n\n"
+            pr_body+="### Other Commits:  \n  $other_commits  \n  \n"
           fi
+
+          # Print the PR body for debugging
+          echo "PR Body: $pr_body"
 
           # Update the PR body
           gh pr edit $pr_number --body "$pr_body"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
   update_pr:
     name: 'Update PR Body on Synchronize'
