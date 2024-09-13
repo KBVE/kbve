@@ -53,7 +53,7 @@ jobs:
           pr_label: 'auto-pr'
 
   initial_pr_update:
-      if: github.event_name == 'pull_request' && github.event.action == 'opened'
+      if: github.event.action == 'opened'
       runs-on: ubuntu-latest
       steps:
         - name: Checkout
