@@ -56,6 +56,101 @@ pub static SANITIZATION_CAPTCHA_TOKEN_REGEX: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*$").unwrap()
 });
 
+// Zero Copy &str
+
+pub fn extract_email_from_regex_zero_copy(email: &str) -> Result<&str, &'static str> {
+    if SANITIZATION_EMAIL_REGEX.is_match(email) {
+        Ok(email)
+    } else {
+        Err("invalid_email")
+    }
+}
+
+pub fn extract_github_username_from_regex_zero_copy(url: &str) -> Result<&str, &'static str> {
+    SANITIZATION_GITHUB_USERNAME_REGEX.captures(url)
+        .and_then(|cap| cap.get(1).map(|username| username.as_str())) 
+        .ok_or("invalid_github")
+}
+
+pub fn extract_instagram_username_from_regex_zero_copy(url: &str) -> Result<&str, &'static str> {
+    SANITIZATION_INSTAGRAM_USERNAME_REGEX.captures(url)
+        .and_then(|cap| {
+            cap.get(1).and_then(|username| {
+                let username = username.as_str();
+                if username.contains("__") || username.contains("._") || username.contains("_.") {
+                    None
+                } else {
+                    Some(username) 
+                }
+            })
+        })
+        .ok_or("invalid_instagram")
+}
+
+pub fn extract_unsplash_photo_id_from_regex_zero_copy(url: &str) -> Result<&str, &'static str> {
+    SANITIZATION_UNSPLASH_PHOTO_ID_REGEX.captures(url)
+        .and_then(|cap| cap.get(1).map(|match_| match_.as_str()))
+        .ok_or("invalid_unsplash")
+}
+
+pub fn extract_discord_server_id_from_regex_zero_copy(url: &str) -> Result<&str, &'static str> {
+    SANITIZATION_DISCORD_SERVER_EMBED_REGEX.captures(url)
+        .and_then(|cap| cap.get(1).map(|id| id.as_str()))
+        .filter(|id_str| id_str.chars().all(char::is_numeric)) 
+        .ok_or("invalid_discord_server")
+}
+
+pub fn extract_ulid_from_regex_zero_copy(ulid_str: &str) -> Result<&str, &'static str> {
+    if SANITIZATION_ULID_REGEX.is_match(ulid_str) {
+        Ok(ulid_str)
+    } else {
+        Err("invalid_ulid")
+    }
+}
+
+pub fn extract_hex_code_from_regex_zero_copy(hex_code: &str) -> Result<&str, &'static str> {
+    SANITIZATION_HEX_CODE_REGEX.captures(hex_code)
+        .and_then(|cap| cap.get(0).map(|match_| match_.as_str()))
+        .ok_or("invalid_hex")
+}
+
+pub fn extract_markdown_standalone_href_link_from_regex_zero_copy(markdown: &str) -> Result<&str, &'static str> {
+    SANITIZATION_MARKDOWN_STANDALONE_LINK_REGEX.captures(markdown)
+        .and_then(|cap| cap.get(2).map(|match_| match_.as_str()))
+        .ok_or("invalid_markdown_link")
+}
+
+pub fn extract_markdown_image_href_link_from_regex_zero_copy(markdown: &str) -> Result<&str, &'static str> {
+    SANITIZATION_MARKDOWN_IMAGE_LINK_REGEX.captures(markdown)
+        .and_then(|cap| cap.get(3).map(|match_| match_.as_str()))
+        .ok_or("invalid_markdown_image_link")
+}
+
+pub fn extract_general_input_from_regex_zero_copy(input: &str) -> Result<&str, &'static str> {
+    if SANITIZATION_GENERAL_INPUT_REGEX.is_match(input) {
+        Ok(input)
+    } else {
+        Err("invalid_general_input")
+    }
+}
+
+pub fn extract_service_from_regex_zero_copy(service: &str) -> Result<&str, &'static str> {
+    if SANITIZATION_SERVICE_REGEX.is_match(service) {
+        Ok(service)
+    } else {
+        Err("invalid_service")
+    }
+}
+pub fn extract_captcha_token_from_regex_zero_copy(token: &str) -> Result<&str, &'static str> {
+    if SANITIZATION_CAPTCHA_TOKEN_REGEX.is_match(token) {
+        Ok(token)
+    } else {
+        Err("invalid_captcha")
+    }
+}
+
+// String - Slower Functions because of the String Allocation! - Okay for test casing/debug/dev.
+
 
 pub fn extract_email_from_regex(email: &str) -> Result<String, &'static str> {
 	if SANITIZATION_EMAIL_REGEX.is_match(email) {

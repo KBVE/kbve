@@ -3,26 +3,33 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/kilobase/src",
+  "tags": [],
   "targets": {
     "build": {
-      "executor": "@monodon/rust:build",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "executor": "nx:run-commands",
       "options": {
-        "target-dir": "dist/target/kilobase"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
+        "cwd": "apps/kilobase",
+        "commands": ["cargo pgrx package --out-dir='../../dist/target/kilobase'"],
+        "parallel": false
+      }
+    },
+    "pgrx": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/kilobase",
+        "commands": ["cargo pgrx run"],
+        "parallel": false
+      }
+    },
+    "copy-requirements": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cp apps/kilobase/requirements.txt dist/target/kilobase/requirements.txt"
       }
     },
     "test": {
       "executor": "@monodon/rust:test",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "outputs": ["{options.target-dir}"],
       "options": {
         "target-dir": "dist/target/kilobase"
       },
@@ -34,18 +41,14 @@
     },
     "lint": {
       "executor": "@monodon/rust:lint",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "outputs": ["{options.target-dir}"],
       "options": {
         "target-dir": "dist/target/kilobase"
       }
     },
     "run": {
       "executor": "@monodon/rust:run",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "outputs": ["{options.target-dir}"],
       "options": {
         "target-dir": "dist/target/kilobase"
       },
@@ -54,7 +57,37 @@
           "release": true
         }
       }
+    },
+    "container": {
+      "executor": "@nx-tools/nx-container:build",
+      "dependsOn": ["build", "copy-requirements"],
+      "defaultConfiguration": "local",
+      "options": {
+        "engine": "docker",
+        "context": "dist/target/kilobase",
+        "file": "apps/kilobase/Dockerfile",
+        "metadata": {
+          "images": ["kilobase"],
+          "load": true,
+          "tags": [
+            "type=schedule",
+            "type=ref,event=branch",
+            "type=ref,event=tag",
+            "type=ref,event=pr",
+            "type=sha,prefix=sha-"
+          ]
+        },
+        "configurations": {
+          "local": {
+            "tags": ["kilobase:latest"],
+            "push": false
+          },
+          "production": {
+            "tags": ["kbve/kilobase:latest"],
+            "push": true
+          }
+        }
+      }
     }
-  },
-  "tags": []
+  }
 }
