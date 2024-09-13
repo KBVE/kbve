@@ -314,7 +314,7 @@ export async function _$gha_unlockIssue(
   }
 }
 
-//  [Helper Function From 09/13/2024 - https://kbve.com/journal/09-13/#2024]
+//  [Helper Function https://kbve.com/journal/09-13/#2024]
 
 export async function _$gha_getPullRequestNumber(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -345,7 +345,101 @@ export async function _$gha_getPullRequestNumber(
   }
 }
 
-//! - Github Docker Commands - Proof of Concept - 07-26-2024
+export async function _$gha_updatePullRequestBody(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  github: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  context: any,
+  prBody: string,
+): Promise<void> {
+  try {
+    const { repo, owner } = context.repo;
+    const prNumber = await _$gha_getPullRequestNumber(github, context);
+    await github.rest.pulls.update({
+      owner,
+      repo,
+      pull_number: prNumber,
+      body: prBody,
+    });
+    console.log(`PR #${prNumber} updated successfully`);
+  } catch (err) {
+    console.error('Error updating PR body:', err);
+    throw err;
+  }
+}
+
+
+export async function _$gha_fetchAndCategorizeCommits(
+  branchToCompare: string,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // Fetch the comparison branch
+    exec(`git fetch origin ${branchToCompare}`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error fetching branch ${branchToCompare}:`, error);
+        reject(error);
+        return;
+      }
+
+      exec(`git log --oneline origin/${branchToCompare}..HEAD`, (error, stdout, stderr) => {
+        if (error) {
+          console.error('Error logging commits:', error);
+          reject(error);
+          return;
+        }
+
+        const rawCommits = stdout.trim();
+        console.log("Raw commits (before cleaning):", rawCommits);
+
+        const cleanedCommits = rawCommits.replace(/^[a-f0-9]{7} \([^)]*\) /gm, '');
+      
+        console.log("Cleaned commits:", cleanedCommits);
+
+        const ciCommits = cleanedCommits.match(/ci\([^)]+\)/gi)?.join('\n') || '';
+        const fixCommits = cleanedCommits.match(/fix\([^)]+\)/gi)?.join('\n') || '';
+        const docsCommits = cleanedCommits.match(/docs\([^)]+\)/gi)?.join('\n') || '';
+        const featCommits = cleanedCommits.match(/feat\([^)]+\)/gi)?.join('\n') || '';
+        const mergeCommits = cleanedCommits.match(/Merge pull request/gi)?.join('\n') || '';
+        const otherCommits = cleanedCommits
+          .split('\n')
+          .filter(
+            (commit) =>
+              !/ci\(|fix\(|docs\(|feat\(|Merge pull request/.test(commit),
+          )
+          .join('\n');
+
+        let commitSummary = '## Initial PR body for Alpha with categorized commits: <br> <br>';
+        if (ciCommits) commitSummary += `### CI Changes: <br> ${ciCommits} <br> <br>`;
+        if (fixCommits) commitSummary += `### Fixes: <br> ${fixCommits} <br> <br>`;
+        if (docsCommits) commitSummary += `### Documentation: <br> ${docsCommits} <br> <br>`;
+        if (featCommits) commitSummary += `### Features: <br> ${featCommits} <br> <br>`;
+        if (mergeCommits) commitSummary += `### Merge Commits: <br> ${mergeCommits} <br> <br>`;
+        if (otherCommits) commitSummary += `### Other Commits: <br> ${otherCommits} <br> <br>`;
+
+        resolve(commitSummary);
+      });
+    });
+  });
+}
+
+export async function _$gha_processAndUpdatePR(
+  branchToCompare: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  github: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  context: any,
+): Promise<void> {
+  try {
+    const commitSummary = await _$gha_fetchAndCategorizeCommits(branchToCompare);
+    await _$gha_updatePullRequestBody(github, context, commitSummary);
+  } catch (error) {
+    console.error('Error processing and updating PR:', error);
+    throw error;
+  }
+}
+
+
+//  [Github Docker Commands - https://kbve.com/journal/07-26/#2024]
 
 export async function _$gha_runDockerContainer(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -373,6 +467,7 @@ export async function _$gha_runDockerContainer(
     
 
     const command = `docker run -d -p ${sanitizedPort}:${sanitizedPort} --name ${sanitizedName} ${sanitizedImage}`;
+
 
     exec(command, async (error, stdout, stderr) => {
       if (error) {

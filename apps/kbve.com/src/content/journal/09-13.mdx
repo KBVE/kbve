@@ -54,6 +54,52 @@ export async function _$gha_getPullRequestNumber(
 ```
 
 This helper function follows the `_$gha_` naming convention and will be a core part of the helper function.
+The example of it grabbing the `pullRequestNumber` would look like this:
+
+```ts
+
+const pullRequestBody = '## DemoForHoly';
+const pullRequestNumber = await _$gha_getPullRequestNumber(github, context);
+
+await github.rest.pulls.update({
+  owner: context.repo.owner,
+  repo: context.repo.repo,
+  pull_number: pullRequestNumber,
+  body: pullRequestBody,
+});
+
+```
+
+Next we want to create another helper function that would handle the actual git difference and organizing the different types of conventional commits.
+The helper function that we are going to add next is `_$gha_updatePullRequestBody`, which will work ontop of the previous helper function that we wrote above.
+It will look something like this:
+
+```ts
+
+export async function _$gha_updatePullRequestBody(
+  github: any,
+  context: any,
+  prBody: string,
+): Promise<void> {
+  try {
+    const { repo, owner } = context.repo;
+    const prNumber = await _$gha_getPullRequestNumber(github, context);
+    await github.rest.pulls.update({
+      owner,
+      repo,
+      pull_number: prNumber,
+      body: prBody,
+    });
+    console.log(`PR #${prNumber} updated successfully`);
+  } catch (err) {
+    console.error('Error updating PR body:', err);
+    throw err;
+  }
+}
+
+```
+
+Granted, in the future, we will have to loop back around and create a whole new debug class to handle our `console.log` and `console.error`, but for now this should be fine.
 
 ## 2023
 - 8:34am - The mornings need to be a bit better, I might have to start sleeping early again or maybe finding a way to still program without having to be in-front of a screen. It could be the blue light or just the brain drain that comes with the amount of thinking that would be involved. There is something to be said about how fast things are moving in the machine learning eco-system, its moving too fast and my brain is unable to keep up with all the movement. 
