@@ -314,6 +314,37 @@ export async function _$gha_unlockIssue(
   }
 }
 
+//  [Helper Function From 09/13/2024 - https://kbve.com/journal/09-13/#2024]
+
+export async function _$gha_getPullRequestNumber(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  github: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any,
+): Promise<number> {
+  try {
+    const { repo, owner } = context.repo;
+    const branch = context.ref.replace('refs/heads/', '');
+
+    const { data: pullRequests } = await github.rest.pulls.list({
+      owner,
+      repo,
+      head: `${owner}:${branch}`,
+      state: 'open',
+    });
+
+    if (pullRequests.length === 0) {
+      throw new Error('No open pull requests found for this branch');
+    }
+
+    const prNumber = pullRequests[0].number;
+    return prNumber;
+  } catch (error) {
+    console.error('Error fetching pull request number:', error);
+    throw error;
+  }
+}
+
 //! - Github Docker Commands - Proof of Concept - 07-26-2024
 
 export async function _$gha_runDockerContainer(
