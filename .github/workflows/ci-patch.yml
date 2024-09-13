@@ -1,18 +1,41 @@
 name: CI Patch
 
-# Docs for this Github workflow is here https://kbve.com/application/git/#ci-patch.yml
-
 on:
   push:
     branches:
       - 'patch*'
 
+  pull_request:
+    types: [synchronize]
+
 jobs:
   handle:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch dev branch
+        run: git fetch origin dev
+
+      - name: Get Commits
+        id: get_commits
+        run: |
+            commits=$(git log --oneline origin/dev..HEAD | tr '\n' '|')
+            echo "commits=$commits" >> $GITHUB_OUTPUT
+
+  create_pr:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Auto-Pull
         uses: diillson/auto-pull-request@latest
@@ -22,4 +45,27 @@ jobs:
           pr_title: 'Pulling ${{ github.ref }} into Dev'
           pr_body: |
             *An automated PR*
+
+            Commits:
+            ${{ steps.get_commits.outputs.commits }}
           pr_label: 'auto-pr'
+
+  update_pr:
+    if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch dev branch
+        run: git fetch origin dev
+
+      - name: Update PR Body
+        run: |
+          commits=$(git log --oneline origin/dev..HEAD | tr '\n' '\n')
+          gh pr edit ${{ github.event.pull_request.number }} --body "Updated PR body with commits: \n\n$commits"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
