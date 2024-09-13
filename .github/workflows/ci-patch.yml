@@ -7,8 +7,8 @@ on:
 
   pull_request:
     branches:
-        - 'dev'
-    types: [synchronize, labeled]
+      - 'dev'
+    types: [synchronize]
 
 jobs:
   handle:
@@ -26,8 +26,8 @@ jobs:
       - name: Get Commits
         id: get_commits
         run: |
-            commits=$(git log --oneline origin/dev..HEAD | tr '\n' '|')
-            echo "commits=$commits" >> $GITHUB_OUTPUT
+          commits=$(git log --oneline origin/dev..HEAD | tr '\n' '|')
+          echo "commits=$commits" >> $GITHUB_OUTPUT
 
   create_pr:
     if: github.event_name == 'push'
@@ -52,27 +52,15 @@ jobs:
             ${{ steps.get_commits.outputs.commits }}
           pr_label: 'auto-pr'
 
-  initial_pr_update:
-      if: github.event.action == 'labeled'
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
-
-        - name: Fetch dev branch
-          run: git fetch origin dev
-
-        - name: Update PR Body After Opening
-          run: |
+      - name: Update PR Body After Opening
+        run: |
             commits=$(git log --oneline origin/dev..HEAD | tr '\n' '\n')
-            gh pr edit ${{ github.event.pull_request.number }} --body "Initial PR body with commits: \n\n$commits"
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
+            gh pr edit $pr_number --body "Initial PR body with commits: \n\n$commits"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update_pr:
-    #if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
     if: github.event.action == 'synchronize'
     runs-on: ubuntu-latest
 
