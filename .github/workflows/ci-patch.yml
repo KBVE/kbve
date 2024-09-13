@@ -76,6 +76,6 @@ jobs:
       - name: Update PR Body
         run: |
           commits=$(git log --oneline origin/dev..HEAD | tr '\n' '\n')
-          gh pr edit ${{ github.event.pull_request.number }} --body "Updated PR body with commits:  \n  \n  $commits"
+          gh pr edit ${{ github.event.pull_request.number }} --body "Updated PR body with commits:  \  \  $commits"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
