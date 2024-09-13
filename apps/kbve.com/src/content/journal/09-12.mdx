@@ -50,6 +50,8 @@ fn datum_to_string(arg: pg_sys::Datum) -> String {
 Yet we can also toss all of this out and pivot to the table method, putting us back into the safe rust zone.
 Once the data that we want to process is inside of the table, we can safely assume the type and then move forward from there.
 There might be some issues with the locks, but I think we can handle that as well.
+Besides adding in `serde`, we should also include a `thiserror` as well to help with the error handling.
+
 
 ## 2023
 

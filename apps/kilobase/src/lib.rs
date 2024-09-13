@@ -1,12 +1,14 @@
+//  [IMPORTS]
 use pgrx::bgworkers::*;
 use pgrx::prelude::*;
 use reqwest::blocking::Client;
+use std::time::Duration;
+
 use jedi::lazyregex::{
   extract_email_from_regex_zero_copy,
   extract_github_username_from_regex_zero_copy,
 };
-use std::time::Duration;
-use std::ffi::CString;
+
 use serde::{ Deserialize, Serialize };
 
 ::pgrx::pg_module_magic!();
