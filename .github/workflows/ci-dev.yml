@@ -55,15 +55,15 @@ jobs:
           other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
 
           # Build the PR body
-          pr_body="## Initial PR body for Alpha with categorized commits: <br> <br>  "
+          pr_body="## Initial PR body for Alpha with categorized commits: <br> <br>"
           if [ -n "$ci_commits" ]; then
-            pr_body+="### CI Changes: \n  $ci_commits <br> <br>  "
+            pr_body+="### CI Changes: <br>  $ci_commits <br> <br>"
           fi
           if [ -n "$fix_commits" ]; then
-            pr_body+="### Fixes: <br>  $fix_commits <br> <br>  "
+            pr_body+="### Fixes: <br>  $fix_commits <br> <br>"
           fi
           if [ -n "$docs_commits" ]; then
-            pr_body+="### Documentation: <br>  $docs_commits <br> <br>  "
+            pr_body+="### Documentation: <br>  $docs_commits <br> <br>"
           fi
           if [ -n "$feat_commits" ]; then
             pr_body+="### Features: <br>  $feat_commits <br> <br>"
@@ -118,15 +118,15 @@ jobs:
           other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
 
           # Build the PR body
-          pr_body="## Updated PR body for Alpha with categorized commits: <br> <br>  "
+          pr_body="## Updated PR body for Alpha with categorized commits: <br> <br>"
           if [ -n "$ci_commits" ]; then
-            pr_body+="### CI Changes: \n  $ci_commits <br> <br>  "
+            pr_body+="### CI Changes: <br> $ci_commits <br> <br>"
           fi
           if [ -n "$fix_commits" ]; then
-            pr_body+="### Fixes: <br>  $fix_commits <br> <br>  "
+            pr_body+="### Fixes: <br>  $fix_commits <br> <br>"
           fi
           if [ -n "$docs_commits" ]; then
-            pr_body+="### Documentation: <br>  $docs_commits <br> <br>  "
+            pr_body+="### Documentation: <br>  $docs_commits <br> <br>"
           fi
           if [ -n "$feat_commits" ]; then
             pr_body+="### Features: <br>  $feat_commits <br> <br>"
