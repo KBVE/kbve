@@ -26,8 +26,8 @@ jobs:
       - name: Get Commits
         id: get_commits
         run: |
-          echo "commits=$(git log --oneline origin/dev..HEAD)" >> $GITHUB_OUTPUT
-
+            commits=$(git log --oneline origin/dev..HEAD | tr '\n' '|')
+            echo "commits=$commits" >> $GITHUB_OUTPUT
       - name: Auto-Pull
         uses: diillson/auto-pull-request@latest
         with:
