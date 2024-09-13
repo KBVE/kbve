@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
         - 'dev'
-    types: [synchronize, opened]
+    types: [synchronize, labeled]
 
 jobs:
   handle:
@@ -53,7 +53,7 @@ jobs:
           pr_label: 'auto-pr'
 
   initial_pr_update:
-      if: github.event.action == 'opened'
+      if: github.event.action == 'labeled'
       runs-on: ubuntu-latest
       steps:
         - name: Checkout
@@ -72,7 +72,8 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update_pr:
-    if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+    #if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+    if: github.event.action == 'synchronize'
     runs-on: ubuntu-latest
 
     steps:
