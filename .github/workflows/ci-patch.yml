@@ -7,12 +7,20 @@ on:
     branches:
       - 'patch*'
 
+  pull_request:
+    types: [synchronize]
+
 jobs:
   handle:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Get Commits
+        id: get_commits
+        run: |
+          echo "::set-output name=commits::$(git log --oneline origin/dev..HEAD)"
 
       - name: Auto-Pull
         uses: diillson/auto-pull-request@latest
@@ -22,4 +30,7 @@ jobs:
           pr_title: 'Pulling ${{ github.ref }} into Dev'
           pr_body: |
             *An automated PR*
+
+            Commits:
+            ${{ steps.get_commits.outputs.commits }}
           pr_label: 'auto-pr'
