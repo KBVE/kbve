@@ -36,3 +36,23 @@ For support, please join our [Discord community](https://kbve.com/discord/). Our
 
 We are committed to providing prompt and effective support to help you get the most out of our DevOps npm library.
 Pricing for premium support tickets will be released in Q4 of 2024.
+
+---
+
+## Internal
+
+For preparing a release, we would run this:
+
+```shell
+
+pnpm nx release --projects=devops
+
+```
+
+For running the test cases, we would run this:
+
+```shell
+
+./kbve.sh -nx devops:test
+
+```
