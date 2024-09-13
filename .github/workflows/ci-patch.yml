@@ -56,7 +56,7 @@ jobs:
         run: |
           commits=$(git log --oneline origin/dev..HEAD | tr '\n' '\n')
           pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
-          gh pr edit $pr_number --body "Initial PR body with commits: \n\n$commits"
+          gh pr edit $pr_number --body "Initial PR body with commits:  \n  \n  $commits"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -76,6 +76,6 @@ jobs:
       - name: Update PR Body
         run: |
           commits=$(git log --oneline origin/dev..HEAD | tr '\n' '\n')
-          gh pr edit ${{ github.event.pull_request.number }} --body "Updated PR body with commits: \n\n$commits"
+          gh pr edit ${{ github.event.pull_request.number }} --body "Updated PR body with commits:  \n  \n  $commits"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
