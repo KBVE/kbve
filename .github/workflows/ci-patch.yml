@@ -16,11 +16,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch dev branch
+        run: git fetch origin dev
+
 
       - name: Get Commits
         id: get_commits
         run: |
-          echo "::set-output name=commits::$(git log --oneline origin/dev..HEAD)"
+          echo "commits=$(git log --oneline origin/dev..HEAD)" >> $GITHUB_OUTPUT
 
       - name: Auto-Pull
         uses: diillson/auto-pull-request@latest

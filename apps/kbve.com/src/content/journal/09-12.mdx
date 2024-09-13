@@ -58,6 +58,19 @@ During the pull from 'patch-' into 'dev', we should make a quick change that wil
 I believe we would have to not only grab the log but also sync the commits too for each additional commit that gets made.
 Okay, I went ahead and updated the patch, so that it should collect all the commits and move it up to dev.
 If this goes as planned, then it will make it easier in the long term to keep track of all the changes.
+Damn this error:
+
+```
+
+Run echo "::set-output name=commits::$(git log --oneline origin/dev..HEAD)"
+  echo "::set-output name=commits::$(git log --oneline origin/dev..HEAD)"
+  shell: /usr/bin/bash -e {0}
+fatal: ambiguous argument 'origin/dev..HEAD': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'
+
+```
+
 
 ## 2023
 
