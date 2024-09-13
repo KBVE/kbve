@@ -5,13 +5,20 @@ on:
     branches:
       - 'dev*'
 
+  pull_request:
+    branches:
+      - 'alpha'
+    types: [synchronize]
 jobs:
   handle:
     name: 'Dev to Alpha'
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Auto-Pull
         id: open-pr
@@ -24,14 +31,37 @@ jobs:
             This PR is for the alpha branch
           pr_label: 'auto-pr'
 
-      - name: output-url
-        run: echo ${{steps.open-pr.outputs.pr_url}}
-      - name: output-number
-        run: echo ${{steps.open-pr.outputs.pr_number}}
-      - name: output-created
-        run: echo ${{steps.open-pr.outputs.pr_created}}
-      - name: output-has-changed-files
-        run: echo ${{steps.open-pr.outputs.has_changed_files}}
+      - name: Fetch dev branch
+        run: git fetch origin alpha
+
+      - name: Update PR Body After Opening
+        run: |
+          pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
+          commits=$(git log --oneline origin/alpha..HEAD | tr '\n' '\n')
+          gh pr edit $pr_number --body "Initial PR body for Alpha with commits: \n\n$commits"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update_pr:
+    name: 'Update PR Body on Synchronize'
+    runs-on: ubuntu-latest
+    if: github.event.action == 'synchronize'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch dev branch
+        run: git fetch origin alpha
+
+      - name: Update PR Body on Synchronize
+        run: |
+          commits=$(git log --oneline origin/alpha..HEAD | tr '\n' '\n')
+          gh pr edit ${{ github.event.pull_request.number }} --body "Updated PR body with new commits: \n\n$commits"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   alter:
     name: 'Dev Deployment Checks'
