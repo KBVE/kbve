@@ -54,9 +54,9 @@ jobs:
 
       - name: Update PR Body After Opening
         run: |
-            commits=$(git log --oneline origin/dev..HEAD | tr '\n' '\n')
-            pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
-            gh pr edit $pr_number --body "Initial PR body with commits: \n\n$commits"
+          commits=$(git log --oneline origin/dev..HEAD | tr '\n' '\n')
+          pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
+          gh pr edit $pr_number --body "Initial PR body with commits: \n\n$commits"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
