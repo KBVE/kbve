@@ -317,14 +317,18 @@ export async function _$gha_unlockIssue(
 //  [Helper Function https://kbve.com/journal/09-13/#2024]
 
 export async function _$gha_getPullRequestNumber(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   github: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any,
 ): Promise<number> {
   try {
     const { repo, owner } = context.repo;
-    const branch = context.ref.replace('refs/heads/', '');
+    let branch: string;
+
+    if (context.ref.startsWith('refs/pull/')) {
+      branch = context.payload.pull_request.head.ref;
+    } else {
+      branch = context.ref.replace('refs/heads/', '');
+    }
 
     const { data: pullRequests } = await github.rest.pulls.list({
       owner,
@@ -344,6 +348,7 @@ export async function _$gha_getPullRequestNumber(
     throw error;
   }
 }
+
 
 export async function _$gha_updatePullRequestBody(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any  
@@ -368,12 +373,10 @@ export async function _$gha_updatePullRequestBody(
   }
 }
 
-
 export async function _$gha_fetchAndCategorizeCommits(
   branchToCompare: string,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    // Fetch the comparison branch
     exec(`git fetch origin ${branchToCompare}`, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error fetching branch ${branchToCompare}:`, error);
@@ -391,15 +394,15 @@ export async function _$gha_fetchAndCategorizeCommits(
         const rawCommits = stdout.trim();
         console.log("Raw commits (before cleaning):", rawCommits);
 
-        const cleanedCommits = rawCommits.replace(/^[a-f0-9]{7} \([^)]*\) /gm, '');
-      
+        const cleanedCommits = rawCommits.replace(/^[a-f0-9]{7} \([^)]*\) (.*)/gm, '$1');
+
         console.log("Cleaned commits:", cleanedCommits);
 
-        const ciCommits = cleanedCommits.match(/ci\([^)]+\)/gi)?.join('\n') || '';
-        const fixCommits = cleanedCommits.match(/fix\([^)]+\)/gi)?.join('\n') || '';
-        const docsCommits = cleanedCommits.match(/docs\([^)]+\)/gi)?.join('\n') || '';
-        const featCommits = cleanedCommits.match(/feat\([^)]+\)/gi)?.join('\n') || '';
-        const mergeCommits = cleanedCommits.match(/Merge pull request/gi)?.join('\n') || '';
+        const ciCommits = cleanedCommits.match(/ci\([^)]+\):.*/gi)?.join('\n') || '';
+        const fixCommits = cleanedCommits.match(/fix\([^)]+\):.*/gi)?.join('\n') || '';
+        const docsCommits = cleanedCommits.match(/docs\([^)]+\):.*/gi)?.join('\n') || '';
+        const featCommits = cleanedCommits.match(/feat\([^)]+\):.*/gi)?.join('\n') || '';
+        const mergeCommits = cleanedCommits.match(/Merge pull request.*/gi)?.join('\n') || '';
         const otherCommits = cleanedCommits
           .split('\n')
           .filter(
@@ -408,7 +411,7 @@ export async function _$gha_fetchAndCategorizeCommits(
           )
           .join('\n');
 
-        let commitSummary = '## Initial PR body for Alpha with categorized commits: <br> <br>';
+        let commitSummary = `## PR Report for ${branchToCompare} with categorized commits: <br> <br>`;
         if (ciCommits) commitSummary += `### CI Changes: <br> ${ciCommits} <br> <br>`;
         if (fixCommits) commitSummary += `### Fixes: <br> ${fixCommits} <br> <br>`;
         if (docsCommits) commitSummary += `### Documentation: <br> ${docsCommits} <br> <br>`;
@@ -421,6 +424,8 @@ export async function _$gha_fetchAndCategorizeCommits(
     });
   });
 }
+
+
 
 export async function _$gha_processAndUpdatePR(
   branchToCompare: string,
