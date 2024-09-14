@@ -1,6 +1,6 @@
 {
   "name": "@kbve/devops",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "A DevOps helper library, providing better functions and extensions.",
   "keywords": [
     "github",
@@ -19,8 +19,8 @@
   "license": "MIT",
   "dependencies": {
     "tslib": "^2.3.0",
-    "axios": "1.6.7",
-    "jsdom": "~22.1.0",
+    "axios": "^1.6.7",
+    "jsdom": "^22.1.0",
     "marked": "^13.0.0",
     "dompurify": "^3.1.5"
   },
