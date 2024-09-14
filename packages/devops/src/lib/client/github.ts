@@ -317,14 +317,18 @@ export async function _$gha_unlockIssue(
 //  [Helper Function https://kbve.com/journal/09-13/#2024]
 
 export async function _$gha_getPullRequestNumber(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   github: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any,
 ): Promise<number> {
   try {
     const { repo, owner } = context.repo;
-    const branch = context.ref.replace('refs/heads/', '');
+    let branch: string;
+
+    if (context.ref.startsWith('refs/pull/')) {
+      branch = context.payload.pull_request.head.ref;
+    } else {
+      branch = context.ref.replace('refs/heads/', '');
+    }
 
     const { data: pullRequests } = await github.rest.pulls.list({
       owner,
@@ -344,6 +348,7 @@ export async function _$gha_getPullRequestNumber(
     throw error;
   }
 }
+
 
 export async function _$gha_updatePullRequestBody(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any  
