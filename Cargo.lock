@@ -2514,7 +2514,7 @@ dependencies = [
 
 [[package]]
 name = "jedi"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "ammonia",
  "async-trait",
@@ -2630,7 +2630,7 @@ name = "kilobase"
 version = "0.0.2"
 dependencies = [
  "base62",
- "jedi 0.1.13",
+ "jedi 0.1.14",
  "pgrx",
  "pgrx-tests",
  "reqwest",
