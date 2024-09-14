@@ -377,7 +377,6 @@ export async function _$gha_fetchAndCategorizeCommits(
   branchToCompare: string,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-
     exec(`git fetch origin ${branchToCompare}`, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error fetching branch ${branchToCompare}:`, error);
@@ -399,10 +398,10 @@ export async function _$gha_fetchAndCategorizeCommits(
 
         console.log("Cleaned commits:", cleanedCommits);
 
-        const ciCommits = cleanedCommits.match(/ci\([^)]+\).*/gi)?.join('\n') || '';
-        const fixCommits = cleanedCommits.match(/fix\([^)]+\).*/gi)?.join('\n') || '';
-        const docsCommits = cleanedCommits.match(/docs\([^)]+\).*/gi)?.join('\n') || '';
-        const featCommits = cleanedCommits.match(/feat\([^)]+\).*/gi)?.join('\n') || '';
+        const ciCommits = cleanedCommits.match(/ci\([^)]+\):.*/gi)?.join('\n') || '';
+        const fixCommits = cleanedCommits.match(/fix\([^)]+\):.*/gi)?.join('\n') || '';
+        const docsCommits = cleanedCommits.match(/docs\([^)]+\):.*/gi)?.join('\n') || '';
+        const featCommits = cleanedCommits.match(/feat\([^)]+\):.*/gi)?.join('\n') || '';
         const mergeCommits = cleanedCommits.match(/Merge pull request.*/gi)?.join('\n') || '';
         const otherCommits = cleanedCommits
           .split('\n')
@@ -425,6 +424,7 @@ export async function _$gha_fetchAndCategorizeCommits(
     });
   });
 }
+
 
 
 export async function _$gha_processAndUpdatePR(
