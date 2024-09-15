@@ -1,7 +1,11 @@
-import { _title, sanitizePort, sanitizeContainerName, sanitizeContainerImage } from '../sanitization';
+import {
+  _title,
+  sanitizePort,
+  sanitizeContainerName,
+  sanitizeContainerImage,
+} from '../sanitization';
 import { exec } from 'child_process';
 import { CommitCategory, CleanedCommit } from '../../types';
-
 
 export interface GithubActionReferenceMap {
   keyword: string;
@@ -351,11 +355,10 @@ export async function _$gha_getPullRequestNumber(
   }
 }
 
-
 export async function _$gha_updatePullRequestBody(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   github: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any,
   prBody: string,
 ): Promise<void> {
@@ -375,6 +378,7 @@ export async function _$gha_updatePullRequestBody(
   }
 }
 
+//  [DEPRECATED] -> Removing this function and replacing it a new one.
 export async function _$gha_fetchAndCategorizeCommits(
   branchToCompare: string,
 ): Promise<string> {
@@ -386,65 +390,209 @@ export async function _$gha_fetchAndCategorizeCommits(
         return;
       }
 
-      exec(`git log --oneline origin/${branchToCompare}..HEAD`, (error, stdout, stderr) => {
-        if (error) {
-          console.error('Error logging commits:', error);
-          reject(error);
-          return;
-        }
+      exec(
+        `git log --oneline origin/${branchToCompare}..HEAD`,
+        (error, stdout, stderr) => {
+          if (error) {
+            console.error('Error logging commits:', error);
+            reject(error);
+            return;
+          }
 
-        const rawCommits = stdout.trim();
-        console.log("Raw commits (before cleaning):", rawCommits);
+          const rawCommits = stdout.trim();
+          console.log('Raw commits (before cleaning):', rawCommits);
 
-        const cleanedCommits = rawCommits.replace(/^[a-f0-9]{7} \([^)]*\) (.*)/gm, '$1');
+          const cleanedCommits = rawCommits.replace(
+            /^[a-f0-9]{7} \([^)]*\) (.*)/gm,
+            '$1',
+          );
 
-        console.log("Cleaned commits:", cleanedCommits);
+          console.log('Cleaned commits:', cleanedCommits);
 
-        const ciCommits = cleanedCommits.match(/ci\([^)]+\):.*/gi)?.join('\n') || '';
-        const fixCommits = cleanedCommits.match(/fix\([^)]+\):.*/gi)?.join('\n') || '';
-        const docsCommits = cleanedCommits.match(/docs\([^)]+\):.*/gi)?.join('\n') || '';
-        const featCommits = cleanedCommits.match(/feat\([^)]+\):.*/gi)?.join('\n') || '';
-        const mergeCommits = cleanedCommits.match(/Merge pull request.*/gi)?.join('\n') || '';
-        const otherCommits = cleanedCommits
-          .split('\n')
-          .filter(
-            (commit) =>
-              !/ci\(|fix\(|docs\(|feat\(|Merge pull request/.test(commit),
-          )
-          .join('\n');
+          const ciCommits =
+            cleanedCommits.match(/ci\([^)]+\):.*/gi)?.join('\n') || '';
+          const fixCommits =
+            cleanedCommits.match(/fix\([^)]+\):.*/gi)?.join('\n') || '';
+          const docsCommits =
+            cleanedCommits.match(/docs\([^)]+\):.*/gi)?.join('\n') || '';
+          const featCommits =
+            cleanedCommits.match(/feat\([^)]+\):.*/gi)?.join('\n') || '';
+          const mergeCommits =
+            cleanedCommits.match(/Merge pull request.*/gi)?.join('\n') || '';
+          const otherCommits = cleanedCommits
+            .split('\n')
+            .filter(
+              (commit) =>
+                !/ci\(|fix\(|docs\(|feat\(|Merge pull request/.test(commit),
+            )
+            .join('\n');
 
-        let commitSummary = `## PR Report for ${branchToCompare} with categorized commits: <br> <br>`;
-        if (ciCommits) commitSummary += `### CI Changes: <br> ${ciCommits} <br> <br>`;
-        if (fixCommits) commitSummary += `### Fixes: <br> ${fixCommits} <br> <br>`;
-        if (docsCommits) commitSummary += `### Documentation: <br> ${docsCommits} <br> <br>`;
-        if (featCommits) commitSummary += `### Features: <br> ${featCommits} <br> <br>`;
-        if (mergeCommits) commitSummary += `### Merge Commits: <br> ${mergeCommits} <br> <br>`;
-        if (otherCommits) commitSummary += `### Other Commits: <br> ${otherCommits} <br> <br>`;
+          let commitSummary = `## PR Report for ${branchToCompare} with categorized commits: <br> <br>`;
+          if (ciCommits)
+            commitSummary += `### CI Changes: <br> ${ciCommits} <br> <br>`;
+          if (fixCommits)
+            commitSummary += `### Fixes: <br> ${fixCommits} <br> <br>`;
+          if (docsCommits)
+            commitSummary += `### Documentation: <br> ${docsCommits} <br> <br>`;
+          if (featCommits)
+            commitSummary += `### Features: <br> ${featCommits} <br> <br>`;
+          if (mergeCommits)
+            commitSummary += `### Merge Commits: <br> ${mergeCommits} <br> <br>`;
+          if (otherCommits)
+            commitSummary += `### Other Commits: <br> ${otherCommits} <br> <br>`;
 
-        resolve(commitSummary);
-      });
+          resolve(commitSummary);
+        },
+      );
     });
   });
 }
 
+export async function _$gha_fetchAndCleanCommits(
+  branchToCompare: string,
+): Promise<CleanedCommit> {
+  return new Promise((resolve, reject) => {
+    exec(`git fetch origin ${branchToCompare}`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error fetching branch ${branchToCompare}:`, error);
+        reject(error);
+        return;
+      }
 
+      exec(
+        `git log --oneline origin/${branchToCompare}..HEAD`,
+        (error, stdout, stderr) => {
+          if (error) {
+            console.error('Error logging commits:', error);
+            reject(error);
+            return;
+          }
+
+          const rawCommits = stdout.trim();
+          console.log('Raw commits (before cleaning):', rawCommits);
+
+          const cleanedCommits = rawCommits.replace(
+            /^[a-f0-9]{7} \([^)]*\) (.*)/gm,
+            '$1',
+          );
+
+          console.log('Cleaned commits:', cleanedCommits);
+
+          const ciCommits = cleanedCommits.match(/ci\([^)]+\):.*/gi) || [];
+          const fixCommits = cleanedCommits.match(/fix\([^)]+\):.*/gi) || [];
+          const docsCommits = cleanedCommits.match(/docs\([^)]+\):.*/gi) || [];
+          const featCommits = cleanedCommits.match(/feat\([^)]+\):.*/gi) || [];
+          const mergeCommits =
+            cleanedCommits.match(/Merge pull request.*/gi) || [];
+          const otherCommits = cleanedCommits
+            .split('\n')
+            .filter(
+              (commit) =>
+                !/ci\(|fix\(|docs\(|feat\(|Merge pull request/.test(commit),
+            );
+
+          const commitCategory: CommitCategory = {
+            ci: ciCommits,
+            fix: fixCommits,
+            docs: docsCommits,
+            feat: featCommits,
+            merge: mergeCommits,
+            other: otherCommits,
+          };
+
+          resolve({
+            branch: branchToCompare,
+            categorizedCommits: commitCategory,
+          });
+        },
+      );
+    });
+  });
+}
+
+//  Alpha Helper Function - Reference https://kbve.com/journal/09-15/#2024
+export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
+  const { branch, categorizedCommits } = cleanedCommit;
+  const { ci, fix, docs, feat, merge, other } = categorizedCommits;
+
+  const logo_markdown = `[![KBVE Logo](https://kbve.com/assets/img/letter_logo.png)](https://kbve.com)\
+  <br>`;
+  const line_break = `\
+  ---\
+  `;
+  const footer_markdown = `For more details, visit [the docs](https://kbve.com/welcome-to-docs/).\
+  ---\
+  `;
+
+  let commitSummary = `${logo_markdown}${line_break} \
+  ## PR Report for ${branch} with categorized commits:\
+  <br>\
+  ---\
+  `;
+
+  if (ci.length) {
+    commitSummary += `### CI Changes: <br> ${ci.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (fix.length) {
+    commitSummary += `### Fixes: \
+    <br>\
+    ${fix.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (docs.length) {
+    commitSummary += `### Documentation: \
+    <br>\
+    ${docs.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (feat.length) {
+    commitSummary += `### Features:\
+    <br>\
+    ${feat.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (merge.length) {
+    commitSummary += `### Merge Commits:\
+    <br>\
+    ${merge.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (other.length) {
+    commitSummary += `### Other Commits:\
+    <br>\
+    ${other.join(`<br>`)}\
+    <br>\
+    `;
+  }
+
+  commitSummary += footer_markdown;
+
+  return commitSummary;
+}
 
 export async function _$gha_processAndUpdatePR(
   branchToCompare: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   github: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context: any,
 ): Promise<void> {
   try {
-    const commitSummary = await _$gha_fetchAndCategorizeCommits(branchToCompare);
+    //const commitSummary = await _$gha_fetchAndCategorizeCommits(branchToCompare);
+    const cleanedCommit = await _$gha_fetchAndCleanCommits(branchToCompare);
+    const commitSummary = _$gha_formatCommits(cleanedCommit);
     await _$gha_updatePullRequestBody(github, context, commitSummary);
   } catch (error) {
     console.error('Error processing and updating PR:', error);
     throw error;
   }
 }
-
 
 //  [Github Docker Commands - https://kbve.com/journal/07-26/#2024]
 
@@ -456,10 +604,8 @@ export async function _$gha_runDockerContainer(
   port: number,
   name: string,
   image: string,
-  
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-
     let sanitizedPort, sanitizedName, sanitizedImage;
 
     try {
@@ -471,10 +617,8 @@ export async function _$gha_runDockerContainer(
       reject(error);
       return;
     }
-    
 
     const command = `docker run -d -p ${sanitizedPort}:${sanitizedPort} --name ${sanitizedName} ${sanitizedImage}`;
-
 
     exec(command, async (error, stdout, stderr) => {
       if (error) {
