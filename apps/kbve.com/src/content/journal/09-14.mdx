@@ -32,6 +32,9 @@ The function that we want to take a look at is the formating one, which can be e
 Added a `types.ts` for the devops library, which we will use to store all the different types that we might need in the future for the library.
 I should have done this earlier but I was not too sure how complex I wanted to make this library, but its going to build into something major, almost a pillar for the monorepo.
 A couple future concepts that I was thinking for the devops library would be to include some `IaaC` and even deeply integrate the `nx` eco-system, but these are still far into the future.
+Hmm, I am thinking of dropping the `_$gha_fetchAndCategorizeCommits` function and replacing it with two more functions, splitting the actual parsing and then another function for the formating.
+Currently the function does both and for test casing, it seems fine but we do need to make changes that would make sense.
+?
 
 **Kubernetes Client Node**
 
