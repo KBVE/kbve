@@ -510,29 +510,68 @@ export async function _$gha_fetchAndCleanCommits(
   });
 }
 
-
-//  Alpha Helper Function - Reference https://kbve.com/journal/09-15/#2024 
+//  Alpha Helper Function - Reference https://kbve.com/journal/09-15/#2024
 export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
   const { branch, categorizedCommits } = cleanedCommit;
   const { ci, fix, docs, feat, merge, other } = categorizedCommits;
 
-  let commitSummary = `## PR Report for ${branch} with categorized commits: <br> <br>`;
+  const logo_markdown = `[![KBVE Logo](https://kbve.com/assets/img/letter_logo.png)](https://kbve.com)\
+  <br>`;
+  const line_break = `\
+  ---\
+  `;
+  const footer_markdown = `For more details, visit [the docs](https://kbve.com/welcome-to-docs/).\
+  ---\
+  `;
 
-  if (ci.length)
-    commitSummary += `### CI Changes: <br> ${ci.join('<br>')} <br> <br>`;
-  if (fix.length)
-    commitSummary += `### Fixes: <br> ${fix.join('<br>')} <br> <br>`;
-  if (docs.length)
-    commitSummary += `### Documentation: <br> ${docs.join('<br>')} <br> <br>`;
-  if (feat.length)
-    commitSummary += `### Features: <br> ${feat.join('<br>')} <br> <br>`;
-  if (merge.length)
-    commitSummary += `### Merge Commits: <br> ${merge.join('<br>')} <br> <br>`;
-  if (other.length)
-    commitSummary += `### Other Commits: <br> ${other.join('<br>')} <br> <br>`;
+  let commitSummary = `${logo_markdown}${line_break} \
+  ## PR Report for ${branch} with categorized commits:\
+  <br>\
+  ---\
+  `;
 
-  commitSummary += `<img src="https://kbve.com/assets/img/letter_logo.png" alt="KBVE Logo Image"><br>`;
-  commitSummary += `For more details, visit [the docs](https://kbve.com/welcome-to-docs/).<br>`;
+  if (ci.length) {
+    commitSummary += `### CI Changes: <br> ${ci.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (fix.length) {
+    commitSummary += `### Fixes: \
+    <br>\
+    ${fix.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (docs.length) {
+    commitSummary += `### Documentation: \
+    <br>\
+    ${docs.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (feat.length) {
+    commitSummary += `### Features:\
+    <br>\
+    ${feat.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (merge.length) {
+    commitSummary += `### Merge Commits:\
+    <br>\
+    ${merge.join('<br>')}\
+    <br>\
+    `;
+  }
+  if (other.length) {
+    commitSummary += `### Other Commits:\
+    <br>\
+    ${other.join(`<br>`)}\
+    <br>\
+    `;
+  }
+
+  commitSummary += footer_markdown;
 
   return commitSummary;
 }

@@ -3,8 +3,8 @@ title: 'September: 15th'
 category: Daily
 date: 2024-09-15 12:00:00
 client: Self
-unsplash: 1655846993401-651b222c97e7
-img: https://images.unsplash.com/photo-1655846993401-651b222c97e7?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1706943384958-e42ad4ee2f73
+img: https://images.unsplash.com/photo-1706943384958-e42ad4ee2f73?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: September 15th. 
 tags:
   - daily
@@ -58,7 +58,16 @@ export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
 
 We will save this function the way it is for now and move it up.
 Extending it out and adding a couple helpful links, making it a bit cuter and things of that nature can be done later tonight.
+Maybe we can add some helper constants, like `logo_markdown` and `footer_markdown`, which should wrap around the formatted commit.
 
+```ts
+
+const logo_markdown = `[![KBVE Logo](https://kbve.com/assets/img/letter_logo.png)](https://kbve.com)<br>`;
+const footer_markdown = `For more details, visit [the docs](https://kbve.com/welcome-to-docs/).<br>`;
+
+```
+
+We can work with that for now!
 
 ## 2023
 - 3:30am - The n8n message was sent to me a bit early into my sleep but I was able to get a hand of it and read it through. I do need a better understanding of Agents and chains, however some of what I been reading and seeing has really gotten me a bit ahead of the curve, per say. I am able to understand a decent more than what I had even a week ago, there are a couple things that I want to test case out. Now I must sleep.
