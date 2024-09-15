@@ -1,5 +1,7 @@
 import { _title, sanitizePort, sanitizeContainerName, sanitizeContainerImage } from '../sanitization';
 import { exec } from 'child_process';
+import { CommitCategory, CleanedCommit } from '../../types';
+
 
 export interface GithubActionReferenceMap {
   keyword: string;
