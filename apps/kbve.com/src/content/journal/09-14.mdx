@@ -29,8 +29,16 @@ Anyhow after a couple matches, I will start fixing up `github.ts`.
 **Github.ts**
 
 The function that we want to take a look at is the formating one, which can be extended a bit!
+Added a `types.ts` for the devops library, which we will use to store all the different types that we might need in the future for the library.
+I should have done this earlier but I was not too sure how complex I wanted to make this library, but its going to build into something major, almost a pillar for the monorepo.
+A couple future concepts that I was thinking for the devops library would be to include some `IaaC` and even deeply integrate the `nx` eco-system, but these are still far into the future.
 
+**Kubernetes Client Node**
 
+The next library that we want to add into the devops package would be one that can help us work within our cluster.
+Thus it would make sense to start researching a bunch of different k8s api libraries and so far it seems that the `@kubernetes/client-node` fits the bill perfectly.
+After doing some more research, I am now looking at the pulumi library and looking into what it offers for us to extend out into.
+My goal was not to build an iaac from scratch but rather work around an exisiting one, then add a couple more new features.
 
 ## 2023
 - 6:45am - This might be the first time that Taco bell actually did not mess up my system! I think it might have to do with my increased intake in frozen veggies, a couple bags of peas, carrots and some other greens have been doing wonders. I feel great in the morning because of it.
