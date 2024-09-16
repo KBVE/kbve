@@ -498,6 +498,13 @@ export async function _$gha_fetchAndCleanCommits(
             feat: featCommits,
             merge: mergeCommits,
             other: otherCommits,
+            perf: [],
+            build: [],
+            refactor: [],
+            revert: [],
+            style: [],
+            test: [],
+            sync: []
           };
 
           resolve({
