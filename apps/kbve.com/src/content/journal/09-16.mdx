@@ -28,4 +28,24 @@ The question then becomes, how would we handle the traffic and demand, without h
 Hmm, maybe having a webRTC setup or a more complex seed and tree setup.
 
 `OvJhPP/h0zTOl4nj/S097EJw6nUcekALQTxhLYaVJaD87ruvITffXfsTdIMhK97J` 
-Yet the aes 
+
+**Ubuntu**
+
+There was an error in the rancher regarding the disk space, so we can go ahead and look into expanding that out!
+Furthermore, upon inspection, I did notice that we need to go through the ubuntu image and check for updates.
+I suppose this is where microOS and talos have their shine, the ability to no longer have to do any of this.
+
+```
+
+25 updates can be applied immediately.
+To see these additional updates run: apt list --upgradable
+System restart required
+
+```
+
+The issue we looking to resolve is the lack of space in the `master2` node but added another 18gb, moving it towards 50gb.
+Next, we will go through the vm backups, making sure that master2 is up to date with the backups and then removing the older backups.
+Okay the backup was good to go!
+Now we need to figure out why the image deleting fails.
+
+## 2023
