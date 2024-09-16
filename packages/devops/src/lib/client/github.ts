@@ -516,22 +516,28 @@ export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
   const { ci, fix, docs, feat, merge, other } = categorizedCommits;
 
   const logo_markdown = `[![KBVE Logo](https://kbve.com/assets/img/letter_logo.png)](https://kbve.com)\
-  <br>`;
-  const line_break = `\
+  <br>\
   ---\
+  <br>\
   `;
   const footer_markdown = `For more details, visit [the docs](https://kbve.com/welcome-to-docs/).\
+  <br>\
   ---\
+  <br>\
   `;
 
-  let commitSummary = `${logo_markdown}${line_break} \
+  let commitSummary = `${logo_markdown}\
+  <br>\
   ## PR Report for ${branch} with categorized commits:\
   <br>\
   ---\
+  <br>\
   `;
 
   if (ci.length) {
-    commitSummary += `### CI Changes: <br> ${ci.join('<br>')}\
+    commitSummary += `### CI Changes: \
+    <br>\
+    ${ci.join('<br>')}\
     <br>\
     `;
   }
