@@ -70,6 +70,11 @@ icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
 
 Granted we are doing all of this before we deploy and release the application onto the dockerhub, but this is a good way to practice the parallel ops, aka ParaOps.
 
+Next up, there should be a `.helmignore` that will make sure that some of the files are skipped when setting up the helm chart for this directory.
+I also moved the all the charts further into a subfolder, so they are now located here: `migrations/kube/charts/` and the first chart that we will be releasing is: `migrations/kube/charts/kilobase`.
+Added a quick readme and now I am going to start to upload each of the template pieces.
+
+<Adsense />
 
 ## 2023
 - 10:32am - Lunch with the family, I know it will make me feel old because I am watching all my younger niece and nephews grow up to almost become adults, which is wild to me.
