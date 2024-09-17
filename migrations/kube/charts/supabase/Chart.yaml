@@ -1,5 +1,5 @@
 apiVersion: v2
-name: kilobase
+name: supabase
 description: The open source stack built ontop of Supabase, based upon Supabase-Community
 type: application
 version: 0.0.1
