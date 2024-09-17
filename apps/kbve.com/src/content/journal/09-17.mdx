@@ -30,7 +30,18 @@ Furthermore, we had to update the artifact github actions from version 2 to vers
 This means that we have not worked officially on the open source version of saber in a while, but that is because we had a ton of backlog to shift through and fix up.
 With the recent release of the unity6 circle ci action, we can get back to making sure that the unity part of this monorepo is functional for that version, dropping the older versions of unity.
 Since the public source of saber is already outdated, I believe there should a decent amount of the files that can be deleted or replaced, hmm.
+
 My idea now might be to just delete a large portion of the folder, then create a new unity6 build from scratch and then reimport all the files and code that would be required.
+
+Side note: if you have a version of dotnet7 and need to upgrade it to dotnet8 on WSL, I had to run this
+
+```shell
+
+sudo apt remove 'dotnet*'
+sudo apt install dotnet-sdk-8.0
+
+```
+
 
 **Longhorn**
 
