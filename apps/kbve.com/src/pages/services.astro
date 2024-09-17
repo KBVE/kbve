@@ -1,159 +1,78 @@
 ---
 // Import necessary components
 import MainLayout from '../layouts/MainLayout.astro';
-import MainSection from '../components/ui/blocks/MainSection.astro';
-import LeftSection from '../components/ui/blocks/LeftSection.astro';
-import RightSection from '../components/ui/blocks/RightSection.astro';
-import FeaturesStats from '../components/sections/features/FeaturesStats.astro';
 
 // Import necessary images
-import blueprints from '../images/blueprints-image.avif';
-import personWorking from '../images/person-working.avif';
-import beforeAfter from '../images/before-after.avif';
-import constructionWorkers from '../images/construction-workers.avif';
-import aerialView from '../images/aerial-view.avif';
-import usingTools from '../images/using-tools.avif';
-import progressBuilding from '../images/progress-building.avif';
-import underConstruction from '../images/under-construction.avif';
 import { SITE } from '../data_files/constants';
 
 import { ServiceBenefitBlock, BentoGridService } from '@kbve/astropad';
 
-interface Article {
-  isRightSection: boolean;
-  title: string;
-  subTitle: string;
-  btnExists?: boolean;
-  btnTitle?: string;
-  btnURL?: string;
-  single?: boolean;
-  img?: any;
-  imgAlt?: string;
-  imgOne?: any;
-  imgOneAlt?: string;
-  imgTwo?: any;
-  imgTwoAlt?: string;
-}
-
-const articles: Article[] = [
-  {
-    isRightSection: true,
-    title: 'Delivering Expert Guidance',
-    subTitle:
-      'Embarking on a construction project can be overwhelming. With our professional consultation services, we guide you through every stage, ensuring you make informed decisions. Whether you are a DIY enthusiast or a skilled contractor, our experts are on hand to offer tailored advice on product selection, project scope, and compliance with local regulations.',
-    single: false,
-    imgOne: blueprints,
-    imgOneAlt: 'Blueprints and digital tablet with construction plans.',
-    imgTwo: personWorking,
-    imgTwoAlt: 'Person working in the office',
-  },
-  {
-    isRightSection: false,
-    title: 'Transforming Designs into Reality',
-    subTitle:
-      'Our skilled craftsmen bring precision and excellence to every construction project. From minor installations to substantial structural work, ScrewFast offers reliable construction services to turn your plans into tangible outcomes. We ensure the highest standards of safety and workmanship, utilizing top-quality tools and materials from our extensive inventory.',
-    img: beforeAfter,
-    imgAlt: 'Construction site before and after',
-    btnExists: true,
-    btnTitle: 'Learn More',
-    btnURL: '#',
-  },
-  {
-    isRightSection: true,
-    title: 'Navigating Projects with Professional Oversight',
-    subTitle:
-      'Effective project management is at the heart of any successful build. ScrewFast provides thorough planning and robust management services that keep your project on time and within budget. Let us handle the complexities of workflow coordination, resource allocation, and stakeholder communication while you focus on your vision.',
-    single: false,
-    imgOne: constructionWorkers,
-    imgOneAlt: 'Construction workers orchestrating a project',
-    imgTwo: aerialView,
-    imgTwoAlt: 'Aerial view of managed construction',
-  },
-  {
-    isRightSection: false,
-    title: 'Ensuring Long-lasting Performance',
-    subTitle:
-      "Our commitment to your project doesn't end at completion. ScrewFast offers ongoing maintenance and support services to ensure your construction's longevity and performance. From regular check-ups to emergency assistance, our responsive team is there to provide seamless support.",
-    img: usingTools,
-    imgAlt:
-      'Man in orange and black vest wearing white helmet holding yellow and black power tool',
-  },
-  {
-    isRightSection: true,
-    title: 'Crafting Bespoke Strategies for Unique Challenges',
-    subTitle:
-      'For our larger enterprise clients, ScrewFast offers custom solutions designed to meet specific industry challenges. By understanding your unique needs, we engineer tailored strategies aimed at optimizing your operations, enhancing efficiency, and driving your business forward.',
-    single: false,
-    imgOne: progressBuilding,
-    imgOneAlt: 'In progress building structure',
-    imgTwo: underConstruction,
-    imgTwoAlt: 'Brown and gray building under construction',
-    btnExists: true,
-    btnTitle: 'Read more',
-    btnURL: '#',
-  },
-];
 const pageURL: string = 'https://kbve.com/services/';
 const pageTitle: string = `Services | ${SITE.title}`;
 const pageDescription: string =
-  'Combining expert knowledge with your vision, KBVE offers exceptional service and comprehensive solutions in software and application development, from initial consultation to project completion.';
+	'Combining expert knowledge with your vision, KBVE offers exceptional service and comprehensive solutions in software and application development, from initial consultation to project completion.';
 ---
 
 <MainLayout
-  title={pageTitle}
-  structuredData={{
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    '@id': `${pageURL}`,
-    url: `${pageURL}`,
-    name: `${pageTitle}`,
-    description: `${pageDescription}`,
-    isPartOf: {
-      '@type': 'WebSite',
-      url: 'https://kbve.com',
-      name: `${SITE.title}`,
-      description: `${SITE.description}`,
-    },
-    inLanguage: 'en-US',
-  }}
->
-  <h1 class="page-title">Solutions For Every Business</h1>
-  <p class="page-subtitle">
-    Unbeatable services in every corner of the market. Way ahead of our
-    competitors in pricing and quality
-  </p>
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': `${pageURL}`,
+		url: `${pageURL}`,
+		name: `${pageTitle}`,
+		description: `${pageDescription}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: `${SITE.title}`,
+			description: `${SITE.description}`,
+		},
+		inLanguage: 'en-US',
+	}}>
+	<div class="m-6 bg-cyan-100/[.25] p-2 rounded-lg">
+		<h1
+			class="p-1 mx-auto text-center font-bold md:text-4xl text-5xl font-extrabold bg-gradient-to-r from-cyan-700 via-indigo-500 to-yellow-300 dark:from-cyan-200 dark:via-indigo-200 dark:to-yellow-50 bg-clip-text text-transparent mb-2">
+			Solutions For Every Business
+		</h1>
 
-  <ServiceBenefitBlock collectionID="docs" collectionTag="services" />
+		<p class="page-subtitle">
+			Unbeatable services in every corner of the market. Way ahead of our
+			competitors in pricing and quality
+		</p>
+	</div>
 
-  <h1 class="page-title-more">More Services</h1>
-  <BentoGridService />
+	<ServiceBenefitBlock collectionID="docs" collectionTag="services" />
+
+	<h1 class="page-title-more">More Services</h1>
+	<BentoGridService />
 </MainLayout>
 
 <style>
-  .page-title {
-    margin: 6rem auto 0;
+	.page-title {
+		margin: 6rem auto 0;
 
-    font-size: 4rem;
-    font-weight: 700;
-    text-align: center;
-    color: white;
-  }
+		font-size: 4rem;
+		font-weight: 700;
+		text-align: center;
+		color: white;
+	}
 
-  .page-subtitle {
-    margin: 0 auto 5rem;
+	.page-subtitle {
+		margin: 0 auto 5rem;
 
-    font-size: 1.25rem;
-    font-weight: 400;
-    text-align: center;
-    color: white;
-  }
+		font-size: 1.25rem;
+		font-weight: 400;
+		text-align: center;
+		color: white;
+	}
 
-  .page-title-more {
-    margin: 6rem auto 3rem;
+	.page-title-more {
+		margin: 6rem auto 3rem;
 
-    font-size: 3rem;
-    font-weight: 700;
-    text-align: center;
-    color: white;
-  }
+		font-size: 3rem;
+		font-weight: 700;
+		text-align: center;
+		color: white;
+	}
 </style>
