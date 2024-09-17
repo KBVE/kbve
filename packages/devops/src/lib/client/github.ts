@@ -476,29 +476,41 @@ export async function _$gha_fetchAndCleanCommits(
             '$1',
           );
 
-          console.log('Cleaned commits:', cleanedCommits);
+          const commitPatterns: {
+            [key in keyof Omit<CommitCategory, 'other'>]: RegExp;
+          } = {
+            ci: /ci\([^)]+\):.*/gi,
+            fix: /fix\([^)]+\):.*/gi,
+            docs: /docs\([^)]+\):.*/gi,
+            feat: /feat\([^)]+\):.*/gi,
+            perf: /perf\([^)]+\):.*/gi,
+            build: /build\([^)]+\):.*/gi,
+            refactor: /refactor\([^)]+\):.*/gi,
+            revert: /revert\([^)]+\):.*/gi,
+            style: /style\([^)]+\):.*/gi,
+            test: /test\([^)]+\):.*/gi,
+            sync: /sync\([^)]+\):.*/gi,
+            merge: /Merge pull request.*/gi,
+          };
 
-          const ciCommits = cleanedCommits.match(/ci\([^)]+\):.*/gi) || [];
-          const fixCommits = cleanedCommits.match(/fix\([^)]+\):.*/gi) || [];
-          const docsCommits = cleanedCommits.match(/docs\([^)]+\):.*/gi) || [];
-          const featCommits = cleanedCommits.match(/feat\([^)]+\):.*/gi) || [];
-          const mergeCommits =
-            cleanedCommits.match(/Merge pull request.*/gi) || [];
-          const otherCommits = cleanedCommits
+          const commitCategory: CommitCategory = Object.keys(
+            commitPatterns,
+          ).reduce((acc, key) => {
+            acc[key as keyof CommitCategory] =
+              cleanedCommits.match(
+                commitPatterns[key as keyof Omit<CommitCategory, 'other'>],
+              ) || [];
+            return acc;
+          }, {} as CommitCategory);
+
+          commitCategory.other = cleanedCommits
             .split('\n')
             .filter(
               (commit) =>
-                !/ci\(|fix\(|docs\(|feat\(|Merge pull request/.test(commit),
+                !Object.values(commitPatterns).some((pattern) =>
+                  pattern.test(commit),
+                ),
             );
-
-          const commitCategory: CommitCategory = {
-            ci: ciCommits,
-            fix: fixCommits,
-            docs: docsCommits,
-            feat: featCommits,
-            merge: mergeCommits,
-            other: otherCommits,
-          };
 
           resolve({
             branch: branchToCompare,
@@ -513,63 +525,49 @@ export async function _$gha_fetchAndCleanCommits(
 //  Alpha Helper Function - Reference https://kbve.com/journal/09-15/#2024
 export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
   const { branch, categorizedCommits } = cleanedCommit;
-  const { ci, fix, docs, feat, merge, other } = categorizedCommits;
 
   const logo_markdown = `[![KBVE Logo](https://kbve.com/assets/img/letter_logo.png)](https://kbve.com)\
-  <br>`;
-  const line_break = `\
+  <br>\
   ---\
+  <br>\
   `;
   const footer_markdown = `For more details, visit [the docs](https://kbve.com/welcome-to-docs/).\
+  <br>\
   ---\
+  <br>\
   `;
 
-  let commitSummary = `${logo_markdown}${line_break} \
+  let commitSummary = `${logo_markdown}\
+  <br>\
   ## PR Report for ${branch} with categorized commits:\
   <br>\
   ---\
+  <br>\
   `;
 
-  if (ci.length) {
-    commitSummary += `### CI Changes: <br> ${ci.join('<br>')}\
-    <br>\
-    `;
-  }
-  if (fix.length) {
-    commitSummary += `### Fixes: \
-    <br>\
-    ${fix.join('<br>')}\
-    <br>\
-    `;
-  }
-  if (docs.length) {
-    commitSummary += `### Documentation: \
-    <br>\
-    ${docs.join('<br>')}\
-    <br>\
-    `;
-  }
-  if (feat.length) {
-    commitSummary += `### Features:\
-    <br>\
-    ${feat.join('<br>')}\
-    <br>\
-    `;
-  }
-  if (merge.length) {
-    commitSummary += `### Merge Commits:\
-    <br>\
-    ${merge.join('<br>')}\
-    <br>\
-    `;
-  }
-  if (other.length) {
-    commitSummary += `### Other Commits:\
-    <br>\
-    ${other.join(`<br>`)}\
-    <br>\
-    `;
-  }
+  const commitTitles: { [key in keyof CommitCategory]: string } = {
+    ci: 'CI Changes',
+    fix: 'Fixes',
+    docs: 'Documentation',
+    feat: 'Features',
+    perf: 'Performance',
+    build: 'Build',
+    refactor: 'Refactor',
+    revert: 'Reverts',
+    style: 'Style Changes',
+    test: 'Tests',
+    sync: 'Syncs',
+    merge: 'Merge Commits',
+    other: 'Other Commits',
+  };
+
+  Object.keys(categorizedCommits).forEach((key) => {
+    const commitType = key as keyof CommitCategory;
+    const commits = categorizedCommits[commitType];
+    if (commits.length) {
+      commitSummary += `### ${commitTitles[commitType]}:<br>${commits.join('<br>')}<br>`;
+    }
+  });
 
   commitSummary += footer_markdown;
 
