@@ -30,17 +30,50 @@ const pageDescription: string =
 		},
 		inLanguage: 'en-US',
 	}}>
-	<div class="m-6 bg-cyan-100/[.25] p-2 rounded-lg">
+  
+	<div
+		class="m-6 p-6 rounded-lg bg-gradient-to-b from-cyan-50 to-cyan-200 dark:from-cyan-900 dark:to-cyan-700 shadow-xl hover:shadow-2xl transition-shadow duration-500">
 		<h1
-			class="p-1 mx-auto text-center font-bold md:text-4xl text-5xl font-extrabold bg-gradient-to-r from-cyan-700 via-indigo-500 to-yellow-300 dark:from-cyan-200 dark:via-indigo-200 dark:to-yellow-50 bg-clip-text text-transparent mb-2">
-			Solutions For Every Business
+			class="p-2 mx-auto text-center font-extrabold md:text-4xl text-5xl bg-gradient-to-r from-cyan-600 via-indigo-500 to-yellow-300 dark:from-cyan-200 dark:via-indigo-200 dark:to-yellow-50 bg-clip-text text-transparent animate-fadeIn mb-4">
+			Transform Your Business with Unmatched Solutions
 		</h1>
 
-		<p class="page-subtitle">
-			Unbeatable services in every corner of the market. Way ahead of our
-			competitors in pricing and quality
+		<p
+			class="text-center text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 animate-slideIn">
+			Discover top-tier services that surpass the competition in both
+			quality and pricing, delivering exceptional value across industries.
 		</p>
 	</div>
+
+	<style>
+		@keyframes fadeIn {
+			0% {
+				opacity: 0;
+			}
+			100% {
+				opacity: 1;
+			}
+		}
+
+		@keyframes slideIn {
+			0% {
+				transform: translateY(20px);
+				opacity: 0;
+			}
+			100% {
+				transform: translateY(0);
+				opacity: 1;
+			}
+		}
+
+		.animate-fadeIn {
+			animation: fadeIn 1s ease-in-out forwards;
+		}
+
+		.animate-slideIn {
+			animation: slideIn 0.8s ease-in-out forwards;
+		}
+	</style>
 
 	<ServiceBenefitBlock collectionID="docs" collectionTag="services" />
 
@@ -49,23 +82,6 @@ const pageDescription: string =
 </MainLayout>
 
 <style>
-	.page-title {
-		margin: 6rem auto 0;
-
-		font-size: 4rem;
-		font-weight: 700;
-		text-align: center;
-		color: white;
-	}
-
-	.page-subtitle {
-		margin: 0 auto 5rem;
-
-		font-size: 1.25rem;
-		font-weight: 400;
-		text-align: center;
-		color: white;
-	}
 
 	.page-title-more {
 		margin: 6rem auto 3rem;
