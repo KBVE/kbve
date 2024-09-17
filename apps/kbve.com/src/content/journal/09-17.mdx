@@ -43,6 +43,21 @@ In the future, we should look into the Element setup for the k3s, I been hearing
 
 Okay, now the next plan for the kube deployment would be to configure the gitops and making sure that they run without any issues.
 The location for the deployments should be under `migration/kube/`, let me add a quick gitkeep to make sure the folder stays in sync.
+In this situation, the plan will be to create the `Chart.yaml` inside of the `migration/kube/kilobase` and start with the base information for the kubernetes deployment.
+This is the example `Chart.yaml` that we will be using:
+
+```yaml
+
+apiVersion: v2
+name: kilobase
+description: The open source stack built ontop of Supabase.
+type: application
+version: 0.0.1
+icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
+
+```
+
+Granted we are doing all of this before we deploy and release the application onto the dockerhub, but this is a good way to practice the parallel ops, aka ParaOps.
 
 
 ## 2023
