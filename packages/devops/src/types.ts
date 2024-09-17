@@ -4,6 +4,13 @@ export interface CommitCategory {
   docs: string[];
   feat: string[];
   merge: string[];
+  perf: string[];
+  build: string[];
+  refactor: string[];
+  revert: string[];
+  style: string[];
+  test: string[];
+  sync: string[];
   other: string[];
 }
 
