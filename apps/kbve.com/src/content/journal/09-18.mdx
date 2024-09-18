@@ -77,6 +77,14 @@ I wonder how this would work for them, considering there are a decent amount of 
 
 The storage charts are next, once more these are something that we look at again post dev cycle because it will require another operator to handle the storage for them.
 For now we will keep the community base template, similar to the other situations that we were in earlier.
+The concept is similar to the s3 and have custom buckets that we can work with, hmm, this will definitely be post-post production.
+
+**Studio**
+
+The last three charts that we will be adding are for the studio, test and vector.
+These will also have their own issues and I believe we will have to layer something ontop of them to protect the routes, hmm.
+We could just make it so that the studio is only accessible via the rancher ingress and prevent it from being routed directly by the kong configuration?
+Since the studio can operate without having the direct reference, but in the swarm deployment, we placed a traefik layer ontop of the route and protected it with a custom environmental username and password.
 
 **Worker4**
 
