@@ -80,6 +80,10 @@ This would resolve some of the issues that I might face down the line with updat
 Each subfolder within the templates would represent a different service for the full stack!
 The first one is the analytics, which should be easy for this type of situation.
 
+Next is the big one, its the `deployment.yaml` for the db aka database, in this situation we will have to come back around and adjust it so that it uses the cnpg operator directly for the deployment.
+The other option would be to just to set it to be an external database and then have it connect to that but I believe in our first instance, we want to atleast make sure all the other services can run without any major issues.
+
+
 <Adsense />
 
 ## 2023
