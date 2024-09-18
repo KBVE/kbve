@@ -73,6 +73,11 @@ Other than that, we should be fine with the settings that are in-place right now
 The sodium secrets are also included in the docker swarm stack but I believe supabase is planning to replace them on a later date?
 I wonder how this would work for them, considering there are a decent amount of moving parts that revolve around it.
 
+**Storage**
+
+The storage charts are next, once more these are something that we look at again post dev cycle because it will require another operator to handle the storage for them.
+For now we will keep the community base template, similar to the other situations that we were in earlier.
+
 **Worker4**
 
 The worker4 will go through a maintenance window and during that peroid we can test case some of the automated upgrades.
