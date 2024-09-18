@@ -31,6 +31,7 @@ Afterwards, I removed two colyseus packages from the earlier install of it, maki
 The functions deployment will be in two stages, first we will launch the initial supabase edge function docker image but then during the second stage, we will replace it.
 I believe the new function image will be `kilofunk` but that is still a bit out there because there are a couple changes we need to do and have to get through the inital deployment.
 Thus for stage one, we will go ahead and upload the helm charts from the community for the functions.
+Wrapping back around to the functions, I will create another topic for the kilofunk concept and see if we can work around that.
 
 **IMGProxy**
 
@@ -42,6 +43,7 @@ This would be something that we can look through post-dev cycle and probably aft
 The kong that supabase operates with is an older instance, I believe a v2.8.x and it should be replaced with a v3.
 However this should be done during the performance stage and for now it might not be worth spending too much time looking through it all.
 There was some test casing we did during the swarm and the kong held up fairly well.
+This will be another topic, we might call this the kilokong and build a layer ontop of the kong v3 that will help integrate some of the changes for the supabase.
 
 **Meta**
 
@@ -55,7 +57,10 @@ For the local s3 storage, the community charts provide an instance of minio, and
 This will be something we determine during the deployment, I believe we will have to disable this.
 If we were going to enable it, I would have to switch back around and make sure that it will use the longhorn storage.
 
+**Realtime**
 
+In addition to the post-production tables that need to be added, which is on our todo list, the realtime part of this cluster looks a bit rough around the edges.
+For this smaller commit, we will start with the base realtime charts and then wrap back around to turn the carbon into a diamond.
 
 **Worker4**
 
