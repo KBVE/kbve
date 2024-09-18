@@ -85,11 +85,47 @@ The last three charts that we will be adding are for the studio, test and vector
 These will also have their own issues and I believe we will have to layer something ontop of them to protect the routes, hmm.
 We could just make it so that the studio is only accessible via the rancher ingress and prevent it from being routed directly by the kong configuration?
 Since the studio can operate without having the direct reference, but in the swarm deployment, we placed a traefik layer ontop of the route and protected it with a custom environmental username and password.
+Some of these changes remind me of the planck's principle, but hey its just part of the adventure.
 
 **Worker4**
 
 The worker4 will go through a maintenance window and during that peroid we can test case some of the automated upgrades.
 I am still on the fence on how I would like this to be done, there were a couple suggestions made but this will be in the air for exactly which route we want to take.
+The worker4 storage will be bumped up, so we are increasing the size of the scsi0 by 18GB, going to a total of 50GB.
+The configurations look like this: `rpool-vmdata-vm-234-disk-0,iothread=1,size=50GB` and now we will have to go into the container and bump up the size.
+Okay the resize was fine and we noticed the metrics jump to adjust for the new size, but there will be some other issues that need to be resolved!
+I wonder if I can just take the worker offline and do the changes without it breaking the stack, hmm, I believe the raft will help resolve that issue, thus making it easier for us to take it offline for the window.
+
+After trip to the cafe, we will take the worker4 offline and do the updates.
+Okay after applying the `apt-get update`, it seems we had to update the kernel.
+It was operating under `6.8.0.41` and now with this update, it should be `6.8.0.44`.
+After running the `sudo reboot`, we got the taints: `node.kubernetes.io/unreachable=:NoSchedule` and `node.kubernetes.io/unreachable=:NoExecute`
+We can see the update live via the rancher, which does help when doing paraops, looks like the worker4 is operational again now.
+Okay now we are going to get the next kernel update with another dist-upgrade, hopefully getting us to 6.8.0.45, but now we will have to reboot and knock the worker4 offline again.
+I can see why some consider moving to an immutable operating system in some of these cases, as it can be a bit of a pain to handle.
+
+**Cafe**
+
+Some of the converting of the swarm to helm will require a decent amount of caffeine!
+Okay before I perform the restart for the worker4, I will go ahead and grab some cafe and stock up on the bulls, then when I come back around, we can see how the upgrades will affect the cluster.
+
+**Vault**
+
+The issue with the vault is that it is not HA, which means that we need to reconfigure the deployment of the vault, ensuring that the HA is setup with an internal raft system.
+We could use consul to help us with that but that might be too much overhead for just this, having an internal raft would make more sense.
+
+**Longhorn**
+
+It looks like there is a version mismatch with the longhorn, so we will have to fix that as well.
+I am thinking we remove the vault and then go back around and remove the longhorn setup.
+Afterwards, we could tgry and build the longhorn setup from scratch again but with the version of 1.6.x, instead of the 1.7.x.
+Hmm, however we do want the 1.7.x, so maybe this is just part of the upstream and we need to wait for it to stablize.
+
+**GitOps**
+
+Now that we got the base templates installed, we can go ahead and begin the first failed deployment.
+The goal of the first deployment is to make sure it fails at setting up the cluster from the branch, the sole objective is to see if it can pull the charts that we added.
+After we can confirm the charts are loaded, we can go back and begin updating the charts.
 
 <Adsense />
 
