@@ -68,6 +68,11 @@ The rest api will be another community helm chart that we can add next.
 The postgrest/postgrest version on this community is tagged v12.0.1, but our swarm stack is using v12.2.0, thus I will have to look through that again.
 Other than that, we should be fine with the settings that are in-place right now.
 
+**Secrets**
+
+The sodium secrets are also included in the docker swarm stack but I believe supabase is planning to replace them on a later date?
+I wonder how this would work for them, considering there are a decent amount of moving parts that revolve around it.
+
 **Worker4**
 
 The worker4 will go through a maintenance window and during that peroid we can test case some of the automated upgrades.
