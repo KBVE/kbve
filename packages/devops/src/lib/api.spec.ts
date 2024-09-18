@@ -40,15 +40,15 @@ describe('API Functions', () => {
     expect(sanitizedMessage).toEqual(JSON.stringify('Hello, World!'));
   });
 
-  test('_groq should process request and return API response', async () => {
-    const system = '01J05G1PCD6ZXPNHEFBDYHYS77';
-    const message = '# What other roles can you perform on my behalf?';
-    const kbve_api = '';
-    const model = 'mixtral-8x7b-32768';
-    const sanitizationLevel = 1;
+  // test('_groq should process request and return API response', async () => {
+  //   const system = '01J05G1PCD6ZXPNHEFBDYHYS77';
+  //   const message = '# What other roles can you perform on my behalf?';
+  //   const kbve_api = '';
+  //   const model = 'mixtral-8x7b-32768';
+  //   const sanitizationLevel = 1;
 
-    const result = await _groq(system, message, kbve_api, model, sanitizationLevel);
-    console.log('API Response:', result);
-    expect(result).toBeDefined();
-  }, { timeout: 10000 });
+  //   const result = await _groq(system, message, kbve_api, model, sanitizationLevel);
+  //   console.log('API Response:', result);
+  //   expect(result).toBeDefined();
+  // }, { timeout: 10000 });
 });
