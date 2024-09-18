@@ -26,6 +26,11 @@ Took a look at some of the dependencies and decided to do some quick cleaning.
 Without trying to break the whole monorepo, I updated the `vitest`, `tailwindcss` and `vue` with their minor updates and patches.
 Afterwards, I removed two colyseus packages from the earlier install of it, making sure we are good to go without it anymore.
 
+**Functions**
+
+The functions deployment will be in two stages, first we will launch the initial supabase edge function docker image but then during the second stage, we will replace it.
+I believe the new function image will be `kilofunk` but that is still a bit out there because there are a couple changes we need to do and have to get through the inital deployment.
+Thus for stage one, we will go ahead and upload the helm charts from the community for the functions.
 
 <Adsense />
 
