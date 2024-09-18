@@ -47,7 +47,20 @@ There was some test casing we did during the swarm and the kong held up fairly w
 
 The next set of charts are for the meta, aka postgres-meta.
 This is another one of those situations where we can look at it post-production and we just let it be during our swarm deployment.
+I believe the latest version is v0.84.0 but that might not be worth updating given that we will be deploying an older instance of the community postgres.
 
+**Minio**
+
+For the local s3 storage, the community charts provide an instance of minio, and we did not deploy this in our docker swarm stack but for now we might just skip it for this cluster deployment.
+This will be something we determine during the deployment, I believe we will have to disable this.
+If we were going to enable it, I would have to switch back around and make sure that it will use the longhorn storage.
+
+
+
+**Worker4**
+
+The worker4 will go through a maintenance window and during that peroid we can test case some of the automated upgrades.
+I am still on the fence on how I would like this to be done, there were a couple suggestions made but this will be in the air for exactly which route we want to take.
 
 <Adsense />
 
