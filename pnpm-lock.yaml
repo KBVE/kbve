@@ -309,9 +309,6 @@ importers:
       '@babel/runtime':
         specifier: 7.22.6
         version: 7.22.6
-      '@colyseus/playground':
-        specifier: ^0.15.12
-        version: 0.15.12(express@4.19.2)
       '@colyseus/tools':
         specifier: ^0.15.36
         version: 0.15.36(@colyseus/schema@2.0.30)
@@ -1884,11 +1881,6 @@ packages:
 
   '@colyseus/monitor@0.15.6':
     resolution: {integrity: sha512-+noCGTChr5spO9a3Nt/BPBDV8yly4FUgqkTDyMTAKB3SPWc7WWoi/nf3MlAXE8eKqVsCvbp8iYbdkmU2IrmiuA==}
-
-  '@colyseus/playground@0.15.12':
-    resolution: {integrity: sha512-SBFpwFr4HjkAqwwGRuEUGJzBBrbi3w3v7olZ/BtYFzRHHo/lW0uN7Z28Z/3DfAJDroKwGBZc85Ugeq2Q5oOwSg==}
-    peerDependencies:
-      express: '>=4.16.0'
 
   '@colyseus/redis-driver@0.15.5':
     resolution: {integrity: sha512-OwRMP+JXOlaAetBcdP1LN77Sa0aLyeYtAP1MPTwuJOIjtBA9E8j8xd+mn71lC5pX15RbECmoHU/sekl1/G5yNw==}
@@ -17941,16 +17933,6 @@ snapshots:
       superagent: 3.8.3
     transitivePeerDependencies:
       - supports-color
-
-  '@colyseus/playground@0.15.12(express@4.19.2)':
-    dependencies:
-      '@colyseus/auth': 0.15.10(@colyseus/core@0.15.30)(express@4.19.2)
-      '@colyseus/core': 0.15.30
-      express: 4.19.2
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
 
   '@colyseus/redis-driver@0.15.5':
     dependencies:
