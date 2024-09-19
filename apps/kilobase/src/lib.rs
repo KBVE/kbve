@@ -1,6 +1,8 @@
 //  [IMPORTS]
 use pgrx::bgworkers::*;
 use pgrx::prelude::*;
+use pgrx::spi::SpiResult;
+use pgrx::spi::SpiTupleTable;
 use reqwest::blocking::Client;
 use std::time::Duration;
 use jedi::lazyregex::{
@@ -93,7 +95,8 @@ fn pgrx_extract_github_username(url: &str) -> &str {
 
 fn generate_base62_ulid() -> String {
   let ulid = Ulid::new();
-  let ulid_u128 = ulid.as_u128();
+  let ulid_bytes = ulid.to_bytes();
+  let ulid_u128 = u128::from_be_bytes(ulid_bytes);
   base62::encode(ulid_u128)
 }
 
@@ -104,14 +107,19 @@ fn run_background_worker() {
   log!("KiloBase BG Worker initialized");
 
   // Start listening for new URL notifications
-  let listen_sql = "LISTEN url_queue_notification;";
   Spi::connect(|client| {
-    client.execute(listen_sql, None, None).expect("Failed to execute LISTEN");
+    let query = "LISTEN url_queue_notification;";
+    client.select(query, None, None).expect("Failed to execute LISTEN");
     Ok::<(), spi::Error>(())
   }).unwrap();
 
   loop {
-    BackgroundWorker::wait_for_signal(); // Wait for a notification
+    // Wait for any signal with a latch timeout of None (blocking indefinitely until a signal is received)
+    if !BackgroundWorker::wait_latch(None) {
+      // SIGTERM was received, we should exit
+      break;
+    }
+
     if BackgroundWorker::sighup_received() {
       log!("SIGHUP received");
       // Handle configuration reload if needed
@@ -125,46 +133,45 @@ fn run_background_worker() {
 
   log!("Exiting KiloBase BG Worker");
 }
-
 fn process_queue() -> Result<(), String> {
   Spi::connect(|client| {
-    let result = client.select(
-      "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1",
-      None,
-      None
-    )?;
-
-    if let Some(row) = result.get(0) {
-      let id = row.get_datum_by_ordinal(1)?.value::<i32>()?;
-      let url = row.get_datum_by_ordinal(2)?.value::<String>()?;
-
-      log!("Processing URL: {}", url);
-
-      client.update(
-        "UPDATE url_queue SET status = 'processing' WHERE id = $1",
-        Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
+      let result: SpiResult<SpiTupleTable> = client.select(
+          "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1",
+          None,
+          None,
       )?;
 
-      match process_url(&url) {
-        Ok(data) => {
-          archive_processed_url(&url, &data)?;
-          client.update(
-            "UPDATE url_queue SET status = 'completed', processed_at = NOW() WHERE id = $1",
-            Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
-          )?;
-          log!("Successfully processed and archived URL: {}", url);
-        }
-        Err(err) => {
-          client.update(
-            "UPDATE url_queue SET status = 'error' WHERE id = $1",
-            Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
-          )?;
-          log!("Failed to process URL: {} with error: {}", url, err);
-        }
-      }
-    }
+      if let Ok(Some(row)) = result.get(0) {
+          let id = row.get_datum_by_ordinal(1)?.value::<i32>()?;
+          let url = row.get_datum_by_ordinal(2)?.value::<String>()?;
 
-    Ok(())
+          log!("Processing URL: {}", url);
+
+          client.update(
+              "UPDATE url_queue SET status = 'processing' WHERE id = $1",
+              Some((PgOid::from(pg_sys::INT4OID), id.into_datum())),
+          )?;
+
+          match process_url(&url) {
+              Ok(data) => {
+                  archive_processed_url(&url, &data)?;
+                  client.update(
+                      "UPDATE url_queue SET status = 'completed', processed_at = NOW() WHERE id = $1",
+                      Some((PgOid::from(pg_sys::INT4OID), id.into_datum())),
+                  )?;
+                  log!("Successfully processed and archived URL: {}", url);
+              }
+              Err(err) => {
+                  client.update(
+                      "UPDATE url_queue SET status = 'error' WHERE id = $1",
+                      Some((PgOid::from(pg_sys::INT4OID), id.into_datum())),
+                  )?;
+                  log!("Failed to process URL: {} with error: {}", url, err);
+              }
+          }
+      }
+
+      Ok(())
   }).map_err(|e| format!("SPI error: {}", e))
 }
 
