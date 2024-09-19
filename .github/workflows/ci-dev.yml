@@ -255,6 +255,11 @@ jobs:
                   version: 9
                   run_install: false
 
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
