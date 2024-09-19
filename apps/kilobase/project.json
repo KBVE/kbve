@@ -79,11 +79,11 @@
         },
         "configurations": {
           "local": {
-            "tags": ["kilobase:latest"],
+            "tags": ["kilobase:15.1"],
             "push": false
           },
           "production": {
-            "tags": ["kbve/kilobase:latest"],
+            "tags": ["kbve/kilobase:15.1"],
             "push": true
           }
         }
