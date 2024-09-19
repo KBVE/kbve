@@ -37,7 +37,7 @@ extension_sql!(
         archived_at TIMESTAMPTZ DEFAULT NOW()
     );",
   name = "create_url_archive_table",
-  after = ["create_url_queue_table"]
+  requires = ["create_url_queue_table"]
 );
 
 //  [CORE]
@@ -93,9 +93,8 @@ fn pgrx_extract_github_username(url: &str) -> &str {
 
 fn generate_base62_ulid() -> String {
   let ulid = Ulid::new();
-  let ulid_string = ulid.to_string();
-  let ulid_bytes = ulid_string.as_bytes();
-  base62::encode(ulid_bytes)
+  let ulid_u128 = ulid.as_u128();
+  base62::encode(ulid_u128)
 }
 
 fn run_background_worker() {
