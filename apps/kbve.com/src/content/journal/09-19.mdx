@@ -3,8 +3,8 @@ title: 'September: 19th'
 category: Daily
 date: 2024-09-19 12:00:00
 client: Self
-unsplash: 1693483923875-cdd9ef4a8046
-img: https://images.unsplash.com/photo-1693483923875-cdd9ef4a8046?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1663496951572-030f35b9e13f
+img: https://images.unsplash.com/photo-1663496951572-030f35b9e13f?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: September 19th. 
 tags:
   - daily
@@ -25,3 +25,27 @@ An IRL Jojo adventures.
 
 Okay we did the first phase of the fleet deployment and we were able to get the charts automatically loaded.
 Granted it failed to deploy a decent amount of the services but that is fine because we did not include any of the secrets and thus, a decent amount of the services failed.
+The `armada` could be another part of the deployment that can help us with the secret management, using the sealed secret concept but I am thinking that the vault might be enough for what we want to do.
+
+**CICD**
+
+While we are doing the fleet ops, we also need to create the custom kilobase image that we have to add into our fleet.
+This part of the build process will be a bit annoying because we need to make sure that the requirements for building the custom postgres extension has to be done outside of the docker build.
+On the debate of how we should handle the extension building process, I felt that it would make more sense to have it all built outside of the docker image and then just copy the extension over.
+The other path was to build the extension within the docker image itself, which we can do if this outside-the-docker image build process becomes too much of a pain.
+
+## 2023
+
+- 8:45am - The weather is amazing right now, its wild to see actual stable fall weather. I miss hoodie season. 
+- 1:31pm - An interesting meeting over the secret storage and how we could improve upon it. I am just sitting there thinking, damn
+
+## Quote
+
+> For everything that lives is holy, life delights in life.
+> — <cite>William Blake</cite>
+
+---
+
+## Tasks
+
+- [ ]
