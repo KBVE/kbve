@@ -3,6 +3,7 @@ use pgrx::bgworkers::*;
 use pgrx::prelude::*;
 use pgrx::spi::SpiResult;
 use pgrx::spi::SpiTupleTable;
+use pgrx::spi::SpiError;
 use reqwest::blocking::Client;
 use std::time::Duration;
 use jedi::lazyregex::{
@@ -133,47 +134,53 @@ fn run_background_worker() {
 
   log!("Exiting KiloBase BG Worker");
 }
+
 fn process_queue() -> Result<(), String> {
   Spi::connect(|client| {
       let result: SpiResult<SpiTupleTable> = client.select(
           "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1",
           None,
           None,
+      );
+
+      let row = result?.get(0).ok_or(SpiError::InvalidPosition)?;
+
+      let id = row.get_datum_by_ordinal(1)?.value::<i32>()?;
+      let url = row.get_datum_by_ordinal(2)?.value::<String>()?;
+
+      log!("Processing URL: {}", url);
+
+      client.update(
+          "UPDATE url_queue SET status = 'processing' WHERE id = $1",
+          None,
+          Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
       )?;
 
-      if let Ok(Some(row)) = result.get(0) {
-          let id = row.get_datum_by_ordinal(1)?.value::<i32>()?;
-          let url = row.get_datum_by_ordinal(2)?.value::<String>()?;
-
-          log!("Processing URL: {}", url);
-
-          client.update(
-              "UPDATE url_queue SET status = 'processing' WHERE id = $1",
-              Some((PgOid::from(pg_sys::INT4OID), id.into_datum())),
-          )?;
-
-          match process_url(&url) {
-              Ok(data) => {
-                  archive_processed_url(&url, &data)?;
-                  client.update(
-                      "UPDATE url_queue SET status = 'completed', processed_at = NOW() WHERE id = $1",
-                      Some((PgOid::from(pg_sys::INT4OID), id.into_datum())),
-                  )?;
-                  log!("Successfully processed and archived URL: {}", url);
-              }
-              Err(err) => {
-                  client.update(
-                      "UPDATE url_queue SET status = 'error' WHERE id = $1",
-                      Some((PgOid::from(pg_sys::INT4OID), id.into_datum())),
-                  )?;
-                  log!("Failed to process URL: {} with error: {}", url, err);
-              }
+      match process_url(&url) {
+          Ok(data) => {
+              archive_processed_url(&url, &data)?;
+              client.update(
+                  "UPDATE url_queue SET status = 'completed', processed_at = NOW() WHERE id = $1",
+                  None,
+                  Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
+              )?;
+              log!("Successfully processed and archived URL: {}", url);
+          }
+          Err(err) => {
+              client.update(
+                  "UPDATE url_queue SET status = 'error' WHERE id = $1",
+                  None,
+                  Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
+              )?;
+              log!("Failed to process URL: {} with error: {}", url, err);
           }
       }
 
       Ok(())
   }).map_err(|e| format!("SPI error: {}", e))
 }
+
+
 
 // Function to make an HTTP request and return the result
 fn process_url(url: &str) -> Result<String, String> {
