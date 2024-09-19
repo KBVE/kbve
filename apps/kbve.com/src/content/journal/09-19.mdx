@@ -34,6 +34,17 @@ This part of the build process will be a bit annoying because we need to make su
 On the debate of how we should handle the extension building process, I felt that it would make more sense to have it all built outside of the docker image and then just copy the extension over.
 The other path was to build the extension within the docker image itself, which we can do if this outside-the-docker image build process becomes too much of a pain.
 
+For the first part of the CICD workflow, we created a custom job called `kilobase_dev_cicd` and we know that this will fail in a couple spots.
+The goal for this would be to get the base image published as a `kilobase-dev` before we go out of our way to build the main image!
+I am not too sure how the tag system will work in this case because I believe we will have to update the project.json to include all three, `local`, `dev` and `production`.
+
+**Kilobase**
+
+The extension has three core errors within the query for the background worker.
+A couple of the errors is just a type mismatch and I can adjust them as I am working through the changes in the workflow, but damn paraops is rough on the mental state.
+Keeping track of all the changes in the eco-system and placing all the puzzle pieces together at the same time they are being printed out of a machine.
+
+
 ## 2023
 
 - 8:45am - The weather is amazing right now, its wild to see actual stable fall weather. I miss hoodie season. 
