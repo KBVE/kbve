@@ -126,6 +126,27 @@ Hmm, however we do want the 1.7.x, so maybe this is just part of the upstream an
 Now that we got the base templates installed, we can go ahead and begin the first failed deployment.
 The goal of the first deployment is to make sure it fails at setting up the cluster from the branch, the sole objective is to see if it can pull the charts that we added.
 After we can confirm the charts are loaded, we can go back and begin updating the charts.
+Under the current situation, as of 6pm, I am thinking the best move would be utilize the rancher fleet and if we run into any issues with the fleet, we can step back towards the argocd.
+So of the two mainstream options, Fleet and ArgoCD, we will use fleet first because its already included in our instance and then if we run into issues with fleet then we can switch back to the classic ArgoCD.
+Okay, stashed the changes, switched branches and now preparing for the fleet!
+
+The breakdown so far looks like this:
+
+- Name: supabase
+- Repo: KBVE/kbve
+- Target: Advance
+- Clusters: 0/0
+
+We also added the path of `/migrations/kube/charts/supabase`.
+Since there is no path within the main branch right now, we are getting this error.
+
+`Job Failed. failed: 3/1time="2024-09-18T22:34:10Z" level=fatal msg="no resource found at the following paths to deploy: [/migrations/kube/charts/supabase]"`
+
+Now I am thinking it might make more sense to deploy via the `dev` branch, instead of the main branch, this would help us avoid some of the issues that we might face down the line?.
+But let me just try it via the main branch and then if it works, we can go back and updated the fleet to deploy from the `dev` branch.
+
+Okay the folder structure needs to be to be nested by one more level, so it would be `/migrations/kube/charts/kilobase/supabase`, then within the `kilobase` folder, we would add the `fleet.yaml`.
+This should help us with the 
 
 <Adsense />
 
