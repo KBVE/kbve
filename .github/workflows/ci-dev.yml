@@ -316,7 +316,7 @@ jobs:
               env:
                 INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  pnpm nx run kilobase:container --configuration=production
+                  pnpm nx run kilobase:container --configuration=production  --push
 
             # - name: Tag the Docker image
             #   run: |
