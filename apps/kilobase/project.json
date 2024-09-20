@@ -23,6 +23,7 @@
     },
     "copy-requirements": {
       "executor": "nx:run-commands",
+      "dependsOn": ["build"],
       "options": {
         "command": "cp apps/kilobase/requirements.txt dist/target/kilobase/requirements.txt"
       }

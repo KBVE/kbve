@@ -291,15 +291,15 @@ jobs:
 
             - name: Install PGRX
               run: cargo install cargo-pgrx --version 0.12.3 --locked
-          
-            - name: Initialize PGRX
-              run: cargo pgrx init
-
+        
             - name: Get PostgreSQL 15 pg_config path
               run: |
                 PG_CONFIG_PATH=$(find /usr/lib/postgresql/15/ -name pg_config)
                 echo "PG_CONFIG_PATH=$PG_CONFIG_PATH" >> $GITHUB_ENV
                             
+            - name: Initialize PGRX
+              run: cargo pgrx init --pg15 $PG_CONFIG_PATH
+
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v3
 
