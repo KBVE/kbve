@@ -301,3 +301,15 @@ jobs:
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build Docker container with Nx
+              run: |
+                  pnpm nx run kilobase:container --configuration=production
+
+            # - name: Tag the Docker image
+            #   run: |
+            #       docker tag kilobase:15.1 ${{ secrets.DOCKERHUB_USERNAME }}/kilobase:15.1
+
+            # - name: Push Docker image to Docker Hub
+            #   run: |
+            #       docker push ${{ secrets.DOCKERHUB_USERNAME }}/kilobase:15.1

@@ -83,7 +83,7 @@
             "push": false
           },
           "production": {
-            "tags": ["kbve/kilobase:15.1"],
+            "tags": ["kilobase:15.1"],
             "push": true
           }
         }
