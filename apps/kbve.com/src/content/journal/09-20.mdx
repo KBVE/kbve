@@ -69,6 +69,9 @@ For automating the tag system, we could just keep the major and minor to reflect
 We could also do a system where it is supabase version as our base N and then make changes as N+C+1, where c is the commit?
 That might end up being a bit too complex, better to start off small and keep it simple.
 
+An example of the shell script would be to pull the current cargo version for kilobase and then pull the major and minor from the base supabase image.
+The shell script would be two parts, hmm, we are checking the `apps/kilobase/Cargo.toml` and `apps/kilobase/Dockerfile`, grabbing the data from those two files to then generate our actual version.
+
 
 **Benching**
 
