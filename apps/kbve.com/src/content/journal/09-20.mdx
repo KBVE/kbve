@@ -49,6 +49,19 @@ I am going to move this part of the issue off into a side note because it has be
 This might be because we are not calling nx container directly but rather a custom nx command.
 I went back around to the `project.json` and took out some of the additional tags that were there.
 
+The current settings for the json are these:
+
+```json
+
+"tags": [
+            "type=semver,pattern=15.1",
+            "kbve/kilobase:15.1"
+          ]
+
+```
+
+We could either drop the `type=semver,pattern=15.1` or the `kbve/kilobase:15.1`.
+
 **Benching**
 
 A quick break from the coding in about 20mins and doing some quick workouts, my brain might need some more bloodflow xD.

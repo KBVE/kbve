@@ -71,17 +71,16 @@
           "images": ["kbve/kilobase"],
           "load": true,
           "tags": [
-            "type=semver,pattern=15.1",
-            "kbve/kilobase:15.1"
+            "kbve/kilobase:15.1.1"
           ]
         },
         "configurations": {
           "local": {
-            "tags": ["kbve/kilobase:15.1"],
+            "tags": ["kbve/kilobase:15.1.1"],
             "push": false
           },
           "production": {
-            "tags": ["kbve/kilobase:15.1"],
+            "tags": ["kbve/kilobase:15.1.1"],
             "push": true,
             "customBuildOptions": "--push",
             "cache-from": ["type=registry,ref=kbve/kilobase:buildcache"],
