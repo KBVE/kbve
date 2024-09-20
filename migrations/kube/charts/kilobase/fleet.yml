@@ -1,0 +1,6 @@
+defaultNamespace: supabase
+helm:
+  chart: ./supabase
+  releaseName: supabase-release
+  valuesFiles:
+    - supabase/values.yaml
