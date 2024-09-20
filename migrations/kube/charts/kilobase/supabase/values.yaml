@@ -151,7 +151,7 @@ db:
     #   cpu: 100m
     #   memory: 128Mi
   persistence:
-    enabled: true
+    enabled: false
     storageClassName: ""
     annotations: {}
     size: 8Gi
@@ -159,7 +159,7 @@ db:
       - ReadWriteOnce
     class: ""
   autoscaling:
-    enabled: true
+    enabled: false
     minReplicas: 1
     maxReplicas: 100
     targetCPUUtilizationPercentage: 80
