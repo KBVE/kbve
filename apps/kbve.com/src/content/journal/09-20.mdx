@@ -41,7 +41,12 @@ pub fn extract_url_from_regex_zero_copy() -> Result<&str, &'static str> {
 ```
 
 After adding the function, we want to run `./kbve.sh -nx jedi:dry --no-cloud` to make sure that the package will run without any major issue.
+
+**Docker**
+
 Okay, switching back around to the dockerhub release, we got kilobase uploaded but the image that it placed was directly a reference to the sha and pr, but not the tag that we wanted.
+I am going to move this part of the issue off into a side note because it has been way too long of a problem to resolve!
+This might be because we are not calling nx container directly but rather a custom nx command.
 
 
 <Adsense />
