@@ -1,0 +1,6 @@
+apiVersion: v2
+name: shipyard
+description: The shipyard contains all the different operators and boats for the KBVE Armada stack.
+type: application
+version: 0.0.1
+icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
