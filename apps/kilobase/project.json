@@ -9,7 +9,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/kilobase",
-        "commands": ["cargo pgrx package --out-dir='../../dist/target/kilobase'"],
+        "commands": ["cargo pgrx package --pg15 --out-dir='../../dist/target/kilobase'"],
         "parallel": false
       }
     },
