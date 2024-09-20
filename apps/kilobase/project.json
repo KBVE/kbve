@@ -68,10 +68,11 @@
         "context": "dist/target/kilobase",
         "file": "apps/kilobase/Dockerfile",
         "metadata": {
-          "images": ["kilobase"],
+          "images": ["kbve/kilobase"],
           "load": true,
           "tags": [
             "type=schedule",
+            "type=semver,pattern=15.1",
             "type=ref,event=branch",
             "type=ref,event=tag",
             "type=ref,event=pr",
@@ -80,7 +81,7 @@
         },
         "configurations": {
           "local": {
-            "tags": ["kilobase:15.1"],
+            "tags": ["kilobase-dev:15.1"],
             "push": false
           },
           "production": {
