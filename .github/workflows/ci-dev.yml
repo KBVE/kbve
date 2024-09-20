@@ -313,6 +313,8 @@ jobs:
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Build Docker container with Nx
+              env:
+                INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   pnpm nx run kilobase:container --configuration=production
 
