@@ -61,6 +61,14 @@ The current settings for the json are these:
 ```
 
 We could either drop the `type=semver,pattern=15.1` or the `kbve/kilobase:15.1`.
+The whole tag system feels a bit off!
+I believe it might be because this is my first time doing the tags through the nx monorepo, so I am definitely thrown off a bit.
+The next round we should look into pulling the tag from the environmental variable or setting up a script that would help adjust the tags for us.
+For automating the tag system, we could just keep the major and minor to reflect the postgres, then use the last set of numbers to reference the version of kilobase that we are using?
+
+We could also do a system where it is supabase version as our base N and then make changes as N+C+1, where c is the commit?
+That might end up being a bit too complex, better to start off small and keep it simple.
+
 
 **Benching**
 
