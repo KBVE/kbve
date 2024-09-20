@@ -81,12 +81,13 @@
         },
         "configurations": {
           "local": {
-            "tags": ["kilobase-dev:15.1"],
+            "tags": ["kbve/kilobase:15.1"],
             "push": false
           },
           "production": {
             "tags": ["kbve/kilobase:15.1"],
             "push": true,
+            "customBuildOptions": "--push",
             "cache-from": ["type=registry,ref=kbve/kilobase:buildcache"],
             "cache-to": ["type=registry,ref=kbve/kilobase:buildcache,mode=max"]
           }
