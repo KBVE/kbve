@@ -9,7 +9,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/kilobase",
-        "commands": ["cargo pgrx package --out-dir='../../dist/target/kilobase'"],
+        "commands": ["cargo pgrx package --pg-config $PG_CONFIG_PATH --features pg15 --out-dir='../../dist/target/kilobase'"],
         "parallel": false
       }
     },
@@ -23,6 +23,7 @@
     },
     "copy-requirements": {
       "executor": "nx:run-commands",
+      "dependsOn": ["build"],
       "options": {
         "command": "cp apps/kilobase/requirements.txt dist/target/kilobase/requirements.txt"
       }
@@ -67,24 +68,23 @@
         "context": "dist/target/kilobase",
         "file": "apps/kilobase/Dockerfile",
         "metadata": {
-          "images": ["kilobase"],
+          "images": ["kbve/kilobase"],
           "load": true,
           "tags": [
-            "type=schedule",
-            "type=ref,event=branch",
-            "type=ref,event=tag",
-            "type=ref,event=pr",
-            "type=sha,prefix=sha-"
+            "15.1.1"
           ]
         },
         "configurations": {
           "local": {
-            "tags": ["kilobase:latest"],
+            "tags": ["15.1.1"],
             "push": false
           },
           "production": {
-            "tags": ["kbve/kilobase:latest"],
-            "push": true
+            "tags": ["15.1.1"],
+            "push": true,
+            "customBuildOptions": "--push",
+            "cache-from": ["type=registry,ref=kbve/kilobase:buildcache"],
+            "cache-to": ["type=registry,ref=kbve/kilobase:buildcache,mode=max"]
           }
         }
       }

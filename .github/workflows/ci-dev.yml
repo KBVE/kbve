@@ -1,228 +1,327 @@
 name: CI - Dev
 
 on:
-  push:
-    branches:
-      - 'dev*'
+    push:
+        branches:
+            - 'dev*'
 
-  pull_request:
-    branches:
-      - 'alpha'
-    types: [synchronize]
+    pull_request:
+        branches:
+            - 'alpha'
+        types: [synchronize]
 jobs:
-  handle:
-    name: 'Dev to Alpha'
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    handle:
+        name: 'Dev to Alpha'
+        runs-on: ubuntu-latest
+        if: github.event_name == 'push'
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Auto-Pull
-        id: open-pr
-        uses: diillson/auto-pull-request@v1.0.1
-        with:
-          destination_branch: 'alpha'
-          pr_title: 'Preparing Alpha Branch'
-          pr_body: |
-            *An automated PR for Alpha*
-            This PR is for the alpha branch
-          pr_label: 'auto-pr'
+            - name: Auto-Pull
+              id: open-pr
+              uses: diillson/auto-pull-request@v1.0.1
+              with:
+                  destination_branch: 'alpha'
+                  pr_title: 'Preparing Alpha Branch'
+                  pr_body: |
+                      *An automated PR for Alpha*
+                      This PR is for the alpha branch
+                  pr_label: 'auto-pr'
 
-      - name: Fetch dev branch
-        run: git fetch origin alpha
+            - name: Fetch dev branch
+              run: git fetch origin alpha
 
-      - name: Update PR Body After Opening
-        run: |
-          pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
+            - name: Update PR Body After Opening
+              run: |
+                  pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
 
-          
-          echo "Raw commits (before cleaning):"
-          git log --oneline origin/alpha..HEAD
 
-          cleaned_commits=$(git log --oneline origin/alpha..HEAD | sed -E 's/^[a-f0-9]{7} \([^)]*\) //')
+                  echo "Raw commits (before cleaning):"
+                  git log --oneline origin/alpha..HEAD
 
-          echo "Cleaned commits:"
-          echo "$cleaned_commits"
+                  cleaned_commits=$(git log --oneline origin/alpha..HEAD | sed -E 's/^[a-f0-9]{7} \([^)]*\) //')
 
-          ci_commits=$(echo "$cleaned_commits" | grep -i " ci(" | tr '\n' '\n')
-          fix_commits=$(echo "$cleaned_commits" | grep -i " fix(" | tr '\n' '\n')
-          docs_commits=$(echo "$cleaned_commits" | grep -i " docs(" | tr '\n' '\n')
-          feat_commits=$(echo "$cleaned_commits" | grep -i " feat(" | tr '\n' '\n')
-          merge_commits=$(echo "$cleaned_commits" | grep -i " Merge pull request" | tr '\n' '\n')
-          other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
+                  echo "Cleaned commits:"
+                  echo "$cleaned_commits"
 
-          # Build the PR body
-          pr_body="## Initial PR body for Alpha with categorized commits: <br> <br>"
-          if [ -n "$ci_commits" ]; then
-            pr_body+="### CI Changes: <br>  $ci_commits <br> <br>"
-          fi
-          if [ -n "$fix_commits" ]; then
-            pr_body+="### Fixes: <br>  $fix_commits <br> <br>"
-          fi
-          if [ -n "$docs_commits" ]; then
-            pr_body+="### Documentation: <br>  $docs_commits <br> <br>"
-          fi
-          if [ -n "$feat_commits" ]; then
-            pr_body+="### Features: <br>  $feat_commits <br> <br>"
-          fi
-          if [ -n "$merge_commits" ]; then
-            pr_body+="### Merge Commits: <br>  $merge_commits <br> <br>"
-          fi
-          if [ -n "$other_commits" ]; then
-            pr_body+="### Other Commits: <br>  $other_commits <br> <br>"
-          fi
+                  ci_commits=$(echo "$cleaned_commits" | grep -i " ci(" | tr '\n' '\n')
+                  fix_commits=$(echo "$cleaned_commits" | grep -i " fix(" | tr '\n' '\n')
+                  docs_commits=$(echo "$cleaned_commits" | grep -i " docs(" | tr '\n' '\n')
+                  feat_commits=$(echo "$cleaned_commits" | grep -i " feat(" | tr '\n' '\n')
+                  merge_commits=$(echo "$cleaned_commits" | grep -i " Merge pull request" | tr '\n' '\n')
+                  other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
 
-          # Print the PR body for debugging
-          echo "PR Body: $pr_body"
+                  # Build the PR body
+                  pr_body="## Initial PR body for Alpha with categorized commits: <br> <br>"
+                  if [ -n "$ci_commits" ]; then
+                    pr_body+="### CI Changes: <br>  $ci_commits <br> <br>"
+                  fi
+                  if [ -n "$fix_commits" ]; then
+                    pr_body+="### Fixes: <br>  $fix_commits <br> <br>"
+                  fi
+                  if [ -n "$docs_commits" ]; then
+                    pr_body+="### Documentation: <br>  $docs_commits <br> <br>"
+                  fi
+                  if [ -n "$feat_commits" ]; then
+                    pr_body+="### Features: <br>  $feat_commits <br> <br>"
+                  fi
+                  if [ -n "$merge_commits" ]; then
+                    pr_body+="### Merge Commits: <br>  $merge_commits <br> <br>"
+                  fi
+                  if [ -n "$other_commits" ]; then
+                    pr_body+="### Other Commits: <br>  $other_commits <br> <br>"
+                  fi
 
-          # Update the PR body
-          gh pr edit $pr_number --body "$pr_body"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  # Print the PR body for debugging
+                  echo "PR Body: $pr_body"
 
-  update_pr:
-    name: 'Update PR Body on Synchronize'
-    runs-on: ubuntu-latest
-    if: github.event.action == 'synchronize'
+                  # Update the PR body
+                  gh pr edit $pr_number --body "$pr_body"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: alpha
-          
-      - name: Fetch dev branch
-        run: git fetch origin alpha
+    update_pr:
+        name: 'Update PR Body on Synchronize'
+        runs-on: ubuntu-latest
+        if: github.event.action == 'synchronize'
 
-      - name: Sync PR Body
-        run: |
-          pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  ref: alpha
 
-          
-          echo "Raw commits (before cleaning):"
-          git log --oneline origin/alpha..HEAD
+            - name: Fetch dev branch
+              run: git fetch origin alpha
 
-          cleaned_commits=$(git log --oneline origin/alpha..HEAD | sed -E 's/^[a-f0-9]{7} \([^)]*\) //')
+            - name: Sync PR Body
+              run: |
+                  pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
 
-          echo "Cleaned commits:"
-          echo "$cleaned_commits"
 
-          ci_commits=$(echo "$cleaned_commits" | grep -i " ci(" | tr '\n' '\n')
-          fix_commits=$(echo "$cleaned_commits" | grep -i " fix(" | tr '\n' '\n')
-          docs_commits=$(echo "$cleaned_commits" | grep -i " docs(" | tr '\n' '\n')
-          feat_commits=$(echo "$cleaned_commits" | grep -i " feat(" | tr '\n' '\n')
-          merge_commits=$(echo "$cleaned_commits" | grep -i " Merge pull request" | tr '\n' '\n')
-          other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
+                  echo "Raw commits (before cleaning):"
+                  git log --oneline origin/alpha..HEAD
 
-          # Build the PR body
-          pr_body="## Updated PR body for Alpha with categorized commits: <br> <br>"
-          if [ -n "$ci_commits" ]; then
-            pr_body+="### CI Changes: <br> $ci_commits <br> <br>"
-          fi
-          if [ -n "$fix_commits" ]; then
-            pr_body+="### Fixes: <br>  $fix_commits <br> <br>"
-          fi
-          if [ -n "$docs_commits" ]; then
-            pr_body+="### Documentation: <br>  $docs_commits <br> <br>"
-          fi
-          if [ -n "$feat_commits" ]; then
-            pr_body+="### Features: <br>  $feat_commits <br> <br>"
-          fi
-          if [ -n "$merge_commits" ]; then
-            pr_body+="### Merge Commits: <br>  $merge_commits <br> <br>"
-          fi
-          if [ -n "$other_commits" ]; then
-            pr_body+="### Other Commits: <br>  $other_commits <br> <br>"
-          fi
+                  cleaned_commits=$(git log --oneline origin/alpha..HEAD | sed -E 's/^[a-f0-9]{7} \([^)]*\) //')
 
-          # Print the PR body for debugging
-          echo "PR Body: $pr_body"
+                  echo "Cleaned commits:"
+                  echo "$cleaned_commits"
 
-          # Update the PR body
-          gh pr edit $pr_number --body "$pr_body"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  ci_commits=$(echo "$cleaned_commits" | grep -i " ci(" | tr '\n' '\n')
+                  fix_commits=$(echo "$cleaned_commits" | grep -i " fix(" | tr '\n' '\n')
+                  docs_commits=$(echo "$cleaned_commits" | grep -i " docs(" | tr '\n' '\n')
+                  feat_commits=$(echo "$cleaned_commits" | grep -i " feat(" | tr '\n' '\n')
+                  merge_commits=$(echo "$cleaned_commits" | grep -i " Merge pull request" | tr '\n' '\n')
+                  other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
 
-  alter:
-    name: 'Dev Deployment Checks'
-    runs-on: ubuntu-latest
-    if: github.repository == 'kbve/kbve'
-    outputs:
-      herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
-      kbve: ${{ steps.delta.outputs.kbve_any_changed }}
-      rareicon: ${{ steps.delta.outputs.rareicon_any_changed }}
-      discordsh: ${{ steps.delta.outputs.discordsh_any_changed }}
-      atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
-      api: ${{ steps.delta.outputs.api_any_changed  }}
-      rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
+                  # Build the PR body
+                  pr_body="## Updated PR body for Alpha with categorized commits: <br> <br>"
+                  if [ -n "$ci_commits" ]; then
+                    pr_body+="### CI Changes: <br> $ci_commits <br> <br>"
+                  fi
+                  if [ -n "$fix_commits" ]; then
+                    pr_body+="### Fixes: <br>  $fix_commits <br> <br>"
+                  fi
+                  if [ -n "$docs_commits" ]; then
+                    pr_body+="### Documentation: <br>  $docs_commits <br> <br>"
+                  fi
+                  if [ -n "$feat_commits" ]; then
+                    pr_body+="### Features: <br>  $feat_commits <br> <br>"
+                  fi
+                  if [ -n "$merge_commits" ]; then
+                    pr_body+="### Merge Commits: <br>  $merge_commits <br> <br>"
+                  fi
+                  if [ -n "$other_commits" ]; then
+                    pr_body+="### Other Commits: <br>  $other_commits <br> <br>"
+                  fi
 
-    steps:
-      - name: Checkout the repository using git
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+                  # Print the PR body for debugging
+                  echo "PR Body: $pr_body"
 
-      - name: File Changes
-        id: delta
-        uses: tj-actions/changed-files@v39
-        with:
-          files_yaml: |
-            herbmail:
-                - 'apps/herbmail.com/**'
-            kbve:
-                - 'apps/kbve.com/**'
-            rareicon:
-                - 'apps/rareicon.com/**'
-            discordsh:
-                - 'apps/discord.sh/**'
-            atlas:
-                - 'apps/atlas/kbve_atlas/**'
-            api:
-                - 'apps/api/**'
-            rustapiprofile:
-                - 'apps/rust_api_profile/**'
+                  # Update the PR body
+                  gh pr edit $pr_number --body "$pr_body"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  deploy:
-    needs: alter
-    name: 'Process Dev'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository using git
-        uses: actions/checkout@v4
+    alter:
+        name: 'Dev Deployment Checks'
+        runs-on: ubuntu-latest
+        if: github.repository == 'kbve/kbve'
+        outputs:
+            ##  [APPS]
+            herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
+            kbve: ${{ steps.delta.outputs.kbve_any_changed }}
+            rareicon: ${{ steps.delta.outputs.rareicon_any_changed }}
+            discordsh: ${{ steps.delta.outputs.discordsh_any_changed }}
+            atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
+            api: ${{ steps.delta.outputs.api_any_changed  }}
+            rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
+            kilobase: ${{ steps.delta.outputs.kilobase_any_changed}}
+            ##  [PACKAGES]
+        steps:
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
 
-      - name: Setup Node v20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+            - name: File Changes
+              id: delta
+              uses: tj-actions/changed-files@v39
+              with:
+                  files_yaml: |
+                      herbmail:
+                          - 'apps/herbmail.com/**'
+                      kbve:
+                          - 'apps/kbve.com/**'
+                      rareicon:
+                          - 'apps/rareicon.com/**'
+                      discordsh:
+                          - 'apps/discord.sh/**'
+                      atlas:
+                          - 'apps/atlas/kbve_atlas/**'
+                      api:
+                          - 'apps/api/**'
+                      rustapiprofile:
+                          - 'apps/rust_api_profile/**'
+                      kilobase:
+                          - 'apps/kilobase/**'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
+    deploy:
+        needs: alter
+        name: 'Process Dev'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
 
-      - name: Get pnpm Store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
 
-      - name: Setup pnpm Cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
 
-      - name: Install pnpm dependencies
-        run: |
-          pnpm install
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - name: Generate NX Report
-        shell: bash
-        run: |
-          pnpm nx report
+            - name: Setup pnpm Cache
+              uses: actions/cache@v3
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm dependencies
+              run: |
+                  pnpm install
+
+            - name: Generate NX Report
+              shell: bash
+              run: |
+                  pnpm nx report
+
+    kilobase_dev_cicd:
+        needs: ['deploy', 'alter']
+        name: KiloBase Dev CI-CD
+        if: needs.alter.outputs.kilobase == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            contents: read
+            packages: write
+            # id-token: write
+        steps:
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm dependencies
+              shell: bash
+              run: |
+                  pnpm install
+
+            - name: Install PGRX build dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libclang-dev build-essential libreadline-dev zlib1g-dev flex bison libxml2-dev libxslt-dev libssl-dev libxml2-utils xsltproc ccache pkg-config
+
+            - name: Install PGRX Postgres Extensions
+              run: |
+                sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+                wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+                sudo apt-get update
+
+            - name: Install PostgreSQL 15
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y postgresql-15 postgresql-server-dev-15
+
+            - name: Install PGRX
+              run: cargo install cargo-pgrx --version 0.12.3 --locked
+        
+            - name: Get PostgreSQL 15 pg_config path
+              run: |
+                PG_CONFIG_PATH=$(find /usr/lib/postgresql/15/ -name pg_config)
+                echo "PG_CONFIG_PATH=$PG_CONFIG_PATH" >> $GITHUB_ENV
+                            
+            - name: Initialize PGRX
+              run: cargo pgrx init --pg15 $PG_CONFIG_PATH
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build Docker container with Nx
+              env:
+                INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  pnpm nx run kilobase:container --configuration=production  --push
+
+            # - name: Tag the Docker image
+            #   run: |
+            #       docker tag kilobase:15.1 ${{ secrets.DOCKERHUB_USERNAME }}/kilobase:15.1
+
+            # - name: Push Docker image to Docker Hub
+            #   run: |
+            #       docker push ${{ secrets.DOCKERHUB_USERNAME }}/kilobase:15.1

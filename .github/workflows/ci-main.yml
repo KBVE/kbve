@@ -36,6 +36,7 @@ jobs:
     name: File Alterations
     if: github.repository == 'kbve/kbve'
     outputs:
+      #   [APPS]
       herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
       kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
       rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
@@ -45,16 +46,17 @@ jobs:
       proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
       saber: ${{ steps.delta.outputs.saber_any_changed  }}
       rustprofile: ${{ steps.delta.outputs.rustprofile_any_changed  }}
+      expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
+      cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
+      ##  [PACKAGES]
       erust: ${{ steps.delta.outputs.erust_any_changed  }}
       holy: ${{ steps.delta.outputs.holy_any_changed  }}
       kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
       jedi: ${{ steps.delta.outputs.jedi_any_changed }}
-      expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
       dockervoid: ${{ steps.delta.outputs.dockervoid_any_changed }}
       khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
       devops: ${{ steps.delta.outputs.devops_any_changed }}
       fudster: ${{ steps.delta.outputs.fudster_any_changed }}
-      cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
       laser: ${{ steps.delta.outputs.laser_any_changed }}
       worker: ${{ steps.delta.outputs.worker_any_changed }}
       
