@@ -285,7 +285,7 @@ jobs:
             #       sudo apt-get update
 
             - name: Install PGRX
-              run: cargo install cargo-pgrx
+              run: cargo install cargo-pgrx --version 0.12.3 --locked
           
             - name: Initialize PGRX
               run: cargo pgrx init
