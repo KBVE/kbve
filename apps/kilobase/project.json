@@ -84,8 +84,10 @@
             "push": false
           },
           "production": {
-            "tags": ["kilobase:15.1"],
-            "push": true
+            "tags": ["kbve/kilobase:15.1"],
+            "push": true,
+            "cache-from": ["type=registry,ref=kbve/kilobase:buildcache"],
+            "cache-to": ["type=registry,ref=kbve/kilobase:buildcache,mode=max"]
           }
         }
       }
