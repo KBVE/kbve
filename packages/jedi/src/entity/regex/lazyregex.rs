@@ -1,6 +1,10 @@
 use regex::Regex;
 use once_cell::sync::Lazy;
 
+pub static SANITIZATION_URL_REGEX: Lazy<Regex> = Lazy::new(||
+	Regex::new(r"(?i)^https:\/\/[A-Z0-9._%+-]{1,63}\.[A-Z]{2,}(\/[A-Z0-9._%+-]*){0,64}$").unwrap()
+);
+
 pub static SANITIZATION_EMAIL_REGEX: Lazy<Regex> = Lazy::new(||
 	Regex::new(r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$").unwrap()
 );
@@ -57,6 +61,14 @@ pub static SANITIZATION_CAPTCHA_TOKEN_REGEX: Lazy<Regex> = Lazy::new(|| {
 });
 
 // Zero Copy &str
+
+pub fn extract_url_from_regex_zero_copy(url: &str) -> Result<&str, &'static str> {
+	if SANITIZATION_URL_REGEX.is_match(url) {
+		Ok(url)
+	} else {
+		Err("invaild_url")
+	}
+}
 
 pub fn extract_email_from_regex_zero_copy(email: &str) -> Result<&str, &'static str> {
     if SANITIZATION_EMAIL_REGEX.is_match(email) {
