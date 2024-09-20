@@ -18,6 +18,31 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
 The amount of jumps that I have to go through to get this docker image to be uploaded onto dockerhub.
 Honestly we got the build, just passing the push flag seems to be a pain and might just be some sort of out-dated docs that I been referencing? hmm.
+While the build is going on, we can take a look back at the bgworker and maybe take a look at ways to integrate the jedi crate!
+One of the areas that I was thinking was double checking the URL before we use it?
+
+To get started, we will alter the jedi crate and create a new regex and function:
+
+```rust 
+
+
+pub static SANITIZATION_URL_REGEX: Lazy<Regex> = Lazy::new(||
+	Regex::new(r"(?i)^https:\/\/[A-Z0-9._%+-]{1,63}\.[A-Z]{2,}(\/[A-Z0-9._%+-]*){0,64}$").unwrap()
+);
+
+pub fn extract_url_from_regex_zero_copy() -> Result<&str, &'static str> {
+	if SANITIZATION_URL_REGEX.is_match() {
+		Ok()
+	} else {
+		Err("invaild_url")
+	}
+}
+
+```
+
+After adding the function, we want to run `./kbve.sh -nx jedi:dry --no-cloud` to make sure that the package will run without any major issue.
+Okay, switching back around to the dockerhub release, we got kilobase uploaded but the image that it placed was directly a reference to the sha and pr, but not the tag that we wanted.
+
 
 <Adsense />
 
