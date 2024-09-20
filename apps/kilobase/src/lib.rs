@@ -1,12 +1,16 @@
 //  [IMPORTS]
 use pgrx::bgworkers::*;
 use pgrx::prelude::*;
+// use pgrx::spi::SpiResult;
+// use pgrx::spi::SpiTupleTable;
+// use pgrx::spi::SpiError;
+// use pgrx::spi::SpiHeapTupleData;
 use reqwest::blocking::Client;
 use std::time::Duration;
-use jedi::lazyregex::{
-  extract_email_from_regex_zero_copy,
-  extract_github_username_from_regex_zero_copy,
-};
+// use jedi::lazyregex::{
+//   extract_email_from_regex_zero_copy,
+//   extract_github_username_from_regex_zero_copy,
+// };
 use serde::{ Deserialize, Serialize };
 use ulid::Ulid;
 use base62;
@@ -37,7 +41,7 @@ extension_sql!(
         archived_at TIMESTAMPTZ DEFAULT NOW()
     );",
   name = "create_url_archive_table",
-  after = ["create_url_queue_table"]
+  requires = ["create_url_queue_table"]
 );
 
 //  [CORE]
@@ -54,119 +58,100 @@ pub extern "C" fn _PG_init() {
 #[pg_guard]
 #[no_mangle]
 pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
-  run_background_worker();
-}
+  BackgroundWorker::attach_signal_handlers(SignalWakeFlags::SIGHUP | SignalWakeFlags::SIGTERM);
+  BackgroundWorker::connect_worker_to_spi(Some("postgres"), None);
 
-#[pg_extern]
-fn hello_kilobase() -> &'static str {
-  "Hello, kilobase, this is an example query that is being called from rust!"
-}
+  log!("Starting KiloBase BG Worker");
 
-#[pg_extern]
-fn bust_selling_propane() -> &'static str {
-  "Bust is selling the best propane"
-}
+  while BackgroundWorker::wait_latch(Some(Duration::from_secs(10))) {
+    // Select a pending task
+    match
+      Spi::get_two::<i32, String>(
+        "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1"
+      )
+    {
+      Ok((Some(id), Some(url))) => {
+        log!("Processing task with ID: {} and URL: {}", id, url);
 
-#[pg_extern(immutable, parallel_safe)]
-fn pgrx_extract_email(email: &str) -> &str {
-  match extract_email_from_regex_zero_copy(email) {
-    Ok(result) => result,
-    Err(err_msg) => {
-      ereport!(PgLogLevel::ERROR, PgSqlErrorCode::ERRCODE_INTERNAL_ERROR, &format!("{}", err_msg));
-      ""
+        // Update task status to 'processing'
+        if
+          let Err(err) = Spi::run_with_args(
+            "UPDATE url_queue SET status = 'processing' WHERE id = $1",
+            Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
+          )
+        {
+          log!("Failed to update task {} to 'processing': {}", id, err);
+          continue;
+        }
+
+        // Process the URL
+        match process_url(&url) {
+          Ok(data) => {
+            log!("Successfully processed URL: {}", url);
+
+            // Archive the processed URL
+            let archive_id = generate_base62_ulid();
+            if
+              let Err(err) = Spi::get_one_with_args::<String>(
+                "INSERT INTO url_archive (id, url, data, archived_at) VALUES ($1, $2, $3, NOW()) RETURNING id",
+                vec![
+                  (PgOid::from(pg_sys::TEXTOID), archive_id.into_datum()),
+                  (PgOid::from(pg_sys::TEXTOID), url.clone().into_datum()),
+                  (PgOid::from(pg_sys::TEXTOID), data.into_datum())
+                ]
+              ).map_err(|e| format!("SPI error during archive: {}", e))
+            {
+              log!("Failed to archive URL {}: {}", url, err);
+            }
+
+            // Update task status to 'completed'
+            if
+              let Err(err) = Spi::run_with_args(
+                "UPDATE url_queue SET status = 'completed', processed_at = NOW() WHERE id = $1",
+                Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
+              )
+            {
+              log!("Failed to update task {} to 'completed': {}", id, err);
+            }
+          }
+          Err(err) => {
+            log!("Failed to process URL: {}. Error: {}", url, err);
+
+            // Update task status to 'error'
+            if
+              let Err(err) = Spi::run_with_args(
+                "UPDATE url_queue SET status = 'error' WHERE id = $1",
+                Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
+              )
+            {
+              log!("Failed to update task {} to 'error': {}", id, err);
+            }
+          }
+        }
+      }
+      Ok((Some(id), None)) => {
+        log!("Task with ID {} has no associated URL, skipping...", id);
+      }
+      Ok((None, _)) => {
+        log!("No pending tasks, sleeping...");
+      }
+      Err(err) => {
+        log!("Error selecting pending task: {}", err);
+      }
     }
   }
-}
 
-#[pg_extern(immutable, parallel_safe)]
-fn pgrx_extract_github_username(url: &str) -> &str {
-  match extract_github_username_from_regex_zero_copy(url) {
-    Ok(result) => result,
-    Err(err_msg) => {
-      ereport!(PgLogLevel::ERROR, PgSqlErrorCode::ERRCODE_INTERNAL_ERROR, &format!("{}", err_msg));
-      ""
-    }
-  }
+  log!("Exiting KiloBase BG Worker");
+  //  run_background_worker();
 }
 
 //  [HELPERS]
 
 fn generate_base62_ulid() -> String {
   let ulid = Ulid::new();
-  let ulid_string = ulid.to_string();
-  let ulid_bytes = ulid_string.as_bytes();
-  base62::encode(ulid_bytes)
-}
-
-fn run_background_worker() {
-  BackgroundWorker::attach_signal_handlers(SignalWakeFlags::SIGHUP | SignalWakeFlags::SIGTERM);
-  BackgroundWorker::connect_worker_to_spi(Some("postgres"), None);
-
-  log!("KiloBase BG Worker initialized");
-
-  // Start listening for new URL notifications
-  let listen_sql = "LISTEN url_queue_notification;";
-  Spi::connect(|client| {
-    client.execute(listen_sql, None, None).expect("Failed to execute LISTEN");
-    Ok::<(), spi::Error>(())
-  }).unwrap();
-
-  loop {
-    BackgroundWorker::wait_for_signal(); // Wait for a notification
-    if BackgroundWorker::sighup_received() {
-      log!("SIGHUP received");
-      // Handle configuration reload if needed
-    }
-
-    log!("Received a notification, processing the queue...");
-    if let Err(e) = process_queue() {
-      log!("Error processing queue: {}", e);
-    }
-  }
-
-  log!("Exiting KiloBase BG Worker");
-}
-
-fn process_queue() -> Result<(), String> {
-  Spi::connect(|client| {
-    let result = client.select(
-      "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1",
-      None,
-      None
-    )?;
-
-    if let Some(row) = result.get(0) {
-      let id = row.get_datum_by_ordinal(1)?.value::<i32>()?;
-      let url = row.get_datum_by_ordinal(2)?.value::<String>()?;
-
-      log!("Processing URL: {}", url);
-
-      client.update(
-        "UPDATE url_queue SET status = 'processing' WHERE id = $1",
-        Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
-      )?;
-
-      match process_url(&url) {
-        Ok(data) => {
-          archive_processed_url(&url, &data)?;
-          client.update(
-            "UPDATE url_queue SET status = 'completed', processed_at = NOW() WHERE id = $1",
-            Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
-          )?;
-          log!("Successfully processed and archived URL: {}", url);
-        }
-        Err(err) => {
-          client.update(
-            "UPDATE url_queue SET status = 'error' WHERE id = $1",
-            Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())])
-          )?;
-          log!("Failed to process URL: {} with error: {}", url, err);
-        }
-      }
-    }
-
-    Ok(())
-  }).map_err(|e| format!("SPI error: {}", e))
+  let ulid_bytes = ulid.to_bytes();
+  let ulid_u128 = u128::from_be_bytes(ulid_bytes);
+  base62::encode(ulid_u128)
 }
 
 // Function to make an HTTP request and return the result
@@ -184,54 +169,5 @@ fn process_url(url: &str) -> Result<String, String> {
     Ok(body)
   } else {
     Err(format!("HTTP request returned non-200 status: {}", response.status()))
-  }
-}
-
-// Function to archive the processed URL and its data
-fn archive_processed_url(url: &str, data: &str) -> Result<(), String> {
-  let id = generate_base62_ulid();
-  Spi::connect(|client| {
-    client.update(
-      "INSERT INTO url_archive (id, url, data, archived_at) VALUES ($1, $2, $3, NOW())",
-      Some(
-        vec![
-          (PgOid::from(pg_sys::TEXTOID), id.into_datum()),
-          (PgOid::from(pg_sys::TEXTOID), url.into_datum()),
-          (PgOid::from(pg_sys::TEXTOID), data.into_datum())
-        ]
-      )
-    )?;
-    Ok(())
-  }).map_err(|e| format!("SPI error: {}", e))
-}
-
-//  TODO: Unit Tests
-
-#[cfg(any(test, feature = "pg_test"))]
-#[pg_schema]
-mod tests {
-  use pgrx::prelude::*;
-
-  #[pg_test]
-  fn test_hello_kilobase() {
-    assert_eq!(
-      "Hello, kilobase, this is an example query that is being called from rust!",
-      crate::hello_kilobase()
-    );
-  }
-}
-
-/// This module is required by `cargo pgrx test` invocations.
-/// It must be visible at the root of your extension crate.
-#[cfg(test)]
-pub mod pg_test {
-  pub fn setup(_options: Vec<&str>) {
-    // perform one-off initialization when the pg_test framework starts
-  }
-
-  #[must_use]
-  pub fn postgresql_conf_options() -> Vec<&'static str> {
-    // return any postgresql.conf settings that are required for your tests
-    vec![]
   }
 }
