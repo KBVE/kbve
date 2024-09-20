@@ -7,10 +7,9 @@ use pgrx::prelude::*;
 // use pgrx::spi::SpiHeapTupleData;
 use reqwest::blocking::Client;
 use std::time::Duration;
-// use jedi::lazyregex::{
-//   extract_email_from_regex_zero_copy,
-//   extract_github_username_from_regex_zero_copy,
-// };
+use jedi::lazyregex::{
+  extract_url_from_regex_zero_copy
+};
 use serde::{ Deserialize, Serialize };
 use ulid::Ulid;
 use base62;
@@ -63,6 +62,7 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
 
   log!("Starting KiloBase BG Worker");
 
+
   while BackgroundWorker::wait_latch(Some(Duration::from_secs(10))) {
     // Select a pending task
     match
@@ -71,7 +71,10 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
       )
     {
       Ok((Some(id), Some(url))) => {
-        log!("Processing task with ID: {} and URL: {}", id, url);
+        //log!("Processing task with ID: {} and URL: {}", id, url);
+        log!("Processing task with ID: {}", id);
+        // Checking URL against regex.
+      
 
         // Update task status to 'processing'
         if

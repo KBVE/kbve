@@ -71,12 +71,8 @@
           "images": ["kbve/kilobase"],
           "load": true,
           "tags": [
-            "type=schedule",
             "type=semver,pattern=15.1",
-            "type=ref,event=branch",
-            "type=ref,event=tag",
-            "type=ref,event=pr",
-            "type=sha,prefix=sha-"
+            "kbve/kilobase:15.1"
           ]
         },
         "configurations": {

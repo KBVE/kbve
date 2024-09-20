@@ -28,3 +28,13 @@ This library provides a data exchange layer extended through the holy crate.
 
 We welcome contributions to the Jedi project! If you have an idea for a new feature or have found a bug, please open an issue or submit a pull request.
 For detailed contribution guidelines, please refer to the CONTRIBUTING.md file in the repository. 
+
+Check out our [discord](https://kbve.com/discord/).
+
+Dry run for devs:
+
+```shell
+
+./kbve.sh -nx jedi:dry --no-cloud
+
+```
