@@ -38,11 +38,16 @@ For the first part of the CICD workflow, we created a custom job called `kilobas
 The goal for this would be to get the base image published as a `kilobase-dev` before we go out of our way to build the main image!
 I am not too sure how the tag system will work in this case because I believe we will have to update the project.json to include all three, `local`, `dev` and `production`.
 
+The CICD failed this time around because I placed `postgresql-server-dev-15` and it should have been `postgresql-server-dev-all`, but I am wondering if I need to also include something else for this part.
+
 **Kilobase**
 
 The extension has three core errors within the query for the background worker.
 A couple of the errors is just a type mismatch and I can adjust them as I am working through the changes in the workflow, but damn paraops is rough on the mental state.
 Keeping track of all the changes in the eco-system and placing all the puzzle pieces together at the same time they are being printed out of a machine.
+Spent way too many hours going through the possible ways of resolving the background worker, the only solution that I could come up with was to migrate all the code into the worker.
+I would have enjoyed having some level of isolation within the fuctions but there just was way too many type issues and I rather keep things simple for now.
+
 
 
 ## 2023
