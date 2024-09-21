@@ -90,6 +90,15 @@ Upon further research, we can have the shipyard access the helm charts directly,
 There is still some of the concepts that I am not fully grasping but that might have to do with just me not being fully based.
 Thus we will be deploying the armada this weekend, which should provide us with a couple additional operators that we can use to help us debug some of the supabase issues.
 
+During deployment, we got this error:
+
+```
+level=fatal msg="open migrations/kube/charts/armada/shipyard/values.yaml: no such file or directory"
+```
+
+I am thinking that it might be because we have a file called values.yaml that is empty, so lets go ahead and remove that?
+
+
 <Adsense />
 
 ## 2023
