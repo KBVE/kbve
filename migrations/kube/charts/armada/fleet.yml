@@ -1,6 +1,14 @@
 defaultNamespace: armada
+
 helm:
-  chart: ./shipyard
-  releaseName: armada-release
-  valuesFiles:
-    - shipyard/values.yaml
+    releases:
+        - name: armada-release
+          chart: ./shipyard
+          valuesFiles:
+              - shipyard/values.yaml
+
+        - name: sealed-secrets
+          chart: sealed-secrets/sealed-secrets
+          repo: https://bitnami-labs.github.io/sealed-secrets
+          valuesFiles:
+              - shipyard/sealed-secrets-values.yaml
