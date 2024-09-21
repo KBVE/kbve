@@ -79,6 +79,27 @@ A quick break from the coding in about 20mins and doing some quick workouts, my 
 I spent almost the whole night trying to debug these weird and nearly pointless build problems that should have been super easy.
 Setting up k3s was easier than this pepperhole.
 
+**Armada**
+
+We can begin setting up the armada next!
+The central parts of the armada will be located here `migrations/kube/charts/armada`, with the core being under a subfolder that we will call `shipyard`.
+Under the shipyard, we will deploy the operators and management tools, with the goal of having it all within one easy to deploy cluster.
+Part of the Armada will be the `Elemental` deployment but that will take some time to move into, we will most likely do that after the supabase deployment.
+
+Upon further research, we can have the shipyard access the helm charts directly, allowing us to build ontop of the bitnami charts.
+There is still some of the concepts that I am not fully grasping but that might have to do with just me not being fully based.
+Thus we will be deploying the armada this weekend, which should provide us with a couple additional operators that we can use to help us debug some of the supabase issues.
+
+During deployment, we got this error:
+
+```
+level=fatal msg="open migrations/kube/charts/armada/shipyard/values.yaml: no such file or directory"
+```
+
+I am thinking that it might be because we have a file called values.yaml that is empty, so lets go ahead and remove that?
+
+Getting no where with this fleet deployment, its even worse than the supabase one because we are going backwards! xD
+To rule out if its a sealed secerts issue or a general fleet issue, I will try to deploy redis as well.
 
 <Adsense />
 
