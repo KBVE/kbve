@@ -12,3 +12,10 @@ helm:
           repo: https://bitnami-labs.github.io/sealed-secrets
           valuesFiles:
               - shipyard/sealed-secrets-values.yaml
+          targets:
+              - clusterSelector:
+                  matchExpressions:
+                    - key: cattle.io/cluster-name
+                      operator: In
+                      values:
+                        - kbve-prime
