@@ -2,10 +2,10 @@ defaultNamespace: armada
 
 helm:
     releases:
-        - name: armada-release
-          chart: ./shipyard
-          valuesFiles:
-              - shipyard/values.yaml
+        # - name: armada-release
+        #   chart: ./shipyard
+        #   valuesFiles:
+        #       - shipyard/values.yaml
 
         - name: sealed-secrets
           chart: sealed-secrets/sealed-secrets
