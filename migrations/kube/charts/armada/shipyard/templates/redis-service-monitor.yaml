@@ -1,7 +1,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-    name: redis-monitor
+    name: redis-armada-monitor
     namespace: cattle-monitoring-system
     labels:
         release: prometheus-operator

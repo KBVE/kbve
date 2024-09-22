@@ -26,3 +26,8 @@ Now that I am looking back at the issue, it might be within the realm of the con
 Let us go ahead with updating that part and see if it deploys!
 A decent chunk of these errors are just because of a bit of mismatch with the type of older docker swarm stacks and the latest charts.
 I believe this will start to get even more complex once we start to import more 3rd party charts.
+
+**Redis**
+
+Our goal for now is to make sure that the data for the redis instance will be displayed inside of the native grafana.
+Changing the `name` to `name: redis-armada-monitor` so that it be eaiser to double check the logs.
