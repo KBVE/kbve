@@ -9,6 +9,7 @@ spec:
     selector:
         matchLabels:
             app.kubernetes.io/name: redis
+            app.kubernetes.io/component: metrics
     endpoints:
         - port: http-metrics
           interval: 30s
