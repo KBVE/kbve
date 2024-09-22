@@ -4,8 +4,3 @@ helm:
     releaseName: armada-release
     valuesFiles:
         - shipyard/values.yaml
-spec:
-    resources:
-        - ./shipyard/secrets/
-        - ./shipyard/monitor/
-        - ./shipyard/configmap/
