@@ -36,6 +36,14 @@ redis:
         replicaCount: 1
     metrics:
         enabled: true
+        extraArgs:
+            - --redis.password=$(REDIS_PASSWORD)
+        env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                      name: redis-auth
+                      key: redis-password
         serviceMonitor:
             enabled: true
             namespace: cattle-monitoring-system
