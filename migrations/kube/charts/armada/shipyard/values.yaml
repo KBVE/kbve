@@ -29,8 +29,13 @@ redis:
     fullnameOverride: redis
     architecture: standalone
     auth:
-        enabled: false
+        enabled: true
         existingSecret: redis-auth
         passwordKey: redis-password     
     replica:
         replicaCount: 1
+    exporter:
+        enabled: true
+        serviceMonitor:
+            enabled: true
+            namespace: cattle-monitoring-system

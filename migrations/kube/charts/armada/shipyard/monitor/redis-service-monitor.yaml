@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: redis-monitor
+    namespace: cattle-monitoring-system
+    labels:
+        release: prometheus-operator
+spec:
+    selector:
+        matchLabels:
+            app: redis
+    endpoints:
+        - port: redis-exporter
+          interval: 30s
+    namespaceSelector:
+        matchNames:
+            - armada
