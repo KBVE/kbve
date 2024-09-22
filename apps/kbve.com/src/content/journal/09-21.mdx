@@ -40,7 +40,14 @@ kubeseal --controller-name=sealed-secrets --controller-namespace=armada < redis-
 ```
 
 Okay so we added the sealed redis secret to the repo and now we will deploy it and see what happens!
+Great! Looks like the secret was applied without any major issues.
+Noo! I forgot to set the enable flag for the redis auth and now its failing to authenticate, damn it.
 
+**Grafana**
+
+Updating the armada fleet so that the redis instance can export its data into grafana.
+The goal would be to test case the ability to communicate between our grafana's visual charts and our redis instance while doing everything through the fleet gitops.
+If everything goes as planned, then we can extend it out later on with the supabase information as well, thus have a central chart for everything we run.
 
 **RAW**
 
