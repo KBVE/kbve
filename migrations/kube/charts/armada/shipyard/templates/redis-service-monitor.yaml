@@ -9,11 +9,17 @@ spec:
     selector:
         matchLabels:
             app.kubernetes.io/name: redis
-            app.kubernetes.io/component: metrics
-            app.kubernetes.io/instance: armada-release
     endpoints:
         - port: http-metrics
           interval: 30s
     namespaceSelector:
         matchNames:
             - armada
+    relabel_configs:
+        - source_labels:
+              - __meta_kubernetes_service_label_app_kubernetes_io_component
+              - __meta_kubernetes_service_labelpresent_app_kubernetes_io_component
+          separator: ;
+          regex: (master|metrics);true
+          replacement: $1
+          action: keep
