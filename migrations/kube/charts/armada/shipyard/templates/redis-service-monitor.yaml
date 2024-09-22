@@ -8,7 +8,7 @@ metadata:
 spec:
     selector:
         matchLabels:
-            app: redis
+            app.kubernetes.io/name: redis
     endpoints:
         - port: redis-exporter
           interval: 30s
