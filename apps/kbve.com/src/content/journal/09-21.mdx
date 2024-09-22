@@ -22,6 +22,33 @@ I am going to go back and try a completely different approach with setting up th
 This might work out better in the long term but we still need to add the kustomize!
 For that part of the requirement, I will come back around after it is deployed and replicated and make a `base`, `dev`, `prod`, ect...
 
+Yes! We finally were able to get the redis and the sealed secrets to be deployed, so it seems that using the dependency style is the way to go.
+This means that we can start to add external charts into our main armada chart.yaml and deploy them directly into our cluster.
+
+Now the next test case would be to deploy the sealed secret for redis and then apply it directly to our redis cluster.
+This is with the `secrets` folder and a yaml for each of the secret that we need to add into the cluster.
+
+From my understanding, the first step would be communicating with the seal, passing through the secret and getting back the signature?
+After we get the signature, we would then setup another yaml within the armada repo for the gitops.
+I am going to save the base commands for this and see where we can go from there.
+
+```shell
+
+kubectl create secret generic redis-auth --from-literal=redis-password=<new-password> --namespace armada --dry-run=client -o yaml > redis-secret.yaml
+kubeseal --controller-name=sealed-secrets --controller-namespace=armada < redis-secret.yaml > sealed-redis-secret.yaml
+
+```
+
+Okay so we added the sealed redis secret to the repo and now we will deploy it and see what happens!
+Great! Looks like the secret was applied without any major issues.
+Noo! I forgot to set the enable flag for the redis auth and now its failing to authenticate, damn it.
+
+**Grafana**
+
+Updating the armada fleet so that the redis instance can export its data into grafana.
+The goal would be to test case the ability to communicate between our grafana's visual charts and our redis instance while doing everything through the fleet gitops.
+If everything goes as planned, then we can extend it out later on with the supabase information as well, thus have a central chart for everything we run.
+
 **RAW**
 
 Watching this horror flim called RAW, which is in french and so far its been great!

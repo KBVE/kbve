@@ -1,6 +1,6 @@
 defaultNamespace: armada
 helm:
-  chart: ./shipyard
-  releaseName: armada-release
-  valuesFiles:
-    - shipyard/values.yaml
+    chart: ./shipyard
+    releaseName: armada-release
+    valuesFiles:
+        - shipyard/values.yaml
