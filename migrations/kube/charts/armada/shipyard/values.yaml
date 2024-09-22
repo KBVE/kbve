@@ -1,0 +1,18 @@
+sealed-secrets:
+    fullnameOverride: sealed-secrets
+    replicaCount: 3
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+redis:
+    fullnameOverride: redis
+    architecture: standalone
+    auth:
+        enabled: false
+    replica:
+        replicaCount: 1
