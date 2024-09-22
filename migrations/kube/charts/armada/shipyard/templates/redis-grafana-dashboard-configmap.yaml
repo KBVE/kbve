@@ -816,7 +816,7 @@ data:
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{ db }} ",
+              "legendFormat": "DB",
               "refId": "A",
               "step": 240,
               "target": ""
@@ -1140,7 +1140,7 @@ data:
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{ cmd }}",
+              "legendFormat": "Redis Command",
               "metric": "redis_command_calls_total",
               "refId": "A",
               "step": 240
