@@ -30,5 +30,7 @@ redis:
     architecture: standalone
     auth:
         enabled: false
+        existingSecret: redis-auth
+        passwordKey: redis-password     
     replica:
         replicaCount: 1
