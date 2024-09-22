@@ -1,0 +1,34 @@
+sealed-secrets:
+    fullnameOverride: sealed-secrets
+    replicaCount: 3
+    secretName: sealed-secrets-key
+    clusterWide:
+        enabled: false
+    keyManagementService:
+        use: false
+    customResourceDefinitions:
+        create: true
+    serviceAccount:
+        create: true
+    tls:
+        enabled: true
+    securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+    keyRenewPeriod: '30d'
+    resources:
+        limits:
+            cpu: 100m
+            memory: 128Mi
+        requests:
+            cpu: 50m
+            memory: 64Mi
+
+redis:
+    fullnameOverride: redis
+    architecture: standalone
+    auth:
+        enabled: false
+    replica:
+        replicaCount: 1
