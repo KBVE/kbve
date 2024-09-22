@@ -4,3 +4,7 @@ helm:
   releaseName: armada-release
   valuesFiles:
     - shipyard/values.yaml
+paths:
+  - ./shipyard/secrets/
+  - ./shipyard/monitor/
+  - ./shipyard/configmap/
