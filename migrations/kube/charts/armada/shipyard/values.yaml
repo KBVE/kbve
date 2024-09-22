@@ -39,5 +39,13 @@ redis:
         serviceMonitor:
             enabled: true
             namespace: cattle-monitoring-system
+        extraArgs:
+            - --redis.password=$(REDIS_PASSWORD)
+        env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                      name: redis-auth
+                      key: redis-password
     redisLegendInput: 'Redis Input'
     redisLegendOutput: 'Redis Output'
