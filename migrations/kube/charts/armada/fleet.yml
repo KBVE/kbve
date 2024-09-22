@@ -1,10 +1,11 @@
 defaultNamespace: armada
 helm:
-  chart: ./shipyard
-  releaseName: armada-release
-  valuesFiles:
-    - shipyard/values.yaml
-paths:
-  - ./shipyard/secrets/
-  - ./shipyard/monitor/
-  - ./shipyard/configmap/
+    chart: ./shipyard
+    releaseName: armada-release
+    valuesFiles:
+        - shipyard/values.yaml
+spec:
+    resources:
+        - ./shipyard/secrets/
+        - ./shipyard/monitor/
+        - ./shipyard/configmap/
