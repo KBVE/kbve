@@ -22,3 +22,7 @@ I believe I need to add the paths to the additional folders, hopefully that shou
 Okay so we ended up just moving it into the templates folder, what a terrible waste of a night.
 Anyhow, next we need to adjust the redis labels so that the data gets exported out.
 The redis exporter also might need a password when its exporting out the data, so lets try to include that in this situation too.
+Now that I am looking back at the issue, it might be within the realm of the configuration of the exporter, since we are using bitnami charts, it might be under the metrics label.
+Let us go ahead with updating that part and see if it deploys!
+A decent chunk of these errors are just because of a bit of mismatch with the type of older docker swarm stacks and the latest charts.
+I believe this will start to get even more complex once we start to import more 3rd party charts.

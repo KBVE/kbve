@@ -9,8 +9,10 @@ spec:
     selector:
         matchLabels:
             app.kubernetes.io/name: redis
+            app.kubernetes.io/component: metrics
+            app.kubernetes.io/instance: armada-release
     endpoints:
-        - port: redis-exporter
+        - port: http-metrics
           interval: 30s
     namespaceSelector:
         matchNames:
