@@ -41,6 +41,7 @@ kubeseal --controller-name=sealed-secrets --controller-namespace=armada < redis-
 
 Okay so we added the sealed redis secret to the repo and now we will deploy it and see what happens!
 Great! Looks like the secret was applied without any major issues.
+Noo! I forgot to set the enable flag for the redis auth and now its failing to authenticate, damn it.
 
 **Grafana**
 
