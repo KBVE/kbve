@@ -37,7 +37,7 @@ redis:
     metrics:
         enabled: true
         extraArgs:
-            - --redis.password=$(REDIS_PASSWORD)
+            redis.password: '$(REDIS_PASSWORD)'
         env:
             - name: REDIS_PASSWORD
               valueFrom:
