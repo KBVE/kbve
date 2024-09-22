@@ -708,7 +708,7 @@ data:
               "expr": "rate(redis_net_input_bytes_total{instance=~\"$instance\"}[5m])",
               "format": "time_series",
               "intervalFactor": 2,
-              "legendFormat": "{{ input }}",
+              "legendFormat": "{{  .Values.redis.redisLegendInput }}",
               "refId": "A",
               "step": 240
             },
@@ -717,7 +717,7 @@ data:
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{ output }}",
+              "legendFormat": "{{ .Values.redis.redisLegendOutput }}",
               "refId": "B",
               "step": 240
             }
@@ -816,7 +816,7 @@ data:
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{ db }} ",
+              "legendFormat": "DB",
               "refId": "A",
               "step": 240,
               "target": ""
@@ -1140,7 +1140,7 @@ data:
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{ cmd }}",
+              "legendFormat": "Redis Command",
               "metric": "redis_command_calls_total",
               "refId": "A",
               "step": 240

@@ -31,7 +31,7 @@ redis:
     auth:
         enabled: true
         existingSecret: redis-auth
-        passwordKey: redis-password     
+        passwordKey: redis-password
     replica:
         replicaCount: 1
     exporter:
@@ -39,3 +39,5 @@ redis:
         serviceMonitor:
             enabled: true
             namespace: cattle-monitoring-system
+    redisLegendInput: 'Redis Input'
+    redisLegendOutput: 'Redis Output'
