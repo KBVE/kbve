@@ -87,7 +87,7 @@ secret:
 # If so, make sure to adjust DB_HOST accordingly to point to the right database service.
 db:
   # Enable database provisioning
-  enabled: true
+  enabled: false
   image:
     repository: supabase/postgres
     pullPolicy: IfNotPresent
@@ -173,7 +173,7 @@ db:
 # Studio Application
 studio:
   # Enable studio provisioning
-  enabled: true
+  enabled: false
   image:
     repository: supabase/studio
     pullPolicy: IfNotPresent
@@ -349,7 +349,7 @@ auth:
 # Rest Service
 rest:
   # Enable postgrest provisioning
-  enabled: true
+  enabled: false
   image:
     repository: postgrest/postgrest
     pullPolicy: IfNotPresent
@@ -426,7 +426,7 @@ rest:
 # Realtime Service
 realtime:
   # Enable realtime provisioning
-  enabled: true
+  enabled: false
   image:
     repository: supabase/realtime
     pullPolicy: IfNotPresent
@@ -507,7 +507,7 @@ realtime:
 # Meta Service
 meta:
   # Enable meta provisioning
-  enabled: true
+  enabled: false
   image:
     repository: supabase/postgres-meta
     pullPolicy: IfNotPresent
@@ -1003,7 +1003,7 @@ vector:
 # Functions
 functions:
   # Enable functions provisioning
-  enabled: true
+  enabled: false
   image:
     repository: supabase/edge-runtime
     pullPolicy: IfNotPresent
