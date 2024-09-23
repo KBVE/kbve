@@ -24,6 +24,12 @@ Now we need to go back around and start to seal up more of the core secrets that
 For the sealed secrets, we want to start with the basic ones that we had built earlier from the docker swarm.
 The first step in this process will be to deploy out the roles!
 
+**Fleet**
+
+We will go ahead and delete the previous fleet deployment of `supabase` that we had and work on a new setup.
+This new fleet will include the n8n integration but none of the hqplan / atlas images for now!
+I believe for safety concerns, we will have those containers operate within their own closed system that we will be able to deploy through the supabase functions.
+
 **n8n**
 
 Adding the n8n chart will make our lives a bit easier to integrate and build around.
