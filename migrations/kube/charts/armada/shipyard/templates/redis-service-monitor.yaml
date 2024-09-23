@@ -7,30 +7,30 @@ metadata:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: prometheus-scrape
-  namespace: armada
 rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["monitoring.coreos.com"]
     resources: ["servicemonitors"]
     verbs: ["get", "list", "watch"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: prometheus-scrape-binding
-  namespace: armada
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: prometheus-scrape
 subjects:
   - kind: ServiceAccount
     name: redis-service-monitor
     namespace: armada
-
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
