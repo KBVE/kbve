@@ -47,5 +47,4 @@ redis:
         serviceMonitor:
             enabled: true
             namespace: cattle-monitoring-system
-    redisLegendInput: 'Redis Input'
-    redisLegendOutput: 'Redis Output'
+
