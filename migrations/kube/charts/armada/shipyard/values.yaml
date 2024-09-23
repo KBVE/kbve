@@ -38,6 +38,7 @@ redis:
         enabled: true
         extraArgs:
             redis.password: '$(REDIS_PASSWORD)'
+            redis.addr: redis-master:6379
         env:
             - name: REDIS_PASSWORD
               valueFrom:
