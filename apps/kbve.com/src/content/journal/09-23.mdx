@@ -23,6 +23,9 @@ We can wrap back around to usage and communication of that based redis for anoth
 Now we need to go back around and start to seal up more of the core secrets that we want to use.
 For the sealed secrets, we want to start with the basic ones that we had built earlier from the docker swarm.
 The first step in this process will be to deploy out the roles!
+To avoid a bunch of failure and cpu usage of repeated deployment attempts, I believe it would make sense to disable all additional service.
+We will focus on getting each of the core services up and running one at a time, with the kilobase fork of the database being the primary focus.
+The cnpg operator is currently installed outside of this fleet and it operates within its own namespace, but will it be able to communicate with our supabase namespace?
 
 **Fleet**
 
