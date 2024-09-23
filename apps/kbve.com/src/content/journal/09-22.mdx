@@ -38,6 +38,50 @@ Well the only way to find out is by continuing to mess around with the fleet, ke
 For the `redisLegendInput: 'Redis Input'` and `redisLegendOutput: 'Redis Output'`, I think it would make sense to just strip them out and move them directly into the configmap.
 Next maybe we can pass through the `redis.addr: redis-master:6379` into the env variables and see if that can help with the values.yaml?
 
+We know the metrics are running because we ran this command:
+
+```shell
+
+kubectl port-forward svc/redis-metrics 9121:9121 -n armada
+
+```
+
+**RBAC**
+
+Maybe the issue was not the redis or prom, but rather the rbac?
+Let us look at the options for adding them into the fleet stack.
+These are the base YAML configurations for the RBAC that we are looking at:
+
+```yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: armada
+  name: prometheus-scrape
+rules:
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors"]
+  verbs: ["get", "list", "watch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-scrape-binding
+  namespace: armada
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prometheus-scrape
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: cattle-monitoring-system
+
+```
+
 <Adsense />
 
 ## 2023
