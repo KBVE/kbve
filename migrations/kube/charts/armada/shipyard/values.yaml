@@ -38,7 +38,7 @@ redis:
         enabled: true
         extraArgs:
             redis.password: '$(REDIS_PASSWORD)'
-            redis.addr: redis-master:6379
+            # redis.addr: redis-master:6379
         env:
             - name: REDIS_PASSWORD
               valueFrom:
@@ -47,8 +47,8 @@ redis:
                       key: redis-password
         serviceMonitor:
             enabled: true
-            namespace: cattle-monitoring-system
-            additionalLabels:
-                app.kubernetes.io/name: redis
-                app.kubernetes.io/component: metrics
-                app.kubernetes.io/instance: armada-release
+            namespace: armada
+            # additionalLabels:
+            #     app.kubernetes.io/name: redis
+            #     app.kubernetes.io/component: metrics
+            #     app.kubernetes.io/instance: armada-release
