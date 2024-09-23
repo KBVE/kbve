@@ -48,7 +48,7 @@ redis:
         serviceMonitor:
             enabled: true
             namespace: cattle-monitoring-system
-        serviceLabels:
-            app.kubernetes.io/name: redis
-            app.kubernetes.io/component: metrics
-            app.kubernetes.io/instance: armada-release
+            additionalLabels:
+                app.kubernetes.io/name: redis
+                app.kubernetes.io/component: metrics
+                app.kubernetes.io/instance: armada-release
