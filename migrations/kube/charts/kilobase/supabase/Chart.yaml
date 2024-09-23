@@ -4,7 +4,3 @@ description: The open source stack built ontop of Supabase, based upon Supabase-
 type: application
 version: 0.0.2
 icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
-dependencies:
-    - name: n8n
-      version: 0.25.2
-      repository: 'https://github.com/8gears/n8n-helm-chart/releases/download/0.25.2/n8n-0.25.2.tgz'
