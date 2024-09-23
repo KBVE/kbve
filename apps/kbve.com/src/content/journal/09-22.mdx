@@ -36,7 +36,7 @@ The next update will be around `redis-service-monitor.yaml`, I believe the issue
 Well the only way to find out is by continuing to mess around with the fleet, keep-on learning!
 
 For the `redisLegendInput: 'Redis Input'` and `redisLegendOutput: 'Redis Output'`, I think it would make sense to just strip them out and move them directly into the configmap.
-
+Next maybe we can pass through the `redis.addr: redis-master:6379` into the env variables and see if that can help with the values.yaml?
 
 <Adsense />
 
