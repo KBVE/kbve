@@ -1,0 +1,31 @@
+---
+title: 'September: 23rd'
+category: Daily
+date: 2024-09-23 12:00:00
+client: Self
+unsplash: 1694191711762-6ed1400d7b86
+img: https://images.unsplash.com/photo-1694191711762-6ed1400d7b86?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 23rd. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**KILO**
+
+Time to launch the big bad wolf!
+I believe the Armada instance is good to go for now, with the sealed operator and the base internal redis.
+We can wrap back around to usage and communication of that based redis for another project but for now, we can look at launching the kilobase instance.
+
+Now we need to go back around and start to seal up more of the core secrets that we want to use.
+For the sealed secrets, we want to start with the basic ones that we had built earlier from the docker swarm.
+The first step in this process will be to deploy out the roles!
+
+**n8n**
+
+Adding the n8n chart will make our lives a bit easier to integrate and build around.
+Now a bit of a crazier thing that we will be doing is directly having the n8n database integrate with our supabase postgres database.
+The logic isnt too sound behind this decision but I have a couple cool concepts that I want to explore, including expanding the rust extension for Postgres to utilize the n8n.

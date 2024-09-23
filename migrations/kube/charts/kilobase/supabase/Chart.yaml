@@ -4,3 +4,7 @@ description: The open source stack built ontop of Supabase, based upon Supabase-
 type: application
 version: 0.0.1
 icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
+dependencies:
+    - name: n8n
+      version: 0.25.2
+      repository: oci://8gears.container-registry.com/library/n8n
