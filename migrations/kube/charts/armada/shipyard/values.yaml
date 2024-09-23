@@ -36,8 +36,19 @@ redis:
         replicaCount: 1
     metrics:
         enabled: true
+        extraArgs:
+            redis.password: '$(REDIS_PASSWORD)'
+            # redis.addr: redis-master:6379
+        env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                      name: redis-auth
+                      key: redis-password
         serviceMonitor:
             enabled: true
-            namespace: cattle-monitoring-system
-    redisLegendInput: 'Redis Input'
-    redisLegendOutput: 'Redis Output'
+            namespace: armada
+            # additionalLabels:
+            #     app.kubernetes.io/name: redis
+            #     app.kubernetes.io/component: metrics
+            #     app.kubernetes.io/instance: armada-release
