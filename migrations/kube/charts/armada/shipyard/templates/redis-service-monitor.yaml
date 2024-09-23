@@ -1,7 +1,41 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: redis-service-monitor
+  namespace: armada
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-scrape
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["servicemonitors"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-scrape-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-scrape
+subjects:
+  - kind: ServiceAccount
+    name: redis-service-monitor
+    namespace: armada
+---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-    name: redis-monitor
+    name: redis-armada-monitor
     namespace: cattle-monitoring-system
     labels:
         release: prometheus-operator
@@ -9,9 +43,12 @@ spec:
     selector:
         matchLabels:
             app.kubernetes.io/name: redis
+            app.kubernetes.io/component: metrics
+            app.kubernetes.io/instance: armada-release
     endpoints:
-        - port: redis-exporter
+        - port: http-metrics
           interval: 30s
+          path: /metrics
     namespaceSelector:
         matchNames:
             - armada
