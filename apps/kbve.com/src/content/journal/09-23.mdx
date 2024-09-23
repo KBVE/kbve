@@ -23,6 +23,9 @@ We can wrap back around to usage and communication of that based redis for anoth
 Now we need to go back around and start to seal up more of the core secrets that we want to use.
 For the sealed secrets, we want to start with the basic ones that we had built earlier from the docker swarm.
 The first step in this process will be to deploy out the roles!
+To avoid a bunch of failure and cpu usage of repeated deployment attempts, I believe it would make sense to disable all additional service.
+We will focus on getting each of the core services up and running one at a time, with the kilobase fork of the database being the primary focus.
+The cnpg operator is currently installed outside of this fleet and it operates within its own namespace, but will it be able to communicate with our supabase namespace?
 
 **Fleet**
 
@@ -35,3 +38,4 @@ I believe for safety concerns, we will have those containers operate within thei
 Adding the n8n chart will make our lives a bit easier to integrate and build around.
 Now a bit of a crazier thing that we will be doing is directly having the n8n database integrate with our supabase postgres database.
 The logic isnt too sound behind this decision but I have a couple cool concepts that I want to explore, including expanding the rust extension for Postgres to utilize the n8n.
+Actually the errors that we are getting for this chart is starting to get a bit annoying, so we are going back off on it for now.
