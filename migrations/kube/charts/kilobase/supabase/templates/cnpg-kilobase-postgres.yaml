@@ -11,31 +11,6 @@ spec:
   imagePullPolicy: {{ .Values.db.image.pullPolicy }}
   postgresUID: 101
   postgresGID: 102
-  # This template is based upon @jniclas's jniclas/supabase-cloudnativedb template, just needs a bit more tweaking.
-  # I tried a bit with pg_hba and pg_init, but not sure if it actually worked, but now its not needed, but I keep it commented
-  # postgresql:
-    # parameters:
-    #   ident_file: /postgresconf/pg_ident.conf
-    # pg_hba:
-    #   - local all  supabase_admin      scram-sha-256
-    #   - local all  all                 peer map=supabase_map
-    #   - host  all  all  127.0.0.1/32   trust
-    #   - host  all  all  ::1/128        trust
-    #   - host  all  all  10.0.0.0/8     scram-sha-256
-    #   - host  all  all  172.16.0.0/12  scram-sha-256
-    #   - host  all  all  192.168.0.0/16 scram-sha-256
-    #   - host  all  all  0.0.0.0/0      scram-sha-256
-    
-    # pg_ident:
-    #   # MAPNAME       SYSTEM-USERNAME         PG-USERNAME
-    #   - supabase_map  postgres   postgres
-    #   - supabase_map  root       postgres
-    #   - supabase_map  ubuntu     postgres
-
-    #   # supabase-specific users
-    #   - supabase_map  gotrue     supabase_auth_admin
-    #   - supabase_map  postgrest  authenticator
-    #   - supabase_map  adminapi   postgres
   resources: 
     limits:
       memory: 1Gi
@@ -47,8 +22,20 @@ spec:
     size: 2Gi
     storageClass: {{ .Values.db.storage.storageClassName }}
   monitoring:
-    enablePodMonitor: false
+    enablePodMonitor: true
   enableSuperuserAccess: true
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://kilobase/barman/backup
+      s3Credentials:
+        accessKeyId:
+          name: {{ .Values.secret.s3.secretRef }}
+          key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
+        secretAccessKey:
+          name: {{ .Values.secret.s3.secretRef }}
+          key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
+      wal:
+        compression: gzip
   bootstrap:
     initdb:
       database: app

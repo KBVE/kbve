@@ -30,6 +30,24 @@ In this case, we will do both and see where it goes from now, going to push out 
 - 3:19am
 
 There seems to be a mismatch between the usermod for the postgres, so I am going back and switching it back to the way that Supabase had it, which was 101 for postgres.
+We will bump it up to version `15.1.2` but still release it under `15.1`, but I wonder if that will cause problems, hmm.
+Lets bump up the chart version too, maybe that will help with the current situation.
+
+- 4:42am
+
+Progress has been made, we were able to get the initial databases up and running, but there is still some issues with the other functions unable to connect.
+Going to have go back around and updated all the `DB_HOST` values to be our kubernetes value.
+
+- 4:57am
+
+The function container aka edge container seems to be throwing an error because of the read-only file system, so let us go ahead and update it so that it can write the cache.
+Under its `values.yaml`, we will go ahead and update the function setting, `readOnlyRootFilesystem: false`, which should now let us write.
+One error after another, lets get this going, going to do it for all of them.
+The other idea would be to just fork each of the images that supabase has and make the file changes we want, then publish them as our own images.
+This way we can then force them to be read-only, but that will be way later on in the system.
+Getting closer to the goal, with 35/41 resources running.
+
+Updated the configmap with everything else we might need! Lets hope that it will solve our issue and get this baby closer to operational.
 
 **Worker**
 
