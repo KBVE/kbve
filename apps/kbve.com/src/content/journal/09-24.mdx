@@ -1,0 +1,39 @@
+---
+title: 'September: 24th'
+category: Daily
+date: 2024-09-24 12:00:00
+client: Self
+unsplash: 1692387164064-5678bd9f1ff3
+img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 24th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Kilobase**
+
+Already 2am, oh man, the time seems to fly when trouble shooting through kubernetes.
+The goal will be to get the majority of the postgres operational but there are a room full of errors that we need to resolve on the side.
+The kong settings need to be adjusted a bit for the wrapper.sh and the functions, which I will start while waiting for the build to move forward.
+
+- 2:26am
+
+The current error is that it wants to pull the `15.1` image of kilobase, but we released a specific image called `15.1.1`.
+Maybe the issue might be because of cache, regardless, going to go back and switich the pull to Always for now and then see where it goes from there.
+Actually, we could also update the image tag and make it publish with a `15.1` and the `15.1.1`.
+In this case, we will do both and see where it goes from now, going to push out this branch and create a new branch.
+
+- 3:19am
+
+There seems to be a mismatch between the usermod for the postgres, so I am going back and switching it back to the way that Supabase had it, which was 101 for postgres.
+
+**Worker**
+
+Expanded the worker5 sda3 to 50GB and now I am thinking of looping back around and expanding all the remaining VMs in the master series.
+Adding another 18Gb to each of the masters would help with the images that we are pulling and should give us a bit more room to be flexible.
+In the future, with our next worker6 and worker7, we can give them a decent bulk size but that will require some additional planning to pull off.
+We did a quick resize to all the 5 original nodes.

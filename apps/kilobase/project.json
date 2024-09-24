@@ -71,16 +71,17 @@
           "images": ["kbve/kilobase"],
           "load": true,
           "tags": [
-            "15.1.1"
+            "15.1.2",
+            "15.1"
           ]
         },
         "configurations": {
           "local": {
-            "tags": ["15.1.1"],
+            "tags": ["15.1.2", "15.1"],
             "push": false
           },
           "production": {
-            "tags": ["15.1.1"],
+            "tags": ["15.1.2", "15.1"],
             "push": true,
             "customBuildOptions": "--push",
             "cache-from": ["type=registry,ref=kbve/kilobase:buildcache"],
