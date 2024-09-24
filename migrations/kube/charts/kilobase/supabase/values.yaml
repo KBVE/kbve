@@ -38,7 +38,7 @@ db:
     image:
         repository: kbve/kilobase
         pullPolicy: IfNotPresent
-        tag: '15.1'
+        tag: '15.1.1'
     replicaCount: 2
     serviceAccount:
         create: true
