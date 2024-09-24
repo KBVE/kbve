@@ -24,7 +24,9 @@ spec:
   monitoring:
     enablePodMonitor: true
   enableSuperuserAccess: true
-  environment:
+  superuserSecret:
+    name: supabase-secret-db
+  env:
     - name: JWT_SECRET
       valueFrom:
         secretKeyRef:
