@@ -26,3 +26,14 @@ The current error is that it wants to pull the `15.1` image of kilobase, but we 
 Maybe the issue might be because of cache, regardless, going to go back and switich the pull to Always for now and then see where it goes from there.
 Actually, we could also update the image tag and make it publish with a `15.1` and the `15.1.1`.
 In this case, we will do both and see where it goes from now, going to push out this branch and create a new branch.
+
+- 3:19am
+
+There seems to be a mismatch between the usermod for the postgres, so I am going back and switching it back to the way that Supabase had it, which was 101 for postgres.
+
+**Worker**
+
+Expanded the worker5 sda3 to 50GB and now I am thinking of looping back around and expanding all the remaining VMs in the master series.
+Adding another 18Gb to each of the masters would help with the images that we are pulling and should give us a bit more room to be flexible.
+In the future, with our next worker6 and worker7, we can give them a decent bulk size but that will require some additional planning to pull off.
+We did a quick resize to all the 5 original nodes.

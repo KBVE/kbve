@@ -97,5 +97,5 @@ RUN set -xe; \
 		libsnappy-dev; \
 	rm -rf /var/lib/apt/lists/*
 
-RUN usermod -u 26 postgres
-USER 26
+RUN usermod -u 101 postgres
+USER 101
