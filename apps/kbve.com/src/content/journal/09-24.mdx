@@ -19,3 +19,10 @@ import { Adsense, Tasks } from '@kbve/astropad';
 Already 2am, oh man, the time seems to fly when trouble shooting through kubernetes.
 The goal will be to get the majority of the postgres operational but there are a room full of errors that we need to resolve on the side.
 The kong settings need to be adjusted a bit for the wrapper.sh and the functions, which I will start while waiting for the build to move forward.
+
+- 2:26am
+
+The current error is that it wants to pull the `15.1` image of kilobase, but we released a specific image called `15.1.1`.
+Maybe the issue might be because of cache, regardless, going to go back and switich the pull to Always for now and then see where it goes from there.
+Actually, we could also update the image tag and make it publish with a `15.1` and the `15.1.1`.
+In this case, we will do both and see where it goes from now, going to push out this branch and create a new branch.
