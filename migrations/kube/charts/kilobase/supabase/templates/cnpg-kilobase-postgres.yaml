@@ -1,0 +1,60 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "supabase.db.fullname" . }}
+  labels:
+    {{- include "supabase.labels" . | nindent 4 }}
+spec:
+  instances: 2
+  primaryUpdateStrategy: unsupervised
+  imageName: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag | default .Chart.AppVersion }}"
+  imagePullPolicy: {{ .Values.db.image.pullPolicy }}
+  postgresUID: 101
+  postgresGID: 102
+  # I tried a bit with pg_hba and pg_init, but not sure if it actually worked, but now its not needed, but I keep it commented
+  # postgresql:
+    # parameters:
+    #   ident_file: /postgresconf/pg_ident.conf
+    # pg_hba:
+    #   - local all  supabase_admin      scram-sha-256
+    #   - local all  all                 peer map=supabase_map
+    #   - host  all  all  127.0.0.1/32   trust
+    #   - host  all  all  ::1/128        trust
+    #   - host  all  all  10.0.0.0/8     scram-sha-256
+    #   - host  all  all  172.16.0.0/12  scram-sha-256
+    #   - host  all  all  192.168.0.0/16 scram-sha-256
+    #   - host  all  all  0.0.0.0/0      scram-sha-256
+    
+    # pg_ident:
+    #   # MAPNAME       SYSTEM-USERNAME         PG-USERNAME
+    #   - supabase_map  postgres   postgres
+    #   - supabase_map  root       postgres
+    #   - supabase_map  ubuntu     postgres
+
+    #   # supabase-specific users
+    #   - supabase_map  gotrue     supabase_auth_admin
+    #   - supabase_map  postgrest  authenticator
+    #   - supabase_map  adminapi   postgres
+  resources: 
+    limits:
+      memory: 1Gi
+      cpu: 1
+    requests:
+      memory: 1Gi
+      cpu: 1
+  storage:
+    size: 2Gi
+    storageClass: {{ .Values.db.storage.storageClassName }}
+  monitoring:
+    enablePodMonitor: false
+  enableSuperuserAccess: true
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      dataChecksums: true
+      encoding: 'UTF8'
+      postInitApplicationSQLRefs:
+        configMapRefs:
+        - name: {{ include "supabase.db.fullname" . }}-init
+          key: configmap.sql
