@@ -41,6 +41,29 @@ Now a bit of a crazier thing that we will be doing is directly having the n8n da
 The logic isnt too sound behind this decision but I have a couple cool concepts that I want to explore, including expanding the rust extension for Postgres to utilize the n8n.
 Actually the errors that we are getting for this chart is starting to get a bit annoying, so we are going back off on it for now.
 
+**Seal**
+
+Now the fun of encrpyting all the secrets in bulk, then preparing to deploy them into the kilobase release.
+We will use the command that we made earlier for armada. 
+
+```shell
+
+kubectl create secret generic supabase-secret-jwt --from-literal=redis-password=<new-password> --namespace supabase --dry-run=client -o yaml > temp-secret.yaml
+kubeseal --controller-name=sealed-secrets --controller-namespace=supabase < temp-secret.yaml > sealed-temp-secret.yaml
+
+```
+
+Instead of running this command multiple times, it would be wise to throw it all into a shell file for us to use.
+We should split it into functions then have a main function that runs those nested functions that we create.
+The first function would be to double check if the inputs are there, the second function should make sure that the commands kubectl and kubeseal are there.
+The thrid would handle the kubectl dry run client and output the temp. The fourth function would handle the kubeseal and output the sealed-temp-secret.yaml
+The fifth function would cleanup the two files that get made, hmm sounds like a good plan for now.
+
+The sealed function will be in a new file called `generate-sealed-secret.sh`, which we will place inside of the `tools/scripts/public/kube/etc/` folder.
+For building out this function, I will just ask gpt to do the core of the function, then make changes to fit my needs!
+Once the shell script works in the way that I like, I will extend the shell script into the nx run commands too, making it a bit easier to utilize in the future.
+
+
 ## 2023
 - 6:35am - The mornings are getting cold, yes! No more ac and I can finally blast some of my PCs to max! Using my computers as a source of heat will always be OP.
 - 7:00pm - I forgot to convert over my written notes to digital! I been trying to figure out the phaser engine for a bit and getting some luck in resolving some of the basic issues.

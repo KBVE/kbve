@@ -248,7 +248,7 @@ studio:
 # Auth Service
 auth:
   # Enable auth provisioning
-  enabled: true
+  enabled: false
   image:
     repository: supabase/gotrue
     pullPolicy: IfNotPresent
@@ -582,7 +582,7 @@ meta:
 # Storage Service
 storage:
   # Enable storage provisioning
-  enabled: true
+  enabled: false
   image:
     repository: supabase/storage-api
     pullPolicy: IfNotPresent
@@ -677,7 +677,7 @@ storage:
 # imgproxy
 imgproxy:
   # Enable imgproxy provisioning
-  enabled: true
+  enabled: false
   image:
     repository: darthsim/imgproxy
     pullPolicy: IfNotPresent
@@ -757,7 +757,7 @@ imgproxy:
 # Kong
 kong:
   # Enable kong provisioning
-  enabled: true
+  enabled: false
   image:
     repository: kong
     pullPolicy: IfNotPresent
@@ -852,7 +852,7 @@ kong:
 # Analytics
 analytics:
   # Enable analytics provisioning
-  enabled: true
+  enabled: false
   image:
     repository: supabase/logflare
     pullPolicy: IfNotPresent
@@ -936,7 +936,7 @@ analytics:
 # Vector
 vector:
   # Enable vector provisioning
-  enabled: true
+  enabled: false
   image:
     repository: timberio/vector
     pullPolicy: IfNotPresent
