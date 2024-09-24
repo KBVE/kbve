@@ -12,18 +12,18 @@ data:
     ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :jwt_secret;
     ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :jwt_exp;
   99-logs.sql: |
-    \set pguser `echo "$POSTGRES_USER"`
+    \set pguser `echo "$PGUSER"`
 
     create schema if not exists _analytics;
     alter schema _analytics owner to :pguser;
   99-realtime.sql: |
-    \set pguser `echo "$POSTGRES_USER"`
+    \set pguser `echo "$PGUSER"`
 
     create schema if not exists _realtime;
     alter schema _realtime owner to :pguser;
   99-roles.sql: |
     -- NOTE: change to your own passwords for production environments
-    \set pgpass `echo "$POSTGRES_PASSWORD"`
+    \set pgpass `echo "$PGPASS"`
 
     ALTER USER authenticator WITH PASSWORD :'pgpass';
     ALTER USER pgbouncer WITH PASSWORD :'pgpass';
