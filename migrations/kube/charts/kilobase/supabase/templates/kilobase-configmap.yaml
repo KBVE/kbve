@@ -1395,7 +1395,7 @@ data:
 
     -- migrate:up 99-jwt.sql
     \set jwt_secret  {{ .Values.secret.jwt.secretRefKey.secret | quote }}
-    \set jwt_exp {{ .Values.environment.JWT_EXP | default "7200" | quote }}
+    \set jwt_exp {{ .Values.db.environment.JWT_EXP | default "3600" | quote }}
 
     ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :jwt_secret;
     ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :jwt_exp;
