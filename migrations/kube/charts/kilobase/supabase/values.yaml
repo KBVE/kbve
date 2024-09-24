@@ -37,7 +37,7 @@ db:
     userName: postgres
     image:
         repository: kbve/kilobase
-        pullPolicy: IfNotPresent
+        pullPolicy: Always
         tag: '15.1.2'
     replicaCount: 2
     serviceAccount:
