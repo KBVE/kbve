@@ -35,15 +35,16 @@ create_temp_secret() {
 
 seal_secret() {
   SEALED_SECRET_YAML="sealed-temp-secret.yaml"
-  kubeseal --controller-name=sealed-secrets --controller-namespace=$NAMESPACE < $TEMP_SECRET_YAML > $SEALED_SECRET_YAML
+  kubeseal --controller-name=sealed-secrets --controller-namespace=armada < $TEMP_SECRET_YAML > $SEALED_SECRET_YAML
 
   echo "Sealed secret created: $SEALED_SECRET_YAML"
 }
 
 cleanup_temp_files() {
-  rm -f $TEMP_SECRET_YAML
-  rm -f $SEALED_SECRET_YAML
-  echo "Temporary files cleaned up."
+    cat $SEALED_SECRET_YAML
+    rm -f $TEMP_SECRET_YAML
+    rm -f $SEALED_SECRET_YAML
+    echo "Temporary files cleaned up."
 }
 
 main() {
