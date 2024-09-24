@@ -11,6 +11,7 @@ spec:
   imagePullPolicy: {{ .Values.db.image.pullPolicy }}
   postgresUID: 101
   postgresGID: 102
+  # This template is based upon @jniclas's jniclas/supabase-cloudnativedb template, just needs a bit more tweaking.
   # I tried a bit with pg_hba and pg_init, but not sure if it actually worked, but now its not needed, but I keep it commented
   # postgresql:
     # parameters:

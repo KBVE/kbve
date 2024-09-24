@@ -56,7 +56,8 @@ db:
         # POSTGRES_SSL_KEY: /path/to/ssl/server.key
     persistence:
         enabled: false
-        storageClassName: 'longhorn-postgres-replica-storage'
+    storage:
+        storageClassName: 'longhorn'
         annotations:
             helm.sh/resource-policy: 'keep'
         size: 8Gi
