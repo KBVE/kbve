@@ -68,3 +68,9 @@ We just need nvidia to come back into that $125 zone and we are officially print
 
 The biggest issue that we have is in the configmap for the post install, which I am thinking we could resolve with our own SQL statements afterwards.
 The current idea would be to isolate these additional sqls into their own configmap and then appy them afterward the main init.
+
+- 4:00pm
+
+It seems that the `$PGUSER` and the `$PGPASS` are reserved for the operator, so we have to remove those from the `env`.
+Thus we can switch back around and update the `kilobase-additional-sql-postgres` with references to those two variables, now I wonder if the `$JWT_SECRET` will still pass through.
+Going to delete the fleet that we just deployed and start the whole process again.

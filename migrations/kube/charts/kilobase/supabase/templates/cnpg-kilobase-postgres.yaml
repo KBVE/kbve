@@ -34,16 +34,6 @@ spec:
           key: secret
     - name: JWT_EXP
       value: "3600"
-    - name: PGUSER
-      valueFrom:
-        secretKeyRef:
-          name: supabase-secret-db
-          key: username
-    - name: PGPASS
-      valueFrom:
-        secretKeyRef:
-          name: supabase-secret-db
-          key: password
   backup:
     barmanObjectStore:
       destinationPath: s3://kilobase/barman/backup
