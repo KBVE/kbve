@@ -74,3 +74,13 @@ The current idea would be to isolate these additional sqls into their own config
 It seems that the `$PGUSER` and the `$PGPASS` are reserved for the operator, so we have to remove those from the `env`.
 Thus we can switch back around and update the `kilobase-additional-sql-postgres` with references to those two variables, now I wonder if the `$JWT_SECRET` will still pass through.
 Going to delete the fleet that we just deployed and start the whole process again.
+
+**Meta**
+
+The meta data issue that I am facing is:
+
+Failed to create resource: admission webhook "vcluster.cnpg.io" denied the request: 
+Cluster.postgresql.cnpg.io "kilobase-migrations-kube-charts-kilobase-supabase-supabase-db" is invalid:
+metadata.name: Invalid value: "kilobase-migrations-kube-charts-kilobase-supabase-supabase-db": the maximum length of a cluster name is 50 characters
+
+We could try to scale some of the names back to help with the deployment.
