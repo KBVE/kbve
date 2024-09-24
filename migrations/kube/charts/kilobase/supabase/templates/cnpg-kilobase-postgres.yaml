@@ -47,8 +47,20 @@ spec:
     size: 2Gi
     storageClass: {{ .Values.db.storage.storageClassName }}
   monitoring:
-    enablePodMonitor: false
+    enablePodMonitor: true
   enableSuperuserAccess: true
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://kilobase/barman/backup
+      s3Credentials:
+        accessKeyId:
+          name: {{ .Values.secret.s3.secretRef }}
+          key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
+        secretAccessKey:
+          name: {{ .Values.secret.s3.secretRef }}
+          key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
+      wal:
+        compression: gzip
   bootstrap:
     initdb:
       database: app
