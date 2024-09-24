@@ -1394,34 +1394,32 @@ data:
     -- migrate:down
 
     -- migrate:up 99-jwt.sql
-    ALTER DATABASE postgres SET "app.settings.jwt_secret" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';
-    ALTER DATABASE postgres SET "app.settings.jwt_exp" TO '{{ .Values.db.environment.JWT_EXP | default 3600 }}';
+    ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :'jwt_secret';
+    ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :'jwt_exp';
 
     -- migrate:down
 
     -- migrate:up 99-logs.sql
     create schema if not exists _analytics;
-    alter schema _analytics owner to '{{ .Values.secret.db.secretRefKey.username}}';
+    alter schema _analytics owner to :'pguser';
 
     -- migrate:down
 
     -- migrate:up 99-realtime.sql
     create schema if not exists _realtime;
-    alter schema _realtime owner to '{{ .Values.secret.db.secretRefKey.username }}';
+    alter schema _realtime owner to :'pguser';
 
     -- migrate:down
 
     -- migrate:up 99-roles.sql
-    -- NOTE: change to your own passwords for production environments
-    ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
-    ALTER USER pgbouncer WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
-    ALTER USER supabase_auth_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
-    ALTER USER supabase_functions_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
-    ALTER USER supabase_storage_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
-
+    ALTER USER authenticator WITH PASSWORD :'pgpass';
+    ALTER USER pgbouncer WITH PASSWORD :'pgpass';
+    ALTER USER supabase_auth_admin WITH PASSWORD :'pgpass';
+    ALTER USER supabase_functions_admin WITH PASSWORD :'pgpass';
+    ALTER USER supabase_storage_admin WITH PASSWORD :'pgpass';
 
     -- migrate:down
-
+    
     -- migrateup 98-webhooks.sql
     BEGIN;
       -- Create pg_net extension
