@@ -93,7 +93,7 @@ studio:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -136,7 +136,7 @@ auth:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -205,7 +205,7 @@ rest:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -255,7 +255,7 @@ realtime:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -305,7 +305,7 @@ meta:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -354,7 +354,7 @@ storage:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -427,7 +427,7 @@ imgproxy:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -473,7 +473,7 @@ kong:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -543,7 +543,7 @@ analytics:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -599,7 +599,7 @@ vector:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -646,7 +646,7 @@ functions:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -690,7 +690,7 @@ minio:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:

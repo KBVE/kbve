@@ -38,6 +38,14 @@ Lets bump up the chart version too, maybe that will help with the current situat
 Progress has been made, we were able to get the initial databases up and running, but there is still some issues with the other functions unable to connect.
 Going to have go back around and updated all the `DB_HOST` values to be our kubernetes value.
 
+- 4:57am
+
+The function container aka edge container seems to be throwing an error because of the read-only file system, so let us go ahead and update it so that it can write the cache.
+Under its `values.yaml`, we will go ahead and update the function setting, `readOnlyRootFilesystem: false`, which should now let us write.
+One error after another, lets get this going, going to do it for all of them.
+The other idea would be to just fork each of the images that supabase has and make the file changes we want, then publish them as our own images.
+This way we can then force them to be read-only, but that will be way later on in the system.
+
 **Worker**
 
 Expanded the worker5 sda3 to 50GB and now I am thinking of looping back around and expanding all the remaining VMs in the master series.
