@@ -33,6 +33,11 @@ There seems to be a mismatch between the usermod for the postgres, so I am going
 We will bump it up to version `15.1.2` but still release it under `15.1`, but I wonder if that will cause problems, hmm.
 Lets bump up the chart version too, maybe that will help with the current situation.
 
+- 4:42am
+
+Progress has been made, we were able to get the initial databases up and running, but there is still some issues with the other functions unable to connect.
+Going to have go back around and updated all the `DB_HOST` values to be our kubernetes value.
+
 **Worker**
 
 Expanded the worker5 sda3 to 50GB and now I am thinking of looping back around and expanding all the remaining VMs in the master series.

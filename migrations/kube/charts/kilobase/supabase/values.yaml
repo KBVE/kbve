@@ -143,7 +143,7 @@ auth:
         type: ClusterIP
         port: 9999
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: supabase_auth_admin
         DB_PORT: 5432
         DB_DRIVER: postgres
@@ -212,7 +212,7 @@ rest:
         type: ClusterIP
         port: 3000
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: authenticator
         DB_PORT: 5432
         DB_DRIVER: postgres
@@ -262,7 +262,7 @@ realtime:
         type: ClusterIP
         port: 4000
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: supabase_admin
         DB_PORT: 5432
         DB_SSL: disable # disable, allow, prefer, require, verify-ca, verify-full
@@ -312,7 +312,7 @@ meta:
         type: ClusterIP
         port: 8080
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: supabase_admin
         DB_PORT: 5432
         DB_DRIVER: postgres
@@ -361,7 +361,7 @@ storage:
         type: ClusterIP
         port: 5000
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [ Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: supabase_storage_admin
         DB_PORT: 5432
         DB_DRIVER: postgres
@@ -551,7 +551,7 @@ analytics:
         port: 4000
     environment:
         LOGFLARE_NODE_HOST: 127.0.0.1
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local (Override the database hostname if using external database)
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USERNAME: supabase_admin
         DB_PORT: 5432
         DB_DRIVER: postgresql
@@ -653,7 +653,7 @@ functions:
         type: ClusterIP
         port: 9000
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USERNAME: supabase_functions_admin
         DB_PORT: 5432
         DB_DRIVER: postgresql
