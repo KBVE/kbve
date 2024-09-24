@@ -1401,26 +1401,27 @@ data:
 
     -- migrate:up 99-logs.sql
     create schema if not exists _analytics;
-    alter schema _analytics owner to '{{ .Values.secret.db.secretRefKey.username | quote }}';
+    alter schema _analytics owner to {{ .Values.secret.db.secretRefKey.username | quote }};
 
     -- migrate:down
 
     -- migrate:up 99-realtime.sql
     create schema if not exists _realtime;
-    alter schema _realtime owner to '{{ .Values.secret.db.secretRefKey.username | quote }}';
+    alter schema _realtime owner to {{ .Values.secret.db.secretRefKey.username | quote }};
 
     -- migrate:down
 
     -- migrate:up 99-roles.sql
     -- NOTE: change to your own passwords for production environments
-    ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password | quote }}';
-    ALTER USER pgbouncer WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password | quote }}';
-    ALTER USER supabase_auth_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password | quote }}';
-    ALTER USER supabase_functions_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password | quote }}';
-    ALTER USER supabase_storage_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password | quote }}';
+    ALTER USER authenticator WITH PASSWORD {{ .Values.secret.db.secretRefKey.password | quote }};
+    ALTER USER pgbouncer WITH PASSWORD {{ .Values.secret.db.secretRefKey.password | quote }};
+    ALTER USER supabase_auth_admin WITH PASSWORD {{ .Values.secret.db.secretRefKey.password | quote }};
+    ALTER USER supabase_functions_admin WITH PASSWORD {{ .Values.secret.db.secretRefKey.password | quote }};
+    ALTER USER supabase_storage_admin WITH PASSWORD {{ .Values.secret.db.secretRefKey.password | quote }};
+
 
     -- migrate:down
-    
+
     -- migrateup 98-webhooks.sql
     BEGIN;
       -- Create pg_net extension
