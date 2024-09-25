@@ -1,6 +1,6 @@
 [package]
 name = "kilobase"
-version = "15.1.5"
+version = "15.1.6"
 edition = "2021"
 
 [lib]
@@ -18,7 +18,7 @@ pg_test = []
 [dependencies]
 pgrx = "=0.12.3"
 jedi = { path = "../../packages/jedi" }
-reqwest = { version = "0.12", features = ["json", "blocking", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "blocking", "rustls-tls"] }
 tokio = { version = "1", features = ["full"] }
 serde = "1.0"
 thiserror = "1.0"
