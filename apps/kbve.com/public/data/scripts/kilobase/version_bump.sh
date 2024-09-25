@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Get the directory of the currently running script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../../" && pwd)"  # Root of the project
+
 # Function to read the current version from Cargo.toml
 read_current_version_from_cargo() {
     cargo_toml_path=$1
@@ -68,14 +72,26 @@ update_version_in_values_yaml() {
     fi
 }
 
+# Function to clean up backup files after successful version update
+cleanup_backups() {
+    local paths=("$@")
+
+    for path in "${paths[@]}"; do
+        if [ -f "${path}.bak" ]; then
+            rm -f "${path}.bak"
+            echo "Removed backup: ${path}.bak"
+        fi
+    done
+}
+
 # Main function to call other functions
 update_versions() {
     local new_version=$1
 
     # Define the paths to the files you want to update
-    local cargo_toml_path="/apps/kilobase/Cargo.toml"
-    local project_json_path="/apps/kilobase/project.json"
-    local values_yaml_path="/migrations/kube/charts/kilobase/supabase/values.yaml"
+    local cargo_toml_path="$PROJECT_ROOT/apps/kilobase/Cargo.toml"
+    local project_json_path="$PROJECT_ROOT/apps/kilobase/project.json"
+    local values_yaml_path="$PROJECT_ROOT/migrations/kube/charts/kilobase/supabase/values.yaml"
 
     # Update version in Cargo.toml
     update_version_in_cargo_toml "$new_version" "$cargo_toml_path"
@@ -85,6 +101,9 @@ update_versions() {
 
     # Update version in values.yaml
     update_version_in_values_yaml "$new_version" "$values_yaml_path"
+
+    # Clean up backup files
+    cleanup_backups "$cargo_toml_path" "$project_json_path" "$values_yaml_path"
 }
 
 # Entry point of the script
@@ -92,7 +111,7 @@ if [ $# -eq 0 ]; then
     echo "No version argument provided. Reading current version from Cargo.toml."
 
     # Path to the Cargo.toml file
-    cargo_toml_path="/apps/kilobase/Cargo.toml"
+    cargo_toml_path="$PROJECT_ROOT/apps/kilobase/Cargo.toml"
 
     # Read current version and increment it
     current_version=$(read_current_version_from_cargo "$cargo_toml_path")
