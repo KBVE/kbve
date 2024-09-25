@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# Function to read the current version from Cargo.toml
+read_current_version_from_cargo() {
+    cargo_toml_path=$1
+    current_version=$(grep -E '^version = "[0-9]+\.[0-9]+\.[0-9]+"' "$cargo_toml_path" | sed 's/version = "\(.*\)"/\1/')
+    echo "$current_version"
+}
+
+# Function to increment the version (bump the patch number)
+increment_version() {
+    version=$1
+    major=$(echo "$version" | cut -d '.' -f 1)
+    minor=$(echo "$version" | cut -d '.' -f 2)
+    patch=$(echo "$version" | cut -d '.' -f 3)
+
+    # Increment patch number
+    new_patch=$((patch + 1))
+
+    # Return the new version
+    echo "$major.$minor.$new_patch"
+}
+
 # Function to update the version in Cargo.toml
 update_version_in_cargo_toml() {
     local new_version=$1
@@ -20,8 +41,8 @@ update_version_in_project_json() {
     local new_version=$1
     local project_json_path=$2
 
-    # Use sed to replace the tags in the project.json
-    sed -i.bak "s/\"tags\": \[\".*\", \"15.1\"\]/\"tags\": [\"$new_version\", \"15.1\"]/" "$project_json_path"
+    # Use sed to replace the version tags, regardless of what the current version is
+    sed -i.bak "s/\"tags\": \[\"[0-9.]*\", \"[0-9.]*\"\]/\"tags\": [\"$new_version\", \"15.1\"]/" "$project_json_path"
 
     if [ $? -eq 0 ]; then
         echo "Version updated to $new_version in $project_json_path"
@@ -67,12 +88,21 @@ update_versions() {
 }
 
 # Entry point of the script
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <new_version>"
-    exit 1
-fi
+if [ $# -eq 0 ]; then
+    echo "No version argument provided. Reading current version from Cargo.toml."
 
-new_version=$1
+    # Path to the Cargo.toml file
+    cargo_toml_path="/apps/kilobase/Cargo.toml"
+
+    # Read current version and increment it
+    current_version=$(read_current_version_from_cargo "$cargo_toml_path")
+    new_version=$(increment_version "$current_version")
+
+    echo "Current version: $current_version. Bumping to: $new_version."
+else
+    new_version=$1
+    echo "Using provided version: $new_version."
+fi
 
 # Call the main function to update all versions
 update_versions "$new_version"
