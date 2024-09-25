@@ -48,8 +48,43 @@ Okay the shell script `version_bump.sh` handles this.
 
 Next error is in the misisng libc6, which I am assuming the linking was broken?
 Let us go ahead and add it into the Dockerfile and see if it helps solve that problem.
+Damn it, the error was not because of a linking problem but rather a mis-match in the operating system for building the extension on ubuntu-24 and running that so file in ubuntu-20.
+I been moving around different ubuntu versions and forgot that ubuntu-24 is definitely the wave. Ugh, here are the rest of the notes related to this.
+
+
+Okay there are two ways we can fix this issue, we can fix the action that runs the extension builder using `ubuntu-20.04` instead of `ubuntu-latest`?
+Or we can move the extension building back into the Dockerfile as we had it from the start, ugh, that means we need to make a couple adjustments to our overall build process.
+The first step in setting up the docker build would be to directly reference the `jedi` package via the crates rather than a local path.
+That would split the updating for the jedi package up a bit but for now it should be okay, I can sense the future problems that this might cause with our locks but all of this is part of the learning experience.
+
+We will shift the `Cargo.toml` from :
+
+```toml 
+
+jedi = { path = "../../packages/jedi" }
+# TO
+jedi = "0.1.14"
+
+```
+
+Actually decoupling the direct reference to `jedi` and maintaining the `jedi` workflow will be a better way for our future development cycles.
+
+Now this also means that we need to adjust the `Dockerfile` next, preparing the `STAGE 1` again for building out the kilobase extension.
+
+
+
+**NVDA**
+
+Ending up selling all the Nvidia call options and preparing to move some of the cash into CDs before the rates start to drop!
+This will be a good way to save some extra cash that I will have to pay the IRS anyhow, might as well have it sit and collect some interest before the start of 2025.
+So profits, about 50%, will be moved into a CD that should end right before April 2025, then we pay the IRS with that large sum, overpaying them and having them deposit back the excess cash into a T bill account.
+One of my goals would be to get around six figures in T Bill funds before the age of 40, this would be then used as an extra extra extra emergency fund for the future, granted the rate of return on the t bills are pretty trash but all of this is just part of that experience.
+
+
+<Adsense />
 
 ## 2023
+
 - 10:05am - I completely forgot about the work backlog, so I need to focus on catching up on that end. I will dedicate a couple hours to just getting myself ahead of the backlog? I could mix it in with the other backlogs, so that I do not get too bored of handling issue tickets. 
 - 11:17am - The storage of the meta engine should really be done on Amazon or some sort of external cloud provider, I found that the metadata being on AWS was the best option in this hybrid cluster setup. The future really seems to be a combination of a hybrid cloud, where a decent amount of the important meta-data would be stored in the cloud while the heavy functions and files are held within your own instance.  
 - 4:22pm - Scaling the YoRHa UI down to just around 400px~ and keeping it there for now. This way its mobile focused at first before I migrate it be desktop / landscape friendly. I might shift out of the UX/UI area of the widget and focus more on the backend and Appwrite integration for the time being. I suppose these notes are just for getting a better understanding from my end. 

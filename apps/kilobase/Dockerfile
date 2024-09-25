@@ -1,8 +1,26 @@
 ####################
 # Stage 1 - Kilobase Extension Builder
 ####################
-# FROM ubuntu:focal as kilobase
-# SKIPPING STAGE 1 - Using the CICD Pipeline to build the extension and then copying it over.
+FROM ubuntu:focal as kilobase
+ARG postgresql_major=15
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+# Install required dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gnupg \
+    ca-certificates \
+    wget \
+    build-essential \
+    clang \
+    libssl-dev \
+    pkg-config \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
 
 ####################
 # Stage 2 - Setup Postgres PPA
@@ -51,8 +69,8 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 # Stage 3.5: Skipping Stage 1 and copying over the <so> file directly from the ci-cd pipeline
 ####################
 
-COPY /usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
-COPY /usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+#COPY /usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
+#COPY /usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
 
 ####################
 # Stage 4: Setup Python 3.11
@@ -86,7 +104,7 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 ####################
 
 # Install libc6
-RUN apt-get update && apt-get install -y libc6
+# RUN apt-get update && apt-get install -y libc6
 
 # Create symlink if necessary
 # RUN ln -sf /lib/x86_64-linux-gnu/libc.so.6 /lib64/ld-linux-x86-64.so.2
