@@ -29,6 +29,11 @@ Hopefully the 15.6.x postgres image that Supabase plans to release or 16.x postg
 Looks like that the `shared_preload_libraries` did not infact load the pg_net, so we will have to go back around and fix that.
 Furthermore, we can also use this part to load the `kilobase` extension too, okay made some changes to the chart to include the extensions.
 
+**Kilobase Extension**
+
+Our custom extension did not seem to load and thus we need to go back and change the build.
+I believe this should be an easy issue to resolve because we need to remove the OpenSSL part of the
+
 ## 2023
 - 10:05am - I completely forgot about the work backlog, so I need to focus on catching up on that end. I will dedicate a couple hours to just getting myself ahead of the backlog? I could mix it in with the other backlogs, so that I do not get too bored of handling issue tickets. 
 - 11:17am - The storage of the meta engine should really be done on Amazon or some sort of external cloud provider, I found that the metadata being on AWS was the best option in this hybrid cluster setup. The future really seems to be a combination of a hybrid cloud, where a decent amount of the important meta-data would be stored in the cloud while the heavy functions and files are held within your own instance.  

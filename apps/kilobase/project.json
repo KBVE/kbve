@@ -5,6 +5,16 @@
   "sourceRoot": "apps/kilobase/src",
   "tags": [],
   "targets": {
+
+    
+    "local": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/kilobase",
+        "commands": ["cargo pgrx package --features pg15 --out-dir='../../dist/target/kilobase'"],
+        "parallel": false
+      }
+    },
     "build": {
       "executor": "nx:run-commands",
       "options": {
