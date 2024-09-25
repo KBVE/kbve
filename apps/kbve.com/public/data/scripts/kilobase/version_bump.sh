@@ -62,7 +62,7 @@ update_version_in_values_yaml() {
     local values_yaml_path=$2
 
     # Use sed to replace the tag under the db.image section only
-    sed -i.bak "/db:/,/image:/s/tag: '.*'/tag: '$new_version'/" "$values_yaml_path"
+    sed -i.bak -e '/db:/,/tag:/s/tag: .*/tag: '"'$new_version'"'/' "$values_yaml_path"
 
     if [ $? -eq 0 ]; then
         echo "Version updated to $new_version in $values_yaml_path"
@@ -71,6 +71,7 @@ update_version_in_values_yaml() {
         exit 1
     fi
 }
+
 
 # Function to clean up backup files after successful version update
 cleanup_backups() {
