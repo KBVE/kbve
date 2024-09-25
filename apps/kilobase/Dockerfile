@@ -75,11 +75,11 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 ####################
 
 # Install OpenSSL libraries
-RUN apt-get update && apt-get install -y \
-    libssl3 \
-    libssl-dev \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# RUN apt-get update && apt-get install -y \
+#     libssl3 \
+#     libssl-dev \
+#     && apt-get clean && \
+#     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ####################
 # Stage 6: Install Barman Cloud
