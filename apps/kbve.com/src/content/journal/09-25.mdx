@@ -32,7 +32,17 @@ Furthermore, we can also use this part to load the `kilobase` extension too, oka
 **Kilobase Extension**
 
 Our custom extension did not seem to load and thus we need to go back and change the build.
-I believe this should be an easy issue to resolve because we need to remove the OpenSSL part of the
+I believe this should be an easy issue to resolve because we need to remove the OpenSSL part of the reqwest client.
+Okay there was a small step that we skipped, which would be to bump the version control up, making sure that we are using the latest version.
+
+When doing the version bump, we need to edit a couple files and in the future we should have a shell script that would make these changes for us during a pull request.
+Maybe after an official image is published, have it go through and make changes to all the files.
+
+- "Cargo.toml" under /apps/kilobase/
+- "project.json" under /apps/kilobase/
+- "values.yaml" under the /migrations/kube/charts/kilobase/supabase/
+
+Keeping the kilobase version consistent across all three files will be important.
 
 ## 2023
 - 10:05am - I completely forgot about the work backlog, so I need to focus on catching up on that end. I will dedicate a couple hours to just getting myself ahead of the backlog? I could mix it in with the other backlogs, so that I do not get too bored of handling issue tickets. 
