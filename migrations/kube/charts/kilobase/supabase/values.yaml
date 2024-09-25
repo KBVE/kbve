@@ -38,7 +38,7 @@ db:
     image:
         repository: kbve/kilobase
         pullPolicy: Always
-        tag: '15.1.6'
+        tag: '15.1.7'
     replicaCount: 2
     serviceAccount:
         create: true

@@ -44,6 +44,11 @@ Maybe after an official image is published, have it go through and make changes 
 
 Keeping the kilobase version consistent across all three files will be important.
 
+Okay the shell script `version_bump.sh` handles this.
+
+Next error is in the misisng libc6, which I am assuming the linking was broken?
+Let us go ahead and add it into the Dockerfile and see if it helps solve that problem.
+
 ## 2023
 - 10:05am - I completely forgot about the work backlog, so I need to focus on catching up on that end. I will dedicate a couple hours to just getting myself ahead of the backlog? I could mix it in with the other backlogs, so that I do not get too bored of handling issue tickets. 
 - 11:17am - The storage of the meta engine should really be done on Amazon or some sort of external cloud provider, I found that the metadata being on AWS was the best option in this hybrid cluster setup. The future really seems to be a combination of a hybrid cloud, where a decent amount of the important meta-data would be stored in the cloud while the heavy functions and files are held within your own instance.  
