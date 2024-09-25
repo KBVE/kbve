@@ -5,11 +5,12 @@ use pgrx::prelude::*;
 // use pgrx::spi::SpiTupleTable;
 // use pgrx::spi::SpiError;
 // use pgrx::spi::SpiHeapTupleData;
-use reqwest::blocking::Client;
+// use reqwest::blocking::Client;
+use reqwest::Client;
+use reqwest::ClientBuilder;
+use tokio::runtime::Runtime;
 use std::time::Duration;
-use jedi::lazyregex::{
-  extract_url_from_regex_zero_copy
-};
+use jedi::lazyregex::{ extract_url_from_regex_zero_copy };
 use serde::{ Deserialize, Serialize };
 use ulid::Ulid;
 use base62;
@@ -62,7 +63,6 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
 
   log!("Starting KiloBase BG Worker");
 
-
   while BackgroundWorker::wait_latch(Some(Duration::from_secs(10))) {
     // Select a pending task
     match
@@ -74,7 +74,6 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
         //log!("Processing task with ID: {} and URL: {}", id, url);
         log!("Processing task with ID: {}", id);
         // Checking URL against regex.
-      
 
         // Update task status to 'processing'
         if
@@ -158,19 +157,45 @@ fn generate_base62_ulid() -> String {
 }
 
 // Function to make an HTTP request and return the result
-fn process_url(url: &str) -> Result<String, String> {
-  let client = Client::new();
+// fn process_url(url: &str) -> Result<String, String> {
+//   let client = Client::new();
 
-  // Make a blocking HTTP GET request
+//   // Make a blocking HTTP GET request
+//   let response = client
+//     .get(url)
+//     .send()
+//     .map_err(|e| format!("HTTP request failed: {}", e))?;
+
+//   if response.status().is_success() {
+//     let body = response.text().map_err(|e| format!("Failed to read response body: {}", e))?;
+//     Ok(body)
+//   } else {
+//     Err(format!("HTTP request returned non-200 status: {}", response.status()))
+//   }
+// }
+
+// Async function to make an HTTP request using reqwest with rustls and a custom timeout
+async fn process_url_async(url: &str) -> Result<String, String> {
+  let client = ClientBuilder::new()
+    .use_rustls_tls()
+    .timeout(Duration::from_secs(10))
+    .build()
+    .map_err(|e| format!("Failed to build client: {}", e))?;
+
   let response = client
     .get(url)
-    .send()
+    .send().await
     .map_err(|e| format!("HTTP request failed: {}", e))?;
 
   if response.status().is_success() {
-    let body = response.text().map_err(|e| format!("Failed to read response body: {}", e))?;
+    let body = response.text().await.map_err(|e| format!("Failed to read response body: {}", e))?;
     Ok(body)
   } else {
     Err(format!("HTTP request returned non-200 status: {}", response.status()))
   }
+}
+
+fn process_url(url: &str) -> Result<String, String> {
+  let rt = Runtime::new().unwrap();
+  rt.block_on(process_url_async(url))
 }
