@@ -16,7 +16,7 @@ spec:
       memory: 1Gi
       cpu: 1
     requests:
-      memory: 1Gi
+      memory: 1Gi 
       cpu: 1
   storage:
     size: 2Gi
@@ -24,6 +24,21 @@ spec:
   monitoring:
     enablePodMonitor: true
   enableSuperuserAccess: true
+  superuserSecret:
+    name: supabase-secret-db
+  postgresql:
+    shared_preload_libraries:
+      - pg_stat_statements
+      - pg_net
+      - kilobase
+  env:
+    - name: JWT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: supabase-secret-jwt
+          key: secret
+    - name: JWT_EXP
+      value: "3600"
   backup:
     barmanObjectStore:
       destinationPath: s3://kilobase/barman/backup
@@ -42,7 +57,12 @@ spec:
       owner: app
       dataChecksums: true
       encoding: 'UTF8'
+      postInitTemplateSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;
+        - CREATE EXTENSION IF NOT EXISTS kilobase SCHEMA extensions;
       postInitApplicationSQLRefs:
         configMapRefs:
         - name: {{ include "supabase.db.fullname" . }}-init
           key: configmap.sql
+        - name: {{ include "supabase.db.fullname" . }}-sql
+          key: alt.sql

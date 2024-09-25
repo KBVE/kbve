@@ -71,13 +71,20 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 ####################
-# Stage 5: Install Barman Cloud
+# Stage 5: OpenSSL
+####################
+
+# Install OpenSSL libraries
+RUN apt-get update && apt-get install -y libssl-dev
+
+####################
+# Stage 6: Install Barman Cloud
 ####################
 
 # Install Barman Cloud dependencies and Barman itself
 COPY /requirements.txt /
 
-# Execute Barman requirements.txt
+# Execute Barman requirements.txt + OpenSSL
 RUN set -xe; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \

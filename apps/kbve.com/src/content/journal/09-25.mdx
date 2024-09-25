@@ -1,0 +1,62 @@
+---
+title: 'September: 25th'
+category: Daily
+date: 2024-09-25 12:00:00
+client: Self
+unsplash: 1692387164064-5678bd9f1ff3
+img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 25th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Fleet**
+
+The 2am grindset is real!
+We got the ghost stories playing in the background, which describes exactly how I feel when operating in kubernetes!
+After we execute the manual SQL queries, we need to wrap back around and update the shared extensions.
+There is another point of error that I have to look into, which is the pgnet because I believe the cURL that it requires is only in ubuntu 24 and not ubuntu 20.
+Hopefully the 15.6.x postgres image that Supabase plans to release or 16.x postgres image hopefully is built using nix and ubuntu 24.
+
+**Shared**
+
+2:28am - Preload Error
+
+Looks like that the `shared_preload_libraries` did not infact load the pg_net, so we will have to go back around and fix that.
+Furthermore, we can also use this part to load the `kilobase` extension too, okay made some changes to the chart to include the extensions.
+
+**Kilobase Extension**
+
+Our custom extension did not seem to load and thus we need to go back and change the build.
+I believe this should be an easy issue to resolve because we need to remove the OpenSSL part of the reqwest client.
+Okay there was a small step that we skipped, which would be to bump the version control up, making sure that we are using the latest version.
+
+When doing the version bump, we need to edit a couple files and in the future we should have a shell script that would make these changes for us during a pull request.
+Maybe after an official image is published, have it go through and make changes to all the files.
+
+- "Cargo.toml" under /apps/kilobase/
+- "project.json" under /apps/kilobase/
+- "values.yaml" under the /migrations/kube/charts/kilobase/supabase/
+
+Keeping the kilobase version consistent across all three files will be important.
+
+## 2023
+- 10:05am - I completely forgot about the work backlog, so I need to focus on catching up on that end. I will dedicate a couple hours to just getting myself ahead of the backlog? I could mix it in with the other backlogs, so that I do not get too bored of handling issue tickets. 
+- 11:17am - The storage of the meta engine should really be done on Amazon or some sort of external cloud provider, I found that the metadata being on AWS was the best option in this hybrid cluster setup. The future really seems to be a combination of a hybrid cloud, where a decent amount of the important meta-data would be stored in the cloud while the heavy functions and files are held within your own instance.  
+- 4:22pm - Scaling the YoRHa UI down to just around 400px~ and keeping it there for now. This way its mobile focused at first before I migrate it be desktop / landscape friendly. I might shift out of the UX/UI area of the widget and focus more on the backend and Appwrite integration for the time being. I suppose these notes are just for getting a better understanding from my end. 
+- 6:36pm - Okay I was able to swap out the general characters for the Game! I am thinking of keeping it simple for now and only three playable characters before migrating over to a bit more advance style features. There are a couple other aspects that I wanted to overview. 
+
+## Quote
+
+> Love is the only force capable of transforming an enemy into a friend.
+> — <cite>Martin Luther King Jr.</cite>
+
+---
+
+## Tasks
+
+- [ ]
