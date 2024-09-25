@@ -1,6 +1,6 @@
 [package]
 name = "kilobase"
-version = "15.1.4"
+version = "15.1.5"
 edition = "2021"
 
 [lib]
