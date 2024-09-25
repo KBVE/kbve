@@ -82,7 +82,17 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 #     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ####################
-# Stage 6: Install Barman Cloud
+# Stage 6: libc6
+####################
+
+# Install libc6
+RUN apt-get update && apt-get install -y libc6
+
+# Create symlink if necessary
+# RUN ln -sf /lib/x86_64-linux-gnu/libc.so.6 /lib64/ld-linux-x86-64.so.2
+
+####################
+# Stage 7: Install Barman Cloud
 ####################
 
 # Install Barman Cloud dependencies and Barman itself
