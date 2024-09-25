@@ -57,12 +57,4 @@ spec:
         - name: {{ include "supabase.db.fullname" . }}-init
           key: configmap.sql
         - name: {{ include "supabase.db.fullname" . }}-sql
-          key: 99-jwt.sql
-        - name: {{ include "supabase.db.fullname" . }}-sql
-          key: 99-logs.sql
-        - name: {{ include "supabase.db.fullname" . }}-sql
-          key: 99-realtime.sql
-        - name: {{ include "supabase.db.fullname" . }}-sql
-          key: 99-roles.sql
-        - name: {{ include "supabase.db.fullname" . }}-sql
-          key: 98-webhooks.sql 
+          key: alt.sql
