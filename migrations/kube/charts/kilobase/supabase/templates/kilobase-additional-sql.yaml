@@ -5,32 +5,35 @@ metadata:
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
 data:
-  99-jwt.sql: |
-    \set jwt_secret `echo "$JWT_SECRET"`
-    \set jwt_exp `echo "$JWT_EXP"`
+  alt.sql: |
+    
+    -- migrate:up 99-jwt.sql
+    ALTER DATABASE postgres SET "app.settings.jwt_secret" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';
+    ALTER DATABASE postgres SET "app.settings.jwt_exp" TO '{{ .Values.db.environment.JWT_EXP | default "3600" }}';
 
-    ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :jwt_secret;
-    ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :jwt_exp;
-  99-logs.sql: |
-    \set pguser `echo "$PGUSER"`
+    -- migrate:down
 
-    create schema if not exists _analytics;
-    alter schema _analytics owner to :pguser;
-  99-realtime.sql: |
-    \set pguser `echo "$PGUSER"`
+    -- migrate:up 99-logs.sql
+    CREATE SCHEMA IF NOT EXISTS _analytics;
+    ALTER SCHEMA _analytics OWNER TO '{{ .Values.secret.db.secretRefKey.username }}';
 
-    create schema if not exists _realtime;
-    alter schema _realtime owner to :pguser;
-  99-roles.sql: |
+    -- migrate:down
+
+    -- migrate:up 99-realtime.sql
+    CREATE SCHEMA IF NOT EXISTS _realtime;
+    ALTER SCHEMA _realtime OWNER TO '{{ .Values.secret.db.secretRefKey.username }}';
+
+    -- migrate:down
+
+    -- migrate:up 99-roles.sql
     -- NOTE: change to your own passwords for production environments
-    \set pgpass `echo "$PGPASS"`
+    ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER pgbouncer WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_auth_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_functions_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_storage_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
 
-    ALTER USER authenticator WITH PASSWORD :'pgpass';
-    ALTER USER pgbouncer WITH PASSWORD :'pgpass';
-    ALTER USER supabase_auth_admin WITH PASSWORD :'pgpass';
-    ALTER USER supabase_functions_admin WITH PASSWORD :'pgpass';
-    ALTER USER supabase_storage_admin WITH PASSWORD :'pgpass';
-  98-webhooks.sql: |
+    -- migrate:up 99-webhooks.sql
     BEGIN;
       -- Create pg_net extension
       CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;
@@ -239,3 +242,5 @@ data:
       REVOKE ALL ON FUNCTION supabase_functions.http_request() FROM PUBLIC;
       GRANT EXECUTE ON FUNCTION supabase_functions.http_request() TO postgres, anon, authenticated, service_role;
     COMMIT;
+
+    -- migrate:down
