@@ -75,6 +75,41 @@ It seems that the `$PGUSER` and the `$PGPASS` are reserved for the operator, so 
 Thus we can switch back around and update the `kilobase-additional-sql-postgres` with references to those two variables, now I wonder if the `$JWT_SECRET` will still pass through.
 Going to delete the fleet that we just deployed and start the whole process again.
 
+```SQL
+
+
+    -- migrate:up 99-jwt.sql
+    ALTER DATABASE postgres SET "app.settings.jwt_secret" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';
+    ALTER DATABASE postgres SET "app.settings.jwt_exp" TO '{{ .Values.db.environment.JWT_EXP | default "3600" }}';
+
+    -- migrate:down
+
+    -- migrate:up 99-logs.sql
+    CREATE SCHEMA IF NOT EXISTS _analytics;
+    ALTER SCHEMA _analytics OWNER TO '{{ .Values.secret.db.secretRefKey.username }}';
+
+    -- migrate:down
+
+    -- migrate:up 99-realtime.sql
+    CREATE SCHEMA IF NOT EXISTS _realtime;
+    ALTER SCHEMA _realtime OWNER TO '{{ .Values.secret.db.secretRefKey.username }}';
+
+    -- migrate:down
+
+    -- migrate:up 99-roles.sql
+    -- NOTE: change to your own passwords for production environments
+    ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER pgbouncer WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_auth_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_functions_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_storage_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+
+```
+
+These are the SQL statements that we will have to manually execute on the container to get the rest of the instance up and running.
+Afterwards we can run barman and see if it moves the database into the s3 bucket as a backup.
+If the WAL and the DB get saved to the s3, we can deploy it all again but with a recovery mode, then that should be enough to handle our generic needs for now.
+
 **Meta**
 
 The meta data issue that I am facing is:
@@ -84,3 +119,18 @@ Cluster.postgresql.cnpg.io "kilobase-migrations-kube-charts-kilobase-supabase-su
 metadata.name: Invalid value: "kilobase-migrations-kube-charts-kilobase-supabase-supabase-db": the maximum length of a cluster name is 50 characters
 
 We could try to scale some of the names back to help with the deployment.
+
+## 2023
+- 9:35am - I woke up a bit late today and I think I am going to go back to sleep a bit more, I need to catch up on my ZZZs.
+- 5:03pm - Okay there are a couple things that I need to overlook when it comes to handling the YoRHa UI, but the issues are still a bit of a pain.
+
+## Quote
+
+> No party has a monopoly on wisdom. No democracy works without compromise.
+> — <cite>Barack Obama</cite>
+
+---
+
+## Tasks
+
+- [ ]
