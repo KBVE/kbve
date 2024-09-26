@@ -28,7 +28,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the LLVM config path to Clang 12
+# Set the C compiler and LLVM config path to Clang 12
+ENV CLANG_PATH=/usr/bin/clang-12
+ENV CLANG=/usr/bin/clang-12
+ENV LIBCLANG_PATH=/usr/lib/llvm-12/lib/libclang.so
+ENV CC=/usr/bin/clang-12
+ENV CXX=/usr/bin/clang++-12
 ENV LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
 
 
@@ -44,7 +49,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install PGRX Deps.
 # Install PGRX
-RUN cargo install cargo-pgrx --version 0.12.3 --locked
+RUN cargo install cargo-pgrx --version 0.12.4 --locked
 
 # Get PostgreSQL 15 pg_config path
 ENV PG_CONFIG_PATH=/usr/lib/postgresql/15/bin/pg_config
