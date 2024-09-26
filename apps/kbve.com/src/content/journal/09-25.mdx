@@ -76,7 +76,10 @@ Now this also means that we need to adjust the `Dockerfile` next, preparing the 
 
 Dear lord building docker images on Windows WSL is terrible, I am honestly waiting forever for docker builds and some of the errors are just being skipped.
 I guess I been spoiled with orbstack and some of the newer tech, that going back to Docker desktop feels like entering dev cycle hell all over again.
-
+Going to version bump the whole container and see what the errors are within the dev branch, then go back around and compare the errors from my end?
+That would mean we have to comment out some of the dev ci workflow as well because we moved all of pgrx into the Dockerfile, but it might make sense to test it before going into the Docker buildx.
+Both of these options would make sense in this situation, testing the extension building before doing the full docker build, maybe within the dev cycle we will keep the extension tests.
+Then inside of the alpha branch, we will do a pgrx build and then a docker build test, this way we can keep both of the tests but split them up a bit between the two branches.
 
 **GLIBC**
 
