@@ -73,6 +73,27 @@ Now this also means that we need to adjust the `Dockerfile` next, preparing the 
 
 
 
+**GLIBC**
+
+- 7:00pm
+
+Error log from the `kubectl logs supabase-release-supabase-db-1-initdb-flnzv -n supabase`
+
+```json
+
+{
+  "level":"info",
+  "ts":"2024-09-25T22:16:10Z",
+  "logger":"pg_ctl",
+  "msg":"waiting for server to start....2024-09-25 22:16:10.661 UTC [29] FATAL:  could not load library \"/usr/lib/postgresql/15/lib/kilobase.so\": /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.33' not found (required by /usr/lib/postgresql/15/lib/kilobase.so)",
+  "pipe":"stdout",
+  "logging_pod":"supabase-release-supabase-db-1-initdb"
+}
+
+```
+
+Keeping this error in the notes as a reference as I know we will have this issue in the future again when we have to rebuild the supabase image using the ubuntu 24 / postgres 16.
+
 **NVDA**
 
 Ending up selling all the Nvidia call options and preparing to move some of the cash into CDs before the rates start to drop!

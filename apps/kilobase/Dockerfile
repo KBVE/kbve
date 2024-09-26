@@ -8,18 +8,49 @@ ENV TZ=Etc/UTC
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    libclang-dev \
+    build-essential \
+    libreadline-dev \
+    zlib1g-dev \
+    flex \
+    bison \
+    libxml2-dev \
+    libxslt-dev \
+    libssl-dev \
+    libxml2-utils \
+    xsltproc \
+    ccache \
+    pkg-config \
     gnupg \
     ca-certificates \
     wget \
-    build-essential \
-    clang \
-    libssl-dev \
-    pkg-config \
-    curl \
     && rm -rf /var/lib/apt/lists/*
+
 
 RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+# Install PostgreSQL development libraries
+RUN apt-get update && apt-get install -y postgresql-${postgresql_major} postgresql-server-dev-${postgresql_major}
+
+# Install Rust and Cargo
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install PGRX Deps.
+# Install PGRX
+RUN cargo install cargo-pgrx --version 0.12.3 --locked
+
+# Get PostgreSQL 15 pg_config path
+ENV PG_CONFIG_PATH=/usr/lib/postgresql/15/bin/pg_config
+
+# Initialize PGRX with the correct pg_config
+RUN cargo pgrx init --pg15 $PG_CONFIG_PATH
+
+WORKDIR /app/kilobase
+COPY . .
+
+RUN cargo pgrx build --release
 
 
 ####################
