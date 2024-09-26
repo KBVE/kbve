@@ -8,8 +8,8 @@ ENV TZ=Etc/UTC
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang-12 \
-    libclang-12-dev \
+    clang \
+    libclang-dev \
     build-essential \
     libreadline-dev \
     zlib1g-dev \
@@ -29,12 +29,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the C compiler and LLVM config path to Clang 12
-ENV CLANG_PATH=/usr/bin/clang-12
-ENV CLANG=/usr/bin/clang-12
-ENV LIBCLANG_PATH=/usr/lib/llvm-12/lib/libclang.so
-ENV CC=/usr/bin/clang-12
-ENV CXX=/usr/bin/clang++-12
-ENV LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
+# ENV CLANG_PATH=/usr/bin/clang-12
+# ENV CLANG=/usr/bin/clang-12
+# ENV LIBCLANG_PATH=/usr/lib/llvm-12/lib/libclang.so
+# ENV CC=/usr/bin/clang-12
+# ENV CXX=/usr/bin/clang++-12
+# ENV LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
 
 
 RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
