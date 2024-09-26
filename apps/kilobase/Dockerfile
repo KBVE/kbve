@@ -8,7 +8,8 @@ ENV TZ=Etc/UTC
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libclang-dev \
+    clang-12 \
+    libclang-12-dev \
     build-essential \
     libreadline-dev \
     zlib1g-dev \
@@ -26,6 +27,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Set the LLVM config path to Clang 12
+ENV LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
 
 
 RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
@@ -51,7 +55,7 @@ RUN cargo pgrx init --pg15 $PG_CONFIG_PATH
 WORKDIR /app/kilobase
 COPY . .
 
-RUN cargo pgrx package --features pg15 --out-dir='./dist'
+RUN cargo pgrx package --pg-config $PG_CONFIG_PATH --features pg15 --out-dir='./dist'
 
 
 
