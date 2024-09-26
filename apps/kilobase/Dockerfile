@@ -100,8 +100,8 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 # Stage 3.5: Skipping Stage 1 and copying over the <so> file directly from the ci-cd pipeline
 ####################
 
-#COPY /usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
-#COPY /usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+COPY --from=kilobase /usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
+COPY --from=kilobase /usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
 
 ####################
 # Stage 4: Setup Python 3.11

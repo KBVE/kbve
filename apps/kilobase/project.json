@@ -84,11 +84,10 @@
 		},
 		"container": {
 			"executor": "@nx-tools/nx-container:build",
-			"dependsOn": ["build", "copy-requirements"],
 			"defaultConfiguration": "local",
 			"options": {
 				"engine": "docker",
-				"context": "dist/target/kilobase",
+				"context": "apps/kilobase",
 				"file": "apps/kilobase/Dockerfile",
 				"metadata": {
 					"images": ["kbve/kilobase"],
