@@ -51,7 +51,8 @@ RUN cargo pgrx init --pg15 $PG_CONFIG_PATH
 WORKDIR /app/kilobase
 COPY . .
 
-RUN cargo pgrx build --release
+RUN cargo pgrx package --features pg15 --out-dir='./dist'
+
 
 
 ####################
