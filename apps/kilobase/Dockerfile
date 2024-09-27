@@ -1,4 +1,8 @@
 ####################
+# Stage 0 - Cargo Chef - removed.
+####################
+
+####################
 # Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
 ####################
 FROM supabase/postgres:15.1.1.78 AS kilobase
