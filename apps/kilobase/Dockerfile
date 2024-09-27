@@ -1,16 +1,18 @@
-####################
-# Stage 1 - Kilobase Extension Builder
-####################
-FROM ubuntu:focal as kilobase
-ARG postgresql_major=15
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Etc/UTC
+# Use Supabase Postgres as the base image, which includes PostgreSQL 15.1.x
+FROM supabase/postgres:15.1.1.78 AS kilobase
 
-# Install required dependencies
+# Add PostgreSQL PPA and install PostgreSQL development files
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang \
-    libclang-dev \
+    gnupg \
+    wget \
+    ca-certificates && \
+    sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
+    apt-get update && apt-get install -y \
+    postgresql-server-dev-15 \
     build-essential \
+    clang-10 \
+    libclang-10-dev \
     libreadline-dev \
     zlib1g-dev \
     flex \
@@ -22,47 +24,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xsltproc \
     ccache \
     pkg-config \
-    gnupg \
-    ca-certificates \
     curl \
+    ca-certificates \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the C compiler and LLVM config path to Clang 12
-# ENV CLANG_PATH=/usr/bin/clang-12
-# ENV CLANG=/usr/bin/clang-12
-# ENV LIBCLANG_PATH=/usr/lib/llvm-12/lib/libclang.so
-# ENV CC=/usr/bin/clang-12
-# ENV CXX=/usr/bin/clang++-12
-# ENV LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
-
-
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-
-# Install PostgreSQL development libraries
-RUN apt-get update && apt-get install -y postgresql-${postgresql_major} postgresql-server-dev-${postgresql_major}
-
-# Install Rust and Cargo
+# Install Rust and PGRX
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
+RUN cargo install cargo-pgrx --version 0.11.3 --locked
 
-# Install PGRX Deps.
-# Install PGRX
-RUN cargo install cargo-pgrx --version 0.12.4 --locked
+# Initialize PGRX for PostgreSQL 15
+RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
 
-# Get PostgreSQL 15 pg_config path
-ENV PG_CONFIG_PATH=/usr/lib/postgresql/15/bin/pg_config
-
-# Initialize PGRX with the correct pg_config
-RUN cargo pgrx init --pg15 $PG_CONFIG_PATH
-
+# Set up Kilobase extension source code
 WORKDIR /app/kilobase
 COPY . .
 
-RUN cargo pgrx package --pg-config $PG_CONFIG_PATH --features pg15 --out-dir='./dist'
-
-
+# Build the Kilobase PostgreSQL extension
+RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --out-dir='./dist'
 
 ####################
 # Stage 2 - Setup Postgres PPA

@@ -14,7 +14,7 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
 ## 2024
 
-**RW**
+**RimWorld**
 Today was a rough day, ended up playing a bit too much of rim world again.
 But it is a Friday Jr night, so we are good to go in that situation!
 Oh, I also got the pokemon world mod added and its been a super thrilling ride, hmm so far with the mechanoids too.
@@ -22,13 +22,14 @@ We got ourselves a poke-robo army and slowly adding more numbers to our stack, I
 
 
 **PGRX**
-
 The other issue is still open with the pgrx bindings, I am thinking that we can go two ways with this now?
 Actually there are three ways we can go with this!
 The first would be to just drop the custom extension, this is the easy route because then we can move forward without any major issues.
 Taking a look at the way that supabase handles the pgrx, it seems that they are on version 0.11.3 with the shim, maybe we can downgrade and see if that might be able to help?
 From my understanding the current ubuntu 20 LTS is where our build is failing but it should not be, hmm.
 The exact issue we are facing is listed [here](https://github.com/pgcentralfoundation/pgrx/issues/1822) and it is in relation to the pgrx bindgen for C.
+
+I am not trying to give up, maybe we can try to build the extension using the pgx
 
 **Backup**
 
