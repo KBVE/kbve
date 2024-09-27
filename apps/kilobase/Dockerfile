@@ -1,8 +1,54 @@
 ####################
-# Stage 1 - Kilobase Extension Builder
+# Stage 0 - Cargo Chef - removed.
 ####################
-# FROM ubuntu:focal as kilobase
-# SKIPPING STAGE 1 - Using the CICD Pipeline to build the extension and then copying it over.
+
+####################
+# Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
+####################
+FROM supabase/postgres:15.1.1.78 AS kilobase
+
+# Add PostgreSQL PPA and install PostgreSQL development files
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gnupg \
+    wget \
+    ca-certificates && \
+    sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
+    apt-get update && apt-get install -y \
+    postgresql-server-dev-15 \
+    build-essential \
+    clang-10 \
+    libclang-10-dev \
+    libreadline-dev \
+    zlib1g-dev \
+    flex \
+    bison \
+    libxml2-dev \
+    libxslt-dev \
+    libssl-dev \
+    libxml2-utils \
+    xsltproc \
+    ccache \
+    pkg-config \
+    curl \
+    ca-certificates \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust and PGRX
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN cargo install cargo-pgrx --version 0.11.3 --locked
+
+# Initialize PGRX for PostgreSQL 15
+RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
+
+# Set up Kilobase extension source code
+WORKDIR /app/kilobase
+COPY . .
+
+# Build the Kilobase PostgreSQL extension
+RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --out-dir='./dist'
 
 ####################
 # Stage 2 - Setup Postgres PPA
@@ -51,8 +97,8 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 # Stage 3.5: Skipping Stage 1 and copying over the <so> file directly from the ci-cd pipeline
 ####################
 
-COPY /usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
-COPY /usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
+COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
 
 ####################
 # Stage 4: Setup Python 3.11
@@ -86,7 +132,7 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 ####################
 
 # Install libc6
-RUN apt-get update && apt-get install -y libc6
+# RUN apt-get update && apt-get install -y libc6
 
 # Create symlink if necessary
 # RUN ln -sf /lib/x86_64-linux-gnu/libc.so.6 /lib64/ld-linux-x86-64.so.2

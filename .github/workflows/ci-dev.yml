@@ -273,32 +273,32 @@ jobs:
               run: |
                   pnpm install
 
-            - name: Install PGRX build dependencies
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y libclang-dev build-essential libreadline-dev zlib1g-dev flex bison libxml2-dev libxslt-dev libssl-dev libxml2-utils xsltproc ccache pkg-config
+            # - name: Install PGRX build dependencies
+            #   run: |
+            #       sudo apt-get update
+            #       sudo apt-get install -y libclang-dev build-essential libreadline-dev zlib1g-dev flex bison libxml2-dev libxslt-dev libssl-dev libxml2-utils xsltproc ccache pkg-config
 
-            - name: Install PGRX Postgres Extensions
-              run: |
-                sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-                wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-                sudo apt-get update
+            # - name: Install PGRX Postgres Extensions
+            #   run: |
+            #     sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+            #     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+            #     sudo apt-get update
 
-            - name: Install PostgreSQL 15
-              run: |
-                sudo apt-get update
-                sudo apt-get install -y postgresql-15 postgresql-server-dev-15
+            # - name: Install PostgreSQL 15
+            #   run: |
+            #     sudo apt-get update
+            #     sudo apt-get install -y postgresql-15 postgresql-server-dev-15
 
-            - name: Install PGRX
-              run: cargo install cargo-pgrx --version 0.12.3 --locked
+            # - name: Install PGRX
+            #   run: cargo install cargo-pgrx --version 0.12.3 --locked
         
-            - name: Get PostgreSQL 15 pg_config path
-              run: |
-                PG_CONFIG_PATH=$(find /usr/lib/postgresql/15/ -name pg_config)
-                echo "PG_CONFIG_PATH=$PG_CONFIG_PATH" >> $GITHUB_ENV
+            # - name: Get PostgreSQL 15 pg_config path
+            #   run: |
+            #     PG_CONFIG_PATH=$(find /usr/lib/postgresql/15/ -name pg_config)
+            #     echo "PG_CONFIG_PATH=$PG_CONFIG_PATH" >> $GITHUB_ENV
                             
-            - name: Initialize PGRX
-              run: cargo pgrx init --pg15 $PG_CONFIG_PATH
+            # - name: Initialize PGRX
+            #   run: cargo pgrx init --pg15 $PG_CONFIG_PATH
 
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v3

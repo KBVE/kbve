@@ -1,23 +1,24 @@
 [package]
 name = "kilobase"
-version = "15.1.7"
+version = "15.1.8"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
 
-[[bin]]
-name = "pgrx_embed_kilobase"
-path = "./src/bin/pgrx_embed.rs"
+#[[bin]]
+#name = "pgrx_embed_kilobase"
+#path = "./src/bin/pgrx_embed.rs"
 
 [features]
-default = ["pg15"]
+default = ["cshim","pg15"]
+cshim = ["pgrx/cshim"]
 pg15 = ["pgrx/pg15", "pgrx-tests/pg15" ]
 pg_test = []
 
 [dependencies]
-pgrx = "=0.12.3"
-jedi = { path = "../../packages/jedi" }
+pgrx = { version = "=0.11.3", default-features = false }
+jedi = "0.1.14"
 reqwest = { version = "0.12", default-features = false, features = ["json", "blocking", "rustls-tls"] }
 tokio = { version = "1", features = ["full"] }
 serde = "1.0"
@@ -26,7 +27,7 @@ ulid = "1.1.3"
 base62 = "2.0.2"
 
 [dev-dependencies]
-pgrx-tests = "=0.12.3"
+pgrx-tests = "=0.11.3"
 
 [profile.dev]
 panic = "unwind"
