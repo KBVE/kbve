@@ -6,9 +6,9 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib", "lib"]
 
-[[bin]]
-name = "pgrx_embed_kilobase"
-path = "./src/bin/pgrx_embed.rs"
+#[[bin]]
+#name = "pgrx_embed_kilobase"
+#path = "./src/bin/pgrx_embed.rs"
 
 [features]
 default = ["cshim","pg15"]

@@ -1,4 +1,6 @@
-# Use Supabase Postgres as the base image, which includes PostgreSQL 15.1.x
+####################
+# Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
+####################
 FROM supabase/postgres:15.1.1.78 AS kilobase
 
 # Add PostgreSQL PPA and install PostgreSQL development files
@@ -91,8 +93,8 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 # Stage 3.5: Skipping Stage 1 and copying over the <so> file directly from the ci-cd pipeline
 ####################
 
-COPY --from=kilobase /usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
-COPY --from=kilobase /usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
+COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
 
 ####################
 # Stage 4: Setup Python 3.11
