@@ -27,9 +27,27 @@ spec:
   superuserSecret:
     name: supabase-secret-db
   postgresql:
+    parameters:
+      row_security: "on"
+      extra_float_digits: "0"
+      effective_cache_size: "128MB"
+      shared_buffers: "128MB"
+      auto_explain.log_min_duration: "10s"
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: all
     shared_preload_libraries:
       - pg_stat_statements
+      - pg_stat_monitor
+      - pgaudit
+      - plpgsql
+      - plpgsql_check
+      - pg_cron
       - pg_net
+      - pgsodium
+      - timescaledb
+      - auto_explain
+      - pg_tle
+      - plan_filter
       - kilobase
   env:
     - name: JWT_SECRET
@@ -57,9 +75,9 @@ spec:
       owner: app
       dataChecksums: true
       encoding: 'UTF8'
-      postInitTemplateSQL:
-        - CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;
-        - CREATE EXTENSION IF NOT EXISTS kilobase SCHEMA extensions;
+      #postInitTemplateSQL:
+        #- CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;
+        #- CREATE EXTENSION IF NOT EXISTS kilobase SCHEMA extensions;
       postInitApplicationSQLRefs:
         configMapRefs:
         - name: {{ include "supabase.db.fullname" . }}-init
