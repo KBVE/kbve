@@ -41,6 +41,17 @@ To solve this issue, we would have to come up with about three different steps, 
 Hmm, I am still thinking through exactly the way that I would approach this problem.
 Sidecar or Init container, hmm, I am thinking we will go with an init container for now and then look at the sidecar as an additional option for future deployments.
 
+The seal command has been integrated into the nx system, so we can go ahead and start the key generation and sealing processing.
+To make sure we can generate a random key, lets do a quick debug.
+
+```shell
+
+PGSODIUM_KEY=$(openssl rand -hex 32)
+echo "Generated pgsodium key: $PGSODIUM_KEY"
+
+
+```
+
 
 **Supabase**
 
@@ -165,3 +176,4 @@ pnpm nx run kilobase:seal --namespace=supabase --keyName=nxtest --secrets="key1=
 ```
 
 Perfect! This will make it easier for us to build future rotating keys from the github actions directly into the kubectl.
+
