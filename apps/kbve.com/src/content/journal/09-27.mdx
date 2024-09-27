@@ -144,3 +144,24 @@ This would hold the temporary secrets in the redis memory, I also believe there 
 The redis would pull the temporary sealed secrets and hold them in small malloc that would expire once read or within a certain timeframe.
 Furthermore that timeframe can be determined through the ulid, since it is a lex-based key.
 
+The `generate-sealed-secret.sh` has been updated to create the `encryptedData:` string for the keys, here is the example command. 
+
+```shell
+
+./generate-sealed-secret.sh -n supabase -k testcase -s "key1=value&key2=value"
+
+```
+
+This command now has to be placed inside of the nx monorepo, so we will create a new nx-run-command for the shell script that can execute this for us at the `root` folder level.
+
+Now we can call this directly with the nx via:
+
+```shell
+
+pnpm nx run kilobase:seal --namespace=supabase --keyName=nxtest --secrets="key1=value1&key2=value2"
+# or
+./kbve.sh -nx kilobase:seal --namespace=supabase --keyName=nxtest --secrets="key1=value1&key2=value2"
+
+```
+
+Perfect! This will make it easier for us to build future rotating keys from the github actions directly into the kubectl.
