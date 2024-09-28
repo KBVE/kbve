@@ -4,6 +4,9 @@
 	"projectType": "application",
 	"sourceRoot": "apps/kilobase/src",
 	"tags": [],
+	"namedInputs": {
+		"args": []
+	  },
 	"targets": {
 		"bump": {
 			"executor": "nx:run-commands",
@@ -81,6 +84,18 @@
 					"release": true
 				}
 			}
+		},
+		"seal": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "tools/scripts/public/kube/etc",
+				"commands": [
+					"./generate-sealed-secret.sh -n \"{args.namespace}\" -k \"{args.keyName}\" -s \"{args.secrets}\""
+					
+				  ],
+				"parallel": false
+			},
+			"inputs": ["args"]
 		},
 		"container": {
 			"executor": "@nx-tools/nx-container:build",
