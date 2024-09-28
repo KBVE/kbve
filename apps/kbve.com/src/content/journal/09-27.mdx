@@ -177,3 +177,13 @@ pnpm nx run kilobase:seal --namespace=supabase --keyName=nxtest --secrets="key1=
 
 Perfect! This will make it easier for us to build future rotating keys from the github actions directly into the kubectl.
 
+**KubeCtl**
+
+```shell
+
+kubectl describe pod supabase-release-supabase-db-1-initdb-2wwtr -n supabase
+
+```
+
+Okay this is a great command for us to use and help debug some of the container issues that.
+Adding some of the pgsodium key access roles for the cluster and this should help us move forward with the key problem.
