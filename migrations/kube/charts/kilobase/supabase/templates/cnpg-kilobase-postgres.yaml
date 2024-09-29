@@ -35,8 +35,8 @@ spec:
       auto_explain.log_min_duration: "10s"
       pg_stat_statements.max: "10000"
       pg_stat_statements.track: all
-      app.settings.jwt_secret: "{{ .Values.secret.jwt.secretRefKey.secret }}"
-      app.settings.jwt_exp: "3600"
+      #app.settings.jwt_secret: "{{ .Values.secret.jwt.secretRefKey.secret }}"
+      #app.settings.jwt_exp: "3600"
       #pgsodium.getkey_script: "/pgsodium_scripts/pgsodium_getkey.sh"
       #pgsodium.getkey_script: "env"
       #pgsodium.getkey_env: "PGSODIUM_SECRET_KEY"
@@ -94,4 +94,8 @@ spec:
           key: configmap.sql
         - name: {{ include "supabase.db.fullname" . }}-sql
           key: alt.sql
-
+      postInitSQL: |
+        \set jwt_secret `echo "$JWT_SECRET"`
+        \set jwt_exp `echo "$JWT_EXP"`
+        ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :'jwt_secret';
+        ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :'jwt_exp';

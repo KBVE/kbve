@@ -92,6 +92,13 @@ Okay the other three core SQLs files that we need are these:
 
 ```sql
 
+    -- 99-jwt.sql |
+    \set jwt_secret `echo "$JWT_SECRET"`
+    \set jwt_exp `echo "$JWT_EXP"`
+
+    ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :'jwt_secret';
+    ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :'jwt_exp';
+
     -- 99-logs.sql: |
     \set pguser `echo "$POSTGRES_USER"`
 
@@ -114,7 +121,11 @@ Okay the other three core SQLs files that we need are these:
 
 ```
 
+Source: https://github.com/supabase/supabase/tree/master/docker/volumes/db
+
 Now of these three core files, we can start with the small.
 For the log, we looked back at the supabase docker swarm and it looks like we set it to the `supabase_admin`, so lets go ahead and add that into the configmap.
 
 The best move we can make right now would be to shut the whole thing down and restart the cluster.
+
+Damn the JWT did not set via the `parameters` and we will have to go back to the SQL method.
