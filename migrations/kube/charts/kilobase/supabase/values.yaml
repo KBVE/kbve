@@ -37,8 +37,8 @@ db:
     userName: postgres
     image:
         repository: kbve/kilobase
-        pullPolicy: IfNotPresent
-        tag: '15.1'
+        pullPolicy: Always
+        tag: '15.1.8'
     replicaCount: 2
     serviceAccount:
         create: true
@@ -56,7 +56,8 @@ db:
         # POSTGRES_SSL_KEY: /path/to/ssl/server.key
     persistence:
         enabled: false
-        storageClassName: 'longhorn-postgres-replica-storage'
+    storage:
+        storageClassName: 'longhorn'
         annotations:
             helm.sh/resource-policy: 'keep'
         size: 8Gi
@@ -92,7 +93,7 @@ studio:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -135,14 +136,14 @@ auth:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
         type: ClusterIP
         port: 9999
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: supabase_auth_admin
         DB_PORT: 5432
         DB_DRIVER: postgres
@@ -204,14 +205,14 @@ rest:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
         type: ClusterIP
         port: 3000
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: authenticator
         DB_PORT: 5432
         DB_DRIVER: postgres
@@ -254,14 +255,14 @@ realtime:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
         type: ClusterIP
         port: 4000
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: supabase_admin
         DB_PORT: 5432
         DB_SSL: disable # disable, allow, prefer, require, verify-ca, verify-full
@@ -304,14 +305,14 @@ meta:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
         type: ClusterIP
         port: 8080
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: supabase_admin
         DB_PORT: 5432
         DB_DRIVER: postgres
@@ -353,14 +354,14 @@ storage:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
         type: ClusterIP
         port: 5000
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [ Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USER: supabase_storage_admin
         DB_PORT: 5432
         DB_DRIVER: postgres
@@ -426,7 +427,7 @@ imgproxy:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -472,7 +473,7 @@ kong:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -542,7 +543,7 @@ analytics:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -550,7 +551,7 @@ analytics:
         port: 4000
     environment:
         LOGFLARE_NODE_HOST: 127.0.0.1
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local (Override the database hostname if using external database)
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USERNAME: supabase_admin
         DB_PORT: 5432
         DB_DRIVER: postgresql
@@ -598,7 +599,7 @@ vector:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
@@ -645,14 +646,14 @@ functions:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
         type: ClusterIP
         port: 9000
     environment:
-        # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local [Override the database hostname if using external database]
+        DB_HOST: supabase-release-supabase-db-rw.supabase.svc.cluster.local
         DB_USERNAME: supabase_functions_admin
         DB_PORT: 5432
         DB_DRIVER: postgresql
@@ -689,7 +690,7 @@ minio:
         capabilities:
             drop:
                 - ALL
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         runAsNonRoot: true
         runAsUser: 1000
     service:
