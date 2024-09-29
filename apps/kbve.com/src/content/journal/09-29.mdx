@@ -1,0 +1,64 @@
+---
+title: 'September: 29th'
+category: Daily
+date: 2024-09-29 12:00:00
+client: Self
+unsplash: 1695068546359-1ce69078361a
+img: https://images.unsplash.com/photo-1695068546359-1ce69078361a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 29th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Cluster**
+
+```
+
+kubectl get pods -n supabase
+NAME                                                   READY   STATUS    RESTARTS   AGE
+supabase-release-supabase-auth-5b7fdcd9b7-9qlgk        1/1     Running   0          10h
+supabase-release-supabase-db-1                         1/1     Running   0          9h
+supabase-release-supabase-db-2                         1/1     Running   0          9h
+supabase-release-supabase-functions-64c9b5c6c7-72s62   1/1     Running   0          11h
+supabase-release-supabase-imgproxy-65c697f6b8-2f9m7    1/1     Running   0          11h
+supabase-release-supabase-kong-597b99965b-xhxnt        1/1     Running   0          11h
+supabase-release-supabase-meta-74dcdf58dc-jtt8t        1/1     Running   0          11h
+supabase-release-supabase-realtime-7f6846b545-t7sq4    1/1     Running   0          10h
+supabase-release-supabase-rest-7ccb7f5954-z9862        1/1     Running   0          11h
+supabase-release-supabase-storage-857d655cd7-zr96b     1/1     Running   0          10h
+supabase-release-supabase-studio-b6bdf46-lqk8h         1/1     Running   0          11h
+
+```
+
+We finally got a state that is stable and running!
+This took us a while to get going but it was under a month, so for our first round that is not bad at all.
+Now to make sure that everything is working, we need to test the barman and the backup and recovery process.
+Furthermore, we will need to plan for scaling out the cluster, past the base of 1/1 units.
+
+Note: `supabase-release-supabase-db-1` is our `readwrite` and `supabase-release-supabase-db-2` is our `readonly` instance.
+
+
+**Barman**
+
+
+
+## 2023
+- 5:53am - Freaky Friday! Today this going to be a heavy hitter type of day, I want to bang out a ton of my backlogs and maybe try to create about 50-60 more issue tickets, bringing my total far past the 100 mark. 
+- 6:37am - The first object that I want to place into the YoRHa UI will be the `Drill` item object, located [here](https://i.imgur.com/ddKIcQu.png) and it will serve as the `tool` to repair the ship, robots and will have an energy requirement. I am not too sure how I will go about handling it all, but I am thinking of just placing the object onto the map and then seeing where I can go from there. The other task would be making sure that the player can register and login? All three of these missions will help me towards the backend migration. I am thinking of creating just one function for the game and then assigning paths for the different actions? It would be a bit rough to just make a function for EACH event, as that might be a bit too much isolation and a bit reparative. So placing the tool , then shifting towards a bit of the backend for the game, that will be the main focus for the day! We also have the autoGPT to look into, but that should be later on the day.
+- 4:40pm - There are a couple interesting things going on with the AutoGPT hackathon but I shall see how I feel about it later through out the day.
+- 1:01am - It seems that the best course of action will be to delete the existing AutoGPT repo and then make a new one for the event. The older one that I had some issues and was flooding my grafana with useless logs, skyrocketing the size of my logs from a couple hundred megabytes to almost several gigs. The errors were just a bit too much for my cup of tea.
+
+## Quote
+
+> Happiness is a perfume you cannot pour on others without getting a few drops on yourself.
+> — <cite>Ralph Waldo Emerson</cite>
+
+---
+
+## Tasks
+
+- [ ]
