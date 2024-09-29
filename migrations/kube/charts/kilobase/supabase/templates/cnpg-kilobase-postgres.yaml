@@ -85,11 +85,21 @@ spec:
           key: configmap.sql
         - name: {{ include "supabase.db.fullname" . }}-sql
           key: alt.sql
-  volumeMounts:
-    - name: pgsodium-getkey-script-volume
-      mountPath: /pgsodium_scripts
-      subPath: pgsodium_getkey.sh
-  customVolumes:
-    - name: pgsodium-getkey-script-volume
-      configMap:
-        name: pgsodium-getkey-script
+  podTemplate:
+    spec:
+      initContainers:
+        - name: pgsodium-getkey-init
+          image: busybox
+          command: ["/bin/sh", "-c", "kubectl get secret secret-pgsodium-key -n supabase -o jsonpath='{.data.pgsodium_key}' | base64 --decode > /pgsodium/keyfile"]
+          volumeMounts:
+            - name: pgsodium-keyfile-volume
+              mountPath: /pgsodium
+      containers:
+        - name: main-container
+          image: {{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}
+          volumeMounts:
+            - name: pgsodium-keyfile-volume
+              mountPath: /pgsodium
+      volumes:
+        - name: pgsodium-keyfile-volume
+          emptyDir: {}
