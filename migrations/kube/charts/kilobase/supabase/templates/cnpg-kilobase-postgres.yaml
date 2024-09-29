@@ -94,7 +94,7 @@ spec:
             key: configmap.sql
           - name: {{ include "supabase.db.fullname" . }}-sql
             key: alt.sql
-      postInitSQL:
+      postInitApplicationSQL:
         - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
         - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
         - "ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
