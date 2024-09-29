@@ -51,7 +51,7 @@ spec:
       - auto_explain
       - pg_tle
       - plan_filter
-      - kilobase
+      # - kilobase
   env:
     - name: JWT_SECRET
       valueFrom:
