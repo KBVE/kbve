@@ -72,3 +72,46 @@ This is a tough moment but its okay, I know when to move on and there are a dece
 
 - repo : `https://github.com/KBVE/kbve.git`
 - path: `/migrations/kube/charts/kilobase`
+
+There are 4 more core SQL files that we need to add into the configuration.
+Well there were 5 total, but we got the websockets to execute without any issues.
+
+Just to recap the 5 total:
+
+- jwt.
+- logs.
+- realtime.
+- roles.
+- webhooks.
+
+We got the webhooks out of the way and we can just pass in the jwt directly through the parameters.
+
+Now there is another error that we need to look through, which was the `supabase-secret-db`, but I was under the impression that we already did this through the sealed secrets, hmm.
+Okay the other three core SQLs files that we need are these:
+
+
+```sql
+
+    -- 99-logs.sql: |
+    \set pguser `echo "$POSTGRES_USER"`
+
+    create schema if not exists _analytics;
+    alter schema _analytics owner to :pguser;
+    -- 99-realtime.sql: |
+    \set pguser `echo "$POSTGRES_USER"`
+
+    create schema if not exists _realtime;
+    alter schema _realtime owner to :pguser;
+    -- 99-roles.sql: |
+    -- NOTE: change to your own passwords for production environments
+    \set pgpass `echo "$POSTGRES_PASSWORD"`
+
+    ALTER USER authenticator WITH PASSWORD :'pgpass';
+    ALTER USER pgbouncer WITH PASSWORD :'pgpass';
+    ALTER USER supabase_auth_admin WITH PASSWORD :'pgpass';
+    ALTER USER supabase_functions_admin WITH PASSWORD :'pgpass';
+    ALTER USER supabase_storage_admin WITH PASSWORD :'pgpass';
+
+```
+
+Now of these three core files, we can start with the small.

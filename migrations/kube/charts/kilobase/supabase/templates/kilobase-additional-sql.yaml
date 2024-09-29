@@ -6,6 +6,15 @@ metadata:
     {{- include "supabase.labels" . | nindent 4 }}
 data:
   alt.sql: |
+    -- migrate:up 99-jwt.sql
+    \set jwt_secret `echo "$JWT_SECRET"`
+    \set jwt_exp `echo "$JWT_EXP"`
+
+    ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :jwt_secret;
+    ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :jwt_exp;
+
+    -- migrate:down
+
     -- migrate:up 99-webhooks.sql
     BEGIN;
       -- Create pg_net extension
