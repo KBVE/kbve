@@ -178,11 +178,11 @@ auth:
 
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: true
         minReplicas: 1
@@ -223,11 +223,11 @@ rest:
         PGRST_APP_SETTINGS_JWT_EXP: 3600
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: true
         minReplicas: 1
@@ -320,11 +320,11 @@ meta:
         PG_META_PORT: '8080'
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: true
         minReplicas: 1
@@ -379,13 +379,12 @@ storage:
         # GLOBAL_S3_PROTOCOL: http
         # GLOBAL_S3_FORCE_PATH_STYLE: true
         # AWS_DEFAULT_REGION: stub
-
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
+            cpu: 200m
             memory: 128Mi
     persistence:
         enabled: true
@@ -440,11 +439,11 @@ imgproxy:
         IMGPROXY_ENABLE_WEBP_DETECTION: 'true'
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     persistence:
         enabled: false
     autoscaling:
@@ -510,12 +509,12 @@ kong:
                   - path: /
                     pathType: Prefix
     resources:
-        limits:
-            cpu: 100m
-            memory: 128Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 500m
+            memory: 256Mi
+        limits:
+            cpu: 1000m
+            memory: 1280Mi
     autoscaling:
         enabled: false
         minReplicas: 1
@@ -568,11 +567,11 @@ analytics:
         gcloudJson: ''
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: false
         minReplicas: 1
@@ -620,11 +619,11 @@ vector:
 
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: false
         minReplicas: 1
@@ -662,11 +661,11 @@ functions:
         DB_SSL: disable # disable, allow, prefer, require, verify-ca, verify-full
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 300m
+            memory: 500Mi
     autoscaling:
         enabled: false
         minReplicas: 1
