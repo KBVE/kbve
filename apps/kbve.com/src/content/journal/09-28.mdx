@@ -175,3 +175,14 @@ spec:
 
 Okay the temporary fix for the functions seems fine and now we can move on towards temporary fixing the kong.
 We can always replace the kong with our own kilokong in the future or a better service down the line, but for now, we just want to run it.
+
+What a wild ride, we were able to shift through all the docs and finally getting to the full cluster.
+The only thing left is the final parts of the backing up and restoring.
+
+For this section, we will need to double check the cluster.
+
+```shell
+
+kubectl describe clusters.postgresql.cnpg.io supabase-release-supabase-db -n supabase
+
+```
