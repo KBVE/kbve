@@ -90,12 +90,12 @@ spec:
         #- CREATE EXTENSION IF NOT EXISTS kilobase SCHEMA extensions;
       postInitApplicationSQLRefs:
         configMapRefs:
-        - name: {{ include "supabase.db.fullname" . }}-init
-          key: configmap.sql
-        - name: {{ include "supabase.db.fullname" . }}-sql
-          key: alt.sql
-      postInitSQL: |
-        \set jwt_secret `echo "$JWT_SECRET"`
-        \set jwt_exp `echo "$JWT_EXP"`
-        ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :'jwt_secret';
-        ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :'jwt_exp';
+          - name: {{ include "supabase.db.fullname" . }}-init
+            key: configmap.sql
+          - name: {{ include "supabase.db.fullname" . }}-sql
+            key: alt.sql
+      postInitSQL:
+        - \set jwt_secret `echo "$JWT_SECRET"`
+        - \set jwt_exp `echo "$JWT_EXP"`
+        - ALTER DATABASE postgres SET "app.settings.jwt_secret" TO :'jwt_secret';
+        - ALTER DATABASE postgres SET "app.settings.jwt_exp" TO :'jwt_exp';
