@@ -130,3 +130,45 @@ The best move we can make right now would be to shut the whole thing down and re
 
 Damn the JWT did not set via the `parameters` and we will have to go back to the SQL method.
 We will try to alter it directly within the `cnpg-kilobase-postgres.yaml`.
+
+Okay next applying the password for the role changes.
+
+```sql
+
+ALTER USER authenticator WITH PASSWORD 'your_password_here';
+ALTER USER pgbouncer WITH PASSWORD 'your_password_here';
+ALTER USER supabase_auth_admin WITH PASSWORD 'your_password_here';
+ALTER USER supabase_functions_admin WITH PASSWORD 'your_password_here';
+ALTER USER supabase_storage_admin WITH PASSWORD 'your_password_here';
+
+```
+
+Now lets go ahead and fix up the functions part of the supabase.
+It looks like the error is in the permissions, specifically the cache?
+
+```yaml
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: deno-cache-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/deno_cache"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deno-cache-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+```
