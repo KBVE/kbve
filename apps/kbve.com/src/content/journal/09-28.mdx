@@ -13,3 +13,24 @@ tags:
 import { Adsense, Tasks } from '@kbve/astropad';
 
 ## 2024
+
+**File**
+
+The issue that we are currently facing is the installation of a custom file into the container.
+
+Quick commands to help debug this situation:
+
+```shell
+
+# Get Supabase Pods
+kubectl get pods -n supabase
+
+# Get Logs 
+kubectl logs supabase-release-supabase-db-1-initdb-7djvz -n supabase
+
+# Describe
+kubectl describe pod supabase-release-supabase-db-1-initdb-2wwtr -n supabase
+
+```
+
+Okay to load the pgsodium key / shell, we can try to setup a sidecar with the information and 
