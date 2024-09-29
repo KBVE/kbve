@@ -60,6 +60,11 @@ spec:
         secretKeyRef:
           name: supabase-secret-jwt
           key: secret
+    - name: VAULT_PASS
+      valueFrom:
+        secretKeyRef:
+          name: supabase-secret-db
+          key: password
     - name: JWT_EXP
       value: "3600"
   backup:
