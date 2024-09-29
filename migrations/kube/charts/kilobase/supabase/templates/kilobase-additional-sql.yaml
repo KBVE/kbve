@@ -6,6 +6,19 @@ metadata:
     {{- include "supabase.labels" . | nindent 4 }}
 data:
   alt.sql: |
+
+    -- migrate:up 99-logs.sql
+    create schema if not exists _analytics;
+    alter schema _analytics owner to supabase_admin;
+
+    -- migrate:down
+
+    -- migrate:up 99-realtime.sql
+    create schema if not exists _realtime;
+    alter schema _realtime owner to supabase_admin;
+
+    -- migrate:down
+
     -- migrate:up 99-webhooks.sql
     BEGIN;
       -- Create pg_net extension
