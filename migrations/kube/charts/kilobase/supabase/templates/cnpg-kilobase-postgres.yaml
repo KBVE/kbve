@@ -35,7 +35,8 @@ spec:
       auto_explain.log_min_duration: "10s"
       pg_stat_statements.max: "10000"
       pg_stat_statements.track: all
-      pgsodium.getkey_script: "/pgsodium_scripts/pgsodium_getkey.sh"
+      #pgsodium.getkey_script: "/pgsodium_scripts/pgsodium_getkey.sh"
+      pgsodium.getkey_script: "env"
     shared_preload_libraries:
       - pg_stat_statements
       - pg_stat_monitor
@@ -85,21 +86,3 @@ spec:
           key: configmap.sql
         - name: {{ include "supabase.db.fullname" . }}-sql
           key: alt.sql
-  podTemplate:
-    spec:
-      initContainers:
-        - name: pgsodium-getkey-init
-          image: busybox
-          command: ["/bin/sh", "-c", "kubectl get secret secret-pgsodium-key -n supabase -o jsonpath='{.data.pgsodium_key}' | base64 --decode > /pgsodium/keyfile"]
-          volumeMounts:
-            - name: pgsodium-keyfile-volume
-              mountPath: /pgsodium
-      containers:
-        - name: main-container
-          image: {{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}
-          volumeMounts:
-            - name: pgsodium-keyfile-volume
-              mountPath: /pgsodium
-      volumes:
-        - name: pgsodium-keyfile-volume
-          emptyDir: {}
