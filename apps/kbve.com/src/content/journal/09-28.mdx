@@ -78,11 +78,11 @@ Well there were 5 total, but we got the websockets to execute without any issues
 
 Just to recap the 5 total:
 
-- jwt.
-- logs.
+- jwt. - done using parameters.
+- logs. - giving it to the `supabase_admin`
 - realtime.
 - roles.
-- webhooks.
+- webhooks. - works fine for now.
 
 We got the webhooks out of the way and we can just pass in the jwt directly through the parameters.
 
@@ -115,3 +115,4 @@ Okay the other three core SQLs files that we need are these:
 ```
 
 Now of these three core files, we can start with the small.
+For the log, we looked back at the supabase docker swarm and it looks like we set it to the `supabase_admin`, so lets go ahead and add that into the configmap.
