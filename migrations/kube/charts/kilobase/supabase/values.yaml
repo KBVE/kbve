@@ -172,9 +172,7 @@ auth:
         GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify'
         GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify'
         GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: '/auth/v1/verify'
-    envFrom:
-        - secretRef:
-              name: env-secret
+    
 
     resources:
         limits:
@@ -274,6 +272,7 @@ realtime:
         SECRET_KEY_BASE: UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq
         ERL_AFLAGS: -proto_dist inet_tcp
         ENABLE_TAILSCALE: 'false'
+        APP_NAME: "supabase_realtime"
         DNS_NODES: "''"
     resources:
         limits:
