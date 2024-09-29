@@ -63,3 +63,12 @@ Here is the pod template that we used to init the container:
 ```
 
 However, for now, we will just load the key in via the environmental variable.
+
+**SegFault**
+
+Looks like after disabling the pgsodium, we had to wrap back around and disable the kilobase extension as well because I believe I might have made an error with how I went to set up the extension.
+I will look into the extension at another time, as there are just too many things on the plate and if worse comes to worse, we can just move the extension out of the postgres and into our own structure.
+This is a tough moment but its okay, I know when to move on and there are a decent amount of other things that are on our plate to deal with.
+
+- repo : `https://github.com/KBVE/kbve.git`
+- path: `/migrations/kube/charts/kilobase`
