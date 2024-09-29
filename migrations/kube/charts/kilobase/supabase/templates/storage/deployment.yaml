@@ -41,15 +41,7 @@ spec:
               value: {{ .Values.auth.environment.DB_HOST | quote }}
               {{- end }}
             - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.username | default "username" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: username
-                  {{- end }}
+              value: "supabase_storage_admin"
             - name: DB_PORT
               value: {{ .Values.analytics.environment.DB_PORT | quote }}
           command: ["/bin/sh", "-c"]
