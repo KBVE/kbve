@@ -97,8 +97,8 @@ spec:
       postInitApplicationSQL:
         - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
         - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
-        - "ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
-        - "ALTER USER pgbouncer WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
-        - "ALTER USER supabase_auth_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
-        - "ALTER USER supabase_functions_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
-        - "ALTER USER supabase_storage_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
+        # - "ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
+        # - "ALTER USER pgbouncer WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
+        # - "ALTER USER supabase_auth_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
+        # - "ALTER USER supabase_functions_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
+        # - "ALTER USER supabase_storage_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
