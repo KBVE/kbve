@@ -42,6 +42,29 @@ With built-in support for logical replication and partitioning, PostgreSQL can s
 Additionally, advanced users can create custom functions and procedures using various languages such as PL/pgSQL, Python, and even JavaScript, enhancing its capabilities further.
 But wait, there is more, because of its thriving community and vast ecosystem, PostgreSQL is a versatile solution for developers and enterprises looking to build high-performance, scalable, and secure data-driven applications.
 
+## CheatSheet
+
+### PSQL
+
+`psql` is a powerful command-line interface and interactive terminal for PostgreSQL, offering a convenient way to interact with databases through SQL commands.
+This tool can be used to connect to databases, execute queries, and manage database objects such as tables, schemas, and extensions.
+For beginners, psql provides a straightforward method to learn SQL and interact with PostgreSQL, featuring built-in help and command-line flags to assist in query execution.
+Advanced users and database administrators can leverage its full scripting capabilities, including support for automated backups, customized reports, and database tuning.
+Furthermore, the tool also provides powerful meta-commands (such as \dt, \du, and \l) to display database information and manipulate objects quickly.
+Additionally, psql can be used to execute SQL scripts, manage PostgreSQL configurations, and run commands for extensions like `pg_stat_statements` or `pgvector`.
+It is a versatile tool that is essential for PostgreSQL users of all skill levels, serving as both a learning environment and a robust management utility.
+
+<Aside title='Note: Using psql'>
+
+This guide provides an overview of using the `psql` command-line interface with PostgreSQL 15, 16, and 17.
+
+It is intended for users who want to manage their PostgreSQL databases efficiently. 
+Some advanced features, such as certain meta-commands and flags, may behave differently or be unavailable in older versions of `psql`.
+Be sure to check the compatibility of specific commands if using an older PostgreSQL version.
+
+</Aside>
+
+### Extensions
 
 ---
 
@@ -104,3 +127,8 @@ Additionally, if audit logging is required, the pgaudit extension should be inst
 
 These requirements ensure compatibility and proper functionality of CloudNativePG with various PostgreSQL features, including cloud-based backup and restoration via Barman Cloud, as well as extended audit capabilities through PGAudit.
 
+---
+
+## Barman
+
+The Barman install for the postgres will be done via python or directly through the postgres ppa.

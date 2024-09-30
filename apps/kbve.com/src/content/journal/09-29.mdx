@@ -42,6 +42,11 @@ Furthermore, we will need to plan for scaling out the cluster, past the base of 
 Note: `supabase-release-supabase-db-1` is our `readwrite` and `supabase-release-supabase-db-2` is our `readonly` instance.
 
 
+**Kilobase**
+
+The bug with the `String` that is causing a segfault might have a couple solutions, the first was upgrading pgrx back to `v0.12.4` but that is not an option for us because the clang version for postgres v15 is `10` and the latest pgrx recommends clang 11 or higher.
+The other possible error could come from us installing `15.8` rather than `15.1`.
+
 **Barman**
 
 The best move here would be to start the `postgres.mdx` and update it with more information related to `Supabase`, `Barman`, `Cloudnative-PG` and more!

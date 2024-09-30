@@ -79,6 +79,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ####################
 FROM supabase/postgres:15.1.1.78 AS supabase
 
+USER root
+
 ARG postgresql_major=15
 
 LABEL name="CloudNative Supabase Container Images" \
