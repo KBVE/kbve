@@ -41,7 +41,7 @@ db:
         tag: '15.1.9'
     #replicaCount: 3
     serviceAccount:
-        create: true
+        create: false
     service:
         type: ClusterIP
         port: 5432
