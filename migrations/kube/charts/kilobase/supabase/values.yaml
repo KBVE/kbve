@@ -64,12 +64,12 @@ db:
         accessModes:
             - ReadWriteOnce
         class: ''
-    autoscaling:
-        enabled: false
-        minReplicas: 1
-        maxReplicas: 100
-        targetCPUUtilizationPercentage: 80
-        targetMemoryUtilizationPercentage: 80
+    # autoscaling:
+    #     enabled: false
+    #     minReplicas: 1
+    #     maxReplicas: 100
+    #     targetCPUUtilizationPercentage: 80
+    #     targetMemoryUtilizationPercentage: 80
 
 # Studio Application
 studio:
@@ -151,7 +151,7 @@ auth:
         API_EXTERNAL_URL: https://supabase.kbve.com
         GOTRUE_API_HOST: '0.0.0.0'
         GOTRUE_API_PORT: '9999'
-        GOTRUE_SITE_URL: http://supabase.kbve.com
+        GOTRUE_SITE_URL: https://supabase.kbve.com
         GOTRUE_URI_ALLOW_LIST: '*'
         GOTRUE_DISABLE_SIGNUP: 'false'
         GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
@@ -503,7 +503,7 @@ kong:
             #   hosts:
             #     - example.com
         hosts:
-            - host: kbve.com
+            - host: supabase.kbve.com
               paths:
                   - path: /
                     pathType: Prefix
