@@ -593,15 +593,15 @@ vector:
         initialDelaySeconds: 3
     serviceAccount:
         create: true
-    podSecurityContext:
-        fsGroup: 2000
-    securityContext:
-        capabilities:
-            drop:
-                - ALL
-        readOnlyRootFilesystem: false
-        runAsNonRoot: true
-        runAsUser: 1000
+    # podSecurityContext:
+    #     fsGroup: 2000
+    # securityContext:
+    #     capabilities:
+    #         drop:
+    #             - ALL
+    #     readOnlyRootFilesystem: false
+    #     runAsNonRoot: true
+    #     runAsUser: 1000
     service:
         type: ClusterIP
         port: 9001
