@@ -464,7 +464,7 @@ kong:
     readinessProbe: {}
     serviceAccount:
         create: true
-    podAnnotations: {}
+    # podAnnotations: {}
     podSecurityContext:
         fsGroup: 2000
     securityContext:
