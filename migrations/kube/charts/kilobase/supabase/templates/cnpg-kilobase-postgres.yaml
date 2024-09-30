@@ -74,25 +74,22 @@ spec:
         compression: gzip
     retentionPolicy: "30d"
   bootstrap:
-    initdb:
-      database: app
-      owner: app
-      dataChecksums: true
-      encoding: 'UTF8'
-      #postInitTemplateSQL:
-        #- CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;
-        #- CREATE EXTENSION IF NOT EXISTS kilobase SCHEMA extensions;
-      postInitApplicationSQLRefs:
-        configMapRefs:
-          - name: {{ include "supabase.db.fullname" . }}-init
-            key: configmap.sql
-          - name: {{ include "supabase.db.fullname" . }}-sql
-            key: alt.sql
-      postInitApplicationSQL:
-        - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
-        - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
-        # - "ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
-        # - "ALTER USER pgbouncer WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
-        # - "ALTER USER supabase_auth_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
-        # - "ALTER USER supabase_functions_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
-        # - "ALTER USER supabase_storage_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';"
+    # initdb:
+    #   database: app
+    #   owner: app
+    #   dataChecksums: true
+    #   encoding: 'UTF8'
+    #   postInitApplicationSQLRefs:
+    #     configMapRefs:
+    #       - name: {{ include "supabase.db.fullname" . }}-init
+    #         key: configmap.sql
+    #       - name: {{ include "supabase.db.fullname" . }}-sql
+    #         key: alt.sql
+    #   postInitApplicationSQL:
+    #     - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
+    #     - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
+
+    recovery:
+      backup:
+        name: {{ include "supabase.db.fullname" . }}-backup 
+  
