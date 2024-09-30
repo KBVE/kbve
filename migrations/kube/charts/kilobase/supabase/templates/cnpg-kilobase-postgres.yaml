@@ -13,11 +13,11 @@ spec:
   postgresGID: 102
   resources: 
     limits:
-      memory: "1024Mi"
-      cpu: 1
+      memory: 512Mi
+      cpu: 500m
     requests:
-      memory: "1024Mi"
-      cpu: 1
+      memory: 256Mi
+      cpu: 250m
   storage:
     size: 2Gi
     storageClass: {{ .Values.db.storage.storageClassName }}
