@@ -152,10 +152,11 @@ RUN set -xe; \
 	apt-get install -y --no-install-recommends \
 		build-essential \
 		libsnappy-dev \
-		python3-psycopg2 \
 		python3-setuptools; \
 	# Upgrade pip and install requirements
     python3.11 -m pip install --upgrade pip; \
+    # Moving psycopg2 into the python3.11
+    python3.11 -m pip install psycopg2; \
 	# We require barman-cloud, install the package with no dependencies
 	python3.11 -m pip install --no-deps -r requirements.txt; \
     #python3.11 -m pip install -r requirements.txt; \
