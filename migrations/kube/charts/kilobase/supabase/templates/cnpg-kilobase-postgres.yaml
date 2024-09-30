@@ -91,13 +91,12 @@ spec:
 
     recovery:
       backup:
-        source: clusterBackup
+        source: supabas
   
   externalClusters:
-    - name: clusterBackup
+    - name: supabase
       barmanObjectStore:
-        barmanObjectStore:
-        destinationPath: s3://kilobase/barman/backup
+        destinationPath: s3://kilobase/barman/restore
         s3Credentials:
           accessKeyId:
             name: {{ .Values.secret.s3.secretRef }}
