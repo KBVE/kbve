@@ -40,12 +40,13 @@ db:
         pullPolicy: Always
         tag: '15.1.9'
     #replicaCount: 3
-    serviceAccount:
-        create: false
+    # serviceAccount:
+    #     create: false
     service:
         type: ClusterIP
         port: 5432
     environment:
+        POSTGRES_DB: app
         # POSTGRES_HOST: /var/run/postgresql
         PGPORT: '5432'
         POSTGRES_PORT: '5432'
