@@ -39,7 +39,7 @@ db:
         repository: kbve/kilobase
         pullPolicy: Always
         tag: '15.1.9'
-    replicaCount: 2
+    #replicaCount: 3
     serviceAccount:
         create: true
     service:
