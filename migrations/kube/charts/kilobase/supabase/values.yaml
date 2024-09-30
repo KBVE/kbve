@@ -12,7 +12,7 @@ secret:
             password: password
             database: database
     analytics:
-        secretRef: 'supabase-secret-analytics'
+        secretRef: 'supabase-release-analytics'
         secretRefKey:
             apiKey: apiKey
     smtp:
@@ -523,7 +523,6 @@ kong:
 
 # Analytics
 analytics:
-    # Enable analytics provisioning
     enabled: true
     image:
         repository: supabase/logflare
