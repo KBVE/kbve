@@ -12,7 +12,7 @@ secret:
             password: password
             database: database
     analytics:
-        secretRef: 'supabase-secret-analytics'
+        secretRef: 'supabase-release-analytics'
         secretRefKey:
             apiKey: apiKey
     smtp:
