@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
 spec:
-  instances: 2
+  instances: 3
   primaryUpdateStrategy: unsupervised
   imageName: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag | default .Chart.AppVersion }}"
   imagePullPolicy: {{ .Values.db.image.pullPolicy }}
@@ -79,6 +79,7 @@ spec:
           key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
       wal:
         compression: gzip
+    retentionPolicy: "30d"
   bootstrap:
     initdb:
       database: app
