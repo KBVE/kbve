@@ -91,5 +91,19 @@ spec:
 
     recovery:
       backup:
-        name: {{ include "supabase.db.fullname" . }}-backup 
-        target: barmanObjectStore
+        source: clusterBackup
+  
+  externalClusters:
+    - name: clusterBackup
+      barmanObjectStore:
+        barmanObjectStore:
+        destinationPath: s3://kilobase/barman/backup
+        s3Credentials:
+          accessKeyId:
+            name: {{ .Values.secret.s3.secretRef }}
+            key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
+          secretAccessKey:
+            name: {{ .Values.secret.s3.secretRef }}
+            key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
+        wal:
+          compression: gzip
