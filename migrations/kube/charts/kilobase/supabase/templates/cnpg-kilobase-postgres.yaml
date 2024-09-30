@@ -11,13 +11,6 @@ spec:
   imagePullPolicy: {{ .Values.db.image.pullPolicy }}
   postgresUID: 101
   postgresGID: 102
-  resources: 
-    limits:
-      memory: "1024Mi"
-      cpu: 1000m
-    requests:
-      memory: "512Mi"
-      cpu: 500m
   storage:
     size: 2Gi
     storageClass: {{ .Values.db.storage.storageClassName }}
