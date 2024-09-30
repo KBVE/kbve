@@ -90,13 +90,12 @@ spec:
     #     - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
 
     recovery:
-      backup:
-        source: clusterBackup
+      source: supabase-release-supabase-db
   
   externalClusters:
-    - name: clusterBackup
+    - name: supabase-release-supabase-db
       barmanObjectStore:
-        destinationPath: s3://kilobase/barman/restore/supabase
+        destinationPath: s3://kilobase/barman/restore/supabase-release-supabase-db/
         s3Credentials:
           accessKeyId:
             name: {{ .Values.secret.s3.secretRef }}
