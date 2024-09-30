@@ -92,4 +92,4 @@ spec:
     recovery:
       backup:
         name: {{ include "supabase.db.fullname" . }}-backup 
-  
+        target: barmanObjectStore
