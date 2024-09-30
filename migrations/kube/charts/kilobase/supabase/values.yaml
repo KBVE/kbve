@@ -64,12 +64,12 @@ db:
         accessModes:
             - ReadWriteOnce
         class: ''
-    autoscaling:
-        enabled: false
-        minReplicas: 1
-        maxReplicas: 100
-        targetCPUUtilizationPercentage: 80
-        targetMemoryUtilizationPercentage: 80
+    # autoscaling:
+    #     enabled: false
+    #     minReplicas: 1
+    #     maxReplicas: 100
+    #     targetCPUUtilizationPercentage: 80
+    #     targetMemoryUtilizationPercentage: 80
 
 # Studio Application
 studio:
