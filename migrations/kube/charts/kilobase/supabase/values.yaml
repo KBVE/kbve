@@ -525,7 +525,7 @@ kong:
 # Analytics
 analytics:
     # Enable analytics provisioning
-    enabled: false
+    enabled: true
     image:
         repository: supabase/logflare
         pullPolicy: IfNotPresent
@@ -581,7 +581,7 @@ analytics:
 
 # Vector
 vector:
-    enabled: false
+    enabled: true
     image:
         repository: timberio/vector
         pullPolicy: IfNotPresent
