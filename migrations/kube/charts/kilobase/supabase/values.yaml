@@ -523,7 +523,6 @@ kong:
 
 # Analytics
 analytics:
-    # Enable analytics provisioning
     enabled: true
     image:
         repository: supabase/logflare
