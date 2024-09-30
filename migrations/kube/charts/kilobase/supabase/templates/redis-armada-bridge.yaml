@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: supabase
+spec:
+  type: ExternalName
+  externalName: redis-master.armada.svc.cluster.local
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-supabase-to-redis
+  namespace: armada
+spec:
+  podSelector:
+    matchLabels:
+      app: redis-master
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: supabase
+      ports:
+        - protocol: TCP
+          port: 6379
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: redis-secret-reader
+  namespace: armada
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
