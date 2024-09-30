@@ -46,7 +46,7 @@ db:
         type: ClusterIP
         port: 5432
     environment:
-        POSTGRES_HOST: /var/run/postgresql
+        # POSTGRES_HOST: /var/run/postgresql
         PGPORT: '5432'
         POSTGRES_PORT: '5432'
         JWT_EXP: 3600
@@ -460,8 +460,8 @@ kong:
         pullPolicy: IfNotPresent
         tag: 2.8.1
     replicaCount: 1
-    livenessProbe: {}
-    readinessProbe: {}
+    # livenessProbe: {}
+    # readinessProbe: {}
     serviceAccount:
         create: true
     # podAnnotations: {}
