@@ -111,6 +111,8 @@ spec:
                   {{- end }}
             - name: POSTGRES_BACKEND_URL
               value: $(DB_DRIVER)://$(DB_USERNAME):$(DB_PASSWORD_ENC)@$(DB_HOSTNAME):$(DB_PORT)/$(DB_DATABASE)?search_path=auth&sslmode=$(DB_SSL)
+            - name: DENO_DIR
+              value: "/deno_cache"
           {{- with .Values.functions.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -125,6 +127,8 @@ spec:
             {{- end }}
             - mountPath: /home/deno/functions/main
               name: functions-main
+            - mountPath: /deno_cache
+              name: deno-cache-volume
           {{- with .Values.functions.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -136,6 +140,8 @@ spec:
         - name: functions-main
           configMap:
             name: {{ include "supabase.functions.fullname" . }}-main
+        - name: deno-cache-volume
+          emptyDir: {}
       {{- with .Values.functions.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

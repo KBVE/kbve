@@ -1,0 +1,57 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: secret-pgsodium-key
+    namespace: supabase
+    annotations:
+        configmap.reference: pgsodium-getkey-script
+spec:
+    encryptedData:
+        pgsodium_key: AgBiJTNPoWYD5rhtcFPPX1zqX6nl1xFBFbqAvAmAJiPuxKRjzLkFmahTsDtHCLRVzmQ9WM2TNCNe5mrjMDHcaNQ6SuKxH1tyPYZZ9IpPfa/6X8vAmoNPdL6S8hYQGP80x2RiwrhNC+nhjY8dxBHrjiT2VtgiKnheWirihEhH41BJeGgSxlxsU4oD9FzGAvViqjAcnHRTn8PYPp1sMcUIPyJNf9Ez23QcGLt3zcNTEQdJ0PDJyo83U+obH81yS95rbs/OKpotGUxNsiFiwNpg3PZ9OtWg3COqXDInBAEZEFWoOFC2NW9bAWHfuS5s9V6RQjbtfPFwynr1AyqPwtvzVViTSiODsu7l1EmUDXMA2fYhIqsJUCFU66XprUPtcbqTIHu/queB/O5i49gaGCakviYOAVHyCVdgQe2b2ZIfe5zkq6Fea3FAsmQIp/OHFZgyNLG7LxandbwS9Atnzu35TEPxbipRZBTNERev8tNyiuC/a0nFJPFyAKkZv0UYQQZCmk/JNdh15ecuJCLgJL4NKcWlVls4+DZpStUTA4UXMBLB7nLCQ9qem7Dsq3QDDE9msZ/jX+yDawh0ttMTmiIso+kgbQWCW9z/1sO2FYMwRfBV6joXlORn7z05yz8if5vSjFJOGDu+ScIN1OqiHBgOYTjsNafJJoxEnkVn6i6kGeqQXAGfx29D3iAs68rIMcbDCCcWMJsTwE1NDcSUDkSY+s7vSwTFNPg04Z6v5xHO273bDNAV1eZFudgbu4jbr53mz1qH0OO9zdg0PxYikyVzs8yt
+    template:
+        metadata:
+            name: secret-pgsodium-key
+            namespace: supabase
+            labels:
+                app: pgsodium
+                component: security
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: pgsodium-getkey-script
+    namespace: supabase
+data:
+    pgsodium_getkey.sh: |
+        #!/bin/bash
+        kubectl get secret secret-pgsodium-key -n supabase -o jsonpath='{.data.pgsodium_key}' | base64 --decode
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pgsodium-secret-access
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+    resourceNames: 
+      - secret-pgsodium-key
+      - supabase-secret-db 
+      - supabase-secret-jwt
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pgsodium-secret-access-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pgsodium-secret-access
+subjects:
+  - kind: ServiceAccount
+    name: supabase-release-supabase-db
+    namespace: supabase
