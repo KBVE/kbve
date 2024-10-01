@@ -154,8 +154,85 @@ bootstrap:
 
 ```
 
+### CNPG Recovery Example
+
+Here is our CNPG recovery example using AWS for our self hosted supabase instance.
+It should be noted that the new cluster should not share some the same variables like `name` because it might cause some errors with the new cluster's WAL.
+
+```yaml
+
+bootstrap:
+    recovery:
+        source: supabase
+
+externalClusters:
+    - name: supabase
+      barmanObjectStore:
+        serverName: supabase
+        destinationPath: s3://kilobase/barman/restore/
+        s3Credentials:
+          accessKeyId:
+            name: {{ .Values.secret.s3.secretRef }}
+            key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
+          secretAccessKey:
+            name: {{ .Values.secret.s3.secretRef }}
+            key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
+        wal:
+          compression: gzip
+
+```
+
 ---
 
 ## Barman
 
-The Barman install for the postgres will be done via python or directly through the postgres ppa.
+
+Barman (Backup and Recovery Manager) is an advanced backup and recovery solution designed specifically for PostgreSQL databases.
+It allows database administrators to automate backup processes, perform disaster recovery, and maintain business continuity by ensuring that data is always recoverable.
+Barman can be installed using Python’s package manager (pip) or through PostgreSQL’s official PPA (Personal Package Archive), making it easy to set up and integrate into existing infrastructures.
+Once installed, Barman provides a command-line interface (barman-cli) that supports managing backups, restoring databases, monitoring replication, and verifying the integrity of stored data.
+One of its key features is Point-in-Time Recovery (PITR), which enables the restoration of a database to a specific moment, even down to the second, providing a flexible approach for handling data inconsistencies or unintentional deletions.
+Barman also supports parallel streaming and synchronous WAL (Write-Ahead Log) archiving, ensuring that backups remain up-to-date with minimal performance impact on the source database.
+Additionally, Barman offers monitoring capabilities with built-in commands for checking the status of backups, space utilization, and replication delays, enabling proactive maintenance and alerts.
+For cloud deployments, Barman Cloud CLI extends its capabilities by offering integration with cloud storage providers such as AWS S3, Azure Blob Storage, and Google Cloud Storage, making it a versatile solution for hybrid and cloud-native environments.
+With the Barman Cloud CLI, you can seamlessly configure cloud storage, perform backups, restore operations, and leverage cloud-based encryption for an added layer of data security.
+Overall, Barman and its cloud extension provide a comprehensive toolkit for database administrators to manage the complexities of PostgreSQL backups, ensuring data is securely stored, quickly recoverable, and effectively managed both on-premises and in the cloud.
+
+<Aside>
+
+💡 Reminder: Always test your Barman backup and recovery setup in a non-production environment before a real disaster occurs.
+Running recovery simulations ensures that your backups are correctly configured and that the recovery process works as expected, giving you confidence that your data is safe and recoverable.
+Regular testing is crucial to avoid unexpected failures during critical moments.
+
+</Aside>
+
+We want the barman to be installed directly into our postgres image and thus we will add a stage called `Barman`.
+Here is a brief example of us setting up the barman cloud cli inside of our `kilobase` image that is based upon the supabase image.
+
+```Dockerfile
+
+# Install necessary utilities like wget and gnupg before adding the PostgreSQL PPA
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gnupg \
+    wget \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add the PostgreSQL PPA and import the key
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+# Update and install barman-cli-cloud from the PostgreSQL PPA
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    barman-cli-cloud
+
+# Clean up unnecessary files to reduce image size
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+```
+
+
+---
+
+## Extensions
