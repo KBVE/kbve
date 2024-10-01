@@ -80,6 +80,26 @@ The error that we are facing now is that:
 
 The postgres db was unable to find the `redis-auth`.
 My theory is that we might need to adjust the `Role` kind for the secert and make it a `ClusterRole` instead, thus updating the `redis-armada-bridge.yaml` to reflect the role change.
+Hmm, we ran into the same problem again and I am thinking that we need to tell the ClusteRole to grab the secret from the `armada` namespace?
+
+```yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: redis-secret-reader
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list']
+      resourceNames:
+          - redis-auth
+      namespaces: ['armada']
+
+```
+
+
+
 
 ## 2023
 

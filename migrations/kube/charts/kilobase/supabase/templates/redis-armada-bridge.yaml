@@ -39,6 +39,7 @@ rules:
       verbs: ['get', 'list']
       resourceNames:
           - redis-auth
+      namespaces: ['armada']
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
