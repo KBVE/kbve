@@ -83,6 +83,13 @@ fn process_url(url: &str) -> Result<String, String> {
 
 ```
 
+**LongHorn**
+
+During our disaster recovery, I noticed that while everything else came back online, the PVC management still needs to be adjusted.
+For this situation, we would need to setup a replica of the storage on another S3-type bucket and make the automatic sync a bit easier.
+Upon init container, we should hold off the storage deployment until the postgres database is operational, a possible point that we can adjust across all of the supabase concepts.
+
+
 ## 2023
 
 NULL
