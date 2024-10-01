@@ -6,6 +6,7 @@ metadata:
 spec:
     type: ExternalName
     externalName: redis-master.armada.svc.cluster.local
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -41,16 +42,16 @@ rules:
           - redis-auth
 
 ---
-apiversion: rbac.authorization.k8s.io/v1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: redis-secret-reader-binding
-  namespace: armada
+    name: redis-secret-reader-binding
+    namespace: armada
 subjects:
-  - kind: ServiceAccount
-    name: supabase-app-sa
-    namespace: supabase
+    - kind: ServiceAccount
+      name: supabase-app-sa
+      namespace: supabase
 roleRef:
-  apiGroup: rba.authorization.k8s.io
-  kind: Role
-  name: redis-secret-reader
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: redis-secret-reader
