@@ -188,7 +188,7 @@ jobs:
                       rustapiprofile:
                           - 'apps/rust_api_profile/**'
                       kilobase:
-                          - 'apps/kilobase/**'
+                          - 'apps/kilobase/Cargo.toml'
 
     deploy:
         needs: alter

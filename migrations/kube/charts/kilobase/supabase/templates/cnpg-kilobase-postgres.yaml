@@ -60,6 +60,11 @@ spec:
           key: password
     - name: JWT_EXP
       value: "3600"
+    - name: REDIS_AUTH
+      valueFrom:
+        secretKeyRef:
+          name: redis-auth
+          key: redis-password   
   backup:
     barmanObjectStore:
       destinationPath: s3://kilobase/barman/backup
@@ -73,7 +78,10 @@ spec:
       wal:
         compression: gzip
     retentionPolicy: "30d"
-  bootstrap:
+  # bootstrap:
+
+  #   recovery:
+  #       source: supabase
     # initdb:
     #   database: app
     #   owner: app
@@ -89,19 +97,19 @@ spec:
     #     - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
     #     - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
 
-    recovery:
-      source: supabase-release-supabase-db
+    
   
-  externalClusters:
-    - name: supabase-release-supabase-db
-      barmanObjectStore:
-        destinationPath: s3://kilobase/barman/restore/supabase-release-supabase-db/
-        s3Credentials:
-          accessKeyId:
-            name: {{ .Values.secret.s3.secretRef }}
-            key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
-          secretAccessKey:
-            name: {{ .Values.secret.s3.secretRef }}
-            key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
-        wal:
-          compression: gzip
+  # externalClusters:
+  #   - name: supabase
+  #     barmanObjectStore:
+  #       serverName: supabase
+  #       destinationPath: s3://kilobase/barman/restore/
+  #       s3Credentials:
+  #         accessKeyId:
+  #           name: {{ .Values.secret.s3.secretRef }}
+  #           key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
+  #         secretAccessKey:
+  #           name: {{ .Values.secret.s3.secretRef }}
+  #           key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
+  #       wal:
+  #         compression: gzip

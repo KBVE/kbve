@@ -1,39 +1,57 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis
-  namespace: supabase
+    name: redis
+    namespace: supabase
 spec:
-  type: ExternalName
-  externalName: redis-master.armada.svc.cluster.local
+    type: ExternalName
+    externalName: redis-master.armada.svc.cluster.local
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-supabase-to-redis
-  namespace: armada
+    name: allow-supabase-to-redis
+    namespace: armada
 spec:
-  podSelector:
-    matchLabels:
-      app: redis-master
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              name: supabase
-      ports:
-        - protocol: TCP
-          port: 6379
+    podSelector:
+        matchLabels:
+            app: redis-master
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        name: supabase
+          ports:
+              - protocol: TCP
+                port: 6379
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: redis-secret-reader
-  namespace: armada
+    name: redis-secret-reader
+    namespace: armada
 rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get", "list"]
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list']
+      resourceNames:
+          - redis-auth
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: redis-secret-reader-binding
+    namespace: armada
+subjects:
+    - kind: ServiceAccount
+      name: supabase-app-sa
+      namespace: supabase
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: redis-secret-reader
