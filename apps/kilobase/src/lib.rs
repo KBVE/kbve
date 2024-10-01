@@ -10,6 +10,7 @@ use pgrx::prelude::*;
 use reqwest::Client;
 use reqwest::ClientBuilder;
 use tokio::runtime::Runtime;
+use std::env;
 use std::time::Duration;
 use jedi::lazyregex::{ extract_url_from_regex_zero_copy };
 use serde::{ Deserialize, Serialize };
@@ -17,6 +18,13 @@ use ulid::Ulid;
 use base62;
 
 ::pgrx::pg_module_magic!();
+
+//  [REDIS]
+
+// const REDIS_URL: &str = "redis://redis";
+const REDIS_DEFAULT_HOST: &str = "localhost";
+const REDIS_DEFAULT_PORT: &str = "6379";
+
 
 //  [SQL]
 
@@ -157,23 +165,6 @@ fn generate_base62_ulid() -> String {
   base62::encode(ulid_u128)
 }
 
-// Function to make an HTTP request and return the result
-// fn process_url(url: &str) -> Result<String, String> {
-//   let client = Client::new();
-
-//   // Make a blocking HTTP GET request
-//   let response = client
-//     .get(url)
-//     .send()
-//     .map_err(|e| format!("HTTP request failed: {}", e))?;
-
-//   if response.status().is_success() {
-//     let body = response.text().map_err(|e| format!("Failed to read response body: {}", e))?;
-//     Ok(body)
-//   } else {
-//     Err(format!("HTTP request returned non-200 status: {}", response.status()))
-//   }
-// }
 
 // Async function to make an HTTP request using reqwest with rustls and a custom timeout
 async fn process_url_async(url: &str) -> Result<String, String> {
