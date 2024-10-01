@@ -25,6 +25,62 @@ For the Postgres cluster, the hardest part of the whole thing is to maintain a l
 In the current state of resources, we are unable to setup and run two clusters, aka the `main` and `dev` or `production` and `development`.
 As of right now, we are only running the `dev` cluster.
 
+```
+
+ kubectl get pods -n supabase
+NAME                                                   READY   STATUS                       RESTARTS   AGE
+supabase-release-supabase-analytics-76f4b968cf-4tcfq   1/1     Running                      0          16h
+supabase-release-supabase-auth-6955f59486-cj5vc        1/1     Running                      0          16h
+supabase-release-supabase-db-1                         1/1     Running                      0          16h
+supabase-release-supabase-db-2                         1/1     Running                      0          16h
+supabase-release-supabase-db-3                         0/1     CreateContainerConfigError   0          11h
+supabase-release-supabase-functions-64c9b5c6c7-vvsrj   1/1     Running                      0          16h
+supabase-release-supabase-imgproxy-65c697f6b8-zjr82    1/1     Running                      0          16h
+supabase-release-supabase-kong-8568c4bccf-2tx2n        1/1     Running                      0          16h
+supabase-release-supabase-meta-74dcdf58dc-psgnk        1/1     Running                      0          16h
+supabase-release-supabase-realtime-7f6846b545-nbmjx    1/1     Running                      0          16h
+supabase-release-supabase-rest-7ccb7f5954-8qhvj        1/1     Running                      0          16h
+supabase-release-supabase-storage-857d655cd7-fx4bz     1/1     Running                      0          16h
+supabase-release-supabase-studio-798b47644b-5fd5r      1/1     Running                      0          16h
+supabase-release-supabase-vector-7bc47494f-swb9r       1/1     Running                      0          16h
+
+```
+
+6:40pm - The current error is:
+
+```
+
+ErrApplied(1) [Bundle kilobase-migrations-kube-charts-kilobase: cannot patch "supabase-release-supabase-db" with kind Cluster: admission webhook "vcluster.cnpg.io" denied the request:
+Cluster.cluster.cnpg.io "supabase-release-supabase-db" is invalid: spec.bootstrap: Invalid value: "": 
+Too many bootstrap types specified]; cluster.postgresql.cnpg.io supabase/supabase-release-supabase-db [progressing] Cluster Is Not Ready
+
+```
+
+To move things forward, we will go ahead and run this shell command:
+
+```shell
+
+kubectl delete pod supabase-release-supabase-db-3 -n supabase
+
+```
+
+Looks like the `CreateContainerConfigError` popped back up again, so we will go ahead and run a new command to describe the error.
+
+```shell
+
+kubectl describe pod supabase-release-supabase-db-3 -n supabase
+
+```
+
+The error that we are facing now is that:
+
+```
+  Warning  Failed                  92s (x7 over 2m34s)  kubelet                  Error: secret "redis-auth" not found
+```
+
+The postgres db was unable to find the `redis-auth`.
+My theory is that we might need to adjust the `Role` kind for the secert and make it a `ClusterRole` instead, thus updating the `redis-armada-bridge.yaml` to reflect the role change.
+
 ## 2023
 
 NULL

@@ -30,10 +30,9 @@ spec:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
     name: redis-secret-reader
-    namespace: armada
 rules:
     - apiGroups: ['']
       resources: ['secrets']
@@ -43,15 +42,14 @@ rules:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
     name: redis-secret-reader-binding
-    namespace: armada
 subjects:
     - kind: ServiceAccount
       name: supabase-app-sa
       namespace: supabase
 roleRef:
     apiGroup: rbac.authorization.k8s.io
-    kind: Role
+    kind: ClusterRole
     name: redis-secret-reader
