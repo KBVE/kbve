@@ -60,6 +60,11 @@ spec:
           key: password
     - name: JWT_EXP
       value: "3600"
+    - name: REDIS_AUTH
+      valueFrom:
+        secretKeyRef:
+          name: redis-auth
+          key: redis-password   
   backup:
     barmanObjectStore:
       destinationPath: s3://kilobase/barman/backup
