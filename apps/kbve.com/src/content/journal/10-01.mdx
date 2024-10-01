@@ -17,7 +17,13 @@ import { Adsense, Tasks } from '@kbve/astropad';
 **Redis**
 
 Back at it again with the redis extension for the Docker image!
-The plan is still a continuation from yesterday, right now I am just testing the role bindings and making sure that the main container can connect to the
+The plan is still a continuation from yesterday, right now I am just testing the role bindings and making sure that the main container can connect to the redis.
+
+**Recovery**
+
+For the Postgres cluster, the hardest part of the whole thing is to maintain a level of security.
+In the current state of resources, we are unable to setup and run two clusters, aka the `main` and `dev` or `production` and `development`.
+As of right now, we are only running the `dev` cluster.
 
 ## 2023
 
