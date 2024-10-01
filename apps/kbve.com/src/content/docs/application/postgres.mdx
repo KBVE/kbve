@@ -129,6 +129,33 @@ These requirements ensure compatibility and proper functionality of CloudNativeP
 
 ---
 
+### CNPG Deployment Example
+
+Here is a quick base example of the bootstrap initdb that we are using to start our cluster.
+
+```yaml
+
+bootstrap:
+    initdb:
+        database: app
+        owner: app
+        dataChecksums: true
+        encoding: 'UTF8'
+        postInitApplicationSQLRefs:
+            configMapRefs:
+                -   name: {{ include "supabase.db.fullname" . }}-init
+                    key: configmap.sql
+                -   name: {{ include "supabase.db.fullname" . }}-sql
+                    key: alt.sql
+        postInitApplicationSQL:
+            - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
+            - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
+
+
+```
+
+---
+
 ## Barman
 
 The Barman install for the postgres will be done via python or directly through the postgres ppa.

@@ -27,7 +27,61 @@ The n8n integration will give us the no-code style of flow for building out and 
 **Recovery**
 
 Nothing is more fun than setting up recovery and the joys and huge pain points that come with it!
+The recovery will be be from the same `GitRepo` / `GitOps`, starting with: 
 
+Repo: `https://github.com/KBVE/kbve.git`
+Paths: `/migrations/kube/charts/kilobase`
+
+We got all three instances running, so it looks like the issue with recovering a postgres is to double check the base and WALs before doing a recovery.
+
+```
+
+supabase-release-supabase-db-1                         1/1     Running   0          3m25s
+supabase-release-supabase-db-2                         1/1     Running   0          2m14s
+supabase-release-supabase-db-3                         1/1     Running   0          78s
+
+```
+
+**Kilobase**
+
+The tokio runtime seems to create a segfault in the cluster and thus, I am thinking that we would keep the function of the background worker to maybe store the URL into a redis cluster.
+We can then throw together an isolated container that would read from the redis, process the URL and then store back the data via a transaction.
+
+From my understanding, at this point, this function causing the segfault in the postgres when enabling the extension:
+
+```rust
+
+fn process_url(url: &str) -> Result<String, String> {
+  let rt = Runtime::new().unwrap();
+  rt.block_on(process_url_async(url))
+}
+
+```
+
+Thus the best solution would be to move that all out into its own isolated container, which I will build using axum.
+We can even migrate the older function into this isolated application.
+
+```rust
+
+
+fn process_url(url: &str) -> Result<String, String> {
+  let client = Client::new();
+
+  // Make a blocking HTTP GET request
+  let response = client
+    .get(url)
+    .send()
+    .map_err(|e| format!("HTTP request failed: {}", e))?;
+
+  if response.status().is_success() {
+    let body = response.text().map_err(|e| format!("Failed to read response body: {}", e))?;
+    Ok(body)
+  } else {
+    Err(format!("HTTP request returned non-200 status: {}", response.status()))
+  }
+}
+
+```
 
 ## 2023
 
