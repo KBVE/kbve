@@ -9,7 +9,10 @@ use pgrx::prelude::*;
 // use reqwest::blocking::Client;
 use reqwest::Client;
 use reqwest::ClientBuilder;
+use redis::{ Client as RedisClient, Commands, Connection, RedisResult };
+//  *Remove Tokio*
 use tokio::runtime::Runtime;
+use std::env;
 use std::time::Duration;
 use jedi::lazyregex::{ extract_url_from_regex_zero_copy };
 use serde::{ Deserialize, Serialize };
@@ -17,6 +20,12 @@ use ulid::Ulid;
 use base62;
 
 ::pgrx::pg_module_magic!();
+
+//  [REDIS]
+
+// const REDIS_URL: &str = "redis://redis";
+const REDIS_DEFAULT_HOST: &str = "localhost";
+const REDIS_DEFAULT_PORT: &str = "6379";
 
 //  [SQL]
 
@@ -63,6 +72,9 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
   BackgroundWorker::connect_worker_to_spi(Some("postgres"), None);
 
   log!("Starting KiloBase BG Worker");
+
+  //  [REDIS] -> Connection
+  // let mut redis_connection = match
 
   while BackgroundWorker::wait_latch(Some(Duration::from_secs(10))) {
     // Select a pending task
@@ -150,30 +162,35 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
 
 //  [HELPERS]
 
+//  [REDIS] -> Helper function to create a persistent redis connection.
+fn create_redis_connection() -> RedisResult<Connection, redis::RedisError> {
+  //  [REDIS] -> ENVs
+  let redis_host = env::var("REDIS_HOST").unwrap_or_else(|_| REDIS_DEFAULT_HOST.to_string());
+  let redis_port = env::var("REDIS_PORT").unwrap_or_else(|_| REDIS_DEFAULT_PORT.to_string());
+  let redis_auth = env::var("REDIS_AUTH").ok();
+
+  //  [REDIS] -> Connection <String>
+  let redis_connection_url = format!("redis://{}:{}", redis_host, redis_port);
+  //  let redis_secure_connection_url = format!("rediss://{}:{}", redis_host, redis_port);
+
+  //  [REDIS] -> Create the Redis Client
+  let client = Client::open(redis_connection_url)?;
+
+  let mut conn = client.get_connection()?;
+
+  if let Some(password) = redis_auth {
+    redis::cmd("AUTH").arg(password).query(&mut conn)?;
+  }
+
+  ok(conn)
+}
+
 fn generate_base62_ulid() -> String {
   let ulid = Ulid::new();
   let ulid_bytes = ulid.to_bytes();
   let ulid_u128 = u128::from_be_bytes(ulid_bytes);
   base62::encode(ulid_u128)
 }
-
-// Function to make an HTTP request and return the result
-// fn process_url(url: &str) -> Result<String, String> {
-//   let client = Client::new();
-
-//   // Make a blocking HTTP GET request
-//   let response = client
-//     .get(url)
-//     .send()
-//     .map_err(|e| format!("HTTP request failed: {}", e))?;
-
-//   if response.status().is_success() {
-//     let body = response.text().map_err(|e| format!("Failed to read response body: {}", e))?;
-//     Ok(body)
-//   } else {
-//     Err(format!("HTTP request returned non-200 status: {}", response.status()))
-//   }
-// }
 
 // Async function to make an HTTP request using reqwest with rustls and a custom timeout
 async fn process_url_async(url: &str) -> Result<String, String> {
