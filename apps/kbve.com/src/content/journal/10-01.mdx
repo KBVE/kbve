@@ -116,6 +116,9 @@ kubectl get secret redis-auth -n supabase
 
 This next update, we will be adjusting the `ServiceAccount` under the `ClusterRoleBinding`.
 
+Maybe we are doing too many changes and it is causing this backlog of updates, thus we will comment out the `REDIS_AUTH` env for now and move forward with the recovery of the cluster again.
+Once we can confirm that the `redis-auth` secret can be accessed, we will revert the recovery process again.
+
 
 ## 2023
 
