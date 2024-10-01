@@ -98,7 +98,23 @@ rules:
 
 ```
 
+To be safe, we will double check the `redis-auth` secret and make sure that it exists in the `armada` namespace.
 
+```shell
+
+kubectl get secret redis-auth -n armada
+
+```
+
+Now , we still have that issue with grabbing the secret, when running this command:
+
+```shell
+
+kubectl get secret redis-auth -n supabase
+
+```
+
+This next update, we will be adjusting the `ServiceAccount` under the `ClusterRoleBinding`.
 
 
 ## 2023

@@ -48,7 +48,7 @@ metadata:
     name: redis-secret-reader-binding
 subjects:
     - kind: ServiceAccount
-      name: supabase-app-sa
+      name: supabase-release-supabase-db
       namespace: supabase
 roleRef:
     apiGroup: rbac.authorization.k8s.io
