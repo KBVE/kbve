@@ -45,7 +45,7 @@ CREATE TRIGGER handle_user_profiles_update
     EXECUTE PROCEDURE moddatetime(updated_at);
 
 -- Function to handle new user creation and validation
-CREATE FUNCTION public.handle_new_user_profile()
+CREATE OR REPLACE FUNCTION public.handle_new_user_profile()
     RETURNS TRIGGER AS $$
     BEGIN
         -- Validate the username
