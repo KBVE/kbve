@@ -92,4 +92,5 @@ export * from './lib/phaser/npc/npchandler';
 export * from './lib/phaser/npc/npcdatabase';
 
 // Monsters
-export * from './lib/phaser/monster/bird';
+export { getBirdNum, isBird, createBirdSprites, createShadowSprites, createBirdAnimation, createCroppedSprites } from './lib/phaser/monster/bird';
+
