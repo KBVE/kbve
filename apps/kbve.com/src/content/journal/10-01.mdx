@@ -131,6 +131,12 @@ kubectl get clusterrolebinding redis-secret-reader-binding -o yaml
 
 ```
 
+The issue ended up being that the namespace for the sealed secret was scoped to just the `armada` and thus we will have to seal the secret for the redis again for the supabase namespace.
+The other option was to open the secret up to other namespaces but I feel like that might be too much of a security issue for us in the future.
+
+We can move this up to the Alpha branch and then start looking into the n8n deployment as the next chart / container for our supabase instance.
+However, I am thinking that we could also split the n8n out into its own namespace, but that might also be not worth it, hmm. 
+
 
 
 ## 2023
