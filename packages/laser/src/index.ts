@@ -61,6 +61,7 @@ export {
 	createPersistentAtom,
 	addItemToStore,
 	removeItemFromStore,
+    getItemDetails,
 	getUserSetting,
 	setUserSetting,
 } from './lib/localdb';
@@ -86,9 +87,10 @@ export { default as TypewriterComponent } from './lib/animations/TypewriterCompo
 export { PlayerController } from './lib/phaser/player/playercontroller';
 
 // NPC
-export * from './lib/phaser/npc/tooltipmenu';
-export * from './lib/phaser/npc/chatbubble';
-export * from './lib/phaser/npc/npchandler';
+
+// export { TooltipMenu } from './lib/phaser/npc/tooltipmenu';
+// export { createMessageBubble, createTextBubble, updateTextBubblePosition, updateMessageBubblePosition } from './lib/phaser/npc/chatbubble';
+export { NPCHandler, npcHandler }from './lib/phaser/npc/npchandler';
 export { NPCDatabase, npcDatabase } from './lib/phaser/npc/npcdatabase';
 
 // Monsters

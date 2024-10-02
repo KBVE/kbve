@@ -93,7 +93,7 @@ const eventEmitterInstance = new EventEmitter<EventData>();
 export { EventEmitter };
 
 // Named export for the event emitter instance
-export { eventEmitterInstance };
+export { eventEmitterInstance};
 
 // Default export for backward compatibility or easier importing
 export default eventEmitterInstance;

@@ -5,7 +5,7 @@ import {
   type Bounds,
   type Range,
   PlayerController,
-  EventEmitter,
+  eventEmitterInstance as EventEmitter,
   type CharacterEventData,
   notificationType,
   ULIDFactory,

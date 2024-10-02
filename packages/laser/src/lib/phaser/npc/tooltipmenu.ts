@@ -1,16 +1,14 @@
-import { Scene } from 'phaser';
 
-import { EventEmitter } from '../../eventhandler';
-
+import { eventEmitterInstance as EventEmitter } from '../../eventhandler';
 import { type NPCInteractionEventData } from '../../../types';
 
-export class TooltipMenu extends Phaser.GameObjects.Container {
+class TooltipMenu extends Phaser.GameObjects.Container {
   background: Phaser.GameObjects.Rectangle;
   text: Phaser.GameObjects.Text;
   buttons: Phaser.GameObjects.Text[];
   sprite: Phaser.GameObjects.Sprite;
 
-  constructor(scene: Scene, sprite: Phaser.GameObjects.Sprite, text: string, actions: { label: string, callback: () => void }[]) {
+  constructor(scene: Phaser.Scene, sprite: Phaser.GameObjects.Sprite, text: string, actions: { label: string, callback: () => void }[]) {
     const x = sprite.x;
     const y = sprite.y - sprite.height + 10; // Adjust this value to position it closer to the sprite
     super(scene, x, y);
@@ -19,7 +17,6 @@ export class TooltipMenu extends Phaser.GameObjects.Container {
 
     const bubbleWidth = 150;
     const bubbleHeight = 40 + actions.length * 20;
-    const bubblePadding = 10;
 
     this.background = scene.add.rectangle(0, 0, bubbleWidth, bubbleHeight, 0x000000, 0.7);
     this.text = scene.add.text(0, -bubbleHeight / 2 + 10, text, { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
@@ -41,7 +38,7 @@ export class TooltipMenu extends Phaser.GameObjects.Container {
     this.setPosition(this.sprite.x - 30, this.sprite.y - this.sprite.height - this.background.height / 2 + 100); // Adjust this value to position it closer to the sprite
   }
 
-  static attachToSprite(scene: Scene, sprite: Phaser.GameObjects.Sprite, text: string, actions: { label: string, callback: () => void }[]) {
+  static attachToSprite(scene: Phaser.Scene, sprite: Phaser.GameObjects.Sprite, text: string, actions: { label: string, callback: () => void }[]) {
     sprite.setInteractive();
     sprite.on('pointerover', (pointer: { x: number; y: number; }) => {
       const npcInteractionData: NPCInteractionEventData = {
@@ -68,7 +65,7 @@ export class TooltipMenu extends Phaser.GameObjects.Container {
     });
   }
 
-  static updateAllTooltipPositions(scene: Scene) {
+  static updateAllTooltipPositions(scene: Phaser.Scene) {
     scene.children.list.forEach(child => {
       if (child instanceof Phaser.GameObjects.Sprite) {
         const tooltipMenu = child.getData('tooltipMenu') as TooltipMenu;
@@ -79,3 +76,6 @@ export class TooltipMenu extends Phaser.GameObjects.Container {
     });
   }
 }
+
+
+export { TooltipMenu };
