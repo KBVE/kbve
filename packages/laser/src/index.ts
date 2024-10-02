@@ -17,8 +17,8 @@ export {
 	itemDB,
 	settings,
 	minigameState,
-    initialMinigameState,
-    notificationType,
+	initialMinigameState,
+	notificationType,
 	completeTask,
 	addTask,
 	updateTask,
@@ -58,17 +58,17 @@ export {
 	setTextures,
 	updateDiceValues,
 	setRollingStatus,
-    createPersistentAtom,
-    addItemToStore,
-    removeItemFromStore,
-    getUserSetting,
-    setUserSetting,
+	createPersistentAtom,
+	addItemToStore,
+	removeItemFromStore,
+	getUserSetting,
+	setUserSetting,
 } from './lib/localdb';
 
 // Utils
-export { default as ULIDFactory } from './lib/utils/ulid';          //  ULID
-export { Debug } from './lib/utils/debug';                          //  Debug
-export { addLoader, removeLoader } from './lib/utils/loader';       //  Loader
+export { default as ULIDFactory } from './lib/utils/ulid'; //  ULID
+export { Debug } from './lib/utils/debug'; //  Debug
+export { addLoader, removeLoader } from './lib/utils/loader'; //  Loader
 // Icons
 export { default as CollapseIcon } from './lib/icon/CollapseIcon';
 export { default as ExpandIcon } from './lib/icon/ExpandIcon';
@@ -83,7 +83,7 @@ export { default as MinigameDice } from './lib/minigame/dice/MinigameDice';
 export { default as TypewriterComponent } from './lib/animations/TypewriterComponent';
 
 // Phaser
-export * from './lib/phaser/player/playercontroller';
+export { PlayerController } from './lib/phaser/player/playercontroller';
 
 // NPC
 export * from './lib/phaser/npc/tooltipmenu';
