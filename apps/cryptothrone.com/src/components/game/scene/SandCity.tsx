@@ -5,11 +5,10 @@ import {
   type Bounds,
   type Range,
   PlayerController,
-  EventEmitter,
+  eventEmitterInstance as EventEmitter,
   type CharacterEventData,
-  type GridEngineScene,
   notificationType,
-  createULID,
+  ULIDFactory,
   npcDatabase,
   mapDatabase,
   Debug,
@@ -34,7 +33,7 @@ export class SandCity extends Scene {
   preload() {
     EventEmitter.emit('notification', {
       title: 'Success',
-      message: `You arrived safely to SandCity Passport: ${createULID()}`,
+      message: `You arrived safely to SandCity Passport: ${ULIDFactory().toString()}`,
       notificationType: notificationType.success,
     });
   }

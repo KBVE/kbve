@@ -1,7 +1,14 @@
-import { Scene } from 'phaser';
+// import { Scene } from 'phaser';
 
-export interface GridEngineScene extends Scene {
-  gridEngine: any;
+// export interface GridEngineScene extends Scene {
+//   gridEngine: any;
+// }
+
+export interface IKiloBase {
+  hcaptcha: string;
+  hcaptcha_api: string;
+  api: string;
+  anonKey: string;
 }
 
 export interface IPlayerStats {

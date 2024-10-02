@@ -1,6 +1,33 @@
+//  loader.ts
+//  [IMPORTS]
 import { Debug } from './debug';
 import { LoaderOptions } from '../../types';
 
+//  [CORE]
+
+/**
+ * Removes a loader element from the DOM.
+ * The function tries to find the loader element by its ID or name, applies a fade-out transition, and then hides it.
+ * Optionally, a callback function can be executed once the hiding process is complete.
+ *
+ * @param {LoaderOptions} options - The configuration options for removing the loader.
+ * @param {string} options.elementIdOrName - The ID or name of the loader element to be removed.
+ * @param {number} [options.duration=500] - The duration of the fade-out transition in milliseconds. Default is 500ms.
+ * @param {() => void} [options.onComplete] - Optional callback function to be executed after the loader is removed.
+ *
+ * @remarks
+ * - If no element is found by the given ID or name, the function will log an error using `Debug.error`.
+ * - The function uses the `opacity-0` and `transition-opacity` CSS classes for the fade-out effect.
+ *
+ * @example
+ * ```typescript
+ * removeLoader({
+ *   elementIdOrName: 'myLoader',
+ *   duration: 300,
+ *   onComplete: () => console.log('Loader removed!'),
+ * });
+ * ```
+ */
 export function removeLoader(options: LoaderOptions) {
   const { elementIdOrName, duration = 500, onComplete } = options;
   let loader: HTMLElement | null = null;
@@ -49,6 +76,31 @@ export function removeLoader(options: LoaderOptions) {
   }, duration); 
 }
 
+
+/**
+ * Adds a loader element to the DOM.
+ * The function tries to find the loader element by its ID or name and displays it.
+ * If no element is found, a new loader element is created and added to the DOM.
+ * Optionally, a callback function can be executed once the loader is displayed.
+ *
+ * @param {LoaderOptions} options - The configuration options for adding the loader.
+ * @param {string} options.elementIdOrName - The ID or name of the loader element to be added.
+ * @param {number} [options.duration=500] - The duration of the fade-in transition in milliseconds. Default is 500ms.
+ * @param {() => void} [options.onComplete] - Optional callback function to be executed after the loader is added.
+ *
+ * @remarks
+ * - If no element is found by the given ID or name, a new loader element is created with default styles.
+ * - The function uses the `opacity-100` and `transition-opacity` CSS classes for the fade-in effect.
+ *
+ * @example
+ * ```typescript
+ * addLoader({
+ *   elementIdOrName: 'myLoader',
+ *   duration: 300,
+ *   onComplete: () => console.log('Loader added!'),
+ * });
+ * ```
+ */
 export function addLoader(options: LoaderOptions) {
   const { elementIdOrName, duration = 500, onComplete } = options;
   let loader: HTMLElement | null = null;
