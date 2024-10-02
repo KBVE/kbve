@@ -5,19 +5,12 @@ metadata:
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
 spec:
-  instances: 2
+  instances: 3
   primaryUpdateStrategy: unsupervised
   imageName: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag | default .Chart.AppVersion }}"
   imagePullPolicy: {{ .Values.db.image.pullPolicy }}
   postgresUID: 101
   postgresGID: 102
-  resources: 
-    limits:
-      memory: 1Gi
-      cpu: 1
-    requests:
-      memory: 1Gi 
-      cpu: 1
   storage:
     size: 2Gi
     storageClass: {{ .Values.db.storage.storageClassName }}
@@ -27,18 +20,51 @@ spec:
   superuserSecret:
     name: supabase-secret-db
   postgresql:
+    parameters:
+      row_security: "on"
+      extra_float_digits: "0"
+      effective_cache_size: "128MB"
+      shared_buffers: "128MB"
+      auto_explain.log_min_duration: "10s"
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: all
+      #app.settings.jwt_secret: "{{ .Values.secret.jwt.secretRefKey.secret }}"
+      #app.settings.jwt_exp: "3600"
+      #pgsodium.getkey_script: "/pgsodium_scripts/pgsodium_getkey.sh"
+      #pgsodium.getkey_script: "env"
+      #pgsodium.getkey_env: "PGSODIUM_SECRET_KEY"
     shared_preload_libraries:
       - pg_stat_statements
+      - pg_stat_monitor
+      - pgaudit
+      - plpgsql
+      - plpgsql_check
+      - pg_cron
       - pg_net
-      - kilobase
+      #- pgsodium
+      - timescaledb
+      - auto_explain
+      - pg_tle
+      - plan_filter
+      # - kilobase
   env:
     - name: JWT_SECRET
       valueFrom:
         secretKeyRef:
           name: supabase-secret-jwt
           key: secret
+    - name: VAULT_PASS
+      valueFrom:
+        secretKeyRef:
+          name: supabase-secret-db
+          key: password
     - name: JWT_EXP
       value: "3600"
+    - name: REDIS_AUTH
+      valueFrom:
+        secretKeyRef:
+          name: redis-auth
+          key: redis-password   
   backup:
     barmanObjectStore:
       destinationPath: s3://kilobase/barman/backup
@@ -51,18 +77,39 @@ spec:
           key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
       wal:
         compression: gzip
-  bootstrap:
-    initdb:
-      database: app
-      owner: app
-      dataChecksums: true
-      encoding: 'UTF8'
-      postInitTemplateSQL:
-        - CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;
-        - CREATE EXTENSION IF NOT EXISTS kilobase SCHEMA extensions;
-      postInitApplicationSQLRefs:
-        configMapRefs:
-        - name: {{ include "supabase.db.fullname" . }}-init
-          key: configmap.sql
-        - name: {{ include "supabase.db.fullname" . }}-sql
-          key: alt.sql
+    retentionPolicy: "30d"
+  # bootstrap:
+
+  #   recovery:
+  #       source: supabase
+    # initdb:
+    #   database: app
+    #   owner: app
+    #   dataChecksums: true
+    #   encoding: 'UTF8'
+    #   postInitApplicationSQLRefs:
+    #     configMapRefs:
+    #       - name: {{ include "supabase.db.fullname" . }}-init
+    #         key: configmap.sql
+    #       - name: {{ include "supabase.db.fullname" . }}-sql
+    #         key: alt.sql
+    #   postInitApplicationSQL:
+    #     - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
+    #     - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
+
+    
+  
+  # externalClusters:
+  #   - name: supabase
+  #     barmanObjectStore:
+  #       serverName: supabase
+  #       destinationPath: s3://kilobase/barman/restore/
+  #       s3Credentials:
+  #         accessKeyId:
+  #           name: {{ .Values.secret.s3.secretRef }}
+  #           key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
+  #         secretAccessKey:
+  #           name: {{ .Values.secret.s3.secretRef }}
+  #           key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
+  #       wal:
+  #         compression: gzip

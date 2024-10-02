@@ -101,20 +101,44 @@ COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /u
 COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
 
 ####################
+# Stage Nani:
+####################
+
+# Install necessary utilities like wget and gnupg before adding the PostgreSQL PPA
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gnupg \
+    wget \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add the PostgreSQL PPA and import the key
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+# Update and install barman-cli-cloud from the PostgreSQL PPA
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    barman-cli-cloud
+
+# Clean up unnecessary files to reduce image size
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+####################
 # Stage 4: Setup Python 3.11
 ####################
 # Add the deadsnakes PPA for Python 3.11
-RUN apt-get update && apt-get install -y software-properties-common curl && \
-    add-apt-repository ppa:deadsnakes/ppa && apt-get update
+# RUN apt-get update && apt-get install -y software-properties-common curl && \
+#     add-apt-repository ppa:deadsnakes/ppa && apt-get update
 
-# Install Python 3.11 and pip
-RUN apt-get install -y python3.11 python3.11-distutils python3.11-venv
+# # Install Python 3.11 and pip
+# RUN apt-get install -y python3.11 python3.11-distutils python3.11-venv
 
-# Install pip for Python 3.11
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+# # Install pip for Python 3.11
+# RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 
-# Set Python 3.11 as the default
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+# # Set Python 3.11 as the default
+# RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 ####################
 # Stage 5: OpenSSL
@@ -142,27 +166,36 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 ####################
 
 # Install Barman Cloud dependencies and Barman itself
-COPY /requirements.txt /
+# COPY /requirements.txt /
 
 # Execute Barman requirements.txt + OpenSSL
-RUN set -xe; \
-	apt-get update; \
-	apt-get install -y --no-install-recommends \
-		build-essential \
-		libsnappy-dev \
-		python3-psycopg2 \
-		python3-setuptools; \
-	# Upgrade pip and install requirements
-    python3.11 -m pip install --upgrade pip; \
-	# We require barman-cloud, install the package with no dependencies
-	python3.11 -m pip install --no-deps -r requirements.txt; \
-    #python3.11 -m pip install -r requirements.txt; \
-	# Remove build dependencies to reduce the image size
-	apt-get remove -y --purge --autoremove \
-		build-essential \
-		python3.11-dev \
-		libsnappy-dev; \
-	rm -rf /var/lib/apt/lists/*
+# RUN set -xe; \
+# 	apt-get update; \
+# 	apt-get install -y --no-install-recommends \
+# 		build-essential \
+# 		libsnappy-dev \
+# 		python3-psycopg2 \
+# 		python3-setuptools; \
+# 	# Upgrade pip and install requirements
+#     python3.11 -m pip install --upgrade pip; \
+# 	# We require barman-cloud, install the package with no dependencies
+# 	python3.11 -m pip install --no-deps -r requirements.txt; \
+#     #python3.11 -m pip install -r requirements.txt; \
+# 	# Remove build dependencies to reduce the image size
+# 	apt-get remove -y --purge --autoremove \
+# 		build-essential \
+# 		python3.11-dev \
+# 		libsnappy-dev; \
+# 	rm -rf /var/lib/apt/lists/*
+
+
+
+
+
+####################
+# Stage Final: Swith User to Postgres UID: 101
+####################
+
 
 RUN usermod -u 101 postgres
 USER 101

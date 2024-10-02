@@ -1,5 +1,13 @@
 #!/bin/bash
 
+usage() {
+  echo "Usage: $0 -n <namespace> -k <keyName> -s <secrets>"
+  echo "  -n  The namespace for the secret (e.g., 'default' or 'my-namespace')"
+  echo "  -k  The name of the secret (e.g., 'pgsodium-secret')"
+  echo "  -s  The secrets in 'key=value&key2=value2' format (e.g., 'key1=value1&key2=value2')"
+  exit 1
+}
+
 check_inputs() {
   if [ -z "$NAMESPACE" ] || [ -z "$KEY_NAME" ] || [ -z "$SECRETS" ]; then
     echo "Error: Missing required arguments."
@@ -19,44 +27,75 @@ check_dependencies() {
   fi
 }
 
+# Function to check if the 'armada' namespace exists
+check_armada_namespace() {
+  if ! kubectl get namespace "armada" &> /dev/null; then
+    echo "Error: The namespace 'armada' does not exist. Please ensure the Sealed Secrets operator is running in the 'armada' namespace."
+    exit 1
+  else
+    echo "Namespace 'armada' is present."
+  fi
+}
+
+
+# Function to create a temporary secret YAML in memory and output it
 create_temp_secret() {
+  # Generate the kubectl command to create the secret in dry-run mode and output as YAML
   SECRET_CMD="kubectl create secret generic $KEY_NAME --namespace $NAMESPACE"
-  
+
+  # Split SECRETS input by '&' and add each key-value pair to SECRET_CMD
   IFS='&' read -ra SECRETS_ARRAY <<< "$SECRETS"
   for secret in "${SECRETS_ARRAY[@]}"; do
-    SECRET_CMD="$SECRET_CMD --from-literal=$secret"
+    if [[ "$secret" =~ ^[a-zA-Z0-9_\-]+=[a-zA-Z0-9_\-]+$ ]]; then
+      SECRET_CMD="$SECRET_CMD --from-literal=$secret"
+    else
+      echo "Error: Invalid secret format '$secret'. Must be in 'key=value' format."
+      exit 1
+    fi
   done
-  
-  TEMP_SECRET_YAML="temp-secret.yaml"
-  $SECRET_CMD --dry-run=client -o yaml > $TEMP_SECRET_YAML
 
-  echo "Temporary secret created: $TEMP_SECRET_YAML"
+  # Run the kubectl command in dry-run mode and capture the output in TEMP_SECRET_YAML variable
+  TEMP_SECRET_YAML=$(eval "$SECRET_CMD --dry-run=client -o yaml")
 }
+
 
 seal_secret() {
-  SEALED_SECRET_YAML="sealed-temp-secret.yaml"
-  kubeseal --controller-name=sealed-secrets --controller-namespace=armada < $TEMP_SECRET_YAML > $SEALED_SECRET_YAML
-
-  echo "Sealed secret created: $SEALED_SECRET_YAML"
+  echo "$TEMP_SECRET_YAML" | kubeseal --controller-name=sealed-secrets --controller-namespace=armada --format=yaml
 }
 
-cleanup_temp_files() {
-    cat $SEALED_SECRET_YAML
-    rm -f $TEMP_SECRET_YAML
-    rm -f $SEALED_SECRET_YAML
-    echo "Temporary files cleaned up."
-}
+# Parse arguments using getopts
+NAMESPACE=""
+KEY_NAME=""
+SECRETS=""
 
-main() {
-  check_inputs
-  check_dependencies
-  create_temp_secret
-  seal_secret
-  cleanup_temp_files
-}
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -n|--namespace)
+      NAMESPACE="$2"
+      shift 2
+      ;;
+    -k|--keyName)
+      KEY_NAME="$2"
+      shift 2
+      ;;
+    -s|--secrets)
+      SECRETS="$2"
+      shift 2
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
 
-NAMESPACE=$1
-KEY_NAME=$2
-SECRETS=$3
+# Check inputs and dependencies
+if [ -z "$NAMESPACE" ] || [ -z "$KEY_NAME" ] || [ -z "$SECRETS" ]; then
+  usage
+fi
 
-main
+check_dependencies
+check_armada_namespace
+
+# Create and seal the secret in memory and output the sealed YAML directly
+create_temp_secret
+seal_secret
