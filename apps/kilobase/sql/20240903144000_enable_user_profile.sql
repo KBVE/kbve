@@ -29,19 +29,23 @@ CREATE POLICY "Public user_profiles are viewable by everyone." ON public.user_pr
 
 DROP POLICY IF EXISTS "Users can insert their own profile." ON public.user_profiles;
 CREATE POLICY "Users can insert their own profile." ON public.user_profiles
-    FOR INSERT WITH CHECK (auth.uid() = id);
+    FOR INSERT WITH CHECK ((select auth.uid()) = id);
 
 DROP POLICY IF EXISTS "Users can update own profile." ON public.user_profiles;
 CREATE POLICY "Users can update own profile." ON public.user_profiles
-    FOR UPDATE USING (auth.uid() = id);
+    FOR UPDATE USING ((select auth.uid()) = id);
 
+-- Drop the existing trigger if it exists
+DROP TRIGGER IF EXISTS handle_user_profiles_update ON public.user_profiles;
+
+-- Create the hander user profile update trigger again
 CREATE TRIGGER handle_user_profiles_update
     BEFORE UPDATE ON public.user_profiles
     FOR EACH ROW
     EXECUTE PROCEDURE moddatetime(updated_at);
 
 -- Function to handle new user creation and validation
-CREATE FUNCTION public.handle_new_user_profile()
+CREATE OR REPLACE FUNCTION public.handle_new_user_profile()
     RETURNS TRIGGER AS $$
     BEGIN
         -- Validate the username
@@ -79,6 +83,9 @@ CREATE FUNCTION public.handle_new_user_profile()
         RETURN new;
     END;
     $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop the existing trigger if it exists
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 -- Trigger the function every time a user is created
 CREATE TRIGGER on_auth_user_created
