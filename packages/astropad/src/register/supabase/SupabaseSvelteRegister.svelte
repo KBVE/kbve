@@ -12,6 +12,7 @@
 	}
 
 	declare var hcaptcha: any; // Declaring a global variable 'hcaptcha'. This is used to interact with the hCaptcha API.
+	
 </script>
 
 <script lang="ts">

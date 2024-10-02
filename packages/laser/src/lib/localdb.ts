@@ -24,7 +24,7 @@ import {
   MinigameTextures
 } from '../types';
 
-import { createULID } from './utils/ulid';
+import { ULIDFactory } from './utils/ulid';
 
 const _IQuest: IQuest = {
   id: '',
@@ -309,7 +309,7 @@ export const getItemDetails = (
 
 export const createAndAddItemToBackpack = (item: Omit<IObject, 'id'>) => {
   task(async () => {
-    const id = createULID();
+    const id = ULIDFactory().toString();
     const newItem: IObject = { ...item, id };
 
     addItemToStore(newItem);
@@ -523,7 +523,7 @@ export const applyImmediateEffects = (effects: Partial<IPlayerStats>) => {
 };
 
 export const addStatBoost = async (boost: IStatBoost) => {
-  const boostId = createULID();
+  const boostId = ULIDFactory().toString();
   task(async () => {
     const player = playerData.get();
 
