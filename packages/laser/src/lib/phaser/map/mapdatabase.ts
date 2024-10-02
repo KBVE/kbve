@@ -5,7 +5,6 @@ import {
   IMapData,
   type Bounds,
   type INPCObjectGPS,
-  type GridEngineScene,
 } from '../../../types';
 
 class MapDatabase extends Dexie {

@@ -7,7 +7,6 @@ import {
   PlayerController,
   EventEmitter,
   type CharacterEventData,
-  type GridEngineScene,
   notificationType,
   createULID,
   npcDatabase,
