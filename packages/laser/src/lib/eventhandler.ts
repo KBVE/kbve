@@ -1,3 +1,5 @@
+// eventhandler.ts
+
 import type {
   IPlayerData,
   NotificationType,
@@ -78,13 +80,20 @@ class EventEmitter<T extends Record<string, any>> {
       if (Debug.isEnabled()) {
         Debug.log(`Event Data: ${String(event)} - Data: ${data ? JSON.stringify(data) : 'No data'}`);
       }
-      
+
       this.lastEmitted.set(event, now);
     }
   }
 }
 
+// Create an instance of the EventEmitter with EventData
 const eventEmitterInstance = new EventEmitter<EventData>();
 
-export { eventEmitterInstance as EventEmitter };
+// Named export for the EventEmitter class
+export { EventEmitter };
+
+// Named export for the event emitter instance
+export { eventEmitterInstance };
+
+// Default export for backward compatibility or easier importing
 export default eventEmitterInstance;

@@ -6,7 +6,7 @@ export * from './types';
 export { default as KiloBaseState } from './lib/constants';
 
 export { Quadtree, Bounds, Point, Range } from './lib/quadtree';
-export * from './lib/eventhandler';
+export { EventEmitter, eventEmitterInstance } from './lib/eventhandler';
 export * from './lib/localdb';
 
 // Utils
