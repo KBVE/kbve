@@ -12,7 +12,7 @@ secret:
             password: password
             database: database
     analytics:
-        secretRef: 'supabase-secret-analytics'
+        secretRef: 'supabase-release-analytics'
         secretRefKey:
             apiKey: apiKey
     smtp:
@@ -38,15 +38,16 @@ db:
     image:
         repository: kbve/kilobase
         pullPolicy: Always
-        tag: '15.1.8'
-    replicaCount: 2
-    serviceAccount:
-        create: true
+        tag: '15.1.9'
+    #replicaCount: 3
+    # serviceAccount:
+    #     create: false
     service:
         type: ClusterIP
         port: 5432
     environment:
-        POSTGRES_HOST: /var/run/postgresql
+        POSTGRES_DB: app
+        # POSTGRES_HOST: /var/run/postgresql
         PGPORT: '5432'
         POSTGRES_PORT: '5432'
         JWT_EXP: 3600
@@ -64,12 +65,12 @@ db:
         accessModes:
             - ReadWriteOnce
         class: ''
-    autoscaling:
-        enabled: false
-        minReplicas: 1
-        maxReplicas: 100
-        targetCPUUtilizationPercentage: 80
-        targetMemoryUtilizationPercentage: 80
+    # autoscaling:
+    #     enabled: false
+    #     minReplicas: 1
+    #     maxReplicas: 100
+    #     targetCPUUtilizationPercentage: 80
+    #     targetMemoryUtilizationPercentage: 80
 
 # Studio Application
 studio:
@@ -87,15 +88,15 @@ studio:
         initialDelaySeconds: 3
     serviceAccount:
         create: true
-    podSecurityContext:
-        fsGroup: 2000
-    securityContext:
-        capabilities:
-            drop:
-                - ALL
-        readOnlyRootFilesystem: false
-        runAsNonRoot: true
-        runAsUser: 1000
+    # podSecurityContext:
+    #     fsGroup: 2000
+    # securityContext:
+    #     capabilities:
+    #         drop:
+    #             - ALL
+    #     readOnlyRootFilesystem: false
+    #     runAsNonRoot: true
+    #     runAsUser: 1000
     service:
         type: ClusterIP
         port: 3000
@@ -151,7 +152,7 @@ auth:
         API_EXTERNAL_URL: https://supabase.kbve.com
         GOTRUE_API_HOST: '0.0.0.0'
         GOTRUE_API_PORT: '9999'
-        GOTRUE_SITE_URL: http://supabase.kbve.com
+        GOTRUE_SITE_URL: https://supabase.kbve.com
         GOTRUE_URI_ALLOW_LIST: '*'
         GOTRUE_DISABLE_SIGNUP: 'false'
         GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
@@ -172,17 +173,14 @@ auth:
         GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify'
         GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify'
         GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: '/auth/v1/verify'
-    envFrom:
-        - secretRef:
-              name: env-secret
 
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: true
         minReplicas: 1
@@ -223,11 +221,11 @@ rest:
         PGRST_APP_SETTINGS_JWT_EXP: 3600
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: true
         minReplicas: 1
@@ -274,6 +272,7 @@ realtime:
         SECRET_KEY_BASE: UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq
         ERL_AFLAGS: -proto_dist inet_tcp
         ENABLE_TAILSCALE: 'false'
+        APP_NAME: 'supabase_realtime'
         DNS_NODES: "''"
     resources:
         limits:
@@ -320,11 +319,11 @@ meta:
         PG_META_PORT: '8080'
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: true
         minReplicas: 1
@@ -379,13 +378,12 @@ storage:
         # GLOBAL_S3_PROTOCOL: http
         # GLOBAL_S3_FORCE_PATH_STYLE: true
         # AWS_DEFAULT_REGION: stub
-
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
+            cpu: 200m
             memory: 128Mi
     persistence:
         enabled: true
@@ -440,11 +438,11 @@ imgproxy:
         IMGPROXY_ENABLE_WEBP_DETECTION: 'true'
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     persistence:
         enabled: false
     autoscaling:
@@ -462,20 +460,22 @@ kong:
         pullPolicy: IfNotPresent
         tag: 2.8.1
     replicaCount: 1
-    livenessProbe: {}
-    readinessProbe: {}
+    # livenessProbe: {}
+    # readinessProbe: {}
     serviceAccount:
         create: true
-    podAnnotations: {}
-    podSecurityContext:
-        fsGroup: 2000
-    securityContext:
-        capabilities:
-            drop:
-                - ALL
-        readOnlyRootFilesystem: false
-        runAsNonRoot: true
-        runAsUser: 1000
+    # podAnnotations: {}
+    # podSecurityContext:
+    #     fsGroup: 2000
+    # securityContext:
+    #     capabilities:
+    #         add:
+    #             - NET_BIND_SERVICE
+    #         drop:
+    #             - ALL
+    #     readOnlyRootFilesystem: false
+    #     runAsNonRoot: false
+        #runAsUser: 1000
     service:
         type: ClusterIP
         port: 8000
@@ -503,17 +503,17 @@ kong:
             #   hosts:
             #     - example.com
         hosts:
-            - host: kbve.com
+            - host: supabase.kbve.com
               paths:
                   - path: /
                     pathType: Prefix
     resources:
-        limits:
-            cpu: 100m
-            memory: 128Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 500m
+            memory: 256Mi
+        limits:
+            cpu: 1000m
+            memory: 1280Mi
     autoscaling:
         enabled: false
         minReplicas: 1
@@ -523,8 +523,7 @@ kong:
 
 # Analytics
 analytics:
-    # Enable analytics provisioning
-    enabled: false
+    enabled: true
     image:
         repository: supabase/logflare
         pullPolicy: IfNotPresent
@@ -537,15 +536,15 @@ analytics:
         initialDelaySeconds: 3
     serviceAccount:
         create: true
-    podSecurityContext:
-        fsGroup: 2000
-    securityContext:
-        capabilities:
-            drop:
-                - ALL
-        readOnlyRootFilesystem: false
-        runAsNonRoot: true
-        runAsUser: 1000
+    # podSecurityContext:
+    #     fsGroup: 2000
+    # securityContext:
+    #     capabilities:
+    #         drop:
+    #             - ALL
+    #     readOnlyRootFilesystem: false
+    #     runAsNonRoot: true
+    #     runAsUser: 1000
     service:
         type: ClusterIP
         port: 4000
@@ -566,11 +565,11 @@ analytics:
         gcloudJson: ''
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: false
         minReplicas: 1
@@ -580,7 +579,7 @@ analytics:
 
 # Vector
 vector:
-    enabled: false
+    enabled: true
     image:
         repository: timberio/vector
         pullPolicy: IfNotPresent
@@ -593,36 +592,36 @@ vector:
         initialDelaySeconds: 3
     serviceAccount:
         create: true
-    podSecurityContext:
-        fsGroup: 2000
-    securityContext:
-        capabilities:
-            drop:
-                - ALL
-        readOnlyRootFilesystem: false
-        runAsNonRoot: true
-        runAsUser: 1000
+    # podSecurityContext:
+    #     fsGroup: 2000
+    # securityContext:
+    #     capabilities:
+    #         drop:
+    #             - ALL
+    #     readOnlyRootFilesystem: false
+    #     runAsNonRoot: true
+    #     runAsUser: 1000
     service:
         type: ClusterIP
         port: 9001
     ## Vector requires logs from the control plane to function.
     ## This is normally stored in /var/log/pods
     ## Modify these values according to your environment.
-    # volumeMounts:
-    #   - name: pod-logs
-    #     mountPath: /var/log/pods
-    # volumes:
-    #   - name: pod-logs
-    #     hostPath:
-    #       path: /var/log/pods
+    volumeMounts:
+        - name: pod-logs
+          mountPath: /var/log/pods
+    volumes:
+        - name: pod-logs
+          hostPath:
+              path: /var/log/pods
 
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 256Mi
     autoscaling:
         enabled: false
         minReplicas: 1
@@ -660,11 +659,11 @@ functions:
         DB_SSL: disable # disable, allow, prefer, require, verify-ca, verify-full
     resources:
         limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1280Mi
         requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 300m
+            memory: 500Mi
     autoscaling:
         enabled: false
         minReplicas: 1

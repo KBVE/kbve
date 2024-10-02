@@ -1,7 +1,9 @@
 ---
 title: Unity
 description: |
-    A 3D Game and App Engine to build cross platform software.
+    Unity is a powerful 3D and 2D game engine that enables the creation of cross-platform games, interactive experiences, and real-time 3D applications.
+    The Unity Engine offers tools for animation, physics, rendering, and artificial intelligence, supporting both beginners and professional developers.
+    With extensive support for VR, AR, and mobile platforms, Unity serves as a comprehensive development environment for building engaging content across a variety of industries.
 sidebar:
     label: Unity
     order: 1301
@@ -12,18 +14,39 @@ tags:
     - software
 ---
 
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@kbve/astropad';
+
 ## Information
 
--   Unity is a cross-platform software engine that focuses on developing games, apps and animation for desktop, mobile, console and virtual reality platforms.
--   The primary scripting language for the engine is `C#` and can be extended through a various collection of libraries and plugins.
+-   Unity is a versatile cross-platform engine used for creating games, applications, and interactive animations across desktop, mobile, console, and virtual/augmented reality platforms.
+    Unity's engine provides a highly adaptable environment that supports both 2D and 3D development, making it ideal for a wide range of projects, from simple indie games to complex, enterprise-level applications.
+    Furthermore, the engine’s compatibility spans across major operating systems and gaming consoles, including Windows, macOS, Linux, iOS, Android, PlayStation, Xbox, and Nintendo Switch.
+    With built-in features like real-time rendering, physics simulation, and animation tools, Unity serves as an all-in-one solution for developers.
+    Additionally, its support for AR and VR development empowers creators to produce immersive experiences with robust performance and seamless integration.
+    Finally, our goal with this document is to provide as much information as we can for the Unity engine, its plugins, concepts and more!
 
+-   The engine primarily utilizes C# for scripting and offers extensive support for custom development through a variety of libraries, plugins, and asset packages.
+    With C# at its core, Unity provides a robust framework for implementing gameplay logic, managing data structures, and interacting with the engine's extensive API.
+    Developers can enhance and extend Unity’s capabilities using third-party libraries, Unity Asset Store packages, and custom plugins written in C#.
+    Furthermore, Unity supports scripting in the form of MonoBehaviour scripts, which provide easy-to-use methods for handling core events like Start(), Update(), and more.
+    This flexibility enables the development of complex systems, such as AI behaviors, procedural content generation, and real-time multiplayer features.
+
+<Adsense />
 
 ---
 
 ## Services
 
 There are several products that Unity offers ontop of their game engine, including DevOps, Advertising and Hosting services.
-
 
 ---
 
@@ -60,7 +83,6 @@ You can also save your scene by pressing `Ctrl+S`.
 
 When switching between the scenes or loading multiple scenes, we recommend utilizing the asynchronous scene loader through a custom management script.
 This will allow you to load complex levels while not impacting performance too greatly.
-
 
 ---
 
@@ -107,7 +129,6 @@ These are our notes and information regarding multiplayer
     -   Chowdera [1](https://chowdera.com/2021/05/20210512110823582J.html)
     -   S1H [2](https://blog.s1h.org/colyseus-multiplayer-game/)
 
-
 ---
 
 ## Strapi
@@ -115,7 +136,6 @@ These are our notes and information regarding multiplayer
 Here is a custom function to help you integrate `Strapi` into your application.
 
 > Hint: Since the function is an IEnumerator, we suggest wrapping it inside of a coroutine.
-
 
 ```c#
 
@@ -212,7 +232,6 @@ The setup has a couple `prerequisites` that you will need to ensure before going
 -   -   Android API level 19 or higher.
 -   -   KBVE Recommends 23 or higher, if you are using cryptography.
 
-
 ---
 
 ## Steam
@@ -261,7 +280,6 @@ You should keep this information safe and as a reference step.
 
 Collection of plugins for Unity game engine.
 We want to include as many reference points and notes for the plugins that we are currently using.
-
 
 ---
 
@@ -313,18 +331,15 @@ Ultimate Character Controller was the plugin of choice when doing RSDD aka rapid
 Official Documentation [Link](https://opsive.com/support/documentation/ultimate-character-controller/). It is over 300 pages and covers the controller and its interaction within the unity environment.
 According to Opsive, their UCC is a professional and kinematic character controller that is designed for flexibility, modularity and performance; we consider it an "AIO" or "All-In-One" library.
 
-
 ### UCC URP
 
 Grab the invoice number from the plugin purchase and head over to [OPSive Downloads](https://opsive.com/downloads/) with it.
 After placing the invoice number into the system, it will give you download integrations for external plugins.
 
-
 ### UCC Asset Store
 
 Official [Asset Store](https://assetstore.unity.com/packages/tools/game-toolkits/ultimate-character-controller-233710).
 Last Release Date: 3.0.3 - Nov 24, 2022
-
 
 ### UCC Reference
 
@@ -334,7 +349,6 @@ Last Release Date: 3.0.3 - Nov 24, 2022
 ### UCC Character
 
 The core of the UCC, Ultimate Character Controller, would be the Character model and its interactivity within the `Scene`, thus these notes are for referencing through the plugin and movement, collision, motion, gravity, abilities and more for the `Humanoid` / `Character`.
-
 
 ### UCC Inventory
 
@@ -348,8 +362,6 @@ The `UCC Inventory` can be broken into modules, that we will refer to as:
 -   Currency
 -   Crafting
 -   Input
-
-
 
 There are more modules within the system but v3 was released in late November 2022 and we still have to read through the notes/documentation && create test cases for each of the additional modules.
 
@@ -389,12 +401,10 @@ The official [Modular AI repo](https://github.com/Kitbashery/Modular-AI)
 A simple tool that helps procedural generation of objects within an area.
 The plugin's official [repo for Hey Area Object Spawner](https://github.com/JahnStar/Hey-Area-Object-Spawner)
 
-
 ## Hierarchy 2
 
 -   Hierarchy 2 helps organize the Unity UI.
 -   Official Asset [Store](https://assetstore.unity.com/packages/tools/utilities/hierarchy-2-166483)
-
 
 ---
 
@@ -411,14 +421,11 @@ The plugin's official [repo for Hey Area Object Spawner](https://github.com/Jahn
 
 ---
 
-
 ## Python
 
 The official notes and changelogs for the python integration inside of unity can be found on their [website](https://docs.unity3d.com/Packages/com.unity.scripting.python@7.0/changelog/CHANGELOG.html).
 
-
 ---
-
 
 ## JSON
 
@@ -527,7 +534,6 @@ This was another open source 2D repo that sparked my interest because it was bui
 ## Errors
 
 -   Common errors that users might face when working with Unity. This error log is meant to help keep track and may save some future developers a lot of time.
-
 
 ### Error WebGL-000001FEA50EC410
 
