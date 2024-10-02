@@ -138,5 +138,38 @@ CREATE TRIGGER handle_user_profile_update
     FOR EACH ROW
     EXECUTE PROCEDURE public.handle_profile_update();
     
+-- Create a function to handle avatar URL updates and validation
+CREATE OR REPLACE FUNCTION public.handle_avatar_url_update()
+    RETURNS TRIGGER AS $$
+DECLARE
+    v_new_avatar_url TEXT;
+BEGIN
+    -- Assign the new avatar URL to a variable
+    v_new_avatar_url := new.avatar_url;
+
+    -- Validate the new avatar_url if it is being changed
+    IF v_new_avatar_url IS DISTINCT FROM old.avatar_url THEN
+        -- Check for the avatar URL length constraint
+        IF char_length(v_new_avatar_url) > 128 THEN
+            RAISE EXCEPTION 'invalid_avatar_url_length';
+        END IF;
+
+        -- Check for the avatar URL format constraint
+        IF NOT (v_new_avatar_url ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$') THEN
+            RAISE EXCEPTION 'invalid_avatar_url_format';
+        END IF;
+    END IF;
+
+    RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create or replace the trigger for handling avatar URL updates
+DROP TRIGGER IF EXISTS handle_avatar_url_update ON public.user_profiles;
+CREATE TRIGGER handle_avatar_url_update
+    BEFORE UPDATE ON public.user_profiles
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.handle_avatar_url_update();
+
 -- [END of Profile]
 COMMIT;
