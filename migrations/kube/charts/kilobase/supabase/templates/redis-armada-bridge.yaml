@@ -29,11 +29,25 @@ spec:
                 port: 6379
 
 ---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: redis-auth
+    namespace: supabase
+spec:
+    encryptedData:
+        redis-password: AgAf++un6wm64TWqCJ+pNjPuyK9qeKBcuRzwA1iqm4AIL2nUvI2yjZNeeufhdqehylcSXDoqWgnsMGRmzzbE46KAiGrpmktWp0ESv+TOUPopwo9AGh+RdMTx/NCF+CefYQpxLFn6sFF87vGOvDpHR0BleKRsh5VUnmuLYS/j7wROQwS7ZKDExCcZqstFAH2zD0X/2i8NEWLJSlYgFh9oevAs5H3wucUCgq5AksF33F5+6arF0/GKkkKeN17jwLqReh8cq1MX3HfN5tkkhVikX44HAMyQRl6DUFepweE2kXZdwQvRLNsYUEsa2G4ddA68GE0scH941EeVae+DFaUOiB2a/NLC72us7Ziyp6nmUk+gpc1A+kkWKm+uQ2dECUMVdcVDV7yiZJ/OU40sgSJ/wrzA3DrGn4KptzvZI/qy3uoytiQkF531z1CYTRdYbR+9xqAZwGMwEAiAP5/LWmxkb+Dpl/q+leq/dabFhOP/c30CKOmTIQNKYyOm6jzRy0HAQVsV8tfQ5v+pB2TKoAf7UZMlURLiqvPlvzSG6zLfcnWUHnIWTMTxQl/N63UatUe6ov6cCUu2nIZFnxfhOhTGt8kNkbSw3CrtFguTugH0ToFVPqnLpowVkn/vteUQ0zMeJE6o4WDkeUILFLAUUAJSxS/p7hYa9zS2tEzrqbfEmemXObXAH/mevdFKM7lOwy9zxn8h+H83gO/s9iy04PWFg9PM3YKJMw==
+    template:
+        metadata:
+            name: redis-auth
+            namespace: supabase
+
+
+---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
     name: redis-secret-reader
-    namespace: armada
 rules:
     - apiGroups: ['']
       resources: ['secrets']
@@ -43,15 +57,14 @@ rules:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
     name: redis-secret-reader-binding
-    namespace: armada
-subjects:
-    - kind: ServiceAccount
-      name: supabase-app-sa
-      namespace: supabase
 roleRef:
     apiGroup: rbac.authorization.k8s.io
-    kind: Role
+    kind: ClusterRole
     name: redis-secret-reader
+subjects:
+    - kind: ServiceAccount
+      name: supabase-release-supabase-db
+      namespace: supabase
