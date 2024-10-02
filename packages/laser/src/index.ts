@@ -5,7 +5,7 @@ export * from './types';
 // Constants
 export { default as KiloBaseState } from './lib/constants';
 
-export * from './lib/quadtree';
+export { Quadtree, Bounds, Point, Range } from './lib/quadtree';
 export * from './lib/eventhandler';
 export * from './lib/localdb';
 
