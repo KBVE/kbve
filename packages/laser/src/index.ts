@@ -5,7 +5,7 @@ export * from './types';
 // Constants
 export { default as KiloBaseState } from './lib/constants';
 
-export { Quadtree, Bounds, Point, Range } from './lib/quadtree';
+export { Quadtree } from './lib/quadtree';
 export { EventEmitter, eventEmitterInstance } from './lib/eventhandler';
 
 // Explicitly exporting all named exports from localdb.ts
