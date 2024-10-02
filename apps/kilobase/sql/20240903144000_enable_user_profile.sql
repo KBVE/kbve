@@ -35,6 +35,10 @@ DROP POLICY IF EXISTS "Users can update own profile." ON public.user_profiles;
 CREATE POLICY "Users can update own profile." ON public.user_profiles
     FOR UPDATE USING (auth.uid() = id);
 
+-- Drop the existing trigger if it exists
+DROP TRIGGER IF EXISTS handle_user_profiles_update ON public.user_profiles;
+
+-- Create the hander user profile update trigger again
 CREATE TRIGGER handle_user_profiles_update
     BEFORE UPDATE ON public.user_profiles
     FOR EACH ROW
