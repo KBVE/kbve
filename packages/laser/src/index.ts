@@ -75,7 +75,7 @@ export { default as CollapseIcon } from './lib/icon/CollapseIcon';
 export { default as ExpandIcon } from './lib/icon/ExpandIcon';
 
 // Map
-export * from './lib/phaser/map/mapdatabase';
+export { MapDatabase, mapDatabase } from './lib/phaser/map/mapdatabase';
 
 // MiniGames
 export { default as MinigameDice } from './lib/minigame/dice/MinigameDice';
