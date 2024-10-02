@@ -66,10 +66,9 @@ export {
 } from './lib/localdb';
 
 // Utils
-export { default as ULIDFactory } from './lib/utils/ulid'; // ULID
-export { Debug } from './lib/utils/debug'; // Debug
-export * from './lib/utils/loader'; // Loader
-
+export { default as ULIDFactory } from './lib/utils/ulid';          //  ULID
+export { Debug } from './lib/utils/debug';                          //  Debug
+export { addLoader, removeLoader } from './lib/utils/loader';       //  Loader
 // Icons
 export { default as CollapseIcon } from './lib/icon/CollapseIcon';
 export { default as ExpandIcon } from './lib/icon/ExpandIcon';
