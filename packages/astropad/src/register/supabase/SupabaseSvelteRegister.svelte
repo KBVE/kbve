@@ -19,8 +19,7 @@
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import {
 		CaptchaTheme,
-		hcaptcha_api,
-		kbve_hcaptcha_site_key,
+		KiloBaseState,
 		removeLoader,
 		type CaptchaConfig,
 		type UIRegiserState,
@@ -55,8 +54,8 @@
 
 	const captchaConfig: CaptchaConfig = {
 		hl: '',
-		sitekey: kbve_hcaptcha_site_key,
-		apihost: hcaptcha_api,
+		sitekey: KiloBaseState.get().hcaptcha,
+		apihost: KiloBaseState.get().hcaptcha_api,
 		reCaptchaCompat: true,
 		theme: CaptchaTheme.DARK,
 		size: 'compact',
