@@ -1,6 +1,6 @@
 import { persistentAtom } from '@nanostores/persistent';
 import { task } from 'nanostores';
-import { EventEmitter } from './eventhandler';
+import {eventEmitterInstance as EventEmitter } from './eventhandler';
 import axios from 'axios';
 import {
   IConsumable,
@@ -24,7 +24,7 @@ import {
   MinigameTextures
 } from '../types';
 
-import { ULIDFactory } from './utils/ulid';
+import  ULIDFactory  from './utils/ulid';
 
 const _IQuest: IQuest = {
   id: '',
