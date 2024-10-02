@@ -4,6 +4,13 @@
 //   gridEngine: any;
 // }
 
+export interface IKiloBase {
+  hcaptcha: string;
+  hcaptcha_api: string;
+  api: string;
+  anonKey: string;
+}
+
 export interface IPlayerStats {
   username: string;
   health: string;

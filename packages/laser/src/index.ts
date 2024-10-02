@@ -3,7 +3,7 @@
 export * from './types';
 
 // Constants
-export * from './lib/constants';
+export { default as KiloBaseState } from './lib/constants';
 
 export * from './lib/laser';
 export * from './lib/quadtree';
