@@ -137,7 +137,22 @@ The other option was to open the secret up to other namespaces but I feel like t
 We can move this up to the Alpha branch and then start looking into the n8n deployment as the next chart / container for our supabase instance.
 However, I am thinking that we could also split the n8n out into its own namespace, but that might also be not worth it, hmm. 
 
+**Schema**
 
+We got the hcaptcha schema added and the user profile!
+Both of these are still a bit of work in progress type of schemas because we need to make sure that users can even register and make accounts.
+
+From my understanding both of the two schemas are part of the auth system, where the hcaptcha gets triggered before the creation of the user and the profile gets triggered after the user is created.
+However we need to add a couple things for the username unique check before the person is able to register, I was thinking of placing an automatic string for the username based upon their email and then let them change the username later on.
+
+We also need to make sure that these changes are saved and then apply a recovery test against them tomorrow.
+Overall, if everything goes as planned, then we should be close to having our self hosted postgres nearing a production level.
+
+
+**Credit**
+
+While I am doing the postgres schemas, I had to double check all our accounts because we need to make sure that everything has been cleaned up.
+I want to make sure that there are no open credits.
 
 ## 2023
 
