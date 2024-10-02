@@ -83,12 +83,12 @@ spec:
 
   bootstrap:
     recovery:
-      source: supabase-release-supabase-db
+      source: supabase
 
   externalClusters:
-    - name: supabase-release-supabase-db
+    - name: supabase
       barmanObjectStore:
-        serverName: supabase-release-supabase-db
+        serverName: supabase
         destinationPath: s3://kilobase/barman/backup
         s3Credentials:
           accessKeyId:

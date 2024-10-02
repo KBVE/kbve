@@ -119,6 +119,19 @@ This next update, we will be adjusting the `ServiceAccount` under the `ClusterRo
 Maybe we are doing too many changes and it is causing this backlog of updates, thus we will comment out the `REDIS_AUTH` env for now and move forward with the recovery of the cluster again.
 Once we can confirm that the `redis-auth` secret can be accessed, we will revert the recovery process again.
 
+The other issue that I see in the namespace is that the `redis-secret-reader` and `redis-secret-reader-binding` are both running under the `Role` and `RoleBinding`, thus I am thinking we delete those.
+So we would run these commands:
+
+```shell
+
+kubectl delete role redis-secret-reader -n supabase
+kubectl delete rolebinding redis-secret-reader-binding -n supabase
+kubectl get clusterrole redis-secret-reader -o yaml
+kubectl get clusterrolebinding redis-secret-reader-binding -o yaml
+
+```
+
+
 
 ## 2023
 
