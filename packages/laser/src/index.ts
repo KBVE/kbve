@@ -89,7 +89,7 @@ export { PlayerController } from './lib/phaser/player/playercontroller';
 export * from './lib/phaser/npc/tooltipmenu';
 export * from './lib/phaser/npc/chatbubble';
 export * from './lib/phaser/npc/npchandler';
-export * from './lib/phaser/npc/npcdatabase';
+export { NPCDatabase, npcDatabase } from './lib/phaser/npc/npcdatabase';
 
 // Monsters
 export { getBirdNum, isBird, createBirdSprites, createShadowSprites, createBirdAnimation, createCroppedSprites } from './lib/phaser/monster/bird';
