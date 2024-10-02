@@ -1,11 +1,12 @@
--- NOT DONE! MISSING SAFETY CHECKS
+BEGIN;
+-- [START] - User Profile
 -- Extensions Check
 CREATE EXTENSION IF NOT EXISTS moddatetime SCHEMA extensions;
 
--- Create a table for public user_profiles
-CREATE TABLE IF NOT EXISTS user_profiles (
+-- Create a table for public.user_profiles
+CREATE TABLE IF NOT EXISTS public.user_profiles (
     id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
-    updated_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     username TEXT UNIQUE,
     avatar_url TEXT,
 
@@ -16,25 +17,31 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     CONSTRAINT avatar_url_format CHECK (avatar_url ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')
 );
 
-ALTER TABLE user_profiles
+ALTER TABLE public.user_profiles
     ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public user_profiles are viewable by everyone." ON user_profiles
+-- Policy Management
+
+DROP POLICY IF EXISTS "Public user_profiles are viewable by everyone." ON public.user_profiles;
+CREATE POLICY "Public user_profiles are viewable by everyone." ON public.user_profiles
     FOR SELECT USING (true);
 
-CREATE POLICY "Users can insert their own profile." ON user_profiles
+
+DROP POLICY IF EXISTS "Users can insert their own profile." ON public.user_profiles;
+CREATE POLICY "Users can insert their own profile." ON public.user_profiles
     FOR INSERT WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "Users can update own profile." ON user_profiles
+DROP POLICY IF EXISTS "Users can update own profile." ON public.user_profiles;
+CREATE POLICY "Users can update own profile." ON public.user_profiles
     FOR UPDATE USING (auth.uid() = id);
 
 CREATE TRIGGER handle_user_profiles_update
-    BEFORE UPDATE ON user_profiles
+    BEFORE UPDATE ON public.user_profiles
     FOR EACH ROW
     EXECUTE PROCEDURE moddatetime(updated_at);
 
 -- Function to handle new user creation and validation
-CREATE FUNCTION public.handle_new_user()
+CREATE FUNCTION public.handle_new_user_profile()
     RETURNS TRIGGER AS $$
     BEGIN
         -- Validate the username
@@ -50,6 +57,11 @@ CREATE FUNCTION public.handle_new_user()
            (char_length(new.raw_user_meta_data->>'avatar_url') > 128 OR
             NOT (new.raw_user_meta_data->>'avatar_url' ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')) THEN
             RAISE EXCEPTION 'invalid_avatar';
+        END IF;
+
+        -- Validate unique username
+        IF EXISTS (SELECT 1 FROM public.user_profiles WHERE username = new.raw_user_meta_data->>'username') THEN
+            RAISE EXCEPTION 'username_taken';
         END IF;
 
         -- Insert into user_profiles table
@@ -71,4 +83,7 @@ CREATE FUNCTION public.handle_new_user()
 -- Trigger the function every time a user is created
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user_profile();
+
+-- [END of Profile]
+COMMIT;
