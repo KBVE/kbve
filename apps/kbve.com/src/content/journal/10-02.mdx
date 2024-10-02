@@ -16,10 +16,20 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
 **Dashboard**
 
-To grab the dashboard password, incase we 
+To grab the dashboard password for quick development work!
+This is just a note for myself in the future.
 
 ```shell
 
 kubectl get secret supabase-secret-dashboard -n supabase -o jsonpath="{.data.password}" | base64 --decode
 
 ```
+
+Yesterday, I added two base schemas and now I want to test them out!
+
+
+**Extensions**
+
+While testing out the schemas for Supabase, I need to wrap back around and finish up the Redis extension for KBVE.
+Part of the reason that I hate working on it is because if it fails then I have to go through a multi-stage recovery process, ugh.
+The big issue we had last time was passing of the sealed secret but I believe that was just a mistake on my end with the permissions and nothing related to the code.
