@@ -67,7 +67,7 @@ export {
 
 // Utils
 export { default as ULIDFactory } from './lib/utils/ulid'; // ULID
-export * from './lib/utils/debug'; // Debug
+export { Debug } from './lib/utils/debug'; // Debug
 export * from './lib/utils/loader'; // Loader
 
 // Icons
