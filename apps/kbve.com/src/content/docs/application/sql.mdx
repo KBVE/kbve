@@ -239,6 +239,44 @@ externalClusters:
 
 ---
 
+#### CNPG Backup Example
+
+There are two types of backups that we can utilize, the `Kind: Backup` and `Kind: ScheduledBackup`, both will store the postgres data into the barman object store in these examples.
+Below is the `cnpg-cluster-backup.yaml` that we added for our self hosted supabase cluster.
+The current `schedule: "0 0 0 * * 0"` is set for weekly backups but that can be easily adjusted for daily.
+
+```yaml 
+
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: {{ include "supabase.db.fullname" . }}-backup
+spec:
+  method: barmanObjectStore
+  cluster:
+    name: {{ include "supabase.db.fullname" . }}
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ include "supabase.db.fullname" . }}-bk-job
+spec:
+  schedule: "0 0 0 * * 0"
+  backupOwnerReference: self
+  cluster:
+    name: {{ include "supabase.db.fullname" . }}
+
+```
+
+<Aside>
+
+Remember to test case the recovery of the backups using a secondary cluster deployment and becareful of the WAL locations, to avoid an overwrite.
+
+</Aside>
+
+---
+
 
 ### Barman
 
