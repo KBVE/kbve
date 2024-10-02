@@ -12,10 +12,10 @@
 	}
 
 	declare var hcaptcha: any; // Declaring a global variable 'hcaptcha'. This is used to interact with the hCaptcha API.
-	
 </script>
 
 <script lang="ts">
+	import { createClient } from '@supabase/supabase-js';
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import {
 		CaptchaTheme,
@@ -38,9 +38,19 @@
 			return hcaptcha.execute(widgetID, options); // Executes captcha with given options if conditions are met.
 	};
 
-    export const handleRegister = async () => {
-
-    };
+	export const handleRegister = async () => {
+		let supabase;
+		try {
+			supabase = createClient(
+				KiloBaseState.get().api,
+				KiloBaseState.get().anonKey,
+			);
+			console.log('Supabase Instance:', supabase);
+		} catch (error) {
+			console.error('Error creating Supabase client:', error);
+			
+		}
+	};
 
 	const browser =
 		import.meta.env.SSR === undefined ? true : !import.meta.env.SSR;
@@ -178,102 +188,103 @@
 		</div>
 	{/if}
 
-    
 	<form
-    id="registerForm"
-    action="#"
-    on:submit|preventDefault={handleRegister}>
-    <div class="grid gap-y-2 md:gap-y-4">
-        <div>
-            <label
-                for="login-username"
-                class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
-                Username
-            </label>
+		id="registerForm"
+		action="#"
+		on:submit|preventDefault={handleRegister}>
+		<div class="grid gap-y-2 md:gap-y-4">
+			<div>
+				<label
+					for="login-username"
+					class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+					Username
+				</label>
 
-            <div>
-                <input
-                    type="text"
-                    id="register-username"
-                    name="username"
-                    autocomplete="username"
-                    class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
-                    required
-                    aria-describedby="register-username"
-                    bind:value={uiRegiserState.username} />
-            </div>
-        </div>
+				<div>
+					<input
+						type="text"
+						id="register-username"
+						name="username"
+						autocomplete="username"
+						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						required
+						aria-describedby="register-username"
+						bind:value={uiRegiserState.username} />
+				</div>
+			</div>
 
-        <div>
-            <label
-                for="register-email"
-                class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
-                Email Address
-            </label>
+			<div>
+				<label
+					for="register-email"
+					class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+					Email Address
+				</label>
 
-            <div>
-                <input
-                    type="email"
-                    id="register-email"
-                    name="email"
-                    autocomplete="email"
-                    class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
-                    required
-                    aria-describedby="register-email"
-                    bind:value={uiRegiserState.email} />
-            </div>
-        </div>
+				<div>
+					<input
+						type="email"
+						id="register-email"
+						name="email"
+						autocomplete="email"
+						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						required
+						aria-describedby="register-email"
+						bind:value={uiRegiserState.email} />
+				</div>
+			</div>
 
-        <div>
-            <div class="flex items-center justify-between">
-                <label
-                    for="register-password"
-                    class="mb-1 block text-xs md:text-sm md:mb-2  text-neutral-800 dark:text-neutral-200">
-                    Password
-                </label>
-            </div>
-            <div>
-                <input
-                    type="password"
-                    id="register-password"
-                    name="password"
-                    class="block w-full h-4 md:h-12  rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
-                    required
-                    aria-describedby="register-password"
-                    bind:value={uiRegiserState.password} />
-            </div>
-        </div>
+			<div>
+				<div class="flex items-center justify-between">
+					<label
+						for="register-password"
+						class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+						Password
+					</label>
+				</div>
+				<div>
+					<input
+						type="password"
+						id="register-password"
+						name="password"
+						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						required
+						aria-describedby="register-password"
+						bind:value={uiRegiserState.password} />
+				</div>
+			</div>
 
-        <div>
-            <div class="flex items-center justify-between">
-                <label
-                    for="confirm-register-password"
-                    class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
-                    Confirm Password
-                </label>
-            </div>
-            <div>
-                <input
-                    type="password"
-                    id="confirm-register-password"
-                    name="password"
-                    class="block w-full h-4 md:h-12  rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
-                    required
-                    aria-describedby="confirm-register-password"
-                    bind:value={uiRegiserState.confirm} />
-            </div>
-        </div>
+			<div>
+				<div class="flex items-center justify-between">
+					<label
+						for="confirm-register-password"
+						class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+						Confirm Password
+					</label>
+				</div>
+				<div>
+					<input
+						type="password"
+						id="confirm-register-password"
+						name="password"
+						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+						required
+						aria-describedby="confirm-register-password"
+						bind:value={uiRegiserState.confirm} />
+				</div>
+			</div>
 
-        <div>
-            <div id="h-captcha-{id}" class="flex justify-center scale-75 md:scale-100" />
-        </div>
+			<div>
+				<div
+					id="h-captcha-{id}"
+					class="flex justify-center scale-75 md:scale-100" />
+			</div>
 
-        <button
-            type="submit"
-            class={`${baseClasses} ${borderClasses} ${bgColorClasses} ${hoverClasses} ${fontSizeClasses} ${disabledClasses} ${ringClasses}`}
-            disabled={loading}>
-            {loading ? 'Loading...' : 'Register'}
-        </button>
-    </div>
-</form>
+			<button
+				type="submit"
+				class={`${baseClasses} ${borderClasses} ${bgColorClasses} ${hoverClasses} ${fontSizeClasses} ${disabledClasses} ${ringClasses}`}
+				disabled={loading}>
+				{loading ? 'Loading...' : 'Register'}
+			</button>
+		</div>
+	</form>
 </div>
