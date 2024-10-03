@@ -15,15 +15,14 @@
 </script>
 
 <script lang="ts">
-	import type SupabaseClient from '@supabase/supabase-js/dist/module/SupabaseClient';
-	import { createClient } from '@supabase/supabase-js';
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import {
 		CaptchaTheme,
-		KiloBaseState,
+		kilobase,
 		removeLoader,
-		type CaptchaConfig,
 		type UIRegiserState,
+		// ClientSideRegex,
+		KiloBaseState,
 	} from '@kbve/laser';
 
 	const dispatch = createEventDispatcher();
@@ -40,32 +39,84 @@
 	};
 
 	export const handleRegister = async () => {
-		if (!supabase) {
-			try {
-				supabase = createClient(
-					KiloBaseState.get().api,
-					KiloBaseState.get().anonKey,
-				);
-				console.log('Supabase Instance:', supabase);
-			} catch (error) {
-				console.error('Error creating Supabase client:', error);
-			}
+		loading = true;
+
+		// Create the action ID and handle errors
+		actionId = await kilobase.createActionULID('registerUser');
+		if (!actionId) {
+			uiRegiserState.svelte_internal_message = 'Failed to create action!';
+			reset();
+			return;
 		}
-		
-		if(supabase)
-		{
-			const { data, error } = await supabase.auth.signUp({
-				email: uiRegiserState.email,
-				password: uiRegiserState.password,
-				options: {
-					data: {
-						token: uiRegiserState.captchaToken,
-						username: uiRegiserState.username
-					}
+
+		try {
+			// Call registerUser with actionId
+			const registeredProfile = await kilobase.registerUser(
+				uiRegiserState.email,
+				uiRegiserState.password,
+				uiRegiserState.confirm,
+				actionId,
+				uiRegiserState.username,
+				uiRegiserState.captchaToken,
+			);
+
+			// If registration is successful, show a success message
+			if (registeredProfile) {
+				uiRegiserState.successful_message = `Welcome, ${registeredProfile.username || registeredProfile.email}! Registration successful. Redirecting in 2 Seconds`;
+				console.log(
+					'User registered and profile saved:',
+					registeredProfile,
+				);
+				 // Use the Supabase session to check if the user is logged in
+				const session = await kilobase.getSession();
+				if (session) {
+					console.log('User is already logged in after registration:', session);
+					// Redirect the user to the dashboard or home page if logged in
+					setTimeout(() => {
+					window.location.href = '/dashboard'; // Change this to your desired route
+					}, 1500); // 2ish second delay for the success message
+				} else {
+					// If session is not present, redirect to login as a fallback
+					setTimeout(() => {
+					window.location.href = '/login';
+					}, 1500);
 				}
-				})
-			console.log(`Data: ${data}`);
-			console.log(`Error: ${error}`);
+
+				return; // End function early if successful
+			}
+
+			// Check for any error messages associated with this action ID if no profile was returned
+			await displayErrorFromAction(actionId);
+		} catch (error) {
+			console.error('Registration failed:', error);
+
+			// Handle any errors caught during registration
+			await displayErrorFromAction(actionId);
+		} finally {
+			loading = false;
+		}
+	};
+
+	/**
+	 * Helper function to retrieve and display error messages based on actionId.
+	 * @param actionId - The action ID to look up errors for.
+	 */
+	const displayErrorFromAction = async (actionId: string) => {
+		const errorMessage = await kilobase.getErrorByActionId(actionId);
+		if (errorMessage) {
+			uiRegiserState.svelte_internal_message = errorMessage;
+		} else {
+			uiRegiserState.svelte_internal_message =
+				'An unexpected error occurred. Please try again.';
+		}
+
+		const detailMessage =
+			await kilobase.getDetailedErrorByActionId(actionId);
+		if (detailMessage) {
+			detailedError = detailMessage;
+		} else {
+			uiRegiserState.svelte_internal_message =
+				'An unexpected error occurred. Please try again.';
 		}
 	};
 
@@ -75,19 +126,18 @@
 	let mounted = false;
 	let loaded = false;
 	let loading = false;
-	let lottie_player_file = '';
+	let lottie_player_file = '/robot.lottie';
 	let errorMessageAstro: any;
 	let widgetID: any;
-	let supabase: SupabaseClient;
+	let actionId: string;
+	let detailedError: string;
 
-	const captchaConfig: CaptchaConfig = {
-		hl: '',
-		sitekey: KiloBaseState.get().hcaptcha,
-		apihost: KiloBaseState.get().hcaptcha_api,
-		reCaptchaCompat: true,
-		theme: CaptchaTheme.DARK,
-		size: 'compact',
-	};
+	export let hl: string = '';
+	export let sitekey: string = KiloBaseState.get().hcaptcha; // Exporting 'sitekey', initially set from 'kbve' module.
+	export let apihost: string = KiloBaseState.get().hcaptcha_api;
+	export let reCaptchaCompat: boolean = true; // Exporting 'reCaptchaCompat', initially set to false.
+	export let theme: CaptchaTheme = CaptchaTheme.DARK; // Exporting 'theme', initially set to 'CaptchaTheme.DARK'.
+	export let size: 'normal' | 'compact' | 'invisible' = 'compact'; // Exporting 'size', with three possible values, initially 'compact'.
 
 	let uiRegiserState: UIRegiserState = {
 		email: '',
@@ -100,12 +150,12 @@
 	};
 
 	const query = new URLSearchParams({
-		recaptchacompat: captchaConfig.reCaptchaCompat ? 'on' : 'off',
+		recaptchacompat: reCaptchaCompat ? 'on' : 'off',
 		onload: 'hcaptchaOnLoad',
 		render: 'explicit',
 	});
 
-	const scriptSrc = `${captchaConfig.apihost}?${query.toString()}`; // Constructing the full script source URL.
+	const scriptSrc = `${apihost}?${query.toString()}`; // Constructing the full script source URL.
 	const id = Math.floor(Math.random() * 100); // Generating a unique identifier for the captcha element.
 
 	const baseClasses =
@@ -126,6 +176,19 @@
 
 		if (document.getElementById('astro_error_message')) {
 			errorMessageAstro = document.getElementById('astro_error_message');
+		}
+
+		const formElements = document.getElementById('formulation_form');
+		if (formElements) {
+			setTimeout(() => {
+				formElements.classList.replace('opacity-0', 'opacity-100');
+			}, 200);
+		}
+		const formElement = document.getElementById('registerForm');
+		if (formElement) {
+			setTimeout(() => {
+				formElement.classList.replace('opacity-0', 'opacity-100');
+			}, 500);
 		}
 
 		// Setting up global functions for captcha callbacks.
@@ -167,6 +230,19 @@
 		}
 		if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
 	});
+	$: if (mounted && loaded) {
+		widgetID = hcaptcha.render(`h-captcha-${id}`, {
+			// Rendering the captcha widget.
+			sitekey,
+			hl, // Setting the language.
+			theme,
+			callback: 'onSuccess',
+			'error-callback': 'onError',
+			'close-callback': 'onClose',
+			'expired-callback': 'onExpired',
+			size,
+		});
+	}
 </script>
 
 <svelte:head>
@@ -175,134 +251,235 @@
 	{/if}
 </svelte:head>
 
-<div>
-	{#if uiRegiserState.svelte_internal_message}
-		<div class="flex">
-			<dotlottie-player
-				autoplay
-				loop
-				class="w-8"
-				mode="normal"
-				src="/assets/lottie/{lottie_player_file}">
-			</dotlottie-player>
-			<span class="text-lg text-red-600 dark:text-red-300">
-				{uiRegiserState.svelte_internal_message}
-			</span>
+<div class="">
+	<div
+		class="py-16 opacity-0 transition-opacity duration-500"
+		id="formulation_form">
+		<div
+			class="px-16 flex flex-row justify-center items-center lg:justify-between">
+			<div class="relative">
+				<h3 class="text-blue-400 mb-1">Sign up</h3>
+				<h1
+					class="page-title text-white font-bold text-3xl mb-5 lg:text-3xl xl:text-4xl 2xl:text-5xl">
+					KBVE Authentication Portal
+				</h1>
+
+				{#if loading}
+					<div
+						class="max-w-xs bg-white border border-gray-200 rounded-xl shadow-lg dark:bg-neutral-800 dark:border-neutral-700 z-100"
+						role="alert"
+						tabindex="-1"
+						aria-labelledby="hs-toast-normal-example-label">
+						<div class="flex p-4">
+							<div class="shrink-0">
+								<svg
+									class="shrink-0 size-4 text-blue-500 mt-0.5"
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									fill="currentColor"
+									viewBox="0 0 16 16">
+									<path
+										d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z">
+									</path>
+								</svg>
+							</div>
+							<div class="ms-3">
+								<p
+									id="hs-toast-normal-example-label"
+									class="text-sm text-gray-700 dark:text-neutral-400">
+									Processing...
+								</p>
+							</div>
+						</div>
+					</div>
+				{/if}
+
+				{#if uiRegiserState.svelte_internal_message}
+					<!-- Toast -->
+
+					<div
+						class="max-w-xs bg-white border border-gray-200 rounded-xl shadow-lg dark:bg-neutral-800 dark:border-neutral-700 z-100"
+						role="alert"
+						tabindex="-1"
+						aria-labelledby="hs-toast-error-example-label">
+						<div class="flex p-4">
+							<div class="shrink-0">
+								<svg
+									class="shrink-0 size-4 text-red-500 mt-0.5"
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									fill="currentColor"
+									viewBox="0 0 16 16">
+									<path
+										d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z">
+									</path>
+								</svg>
+							</div>
+							<div class="ms-3">
+								<p
+									id="hs-toast-error-example-label"
+									class="text-sm text-gray-700 dark:text-neutral-400">
+									{uiRegiserState.svelte_internal_message}
+								</p>
+							</div>
+						</div>
+					</div>
+					<!-- End Toast -->
+				{/if}
+
+				{#if uiRegiserState.successful_message}
+					<div class="flex">
+						<span class="text-lg text-cyan-600 dark:text-cyan-300">
+							{uiRegiserState.successful_message}
+						</span>
+					</div>
+				{/if}
+				<form
+					id="registerForm"
+					class="opacity-0 transition-opacity duration-500"
+					action="#"
+					on:submit|preventDefault={handleRegister}>
+					<div class="grid gap-y-2 md:gap-y-4">
+						<div>
+							<label
+								for="login-username"
+								class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+								Username
+							</label>
+
+							<div>
+								<input
+									type="text"
+									id="register-username"
+									name="username"
+									autocomplete="username"
+									class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+									required
+									aria-describedby="register-username"
+									bind:value={uiRegiserState.username} />
+							</div>
+						</div>
+
+						<div>
+							<label
+								for="register-email"
+								class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+								Email Address
+							</label>
+
+							<div>
+								<input
+									type="email"
+									id="register-email"
+									name="email"
+									autocomplete="email"
+									class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+									required
+									aria-describedby="register-email"
+									bind:value={uiRegiserState.email} />
+							</div>
+						</div>
+
+						<div>
+							<div class="flex items-center justify-between">
+								<label
+									for="register-password"
+									class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+									Password
+								</label>
+							</div>
+							<div>
+								<input
+									type="password"
+									id="register-password"
+									name="password"
+									class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+									required
+									aria-describedby="register-password"
+									bind:value={uiRegiserState.password} />
+							</div>
+						</div>
+
+						<div>
+							<div class="flex items-center justify-between">
+								<label
+									for="confirm-register-password"
+									class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
+									Confirm Password
+								</label>
+							</div>
+							<div>
+								<input
+									type="password"
+									id="confirm-register-password"
+									name="password"
+									class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
+									required
+									aria-describedby="confirm-register-password"
+									bind:value={uiRegiserState.confirm} />
+							</div>
+						</div>
+
+						<div>
+							<div
+								id="h-captcha-{id}"
+								class="flex justify-center scale-75 md:scale-100" />
+						</div>
+
+						<button
+							type="submit"
+							class={`${baseClasses} ${borderClasses} ${bgColorClasses} ${hoverClasses} ${fontSizeClasses} ${disabledClasses} ${ringClasses}`}
+							disabled={loading}>
+							{loading ? 'Loading...' : 'Register'}
+						</button>
+					</div>
+				</form>
+			</div>
+
+			<div class="flex flex-col w-1/2">
+				<div class="">
+					{#if detailedError}
+						<div class="inline-flex items-center">
+							<span class="relative flex h-3 w-3">
+								<span
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75">
+								</span>
+								<span
+									class="relative inline-flex rounded-full h-3 w-3 bg-red-500">
+								</span>
+							</span>
+							<div
+								class="px-2 text-gray-600 dark:text-neutral-400 text-wrap w-1/2">
+								{detailedError}
+							</div>
+						</div>
+					{:else}
+						<div class="inline-flex items-center">
+							<span class="relative flex h-3 w-3">
+								<span
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75">
+								</span>
+								<span
+									class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500">
+								</span>
+							</span>
+							<span
+								class="px-2 text-gray-600 dark:text-neutral-400 font-bold">
+								Online
+							</span>
+						</div>
+					{/if}
+				</div>
+				<dotlottie-player
+					autoplay
+					loop
+					class="hidden md:block md:w-full"
+					mode="normal"
+					src="/assets/lottie/{lottie_player_file}">
+				</dotlottie-player>
+			</div>
 		</div>
-	{/if}
-
-	{#if uiRegiserState.successful_message}
-		<div class="flex">
-			<dotlottie-player
-				autoplay
-				loop
-				class="w-8"
-				mode="normal"
-				src="/assets/lottie/{lottie_player_file}">
-			</dotlottie-player>
-			<span class="text-lg text-cyan-600 dark:text-cyan-300">
-				{uiRegiserState.successful_message}
-			</span>
-		</div>
-	{/if}
-
-	<form
-		id="registerForm"
-		action="#"
-		on:submit|preventDefault={handleRegister}>
-		<div class="grid gap-y-2 md:gap-y-4">
-			<div>
-				<label
-					for="login-username"
-					class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
-					Username
-				</label>
-
-				<div>
-					<input
-						type="text"
-						id="register-username"
-						name="username"
-						autocomplete="username"
-						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
-						required
-						aria-describedby="register-username"
-						bind:value={uiRegiserState.username} />
-				</div>
-			</div>
-
-			<div>
-				<label
-					for="register-email"
-					class="mb-1 block text-xs text-left md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
-					Email Address
-				</label>
-
-				<div>
-					<input
-						type="email"
-						id="register-email"
-						name="email"
-						autocomplete="email"
-						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
-						required
-						aria-describedby="register-email"
-						bind:value={uiRegiserState.email} />
-				</div>
-			</div>
-
-			<div>
-				<div class="flex items-center justify-between">
-					<label
-						for="register-password"
-						class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
-						Password
-					</label>
-				</div>
-				<div>
-					<input
-						type="password"
-						id="register-password"
-						name="password"
-						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
-						required
-						aria-describedby="register-password"
-						bind:value={uiRegiserState.password} />
-				</div>
-			</div>
-
-			<div>
-				<div class="flex items-center justify-between">
-					<label
-						for="confirm-register-password"
-						class="mb-1 block text-xs md:text-sm md:mb-2 text-neutral-800 dark:text-neutral-200">
-						Confirm Password
-					</label>
-				</div>
-				<div>
-					<input
-						type="password"
-						id="confirm-register-password"
-						name="password"
-						class="block w-full h-4 md:h-12 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-200 focus:outline-none focus:ring focus:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700/30 dark:text-neutral-300 dark:focus:ring-1"
-						required
-						aria-describedby="confirm-register-password"
-						bind:value={uiRegiserState.confirm} />
-				</div>
-			</div>
-
-			<div>
-				<div
-					id="h-captcha-{id}"
-					class="flex justify-center scale-75 md:scale-100" />
-			</div>
-
-			<button
-				type="submit"
-				class={`${baseClasses} ${borderClasses} ${bgColorClasses} ${hoverClasses} ${fontSizeClasses} ${disabledClasses} ${ringClasses}`}
-				disabled={loading}>
-				{loading ? 'Loading...' : 'Register'}
-			</button>
-		</div>
-	</form>
+	</div>
 </div>
