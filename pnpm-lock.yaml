@@ -69,7 +69,7 @@ importers:
         specifier: ^0.7.5
         version: 0.7.5
       '@supabase/supabase-js':
-        specifier: ^2.39.8
+        specifier: ^2.42.5
         version: 2.42.5
       '@swc/helpers':
         specifier: ~0.5.2

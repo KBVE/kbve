@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { EventEmitter, getActionEvents, getItemDetails, getUserSetting, itemStore, playerData, quest, settings, setUserSetting, type IPlayerInventory, type ItemAction, type ItemActionEventData, type PlayerEventData } from '@kbve/laser';
+import { eventEmitterInstance as EventEmitter, getActionEvents, getItemDetails, getUserSetting, itemStore, playerData, quest, settings, setUserSetting, type IPlayerInventory, type ItemAction, type ItemActionEventData, type PlayerEventData } from '@kbve/laser';
 import ToggleButton from './components/ToggleButton';
 import StatsSection from './components/StatsSection';
 import UserSettingsToggleSwitch from './components/UserSettingsToggleSwitch';

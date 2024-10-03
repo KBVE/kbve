@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import { Quadtree, type Point, type Range } from '../../quadtree';
-import { EventEmitter } from '../../eventhandler';
+import { eventEmitterInstance as EventEmitter } from '../../eventhandler';
 import { decreasePlayerHealth, notificationType, createAndAddItemToBackpack, queryItemDB, applyConsumableEffects, equipItem, getItemDetails, removeItemFromBackpack, unequipItem } from '../../localdb';
 import { type IObject,  type PlayerMoveEventData, type PlayerStealEventData, type PlayerCombatDamage, PlayerRewardEvent, type ItemActionEventData, IConsumable } from '../../../types'
 import { Debug } from '../../utils/debug';

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { EventEmitter, type INotification, type NotificationEventData, notificationsStore} from '@kbve/laser';
+import { eventEmitterInstance as EventEmitter, type INotification, type NotificationEventData, notificationsStore} from '@kbve/laser';
 
 
 

@@ -3,6 +3,8 @@ import MainLayout from '../layouts/MainLayout.astro';
 import { SITE } from '../data_files/constants';
 import RegisterForm from '../components/ui/forms/RegisterForm.svelte';
 
+import { SupabaseRegister } from '@kbve/astropad';
+
 const pageTitle: string = `Register | ${SITE.title}`;
 const pageDescription: string = `Register | KBVE.com`;
 ---
@@ -37,7 +39,7 @@ const pageDescription: string = `Register | KBVE.com`;
         >
           KBVE Authentication Portal
         </h1>
-        <RegisterForm client:only="svelte" />
+        <SupabaseRegister />
       </div>
       <img
         class="h-[30rem] w-[30rem] rounded-full hidden lg:block"

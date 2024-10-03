@@ -15,6 +15,7 @@ import { defineConfig as defineViteConfig } from 'vite';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://kbve.com/',
+	output: 'static',
 	image: {
 		domains: ['images.unsplash.com'],
 	},
@@ -30,6 +31,9 @@ export default defineConfig({
 			prefixDefaultLocale: false,
 		},
 	},
+	// experimental: {
+	// 	contentCollectionCache: true,
+	// },	
 	integrations: [
 		starlight({
 			title: 'KBVE Docs',
@@ -231,18 +235,10 @@ export default defineConfig({
 		}),
 	],
 	markdown: markdownConfig,
-	// vite: defineViteConfig({
-	// 	build: {
-	// 		rollupOptions: {
-	// 			// Define an additional entry point for your graph.js.js
-	// 			input: {
-	// 				//main: './src/engine/entry.client.jsx', // Your main JS entry
-	// 				graph: './src/engine/Graph.jsx', // Path to your React component
-	// 			},
-	// 			output: {
-	// 				entryFileNames: 'public/[name].js',
-	// 			},
-	// 		},
-	// 	},
-	// }),
+	vite: defineViteConfig({
+	 	build: {
+			rollupOptions: {
+			},
+ 		},
+	}),
 });

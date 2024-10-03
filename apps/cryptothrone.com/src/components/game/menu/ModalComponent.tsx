@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {atom, type WritableAtom } from 'nanostores';
-import { EventEmitter, type CharacterEventData } from '@kbve/laser';
+import { eventEmitterInstance as EventEmitter, type CharacterEventData } from '@kbve/laser';
 
 
 const $modalEvent = atom<CharacterEventData>({

@@ -6,3 +6,14 @@ spec:
   method: barmanObjectStore
   cluster:
     name: {{ include "supabase.db.fullname" . }}
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ include "supabase.db.fullname" . }}-bk-job
+spec:
+  schedule: "0 0 0 * * 0"
+  backupOwnerReference: self
+  cluster:
+    name: {{ include "supabase.db.fullname" . }}
