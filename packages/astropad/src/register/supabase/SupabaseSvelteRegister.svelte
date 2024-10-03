@@ -15,6 +15,7 @@
 </script>
 
 <script lang="ts">
+	import type SupabaseClient from '@supabase/supabase-js/dist/module/SupabaseClient';
 	import { createClient } from '@supabase/supabase-js';
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import {
@@ -39,16 +40,32 @@
 	};
 
 	export const handleRegister = async () => {
-		let supabase;
-		try {
-			supabase = createClient(
-				KiloBaseState.get().api,
-				KiloBaseState.get().anonKey,
-			);
-			console.log('Supabase Instance:', supabase);
-		} catch (error) {
-			console.error('Error creating Supabase client:', error);
-			
+		if (!supabase) {
+			try {
+				supabase = createClient(
+					KiloBaseState.get().api,
+					KiloBaseState.get().anonKey,
+				);
+				console.log('Supabase Instance:', supabase);
+			} catch (error) {
+				console.error('Error creating Supabase client:', error);
+			}
+		}
+		
+		if(supabase)
+		{
+			const { data, error } = await supabase.auth.signUp({
+				email: uiRegiserState.email,
+				password: uiRegiserState.password,
+				options: {
+					data: {
+						token: uiRegiserState.captchaToken,
+						username: uiRegiserState.username
+					}
+				}
+				})
+			console.log(`Data: ${data}`);
+			console.log(`Error: ${error}`);
 		}
 	};
 
@@ -61,6 +78,7 @@
 	let lottie_player_file = '';
 	let errorMessageAstro: any;
 	let widgetID: any;
+	let supabase: SupabaseClient;
 
 	const captchaConfig: CaptchaConfig = {
 		hl: '',
