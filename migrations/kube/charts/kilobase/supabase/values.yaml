@@ -131,15 +131,15 @@ auth:
     replicaCount: 1
     serviceAccount:
         create: true
-    podSecurityContext:
-        fsGroup: 2000
-    securityContext:
-        capabilities:
-            drop:
-                - ALL
-        readOnlyRootFilesystem: false
-        runAsNonRoot: true
-        runAsUser: 1000
+    # podSecurityContext:
+    #     fsGroup: 2000
+    # securityContext:
+        # capabilities:
+        #     drop:
+        #         - ALL
+        # readOnlyRootFilesystem: false
+        # runAsNonRoot: true
+        # runAsUser: 1000
     service:
         type: ClusterIP
         port: 9999
@@ -173,6 +173,11 @@ auth:
         GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify'
         GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify'
         GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: '/auth/v1/verify'
+        # Captcha
+        GOTRUE_SECURITY_CAPTCHA_ENABLED: 'true'
+        GOTRUE_SECURITY_CAPTCHA_PROVIDER: 'hcaptcha'
+        GOTRUE_SECURITY_CAPTCHA_TIMEOUT: '10s'
+        
 
     resources:
         limits:
