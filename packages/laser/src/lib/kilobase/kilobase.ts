@@ -3,7 +3,8 @@
 import { createClient, Session, SupabaseClient } from '@supabase/supabase-js';
 import Dexie from 'dexie';
 import { atom, map } from 'nanostores';
-import { UserProfile, ErrorLog, ActionULID } from '../../types';
+import { persistentMap, persistentAtom } from '@nanostores/persistent';
+import { UserProfile, ErrorLog, ActionULID, Persistable } from '../../types';
 import KiloBaseState from '../constants';
 
 import ULIDFactory from '../utils/ulid';
@@ -30,6 +31,7 @@ const defaultProfile: UserProfile = {
 export const profileStore = map<UserProfile>(defaultProfile); // Initialize with default profile
 export const isSyncingStore = atom<boolean>(false); // Track synchronization state
 export const syncActionStore = atom<string>(''); // Track syncActionStore state
+export const usernameStore = atom<string | null>(null); // Track username state
 
 // Define the Kilobase class to wrap around Dexie and Supabase
 export class Kilobase extends Dexie {
@@ -196,6 +198,7 @@ export class Kilobase extends Dexie {
 	 * @throws Throws the error after logging it.
 	 */
 	private async handleAuthError(
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		error: any,
 		actionId?: string,
 	): Promise<void> {
@@ -304,6 +307,9 @@ export class Kilobase extends Dexie {
 				key: this.profileKey,
 				value: profile,
 			});
+			if (profile.username) {
+				usernameStore.set(profile.username);
+			}
 			profileStore.set(profile);
 			console.log('Profile saved locally:', profile);
 		} catch (error) {
@@ -399,6 +405,9 @@ export class Kilobase extends Dexie {
 				`Profile ${profile.id} removed locally and store reset`,
 			);
 
+			// Reset the userStore
+			usernameStore.set(null);
+
 			// Log the user out from Supabase
 			const { error } = await supabase.auth.signOut();
 			if (error) {
@@ -455,6 +464,7 @@ export class Kilobase extends Dexie {
 	 * @param details - Optional error details including Supabase code and status.
 	 * @param actionId - The action ULID to associate with the error.
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async logError(message: string, details?: any, actionId?: string) {
 		try {
 			// Check if an error already exists for the given actionId
@@ -498,6 +508,7 @@ export class Kilobase extends Dexie {
 	 * @param error - The error object to extract details from.
 	 * @returns A string with detailed error information.
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async extractAuthErrorDetails(error: any): Promise<string> {
 		if (!error)
 			return 'Unknown error occurred. No error details available.';
@@ -661,6 +672,64 @@ export class Kilobase extends Dexie {
 			console.error('Error getting session:', err);
 			return null;
 		}
+	}
+
+	/**
+	 * Retrieve the username from the store or Dexie.
+	 * If the username is already in the store, it returns that value.
+	 * If the store is empty, it queries Dexie for the username and updates the store.
+	 * @returns The username if found, otherwise null.
+	 */
+	async getUsername(): Promise<string | null> {
+		// Check if the username is already stored in the Nanostore
+		if (usernameStore.get()) {
+			return usernameStore.get();
+		}
+
+		try {
+			// Query the local Dexie database for the stored profile
+			const profile = await this.table('keyValueStore').get(
+				this.profileKey,
+			);
+			if (profile?.value?.username) {
+				// Update the Nanostore with the username and return it
+				usernameStore.set(profile.value.username);
+				return profile.value.username;
+			}
+		} catch (error) {
+			console.error('Failed to get username from Dexie:', error);
+		}
+
+		// Return null if the username is not found in the store or Dexie
+		return null;
+	}
+
+	/**
+	 * Create a persistent atom with a given key and default value.
+	 * Uses JSON.stringify and JSON.parse as default encoding and decoding mechanisms.
+	 * @param key - The key to identify the persistentAtom in local storage.
+	 * @param defaultValue - The default value for the persistentAtom.
+	 * @returns The created persistentAtom instance.
+	 */
+	createPersistentAtom<T extends Persistable>(key: string, defaultValue: T) {
+		return persistentAtom<T>(key, defaultValue, {
+			encode: JSON.stringify,
+			decode: JSON.parse,
+		});
+	}
+
+	/**
+	 * Create a persistent map with a given key and default value.
+	 * Uses JSON.stringify and JSON.parse as default encoding and decoding mechanisms.
+	 * @param key - The key to identify the persistentMap in local storage.
+	 * @param defaultValue - The default value for the persistentMap.
+	 * @returns The created persistentMap instance.
+	 */
+	createPersistentMap<T extends Persistable>(key: string, defaultValue: T) {
+		return persistentMap<T>(key, defaultValue, {
+			encode: JSON.stringify,
+			decode: JSON.parse,
+		});
 	}
 }
 
