@@ -8,7 +8,6 @@ import {
   PlayerController,
 } from '@kbve/laser';
 
-import { createTextBubble, updateTextBubblePosition, createMessageBubble } from '@kbve/laser';
 
 import {
   getBirdNum,
@@ -19,16 +18,14 @@ import {
 } from '@kbve/laser';
 
 import {
-  EventEmitter,
+  eventEmitterInstance as EventEmitter,
   type OpenModalEventData,
   type CharacterEventData,
   type PlayerEventData,
   notificationType
 } from '@kbve/laser';
 
-import {
-  createULID
-} from '@kbve/laser'
+import { ULIDFactory } from '@kbve/laser'
 
 
 
@@ -78,7 +75,7 @@ export class SandCity extends Scene {
 
     EventEmitter.emit('notification', {
       title: 'Success',
-      message: `You arrived safely to SandCity Passport: ${createULID()}`,
+      message: `You arrived safely to SandCity Passport: ${ULIDFactory().toString()}`,
       notificationType: notificationType.success,
     });
 
@@ -177,13 +174,6 @@ export class SandCity extends Scene {
       this.quadtree,
     );
 
-    createMessageBubble(
-      this,
-      this.npcSprite,
-      'Enter the sand pit to start fishing! Go near it and press F!',
-      3000
-    );
-
     await npcDatabase.loadCharacter(this, '01J2DT4G871KJ0VNSHCNC5REDM', 6,6);
     
     await npcDatabase.loadCharacter(this, '01J2HCTMQ58JBMJGW9YA3FBQCG', 8, 8);
@@ -192,7 +182,6 @@ export class SandCity extends Scene {
 
     // this.gridEngine.follow('01J2HCTMQ58JBMJGW9YA3FBQCG', '01J2DT4G871KJ0VNSHCNC5REDM', 0, true);
 
-    // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly('npc', 1500, 3);
     this.gridEngine.moveRandomly('fishNpc', 1500, 3);
 

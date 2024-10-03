@@ -74,7 +74,13 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
   log!("Starting KiloBase BG Worker");
 
   //  [REDIS] -> Connection
-  // let mut redis_connection = match
+  let mut redis_connection = match create_redis_connection() {
+    Ok(connection) => connection,
+    Err(err) => {
+      log!("Failed to establish Redis connection: {}", err);
+      return;
+    }
+  }
 
   while BackgroundWorker::wait_latch(Some(Duration::from_secs(10))) {
     // Select a pending task
@@ -184,6 +190,31 @@ fn create_redis_connection() -> RedisResult<Connection, redis::RedisError> {
 
   ok(conn)
 }
+
+//  [HELPER] -> Deque **WIP
+
+fn dequeue_url(conn: &mut Connection) -> Option<String> {
+  let result: Result<String, _> = conn.rpop("url_queue", None);
+  match result {
+    Ok(url) => Some(url),
+    Err(err) => {
+      log!("Failed to dequeue URL from Redis: {}", err);
+      None
+    }
+  }
+}
+
+//  [HELPER] -> [REDIS] -> Archive_URL -> Spi? 
+//  The 
+// fn archive_url(conn: &mut Connection, url: &str, data: &str) -> Result<(), String> {
+//   let archive_id = generate_base62_ulid();
+
+//   Spi::run_with_args(
+//     "INSERT into url"
+//   )
+// }
+
+//  [HELPER] -> ulid
 
 fn generate_base62_ulid() -> String {
   let ulid = Ulid::new();

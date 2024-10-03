@@ -1,11 +1,10 @@
-import { Scene } from 'phaser';
 
 class ExtendedSprite extends Phaser.GameObjects.Sprite {
   textBubble?: Phaser.GameObjects.Container;
   messageBubble?: Phaser.GameObjects.Container;
 }
 
-export function createMessageBubble(scene: Scene, sprite: ExtendedSprite, text: string | string[], duration: number): Phaser.GameObjects.Container {
+export function createMessageBubble(scene: Phaser.Scene, sprite: ExtendedSprite, text: string | string[], duration: number): Phaser.GameObjects.Container {
   const bubbleWidth = 200;
   const bubbleHeight = 60;
   const bubblePadding = 10;
@@ -44,7 +43,7 @@ export function createMessageBubble(scene: Scene, sprite: ExtendedSprite, text: 
   return container;
 }
 
-export function createTextBubble(scene: Scene, sprite: ExtendedSprite, text: string | string[]): Phaser.GameObjects.Container {
+export function createTextBubble(scene: Phaser.Scene, sprite: ExtendedSprite, text: string | string[]): Phaser.GameObjects.Container {
   const bubbleWidth = 200;
   const bubbleHeight = 60;
   const bubblePadding = 10;

@@ -11,23 +11,13 @@ tags:
     - daily
 ---
 
-import MDXJS from '../../components/MDXJS.astro';
-
-
-<MDXJS>
-
 ## Notes
 
 Double check the shell execution.
 
-</MDXJS>
-
-
-<MDXJS>
 
 ### 2024
 
-<MDXJS>
 
 #### Python
 
@@ -38,11 +28,6 @@ Earlier, I went ahead and updated a decent amount of the `atlas` code base, prep
 
 Yet, sadly, even the weird edge cases become a huge pain! But its been long over due, at least since last year, so it makes sense that I invest some heavy time into it.
 
-</MDXJS>
-
----
-
-<MDXJS>
 
 #### FastAPI
 
@@ -51,11 +36,6 @@ Majority of the codebase will be within the `kbve_atlas`, with a `main.py` file 
 This `main.py` file will be the router that we use to handle all the python routes, including any micro-service that we might need down the line.
 Under the current build, I am thinking of keeping a bunch of the services within an isolated python instance and then using our Rust API to handle the communication between them, ideally using a queue style system.
 
-</MDXJS>
-
----
-
-<MDXJS>
 
 #### Main.py
 
@@ -131,12 +111,6 @@ We could also try to setup a redis bridge that would let some of the microservic
 Going to take a bit of a break from FastAPI and prepare to setup the broadcaster, we could also setup the relay through it as well! Hmmm....
 
 
-</MDXJS>
-
----
-
-<MDXJS>
-
 #### NX
 
 The Nx flag on the `./kbve.sh` aka `-nx` seems to be only taking one arguement and none of the additional flags.
@@ -145,11 +119,6 @@ This is going to be a quick fix around it, just quickly update the shell file so
 
 After a week or so, I will go back and update the code.
 
-</MDXJS>
-
----
-
-<MDXJS>
 
 #### Broadcaster
 
@@ -193,9 +162,3 @@ Here is the quick swap to memory:
 broadcast = Broadcast("memory://")
 
 ```
-
-
-
-</MDXJS>
-
-</MDXJS>
