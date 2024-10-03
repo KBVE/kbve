@@ -35,7 +35,12 @@ We set the language of the page to English and add classes for scrollbar and scr
     <Meta meta={meta} structuredData={structuredData} />
     <!-- Define the title of the page -->
     <title>{title}</title>
-    <VE widget="header:external:lottie" data="dot" />
+    <script
+    type="module"
+    async
+    is:inline
+    src="https://unpkg.com/@dotlottie/player-component@1.0.0/dist/dotlottie-player.js"
+  />
     <script
       is:inline
       src="https://cdn.jsdelivr.net/npm/preline@2.3.0/dist/preline.min.js"

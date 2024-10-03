@@ -235,18 +235,10 @@ export default defineConfig({
 		}),
 	],
 	markdown: markdownConfig,
-	// vite: defineViteConfig({
-	// 	build: {
-	// 		rollupOptions: {
-	// 			// Define an additional entry point for your graph.js.js
-	// 			input: {
-	// 				//main: './src/engine/entry.client.jsx', // Your main JS entry
-	// 				graph: './src/engine/Graph.jsx', // Path to your React component
-	// 			},
-	// 			output: {
-	// 				entryFileNames: 'public/[name].js',
-	// 			},
-	// 		},
-	// 	},
-	// }),
+	vite: defineViteConfig({
+	 	build: {
+			rollupOptions: {
+			},
+ 		},
+	}),
 });
