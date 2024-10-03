@@ -31,9 +31,9 @@ export default defineConfig({
 			prefixDefaultLocale: false,
 		},
 	},
-	experimental: {
-		contentCollectionCache: true,
-	},	
+	// experimental: {
+	// 	contentCollectionCache: true,
+	// },	
 	integrations: [
 		starlight({
 			title: 'KBVE Docs',
