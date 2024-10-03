@@ -12,21 +12,14 @@ tags:
     - daily
 ---
 
-import MDXJS from '../../components/MDXJS.astro';
 
-
-<MDXJS>
 
 ## Notes
 
 
-</MDXJS>
-
-<MDXJS>
 
 ### 2024
 
-<MDXJS>
 
 #### DiscordBot
 
@@ -62,11 +55,6 @@ networks:
 
 A future note to myself, we could connect the `API` and have it so that the discord bot can be reset via issue tickets on Github.
 
-</MDXJS>
-
----
-
-<MDXJS>
 
 #### Inventory
 
@@ -112,11 +100,6 @@ This is a bit too `dumb data` but for this test casing it should be fine.
 One of the cool things about using the localStorage is that we can call it via the WASM too, in a way, it be a solid event holder for cross communication between client side applications that are running.
 
 
-</MDXJS>
-
----
-
-<MDXJS>
 
 #### Ads
 
@@ -125,11 +108,7 @@ I made an issue ticket earlier but if we get denied or have problems, I will cre
 
 The content requirement and legal documentation is a priority for this week.
 
-</MDXJS>
 
----
-
-<MDXJS>
 
 #### Crossword
 
@@ -138,12 +117,6 @@ One idea on how we would handle the SVGs would be to create a set of them for A 
 
 We would have to cache / preload all the SVGs ahead of time as well... hmm we could even store them into the localStorage? There could be a couple ways for me test case around this.
 
-
-</MDXJS>
-
----
-
-<MDXJS>
 
 #### Park
 
@@ -172,13 +145,6 @@ In a future update, we could include an animation when switching the scenes, may
 This will help prevent the user from thinking the game is bugged out or frozen.
 
 
-</MDXJS>
-
-
----
-
-<MDXJS>
-
 #### Legal
 
 I need to transfer over and render the legal documents, oh the joys.
@@ -198,22 +164,8 @@ We already created the base folder for the bento, now will just add the file tha
 
 Inside of the `kbve.com` application, we will create the `Bento.astro` component.
 
-```javascript
-
----
-import { AstroVe as VE } from '@kbve/astro-ve';
----
-<VE widget="grid:bento:bento" {...Astro.props}>
-    <slot />
-</VE>
-
-```
 
 The `grid:bento:bento` is a referfence to the Astro VE `bento.astro` , the core base file that will hold the bento code.
 
 We are basically splitting the code to make it easier to reuse.
-
-</MDXJS>
-
-</MDXJS>
 
