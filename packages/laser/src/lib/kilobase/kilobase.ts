@@ -3,8 +3,10 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import Dexie from 'dexie';
 import { atom, map } from 'nanostores';
-import { UserProfile, ErrorLog } from '../../types';
+import { UserProfile, ErrorLog, ActionULID } from '../../types';
 import KiloBaseState from '../constants';
+
+import ULIDFactory from '../utils/ulid';
 
 // Method definitions, including:
 // - initializeSupabaseClient
@@ -27,11 +29,13 @@ const defaultProfile: UserProfile = {
 // Nanostores for managing profile state
 export const profileStore = map<UserProfile>(defaultProfile); // Initialize with default profile
 export const isSyncingStore = atom<boolean>(false); // Track synchronization state
+export const syncActionStore = atom<string>(''); // Track syncActionStore state
 
 // Define the Kilobase class to wrap around Dexie and Supabase
 export class Kilobase extends Dexie {
 	profiles!: Dexie.Table<UserProfile, string>;
 	errorLogs!: Dexie.Table<ErrorLog, number>;
+	actionULID!: Dexie.Table<ActionULID, string>;
 	private supabase: SupabaseClient | null = null;
 	private profileKey = 'userProfile'; // Key for local storage
 
@@ -41,21 +45,33 @@ export class Kilobase extends Dexie {
 		this.version(1).stores({
 			keyValueStore: 'key',
 			profiles: '&id, email',
-			errorLogs: '++id, message, timestamp', // Auto-incremented primary key
+			errorLogs: '++id, actionId, message, timestamp', // Auto-incremented primary key
+			actionULID: '&id, action, timestamp, status, errorId',
 		});
 
 		// Initialize tables
 		this.profiles = this.table('profiles');
 		this.errorLogs = this.table('errorLogs');
+		this.actionULID = this.table('actionULID');
 
 		this.supabase = this.initializeSupabaseClient();
 	}
 
 	/**
-	 * Initializes the Supabase client and returns the instance.
-	 * If already initialized, it returns the existing instance.
+	 * Singleton pattern for the Supabase client.
+	 * Ensures only one instance is created and shared across the application.
 	 */
-	private initializeSupabaseClient() {
+	private initializeSupabaseClient(): SupabaseClient {
+		// Check if a global Supabase client instance is already available
+		if (typeof window !== 'undefined' && window.supabase) {
+			console.log(
+				'Using global Supabase client instance:',
+				window.supabase,
+			);
+			this.supabase = window.supabase as SupabaseClient;
+		}
+
+		// If the Supabase client is still not set, create a new instance
 		if (!this.supabase) {
 			try {
 				this.supabase = createClient(
@@ -63,11 +79,17 @@ export class Kilobase extends Dexie {
 					KiloBaseState.get().anonKey,
 				);
 				console.log('Supabase client instance created:', this.supabase);
+
+				// Set the created instance globally
+				if (typeof window !== 'undefined') {
+					window.supabase = this.supabase;
+				}
 			} catch (error) {
 				console.error('Error creating Supabase client:', error);
 				throw error;
 			}
 		}
+
 		return this.supabase;
 	}
 
@@ -83,6 +105,7 @@ export class Kilobase extends Dexie {
 	 * @param email - User's email address.
 	 * @param password - User's password.
 	 * @param confirm - User's password (to confirm).
+	 * @param actionId - ID of the associated action to track this operation.
 	 * @param username - User's optional username.
 	 * @param captchaToken - Captcha token for verification.
 	 */
@@ -90,6 +113,7 @@ export class Kilobase extends Dexie {
 		email: string,
 		password: string,
 		confirm: string,
+		actionId: string,
 		username?: string,
 		captchaToken?: string,
 	): Promise<UserProfile | null> {
@@ -97,12 +121,13 @@ export class Kilobase extends Dexie {
 		if (!supabase) return null;
 
 		try {
-			// Password confirmation check
+			// Check if passwords match
 			if (password !== confirm) {
-				const errorMessage =
-					'Password and confirm password do not match.';
-				await this.logError(errorMessage);
-				throw new Error(errorMessage);
+				await this.handleAuthError(
+					{ message: 'Password and confirm password do not match.' },
+					actionId,
+				);
+				return null; // Optional: Remove if you don't want to return anything after error handling
 			}
 
 			// Proceed with registration if passwords match
@@ -119,7 +144,8 @@ export class Kilobase extends Dexie {
 			});
 
 			if (error) {
-				this.handleAuthError(error);
+				// Use handleAuthError to log and throw the error
+				await this.handleAuthError(error, actionId);
 				return null;
 			}
 
@@ -136,36 +162,105 @@ export class Kilobase extends Dexie {
 
 				// Save profile locally
 				await this.saveProfile(profile);
-				console.log('User registered successfully:', profile);
-
+				await this.updateActionStatus(actionId, 'completed'); // Mark action as completed
 				return profile;
 			}
 		} catch (err) {
-			this.handleAuthError(err);
+			await this.handleAuthError(err, actionId);
+			return null;
 		}
 
 		return null;
+	}
+	/**
+	 * Create a new action entry in the ActionULID table.
+	 * @param action - The name of the action, e.g., "registerUser".
+	 * @returns The ID of the newly created action entry.
+	 */
+	async createActionULID(action: string): Promise<string> {
+		const id = ULIDFactory().toString();
+		const newAction: ActionULID = {
+			id,
+			action,
+			timestamp: new Date(),
+			status: 'pending',
+		};
+		await this.actionULID.add(newAction);
+		return id;
 	}
 
 	/**
 	 * Centralized error handling for authentication errors.
 	 * @param error - The error object returned from Supabase.
+	 * @param actionId - Optional ID of the associated action for logging purposes.
+	 * @throws Throws the error after logging it.
 	 */
-	private async handleAuthError(error: any) {
+	private async handleAuthError(
+		error: any,
+		actionId?: string,
+	): Promise<void> {
 		let errorMessage = 'An unknown error occurred. Please try again.';
+		const errorDetails = { ...error }; // Copy error details to log
+		let additionalInfo = '';
 
 		// Supabase error format
 		if (error?.message) {
 			errorMessage = error.message;
 		}
 
-		// Additional error cases can be added here as needed
-		switch (error.status) {
+		// Extract more information if available
+		if (error?.code) {
+			additionalInfo += `Error Code: ${error.code}. `;
+		}
+
+		if (error?.status) {
+			additionalInfo += `Status: ${error.status}. `;
+		}
+
+		if (error?.supabaseCode) {
+			additionalInfo += `Supabase Code: ${error.supabaseCode}. `;
+		}
+
+		// You can add more fields here as needed
+		if (error?.details) {
+			additionalInfo += `Details: ${JSON.stringify(error.details)}. `;
+		}
+
+		// Append additional information to the error message
+		if (additionalInfo) {
+			errorMessage = `${errorMessage} (${additionalInfo.trim()})`;
+		}
+
+		// Additional error message customization based on specific codes or statuses
+		const supabaseErrorMessages: Record<string, string> = {
+			invalid_grant: 'Invalid credentials provided.',
+			invalid_request: 'The request is missing a required parameter.',
+			expired_token: 'The token has expired. Please log in again.',
+			invalid_token: 'The token provided is invalid. Please try again.',
+			email_already_exists: 'The email address is already in use.',
+			user_already_exists:
+				'A user with this identifier already exists. Please log in instead.',
+			invalid_password: 'The password provided is incorrect.',
+		};
+
+		if (error?.code && supabaseErrorMessages[error.code]) {
+			errorMessage = supabaseErrorMessages[error.code];
+		}
+
+		// Append more information based on HTTP status
+		switch (error?.status) {
 			case 400:
 				errorMessage = 'Bad request. Please check the input fields.';
 				break;
 			case 401:
 				errorMessage = 'Unauthorized. Please check your credentials.';
+				break;
+			case 403:
+				errorMessage =
+					'Forbidden. You do not have permission to perform this action.';
+				break;
+			case 404:
+				errorMessage = 'Resource not found. Please try again.';
 				break;
 			case 422:
 				errorMessage =
@@ -181,29 +276,22 @@ export class Kilobase extends Dexie {
 				break;
 		}
 
-		// Log error in Dexie errorLogs table
-		await this.logError(errorMessage, error);
+		// Log the error in Dexie errorLogs table only if an error doesn't already exist for the actionId
+		await this.logError(
+			errorMessage,
+			{
+				...errorDetails,
+				supabaseCode: error?.code,
+				statusCode: error?.status,
+			},
+			actionId,
+		);
 
+		// Log to the console for debugging purposes
 		console.error('Authentication Error:', errorMessage);
-	}
 
-	/**
-	 * Log an error in the Dexie errorLogs table.
-	 * @param message - The error message.
-	 * @param details - Optional error details.
-	 */
-	async logError(message: string, details?: any) {
-		try {
-			const errorLog: ErrorLog = {
-				message,
-				details,
-				timestamp: new Date(),
-			};
-			await this.errorLogs.add(errorLog);
-			console.log('Error logged to Dexie:', errorLog);
-		} catch (logError) {
-			console.error('Failed to log error:', logError);
-		}
+		// Throw the error to let the caller handle it
+		throw new Error(errorMessage);
 	}
 
 	/**
@@ -217,8 +305,6 @@ export class Kilobase extends Dexie {
 			});
 			profileStore.set(profile);
 			console.log('Profile saved locally:', profile);
-
-		
 		} catch (error) {
 			console.error('Failed to save profile locally:', error);
 		}
@@ -247,8 +333,6 @@ export class Kilobase extends Dexie {
 			console.error('Failed to load profile:', error);
 		}
 	}
-
-
 
 	/**
 	 * Load the user profile from Supabase and save it locally.
@@ -328,6 +412,106 @@ export class Kilobase extends Dexie {
 		} catch (error) {
 			await this.logError('Failed to remove profile', error);
 			console.error('Failed to remove profile:', error);
+		}
+	}
+
+	/**
+	 * Create a new action entry in the ActionULID table.
+	 * @param action - The name of the action, e.g., "registerUser".
+	 * @returns The newly created ActionULID entry.
+	 */
+	async createAction(action: string): Promise<ActionULID> {
+		const id = ULIDFactory().toString();
+		const newAction: ActionULID = {
+			id,
+			action,
+			timestamp: new Date(),
+			status: 'pending',
+		};
+
+		await this.actionULID.add(newAction);
+		return newAction;
+	}
+
+	/**
+	 * Update the status of an existing action.
+	 * @param actionId - The unique ID of the action to update.
+	 * @param status - The new status of the action.
+	 * @param errorId - Optional reference to an error ID if the action failed.
+	 */
+	async updateActionStatus(
+		actionId: string,
+		status: 'pending' | 'completed' | 'failed',
+		errorId?: number,
+	) {
+		await this.actionULID.update(actionId, { status, errorId });
+	}
+
+	/**
+	 * Log an error and associate it with an action.
+	 * If an error already exists for the given actionId, terminate without logging.
+	 * @param message - The error message.
+	 * @param details - Optional error details including Supabase code and status.
+	 * @param actionId - The action ULID to associate with the error.
+	 */
+	async logError(message: string, details?: any, actionId?: string) {
+		try {
+			// Check if an error already exists for the given actionId
+			let existingError = null;
+			if (actionId) {
+				existingError = await this.errorLogs
+					.where('actionId')
+					.equals(actionId)
+					.first();
+			}
+
+			// If an error already exists for this action, terminate without logging
+			if (existingError) {
+				console.warn(
+					`Error already exists for actionId: ${actionId}. Skipping new error log.`,
+				);
+				return;
+			}
+
+			// Create a new error log entry since no existing error was found
+			const errorLog: ErrorLog = {
+				message,
+				details,
+				actionId, // Associate the error with the action
+				timestamp: new Date(),
+			};
+			const errorId = await this.errorLogs.add(errorLog);
+			console.log('Error logged to Dexie:', errorLog);
+
+			// If there's an associated action, update its status to 'failed' and reference the error ID
+			if (actionId) {
+				await this.updateActionStatus(actionId, 'failed', errorId);
+			}
+		} catch (logError) {
+			console.error('Failed to log error:', logError);
+		}
+	}
+
+	/**
+	 * Get the latest error message associated with a specific action ID.
+	 * @param actionId - The action ID to filter error logs.
+	 * @returns The most recent error message for the action, or null if no error is found.
+	 */
+	async getErrorByActionId(actionId: string): Promise<string | null> {
+		try {
+			// Get the most recent error for the specified action ID
+			const latestError = await this.errorLogs
+				.where('actionId')
+				.equals(actionId)
+				.last(); // Retrieve the latest error
+
+			return latestError ? latestError.message : null;
+		} catch (error) {
+			console.error(
+				`Failed to retrieve error for actionId: ${actionId}`,
+				error,
+			);
+			return null;
 		}
 	}
 }

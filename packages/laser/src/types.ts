@@ -7,9 +7,18 @@
 // Define an interface for error logs
 export interface ErrorLog {
   id?: number; // Primary key
+  actionId?: string; 
   message: string;
   details?: any;
   timestamp: Date;
+}
+
+export interface ActionULID {
+  id: string; // Unique ID (ULID) for the action
+  action: string; // Name of the action, e.g., "registerUser"
+  timestamp: Date; // Timestamp when the action was performed
+  status: 'pending' | 'completed' | 'failed'; // Status of the action
+  errorId?: number; // Optional reference to an error log ID
 }
 
 export interface IKiloBase {
