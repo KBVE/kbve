@@ -1,6 +1,6 @@
 //  kilobase.ts
 //  [IMPORTS]
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, Session, SupabaseClient } from '@supabase/supabase-js';
 import Dexie from 'dexie';
 import { atom, map } from 'nanostores';
 import { UserProfile, ErrorLog, ActionULID } from '../../types';
@@ -575,6 +575,90 @@ export class Kilobase extends Dexie {
 				`Failed to retrieve error for actionId: ${actionId}`,
 				error,
 			);
+			return null;
+		}
+	}
+
+	/**
+	 * Login a user with Supabase.
+	 * @param email - User's email address.
+	 * @param password - User's password.
+	 * @param actionId - Action ID for error tracking.
+	 * @param captchaToken - Captcha token for verification.
+	 * @returns UserProfile if login is successful, or null if an error occurs.
+	 */
+	async loginUser(
+		email: string,
+		password: string,
+		actionId: string,
+		captchaToken?: string,
+	): Promise<UserProfile | null> {
+		const supabase = this.getSupabaseClient();
+		if (!supabase) return null;
+
+		try {
+			// Clear previous error state
+			//authErrorStore.set(null);
+
+			// Perform the login with captcha token if provided
+			const { data, error } = await supabase.auth.signInWithPassword({
+				email,
+				password,
+				options: {
+					captchaToken, // Include captcha token in login request
+				},
+			});
+
+			// Handle any errors
+			if (error) {
+				await this.handleAuthError(error, actionId);
+				return null;
+			}
+
+			// Check if the user object is returned
+			if (data?.user) {
+				const profile: UserProfile = {
+					id: data.user.id,
+					email: data.user.email || '',
+					username:
+						data.user.user_metadata?.['username'] || undefined,
+					fullName:
+						data.user.user_metadata?.['full_name'] || undefined,
+					updatedAt: new Date(data.user.updated_at || Date.now()),
+				};
+
+				// Save profile locally
+				await this.saveProfile(profile);
+				console.log('User logged in successfully:', profile);
+
+				return profile;
+			}
+		} catch (err) {
+			await this.handleAuthError(err, actionId);
+			return null;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Retrieve the current Supabase session.
+	 * This function abstracts away the session retrieval logic for easy reuse.
+	 * @returns The active session data, or null if no session is present.
+	 */
+	async getSession(): Promise<Session | null> {
+		const supabase = this.getSupabaseClient();
+		if (!supabase) return null;
+
+		try {
+			const { data, error } = await supabase.auth.getSession();
+			if (error) {
+				console.error('Failed to retrieve session:', error);
+				return null;
+			}
+			return data.session || null; // Return the session if it exists, or null if not
+		} catch (err) {
+			console.error('Error getting session:', err);
 			return null;
 		}
 	}

@@ -473,6 +473,17 @@ export enum CaptchaTheme {
   LIGHT = 'light', // Represents the light theme.
 }
 
+
+export interface UILoginState {
+  email: string;
+  password: string;
+  actionId: string;
+  captchaToken: string;
+  error_message: string;
+  successful_message: string;
+}
+
+
 export interface UIRegiserState {
   email: string;
   password: string;

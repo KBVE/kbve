@@ -62,11 +62,26 @@
 
 			// If registration is successful, show a success message
 			if (registeredProfile) {
-				uiRegiserState.successful_message = `Welcome, ${registeredProfile.username || registeredProfile.email}! Registration successful.`;
+				uiRegiserState.successful_message = `Welcome, ${registeredProfile.username || registeredProfile.email}! Registration successful. Redirecting in 2 Seconds`;
 				console.log(
 					'User registered and profile saved:',
 					registeredProfile,
 				);
+				 // Use the Supabase session to check if the user is logged in
+				const session = await kilobase.getSession();
+				if (session) {
+					console.log('User is already logged in after registration:', session);
+					// Redirect the user to the dashboard or home page if logged in
+					setTimeout(() => {
+					window.location.href = '/dashboard'; // Change this to your desired route
+					}, 1500); // 2ish second delay for the success message
+				} else {
+					// If session is not present, redirect to login as a fallback
+					setTimeout(() => {
+					window.location.href = '/login';
+					}, 1500);
+				}
+
 				return; // End function early if successful
 			}
 
