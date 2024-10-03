@@ -15,14 +15,14 @@
 </script>
 
 <script lang="ts">
-	import type SupabaseClient from '@supabase/supabase-js/dist/module/SupabaseClient';
-	import { createClient } from '@supabase/supabase-js';
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import {
 		CaptchaTheme,
-		KiloBaseState,
+		kilobase,
 		removeLoader,
 		type UIRegiserState,
+		// ClientSideRegex,
+		KiloBaseState,
 	} from '@kbve/laser';
 
 	const dispatch = createEventDispatcher();
@@ -39,45 +39,40 @@
 	};
 
 	export const handleRegister = async () => {
-		if (!supabase) {
-			try {
-				supabase = createClient(
-					KiloBaseState.get().api,
-					KiloBaseState.get().anonKey,
+		loading = true;
+
+		try {
+			// Await the kilobase.registerUser call to ensure completion
+			const registeredProfile = await kilobase.registerUser(
+				uiRegiserState.email,
+				uiRegiserState.password,
+				uiRegiserState.confirm,
+				uiRegiserState.username,
+				uiRegiserState.captchaToken,
+			);
+
+			if (registeredProfile) {
+				console.log(
+					'User registered and profile saved:',
+					registeredProfile,
 				);
-				console.log('Supabase Instance:', supabase);
-			} catch (error) {
-				console.error('Error creating Supabase client:', error);
 			}
-		}
-		
-		if(supabase)
-		{
-			const { data, error } = await supabase.auth.signUp({
-				email: uiRegiserState.email,
-				password: uiRegiserState.password,
-				options: {
-					data: {
-						token: uiRegiserState.captchaToken,
-						username: uiRegiserState.username
-					}
-				}
-				})
-			console.log(`Data: ${data}`);
-			console.log(`Error: ${error}`);
+		} catch (error) {
+			console.error('Registration failed:', error);
+			reset();
+		} finally {
+			loading = false;
 		}
 	};
-
 	const browser =
 		import.meta.env.SSR === undefined ? true : !import.meta.env.SSR;
 
 	let mounted = false;
 	let loaded = false;
 	let loading = false;
-	let lottie_player_file = '';
+	let lottie_player_file = '/assets/lottie/register.lottie';
 	let errorMessageAstro: any;
 	let widgetID: any;
-	let supabase: SupabaseClient;
 
 	export let hl: string = '';
 	export let sitekey: string = KiloBaseState.get().hcaptcha; // Exporting 'sitekey', initially set from 'kbve' module.
@@ -85,7 +80,6 @@
 	export let reCaptchaCompat: boolean = true; // Exporting 'reCaptchaCompat', initially set to false.
 	export let theme: CaptchaTheme = CaptchaTheme.DARK; // Exporting 'theme', initially set to 'CaptchaTheme.DARK'.
 	export let size: 'normal' | 'compact' | 'invisible' = 'compact'; // Exporting 'size', with three possible values, initially 'compact'.
-
 
 	let uiRegiserState: UIRegiserState = {
 		email: '',
@@ -124,6 +118,13 @@
 
 		if (document.getElementById('astro_error_message')) {
 			errorMessageAstro = document.getElementById('astro_error_message');
+		}
+
+		const formElement = document.getElementById('registerForm');
+		if (formElement) {
+			setTimeout(() => {
+				formElement.classList.replace('opacity-0', 'opacity-100');
+			}, 100);
 		}
 
 		// Setting up global functions for captcha callbacks.
@@ -178,6 +179,25 @@
 			size,
 		});
 	}
+
+	$: if(loading) {
+		const formElement = document.getElementById('registerForm');
+		if (formElement) {
+			setTimeout(() => {
+				formElement.classList.replace('opacity-100', 'opacity-0');
+			}, 100);
+		}
+
+	} else {
+
+		const formElement = document.getElementById('registerForm');
+		if (formElement) {
+			setTimeout(() => {
+				formElement.classList.replace('opacity-0', 'opacity-100');
+			}, 100);
+		}
+
+	}
 </script>
 
 <svelte:head>
@@ -186,7 +206,9 @@
 	{/if}
 </svelte:head>
 
-<div>
+
+
+<div class="">
 	{#if uiRegiserState.svelte_internal_message}
 		<div class="flex">
 			<dotlottie-player
@@ -216,9 +238,9 @@
 			</span>
 		</div>
 	{/if}
-
 	<form
 		id="registerForm"
+		class="opacity-0 transition-opacity duration-500"
 		action="#"
 		on:submit|preventDefault={handleRegister}>
 		<div class="grid gap-y-2 md:gap-y-4">

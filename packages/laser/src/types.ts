@@ -4,6 +4,14 @@
 //   gridEngine: any;
 // }
 
+// Define an interface for error logs
+export interface ErrorLog {
+  id?: number; // Primary key
+  message: string;
+  details?: any;
+  timestamp: Date;
+}
+
 export interface IKiloBase {
   hcaptcha: string;
   hcaptcha_api: string;
@@ -465,6 +473,22 @@ export interface UIRegiserState {
   svelte_internal_message: string;
   successful_message: string;
 }
+
+// Base interface for authentication-related fields
+export interface Auth {
+  id: string;
+  email: string;
+  updatedAt: Date;
+}
+
+// UserProfile interface extending Auth and adding optional fields
+export interface UserProfile extends Auth {
+  fullName?: string; // Optional field for full name
+  username?: string; // Optional field for username
+}
+
+
+
 
 
 export interface LoaderOptions {
