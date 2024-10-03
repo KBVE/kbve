@@ -42,7 +42,7 @@ import {
   } from './localdb';
 
 import { 
-    createULID
+    ULIDFactory
 } from './utils/ulid';
 import { EventEmitter } from './eventhandler';
 import type { IQuest, IJournal, ITask, IPlayerData, IPlayerStats, IPlayerInventory, IObject, IStatBoost, IConsumable, NotificationType, UserSettings } from '../types';
@@ -273,7 +273,7 @@ describe('localdb.ts', () => {
   });
 
   it('should generate a ULID', () => {
-    const ulid = createULID();
+    const ulid = ULIDFactory().toString();
     expect(ulid).toHaveLength(26);
     expect(typeof ulid).toBe('string');
   });

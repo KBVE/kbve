@@ -1,7 +1,10 @@
 ---
 title: Portainer
 description: |
-    A backend panel that helps design and manage container infrastructure within Docker and Kubernetes.
+    Portainer is a user-friendly backend management tool for containerized applications, offering a visual interface for Docker and Kubernetes environments. 
+    Think of it as a backend panel that helps design and manage container infrastructure within Docker and Kubernetes.
+    It simplifies the deployment, monitoring, and scaling of containers, making it easier to manage complex infrastructure.
+    Thus, with Portainer, teams can streamline their workflows and gain full control over their containerized ecosystem.
 sidebar:
     label: Portainer
     order: 105
@@ -11,13 +14,38 @@ tags:
     - emulation
 ---
 
-## Information
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@kbve/astropad';
+
+
+<Aside>
 
 Portainer is a web-based container management software that helps maintain [Docker](https://kbve.com/application/docker/) and [Kubernetes](https://kbve.com/application/kubernetes/) clusters within the eco-system.
 
-We will be going over how to setup Portainer for Docker, Docker Swarm and k8s.
+</Aside>
+
+## Information
+
+This expert document covers the advanced configuration and deployment of Portainer across Docker, Docker Swarm, and Kubernetes environments.
+Portainer’s intuitive interface provides granular control over containerized infrastructure, making it a vital tool for DevOps professionals and system administrators.
+We'll start by detailing the setup process for Docker, including best practices for connecting to remote Docker hosts and securing the Portainer instance.
+For Docker Swarm, we'll explore strategies for managing multi-node clusters, handling service updates, and integrating external storage solutions.
+In the Kubernetes section, we'll dive into deploying Portainer within a k8s cluster using Helm charts and managing complex workloads with namespaces and RBAC policies.
+We'll also cover advanced monitoring configurations using Portainer’s agent and extensions to gain insights into resource usage and performance.
+Throughout this guide, you’ll find recommendations for optimizing container orchestration and maintaining high availability.
+Whether you're managing a small development environment or a large-scale production system, this guide will provide the expertise needed to master Portainer’s capabilities.
 
 ---
+
+<Adsense />
 
 ## Docker
 
@@ -93,7 +121,8 @@ To do this, you can manually update it via the shell
 
     -   3. The default location will be returned from the manifest, located at port 30777.
 
-    
+---
+
 ### Kubernetes Agent Upgrade
 
 The current method for upgrade Portainer Agent through AWX would be to execute these following commands:
@@ -107,6 +136,8 @@ This will delete the existing portainer agent (which would be under the namespac
 
 However these notes are for Portainer Agent 2.16.1 / 11/18/2022. We will update these once there is another major release.
 
+---
+
 ## Edge
 
 -   Setup
@@ -117,6 +148,10 @@ However these notes are for Portainer Agent 2.16.1 / 11/18/2022. We will update 
 -   Scale
     -   15000 `{$EDGE_DEVICE}` with a polling frequency of 5 seconds will generate about 7 mbps of network traffic and require 4 CPUs to handle the encryption / tunnel load, according to Portainer.
 
+---
+
 ## Upgrades
 
-Official [Docs](https://docs.portainer.io/start/upgrade/) on upgrading Portainer.
+Upgrading Portainer ensures access to the latest features, security patches, and performance improvements.
+Before upgrading, always back up your Portainer data to prevent any potential loss.
+Depending on your environment (Docker, Swarm, or Kubernetes), different upgrade strategies may apply, such as using Docker Compose or Helm charts. It’s recommended to test upgrades in a staging environment before applying them to production. For detailed steps and best practices, refer to the [Official Docs](https://docs.portainer.io/start/upgrade/) on upgrading Portainer.

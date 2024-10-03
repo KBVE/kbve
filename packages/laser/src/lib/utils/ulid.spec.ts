@@ -1,4 +1,4 @@
-import { createULID } from './ulid';
+import  ULIDFactory  from './ulid';
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -7,25 +7,25 @@ beforeEach(() => {
 
 describe('ULID Generator', () => {
   it('should generate a ULID of correct length', () => {
-    const ulid = createULID();
+    const ulid = ULIDFactory();
     expect(ulid).toHaveLength(26); // ULID should be 26 characters long
   });
 
   it('should generate unique ULIDs', () => {
-    const ulid1 = createULID();
-    const ulid2 = createULID();
+    const ulid1 = ULIDFactory();
+    const ulid2 = ULIDFactory();
     expect(ulid1).not.toBe(ulid2);
   });
 
   it('should encode the current timestamp in the first 10 characters', () => {
     const timestamp = Date.now();
     const expectedTimePart = encodeTime(timestamp, 10);
-    const ulid = createULID();
+    const ulid = ULIDFactory().toString();
     expect(ulid.slice(0, 10)).toBe(expectedTimePart);
   });
 
   it('should generate random characters for the last 16 characters', () => {
-    const ulid = createULID();
+    const ulid = ULIDFactory().toString();
     const randomPart = ulid.slice(10);
     expect(randomPart).toMatch(/^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{16}$/);
   });

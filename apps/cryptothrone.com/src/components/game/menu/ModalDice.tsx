@@ -2,7 +2,7 @@
 import React, { useState, useEffect, memo } from 'react';
 import { useStore } from '@nanostores/react';
 import { playerStealDiceRoll } from './tempstore';
-import { EventEmitter, notificationType, queryItemDB, type DiceRollResultEventData, type PlayerStealEventData } from '@kbve/laser';
+import { eventEmitterInstance as EventEmitter, notificationType, queryItemDB, type DiceRollResultEventData, type PlayerStealEventData } from '@kbve/laser';
 import { MinigameDice, updateDiceValues } from '@kbve/laser';
 
 const ModalDice: React.FC = () => {

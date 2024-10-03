@@ -1,0 +1,39 @@
+---
+title: 'October: 2nd'
+category: Daily
+date: 2024-10-02 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 2nd. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Dashboard**
+
+To grab the dashboard password for quick development work!
+This is just a note for myself in the future.
+
+```shell
+
+kubectl get secret supabase-secret-dashboard -n supabase -o jsonpath="{.data.password}" | base64 --decode
+
+```
+
+Yesterday, I added two base schemas and now I want to test them out!
+
+
+**Extensions**
+
+While testing out the schemas for Supabase, I need to wrap back around and finish up the Redis extension for KBVE.
+Part of the reason that I hate working on it is because if it fails then I have to go through a multi-stage recovery process, ugh.
+The big issue we had last time was passing of the sealed secret but I believe that was just a mistake on my end with the permissions and nothing related to the code.
+
+**CNPG**
+
+Updated the `sql.mdx` notes with the CNPG Backup.

@@ -41,11 +41,11 @@ spec:
       - plpgsql_check
       - pg_cron
       - pg_net
-      #- pgsodium
       - timescaledb
       - auto_explain
       - pg_tle
       - plan_filter
+      #- pgsodium 
       # - kilobase
   env:
     - name: JWT_SECRET
@@ -60,14 +60,16 @@ spec:
           key: password
     - name: JWT_EXP
       value: "3600"
-    - name: REDIS_AUTH
-      valueFrom:
-        secretKeyRef:
-          name: redis-auth
-          key: redis-password   
+    # - name: REDIS_AUTH
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: redis-auth
+    #       key: redis-password
+
   backup:
     barmanObjectStore:
       destinationPath: s3://kilobase/barman/backup
+      serverName: {{ include "supabase.db.fullname" . }}-recovery
       s3Credentials:
         accessKeyId:
           name: {{ .Values.secret.s3.secretRef }}
@@ -78,38 +80,22 @@ spec:
       wal:
         compression: gzip
     retentionPolicy: "30d"
-  # bootstrap:
 
-  #   recovery:
-  #       source: supabase
-    # initdb:
-    #   database: app
-    #   owner: app
-    #   dataChecksums: true
-    #   encoding: 'UTF8'
-    #   postInitApplicationSQLRefs:
-    #     configMapRefs:
-    #       - name: {{ include "supabase.db.fullname" . }}-init
-    #         key: configmap.sql
-    #       - name: {{ include "supabase.db.fullname" . }}-sql
-    #         key: alt.sql
-    #   postInitApplicationSQL:
-    #     - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
-    #     - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
+  bootstrap:
+    recovery:
+      source: supabase
 
-    
-  
-  # externalClusters:
-  #   - name: supabase
-  #     barmanObjectStore:
-  #       serverName: supabase
-  #       destinationPath: s3://kilobase/barman/restore/
-  #       s3Credentials:
-  #         accessKeyId:
-  #           name: {{ .Values.secret.s3.secretRef }}
-  #           key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
-  #         secretAccessKey:
-  #           name: {{ .Values.secret.s3.secretRef }}
-  #           key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
-  #       wal:
-  #         compression: gzip
+  externalClusters:
+    - name: supabase
+      barmanObjectStore:
+        serverName: supabase
+        destinationPath: s3://kilobase/barman/backup
+        s3Credentials:
+          accessKeyId:
+            name: {{ .Values.secret.s3.secretRef }}
+            key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
+          secretAccessKey:
+            name: {{ .Values.secret.s3.secretRef }}
+            key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
+        wal:
+          compression: gzip

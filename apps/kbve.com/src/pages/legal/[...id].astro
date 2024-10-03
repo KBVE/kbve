@@ -2,7 +2,6 @@
 //import Layout from '../../layouts/Layout.astro';
 import MainLayout from '../../layouts/MainLayout.astro';
 
-import Hero from '../../components/MDXHero.astro';
 import { getCollection } from 'astro:content';
 
 
@@ -41,6 +40,6 @@ const { Content, headings } = await entry.render();
 		},
 		inLanguage: 'en-US',
 	}}>
-	<Hero data={entry.data} />
+	
 	<Content />
 </MainLayout>

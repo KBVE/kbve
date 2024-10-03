@@ -4,7 +4,7 @@ import { atom } from 'nanostores';
 import {
   TypewriterComponent,
   npcDatabase,
-  EventEmitter,
+  eventEmitterInstance as EventEmitter,
   type NPCDialogueEventData,
   type IDialogueObject,
 } from '@kbve/laser';

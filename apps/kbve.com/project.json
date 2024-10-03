@@ -7,7 +7,8 @@
 	"targets": {
 		"build": {
 			"executor": "@nxtensions/astro:build",
-			"options": {}
+			"options": {
+			  }
 		},
 		"dev": {
 			"executor": "@nxtensions/astro:dev",

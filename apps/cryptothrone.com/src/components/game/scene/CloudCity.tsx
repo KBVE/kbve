@@ -3,12 +3,10 @@ import Phaser from 'phaser';
 import {
   Quadtree,
   type Bounds,
-  type Point,
   type Range,
   PlayerController,
 } from '@kbve/laser';
 
-import { createTextBubble, updateTextBubblePosition } from '@kbve/laser';
 
 import {
   getBirdNum,
@@ -19,10 +17,8 @@ import {
 } from '@kbve/laser';
 
 import {
-  EventEmitter,
-  type OpenModalEventData,
+  eventEmitterInstance as EventEmitter,
   type CharacterEventData,
-  type PlayerEventData,
 } from '@kbve/laser';
 
 declare global {
@@ -147,13 +143,7 @@ export class CloudCity extends Scene {
       this.quadtree,
     );
 
-    createTextBubble(
-      this,
-      this.npcSprite,
-      'Enter the sand pit to start fishing! Go near it and press F!',
-    );
 
-    // this.createTextBubble(this.fishNpcSprite, `You have caught a total of ${currentScore.score} fish!`);
     this.gridEngine.moveRandomly('npc', 1500, 3);
 
     for (let i = 0; i < 10; i++) {
@@ -252,11 +242,5 @@ export class CloudCity extends Scene {
   update() {
     this.playerController?.handleMovement();
 
-    if (this.npcSprite && this.npcSprite.textBubble) {
-      updateTextBubblePosition(this.npcSprite);
-    }
-    if (this.fishNpcSprite && this.fishNpcSprite.textBubble) {
-      updateTextBubblePosition(this.fishNpcSprite);
-    }
   }
 }

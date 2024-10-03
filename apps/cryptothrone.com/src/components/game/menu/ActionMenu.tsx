@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from '@nanostores/react';
-import {type NPCInteractionEventData, EventEmitter, type NPCAction, npcHandler} from '@kbve/laser';
+import {type NPCInteractionEventData, eventEmitterInstance as EventEmitter, type NPCAction, npcHandler} from '@kbve/laser';
 
 import { npcInteractionStore } from './tempstore';
 
