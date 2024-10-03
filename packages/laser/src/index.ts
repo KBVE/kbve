@@ -8,6 +8,11 @@ export { default as KiloBaseState } from './lib/constants';
 export { Quadtree } from './lib/quadtree';
 export { EventEmitter, eventEmitterInstance } from './lib/eventhandler';
 
+
+// Kilobase
+
+export { kilobase, profileStore } from './lib/kilobase/kilobase';
+
 // Explicitly exporting all named exports from localdb.ts
 export {
 	playerData,
@@ -70,6 +75,8 @@ export {
 export { default as ULIDFactory } from './lib/utils/ulid'; //  ULID
 export { Debug } from './lib/utils/debug'; //  Debug
 export { addLoader, removeLoader } from './lib/utils/loader'; //  Loader
+export { ClientSideRegex } from './lib/regex';	// Regex
+
 // Icons
 export { default as CollapseIcon } from './lib/icon/CollapseIcon';
 export { default as ExpandIcon } from './lib/icon/ExpandIcon';
