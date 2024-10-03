@@ -4,11 +4,21 @@
 //   gridEngine: any;
 // }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Persistable {}
+
+export interface WithMetaData {
+  __data: string;
+  __error: string;
+  __message: string;
+}
+
 // Define an interface for error logs
 export interface ErrorLog {
   id?: number; // Primary key
   actionId?: string; 
   message: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   details?: any;
   timestamp: Date;
 }

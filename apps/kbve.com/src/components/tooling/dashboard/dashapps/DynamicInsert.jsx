@@ -3,8 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { useStore } from '@nanostores/react';
 import { kbve$, atlas$, addOrUpdatePlugin, updatePluginState, updatePluginError, updatePluginMessage } from '@kbve/khashvault';
 
+import { kilobase } from '@kbve/laser';
+
 const ContentBlock = () => {
-  const $kbve$ = useStore(kbve$);
   const $atlas$ = useStore(atlas$);
   const plugin = $atlas$.plugin?.[1];
 
@@ -19,7 +20,7 @@ const ContentBlock = () => {
         <div className="space-y-2">
           <h2 className="text-3xl font-semibold tracki">RuneLite Widget</h2>
           <p className="dark:text-gray-100">
-            Welcome {$kbve$.username || 'Guest'} <br />
+            Welcome {kilobase.getUsername() || 'Guest'} <br />
             Status: {plugin ? plugin.state : 'unknown'} <br />
             Message: {$atlas$.plugin?.[1] ? $atlas$.plugin?.[1].message : 'No Message.' } <br />
             Error: {$atlas$.plugin?.[1] ? $atlas$.plugin?.[1].error : 'No Error.' } <br />

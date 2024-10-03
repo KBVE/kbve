@@ -26,3 +26,14 @@ Good to see our sleeper cell stock moving back up towards the $150 mark, I am go
 However, I am looking at the 2026 calls already and they are priced decently well considering their growth potential.
 I am thinking of just having a couple thousand on standby for the day that nvidia hits another double digit negative, then I am going to sweep in and grab those 2026 calls.
 
+**Kilobase**
+
+The plan is to wrap around the Supabase client with our own javascript library, eventually moving a decent chunk of the HTTP requests into our own webworker.
+I am going to start small and slowly migrate the different functions and concepts into the web worker, like dexie but not nanostore.
+We need to be careful because parts of the Supabase because it utilizes the localstoage and the web worker would not have access to that, but that is why we want to make sure dexie can communicate between the two types of storage.
+Furthermore, we will want to test case the WASM communication but that will be when we do Unity development.
+
+**Atoms**
+
+The peristable generic wrapped around the nanostore will be our next test case for the laser package.
+I am going to migrate some of the older `khashvault` code over to the dashboard.
