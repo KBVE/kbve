@@ -37,3 +37,13 @@ Furthermore, we will want to test case the WASM communication but that will be w
 
 The peristable generic wrapped around the nanostore will be our next test case for the laser package.
 I am going to migrate some of the older `khashvault` code over to the dashboard.
+We would also have to include a bunch of helper functions, maybe we could expand it a bit and have some additional helper functions for each generic atom, hmm.
+
+**EventHandler**
+
+Next update would be to integrate our event handler from the Phaser-base into something that can work in svelte too.
+It should but let me use this time to double check, we need to add a function into astropad to help logout or signout the user.
+Using the event handler for this as a start would make the most sense, we already have the signout in our removeProfile function, thus the only left would be to have the eventhandler handle the execution and verification of the event. 
+
+The first thing we should is create the base object, `MetaData` and then extend that out into all of the `User` specific events that would involve the Auth or anything major.
+This would help us keep some level of data integrity from the client-side, thus making some of the future updates a bit easier to manage.
