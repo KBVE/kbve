@@ -22,7 +22,6 @@
 		CaptchaTheme,
 		KiloBaseState,
 		removeLoader,
-		type CaptchaConfig,
 		type UIRegiserState,
 	} from '@kbve/laser';
 
@@ -80,14 +79,13 @@
 	let widgetID: any;
 	let supabase: SupabaseClient;
 
-	const captchaConfig: CaptchaConfig = {
-		hl: '',
-		sitekey: KiloBaseState.get().hcaptcha,
-		apihost: KiloBaseState.get().hcaptcha_api,
-		reCaptchaCompat: true,
-		theme: CaptchaTheme.DARK,
-		size: 'compact',
-	};
+	export let hl: string = '';
+	export let sitekey: string = KiloBaseState.get().hcaptcha; // Exporting 'sitekey', initially set from 'kbve' module.
+	export let apihost: string = KiloBaseState.get().hcaptcha_api;
+	export let reCaptchaCompat: boolean = true; // Exporting 'reCaptchaCompat', initially set to false.
+	export let theme: CaptchaTheme = CaptchaTheme.DARK; // Exporting 'theme', initially set to 'CaptchaTheme.DARK'.
+	export let size: 'normal' | 'compact' | 'invisible' = 'compact'; // Exporting 'size', with three possible values, initially 'compact'.
+
 
 	let uiRegiserState: UIRegiserState = {
 		email: '',
@@ -100,12 +98,12 @@
 	};
 
 	const query = new URLSearchParams({
-		recaptchacompat: captchaConfig.reCaptchaCompat ? 'on' : 'off',
+		recaptchacompat: reCaptchaCompat ? 'on' : 'off',
 		onload: 'hcaptchaOnLoad',
 		render: 'explicit',
 	});
 
-	const scriptSrc = `${captchaConfig.apihost}?${query.toString()}`; // Constructing the full script source URL.
+	const scriptSrc = `${apihost}?${query.toString()}`; // Constructing the full script source URL.
 	const id = Math.floor(Math.random() * 100); // Generating a unique identifier for the captcha element.
 
 	const baseClasses =
@@ -167,6 +165,19 @@
 		}
 		if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
 	});
+	$: if (mounted && loaded) {
+		widgetID = hcaptcha.render(`h-captcha-${id}`, {
+			// Rendering the captcha widget.
+			sitekey,
+			hl, // Setting the language.
+			theme,
+			callback: 'onSuccess',
+			'error-callback': 'onError',
+			'close-callback': 'onClose',
+			'expired-callback': 'onExpired',
+			size,
+		});
+	}
 </script>
 
 <svelte:head>

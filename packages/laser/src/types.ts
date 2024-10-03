@@ -450,14 +450,6 @@ export interface NPCDialogueEventData {
   dialogue: IDialogueObject & { priority: number; read: boolean };
 }
 
-export interface CaptchaConfig {
-  hl: string;
-  sitekey: string;
-  apihost: string;
-  reCaptchaCompat: boolean;
-  theme: CaptchaTheme;
-  size: 'normal' | 'compact' | 'invisible';
-}
 
 export enum CaptchaTheme {
   DARK = 'dark', // Represents the dark theme.
