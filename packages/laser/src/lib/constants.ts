@@ -7,7 +7,7 @@ const defaultKiloBaseState: IKiloBase = {
   hcaptcha: '5ba581fa-b6fc-4bb0-8222-02fcd6a59e35',
   hcaptcha_api : 'https://js.hcaptcha.com/1/api.js',
   api: 'https://supabase.kbve.com',
-  anonKey: 'default-anon-key', // Replace with your default anonymous key
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzI0NTM2ODAwLAogICJleHAiOiAxODgyMzAzMjAwCn0._fmEmblm0afeLoPXxt8wP2mYpa9gzU-ufx3v8oRTFGg',
 };
 
 // Create a stateful object with built-in methods for state management

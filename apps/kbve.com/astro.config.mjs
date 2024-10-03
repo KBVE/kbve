@@ -15,6 +15,7 @@ import { defineConfig as defineViteConfig } from 'vite';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://kbve.com/',
+	output: 'static',
 	image: {
 		domains: ['images.unsplash.com'],
 	},
@@ -30,6 +31,9 @@ export default defineConfig({
 			prefixDefaultLocale: false,
 		},
 	},
+	experimental: {
+		contentCollectionCache: true,
+	},	
 	integrations: [
 		starlight({
 			title: 'KBVE Docs',
