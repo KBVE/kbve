@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useStore } from '@nanostores/react';
-import { EventEmitter } from '../../eventhandler';
+import { eventEmitterInstance as EventEmitter } from '../../eventhandler';
 import { minigameState, setGameMode, setAction, setTextures, updateDiceValues, setRollingStatus } from '../../localdb';
 import { DiceTextures, MinigameDiceProps, isDiceAction, DiceRollResultEventData } from '../../../types';
 import * as THREE from 'three';

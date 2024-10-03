@@ -26,6 +26,7 @@ kubectl get secret supabase-secret-dashboard -n supabase -o jsonpath="{.data.pas
 ```
 
 Yesterday, I added two base schemas and now I want to test them out!
+We still need to update the dashboard's logging connections, as it is unable to see the auth logs and a couple other areas.
 
 
 **Extensions**
@@ -37,3 +38,10 @@ The big issue we had last time was passing of the sealed secret but I believe th
 **CNPG**
 
 Updated the `sql.mdx` notes with the CNPG Backup.
+The rolling recovery still needs to be tested but I think we can find a creative way to help us handle that.
+
+**MDX**
+
+To help with the build of `kbve.com`, I had to go through all our `MDX` references and remove them.
+Furthermore, I had to remove some of the deadcode that was lurking around all our monorepo.
+It was over 400 files that I had to change and fix today, what a wild ride!
