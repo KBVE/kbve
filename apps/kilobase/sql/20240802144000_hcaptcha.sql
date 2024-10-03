@@ -1,6 +1,6 @@
 BEGIN;
 -- [Start of Hcaptcha.sql]
-
+-- [GO TRUE -> SO SKIP THIS SQL.]
 --- Extensions Check
 CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;
 

@@ -64,7 +64,10 @@ export function removeLoader(options: LoaderOptions) {
   );
 
   setTimeout(() => {
-    loader.style.display = 'none';
+    if(loader)
+    {
+      loader.style.display = 'none';
+    }
     Debug.log(
       `Loader element with ID or name "${elementIdOrName}" has been hidden.`,
     );

@@ -138,6 +138,11 @@ spec:
                   name: {{ include "supabase.secret.smtp" . }}
                   key: password
                   {{- end }}
+            - name: GOTRUE_SECURITY_CAPTCHA_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: hcaptcha
+                  key: secret
           {{- with .Values.auth.envFrom }}
           envFrom:
             {{- toYaml . | nindent 12 }}

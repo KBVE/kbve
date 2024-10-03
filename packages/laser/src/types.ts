@@ -4,6 +4,23 @@
 //   gridEngine: any;
 // }
 
+// Define an interface for error logs
+export interface ErrorLog {
+  id?: number; // Primary key
+  actionId?: string; 
+  message: string;
+  details?: any;
+  timestamp: Date;
+}
+
+export interface ActionULID {
+  id: string; // Unique ID (ULID) for the action
+  action: string; // Name of the action, e.g., "registerUser"
+  timestamp: Date; // Timestamp when the action was performed
+  status: 'pending' | 'completed' | 'failed'; // Status of the action
+  errorId?: number; // Optional reference to an error log ID
+}
+
 export interface IKiloBase {
   hcaptcha: string;
   hcaptcha_api: string;
@@ -450,19 +467,22 @@ export interface NPCDialogueEventData {
   dialogue: IDialogueObject & { priority: number; read: boolean };
 }
 
-export interface CaptchaConfig {
-  hl: string;
-  sitekey: string;
-  apihost: string;
-  reCaptchaCompat: boolean;
-  theme: CaptchaTheme;
-  size: 'normal' | 'compact' | 'invisible';
-}
 
 export enum CaptchaTheme {
   DARK = 'dark', // Represents the dark theme.
   LIGHT = 'light', // Represents the light theme.
 }
+
+
+export interface UILoginState {
+  email: string;
+  password: string;
+  actionId: string;
+  captchaToken: string;
+  error_message: string;
+  successful_message: string;
+}
+
 
 export interface UIRegiserState {
   email: string;
@@ -473,6 +493,22 @@ export interface UIRegiserState {
   svelte_internal_message: string;
   successful_message: string;
 }
+
+// Base interface for authentication-related fields
+export interface Auth {
+  id: string;
+  email: string;
+  updatedAt: Date;
+}
+
+// UserProfile interface extending Auth and adding optional fields
+export interface UserProfile extends Auth {
+  fullName?: string; // Optional field for full name
+  username?: string; // Optional field for username
+}
+
+
+
 
 
 export interface LoaderOptions {
