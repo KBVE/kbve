@@ -7,7 +7,8 @@
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Persistable {}
 
-export interface WithMetaData {
+export interface MetaData {
+  __actionId: string;
   __data: string;
   __error: string;
   __message: string;
@@ -579,4 +580,10 @@ export interface Range {
   name: string;
   bounds: Bounds;
   action: () => void;
+}
+
+// Addtional User - Events
+
+export interface UserLogout {
+
 }
