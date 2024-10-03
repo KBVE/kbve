@@ -200,7 +200,8 @@ export class Kilobase extends Dexie {
 		actionId?: string,
 	): Promise<void> {
 		let errorMessage = 'An unknown error occurred. Please try again.';
-		const errorDetails = { ...error }; // Copy error details to log
+		// eslint-disable-next-line prefer-const
+		let errorDetails = { ...error }; // Copy error details to log
 		let additionalInfo = '';
 
 		// Supabase error format
@@ -489,6 +490,69 @@ export class Kilobase extends Dexie {
 			}
 		} catch (logError) {
 			console.error('Failed to log error:', logError);
+		}
+	}
+
+	/**
+	 * Helper function to extract detailed information from the auth error object.
+	 * @param error - The error object to extract details from.
+	 * @returns A string with detailed error information.
+	 */
+	async extractAuthErrorDetails(error: any): Promise<string> {
+		if (!error)
+			return 'Unknown error occurred. No error details available.';
+
+		let errorMessage = error.message || 'Unknown error occurred';
+		let additionalInfo = '';
+
+		// Extract various fields if they exist
+		if (error?.code) {
+			additionalInfo += `Error Code: ${error.code}. `;
+		}
+
+		if (error?.status) {
+			additionalInfo += `Status: ${error.status}. `;
+		}
+
+		if (error?.supabaseCode) {
+			additionalInfo += `Supabase Code: ${error.supabaseCode}. `;
+		}
+
+		if (error?.details) {
+			additionalInfo += `Details: ${JSON.stringify(error.details)}. `;
+		}
+
+		// Append additional information to the main error message
+		if (additionalInfo) {
+			errorMessage = `${errorMessage} (${additionalInfo.trim()})`;
+		}
+
+		return errorMessage;
+	}
+
+	/**
+	 * Get the detailed error message associated with a specific action ID.
+	 * @param actionId - The action ID to filter error logs.
+	 * @returns The detailed error message for the action, or null if no error is found.
+	 */
+	async getDetailedErrorByActionId(actionId: string): Promise<string | null> {
+		try {
+			// Get the most recent error for the specified action ID
+			const latestError = await this.errorLogs
+				.where('actionId')
+				.equals(actionId)
+				.last(); // Retrieve the latest error
+
+			// Return detailed error information using the helper function
+			return latestError
+				? this.extractAuthErrorDetails(latestError)
+				: null;
+		} catch (error) {
+			console.error(
+				`Failed to retrieve detailed error for actionId: ${actionId}`,
+				error,
+			);
+			return null;
 		}
 	}
 
