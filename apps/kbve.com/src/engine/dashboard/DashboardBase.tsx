@@ -1,5 +1,6 @@
+/** @jsxImportSource react */
 // dashboardBase.ts
-import { Kilobase } from './kilobase'; // Import the original Kilobase class
+import { Kilobase } from '@kbve/laser'; // Import the original Kilobase class
 import { persistentAtom } from '@nanostores/persistent'; // Import persistent store utility from nanostores
 import type { WritableAtom } from 'nanostores';
 

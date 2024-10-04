@@ -1,6 +1,6 @@
 /** @jsxImportSource react */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -12,14 +12,15 @@ import {
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
-import { kilobase } from '@kbve/laser';
+import { dashboardBase } from './DashboardBase';
+
 
 interface DroppableStoryProps {
   containers: string[];
 }
 
 // Draggable Item Component
-const DraggableItem: React.FC<{ id: string }> = ({ id }) => {
+const DraggableItem: React.FC<{ id: UniqueIdentifier }> = ({ id }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
   });
@@ -38,7 +39,7 @@ const DraggableItem: React.FC<{ id: string }> = ({ id }) => {
 };
 
 // Droppable Container Component
-const DroppableContainer: React.FC<{ id: string; children: React.ReactNode }> = ({
+const DroppableContainer: React.FC<{ id: UniqueIdentifier; children: React.ReactNode }> = ({
   id,
   children,
 }) => {
@@ -64,36 +65,39 @@ const DroppableContainer: React.FC<{ id: string; children: React.ReactNode }> = 
 
 // Main DroppableStory Component
 const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
-  const [items, setItems] = useState(
-    containers.reduce((acc, container) => {
-      acc[container] = [`${container} Item 1`, `${container} Item 2`];
-      return acc;
-    }, {} as Record<string, string[]>)
-  );
-  
+  // State to manage draggable item positions
+  const [items, setItems] = useState<Record<string, { id: string; container: string }[]>>({});
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
+  // Load initial item positions from DashboardBase when component mounts
+  useEffect(() => {
+    const initialPositions = dashboardBase.loadItemPositions();
+    setItems(initialPositions);
+  }, []);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  // Handle drag end event
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setItems((prevItems) => {
-        const activeContainer = Object.keys(prevItems).find((container) =>
-          prevItems[container].includes(active.id as string)
-        ) as string;
+      const activeContainer = Object.keys(items).find((container) =>
+        items[container].some((item) => item.id === active.id)
+      ) as string;
 
-        const newContainer = over.id as string;
+      const newContainer = over.id as string;
 
-        if (activeContainer && newContainer && activeContainer !== newContainer) {
-          return {
-            ...prevItems,
-            [activeContainer]: prevItems[activeContainer].filter((item) => item !== active.id),
-            [newContainer]: [...prevItems[newContainer], active.id as string],
-          };
-        }
-        return prevItems;
-      });
+      if (activeContainer && newContainer && activeContainer !== newContainer) {
+        const updatedItems = {
+          ...items,
+          [activeContainer]: items[activeContainer].filter((item) => item.id !== active.id),
+          [newContainer]: [...items[newContainer], { id: active.id as string, container: newContainer }],
+        };
+
+        setItems(updatedItems);
+
+        // Save updated positions to DashboardBase
+        dashboardBase.saveItemPositions(updatedItems);
+      }
     }
 
     setActiveId(null);
@@ -109,7 +113,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
         {containers.map((container) => (
           <DroppableContainer key={container} id={container}>
             {items[container]?.map((item) => (
-              <DraggableItem key={item} id={item} />
+              <DraggableItem key={item.id} id={item.id} />
             ))}
           </DroppableContainer>
         ))}
@@ -122,7 +126,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 
 // Use the DroppableStory component with predefined containers
 const Dashboard = () => (
-  <DroppableStory containers={['A', 'B', 'C', 'D', 'E', 'F', 'G']} />
+  <DroppableStory containers={['Deploy', 'B', 'C', 'D', 'E', 'F', 'G']} />
 );
 
 export default Dashboard;
