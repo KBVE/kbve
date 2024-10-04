@@ -7,6 +7,10 @@ import {
   rectIntersection,
   DragEndEvent,
   UniqueIdentifier,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { dashboardBase } from './DashboardBase';
@@ -18,8 +22,15 @@ interface DroppableStoryProps {
 }
 
 // Sidebar wrapper and container styles
-const sidebarStyles = twMerge('p-5 border-gray-200 p-4 dark:text-neutral-200');
-const containerStyles = twMerge('flex flex-wrap flex-grow bg-gray-500 p-5 rounded-md');
+const sidebarStyles = twMerge(
+  'p-5 border-gray-200 dark:text-neutral-200  rounded-md',
+  'w-full w-1/4', // Responsive width for sidebar: full width on small screens, 1/4 width on medium and larger screens
+  'flex flex-col items-center' // Center content in the sidebar on small screens
+);
+const containerStyles = twMerge(
+  'flex flex-wrap flex-grow bg-gray-500 p-5 rounded-md',
+  'w-full md:w-3/4' // Full width on small screens, 3/4 width on medium and larger screens
+);
 
 // Draggable Item Component
 const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean }> = ({ id }) => {
@@ -35,7 +46,7 @@ const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean }> = 
     <div
       ref={setNodeRef}
       className={twMerge(
-        'p-3 border border-cyan-500 rounded-md m-2 cursor-grab bg-cyan-300',
+        'p-3 border border-cyan-500 rounded-md m-2 cursor-grab bg-cyan-300 dark:text-neutral-600',
         clsx({ 'opacity-50': isDragging })
       )}
       style={style}
@@ -61,6 +72,7 @@ const DroppableContainer: React.FC<{ id: UniqueIdentifier; children: React.React
       ref={setNodeRef}
       className={twMerge(
         'p-5 border-dashed border-2 border-gray-300 rounded-md m-3 min-h-[150px]',
+        'w-full sm:w-[45%] md:w-[30%]', // Responsive width for containers: full width on small screens, narrower on larger screens
         clsx({ 'bg-cyan-100': isOver, 'bg-white': !isOver })
       )}
     >
@@ -82,7 +94,7 @@ const DroppableSidebar: React.FC<{ id: UniqueIdentifier; children: React.ReactNo
       className={twMerge(
         sidebarStyles,
         'border-2 border-dashed border-gray-400',
-        clsx({ 'bg-cyan-50': isOver })
+        clsx({ 'bg-cyan-500': isOver })
       )}
     >
       <h3 className={twMerge('font-bold text-xl mb-4')}>Inventory</h3>
@@ -108,8 +120,14 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
   // State to manage draggable item positions in containers
   const [items, setItems] = useState<Record<string, { id: string; container: string }[]>>({});
   // State for available sidebar items
-  const [sidebarItems, setSidebarItems] = useState<string[]>(['Item 1', 'Item 2', 'Item 3']);
+  const [sidebarItems, setSidebarItems] = useState<string[]>(['Item 1', 'Item 2', 'Item 3', 'Function', 'IGBC']);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+
+  // Configure sensors for both pointer and touch events
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 5 } })
+  );
 
   // Load initial item positions from DashboardBase when component mounts
   useEffect(() => {
@@ -194,11 +212,12 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 
   return (
     <DndContext
+      sensors={sensors} // Use the configured sensors for touch support
       collisionDetection={rectIntersection}
       onDragStart={(event) => setActiveId(event.active.id)}
       onDragEnd={handleDragEnd}
     >
-      <div className={twMerge('flex')}>
+      <div className={twMerge('flex flex-col md:flex-row')}>
         {/* Droppable Sidebar with draggable items */}
         <DroppableSidebar id="sidebar">
           <Sidebar items={sidebarItems} />
