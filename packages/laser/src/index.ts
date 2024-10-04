@@ -11,7 +11,7 @@ export { EventEmitter, eventEmitterInstance } from './lib/eventhandler';
 
 // Kilobase
 
-export { kilobase, $profileStore, $usernameStore, $atlas } from './lib/kilobase/kilobase';
+export { kilobase, $profileStore, $usernameStore, Kilobase} from './lib/kilobase/kilobase';
 
 // Explicitly exporting all named exports from localdb.ts
 export {
