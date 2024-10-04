@@ -1,5 +1,3 @@
-/** @jsxImportSource react */
-
 import React, { useEffect, useState } from 'react';
 import {
   DndContext,
@@ -12,30 +10,38 @@ import {
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { dashboardBase } from './DashboardBase';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 interface DroppableStoryProps {
   containers: string[];
 }
 
+// Sidebar wrapper and container styles
+const sidebarStyles = twMerge('p-5 border-r border-gray-200 w-1/4');
+const containerStyles = twMerge('flex flex-wrap flex-grow bg-gray-500 p-5 rounded-md');
+
 // Draggable Item Component
-const DraggableItem: React.FC<{ id: UniqueIdentifier }> = ({ id }) => {
+const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean }> = ({ id }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
   });
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
-    cursor: 'grab',
-    backgroundColor: '#e3f2fd',
-    padding: '10px',
-    border: '1px solid #2196f3',
-    borderRadius: '4px',
-    margin: '5px 0',
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <div
+      ref={setNodeRef}
+      className={twMerge(
+        'p-3 border border-cyan-500 rounded-md m-2 cursor-grab bg-cyan-300',
+        clsx({ 'opacity-50': isDragging })
+      )}
+      style={style}
+      {...listeners}
+      {...attributes}
+    >
       {id}
     </div>
   );
@@ -50,18 +56,15 @@ const DroppableContainer: React.FC<{ id: UniqueIdentifier; children: React.React
     id,
   });
 
-  const style = {
-    backgroundColor: isOver ? '#e0f7fa' : '#f1f1f1',
-    padding: '20px',
-    margin: '10px',
-    border: '2px dashed #ddd',
-    borderRadius: '4px',
-    minHeight: '100px', // Adjust to provide enough space for dropping items
-  };
-
   return (
-    <div ref={setNodeRef} style={style}>
-      <h3>{id}</h3>
+    <div
+      ref={setNodeRef}
+      className={twMerge(
+        'p-5 border-dashed border-2 border-gray-300 rounded-md m-3 min-h-[150px]',
+        clsx({ 'bg-cyan-100': isOver, 'bg-white': !isOver })
+      )}
+    >
+      <h3 className={twMerge('font-bold mb-3')}>{id}</h3>
       {children}
     </div>
   );
@@ -70,8 +73,8 @@ const DroppableContainer: React.FC<{ id: UniqueIdentifier; children: React.React
 // Sidebar Component with Initial Draggable Items
 const Sidebar: React.FC<{ items: string[] }> = ({ items }) => {
   return (
-    <div style={{ padding: '20px', borderRight: '1px solid #ddd' }}>
-      <h3>Available Items</h3>
+    <div className={sidebarStyles}>
+      <h3 className={twMerge('font-bold text-xl mb-4')}>Available Items</h3>
       {items.map((item) => (
         <DraggableItem key={item} id={item} />
       ))}
@@ -81,8 +84,9 @@ const Sidebar: React.FC<{ items: string[] }> = ({ items }) => {
 
 // Main DroppableStory Component
 const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
-  // State to manage draggable item positions
+  // State to manage draggable item positions in containers
   const [items, setItems] = useState<Record<string, { id: string; container: string }[]>>({});
+  // State for available sidebar items
   const [sidebarItems, setSidebarItems] = useState<string[]>(['Item 1', 'Item 2', 'Item 3']);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
@@ -90,6 +94,14 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
   useEffect(() => {
     const initialPositions = dashboardBase.loadItemPositions();
     setItems(initialPositions);
+
+    // Remove items that are already placed in containers from the sidebar
+    const placedItems = new Set(
+      Object.values(initialPositions).flatMap((itemList) => itemList.map((item) => item.id))
+    );
+    setSidebarItems((prevSidebarItems) =>
+      prevSidebarItems.filter((item) => !placedItems.has(item))
+    );
   }, []);
 
   // Handle drag end event
@@ -112,7 +124,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
     if (!activeContainer) {
       // Remove the item from the sidebar
       setSidebarItems((prev) => prev.filter((item) => item !== active.id));
-      
+
       // Add the item to the target container
       setItems((prevItems) => {
         const updatedItems = {
@@ -146,12 +158,12 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
       onDragStart={(event) => setActiveId(event.active.id)}
       onDragEnd={handleDragEnd}
     >
-      <div style={{ display: 'flex' }}>
+      <div className={twMerge('flex')}>
         {/* Sidebar with draggable items */}
         <Sidebar items={sidebarItems} />
 
         {/* Droppable containers */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', flexGrow: 1 }}>
+        <div className={containerStyles}>
           {containers.map((container) => (
             <DroppableContainer key={container} id={container}>
               {items[container]?.map((item) => (
