@@ -47,3 +47,5 @@ Using the event handler for this as a start would make the most sense, we alread
 
 The first thing we should is create the base object, `MetaData` and then extend that out into all of the `User` specific events that would involve the Auth or anything major.
 This would help us keep some level of data integrity from the client-side, thus making some of the future updates a bit easier to manage.
+
+The peristable atoms are still giving us some issues but I think we are getting a bit closer towards moving a good chunk of the react appwrite / rust code back into using the kilobase/supabase.
