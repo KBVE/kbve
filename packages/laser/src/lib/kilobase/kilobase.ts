@@ -3,8 +3,10 @@
 import { createClient, Session, SupabaseClient } from '@supabase/supabase-js';
 import Dexie from 'dexie';
 import { atom, map } from 'nanostores';
+import type { WritableAtom, MapStore } from 'nanostores';
+
 import { persistentMap, persistentAtom } from '@nanostores/persistent';
-import { UserProfile, ErrorLog, ActionULID, Persistable } from '../../types';
+import { UserProfile, ErrorLog, ActionULID, Persistable, AtlasData } from '../../types';
 import KiloBaseState from '../constants';
 
 import ULIDFactory from '../utils/ulid';
@@ -28,10 +30,10 @@ const defaultProfile: UserProfile = {
 };
 
 // Nanostores for managing profile state
-export const profileStore = map<UserProfile>(defaultProfile); // Initialize with default profile
+export const $profileStore = map<UserProfile>(defaultProfile); // Initialize with default profile
 export const isSyncingStore = atom<boolean>(false); // Track synchronization state
 export const syncActionStore = atom<string>(''); // Track syncActionStore state
-export const usernameStore = atom<string | null>(null); // Track username state
+export const $usernameStore = atom<string | null>(null); // Track username state
 
 // Define the Kilobase class to wrap around Dexie and Supabase
 export class Kilobase extends Dexie {
@@ -308,9 +310,9 @@ export class Kilobase extends Dexie {
 				value: profile,
 			});
 			if (profile.username) {
-				usernameStore.set(profile.username);
+				$usernameStore.set(profile.username);
 			}
-			profileStore.set(profile);
+			$profileStore.set(profile);
 			console.log('Profile saved locally:', profile);
 		} catch (error) {
 			console.error('Failed to save profile locally:', error);
@@ -326,7 +328,7 @@ export class Kilobase extends Dexie {
 				this.profileKey,
 			);
 			if (localProfile?.value) {
-				profileStore.set(localProfile.value as UserProfile);
+				$profileStore.set(localProfile.value as UserProfile);
 				console.log(
 					'Profile loaded from local storage:',
 					localProfile.value,
@@ -355,7 +357,7 @@ export class Kilobase extends Dexie {
 			const { data, error } = await supabase
 				.from('profiles')
 				.select('*')
-				.eq('id', profileStore.get().id) // Use the current profile ID in the store to get the profile
+				.eq('id', $profileStore.get().id) // Use the current profile ID in the store to get the profile
 				.single();
 
 			if (error) {
@@ -393,20 +395,20 @@ export class Kilobase extends Dexie {
 		if (!supabase) return;
 
 		try {
-			const profile = profileStore.get();
+			const profile = $profileStore.get();
 
 			// Remove profile from local Dexie storage
 			await this.table('keyValueStore').delete(this.profileKey);
 			await this.profiles.delete(profile.id); // Remove from profiles table in Dexie
 
-			// Reset the profileStore to the default state
-			profileStore.set(defaultProfile);
+			// Reset the $profileStore to the default state
+			$profileStore.set(defaultProfile);
 			console.log(
 				`Profile ${profile.id} removed locally and store reset`,
 			);
 
 			// Reset the userStore
-			usernameStore.set(null);
+			$usernameStore.set(null);
 
 			// Log the user out from Supabase
 			const { error } = await supabase.auth.signOut();
@@ -425,6 +427,41 @@ export class Kilobase extends Dexie {
 		}
 	}
 
+		/**
+	 * Retrieve the user profile from the store or Dexie.
+	 * If the profile is already in the store, it returns that value.
+	 * If the store is empty, it queries Dexie for the profile and updates the store.
+	 * If neither are available, returns the default profile.
+	 * @returns The user profile if found, otherwise the default profile.
+	 */
+		async getProfile(): Promise<UserProfile> {
+			// Check if the profile is already stored in the Nanostore
+			const storedProfile = $profileStore.get();
+			if (storedProfile.id !== '') {
+				return storedProfile;
+			}
+	
+			try {
+				// Query the local Dexie database for the stored profile
+				const profile = await this.table('keyValueStore').get(
+					this.profileKey,
+				);
+				if (profile?.value) {
+					const userProfile = profile.value as UserProfile;
+	
+					// Update the Nanostore with the profile and return it
+					$profileStore.set(userProfile);
+					return userProfile;
+				}
+			} catch (error) {
+				console.error('Failed to get profile from Dexie:', error);
+			}
+	
+			// Return the default profile if not found in the store or Dexie
+			return defaultProfile;
+		}
+
+		
 	/**
 	 * Create a new action entry in the ActionULID table.
 	 * @param action - The name of the action, e.g., "registerUser".
@@ -682,8 +719,8 @@ export class Kilobase extends Dexie {
 	 */
 	async getUsername(): Promise<string | null> {
 		// Check if the username is already stored in the Nanostore
-		if (usernameStore.get()) {
-			return usernameStore.get();
+		if ($usernameStore.get()) {
+			return $usernameStore.get();
 		}
 
 		try {
@@ -693,7 +730,7 @@ export class Kilobase extends Dexie {
 			);
 			if (profile?.value?.username) {
 				// Update the Nanostore with the username and return it
-				usernameStore.set(profile.value.username);
+				$usernameStore.set(profile.value.username);
 				return profile.value.username;
 			}
 		} catch (error) {
@@ -704,34 +741,127 @@ export class Kilobase extends Dexie {
 		return null;
 	}
 
+
 	/**
 	 * Create a persistent atom with a given key and default value.
 	 * Uses JSON.stringify and JSON.parse as default encoding and decoding mechanisms.
 	 * @param key - The key to identify the persistentAtom in local storage.
-	 * @param defaultValue - The default value for the persistentAtom.
+	 * @param defaultValue - The default JSON value for the persistentAtom.
 	 * @returns The created persistentAtom instance.
 	 */
-	createPersistentAtom<T extends Persistable>(key: string, defaultValue: T) {
+	static createPersistentAtom<T extends Persistable>(
+		key: string,
+		defaultValue: T,
+	): WritableAtom<T> {
 		return persistentAtom<T>(key, defaultValue, {
 			encode: JSON.stringify,
 			decode: JSON.parse,
-		});
+		}) as WritableAtom<T>;
 	}
 
 	/**
 	 * Create a persistent map with a given key and default value.
 	 * Uses JSON.stringify and JSON.parse as default encoding and decoding mechanisms.
 	 * @param key - The key to identify the persistentMap in local storage.
-	 * @param defaultValue - The default value for the persistentMap.
+	 * @param defaultValue - The default JSON value for the persistentMap.
 	 * @returns The created persistentMap instance.
 	 */
-	createPersistentMap<T extends Persistable>(key: string, defaultValue: T) {
+	createPersistentMap<T extends Persistable>(
+		key: string,
+		defaultValue: T,
+	): MapStore<T> {
 		return persistentMap<T>(key, defaultValue, {
 			encode: JSON.stringify,
 			decode: JSON.parse,
+		}) as unknown as MapStore<T>;
+	}
+
+	/**
+	 * Update a field within a persistent atom using JSON manipulation.
+	 * @param store - The persistent atom to update.
+	 * @param key - The key within the JSON object to update.
+	 * @param value - The new value for the specified key.
+	 */
+	updateAtomField<T extends Persistable>(
+		store: WritableAtom<T>,
+		key: keyof T,
+		value: T[keyof T],
+	) {
+		store.set({
+			...store.get(),
+			[key]: value,
 		});
 	}
+
+	/**
+	 * Update a field within a persistent map by copying and replacing the map.
+	 * @param store - The persistent map to update.
+	 * @param key - The key within the JSON object to update.
+	 * @param value - The new value for the specified key.
+	 */
+	updateMapField<T extends Persistable>(
+		store: MapStore<T>,
+		key: keyof T,
+		value: T[keyof T],
+	) {
+		// Step 1: Get the current state of the map
+		const currentState = store.get();
+
+		// Step 2: Create a shallow copy of the current state
+		const updatedState = { ...currentState, [key]: value };
+
+		// Step 3: Replace the entire map with the updated state
+		store.set(updatedState);
+	}
+
+	/**
+	 * Remove a field from the persistent map by copying and replacing the map.
+	 * @param store - The persistent map to update.
+	 * @param key - The key within the JSON object to remove.
+	 */
+	removeMapField<T extends Persistable>(store: MapStore<T>, key: keyof T) {
+		// Step 1: Get the current state of the map
+		const currentState = store.get();
+
+		// Step 2: Create a shallow copy of the current state and remove the specified key
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { [key]: _, ...updatedState } = currentState;
+
+		// Step 3: Replace the entire map with the updated state
+		store.set(updatedState as T);
+	}
+
+	/**
+	 * Remove a field from the persistent atom using JSON manipulation.
+	 * @param store - The persistent atom to update.
+	 * @param key - The key to remove from the JSON object.
+	 */
+	removeAtomField<T extends Persistable>(
+		store: WritableAtom<T>,
+		key: keyof T,
+	) {
+		const currentState = store.get();
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { [key]: _, ...updatedState } = currentState;
+		store.set(updatedState as T);
+	}
+
+	/**
+	 * Reset the persistent atom or map to its default state.
+	 * @param store - The persistent atom or map to reset.
+	 * @param defaultState - The default state to set in the atom or map.
+	 */
+	resetState<T extends Persistable>(
+		store: WritableAtom<T> | MapStore<T>,
+		defaultState: T,
+	) {
+		store.set(defaultState);
+	}
 }
+
+//
+export const $atlas = Kilobase.createPersistentAtom<AtlasData>('atlas', { plugin: [] });
+
 
 // Create a Kilobase instance for global use
 export const kilobase = new Kilobase();
