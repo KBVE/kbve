@@ -16,10 +16,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { dashboardBase } from './DashboardBase';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
 import { ExpandIcon } from '@kbve/laser';
-import { eventEmitterInstance, type OpenModalEventData, } from '@kbve/laser';
-
+import { eventEmitterInstance, type OpenModalEventData } from '@kbve/laser';
 
 interface DroppableStoryProps {
   containers: string[];
@@ -46,7 +44,7 @@ const Modal: React.FC<{ title: string; isVisible: boolean; onClose: () => void }
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         <p className="mb-4">This is the content of the modal for item {title}.</p>
         <button
-          className="bg-blue-500 text-neutral-500 py-2 px-4 rounded hover:bg-blue-600"
+          className="bg-blue-500 text-gray-500 py-2 px-4 rounded hover:bg-blue-600"
           onClick={onClose}
         >
           Close
@@ -56,10 +54,10 @@ const Modal: React.FC<{ title: string; isVisible: boolean; onClose: () => void }
   );
 };
 
-// Draggable Item Component (wrapped in a button)
-const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean; onClick?: () => void }> = ({
+// Draggable Item Component with ExpandIcon for triggering modal
+const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean; onExpandClick?: () => void }> = ({
   id,
-  onClick,
+  onExpandClick,
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
@@ -70,19 +68,22 @@ const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean; onCl
   };
 
   return (
-    <button
+    <div
       ref={setNodeRef}
       className={twMerge(
-        'p-3 border border-cyan-500 rounded-md m-2 cursor-grab bg-cyan-300 dark:text-neutral-600',
+        'p-3 border border-cyan-500 rounded-md m-2 cursor-grab bg-cyan-300 dark:text-neutral-600 flex items-center justify-between',
         clsx({ 'opacity-50': isDragging })
       )}
       style={style}
-      onClick={onClick} // Handle click event to open the modal
       {...listeners}
       {...attributes}
     >
       {id}
-    </button>
+      {/* Expand Icon button to trigger modal */}
+      <button onClick={onExpandClick} className="ml-2 p-2 rounded-full bg-gray-200 hover:bg-gray-300">
+        <ExpandIcon className="w-4 h-4 text-gray-800 dark:text-gray-200" />
+      </button>
+    </div>
   );
 };
 
@@ -132,12 +133,12 @@ const DroppableSidebar: React.FC<{ id: UniqueIdentifier; children: React.ReactNo
 };
 
 // Sidebar Component with Initial Draggable Items
-const Sidebar: React.FC<{ items: string[]; onItemClick: (id: string) => void }> = ({ items, onItemClick }) => {
+const Sidebar: React.FC<{ items: string[]; onItemExpandClick: (id: string) => void }> = ({ items, onItemExpandClick }) => {
   return (
     <div className={sidebarStyles}>
       <h3 className={twMerge('font-bold text-xl mb-4')}>Available Items</h3>
       {items.map((item) => (
-        <DraggableItem key={item} id={item} onClick={() => onItemClick(item)} />
+        <DraggableItem key={item} id={item} onExpandClick={() => onItemExpandClick(item)} />
       ))}
     </div>
   );
@@ -174,10 +175,23 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
   }, []);
 
   // Open modal with item details
-  const handleItemClick = (id: string) => {
-    setModalTitle(id);
-    setModalVisible(true);
+  const handleItemExpandClick = (id: string) => {
+    eventEmitterInstance.emit('openModal', { message: `Modal for ${id}` });
   };
+
+  // Listen for modal open events
+  useEffect(() => {
+    const handleOpenModal = (data?: OpenModalEventData) => {
+      if(data)
+      setModalTitle(data.message);
+      setModalVisible(true);
+    };
+
+    eventEmitterInstance.on('openModal', handleOpenModal);
+    return () => {
+      eventEmitterInstance.off('openModal', handleOpenModal);
+    };
+  }, []);
 
   // Handle drag end event
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -256,7 +270,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
       <div className={twMerge('flex flex-col md:flex-row')}>
         {/* Droppable Sidebar with draggable items */}
         <DroppableSidebar id="sidebar">
-          <Sidebar items={sidebarItems} onItemClick={handleItemClick} />
+          <Sidebar items={sidebarItems} onItemExpandClick={handleItemExpandClick} />
         </DroppableSidebar>
 
         {/* Droppable containers */}
@@ -264,7 +278,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
           {containers.map((container) => (
             <DroppableContainer key={container} id={container}>
               {items[container]?.map((item) => (
-                <DraggableItem key={item.id} id={item.id} onClick={() => handleItemClick(item.id)} />
+                <DraggableItem key={item.id} id={item.id} onExpandClick={() => handleItemExpandClick(item.id)} />
               ))}
             </DroppableContainer>
           ))}
