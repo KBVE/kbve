@@ -11,6 +11,6 @@ dependencies:
   - name: sealed-secrets
     version: 2.16.1
     repository: https://bitnami-labs.github.io/sealed-secrets
-  - name: hami
-    version: 2.4.0
-    repository: https://project-hami.github.io/HAMi/
+  # - name: hami
+  #   version: 2.4.0
+  #   repository: https://project-hami.github.io/HAMi/
