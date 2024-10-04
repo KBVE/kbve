@@ -8,8 +8,11 @@ import {
   useDroppable,
   rectIntersection,
   DragEndEvent,
+  UniqueIdentifier,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
+
+import { kilobase } from '@kbve/laser';
 
 interface DroppableStoryProps {
   containers: string[];
@@ -67,7 +70,9 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
       return acc;
     }, {} as Record<string, string[]>)
   );
-  const [activeId, setActiveId] = useState<string | null>(null);
+  
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;

@@ -1,13 +1,10 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import { SITE } from '../../data_files/constants';
-
-
-// import DashboardCore from '../../components/tooling/dashboard/DashboardCore.astro';
+import ReactDashboard from '../../engine/dashboard/ReactDashboard';
 
 const title: string = 'Dashboard';
 const subTitle: string = 'KBVE Dashboard';
-
 const pageTitle: string = `Dashboard | ${SITE.title}`;
 const pageDescription: string = ``;
 ---
@@ -31,7 +28,7 @@ const pageDescription: string = ``;
 	}}>
 	<div
 		class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full">
-        <div
+		<div
 			class="mb-4 flex items-center justify-between gap-8 sm:mb-8 md:mb-12">
 			<div class="flex items-center gap-12">
 				<h1
@@ -46,12 +43,12 @@ const pageDescription: string = ``;
 					)
 				}
 			</div>
-			
 		</div>
 		<!-- <div class="overscroll-contain" data-lenis-prevent> -->
 
 		<div>
 			<!-- <DashboardCore /> -->
+			<ReactDashboard client:only="react" />
 		</div>
 	</div>
 </MainLayout>
