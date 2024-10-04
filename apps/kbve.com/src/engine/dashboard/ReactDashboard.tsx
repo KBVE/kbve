@@ -18,7 +18,7 @@ interface DroppableStoryProps {
 }
 
 // Sidebar wrapper and container styles
-const sidebarStyles = twMerge('p-5 border-r border-gray-200 w-1/4');
+const sidebarStyles = twMerge('p-5 border-gray-200 p-4 dark:text-neutral-200');
 const containerStyles = twMerge('flex flex-wrap flex-grow bg-gray-500 p-5 rounded-md');
 
 // Draggable Item Component
@@ -65,6 +65,27 @@ const DroppableContainer: React.FC<{ id: UniqueIdentifier; children: React.React
       )}
     >
       <h3 className={twMerge('font-bold mb-3')}>{id}</h3>
+      {children}
+    </div>
+  );
+};
+
+// Droppable Sidebar Container Component (for returning items to the sidebar)
+const DroppableSidebar: React.FC<{ id: UniqueIdentifier; children: React.ReactNode }> = ({ id, children }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={twMerge(
+        sidebarStyles,
+        'border-2 border-dashed border-gray-400',
+        clsx({ 'bg-cyan-50': isOver })
+      )}
+    >
+      <h3 className={twMerge('font-bold text-xl mb-4')}>Inventory</h3>
       {children}
     </div>
   );
@@ -120,9 +141,28 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 
     const newContainer = over.id as string;
 
+    // Check if item is dropped in the sidebar drop zone
+    if (newContainer === 'sidebar') {
+      // Move item back to the sidebar only if it's not already there
+      if (!sidebarItems.includes(active.id as string)) {
+        setSidebarItems((prev) => [...prev, active.id as string]);
+      }
+
+      // Remove item from its container if it was in a container
+      if (activeContainer) {
+        setItems((prevItems) => {
+          const updatedItems = {
+            ...prevItems,
+            [activeContainer]: prevItems[activeContainer].filter((item) => item.id !== active.id),
+          };
+          dashboardBase.saveItemPositions(updatedItems);
+          return updatedItems;
+        });
+      }
+    }
     // Handle dragging items from the sidebar into a container
-    if (!activeContainer) {
-      // Remove the item from the sidebar
+    else if (!activeContainer) {
+      // Remove the item from the sidebar if it's being moved to a container
       setSidebarItems((prev) => prev.filter((item) => item !== active.id));
 
       // Add the item to the target container
@@ -159,8 +199,10 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
       onDragEnd={handleDragEnd}
     >
       <div className={twMerge('flex')}>
-        {/* Sidebar with draggable items */}
-        <Sidebar items={sidebarItems} />
+        {/* Droppable Sidebar with draggable items */}
+        <DroppableSidebar id="sidebar">
+          <Sidebar items={sidebarItems} />
+        </DroppableSidebar>
 
         {/* Droppable containers */}
         <div className={containerStyles}>
@@ -181,7 +223,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 
 // Use the DroppableStory component with predefined containers
 const Dashboard = () => (
-  <DroppableStory containers={['Deploy', 'B', 'C', 'D', 'E', 'F', 'G']} />
+  <DroppableStory containers={['Deploy', 'B', 'C', 'D', 'E', 'F', 'Kill']} />
 );
 
 export default Dashboard;
