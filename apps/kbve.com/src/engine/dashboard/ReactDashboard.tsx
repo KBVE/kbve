@@ -17,23 +17,50 @@ import { dashboardBase } from './DashboardBase';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+import { ExpandIcon } from '@kbve/laser';
+import { eventEmitterInstance, type OpenModalEventData, } from '@kbve/laser';
+
+
 interface DroppableStoryProps {
   containers: string[];
 }
 
 // Sidebar wrapper and container styles
 const sidebarStyles = twMerge(
-  'p-5 border-gray-200 dark:text-neutral-200  rounded-md',
-  'w-full w-1/4', // Responsive width for sidebar: full width on small screens, 1/4 width on medium and larger screens
-  'flex flex-col items-center' // Center content in the sidebar on small screens
+  'p-5 border-gray-200 dark:text-neutral-200 rounded-md',
+  'w-full md:w-1/4',
+  'flex flex-col items-center'
 );
 const containerStyles = twMerge(
   'flex flex-wrap flex-grow bg-gray-500 p-5 rounded-md',
-  'w-full md:w-3/4' // Full width on small screens, 3/4 width on medium and larger screens
+  'w-full md:w-3/4'
 );
 
-// Draggable Item Component
-const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean }> = ({ id }) => {
+// Modal Component
+const Modal: React.FC<{ title: string; isVisible: boolean; onClose: () => void }> = ({ title, isVisible, onClose }) => {
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-5 rounded shadow-lg w-96">
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <p className="mb-4">This is the content of the modal for item {title}.</p>
+        <button
+          className="bg-blue-500 text-neutral-500 py-2 px-4 rounded hover:bg-blue-600"
+          onClick={onClose}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Draggable Item Component (wrapped in a button)
+const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean; onClick?: () => void }> = ({
+  id,
+  onClick,
+}) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
   });
@@ -43,18 +70,19 @@ const DraggableItem: React.FC<{ id: UniqueIdentifier; isDragging?: boolean }> = 
   };
 
   return (
-    <div
+    <button
       ref={setNodeRef}
       className={twMerge(
         'p-3 border border-cyan-500 rounded-md m-2 cursor-grab bg-cyan-300 dark:text-neutral-600',
         clsx({ 'opacity-50': isDragging })
       )}
       style={style}
+      onClick={onClick} // Handle click event to open the modal
       {...listeners}
       {...attributes}
     >
       {id}
-    </div>
+    </button>
   );
 };
 
@@ -72,7 +100,7 @@ const DroppableContainer: React.FC<{ id: UniqueIdentifier; children: React.React
       ref={setNodeRef}
       className={twMerge(
         'p-5 border-dashed border-2 border-gray-300 rounded-md m-3 min-h-[150px]',
-        'w-full sm:w-[45%] md:w-[30%]', // Responsive width for containers: full width on small screens, narrower on larger screens
+        'w-full sm:w-[45%] md:w-[30%]',
         clsx({ 'bg-cyan-100': isOver, 'bg-white': !isOver })
       )}
     >
@@ -104,12 +132,12 @@ const DroppableSidebar: React.FC<{ id: UniqueIdentifier; children: React.ReactNo
 };
 
 // Sidebar Component with Initial Draggable Items
-const Sidebar: React.FC<{ items: string[] }> = ({ items }) => {
+const Sidebar: React.FC<{ items: string[]; onItemClick: (id: string) => void }> = ({ items, onItemClick }) => {
   return (
     <div className={sidebarStyles}>
       <h3 className={twMerge('font-bold text-xl mb-4')}>Available Items</h3>
       {items.map((item) => (
-        <DraggableItem key={item} id={item} />
+        <DraggableItem key={item} id={item} onClick={() => onItemClick(item)} />
       ))}
     </div>
   );
@@ -122,6 +150,8 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
   // State for available sidebar items
   const [sidebarItems, setSidebarItems] = useState<string[]>(['Item 1', 'Item 2', 'Item 3', 'Function', 'IGBC']);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
 
   // Configure sensors for both pointer and touch events
   const sensors = useSensors(
@@ -142,6 +172,12 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
       prevSidebarItems.filter((item) => !placedItems.has(item))
     );
   }, []);
+
+  // Open modal with item details
+  const handleItemClick = (id: string) => {
+    setModalTitle(id);
+    setModalVisible(true);
+  };
 
   // Handle drag end event
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -212,7 +248,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 
   return (
     <DndContext
-      sensors={sensors} // Use the configured sensors for touch support
+      sensors={sensors}
       collisionDetection={rectIntersection}
       onDragStart={(event) => setActiveId(event.active.id)}
       onDragEnd={handleDragEnd}
@@ -220,7 +256,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
       <div className={twMerge('flex flex-col md:flex-row')}>
         {/* Droppable Sidebar with draggable items */}
         <DroppableSidebar id="sidebar">
-          <Sidebar items={sidebarItems} />
+          <Sidebar items={sidebarItems} onItemClick={handleItemClick} />
         </DroppableSidebar>
 
         {/* Droppable containers */}
@@ -228,14 +264,18 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
           {containers.map((container) => (
             <DroppableContainer key={container} id={container}>
               {items[container]?.map((item) => (
-                <DraggableItem key={item.id} id={item.id} />
+                <DraggableItem key={item.id} id={item.id} onClick={() => handleItemClick(item.id)} />
               ))}
             </DroppableContainer>
           ))}
         </div>
       </div>
+
       {/* Overlay shown while dragging */}
       <DragOverlay>{activeId ? <div>{activeId}</div> : null}</DragOverlay>
+
+      {/* Modal for Item Details */}
+      <Modal title={modalTitle} isVisible={isModalVisible} onClose={() => setModalVisible(false)} />
     </DndContext>
   );
 };
