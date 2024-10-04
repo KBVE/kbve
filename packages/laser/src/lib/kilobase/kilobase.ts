@@ -857,6 +857,16 @@ export class Kilobase extends Dexie {
 	) {
 		store.set(defaultState);
 	}
+
+	/**
+	 * Retrieve the value of a persistent atom.
+	 * @param atomStore - The persistent atom store to get the value from.
+	 * @returns The value of the persistent atom.
+	 */
+	getPersistentAtom<T extends Persistable>(atomStore: WritableAtom<T>): T {
+		return atomStore.get();
+	}
+
 }
 
 //
