@@ -52,3 +52,19 @@ redis:
             #     app.kubernetes.io/name: redis
             #     app.kubernetes.io/component: metrics
             #     app.kubernetes.io/instance: armada-release
+
+# hami:
+#     scheduler:
+#         kubeScheduler:
+#             imageTag: v1.30.4 # Use the Kubernetes server version as the image tag
+
+#     
+#     vgpuDevicePlugin:
+#         image:
+#             repository: hami/vgpu-device-plugin
+#             tag: 2.4.0
+
+#     vgpuScheduler:
+#         image:
+#             repository: hami/vgpu-scheduler
+#             tag: 2.4.0

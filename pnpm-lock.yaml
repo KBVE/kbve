@@ -26,6 +26,9 @@ importers:
       '@colyseus/ws-transport':
         specifier: ^0.15.1
         version: 0.15.1(@colyseus/schema@2.0.30)
+      '@dnd-kit/core':
+        specifier: ^6.1.0
+        version: 6.1.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@expo/metro-config':
         specifier: ~0.18.11
         version: 0.18.11
@@ -160,7 +163,7 @@ importers:
         version: 4.19.2
       framer-motion:
         specifier: ^11.0.6
-        version: 11.1.7(@emotion/is-prop-valid@1.2.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 11.1.7(@emotion/is-prop-valid@1.3.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       grid-engine:
         specifier: ^2.44.6
         version: 2.44.6(phaser@3.80.1)
@@ -1914,6 +1917,22 @@ packages:
   '@cypress/xvfb@1.2.4':
     resolution: {integrity: sha512-skbBzPggOVYCbnGgV+0dmBdW/s77ZkAOXIC1knS8NagwDjBrNC1LuXtQJeiN6l+m7lzmHtaoUw/ctJKdqkG57Q==}
 
+  '@dnd-kit/accessibility@3.1.0':
+    resolution: {integrity: sha512-ea7IkhKvlJUv9iSHJOnxinBcoOI3ppGnnL+VDJ75O45Nss6HtZd8IdN8touXPDtASfeI2T2LImb8VOZcL47wjQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+
+  '@dnd-kit/core@6.1.0':
+    resolution: {integrity: sha512-J3cQBClB4TVxwGo3KEjssGEXNJqGVWx17aRTZ1ob0FliR5IjYgTxl5YJbKTzA6IzrtelotH19v6y7uoIRUZPSg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
+  '@dnd-kit/utilities@3.2.2':
+    resolution: {integrity: sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg==}
+    peerDependencies:
+      react: '>=16.8.0'
+
   '@emmetio/abbreviation@2.3.3':
     resolution: {integrity: sha512-mgv58UrU3rh4YgbE/TzgLQwJ3pFsHHhCLqY20aJq+9comytTXUDNGG/SMtSeMJdkpxgXSXunBGLD8Boka3JyVA==}
 
@@ -1929,11 +1948,17 @@ packages:
   '@emotion/is-prop-valid@1.2.2':
     resolution: {integrity: sha512-uNsoYd37AFmaCdXlg6EYD1KaPOaRWRByMCYzbKUX4+hhMfrxdVSelShywL4JVaAeM/eHUOSprYBQls+/neX3pw==}
 
+  '@emotion/is-prop-valid@1.3.1':
+    resolution: {integrity: sha512-/ACwoqx7XQi9knQs/G0qKvv5teDMhD7bXYns9N/wM8ah8iNb8jZ2uNO0YOgiq2o2poIvVtJS2YALasQuMSQ7Kw==}
+
   '@emotion/memoize@0.7.4':
     resolution: {integrity: sha512-Ja/Vfqe3HpuzRsG1oBtWTHk2PGZ7GR+2Vz5iYGelAw8dx32K0y7PjVuxK6z1nMpZOqAFsRUPCkK1YjJ56qJlgw==}
 
   '@emotion/memoize@0.8.1':
     resolution: {integrity: sha512-W2P2c/VRW1/1tLox0mVUalvnWXxavmv/Oum2aPsRcoDJuob75FC3Y8FbpfLwUegRcxINtGUMPq0tFCvYNTBXNA==}
+
+  '@emotion/memoize@0.9.0':
+    resolution: {integrity: sha512-30FAj7/EoJ5mwVPOWhAyCX+FPfMDrVecJAM+Iw9NRoSl4BBAQeqj4cApHHUXOVvIPgLVDsCFoz/hGD+5QQD1GQ==}
 
   '@emotion/stylis@0.8.5':
     resolution: {integrity: sha512-h6KtPihKFn3T9fuIrwvXXUOwlx3rfUvfZIcP5a6rh8Y7zjE3O06hT5Ss4S/YI1AYhuZ1kjaE/5EaOOI2NqSylQ==}
@@ -17998,6 +18023,24 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@dnd-kit/accessibility@3.1.0(react@18.2.0)':
+    dependencies:
+      react: 18.2.0
+      tslib: 2.7.0
+
+  '@dnd-kit/core@6.1.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@dnd-kit/accessibility': 3.1.0(react@18.2.0)
+      '@dnd-kit/utilities': 3.2.2(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      tslib: 2.7.0
+
+  '@dnd-kit/utilities@3.2.2(react@18.2.0)':
+    dependencies:
+      react: 18.2.0
+      tslib: 2.7.0
+
   '@emmetio/abbreviation@2.3.3':
     dependencies:
       '@emmetio/scanner': 1.0.4
@@ -18017,10 +18060,18 @@ snapshots:
     dependencies:
       '@emotion/memoize': 0.8.1
 
+  '@emotion/is-prop-valid@1.3.1':
+    dependencies:
+      '@emotion/memoize': 0.9.0
+    optional: true
+
   '@emotion/memoize@0.7.4':
     optional: true
 
   '@emotion/memoize@0.8.1': {}
+
+  '@emotion/memoize@0.9.0':
+    optional: true
 
   '@emotion/stylis@0.8.5': {}
 
@@ -19958,7 +20009,7 @@ snapshots:
   '@nrwl/tao@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10))':
     dependencies:
       nx: 18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10))
-      tslib: 2.6.2
+      tslib: 2.7.0
     transitivePeerDependencies:
       - '@swc-node/register'
       - '@swc/core'
@@ -20871,7 +20922,7 @@ snapshots:
       open: 8.4.2
       rxjs: 7.8.1
       tmp: 0.2.3
-      tslib: 2.6.2
+      tslib: 2.7.0
       yargs: 17.7.2
       yargs-parser: 21.1.1
     transitivePeerDependencies:
@@ -22216,7 +22267,7 @@ snapshots:
   '@swc-node/sourcemap-support@0.4.0':
     dependencies:
       source-map-support: 0.5.21
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@swc/cli@0.1.65(@swc/core@1.3.107(@swc/helpers@0.5.10))(chokidar@3.6.0)':
     dependencies:
@@ -22286,7 +22337,7 @@ snapshots:
 
   '@swc/helpers@0.5.2':
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@swc/plugin-styled-components@1.5.122':
     dependencies:
@@ -24473,7 +24524,7 @@ snapshots:
   '@yarnpkg/parsers@3.0.0-rc.46':
     dependencies:
       js-yaml: 3.14.1
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   '@zkochan/js-yaml@0.0.6':
     dependencies:
@@ -24668,7 +24719,7 @@ snapshots:
 
   aria-hidden@1.2.4:
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   aria-query@5.1.3:
     dependencies:
@@ -24788,7 +24839,7 @@ snapshots:
 
   ast-types@0.15.2:
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   astral-regex@1.0.0: {}
 
@@ -26736,7 +26787,7 @@ snapshots:
   dot-case@3.0.4:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   dotenv-expand@10.0.0: {}
 
@@ -28095,11 +28146,11 @@ snapshots:
 
   fraction.js@4.3.7: {}
 
-  framer-motion@11.1.7(@emotion/is-prop-valid@1.2.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  framer-motion@11.1.7(@emotion/is-prop-valid@1.3.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
       tslib: 2.6.2
     optionalDependencies:
-      '@emotion/is-prop-valid': 1.2.2
+      '@emotion/is-prop-valid': 1.3.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
@@ -30079,7 +30130,7 @@ snapshots:
     dependencies:
       copy-anything: 2.0.6
       parse-node-version: 1.0.1
-      tslib: 2.6.2
+      tslib: 2.7.0
     optionalDependencies:
       errno: 0.1.8
       graceful-fs: 4.2.11
@@ -30375,7 +30426,7 @@ snapshots:
 
   lower-case@2.0.2:
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   lowercase-keys@1.0.1: {}
 
@@ -31465,7 +31516,7 @@ snapshots:
   no-case@3.0.4:
     dependencies:
       lower-case: 2.0.2
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   nocache@3.0.4: {}
 
@@ -31626,7 +31677,7 @@ snapshots:
       tar-stream: 2.2.0
       tmp: 0.2.3
       tsconfig-paths: 4.2.0
-      tslib: 2.6.2
+      tslib: 2.7.0
       v8-compile-cache: 2.3.0
       yargs: 17.7.2
       yargs-parser: 21.1.1
@@ -32020,7 +32071,7 @@ snapshots:
   pascal-case@3.1.2:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   password-prompt@1.1.3:
     dependencies:
@@ -32974,7 +33025,7 @@ snapshots:
     dependencies:
       react: 18.2.0
       react-style-singleton: 2.2.1(@types/react@18.2.79)(react@18.2.0)
-      tslib: 2.6.2
+      tslib: 2.7.0
     optionalDependencies:
       '@types/react': 18.2.79
 
@@ -32983,7 +33034,7 @@ snapshots:
       react: 18.2.0
       react-remove-scroll-bar: 2.3.6(@types/react@18.2.79)(react@18.2.0)
       react-style-singleton: 2.2.1(@types/react@18.2.79)(react@18.2.0)
-      tslib: 2.6.2
+      tslib: 2.7.0
       use-callback-ref: 1.3.2(@types/react@18.2.79)(react@18.2.0)
       use-sidecar: 1.1.2(@types/react@18.2.79)(react@18.2.0)
     optionalDependencies:
@@ -33027,7 +33078,7 @@ snapshots:
       get-nonce: 1.0.1
       invariant: 2.2.4
       react: 18.2.0
-      tslib: 2.6.2
+      tslib: 2.7.0
     optionalDependencies:
       '@types/react': 18.2.79
 
@@ -33121,7 +33172,7 @@ snapshots:
       ast-types: 0.15.2
       esprima: 4.0.1
       source-map: 0.6.1
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   redent@3.0.0:
     dependencies:
@@ -33803,7 +33854,7 @@ snapshots:
   snake-case@3.0.4:
     dependencies:
       dot-case: 3.0.4
-      tslib: 2.6.2
+      tslib: 2.7.0
 
   sockjs@0.3.24:
     dependencies:
@@ -35195,7 +35246,7 @@ snapshots:
   use-callback-ref@1.3.2(@types/react@18.2.79)(react@18.2.0):
     dependencies:
       react: 18.2.0
-      tslib: 2.6.2
+      tslib: 2.7.0
     optionalDependencies:
       '@types/react': 18.2.79
 
@@ -35207,7 +35258,7 @@ snapshots:
     dependencies:
       detect-node-es: 1.1.0
       react: 18.2.0
-      tslib: 2.6.2
+      tslib: 2.7.0
     optionalDependencies:
       '@types/react': 18.2.79
 
