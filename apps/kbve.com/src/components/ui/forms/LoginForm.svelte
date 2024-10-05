@@ -84,11 +84,12 @@
 			await displayErrorFromAction(actionId);
 		} catch (error) {
 			console.error('Login failed:', error);
-
 			// Handle any errors caught during registration
 			await displayErrorFromAction(actionId);
+			reset();
 		} finally {
 			loading = false;
+			reset();
 		}
 	};
 
