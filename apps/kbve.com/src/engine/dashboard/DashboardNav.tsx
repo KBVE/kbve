@@ -31,7 +31,7 @@ const DashboardNav: React.FC = () => {
 							className={twMerge(
 								'font-semibold whitespace-nowrap text-gray-800 dark:text-neutral-200',
 							)}>
-							{`Good to see you,  ${$profile$.username}! Your dashboard is waiting...`}
+							{`Good to see you,  ${$profile$.username}!`}
 						</span>
 					</div>
 
@@ -77,6 +77,7 @@ const DashboardNav: React.FC = () => {
 						)}>
 						<DashboardNavigationButton text="Overview" href="#" />
                         <DashboardNavigationButton text="Resources" href="#" />
+                        <DashboardNavigationButton text="Profile" href="/profile" />
                         <DashboardNavigationButton text="Logout" href="/logout" />
 
 
