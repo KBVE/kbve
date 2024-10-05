@@ -29,7 +29,7 @@ const DashboardNav: React.FC = () => {
 							className={twMerge(
 								'font-semibold whitespace-nowrap text-gray-800 dark:text-neutral-200',
 							)}>
-							My project
+							Welcome, 
 						</span>
 					</div>
 
@@ -74,6 +74,10 @@ const DashboardNav: React.FC = () => {
 							'py-3 sm:py-0 flex flex-col sm:flex-row sm:justify-end gap-y-2 sm:gap-y-0 sm:gap-x-6',
 						)}>
 						<DashboardNavigationButton text="Overview" href="#" />
+                        <DashboardNavigationButton text="Resources" href="#" />
+                        <DashboardNavigationButton text="Logout" href="#" />
+
+
 					</div>
 				</div>
 			</div>

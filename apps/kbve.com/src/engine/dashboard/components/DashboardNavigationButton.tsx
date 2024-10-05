@@ -31,28 +31,30 @@ const DashboardNavigationButton: React.FC<DashboardNavigationButtonProps> = ({
       
 	
 	  const baseStyles = twMerge(
-		"relative px-5 py-3 overflow-hidden font-medium text-gray-600 bg-gray-100 border border-gray-100 rounded-lg shadow-inner group",
+		"relative z-10 px-5 py-3 overflow-visible font-medium text-gray-600 bg-gray-100 border border-gray-100 rounded-lg shadow-inner group",
 		"hover:text-white",
 		className
 	  );
-	
-	  const borderStyles = clsx(
-		"absolute top-0 left-0 w-0 h-0 transition-all duration-200 border-t-2 border-gray-600 group-hover:w-full ease",
-		"absolute bottom-0 right-0 w-0 h-0 transition-all duration-200 border-b-2 border-gray-600 group-hover:w-full ease"
-	  );
-	
-	  const backgroundStyles = clsx(
-		"absolute top-0 left-0 w-full h-0 transition-all duration-300 delay-200 bg-gray-600 group-hover:h-full ease",
-		"absolute bottom-0 left-0 w-full h-0 transition-all duration-300 delay-200 bg-gray-600 group-hover:h-full ease",
-		"absolute inset-0 w-full h-full duration-300 delay-300 bg-gray-900 opacity-0 group-hover:opacity-100"
-	  );
-	  
+
+  // Make sure the border animations are also visible and not clipped
+  const borderStyles = clsx(
+    "absolute top-0 left-0 w-0 h-0 transition-all duration-200 border-t-2 border-gray-600 group-hover:w-full ease",
+    "absolute bottom-0 right-0 w-0 h-0 transition-all duration-200 border-b-2 border-gray-600 group-hover:w-full ease"
+  );
+
+	const backgroundStyles = clsx(
+    "absolute top-0 left-0 w-full h-0 transition-all duration-300 delay-200 bg-gray-600 group-hover:h-full ease",
+    "absolute bottom-0 left-0 w-full h-0 transition-all duration-300 delay-200 bg-gray-600 group-hover:h-full ease",
+    "absolute inset-0 w-full h-full duration-300 delay-300 bg-gray-900 opacity-0 group-hover:opacity-100"
+  );
+
 
 	return (
     <button type="button" className={baseStyles} onClick={handleClick}>
       <span className={borderStyles} />
       <span className={backgroundStyles} />
-      <span className="relative transition-colors duration-300 delay-200 group-hover:text-white ease">
+	  <span className="relative z-20 transition-colors duration-300 delay-200 group-hover:text-white ease">
+
         {text}
       </span>
     </button>
