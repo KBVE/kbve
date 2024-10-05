@@ -10,24 +10,22 @@ const pageDescription: string = `Register now to access member-only content, man
 ---
 
 <MainLayout
-  title={pageTitle}
-  structuredData={{
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    '@id': 'https://kbve.com/register/',
-    url: 'https://kbve.com/register/',
-    name: `${pageTitle}`,
-    description: `${pageDescription}`,
-    isPartOf: {
-      '@type': 'WebSite',
-      url: 'https://kbve.com',
-      name: 'Kilo Byte Virtual Engine',
-      description:
-        'Elevate your efficiency with KBVE, Kilobyte Virtual Engine! Discover cutting-edge software and automation solutions designed to streamline and enhance your projects. Let’s innovate together!',
-    },
-    inLanguage: 'en-US',
-  }}
->
-<SupabaseRegister />
-
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://kbve.com/register/',
+		url: 'https://kbve.com/register/',
+		name: `${pageTitle}`,
+		description: `${pageDescription}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: 'Kilo Byte Virtual Engine',
+			description:
+				'Elevate your efficiency with KBVE, Kilobyte Virtual Engine! Discover cutting-edge software and automation solutions designed to streamline and enhance your projects. Let’s innovate together!',
+		},
+		inLanguage: 'en-US',
+	}}>
+	<SupabaseRegister />
 </MainLayout>
