@@ -248,6 +248,11 @@ export interface IQuest<T = any> {
 	reward: string;
 }
 
+export interface UserRedirectEvent {
+	location: string;
+	timer?: number;
+}
+
 export interface ItemActionEventData {
 	itemId: string;
 	action: ItemAction['actionEvent'];
