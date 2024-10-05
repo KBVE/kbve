@@ -12,7 +12,7 @@ spec:
   postgresUID: 101
   postgresGID: 102
   storage:
-    size: 2Gi
+    size: 20Gi
     storageClass: {{ .Values.db.storage.storageClassName }}
   monitoring:
     enablePodMonitor: true
