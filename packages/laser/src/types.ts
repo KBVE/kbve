@@ -525,7 +525,7 @@ export interface Auth {
 export interface UserProfile extends Auth {
 	fullName?: string; // Optional field for full name
 	username?: string; // Optional field for username
-	avatarUrl?: string; // Optional field for avatar
+	avatar_url?: string; // Optional field for avatar
 	bio?: string;
 }
 
