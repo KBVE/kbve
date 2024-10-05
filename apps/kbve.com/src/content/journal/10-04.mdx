@@ -20,3 +20,8 @@ The goal for the day is to update the dashboard by integrating it directly with 
 One the load of the dashboard, we will focus on presenting a drag-able container system, where the user can control the different services that they have active within their account.
 In the future, if we launch different AI tools and bots, we want to make it easy for the user to enable and disable them.
 
+**Events**
+
+For the redirects, I am thinking we could setup the redirects directly around the eventEmitter concept?
+The type of event that we would create would be the `redirect` but I am not too sure how we would handle the `off` for it once they leave the page.
+In a `spa` this would be easy because it would be just moving the code to mimic the redirect but in our case, we actually have to have the javascript exit.
