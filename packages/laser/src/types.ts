@@ -596,4 +596,10 @@ export interface UserRedirectEvent {
 	replace?: boolean;
 }
 
+export interface UserProfileUpdateEvent {
+	actionId: string;
+	updatedFields: Partial<UserProfile>;
+	timestamp: Date; 
+  }
+
 // export interface UserLogout {}

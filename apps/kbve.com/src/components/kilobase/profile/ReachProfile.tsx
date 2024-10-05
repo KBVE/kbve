@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { kilobase } from '@kbve/laser'; // Import kilobase to access user profile
 import { twMerge } from 'tailwind-merge';
 import { clsx } from 'clsx';
-import { $profileStore, eventEmitterInstance } from '@kbve/laser'; // Import the profile store and event emitter
+import { $profileStore, eventEmitterInstance, type UserProfile, type UserProfileUpdateEvent } from '@kbve/laser'; // Import the profile store and event emitter
 import { useStore } from '@nanostores/react'; // Import nanostores for state management
 
 const ReactProfile: React.FC = () => {
@@ -36,7 +36,7 @@ const ReactProfile: React.FC = () => {
 				setLoading(false); // Set loading to false after profile is loaded or error is thrown
 			}
 		};
-
+        
 		loadProfile(); // Call the function to load profile data
 	}, []);
 
