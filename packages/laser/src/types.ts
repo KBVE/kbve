@@ -526,6 +526,7 @@ export interface UserProfile extends Auth {
 	fullName?: string; // Optional field for full name
 	username?: string; // Optional field for username
 	avatarUrl?: string; // Optional field for avatar
+	bio?: string;
 }
 
 export interface LoaderOptions {
@@ -594,5 +595,11 @@ export interface UserRedirectEvent {
 	timer?: number;
 	replace?: boolean;
 }
+
+export interface UserProfileUpdateEvent {
+	actionId: string;
+	updatedFields: Partial<UserProfile>;
+	timestamp: Date; 
+  }
 
 // export interface UserLogout {}
