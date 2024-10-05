@@ -20,6 +20,7 @@ import type {
   TaskCompletionEventData,
   WASMEventData,
   NPCDialogueEventData,
+  UserRedirectEvent,
 } from '../types';
 
 import { Debug } from './utils/debug';
@@ -42,6 +43,7 @@ export type EventData = {
   itemAction: ItemActionEventData;
   diceRollResult: DiceRollResultEventData;
   npcDialogue: NPCDialogueEventData;
+  redirectUser: UserRedirectEvent;
 };
 
 type EventHandler<T> = (data?: T) => void;

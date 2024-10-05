@@ -17,7 +17,7 @@ import { dashboardBase } from './DashboardBase';
 import { clsx } from 'clsx';
 import { useStore } from '@nanostores/react';
 import { twMerge } from 'tailwind-merge';
-import { ExpandIcon } from '@kbve/laser';
+import { ExpandIcon, $profileStore } from '@kbve/laser';
 import { eventEmitterInstance, type OpenModalEventData } from '@kbve/laser';
 
 interface DroppableStoryProps {
@@ -128,6 +128,8 @@ const DroppableSidebar: React.FC<{
 		id,
 	});
 
+	const $profile$ = useStore($profileStore);
+
 	return (
 		<div
 			ref={setNodeRef}
@@ -136,7 +138,7 @@ const DroppableSidebar: React.FC<{
 				'border-2 border-dashed border-gray-400',
 				clsx({ 'bg-cyan-500': isOver }),
 			)}>
-			<h3 className={twMerge('font-bold text-xl mb-4')}>Inventory</h3>
+			<h3 className={twMerge('font-bold text-xl mb-4')}>{`${$profile$.username}'s Inventory`}</h3>
 			{children}
 		</div>
 	);
@@ -181,6 +183,8 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 	const [isModalVisible, setModalVisible] = useState(false);
 	const [modalTitle, setModalTitle] = useState('');
 
+
+
 	// Configure sensors for both pointer and touch events
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -188,6 +192,23 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 			activationConstraint: { delay: 100, tolerance: 5 },
 		}),
 	);
+
+	useEffect(() => {
+		const loadProfileAndItems = async () => {
+			try {
+				// Load profile data
+				const profileData = await dashboardBase.loadProfile();
+				console.log(`Data: ${profileData}`)
+			} catch (error) {
+				console.error(
+					'Error loading profile or item positions:',
+					error,
+				);
+			}
+		};
+
+		loadProfileAndItems(); // Call the async function to load profile and items
+	}, []);
 
 	// Load initial item positions from DashboardBase when component mounts
 	useEffect(() => {

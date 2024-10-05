@@ -6,10 +6,18 @@ import { atom, map } from 'nanostores';
 import type { WritableAtom, MapStore } from 'nanostores';
 
 import { persistentMap, persistentAtom } from '@nanostores/persistent';
-import { UserProfile, ErrorLog, ActionULID, Persistable, AtlasData } from '../../types';
+import {
+	UserProfile,
+	ErrorLog,
+	ActionULID,
+	Persistable,
+	AtlasData,
+	UserRedirectEvent,
+} from '../../types';
 import KiloBaseState from '../constants';
 
 import ULIDFactory from '../utils/ulid';
+import { eventEmitterInstance } from '../eventhandler';
 
 // Method definitions, including:
 // - initializeSupabaseClient
@@ -59,7 +67,44 @@ export class Kilobase extends Dexie {
 		this.actionULID = this.table('actionULID');
 
 		this.supabase = this.initializeSupabaseClient();
+		this.initializeEventListeners();
 	}
+
+	// Add a method to initialize event listeners
+	private initializeEventListeners() {
+		eventEmitterInstance.on('redirectUser', this.handleUserRedirect);
+	}
+
+	public cleanupEventListeners() {
+		// Remove the redirectUser listener when no longer needed
+		eventEmitterInstance.off('redirectUser', this.handleUserRedirect);
+	}
+
+	/**
+	 * Handle user redirection based on the UserRedirectEvent data.
+	 * @param data - The UserRedirectEvent data containing URL and optional parameters.
+	 */
+	private handleUserRedirect = (data?: UserRedirectEvent) => {
+		if (!data || !data.location) return;
+	  
+		const { location, timer = 0, replace = false } = data;
+	  
+		console.log(`Redirecting user to: ${location} in ${timer}ms`);
+	  
+		// Set a timeout if a delay is specified
+	  // Use a setTimeout for delayed redirection, if `timer` is set
+	  setTimeout(() => {
+		// Perform the cleanup right before triggering the redirect
+		this.cleanupEventListeners();
+	
+		// Perform the redirection using `replace` if specified
+		if (replace) {
+		  window.location.replace(location); // Replaces current history entry (no back navigation)
+		} else {
+		  window.location.href = location; // Standard redirect with back navigation support
+		}
+	  }, timer);
+	};
 
 	/**
 	 * Singleton pattern for the Supabase client.
@@ -353,35 +398,71 @@ export class Kilobase extends Dexie {
 		try {
 			isSyncingStore.set(true); // Set the syncing state to true
 
-			// Query the profile data from Supabase
-			const { data, error } = await supabase
-				.from('profiles')
-				.select('*')
-				.eq('id', $profileStore.get().id) // Use the current profile ID in the store to get the profile
-				.single();
+			// Step 1: Get the authenticated user from Supabase
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser();
 
-			if (error) {
-				console.error('Failed to load profile from Supabase:', error);
+			if (userError) {
+				console.error(
+					'Failed to get authenticated user from Supabase:',
+					userError,
+				);
 				await this.logError(
-					'Failed to load profile from Supabase',
-					error,
+					'Failed to get authenticated user from Supabase',
+					userError,
 				);
 				return;
 			}
 
-			if (data) {
+			if (!user) {
+				console.warn('No authenticated user found');
+				return;
+			}
+
+			// Step 2: Query the user profile from the public.user_profiles table
+			const { data: profileData, error: profileError } = await supabase
+				.from('user_profiles')
+				.select('id, username, avatar_url, updated_at')
+				.eq('id', user.id)
+				.single();
+
+			if (profileError) {
+				console.error(
+					'Failed to load user profile from Supabase:',
+					profileError,
+				);
+				await this.logError(
+					'Failed to load user profile from Supabase',
+					profileError,
+				);
+				return;
+			}
+
+			if (profileData) {
 				const profile: UserProfile = {
-					id: data.id,
-					email: data.email,
-					username: data.username || undefined,
-					fullName: data.full_name || undefined,
-					updatedAt: new Date(data.updated_at),
+					id: profileData.id,
+					email: user.email || '', // Use the email from the authenticated user object
+					username: profileData.username || undefined,
+					fullName: user.user_metadata?.['full_name'] || undefined, // Use the full_name from user metadata if available
+					avatarUrl: profileData.avatar_url || undefined, // Include the avatar URL from the profile data
+					updatedAt: new Date(profileData.updated_at),
 				};
 
-				// Save the profile locally in Dexie
+				// Save the profile locally in Dexie or any other local storage
 				await this.saveProfile(profile);
 				console.log('Profile loaded and saved from Supabase:', profile);
 			}
+		} catch (error) {
+			console.error(
+				'An unexpected error occurred while loading the profile:',
+				error,
+			);
+			await this.logError(
+				'An unexpected error occurred while loading the profile',
+				error,
+			);
 		} finally {
 			isSyncingStore.set(false); // Reset the syncing state
 		}
@@ -427,41 +508,40 @@ export class Kilobase extends Dexie {
 		}
 	}
 
-		/**
+	/**
 	 * Retrieve the user profile from the store or Dexie.
 	 * If the profile is already in the store, it returns that value.
 	 * If the store is empty, it queries Dexie for the profile and updates the store.
 	 * If neither are available, returns the default profile.
 	 * @returns The user profile if found, otherwise the default profile.
 	 */
-		async getProfile(): Promise<UserProfile> {
-			// Check if the profile is already stored in the Nanostore
-			const storedProfile = $profileStore.get();
-			if (storedProfile.id !== '') {
-				return storedProfile;
-			}
-	
-			try {
-				// Query the local Dexie database for the stored profile
-				const profile = await this.table('keyValueStore').get(
-					this.profileKey,
-				);
-				if (profile?.value) {
-					const userProfile = profile.value as UserProfile;
-	
-					// Update the Nanostore with the profile and return it
-					$profileStore.set(userProfile);
-					return userProfile;
-				}
-			} catch (error) {
-				console.error('Failed to get profile from Dexie:', error);
-			}
-	
-			// Return the default profile if not found in the store or Dexie
-			return defaultProfile;
+	async getProfile(): Promise<UserProfile> {
+		// Check if the profile is already stored in the Nanostore
+		const storedProfile = $profileStore.get();
+		if (storedProfile.id !== '') {
+			return storedProfile;
 		}
 
-		
+		try {
+			// Query the local Dexie database for the stored profile
+			const profile = await this.table('keyValueStore').get(
+				this.profileKey,
+			);
+			if (profile?.value) {
+				const userProfile = profile.value as UserProfile;
+
+				// Update the Nanostore with the profile and return it
+				$profileStore.set(userProfile);
+				return userProfile;
+			}
+		} catch (error) {
+			console.error('Failed to get profile from Dexie:', error);
+		}
+
+		// Return the default profile if not found in the store or Dexie
+		return defaultProfile;
+	}
+
 	/**
 	 * Create a new action entry in the ActionULID table.
 	 * @param action - The name of the action, e.g., "registerUser".
@@ -741,7 +821,6 @@ export class Kilobase extends Dexie {
 		return null;
 	}
 
-
 	/**
 	 * Create a persistent atom with a given key and default value.
 	 * Uses JSON.stringify and JSON.parse as default encoding and decoding mechanisms.
@@ -866,12 +945,12 @@ export class Kilobase extends Dexie {
 	getPersistentAtom<T extends Persistable>(atomStore: WritableAtom<T>): T {
 		return atomStore.get();
 	}
-
 }
 
 //
-export const $atlas = Kilobase.createPersistentAtom<AtlasData>('atlas', { plugin: [] });
-
+export const $atlas = Kilobase.createPersistentAtom<AtlasData>('atlas', {
+	plugin: [],
+});
 
 // Create a Kilobase instance for global use
 export const kilobase = new Kilobase();

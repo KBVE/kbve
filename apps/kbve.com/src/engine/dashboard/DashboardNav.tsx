@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
+import { useStore } from '@nanostores/react';
+import { $profileStore } from '@kbve/laser';
 import DashboardNavigationButton from './components/DashboardNavigationButton';
 
 const DashboardNav: React.FC = () => {
 	const [isNavOpen, setIsNavOpen] = useState(false);
+	const $profile$ = useStore($profileStore);
 
 	const toggleNav = () => {
 		setIsNavOpen(!isNavOpen);
@@ -29,7 +31,7 @@ const DashboardNav: React.FC = () => {
 							className={twMerge(
 								'font-semibold whitespace-nowrap text-gray-800 dark:text-neutral-200',
 							)}>
-							Welcome, 
+							{`Good to see you,  ${$profile$.username}! Your dashboard is waiting...`}
 						</span>
 					</div>
 
@@ -75,7 +77,7 @@ const DashboardNav: React.FC = () => {
 						)}>
 						<DashboardNavigationButton text="Overview" href="#" />
                         <DashboardNavigationButton text="Resources" href="#" />
-                        <DashboardNavigationButton text="Logout" href="#" />
+                        <DashboardNavigationButton text="Logout" href="/logout" />
 
 
 					</div>
