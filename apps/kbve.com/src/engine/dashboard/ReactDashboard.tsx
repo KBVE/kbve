@@ -51,7 +51,7 @@ const Modal: React.FC<{
 					This is the content of the modal for item {title}.
 				</p>
 				<button
-					className="bg-blue-500 text-gray-500 py-2 px-4 rounded hover:bg-blue-600"
+					className="bg-cyan-500 text-gray-500 py-2 px-4 rounded hover:bg-cyan-600"
 					onClick={onClose}>
 					Close
 				</button>
