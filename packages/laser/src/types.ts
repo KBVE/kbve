@@ -248,6 +248,8 @@ export interface IQuest<T = any> {
 	reward: string;
 }
 
+
+
 export interface ItemActionEventData {
 	itemId: string;
 	action: ItemAction['actionEvent'];
@@ -523,6 +525,8 @@ export interface Auth {
 export interface UserProfile extends Auth {
 	fullName?: string; // Optional field for full name
 	username?: string; // Optional field for username
+	avatar_url?: string; // Optional field for avatar
+	bio?: string;
 }
 
 export interface LoaderOptions {
@@ -585,5 +589,17 @@ export interface Range {
 }
 
 // Addtional User - Events
+
+export interface UserRedirectEvent {
+	location: string;
+	timer?: number;
+	replace?: boolean;
+}
+
+export interface UserProfileUpdateEvent {
+	actionId: string;
+	updatedFields: Partial<UserProfile>;
+	timestamp: Date; 
+  }
 
 // export interface UserLogout {}
