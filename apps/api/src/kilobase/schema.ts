@@ -9,7 +9,7 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').notNull().primaryKey().references(() => authUsers.id),
   updatedAt: timestamp('updated_at', { withTimezone: true }),
   username: text('username').notNull().unique(),
-  avatarUrl: text('avatar_url'),
+  avatar_url: text('avatar_url'),
   website: text('website'),
 });
 
