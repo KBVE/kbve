@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Supabase.Storage</id>
+    <version>2.0.2</version>
+    <title>Supabase Storage</title>
+    <authors>Joseph Schultz &lt;joseph@acupofjose.com&gt;</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>icon.png</icon>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/supabase-community/storage-csharp</projectUrl>
+    <iconUrl>https://avatars.githubusercontent.com/u/54469796?s=200&amp;v=4</iconUrl>
+    <description>A C# implementation of the Supabase Storage client</description>
+    <copyright>MIT</copyright>
+    <tags>supabase, storage</tags>
+    <repository type="git" url="https://github.com/supabase-community/storage-csharp" commit="a66944fbb982f43e1d595d1ea397633a84ab755d" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="MimeMapping" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.3" exclude="Build,Analyzers" />
+        <dependency id="Supabase.Core" version="1.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

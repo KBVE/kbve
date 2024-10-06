@@ -519,7 +519,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 321, y: 220, z: 0}
-  m_LocalScale: {x: 100, y: 100, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1314784350}
@@ -809,23 +809,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 1330026787}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c434f38c979b843a78c58de59ddad838, type: 3}
+  m_Script: {fileID: 11500000, guid: c5a607514b24242ce80f43465af28218, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startPosition: {x: 9, y: 6, z: 0}
-  endPosition: {x: -9, y: -6, z: 0}
-  speed: 5
-  startDelay: 1
-  particleEffect: {fileID: 0}
-  trailEffect: {fileID: 0}
-  pixelArtObject: {fileID: 725720393}
+  shootingStarPrefab: {fileID: 725720393}
+  startPosition: {x: 8, y: 6, z: 0}
+  endPosition: {x: -8, y: -6, z: 0}
+  speed: 4.93
+  startDelay: 0.5
   randomizeStart: 0
-  randomStartXRange: {x: 8, y: 10}
+  randomStartXRange: {x: -15, y: 15}
   randomStartYRange: {x: 10, y: 20}
   trajectory: 0
+  poolSize: 10
+  spawnDelay: 2
   autoStart: 1
-  sortingLayerID: 0
-  sortingOrder: 1
 --- !u!1 &1382897830
 GameObject:
   m_ObjectHideFlags: 0
