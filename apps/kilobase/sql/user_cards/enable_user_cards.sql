@@ -211,9 +211,9 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create the trigger to handle new user_card creation when a new user is created in auth.users
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
+DROP TRIGGER IF EXISTS on_user_profiles_created ON public.user_profiles;
+CREATE TRIGGER on_user_profiles_created
+    AFTER INSERT ON public.user_profiles
     FOR EACH ROW
     EXECUTE PROCEDURE public.handle_new_user_card();
 
@@ -319,7 +319,7 @@ CREATE TRIGGER handle_user_card_update
     EXECUTE PROCEDURE public.handle_user_card_update();
 
 -- Create a materialized view for public access without UUID
-CREATE MATERIALIZED VIEW public.user_cards_public AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS public.user_cards_public AS
 SELECT
     username,
     bio,
@@ -328,6 +328,10 @@ SELECT
     created_at,
     updated_at
 FROM public.user_cards;
+
+-- Create an index on the materialized view after it has been populated.
+CREATE INDEX IF NOT EXISTS idx_user_cards_username ON public.user_cards_public(username);
+
 
 -- [END] - Setup user_cards table, policies, and materialized view
 
