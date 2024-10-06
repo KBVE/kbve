@@ -1,10 +1,15 @@
 using System;
 using System.IO;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Utils
 {
+    /// <summary>
+    /// Utility class for handling JSON operations asynchronously.
+    /// Provides methods for reading, writing, and parsing JSON files using UniTask for async support.
+    /// </summary>
     public static class UtilityJSON
     {
         // Reads the JSON file content asynchronously and returns the string
@@ -12,14 +17,12 @@ namespace Utils
         {
             try
             {
-                // Check if the file exists
                 if (!File.Exists(filePath))
                 {
                     Debug.LogWarning($"File not found: {filePath}");
                     return null;
                 }
 
-                // Read the file content asynchronously
                 using (StreamReader reader = new StreamReader(filePath))
                 {
                     return await reader.ReadToEndAsync();
@@ -37,10 +40,8 @@ namespace Utils
         {
             try
             {
-                // Create the directory if it doesn't exist
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? string.Empty);
 
-                // Write the file content asynchronously
                 using (StreamWriter writer = new StreamWriter(filePath, false))
                 {
                     await writer.WriteAsync(json);
@@ -57,7 +58,7 @@ namespace Utils
         // Parses a JSON string into an object of type T asynchronously
         public static async UniTask<T> ParseJSONAsync<T>(string json) where T : class
         {
-            return await UniTask.Run(() =>
+            return await UniTask.RunOnThreadPool(() =>
             {
                 try
                 {
@@ -79,7 +80,7 @@ namespace Utils
         // Converts an object of type T to a JSON string asynchronously
         public static async UniTask<string> ToJSONAsync<T>(T data) where T : class
         {
-            return await UniTask.Run(() =>
+            return await UniTask.RunOnThreadPool(() =>
             {
                 try
                 {
