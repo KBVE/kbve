@@ -9,7 +9,8 @@ CREATE EXTENSION IF NOT EXISTS pg_jsonschema WITH SCHEMA extensions;
 CREATE TABLE IF NOT EXISTS public.user_cards (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     bio TEXT,
-    socials JSONB NOT NULL, -- JSONB column to store social links
+    socials JSONB, -- JSONB column to store social links (nullable)
+    style JSONB, -- JSONB column to store profile style information (nullable)
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
 
@@ -19,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.user_cards (
 
     -- JSON Schema Constraint for socials (use extensions.json_matches_schema)
     CONSTRAINT valid_socials CHECK (
-        extensions.json_matches_schema(
+        socials IS NULL OR extensions.json_matches_schema(
             '{
                 "type": "object",
                 "properties": {
@@ -47,6 +48,35 @@ CREATE TABLE IF NOT EXISTS public.user_cards (
                 "required": []
             }',
             socials
+        )
+    ),
+
+    -- JSON Schema Constraint for style (use extensions.json_matches_schema)
+    CONSTRAINT valid_style CHECK (
+        style IS NULL OR extensions.json_matches_schema(
+            '{
+                "type": "object",
+                "properties": {
+                    "colors": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^#[A-Fa-f0-9]{8}$"
+                        },
+                        "maxItems": 10
+                    },
+                    "cover": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "background": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9_-]+$"
+                    }
+                },
+                "additionalProperties": false
+            }',
+            style
         )
     )
 );
@@ -85,10 +115,12 @@ CREATE OR REPLACE FUNCTION public.handle_new_user_card()
 DECLARE
     v_bio TEXT;
     v_socials JSONB;
+    v_style JSONB;
 BEGIN
     -- Assign variables from user metadata
     v_bio := new.raw_user_meta_data->>'bio';
     v_socials := new.raw_user_meta_data->>'socials'::jsonb;
+    v_style := new.raw_user_meta_data->>'style'::jsonb;
 
     -- Validate bio (if applicable)
     IF v_bio IS NOT NULL AND
@@ -131,12 +163,43 @@ BEGIN
         RAISE EXCEPTION 'invalid_socials';
     END IF;
 
+    -- Validate the style JSON structure if it is not null
+    IF v_style IS NOT NULL AND
+       NOT extensions.json_matches_schema(
+           '{
+               "type": "object",
+               "properties": {
+                   "colors": {
+                       "type": "array",
+                       "items": {
+                           "type": "string",
+                           "pattern": "^#[A-Fa-f0-9]{8}$"
+                       },
+                       "maxItems": 10
+                   },
+                   "cover": {
+                       "type": "string",
+                       "pattern": "^[a-zA-Z0-9_-]+$"
+                   },
+                   "background": {
+                       "type": "string",
+                       "pattern": "^[a-zA-Z0-9_-]+$"
+                   }
+               },
+               "additionalProperties": false
+           }',
+           v_style
+       ) THEN
+        RAISE EXCEPTION 'invalid_style';
+    END IF;
+
     -- Insert into user_cards table
-    INSERT INTO public.user_cards (id, bio, socials)
+    INSERT INTO public.user_cards (id, bio, socials, style)
     VALUES (
         new.id,
         v_bio,
-        COALESCE(v_socials, '{}')
+        v_socials,
+        v_style
     );
 
     RETURN new;
@@ -156,10 +219,12 @@ CREATE OR REPLACE FUNCTION public.handle_user_card_update()
 DECLARE
     v_new_bio TEXT;
     v_new_socials JSONB;
+    v_new_style JSONB;
 BEGIN
-    -- Assign variables for new bio and socials
+    -- Assign variables for new bio, socials, and style
     v_new_bio := new.bio;
     v_new_socials := new.socials;
+    v_new_style := new.style;
 
     -- Validate the new bio if it is being changed
     IF v_new_bio IS DISTINCT FROM old.bio THEN
@@ -203,6 +268,38 @@ BEGIN
                v_new_socials
            ) THEN
             RAISE EXCEPTION 'invalid_socials';
+        END IF;
+    END IF;
+
+    -- Validate the new style JSON structure if it is being changed
+    IF v_new_style IS DISTINCT FROM old.style THEN
+        IF v_new_style IS NOT NULL AND
+           NOT extensions.json_matches_schema(
+               '{
+                   "type": "object",
+                   "properties": {
+                       "colors": {
+                           "type": "array",
+                           "items": {
+                               "type": "string",
+                               "pattern": "^#[A-Fa-f0-9]{8}$"
+                           },
+                           "maxItems": 10
+                       },
+                       "cover": {
+                           "type": "string",
+                           "pattern": "^[a-zA-Z0-9_-]+$"
+                       },
+                       "background": {
+                           "type": "string",
+                           "pattern": "^[a-zA-Z0-9_-]+$"
+                       }
+                   },
+                   "additionalProperties": false
+               }',
+               v_new_style
+           ) THEN
+            RAISE EXCEPTION 'invalid_style';
         END IF;
     END IF;
 
