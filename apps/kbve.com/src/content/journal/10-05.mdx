@@ -25,3 +25,21 @@ Both of these might be a security concern for now, as we could have a username s
 
 After thinking it through, I believe it would make sense to drop the "avatar_url" and the "bio" from the `user_profile` table, then lock down the whole table.
 This is just a security precaution that we want to implement right now and then come back around to making the adjustments again. 
+
+Okay! After dropping the two of them, we can go back around and update the `kilobase` class to adjust for the new schemas.
+This means that our current setup will not work at 100% typesaftey because we changed the userprofile to now only be the id, username and the last updated.
+In the future, this is where we would place the reference to any additional information that the user profile might require. 
+
+To make the SQLs a bit cleaner, I moved the three migrations into their own subfolder, `user_profiles`. This will make referencing them in the future a bit easier.
+I was thinking of also adding additional paths for referencing but this should be fine as is.
+
+**WAL**
+
+While we were playing with the postgres/supabase tables, we came across a new problem that was pretty easy to resolve.
+Our postgres default volumnes were around `2Gb` in size but with the massive WAL files, we ended up growing way too far past that!
+Furthermore these additional table changes, which have to be applied to the replica sets, caused us to blow past into nearly `3Gb` size!
+This caused our database to `crash`, well not crash in the way that it would have been a pain but rather the volume size was just way too small.
+The solution was a bit more than just expanding the storage!
+I had to go back around and pull the triggers on deleting some of our older instances of VMs, so we shall say its official, RIP Portainer and RIP Coolify.
+Both were amazing tools for our eco-system and growth, but it is time we commit fully towards the kubernetes eco-system.
+Now the next issue will be migrating the main operating systems into a read-only state but that is for another time in the future.
