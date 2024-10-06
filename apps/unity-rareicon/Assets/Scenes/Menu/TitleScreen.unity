@@ -427,6 +427,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &653918682
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 653918683}
+  - component: {fileID: 653918684}
+  m_Layer: 5
+  m_Name: ShootingStars (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &653918683
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653918682}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 100, y: 100, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1314784350}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 19, y: 19}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &653918684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653918682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5a607514b24242ce80f43465af28218, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shootingStarPrefab: {fileID: 725720393}
+  startPosition: {x: 3, y: 6, z: 0}
+  endPosition: {x: -2, y: -8, z: 0}
+  speed: 4
+  startDelay: 1
+  randomizeStart: 0
+  randomStartXRange: {x: -15, y: 15}
+  randomStartYRange: {x: 10, y: 20}
+  trajectory: 1
+  poolSize: 3
+  spawnDelay: 1
+  autoStart: 1
 --- !u!1 &708409844
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,6 +718,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1312389188
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1312389189}
+  - component: {fileID: 1312389190}
+  m_Layer: 5
+  m_Name: ShootingStars (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1312389189
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1312389188}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 100, y: 100, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1314784350}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 19, y: 19}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1312389190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1312389188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5a607514b24242ce80f43465af28218, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shootingStarPrefab: {fileID: 725720393}
+  startPosition: {x: 8, y: 6, z: 0}
+  endPosition: {x: 0, y: -8, z: 0}
+  speed: 4.93
+  startDelay: 0.5
+  randomizeStart: 0
+  randomStartXRange: {x: -15, y: 15}
+  randomStartYRange: {x: 10, y: 20}
+  trajectory: 1
+  poolSize: 3
+  spawnDelay: 1
+  autoStart: 1
 --- !u!1 &1314784346
 GameObject:
   m_ObjectHideFlags: 0
@@ -706,7 +826,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -735,7 +855,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -754,6 +874,8 @@ RectTransform:
   m_Children:
   - {fileID: 1382897831}
   - {fileID: 1330026788}
+  - {fileID: 1312389189}
+  - {fileID: 653918683}
   - {fileID: 94438626}
   - {fileID: 725720394}
   - {fileID: 708409845}
@@ -813,16 +935,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shootingStarPrefab: {fileID: 725720393}
-  startPosition: {x: 8, y: 6, z: 0}
-  endPosition: {x: -8, y: -6, z: 0}
-  speed: 4.93
-  startDelay: 0.5
+  startPosition: {x: -4, y: 6, z: 0}
+  endPosition: {x: 0, y: -8, z: 0}
+  speed: 4.4
+  startDelay: 2
   randomizeStart: 0
   randomStartXRange: {x: -15, y: 15}
   randomStartYRange: {x: 10, y: 20}
-  trajectory: 0
-  poolSize: 10
-  spawnDelay: 2
+  trajectory: 1
+  poolSize: 3
+  spawnDelay: 1
   autoStart: 1
 --- !u!1 &1382897830
 GameObject:
@@ -851,7 +973,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 250, y: 250, z: 1}
+  m_LocalScale: {x: 300, y: 300, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1314784350}
