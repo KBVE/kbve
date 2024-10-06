@@ -145,8 +145,8 @@ Transform:
   m_GameObject: {fileID: 94438625}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -294, y: -187.5, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 125, y: 50, z: 0}
+  m_LocalScale: {x: 100, y: 100, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1314784350}
@@ -518,8 +518,8 @@ Transform:
   m_GameObject: {fileID: 725720393}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -294, y: -187.5, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 321, y: 220, z: 0}
+  m_LocalScale: {x: 100, y: 100, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1314784350}
@@ -790,14 +790,14 @@ RectTransform:
   m_GameObject: {fileID: 1330026787}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 100, y: 100, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1314784350}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 19, y: 19}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1330026789
@@ -812,18 +812,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c434f38c979b843a78c58de59ddad838, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startPosition: {x: 0, y: 0, z: 0}
-  endPosition: {x: 0, y: 0, z: 0}
+  startPosition: {x: 9, y: 6, z: 0}
+  endPosition: {x: -9, y: -6, z: 0}
   speed: 5
-  startDelay: 0
+  startDelay: 1
   particleEffect: {fileID: 0}
   trailEffect: {fileID: 0}
   pixelArtObject: {fileID: 725720393}
-  randomizeStart: 1
-  randomStartXRange: {x: -15, y: 15}
+  randomizeStart: 0
+  randomStartXRange: {x: 8, y: 10}
   randomStartYRange: {x: 10, y: 20}
   trajectory: 0
   autoStart: 1
+  sortingLayerID: 0
+  sortingOrder: 1
 --- !u!1 &1382897830
 GameObject:
   m_ObjectHideFlags: 0

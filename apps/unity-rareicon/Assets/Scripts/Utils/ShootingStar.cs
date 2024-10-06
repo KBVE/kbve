@@ -53,6 +53,10 @@ namespace Utils
         // Flag to automatically start the movement
         [SerializeField] private bool autoStart = true;
 
+        // Layer and sorting order for rendering the shooting star
+        [SerializeField] private int sortingLayerID = 0; // Default layer ID
+        [SerializeField] private int sortingOrder = 0;   // Default sorting order
+
         // Reference to the object's initial position for reusability
         private Vector3 initialPosition;
 
@@ -64,6 +68,9 @@ namespace Utils
             // Initialize position and effects
             initialPosition = startPosition;
             transform.position = startPosition;
+
+            // Set layer and sorting order for the pixel art and particle components
+            SetLayerAndSortingOrder();
 
             // Set up the pixel art GameObject and particle effects
             if (pixelArtObject != null)
@@ -78,6 +85,41 @@ namespace Utils
             if (autoStart)
             {
                 StartShootingStarEffectAsync().Forget();
+            }
+        }
+
+        /// <summary>
+        /// Sets the layer and sorting order for the pixel art and particle effects.
+        /// </summary>
+        private void SetLayerAndSortingOrder()
+        {
+            // Set sorting layer and order for the pixel art object
+            if (pixelArtObject != null)
+            {
+                SpriteRenderer spriteRenderer = pixelArtObject.GetComponent<SpriteRenderer>();
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.sortingLayerID = sortingLayerID;
+                    spriteRenderer.sortingOrder = sortingOrder;
+                }
+            }
+
+            // Set sorting order for particle system
+            if (particleEffect != null)
+            {
+                Renderer particleRenderer = particleEffect.GetComponent<Renderer>();
+                if (particleRenderer != null)
+                {
+                    particleRenderer.sortingLayerID = sortingLayerID;
+                    particleRenderer.sortingOrder = sortingOrder;
+                }
+            }
+
+            // Set sorting order for trail renderer
+            if (trailEffect != null)
+            {
+                trailEffect.sortingLayerID = sortingLayerID;
+                trailEffect.sortingOrder = sortingOrder;
             }
         }
 
@@ -165,35 +207,6 @@ namespace Utils
         }
 
         /// <summary>
-        /// Move the object with a parabolic trajectory, including the pixel art GameObject.
-        /// </summary>
-        private async UniTask MoveWithParabolicTrajectoryAsync(Vector3 start, Vector3 end, float moveSpeed)
-        {
-            float duration = Vector3.Distance(start, end) / moveSpeed;
-            float elapsedTime = 0f;
-
-            while (elapsedTime < duration)
-            {
-                float t = elapsedTime / duration;
-                float height = Mathf.Sin(t * Mathf.PI); // Use a sine function to simulate a parabolic arc
-
-                Vector3 newPosition = Vector3.Lerp(start, end, t) + new Vector3(0, height * 5, 0);
-                transform.position = newPosition;
-
-                // Update pixel art object position
-                if (pixelArtObject != null)
-                    pixelArtObject.transform.position = newPosition;
-
-                elapsedTime += Time.deltaTime;
-                await UniTask.Yield();
-            }
-
-            transform.position = end;
-            if (pixelArtObject != null)
-                pixelArtObject.transform.position = end;
-        }
-
-        /// <summary>
         /// Move the object in a curved trajectory, including the pixel art GameObject.
         /// </summary>
         private async UniTask MoveWithCurveAsync(Vector3 start, Vector3 end, float moveSpeed)
@@ -209,6 +222,36 @@ namespace Utils
                 float t = elapsedTime / duration;
                 Vector3 newPosition = (1 - t) * (1 - t) * start + 2 * (1 - t) * t * controlPoint + t * t * end;
 
+                transform.position = newPosition;
+
+                // Update pixel art object position
+                if (pixelArtObject != null)
+                    pixelArtObject.transform.position = newPosition;
+
+                elapsedTime += Time.deltaTime;
+
+                await UniTask.Yield();
+            }
+
+            transform.position = end;
+            if (pixelArtObject != null)
+                pixelArtObject.transform.position = end;
+        }
+
+        /// <summary>
+        /// Move the object with a parabolic trajectory, including the pixel art GameObject.
+        /// </summary>
+        private async UniTask MoveWithParabolicTrajectoryAsync(Vector3 start, Vector3 end, float moveSpeed)
+        {
+            float duration = Vector3.Distance(start, end) / moveSpeed;
+            float elapsedTime = 0f;
+
+            while (elapsedTime < duration)
+            {
+                float t = elapsedTime / duration;
+                float height = Mathf.Sin(t * Mathf.PI); // Use a sine function to simulate a parabolic arc
+
+                Vector3 newPosition = Vector3.Lerp(start, end, t) + new Vector3(0, height * 5, 0);
                 transform.position = newPosition;
 
                 // Update pixel art object position
