@@ -19,9 +19,9 @@ CREATE TABLE IF NOT EXISTS public.user_cards (
     CONSTRAINT bio_length CHECK (char_length(bio) <= 255), -- Limit bio length to 255 characters
     CONSTRAINT bio_format CHECK (bio ~ '^[a-zA-Z0-9.!? ]*$'), -- Allow alphanumeric characters, spaces, and basic punctuation
 
-    -- JSON Schema Constraint for socials (use extensions.json_matches_schema)
+    -- JSON Schema Constraint for socials (use extensions.jsonb_matches_schema)
     CONSTRAINT valid_socials CHECK (
-        socials IS NULL OR extensions.json_matches_schema(
+        socials IS NULL OR extensions.jsonb_matches_schema(
             '{
                 "type": "object",
                 "properties": {
@@ -52,9 +52,9 @@ CREATE TABLE IF NOT EXISTS public.user_cards (
         )
     ),
 
-    -- JSON Schema Constraint for style (use extensions.json_matches_schema)
+    -- JSON Schema Constraint for style (use extensions.jsonb_matches_schema)
     CONSTRAINT valid_style CHECK (
-        style IS NULL OR extensions.json_matches_schema(
+        style IS NULL OR extensions.jsonb_matches_schema(
             '{
                 "type": "object",
                 "properties": {
@@ -110,7 +110,7 @@ CREATE TRIGGER handle_user_cards_update
     FOR EACH ROW
     EXECUTE PROCEDURE moddatetime(updated_at);
 
--- Create a function to handle new user_card creation and validation
+-- Create the function to handle new user_card creation and validation
 CREATE OR REPLACE FUNCTION public.handle_new_user_card()
     RETURNS TRIGGER AS $$
 DECLARE
@@ -134,7 +134,7 @@ BEGIN
 
     -- Validate the socials JSON structure if it is not null
     IF v_socials IS NOT NULL AND
-       NOT extensions.json_matches_schema(
+       NOT extensions.jsonb_matches_schema(
            '{
                "type": "object",
                "properties": {
@@ -168,7 +168,7 @@ BEGIN
 
     -- Validate the style JSON structure if it is not null
     IF v_style IS NOT NULL AND
-       NOT extensions.json_matches_schema(
+       NOT extensions.jsonb_matches_schema(
            '{
                "type": "object",
                "properties": {
@@ -210,14 +210,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create the trigger to handle new user_card creation when a new user is created in auth.users
+-- Create the trigger to handle new user_card creation when a new user is created in public.user_profiles
 DROP TRIGGER IF EXISTS on_user_profiles_created ON public.user_profiles;
 CREATE TRIGGER on_user_profiles_created
     AFTER INSERT ON public.user_profiles
     FOR EACH ROW
     EXECUTE PROCEDURE public.handle_new_user_card();
 
--- Create a function to handle user_card updates and validation
+-- Create the function to handle user_card updates and validation
 CREATE OR REPLACE FUNCTION public.handle_user_card_update()
     RETURNS TRIGGER AS $$
 DECLARE
@@ -242,7 +242,7 @@ BEGIN
     -- Validate the new socials JSON structure if it is being changed
     IF v_new_socials IS DISTINCT FROM old.socials THEN
         IF v_new_socials IS NOT NULL AND
-           NOT extensions.json_matches_schema(
+           NOT extensions.jsonb_matches_schema(
                '{
                    "type": "object",
                    "properties": {
@@ -278,7 +278,7 @@ BEGIN
     -- Validate the new style JSON structure if it is being changed
     IF v_new_style IS DISTINCT FROM old.style THEN
         IF v_new_style IS NOT NULL AND
-           NOT extensions.json_matches_schema(
+           NOT extensions.jsonb_matches_schema(
                '{
                    "type": "object",
                    "properties": {
@@ -331,7 +331,6 @@ FROM public.user_cards;
 
 -- Create an index on the materialized view after it has been populated.
 CREATE INDEX IF NOT EXISTS idx_user_cards_username ON public.user_cards_public(username);
-
 
 -- [END] - Setup user_cards table, policies, and materialized view
 
