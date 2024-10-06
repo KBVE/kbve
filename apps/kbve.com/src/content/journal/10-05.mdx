@@ -67,3 +67,48 @@ This is what made me realize why services like RDS and managed postgres instance
 While programming tonight, the jams will be just straight bonobo.
 We are going through a couple of his boiler room sets and his Royal UK concerts too.
 His music just hits the perfect spot when doing postgres work, that and 80s japanese music blended into hiphop.
+
+**JSONB**
+
+Okay! We are a step closer with building our own public facing profiles aka user cards.
+We got the table setup and its under the `enable_user_cards.sql`.
+
+We also have two more queries to run to help stablize the user cards.
+
+The first is to give all the older users a user_card row.
+
+```sql
+
+-- Insert into user_cards for existing users in user_profiles that do not have a user_card yet
+INSERT INTO public.user_cards (id, username, bio, socials, style)
+SELECT 
+    id,
+    username,
+    NULL,         -- Default bio value, can be adjusted as needed
+    NULL,         -- Default socials value, can be adjusted as needed
+    NULL          -- Default style value, can be adjusted as needed
+FROM public.user_profiles
+WHERE id NOT IN (SELECT id FROM public.user_cards);
+
+```
+
+Then there is the materialized view refresh:
+
+```sql 
+
+REFRESH MATERIALIZED VIEW public.user_cards_public;
+
+```
+Under the `sync_user_cards_mat_views.sql`, we have a bit cleaner and safer method:
+
+```sql
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_matviews WHERE matviewname = 'user_cards_public') THEN
+        REFRESH MATERIALIZED VIEW public.user_cards_public;
+    END IF;
+END $$;
+
+
+```
