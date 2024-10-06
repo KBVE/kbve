@@ -1,5 +1,6 @@
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using Utils; // Import the Utils namespace to access the Parallax component
 
 namespace KBVE
 {
@@ -14,6 +15,9 @@ namespace KBVE
 
         // State machine to handle game state transitions
         private StateMachine stateMachine;
+
+        // Reference to the Parallax component in the scene
+        // private Parallax parallaxController;
 
         /// <summary>
         /// Initialize the GameManager instance and configure game state and events.
@@ -35,13 +39,22 @@ namespace KBVE
             // Initialize the state machine with a starting state
             stateMachine = new StateMachine(GameState.MainMenu);
 
-            // Subscribe to state change events
+            // Subscribe to state change events and link them to the appropriate methods
             GlobalEvents.Subscribe(EventFlag.OnMainMenu, async _ => await OnMainMenuStateEntered());
             GlobalEvents.Subscribe(EventFlag.OnPlaying, async _ => await OnPlayingStateEntered());
             GlobalEvents.Subscribe(EventFlag.OnPaused, async _ => await OnPausedStateEntered());
             GlobalEvents.Subscribe(EventFlag.OnGameOver, async _ => await OnGameOverStateEntered());
 
-            // Trigger the initial state
+            // Attempt to find the Parallax component in the scene
+            // Replacing -> parallaxController = FindObjectOfType<Parallax>();
+            // parallaxController = Object.FindFirstObjectByType<Parallax>();
+
+            // if (parallaxController == null)
+            // {
+            //     Debug.LogWarning("No Parallax component found in the scene. Ensure you have a GameObject with the Parallax component attached.");
+            // }
+
+            // Trigger the initial state (MainMenu)
             GlobalEvents.TriggerEventsAsync(EventFlag.OnMainMenu).Forget();
         }
 
@@ -51,7 +64,14 @@ namespace KBVE
         private async UniTask OnMainMenuStateEntered()
         {
             Debug.Log("Entered Main Menu state.");
-            // Additional logic for entering Main Menu state
+
+            // Start the parallax effect if the Parallax component is available
+            // if (parallaxController != null)
+            // {
+            //     await parallaxController.StartParallaxIfNotStartedAsync();
+            // }
+
+            // Additional logic for entering Main Menu state can go here
             await UniTask.CompletedTask;
         }
 
@@ -61,7 +81,8 @@ namespace KBVE
         private async UniTask OnPlayingStateEntered()
         {
             Debug.Log("Entered Playing state.");
-            // Additional logic for entering Playing state
+            // Stop or adjust parallax if needed for Playing state
+            // Add additional logic for entering Playing state
             await UniTask.CompletedTask;
         }
 
@@ -71,7 +92,7 @@ namespace KBVE
         private async UniTask OnPausedStateEntered()
         {
             Debug.Log("Entered Paused state.");
-            // Additional logic for entering Paused state
+            // Optionally pause parallax or animations
             await UniTask.CompletedTask;
         }
 
@@ -81,7 +102,7 @@ namespace KBVE
         private async UniTask OnGameOverStateEntered()
         {
             Debug.Log("Entered Game Over state.");
-            // Additional logic for entering Game Over state
+            // Optionally stop or reset parallax for Game Over state
             await UniTask.CompletedTask;
         }
 
