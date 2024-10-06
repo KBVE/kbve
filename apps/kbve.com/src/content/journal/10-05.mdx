@@ -1,0 +1,27 @@
+---
+title: 'October: 5th'
+category: Daily
+date: 2024-10-05 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 5th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Avatar**
+
+For safety reasons and logistics, I am going to just remove the ability to let users upload or reference avatars for now.
+I believe the best solution will be to integrate the discord application and use that as a reference to their avatar or maybe do it via github and their profile picture.
+This would remove the burden on us to store and fetch the avatar image! Moving it to the imgur, discord, github, ect.. whatever server that we can integrate into the system.
+
+Thus the avatar_url part of the table needs to be deleted and furthermore, we could also remove the ability for the user to change their username.
+Both of these might be a security concern for now, as we could have a username squating.
+
+After thinking it through, I believe it would make sense to drop the "avatar_url" and the "bio" from the `user_profile` table, then lock down the whole table.
+This is just a security precaution that we want to implement right now and then come back around to making the adjustments again. 
