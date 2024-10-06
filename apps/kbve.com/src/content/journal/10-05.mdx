@@ -43,3 +43,27 @@ The solution was a bit more than just expanding the storage!
 I had to go back around and pull the triggers on deleting some of our older instances of VMs, so we shall say its official, RIP Portainer and RIP Coolify.
 Both were amazing tools for our eco-system and growth, but it is time we commit fully towards the kubernetes eco-system.
 Now the next issue will be migrating the main operating systems into a read-only state but that is for another time in the future.
+
+**SQL**
+
+The SQL file management and migration is a bit disorganized and we might need to find a better way to handle it.
+I am currently thinking creating more subfolders inside of the `sql` folder, then moving the different sql files into the right locations.
+Furthermore, we will have to add deprecation tags to the older sql files, including those for mysql / planetscale, since we migrated out of that system.
+
+
+**Backup**
+
+After the WAL issue earlier this morning, I timed my ability to resolve it.
+It took about 46mins from crash to production, including figuring out what caused the crash.
+I am hoping that this gives me the experience that I would need in future jobs but also building out a bunch of possible test cases would make sense.
+These are things thats that I should keep noted and plan around, but the lack of resources does make this harder.
+For example, if we want to do a live migration from Cluster A to Cluser B to Cluster C, ugh, we would need all three clusters to be operational and we just do not have the resources to currently do that.
+I am looking into ways we could achieve this but at the scale we are operating at, it just would not be possible.
+This is what made me realize why services like RDS and managed postgres instances exist for, the fact that you need to have so much extra resources to do live cluster migration is insane.
+
+
+**Bonobo**
+
+While programming tonight, the jams will be just straight bonobo.
+We are going through a couple of his boiler room sets and his Royal UK concerts too.
+His music just hits the perfect spot when doing postgres work, that and 80s japanese music blended into hiphop.
