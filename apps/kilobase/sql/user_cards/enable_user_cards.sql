@@ -1,13 +1,14 @@
 BEGIN;
 
--- [START] - Setup user_cards table and policies
+-- [START] - Setup user_cards table with reference to username and policies
 
 -- Ensure the pg_jsonschema extension is enabled in the extensions schema
 CREATE EXTENSION IF NOT EXISTS pg_jsonschema WITH SCHEMA extensions;
 
--- Create the table for public.user_cards
+-- Create the table for public.user_cards with a username reference
 CREATE TABLE IF NOT EXISTS public.user_cards (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    username TEXT REFERENCES public.user_profiles(username) ON DELETE CASCADE, -- Reference to username in user_profiles
     bio TEXT,
     socials JSONB, -- JSONB column to store social links (nullable)
     style JSONB, -- JSONB column to store profile style information (nullable)
@@ -85,11 +86,6 @@ CREATE TABLE IF NOT EXISTS public.user_cards (
 ALTER TABLE public.user_cards ENABLE ROW LEVEL SECURITY;
 
 -- Policies
--- Allow everyone to view public user_cards
-DROP POLICY IF EXISTS "Public user_cards are viewable by everyone." ON public.user_cards;
-CREATE POLICY "Public user_cards are viewable by everyone." ON public.user_cards
-    FOR SELECT USING (true);
-
 -- Allow authenticated users to insert their own user_card
 DROP POLICY IF EXISTS "Users can insert their own user_card." ON public.user_cards;
 CREATE POLICY "Users can insert their own user_card." ON public.user_cards
@@ -99,6 +95,11 @@ CREATE POLICY "Users can insert their own user_card." ON public.user_cards
 DROP POLICY IF EXISTS "Users can update their own user_card." ON public.user_cards;
 CREATE POLICY "Users can update their own user_card." ON public.user_cards
     FOR UPDATE USING ((SELECT auth.uid()) = id);
+
+-- Restrict SELECT access on user_cards to only the user
+DROP POLICY IF EXISTS "Users can view their own user_card." ON public.user_cards;
+CREATE POLICY "Users can view their own user_card." ON public.user_cards
+    FOR SELECT USING ((SELECT auth.uid()) = id);
 
 -- Drop the existing triggers if they exist
 DROP TRIGGER IF EXISTS handle_user_cards_update ON public.user_cards;
@@ -116,11 +117,13 @@ DECLARE
     v_bio TEXT;
     v_socials JSONB;
     v_style JSONB;
+    v_username TEXT;
 BEGIN
-    -- Assign variables from user metadata
+    -- Assign variables from user metadata and user_profiles
     v_bio := new.raw_user_meta_data->>'bio';
     v_socials := new.raw_user_meta_data->>'socials'::jsonb;
     v_style := new.raw_user_meta_data->>'style'::jsonb;
+    v_username := (SELECT username FROM public.user_profiles WHERE id = new.id);
 
     -- Validate bio (if applicable)
     IF v_bio IS NOT NULL AND
@@ -194,9 +197,10 @@ BEGIN
     END IF;
 
     -- Insert into user_cards table
-    INSERT INTO public.user_cards (id, bio, socials, style)
+    INSERT INTO public.user_cards (id, username, bio, socials, style)
     VALUES (
         new.id,
+        v_username,
         v_bio,
         v_socials,
         v_style
@@ -314,6 +318,17 @@ CREATE TRIGGER handle_user_card_update
     FOR EACH ROW
     EXECUTE PROCEDURE public.handle_user_card_update();
 
--- [END] - Setup user_cards table and policies
+-- Create a materialized view for public access without UUID
+CREATE MATERIALIZED VIEW public.user_cards_public AS
+SELECT
+    username,
+    bio,
+    socials,
+    style,
+    created_at,
+    updated_at
+FROM public.user_cards;
+
+-- [END] - Setup user_cards table, policies, and materialized view
 
 COMMIT;
