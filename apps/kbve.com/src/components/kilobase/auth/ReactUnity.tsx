@@ -25,6 +25,7 @@ const ReactUnity: React.FC = () => {
 	const [isSignedIn, setIsSignedIn] = useState(false); // Track the user's sign-in state
 	const [error, setError] = useState<string | null>(null); // Track any errors
 	const [formData, setFormData] = useState<FormData>({ email: '', password: '' }); // Consolidated form state
+    const [formVisible, setFormVisible] = useState(false); // Track form visibility state.
 
 	// Function to handle input changes
 	const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -101,6 +102,25 @@ const ReactUnity: React.FC = () => {
 		handleSignIn();
 	};
 
+    // Remove the skeleton loader and fade in the form once the component mounts
+	useEffect(() => {
+		const skeletonElement = document.getElementById('skeleton');
+		if (skeletonElement) {
+			// Apply fade-out class to skeleton loader
+			skeletonElement.style.transition = 'opacity 0.5s ease-out';
+			skeletonElement.style.opacity = '0';
+
+			// Set a timeout to remove the element from the DOM after the fade-out
+			setTimeout(() => {
+				skeletonElement.remove();
+				setFormVisible(true); // Show the form after the skeleton is removed
+			}, 500); // Match the duration of the fade-out transition
+		} else {
+			// If no skeleton is found, immediately show the form
+			setFormVisible(true);
+		}
+	}, []);
+
 	// Setup Unity message listener
 	useEffect(() => {
 		const messageListener = (event: any) => {
@@ -159,31 +179,37 @@ const ReactUnity: React.FC = () => {
 					</button>
 				</div>
 			) : (
-				<form className="w-full max-w-sm" onSubmit={handleFormSubmit}>
-					<h2 className="text-xl mb-4">Sign In</h2>
+                <div className={`p-4 bg-yellow-50/60 dark:bg-neutral-900 rounded-xl`}>
+				<form
+					className={`w-full max-w-sm transition-opacity duration-500 ${
+						formVisible ? 'opacity-100' : 'opacity-0'
+					}`}
+					onSubmit={handleFormSubmit}
+				>
+					<h2 className="text-xl mb-4 text-neutral-600 dark:text-neutral-100">Sign In</h2>
 					<div className="mb-4">
-						<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-							Email
+						<label className="block text-neutral-500 dark:text-neutral-300 text-sm font-bold mb-2" htmlFor="email">
+							Email:
 						</label>
 						<input
 							type="email"
 							id="email"
 							name="email"
-							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
 							value={formData.email}
 							onChange={handleInputChange}
 							required
 						/>
 					</div>
 					<div className="mb-4">
-						<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-							Password
+						<label className="block text-neutral-500 dark:text-neutral-300 text-sm font-bold mb-2" htmlFor="password">
+							Password:
 						</label>
 						<input
 							type="password"
 							id="password"
 							name="password"
-							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
 							value={formData.password}
 							onChange={handleInputChange}
 							required
@@ -191,12 +217,13 @@ const ReactUnity: React.FC = () => {
 					</div>
 					<button
 						type="submit"
-						className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
+						className="w-full bg-cyan-500 text-white py-2 rounded hover:bg-cyan-600 transition"
 					>
 						Sign In
 					</button>
 					{error && <p className="text-red-500 mt-4">{error}</p>}
 				</form>
+                </div>
 			)}
 		</div>
 	);

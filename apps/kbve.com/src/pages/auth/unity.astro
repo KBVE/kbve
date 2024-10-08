@@ -1,7 +1,7 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import { SITE } from '../../data_files/constants';
-
+import ReactUnity from '../../components/kilobase/auth/ReactUnity';
 
 const pageTitle: string = `Unity Auth | ${SITE.title}`;
 const pageDescription: string = `Unity Auth | KBVE.com`;
@@ -38,7 +38,7 @@ const pageDescription: string = `Unity Auth | KBVE.com`;
 
 		<!-- Form component positioned relative to the loader -->
 		<div class="relative z-10">
-			
+			<ReactUnity client:only="react" />
 		</div>
 	</div>
 </MainLayout>
