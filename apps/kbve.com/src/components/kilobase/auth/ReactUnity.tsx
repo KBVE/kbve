@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
+import React, { useEffect, useState, useRef, ChangeEvent, FormEvent } from 'react';
 import { kilobase, eventEmitterInstance, ClientSideRegex, KiloBaseState } from '@kbve/laser';
 
 interface FormData {
@@ -18,6 +18,8 @@ declare global {
 	}
 }
 
+declare var hcaptcha: any;
+
 const ReactUnity: React.FC = () => {
 	const [isSignedIn, setIsSignedIn] = useState(false); // Track the user's sign-in state
 	const [error, setError] = useState<string | null>(null); // Track any errors
@@ -25,6 +27,8 @@ const ReactUnity: React.FC = () => {
 	const [formData, setFormData] = useState<FormData>({ email: '', password: '' }); // Consolidated form state
 	const [formVisible, setFormVisible] = useState(false); // Track form visibility state
 	const [captchaLoaded, setCaptchaLoaded] = useState(false); // Track if captcha is loaded
+    const captchaWidgetIdRef = useRef<number | null>(null); // Store widget ID in useRef
+
 
 	// Function to handle input changes
 	const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -52,14 +56,20 @@ const ReactUnity: React.FC = () => {
 			setCaptchaToken(token); // Store the token in state
 		};
 
-		(window as any).onError = () => {
-			setError('Captcha Error: Please try again.');
-		};
+        (window as any).onError = () => {
+            setError('Captcha Error: Please try again.');
+            if (captchaWidgetIdRef.current !== null) {
+              window.hcaptcha.reset(captchaWidgetIdRef.current); // Reset using the ref
+            }
+          };
 
-		(window as any).onExpired = () => {
-			setCaptchaToken(null); // Reset token when expired
-			setError('Captcha expired: Please complete the captcha again.');
-		};
+          (window as any).onExpired = () => {
+            setCaptchaToken(null);
+            setError('Captcha expired: Please complete the captcha again.');
+            if (captchaWidgetIdRef.current !== null) {
+              window.hcaptcha.reset(captchaWidgetIdRef.current); // Reset using the ref
+            }
+          };
 
 		// Clean up on component unmount
 		return () => {
@@ -68,20 +78,23 @@ const ReactUnity: React.FC = () => {
 			(window as any).onError = undefined;
 			(window as any).onExpired = undefined;
 			document.body.removeChild(script);
+            captchaWidgetIdRef.current = null; // Clear the widget ID on unmount
+
 		};
 	}, []);
 
 	// Render the hCaptcha widget once it is loaded
-	useEffect(() => {
-		if (captchaLoaded && window.hcaptcha) {
-			window.hcaptcha.render('h-captcha', {
-				sitekey: KiloBaseState.get().hcaptcha, // Replace with your hCaptcha site key
-				callback: 'onSuccess', // Function to call when captcha is successfully completed
-				'expired-callback': 'onExpired', // Function to call when captcha expires
-				'error-callback': 'onError', // Function to call when there's an error
-			});
-		}
-	}, [captchaLoaded]);
+    useEffect(() => {
+        if (captchaLoaded && window.hcaptcha) {
+          const widgetId = window.hcaptcha.render('h-captcha', {
+            sitekey: KiloBaseState.get().hcaptcha,
+            callback: 'onSuccess',
+            'expired-callback': 'onExpired',
+            'error-callback': 'onError',
+          });
+          captchaWidgetIdRef.current = widgetId; // Store the widget ID in useRef
+        }
+      }, [captchaLoaded]);
 
 	// Remove the skeleton loader and fade in the form once the component mounts
 	useEffect(() => {
@@ -102,10 +115,14 @@ const ReactUnity: React.FC = () => {
 	const handleSignIn = async () => {
 		setError(null);
 
-		if (!captchaToken) {
-			setError('Please complete the captcha.');
-			return;
-		}
+        if (!captchaToken) {
+            setError('Please complete the captcha.');
+            if (captchaWidgetIdRef.current !== null) {
+              window.hcaptcha.reset(captchaWidgetIdRef.current); // Use the useRef value to reset
+            }
+            return;
+        }
+        
 
 		// Create a unique actionId for tracking this login attempt
 		const actionId = await kilobase.createActionULID('loginUser');
@@ -131,10 +148,16 @@ const ReactUnity: React.FC = () => {
 				// Get the detailed error message for this actionId
 				const detailedError = await kilobase.getDetailedErrorByActionId(actionId);
 				setError(detailedError || 'Failed to log in. Please try again.');
+                if (captchaWidgetIdRef.current !== null) {
+                    window.hcaptcha.reset(captchaWidgetIdRef.current); // Use the useRef value to reset
+                  }
 			}
 		} catch (err) {
 			console.error('Sign-in failed:', err);
 			setError('An error occurred during sign-in. Please try again.');
+            if (captchaWidgetIdRef.current !== null) {
+                window.hcaptcha.reset(captchaWidgetIdRef.current); // Use the useRef value to reset
+              }
 		}
 	};
 
