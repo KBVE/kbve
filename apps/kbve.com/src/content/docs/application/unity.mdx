@@ -415,6 +415,97 @@ The plugin's official [repo for Hey Area Object Spawner](https://github.com/Jahn
 -   Interpol between Javascript and Unity through JINT
 -   This plugin is not open source but rather a private engine.
 
+<Aside>
+
+Remember to follow the guide for the specific version of OneJS that you are planning to use!
+We do not have the up-to-date and extact install guide, because of the difference between v1 and v2.
+Furthermore, there are a couple different engines that you might be using.
+
+</Aside>
+
+There are three core tasks that we will need for the `OneJS` and they handle the typescript, bundling and tailwindcss generation.
+Below are the `tasks.json` for `.vscode` folder:
+
+```json
+
+{
+	"version": "2.0.0",
+	"tasks": [
+	  {
+		"label": "tsc: watch - App/tsconfig.json",
+		"type": "shell",
+		"command": "npx",
+		"args": [
+		  "tsc",
+		  "-p",
+		  "tsconfig.json",
+		  "--watch"
+		],
+		"group": "build",
+		"problemMatcher": [
+		  "$tsc-watch"
+		],
+		"isBackground": true,
+		"options": {
+		  "cwd": "${workspaceFolder}/App"
+		}
+	  },
+	  {
+		"label": "esbuild: watch",
+		"type": "shell",
+		"command": "node",
+		"args": [
+		  "esbuild.mjs",
+		  "--watch"
+		],
+		"group": "build",
+		"problemMatcher": [],
+		"isBackground": true,
+		"options": {
+		  "cwd": "${workspaceFolder}/App"
+		}
+	  },
+	  {
+		"label": "postcss: watch",
+		"type": "shell",
+		"command": "npx",
+		"args": [
+		  "postcss",
+		  "input.css",
+		  "-o",
+		  "../Assets/tailwind.uss",
+		  "--watch"
+		],
+		"group": "build",
+		"problemMatcher": [],
+		"isBackground": true,
+		"options": {
+		  "cwd": "${workspaceFolder}/App"
+		}
+	  },
+	  {
+		"label": "build: all",
+		"dependsOn": [
+		  "tsc: watch - App/tsconfig.json",
+		  "esbuild: watch",
+		  "postcss: watch"
+		],
+		"problemMatcher": [],
+		"group": {
+		  "kind": "build",
+		  "isDefault": true
+		}
+	  }
+	]
+  }
+  
+```
+
+If the project is stored in a monorepo, then adjust the `cwd` under `options` to fix the pathing for the commands.
+
+Under some situations, you might have to add an anti-strip pattern to your `link.xml`.
+We can update these docs a bit more after the release of Unity 6.
+
 ### React
 
 -   For React and Unity integration, we recommend going to our [React](https://kbve.com/application/javascript/#react) application page.

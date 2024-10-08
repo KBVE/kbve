@@ -34,8 +34,7 @@ const defaultProfile: UserProfile = {
 	email: '',
 	updatedAt: new Date(),
 	fullName: 'Guest',
-	username: 'Guest',
-	bio: '',
+	username: 'Guest'
 };
 
 // Nanostores for managing profile state
@@ -425,7 +424,7 @@ export class Kilobase extends Dexie {
 			// Step 2: Query the user profile from the public.user_profiles table
 			const { data: profileData, error: profileError } = await supabase
 				.from('user_profiles')
-				.select('id, username, avatar_url, updated_at, bio')
+				.select('id, username, updated_at')
 				.eq('id', user.id)
 				.single();
 
@@ -447,8 +446,6 @@ export class Kilobase extends Dexie {
 					email: user.email || '', // Use the email from the authenticated user object
 					username: profileData.username || undefined,
 					fullName: user.user_metadata?.['full_name'] || undefined, // Use the full_name from user metadata if available
-					avatar_url: profileData.avatar_url || undefined, // Include the avatar URL from the profile data
-					bio: profileData.bio || undefined,
 					updatedAt: new Date(profileData.updated_at),
 				};
 

@@ -17,13 +17,13 @@ alter table user_settings
     enable row level security;
 
 create policy "User can view own settings" on user_settings
-    for select using (auth.uid() = id);
+    for select using ((select auth.uid()) = id);
 
 create policy "User can update own settings" on user_settings
-    for update using (auth.uid() = id);
+    for update using ((select auth.uid()) = id);
 
 create policy "User can insert own settings" on user_settings
-    for insert with check (auth.uid() = id);
+    for insert with check ((select auth.uid()) = id);
 
 -- Create a table for public ledgers
 

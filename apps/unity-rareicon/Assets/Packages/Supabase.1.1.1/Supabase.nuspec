@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Supabase</id>
+    <version>1.1.1</version>
+    <title>Supabase</title>
+    <authors>Joseph Schultz &lt;joseph@acupofjose.com&gt;</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>icon.png</icon>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/supabase-community/supabase-csharp</projectUrl>
+    <description>A C# implementation of the Supabase client</description>
+    <copyright>MIT</copyright>
+    <tags>supabase</tags>
+    <repository type="git" url="https://github.com/supabase-community/supabase-csharp" commit="f37fef770d3f281e6adea74382a4144c0f4964a1" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Newtonsoft.Json" version="13.0.3" exclude="Build,Analyzers" />
+        <dependency id="Supabase.Core" version="1.0.0" exclude="Build,Analyzers" />
+        <dependency id="Supabase.Functions" version="2.0.0" exclude="Build,Analyzers" />
+        <dependency id="Supabase.Gotrue" version="6.0.3" exclude="Build,Analyzers" />
+        <dependency id="Supabase.Postgrest" version="4.0.3" exclude="Build,Analyzers" />
+        <dependency id="Supabase.Realtime" version="7.0.2" exclude="Build,Analyzers" />
+        <dependency id="Supabase.Storage" version="2.0.2" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

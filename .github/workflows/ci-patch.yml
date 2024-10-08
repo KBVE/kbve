@@ -12,6 +12,7 @@ on:
 jobs:
   handle:
     runs-on: ubuntu-latest
+    if: github.repository == 'kbve/kbve'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +29,7 @@ jobs:
           echo "commits=$commits" >> $GITHUB_OUTPUT
 
   create_pr:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.repository == 'kbve/kbve'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -54,14 +55,41 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      # - name: Install dependencies
+      #   run: |
+      #     npm install @kbve/devops --legacy-peer-deps
+
+      # - name: Call Process and Update PR Function
+      #   uses: actions/github-script@v7
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     script: |
+      #       const { _$gha_processAndUpdatePR } = require('@kbve/devops');
+      #       const branchToCompare = 'dev';
+      #       await _$gha_processAndUpdatePR(branchToCompare, github, context);
+
+            # Install @kbve/devops outside of the monorepo
+      - name: Create temp directory and install @kbve/devops
         run: |
+          # Create a temporary directory outside the repository
+          mkdir -p /tmp/devops-temp
+          
+          # Navigate to the temporary directory
+          cd /tmp/devops-temp
+
+          # Install the @kbve/devops package separately
           npm install @kbve/devops --legacy-peer-deps
 
+          # Verify the installation
+          ls node_modules/@kbve/devops
+
+      # Use the installed @kbve/devops package in the subsequent steps
       - name: Call Process and Update PR Function
         uses: actions/github-script@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_PATH: /tmp/devops-temp/node_modules  # Set NODE_PATH to the temporary directory
         with:
           script: |
             const { _$gha_processAndUpdatePR } = require('@kbve/devops');
@@ -69,7 +97,7 @@ jobs:
             await _$gha_processAndUpdatePR(branchToCompare, github, context);
 
   update_pr:
-    if: github.event.action == 'synchronize'
+    if: github.event.action == 'synchronize' && github.repository == 'kbve/kbve'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

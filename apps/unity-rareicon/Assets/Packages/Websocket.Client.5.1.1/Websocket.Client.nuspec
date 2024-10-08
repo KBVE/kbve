@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Websocket.Client</id>
+    <version>5.1.1</version>
+    <authors>Mariusz Kotas</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>icon-modern.png</icon>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/Marfusios/websocket-client</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/Marfusios/websocket-client/master/src/Websocket.Client/icon-modern.png</iconUrl>
+    <description>Client for websocket API with built-in reconnection and error handling</description>
+    <releaseNotes>Enhancements</releaseNotes>
+    <copyright>Copyright 2023 Mariusz Kotas. All rights reserved.</copyright>
+    <tags>websockets websocket client</tags>
+    <repository type="Git" url="https://github.com/Marfusios/websocket-client" commit="c002823c828c56a52a3403b41d0f18682f395309" />
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Reactive" version="6.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Threading.Channels" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net7.0">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Reactive" version="6.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Threading.Channels" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Reactive" version="6.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Threading.Channels" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IO.RecyclableMemoryStream" version="3.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Reactive" version="6.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.Threading.Channels" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

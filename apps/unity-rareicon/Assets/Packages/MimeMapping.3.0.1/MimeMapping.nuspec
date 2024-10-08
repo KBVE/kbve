@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>MimeMapping</id>
+    <version>3.0.1</version>
+    <authors>Matthew Little</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/zone117x/MimeMapping</projectUrl>
+    <description>Constants for (almost) all MIME types and method to determine MIME type from a file name.
+Contains just over 1000 mime types.
+
+The Dictionary is generated from the jshttp/mime-db db.json file.
+Works similar to .NET's System.Web.MimeMapping.GetMimeMapping.
+
+It aggregates data from the following sources:
+https://www.iana.org/assignments/media-types/media-types.xhtml
+https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
+https://hg.nginx.org/nginx/raw-file/default/conf/mime.types
+
+See:
+https://github.com/jshttp/mime-db#mime-db
+https://learn.microsoft.com/dotnet/api/system.web.mimemapping.getmimemapping</description>
+    <tags>mimetype contenttype mime type mimemapping GetMimeMapping media-types rfc 4288</tags>
+    <repository type="git" url="https://github.com/zone117x/MimeMapping" commit="f9b890803d926f030fa4714ac60cf1bb16a70af1" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.2" />
+      <group targetFramework=".NETStandard2.0" />
+    </dependencies>
+  </metadata>
+</package>
