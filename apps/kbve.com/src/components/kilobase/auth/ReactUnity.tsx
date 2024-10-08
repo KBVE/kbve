@@ -1,19 +1,5 @@
 import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
-import { kilobase, eventEmitterInstance } from '@kbve/laser';
-
-// Define the Vuplex interface and extend the window object inside this file
-interface Vuplex {
-	addEventListener(event: string, listener: (event: any) => void): void;
-	removeEventListener(event: string, listener: (event: any) => void): void;
-	postMessage(message: string): void;
-}
-
-// Extend the Window interface to include vuplex
-declare global {
-	interface Window {
-		vuplex?: Vuplex; // Optional chaining in case vuplex is not immediately available
-	}
-}
+import { kilobase, eventEmitterInstance, ClientSideRegex, KiloBaseState } from '@kbve/laser';
 
 interface FormData {
 	email: string;
@@ -21,11 +7,24 @@ interface FormData {
 	captchaToken?: string; // Optional captcha token field if needed
 }
 
+// Define the Vuplex interface and extend the window object inside this file
+declare global {
+	interface Window {
+		vuplex?: {
+			addEventListener(event: string, listener: (event: any) => void): void;
+			removeEventListener(event: string, listener: (event: any) => void): void;
+			postMessage(message: string): void;
+		};
+	}
+}
+
 const ReactUnity: React.FC = () => {
 	const [isSignedIn, setIsSignedIn] = useState(false); // Track the user's sign-in state
 	const [error, setError] = useState<string | null>(null); // Track any errors
+	const [captchaToken, setCaptchaToken] = useState<string | null>(null); // Store the captcha token
 	const [formData, setFormData] = useState<FormData>({ email: '', password: '' }); // Consolidated form state
-    const [formVisible, setFormVisible] = useState(false); // Track form visibility state.
+	const [formVisible, setFormVisible] = useState(false); // Track form visibility state
+	const [captchaLoaded, setCaptchaLoaded] = useState(false); // Track if captcha is loaded
 
 	// Function to handle input changes
 	const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -36,9 +35,77 @@ const ReactUnity: React.FC = () => {
 		}));
 	};
 
-	// Function to handle sign-in using form data
+	// Load the hCaptcha script dynamically and set up callbacks
+	useEffect(() => {
+		const script = document.createElement('script');
+		script.src = 'https://hcaptcha.com/1/api.js?onload=hcaptchaOnLoad&render=explicit';
+		script.async = true;
+		script.defer = true;
+		document.body.appendChild(script);
+
+		// Define global callback functions for hCaptcha
+		(window as any).hcaptchaOnLoad = () => {
+			setCaptchaLoaded(true);
+		};
+
+		(window as any).onSuccess = (token: string) => {
+			setCaptchaToken(token); // Store the token in state
+		};
+
+		(window as any).onError = () => {
+			setError('Captcha Error: Please try again.');
+		};
+
+		(window as any).onExpired = () => {
+			setCaptchaToken(null); // Reset token when expired
+			setError('Captcha expired: Please complete the captcha again.');
+		};
+
+		// Clean up on component unmount
+		return () => {
+			(window as any).hcaptchaOnLoad = undefined;
+			(window as any).onSuccess = undefined;
+			(window as any).onError = undefined;
+			(window as any).onExpired = undefined;
+			document.body.removeChild(script);
+		};
+	}, []);
+
+	// Render the hCaptcha widget once it is loaded
+	useEffect(() => {
+		if (captchaLoaded && window.hcaptcha) {
+			window.hcaptcha.render('h-captcha', {
+				sitekey: KiloBaseState.get().hcaptcha, // Replace with your hCaptcha site key
+				callback: 'onSuccess', // Function to call when captcha is successfully completed
+				'expired-callback': 'onExpired', // Function to call when captcha expires
+				'error-callback': 'onError', // Function to call when there's an error
+			});
+		}
+	}, [captchaLoaded]);
+
+	// Remove the skeleton loader and fade in the form once the component mounts
+	useEffect(() => {
+		const skeletonElement = document.getElementById('skeleton');
+		if (skeletonElement) {
+			skeletonElement.style.transition = 'opacity 0.5s ease-out';
+			skeletonElement.style.opacity = '0';
+			setTimeout(() => {
+				skeletonElement.remove();
+				setFormVisible(true);
+			}, 500);
+		} else {
+			setFormVisible(true);
+		}
+	}, []);
+
+	// Function to handle sign-in using form data and captcha token
 	const handleSignIn = async () => {
 		setError(null);
+
+		if (!captchaToken) {
+			setError('Please complete the captcha.');
+			return;
+		}
 
 		// Create a unique actionId for tracking this login attempt
 		const actionId = await kilobase.createActionULID('loginUser');
@@ -49,7 +116,7 @@ const ReactUnity: React.FC = () => {
 				formData.email,
 				formData.password,
 				actionId,
-				formData.captchaToken, // Include captcha token if available
+				captchaToken, // Pass the captcha token to the login function
 			);
 
 			// Check if login was successful
@@ -71,100 +138,11 @@ const ReactUnity: React.FC = () => {
 		}
 	};
 
-	// Function to handle sign-out
-	const handleSignOut = async () => {
-		setError(null);
-		try {
-			// Attempt to log out the user using the kilobase instance
-			await kilobase.removeProfile(); // This should handle user sign-out from Supabase and local cleanup
-
-			setIsSignedIn(false);
-
-			// Emit the redirect event to navigate to the login page after successful logout
-			eventEmitterInstance.emit('redirectUser', {
-				location: '/login', // Redirect to the login page or any other URL
-				replace: true, // Use `replace` to avoid going back to the current page
-			});
-
-			// Notify Unity of successful sign-out
-			if (window.vuplex) {
-				window.vuplex.postMessage(JSON.stringify({ type: 'signOut', message: 'User signed out successfully.' }));
-			}
-		} catch (err) {
-			console.error('Failed to log out:', err);
-			setError('An error occurred during logout. Please try again.');
-		}
-	};
-
 	// Handle form submission
 	const handleFormSubmit = (event: FormEvent) => {
 		event.preventDefault();
 		handleSignIn();
 	};
-
-    // Remove the skeleton loader and fade in the form once the component mounts
-	useEffect(() => {
-		const skeletonElement = document.getElementById('skeleton');
-		if (skeletonElement) {
-			// Apply fade-out class to skeleton loader
-			skeletonElement.style.transition = 'opacity 0.5s ease-out';
-			skeletonElement.style.opacity = '0';
-
-			// Set a timeout to remove the element from the DOM after the fade-out
-			setTimeout(() => {
-				skeletonElement.remove();
-				setFormVisible(true); // Show the form after the skeleton is removed
-			}, 500); // Match the duration of the fade-out transition
-		} else {
-			// If no skeleton is found, immediately show the form
-			setFormVisible(true);
-		}
-	}, []);
-
-	// Setup Unity message listener
-	useEffect(() => {
-		const messageListener = (event: any) => {
-			const json = event.data;
-			console.log('JSON received from Unity: ', json);
-
-			// Handle Unity messages based on the type
-			switch (json.type) {
-				case 'signIn':
-					handleSignIn();
-					break;
-				case 'signOut':
-					handleSignOut();
-					break;
-				default:
-					console.log('Unknown message type:', json.type);
-			}
-		};
-
-		// Setup the message listener if vuplex is ready
-		const addMessageListener = () => {
-			if (window.vuplex) {
-				window.vuplex.addEventListener('message', messageListener);
-			}
-		};
-
-		// Check if vuplex is available and add listener, or wait until it is ready
-		if (window.vuplex) {
-			addMessageListener();
-		} else {
-			const onVuplexReady = () => {
-				addMessageListener();
-				window.removeEventListener('vuplexready', onVuplexReady); // Remove the listener once vuplex is ready
-			};
-			window.addEventListener('vuplexready', onVuplexReady);
-		}
-
-		// Cleanup listener on component unmount
-		return () => {
-			if (window.vuplex) {
-				window.vuplex.removeEventListener('message', messageListener);
-			}
-		};
-	}, []);
 
 	return (
 		<div className="flex flex-col items-center justify-center h-screen p-4">
@@ -173,57 +151,62 @@ const ReactUnity: React.FC = () => {
 					<p className="text-lg">You are signed in!</p>
 					<button
 						className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-						onClick={handleSignOut}
+						onClick={() => {
+							setIsSignedIn(false);
+							setFormVisible(true);
+						}}
 					>
 						Sign Out
 					</button>
 				</div>
 			) : (
-                <div className={`p-4 bg-yellow-50/60 dark:bg-neutral-900 rounded-xl`}>
 				<form
 					className={`w-full max-w-sm transition-opacity duration-500 ${
 						formVisible ? 'opacity-100' : 'opacity-0'
 					}`}
 					onSubmit={handleFormSubmit}
 				>
-					<h2 className="text-xl mb-4 text-neutral-600 dark:text-neutral-100">Sign In</h2>
+					<h2 className="text-xl mb-4">Sign In</h2>
 					<div className="mb-4">
-						<label className="block text-neutral-500 dark:text-neutral-300 text-sm font-bold mb-2" htmlFor="email">
-							Email:
+						<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+							Email
 						</label>
 						<input
 							type="email"
 							id="email"
 							name="email"
-							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 							value={formData.email}
 							onChange={handleInputChange}
 							required
 						/>
 					</div>
 					<div className="mb-4">
-						<label className="block text-neutral-500 dark:text-neutral-300 text-sm font-bold mb-2" htmlFor="password">
-							Password:
+						<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+							Password
 						</label>
 						<input
 							type="password"
 							id="password"
 							name="password"
-							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 							value={formData.password}
 							onChange={handleInputChange}
 							required
 						/>
 					</div>
+					{/* Render hCaptcha widget */}
+					<div className="mb-4">
+						<div id="h-captcha" className="my-4" />
+					</div>
 					<button
 						type="submit"
-						className="w-full bg-cyan-500 text-white py-2 rounded hover:bg-cyan-600 transition"
+						className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
 					>
 						Sign In
 					</button>
 					{error && <p className="text-red-500 mt-4">{error}</p>}
 				</form>
-                </div>
 			)}
 		</div>
 	);
