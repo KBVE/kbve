@@ -1,0 +1,25 @@
+---
+title: 'October: 8th'
+category: Daily
+date: 2024-10-08 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 8th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Auth**
+
+Back to focusing on the paraops, getting the base of the unity auth built out, so that that it can help with the user sign in.
+We can also place some safety measures around the unity auth, so that if `window.Vuplex` is not found, it would not send the postmessage with the JWT?
+I still have to work around the exact way that we could handle this, but I do want to get it all done by tonight.
+
+**Steam Pipeline**
+
+While building out the rest of the auth system, I want to go back and restructure the github actions yaml for building the unity game's pipeline.
