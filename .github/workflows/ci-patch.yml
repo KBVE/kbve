@@ -12,6 +12,7 @@ on:
 jobs:
   handle:
     runs-on: ubuntu-latest
+    if: github.repository == 'kbve/kbve'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +29,7 @@ jobs:
           echo "commits=$commits" >> $GITHUB_OUTPUT
 
   create_pr:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.repository == 'kbve/kbve'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -96,7 +97,7 @@ jobs:
             await _$gha_processAndUpdatePR(branchToCompare, github, context);
 
   update_pr:
-    if: github.event.action == 'synchronize'
+    if: github.event.action == 'synchronize' && github.repository == 'kbve/kbve'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
