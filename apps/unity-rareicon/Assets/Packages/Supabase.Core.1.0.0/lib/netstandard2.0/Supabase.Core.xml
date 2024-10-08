@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Supabase.Core</name>
+    </assembly>
+    <members>
+        <member name="T:Supabase.Core.Attributes.MapToAttribute">
+            <summary>
+            Used internally to add a string value to a C# field.
+            </summary>
+        </member>
+        <member name="P:Supabase.Core.Attributes.MapToAttribute.Mapping">
+            <summary>
+            The externally specified target value.
+            </summary>
+        </member>
+        <member name="P:Supabase.Core.Attributes.MapToAttribute.Formatter">
+            <summary>
+            A formatter to be passed into the <see cref="M:System.String.ToString" /> method.
+            </summary>
+        </member>
+        <member name="M:Supabase.Core.Attributes.MapToAttribute.#ctor(System.String,System.String)">
+             <summary>
+             Creates a Mapping to be used internally.
+            
+             For example, specifying an Enum that has a different string value elsewhere.
+             </summary>
+             <param name="mapping"></param>
+             <param name="formatter"></param>
+        </member>
+        <member name="T:Supabase.Core.Extensions.DictionaryExtensions">
+            <summary>
+            Extensions for the `Dictionary` Classes
+            </summary>
+        </member>
+        <member name="M:Supabase.Core.Extensions.DictionaryExtensions.MergeLeft``3(``0,System.Collections.Generic.IDictionary{``1,``2}[])">
+            <summary>
+            Merges two dictionaries, allowing overwrite priorities leftward.
+            
+            Works in C#3/VS2008:
+            Returns a new dictionary of this ... others merged leftward.
+            Keeps the type of 'this', which must be default-instantiable.
+            Example: 
+              result = map.MergeLeft(other1, other2, ...)
+            From: https://stackoverflow.com/a/2679857/3629438
+            </summary>
+            <param name="me"></param>
+            <param name="others"></param>
+            <typeparam name="T"></typeparam>
+            <typeparam name="K"></typeparam>
+            <typeparam name="V"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="T:Supabase.Core.Helpers">
+            <summary>
+            Shortcut Methods, mostly focused on getting attributes from class properties and enums.
+            </summary>
+        </member>
+        <member name="M:Supabase.Core.Helpers.GetPropertyValue``1(System.Object,System.String)">
+            <summary>
+            Returns the current value from a given class property
+            </summary>
+            <param name="obj"></param>
+            <param name="propName"></param>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Supabase.Core.Helpers.GetCustomAttribute``1(System.Object)">
+            <summary>
+            Returns a cast Custom Attribute from a given object.
+            </summary>
+            <param name="obj"></param>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Supabase.Core.Helpers.GetCustomAttribute``1(System.Type)">
+            <summary>
+            Returns a cast Custom Attribute from a given type.
+            </summary>
+            <param name="type"></param>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Supabase.Core.Helpers.GetMappedToAttr(System.Enum)">
+            <summary>
+            Shortcut method for accessing a `MapTo` attribute, combined with an Enum.
+            </summary>
+            <param name="obj"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Supabase.Core.Interfaces.IGettableHeaders">
+            <summary>
+            Used for classes that need to retrieve `Headers` externally.
+            </summary>
+        </member>
+        <member name="P:Supabase.Core.Interfaces.IGettableHeaders.GetHeaders">
+            <summary>
+            An executable `Func` that returns a dictionary of headers to be appended onto a request.
+            </summary>
+        </member>
+        <member name="T:Supabase.Core.Util">
+            <summary>
+            A shared utilities class
+            </summary>
+        </member>
+        <member name="M:Supabase.Core.Util.GetAssemblyVersion(System.Type)">
+            <summary>
+            Returns the Current Assembly version - this is usually appended into the headers of each request.
+            </summary>
+            <param name="clientType"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

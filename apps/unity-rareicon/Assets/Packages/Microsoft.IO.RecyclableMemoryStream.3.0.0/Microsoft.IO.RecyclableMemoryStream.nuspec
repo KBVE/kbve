@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.IO.RecyclableMemoryStream</id>
+    <version>3.0.0</version>
+    <title>Microsoft.IO.RecyclableMemoryStream</title>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream</projectUrl>
+    <description>A pooled MemoryStream allocator to decrease GC load and improve performance on highly scalable systems.</description>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <tags>MemoryStream Memory performance GC garbage collection stream scalable buffer</tags>
+    <repository type="git" url="https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream" commit="2dbbc0713628c2a7963a04cb92b420024445e81c" />
+    <dependencies>
+      <group targetFramework="net6.0" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Memory" version="4.5.5" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1" />
+    </dependencies>
+  </metadata>
+</package>
