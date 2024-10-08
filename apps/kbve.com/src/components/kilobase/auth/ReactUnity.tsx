@@ -143,6 +143,8 @@ const ReactUnity: React.FC = () => {
 				// Notify Unity of successful sign-in
 				if (window.vuplex) {
 					window.vuplex.postMessage(JSON.stringify({ type: 'signIn', message: 'User signed in successfully.' }));
+					window.vuplex.postMessage(JSON.stringify({ type: 'confirm', message: 'Hello from VuPlex' }));
+					
 				}
 			} else {
 				// Get the detailed error message for this actionId
@@ -184,7 +186,7 @@ const ReactUnity: React.FC = () => {
 				</div>
 			) : (
 				<form
-					className={`w-full max-w-sm transition-opacity duration-500 ${
+					className={`w-full max-w-sm transition-opacity duration-500 rounded-lg p-4 bg-yellow-50/60 dark:bg-neutral-500  ${
 						formVisible ? 'opacity-100' : 'opacity-0'
 					}`}
 					onSubmit={handleFormSubmit}
@@ -198,7 +200,7 @@ const ReactUnity: React.FC = () => {
 							type="email"
 							id="email"
 							name="email"
-							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
 							value={formData.email}
 							onChange={handleInputChange}
 							required
@@ -212,7 +214,7 @@ const ReactUnity: React.FC = () => {
 							type="password"
 							id="password"
 							name="password"
-							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
 							value={formData.password}
 							onChange={handleInputChange}
 							required
@@ -224,7 +226,7 @@ const ReactUnity: React.FC = () => {
 					</div>
 					<button
 						type="submit"
-						className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
+						className="w-full bg-cyan-500 text-white py-2 rounded hover:bg-cyan-600 transition"
 					>
 						Sign In
 					</button>
