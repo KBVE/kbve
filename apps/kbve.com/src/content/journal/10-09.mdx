@@ -20,3 +20,11 @@ import { Adsense, Tasks } from '@kbve/astropad';
 The plan for today will be to focus on getting the vuplex to communicate with the kbve website.
 We are going to continue from yesterday, expanding the vuplex postmessage and event listeners, possibly linking them together with our kilobase events.
 Created a helper class under the `Utils` namespace, these are things we can integrate into a final nuget package that will help us in the future game development.
+
+We been making some progress with this part of the vuplex, we can move the data from the kbve website and unity client without any major problems.
+However we do need to grab the session and refresh token from the javascript side and then use it to build the supabase client within the unity side.
+This way we can then close out the WebView and use just this token to handle our game management!
+
+As for what I understand, we can also also have this operate in an offline mode too but that will be something that we can look into the future.
+
+<Adsense />
