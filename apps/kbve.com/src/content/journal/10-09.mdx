@@ -27,4 +27,12 @@ This way we can then close out the WebView and use just this token to handle our
 
 As for what I understand, we can also also have this operate in an offline mode too but that will be something that we can look into the future.
 
+**NuGet**
+
+Moving all our core code into a namespace would make sense because then we can reuse all of it in the future?
+I am thinking we keep parts of the code still isolated, while building out the game but at the same time, we can consolidate the older legacy code into a `KBVE` namespace.
+The goal here would be to eventually release it under a nuget package and start to reutilize the code in future projects.
+There might be some side-effects but we do not want this to be aimed at the general public, but rather leverage the open source eco-system to create our own hybrid source.
+Parts of our game's core codebase being open source is not going to hurt us, but only help us move forward.
+
 <Adsense />
