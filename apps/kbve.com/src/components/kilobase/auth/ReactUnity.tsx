@@ -142,7 +142,57 @@ const ReactUnity: React.FC = () => {
 
 				// Notify Unity of successful sign-in
 				if (window.vuplex) {
-					window.vuplex.postMessage(JSON.stringify({ type: 'signIn', message: 'User signed in successfully.' }));
+
+					try {
+					
+					const supabase = await kilobase.getSupabaseClient();
+
+					if (!supabase) {
+						console.error('Supabase client is not initialized.');
+						window.vuplex.postMessage(JSON.stringify({ type: 'error', message: 'Error from Supabase client not initialized!' }));
+						return;
+					}
+
+					const { data, error } = await supabase.auth.refreshSession();
+					if (error) {
+						console.error('Failed to refresh session:', error);
+						window.vuplex.postMessage(JSON.stringify({ type: 'error', message: 'Error from Supabase Refresh Session' }));
+
+						return;
+					}
+			
+					// Extract session and user data from the response
+					const { session, user } = data;
+					if (!session || !user) {
+						console.error('Session or user data is missing.');
+						window.vuplex.postMessage(JSON.stringify({ type: 'error', message: 'Error from Supabase User Data Missing' }));
+
+						return;
+					}
+
+					// We are logged in!
+	
+
+					const sessionMessage = JSON.stringify({
+						type: 'sessionUpdate',
+						message: 'User session updated successfully.',
+						data: { session, user },
+					});
+		
+					// Send the session and user data to Vuplex
+					window.vuplex.postMessage(sessionMessage);
+					
+					window.vuplex.postMessage(JSON.stringify({ type: 'confirm', message: 'Hello from VuPlex' }));
+					}
+					catch (error) {
+						console.error('An error occurred while refreshing the session and sending data to Vuplex:', error);
+						window.vuplex.postMessage(JSON.stringify({ type: 'error', message: 'Error from KBVE Vuplex!' }));
+
+					}
+					
+				}
+				else {
+					console.log('No Vuplex Found');
 				}
 			} else {
 				// Get the detailed error message for this actionId
@@ -184,7 +234,7 @@ const ReactUnity: React.FC = () => {
 				</div>
 			) : (
 				<form
-					className={`w-full max-w-sm transition-opacity duration-500 ${
+					className={`w-full max-w-sm transition-opacity duration-500 rounded-lg p-4 bg-yellow-50/60 dark:bg-neutral-500  ${
 						formVisible ? 'opacity-100' : 'opacity-0'
 					}`}
 					onSubmit={handleFormSubmit}
@@ -198,7 +248,7 @@ const ReactUnity: React.FC = () => {
 							type="email"
 							id="email"
 							name="email"
-							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
 							value={formData.email}
 							onChange={handleInputChange}
 							required
@@ -212,7 +262,7 @@ const ReactUnity: React.FC = () => {
 							type="password"
 							id="password"
 							name="password"
-							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
 							value={formData.password}
 							onChange={handleInputChange}
 							required
@@ -224,7 +274,7 @@ const ReactUnity: React.FC = () => {
 					</div>
 					<button
 						type="submit"
-						className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
+						className="w-full bg-cyan-500 text-white py-2 rounded hover:bg-cyan-600 transition"
 					>
 						Sign In
 					</button>

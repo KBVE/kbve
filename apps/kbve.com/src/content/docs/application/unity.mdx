@@ -289,7 +289,7 @@ This is a 3rd party plugin provider for Unity, that extends out the webview comp
 
 These are reference points for common errors within the Vuplex libraries / eco-system.
 
-### Vuplex Resources
+Vuplex Resources
 
 Loading multiple webview components within a single scene can cause a spike within the client's CPU/RAM, thus it is recommended to de-sync / destroy or de-activate any un-used Canvas. Furthermore, only activate the GameObject when the player is within a set proximity to the object through the Unity's Collider system via event triggers.
 Vuplex does run an instance of a chromium browser and that can lead to memeory and cpu leaks.
@@ -315,7 +315,131 @@ An example of this would be to declare the GameObject, add collision and then ho
 
 ```
 
-### Vuplex Errors
+Here is our current work in progress Vuplex helper.
+
+```c#
+
+using System;
+using System.Threading.Tasks;
+using UnityEngine;
+using Vuplex.WebView;
+
+namespace Utils
+{
+    public class VuplexHelper : MonoBehaviour
+    {
+        public string CanvasObjectName = "Canvas";
+        public string CanvasWebViewPrefabName = "CanvasWebViewPrefab";
+        public string CanvasWebViewPrefabViewName = "CanvasWebViewPrefabView";
+
+        private CanvasWebViewPrefab _canvasWebViewPrefab; // Updated to use CanvasWebViewPrefab
+
+        private async void Start()
+        {
+            try
+            {
+                await InitializeWebView();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Vuplex CanvasWebView initialization failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Initializes the CanvasWebViewPrefab and sets up communication.
+        /// </summary>
+        private async Task InitializeWebView()
+        {
+            // Step 1: Find the Canvas GameObject
+            GameObject canvasObject = GameObject.Find(CanvasObjectName);
+            if (canvasObject == null)
+            {
+                Debug.LogError($"No GameObject found with the name {CanvasObjectName}");
+                return;
+            }
+            Debug.Log($"Found Canvas GameObject: {GetFullPath(canvasObject)}");
+
+            // Step 2: Find the CanvasWebViewPrefab under the Canvas GameObject
+            Transform canvasWebViewPrefabTransform = canvasObject.transform.Find(CanvasWebViewPrefabName);
+            if (canvasWebViewPrefabTransform == null)
+            {
+                Debug.LogError($"No GameObject found with the name {CanvasWebViewPrefabName} under {CanvasObjectName}.");
+                return;
+            }
+            Debug.Log($"Found CanvasWebViewPrefab GameObject: {GetFullPath(canvasWebViewPrefabTransform.gameObject)}");
+
+            // Step 3: Find the CanvasWebViewPrefabView under the CanvasWebViewPrefab GameObject
+            Transform canvasWebViewPrefabViewTransform = canvasWebViewPrefabTransform.Find(CanvasWebViewPrefabViewName);
+            if (canvasWebViewPrefabViewTransform == null)
+            {
+                Debug.LogError($"No GameObject found with the name {CanvasWebViewPrefabViewName} under {CanvasWebViewPrefabName}.");
+                return;
+            }
+            Debug.Log($"Found CanvasWebViewPrefabView GameObject: {GetFullPath(canvasWebViewPrefabViewTransform.gameObject)}");
+
+            // Step 4: Try to get the CanvasWebViewPrefab component from CanvasWebViewPrefabView
+            _canvasWebViewPrefab = canvasWebViewPrefabViewTransform.GetComponent<CanvasWebViewPrefab>();
+            if (_canvasWebViewPrefab == null)
+            {
+                // Step 5: Fallback to get CanvasWebViewPrefab from CanvasWebViewPrefab itself
+                Debug.LogWarning($"CanvasWebViewPrefab component not found on {CanvasWebViewPrefabViewName}. Trying to find CanvasWebViewPrefab on {CanvasWebViewPrefabName}.");
+                _canvasWebViewPrefab = canvasWebViewPrefabTransform.GetComponent<CanvasWebViewPrefab>();
+
+                if (_canvasWebViewPrefab == null)
+                {
+                    Debug.LogError("Failed to locate the CanvasWebViewPrefab component after multiple attempts.");
+                    return;
+                }
+            }
+
+            // Step 6: Wait for the CanvasWebViewPrefab to initialize
+            await _canvasWebViewPrefab.WaitUntilInitialized();
+
+            // Step 7: Subscribe to the MessageEmitted event
+            _canvasWebViewPrefab.WebView.MessageEmitted += OnMessageReceived;
+            Debug.Log("Vuplex CanvasWebView successfully initialized and ready to receive messages.");
+        }
+
+        /// <summary>
+        /// Handles messages received from the WebView.
+        /// </summary>
+        private void OnMessageReceived(object sender, EventArgs<string> eventArgs)
+        {
+            Debug.Log("JSON received: " + eventArgs.Value);
+            // Further processing of the received message can be done here.
+        }
+
+        /// <summary>
+        /// Unsubscribes from the event and performs cleanup if needed.
+        /// </summary>
+        private void OnDestroy()
+        {
+            if (_canvasWebViewPrefab != null && _canvasWebViewPrefab.WebView != null)
+            {
+                _canvasWebViewPrefab.WebView.MessageEmitted -= OnMessageReceived;
+            }
+        }
+
+        /// <summary>
+        /// Helper method to get the full path of a GameObject in the hierarchy.
+        /// </summary>
+        private string GetFullPath(GameObject gameObject)
+        {
+            string path = gameObject.name;
+            while (gameObject.transform.parent != null)
+            {
+                gameObject = gameObject.transform.parent.gameObject;
+                path = gameObject.name + "/" + path;
+            }
+            return path;
+        }
+    }
+}
+
+```
+
+Vuplex Errors
 
 -   Click and scroll not working : Case 1
 
