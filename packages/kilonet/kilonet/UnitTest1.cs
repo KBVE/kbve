@@ -1,15 +1,20 @@
-namespace Kbve.Kilonet.Kilonet;
+// namespace Kbve.Kilonet.Kilonet;
 
-public class Tests
+// public class Tests
+// {
+//     [SetUp]
+//     public void Setup()
+//     {
+//     }
+
+//     [Test]
+//     public void Test1()
+//     {
+//         Assert.Pass();
+//     }
+// }
+
+namespace KBVE.Kilonet
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
 
-    [Test]
-    public void Test1()
-    {
-        Assert.Pass();
-    }
 }
