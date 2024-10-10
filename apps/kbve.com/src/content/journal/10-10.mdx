@@ -1,0 +1,30 @@
+---
+title: 'October: 10th'
+category: Daily
+date: 2024-10-10 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 10th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**KiloNet**
+
+The GameManager, JSON utils, event system, ect... all of these things can be refactored and rewritten into its own nuget library that we can package up and release.
+My goal would be to isolate this part of the codebase from any game that we build, almost making it agnostic and version controlled?
+This was something that I wanted to practice and have under my toolbelt as a skill, furthermore, it will make things like FFI in the future easier to implement and even backtrace.
+
+This is another grand task to take on but I am confident that it will be a huge mess, uhh I meant overengineered alien crash landing.
+To get started, we will have to tell our dotnet to generate the starter library, then begin stripping out the older code from `unity-rareicon` and `saber`.
+Once we get all these things handled, we can then publish this nuget library and import it into the rare icon on the Azure Git Repo.
+
+**ParaOps**
+
+At the same time we are building this, I want to adjust some of the broken codebase too.
+
