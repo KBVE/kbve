@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace KBVE.Kilonet
 {
-    /// <summary>
-    /// Global core class that initializes and manages high-level settings.
-    /// It also serves as the entry point for the Kilonet system.
-    /// </summary>
     public class KiloGlobalCore : MonoBehaviour
     {
         private static KiloGlobalCore _instance;
@@ -45,14 +41,10 @@ namespace KBVE.Kilonet
             }
         }
 
-        /// <summary>
-        /// Initializes the KiloGlobalCore and sets up the KiloManager.
-        /// </summary>
         private void InitializeKiloGlobalCore()
         {
             Debug.Log("KiloGlobalCore is initialized!");
 
-            // Create or find the KiloManager instance
             if (Manager == null)
             {
                 Manager = KiloManager.Instance;
