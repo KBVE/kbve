@@ -35,4 +35,10 @@ The goal here would be to eventually release it under a nuget package and start 
 There might be some side-effects but we do not want this to be aimed at the general public, but rather leverage the open source eco-system to create our own hybrid source.
 Parts of our game's core codebase being open source is not going to hurt us, but only help us move forward.
 
+**MainTemplate**
+
+Added a minor boolean to the `MainTemplate.astro` that will disable the footer, thus making it a bit easier to handle certain pages on WebView.
+Our `unity.astro` under the `auth` should not provide a footer nor a navigation bar!
+This should make it a bit easier to handle the resolution of the login page too, since it will not have to render those objects and take up vital space.
+
 <Adsense />
