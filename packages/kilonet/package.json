@@ -1,0 +1,23 @@
+{
+	"name": "com.kbve.kilonet",
+	"displayName": "Kilonet",
+	"version": "0.0.1",
+	"description": "A KBVE Package for Unity",
+	"unity": "2023.1",
+	"author": {
+		"name": "KBVE",
+		"url": "https://github.com/KBVE"
+	},
+	"keywords": [
+		"kbve",
+		"unity"
+	],
+	"path": "kilonet",
+	"ignore": [
+		"kilonet-test"
+	],
+	"license": "MIT",
+	"licensesUrl": "https://kbve.com/legal/",
+	"changelogUrl": "https://kbve.com/",
+	"documentationUrl": "https://kbve.com/application/unity/"
+}
