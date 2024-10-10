@@ -13,6 +13,7 @@ const {
   structuredData,
   lang = 'en',
   Nav = true,
+  Footer = true,
 } = Astro.props;
 
 // Interface to type-check the properties
@@ -22,6 +23,7 @@ interface Props {
   structuredData?: object;
   lang?: string;
   Nav?: boolean;
+  Footer?: boolean;
 }
 ---
 
@@ -85,7 +87,7 @@ We set the language of the page to English and add classes for scrollbar and scr
         <slot />
       </main>
     </div>
-    <FooterSection />
+   {Footer && <FooterSection /> }
     <style>
       /* CSS rules for the page scrollbar and scrolling experience with lenis library */
       .scrollbar-hide::-webkit-scrollbar {
