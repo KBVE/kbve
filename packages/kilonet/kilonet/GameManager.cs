@@ -1,4 +1,6 @@
 using UnityEngine;
+using KBVE.Kilonet.States;
+using KBVE.Kilonet.Events;
 using Cysharp.Threading.Tasks;
 
 namespace KBVE.Kilonet
