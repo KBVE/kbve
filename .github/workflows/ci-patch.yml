@@ -110,14 +110,26 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      - name: Create temp directory and install @kbve/devops
         run: |
+          # Create a temporary directory outside the repository
+          mkdir -p /tmp/devops-temp
+          
+          # Navigate to the temporary directory
+          cd /tmp/devops-temp
+
+          # Install the @kbve/devops package separately
           npm install @kbve/devops --legacy-peer-deps
 
+          # Verify the installation
+          ls node_modules/@kbve/devops
+
+      # Use the installed @kbve/devops package in the subsequent steps
       - name: Call Process and Update PR Function
         uses: actions/github-script@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_PATH: /tmp/devops-temp/node_modules  # Set NODE_PATH to the temporary directory
         with:
           script: |
             const { _$gha_processAndUpdatePR } = require('@kbve/devops');
