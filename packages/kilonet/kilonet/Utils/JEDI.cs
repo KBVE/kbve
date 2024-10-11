@@ -52,50 +52,47 @@ namespace KBVE.Kilonet.Utils
             }
         }
 
-        // Parses a JSON string into an object of type T asynchronously using UnityEngine JsonUtility
-        public static async UniTask<T> ParseJSONAsync<T>(string json) where T : class
+public static async UniTask<T> ParseJSONAsync<T>(string json) where T : class
+{
+    return await UniTask.Run(() =>
+    {
+        try
         {
-            return await UniTask.RunOnThreadPool(() =>
+            if (string.IsNullOrWhiteSpace(json))
             {
-                try
-                {
-                    if (string.IsNullOrWhiteSpace(json))
-                    {
-                        Debug.LogWarning("JSON string is null or empty.");
-                        return null;
-                    }
-                    return JsonUtility.FromJson<T>(json);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Failed to parse JSON. Error: {e.Message}");
-                    return null;
-                }
-            });
+                Debug.LogWarning("JSON string is null or empty.");
+                return null;
+            }
+            return JsonUtility.FromJson<T>(json);
         }
-
-        // Converts an object of type T to a JSON string asynchronously using UnityEngine JsonUtility
-        public static async UniTask<string> ToJSONAsync<T>(T data) where T : class
+        catch (Exception e)
         {
-            return await UniTask.RunOnThreadPool(() =>
-            {
-                try
-                {
-                    if (data == null)
-                    {
-                        Debug.LogWarning("Data object is null.");
-                        return null;
-                    }
-                    return JsonUtility.ToJson(data);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Failed to serialize object to JSON. Error: {e.Message}");
-                    return null;
-                }
-            });
+            Debug.LogError($"Failed to parse JSON. Error: {e.Message}");
+            return null;
         }
+    });
+}
 
+public static async UniTask<string> ToJSONAsync<T>(T data) where T : class
+{
+    return await UniTask.Run(() =>
+    {
+        try
+        {
+            if (data == null)
+            {
+                Debug.LogWarning("Data object is null.");
+                return null;
+            }
+            return JsonUtility.ToJson(data);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to serialize object to JSON. Error: {e.Message}");
+            return null;
+        }
+    });
+}
         // Synchronous method to parse JSON using MiniJSON.Parser
         public static object ParseMiniJSON(string json)
         {
@@ -342,8 +339,8 @@ namespace KBVE.Kilonet.Utils
                         {
                             case string s: SerializeString(s); break;
                             case bool b: builder.Append(b ? "true" : "false"); break;
-                            case IList list: SerializeArray(list); break;
-                            case IDictionary dict: SerializeObject(dict); break;
+                            case IList<object> list: SerializeArray(list); break;
+                            case IDictionary<string, object> dict: SerializeObject(dict); break;
                             case char c: SerializeString(c.ToString()); break;
                             case double d: builder.Append(d.ToString("R")); break;
                             case float f: builder.Append(f.ToString("R")); break;
@@ -354,11 +351,11 @@ namespace KBVE.Kilonet.Utils
                         }
                     }
 
-                    void SerializeObject(IDictionary obj)
+                    void SerializeObject(IDictionary<string, object> obj)
                     {
                         bool first = true;
                         builder.Append('{');
-                        foreach (object e in obj.Keys)
+                        foreach (var e in obj.Keys)
                         {
                             if (!first) builder.Append(',');
                             SerializeString(e.ToString());
@@ -369,11 +366,11 @@ namespace KBVE.Kilonet.Utils
                         builder.Append('}');
                     }
 
-                    void SerializeArray(IList array)
+                    void SerializeArray(IList<object> array)
                     {
                         builder.Append('[');
                         bool first = true;
-                        foreach (object obj in array)
+                        foreach (var obj in array)
                         {
                             if (!first) builder.Append(',');
                             SerializeValue(obj);
