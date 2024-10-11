@@ -248,8 +248,6 @@ export interface IQuest<T = any> {
 	reward: string;
 }
 
-
-
 export interface ItemActionEventData {
 	itemId: string;
 	action: ItemAction['actionEvent'];
@@ -525,8 +523,6 @@ export interface Auth {
 export interface UserProfile extends Auth {
 	fullName?: string; // Optional field for full name
 	username?: string; // Optional field for username
-	avatar_url?: string; // Optional field for avatar
-	bio?: string;
 }
 
 export interface LoaderOptions {
@@ -599,7 +595,32 @@ export interface UserRedirectEvent {
 export interface UserProfileUpdateEvent {
 	actionId: string;
 	updatedFields: Partial<UserProfile>;
-	timestamp: Date; 
-  }
+	timestamp: Date;
+}
+
+// Defining specific types for Socials and Style
+type SocialLinks = {
+	twitter?: string;
+	github?: string;
+	linkedin?: string;
+	website?: string;
+};
+
+type StyleSettings = {
+	colors?: string[];
+	cover?: string;
+	background?: string;
+};
+
+// Use these types within the UserCard interface
+export interface UserCard {
+	id: string;
+	username: string;
+	bio?: string;
+	socials?: SocialLinks;
+	style?: StyleSettings;
+	createdAt: Date;
+	updatedAt: Date;
+}
 
 // export interface UserLogout {}

@@ -8,10 +8,7 @@ export const authUsers = pgTable('auth_users', {
 export const profiles = pgTable('profiles', {
   id: uuid('id').notNull().primaryKey().references(() => authUsers.id),
   updatedAt: timestamp('updated_at', { withTimezone: true }),
-  username: text('username').notNull().unique(),
-  avatar_url: text('avatar_url'),
-  website: text('website'),
-});
+  username: text('username').notNull().unique(),});
 
 export const storageBuckets = pgTable('storage_buckets', {
   id: text('id').primaryKey().notNull(),
