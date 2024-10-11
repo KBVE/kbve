@@ -34,7 +34,22 @@ nx g @nx-dotnet/core:lib kilonet --directory=kilonet
 
 This will generate our base library that we can import in our various projects.
 
+To import this library in our unity, we will do this:
+
+```json
+{
+  "dependencies": {
+    "com.kbve.kilonet": "https://github.com/KBVE/kbve.git?path=/packages/kilonet#dev"
+  }
+}
+```
+
+We place the dependency to a specific folder, `/packages/kilonet` and then assign the branch with the hash flag, `#dev`.
+
+This way we can pull the code and test it from the dev branch.
+
+
 **ParaOps**
 
 At the same time we are building this, I want to adjust some of the broken codebase too.
-
+We need to finish adding the itch page to fix the 404 error that was showing up ealier.
