@@ -5,9 +5,9 @@ date: 2024-10-11 12:00:00
 client: Self
 unsplash: 1693298661836-1206649639ef
 img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
-description: October 11th. 
+description: October 11th.
 tags:
-  - daily
+    - daily
 ---
 
 import { Adsense, Tasks } from '@kbve/astropad';
@@ -18,7 +18,6 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
 Spending some time learning how animations work within Unity is always a fun time.
 The first animation will be with a 2D sprite and that will have multiple different references.
-
 
 **JEDI**
 
@@ -36,3 +35,13 @@ These are concerns for a future problem, since the goal should be inching closer
 **Kilonet**
 
 The next update for the `kilonet` will be focused on resolving some of the vuplux and supabase integrations.
+One of the areas that we need to double check are the save states for the json, which are currently hardcoded in, also the supabase anon key and the api is also hardcoded in.
+Both of these need to be adjusted, but I am still considering how I would want to handle that.
+
+**Register**
+
+It seems that our register function within Supabase was broken but I was able to figure it out.
+During the table creation for the usercard, we were referencing the username table twice, which is not optimal because we already have the username saved in the user profile.
+The solution was to drop that column for username on the user card, then adjust the table creation by having the default fields be null and then finally adjusting the materialized view to use a join between the two tables.
+
+<Adsense />
