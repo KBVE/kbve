@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using KBVE.Kilonet.Utils;
 
 namespace KBVE.Kilonet.States
 {
@@ -76,11 +77,11 @@ namespace KBVE.Kilonet.States
                 saveData = new SaveData { gameState = _currentState };
             }
 
-            string json = await UtilityJSON.ToJSONAsync(saveData);
+            string json = await JEDI.ToJSONAsync(saveData);
 
             if (!string.IsNullOrEmpty(json))
             {
-                bool success = await UtilityJSON.WriteFileAsync(FullSavePath, json);
+                bool success = await JEDI.WriteFileAsync(FullSavePath, json);
                 if (success)
                     Debug.Log("GameState saved to file successfully: " + FullSavePath);
             }
@@ -88,11 +89,11 @@ namespace KBVE.Kilonet.States
 
         private async UniTask LoadGameStateAsync()
         {
-            string json = await UtilityJSON.ReadFileAsync(FullSavePath);
+            string json = await JEDI.ReadFileAsync(FullSavePath);
 
             if (!string.IsNullOrEmpty(json))
             {
-                SaveData saveData = await UtilityJSON.ParseJSONAsync<SaveData>(json);
+                SaveData saveData = await JEDI.ParseJSONAsync<SaveData>(json);
                 if (saveData != null)
                 {
                     lock (_stateLock)

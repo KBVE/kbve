@@ -8,7 +8,6 @@ CREATE EXTENSION IF NOT EXISTS pg_jsonschema WITH SCHEMA extensions;
 -- Create the table for public.user_cards with a username reference
 CREATE TABLE IF NOT EXISTS public.user_cards (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    username TEXT REFERENCES public.user_profiles(username) ON DELETE CASCADE, -- Reference to username in user_profiles
     bio TEXT,
     socials JSONB, -- JSONB column to store social links (nullable)
     style JSONB, -- JSONB column to store profile style information (nullable)
@@ -112,108 +111,22 @@ CREATE TRIGGER handle_user_cards_update
 
 -- Create the function to handle new user_card creation and validation
 CREATE OR REPLACE FUNCTION public.handle_new_user_card()
-    RETURNS TRIGGER AS $$
-DECLARE
-    v_bio TEXT;
-    v_socials JSONB;
-    v_style JSONB;
-    v_username TEXT;
+RETURNS TRIGGER AS $$
 BEGIN
-    -- Assign variables from user metadata and user_profiles
-    v_bio := new.raw_user_meta_data->>'bio';
-    v_socials := new.raw_user_meta_data->>'socials'::jsonb;
-    v_style := new.raw_user_meta_data->>'style'::jsonb;
-    v_username := (SELECT username FROM public.user_profiles WHERE id = new.id);
-
-    -- Validate bio (if applicable)
-    IF v_bio IS NOT NULL AND
-       (char_length(v_bio) > 255 OR
-        NOT (v_bio ~ '^[a-zA-Z0-9.!? ]*$')) THEN
-        RAISE EXCEPTION 'invalid_bio';
-    END IF;
-
-    -- Validate the socials JSON structure if it is not null
-    IF v_socials IS NOT NULL AND
-       NOT extensions.jsonb_matches_schema(
-           '{
-               "type": "object",
-               "properties": {
-                   "twitter": {
-                       "type": "string",
-                       "format": "uri",
-                       "pattern": "^https://(www\\.)?twitter.com/[a-zA-Z0-9_]{1,15}/?$"
-                   },
-                   "github": {
-                       "type": "string",
-                       "format": "uri",
-                       "pattern": "^https://(www\\.)?github.com/[a-zA-Z0-9_-]+/?$"
-                   },
-                   "linkedin": {
-                       "type": "string",
-                       "format": "uri",
-                       "pattern": "^https://(www\\.)?linkedin.com/in/[a-zA-Z0-9_-]+/?$"
-                   },
-                   "website": {
-                       "type": "string",
-                       "format": "uri"
-                   }
-               },
-               "additionalProperties": false,
-               "required": []
-           }',
-           v_socials
-       ) THEN
-        RAISE EXCEPTION 'invalid_socials';
-    END IF;
-
-    -- Validate the style JSON structure if it is not null
-    IF v_style IS NOT NULL AND
-       NOT extensions.jsonb_matches_schema(
-           '{
-               "type": "object",
-               "properties": {
-                   "colors": {
-                       "type": "array",
-                       "items": {
-                           "type": "string",
-                           "pattern": "^#[A-Fa-f0-9]{8}$"
-                       },
-                       "maxItems": 10
-                   },
-                   "cover": {
-                       "type": "string",
-                       "pattern": "^[a-zA-Z0-9_-]+$"
-                   },
-                   "background": {
-                       "type": "string",
-                       "pattern": "^[a-zA-Z0-9_-]+$"
-                   }
-               },
-               "additionalProperties": false
-           }',
-           v_style
-       ) THEN
-        RAISE EXCEPTION 'invalid_style';
-    END IF;
-
-    -- Insert into user_cards table
-    INSERT INTO public.user_cards (id, username, bio, socials, style)
-    VALUES (
-        new.id,
-        v_username,
-        v_bio,
-        v_socials,
-        v_style
-    );
-
-    RETURN new;
+    -- Simplified version: Just insert a row into user_cards with NULL values
+    INSERT INTO public.user_cards (id, bio, socials, style)
+    VALUES (NEW.id, NULL, NULL, NULL);
+    
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+
 -- Create the trigger to handle new user_card creation when a new user is created in public.user_profiles
-DROP TRIGGER IF EXISTS on_user_profiles_created ON public.user_profiles;
-CREATE TRIGGER on_user_profiles_created
-    AFTER INSERT ON public.user_profiles
+DROP TRIGGER IF EXISTS on_auth_new_card_created ON auth.users;
+
+CREATE TRIGGER on_auth_new_card_created
+    AFTER INSERT ON auth.users
     FOR EACH ROW
     EXECUTE PROCEDURE public.handle_new_user_card();
 
@@ -318,17 +231,18 @@ CREATE TRIGGER handle_user_card_update
     FOR EACH ROW
     EXECUTE PROCEDURE public.handle_user_card_update();
 
+DROP MATERIALIZED VIEW IF EXISTS public.user_cards_public;
 -- Create a materialized view for public access without UUID
-CREATE MATERIALIZED VIEW IF NOT EXISTS public.user_cards_public AS
+CREATE MATERIALIZED VIEW public.user_cards_public AS
 SELECT
-    username,
-    bio,
-    socials,
-    style,
-    created_at,
-    updated_at
-FROM public.user_cards;
-
+    up.username,
+    uc.bio,
+    uc.socials,
+    uc.style,
+    uc.created_at,
+    uc.updated_at
+FROM public.user_cards uc
+JOIN public.user_profiles up ON uc.id = up.id;
 -- Create an index on the materialized view after it has been populated.
 CREATE INDEX IF NOT EXISTS idx_user_cards_username ON public.user_cards_public(username);
 

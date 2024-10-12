@@ -25,7 +25,7 @@ namespace KBVE.Kilonet
             }
         }
 
-        public KiloManager Manager { get; private set; }
+        public GameManager Manager { get; private set; }
 
         private void Awake()
         {
@@ -47,8 +47,8 @@ namespace KBVE.Kilonet
 
             if (Manager == null)
             {
-                Manager = KiloManager.Instance;
-                Manager.InitializeKiloManager();
+                Manager = GameManager.Instance;
+                // No need to call InitializeKiloManager as GameManager handles its own initialization in Awake
             }
         }
     }
