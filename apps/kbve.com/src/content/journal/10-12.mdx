@@ -1,0 +1,50 @@
+---
+title: 'October: 12th'
+category: Daily
+date: 2024-10-12 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 12th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Login**
+
+Now we can go back around and adjust the login script within unity to use the kilonet.
+We would want to keep the supabase instance and client connected but only if in the `kbve` mode because in `offline` and `steam`, we would not need the supabase client.
+For the steam version, we would just handover auth and utility to the Steam SDK, this way the player can still get the achievements and in-game items.
+However what we do need to be careful about is to prevent cheating and maybe lockdown parts of our code, hmm, we can get a bit creative with how we want to handle that part too.
+
+**Title**
+
+For the rare icon game, we will focus on three core gameplay options, `Single-Player`, `Steam` and `KBVE`.
+The single player will be an offline and casual instance, while the steam mode will be focused on a co-op style of gameplay and finally the kbve version will be for the hardcore players.
+We will want to keep the players focused on the single-player first, maybe even lock out the `kbve` until they complete at least one mission on the single-player?
+The goal would be to keep players happy regardless of their play style and maybe find some creative ways to make each instance popular?
+Like special abilities from the single player could grant you special benefits in the pvp areas?
+
+**State Machine**
+
+In our current state machine codebase, the save file name is just hardcoded to be:
+
+```c#
+
+private const string SaveFileName = "RareIconGameSave.json"; // JSON file name for saving state
+
+```
+
+We want to make this a bit more dynamic, maybe depending on the application's name or just some form of a variable, rather than what it is right now.
+For that, we need to update the `StateMachine.cs`, such that when the constructor is being created, we do this:
+
+```c#
+    SaveFileName = !string.IsNullOrEmpty(Application.productName) ? Application.productName + "_GameSave.json" : "RareIconGameSave.json";
+```
+
+This will let us create the save state based upon the `productName` and `_GameSave.json`!
+Let us go ahead and push that out!
