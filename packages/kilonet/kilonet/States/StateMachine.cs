@@ -20,9 +20,9 @@ namespace KBVE.Kilonet.States
 
     public class StateMachine
     {
-        private const string SaveFileName = "RareIconGameSave.json"; // JSON file name for saving state
+        private readonly string SaveFileName;
         private static readonly string SaveFilePath = Application.persistentDataPath + "/"; // Save directory path
-        private static readonly string FullSavePath = SaveFilePath + SaveFileName; // Full file path
+        private string FullSavePath => SaveFilePath + SaveFileName;
 
         private readonly object _stateLock = new object();
 
@@ -49,7 +49,8 @@ namespace KBVE.Kilonet.States
 
         public StateMachine(GameState initialState = GameState.None)
         {
-            LoadGameStateAsync().Forget(); // Load game state asynchronously without awaiting in constructor
+            SaveFileName = !string.IsNullOrEmpty(Application.productName) ? Application.productName + "_GameSave.json" : "RareIconGameSave.json";
+            LoadGameStateAsync().Forget();
             lock (_stateLock)
             {
                 if (_currentState == GameState.None)
