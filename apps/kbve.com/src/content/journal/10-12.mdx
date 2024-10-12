@@ -48,3 +48,9 @@ For that, we need to update the `StateMachine.cs`, such that when the constructo
 
 This will let us create the save state based upon the `productName` and `_GameSave.json`!
 Let us go ahead and push that out!
+
+**SubScene**
+
+After getting the base of the game state resolved, we can move forward with the initial game loading and level picking.
+I am going to build off of the MM system and basically reverse engineer how they handle level loading, we see that there are two scripts attached to the button.
+The scripts are `Selection Base` and `LevelSelector`, we will peak inside both of those cs files and see what they are doing.
