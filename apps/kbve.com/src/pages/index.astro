@@ -19,9 +19,10 @@ import pricing from '../data_files/pricing.json';
 import construction from '../images/construction-image.avif';
 import tools from '../images/automated-tools.avif';
 import dashboard from '../images/dashboard-image.avif';
-import { AstroVe as VE } from '@kbve/astro-ve';
 
 import { Adsense } from '@kbve/astropad';
+
+import AstroRive from '../components/AstroRive.astro';
 
 const avatarSrcs: Array<string> = [
 	'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
@@ -76,6 +77,8 @@ const avatarSrcs: Array<string> = [
 		title="KBVE Creations: Pioneering Digital Frontiers"
 		subTitle="Explore Our World of Groundbreaking Games, Dynamic Websites, and Innovative Applications"
 	/>
+
+
 
 	<FeaturesGeneral
 		title="Next-Gen Tech and Gaming with KBVE"
