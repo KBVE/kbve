@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using KBVE.Kilonet.Utils;
 
 namespace KBVE.Kilonet.States
 {
@@ -19,9 +20,9 @@ namespace KBVE.Kilonet.States
 
     public class StateMachine
     {
-        private const string SaveFileName = "RareIconGameSave.json"; // JSON file name for saving state
+        private readonly string SaveFileName;
         private static readonly string SaveFilePath = Application.persistentDataPath + "/"; // Save directory path
-        private static readonly string FullSavePath = SaveFilePath + SaveFileName; // Full file path
+        private string FullSavePath => SaveFilePath + SaveFileName;
 
         private readonly object _stateLock = new object();
 
@@ -48,7 +49,8 @@ namespace KBVE.Kilonet.States
 
         public StateMachine(GameState initialState = GameState.None)
         {
-            LoadGameStateAsync().Forget(); // Load game state asynchronously without awaiting in constructor
+            SaveFileName = !string.IsNullOrEmpty(Application.productName) ? Application.productName + "_GameSave.json" : "RareIconGameSave.json";
+            LoadGameStateAsync().Forget();
             lock (_stateLock)
             {
                 if (_currentState == GameState.None)
@@ -76,11 +78,11 @@ namespace KBVE.Kilonet.States
                 saveData = new SaveData { gameState = _currentState };
             }
 
-            string json = await UtilityJSON.ToJSONAsync(saveData);
+            string json = await JEDI.ToJSONAsync(saveData);
 
             if (!string.IsNullOrEmpty(json))
             {
-                bool success = await UtilityJSON.WriteFileAsync(FullSavePath, json);
+                bool success = await JEDI.WriteFileAsync(FullSavePath, json);
                 if (success)
                     Debug.Log("GameState saved to file successfully: " + FullSavePath);
             }
@@ -88,11 +90,11 @@ namespace KBVE.Kilonet.States
 
         private async UniTask LoadGameStateAsync()
         {
-            string json = await UtilityJSON.ReadFileAsync(FullSavePath);
+            string json = await JEDI.ReadFileAsync(FullSavePath);
 
             if (!string.IsNullOrEmpty(json))
             {
-                SaveData saveData = await UtilityJSON.ParseJSONAsync<SaveData>(json);
+                SaveData saveData = await JEDI.ParseJSONAsync<SaveData>(json);
                 if (saveData != null)
                 {
                     lock (_stateLock)
