@@ -8,6 +8,8 @@ import Icon from '../../components/ui/icons/Icon.astro';
 import BrandLogo from '../../components/BrandLogo.astro';
 import { SITE } from '../../data_files/constants';
 
+import AstroRive from '../AstroRive.astro';
+
 // Select the correct translation based on the page's lang prop:
 const strings = Astro.currentLocale === 'fr' ? frStrings : enStrings;
 
@@ -22,7 +24,22 @@ const crafted: string =
 	Astro.currentLocale === 'fr' ? 'Fabriqué par' : 'Crafted by';
 ---
 
-<footer class="w-full bg-neutral-300 dark:bg-neutral-900">
+<div class="relative">
+	<!-- AstroRive as the full-screen background -->
+	<div class="absolute inset-0 z-0 w-screen h-screen">
+		<AstroRive
+			rive="/assets/rive/fantasy_anime.riv"
+			canvasId="canvas_hands"
+			className="w-full h-full object-cover"
+			stateMachine="State Machine 1"
+		/>
+	</div>
+
+	<!-- FeaturesGeneral positioned on top of the background, centered with mx-auto -->
+	<div
+		class="relative z-10 flex items-center justify-center w-full h-full">
+		
+<footer class="w-full bg-neutral-300/[.60] dark:bg-neutral-900/[.60]">
 	<div
 		class="mx-auto w-full max-w-[85rem] px-4 py-10 sm:px-6 lg:px-16 lg:pt-20 2xl:max-w-screen-2xl">
 		<div class="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-5">
@@ -150,3 +167,6 @@ const crafted: string =
 		</script>
 	</div>
 </footer>
+	</div>
+</div>
+	
