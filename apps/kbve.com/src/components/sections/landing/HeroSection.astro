@@ -4,6 +4,7 @@ import { Image } from 'astro:assets';
 import PrimaryCTA from '../../../components/ui/buttons/PrimaryCTA.astro';
 import SecondaryCTA from '../../../components/ui/buttons/SecondaryCTA.astro';
 import ReviewComponent from '../../../components/ui/blocks/ReviewComponent.astro';
+import AstroRive from '../../AstroRive.astro';
 
 // import StarlightSearch from '@astrojs/starlight/components/Search.astro';
 
@@ -90,8 +91,8 @@ interface Props {
 	</div>
 	<!-- Hero Image Section -->
 	<div class="flex w-full">
-		<div class="top-12 overflow-hidden">
-			{
+		<div class="">
+			<!--			{
 				src && alt && (
 					<Image
 						src={src}
@@ -103,6 +104,8 @@ interface Props {
 					/>
 				)
 			}
+		-->
+			<AstroRive rive='/assets/rive/hero_bot.riv' canvasId='canvas_hero' className='w-[300px] h-[300px] md:w-[400px] md:h-[400px] z-0 scale-1 lg:scale-[1.35]' stateMachine='State Machine 1' />
 		</div>
 	</div>
 </section>
