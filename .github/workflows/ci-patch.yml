@@ -68,14 +68,27 @@ jobs:
           NODE_PATH: /tmp/devops-temp/node_modules 
         with:
           script: |
-            const { _$gha_processAndUpdatePR,  _$gha_createOrUpdatePR } = require('@kbve/devops');
-            const referenceBranch = github.ref.replace('refs/heads/', ''); 
-            const targetBranch = 'dev'; 
-            await _$gha_createOrUpdatePR(github, context, referenceBranch, targetBranch);
+              const { _$gha_processAndUpdatePR, _$gha_createOrUpdatePR } = require('@kbve/devops');
+              
+              // Safely get the reference branch
+              let referenceBranch = github.ref ? github.ref.replace('refs/heads/', '') : null;
 
-            const branchToCompare = 'dev';
-            await _$gha_processAndUpdatePR(branchToCompare, github, context);
+              if (!referenceBranch && context.payload.pull_request) {
+                referenceBranch = context.payload.pull_request.head.ref; // In case of a PR, get the head ref
+              }
 
+              if (!referenceBranch) {
+                throw new Error("Unable to determine the reference branch.");
+              }
+
+              const targetBranch = 'dev';
+
+              // Call function to create or update the pull request
+              await _$gha_createOrUpdatePR(github, context, referenceBranch, targetBranch);
+
+              // Now process and update the pull request
+              const branchToCompare = 'dev';
+              await _$gha_processAndUpdatePR(branchToCompare, github, context);
   update_pr:
     if: github.event.action == 'synchronize' && github.repository == 'kbve/kbve'
     runs-on: ubuntu-latest
