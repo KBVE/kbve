@@ -1,33 +1,33 @@
 {
-  "name": "@kbve/devops",
-  "version": "0.0.16",
-  "description": "A DevOps helper library, providing better functions and extensions.",
-  "keywords": [
-    "github",
-    "actions",
-    "helper"
-  ],
-  "homepage": "https://kbve.com/application/git#devops",
-  "bugs": {
-    "url": "https://github.com/KBVE/kbve/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/KBVE/kbve.git"
-  },
-  "author": "KBVE <hello@kbve.com>",
-  "license": "MIT",
-  "dependencies": {
-    "tslib": "^2.3.0",
-    "axios": "^1.6.7",
-    "jsdom": "^22.1.0",
-    "marked": "^13.0.0",
-    "dompurify": "^3.1.5"
-  },
-  "type": "commonjs",
-  "main": "./src/index.js",
-  "typings": "./src/index.d.ts",
-  "publishConfig": {
-    "access": "public"
-  }
+	"name": "@kbve/devops",
+	"version": "0.0.17",
+	"description": "A DevOps helper library, providing better functions and extensions.",
+	"keywords": [
+		"github",
+		"actions",
+		"helper"
+	],
+	"homepage": "https://kbve.com/application/git#devops",
+	"bugs": {
+		"url": "https://github.com/KBVE/kbve/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/KBVE/kbve.git"
+	},
+	"author": "KBVE <hello@kbve.com>",
+	"license": "MIT",
+	"dependencies": {
+		"tslib": "^2.3.0",
+		"axios": "^1.6.7",
+		"jsdom": "^22.1.0",
+		"marked": "^13.0.0",
+		"dompurify": "^3.1.5"
+	},
+	"type": "commonjs",
+	"main": "./src/index.js",
+	"typings": "./src/index.d.ts",
+	"publishConfig": {
+		"access": "public"
+	}
 }
