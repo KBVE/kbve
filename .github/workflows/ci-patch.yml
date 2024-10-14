@@ -37,62 +37,42 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Auto-Pull
-        uses: diillson/auto-pull-request@latest
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          destination_branch: 'dev'
-          pr_title: 'Pulling ${{ github.ref }} into Dev'
-          pr_body: |
-            *An automated PR*
+      # - name: Auto-Pull
+      #   uses: diillson/auto-pull-request@latest
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     destination_branch: 'dev'
+      #     pr_title: 'Pulling ${{ github.ref }} into Dev'
+      #     pr_body: |
+      #       *An automated PR*
 
-            Commits:
-            ${{ steps.get_commits.outputs.commits }}
-          pr_label: 'auto-pr'
+      #       Commits:
+      #       ${{ steps.get_commits.outputs.commits }}
+      #     pr_label: 'auto-pr'
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # - name: Install dependencies
-      #   run: |
-      #     npm install @kbve/devops --legacy-peer-deps
-
-      # - name: Call Process and Update PR Function
-      #   uses: actions/github-script@v7
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     script: |
-      #       const { _$gha_processAndUpdatePR } = require('@kbve/devops');
-      #       const branchToCompare = 'dev';
-      #       await _$gha_processAndUpdatePR(branchToCompare, github, context);
-
-            # Install @kbve/devops outside of the monorepo
       - name: Create temp directory and install @kbve/devops
         run: |
-          # Create a temporary directory outside the repository
           mkdir -p /tmp/devops-temp
-          
-          # Navigate to the temporary directory
           cd /tmp/devops-temp
-
-          # Install the @kbve/devops package separately
           npm install @kbve/devops --legacy-peer-deps
 
-          # Verify the installation
-          ls node_modules/@kbve/devops
-
-      # Use the installed @kbve/devops package in the subsequent steps
       - name: Call Process and Update PR Function
         uses: actions/github-script@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_PATH: /tmp/devops-temp/node_modules  # Set NODE_PATH to the temporary directory
+          NODE_PATH: /tmp/devops-temp/node_modules 
         with:
           script: |
-            const { _$gha_processAndUpdatePR } = require('@kbve/devops');
+            const { _$gha_processAndUpdatePR,  _$gha_createOrUpdatePR } = require('@kbve/devops');
+            const referenceBranch = github.ref.replace('refs/heads/', ''); 
+            const targetBranch = 'dev'; 
+            await _$gha_createOrUpdatePR(github, context, referenceBranch, targetBranch);
+
             const branchToCompare = 'dev';
             await _$gha_processAndUpdatePR(branchToCompare, github, context);
 
@@ -112,24 +92,16 @@ jobs:
 
       - name: Create temp directory and install @kbve/devops
         run: |
-          # Create a temporary directory outside the repository
           mkdir -p /tmp/devops-temp
-          
-          # Navigate to the temporary directory
           cd /tmp/devops-temp
-
-          # Install the @kbve/devops package separately
           npm install @kbve/devops --legacy-peer-deps
 
-          # Verify the installation
-          ls node_modules/@kbve/devops
 
-      # Use the installed @kbve/devops package in the subsequent steps
       - name: Call Process and Update PR Function
         uses: actions/github-script@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_PATH: /tmp/devops-temp/node_modules  # Set NODE_PATH to the temporary directory
+          NODE_PATH: /tmp/devops-temp/node_modules
         with:
           script: |
             const { _$gha_processAndUpdatePR } = require('@kbve/devops');
