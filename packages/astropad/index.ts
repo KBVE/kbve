@@ -28,7 +28,10 @@ export { default as ItemDB } from './src/itemdb/ItemDBTable.astro';
 export { default as Tasks } from './src/tasks/Tasks.astro';
 export { default as ArchivedTasks } from './src/tasks/ArchiveTasks.astro';
 
-// Register
+//  [Rive]
+export { default as AstroRive } from './src/rive/AstroRive.astro';
+
+//  [Register]
 export { default as SupabaseRegister } from './src/register/supabase/SupabaseRegister.astro';
 
 // export { default as Register } from './src/register/Register.astro';

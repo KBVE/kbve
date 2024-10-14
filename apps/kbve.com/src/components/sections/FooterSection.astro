@@ -7,8 +7,7 @@ import frStrings from '../../utils/fr/navigation';
 import Icon from '../../components/ui/icons/Icon.astro';
 import BrandLogo from '../../components/BrandLogo.astro';
 import { SITE } from '../../data_files/constants';
-
-import AstroRive from '../AstroRive.astro';
+import { AstroRive } from '@kbve/astropad';
 
 // Select the correct translation based on the page's lang prop:
 const strings = Astro.currentLocale === 'fr' ? frStrings : enStrings;

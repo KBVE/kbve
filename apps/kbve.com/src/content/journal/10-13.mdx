@@ -36,3 +36,15 @@ We will integrate directly to our supabase instance and use this as another exam
 After we migrate this website, we can loop back around and migrate any of the additional domains that we are hosting or managing?
 Herbmail does need a whole new UI/UX upgrade and so does RareIcon, hmm, we can do those two afterwards.
 As for the HQPlan and the Cityvote, we will hold off on those while doing the docker desktop build because expo will take up too much time and resources.
+
+**Herbmail**
+
+For herbmail, we will have to remove some of the ve references and switch them over to the Astro Pad.
+
+**Rive**
+
+Spent the past day moving the animations out of lottie and into Rive.
+My plan is to then utilize some of the animations inside of Unity as well, so that we could a bit of cross-file usage, ideally making the tutorials be on our website rather than in-game.
+I changed the hero animation for KBVE and also threw a heavy animation into the footer, both are just small test cases that should have interesting results from the webmaster tools.
+For now, I am using our tools to check against the load time, but google's webmaster tooling should be enough, and hmm, it seems that the rive library is the biggest issue.
+We could move the loading of the script off the main thread and use a web worker, but that will be an issue for the future me to resolve.
