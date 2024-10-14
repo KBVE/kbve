@@ -1,13 +1,17 @@
 # KBVE
 
 ![Discord](https://img.shields.io/discord/342732838598082562?logo=discord)
-[![PyPI - KBVE Version](https://img.shields.io/pypi/v/kbve?label=kbve%20pypi)](https://pypi.org/project/kbve/)
-[![Crates.io ERust Version](https://img.shields.io/crates/v/erust?label=erust%20crates.io)](https://crates.io/crates/erust)
-[![Crates.io KBVE Version](https://img.shields.io/crates/v/kbve?label=kbve%20crates.io)](https://crates.io/crates/kbve)
-[![Crates.io Jedi Version](https://img.shields.io/crates/v/jedi?label=jedi%20crates.io)](https://crates.io/crates/jedi)
-[![Crates.io Holy Version](https://img.shields.io/crates/v/holy?label=holy%20crates.io)](https://crates.io/crates/holy)
+[![PyPI - KBVE Version](https://img.shields.io/pypi/v/kbve?label=kbve%20pypi&logo=python)](https://pypi.org/project/kbve/)
+[![PyPI - Fudster Version](https://img.shields.io/pypi/v/fudster?label=fudster%20pypi&logo=python)](https://pypi.org/project/fudster/)
+[![Crates.io ERust Version](https://img.shields.io/crates/v/erust?label=erust%20crates.io&logo=rust)](https://crates.io/crates/erust)
+[![Crates.io KBVE Version](https://img.shields.io/crates/v/kbve?label=kbve%20crates.io&logo=rust)](https://crates.io/crates/kbve)
+[![Crates.io Jedi Version](https://img.shields.io/crates/v/jedi?label=jedi%20crates.io&logo=rust)](https://crates.io/crates/jedi)
+[![Crates.io Holy Version](https://img.shields.io/crates/v/holy?label=holy%20crates.io&logo=rust)](https://crates.io/crates/holy)
+[![NPM Laser](https://img.shields.io/npm/v/%40kbve%2Flaser?label=kbve%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/laser)
 
-<a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/kbve.png" width="200"></a>
+<center>
+<a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/letter_logo.png" width="200"></a>
+</center>
 
 ---
 
