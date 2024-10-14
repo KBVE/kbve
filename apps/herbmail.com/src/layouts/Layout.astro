@@ -5,10 +5,11 @@ interface Props {
 	image?: string;
 }
 const { title, description } = Astro.props;
+import { Toastify } from '@kbve/astropad';
 import { AstroVe as VE } from '@kbve/astro-ve';
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="bg-zinc-950">
 	<head>
 		<meta charset="UTF-8" />
@@ -17,7 +18,8 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
-		<VE widget="header:external:toastify" data="" />
+		<!-- <VE widget="header:external:toastify" data="" /> -->
+		<Toastify />
 		<VE widget="header:external:flowbite" data="" class="" />
 		<VE widget="header:external:lottie" data="dot" />
 
@@ -32,9 +34,7 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 			<VE
 				widget="kbve:user:user"
 				avatar="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
-			>
-				
-			</VE>
+			/>
 		</VE>
 		<slot />
 		<footer>
@@ -138,8 +138,14 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 			}
 
 			code {
-				font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-					DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New,
+				font-family:
+					Menlo,
+					Monaco,
+					Lucida Console,
+					Liberation Mono,
+					DejaVu Sans Mono,
+					Bitstream Vera Sans Mono,
+					Courier New,
 					monospace;
 			}
 		</style>
