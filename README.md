@@ -8,6 +8,8 @@
 [![Crates.io Jedi Version](https://img.shields.io/crates/v/jedi?label=jedi%20crates.io&logo=rust)](https://crates.io/crates/jedi)
 [![Crates.io Holy Version](https://img.shields.io/crates/v/holy?label=holy%20crates.io&logo=rust)](https://crates.io/crates/holy)
 [![NPM Laser](https://img.shields.io/npm/v/%40kbve%2Flaser?label=kbve%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/laser)
+[![NPM Devops](https://img.shields.io/npm/v/%40kbve%2Fdevops?label=kbve%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/devops)
+
 
 <center>
 <a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/letter_logo.png" width="200"></a>
@@ -18,8 +20,8 @@
 ## What is KBVE?
 
 KBVE is a collective that builds different programs, libraries, games and memes!
-This monorepo is the heart of all our applications, making it easier to manage and provides an experimental playground for pipelines.
-The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/)
+This monorepo is the heart of all our applications, making it easier to manage while providing an experimental playground for pipelines.
+The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), but do not fear! This is easy once you get the hang of it!
 
 ---
 
@@ -27,10 +29,10 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/)
 
 | C     | R     | A        | P    | @Apps                                  |
 | ----- | ----- | -------- | ---- | -------------------------------------- |
-| saber | erust | astro-ve | kbve | [kbve.com](https://kbve.com/)          |
-|       | jedi  |          |      | [rentearth.com](https://renteart.com/) |
-|       | holy  |          |      | Coming Soon - Steam App                |
-|       | kbve  |          |      | TODO Android App                       |
+| kilonet | erust | astropad | kbve | [kbve.com](https://kbve.com/)          |
+|       | jedi  |          | fudster     | [rentearth.com](https://renteart.com/) |
+|       | holy  |          |      | [herbmail.com](https://herbmail.com/)               |
+|       | kbve  |          |      | [rareicon.com](https://rareicon.com/)                       |
 
 ---
 
