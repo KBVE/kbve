@@ -28,6 +28,9 @@ export { default as ItemDB } from './src/itemdb/ItemDBTable.astro';
 export { default as Tasks } from './src/tasks/Tasks.astro';
 export { default as ArchivedTasks } from './src/tasks/ArchiveTasks.astro';
 
+//  [Toast]
+export { default as Toastify} from './src/toastify/AstroToastify.astro';
+
 //  [Rive]
 export { default as AstroRive } from './src/rive/AstroRive.astro';
 
