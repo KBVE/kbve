@@ -1,3 +1,6 @@
 go 1.23
 
-use ./packages/go-portside
+use (
+	./apps/go-icon
+	./packages/go-portside
+)
