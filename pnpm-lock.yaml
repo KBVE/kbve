@@ -333,6 +333,9 @@ importers:
       '@nx-dotnet/core':
         specifier: ^2.1.1
         version: 2.2.0(@nx/js@18.3.3(@babel/traverse@7.24.7)(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10))(@types/node@18.19.17)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(typescript@5.3.3)(verdaccio@5.31.1(typanion@3.14.0)))(eslint@8.57.0)(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))(prettier@3.2.5)
+      '@nx-go/nx-go':
+        specifier: ^3.2.0
+        version: 3.2.0(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))
       '@nx-tools/nx-container':
         specifier: ^6.0.2
         version: 6.0.2(@nx/devkit@18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10))))(@swc/helpers@0.5.10)(dotenv@16.4.5)(tslib@2.6.2)
@@ -3389,6 +3392,9 @@ packages:
 
   '@nx-dotnet/utils@2.2.0':
     resolution: {integrity: sha512-R3hAAmvqXEqY39h7bXKNv2V8GBZalAH8DM+r489pLxRWC78PY7N/LUBtTUOTx0zu+qmpq7ouUWeVup+ttKO8lA==}
+
+  '@nx-go/nx-go@3.2.0':
+    resolution: {integrity: sha512-oGr7kCBta/PdLKKPa2pRGWHxzPAbTvS1eZA+3NqEniw7JScVn+2w+6A/dctyPRidBQMwlpUO4mgfHzbwwt0xiQ==}
 
   '@nx-tools/ci-context@6.0.1':
     resolution: {integrity: sha512-+nZqVr6rZvSpqqbf9cZkiwvpixPx7EjJWAbIixueclakyYU8okZ20wVy30wd4wOmcnOcb4VxCdSAY4AqsUgseg==}
@@ -19731,12 +19737,6 @@ snapshots:
       - typescript
       - verdaccio
 
-  '@nrwl/devkit@16.4.1(nx@16.4.1(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))':
-    dependencies:
-      '@nx/devkit': 16.4.1(nx@16.4.1(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))
-    transitivePeerDependencies:
-      - nx
-
   '@nrwl/devkit@16.4.1(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))':
     dependencies:
       '@nx/devkit': 16.4.1(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))
@@ -20140,6 +20140,13 @@ snapshots:
     transitivePeerDependencies:
       - nx
 
+  '@nx-go/nx-go@3.2.0(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))':
+    dependencies:
+      '@nx/devkit': 18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))
+      tslib: 2.7.0
+    transitivePeerDependencies:
+      - nx
+
   '@nx-tools/ci-context@6.0.1(@nx/devkit@18.3.3(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10))))(tslib@2.6.2)':
     dependencies:
       '@actions/github': 6.0.0
@@ -20214,7 +20221,7 @@ snapshots:
 
   '@nx/devkit@16.4.1(nx@16.4.1(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))':
     dependencies:
-      '@nrwl/devkit': 16.4.1(nx@16.4.1(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))
+      '@nrwl/devkit': 16.4.1(nx@18.3.3(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10)))
       ejs: 3.1.10
       ignore: 5.3.1
       nx: 16.4.1(@swc-node/register@1.8.0(@swc/core@1.3.107(@swc/helpers@0.5.10))(@swc/types@0.1.6)(typescript@5.3.3))(@swc/core@1.3.107(@swc/helpers@0.5.10))

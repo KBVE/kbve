@@ -66,3 +66,12 @@ The scripts are `Selection Base` and `LevelSelector`, we will peak inside both o
 It seems that we have two instances of the GameManager, one in our Kilonet package and another inside of the MoreMountains, so we can avoid this problem by making sure that we reference the exact GameManager when using both libraries.
 In the event of using both game managers, we would need to be specific, i.e `KBVE.Kilonet.GameManager` as opposed to just `GameManager`.
 Okay! That was the last of the main errors that I wanted to address today.
+
+**Animations**
+
+Updated the KBVE.com website animations to be a bit more in-line with our robotics and gaming side!
+We still have a couple more of the components to fix up but I will slowly tackle them as I am updating the website.
+The a future update will be around better state machine management and the loading of the riv assets, which could be done off thread.
+Hmm, we could have the worker load the asset into the dexie storage and then pull it whenever we want to create the animation, as well as, save its internal state machine.
+
+<Adsense />
