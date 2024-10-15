@@ -2,9 +2,10 @@ const {
 	createGlobPatternsForDependencies,
 } = require('@nxtensions/astro/tailwind');
 const { join } = require('path');
+const { buildConfig } = require('../../packages/uti/src/tailwind.config'); // Adjust the relative path
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+module.exports = buildConfig(__dirname, {
 	content: [
 		join(
 			__dirname,
@@ -24,7 +25,7 @@ module.exports = {
 				'kbve-secondary': '#1c033c',
 
 				'kbve-menu-primary': '#27272A',
-				'kbve-svg-primary': '#91ffff', // 02-17-2024 - This will have to be changed for the theme.
+				'kbve-svg-primary': '#91ffff',
 				'kbve-svg-primary-dyn': 'var(--color-kbve-svg-primary-dyn)',
 				'kbve-text-primary': '',
 				'kbve-text-primary-dyn': 'var(--color-kbve-text-primary-dyn)',
@@ -33,9 +34,8 @@ module.exports = {
 			},
 			backgroundColor: {
 				default: 'var(--color-background)',
-				//offset: "var(--color-background-offset)",
-				'kbve-menu-bg': '#09090b', // zinc 950 as hex
-				'kbve-menu-bg-dyn': 'var(--color-kbve-menu-bg-dyn)', // Dynamic Variable
+				'kbve-menu-bg': '#09090b',
+				'kbve-menu-bg-dyn': 'var(--color-kbve-menu-bg-dyn)',
 
 				offset: '#23262d',
 			},
@@ -59,18 +59,5 @@ module.exports = {
 				},
 			},
 		},
-
-		plugins: [
-			//* This function is still broken.
-			// function ( { addUtilities }) {
-			//   const newUtilities = {
-			//     '.custom-gradient': {
-			//       backgroundClip: 'text',
-			//       color: 'transparent',
-			//     },
-			//   };
-			//   addUtilities(newUtilities, ['responsive']);
-			// },
-		],
 	},
-};
+});
