@@ -58,3 +58,11 @@ Definitely the best anime of 2024, its a perfect blend of ghost stories and dura
 I believe it should be on everyones watch list, gonna hype it out too.
 Yet I hate having to wait each week for a new episode, but hey, its another thing to fill that kill tony void.
 Speaking of which, I am super excited for tonights episode of kill tony, I need that laugh.
+
+**Github**
+
+Looks like the actions are breaking because of a workflow, aka `auto-pull`, and the reason behind it breaking is that dockerhub is denying a docker image pull.
+There are a couple solutions to this problem, we could forward over our dockerhub login to increase the rates, this would be easy and should resolve that problem.
+However, I want to be a bit more complicated and maybe we could just remove that action from the workflow and use our devops library to do the automatic pull for us?
+Or we could swap out the action to use `https://github.com/peter-evans/create-pull-request` instead?
+The issue that I can see already with our devops library is that it might cause some problems, but hey, we are learning right!
