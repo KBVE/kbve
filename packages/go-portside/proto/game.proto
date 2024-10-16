@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package game;
+
+service MultiplayerService {
+  rpc SendPlayerData (PlayerRequest) returns (PlayerResponse);
+  rpc ReceivePlayerData (PlayerRequest) returns (PlayerResponse);
+}
+
+message PlayerRequest {
+  string session_hash = 1;
+  string player_id = 2;
+  float x = 3;
+  float y = 4;
+}
+
+message PlayerResponse {
+  string status = 1;
+  string message = 2;
+}
