@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package game;
 
+option go_package = "/proto;proto";
+
 service MultiplayerService {
   rpc SendPlayerData (PlayerRequest) returns (PlayerResponse);
   rpc ReceivePlayerData (PlayerRequest) returns (PlayerResponse);
