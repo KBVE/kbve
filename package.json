@@ -202,7 +202,7 @@
 		"styled-components": "5.3.6",
 		"tailwind-merge": "^2.3.0",
 		"tailwindcss-animate": "^1.0.7",
-		"tamagui": "^1.108.0",
+		"tamagui": "^1.115.3",
 		"three": "^0.161.0",
 		"three-csg-ts": "^3.1.10",
 		"three-spritetext": "^1.8.2",

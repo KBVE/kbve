@@ -61,3 +61,32 @@ warning: `kilobase` (lib) generated 6 warnings (run `cargo fix --lib -p kilobase
 ```
 
 Now we will wrap back around and look through the code again tomorrow, making adjustments to the SQL tables that and some of the logic.
+
+**Expo**
+
+Time to take a break from the rust code and take a look at our Expo configuration.
+We have a couple things that we will have to change, including the bbq extension, which has still a bit of cookin left on it.
+The command to start expo will be like this:
+
+```shell
+
+pnpm nx start expo-lcagents
+
+```
+
+Next we will take a look at the current source and I believe the theme needs to be defined again.
+We can double check the tamagui version, I believe that it needs to be updated as well.
+Bumping the tamagui to version 1.115.3, but there should not be other major upgrade yet.
+I believe expo could be bumped up but we can wait on that until the iOS and Android pipelines are ready.
+
+Okay the first issue was the dark mode, we want that to be default for right now.
+This will be a quick fix and should not cause any major problems, we just flip the logic that would apply the default theme of light to dark.
+We can do this inside of the `_layout.tsx` and that solves the dark theme issue.
+Next we want to solve the double root problem, this can be done by removing the register root and just export the app with the expo-root.
+Okay so we no longer see any errors in the web version, I did not yet test this on the iOS version but we can look at that later on.
+
+**Kube**
+
+While setting up the expo again, it would be wise to take a look at the kube health, making sure that everything is still functional.
+I am going to run the `kubectl get pods -n supabase`, which returns a great status of everything running the past 12 days without any major errors or restarts.
+With the version of kilobase v15.1.10 getting ready, we want to prepare a rolling cluster update.
