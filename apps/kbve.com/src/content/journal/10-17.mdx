@@ -40,3 +40,24 @@ Since the supabase docker image is ubuntu 20, we need to drop down the pgrx from
 ```shell
 cargo install cargo-pgrx --version 0.11.3 --locked
 ```
+
+What a pile of donkeys splat, had to downgrade back to v1.2.0 for the Rust monodon package to even get our basic builds to work.
+This means even at v2.0, we are unable to have stable rust builds, gah!
+
+Well with the version downgrade, we are making some progress.
+
+```
+
+warning: `kilobase` (lib) generated 6 warnings (run `cargo fix --lib -p kilobase` to apply 3 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.19s
+  Installing extension
+     Copying control file to ../../dist/target/kilobase/opt/homebrew/opt/postgresql@15/share/postgresql@15/extension/kilobase.control
+     Copying shared library to ../../dist/target/kilobase/opt/homebrew/opt/postgresql@15/lib/postgresql/kilobase.so
+ Discovering SQL entities
+  Discovered 2 SQL entities: 0 schemas (0 unique), 0 functions, 0 types, 0 enums, 2 sqls, 0 ords, 0 hashes, 0 aggregates, 0 triggers
+     Writing SQL entities to ../../dist/target/kilobase/opt/homebrew/opt/postgresql@15/share/postgresql@15/extension/kilobase--15.1.9.sql
+    Finished installing kilobase
+
+```
+
+Now we will wrap back around and look through the code again tomorrow, making adjustments to the SQL tables that and some of the logic.
