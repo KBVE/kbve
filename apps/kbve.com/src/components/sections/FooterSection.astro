@@ -7,7 +7,6 @@ import frStrings from '../../utils/fr/navigation';
 import Icon from '../../components/ui/icons/Icon.astro';
 import BrandLogo from '../../components/BrandLogo.astro';
 import { SITE } from '../../data_files/constants';
-import { AstroRive } from '@kbve/astropad';
 
 // Select the correct translation based on the page's lang prop:
 const strings = Astro.currentLocale === 'fr' ? frStrings : enStrings;
@@ -24,15 +23,7 @@ const crafted: string =
 ---
 
 <div class="relative">
-	<!-- AstroRive as the full-screen background -->
-	<div class="absolute inset-0 z-0 w-screen h-screen">
-		<AstroRive
-			rive="/assets/rive/fantasy_anime.riv"
-			canvasId="canvas_hands"
-			className="w-full h-full object-cover"
-			stateMachine="State Machine 1"
-		/>
-	</div>
+
 
 	<!-- FeaturesGeneral positioned on top of the background, centered with mx-auto -->
 	<div
@@ -62,9 +53,9 @@ const crafted: string =
 										{link.name}
 									</a>
 									{section.section === 'Company' &&
-									index === 2 ? (
+									index === 1 ? (
 										<span class="ms-1 inline rounded-lg bg-cyan-500 px-2 py-1 text-xs font-bold text-neutral-50">
-											We're hiring!
+											Updated Weekly!
 										</span>
 									) : null}
 								</li>
