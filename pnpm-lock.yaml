@@ -228,7 +228,7 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.14(ts-node@10.9.1(@swc/core@1.5.7(@swc/helpers@0.5.13))(@types/node@18.19.17)(typescript@5.3.3)))
       tamagui:
-        specifier: ^1.108.0
+        specifier: ^1.115.3
         version: 1.115.3(@types/react@18.3.1)(react-dom@18.3.1(react@18.3.1))(react-native@0.74.1(@babel/core@7.25.8)(@babel/preset-env@7.25.8(@babel/core@7.25.8))(@types/react@18.3.1)(react@18.3.1))(react@18.3.1)
       three:
         specifier: ^0.161.0
@@ -18216,6 +18216,12 @@ snapshots:
     dependencies:
       semver: 7.6.3
 
+  '@nrwl/devkit@16.4.1(nx@16.4.1(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))':
+    dependencies:
+      '@nx/devkit': 16.4.1(nx@16.4.1(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))
+    transitivePeerDependencies:
+      - nx
+
   '@nrwl/devkit@16.4.1(nx@20.0.1(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))':
     dependencies:
       '@nx/devkit': 16.4.1(nx@20.0.1(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))
@@ -18393,7 +18399,7 @@ snapshots:
 
   '@nx/devkit@16.4.1(nx@16.4.1(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))':
     dependencies:
-      '@nrwl/devkit': 16.4.1(nx@20.0.1(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))
+      '@nrwl/devkit': 16.4.1(nx@16.4.1(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))
       ejs: 3.1.10
       ignore: 5.3.2
       nx: 16.4.1(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13))
