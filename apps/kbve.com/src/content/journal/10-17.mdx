@@ -79,6 +79,12 @@ We can double check the tamagui version, I believe that it needs to be updated a
 Bumping the tamagui to version 1.115.3, but there should not be other major upgrade yet.
 I believe expo could be bumped up but we can wait on that until the iOS and Android pipelines are ready.
 
+Okay the first issue was the dark mode, we want that to be default for right now.
+This will be a quick fix and should not cause any major problems, we just flip the logic that would apply the default theme of light to dark.
+We can do this inside of the `_layout.tsx` and that solves the dark theme issue.
+Next we want to solve the double root problem, this can be done by removing the register root and just export the app with the expo-root.
+Okay so we no longer see any errors in the web version, I did not yet test this on the iOS version but we can look at that later on.
+
 **Kube**
 
 While setting up the expo again, it would be wise to take a look at the kube health, making sure that everything is still functional.
