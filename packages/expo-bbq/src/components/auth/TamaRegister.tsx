@@ -1,10 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform } from 'react-native';
 import { Button, Form, H4, Input, Spinner, Text } from 'tamagui';
+import { Sheet, setupNativeSheet } from '@tamagui/sheet';
+import { ModalView } from 'react-native-ios-modal';
 
 // Import the hCaptcha components statically
 import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
-import HCaptchaMobile from '@hcaptcha/react-native-hcaptcha';
+import ConfirmHcaptcha from '@hcaptcha/react-native-hcaptcha';
+
+// Set up native sheet for iOS
+setupNativeSheet('ios', ModalView);
+
+type HCaptchaType = typeof HCaptchaWeb | typeof ConfirmHcaptcha;
 
 export function TamaRegister({ siteKey }: { siteKey: string }) {
   const [status, setStatus] = useState<'off' | 'submitting' | 'submitted'>('off');
@@ -15,7 +22,10 @@ export function TamaRegister({ siteKey }: { siteKey: string }) {
     password: '',
     passwordConfirm: '',
   });
-  const captchaForm = useRef<any>(null);
+  const captchaForm = useRef<ConfirmHcaptcha | null>(null); // Ref for mobile captcha
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // State to control the Sheet open/close
+
+  const HCaptchaComponent: HCaptchaType = Platform.OS === 'web' ? HCaptchaWeb : ConfirmHcaptcha;
 
   useEffect(() => {
     if (status === 'submitting') {
@@ -47,22 +57,20 @@ export function TamaRegister({ siteKey }: { siteKey: string }) {
   };
 
   const onMessage = (event: any) => {
-    if (event && event.nativeEvent?.data) {
-      if (['cancel', 'error'].includes(event.nativeEvent.data)) {
+    const eventData = event?.nativeEvent?.data;
+
+    if (eventData) {
+      if (['cancel', 'error', 'expired'].includes(eventData)) {
         captchaForm.current?.hide();
-        if (event.nativeEvent.data === 'error') {
-          console.error('hCaptcha error');
-        }
+        console.log(`hCaptcha status: ${eventData}`);
       } else {
-        const token = event.nativeEvent.data;
-        setCaptchaToken(token);
-        captchaForm.current?.hide();
-        event.markUsed();
+        console.log('Verified code from hCaptcha:', eventData);
+        setCaptchaToken(eventData); // Set the token
+        captchaForm.current?.hide(); // Hide the modal only after successfully receiving the token
+        setIsSheetOpen(false); // Close the Tamagui Sheet when captcha is successfully validated
       }
     }
   };
-
-  const HCaptchaComponent = Platform.OS === 'web' ? HCaptchaWeb : HCaptchaMobile;
 
   return (
     <Form
@@ -116,12 +124,30 @@ export function TamaRegister({ siteKey }: { siteKey: string }) {
           onVerify={(captchaToken: string) => setCaptchaToken(captchaToken)}
         />
       ) : (
-        <HCaptchaComponent
-          ref={captchaForm}
-          siteKey={siteKey} // Pass siteKey for mobile
-          languageCode="en"
-          onMessage={onMessage}
-        />
+        <>
+          <Button onPress={() => setIsSheetOpen(true)}>Show hCaptcha</Button>
+          
+          {/* Tamagui Sheet with native iOS modal support */}
+          <Sheet
+            native
+            open={isSheetOpen}
+            onOpenChange={setIsSheetOpen}
+            snapPoints={[85, 50]}
+          >
+            <Sheet.Frame padding="$4" justifyContent="center" alignItems="center" space="$5">
+              <ConfirmHcaptcha
+                ref={captchaForm}
+                siteKey={siteKey} // Pass siteKey for mobile
+                baseUrl="https://hcaptcha.com"
+                languageCode="en"
+                onMessage={onMessage}
+              />
+              <Button size="$6" circular onPress={() => setIsSheetOpen(false)}>
+                Close
+              </Button>
+            </Sheet.Frame>
+          </Sheet>
+        </>
       )}
 
       {/* Submit Button */}

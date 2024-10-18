@@ -9,7 +9,7 @@ assignees: 'h0lybyte'
 ---
 
 **Core Concept/Theory**
-A clear and concise description of what the concept is. Ex. It would be cool if [...]
+We would need a clear and concise description of the concept. For example, It would be cool if [...]
 
 * * *
 
@@ -25,3 +25,6 @@ Are there any other references that you can provide?
 
 **Additional information**
 Add any other context or examples of this concept here.
+
+[Application Notes](https://kbve.com/application/)
+[KBVE Graph](https://kbve.com/graph/)

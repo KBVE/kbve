@@ -1,18 +1,15 @@
-import { registerRootComponent } from 'expo';
 import { ExpoRoot } from 'expo-router';
 import 'expo-router/entry';
-import BaseApp from './src/app/_layout';
+import { PortalProvider } from '@tamagui/portal';
 
 
 
 export default function App() {
   const ctx = require.context('./src/app');
-  return <ExpoRoot context={ctx} />;
+
+  return (
+    <PortalProvider shouldAddRootHost>
+      <ExpoRoot context={ctx} />
+    </PortalProvider>
+  );
 }
-
-// export function App() {
-//   const ctx = require.context('./src/app');
-//   return <ExpoRoot context={ctx} />;
-// }
-
-//registerRootComponent(App);

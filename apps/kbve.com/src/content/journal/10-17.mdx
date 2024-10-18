@@ -85,6 +85,28 @@ We can do this inside of the `_layout.tsx` and that solves the dark theme issue.
 Next we want to solve the double root problem, this can be done by removing the register root and just export the app with the expo-root.
 Okay so we no longer see any errors in the web version, I did not yet test this on the iOS version but we can look at that later on.
 
+
+**ExpoDoctor**
+
+Since I am using a new laptop, there will be some plugins that are missing that need to be installed.
+The shell that we could use to verify that is:
+
+```shell
+
+pnpm npx expo-doctor
+
+```
+
+I also believe that the nx monorepo provides another way to call the expo doctor, but regardless, I do not have the data rates to download all the files that we would need to fix this issue.
+When I get back home, I will begin the process of setting up the iOS on the new m3 macbook.
+
+**BBQ**
+
+The next component that I want to add into the bbq would be an account or profile card, but we also need to configure the register and login?
+Thinking through what would be the best option for setting up the register / login, I guess since we are using the tamagui, we can just wrap each of the component pieces with generic components.
+The customization will be isolated from the smaller component pieces, so we should not have any issues.
+To get 
+
 **Kube**
 
 While setting up the expo again, it would be wise to take a look at the kube health, making sure that everything is still functional.
