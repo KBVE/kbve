@@ -25,3 +25,6 @@ Are there any other references that you can provide?
 
 **Additional information**
 Add any other context or examples of this concept here.
+
+[Application Notes](https://kbve.com/application/)
+[KBVE Graph](https://kbve.com/graph/)
