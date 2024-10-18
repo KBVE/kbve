@@ -4,7 +4,9 @@ import { Button, Form, H4, Input, Spinner, Text } from 'tamagui';
 
 // Import the hCaptcha components statically
 import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
-import HCaptchaMobile from '@hcaptcha/react-native-hcaptcha';
+import ConfirmHcaptcha from '@hcaptcha/react-native-hcaptcha';
+
+type HCaptchaType = typeof HCaptchaWeb | typeof ConfirmHcaptcha;
 
 export function TamaRegister({ siteKey }: { siteKey: string }) {
   const [status, setStatus] = useState<'off' | 'submitting' | 'submitted'>('off');
@@ -15,7 +17,9 @@ export function TamaRegister({ siteKey }: { siteKey: string }) {
     password: '',
     passwordConfirm: '',
   });
-  const captchaForm = useRef<any>(null);
+  const captchaForm = useRef<ConfirmHcaptcha | null>(null); // Ref for mobile captcha
+
+  const HCaptchaComponent: HCaptchaType = Platform.OS === 'web' ? HCaptchaWeb : ConfirmHcaptcha;
 
   useEffect(() => {
     if (status === 'submitting') {
@@ -57,12 +61,9 @@ export function TamaRegister({ siteKey }: { siteKey: string }) {
         const token = event.nativeEvent.data;
         setCaptchaToken(token);
         captchaForm.current?.hide();
-        event.markUsed();
       }
     }
   };
-
-  const HCaptchaComponent = Platform.OS === 'web' ? HCaptchaWeb : HCaptchaMobile;
 
   return (
     <Form
@@ -116,12 +117,17 @@ export function TamaRegister({ siteKey }: { siteKey: string }) {
           onVerify={(captchaToken: string) => setCaptchaToken(captchaToken)}
         />
       ) : (
-        <HCaptchaComponent
-          ref={captchaForm}
-          siteKey={siteKey} // Pass siteKey for mobile
-          languageCode="en"
-          onMessage={onMessage}
-        />
+        <>
+          <ConfirmHcaptcha
+            ref={captchaForm}
+            siteKey={siteKey} // Pass siteKey for mobile
+            baseUrl="https://hcaptcha.com"
+            languageCode="en"
+            onMessage={onMessage}
+          />
+          {/* Button to trigger the modal for mobile */}
+          <Button onPress={() => captchaForm.current?.show()}>Show hCaptcha</Button>
+        </>
       )}
 
       {/* Submit Button */}
