@@ -90,3 +90,32 @@ Okay so we no longer see any errors in the web version, I did not yet test this 
 While setting up the expo again, it would be wise to take a look at the kube health, making sure that everything is still functional.
 I am going to run the `kubectl get pods -n supabase`, which returns a great status of everything running the past 12 days without any major errors or restarts.
 With the version of kilobase v15.1.10 getting ready, we want to prepare a rolling cluster update.
+
+
+**hCaptcha**
+
+The next issue that we want to tackle is the loading of the hCaptcha within the react native / expo eco-system.
+It looks like to grab the library, we will have to do this:
+
+```
+pnpm install @hcaptcha/react-native-hcaptcha
+```
+
+Then setup a new component, we can call it `hCaptchaWrapper` that would invoke either of the two units based upon if its web or not?
+I suppose this would be easier since we can throw that into the BBQ and then reutilize or extend it out based upon how we want to integrate the supabase instance.
+For this situation, we will try to avoid placing kilobase directly into this expo logic and just wrap around the supabase too.
+Hmm, okay let me quickly build this component out inside of the bbq package and ship that out.
+
+**DanDaDan**
+
+Nothing says Thursday than a fresh episode of Dan Da Dan?
+After driving around and touching enough grass, I think it would be great to spend the night just programming away and throwing on a series to stream.
+
+**API**
+
+We can deprecate and remove the `api` component within our apps folder.
+Since this application was over a year ago and I have improved a bunch within the rust realm, it would be safe for us to remove it and replace it.
+With that being said, right before we do that migration out and kill it, I should prepare the `kiloedge` instance and make sure that we can deploy edge functions through our self hosted instance of Supabase.
+The way that we will build those self hosted functions, hmm, it would be to just grab the current version of the supabase edge instance within our docker image.
+After grabbing it, we git copy the functions that we want to migrate over to it and then finally build a final image.
+Could throw the cache into there too and make sure everything is included, then making it a read-only application would be our next logical step.
