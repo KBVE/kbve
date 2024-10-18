@@ -55,6 +55,7 @@ Thumbs.db
 .astro
 
 .nx/cache
+.nx/workspace-data
 apps/api/.env
 .env
 

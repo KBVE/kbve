@@ -15,16 +15,13 @@ import { MenuSquare } from '@tamagui/lucide-icons'
 import { NavBar } from './_nav'
 
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router'
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 }
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
@@ -35,7 +32,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (interLoaded || interError) {
-      // Hide the splash screen after the fonts have loaded (or an error was returned) and the UI is ready.
       SplashScreen.hideAsync()
     }
   }, [interLoaded, interError])
@@ -48,20 +44,19 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme()
+  const colorScheme = useColorScheme() || 'dark';
 
   return (
     <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
-      <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
-        <Stack>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="menu" options={{ presentation: 'modal' }} />
           <Stack.Screen name="consulting" />
           <Stack.Screen name="projects"
            options={{
-            headerShown: true, // Ensure the header is shown
-            title: 'Projects', // Set the title for the header
-            // Add more options as needed
+            headerShown: true,
+            title: 'Projects',
             headerLeft: () => (
               <NavBar />
             ),

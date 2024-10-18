@@ -1,4 +1,4 @@
-//  [V] 15.1.3
+//  [V] 15.1.10
 //  [IMPORTS]
 use pgrx::bgworkers::*;
 use pgrx::prelude::*;
@@ -74,13 +74,13 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
   log!("Starting KiloBase BG Worker");
 
   //  [REDIS] -> Connection
-  let mut redis_connection = match create_redis_connection() {
+  let redis_connection = match create_redis_connection() {
     Ok(connection) => connection,
     Err(err) => {
       log!("Failed to establish Redis connection: {}", err);
       return;
     }
-  }
+  };
 
   while BackgroundWorker::wait_latch(Some(Duration::from_secs(10))) {
     // Select a pending task
@@ -169,7 +169,7 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
 //  [HELPERS]
 
 //  [REDIS] -> Helper function to create a persistent redis connection.
-fn create_redis_connection() -> RedisResult<Connection, redis::RedisError> {
+fn create_redis_connection() -> RedisResult<Connection> {
   //  [REDIS] -> ENVs
   let redis_host = env::var("REDIS_HOST").unwrap_or_else(|_| REDIS_DEFAULT_HOST.to_string());
   let redis_port = env::var("REDIS_PORT").unwrap_or_else(|_| REDIS_DEFAULT_PORT.to_string());
@@ -180,7 +180,7 @@ fn create_redis_connection() -> RedisResult<Connection, redis::RedisError> {
   //  let redis_secure_connection_url = format!("rediss://{}:{}", redis_host, redis_port);
 
   //  [REDIS] -> Create the Redis Client
-  let client = Client::open(redis_connection_url)?;
+  let client = RedisClient::open(redis_connection_url)?;
 
   let mut conn = client.get_connection()?;
 
@@ -188,7 +188,7 @@ fn create_redis_connection() -> RedisResult<Connection, redis::RedisError> {
     redis::cmd("AUTH").arg(password).query(&mut conn)?;
   }
 
-  ok(conn)
+  Ok(conn)
 }
 
 //  [HELPER] -> Deque **WIP

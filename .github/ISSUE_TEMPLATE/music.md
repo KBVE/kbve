@@ -4,7 +4,7 @@ about: Request a song to the Jukebox
 title: '[MUSIC] : Song Title, keep the music tag in brackets'
 labels: ["0", "media"]
 projects: ["kbve/5"]
-assignees: ''
+assignees: 'h0lybyte'
 
 ---
 

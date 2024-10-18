@@ -99,7 +99,6 @@
 	"plugins": [
 		"@nxtensions/astro",
 		"@nxlv/python",
-		"@nx-dotnet/core",
 		"@monodon/rust",
 		{
 			"plugin": "@nx/next/plugin",
@@ -190,5 +189,6 @@
 				"cacheableOperations": ["build", "lint", "test", "e2e"]
 			}
 		}
-	}
+	},
+	"useLegacyCache": true
 }

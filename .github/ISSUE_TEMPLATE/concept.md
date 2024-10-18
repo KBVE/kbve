@@ -4,7 +4,7 @@ about: Future idea, theory or concept for KBVE as an organization and/or the mai
 title: '[Concept] : '
 labels: ["0", "enhancement"]
 projects: ["kbve/5"]
-assignees: ''
+assignees: 'h0lybyte'
 
 ---
 
