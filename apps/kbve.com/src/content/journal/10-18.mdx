@@ -48,3 +48,24 @@ pnpm nx run fudster:update --name haystack-ai
 ```
 
 Okay but I believe that did not version bump our main poetry file, however that will be fine for now because the lock was updated.
+
+Next we want to update the `fudster` pip with the latest pgvector pip, since we are working around haystack, hmm.
+We will be running this:
+
+```shell
+pnpm nx run fudster:add --name pgvector-haystack
+```
+
+This will be adding the `pgvector-haystack` and that will be the base for our vector search and memory store.
+
+
+**Drizzle** 
+
+Looks like we have two more libraries in our package.json that we need to remove.
+
+```json 
+"drizzle-orm": "^0.31.1",
+"drizzle-zod": "^0.5.1"
+```
+
+I will create a new branch and run `pnpm remove drizzle-orm drizzle-zod`.
