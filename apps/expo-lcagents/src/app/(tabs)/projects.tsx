@@ -9,10 +9,11 @@ const Projects = () => {
 
   return (
     <View>
+      <TamaRegister siteKey="5ba581fa-b6fc-4bb0-8222-02fcd6a59e35"  />
+
       <Text color={textColor}>
         This is the Project Page! TODO: Load Different Projects! Minor Change to Trigger Pipeline Round 5. Force Deployment! Side note, need to add a couple buttons here.
       </Text>
-      <TamaRegister siteKey="5ba581fa-b6fc-4bb0-8222-02fcd6a59e35"  />
     </View>
   );
 };
