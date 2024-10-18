@@ -35,6 +35,7 @@
     "@expo/metro-config": "*",
     "@tamagui/metro-plugin": "*",
     "react-native-svg-transformer": "*",
+    "react-native-ios-modal": "*",
     "tamagui": "*",
     "@tamagui/lucide-icons": "*",
     "react-native-webview": "*",
@@ -47,7 +48,9 @@
     "@tamagui/shorthands": "*",
     "@tamagui/themes": "*",
     "@tamagui/react-native-media-driver": "*",
-    "tsconfig-paths-webpack-plugin": "*"
+    "tsconfig-paths-webpack-plugin": "*",
+    "@tamagui/portal": "*",
+    "@tamagui/sheet": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/expo-lcagents && cp pnpm-lock.yaml apps/expo-lcagents",
