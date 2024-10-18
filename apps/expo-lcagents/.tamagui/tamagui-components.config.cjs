@@ -3991,6 +3991,7 @@ __export(tslib_es6_exports, {
   __propKey: () => __propKey,
   __read: () => __read,
   __rest: () => __rest,
+  __rewriteRelativeImportExtension: () => __rewriteRelativeImportExtension,
   __runInitializers: () => __runInitializers,
   __setFunctionName: () => __setFunctionName,
   __spread: () => __spread,
@@ -4411,6 +4412,14 @@ function __disposeResources(env) {
   __name(next, "next");
   return next();
 }
+function __rewriteRelativeImportExtension(path, preserveJsx) {
+  if (typeof path === "string" && /^\.\.?\//.test(path)) {
+    return path.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function(m, tsx, d, ext, cm) {
+      return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : d + ext + "." + cm.toLowerCase() + "js";
+    });
+  }
+  return path;
+}
 var extendStatics, __assign, __createBinding, __setModuleDefault, _SuppressedError, tslib_es6_default;
 var init_tslib_es6 = __esm({
   "../../node_modules/tslib/tslib.es6.mjs"() {
@@ -4483,12 +4492,17 @@ var init_tslib_es6 = __esm({
       return e.name = "SuppressedError", e.error = error2, e.suppressed = suppressed, e;
     };
     __name(__disposeResources, "__disposeResources");
+    __name(__rewriteRelativeImportExtension, "__rewriteRelativeImportExtension");
     tslib_es6_default = {
       __extends,
       __assign,
       __rest,
       __decorate,
       __param,
+      __esDecorate,
+      __runInitializers,
+      __propKey,
+      __setFunctionName,
       __metadata,
       __awaiter,
       __generator,
@@ -4510,7 +4524,8 @@ var init_tslib_es6 = __esm({
       __classPrivateFieldSet,
       __classPrivateFieldIn,
       __addDisposableResource,
-      __disposeResources
+      __disposeResources,
+      __rewriteRelativeImportExtension
     };
   }
 });
@@ -6156,9 +6171,9 @@ var require_isWebColor = __commonJS({
   }
 });
 
-// ../../node_modules/@react-native/normalize-colors/index.js
+// ../../node_modules/react-native-web/node_modules/@react-native/normalize-colors/index.js
 var require_normalize_colors = __commonJS({
-  "../../node_modules/@react-native/normalize-colors/index.js"(exports2, module2) {
+  "../../node_modules/react-native-web/node_modules/@react-native/normalize-colors/index.js"(exports2, module2) {
     "use strict";
     function normalizeColor(color) {
       if (typeof color === "number") {

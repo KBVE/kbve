@@ -3,7 +3,7 @@ import { Link, SplashScreen, Stack } from 'expo-router'
 import { Pressable, useColorScheme } from 'react-native'
 import { TamaguiProvider } from 'tamagui'
 
-import '../../tamagui-web.css'
+
 
 import { Platform } from "react-native";
 
@@ -20,6 +20,10 @@ export {
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',
+}
+
+if (Platform.OS === 'web') {
+  require('../../tamagui-web.css');
 }
 
 SplashScreen.preventAutoHideAsync()
@@ -53,14 +57,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="menu" options={{ presentation: 'modal' }} />
           <Stack.Screen name="consulting" />
-          <Stack.Screen name="projects"
-           options={{
-            headerShown: true,
-            title: 'Projects',
-            headerLeft: () => (
-              <NavBar />
-            ),
-          }}  />
+          
         </Stack>
       </ThemeProvider>
     </TamaguiProvider>
