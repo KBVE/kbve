@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Platform, View } from 'react-native';
 import { Button, Form, H4, Input, Spinner, Text } from 'tamagui';
-import { Platform as RNPlatform } from 'react-native'; // Import React Native Platform for platform checks
 
-interface TamaRegisterProps {
-  siteKey: string; // Site key for hCaptcha
-}
+// Import the hCaptcha components statically
+import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
+import HCaptchaMobile from '@hcaptcha/react-native-hcaptcha';
 
-export function TamaRegister({ siteKey }: TamaRegisterProps) {
+export function TamaRegister({ siteKey }: { siteKey: string }) {
   const [status, setStatus] = useState<'off' | 'submitting' | 'submitted'>('off');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [formValues, setFormValues] = useState({
@@ -63,22 +62,7 @@ export function TamaRegister({ siteKey }: TamaRegisterProps) {
     }
   };
 
-  useEffect(() => {
-    // Load hCaptcha dynamically based on platform
-    const loadHCaptcha = async () => {
-      if (RNPlatform.OS === 'web') {
-        const { default: HCaptchaWeb } = await import('@hcaptcha/react-hcaptcha');
-        setHCaptchaComponent(() => HCaptchaWeb);
-      } else {
-        const { default: HCaptchaMobile } = await import('@hcaptcha/react-native-hcaptcha');
-        setHCaptchaComponent(() => HCaptchaMobile);
-      }
-    };
-
-    loadHCaptcha();
-  }, []);
-
-  const [HCaptchaComponent, setHCaptchaComponent] = useState<React.ComponentType<any> | null>(null);
+  const HCaptchaComponent = Platform.OS === 'web' ? HCaptchaWeb : HCaptchaMobile;
 
   return (
     <Form
@@ -126,22 +110,18 @@ export function TamaRegister({ siteKey }: TamaRegisterProps) {
       />
 
       {/* hCaptcha */}
-      {HCaptchaComponent ? (
-        RNPlatform.OS === 'web' ? (
-          <HCaptchaComponent
-            sitekey={siteKey} // Pass siteKey for web
-            onVerify={(captchaToken: string) => setCaptchaToken(captchaToken)}
-          />
-        ) : (
-          <HCaptchaComponent
-            ref={captchaForm}
-            siteKey={siteKey} // Pass siteKey for mobile
-            languageCode="en"
-            onMessage={onMessage}
-          />
-        )
+      {Platform.OS === 'web' ? (
+        <HCaptchaComponent
+          sitekey={siteKey} // Pass siteKey for web
+          onVerify={(captchaToken: string) => setCaptchaToken(captchaToken)}
+        />
       ) : (
-        <Text>Loading hCaptcha...</Text>
+        <HCaptchaComponent
+          ref={captchaForm}
+          siteKey={siteKey} // Pass siteKey for mobile
+          languageCode="en"
+          onMessage={onMessage}
+        />
       )}
 
       {/* Submit Button */}
