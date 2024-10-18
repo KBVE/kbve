@@ -44,3 +44,25 @@ This is will be for test casing and the general dirty napkin side of things.
 Okay! Doing this before I start driving around like a madman, going to use my phone this time to start the go project.
 The goal should be to get this out under the apps folder as `go_icon`, then we can loop back around to get the official readme up and running.
 The integration of supabase-go will be then after we get the base pipeline operational, probably could also deploy it to the helm too, hmm.
+
+**DevOps**
+
+Updated the devops library and added a new function to help automate the pull requests.
+For this script, we want to make sure that, ugh, you know what, we will just run with what we got!
+Let me save the state, I will push back the protobuf update and just begin pushing through the test cases for the patch.
+Yay! After 8 test cases but it might have been closer 20 but its okay, who is counting?
+
+**DanDaDan**
+
+Definitely the best anime of 2024, its a perfect blend of ghost stories and durarara!
+I believe it should be on everyones watch list, gonna hype it out too.
+Yet I hate having to wait each week for a new episode, but hey, its another thing to fill that kill tony void.
+Speaking of which, I am super excited for tonights episode of kill tony, I need that laugh.
+
+**Github**
+
+Looks like the actions are breaking because of a workflow, aka `auto-pull`, and the reason behind it breaking is that dockerhub is denying a docker image pull.
+There are a couple solutions to this problem, we could forward over our dockerhub login to increase the rates, this would be easy and should resolve that problem.
+However, I want to be a bit more complicated and maybe we could just remove that action from the workflow and use our devops library to do the automatic pull for us?
+Or we could swap out the action to use `https://github.com/peter-evans/create-pull-request` instead?
+The issue that I can see already with our devops library is that it might cause some problems, but hey, we are learning right!

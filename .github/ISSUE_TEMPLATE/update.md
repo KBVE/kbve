@@ -3,7 +3,7 @@ name: Update/Upgrade Issues, Reports and Plans
 about: Create an update/upgrade report for any KBVE services.
 title: '[Update] : [OBJECT] : [REF]'
 labels: 1, update, security
-assignees: ''
+assignees: 'h0lybyte'
 ---
 
 **Describe the update**
