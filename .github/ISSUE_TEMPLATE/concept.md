@@ -9,7 +9,7 @@ assignees: 'h0lybyte'
 ---
 
 **Core Concept/Theory**
-A clear and concise description of what the concept is. Ex. It would be cool if [...]
+We would need a clear and concise description of the concept. For example, It would be cool if [...]
 
 * * *
 
