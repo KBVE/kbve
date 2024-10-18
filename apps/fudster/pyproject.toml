@@ -23,6 +23,7 @@ readme = 'README.md'
   [tool.poetry.dependencies]
   python = ">=3.9,<3.13"
   haystack-ai = "^2.2.3"
+  pgvector-haystack = "^1.0.0"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.0.2"
