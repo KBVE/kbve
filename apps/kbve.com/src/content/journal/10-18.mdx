@@ -70,3 +70,31 @@ Looks like we have two more libraries in our package.json that we need to remove
 
 I will create a new branch and run `pnpm remove drizzle-orm drizzle-zod`.
 Let us take a quick branch split before we remove the planetscale library.
+
+**Tamagui**
+
+Taking a break from the python scripting and looking at the `Tamagui` instance under the expo-lcagents.
+I believe we will backtrack and remove the portal part of the code and revert back to the general sheet because it seems that the native sheet is a bit too much for now.
+
+Our index right now with the portal looks like this:
+
+```js
+
+import { ExpoRoot } from 'expo-router';
+import 'expo-router/entry';
+import { PortalProvider } from '@tamagui/portal';
+
+export default function App() {
+	const ctx = require.context('./src/app');
+
+	return (
+		<PortalProvider shouldAddRootHost>
+			<ExpoRoot context={ctx} />
+		</PortalProvider>
+	);
+}
+
+```
+
+However, I am going to remove the `@tamagui/portal` for the time being and the `PortalProvider`.
+Rather than spending more time trying to solve the native sheet integration, it would be better to just let it go for now.
