@@ -1246,6 +1246,27 @@ PODS:
     - React-utils (= 0.74.5)
   - RNCMaskedView (0.3.1):
     - React-Core
+  - RNReanimated (3.10.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNSVG (15.2.0):
     - React-Core
   - SocketRocket (0.7.0)
@@ -1318,6 +1339,7 @@ DEPENDENCIES:
   - React-utils (from `../../../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../../../node_modules/react-native/ReactCommon`)
   - "RNCMaskedView (from `../../../node_modules/@react-native-masked-view/masked-view`)"
+  - RNReanimated (from `../../../node_modules/react-native-reanimated`)
   - RNSVG (from `../../../node_modules/react-native-svg`)
   - Yoga (from `../../../node_modules/react-native/ReactCommon/yoga`)
 
@@ -1455,6 +1477,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/react-native/ReactCommon"
   RNCMaskedView:
     :path: "../../../node_modules/@react-native-masked-view/masked-view"
+  RNReanimated:
+    :path: "../../../node_modules/react-native-reanimated"
   RNSVG:
     :path: "../../../node_modules/react-native-svg"
   Yoga:
@@ -1525,6 +1549,7 @@ SPEC CHECKSUMS:
   React-utils: f242eb7e7889419d979ca0e1c02ccc0ea6e43b29
   ReactCommon: f7da14a8827b72704169a48c929bcde802698361
   RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
+  RNReanimated: 33c6135cdf421b795c2f1173075a11cca2a39bf2
   RNSVG: 43b64ed39c14ce830d840903774154ca0c1f27ec
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Yoga: 950bbfd7e6f04790fdb51149ed51df41f329fcc8

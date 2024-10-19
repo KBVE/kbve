@@ -48,7 +48,10 @@
     "@tamagui/themes": "*",
     "@tamagui/react-native-media-driver": "*",
     "tsconfig-paths-webpack-plugin": "*",
-    "@tamagui/sheet": "*"
+    "@tamagui/sheet": "*",
+    "@tamagui/animations-moti": "*",
+    "react-native-reanimated": "*",
+    "@tamagui/config": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/expo-lcagents && cp pnpm-lock.yaml apps/expo-lcagents",

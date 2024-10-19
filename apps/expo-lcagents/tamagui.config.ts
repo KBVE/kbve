@@ -1,12 +1,12 @@
+import { config } from '@tamagui/config/v3' // Import config as in the example
+
 import { createTamagui } from 'tamagui'
 import { createInterFont } from '@tamagui/font-inter'
 import { shorthands } from '@tamagui/shorthands'
-import { tokens } from '@tamagui/themes'
-import { themes } from '@tamagui/themes'
+import { tokens, themes } from '@tamagui/themes'
 import { createMedia } from '@tamagui/react-native-media-driver'
 
-// import { animations } from '@my/ui/src/animations'
-
+// Define your fonts
 const headingFont = createInterFont({
   size: {
     6: 15,
@@ -46,23 +46,40 @@ const bodyFont = createInterFont(
     },
   },
   {
-    sizeSize: (size) => Math.round(size * 1.1),
-    sizeLineHeight: (size) => Math.round(size * 1.1 + (size > 20 ? 10 : 10)),
+    sizeSize: (size: number) => Math.round(size * 1.1),
+    sizeLineHeight: (size: number) => Math.round(size * 1.1 + (size > 20 ? 10 : 10)),
   }
 )
 
-export const config = createTamagui({
+// Define animations
+const animations = {
+  fast: {
+    damping: 20,
+    mass: 1.2,
+    stiffness: 250,
+  },
+  medium: {
+    damping: 10,
+    mass: 0.9,
+    stiffness: 100,
+  },
+  slow: {
+    damping: 20,
+    stiffness: 60,
+  },
+}
+
+// Combine imported config with your custom configuration
+const tamaguiConfig = createTamagui({
+  ...config, // Spread the imported config to include it
+
+  // Add your custom configurations
+  animations,
   defaultFont: 'body',
-  //animations,
   shouldAddPrefersColorThemes: true,
   themeClassNameOnRoot: true,
-  
-  // highly recommended to turn this on if you are using shorthands
-  // to avoid having multiple valid style keys that do the same thing
-  // we leave it off by default because it can be confusing as you onboard.
-  onlyAllowShorthands: false,
+  onlyAllowShorthands: false, // optional, allows shorthand styles like 'p' for padding
   shorthands,
-
   fonts: {
     body: bodyFont,
     heading: headingFont,
@@ -90,5 +107,13 @@ export const config = createTamagui({
   }),
 })
 
-// for the compiler to find it
-export default config
+// TypeScript type inference for the Tamagui config
+type Conf = typeof tamaguiConfig
+
+// Extend Tamagui's global config type with your custom config
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+
+// Export the combined config
+export default tamaguiConfig
