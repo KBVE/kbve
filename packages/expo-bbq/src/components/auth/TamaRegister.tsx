@@ -57,10 +57,12 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
     }
 
     setStatus('submitting');
-    console.log('Submitting form:', formValues, 'Captcha:', captchaToken);
+    const lowercasedUsername = formValues.username.toLowerCase();
+    console.log('Submitting form:', formValues.email, lowercasedUsername, 'Captcha:', captchaToken);
 
-    const { email, username, password } = formValues;
+    const { email, password } = formValues;
 
+    const username = lowercasedUsername;
     try {
       // Call Supabase's signUp method
       const { data, error } = await supabase.auth.signUp({
@@ -148,17 +150,22 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
       alignItems="center"
       padding="$4"
     >
-      <Form
-        alignItems="center"
-        width={300}
-        gap="$4"
-        onSubmit={handleSubmit}
-        borderWidth={1}
-        borderRadius="$4"
-        backgroundColor="$background"
-        borderColor="$borderColor"
-        padding="$8"
-      >
+<Form
+  alignItems="center"
+  gap="$4"
+  onSubmit={handleSubmit}
+  borderWidth={1}
+  borderRadius="$4"
+  backgroundColor="$background"
+  borderColor="$borderColor"
+  padding="$8"
+  width="100%" // Default to full width
+  maxWidth="600px" // Set a max width to keep the form from getting too wide
+  $sm={{ width: '90%' }} // 90% width for small screens
+  $md={{ width: '80%' }} // 80% width for medium screens
+  $lg={{ width: '60%' }} // 60% width for large screens
+  $xl={{ width: '50%' }} // 50% width for extra-large screens
+>
         <H4>{status[0].toUpperCase() + status.slice(1)}</H4>
 
         <Input
@@ -268,7 +275,7 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
         snapPoints={[80]}
         dismissOnOverlayPress={true}
       >
-        <YStack justifyContent="center" alignItems="center" padding="$6">
+        <YStack justifyContent="center" alignItems="center" padding="$6" backgroundColor="$background" borderRadius="$4" width="100%">
           {captchaStatus === 'success' ? (
             <CheckCircle color="green" size={40} />
           ) : (
