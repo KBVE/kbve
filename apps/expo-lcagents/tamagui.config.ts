@@ -74,11 +74,11 @@ const tamaguiConfig = createTamagui({
   ...config, // Spread the imported config to include it
 
   // Add your custom configurations
-  animations,
+  //animations,
   defaultFont: 'body',
   shouldAddPrefersColorThemes: true,
   themeClassNameOnRoot: true,
-  onlyAllowShorthands: false, // optional, allows shorthand styles like 'p' for padding
+  onlyAllowShorthands: true, // optional, allows shorthand styles like 'p' for padding
   shorthands,
   fonts: {
     body: bodyFont,

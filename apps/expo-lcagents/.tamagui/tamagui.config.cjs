@@ -21467,7 +21467,7 @@ var require_AnimatedImplementation = __commonJS({
         }, "_isUsingNativeDriver")
       };
     }, "decay");
-    var sequence = /* @__PURE__ */ __name(function sequence2(animations2) {
+    var sequence = /* @__PURE__ */ __name(function sequence2(animations) {
       var current = 0;
       return {
         start: /* @__PURE__ */ __name(function start(callback) {
@@ -21477,27 +21477,27 @@ var require_AnimatedImplementation = __commonJS({
               return;
             }
             current++;
-            if (current === animations2.length) {
+            if (current === animations.length) {
               callback && callback(result);
               return;
             }
-            animations2[current].start(onComplete2);
+            animations[current].start(onComplete2);
           }, "onComplete");
-          if (animations2.length === 0) {
+          if (animations.length === 0) {
             callback && callback({
               finished: true
             });
           } else {
-            animations2[current].start(onComplete);
+            animations[current].start(onComplete);
           }
         }, "start"),
         stop: /* @__PURE__ */ __name(function stop() {
-          if (current < animations2.length) {
-            animations2[current].stop();
+          if (current < animations.length) {
+            animations[current].stop();
           }
         }, "stop"),
         reset: /* @__PURE__ */ __name(function reset() {
-          animations2.forEach((animation, idx) => {
+          animations.forEach((animation, idx) => {
             if (idx <= current) {
               animation.reset();
             }
@@ -21512,23 +21512,23 @@ var require_AnimatedImplementation = __commonJS({
         }, "_isUsingNativeDriver")
       };
     }, "sequence");
-    var parallel = /* @__PURE__ */ __name(function parallel2(animations2, config2) {
+    var parallel = /* @__PURE__ */ __name(function parallel2(animations, config2) {
       var doneCount = 0;
       var hasEnded = {};
       var stopTogether = !(config2 && config2.stopTogether === false);
       var result = {
         start: /* @__PURE__ */ __name(function start(callback) {
-          if (doneCount === animations2.length) {
+          if (doneCount === animations.length) {
             callback && callback({
               finished: true
             });
             return;
           }
-          animations2.forEach((animation, idx) => {
+          animations.forEach((animation, idx) => {
             var cb = /* @__PURE__ */ __name(function cb2(endResult) {
               hasEnded[idx] = true;
               doneCount++;
-              if (doneCount === animations2.length) {
+              if (doneCount === animations.length) {
                 doneCount = 0;
                 callback && callback(endResult);
                 return;
@@ -21547,13 +21547,13 @@ var require_AnimatedImplementation = __commonJS({
           });
         }, "start"),
         stop: /* @__PURE__ */ __name(function stop() {
-          animations2.forEach((animation, idx) => {
+          animations.forEach((animation, idx) => {
             !hasEnded[idx] && animation.stop();
             hasEnded[idx] = true;
           });
         }, "stop"),
         reset: /* @__PURE__ */ __name(function reset() {
-          animations2.forEach((animation, idx) => {
+          animations.forEach((animation, idx) => {
             animation.reset();
             hasEnded[idx] = false;
             doneCount = 0;
@@ -21576,8 +21576,8 @@ var require_AnimatedImplementation = __commonJS({
         useNativeDriver: false
       });
     }, "delay");
-    var stagger = /* @__PURE__ */ __name(function stagger2(time, animations2) {
-      return parallel(animations2.map((animation, i) => {
+    var stagger = /* @__PURE__ */ __name(function stagger2(time, animations) {
+      return parallel(animations.map((animation, i) => {
         return sequence([delay(time * i), animation]);
       }));
     }, "stagger");
@@ -21875,9 +21875,9 @@ var require_AnimatedMock = __commonJS({
         return false;
       }, "_isUsingNativeDriver")
     };
-    var mockCompositeAnimation = /* @__PURE__ */ __name((animations2) => (0, _objectSpread2.default)((0, _objectSpread2.default)({}, emptyAnimation), {}, {
+    var mockCompositeAnimation = /* @__PURE__ */ __name((animations) => (0, _objectSpread2.default)((0, _objectSpread2.default)({}, emptyAnimation), {}, {
       start: mockAnimationStart((callback) => {
-        animations2.forEach((animation) => animation.start());
+        animations.forEach((animation) => animation.start());
         callback == null ? void 0 : callback({
           finished: true
         });
@@ -21908,17 +21908,17 @@ var require_AnimatedMock = __commonJS({
     var decay = /* @__PURE__ */ __name(function decay2(value, config2) {
       return emptyAnimation;
     }, "decay");
-    var sequence = /* @__PURE__ */ __name(function sequence2(animations2) {
-      return mockCompositeAnimation(animations2);
+    var sequence = /* @__PURE__ */ __name(function sequence2(animations) {
+      return mockCompositeAnimation(animations);
     }, "sequence");
-    var parallel = /* @__PURE__ */ __name(function parallel2(animations2, config2) {
-      return mockCompositeAnimation(animations2);
+    var parallel = /* @__PURE__ */ __name(function parallel2(animations, config2) {
+      return mockCompositeAnimation(animations);
     }, "parallel");
     var delay = /* @__PURE__ */ __name(function delay2(time) {
       return emptyAnimation;
     }, "delay");
-    var stagger = /* @__PURE__ */ __name(function stagger2(time, animations2) {
-      return mockCompositeAnimation(animations2);
+    var stagger = /* @__PURE__ */ __name(function stagger2(time, animations) {
+      return mockCompositeAnimation(animations);
     }, "stagger");
     var loop = /* @__PURE__ */ __name(function loop2(animation, _temp) {
       var _ref = _temp === void 0 ? {} : _temp, _ref$iterations = _ref.iterations, iterations = _ref$iterations === void 0 ? -1 : _ref$iterations;
@@ -28586,10 +28586,10 @@ var import_react2 = __toESM(require("react"), 1);
 init_esm();
 var import_web2 = require("@tamagui/core");
 init_esm2();
-function createAnimations(animations2) {
+function createAnimations(animations) {
   const reactionListeners = /* @__PURE__ */ new WeakMap();
   return {
-    animations: animations2,
+    animations,
     usePresence,
     ResetPresence,
     supportsCSSVars: true,
@@ -28636,7 +28636,7 @@ function createAnimations(animations2) {
       componentState,
       stateRef
     }) => {
-      const isEntering = !!componentState.unmounted, isExiting = (presence == null ? void 0 : presence[0]) === false, sendExitComplete = presence == null ? void 0 : presence[1], [animationKey, animationConfig] = Array.isArray(props.animation) ? props.animation : [props.animation], animation = animations2[animationKey], keys = props.animateOnly ?? ["all"];
+      const isEntering = !!componentState.unmounted, isExiting = (presence == null ? void 0 : presence[0]) === false, sendExitComplete = presence == null ? void 0 : presence[1], [animationKey, animationConfig] = Array.isArray(props.animation) ? props.animation : [props.animation], animation = animations[animationKey], keys = props.animateOnly ?? ["all"];
       return useIsomorphicLayoutEffect(() => {
         const host = stateRef.current.host;
         if (!sendExitComplete || !isExiting || !host) return;
@@ -28647,11 +28647,11 @@ function createAnimations(animations2) {
           node.removeEventListener("transitionend", onFinishAnimation), node.removeEventListener("transitioncancel", onFinishAnimation);
         };
       }, [sendExitComplete, isExiting]), animation && (Array.isArray(style.transform) && (style.transform = (0, import_web2.transformsToString)(style.transform)), style.transition = keys.map((key) => {
-        const override = animations2[animationConfig == null ? void 0 : animationConfig[key]] ?? animation;
+        const override = animations[animationConfig == null ? void 0 : animationConfig[key]] ?? animation;
         return `${key} ${override}`;
       }).join(", ")), process.env.NODE_ENV === "development" && props.debug === "verbose" && console.info("CSS animation", {
         props,
-        animations: animations2,
+        animations,
         animation,
         animationKey,
         style,
@@ -47445,31 +47445,15 @@ var bodyFont2 = createInterFont(
     sizeLineHeight: /* @__PURE__ */ __name((size7) => Math.round(size7 * 1.1 + (size7 > 20 ? 10 : 10)), "sizeLineHeight")
   }
 );
-var animations = {
-  fast: {
-    damping: 20,
-    mass: 1.2,
-    stiffness: 250
-  },
-  medium: {
-    damping: 10,
-    mass: 0.9,
-    stiffness: 100
-  },
-  slow: {
-    damping: 20,
-    stiffness: 60
-  }
-};
 var tamaguiConfig = createTamagui({
   ...config,
   // Spread the imported config to include it
   // Add your custom configurations
-  animations,
+  //animations,
   defaultFont: "body",
   shouldAddPrefersColorThemes: true,
   themeClassNameOnRoot: true,
-  onlyAllowShorthands: false,
+  onlyAllowShorthands: true,
   // optional, allows shorthand styles like 'p' for padding
   shorthands: shorthands2,
   fonts: {

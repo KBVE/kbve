@@ -34507,23 +34507,30 @@
         }
       }
     },
-    "onlyAllowShorthands": false,
+    "onlyAllowShorthands": true,
     "fontLanguages": [],
     "animations": {
-      "fast": {
-        "damping": 20,
-        "mass": 1.2,
-        "stiffness": 250
+      "animations": {
+        "75ms": "ease-in 75ms",
+        "100ms": "ease-in 100ms",
+        "200ms": "ease-in 200ms",
+        "bouncy": "ease-in 200ms",
+        "superBouncy": "ease-in 500ms",
+        "lazy": "ease-in 1000ms",
+        "medium": "ease-in 300ms",
+        "slow": "ease-in 500ms",
+        "quick": "cubic-bezier(0.215, 0.610, 0.355, 1.000) 400ms",
+        "quicker": "cubic-bezier(0.215, 0.610, 0.355, 1.000) 300ms",
+        "quickest": "cubic-bezier(0.215, 0.610, 0.355, 1.000) 200ms",
+        "tooltip": "ease-in 400ms"
       },
-      "medium": {
-        "damping": 10,
-        "mass": 0.9,
-        "stiffness": 100
-      },
-      "slow": {
-        "damping": 20,
-        "stiffness": 60
-      }
+      "usePresence": "Function",
+      "ResetPresence": "Function",
+      "supportsCSSVars": true,
+      "useAnimatedNumber": "Function",
+      "useAnimatedNumberReaction": "Function",
+      "useAnimatedNumberStyle": "Function",
+      "useAnimations": "Function"
     },
     "media": {
       "xs": {
@@ -61292,7 +61299,7 @@
     "selectionStyles": "Function",
     "settings": {
       "defaultFont": "body",
-      "onlyAllowShorthands": false,
+      "onlyAllowShorthands": true,
       "themeClassNameOnRoot": true,
       "webContainerType": "inline-size",
       "allowedStyleValues": "somewhat-strict"
