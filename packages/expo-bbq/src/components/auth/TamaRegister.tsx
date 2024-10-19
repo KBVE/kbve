@@ -1,15 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Platform } from 'react-native';
 import { Button, Form, H4, Input, Spinner, Text } from 'tamagui';
-import { Sheet, setupNativeSheet } from '@tamagui/sheet';
-import { ModalView } from 'react-native-ios-modal';
+import { Sheet } from '@tamagui/sheet';
 
 // Import the hCaptcha components statically
 import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
 import ConfirmHcaptcha from '@hcaptcha/react-native-hcaptcha';
 
 // Set up native sheet for iOS
-setupNativeSheet('ios', ModalView);
 
 type HCaptchaType = typeof HCaptchaWeb | typeof ConfirmHcaptcha;
 
@@ -127,9 +125,8 @@ export function TamaRegister({ siteKey }: { siteKey: string }) {
         <>
           <Button onPress={() => setIsSheetOpen(true)}>Show hCaptcha</Button>
           
-          {/* Tamagui Sheet with native iOS modal support */}
+         
           <Sheet
-            native
             open={isSheetOpen}
             onOpenChange={setIsSheetOpen}
             snapPoints={[85, 50]}
