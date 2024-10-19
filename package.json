@@ -154,7 +154,6 @@
 		"@tamagui/config": "^1.115.5",
 		"@tamagui/lucide-icons": "^1.115.5",
 		"@tamagui/metro-plugin": "^1.115.5",
-		"@tamagui/portal": "^1.115.5",
 		"@tanstack/query-core": "^5.59.13",
 		"@types/matter-js": "0.17.6",
 		"@types/three": "0.161.2",

@@ -49,7 +49,6 @@
     "@tamagui/themes": "*",
     "@tamagui/react-native-media-driver": "*",
     "tsconfig-paths-webpack-plugin": "*",
-    "@tamagui/portal": "*",
     "@tamagui/sheet": "*"
   },
   "scripts": {
