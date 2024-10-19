@@ -35,7 +35,6 @@
     "@expo/metro-config": "*",
     "@tamagui/metro-plugin": "*",
     "react-native-svg-transformer": "*",
-    "react-native-ios-modal": "*",
     "tamagui": "*",
     "@tamagui/lucide-icons": "*",
     "react-native-webview": "*",
