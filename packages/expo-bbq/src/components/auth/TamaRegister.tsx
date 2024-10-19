@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Platform, Linking } from 'react-native';
 import { Button, Form, H4, Input, Spinner, Text, XStack, YStack, Sheet, Checkbox, Label } from 'tamagui';
-import { CheckCircle, XCircle } from '@tamagui/lucide-icons';
+import { CheckCircle, XCircle, Check } from '@tamagui/lucide-icons'; // Import Check for checkbox
 
 // Import the hCaptcha components
 import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
@@ -133,6 +133,15 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
     }
   };
 
+  // Handle the checked state properly to match the type `CheckedState`
+  const handleCheckboxChange = (checked: "indeterminate" | boolean) => {
+    if (checked === "indeterminate") {
+      setIsAgreed(false); // Handle indeterminate state as false
+    } else {
+      setIsAgreed(checked); // Set to true or false
+    }
+  };
+
   return (
     <YStack
       justifyContent="center"
@@ -175,7 +184,7 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
           placeholder="Password"
           value={formValues.password}
           onChangeText={(text) => handleInputChange('password', text)}
-          secureTextEntry
+          secureTextEntry={true} // Correct the secure entry for passwords
           size="$4"
           width="100%"
           padding="$2"
@@ -185,23 +194,26 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
           placeholder="Confirm Password"
           value={formValues.passwordConfirm}
           onChangeText={(text) => handleInputChange('passwordConfirm', text)}
-          secureTextEntry
+          secureTextEntry={true} // Correct secure entry
           size="$4"
           width="100%"
           padding="$2"
         />
 
-        {/* Disclaimer and Legal Links */}
         <YStack marginVertical="$2" gap="$2">
           <Label>
-            <Checkbox checked={isAgreed} onCheckedChange={setIsAgreed} />
-            <Text>
-              I agree to the{' '}
-              <Text onPress={() => handleLinkPress('https://kbve.com/legal/disclaimer/')} style={{ color: 'blue' }}>Disclaimer</Text>,{' '}
-              <Text onPress={() => handleLinkPress('https://kbve.com/legal/eula/')} style={{ color: 'blue' }}>EULA</Text>,{' '}
-              <Text onPress={() => handleLinkPress('https://kbve.com/legal/privacy/')} style={{ color: 'blue' }}>Privacy Policy</Text>, and{' '}
-              <Text onPress={() => handleLinkPress('https://kbve.com/legal/tos/')} style={{ color: 'blue' }}>Terms of Service</Text>.
-            </Text>
+            <XStack alignItems="center">
+              <Checkbox checked={isAgreed} onCheckedChange={handleCheckboxChange}>
+                {isAgreed && <Check />}
+              </Checkbox>
+              <Text paddingLeft="$2">
+                I agree to the{' '}
+                <Text onPress={() => handleLinkPress('https://kbve.com/legal/disclaimer/')} style={{ color: 'blue' }}>Disclaimer</Text>,{' '}
+                <Text onPress={() => handleLinkPress('https://kbve.com/legal/eula/')} style={{ color: 'blue' }}>EULA</Text>,{' '}
+                <Text onPress={() => handleLinkPress('https://kbve.com/legal/privacy/')} style={{ color: 'blue' }}>Privacy Policy</Text>, and{' '}
+                <Text onPress={() => handleLinkPress('https://kbve.com/legal/tos/')} style={{ color: 'blue' }}>Terms of Service</Text>.
+              </Text>
+            </XStack>
           </Label>
         </YStack>
 
