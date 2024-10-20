@@ -159,12 +159,9 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
   backgroundColor="$background"
   borderColor="$borderColor"
   padding="$8"
-  width="100%" // Default to full width
-  maxWidth="600px" // Set a max width to keep the form from getting too wide
-  $sm={{ width: '90%' }} // 90% width for small screens
-  $md={{ width: '80%' }} // 80% width for medium screens
-  $lg={{ width: '60%' }} // 60% width for large screens
-  $xl={{ width: '50%' }} // 50% width for extra-large screens
+  width="90%" // Default to full width
+  maxWidth="800px" // Set a max width to keep the form from getting too wide
+
 >
         <H4>{status[0].toUpperCase() + status.slice(1)}</H4>
 
@@ -191,7 +188,7 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
           placeholder="Password"
           value={formValues.password}
           onChangeText={(text) => handleInputChange('password', text)}
-          secureTextEntry={true} // Correct the secure entry for passwords
+          secureTextEntry={true} 
           size="$4"
           width="100%"
           padding="$2"
@@ -201,7 +198,7 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
           placeholder="Confirm Password"
           value={formValues.passwordConfirm}
           onChangeText={(text) => handleInputChange('passwordConfirm', text)}
-          secureTextEntry={true} // Correct secure entry
+          secureTextEntry={true}
           size="$4"
           width="100%"
           padding="$2"

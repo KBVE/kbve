@@ -47453,7 +47453,7 @@ var tamaguiConfig = createTamagui({
   defaultFont: "body",
   shouldAddPrefersColorThemes: true,
   themeClassNameOnRoot: true,
-  onlyAllowShorthands: true,
+  onlyAllowShorthands: false,
   // optional, allows shorthand styles like 'p' for padding
   shorthands: shorthands2,
   fonts: {

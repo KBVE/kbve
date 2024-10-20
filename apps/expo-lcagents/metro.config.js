@@ -15,7 +15,11 @@ const svgAndExtensionConfig = {
 		babelTransformerPath: require.resolve('react-native-svg-transformer'),
 	},
 	resolver: {
-		assetExts: assetExts.filter((ext) => ext !== 'svg'), // Exclude 'svg' from asset extensions
+    assetExts: [
+      ...assetExts.filter((ext) => ext !== 'svg'),
+      'json',
+      'png'
+    ],
 		sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg', 'jsx', 'js', 'ts', 'tsx'], // Add 'cjs', 'mjs', and re-add 'svg' as a source extension
 	},
 };
@@ -25,7 +29,7 @@ let mergedConfig = mergeConfig(defaultConfig, svgAndExtensionConfig);
 
 // Enable CSS support and configure for Tamagui
 const tamaguiConfig = getDefaultConfig(__dirname, {
-  isCSSEnabled: false, // [Web-only]: Enables CSS support in Metro.
+  isCSSEnabled: true, // [Web-only]: Enables CSS support in Metro.
 });
 
 // Merge the Tamagui configuration into the previously merged configuration
