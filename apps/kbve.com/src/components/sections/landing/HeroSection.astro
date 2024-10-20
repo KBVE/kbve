@@ -3,7 +3,6 @@
 import PrimaryCTA from '../../../components/ui/buttons/PrimaryCTA.astro';
 import SecondaryCTA from '../../../components/ui/buttons/SecondaryCTA.astro';
 import ReviewComponent from '../../../components/ui/blocks/ReviewComponent.astro';
-import { AstroRive } from '@kbve/astropad';
 
 // Define props from Astro
 const {
@@ -89,7 +88,8 @@ interface Props {
 	<!-- Hero Image Section -->
 	<div class="flex w-full">
 		<div class="">
-			<!--			{
+			<!--			
+			{
 				src && alt && (
 					<Image
 						src={src}
@@ -101,8 +101,18 @@ interface Props {
 					/>
 				)
 			}
-		-->
+			-->
+			<!-- 
 			<AstroRive rive='/assets/rive/hero_bot.riv' canvasId='canvas_hero' className='w-[300px] h-[300px] md:w-[400px] md:h-[400px] z-0 scale-1 lg:scale-[1.35]' stateMachine='State Machine 1' />
+			-->
+			<div class="object-contain">
+				<dotlottie-player
+					autoplay
+					loop
+					mode="normal"
+					src="/assets/lottie/gamer.lottie"
+				></dotlottie-player>
+			</div>
 		</div>
 	</div>
 </section>

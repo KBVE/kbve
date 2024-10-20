@@ -653,14 +653,14 @@ jobs:
           cargo publish \
               -p erust
 
-      - name: KBVE Shell
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-cargobump erust'
-          create_pull_request: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pull_request_title: 'erust-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-          pull_request_body: 'Bumping up the minor version of the erust package.'
+      # - name: KBVE Shell
+      #   uses: ./.github/actions/kbve-shell
+      #   with:
+      #     flag: '-cargobump erust'
+      #     create_pull_request: true
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     pull_request_title: 'erust-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
+      #     pull_request_body: 'Bumping up the minor version of the erust package.'
 
   holycratespublish:
     needs: ['deploy', 'alter', 'globals']
@@ -688,14 +688,14 @@ jobs:
           cargo publish \
           -p holy
 
-      - name: Bump Holy Package
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-cargobump holy'
-          create_pull_request: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pull_request_title: 'holy-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-          pull_request_body: 'Bumping up the minor version of the holy package.'
+      # - name: Bump Holy Package
+      #   uses: ./.github/actions/kbve-shell
+      #   with:
+      #     flag: '-cargobump holy'
+      #     create_pull_request: true
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     pull_request_title: 'holy-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
+      #     pull_request_body: 'Bumping up the minor version of the holy package.'
 
   kbvecratespublish:
     needs: ['deploy', 'alter', 'globals']
@@ -723,14 +723,14 @@ jobs:
           cargo publish \
           -p kbve
 
-      - name: Bump Holy Package
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-cargobump kbve'
-          create_pull_request: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pull_request_title: 'kbve-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-          pull_request_body: 'Bumping up the minor version of the kbve package.'
+      # - name: Bump Holy Package
+      #   uses: ./.github/actions/kbve-shell
+      #   with:
+      #     flag: '-cargobump kbve'
+      #     create_pull_request: true
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     pull_request_title: 'kbve-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
+      #     pull_request_body: 'Bumping up the minor version of the kbve package.'
 
   jedicratespublish:
     needs: ['deploy', 'alter', 'globals']
@@ -758,14 +758,14 @@ jobs:
           cargo publish \
           -p jedi
 
-      - name: Bump Holy Package
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-cargobump jedi'
-          create_pull_request: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pull_request_title: 'jedi-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-          pull_request_body: 'Bumping up the minor version of the jedi package.'
+      # - name: Bump Holy Package
+      #   uses: ./.github/actions/kbve-shell
+      #   with:
+      #     flag: '-cargobump jedi'
+      #     create_pull_request: true
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     pull_request_title: 'jedi-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
+      #     pull_request_body: 'Bumping up the minor version of the jedi package.'
 
   python_atlas_publish:
     needs: ['deploy', 'alter', 'python_atlas_build']
@@ -957,81 +957,81 @@ jobs:
 
   # [EXPO] -> [START]
 
-  expo-lcagents-web-build:
-    needs: ['alter', 'globals']
-    name: Expo LC Agents Web Build
-    runs-on: ubuntu-latest
-    if: needs.alter.outputs.expolcagents == 'true'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  # expo-lcagents-web-build:
+  #   needs: ['alter', 'globals']
+  #   name: Expo LC Agents Web Build
+  #   runs-on: ubuntu-latest
+  #   if: needs.alter.outputs.expolcagents == 'true'
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+  #     - name: Setup NodeJS
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
+  #     - name: Setup PNPM
+  #       uses: pnpm/action-setup@v3
+  #       with:
+  #         version: 9
+  #         run_install: false
 
-      - name: Install react-native-cli globally
-        run: pnpm add -g react-native-cli
+  #     - name: Install react-native-cli globally
+  #       run: pnpm add -g react-native-cli
 
-      - name: Install dependencies
-        run: pnpm install
+  #     - name: Install dependencies
+  #       run: pnpm install
 
-      - name: Setup Watchman (if applicable)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y watchman
-          watchman --version
+  #     - name: Setup Watchman (if applicable)
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y watchman
+  #         watchman --version
 
-      - name: NX Command
-        shell: bash
-        continue-on-error: true
-        run: |
-          pnpm nx run expo-lcagents:export --verbose
+  #     - name: NX Command
+  #       shell: bash
+  #       continue-on-error: true
+  #       run: |
+  #         pnpm nx run expo-lcagents:export --verbose
 
-      - name: NX Command - 2
-        shell: bash
-        continue-on-error: true
-        run: |
-          pnpm nx run expo-lcagents:export --verbose
+  #     - name: NX Command - 2
+  #       shell: bash
+  #       continue-on-error: true
+  #       run: |
+  #         pnpm nx run expo-lcagents:export --verbose
 
-      - name: LCA Expo Build
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-nx expo-lcagents:export'
-          create_pull_request: false
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: LCA Expo Build
+  #       uses: ./.github/actions/kbve-shell
+  #       with:
+  #         flag: '-nx expo-lcagents:export'
+  #         create_pull_request: false
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create .nojekyll file
-        run: |
-          mkdir -p dist/apps/expo-lcagents/
-          touch dist/apps/expo-lcagents/.nojekyll
+  #     - name: Create .nojekyll file
+  #       run: |
+  #         mkdir -p dist/apps/expo-lcagents/
+  #         touch dist/apps/expo-lcagents/.nojekyll
 
-      - name: Create CNAME file
-        run: |
-          mkdir -p dist/apps/expo-lcagents/
-          echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
+  #     - name: Create CNAME file
+  #       run: |
+  #         mkdir -p dist/apps/expo-lcagents/
+  #         echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
 
-      - name: LC Agents -> Deployment
-        uses: dobbelina/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-        with:
-          source_file: 'dist/apps/expo-lcagents/'
-          destination_repo: 'kbve/lc-agents.com'
-          destination_folder: '/docs'
-          destination_branch: 'main'
-          destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
-          user_email: '5599058+h0lybyte@users.noreply.github.com'
-          user_name: 'h0lybyte'
-          commit_message: ${{ github.event.head_commit.message }}
-          rsync_option: '-avrh --delete'
+  #     - name: LC Agents -> Deployment
+  #       uses: dobbelina/copy_file_to_another_repo_action@main
+  #       env:
+  #         API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+  #       with:
+  #         source_file: 'dist/apps/expo-lcagents/'
+  #         destination_repo: 'kbve/lc-agents.com'
+  #         destination_folder: '/docs'
+  #         destination_branch: 'main'
+  #         destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
+  #         user_email: '5599058+h0lybyte@users.noreply.github.com'
+  #         user_name: 'h0lybyte'
+  #         commit_message: ${{ github.event.head_commit.message }}
+  #         rsync_option: '-avrh --delete'
 
   #   [Expo] -> [HQ Plan]
 

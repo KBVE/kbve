@@ -11,9 +11,22 @@ members = [
 	'apps/kilobase',
 ]
 
+[profile.dev]
+opt-level = 1
+
 [profile.release]
 opt-level = 3
 lto = true
 strip = true
 codegen-units = 1
 panic = 'abort'
+
+# Overrides for specific packages like `kilobase`
+[profile.dev.overrides."kilobase"]
+panic = "unwind"
+
+[profile.release.overrides."kilobase"]
+panic = "unwind"
+opt-level = 3
+lto = "fat"
+codegen-units = 1
