@@ -159,12 +159,9 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
   backgroundColor="$background"
   borderColor="$borderColor"
   padding="$8"
-  width="100%" // Default to full width
+  width="90%" // Default to full width
   maxWidth="600px" // Set a max width to keep the form from getting too wide
-  $sm={{ width: '90%' }} // 90% width for small screens
-  $md={{ width: '80%' }} // 80% width for medium screens
-  $lg={{ width: '60%' }} // 60% width for large screens
-  $xl={{ width: '50%' }} // 50% width for extra-large screens
+
 >
         <H4>{status[0].toUpperCase() + status.slice(1)}</H4>
 

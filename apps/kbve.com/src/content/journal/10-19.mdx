@@ -19,6 +19,42 @@ import { Adsense, Tasks } from '@kbve/astropad';
 We are about to wrap up the iOS session this wekend, or at least that is what I have been telling myself over and over.
 With the astro extension not yet being up to date, it is starting to make more and more sense to swap some of the exisiting sites that are under astro to tamamgui.
 
+**Lottie**
+
+To get started with the lottie deployment, we need to add three libraries into the monorepo.
+Here is the pnpm command to do that with:
+
+```shell
+pnpm install lottie-react-native @dotlottie/react-player @lottiefiles/react-lottie-player
+```
+
+After adding it, we have to install and prebuild the expo application.
+
+```shell
+pnpm nx install expo-lcagents
+pnpm nx prebuild expo-lcagents
+```
+
+Here is the demo of how we would utilize it.
+
+```tsx
+
+import React from 'react';
+import { YStack } from 'tamagui';
+import { LottieAnimation } from './LottieAnimation';
+
+export const MainScreen = () => {
+  return (
+    <YStack f={1} jc="center" ai="center">
+      {/* For local JSON files, pass `require()` directly */}
+      <LottieAnimation lottieJSON={require('../assets/json/demo.json')} />
+    </YStack>
+  );
+};
+
+```
+
+
 **Unity**
 
 Upgrading our current unity game to version 6 is always going to be fun!

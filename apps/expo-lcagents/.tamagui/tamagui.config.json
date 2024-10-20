@@ -34507,7 +34507,7 @@
         }
       }
     },
-    "onlyAllowShorthands": true,
+    "onlyAllowShorthands": false,
     "fontLanguages": [],
     "animations": {
       "animations": {
@@ -61299,7 +61299,7 @@
     "selectionStyles": "Function",
     "settings": {
       "defaultFont": "body",
-      "onlyAllowShorthands": true,
+      "onlyAllowShorthands": false,
       "themeClassNameOnRoot": true,
       "webContainerType": "inline-size",
       "allowedStyleValues": "somewhat-strict"

@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text } from 'tamagui';
+import { View, Text, YStack } from 'tamagui';
 import { useColorScheme } from 'react-native';
-import { TamaRegister } from '@kbve/expo-bbq';
+import { TamaRegister, LottieAnimation } from '@kbve/expo-bbq';
 
 const Register = () => {
   const colorScheme = useColorScheme();
@@ -9,6 +9,10 @@ const Register = () => {
 
   return (
     <View>
+       <YStack f={1} jc="center" ai="center">
+        <LottieAnimation lottieJSON={require('../../assets/json/support.json')} />
+      </YStack>
+
         <Text col={textColor}>
             Register to LC-Agents using KBVE Auth
         </Text>

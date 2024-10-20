@@ -13,7 +13,7 @@ const cardData = [
 	  icon: <Star color="yellow" />,
 	  text: "This is a shining star",
 	  img: "https://images.unsplash.com/photo-1551806235-6692cbfc690b?q=80&w=1635&auto=format&fit=crop",
-	  route: "/star",
+	  route: "/register",
 	},
 	{
 	  ulid: "01F8MECHZX3TBDSZ7XRADM79XF",

@@ -78,7 +78,7 @@ const tamaguiConfig = createTamagui({
   defaultFont: 'body',
   shouldAddPrefersColorThemes: true,
   themeClassNameOnRoot: true,
-  onlyAllowShorthands: true, // optional, allows shorthand styles like 'p' for padding
+  onlyAllowShorthands: false, // optional, allows shorthand styles like 'p' for padding
   shorthands,
   fonts: {
     body: bodyFont,
