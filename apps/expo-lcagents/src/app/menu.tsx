@@ -1,7 +1,7 @@
 import React from 'react';
-import { ChevronDown } from '@tamagui/lucide-icons';
+import { Activity } from '@tamagui/lucide-icons';
 import {
-	Accordion,
+	Image,
 	Paragraph,
 	SizableText,
 	Square,
@@ -16,13 +16,12 @@ import {
 	isWeb,
 } from 'tamagui';
 
-import { useNavigation } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 
 const demos = ['vertical'] as const;
 const demosTitle: Record<(typeof demos)[number], string> = {
 	vertical: 'Vertical',
 };
-
 
 export function TabsDemo() {
 	const [demoIndex, setDemoIndex] = React.useState(0);
@@ -34,18 +33,27 @@ export function TabsDemo() {
 			paddingHorizontal="$4"
 			{...(isWeb && {
 				position: 'unset' as any,
-			})}
-		>
+			})}>
 			{/* Render the vertical tabs */}
 			<VerticalTabs />
-
-			
 		</YStack>
 	);
 }
 
 // Vertical Tabs implementation
 const VerticalTabs = () => {
+	const router = useRouter();
+
+	const handlePress = async (route: string, params?: Record<string, any>) => {
+		router.dismissAll();
+		setTimeout(() => {
+			router.navigate({
+				pathname: route,
+				params: params,
+			});
+		}, 0);
+	};
+
 	return (
 		<Tabs
 			defaultValue="tab1"
@@ -55,14 +63,12 @@ const VerticalTabs = () => {
 			borderRadius="$4"
 			borderWidth="$0.25"
 			overflow="hidden"
-			borderColor="$borderColor"
-		>
+			borderColor="$borderColor">
 			{/* Tab List */}
 			<Tabs.List
 				disablePassBorderRadius="end"
 				aria-label="Manage your account"
-				separator={<Separator />}
-			>
+				separator={<Separator />}>
 				<Tabs.Tab value="tab1">
 					<SizableText>Profile</SizableText>
 				</Tabs.Tab>
@@ -83,6 +89,22 @@ const VerticalTabs = () => {
 			</TabsContent>
 			<TabsContent value="tab2">
 				<H5 textAlign="center">Connections Content</H5>
+				<Separator
+					alignSelf="stretch"
+					vertical
+					borderColor="$borderColor"
+				/>
+				<Button
+					iconAfter={Activity}
+					size="$3"
+					onPress={() =>
+						handlePress('/projects', {
+							filter: 'active',
+							sort: 'asc',
+						})
+					}>
+					Projects
+				</Button>
 			</TabsContent>
 			<TabsContent value="tab3">
 				<H5 textAlign="center">Notifications Content</H5>
@@ -106,8 +128,7 @@ const TabsContent = (props: Tabs.TabsContentProps) => {
 			borderTopLeftRadius={0}
 			borderTopRightRadius={0}
 			borderWidth="$2"
-			{...props}
-		>
+			{...props}>
 			{props.children}
 		</Tabs.Content>
 	);
@@ -127,10 +148,14 @@ const ModalScreen = () => {
 		<View minHeight={500} style={{ padding: 20 }}>
 			<YStack
 				flex={1}
-				
 				padding="$2"
 				alignItems="center"
 				justifyContent="center">
+				<Image
+					source={require('../../assets/lca_logo.png')} 
+					style={{ width: 400, height: 400, marginBottom: 0 }} 
+					objectFit="contain"
+				/>
 				<TabsDemo />
 			</YStack>
 		</View>
