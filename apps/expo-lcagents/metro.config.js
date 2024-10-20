@@ -15,7 +15,10 @@ const svgAndExtensionConfig = {
 		babelTransformerPath: require.resolve('react-native-svg-transformer'),
 	},
 	resolver: {
-		assetExts: assetExts.filter((ext) => ext !== 'svg'), // Exclude 'svg' from asset extensions
+    assetExts: [
+      ...assetExts.filter((ext) => ext !== 'svg'),
+      'json'
+    ],
 		sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg', 'jsx', 'js', 'ts', 'tsx'], // Add 'cjs', 'mjs', and re-add 'svg' as a source extension
 	},
 };
