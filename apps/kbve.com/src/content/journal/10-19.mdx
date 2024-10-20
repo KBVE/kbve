@@ -1,0 +1,32 @@
+---
+title: 'October: 19th'
+category: Daily
+date: 2024-10-19 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 19th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**iOS**
+
+We are about to wrap up the iOS session this wekend, or at least that is what I have been telling myself over and over.
+With the astro extension not yet being up to date, it is starting to make more and more sense to swap some of the exisiting sites that are under astro to tamamgui.
+
+**Unity**
+
+Upgrading our current unity game to version 6 is always going to be fun!
+Well we are already on unity 6000 aka six but we have not yet updated to the LTS version.
+I am planning on doing that tonight, most likely inbetween my react native dev sessions.
+
+**Postgres**
+
+During the signup, I have noticed a terrible bug and that was in our `username` settings as it seems to treat upper and lower case as different unique variables.
+This is fine for things like unique link generation or anything of that nature, but for usernames, this is terrible.
+The solution will be to update the constrants around the username column, fix the trigger and update function and then run a quick refresh of the materialized views.
