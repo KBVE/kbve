@@ -17,7 +17,8 @@ const svgAndExtensionConfig = {
 	resolver: {
     assetExts: [
       ...assetExts.filter((ext) => ext !== 'svg'),
-      'json'
+      'json',
+      'png'
     ],
 		sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg', 'jsx', 'js', 'ts', 'tsx'], // Add 'cjs', 'mjs', and re-add 'svg' as a source extension
 	},

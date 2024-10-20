@@ -1,14 +1,25 @@
 import React from 'react';
-import { ScrollView, View, Text } from 'react-native';
-import { YStack } from 'tamagui';
+import { ScrollView, View, Image } from 'react-native';
+import { YStack, SizableText } from 'tamagui';
 import { useColorScheme } from 'react-native';
 import { TamaRegister, LottieAnimation } from '@kbve/expo-bbq';
+
+import { useNavigation } from 'expo-router';
 
 const Register = () => {
 	const colorScheme = useColorScheme();
 	const isDarkMode = colorScheme === 'dark';
 	const textColor = isDarkMode ? 'cyan' : 'black';
 	const backgroundColor = isDarkMode ? '#1a1a1a' : '#f5f5f5';
+
+  const navigation = useNavigation();
+
+	React.useEffect(() => {
+		navigation.setOptions({
+			title: 'Register',
+      headerBackTitle: 'Back'
+		});
+	}, [navigation]);
 
 	return (
 		<ScrollView
@@ -25,21 +36,12 @@ const Register = () => {
 						lottieJSON={require('../../assets/json/support.json')}
 						style={{ width: 150, height: 150 }}
 					/>
-
-					{/* Title and Description */}
-					<Text
-						style={{
-							color: textColor,
-							fontSize: 12,
-							textAlign: 'center',
-							marginBottom: 10,
-						}}>
-						Register using KBVE Auth to get started
-					</Text>
-
-					{/* Register Form */}
+					<SizableText size="$3" theme="alt2">
+						Register using KBVE Auth
+					</SizableText>
 				</YStack>
 				<YStack>
+					{/* Register Form */}
 					<TamaRegister
 						siteKey="5ba581fa-b6fc-4bb0-8222-02fcd6a59e35"
 						supabaseUrl="https://supabase.kbve.com"
