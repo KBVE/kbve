@@ -48,18 +48,17 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme() || 'dark';
+  const colorScheme = 'dark';  // Hardcode the theme to 'dark'
 
   return (
     <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <ThemeProvider value={DarkTheme}>
+        <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'slide_from_bottom' }} />
           <Stack.Screen name="menu" options={{ presentation: 'modal', animation: 'fade' }} />
           <Stack.Screen name="consulting" />
-
         </Stack>
       </ThemeProvider>
     </TamaguiProvider>
-  )
+  );
 }
