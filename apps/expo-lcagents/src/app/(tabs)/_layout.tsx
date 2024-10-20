@@ -17,6 +17,7 @@ export default function TabLayout() {
 		<Tabs
 			screenOptions={{
 				tabBarActiveTintColor: 'cyan',
+				
 			}}>
 			<Tabs.Screen
 				name="index"
@@ -57,12 +58,14 @@ export default function TabLayout() {
 
 			<Tabs.Screen
 				name="projects"
+			
 				options={{
 					title: 'Projects',
 					tabBarIcon: ({ color }) => (
 						<PackagePlus color={`${color}`} />
 					),
 					headerLeft: () => <NavBar />,
+	
 				}}
 			/>
 		</Tabs>
