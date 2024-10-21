@@ -1,5 +1,6 @@
-import { View, XStack, Separator, ScrollView } from 'tamagui';
+import { View, XStack, Separator, ScrollView, Button } from 'tamagui';
 
+import { Activity, Airplay, BadgePoundSterling, BadgeHelp} from '@tamagui/lucide-icons';
 
 import { TamaHero, TamaCard, LottieHero, useBBQ } from '@kbve/expo-bbq';
 
@@ -73,11 +74,33 @@ export default function IndexScreen() {
 	const bbq = useBBQ();
 
 	const handlePress = async (route: string, params?: Record<string, any>) => {
-		bbq.go(route,params);
+		bbq.go(route, params);
 	};
 
 	return (
 		<ScrollView>
+			<View flex={1} flexGrow={1} alignItems="center">
+				<LottieHero
+					lottieJSON={require('../../../assets/json/360-vr.json')}
+					backgroundImage={require('../../../assets/mask/unsplash_anime.jpg')}
+					title="Welcome to LC Agents!"
+					description="Yessir"
+					opacity={0.9}>
+					<Button
+						iconAfter={BadgePoundSterling}
+						size="$3"
+						onPress={() => handlePress('/invoice')}>
+						Payments
+					</Button>
+					<Button
+						iconAfter={BadgeHelp}
+						size="$3"
+						onPress={() => handlePress('/support')}>
+						Support
+					</Button>
+				</LottieHero>
+			</View>
+			<Separator marginVertical={15} />
 			<View flex={1} alignItems="center">
 				<TamaHero
 					backgroundImageUri="https://images.unsplash.com/photo-1711029028695-6db032f5c476?q=80&w=2056&auto=format&fit=crop"
@@ -86,22 +109,16 @@ export default function IndexScreen() {
 					buttonOneText="Contact"
 					buttonTwoText="Support"
 					onButtonOnePress={() => handlePress('/contact')}
-					onButtonTwoPress={() => handlePress('https://kbve.com/support', {discord: 'discord'})}
-
+					onButtonTwoPress={() =>
+						handlePress('https://kbve.com/support', {
+							discord: 'discord',
+						})
+					}
 				/>
 				<Separator marginVertical={15} />
 				<HomeCards />
 			</View>
 			<Separator marginVertical={15} />
-			<View flex={1} flexGrow={1} alignItems="center">
-			<LottieHero
-				lottieJSON={require('../../../assets/json/360-vr.json')}
-				heroText="Welcome to LC Agents!"
-				style={{ width: 350, height: 350 }}
-				opacity={0.9}
-
-				/>
-			</View>
 		</ScrollView>
 	);
 }
