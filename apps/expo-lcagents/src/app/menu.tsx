@@ -18,6 +18,8 @@ import {
 
 import { useNavigation, useRouter } from 'expo-router';
 
+import { useBBQ } from '@kbve/expo-bbq';
+
 const demos = ['vertical'] as const;
 const demosTitle: Record<(typeof demos)[number], string> = {
 	vertical: 'Vertical',
@@ -42,16 +44,10 @@ export function TabsDemo() {
 
 // Vertical Tabs implementation
 const VerticalTabs = () => {
-	const router = useRouter();
+	const bbq = useBBQ();
 
 	const handlePress = async (route: string, params?: Record<string, any>) => {
-		router.dismissAll();
-		setTimeout(() => {
-			router.navigate({
-				pathname: route,
-				params: params,
-			});
-		}, 0);
+		bbq.go(route,params);
 	};
 
 	return (
