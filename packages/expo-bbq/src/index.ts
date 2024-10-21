@@ -6,3 +6,4 @@ export { TamaRegister } from './components/auth/TamaRegister';
 export { LottieAnimation } from './components/animation/LottieAnimation';
 export { LottieHero } from './components/animation/LottieHero';
 export { MaskedView } from './components/creative/MaskedView';
+export { useBBQ } from './core/BBQ';

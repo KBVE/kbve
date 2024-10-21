@@ -1,6 +1,7 @@
 import { View, XStack, Separator, ScrollView } from 'tamagui';
 
-import { TamaHero, TamaCard, LottieHero } from '@kbve/expo-bbq';
+
+import { TamaHero, TamaCard, LottieHero, useBBQ } from '@kbve/expo-bbq';
 
 function HomeCards() {
 	return (
@@ -68,7 +69,13 @@ function HomeCards() {
 	);
 }
 
-export default function TabOneScreen() {
+export default function IndexScreen() {
+	const bbq = useBBQ();
+
+	const handlePress = async (route: string, params?: Record<string, any>) => {
+		bbq.go(route,params);
+	};
+
 	return (
 		<ScrollView>
 			<View flex={1} alignItems="center">
@@ -78,16 +85,21 @@ export default function TabOneScreen() {
 					description="L & C Agency"
 					buttonOneText="Contact"
 					buttonTwoText="Support"
+					onButtonOnePress={() => handlePress('/contact')}
+					onButtonTwoPress={() => handlePress('https://kbve.com/support', {discord: 'discord'})}
+
 				/>
 				<Separator marginVertical={15} />
 				<HomeCards />
 			</View>
 			<Separator marginVertical={15} />
-			<View flex={1} alignItems="center">
+			<View flex={1} flexGrow={1} alignItems="center">
 			<LottieHero
-				lottieJSON={require('../../../assets/json/vr.json')}
-				heroText=""
+				lottieJSON={require('../../../assets/json/360-vr.json')}
+				heroText="Welcome to LC Agents!"
 				style={{ width: 350, height: 350 }}
+				opacity={0.9}
+
 				/>
 			</View>
 		</ScrollView>

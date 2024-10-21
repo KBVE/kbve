@@ -1,19 +1,16 @@
 import React from 'react';
-import { Platform } from 'react-native';
-import { styled, YStack, Text } from 'tamagui';
-import { LottieAnimation } from './LottieAnimation'; // Import your LottieAnimation component
+import { styled, YStack, Text, View } from 'tamagui';
+import { LottieAnimation } from './LottieAnimation';
 
-// Hero container that fills the screen or desired space
 const HeroContainer = styled(YStack, {
   width: '100%',
-  height: 400, // Adjust height as needed for your hero
+  height: 400,
   justifyContent: 'center',
   alignItems: 'center',
   position: 'relative',
   overflow: 'hidden',
 });
 
-// Text overlay on top of the animation (optional)
 const HeroText = styled(Text, {
   position: 'absolute',
   color: 'white',
@@ -21,29 +18,34 @@ const HeroText = styled(Text, {
   fontWeight: 'bold',
   zIndex: 1,
   textAlign: 'center',
+  textShadowColor: 'black',
+  textShadowOffset: { width: -1, height: -1 },
+  textShadowRadius: 2,
+  shadowOpacity: 1
 });
 
 type LottieHeroProps = {
   lottieJSON: any; // Local JSON file for the animation
   heroText?: string; // Optional text to overlay on the hero
-  style?: object; // Style for the animation itself
+  style?: object; // Style for the hero container
+  opacity?: number; // Opacity for the container (passed through the View's opacity prop)
 };
 
 export const LottieHero: React.FC<LottieHeroProps> = ({
   lottieJSON,
-  heroText,
+  heroText = "", 
   style,
+  opacity = 1.0,
 }) => {
   return (
-    <HeroContainer>
-      {/* Text content on top of the animation */}
-      {heroText && <HeroText>{heroText}</HeroText>}
-
-      {/* Lottie animation as the background */}
+    <HeroContainer style={style}>
+      {heroText ? <HeroText>{heroText}</HeroText> : null}
+      <View style={{ width: '100%', height: '100%' }}  opacity={opacity}>
       <LottieAnimation
         lottieJSON={lottieJSON}
-        style={style}
+        style={{ width: '100%', height: '100%' }}
       />
+      </View>
     </HeroContainer>
   );
 };
