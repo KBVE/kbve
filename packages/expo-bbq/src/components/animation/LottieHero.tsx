@@ -26,13 +26,13 @@ const HeroText = styled(Text, {
 type LottieHeroProps = {
   lottieJSON: any; // Local JSON file for the animation
   heroText?: string; // Optional text to overlay on the hero
-  animationStyle?: object; // Style for the animation itself
+  style?: object; // Style for the animation itself
 };
 
 export const LottieHero: React.FC<LottieHeroProps> = ({
   lottieJSON,
   heroText,
-  animationStyle,
+  style,
 }) => {
   return (
     <HeroContainer>
@@ -42,7 +42,7 @@ export const LottieHero: React.FC<LottieHeroProps> = ({
       {/* Lottie animation as the background */}
       <LottieAnimation
         lottieJSON={lottieJSON}
-        style={[{ width: '100%', height: '100%' }, animationStyle]}
+        style={style}
       />
     </HeroContainer>
   );

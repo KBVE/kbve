@@ -1,6 +1,6 @@
 import { View, XStack, Separator, ScrollView } from 'tamagui';
 
-import { TamaHero, TamaCard } from '@kbve/expo-bbq';
+import { TamaHero, TamaCard, LottieHero } from '@kbve/expo-bbq';
 
 function HomeCards() {
 	return (
@@ -81,6 +81,14 @@ export default function TabOneScreen() {
 				/>
 				<Separator marginVertical={15} />
 				<HomeCards />
+			</View>
+			<Separator marginVertical={15} />
+			<View flex={1} alignItems="center">
+			<LottieHero
+				lottieJSON={require('../../../assets/json/vr.json')}
+				heroText=""
+				style={{ width: 350, height: 350 }}
+				/>
 			</View>
 		</ScrollView>
 	);
