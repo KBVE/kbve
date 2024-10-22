@@ -24,9 +24,11 @@ DROP POLICY IF EXISTS "Public user_profiles are viewable by everyone." ON public
 --     FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Public can view limited user_profiles" ON public.user_profiles;
-CREATE POLICY "Public can view limited user_profiles" ON public.user_profiles
-    FOR SELECT USING (false); -- Disable public direct access to user_profiles
+DROP POLICY IF EXISTS "Users can view their own profile." on public.user_profiles;
 
+CREATE POLICY "Users can view their own profile." ON public.user_profiles
+    FOR SELECT USING ((select auth.uid()) = id);
+    
 DROP POLICY IF EXISTS "Users can insert their own profile." ON public.user_profiles;
 CREATE POLICY "Users can insert their own profile." ON public.user_profiles
     FOR INSERT WITH CHECK ((select auth.uid()) = id);
