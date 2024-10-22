@@ -1,15 +1,11 @@
 import React from 'react';
 import { ScrollView, View, Image } from 'react-native';
 import { YStack, SizableText } from 'tamagui';
-import { useColorScheme } from 'react-native';
 import { TamaRegister, LottieAnimation } from '@kbve/expo-bbq';
 
 import { useNavigation } from 'expo-router';
 
 const Register = () => {
-	const colorScheme = useColorScheme();
-	const isDarkMode = colorScheme === 'dark';
-	const textColor = isDarkMode ? 'cyan' : 'black';
 
   const navigation = useNavigation();
 
