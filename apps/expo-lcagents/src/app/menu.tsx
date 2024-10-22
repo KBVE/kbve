@@ -82,6 +82,22 @@ const VerticalTabs = () => {
 			{/* Tabs Content */}
 			<TabsContent value="tab1">
 				<H5 textAlign="center">Profile Content</H5>
+				<Separator
+					alignSelf="stretch"
+					vertical
+					borderColor="$borderColor"
+				/>
+				<Button
+					iconAfter={Activity}
+					size="$3"
+					onPress={() =>
+						handlePress('/profile', {
+							filter: 'active',
+							sort: 'asc',
+						})
+					}>
+					Profile
+				</Button>
 			</TabsContent>
 			<TabsContent value="tab2">
 				<H5 textAlign="center">Connections Content</H5>
