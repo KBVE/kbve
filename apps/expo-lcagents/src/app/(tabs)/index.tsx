@@ -1,8 +1,15 @@
 import { View, XStack, Separator, ScrollView, Button } from 'tamagui';
 
-import { Activity, Airplay, BadgePoundSterling, BadgeHelp} from '@tamagui/lucide-icons';
+import {
+	Activity,
+	LogIn,
+	BadgePoundSterling,
+	BadgeHelp,
+} from '@tamagui/lucide-icons';
 
 import { TamaHero, TamaCard, LottieHero, useBBQ } from '@kbve/expo-bbq';
+
+import { useRouter, Link } from 'expo-router';
 
 function HomeCards() {
 	return (
@@ -86,18 +93,22 @@ export default function IndexScreen() {
 					title="Welcome to LC Agents!"
 					description="Yessir"
 					opacity={0.9}>
+						
 					<Button
 						iconAfter={BadgePoundSterling}
 						size="$3"
-						onPress={() => handlePress('/invoice')}>
-						Payments
+						onPress={() => handlePress('/register')}>
+						Register
 					</Button>
+
 					<Button
-						iconAfter={BadgeHelp}
+						iconAfter={BadgePoundSterling}
 						size="$3"
-						onPress={() => handlePress('/support')}>
-						Support
+						onPress={() => handlePress('/login')}>
+						Login
 					</Button>
+				
+				
 				</LottieHero>
 			</View>
 			<Separator marginVertical={15} />
