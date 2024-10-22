@@ -20,8 +20,12 @@ ALTER TABLE public.user_profiles
 -- Policy Management
 
 DROP POLICY IF EXISTS "Public user_profiles are viewable by everyone." ON public.user_profiles;
-CREATE POLICY "Public user_profiles are viewable by everyone." ON public.user_profiles
-    FOR SELECT USING (true);
+-- CREATE POLICY "Public user_profiles are viewable by everyone." ON public.user_profiles
+--     FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public can view limited user_profiles" ON public.user_profiles;
+CREATE POLICY "Public can view limited user_profiles" ON public.user_profiles
+    FOR SELECT USING (false); -- Disable public direct access to user_profiles
 
 DROP POLICY IF EXISTS "Users can insert their own profile." ON public.user_profiles;
 CREATE POLICY "Users can insert their own profile." ON public.user_profiles
