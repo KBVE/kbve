@@ -1,20 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, Linking } from 'react-native';
 import { Button, Form, H4, Input, Spinner, Text, XStack, YStack, Sheet, Checkbox, Label } from 'tamagui';
-import { CheckCircle, XCircle, Check } from '@tamagui/lucide-icons'; // Import Check for checkbox
-
-// Import the hCaptcha components
-import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
-import ConfirmHcaptcha from '@hcaptcha/react-native-hcaptcha';
-
-// Import Supabase
+import { CheckCircle, XCircle, Check } from '@tamagui/lucide-icons';
 import { createSupabaseClient } from '../wrapper/Supabase';
-
-type HCaptchaType = typeof HCaptchaWeb | typeof ConfirmHcaptcha;
+import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 
 export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: string, supabaseUrl: string, supabaseAnonKey: string }) {
   const [status, setStatus] = useState<'off' | 'submitting' | 'submitted'>('off');
-  const [captchaStatus, setCaptchaStatus] = useState<'waiting' | 'success' | 'error'>('waiting');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [formValues, setFormValues] = useState({
     email: '',
@@ -25,8 +17,6 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
   const [isAgreed, setIsAgreed] = useState(false);  // State for the agreement checkbox
   const [showSheet, setShowSheet] = useState(false); // State for the feedback sheet
   const [sheetMessage, setSheetMessage] = useState(''); // Message to display in the sheet
-  const captchaForm = useRef<ConfirmHcaptcha | null>(null);
-  const HCaptchaComponent: HCaptchaType = Platform.OS === 'web' ? HCaptchaWeb : ConfirmHcaptcha;
 
   // Initialize Supabase client
   const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
@@ -61,8 +51,8 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
     console.log('Submitting form:', formValues.email, lowercasedUsername, 'Captcha:', captchaToken);
 
     const { email, password } = formValues;
-
     const username = lowercasedUsername;
+
     try {
       // Call Supabase's signUp method
       const { data, error } = await supabase.auth.signUp({
@@ -79,9 +69,9 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
 
       if (error) {
         console.error('Supabase sign-up error:', error.message);
-        setCaptchaStatus('waiting');  // Reset the captcha
         setSheetMessage(`Registration failed: ${error.message}`);
         setShowSheet(true);  // Show error sheet
+        setCaptchaToken(null);  // Reset the captcha token on error
       } else {
         console.log('User registered:', data);
         setStatus('submitted');
@@ -90,40 +80,14 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
       }
     } catch (error) {
       console.error('Error during registration:', error);
-      setCaptchaStatus('waiting');  // Reset the captcha
       setSheetMessage('An error occurred during registration.');
       setShowSheet(true);  // Show error sheet
+      setCaptchaToken(null);  // Reset captcha token on error
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const onMessage = (event: any) => {
-    const eventData = event?.nativeEvent?.data;
-
-    if (eventData) {
-      console.log('Event Data from hCaptcha:', eventData);
-
-      if (eventData === 'open') return;
-
-      if (['cancel', 'error', 'expired'].includes(eventData)) {
-        captchaForm.current?.hide();
-        setCaptchaStatus('error');
-        console.log(`hCaptcha status: ${eventData}`);
-      } else {
-        console.log('Verified code from hCaptcha:', eventData);
-        setCaptchaToken(eventData);
-        setCaptchaStatus('success');
-        captchaForm.current?.hide();
-      }
-    }
-  };
-
-  const handleRetryCaptcha = () => {
-    setCaptchaStatus('waiting');
-    captchaForm.current?.show();
   };
 
   const handleLinkPress = async (url: string) => {
@@ -145,24 +109,19 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
   };
 
   return (
-    <YStack
-      justifyContent="center"
-      alignItems="center"
-      padding="$4"
-    >
-<Form
-  alignItems="center"
-  gap="$4"
-  onSubmit={handleSubmit}
-  borderWidth={1}
-  borderRadius="$4"
-  backgroundColor="$background"
-  borderColor="$borderColor"
-  padding="$8"
-  width="90%" // Default to full width
-  maxWidth="800px" // Set a max width to keep the form from getting too wide
-
->
+    <YStack justifyContent="center" alignItems="center" padding="$4">
+      <Form
+        alignItems="center"
+        gap="$4"
+        onSubmit={handleSubmit}
+        borderWidth={1}
+        borderRadius="$4"
+        backgroundColor="$background"
+        borderColor="$borderColor"
+        padding="$8"
+        width="90%" // Default to full width
+        maxWidth="800px" // Set a max width to keep the form from getting too wide
+      >
         <H4>{status[0].toUpperCase() + status.slice(1)}</H4>
 
         <Input
@@ -221,41 +180,17 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
           </Label>
         </YStack>
 
-        {Platform.OS === 'web' ? (
-          <HCaptchaComponent
-            sitekey={siteKey}
-            onVerify={(captchaToken: string) => setCaptchaToken(captchaToken)}
-          />
-        ) : (
-          <>
-            {captchaStatus === 'waiting' && (
-              <Button onPress={() => captchaForm.current?.show()}>Show hCaptcha</Button>
-            )}
-
-            {captchaStatus === 'success' && (
-              <YStack alignItems="center">
-                <CheckCircle color="green" size={40} />
-                <Text>Verified!</Text>
-              </YStack>
-            )}
-
-            {captchaStatus === 'error' && (
-              <XStack alignItems="center">
-                <XCircle color="red" size={40} />
-                <Text>Error! Try Again</Text>
-                <Button onPress={handleRetryCaptcha}>Retry</Button>
-              </XStack>
-            )}
-
-            <ConfirmHcaptcha
-              ref={captchaForm}
-              siteKey={siteKey}
-              baseUrl="https://hcaptcha.com"
-              languageCode="en"
-              onMessage={onMessage}
-            />
-          </>
-        )}
+        {/* Use the HCaptchaWrapper for both web and mobile */}
+        <HCaptchaWrapper
+          siteKey={siteKey}
+          onToken={(token) => {
+            setCaptchaToken(token);  // Set the captcha token on success
+          }}
+          onError={(error) => {
+            console.error('Captcha error:', error);  // Handle captcha errors
+            setCaptchaToken(null);  // Reset token on error
+          }}
+        />
 
         <Form.Trigger asChild disabled={status !== 'off' || !isAgreed}>
           <Button icon={status === 'submitting' ? () => <Spinner /> : undefined}>
@@ -273,7 +208,7 @@ export function TamaRegister({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKe
         dismissOnOverlayPress={true}
       >
         <YStack justifyContent="center" alignItems="center" padding="$6" backgroundColor="$background" borderRadius="$4" width="100%">
-          {captchaStatus === 'success' ? (
+          {captchaToken ? (
             <CheckCircle color="green" size={40} />
           ) : (
             <XCircle color="red" size={40} />

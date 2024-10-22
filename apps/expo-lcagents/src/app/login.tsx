@@ -31,10 +31,7 @@ const Login = () => {
 			<View style={{ padding: 10 }}>
 				<YStack f={1} jc="center" ai="center">
 					{/* Lottie Animation */}
-					<LottieAnimation
-						lottieJSON={require('../../assets/json/vr.json')}
-						style={{ width: 150, height: 150 }}
-					/>
+					
 					<SizableText size="$3" theme="alt2">
 						Login to Your Account
 					</SizableText>
@@ -49,6 +46,10 @@ const Login = () => {
 					
 				</YStack>
 			</View>
+			<LottieAnimation
+						lottieJSON={require('../../assets/json/vr.json')}
+						style={{ width: 150, height: 150 }}
+					/>
 		</ScrollView>
 	);
 };
