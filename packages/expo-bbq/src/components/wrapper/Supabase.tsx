@@ -2,6 +2,8 @@ import { Platform, AppState } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createClient } from '@supabase/supabase-js'
 
+let supabaseClient: ReturnType<typeof createClient> | null = null
+
 // Conditionally apply the polyfill only in React Native/Expo
 if (Platform.OS !== 'web') {
   require('react-native-url-polyfill/auto') // Polyfill for React Native
@@ -10,8 +12,10 @@ if (Platform.OS !== 'web') {
 // Function to create the client based on platform
 export const createSupabaseClient = (supabaseUrl: string, supabaseAnonKey: string) => {
   if (Platform.OS === 'web') {
-    // Web version (no AsyncStorage needed)
-    return createClient(supabaseUrl, supabaseAnonKey)
+    if (!supabaseClient) {
+      supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+    }
+    return supabaseClient
   } else {
     // React Native / Expo version with AsyncStorage
     return createClient(supabaseUrl, supabaseAnonKey, {

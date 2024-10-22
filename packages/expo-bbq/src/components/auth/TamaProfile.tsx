@@ -93,7 +93,7 @@ export function TamaProfile({ supabaseUrl, supabaseAnonKey }: { supabaseUrl: str
       <Avatar circular size={100}>
         <Avatar.Image src={'https://example.com/default-avatar.png'} />
         <Avatar.Fallback>
-          <Text>?</Text>
+          <Text>Hello</Text>
         </Avatar.Fallback>
       </Avatar>
 
