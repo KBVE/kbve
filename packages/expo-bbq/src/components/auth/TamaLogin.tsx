@@ -25,19 +25,6 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkSession = async () => {
-      const session = await supabase.auth.getSession();
-      if (session.data.session) {
-        // Redirect to profile if logged in
-        router.replace('/profile'); // Adjust the route path as needed
-      }
-    };
-
-    checkSession();
-  }, []);
-
-  useEffect(() => {
     if (status === 'loggingIn') {
       const timer = setTimeout(() => setStatus('off'), 2000);
       return () => {
@@ -61,7 +48,7 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
         email,
         password,
         options: {
-          captchaToken, // Pass the hCaptcha token under options
+          captchaToken, // Pass the hCaptcha token
         },
       });
 
