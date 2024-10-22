@@ -8,13 +8,10 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     username TEXT UNIQUE,
-    avatar_url TEXT,
 
     -- Constraints for username
     CONSTRAINT username_length CHECK (char_length(username) >= 5 AND char_length(username) <= 24),
-    CONSTRAINT username_format CHECK (username ~ '^[a-zA-Z0-9_-]+$'),
-    CONSTRAINT avatar_url_length CHECK (char_length(avatar_url) <= 128),
-    CONSTRAINT avatar_url_format CHECK (avatar_url ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')
+    CONSTRAINT username_format CHECK (username ~ '^[a-zA-Z0-9_-]+$')
 );
 
 ALTER TABLE public.user_profiles
@@ -49,25 +46,16 @@ CREATE OR REPLACE FUNCTION public.handle_new_user_profile()
     RETURNS TRIGGER AS $$
     DECLARE
         v_username TEXT;
-        v_avatar_url TEXT;
     BEGIN
         -- Assign variables from user meta data
         v_username := new.raw_user_meta_data->>'username';
-        v_avatar_url := new.raw_user_meta_data->>'avatar_url';
 
         -- Validate the username
         IF v_username IS NULL OR 
         char_length(v_username) < 5 OR 
         char_length(v_username) > 24 OR 
-        NOT (v_username ~ '^[a-zA-Z0-9_-]+$') THEN
+        NOT (v_username ~ '^[a-z0-9_-]+$') THEN
             RAISE EXCEPTION 'invalid_username';
-        END IF;
-
-        -- Validate the avatar_url (if applicable)
-        IF v_avatar_url IS NOT NULL AND
-        (char_length(v_avatar_url) > 128 OR
-            NOT (v_avatar_url ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$')) THEN
-            RAISE EXCEPTION 'invalid_avatar';
         END IF;
 
         -- Validate unique username (for profile creation)
@@ -82,8 +70,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user_profile()
             INSERT INTO public.user_profiles (id, username, avatar_url)
             VALUES (
                 new.id,
-                v_username,
-                COALESCE(v_avatar_url, 'https://kbve.com/asset/guest.png')
+                v_username
             );
         EXCEPTION WHEN unique_violation THEN
             RAISE EXCEPTION 'username_taken';
@@ -116,7 +103,7 @@ BEGIN
         IF v_new_username IS NULL OR 
            char_length(v_new_username) < 5 OR 
            char_length(v_new_username) > 24 OR 
-           NOT (v_new_username ~ '^[a-zA-Z0-9_-]+$') THEN
+           NOT (v_new_username ~ '^[a-z0-9_-]+$') THEN
             RAISE EXCEPTION 'invalid_username';
         END IF;
 
@@ -137,39 +124,6 @@ CREATE TRIGGER handle_user_profile_update
     BEFORE UPDATE ON public.user_profiles
     FOR EACH ROW
     EXECUTE PROCEDURE public.handle_profile_update();
-    
--- Create a function to handle avatar URL updates and validation
-CREATE OR REPLACE FUNCTION public.handle_avatar_url_update()
-    RETURNS TRIGGER AS $$
-DECLARE
-    v_new_avatar_url TEXT;
-BEGIN
-    -- Assign the new avatar URL to a variable
-    v_new_avatar_url := new.avatar_url;
-
-    -- Validate the new avatar_url if it is being changed
-    IF v_new_avatar_url IS DISTINCT FROM old.avatar_url THEN
-        -- Check for the avatar URL length constraint
-        IF char_length(v_new_avatar_url) > 128 THEN
-            RAISE EXCEPTION 'invalid_avatar_url_length';
-        END IF;
-
-        -- Check for the avatar URL format constraint
-        IF NOT (v_new_avatar_url ~ '^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$') THEN
-            RAISE EXCEPTION 'invalid_avatar_url_format';
-        END IF;
-    END IF;
-
-    RETURN new;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create or replace the trigger for handling avatar URL updates
-DROP TRIGGER IF EXISTS handle_avatar_url_update ON public.user_profiles;
-CREATE TRIGGER handle_avatar_url_update
-    BEFORE UPDATE ON public.user_profiles
-    FOR EACH ROW
-    EXECUTE PROCEDURE public.handle_avatar_url_update();
 
 -- [END of Profile]
 COMMIT;
