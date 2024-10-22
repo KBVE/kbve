@@ -13,24 +13,24 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({ siteKey, onTok
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadHCaptcha = async () => {
-      try {
-        if (Platform.OS === 'web') {
-          const { default: HCaptchaWeb } = await require('@hcaptcha/react-hcaptcha');
-          setHCaptchaComponent(() => HCaptchaWeb);
-        } else {
-          const { default: HCaptchaMobile } = await require('@hcaptcha/react-native-hcaptcha');
-          setHCaptchaComponent(() => HCaptchaMobile);
-        }
-      } catch (loadError) {
-        console.error('Error loading hCaptcha component:', loadError);
-        setError('Failed to load hCaptcha');
-        if (onError) onError('Failed to load hCaptcha');
-      }
-    };
-
-    loadHCaptcha();
-  }, [onError]);
+	const loadHCaptcha = () => {
+	  try {
+		if (Platform.OS === 'web') {
+		  const HCaptchaWeb = require('@hcaptcha/react-hcaptcha').default;
+		  setHCaptchaComponent(() => HCaptchaWeb);
+		} else {
+		  const HCaptchaMobile = require('@hcaptcha/react-native-hcaptcha').default;
+		  setHCaptchaComponent(() => HCaptchaMobile);
+		}
+	  } catch (loadError) {
+		console.error('Error loading hCaptcha component:', loadError);
+		setError('Failed to load hCaptcha');
+		if (onError) onError('Failed to load hCaptcha');
+	  }
+	};
+  
+	loadHCaptcha();  // Call the function to load the appro
+}, [onError]);
 
   const onVerify = (captchaToken: string) => {
     if (captchaToken) {
