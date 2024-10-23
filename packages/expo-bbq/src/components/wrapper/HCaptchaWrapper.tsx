@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { YStack, Button, Text, Sheet } from 'tamagui';
+import { YStack, Button, Text } from 'tamagui';
 import { CheckCircle, XCircle } from '@tamagui/lucide-icons';
 import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
 import ConfirmHcaptcha from '@hcaptcha/react-native-hcaptcha';
@@ -9,84 +9,77 @@ interface HCaptchaWrapperProps {
   siteKey: string;
   onToken: (token: string) => void; // Function to pass the token back
   onError?: (error: string) => void; // Optional function to pass error back
+  reset?: boolean; // Optional prop to trigger reset
 }
 
 export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
   siteKey,
   onToken,
   onError,
+  reset, // Pass a reset prop from parent
 }) => {
   const [captchaStatus, setCaptchaStatus] = useState<'waiting' | 'verified' | 'error' | 'loading'>('waiting');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [showSheet, setShowSheet] = useState(false); // Control sheet visibility
-  const [sheetMessage, setSheetMessage] = useState('');
   const captchaForm = useRef<ConfirmHcaptcha | null>(null); // Ref for mobile captcha
 
   // Only called when we actually receive a token from captcha
   const onVerify = (captchaToken: string) => {
     if (captchaToken) {
-      console.log('Captcha token received:', captchaToken);
       setCaptchaToken(captchaToken); // Store the token
       setCaptchaStatus('verified'); // Mark as verified
       onToken(captchaToken); // Pass token back to parent
-      setSheetMessage('Captcha verified successfully!');
-      setShowSheet(true); // Show success message
     }
   };
 
   // Handles errors for both web and mobile
   const onErrorHandler = (err: any) => {
-    console.error('hCaptcha error:', err);
     const errorMessage = err.message || 'Error with hCaptcha';
     setCaptchaStatus('error');
     if (onError) onError(errorMessage); // Pass the error back to parent
-    setSheetMessage(`Error: ${errorMessage}`);
-    setShowSheet(true); // Show error message
   };
 
   // Handles mobile captcha events through onMessage
   const onMessage = (event: any) => {
     const eventData = event?.nativeEvent?.data;
 
-    console.log('Mobile captcha event received:', eventData);
-
-    // Only close or hide the captcha on relevant events
     if (eventData === 'open') {
-      console.log('Captcha opened');
-      // Do nothing, just keep the modal open
-      return;
+      return; // Keep the captcha modal open
     }
 
     if (['cancel', 'error', 'expired'].includes(eventData)) {
       captchaForm.current?.hide();
       setCaptchaStatus('error');
-      setSheetMessage('Captcha error. Please try again.');
-      setShowSheet(true);
+      if (onError) onError(eventData); // Pass error to parent
     } else if (eventData) {
-      console.log('Captcha token received on mobile:', eventData);
       setCaptchaToken(eventData); // Store token for mobile
       setCaptchaStatus('verified'); // Mark as verified
       captchaForm.current?.hide();
-      onToken(eventData);
-      setSheetMessage('Captcha verified successfully!');
-      setShowSheet(true);
+      onToken(eventData); // Pass token to parent
     }
   };
 
   const openCaptcha = () => {
     setCaptchaStatus('loading'); // Loading state while opening
-    if (Platform.OS === 'web') {
-      setCaptchaStatus('waiting'); // Web platform
-    } else {
-      // Show mobile captcha manually using ref
-      captchaForm.current?.show();
-    }
+    captchaForm.current?.show(); // Show mobile captcha manually using ref
   };
 
   const handleRetryCaptcha = () => {
     setCaptchaStatus('waiting');
-    captchaForm.current?.show(); // Retry on mobile
+    captchaForm.current?.reset(); // Reset and retry on mobile
   };
+
+  // Function to reset the captcha status back to 'waiting'
+  const resetCaptcha = () => {
+    setCaptchaStatus('waiting');
+    setCaptchaToken(null);
+  };
+
+  // Use useEffect to reset when the reset prop changes
+  useEffect(() => {
+    if (reset) {
+      resetCaptcha(); // Trigger reset when the reset prop changes
+    }
+  }, [reset]);
 
   return (
     <YStack alignItems="center" justifyContent="center" padding="$4">
@@ -120,28 +113,10 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
         </YStack>
       ) : null}
 
-      {captchaStatus === 'waiting' && (
+      {/* Show the "Open Captcha" button only on mobile */}
+      {Platform.OS !== 'web' && captchaStatus === 'waiting' && (
         <Button onPress={openCaptcha}>Open hCaptcha</Button>
       )}
-
-      {/* Sheet for displaying feedback */}
-      <Sheet
-        modal
-        open={showSheet}
-        onOpenChange={setShowSheet}
-        snapPoints={[80]}
-        dismissOnOverlayPress={true}
-      >
-        <YStack justifyContent="center" alignItems="center" padding="$6"  backgroundColor="$background" borderRadius="$4" width="100%">
-          {captchaStatus === 'verified' ? (
-            <CheckCircle color="green" size={40} />
-          ) : (
-            <XCircle color="red" size={40} />
-          )}
-          <Text>{sheetMessage}</Text>
-          <Button onPress={() => setShowSheet(false)}>Close</Button>
-        </YStack>
-      </Sheet>
     </YStack>
   );
 };
