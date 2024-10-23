@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 import { Button, Form, H4, Input, Spinner, Text, YStack, Sheet } from 'tamagui';
-import { CheckCircle, XCircle } from '@tamagui/lucide-icons'; 
-import { useRouter } from 'expo-router'; // Assuming you are using Expo Router
+import { CheckCircle, XCircle, AlertTriangle } from '@tamagui/lucide-icons'; 
+import { useRouter } from 'expo-router';
 import { createSupabaseClient } from '../wrapper/Supabase';
 import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper'; 
 
 export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: string, supabaseUrl: string, supabaseAnonKey: string }) {
   const [status, setStatus] = useState<'off' | 'loggingIn' | 'loggedIn'>('off');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [resetCaptcha, setResetCaptcha] = useState(false); // State to control captcha reset
   const [formValues, setFormValues] = useState({
     email: '',
     password: '',
@@ -18,6 +18,7 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
   const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
   const router = useRouter();
 
+  // Reset the status after a short delay
   useEffect(() => {
     if (status === 'loggingIn') {
       const timer = setTimeout(() => setStatus('off'), 2000);
@@ -27,9 +28,11 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
     }
   }, [status]);
 
+  // Handle login submission
   const handleSubmit = async () => {
     if (!captchaToken) {
-      alert('Please complete the captcha');
+      setSheetMessage('Please complete the captcha!');
+      setShowSheet(true);
       return;
     }
 
@@ -46,21 +49,28 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
       });
 
       if (error) {
+        // Supabase login failed
         console.error('Supabase login error:', error.message);
         setSheetMessage(`Login failed: ${error.message}`);
         setShowSheet(true);
         setCaptchaToken(null);  // Reset captcha token after error
+        // Trigger captcha reset after a short delay to ensure it gets picked up
+        setTimeout(() => setResetCaptcha(true), 100);
       } else {
+        // Login was successful
         setStatus('loggedIn');
         setSheetMessage('Login successful!');
         setShowSheet(true);
         router.replace('/profile');  // Redirect after successful login
       }
     } catch (error) {
+      // General login error
       console.error('Error during login:', error);
       setSheetMessage('An error occurred during login.');
       setShowSheet(true);
       setCaptchaToken(null);  // Reset captcha token after error
+      // Trigger captcha reset after a short delay
+      setTimeout(() => setResetCaptcha(true), 100);
     }
   };
 
@@ -104,18 +114,30 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
           padding="$2"
         />
 
+
+{!captchaToken && (
+                <Button disabled size="$4" backgroundColor="transparent" icon={AlertTriangle}>
+                  <Text color="red">Captcha needed before logging in</Text>
+                </Button>
+              )}
+        
+
         {/* hCaptcha Wrapper to handle both web and mobile */}
         <HCaptchaWrapper
           siteKey={siteKey}
           onToken={(token) => {
             setCaptchaToken(token);  // Set the captcha token on success
+            setResetCaptcha(false);  // Clear reset state when captcha is successful
           }}
           onError={(error) => {
             console.error('Captcha error:', error);  // Handle captcha errors
             setCaptchaToken(null);  // Reset token on error
+            setSheetMessage('Captcha verification failed. Please try again.');
+            setShowSheet(true);
           }}
+          reset={resetCaptcha}  // Pass reset trigger to captcha wrapper
         />
-
+      
         <Form.Trigger
           asChild
           disabled={status === 'loggingIn' || !captchaToken}  // Disable button if logging in or no captcha token
@@ -128,13 +150,20 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
 
       {/* Feedback Sheet */}
       <Sheet
-        modal
+        forceRemoveScrollEnabled={showSheet}
+        modal={true}
         open={showSheet}
         onOpenChange={setShowSheet}
         snapPoints={[80]}
         dismissOnOverlayPress={true}
       >
-        <YStack justifyContent="center" alignItems="center" padding="$6" backgroundColor="$background" borderRadius="$4" width="100%">
+        <Sheet.Overlay
+          animation="lazy"
+          enterStyle={{ opacity: 0 }}
+          exitStyle={{ opacity: 0 }}
+        />
+        <Sheet.Handle />
+        <Sheet.Frame padding="$4" justifyContent="center" alignItems="center" gap="$5">
           {captchaToken ? (
             <CheckCircle color="green" size={40} />
           ) : (
@@ -142,7 +171,7 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
           )}
           <Text>{sheetMessage}</Text>
           <Button onPress={() => setShowSheet(false)}>Close</Button>
-        </YStack>
+        </Sheet.Frame>
       </Sheet>
     </YStack>
   );
