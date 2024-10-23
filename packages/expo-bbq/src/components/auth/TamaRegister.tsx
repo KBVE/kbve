@@ -17,11 +17,66 @@ import {
 	CheckCircle,
 	XCircle,
 	AlertTriangle,
-	Check,
+	Check
 } from '@tamagui/lucide-icons';
 import { createSupabaseClient } from '../wrapper/Supabase';
 import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 import { useRouter } from 'expo-router';
+
+
+export function TamaRegisterCheckbox({
+  size = '$5',
+  isChecked,
+  onCheckedChange,
+}: {
+  size?: string;
+  isChecked: boolean;
+  onCheckedChange: (value: boolean) => void;
+}) {
+  const id = `checkbox-${(size || '').toString().slice(1)}`;
+
+  // Function to handle opening links
+  const handleLinkPress = async (url: string) => {
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      console.error(`Can't open URL: ${url}`);
+    }
+  };
+
+  return (
+    <XStack  alignItems="center" gap="$4">
+      <Checkbox id={id} size={size} checked={isChecked} onCheckedChange={onCheckedChange}>
+        <Checkbox.Indicator>
+          <Check />
+        </Checkbox.Indicator>
+      </Checkbox>
+
+      <Label size={size} htmlFor={id}>
+        <Text>
+          I agree to the{' '}
+          <Text onPress={() => handleLinkPress('https://kbve.com/legal/disclaimer/')} style={{ color: 'blue' }}>
+            Disclaimer
+          </Text>
+          ,{' '}
+          <Text onPress={() => handleLinkPress('https://kbve.com/legal/eula/')} style={{ color: 'blue' }}>
+            EULA
+          </Text>
+          ,{' '}
+          <Text onPress={() => handleLinkPress('https://kbve.com/legal/privacy/')} style={{ color: 'blue' }}>
+            Privacy Policy
+          </Text>
+          , and{' '}
+          <Text onPress={() => handleLinkPress('https://kbve.com/legal/tos/')} style={{ color: 'blue' }}>
+            Terms of Service
+          </Text>
+          .
+        </Text>
+      </Label>
+    </XStack>
+  );
+}
 
 export function TamaRegister({
 	siteKey,
@@ -220,54 +275,10 @@ export function TamaRegister({
 				<YStack marginVertical="$2" gap="$2">
 					<Label>
 						<XStack alignItems="center">
-							<Checkbox
-								checked={isAgreed}
-								onCheckedChange={handleCheckboxChange}>
-								{isAgreed && <Check />}
-							</Checkbox>
-							<Text paddingLeft="$2">
-								I agree to the{' '}
-								<Text
-									onPress={() =>
-										handleLinkPress(
-											'https://kbve.com/legal/disclaimer/',
-										)
-									}
-									style={{ color: 'blue' }}>
-									Disclaimer
-								</Text>
-								,{' '}
-								<Text
-									onPress={() =>
-										handleLinkPress(
-											'https://kbve.com/legal/eula/',
-										)
-									}
-									style={{ color: 'blue' }}>
-									EULA
-								</Text>
-								,{' '}
-								<Text
-									onPress={() =>
-										handleLinkPress(
-											'https://kbve.com/legal/privacy/',
-										)
-									}
-									style={{ color: 'blue' }}>
-									Privacy Policy
-								</Text>
-								, and{' '}
-								<Text
-									onPress={() =>
-										handleLinkPress(
-											'https://kbve.com/legal/tos/',
-										)
-									}
-									style={{ color: 'blue' }}>
-									Terms of Service
-								</Text>
-								.
-							</Text>
+            <TamaRegisterCheckbox
+                isChecked={isAgreed}
+                onCheckedChange={handleCheckboxChange}
+              />
 						</XStack>
 					</Label>
 				</YStack>
