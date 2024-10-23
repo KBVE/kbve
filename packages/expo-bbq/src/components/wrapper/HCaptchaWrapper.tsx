@@ -53,8 +53,7 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
     // Only close or hide the captcha on relevant events
     if (eventData === 'open') {
       console.log('Captcha opened');
-      // Do nothing, just keep the modal open
-      return;
+      return; // Keep the captcha modal open
     }
 
     if (['cancel', 'error', 'expired'].includes(eventData)) {
@@ -75,12 +74,7 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
 
   const openCaptcha = () => {
     setCaptchaStatus('loading'); // Loading state while opening
-    if (Platform.OS === 'web') {
-      setCaptchaStatus('waiting'); // Web platform
-    } else {
-      // Show mobile captcha manually using ref
-      captchaForm.current?.show();
-    }
+    captchaForm.current?.show(); // Show mobile captcha manually using ref
   };
 
   const handleRetryCaptcha = () => {
@@ -120,7 +114,8 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
         </YStack>
       ) : null}
 
-      {captchaStatus === 'waiting' && (
+      {/* Show the "Open Captcha" button only on mobile */}
+      {Platform.OS !== 'web' && captchaStatus === 'waiting' && (
         <Button onPress={openCaptcha}>Open hCaptcha</Button>
       )}
 
@@ -132,7 +127,7 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
         snapPoints={[80]}
         dismissOnOverlayPress={true}
       >
-        <YStack justifyContent="center" alignItems="center" padding="$6"  backgroundColor="$background" borderRadius="$4" width="100%">
+        <YStack justifyContent="center" alignItems="center" padding="$6" backgroundColor="$background" borderRadius="$4" width="100%">
           {captchaStatus === 'verified' ? (
             <CheckCircle color="green" size={40} />
           ) : (
