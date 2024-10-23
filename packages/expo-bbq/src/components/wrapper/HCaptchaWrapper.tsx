@@ -50,9 +50,7 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
 
     console.log('Mobile captcha event received:', eventData);
 
-    // Only close or hide the captcha on relevant events
     if (eventData === 'open') {
-      console.log('Captcha opened');
       return; // Keep the captcha modal open
     }
 
@@ -62,7 +60,6 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
       setSheetMessage('Captcha error. Please try again.');
       setShowSheet(true);
     } else if (eventData) {
-      console.log('Captcha token received on mobile:', eventData);
       setCaptchaToken(eventData); // Store token for mobile
       setCaptchaStatus('verified'); // Mark as verified
       captchaForm.current?.hide();
@@ -119,15 +116,22 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
         <Button onPress={openCaptcha}>Open hCaptcha</Button>
       )}
 
-      {/* Sheet for displaying feedback */}
+      {/* Improved Sheet for displaying feedback */}
       <Sheet
-        modal
+        forceRemoveScrollEnabled={showSheet} // Disable scroll when Sheet is open
+        modal={true} // Set Sheet as modal
         open={showSheet}
         onOpenChange={setShowSheet}
-        snapPoints={[80]}
-        dismissOnOverlayPress={true}
+        snapPoints={[80]} // You can adjust snap points
+        dismissOnOverlayPress={true} // Dismiss the Sheet on overlay press
       >
-        <YStack justifyContent="center" alignItems="center" padding="$6" backgroundColor="$background" borderRadius="$4" width="100%">
+        <Sheet.Overlay
+          animation="lazy"
+          enterStyle={{ opacity: 0 }}
+          exitStyle={{ opacity: 0 }}
+        />
+        <Sheet.Handle />
+        <Sheet.Frame padding="$4" justifyContent="center" alignItems="center" gap="$5">
           {captchaStatus === 'verified' ? (
             <CheckCircle color="green" size={40} />
           ) : (
@@ -135,7 +139,7 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
           )}
           <Text>{sheetMessage}</Text>
           <Button onPress={() => setShowSheet(false)}>Close</Button>
-        </YStack>
+        </Sheet.Frame>
       </Sheet>
     </YStack>
   );
