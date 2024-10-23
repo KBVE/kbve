@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { YStack, Button, Text, Sheet } from 'tamagui';
+import { YStack, Button, Text } from 'tamagui';
 import { CheckCircle, XCircle } from '@tamagui/lucide-icons';
 import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
 import ConfirmHcaptcha from '@hcaptcha/react-native-hcaptcha';
@@ -9,46 +9,40 @@ interface HCaptchaWrapperProps {
   siteKey: string;
   onToken: (token: string) => void; // Function to pass the token back
   onError?: (error: string) => void; // Optional function to pass error back
+  reset?: boolean; // Optional prop to trigger reset
 }
 
 export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
   siteKey,
   onToken,
   onError,
+  reset, // Pass a reset prop from parent
 }) => {
   const [captchaStatus, setCaptchaStatus] = useState<'waiting' | 'verified' | 'error' | 'loading'>('waiting');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [showSheet, setShowSheet] = useState(false); // Control sheet visibility
-  const [sheetMessage, setSheetMessage] = useState('');
   const captchaForm = useRef<ConfirmHcaptcha | null>(null); // Ref for mobile captcha
 
   // Only called when we actually receive a token from captcha
   const onVerify = (captchaToken: string) => {
     if (captchaToken) {
-      console.log('Captcha token received:', captchaToken);
       setCaptchaToken(captchaToken); // Store the token
       setCaptchaStatus('verified'); // Mark as verified
       onToken(captchaToken); // Pass token back to parent
-      setSheetMessage('Captcha verified successfully!');
-      setShowSheet(true); // Show success message
+     
     }
   };
 
   // Handles errors for both web and mobile
   const onErrorHandler = (err: any) => {
-    console.error('hCaptcha error:', err);
     const errorMessage = err.message || 'Error with hCaptcha';
     setCaptchaStatus('error');
     if (onError) onError(errorMessage); // Pass the error back to parent
-    setSheetMessage(`Error: ${errorMessage}`);
-    setShowSheet(true); // Show error message
+  
   };
 
   // Handles mobile captcha events through onMessage
   const onMessage = (event: any) => {
     const eventData = event?.nativeEvent?.data;
-
-    console.log('Mobile captcha event received:', eventData);
 
     if (eventData === 'open') {
       return; // Keep the captcha modal open
@@ -57,15 +51,11 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
     if (['cancel', 'error', 'expired'].includes(eventData)) {
       captchaForm.current?.hide();
       setCaptchaStatus('error');
-      setSheetMessage('Captcha error. Please try again.');
-      setShowSheet(true);
     } else if (eventData) {
       setCaptchaToken(eventData); // Store token for mobile
       setCaptchaStatus('verified'); // Mark as verified
       captchaForm.current?.hide();
       onToken(eventData);
-      setSheetMessage('Captcha verified successfully!');
-      setShowSheet(true);
     }
   };
 
@@ -79,69 +69,60 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
     captchaForm.current?.show(); // Retry on mobile
   };
 
+
+  // Function to reset the captcha status back to 'waiting'
+  const resetCaptcha = () => {
+    setCaptchaStatus('waiting');
+    setCaptchaToken(null);
+  };
+
+  // Use useEffect to reset when the reset prop changes
+  useEffect(() => {
+    if (reset) {
+      resetCaptcha(); // Trigger reset when the reset prop changes
+    }
+  }, [reset]);
+
   return (
-    <YStack alignItems="center" justifyContent="center" padding="$4">
-      {captchaStatus === 'waiting' || captchaStatus === 'loading' ? (
-        Platform.OS === 'web' ? (
-          <HCaptchaWeb
-            sitekey={siteKey}
-            onVerify={onVerify} // Only verified when token is returned
-            onError={onErrorHandler} // Handle error for web
-          />
-        ) : (
-          <ConfirmHcaptcha
-            ref={captchaForm}
-            siteKey={siteKey}
-            baseUrl="https://hcaptcha.com"
-            size="invisible" // Mobile captcha size
-            languageCode="en"
-            onMessage={onMessage} // Handle mobile verification events
-          />
-        )
-      ) : captchaStatus === 'verified' ? (
-        <YStack alignItems="center">
-          <CheckCircle color="green" size={40} />
-          <Text>Verified!</Text>
-        </YStack>
-      ) : captchaStatus === 'error' ? (
-        <YStack alignItems="center">
-          <XCircle color="red" size={40} />
-          <Text>Error! Try Again</Text>
-          <Button onPress={handleRetryCaptcha}>Retry</Button>
-        </YStack>
-      ) : null}
-
-      {/* Show the "Open Captcha" button only on mobile */}
-      {Platform.OS !== 'web' && captchaStatus === 'waiting' && (
-        <Button onPress={openCaptcha}>Open hCaptcha</Button>
-      )}
-
-      {/* Improved Sheet for displaying feedback */}
-      <Sheet
-        forceRemoveScrollEnabled={showSheet} // Disable scroll when Sheet is open
-        modal={true} // Set Sheet as modal
-        open={showSheet}
-        onOpenChange={setShowSheet}
-        snapPoints={[80]} // You can adjust snap points
-        dismissOnOverlayPress={true} // Dismiss the Sheet on overlay press
-      >
-        <Sheet.Overlay
-          animation="lazy"
-          enterStyle={{ opacity: 0 }}
-          exitStyle={{ opacity: 0 }}
-        />
-        <Sheet.Handle />
-        <Sheet.Frame padding="$4" justifyContent="center" alignItems="center" gap="$5">
-          {captchaStatus === 'verified' ? (
-            <CheckCircle color="green" size={40} />
+    
+      <YStack alignItems="center" justifyContent="center" padding="$4">
+        {captchaStatus === 'waiting' || captchaStatus === 'loading' ? (
+          Platform.OS === 'web' ? (
+            <HCaptchaWeb
+              sitekey={siteKey}
+              onVerify={onVerify} // Only verified when token is returned
+              onError={onErrorHandler} // Handle error for web
+            />
           ) : (
+            <ConfirmHcaptcha
+              ref={captchaForm}
+              siteKey={siteKey}
+              baseUrl="https://hcaptcha.com"
+              size="invisible" // Mobile captcha size
+              languageCode="en"
+              onMessage={onMessage} // Handle mobile verification events
+            />
+          )
+        ) : captchaStatus === 'verified' ? (
+          <YStack alignItems="center">
+            <CheckCircle color="green" size={40} />
+            <Text>Verified!</Text>
+          </YStack>
+        ) : captchaStatus === 'error' ? (
+          <YStack alignItems="center">
             <XCircle color="red" size={40} />
-          )}
-          <Text>{sheetMessage}</Text>
-          <Button onPress={() => setShowSheet(false)}>Close</Button>
-        </Sheet.Frame>
-      </Sheet>
-    </YStack>
+            <Text>Error! Try Again</Text>
+            <Button onPress={handleRetryCaptcha}>Retry</Button>
+          </YStack>
+        ) : null}
+
+        {/* Show the "Open Captcha" button only on mobile */}
+        {Platform.OS !== 'web' && captchaStatus === 'waiting' && (
+          <Button onPress={openCaptcha}>Open hCaptcha</Button>
+        )}
+      </YStack>
+
+    
   );
 };
 
