@@ -31,7 +31,8 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
   // Handle login submission
   const handleSubmit = async () => {
     if (!captchaToken) {
-      alert('Please complete the captcha');
+      setSheetMessage('Please complete the captcha!');
+      setShowSheet(true);
       return;
     }
 
@@ -120,7 +121,7 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
                 </Button>
               )}
         
-        
+
         {/* hCaptcha Wrapper to handle both web and mobile */}
         <HCaptchaWrapper
           siteKey={siteKey}
