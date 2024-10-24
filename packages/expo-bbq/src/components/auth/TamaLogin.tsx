@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo  } from 'react';
 import { Button, Form, H4, Input, Spinner, Text, YStack, Sheet } from 'tamagui';
 import { CheckCircle, XCircle, AlertTriangle } from '@tamagui/lucide-icons'; 
 import { useRouter } from 'expo-router';
@@ -8,14 +8,15 @@ import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: string, supabaseUrl: string, supabaseAnonKey: string }) {
   const [status, setStatus] = useState<'off' | 'loggingIn' | 'loggedIn'>('off');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [resetCaptcha, setResetCaptcha] = useState(false); // State to control captcha reset
+  const [resetCaptcha, setResetCaptcha] = useState(false);
   const [formValues, setFormValues] = useState({
     email: '',
     password: '',
   });
   const [showSheet, setShowSheet] = useState(false); 
   const [sheetMessage, setSheetMessage] = useState('');
-  const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+  
+	const supabase = useMemo(() => createSupabaseClient(supabaseUrl, supabaseAnonKey), [supabaseUrl, supabaseAnonKey]);
   const router = useRouter();
 
   // Reset the status after a short delay
@@ -156,6 +157,8 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
         onOpenChange={setShowSheet}
         snapPoints={[80]}
         dismissOnOverlayPress={true}
+        dismissOnSnapToBottom
+        animation="medium"
       >
         <Sheet.Overlay
           animation="lazy"
