@@ -14,6 +14,26 @@ const Consulting = () => {
 	const navigation = useNavigation();
 	const router = useRouter();
 
+	const postData = {
+		username: 'john_doe',
+		location: 'San Francisco',
+		avatarUrl: 'https://example.com/avatar.jpg',
+		postImageUrl:
+			'https://images.unsplash.com/photo-1729326688022-865844a8baa9?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&',
+		likes: [
+			{ avatarUrl: 'https://example.com/like1.jpg', name: 'alice' },
+			{ avatarUrl: 'https://example.com/like2.jpg', name: 'bob' },
+		],
+		caption: 'This is a great day!',
+	};
+
+	const postId = '01JAYT7NKZPW7BXYKDHDWDHMVC';
+
+	const handleAction = (actionState: string, content: string) => {
+		console.log(`Action: ${actionState}, Content: ${content}`);
+		// Handle the action and content here (e.g., update state or UI)
+	};
+
 	// Memoizing navigation update function
 	const updateNavigationOptions = useCallback(() => {
 		navigation.setOptions({
@@ -41,7 +61,6 @@ const Consulting = () => {
 				ai="center"
 				padding="$1"
 				flexDirection="column"
-				
 				$gtLg={{
 					flexDirection: 'row', // For screens greater than large
 					justifyContent: 'space-between',
@@ -52,13 +71,13 @@ const Consulting = () => {
 				<YStack
 					jc="center"
 					ai="center"
-          gap="$2"
-          rowGap="$2"
+					gap="$2"
+					rowGap="$2"
 					$sm={{ width: '50%', display: 'block' }}
 					$gtLg={{
 						flex: 1,
 						maxWidth: '33%', // Slightly smaller maxWidth on extra-large screens
-            paddingLeft: "$8"
+						paddingLeft: '$8',
 					}}>
 					<MemoizedLottieAnimation
 						lottieJSON={lottieConsultingAnimation}
@@ -72,38 +91,33 @@ const Consulting = () => {
 					<SizableText size={'$3'} theme="alt2">
 						Welcome to the Consultants of LC Agents
 					</SizableText>
-					<InstaCard />
-					<InstaCard />
-					<InstaCard />
 				</YStack>
-        <Separator alignSelf="stretch"  marginVertical={15} />
+
 				<YStack
 					jc="center"
 					ai="center"
-					$sm={{ width: '100%' }} // Full width on small screens with spacing
-					gap={'$2'}
+					gap="$2"
+					rowGap="$2"
+					$sm={{ width: '50%', display: 'block' }}
 					$gtLg={{
 						flex: 1,
-						maxWidth: '33%', // Slightly smaller on extra-large screens
+						maxWidth: '33%', // Slightly smaller maxWidth on extra-large screens
+						paddingLeft: '$8',
 					}}>
-					<InstaCard />
-					<InstaCard />
-					<InstaCard />
+					<InstaCard
+						username={postData.username}
+						location={postData.location}
+						avatarUrl={postData.avatarUrl}
+						postImageUrl={postData.postImageUrl}
+						likes={postData.likes}
+						caption={postData.caption}
+						ulid={postId}
+						onAction={handleAction} // Pass the callback to handle actions
+					/>
 				</YStack>
-        <Separator alignSelf="stretch"  marginVertical={15}  />
-				<YStack
-					jc="center"
-					ai="center"
-					$sm={{ width: '100%' }} // Full width on small screens with spacing
-					gap={'$2'}
-					$gtLg={{
-						flex: 1,
-						maxWidth: '33%', // Slightly smaller on extra-large screens
-					}}>
-					<InstaCard />
-					<InstaCard />
-					<InstaCard />
-				</YStack>
+			</XStack>
+			<XStack>
+				
 			</XStack>
 		</ScrollView>
 	);
