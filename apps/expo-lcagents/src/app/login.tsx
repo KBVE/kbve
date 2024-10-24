@@ -6,12 +6,12 @@ import React, {
 	useCallback,
 } from 'react';
 import { YStack, SizableText, ScrollView, View } from 'tamagui';
-import { TamaLogin, LottieAnimation, TamaSheet } from '@kbve/expo-bbq';
-import { useNavigation, useRouter } from 'expo-router';
+import { TamaLogin, LottieAnimation, TamaSheet, useBBQ, TamaSkeleton } from '@kbve/expo-bbq';
+import { useNavigation } from 'expo-router';
 
 const Login = () => {
 	const navigation = useNavigation();
-	const router = useRouter();
+	const router = useBBQ();
 	const sheetRef = useRef<{
 		showSheet: () => void;
 		hideSheet: () => void;
@@ -43,7 +43,7 @@ const Login = () => {
 
 		setTimeout(() => {
 			sheetRef.current?.hideSheet();
-			router.replace('/profile');
+			router.go('/profile');
 		  }, 3000);
 	};
 
@@ -63,6 +63,7 @@ const Login = () => {
 				justifyContent: 'center',
 				paddingVertical: 10,
 			}}>
+			<TamaSkeleton />
 			<View style={{ padding: 10 }}>
 				<YStack f={1} jc="center" ai="center">
 					{/* Lottie Animation */}
