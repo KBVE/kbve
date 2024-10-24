@@ -29,7 +29,7 @@ export function TamaProfile({
 			const { data: session } = await supabase.auth.getSession();
 
 			if (!session || !session.session) {
-				router.replace('/login'); // If not logged in, redirect to login
+				//router.replace('/login'); // If not logged in, redirect to login
 				return;
 			}
 
