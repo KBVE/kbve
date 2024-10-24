@@ -5,7 +5,7 @@ import React, {
 	useMemo,
 	useCallback,
 } from 'react';
-import { YStack, SizableText, ScrollView, View } from 'tamagui';
+import { YStack, SizableText, ScrollView, View, Button } from 'tamagui';
 import { TamaLogin, LottieAnimation, TamaSheet, useBBQ, TamaSkeleton } from '@kbve/expo-bbq';
 import { useNavigation } from 'expo-router';
 
@@ -17,6 +17,8 @@ const Login = () => {
 		hideSheet: () => void;
 	} | null>(null);
 	const [sheetMessage, setSheetMessage] = useState('');
+	const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login state
+	const [hasError, setHasError] = useState(false); // Track error state
 
 	const lottieLoginAnimation = useMemo(
 		() => require('../../assets/json/vr.json'),
@@ -36,24 +38,47 @@ const Login = () => {
 	}, [updateNavigationOptions]);
 
 	const handleSuccess = () => {
+		setIsLoggedIn(true); 
+		setHasError(false); 
 		if (sheetRef.current) {
-			setSheetMessage('Login successful! Redirecting...');
+			setSheetMessage('Login successful! ...');
 			sheetRef.current.showSheet();
 		}
-
-		setTimeout(() => {
-			sheetRef.current?.hideSheet();
-			router.go('/profile');
-		  }, 3000);
 	};
 
 	const MemoizedLottieAnimation = React.memo(LottieAnimation);
 
 	const handleError = (error: string) => {
+		setIsLoggedIn(false); 
+		setHasError(true);
 		if (sheetRef.current) {
-			setSheetMessage(error);
+			setSheetMessage(error); 
 			sheetRef.current.showSheet();
 		}
+	};
+
+	const renderSheetContent = () => {
+		return (
+			<YStack ai="center" jc="center" paddingVertical={10}>
+				<SizableText>{sheetMessage}</SizableText>
+				{/* Only show the button if logged in and no error */}
+				{isLoggedIn && !hasError && (
+					<Button
+						onPress={() => {
+							if (sheetRef.current) {
+								sheetRef.current.hideSheet();
+							}
+							router.go('/profile'); // Navigate to home or desired screen after login
+						}}
+						color="green"
+						size="$4"
+						marginTop={10}
+					>
+						Go to Profile
+					</Button>
+				)}
+			</YStack>
+		);
 	};
 
 	return (
@@ -94,7 +119,7 @@ const Login = () => {
 			/>
 
 			<TamaSheet ref={sheetRef} title="Login Status">
-				<SizableText>{sheetMessage}</SizableText>
+				{renderSheetContent()}
 			</TamaSheet>
 		</ScrollView>
 	);
