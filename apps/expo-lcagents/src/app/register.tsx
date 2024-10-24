@@ -1,6 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Image } from 'react-native';
-import { YStack, SizableText } from 'tamagui';
+import { YStack, SizableText, ScrollView, View  } from 'tamagui';
 import { TamaRegister, LottieAnimation } from '@kbve/expo-bbq';
 
 import { useNavigation } from 'expo-router';

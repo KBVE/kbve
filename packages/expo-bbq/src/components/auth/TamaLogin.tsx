@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Button, Form, H4, Input, Spinner, Text, YStack } from 'tamagui';
-import { CheckCircle, XCircle, AlertTriangle } from '@tamagui/lucide-icons'; 
+import {  AlertTriangle } from '@tamagui/lucide-icons'; 
 import { createSupabaseClient } from '../wrapper/Supabase';
 import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 
