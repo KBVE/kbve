@@ -7,7 +7,7 @@ interface SheetComponentProps {
 	children?: React.ReactNode;
 }
 
-export const SheetComponent = forwardRef(
+export const TamaSheet = forwardRef(
 	({ title, priority = 0, children }: SheetComponentProps, ref) => {
 		const [open, setOpen] = useState(false);
 
@@ -58,3 +58,5 @@ export const SheetComponent = forwardRef(
 		);
 	},
 );
+
+export default TamaSheet;
