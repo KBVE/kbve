@@ -59,8 +59,8 @@ const Consulting = () => {
 				f={1}
 				jc="center"
 				ai="center"
-				padding="$1"
 				flexDirection="column"
+				paddingVertical="$4"
 				$gtLg={{
 					flexDirection: 'row', // For screens greater than large
 					justifyContent: 'space-between',
@@ -71,12 +71,12 @@ const Consulting = () => {
 				<YStack
 					jc="center"
 					ai="center"
-					gap="$2"
-					rowGap="$2"
+				
 					$sm={{ width: '50%', display: 'block' }}
 					$gtLg={{
 						flex: 1,
-						maxWidth: '33%', // Slightly smaller maxWidth on extra-large screens
+						flexGrow: 1,
+						// maxWidth: '33%', // Slightly smaller maxWidth on extra-large screens
 						paddingLeft: '$8',
 					}}>
 					<MemoizedLottieAnimation
@@ -96,14 +96,35 @@ const Consulting = () => {
 				<YStack
 					jc="center"
 					ai="center"
-					gap="$2"
-					rowGap="$2"
-					$sm={{ width: '50%', display: 'block' }}
+					gap="$4"
 					$gtLg={{
 						flex: 1,
-						maxWidth: '33%', // Slightly smaller maxWidth on extra-large screens
-						paddingLeft: '$8',
+						flexDirection: 'row',
+						flexWrap: 'wrap',
+						gap: "$5",
+						// maxWidth: '33%', // Slightly smaller maxWidth on extra-large screens
+						
 					}}>
+					<InstaCard
+						username={postData.username}
+						location={postData.location}
+						avatarUrl={postData.avatarUrl}
+						postImageUrl={postData.postImageUrl}
+						likes={postData.likes}
+						caption={postData.caption}
+						ulid={postId}
+						onAction={handleAction} // Pass the callback to handle actions
+					/>
+					<InstaCard
+						username={postData.username}
+						location={postData.location}
+						avatarUrl={postData.avatarUrl}
+						postImageUrl={postData.postImageUrl}
+						likes={postData.likes}
+						caption={postData.caption}
+						ulid={postId}
+						onAction={handleAction} // Pass the callback to handle actions
+					/>
 					<InstaCard
 						username={postData.username}
 						location={postData.location}
