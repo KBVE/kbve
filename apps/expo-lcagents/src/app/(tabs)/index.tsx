@@ -107,6 +107,13 @@ export default function IndexScreen() {
 						onPress={() => handlePress('/login')}>
 						Login
 					</Button>
+
+					<Button
+						iconAfter={BadgePoundSterling}
+						size="$3"
+						onPress={() => handlePress('/consulting')}>
+						Consulting
+					</Button>
 				
 				
 				</LottieHero>
