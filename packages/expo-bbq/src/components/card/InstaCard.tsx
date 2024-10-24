@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { memo, useCallback } from 'react';
 import {
 	YStack,
 	XStack,
@@ -24,10 +24,37 @@ interface PopoverDemoProps extends PopoverProps {
 	Icon?: any;
 	Name?: string;
 	shouldAdapt?: boolean;
+	onAction: (actionState: string, content: string) => void;
 }
 
-export function InstaCard() {
-	const [shouldAdapt, setShouldAdapt] = useState(true);
+interface InstaCardProps {
+	username: string;
+	location: string;
+	avatarUrl: string;
+	postImageUrl: string;
+	likes: Array<{ avatarUrl: string; name: string }>;
+	caption: string;
+	ulid: string;
+	onAction: (actionState: string, content: string) => void;
+}
+
+// Memoizing InstaCard to avoid unnecessary re-renders
+export const InstaCard = memo(function InstaCard({
+	username,
+	location,
+	avatarUrl,
+	postImageUrl,
+	likes,
+	caption,
+	ulid,
+	onAction,
+}: InstaCardProps) {
+	const handleAction = useCallback(
+		(actionState: string, content: string) => {
+			onAction(actionState, content);
+		},
+		[onAction], // Ensures the callback only changes if onAction changes
+	);
 
 	return (
 		<YStack
@@ -43,19 +70,17 @@ export function InstaCard() {
 				<XStack alignItems="center" gap="$2">
 					<Avatar circular size="$3">
 						<Avatar.Image
-							source={{
-								uri: 'https://source.unsplash.com/50x50/?portrait',
-							}}
+							source={{ uri: avatarUrl }}
 							width="100%"
 							height="100%"
 						/>
 					</Avatar>
 					<YStack>
 						<SizableText fontWeight="600" fontSize="$2">
-							leroy_jenkins72
+							{username}
 						</SizableText>
 						<SizableText fontSize="$1" color="$gray10">
-							Somewhere
+							{location}
 						</SizableText>
 					</YStack>
 				</XStack>
@@ -65,12 +90,13 @@ export function InstaCard() {
 					placement="bottom"
 					Icon={MoreVertical}
 					Name="options-popover"
+					onAction={handleAction}
 				/>
 			</XStack>
 
 			{/* Image */}
 			<Image
-				source={{ uri: 'https://images.unsplash.com/photo-1729326688022-865844a8baa9?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&' }}
+				source={{ uri: postImageUrl }}
 				width="100%"
 				height={300}
 				borderRadius="$2"
@@ -86,65 +112,55 @@ export function InstaCard() {
 						placement="bottom"
 						Icon={Heart}
 						Name="like-popover"
+						onAction={handleAction}
 					/>
 					<PopoverDemo
 						placement="bottom"
 						Icon={MessageCircle}
 						Name="comment-popover"
+						onAction={handleAction}
 					/>
 					<PopoverDemo
 						placement="bottom"
 						Icon={Share2}
 						Name="share-popover"
+						onAction={handleAction}
 					/>
 				</XStack>
 				<PopoverDemo
 					placement="bottom"
 					Icon={Bookmark}
 					Name="bookmark-popover"
+					onAction={handleAction}
 				/>
 			</XStack>
 
 			{/* Likes Section */}
 			<XStack paddingHorizontal="$3" gap="$2" alignItems="center">
-				<Avatar circular size="$2">
-					<Avatar.Image
-						source={{
-							uri: 'https://source.unsplash.com/40x40/?portrait?1',
-						}}
-						width="100%"
-						height="100%"
-					/>
-				</Avatar>
-				<Avatar circular size="$2">
-					<Avatar.Image
-						source={{
-							uri: 'https://source.unsplash.com/40x40/?portrait?2',
-						}}
-						width="100%"
-						height="100%"
-					/>
-				</Avatar>
-				<Avatar circular size="$2">
-					<Avatar.Image
-						source={{
-							uri: 'https://source.unsplash.com/40x40/?portrait?3',
-						}}
-						width="100%"
-						height="100%"
-					/>
-				</Avatar>
+				{likes.map((like, index) => (
+					<Avatar key={index} circular size="$2">
+						<Avatar.Image
+							source={{ uri: like.avatarUrl }}
+							width="100%"
+							height="100%"
+						/>
+					</Avatar>
+				))}
 				<SizableText fontSize="$2">
-					Liked by <SizableText fontWeight="600">Mamba UI</SizableText> and{' '}
-					<SizableText fontWeight="600">86 others</SizableText>
+					Liked by{' '}
+					<SizableText fontWeight="600">{likes[0]?.name}</SizableText>{' '}
+					and{' '}
+					<SizableText fontWeight="600">
+						{likes.length} others
+					</SizableText>
 				</SizableText>
 			</XStack>
 
 			{/* Caption */}
 			<YStack paddingHorizontal="$3" paddingVertical="$2">
 				<SizableText fontSize="$2">
-					<SizableText fontWeight="600">leroy_jenkins72 </SizableText>
-					Nemo ea quasi debitis impedit!
+					<SizableText fontWeight="600">{username} </SizableText>
+					{caption}
 				</SizableText>
 			</YStack>
 
@@ -153,7 +169,7 @@ export function InstaCard() {
 			<Input margin="$3" placeholder="Add a comment..." />
 		</YStack>
 	);
-}
+});
 
 // PopoverDemo component
 
@@ -161,12 +177,19 @@ function PopoverDemo({
 	Icon,
 	Name,
 	shouldAdapt = true,
+	onAction,
 	...props
 }: PopoverDemoProps) {
+	const handleClick = () => {
+		if (Name) {
+			onAction(Name, `${Name} content is displayed`);
+		}
+	};
+
 	return (
 		<Popover size="$5" allowFlip {...props}>
 			<Popover.Trigger asChild>
-				<Button iconAfter={Icon} />
+				<Button iconAfter={Icon} onPress={handleClick} />
 			</Popover.Trigger>
 
 			{shouldAdapt && (
