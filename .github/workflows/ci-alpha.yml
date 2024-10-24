@@ -165,11 +165,11 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
         with:
           source_file: 'dist/apps/expo-lcagents/'
-          destination_repo: 'kbve/lc-agents.com'
+          destination_repo: 'KBVE/lc-agents.com'
           destination_folder: '/docs'
           destination_branch: 'main'
           destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
-          user_email: '5599058+h0lybyte@users.noreply.github.com'
+          user_email: 'h0lybyte@users.noreply.github.com'
           user_name: 'h0lybyte'
           commit_message: ${{ github.event.head_commit.message }}
           rsync_option: '-avrh --delete'
