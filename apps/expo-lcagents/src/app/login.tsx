@@ -37,10 +37,14 @@ const Login = () => {
 
 	const handleSuccess = () => {
 		if (sheetRef.current) {
-			setSheetMessage('Login successful!');
+			setSheetMessage('Login successful! Redirecting...');
 			sheetRef.current.showSheet();
 		}
-		router.replace('/profile');
+
+		setTimeout(() => {
+			sheetRef.current?.hideSheet();
+			router.replace('/profile');
+		  }, 3000);
 	};
 
 	const MemoizedLottieAnimation = React.memo(LottieAnimation);
