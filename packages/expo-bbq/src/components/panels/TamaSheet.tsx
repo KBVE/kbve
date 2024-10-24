@@ -28,9 +28,9 @@ export const TamaSheet = forwardRef(
 				snapPoints={[80]}
 				dismissOnOverlayPress={true}
                 dismissOnSnapToBottom
-                animation="medium">
+                animation="bouncy">
 				<Sheet.Overlay
-					animation="lazy"
+					animation="bouncy"
 					enterStyle={{ opacity: 0 }}
 					exitStyle={{ opacity: 0 }}
 				/>

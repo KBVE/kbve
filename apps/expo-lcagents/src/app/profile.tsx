@@ -1,6 +1,5 @@
-import React from 'react';
-import { ScrollView } from 'react-native';
-import { YStack, XStack, SizableText, Separator } from 'tamagui';
+import React, {useMemo, useCallback, useEffect} from 'react';
+import { YStack, XStack, SizableText, Separator, ScrollView } from 'tamagui';
 import { TamaProfile, LottieAnimation } from '@kbve/expo-bbq';
 import { useNavigation } from 'expo-router';
 
@@ -8,20 +7,20 @@ const Profile = () => {
 	const navigation = useNavigation();
 
 	// Memoizing Lottie animation JSON
-	const lottieProfileAnimation = React.useMemo(
+	const lottieProfileAnimation = useMemo(
 		() => require('../../assets/json/profile.json'),
 		[],
 	);
 
 	// Memoizing navigation update function
-	const updateNavigationOptions = React.useCallback(() => {
+	const updateNavigationOptions = useCallback(() => {
 		navigation.setOptions({
 			title: 'Profile',
 			headerBackTitle: 'Back',
 		});
 	}, [navigation]);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		updateNavigationOptions();
 	}, [updateNavigationOptions]);
 
