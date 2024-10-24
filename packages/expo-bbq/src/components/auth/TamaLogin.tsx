@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Button, Form, H4, Input, Spinner, Text, YStack, Sheet } from 'tamagui';
+import { Button, Form, H4, Input, Spinner, Text, YStack } from 'tamagui';
 import { CheckCircle, XCircle, AlertTriangle } from '@tamagui/lucide-icons'; 
-import { useRouter } from 'expo-router';
 import { createSupabaseClient } from '../wrapper/Supabase';
 import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 
@@ -25,11 +24,8 @@ export function TamaLogin({
     email: '',
     password: '',
   });
-  const [showSheet, setShowSheet] = useState(false);
-  const [sheetMessage, setSheetMessage] = useState('');
-  
+
   const supabase = useMemo(() => createSupabaseClient(supabaseUrl, supabaseAnonKey), [supabaseUrl, supabaseAnonKey]);
-  const router = useRouter();
   const isMounted = useRef(true);
 
   // Cleanup on unmount to prevent state updates on an unmounted component
@@ -52,8 +48,9 @@ export function TamaLogin({
   // Handle login submission
   const handleSubmit = async () => {
     if (!captchaToken) {
-      setSheetMessage('Please complete the captcha!');
-      setShowSheet(true);
+      if (onError) {
+        onError('Please complete the captcha!');
+      }
       return;
     }
 
@@ -73,10 +70,8 @@ export function TamaLogin({
         // Supabase login failed
         console.error('Supabase login error:', error.message);
         if (onError) {
-          onError(error.message);  // Call the error callback if provided
+          onError(`Login failed: ${error.message}`);
         }
-        setSheetMessage(`Login failed: ${error.message}`);
-        setShowSheet(true);
         setCaptchaToken(null);  // Reset captcha token after error
         setTimeout(() => setResetCaptcha(true), 100);  // Trigger captcha reset
       } else {
@@ -85,9 +80,6 @@ export function TamaLogin({
         if (onSuccess) {
           onSuccess();  // Call the success callback if provided
         }
-        setSheetMessage('Login successful!');
-        setShowSheet(true);
-        router.replace('/profile');  // Redirect after successful login
       }
     } catch (error) {
       // General login error
@@ -95,8 +87,6 @@ export function TamaLogin({
       if (onError) {
         onError('An error occurred during login.');
       }
-      setSheetMessage('An error occurred during login.');
-      setShowSheet(true);
       setCaptchaToken(null);  // Reset captcha token after error
       setTimeout(() => setResetCaptcha(true), 100);  // Trigger captcha reset
     }
@@ -158,8 +148,9 @@ export function TamaLogin({
           onError={(error) => {
             console.error('Captcha error:', error);  // Handle captcha errors
             setCaptchaToken(null);  // Reset token on error
-            setSheetMessage('Captcha verification failed. Please try again.');
-            setShowSheet(true);
+            if (onError) {
+              onError('Captcha verification failed. Please try again.');
+            }
           }}
           reset={resetCaptcha}  // Pass reset trigger to captcha wrapper
         />
@@ -173,34 +164,6 @@ export function TamaLogin({
           </Button>
         </Form.Trigger>
       </Form>
-
-      {/* Feedback Sheet */}
-      <Sheet
-        forceRemoveScrollEnabled={showSheet}
-        modal={true}
-        open={showSheet}
-        onOpenChange={setShowSheet}
-        snapPoints={[80]}
-        dismissOnOverlayPress={true}
-        dismissOnSnapToBottom
-        animation="medium"
-      >
-        <Sheet.Overlay
-          animation="lazy"
-          enterStyle={{ opacity: 0 }}
-          exitStyle={{ opacity: 0 }}
-        />
-        <Sheet.Handle />
-        <Sheet.Frame padding="$4" justifyContent="center" alignItems="center" gap="$5">
-          {captchaToken ? (
-            <CheckCircle color="green" size={40} />
-          ) : (
-            <XCircle color="red" size={40} />
-          )}
-          <Text>{sheetMessage}</Text>
-          <Button onPress={() => setShowSheet(false)}>Close</Button>
-        </Sheet.Frame>
-      </Sheet>
     </YStack>
   );
 }
