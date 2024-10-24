@@ -1,11 +1,23 @@
-import React, { useEffect, useState, useRef, useMemo  } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Button, Form, H4, Input, Spinner, Text, YStack, Sheet } from 'tamagui';
 import { CheckCircle, XCircle, AlertTriangle } from '@tamagui/lucide-icons'; 
 import { useRouter } from 'expo-router';
 import { createSupabaseClient } from '../wrapper/Supabase';
-import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper'; 
+import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 
-export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: string, supabaseUrl: string, supabaseAnonKey: string }) {
+export function TamaLogin({
+  siteKey,
+  supabaseUrl,
+  supabaseAnonKey,
+  onSuccess,
+  onError,
+}: {
+  siteKey: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  onSuccess?: () => void;  // Optional success callback
+  onError?: (error: string) => void;  // Optional error callback
+}) {
   const [status, setStatus] = useState<'off' | 'loggingIn' | 'loggedIn'>('off');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [resetCaptcha, setResetCaptcha] = useState(false);
@@ -13,11 +25,19 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
     email: '',
     password: '',
   });
-  const [showSheet, setShowSheet] = useState(false); 
+  const [showSheet, setShowSheet] = useState(false);
   const [sheetMessage, setSheetMessage] = useState('');
   
-	const supabase = useMemo(() => createSupabaseClient(supabaseUrl, supabaseAnonKey), [supabaseUrl, supabaseAnonKey]);
+  const supabase = useMemo(() => createSupabaseClient(supabaseUrl, supabaseAnonKey), [supabaseUrl, supabaseAnonKey]);
   const router = useRouter();
+  const isMounted = useRef(true);
+
+  // Cleanup on unmount to prevent state updates on an unmounted component
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Reset the status after a short delay
   useEffect(() => {
@@ -52,14 +72,19 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
       if (error) {
         // Supabase login failed
         console.error('Supabase login error:', error.message);
+        if (onError) {
+          onError(error.message);  // Call the error callback if provided
+        }
         setSheetMessage(`Login failed: ${error.message}`);
         setShowSheet(true);
         setCaptchaToken(null);  // Reset captcha token after error
-        // Trigger captcha reset after a short delay to ensure it gets picked up
-        setTimeout(() => setResetCaptcha(true), 100);
+        setTimeout(() => setResetCaptcha(true), 100);  // Trigger captcha reset
       } else {
         // Login was successful
         setStatus('loggedIn');
+        if (onSuccess) {
+          onSuccess();  // Call the success callback if provided
+        }
         setSheetMessage('Login successful!');
         setShowSheet(true);
         router.replace('/profile');  // Redirect after successful login
@@ -67,11 +92,13 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
     } catch (error) {
       // General login error
       console.error('Error during login:', error);
+      if (onError) {
+        onError('An error occurred during login.');
+      }
       setSheetMessage('An error occurred during login.');
       setShowSheet(true);
       setCaptchaToken(null);  // Reset captcha token after error
-      // Trigger captcha reset after a short delay
-      setTimeout(() => setResetCaptcha(true), 100);
+      setTimeout(() => setResetCaptcha(true), 100);  // Trigger captcha reset
     }
   };
 
@@ -115,13 +142,11 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
           padding="$2"
         />
 
-
-{!captchaToken && (
-                <Button disabled size="$4" backgroundColor="transparent" icon={AlertTriangle}>
-                  <Text color="red">Captcha needed before logging in</Text>
-                </Button>
-              )}
-        
+        {!captchaToken && (
+          <Button disabled size="$4" backgroundColor="transparent" icon={AlertTriangle}>
+            <Text color="red">Captcha needed before logging in</Text>
+          </Button>
+        )}
 
         {/* hCaptcha Wrapper to handle both web and mobile */}
         <HCaptchaWrapper
