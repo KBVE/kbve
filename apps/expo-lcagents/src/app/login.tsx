@@ -61,14 +61,19 @@ const Login = () => {
 		return (
 			<YStack ai="center" jc="center" paddingVertical={10}>
 				<SizableText>{sheetMessage}</SizableText>
-				{/* Only show the button if logged in and no error */}
 				{isLoggedIn && !hasError && (
+					<YStack
+					f={1}
+					jc="center"
+					ai="center"
+					padding="$1"
+					gap>
 					<Button
 						onPress={() => {
 							if (sheetRef.current) {
 								sheetRef.current.hideSheet();
 							}
-							router.go('/profile'); // Navigate to home or desired screen after login
+							router.go('/profile');
 						}}
 						color="green"
 						size="$4"
@@ -76,6 +81,22 @@ const Login = () => {
 					>
 						Go to Profile
 					</Button>
+
+					<Button
+						onPress={() => {
+							if (sheetRef.current) {
+								sheetRef.current.hideSheet();
+							}
+							router.go('/dashboard');
+						}}
+						color="green"
+						size="$4"
+						marginTop={10}
+					>
+						Go to Dashboard
+					</Button>
+
+					</YStack>
 				)}
 			</YStack>
 		);
