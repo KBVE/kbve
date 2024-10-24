@@ -1,0 +1,23 @@
+---
+title: 'October: 24th'
+category: Daily
+date: 2024-10-24 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 24th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**RSPS**
+
+We should split out the RSPS from the Atlas docker setup and keep them both isolated.
+It would make more sense to manage them as different entities.
+While building out the expo updates, I started to work on a rsps docker image that still needs to be pushed out and built.
+The idea was to remove the chrome and python code from atlas and swap out the client with another jar, making it more focused on running the java virtual machine.
+For mouse movement and general automation, we might just use rust and maybe emulate the mouse and keyboard driver.
