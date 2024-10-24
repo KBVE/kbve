@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Linking } from 'react-native';
 import {
 	Button,
@@ -17,65 +17,86 @@ import {
 	CheckCircle,
 	XCircle,
 	AlertTriangle,
-	Check
+	Check,
 } from '@tamagui/lucide-icons';
 import { createSupabaseClient } from '../wrapper/Supabase';
 import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 import { useRouter } from 'expo-router';
 
-
 export function TamaRegisterCheckbox({
-  size = '$5',
-  isChecked,
-  onCheckedChange,
+	size = '$5',
+	isChecked,
+	onCheckedChange,
 }: {
-  size?: string;
-  isChecked: boolean;
-  onCheckedChange: (value: boolean) => void;
+	size?: string;
+	isChecked: boolean;
+	onCheckedChange: (value: boolean) => void;
 }) {
-  const id = `checkbox-${(size || '').toString().slice(1)}`;
+	const id = `checkbox-${(size || '').toString().slice(1)}`;
 
-  // Function to handle opening links
-  const handleLinkPress = async (url: string) => {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      await Linking.openURL(url);
-    } else {
-      console.error(`Can't open URL: ${url}`);
-    }
-  };
+	// Function to handle opening links
+	const handleLinkPress = async (url: string) => {
+		const supported = await Linking.canOpenURL(url);
+		if (supported) {
+			await Linking.openURL(url);
+		} else {
+			console.error(`Can't open URL: ${url}`);
+		}
+	};
 
-  return (
-    <XStack  alignItems="center" gap="$4">
-      <Checkbox id={id} size={size} checked={isChecked} onCheckedChange={onCheckedChange}>
-        <Checkbox.Indicator>
-          <Check />
-        </Checkbox.Indicator>
-      </Checkbox>
+	return (
+		<XStack alignItems="center" gap="$4">
+			<Checkbox
+				id={id}
+				size={size}
+				checked={isChecked}
+				onCheckedChange={onCheckedChange}>
+				<Checkbox.Indicator>
+					<Check />
+				</Checkbox.Indicator>
+			</Checkbox>
 
-      <Label size={size} htmlFor={id}>
-        <Text>
-          I agree to the{' '}
-          <Text onPress={() => handleLinkPress('https://kbve.com/legal/disclaimer/')} style={{ color: 'blue' }}>
-            Disclaimer
-          </Text>
-          ,{' '}
-          <Text onPress={() => handleLinkPress('https://kbve.com/legal/eula/')} style={{ color: 'blue' }}>
-            EULA
-          </Text>
-          ,{' '}
-          <Text onPress={() => handleLinkPress('https://kbve.com/legal/privacy/')} style={{ color: 'blue' }}>
-            Privacy Policy
-          </Text>
-          , and{' '}
-          <Text onPress={() => handleLinkPress('https://kbve.com/legal/tos/')} style={{ color: 'blue' }}>
-            Terms of Service
-          </Text>
-          .
-        </Text>
-      </Label>
-    </XStack>
-  );
+			<Label size={size} htmlFor={id}>
+				<Text>
+					I agree to the{' '}
+					<Text
+						onPress={() =>
+							handleLinkPress(
+								'https://kbve.com/legal/disclaimer/',
+							)
+						}
+						style={{ color: 'blue' }}>
+						Disclaimer
+					</Text>
+					,{' '}
+					<Text
+						onPress={() =>
+							handleLinkPress('https://kbve.com/legal/eula/')
+						}
+						style={{ color: 'blue' }}>
+						EULA
+					</Text>
+					,{' '}
+					<Text
+						onPress={() =>
+							handleLinkPress('https://kbve.com/legal/privacy/')
+						}
+						style={{ color: 'blue' }}>
+						Privacy Policy
+					</Text>
+					, and{' '}
+					<Text
+						onPress={() =>
+							handleLinkPress('https://kbve.com/legal/tos/')
+						}
+						style={{ color: 'blue' }}>
+						Terms of Service
+					</Text>
+					.
+				</Text>
+			</Label>
+		</XStack>
+	);
 }
 
 export function TamaRegister({
@@ -105,8 +126,8 @@ export function TamaRegister({
 	// Initialize Supabase client
 	const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
-  // Router
-  const router = useRouter();
+	// Router
+	const router = useRouter();
 
 	useEffect(() => {
 		if (status === 'submitting') {
@@ -176,9 +197,9 @@ export function TamaRegister({
 					'Registration successful! Redirecting you to your profile...',
 				);
 				setShowSheet(true); // Show success sheet
-        setTimeout(() => {
-          router.replace('/profile');
-        }, 2000);
+				setTimeout(() => {
+					router.replace('/profile');
+				}, 2000);
 			}
 		} catch (error) {
 			console.error('Error during registration:', error);
@@ -275,10 +296,10 @@ export function TamaRegister({
 				<YStack marginVertical="$2" gap="$2">
 					<Label>
 						<XStack alignItems="center">
-            <TamaRegisterCheckbox
-                isChecked={isAgreed}
-                onCheckedChange={handleCheckboxChange}
-              />
+							<TamaRegisterCheckbox
+								isChecked={isAgreed}
+								onCheckedChange={handleCheckboxChange}
+							/>
 						</XStack>
 					</Label>
 				</YStack>

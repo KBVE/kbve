@@ -1,22 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Form, H4, Input, Spinner, Text, YStack, Sheet } from 'tamagui';
-import { CheckCircle, XCircle, AlertTriangle } from '@tamagui/lucide-icons'; 
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { Button, Form, H4, Input, Spinner, Text, YStack } from 'tamagui';
+import {  AlertTriangle } from '@tamagui/lucide-icons'; 
 import { createSupabaseClient } from '../wrapper/Supabase';
-import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper'; 
+import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 
-export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: string, supabaseUrl: string, supabaseAnonKey: string }) {
+export function TamaLogin({
+  siteKey,
+  supabaseUrl,
+  supabaseAnonKey,
+  onSuccess,
+  onError,
+}: {
+  siteKey: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  onSuccess?: () => void;  // Optional success callback
+  onError?: (error: string) => void;  // Optional error callback
+}) {
   const [status, setStatus] = useState<'off' | 'loggingIn' | 'loggedIn'>('off');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [resetCaptcha, setResetCaptcha] = useState(false); // State to control captcha reset
+  const [resetCaptcha, setResetCaptcha] = useState(false);
   const [formValues, setFormValues] = useState({
     email: '',
     password: '',
   });
-  const [showSheet, setShowSheet] = useState(false); 
-  const [sheetMessage, setSheetMessage] = useState('');
-  const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
-  const router = useRouter();
+
+  const supabase = useMemo(() => createSupabaseClient(supabaseUrl, supabaseAnonKey), [supabaseUrl, supabaseAnonKey]);
+  const isMounted = useRef(true);
+
+  // Cleanup on unmount to prevent state updates on an unmounted component
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Reset the status after a short delay
   useEffect(() => {
@@ -31,8 +48,9 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
   // Handle login submission
   const handleSubmit = async () => {
     if (!captchaToken) {
-      setSheetMessage('Please complete the captcha!');
-      setShowSheet(true);
+      if (onError) {
+        onError('Please complete the captcha!');
+      }
       return;
     }
 
@@ -51,26 +69,26 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
       if (error) {
         // Supabase login failed
         console.error('Supabase login error:', error.message);
-        setSheetMessage(`Login failed: ${error.message}`);
-        setShowSheet(true);
+        if (onError) {
+          onError(`Login failed: ${error.message}`);
+        }
         setCaptchaToken(null);  // Reset captcha token after error
-        // Trigger captcha reset after a short delay to ensure it gets picked up
-        setTimeout(() => setResetCaptcha(true), 100);
+        setTimeout(() => setResetCaptcha(true), 100);  // Trigger captcha reset
       } else {
         // Login was successful
         setStatus('loggedIn');
-        setSheetMessage('Login successful!');
-        setShowSheet(true);
-        router.replace('/profile');  // Redirect after successful login
+        if (onSuccess) {
+          onSuccess();  // Call the success callback if provided
+        }
       }
     } catch (error) {
       // General login error
       console.error('Error during login:', error);
-      setSheetMessage('An error occurred during login.');
-      setShowSheet(true);
+      if (onError) {
+        onError('An error occurred during login.');
+      }
       setCaptchaToken(null);  // Reset captcha token after error
-      // Trigger captcha reset after a short delay
-      setTimeout(() => setResetCaptcha(true), 100);
+      setTimeout(() => setResetCaptcha(true), 100);  // Trigger captcha reset
     }
   };
 
@@ -114,13 +132,11 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
           padding="$2"
         />
 
-
-{!captchaToken && (
-                <Button disabled size="$4" backgroundColor="transparent" icon={AlertTriangle}>
-                  <Text color="red">Captcha needed before logging in</Text>
-                </Button>
-              )}
-        
+        {!captchaToken && (
+          <Button disabled size="$4" backgroundColor="transparent" icon={AlertTriangle}>
+            <Text color="red">Captcha needed before logging in</Text>
+          </Button>
+        )}
 
         {/* hCaptcha Wrapper to handle both web and mobile */}
         <HCaptchaWrapper
@@ -132,8 +148,9 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
           onError={(error) => {
             console.error('Captcha error:', error);  // Handle captcha errors
             setCaptchaToken(null);  // Reset token on error
-            setSheetMessage('Captcha verification failed. Please try again.');
-            setShowSheet(true);
+            if (onError) {
+              onError('Captcha verification failed. Please try again.');
+            }
           }}
           reset={resetCaptcha}  // Pass reset trigger to captcha wrapper
         />
@@ -147,32 +164,6 @@ export function TamaLogin({ siteKey, supabaseUrl, supabaseAnonKey }: { siteKey: 
           </Button>
         </Form.Trigger>
       </Form>
-
-      {/* Feedback Sheet */}
-      <Sheet
-        forceRemoveScrollEnabled={showSheet}
-        modal={true}
-        open={showSheet}
-        onOpenChange={setShowSheet}
-        snapPoints={[80]}
-        dismissOnOverlayPress={true}
-      >
-        <Sheet.Overlay
-          animation="lazy"
-          enterStyle={{ opacity: 0 }}
-          exitStyle={{ opacity: 0 }}
-        />
-        <Sheet.Handle />
-        <Sheet.Frame padding="$4" justifyContent="center" alignItems="center" gap="$5">
-          {captchaToken ? (
-            <CheckCircle color="green" size={40} />
-          ) : (
-            <XCircle color="red" size={40} />
-          )}
-          <Text>{sheetMessage}</Text>
-          <Button onPress={() => setShowSheet(false)}>Close</Button>
-        </Sheet.Frame>
-      </Sheet>
     </YStack>
   );
 }
