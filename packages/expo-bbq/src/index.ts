@@ -10,3 +10,4 @@ export { LottieAnimation } from './components/animation/LottieAnimation';
 export { LottieHero } from './components/animation/LottieHero';
 export { MaskedView } from './components/creative/MaskedView';
 export { useBBQ } from './core/BBQ';
+export { TamaSheet } from './components/panels/TamaSheet';
