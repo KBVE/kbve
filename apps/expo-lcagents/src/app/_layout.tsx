@@ -7,7 +7,7 @@ import { TamaguiProvider } from 'tamagui'
 
 import { Platform } from "react-native";
 
-import { config } from '../../tamagui.config'
+import config  from '../../tamagui.config'
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'
 import { MenuSquare } from '@tamagui/lucide-icons'
