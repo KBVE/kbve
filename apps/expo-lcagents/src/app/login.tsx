@@ -107,7 +107,7 @@ const Login = () => {
 				justifyContent: 'center',
 				paddingVertical: 10,
 			}}>
-			<TamaSkeleton />
+			
 			<View style={{ padding: 10 }}>
 				<YStack f={1} jc="center" ai="center">
 					{/* Lottie Animation */}
