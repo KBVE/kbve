@@ -66,9 +66,9 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
   const handleLoad = () => {
     console.log('hCaptcha API loaded');
     setCaptchaStatus('waiting'); // Reset status to waiting when loaded
-    if (captchaWebRef.current) {
-      captchaWebRef.current.execute(); // Automatically execute the captcha challenge
-    }
+    // if (captchaWebRef.current) {
+    //   captchaWebRef.current.execute(); // Automatically execute the captcha challenge
+    // }
   };
 
   const handleOpen = () => {
