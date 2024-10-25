@@ -22,6 +22,7 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false); // Track mounting status
   const captchaForm = useRef<ConfirmHcaptcha | null>(null); // Ref for mobile captcha
+  const captchaWebRef = useRef(null); // Ref for web captcha
 
   useEffect(() => {
     setIsMounted(true); // Mark the component as mounted
@@ -38,21 +39,50 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
     }
   }, [isMounted]);
 
-  // Only called when we actually receive a token from captcha
-  const onVerify = (captchaToken: string) => {
-    if (isMounted && captchaToken) { // Ensure component is mounted
-      setCaptchaToken(captchaToken); // Store the token
-      setCaptchaStatus('verified'); // Mark as verified
-      onToken(captchaToken); // Pass token back to parent
+  // Web Event Handlers
+  const handleVerify = (token: string) => {
+    if (isMounted) {
+      setCaptchaToken(token);
+      setCaptchaStatus('verified');
+      onToken(token); // Pass the token to the parent component
     }
   };
 
-  // Handles errors for both web and mobile
-  const onErrorHandler = (err: any) => {
-    if (isMounted) { // Only update state if mounted
-      const errorMessage = err.message || 'Error with hCaptcha';
+  const handleError = (err: any) => {
+    if (isMounted) {
       setCaptchaStatus('error');
-      if (onError) onError(errorMessage); // Pass the error back to parent
+      const errorMessage = err.message || 'Error with hCaptcha';
+      if (onError) onError(errorMessage); // Pass the error to the parent component
+    }
+  };
+
+  const handleExpire = () => {
+    if (isMounted) {
+      setCaptchaStatus('error');
+      if (onError) onError('Captcha expired'); // Pass the expiration event to the parent component
+    }
+  };
+
+  const handleLoad = () => {
+    console.log('hCaptcha API loaded');
+    setCaptchaStatus('waiting'); // Reset status to waiting when loaded
+    if (captchaWebRef.current) {
+      captchaWebRef.current.execute(); // Automatically execute the captcha challenge
+    }
+  };
+
+  const handleOpen = () => {
+    console.log('hCaptcha challenge started');
+  };
+
+  const handleClose = () => {
+    console.log('hCaptcha challenge dismissed');
+  };
+
+  const handleChalExpired = () => {
+    if (isMounted) {
+      setCaptchaStatus('error');
+      if (onError) onError('hCaptcha challenge expired'); // Handle challenge expiration
     }
   };
 
@@ -105,8 +135,14 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
         Platform.OS === 'web' ? (
           <HCaptchaWeb
             sitekey={siteKey}
-            onVerify={onVerify} // Only verified when token is returned
-            onError={onErrorHandler} // Handle error for web
+            onVerify={handleVerify} // Handle verification when token is returned
+            onError={handleError} // Handle errors for web
+            onExpire={handleExpire} // Handle token expiration
+            onLoad={handleLoad} // Execute captcha challenge when loaded
+            onOpen={handleOpen} // Handle when the challenge is displayed
+            onClose={handleClose} // Handle when the challenge is closed
+            onChalExpired={handleChalExpired} // Handle when the challenge expires
+            ref={captchaWebRef} // Ref for manually calling hCaptcha functions
           />
         ) : (
           <ConfirmHcaptcha
