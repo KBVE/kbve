@@ -17,7 +17,7 @@ import {
 import { createSupabaseClient } from '../wrapper/Supabase';
 import { HCaptchaWrapper } from '../wrapper/HCaptchaWrapper';
 import { useRouter } from 'expo-router';
-import { Check } from '@tamagui/lucide-icons';
+import { AlertTriangle, Check } from '@tamagui/lucide-icons';
 
 export function TamaRegister({
 	siteKey,
@@ -134,8 +134,7 @@ export function TamaRegister({
 				borderColor="$borderColor"
 				padding="$8"
 				width="90%"
-				maxWidth="800px"
-			>
+				maxWidth="800px">
 				<Input
 					placeholder="Email"
 					value={formValues.email}
@@ -252,16 +251,14 @@ export function TamaRegister({
 
 				<Form.Trigger
 					asChild
-					disabled={
-						status === 'submitting' || !isAgreed || !captchaToken
-					}>
+					// disabled={
+					// 	status === 'submitting' || !isAgreed || !captchaToken
+					// }
+					>
 					<Button
-						icon={
-							status === 'submitting'
-								? () => <Spinner />
-								: undefined
-						}>
-						{status === 'submitting' ? 'Submitting...' : 'Register'}
+						icon={AlertTriangle}>
+						{/* {status === 'submitting' ? 'Submitting...' : 'Register'} */}
+						Register
 					</Button>
 				</Form.Trigger>
 			</Form>
