@@ -33,7 +33,7 @@ RUN \
 COPY /root /
 
 
-COPY --from=build /root/microbot/runelite-client/target/*.jar /usr/local/bin/microbot.jar
+COPY --from=build /root/microbot/runelite-client/target/*.jar /usr/local/bin/runelite.jar
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN curl -sSL https://install.python-poetry.org | python -
