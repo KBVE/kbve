@@ -5,7 +5,7 @@ import React, {
 	useMemo,
 	useCallback,
 } from 'react';
-import { YStack, SizableText, ScrollView, View, Button } from 'tamagui';
+import { YStack, SizableText, ScrollView, View, Button, useMedia} from 'tamagui';
 import {
 	TamaLogin,
 	LottieAnimation,
@@ -18,6 +18,7 @@ import { useNavigation } from 'expo-router';
 const Login = () => {
 	const navigation = useNavigation();
 	const router = useBBQ();
+	const media = useMedia();
 	const sheetRef = useRef<{
 		showSheet: () => void;
 		hideSheet: () => void;
@@ -34,7 +35,7 @@ const Login = () => {
 	// Memoizing navigation update function
 	const updateNavigationOptions = useCallback(() => {
 		navigation.setOptions({
-			title: 'Profile',
+			title: 'Login',
 			headerBackTitle: 'Back',
 		});
 	}, [navigation]);
@@ -107,7 +108,7 @@ const Login = () => {
 				justifyContent: 'center',
 				paddingVertical: 10,
 			}}>
-			<TamaSkeleton />
+			
 			<View style={{ padding: 10 }}>
 				<YStack f={1} jc="center" ai="center">
 					{/* Lottie Animation */}
@@ -123,6 +124,7 @@ const Login = () => {
 						supabaseAnonKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzI0NTM2ODAwLAogICJleHAiOiAxODgyMzAzMjAwCn0._fmEmblm0afeLoPXxt8wP2mYpa9gzU-ufx3v8oRTFGg"
 						onSuccess={handleSuccess}
 						onError={handleError}
+						
 					/>
 				</YStack>
 			</View>
