@@ -34,7 +34,7 @@ const Login = () => {
 	// Memoizing navigation update function
 	const updateNavigationOptions = useCallback(() => {
 		navigation.setOptions({
-			title: 'Profile',
+			title: 'Login',
 			headerBackTitle: 'Back',
 		});
 	}, [navigation]);
