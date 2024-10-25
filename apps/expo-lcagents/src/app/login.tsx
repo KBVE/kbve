@@ -6,7 +6,13 @@ import React, {
 	useCallback,
 } from 'react';
 import { YStack, SizableText, ScrollView, View, Button } from 'tamagui';
-import { TamaLogin, LottieAnimation, TamaSheet, useBBQ, TamaSkeleton } from '@kbve/expo-bbq';
+import {
+	TamaLogin,
+	LottieAnimation,
+	TamaSheet,
+	useBBQ,
+	TamaSkeleton,
+} from '@kbve/expo-bbq';
 import { useNavigation } from 'expo-router';
 
 const Login = () => {
@@ -17,8 +23,8 @@ const Login = () => {
 		hideSheet: () => void;
 	} | null>(null);
 	const [sheetMessage, setSheetMessage] = useState('');
-	const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login state
-	const [hasError, setHasError] = useState(false); // Track error state
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [hasError, setHasError] = useState(false);
 
 	const lottieLoginAnimation = useMemo(
 		() => require('../../assets/json/vr.json'),
@@ -38,8 +44,8 @@ const Login = () => {
 	}, [updateNavigationOptions]);
 
 	const handleSuccess = () => {
-		setIsLoggedIn(true); 
-		setHasError(false); 
+		setIsLoggedIn(true);
+		setHasError(false);
 		if (sheetRef.current) {
 			setSheetMessage('Login successful! ...');
 			sheetRef.current.showSheet();
@@ -49,10 +55,10 @@ const Login = () => {
 	const MemoizedLottieAnimation = React.memo(LottieAnimation);
 
 	const handleError = (error: string) => {
-		setIsLoggedIn(false); 
+		setIsLoggedIn(false);
 		setHasError(true);
 		if (sheetRef.current) {
-			setSheetMessage(error); 
+			setSheetMessage(error);
 			sheetRef.current.showSheet();
 		}
 	};
@@ -62,40 +68,32 @@ const Login = () => {
 			<YStack ai="center" jc="center" paddingVertical={10}>
 				<SizableText>{sheetMessage}</SizableText>
 				{isLoggedIn && !hasError && (
-					<YStack
-					f={1}
-					jc="center"
-					ai="center"
-					padding="$1"
-					gap>
-					<Button
-						onPress={() => {
-							if (sheetRef.current) {
-								sheetRef.current.hideSheet();
-							}
-							router.go('/profile');
-						}}
-						color="green"
-						size="$4"
-						marginTop={10}
-					>
-						Go to Profile
-					</Button>
+					<YStack f={1} jc="center" ai="center" padding="$1" gap>
+						<Button
+							onPress={() => {
+								if (sheetRef.current) {
+									sheetRef.current.hideSheet();
+								}
+								router.go('/profile');
+							}}
+							color="green"
+							size="$4"
+							marginTop={10}>
+							Go to Profile
+						</Button>
 
-					<Button
-						onPress={() => {
-							if (sheetRef.current) {
-								sheetRef.current.hideSheet();
-							}
-							router.go('/dashboard');
-						}}
-						color="green"
-						size="$4"
-						marginTop={10}
-					>
-						Go to Dashboard
-					</Button>
-
+						<Button
+							onPress={() => {
+								if (sheetRef.current) {
+									sheetRef.current.hideSheet();
+								}
+								router.go('/dashboard');
+							}}
+							color="green"
+							size="$4"
+							marginTop={10}>
+							Go to Dashboard
+						</Button>
 					</YStack>
 				)}
 			</YStack>

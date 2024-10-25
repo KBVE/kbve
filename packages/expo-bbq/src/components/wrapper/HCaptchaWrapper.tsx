@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { YStack, Button, Text } from 'tamagui';
 import { CheckCircle, XCircle } from '@tamagui/lucide-icons';
@@ -20,11 +20,27 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
 }) => {
   const [captchaStatus, setCaptchaStatus] = useState<'waiting' | 'verified' | 'error' | 'loading'>('waiting');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false); // Track mounting status
   const captchaForm = useRef<ConfirmHcaptcha | null>(null); // Ref for mobile captcha
+
+  useEffect(() => {
+    setIsMounted(true); // Mark the component as mounted
+    return () => {
+      setIsMounted(false); // Clean up on unmount
+    };
+  }, []);
+
+  // Memoize the resetCaptcha function with useCallback
+  const resetCaptcha = useCallback(() => {
+    if (isMounted) { // Ensure component is mounted before resetting
+      setCaptchaStatus('waiting');
+      setCaptchaToken(null);
+    }
+  }, [isMounted]);
 
   // Only called when we actually receive a token from captcha
   const onVerify = (captchaToken: string) => {
-    if (captchaToken) {
+    if (isMounted && captchaToken) { // Ensure component is mounted
       setCaptchaToken(captchaToken); // Store the token
       setCaptchaStatus('verified'); // Mark as verified
       onToken(captchaToken); // Pass token back to parent
@@ -33,13 +49,17 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
 
   // Handles errors for both web and mobile
   const onErrorHandler = (err: any) => {
-    const errorMessage = err.message || 'Error with hCaptcha';
-    setCaptchaStatus('error');
-    if (onError) onError(errorMessage); // Pass the error back to parent
+    if (isMounted) { // Only update state if mounted
+      const errorMessage = err.message || 'Error with hCaptcha';
+      setCaptchaStatus('error');
+      if (onError) onError(errorMessage); // Pass the error back to parent
+    }
   };
 
   // Handles mobile captcha events through onMessage
   const onMessage = (event: any) => {
+    if (!isMounted) return; // Only handle messages if component is mounted
+
     const eventData = event?.nativeEvent?.data;
 
     if (eventData === 'open') {
@@ -59,19 +79,17 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
   };
 
   const openCaptcha = () => {
-    setCaptchaStatus('loading'); // Loading state while opening
-    captchaForm.current?.show(); // Show mobile captcha manually using ref
+    if (isMounted) { // Only open captcha if component is mounted
+      setCaptchaStatus('loading'); // Loading state while opening
+      captchaForm.current?.show(); // Show mobile captcha manually using ref
+    }
   };
 
   const handleRetryCaptcha = () => {
-    setCaptchaStatus('waiting');
-    captchaForm.current?.reset(); // Reset and retry on mobile
-  };
-
-  // Function to reset the captcha status back to 'waiting'
-  const resetCaptcha = () => {
-    setCaptchaStatus('waiting');
-    setCaptchaToken(null);
+    if (isMounted) { // Only retry captcha if mounted
+      setCaptchaStatus('waiting');
+      captchaForm.current?.reset(); // Reset and retry on mobile
+    }
   };
 
   // Use useEffect to reset when the reset prop changes
@@ -79,7 +97,7 @@ export const HCaptchaWrapper: React.FC<HCaptchaWrapperProps> = ({
     if (reset) {
       resetCaptcha(); // Trigger reset when the reset prop changes
     }
-  }, [reset]);
+  }, [reset, resetCaptcha]);
 
   return (
     <YStack alignItems="center" justifyContent="center" padding="$4">

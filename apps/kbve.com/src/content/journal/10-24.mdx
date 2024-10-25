@@ -47,6 +47,8 @@ Next we can customize the BBQ router, at least in the future, to have a skeleton
 Damn it seems that the issue still has not been resolved, maybe we could go back to the board and start removing the redirects that we have on all the applications.
 Manually moving from one scene to another would be the only way we can move forward at this point because I still do not understand why we having issues with the redirect.
 
+Ugh okay, I am just going to remove the redirecting because its too much of a pain and we will just present the user with some buttons that will give them the option to go to where they want to go.
+
 **BBQ**
 
 Updated the BBQ component with the base skeleton and added a couple other mount checks.
@@ -57,3 +59,8 @@ This should work but I am still on the fenece.
 
 I am still having some weird issues with the media query but I will have to reference back to the notes and get a better understanding of them.
 There are a couple more things that I want to focus on but we can get there through test casing.
+
+**Captcha**
+
+Maybe the reason we are having that minified bug and react 301 error from the way we are handling the state of the captcha.
+The plan is to track back and see if there are any issues with how we are handling the state management within this component.
