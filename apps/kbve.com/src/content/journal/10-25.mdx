@@ -40,3 +40,52 @@ import { Adsense, Tasks } from '@kbve/astropad';
     **RSPS**
     
     Time to take a quick break from the react world and see if we can get this RSPS operational again.
+
+= 3:01PM
+
+    **DockerFile**
+    Yesterday night we were looking at the dockerfile for atlas and it might be time to make the adjustments on launching it.
+    There are a couple areas that still need improvements but I am confident that we will have something that will be production ready before the end of the year.
+    Taking a look at the dockerfile for the `kilobase`
+
+    ```json
+    "container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/atlas",
+				"file": "apps/atlas/Dockerfile",
+				"metadata": {
+					"images": ["kbve/atlas"],
+					"load": true,
+					"tags": ["1.42", "1.42.0"]
+				},
+				"configurations": {
+					"local": {
+						"tags": ["1.42", "1.42.0"],
+						"push": false
+					},
+					"production": {
+						"tags": ["1.42", "1.42.0"],
+						"push": true,
+						"customBuildOptions": "--push",
+						"cache-from": [
+							"type=registry,ref=kbve/atlas:buildcache"
+						],
+						"cache-to": [
+							"type=registry,ref=kbve/atlas:buildcache,mode=max"
+						]
+					}
+				}
+			}
+		}
+    ```
+
+    We can hot swap some of the commands and integrate them into our atlas repo.
+    Changed up the variables and we should now have a simple build command for our atlas image.
+    
+- 4:20PM
+    **Microbot**
+    Almost ready to launch the RSPS, just need to make some more changes to the structure of the script.
+    We want it to launch right when the container is ready to run, yet there are a couple things that we want to adjust before we do that.
