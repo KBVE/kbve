@@ -6,7 +6,7 @@ export class BBQ {
 	private static instance: BBQ;
 	private router: Router | null = null;
 	private isMounted = false;
-	private isLoading = false; // Add loading state
+	private isLoading = false;
 
 	private constructor() {
 		// Singleton constructor
