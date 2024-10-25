@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Link, SplashScreen, Stack, usePathname } from 'expo-router'
 import { Pressable, useColorScheme } from 'react-native'
 import { TamaguiProvider } from 'tamagui'
+import { PortalProvider } from 'tamagui';
 
 
 
@@ -13,7 +14,6 @@ import { useEffect } from 'react'
 import { MenuSquare } from '@tamagui/lucide-icons'
 
 import { NavBar } from './_nav'
-
 export {
   ErrorBoundary,
 } from 'expo-router'
@@ -52,7 +52,9 @@ function RootLayoutNav() {
 
   return (
     <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
+      <PortalProvider shouldAddRootHost>
       <ThemeProvider value={DarkTheme}>
+      
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'slide_from_bottom' }} />
           <Stack.Screen name="menu" options={{ presentation: 'modal', animation: 'fade' }} />
@@ -62,7 +64,9 @@ function RootLayoutNav() {
           <Stack.Screen name="profile" options={{  animation: 'fade' }} />
 
         </Stack>
+       
       </ThemeProvider>
+      </PortalProvider>
     </TamaguiProvider>
   );
 }

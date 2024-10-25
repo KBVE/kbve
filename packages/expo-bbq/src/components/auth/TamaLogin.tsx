@@ -157,10 +157,13 @@ export function TamaLogin({
       
         <Form.Trigger
           asChild
-          disabled={status === 'loggingIn' || !captchaToken}  // Disable button if logging in or no captcha token
+         // disabled={status === 'loggingIn' || !captchaToken}  // Disable button if logging in or no captcha token
         >
-          <Button icon={status === 'loggingIn' ? () => <Spinner /> : undefined}>
+          {/* <Button icon={status === 'loggingIn' ? () => <Spinner /> : undefined}>
             {status === 'loggingIn' ? 'Logging in...' : 'Login'}
+          </Button> */}
+          <Button icon={AlertTriangle}>
+            Login
           </Button>
         </Form.Trigger>
       </Form>
