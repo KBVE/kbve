@@ -7,8 +7,7 @@
 	"targets": {
 		"build": {
 			"executor": "@nxtensions/astro:build",
-			"options": {
-			  }
+			"options": {}
 		},
 		"dev": {
 			"executor": "@nxtensions/astro:dev",
@@ -44,12 +43,10 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-
 					{
 						"command": "chmod +x tools/scripts/public/music.sh",
 						"forwardAllArgs": false
 					},
-
 					{
 						"command": "./tools/scripts/public/music.sh",
 						"forwardAllArgs": true

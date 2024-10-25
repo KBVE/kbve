@@ -1,10 +1,10 @@
 ---
 name: Media Center
 about: Create or request a Media object, image, video for any of our KBVE services.
-title: ''
+title: '[Media] :'
 labels: ["0", "media"]
 projects: ["kbve/5"]
-assignees: ''
+assignees: 'h0lybyte'
 
 ---
 

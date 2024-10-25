@@ -1,20 +1,20 @@
 {
-  "name": "expo-hqplan",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "main": "expo-router/entry",
-  "sourceRoot": "apps/expo-hqplan/src",
-  "projectType": "application",
-  "tags": [],
-  "targets": {
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-      "options": {
-        "jestConfig": "apps/expo-hqplan/jest.config.ts"
-      }
-    },
-    "export": {
-      "executor": "@nx/expo:export",
+	"name": "expo-hqplan",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"main": "expo-router/entry",
+	"sourceRoot": "apps/expo-hqplan/src",
+	"projectType": "application",
+	"tags": [],
+	"targets": {
+		"test": {
+			"executor": "@nx/jest:jest",
+			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+			"options": {
+				"jestConfig": "apps/expo-hqplan/jest.config.ts"
+			}
+		},
+		"export": {
+			"executor": "@nx/expo:export",
 			"outputs": ["{options.outputDir}"],
 			"options": {
 				"platform": "web",
@@ -23,6 +23,6 @@
 				"clear": true
 			},
 			"dependsOn": ["sync-deps"]
-    }
-  }
+		}
+	}
 }

@@ -3,10 +3,10 @@
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "packages/astropad",
 	"projectType": "library",
+	"tags": [],
 	"targets": {
 		"check": {
 			"executor": "@nxtensions/astro:check"
 		}
-	},
-	"tags": []
+	}
 }
