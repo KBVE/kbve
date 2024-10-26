@@ -12,10 +12,10 @@ public class KBVECommand {
     private String packageName;
     private String className;
     private String method;
-    private String[] args;
+    private Object[] args;
     private int priority;
 
-    public KBVECommand(String command, String packageName, String className, String method, String[] args, int priority) {
+    public KBVECommand(String command, String packageName, String className, String method, Object[] args, int priority) {
         this.command = command;
         this.packageName = packageName;
         this.className = className;
