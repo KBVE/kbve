@@ -74,7 +74,14 @@ class BroadcastUtility:
         except Exception as e:
             logger.error(f"Error during WebSocket connection: {e}")
         finally:
-            await websocket.close()
+            # Try to close the WebSocket only if it's still open
+            try:
+                if not websocket.application_state == WebSocket.DISCONNECTED:
+                    await websocket.close()
+            except RuntimeError as re:
+                logger.warning(f"WebSocket close error: {re}")
+            except Exception as e:
+                logger.error(f"Unexpected error while closing WebSocket: {e}")
 
     async def send_messages(self, websocket: WebSocket, channel: str):
         try:
