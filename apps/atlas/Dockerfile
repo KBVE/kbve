@@ -8,6 +8,12 @@ RUN mkdir -p /root/microbot/runelite-client/src/main/java/net/runelite/client/pl
 
 COPY ./plugin /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
 
+COPY add_dependency.sh /root/add_dependency.sh
+
+RUN chmod +x /root/add_dependency.sh
+
+RUN /root/add_dependency.sh
+
 WORKDIR /root/microbot
 
 RUN mvn clean package
