@@ -4,7 +4,12 @@ RUN apt-get update && apt-get install -y git maven
 
 RUN git clone https://github.com/chsami/microbot.git /root/microbot
 
+RUN mkdir -p /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
+
+COPY ./plugin /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
+
 WORKDIR /root/microbot
+
 RUN mvn clean package
 
 FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
