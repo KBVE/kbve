@@ -39,40 +39,40 @@ CORSUtil(app)
 
 #app.mount("/novnc", StaticFiles(directory="/app/templates/novnc", html=True), name="novnc")
 
+# @app.websocket("/")
+# async def websocket_endpoint(websocket: WebSocket):
+#     client = NoVNCClient(logger)
+#     await client.ws_vnc_proxy(websocket, target_host="localhost", target_port=5900)
+
+
+# @app.websocket("/websockify")
+# async def websocket_proxy(websocket: WebSocket):
+#     await websocket.accept()
+#     try:
+#         async with websockets.connect("ws://localhost:6080") as upstream:
+#             while True:
+#                 recv_task = asyncio.create_task(websocket.receive_text())
+#                 send_task = asyncio.create_task(upstream.recv())
+#                 done, pending = await asyncio.wait(
+#                     [recv_task, send_task],
+#                     return_when=asyncio.FIRST_COMPLETED,
+#                 )
+
+#                 if recv_task in done:
+#                     message = recv_task.result()
+#                     await upstream.send(message)
+#                 elif send_task in done:
+#                     message = send_task.result()
+#                     await websocket.send_text(message)
+
+#                 for task in pending:
+#                     task.cancel()
+
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         await websocket.close()
+
 @app.websocket("/")
-async def websocket_endpoint(websocket: WebSocket):
-    client = NoVNCClient(logger)
-    await client.ws_vnc_proxy(websocket, target_host="localhost", target_port=5900)
-
-
-@app.websocket("/websockify")
-async def websocket_proxy(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        async with websockets.connect("ws://localhost:6080") as upstream:
-            while True:
-                recv_task = asyncio.create_task(websocket.receive_text())
-                send_task = asyncio.create_task(upstream.recv())
-                done, pending = await asyncio.wait(
-                    [recv_task, send_task],
-                    return_when=asyncio.FIRST_COMPLETED,
-                )
-
-                if recv_task in done:
-                    message = recv_task.result()
-                    await upstream.send(message)
-                elif send_task in done:
-                    message = send_task.result()
-                    await websocket.send_text(message)
-
-                for task in pending:
-                    task.cancel()
-
-    except Exception as e:
-        print(f"Error: {e}")
-        await websocket.close()
-
-@app.websocket("/handshake")
 async def websocket_handshake(websocket: WebSocket):
     await websocket.accept()
     try:

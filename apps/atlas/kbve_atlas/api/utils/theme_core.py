@@ -21,7 +21,7 @@ class ThemeCore:
                 <ul id='messages'>
                 </ul>
                 <script>
-                    var ws = new WebSocket("ws://localhost:8086/");
+                    var ws = new WebSocket("ws://localhost:8086");
                     ws.onmessage = function(event) {
                         var messages = document.getElementById('messages')
                         var message = document.createElement('li')

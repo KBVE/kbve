@@ -65,7 +65,7 @@ public interface KBVEConfig extends Config {
         section = apiSection
     )
     default String apiEndpoint() {
-        return "ws://localhost:8086/handshake";
+        return "ws://localhost:8086";
     }
 
 
