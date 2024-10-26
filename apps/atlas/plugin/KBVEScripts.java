@@ -92,7 +92,7 @@ public class KBVEScripts extends Script {
                 // Check WebSocket connection
                 if (webSocketClient == null || !webSocketClient.isOpen()) {
                     Microbot.log("[KBVE]: WebSocket not connected.");
-                    shutdown();
+                    //shutdown(); (Add a temp counter, if its down for more than 60 counts, then turn it off)
                     return;
                 }
 
@@ -189,16 +189,22 @@ public class KBVEScripts extends Script {
                     return; // Ignore the message if it's not from the "default" channel
                 }
 
-                // Step 3: Parse the "content" field as a KBVECommand
-                JsonElement content = jsonObject.get("content");
-                if (content == null || !content.isJsonObject()) {
-                    Microbot.log("[KBVE]: Invalid content format");
-                    sendMessageToWebSocket("Invalid content format.");
-                    state = KBVEStateMachine.IDLE;
-                    return;
+                    
+                // Step 3: Attempt to parse the "content" field as a KBVECommand
+                if (jsonObject.has("content")) {
+                    JsonElement content = jsonObject.get("content");
+                    if (content == null || !content.isJsonObject()) {
+                        Microbot.log("[KBVE]: Content field is not a valid JSON object.");
+                        sendMessageToWebSocket("Content field is not a valid JSON object.");
+                        state = KBVEStateMachine.IDLE;
+                        return;
+                    }
+                    // Deserialize the "content" field into a KBVECommand
+                    command = gson.fromJson(content, KBVECommand.class);
+                } else {
+                    // If there is no "content" field, try to parse the whole message as a KBVECommand
+                    command = gson.fromJson(message, KBVECommand.class);
                 }
-
-                command = gson.fromJson(content, KBVECommand.class);
 
                 // Step 4: Acknowledge the command and set the state to API
                 state = KBVEStateMachine.API;
