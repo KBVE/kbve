@@ -29,7 +29,11 @@ RUN \
     apt-get autoclean && \
     rm -rf /config/.cache /var/lib/apt/lists/* /var/tmp/* /tmp/*
 
-COPY --from=build /root/microbot/target/*.jar /usr/local/bin/microbot.jar
+
+COPY /root /
+
+
+COPY --from=build /root/microbot/runelite-client/target/*.jar /usr/local/bin/runelite.jar
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN curl -sSL https://install.python-poetry.org | python -
@@ -45,7 +49,14 @@ ENV PATH="$HOME/.venv/bin:$PATH"
 
 ENV TITLE="kbveATLASv1.42"
 EXPOSE 3000 8086
+
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 VOLUME /config
+
+## Wrapper Chrome removed -> chown -R abc:abc /usr/bin/wrapped-chromium && \
+##    chmod +x /usr/bin/wrapped-chromium
 
 RUN \
     chown -R abc:abc /config && \
@@ -57,5 +68,3 @@ RUN \
     chmod +x /usr/bin/wrapped-chromium
 
 RUN echo "root:password@" | chpasswd
-
-CMD ["java", "-jar", "/usr/local/bin/microbot.jar"]
