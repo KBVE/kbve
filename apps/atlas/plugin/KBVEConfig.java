@@ -58,14 +58,14 @@ public interface KBVEConfig extends Config {
 
      // API Settings
     @ConfigItem(
-        name = "API Endpoint",
+        name = "API WS Endpoint",
         keyName = "apiEndpoint",
         position = 0,
-        description = "Specify the API endpoint for the plugin",
+        description = "Specify the API WS endpoint for the plugin",
         section = apiSection
     )
     default String apiEndpoint() {
-        return "https://api.example.com";
+        return "ws://localhost:8086";
     }
 
 

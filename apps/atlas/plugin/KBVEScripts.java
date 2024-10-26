@@ -64,11 +64,12 @@ public class KBVEScripts extends Script {
         init = true;
 
         // [WebSocket] Setup
-        connectWebSocket();
+        connectWebSocket(config);
 
         // [Schedule]
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
+                state = KBVEStateMachine.IDLE;
                 if (!Microbot.isLoggedIn()) return;
                 if (!super.run()) return;
                 if (Rs2AntibanSettings.actionCooldownActive) return;
@@ -84,12 +85,15 @@ public class KBVEScripts extends Script {
 
                 switch (state) {
                     case IDLE:
+                        Microbot.log("[KBVE]: Idle Set");
                         // [IDLE] - Do nothing
                         break;
                     case TASK:
+                        Microbot.log("[KBVE]: Task Set");
                         // [TASK] - Perform some task
                         break;
                     case API:
+                        Microbot.log("[KBVE]: Api Set");
                         // [API] - Send or receive data through the WebSocket
                         sendMessageToWebSocket("Performing API task");
                         break;
@@ -105,9 +109,9 @@ public class KBVEScripts extends Script {
         
     }
     
-    private void connectWebSocket() {
+    private void connectWebSocket(KBVEConfig config) {
         try {
-            URI serverUri = new URI("ws://localhost:8086/handshake");
+            URI serverUri = new URI(config.apiEndpoint());
             webSocketClient = new WebSocketClient(serverUri) {
                 @Override
                 public void onOpen(ServerHandshake handshakedata) {
