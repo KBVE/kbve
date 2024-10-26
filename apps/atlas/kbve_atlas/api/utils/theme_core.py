@@ -1,6 +1,4 @@
 from fastapi.responses import HTMLResponse
-from starlette.templating import Jinja2Templates
-
 
 class ThemeCore:
 
@@ -22,18 +20,51 @@ class ThemeCore:
                 </ul>
                 <script>
                     var ws = new WebSocket("ws://localhost:8086");
-                    ws.onmessage = function(event) {
-                        var messages = document.getElementById('messages')
-                        var message = document.createElement('li')
-                        var content = document.createTextNode(event.data)
-                        message.appendChild(content)
-                        messages.appendChild(message)
+
+                    // Log WebSocket connection status
+                    ws.onopen = function() {
+                        console.log("WebSocket connection established.");
                     };
+
+                    ws.onclose = function() {
+                        console.log("WebSocket connection closed.");
+                    };
+
+                    ws.onerror = function(error) {
+                        console.log("WebSocket error:", error);
+                    };
+
+                    ws.onmessage = function(event) {
+                        console.log("Received message:", event.data); // Debugging log
+                        var messages = document.getElementById('messages');
+                        var message = document.createElement('li');
+
+                        try {
+                            // Parse JSON message if possible
+                            var data = JSON.parse(event.data);
+                            var content = document.createTextNode(data.content || event.data);
+                        } catch (e) {
+                            // If not JSON, display raw data
+                            var content = document.createTextNode(event.data);
+                        }
+
+                        message.appendChild(content);
+                        messages.appendChild(message);
+                    };
+
                     function sendMessage(event) {
-                        var input = document.getElementById("messageText")
-                        ws.send(input.value)
-                        input.value = ''
-                        event.preventDefault()
+                        if (ws.readyState === WebSocket.OPEN) {
+                            var input = document.getElementById("messageText");
+                            var message = {
+                                channel: "default",
+                                content: input.value
+                            };
+                            ws.send(JSON.stringify(message));
+                            input.value = ''; // Clear input field
+                        } else {
+                            console.error("WebSocket is not open. Cannot send message.");
+                        }
+                        event.preventDefault();
                     }
                 </script>
             </body>
