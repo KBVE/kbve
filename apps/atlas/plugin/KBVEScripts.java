@@ -45,6 +45,7 @@ enum KBVEStateMachine {
     IDLE,
     TASK,
     API,
+    KILL,
 }
 
 
@@ -104,6 +105,9 @@ public class KBVEScripts extends Script {
                         Microbot.log("[KBVE]: API state");
                         sendMessageToWebSocket("Performing API task");
                         break;
+                    case KILL:
+                        Microbot.log("[KBVE]: Stopping...");
+                        shutdown();
                     default:
                         Microbot.log("[KBVE]: Unknown state");
                         break;
@@ -173,6 +177,8 @@ public class KBVEScripts extends Script {
                 state = KBVEStateMachine.TASK;
             } else if (message.contains("API")) {
                 state = KBVEStateMachine.API;
+            } else if (message.contains("!KILL")) {
+                state = KBVEStateMachine.KILL;
             } else {
                 state = KBVEStateMachine.IDLE;
             }

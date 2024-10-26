@@ -29,7 +29,7 @@ import java.awt.*;
     name = "KBVE Atlas",
     description = "Atlas AiO Plugin",
     tags = {"kbve", "python"},
-    enabledByDefault = false
+    enabledByDefault = true
 )
 
 @Slf4j
