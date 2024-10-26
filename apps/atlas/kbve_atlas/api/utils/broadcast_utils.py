@@ -2,6 +2,9 @@ from broadcaster import Broadcast
 from fastapi import WebSocket
 import anyio
 
+from ...models.command import CommandModel
+
+
 # TODO : broadcast = ENV_REDIS_FILE For k8s/swarm.
 import logging
 
@@ -59,3 +62,10 @@ class BroadcastUtility:
 
             task_group.start_soon(receiver)
             task_group.start_soon(sender)
+
+    async def send_command_model(self, websocket: WebSocket, command_data: CommandModel):
+        """
+        Sends a CommandModel object via WebSocket.
+        """
+        # Convert the Pydantic model to JSON and send it through the WebSocket
+        await websocket.send_text(command_data.json())

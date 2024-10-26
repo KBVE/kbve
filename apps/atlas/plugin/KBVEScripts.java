@@ -64,7 +64,7 @@ public class KBVEScripts extends Script {
         init = true;
 
         // [WebSocket] Setup
-        connectWebSocket();
+        connectWebSocket(config);
 
         // [Schedule]
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
@@ -105,9 +105,9 @@ public class KBVEScripts extends Script {
         
     }
     
-    private void connectWebSocket() {
+    private void connectWebSocket(KBVEConfig config) {
         try {
-            URI serverUri = new URI("ws://localhost:8086/handshake");
+            URI serverUri = new URI(config.apiEndpoint());
             webSocketClient = new WebSocketClient(serverUri) {
                 @Override
                 public void onOpen(ServerHandshake handshakedata) {
