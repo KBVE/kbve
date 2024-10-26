@@ -24,6 +24,7 @@ import net.runelite.client.plugins.microbot.util.mouse.VirtualMouse;
 import javax.inject.Inject;
 import java.awt.*;
 
+
 @PluginDescriptor(
     name = "KBVE Atlas",
     description = "Atlas AiO Plugin",

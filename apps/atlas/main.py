@@ -72,6 +72,33 @@ async def websocket_proxy(websocket: WebSocket):
         print(f"Error: {e}")
         await websocket.close()
 
+@app.websocket("/handshake")
+async def websocket_handshake(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        # Wait for the client to send the initial handshake message
+        client_message = await websocket.receive_text()
+        logger.info(f"Received handshake message from client: {client_message}")
+        
+        # Send a response back to confirm the connection
+        await websocket.send_text("Handshake successful! Connected to the server.")
+        logger.info("Sent handshake confirmation to client.")
+        
+        # Continue to listen for more messages if needed
+        while True:
+            try:
+                data = await websocket.receive_text()
+                logger.info(f"Received message from client: {data}")
+                # Echo the message back
+                await websocket.send_text(f"Echo: {data}")
+            except WebSocketDisconnect:
+                logger.info("Client disconnected.")
+                break
+
+    except Exception as e:
+        logger.error(f"Error during WebSocket connection: {e}")
+        await websocket.close()
+
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
