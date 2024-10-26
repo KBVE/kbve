@@ -16,17 +16,22 @@ class RuneLiteClient:
     async def start_runelite_async(self):
         env = os.environ.copy()
         env["DISPLAY"] = self.display
+
+        # Schedule the subprocess to run in the background without waiting for it
+        asyncio.create_task(self._run_subprocess_in_background(env))
+
+        # Return immediately
+        return "RuneLite is starting in the background."
+
+    async def _run_subprocess_in_background(self, env):
         try:
-            # Since subprocess.run is not async, use asyncio to run it in a thread pool
+            # Run the subprocess in a thread pool without blocking the main coroutine
             await asyncio.to_thread(
                 subprocess.run, ["java", "-jar", self.jar_path], env=env
             )
             logger.info("RuneLite started successfully.")
-            return "RuneLite started successfully."
         except Exception as e:
             logger.error(f"Failed to start RuneLite: {e}")
-            return f"Failed to start RuneLite: {e}"
-
 
     async def stop_runelite_async(self):
         try:

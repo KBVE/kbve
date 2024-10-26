@@ -45,20 +45,20 @@ enum KBVEStateMachine {
     IDLE,
     TASK,
     API,
+    KILL,
 }
+
 
 public class KBVEScripts extends Script {
 
-
     private KBVEStateMachine state;
     private boolean init;
-    private WebSocketClient webSocketClient;
+    private KBVEWebSocketClient webSocketClient;
     private CountDownLatch latch = new CountDownLatch(1);
-
 
     public boolean run(KBVEConfig config) {
 
-           // [Microbot]
+        // [Microbot]
         Microbot.enableAutoRunOn = false;
         Rs2Antiban.resetAntibanSettings();
         init = true;
@@ -69,79 +69,62 @@ public class KBVEScripts extends Script {
         // [Schedule]
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
-                state = KBVEStateMachine.IDLE;
-                if (!Microbot.isLoggedIn()) return;
+                //if (!Microbot.isLoggedIn()) return;
                 if (!super.run()) return;
-                if (Rs2AntibanSettings.actionCooldownActive) return;
+                //if (Rs2AntibanSettings.actionCooldownActive) return;
 
                 if (init) {
-                    if (initialPlayerLocation == null) {
+                    if (Microbot.isLoggedIn() && initialPlayerLocation == null) {
                         initialPlayerLocation = Rs2Player.getWorldLocation();
+                        init = false;
                     }
-                    init = false;
+                    else {
+                        Microbot.log("[KBVE]: FUTURE -> Not Logged In!");
+                    }
+                    
                 }
 
-                if (Rs2Player.isMoving() || Rs2Player.isAnimating() || Microbot.pauseAllScripts) return;
+                //if (Rs2Player.isMoving() || Rs2Player.isAnimating() || Microbot.pauseAllScripts) return;
 
+                // Check WebSocket connection
+                if (webSocketClient == null || !webSocketClient.isOpen()) {
+                    Microbot.log("[KBVE]: WebSocket not connected.");
+                    return;
+                }
+
+                // Handle the state
                 switch (state) {
                     case IDLE:
-                        Microbot.log("[KBVE]: Idle Set");
-                        // [IDLE] - Do nothing
+                        Microbot.log("[KBVE]: Idle state");
                         break;
                     case TASK:
-                        Microbot.log("[KBVE]: Task Set");
-                        // [TASK] - Perform some task
+                        Microbot.log("[KBVE]: Task state");
+                        performTask();
                         break;
                     case API:
-                        Microbot.log("[KBVE]: Api Set");
-                        // [API] - Send or receive data through the WebSocket
+                        Microbot.log("[KBVE]: API state");
                         sendMessageToWebSocket("Performing API task");
                         break;
+                    case KILL:
+                        Microbot.log("[KBVE]: Stopping...");
+                        shutdown();
                     default:
-                         Microbot.log("[KBVE]: No State Set");
-                         break;
+                        Microbot.log("[KBVE]: Unknown state");
+                        break;
                 }
             } catch (Exception ex) {
-                Microbot.log(ex.getMessage());
+                Microbot.log("[KBVE] Future Try Error: " + ex.getMessage());
             }
         }, 0, 1000, TimeUnit.MILLISECONDS);
         return true;
-        
     }
-    
+
     private void connectWebSocket(KBVEConfig config) {
         try {
             URI serverUri = new URI(config.apiEndpoint());
-            webSocketClient = new WebSocketClient(serverUri) {
-                @Override
-                public void onOpen(ServerHandshake handshakedata) {
-                    Microbot.log("WebSocket connection opened");
-                    // Send handshake message to the server
-                    webSocketClient.send("Hello, server! This is the handshake message.");
-                }
-
-                @Override
-                public void onMessage(String message) {
-                    Microbot.log("Received message: " + message);
-                    // If the server confirms the handshake, count down the latch
-                    if (message.contains("Handshake successful")) {
-                        Microbot.log("Handshake confirmed with the server.");
-                        latch.countDown(); // Signal that the handshake is complete
-                    }
-                    // Handle other incoming WebSocket messages here
-                }
-
-                @Override
-                public void onClose(int code, String reason, boolean remote) {
-                    Microbot.log("WebSocket connection closed: " + reason);
-                }
-
-                @Override
-                public void onError(Exception ex) {
-                    Microbot.log("WebSocket error: " + ex.getMessage());
-                }
-            };
+            webSocketClient = new KBVEWebSocketClient(serverUri);
             webSocketClient.connect();
+            webSocketClient.waitForConnection(); // Wait for the connection to be established
         } catch (Exception e) {
             Microbot.log("Error connecting to WebSocket: " + e.getMessage());
         }
@@ -150,17 +133,69 @@ public class KBVEScripts extends Script {
     private void sendMessageToWebSocket(String message) {
         if (webSocketClient != null && webSocketClient.isOpen()) {
             webSocketClient.send(message);
+            state = KBVEStateMachine.IDLE;
         } else {
-            Microbot.log("WebSocket is not connected. Cannot send message.");
+            Microbot.log("[KBVE]: WebSocket is not connected. Cannot send message.");
         }
     }
 
+    private void performTask() {
+        // Placeholder for performing some task
+        Microbot.log("[KBVE]: Performing task...");
+        state = KBVEStateMachine.IDLE;
+    }
+
     @Override
-    public void shutdown(){
+    public void shutdown() {
         super.shutdown();
         if (webSocketClient != null) {
             webSocketClient.close();
         }
         Rs2Antiban.resetAntibanSettings();
+    }
+
+    // WebSocket Client class to handle connection and messaging
+    private class KBVEWebSocketClient extends WebSocketClient {
+
+        public KBVEWebSocketClient(URI serverUri) {
+            super(serverUri);
+        }
+
+        @Override
+        public void onOpen(ServerHandshake handshakedata) {
+            Microbot.log("[KBVE]: WebSocket connection opened.");
+            send("{\"channel\":\"default\",\"content\":\"Hello, server! This is the handshake message.\"}");
+            latch.countDown(); // Signal that the connection is established
+        }
+
+        @Override
+        public void onMessage(String message) {
+            Microbot.log("[KBVE]: Received message: " + message);
+
+            // Handle incoming messages, potentially changing the state or triggering tasks
+            if (message.contains("Perform task")) {
+                state = KBVEStateMachine.TASK;
+            } else if (message.contains("API")) {
+                state = KBVEStateMachine.API;
+            } else if (message.contains("!KILL")) {
+                state = KBVEStateMachine.KILL;
+            } else {
+                state = KBVEStateMachine.IDLE;
+            }
+        }
+
+        @Override
+        public void onClose(int code, String reason, boolean remote) {
+            Microbot.log("[KBVE]: WebSocket connection closed: " + reason);
+        }
+
+        @Override
+        public void onError(Exception ex) {
+            Microbot.log("[KBVE]: WebSocket error: " + ex.getMessage());
+        }
+
+        public void waitForConnection() throws InterruptedException {
+            latch.await(); // Wait until the connection is established
+        }
     }
 }

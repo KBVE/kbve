@@ -1,6 +1,6 @@
 import json
 from fastapi import WebSocket, WebSocketException
-from starlette.websockets import WebSocketDisconnect
+from starlette.websockets import WebSocketDisconnect, WebSocketState
 import logging
 import anyio
 from broadcaster import Broadcast
@@ -55,9 +55,6 @@ class BroadcastUtility:
             self.message_history.pop(0)  # Remove the oldest message
 
     async def handle_websocket(self, websocket: WebSocket):
-        """
-        Handles the WebSocket connection for handshake and message exchange.
-        """
         await websocket.accept()
         try:
             # Send previous message history to the newly connected client
@@ -72,44 +69,71 @@ class BroadcastUtility:
             await websocket.send_text("Handshake successful! Connected to the server.")
             logger.info("Sent handshake confirmation to client.")
 
-            # Continue to listen for more messages
-            while True:
-                try:
-                    data = await websocket.receive_text()
-                    logger.info(f"Received message from client: {data}")
-
-                    # Parse the message to get the channel and content
-                    try:
-                        message_data = json.loads(data)
-                        channel = message_data.get("channel", "default")
-                        content = message_data.get("content", "")
-                    except json.JSONDecodeError:
-                        # If the message isn't in JSON format, use the default channel
-                        channel = "default"
-                        content = data
-
-                    # Add the message to the history
-                    self._add_to_history(content)
-
-                    # Broadcast the message to the specified channel
-                    await self.broadcast.publish(channel=channel, message=content)
-                except WebSocketDisconnect:
-                    logger.info("Client disconnected.")
-                    break
-                except WebSocketException as e:
-                    logger.error(f"WebSocket error occurred: {e}")
-                    break
+            # Listen for messages from the client and broadcast them
+            await self.send_messages(websocket, "default")
+        except WebSocketDisconnect:
+            logger.info("Client disconnected.")
         except Exception as e:
             logger.error(f"Error during WebSocket connection: {e}")
         finally:
-            # Try to close the WebSocket only if it's still open
+            # Ensure WebSocket is still open before attempting to close
             try:
-                if websocket.application_state != WebSocket.DISCONNECTED:
+                if websocket.client_state == WebSocketState.CONNECTED:
                     await websocket.close()
             except RuntimeError as re:
                 logger.warning(f"WebSocket close error: {re}")
             except Exception as e:
                 logger.error(f"Unexpected error while closing WebSocket: {e}")
+
+    async def send_messages(self, websocket: WebSocket, channel: str):
+        """
+        Handles receiving messages from the client and broadcasting them to a specified channel.
+        Also listens for messages on the broadcast channel and sends them back to the client.
+        """
+        try:
+            while True:  # Keep the sender alive even if there is a temporary disconnection
+                async with anyio.create_task_group() as task_group:
+                    async def receiver():
+                        async for message in websocket.iter_text():
+                            # Handle incoming messages from the client
+                            try:
+                                message_data = json.loads(message)
+                                target_channel = message_data.get("channel", "default")
+                                content = message_data.get("content", "")
+                                # Add message to history
+                                self._add_to_history(content)
+                                # Broadcast the message to the target channel
+                                await self.broadcast.publish(channel=target_channel, message=content)
+                                logger.info(f"Published message to channel {target_channel}: {content}")
+                            except json.JSONDecodeError:
+                                logger.error("Received a non-JSON message")
+
+                        task_group.cancel_scope.cancel()
+
+                    async def sender():
+                        # Send messages from the specified channel to the WebSocket
+                        try:
+                            logger.info(f"Subscribing to channel: {channel}")
+                            async with self.broadcast.subscribe(channel=channel) as subscriber:
+                                async for event in subscriber:
+                                    logger.info(f"Sending message to client: {event.message}")
+                                    await websocket.send_text(event.message)
+                        except Exception as e:
+                            logger.error(f"Error in sender while subscribing: {e}")
+                            raise e  # Raise the exception to restart the subscription
+
+                    # Start receiver and sender
+                    task_group.start_soon(receiver)
+                    task_group.start_soon(sender)
+
+        except WebSocketDisconnect:
+            logger.info("WebSocket disconnected.")
+        except WebSocketException as e:
+            logger.error(f"WebSocket error occurred: {e}")
+        except Exception as e:
+            logger.error(f"Error in send_messages: {e}")
+        # Removed the `finally: await self.disconnect()` call here
+
     async def send_command_model(self, websocket: WebSocket, command_data: CommandModel, channel: str = "default"):
         """
         Sends a CommandModel object via WebSocket and publishes it to a specified channel.
@@ -129,40 +153,3 @@ class BroadcastUtility:
             logger.error(f"WebSocket error occurred while sending command model: {e}")
         except Exception as e:
             logger.error(f"Unexpected error in send_command_model: {e}")
-        finally:
-            # Optionally perform any cleanup here if needed
-            await self.disconnect()
-
-    async def send_messages(self, websocket: WebSocket, channel: str):
-        try:
-            async with anyio.create_task_group() as task_group:
-                async def receiver():
-                    async for message in websocket.iter_text():
-                        # Handle incoming messages from the client
-                        try:
-                            message_data = json.loads(message)
-                            target_channel = message_data.get("channel", "default")
-                            content = message_data.get("content", "")
-                            await self.broadcast.publish(channel=target_channel, message=content)
-                        except json.JSONDecodeError:
-                            logger.error("Received a non-JSON message")
-
-                    task_group.cancel_scope.cancel()
-
-                async def sender():
-                    # Send messages from the specified channel to the WebSocket
-                    async with self.broadcast.subscribe(channel=channel) as subscriber:
-                        async for event in subscriber:
-                            await websocket.send_text(event.message)
-
-                task_group.start_soon(receiver)
-                task_group.start_soon(sender)
-        except WebSocketDisconnect:
-            logger.info("WebSocket disconnected.")
-        except WebSocketException as e:
-            logger.error(f"WebSocket error occurred: {e}")
-        except Exception as e:
-            logger.error(f"Error in send_messages: {e}")
-        finally:
-            await self.disconnect()
-            
