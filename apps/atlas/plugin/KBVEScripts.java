@@ -92,6 +92,7 @@ public class KBVEScripts extends Script {
                 // Check WebSocket connection
                 if (webSocketClient == null || !webSocketClient.isOpen()) {
                     Microbot.log("[KBVE]: WebSocket not connected.");
+                    shutdown();
                     return;
                 }
 
