@@ -102,8 +102,8 @@ class BroadcastUtility:
                                 content = message_data.get("content", "")
                                 # Add message to history
                                 self._add_to_history(content)
-                                # Broadcast the message to the target channel
-                                await self.broadcast.publish(channel=target_channel, message=content)
+                                # Broadcast the message to the target channel as a JSON string
+                                await self.broadcast.publish(channel=target_channel, message=json.dumps(content))
                                 logger.info(f"Published message to channel {target_channel}: {content}")
                             except json.JSONDecodeError:
                                 logger.error("Received a non-JSON message")
@@ -116,8 +116,12 @@ class BroadcastUtility:
                             logger.info(f"Subscribing to channel: {channel}")
                             async with self.broadcast.subscribe(channel=channel) as subscriber:
                                 async for event in subscriber:
-                                    logger.info(f"Sending message to client: {event.message}")
-                                    await websocket.send_text(event.message)
+                                    # Make sure the message is a JSON string before sending
+                                    message_to_send = event.message
+                                    if isinstance(message_to_send, dict):
+                                        message_to_send = json.dumps(message_to_send)
+                                    logger.info(f"Sending message to client: {message_to_send}")
+                                    await websocket.send_text(message_to_send)
                         except Exception as e:
                             logger.error(f"Error in sender while subscribing: {e}")
                             raise e  # Raise the exception to restart the subscription
@@ -132,7 +136,7 @@ class BroadcastUtility:
             logger.error(f"WebSocket error occurred: {e}")
         except Exception as e:
             logger.error(f"Error in send_messages: {e}")
-        # Removed the `finally: await self.disconnect()` call here
+
 
     async def send_command_model(self, websocket: WebSocket, command_data: CommandModel, channel: str = "default"):
         """
