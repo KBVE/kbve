@@ -5,6 +5,7 @@ import logging
 import anyio
 from broadcaster import Broadcast
 from ...models.command import CommandModel
+from ...models.broadcast import BroadcastModel
 
 logger = logging.getLogger("uvicorn")
 
@@ -97,16 +98,21 @@ class BroadcastUtility:
                         async for message in websocket.iter_text():
                             # Handle incoming messages from the client
                             try:
-                                message_data = json.loads(message)
-                                target_channel = message_data.get("channel", "default")
-                                content = message_data.get("content", "")
+                                # Parse the message using BroadcastModel
+                                broadcast_message = BroadcastModel.parse_raw(message)
+                                target_channel = broadcast_message.channel
+                                content = broadcast_message.content
+                                
                                 # Add message to history
-                                self._add_to_history(content)
+                                self._add_to_history(message)
+
                                 # Broadcast the message to the target channel as a JSON string
                                 await self.broadcast.publish(channel=target_channel, message=json.dumps(content))
                                 logger.info(f"Published message to channel {target_channel}: {content}")
                             except json.JSONDecodeError:
                                 logger.error("Received a non-JSON message")
+                            except Exception as e:
+                                logger.error(f"Error parsing message: {e}")
 
                         task_group.cancel_scope.cancel()
 
@@ -129,7 +135,7 @@ class BroadcastUtility:
                     # Start receiver and sender
                     task_group.start_soon(receiver)
                     task_group.start_soon(sender)
-
+                    
         except WebSocketDisconnect:
             logger.info("WebSocket disconnected.")
         except WebSocketException as e:
