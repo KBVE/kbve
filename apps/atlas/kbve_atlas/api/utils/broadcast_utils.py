@@ -1,17 +1,12 @@
-from broadcaster import Broadcast
 from fastapi import WebSocket, WebSocketException
 from starlette.websockets import WebSocketDisconnect
+import logging
 import anyio
 
+from broadcaster import Broadcast
 from ...models.command import CommandModel
 
-
-# TODO : broadcast = ENV_REDIS_FILE For k8s/swarm.
-import logging
-
-# Use the 'uvicorn' named logger to align with Uvicorn's default logging settings
 logger = logging.getLogger("uvicorn")
-
 
 class BroadcastUtility:
     common_uris = ["redis://localhost:6379", "redis://redis:6379"]
@@ -73,6 +68,9 @@ class BroadcastUtility:
                 except WebSocketDisconnect:
                     logger.info("Client disconnected.")
                     break
+                except WebSocketException as e:
+                    logger.error(f"WebSocket error occurred: {e}")
+                    break
         except Exception as e:
             logger.error(f"Error during WebSocket connection: {e}")
         finally:
@@ -80,7 +78,6 @@ class BroadcastUtility:
 
     async def send_messages(self, websocket: WebSocket, channel: str):
         try:
-            # Send previous message history to the newly connected client (if implemented)
             async with anyio.create_task_group() as task_group:
                 async def receiver():
                     async for message in websocket.iter_text():
@@ -96,10 +93,11 @@ class BroadcastUtility:
                 task_group.start_soon(sender)
         except WebSocketDisconnect:
             logger.info("WebSocket disconnected.")
+        except WebSocketException as e:
+            logger.error(f"WebSocket error occurred: {e}")
         except Exception as e:
             logger.error(f"Error in send_messages: {e}")
         finally:
-            # Optionally perform any cleanup here if needed
             await self.disconnect()
 
     async def send_command_model(self, websocket: WebSocket, command_data: CommandModel):
@@ -111,8 +109,10 @@ class BroadcastUtility:
             await websocket.send_text(command_data.json())
         except WebSocketDisconnect:
             logger.info("WebSocket disconnected while sending command model.")
+        except WebSocketException as e:
+            logger.error(f"WebSocket error occurred while sending command model: {e}")
         except Exception as e:
-            logger.error(f"Error in send_command_model: {e}")
+            logger.error(f"Unexpected error in send_command_model: {e}")
         finally:
             # Optionally perform any cleanup here if needed
             await self.disconnect()
