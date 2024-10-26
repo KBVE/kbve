@@ -1,5 +1,6 @@
 from broadcaster import Broadcast
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketException
+from starlette.websockets import WebSocketDisconnect
 import anyio
 
 from ...models.command import CommandModel
@@ -10,6 +11,7 @@ import logging
 
 # Use the 'uvicorn' named logger to align with Uvicorn's default logging settings
 logger = logging.getLogger("uvicorn")
+
 
 class BroadcastUtility:
     common_uris = ["redis://localhost:6379", "redis://redis:6379"]
@@ -47,25 +49,70 @@ class BroadcastUtility:
             self.connected = False
             logger.info("Disconnected.")
 
+    async def handle_websocket(self, websocket: WebSocket):
+        """
+        Handles the WebSocket connection for handshake and message exchange.
+        """
+        await websocket.accept()
+        try:
+            # Wait for the client to send the initial handshake message
+            client_message = await websocket.receive_text()
+            logger.info(f"Received handshake message from client: {client_message}")
+            
+            # Send a response back to confirm the connection
+            await websocket.send_text("Handshake successful! Connected to the server.")
+            logger.info("Sent handshake confirmation to client.")
+            
+            # Continue to listen for more messages if needed
+            while True:
+                try:
+                    data = await websocket.receive_text()
+                    logger.info(f"Received message from client: {data}")
+                    # Echo the message back
+                    await websocket.send_text(f"Echo: {data}")
+                except WebSocketDisconnect:
+                    logger.info("Client disconnected.")
+                    break
+        except Exception as e:
+            logger.error(f"Error during WebSocket connection: {e}")
+        finally:
+            await websocket.close()
 
     async def send_messages(self, websocket: WebSocket, channel: str):
-        async with anyio.create_task_group() as task_group:
-            async def receiver():
-                async for message in websocket.iter_text():
-                    await self.broadcast.publish(channel=channel, message=message)
-                task_group.cancel_scope.cancel()
+        try:
+            # Send previous message history to the newly connected client (if implemented)
+            async with anyio.create_task_group() as task_group:
+                async def receiver():
+                    async for message in websocket.iter_text():
+                        await self.broadcast.publish(channel=channel, message=message)
+                    task_group.cancel_scope.cancel()
 
-            async def sender():
-                async with self.broadcast.subscribe(channel=channel) as subscriber:
-                    async for event in subscriber:
-                        await websocket.send_text(event.message)
+                async def sender():
+                    async with self.broadcast.subscribe(channel=channel) as subscriber:
+                        async for event in subscriber:
+                            await websocket.send_text(event.message)
 
-            task_group.start_soon(receiver)
-            task_group.start_soon(sender)
+                task_group.start_soon(receiver)
+                task_group.start_soon(sender)
+        except WebSocketDisconnect:
+            logger.info("WebSocket disconnected.")
+        except Exception as e:
+            logger.error(f"Error in send_messages: {e}")
+        finally:
+            # Optionally perform any cleanup here if needed
+            await self.disconnect()
 
     async def send_command_model(self, websocket: WebSocket, command_data: CommandModel):
         """
         Sends a CommandModel object via WebSocket.
         """
-        # Convert the Pydantic model to JSON and send it through the WebSocket
-        await websocket.send_text(command_data.json())
+        try:
+            # Convert the Pydantic model to JSON and send it through the WebSocket
+            await websocket.send_text(command_data.json())
+        except WebSocketDisconnect:
+            logger.info("WebSocket disconnected while sending command model.")
+        except Exception as e:
+            logger.error(f"Error in send_command_model: {e}")
+        finally:
+            # Optionally perform any cleanup here if needed
+            await self.disconnect()

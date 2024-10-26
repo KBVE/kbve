@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
 
     logger.info("[BROADCAST]@DISINT")
     await broadcast.disconnect()
-    logger.info("[SignalRServer]@STOPPING")
+    logger.info("[BROADCAST]@STOPPING")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -37,68 +37,9 @@ kr_decorator = KRDecorator(app)
 
 CORSUtil(app)
 
-#app.mount("/novnc", StaticFiles(directory="/app/templates/novnc", html=True), name="novnc")
-
-# @app.websocket("/")
-# async def websocket_endpoint(websocket: WebSocket):
-#     client = NoVNCClient(logger)
-#     await client.ws_vnc_proxy(websocket, target_host="localhost", target_port=5900)
-
-
-# @app.websocket("/websockify")
-# async def websocket_proxy(websocket: WebSocket):
-#     await websocket.accept()
-#     try:
-#         async with websockets.connect("ws://localhost:6080") as upstream:
-#             while True:
-#                 recv_task = asyncio.create_task(websocket.receive_text())
-#                 send_task = asyncio.create_task(upstream.recv())
-#                 done, pending = await asyncio.wait(
-#                     [recv_task, send_task],
-#                     return_when=asyncio.FIRST_COMPLETED,
-#                 )
-
-#                 if recv_task in done:
-#                     message = recv_task.result()
-#                     await upstream.send(message)
-#                 elif send_task in done:
-#                     message = send_task.result()
-#                     await websocket.send_text(message)
-
-#                 for task in pending:
-#                     task.cancel()
-
-#     except Exception as e:
-#         print(f"Error: {e}")
-#         await websocket.close()
-
 @app.websocket("/")
 async def websocket_handshake(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        # Wait for the client to send the initial handshake message
-        client_message = await websocket.receive_text()
-        logger.info(f"Received handshake message from client: {client_message}")
-        
-        # Send a response back to confirm the connection
-        await websocket.send_text("Handshake successful! Connected to the server.")
-        logger.info("Sent handshake confirmation to client.")
-        
-        # Continue to listen for more messages if needed
-        while True:
-            try:
-                data = await websocket.receive_text()
-                logger.info(f"Received message from client: {data}")
-                # Echo the message back
-                await websocket.send_text(f"Echo: {data}")
-            except WebSocketDisconnect:
-                logger.info("Client disconnected.")
-                break
-
-    except Exception as e:
-        logger.error(f"Error during WebSocket connection: {e}")
-        await websocket.close()
-
+    await broadcast.handle_websocket(websocket)
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
