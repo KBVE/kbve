@@ -12,22 +12,28 @@ from contextlib import asynccontextmanager
 
 from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient, RuneLiteClient, ChromeClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
+from kbve_atlas.api.server import SignalRServer
+
 
 import logging
 logger = logging.getLogger("uvicorn")
 
 os.environ['DISPLAY'] = ':1'
 
-broadcast = BroadcastUtility()
+#  broadcast = BroadcastUtility()
+signalr_server = SignalRServer(hub_name="rsps", port=5000) 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("[BROADCAST]@PENDING")
-    await broadcast.connect()
-    yield
-    logger.info("[BROADCAST]@DISINT")
-    await broadcast.disconnect()
+    #   await broadcast.connect()
+    await signalr_server.start()  # Start the SignalR server
+    
+    yield  # Start FastAPI lifecycle tasks
 
+    logger.info("[BROADCAST]@DISINT")
+    #   await broadcast.disconnect()
+    logger.info("[SignalRServer]@STOPPING")
 
 app = FastAPI(lifespan=lifespan)
 

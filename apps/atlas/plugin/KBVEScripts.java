@@ -34,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 
 //  [KBVE]
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
+import com.microsoft.signalr.HubConnection;
+import com.microsoft.signalr.HubConnectionBuilder;
+import com.google.gson.Gson;
 
 //  [ENUM]
 enum KBVEStateMachine {
