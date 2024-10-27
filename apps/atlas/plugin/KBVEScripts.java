@@ -136,12 +136,26 @@ public class KBVEScripts extends Script {
 
     private void sendMessageToWebSocket(String message) {
         if (webSocketClient != null && webSocketClient.isOpen()) {
-            webSocketClient.send(message);
-            state = KBVEStateMachine.IDLE;
+            if (isJsonValid(message)) {
+                webSocketClient.send(message);
+                state = KBVEStateMachine.IDLE;
+            } else {
+                Microbot.log("[KBVE]: Skipping non-JSON message: " + message);
+            }
         } else {
             Microbot.log("[KBVE]: WebSocket is not connected. Cannot send message.");
         }
     }
+
+    private boolean isJsonValid(String json) {
+    try {
+        new com.google.gson.JsonParser().parse(json);
+        return true;
+    } catch (JsonSyntaxException ex) {
+        return false;
+    }
+}
+
 
     private void performTask() {
         // Placeholder for performing some task
