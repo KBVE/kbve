@@ -284,8 +284,10 @@ public class KBVEScripts extends Script {
                         parameterTypes[i] = int.class;
                     } else if (args[i] instanceof Boolean) {
                         parameterTypes[i] = boolean.class;
-                    } else {
+                    } else if (args[i] instanceof String) {
                         parameterTypes[i] = String.class;
+                    } else {
+                        parameterTypes[i] = Object.class; // Fallback to Object if the type is unknown
                     }
                 }
 
