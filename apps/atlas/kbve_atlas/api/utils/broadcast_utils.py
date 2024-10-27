@@ -5,6 +5,7 @@ import logging
 import anyio
 from broadcaster import Broadcast
 from ...models.command import CommandModel
+from ...models.broadcast import BroadcastModel
 
 logger = logging.getLogger("uvicorn")
 
@@ -97,19 +98,29 @@ class BroadcastUtility:
                         async for message in websocket.iter_text():
                             # Handle incoming messages from the client
                             try:
+                                # Attempt to parse the message as JSON
                                 message_data = json.loads(message)
-                                target_channel = message_data.get("channel", "default")
-                                content = message_data.get("content", "")
+
+                                # If the message is valid JSON, parse it as a BroadcastModel
+                                broadcast_message = BroadcastModel.parse_obj(message_data)
+                                target_channel = broadcast_message.channel
+                                content = broadcast_message.content
+
                                 # Add message to history
-                                self._add_to_history(content)
+                                self._add_to_history(message)
+
                                 # Broadcast the message to the target channel as a JSON string
                                 await self.broadcast.publish(channel=target_channel, message=json.dumps(content))
                                 logger.info(f"Published message to channel {target_channel}: {content}")
+
                             except json.JSONDecodeError:
-                                logger.error("Received a non-JSON message")
+                                # Log and skip non-JSON messages
+                                logger.error(f"Received a non-JSON message: {message}")
+                            except Exception as e:
+                                # Log any other exceptions related to parsing the BroadcastModel
+                                logger.error(f"Error parsing message: {e}")
 
                         task_group.cancel_scope.cancel()
-
                     async def sender():
                         # Send messages from the specified channel to the WebSocket
                         try:

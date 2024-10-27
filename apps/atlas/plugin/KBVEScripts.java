@@ -136,12 +136,26 @@ public class KBVEScripts extends Script {
 
     private void sendMessageToWebSocket(String message) {
         if (webSocketClient != null && webSocketClient.isOpen()) {
-            webSocketClient.send(message);
-            state = KBVEStateMachine.IDLE;
+            if (isJsonValid(message)) {
+                webSocketClient.send(message);
+                state = KBVEStateMachine.IDLE;
+            } else {
+                Microbot.log("[KBVE]: Skipping non-JSON message: " + message);
+            }
         } else {
             Microbot.log("[KBVE]: WebSocket is not connected. Cannot send message.");
         }
     }
+
+    private boolean isJsonValid(String json) {
+    try {
+        new com.google.gson.JsonParser().parse(json);
+        return true;
+    } catch (JsonSyntaxException ex) {
+        return false;
+    }
+}
+
 
     private void performTask() {
         // Placeholder for performing some task
@@ -174,7 +188,7 @@ public class KBVEScripts extends Script {
 
         @Override
         public void onMessage(String message) {
-            Microbot.log("[KBVE]: Received message: " + message);
+            Microbot.log("[KBVE]: Received message: " + message); // Log the entire message for debugging
 
             Gson gson = new Gson();
             KBVECommand command;
@@ -182,15 +196,19 @@ public class KBVEScripts extends Script {
                 // Step 1: Parse the message as a JSON object
                 JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
 
+                // Log the entire JSON object for debugging
+                Microbot.log("[KBVE]: Full JSON object: " + jsonObject.toString());
+
                 // Step 2: Check if the message contains a "channel" field and validate it
-                String channel = jsonObject.has("channel") ? jsonObject.get("channel").getAsString() : "default";
-                if (!"default".equals(channel)) {
-                    Microbot.log("[KBVE]: Ignoring message from non-default channel: " + channel);
-                    return; // Ignore the message if it's not from the "default" channel
+                if (jsonObject.has("channel")) {
+                    String channel = jsonObject.get("channel").getAsString();
+                    if (!"default".equals(channel)) {
+                        Microbot.log("[KBVE]: Ignoring message from non-default channel: " + channel);
+                        return; // Ignore the message if it's not from the "default" channel
+                    }
                 }
 
-                    
-                // Step 3: Attempt to parse the "content" field as a KBVECommand
+                // Step 3: Check for the "content" field or try to parse the whole message
                 if (jsonObject.has("content")) {
                     JsonElement content = jsonObject.get("content");
                     if (content == null || !content.isJsonObject()) {
@@ -199,10 +217,14 @@ public class KBVEScripts extends Script {
                         state = KBVEStateMachine.IDLE;
                         return;
                     }
+                    // Log the content before deserialization
+                    Microbot.log("[KBVE]: Content field: " + content.toString());
+
                     // Deserialize the "content" field into a KBVECommand
                     command = gson.fromJson(content, KBVECommand.class);
                 } else {
-                    // If there is no "content" field, try to parse the whole message as a KBVECommand
+                    // If there is no "content" field, assume the whole message is a KBVECommand
+                    Microbot.log("[KBVE]: No 'content' field found. Attempting to parse the whole message.");
                     command = gson.fromJson(message, KBVECommand.class);
                 }
 
