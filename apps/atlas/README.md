@@ -14,3 +14,15 @@ pnpm nx run atlas:add --name aiohttp
 pnpm nx run atlas:add --name signalrcore
 
 ```
+
+## Docker 
+
+To build the docker image and then run it:
+
+```shell
+
+pnpm nx container atlas
+docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/atlas:1.42
+
+```
+
