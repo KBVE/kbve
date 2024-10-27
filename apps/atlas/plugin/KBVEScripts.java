@@ -269,16 +269,25 @@ public class KBVEScripts extends Script {
                 // Step 3: Determine the parameter types for the method based on the command's arguments
                 Object[] args = command.getArgs();
                 Class<?>[] parameterTypes = new Class<?>[args.length];
+
                 for (int i = 0; i < args.length; i++) {
-                    if (args[i] instanceof Integer) {
+                    if (args[i] instanceof Double) {
+                        // Check if the Double represents an integer value
+                        Double doubleValue = (Double) args[i];
+                        if (doubleValue % 1 == 0) {
+                            parameterTypes[i] = int.class;
+                            args[i] = doubleValue.intValue(); // Cast to Integer
+                        } else {
+                            parameterTypes[i] = double.class;
+                        }
+                    } else if (args[i] instanceof Integer) {
                         parameterTypes[i] = int.class;
                     } else if (args[i] instanceof Boolean) {
                         parameterTypes[i] = boolean.class;
-                    
-                    } else if (args[i] instanceof Double) {
-                        parameterTypes[i] = double.class;
-                    } else {
+                    } else if (args[i] instanceof String) {
                         parameterTypes[i] = String.class;
+                    } else {
+                        parameterTypes[i] = Object.class; // Fallback to Object if the type is unknown
                     }
                 }
 
@@ -301,12 +310,16 @@ public class KBVEScripts extends Script {
             } catch (NoSuchMethodException e) {
                 Microbot.log("[KBVE]: Method not found: " + command.getMethod());
                 sendMessageToWebSocket("Error: Method not found: " + command.getMethod());
+            } catch (IllegalArgumentException e) {
+                Microbot.log("[KBVE]: Invalid arguments for method: " + command.getMethod() + " - " + e.getMessage());
+                sendMessageToWebSocket("Error: Invalid arguments for method: " + command.getMethod());
             } catch (Exception e) {
                 Microbot.log("[KBVE]: Error executing command: " + e.getMessage());
                 sendMessageToWebSocket("Error executing task: " + e.getMessage());
             }
             return false; // Indicate failed task execution
         }
+
 
         @Override
         public void onClose(int code, String reason, boolean remote) {
