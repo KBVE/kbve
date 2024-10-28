@@ -4,8 +4,8 @@ from starlette.websockets import WebSocketDisconnect, WebSocketState
 import logging
 import anyio
 from broadcaster import Broadcast
-from ...models.command import CommandModel
-from ...models.broadcast import BroadcastModel
+from ...models.broadcast import BroadcastModel, CommandModel, LoggerModel
+from pydantic import ValidationError
 
 logger = logging.getLogger("uvicorn")
 
@@ -109,6 +109,23 @@ class BroadcastUtility:
                                 # Add message to history
                                 self._add_to_history(message)
 
+                                # Check if content is a LoggerModel
+                                if isinstance(content, dict):
+                                    try:
+                                        logger_model = LoggerModel.parse_obj(content)
+                                        # Handle LoggerModel content
+                                        logger.info(f"Logger Message: {logger_model.message}, Priority: {logger_model.priority}")
+                                    except ValidationError:
+                                        # If not a LoggerModel, check if it's a CommandModel
+                                        try:
+                                            command_model = CommandModel.parse_obj(content)
+                                            # Handle CommandModel content
+                                            logger.info(f"Executing Command: {command_model.method} with args: {command_model.args}")
+                                        except ValidationError:
+                                            logger.warning(f"Unknown content format in BroadcastModel: {content}")
+                                else:
+                                    logger.warning(f"Received non-dict content: {content}")
+
                                 # Broadcast the message to the target channel as a JSON string
                                 await self.broadcast.publish(channel=target_channel, message=json.dumps(content))
                                 logger.info(f"Published message to channel {target_channel}: {content}")
@@ -121,6 +138,7 @@ class BroadcastUtility:
                                 logger.error(f"Error parsing message: {e}")
 
                         task_group.cancel_scope.cancel()
+
                     async def sender():
                         # Send messages from the specified channel to the WebSocket
                         try:

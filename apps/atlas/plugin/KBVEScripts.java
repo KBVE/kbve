@@ -142,6 +142,33 @@ public class KBVEScripts extends Script {
         }
     }
 
+    private void logger(String message, int priority) {
+        if (DebugMode) {
+            Microbot.log("[KBVE]: " + message);
+        }
+
+        if (priority > 2) {
+            // Create a JSON message that follows the BroadcastModel structure
+            JsonObject broadcastMessage = new JsonObject();
+            broadcastMessage.addProperty("channel", "default"); // Use "default" or set dynamically if needed
+
+            // Create the LoggerModel content as another JSON object
+            JsonObject loggerContent = new JsonObject();
+            loggerContent.addProperty("message", message);
+            loggerContent.addProperty("priority", priority);
+
+            // Add the LoggerModel object to the BroadcastModel under "content"
+            broadcastMessage.add("content", loggerContent);
+
+            // Convert the broadcastMessage to a string and send it
+            sendMessageToWebSocket(broadcastMessage.toString());
+        }
+    }
+
+    private void logger(String message) {
+        logger(message, 0);
+    }
+
     private void sendMessageToWebSocket(String message) {
         if (webSocketClient != null && webSocketClient.isOpen()) {
             if (isJsonValid(message)) {
@@ -156,13 +183,13 @@ public class KBVEScripts extends Script {
     }
 
     private boolean isJsonValid(String json) {
-    try {
-        new com.google.gson.JsonParser().parse(json);
-        return true;
-    } catch (JsonSyntaxException ex) {
-        return false;
+        try {
+            new com.google.gson.JsonParser().parse(json);
+            return true;
+        } catch (JsonSyntaxException ex) {
+            return false;
+        }
     }
-}
 
 
     private void performTask() {
@@ -328,7 +355,7 @@ public class KBVEScripts extends Script {
             return false; // Indicate failed task execution
         }
 
--
+
         @Override
         public void onClose(int code, String reason, boolean remote) {
             Microbot.log("[KBVE]: WebSocket connection closed: " + reason);
