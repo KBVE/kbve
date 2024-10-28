@@ -4,8 +4,7 @@ from starlette.websockets import WebSocketDisconnect, WebSocketState
 import logging
 import anyio
 from broadcaster import Broadcast
-from ...models.command import CommandModel
-from ...models.broadcast import BroadcastModel
+from ...models.broadcast import BroadcastModel, CommandModel
 
 logger = logging.getLogger("uvicorn")
 
