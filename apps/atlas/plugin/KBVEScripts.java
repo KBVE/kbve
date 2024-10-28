@@ -144,18 +144,25 @@ public class KBVEScripts extends Script {
     }
 
     private void logger(String message, int priority) {
-        // Log to the console if DebugMode is enabled
         if (DebugMode) {
             Microbot.log("[KBVE]: " + message);
         }
 
-        // If the priority is above the threshold, send it to the WebSocket
-        if (priority > 2) { 
-            JsonObject jsonMessage = new JsonObject();
-            jsonMessage.addProperty("priority", priority);
-            jsonMessage.addProperty("message", message);
+        if (priority > 2) {
+            // Create a JSON message that follows the BroadcastModel structure
+            JsonObject broadcastMessage = new JsonObject();
+            broadcastMessage.addProperty("channel", "default"); // Use "default" or set dynamically if needed
 
-            sendMessageToWebSocket(jsonMessage.toString());
+            // Create the LoggerModel content as another JSON object
+            JsonObject loggerContent = new JsonObject();
+            loggerContent.addProperty("message", message);
+            loggerContent.addProperty("priority", priority);
+
+            // Add the LoggerModel object to the BroadcastModel under "content"
+            broadcastMessage.add("content", loggerContent);
+
+            // Convert the broadcastMessage to a string and send it
+            sendMessageToWebSocket(broadcastMessage.toString());
         }
     }
 
@@ -349,7 +356,7 @@ public class KBVEScripts extends Script {
             return false; // Indicate failed task execution
         }
 
--
+
         @Override
         public void onClose(int code, String reason, boolean remote) {
             Microbot.log("[KBVE]: WebSocket connection closed: " + reason);

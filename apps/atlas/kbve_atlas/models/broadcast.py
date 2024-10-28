@@ -9,6 +9,10 @@ class CommandModel(BaseModel):
     args: List[str] = []
     priority: int = 5
 
+class LoggerModel(BaseModel):
+    message: str
+    priority: int
+    
 class BroadcastModel(BaseModel):
     channel: str
     content: Any 
