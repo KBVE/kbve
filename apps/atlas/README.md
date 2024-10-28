@@ -26,3 +26,16 @@ docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/atlas:1.42
 
 ```
 
+```json
+    {
+        "channel": "default",
+        "content": {
+                "command": "execute",
+                "packageName": "net.runelite.client.plugins.microbot.util.security",
+                "className": "Login",
+                "method": "Login",
+                "args": ["myUsername", "myPassword", 301],
+                "priority": 1
+            }
+    }
+```

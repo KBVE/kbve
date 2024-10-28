@@ -58,6 +58,7 @@ public class KBVEScripts extends Script {
     private boolean init;
     private KBVEWebSocketClient webSocketClient;
     private CountDownLatch latch = new CountDownLatch(1);
+    private boolean DebugMode = false;
 
     public boolean run(KBVEConfig config) {
 
@@ -65,6 +66,13 @@ public class KBVEScripts extends Script {
         Microbot.enableAutoRunOn = false;
         Rs2Antiban.resetAntibanSettings();
         init = true;
+
+        //  [Debug]
+        if(config.debugMode())
+        {
+            Microbot.log("[KBVE] Enabling Debug");
+            DebugMode = true;
+        }
 
         // [WebSocket] Setup
         connectWebSocket(config);
@@ -320,7 +328,7 @@ public class KBVEScripts extends Script {
             return false; // Indicate failed task execution
         }
 
-
+-
         @Override
         public void onClose(int code, String reason, boolean remote) {
             Microbot.log("[KBVE]: WebSocket connection closed: " + reason);
