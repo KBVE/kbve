@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 
 //  [KBVE]
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
-import net.runelite.client.plugins.microbot.kbve.KBVEUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
