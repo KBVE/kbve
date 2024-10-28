@@ -52,7 +52,67 @@ class ThemeCore:
             </div>
           </nav>
 
+          <!-- Buttons -->
+          <section class="bg-gray-200 text-black p-6 rounded-lg mb-6">
+            <h2 class="text-3xl font-bold mb-4">Runelite Control</h2>
+            <div class="flex justify-center space-x-4">
+              <button
+                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onclick="startRunelite()">
+                Start Runelite
+              </button>
+              <button
+                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+                onclick="stopRunelite()">
+                Stop Runelite
+              </button>
+            </div>
+            <div id="statusMessage" class="mt-4 text-center text-gray-700"></div>
+          </section>
+
+          <script>
+            function startRunelite() {
+              fetch('http://localhost:8086/start-runelite', {
+                method: 'GET',
+              })
+              .then(response => {
+                if (response.ok) {
+                  updateStatusMessage('Runelite started successfully', 'text-green-500');
+                } else {
+                  updateStatusMessage('Failed to start Runelite', 'text-red-500');
+                }
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                updateStatusMessage('An error occurred while starting Runelite', 'text-red-500');
+              });
+            }
+
+            function stopRunelite() {
+              fetch('http://localhost:8086/stop-runelite', {
+                method: 'GET',
+              })
+              .then(response => {
+                if (response.ok) {
+                  updateStatusMessage('Runelite stopped successfully', 'text-green-500');
+                } else {
+                  updateStatusMessage('Failed to stop Runelite', 'text-red-500');
+                }
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                updateStatusMessage('An error occurred while stopping Runelite', 'text-red-500');
+              });
+            }
+
+            function updateStatusMessage(message, colorClass) {
+              const statusDiv = document.getElementById('statusMessage');
+              statusDiv.textContent = message;
+              statusDiv.className = 'mt-4 text-center ' + colorClass;
+            }
+          </script>
           <!-- Hero Section with WebSocket Chat -->
+          
           <section class="bg-clifford text-white h-screen flex items-center">
             <div class="container mx-auto text-center px-6">
               <h1 class="text-6xl font-bold mb-6">WebSocket Chat</h1>

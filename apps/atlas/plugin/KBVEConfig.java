@@ -53,7 +53,7 @@ public interface KBVEConfig extends Config {
         section = generalSection
     )
     default boolean debugMode() {
-        return false;
+        return true;
     }
 
      // API Settings

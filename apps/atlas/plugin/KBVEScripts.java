@@ -6,10 +6,13 @@ package net.runelite.client.plugins.microbot.kbve;
 import net.runelite.api.AnimationID;
 import net.runelite.api.NPC;
 import net.runelite.api.TileObject;
+import net.runelite.api.GameState;
+import net.runelite.api.Point;
 
 //  [Microbot]
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
+import net.runelite.client.plugins.microbot.util.security.Login;
 
 //  [Microbot Utils]
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
@@ -99,7 +102,7 @@ public class KBVEScripts extends Script {
 
                 // Check WebSocket connection
                 if (webSocketClient == null || !webSocketClient.isOpen()) {
-                    Microbot.log("[KBVE]: WebSocket not connected.");
+                    logger("[KBVE]: WebSocket not connected.");
                     //shutdown(); (Add a temp counter, if its down for more than 60 counts, then turn it off)
                     return;
                 }
@@ -107,7 +110,9 @@ public class KBVEScripts extends Script {
                 // Handle the state
                 switch (state) {
                     case IDLE:
-                        Microbot.log("[KBVE]: Idle state");
+                        //Point mousePosition = Microbot.getMouse().getMousePosition();
+                        // Log the current state and mouse position
+                        //logger("[KBVE]: Idle state. Current mouse position: (" + mousePosition.getX() + ", " + mousePosition.getY() + ")");
                         break;
                     case TASK:
                         Microbot.log("[KBVE]: Task state");
@@ -138,7 +143,7 @@ public class KBVEScripts extends Script {
             webSocketClient.connect();
             webSocketClient.waitForConnection(); // Wait for the connection to be established
         } catch (Exception e) {
-            Microbot.log("Error connecting to WebSocket: " + e.getMessage());
+            logger("Error connecting to WebSocket: " + e.getMessage(), 0);
         }
     }
 
@@ -147,7 +152,7 @@ public class KBVEScripts extends Script {
             Microbot.log("[KBVE]: " + message);
         }
 
-        if (priority > 2) {
+        if (priority > 9) {
             // Create a JSON message that follows the BroadcastModel structure
             JsonObject broadcastMessage = new JsonObject();
             broadcastMessage.addProperty("channel", "default"); // Use "default" or set dynamically if needed
@@ -173,12 +178,12 @@ public class KBVEScripts extends Script {
         if (webSocketClient != null && webSocketClient.isOpen()) {
             if (isJsonValid(message)) {
                 webSocketClient.send(message);
-                state = KBVEStateMachine.IDLE;
+                //state = KBVEStateMachine.IDLE;
             } else {
-                Microbot.log("[KBVE]: Skipping non-JSON message: " + message);
+                logger("WS - Skipping non-JSON message: " + message, 0);
             }
         } else {
-            Microbot.log("[KBVE]: WebSocket is not connected. Cannot send message.");
+            logger("WS - WebSocket is not connected. Cannot send message.", 0);
         }
     }
 
@@ -194,7 +199,8 @@ public class KBVEScripts extends Script {
 
     private void performTask() {
         // Placeholder for performing some task
-        Microbot.log("[KBVE]: Performing task...");
+        logger("[KBVE]: Performing task...");
+        
         state = KBVEStateMachine.IDLE;
     }
 
@@ -207,6 +213,69 @@ public class KBVEScripts extends Script {
         Rs2Antiban.resetAntibanSettings();
     }
 
+        public static void clickOnCanvas(int x, int y) {
+        // Get the absolute position of the canvas on the screen
+        java.awt.Point canvasScreenPosition = Microbot.getClient().getCanvas().getLocationOnScreen();
+        Microbot.log("Canvas position on screen: (" + canvasScreenPosition.x + ", " + canvasScreenPosition.y + ")");
+
+        // Get the dimensions of the canvas
+        int canvasWidth = Microbot.getClient().getCanvas().getWidth();
+        int canvasHeight = Microbot.getClient().getCanvas().getHeight();
+        Microbot.log("Canvas dimensions: width=" + canvasWidth + ", height=" + canvasHeight);
+
+        // Determine if scaling is needed based on the actual canvas size
+        double scaleX = canvasWidth / 765.0; // Assuming 765 is the default game width
+        double scaleY = canvasHeight / 503.0; // Assuming 503 is the default game height
+        Microbot.log("Scale factors: scaleX=" + scaleX + ", scaleY=" + scaleY);
+
+        // Scale the input coordinates
+        int scaledX = (int) (x * scaleX);
+        int scaledY = (int) (y * scaleY);
+        Microbot.log("Scaled coordinates: (" + scaledX + ", " + scaledY + ")");
+
+        // Calculate the screen coordinates for the click
+        int actualX = canvasScreenPosition.x + scaledX;
+        int actualY = canvasScreenPosition.y + scaledY;
+        Microbot.log("Calculated screen coordinates for click: (" + actualX + ", " + actualY + ")");
+
+        // Perform the click at the calculated screen position
+        Microbot.getMouse().click(new Point(actualX, actualY));
+
+        // Log the action for debugging
+        Microbot.log("Clicked at in-game coordinates (" + x + ", " + y + "), which maps to screen coordinates (" + actualX + ", " + actualY + ").");
+    }
+
+    public boolean AcceptEULA(int x, int y)
+    {
+        //Microbot.log("Processing EULA");
+        // if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN)
+        // {
+        //     return true;
+        // }
+
+        Microbot.log("Clicking at coordinates (" + x + ", " + y + ")");
+        clickOnCanvas(x, y);
+        return false;
+    }
+
+    public boolean SafeLogin(String username, String password, int world)
+    {
+        if(Microbot.isLoggedIn())
+        {
+            logger("A user is already logged in", 0);
+            return false;
+        }
+
+        if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN) {
+            new Login(username, password, world);
+            return true;
+        } else 
+        {
+            logger("Unknown Screen", 0);
+            return false;
+        }
+    }
+
     // WebSocket Client class to handle connection and messaging
     private class KBVEWebSocketClient extends WebSocketClient {
 
@@ -216,14 +285,14 @@ public class KBVEScripts extends Script {
 
         @Override
         public void onOpen(ServerHandshake handshakedata) {
-            Microbot.log("[KBVE]: WebSocket connection opened.");
+            logger("[KBVE]: WebSocket connection opened.", 1);
             send("{\"channel\":\"default\",\"content\":\"Hello, server! This is the handshake message.\"}");
             latch.countDown(); // Signal that the connection is established
         }
 
         @Override
         public void onMessage(String message) {
-            Microbot.log("[KBVE]: Received message: " + message); // Log the entire message for debugging
+            logger("[KBVE]: Received message: " + message, 0); // Log the entire message for debugging
 
             Gson gson = new Gson();
             KBVECommand command;
@@ -232,13 +301,13 @@ public class KBVEScripts extends Script {
                 JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
 
                 // Log the entire JSON object for debugging
-                Microbot.log("[KBVE]: Full JSON object: " + jsonObject.toString());
+                logger("[KBVE]: Full JSON object: " + jsonObject.toString(), 0);
 
                 // Step 2: Check if the message contains a "channel" field and validate it
                 if (jsonObject.has("channel")) {
                     String channel = jsonObject.get("channel").getAsString();
                     if (!"default".equals(channel)) {
-                        Microbot.log("[KBVE]: Ignoring message from non-default channel: " + channel);
+                        logger("[KBVE]: Ignoring message from non-default channel: " + channel, 0);
                         return; // Ignore the message if it's not from the "default" channel
                     }
                 }
@@ -280,14 +349,13 @@ public class KBVEScripts extends Script {
                 }
             } catch (JsonSyntaxException e) {
                 // If the message is not a valid JSON format, log an error and set the state to IDLE
-                Microbot.log("[KBVE]: Invalid JSON format: " + e.getMessage());
-                state = KBVEStateMachine.IDLE;
-                sendMessageToWebSocket("Invalid JSON format.");
+                logger("Invalid JSON format: " + e.getMessage(), 0);
+                //state = KBVEStateMachine.IDLE;
             } catch (Exception e) {
                 // Handle other exceptions, log the error, and set the state to IDLE
-                Microbot.log("[KBVE]: Error processing command: " + e.getMessage());
-                state = KBVEStateMachine.IDLE;
-                sendMessageToWebSocket("Error processing command.");
+                logger("Error processing command: " + e.getMessage(), 0);
+                //state = KBVEStateMachine.IDLE;
+                //sendMessageToWebSocket("Error processing command.");
             }
         }
 
@@ -298,13 +366,29 @@ public class KBVEScripts extends Script {
                 String fullClassName = command.getPackageName() + "." + command.getClassName();
                 Class<?> clazz = Class.forName(fullClassName);
 
-                // Step 2: Create an instance of the class (assuming it has a no-argument constructor)
-                Object instance = clazz.getDeclaredConstructor().newInstance();
+                Object instance;
+
+                // Step 2: Determine the appropriate constructor based on the number and type of arguments
+                Object[] args = command.getArgs();
+                if (args.length == 1 && args[0] instanceof Integer) {
+                    // Constructor with one argument (world number)
+                    instance = clazz.getConstructor(int.class).newInstance(args[0]);
+                } else if (args.length == 2 && args[0] instanceof String && args[1] instanceof String) {
+                    // Constructor with two arguments (username, password)
+                    instance = clazz.getConstructor(String.class, String.class).newInstance(args[0], args[1]);
+                } else if (args.length == 3 && args[0] instanceof String && args[1] instanceof String && args[2] instanceof Integer) {
+                    // Constructor with three arguments (username, password, world)
+                    instance = clazz.getConstructor(String.class, String.class, int.class).newInstance(args[0], args[1], args[2]);
+                } else {
+                    // Default constructor if no matching constructor found
+                    instance = clazz.getDeclaredConstructor().newInstance();
+                }
+
+                // Log instance creation
+                logger("Created instance of class " + command.getClassName(), 1);
 
                 // Step 3: Determine the parameter types for the method based on the command's arguments
-                Object[] args = command.getArgs();
                 Class<?>[] parameterTypes = new Class<?>[args.length];
-
                 for (int i = 0; i < args.length; i++) {
                     if (args[i] instanceof Double) {
                         // Check if the Double represents an integer value
@@ -333,37 +417,31 @@ public class KBVEScripts extends Script {
                 Object result = method.invoke(instance, args);
 
                 // Step 6: Log and send a WebSocket message indicating successful task completion
-                Microbot.log("[KBVE]: Task completed successfully: " + (result != null ? result.toString() : "void"));
-                sendMessageToWebSocket("Task completed: " + command.getMethod());
-
-                // Step 7: Set the state back to IDLE after completing the task
+                logger("Task completed successfully: " + (result != null ? result.toString() : "void"), 1);
                 state = KBVEStateMachine.IDLE;
                 return true; // Indicate successful task execution
             } catch (ClassNotFoundException e) {
-                Microbot.log("[KBVE]: Class not found: " + command.getClassName());
-                sendMessageToWebSocket("Error: Class not found: " + command.getClassName());
+                logger("Class not found: " + command.getClassName(), 3);
             } catch (NoSuchMethodException e) {
-                Microbot.log("[KBVE]: Method not found: " + command.getMethod());
-                sendMessageToWebSocket("Error: Method not found: " + command.getMethod());
+                logger("Method not found: " + command.getMethod(), 3);
             } catch (IllegalArgumentException e) {
-                Microbot.log("[KBVE]: Invalid arguments for method: " + command.getMethod() + " - " + e.getMessage());
-                sendMessageToWebSocket("Error: Invalid arguments for method: " + command.getMethod());
+                logger("Invalid arguments for method: " + command.getMethod() + " - " + e.getMessage(), 3);
             } catch (Exception e) {
-                Microbot.log("[KBVE]: Error executing command: " + e.getMessage());
-                sendMessageToWebSocket("Error executing task: " + e.getMessage());
+                logger("Error executing command: " + e.getMessage(), 3);
             }
-            return false; // Indicate failed task execution
+            return false;
         }
+
 
 
         @Override
         public void onClose(int code, String reason, boolean remote) {
-            Microbot.log("[KBVE]: WebSocket connection closed: " + reason);
+            logger("WebSocket connection closed: " + reason);
         }
 
         @Override
         public void onError(Exception ex) {
-            Microbot.log("[KBVE]: WebSocket error: " + ex.getMessage());
+            logger("WebSocket error: " + ex.getMessage());
         }
 
         public void waitForConnection() throws InterruptedException {
