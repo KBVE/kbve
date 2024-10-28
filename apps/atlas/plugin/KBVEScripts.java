@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 //  [KBVE]
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
+import net.runelite.client.plugins.microbot.kbve.KBVEUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
@@ -142,6 +143,26 @@ public class KBVEScripts extends Script {
         }
     }
 
+    private void logger(String message, int priority) {
+        // Log to the console if DebugMode is enabled
+        if (DebugMode) {
+            Microbot.log("[KBVE]: " + message);
+        }
+
+        // If the priority is above the threshold, send it to the WebSocket
+        if (priority > 2) { 
+            JsonObject jsonMessage = new JsonObject();
+            jsonMessage.addProperty("priority", priority);
+            jsonMessage.addProperty("message", message);
+
+            sendMessageToWebSocket(jsonMessage.toString());
+        }
+    }
+
+    private void logger(String message) {
+        logger(message, 0);
+    }
+
     private void sendMessageToWebSocket(String message) {
         if (webSocketClient != null && webSocketClient.isOpen()) {
             if (isJsonValid(message)) {
@@ -156,13 +177,13 @@ public class KBVEScripts extends Script {
     }
 
     private boolean isJsonValid(String json) {
-    try {
-        new com.google.gson.JsonParser().parse(json);
-        return true;
-    } catch (JsonSyntaxException ex) {
-        return false;
+        try {
+            new com.google.gson.JsonParser().parse(json);
+            return true;
+        } catch (JsonSyntaxException ex) {
+            return false;
+        }
     }
-}
 
 
     private void performTask() {
