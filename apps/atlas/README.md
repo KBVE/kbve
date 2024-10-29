@@ -27,29 +27,6 @@ docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/atlas:1.42
 ```
 
 ```json
-    {
-        "channel": "default",
-        "content": {
-                "command": "execute",
-                "packageName": "net.runelite.client.plugins.microbot.util.security",
-                "className": "Login",
-                "method": "Login",
-                "args": ["myUsername", "myPassword", 301],
-                "priority": 1
-            }
-    }
-
-    {
-            "channel": "default",
-            "content": {
-                "command": "execute",
-                "packageName": "net.runelite.client.plugins.microbot.kbve",
-                "className": "KBVEScripts",
-                "method": "AcceptEULA",
-                "args": [755, 490],
-                "priority": 1
-            }
-    },
 
     {
             "channel": "default",
@@ -63,6 +40,17 @@ docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/atlas:1.42
             }
     },
 
+    {
+            "channel": "default",
+            "content": {
+                "command": "execute",
+                "packageName": "net.runelite.client.plugins.microbot.util.security",
+                "className": "Login",
+                "method": "setWorld",
+                "args": [308],
+                "priority": 1
+            }
+    },
 
     {
         "channel": "default",
