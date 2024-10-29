@@ -43,6 +43,7 @@ import javax.inject.Inject;
 
 //  [KBVE]
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
+import net.runelite.client.plugins.microbot.kbve.json.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
@@ -391,14 +392,14 @@ public class KBVEScripts extends Script {
                 }
 
                 // Fallback if no "command" or unexpected format
-                Microbot.log("No 'command' field or unrecognized format.");
-                state = KBVEStateMachine.IDLE;
+                logger("No 'command' field or unrecognized format.", 0);
+                //state = KBVEStateMachine.IDLE;
             } catch (JsonSyntaxException e) {
                 logger("Invalid JSON format: " + e.getMessage(), 0);
-                state = KBVEStateMachine.IDLE;
+                //state = KBVEStateMachine.IDLE;
             } catch (Exception e) {
                 logger("Error processing command: " + e.getMessage(), 0);
-                state = KBVEStateMachine.IDLE;
+                //state = KBVEStateMachine.IDLE;
             }
         }
 
