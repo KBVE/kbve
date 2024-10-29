@@ -62,6 +62,17 @@ docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/atlas:1.42
                 "args": ["myUsername", "myPassword", "0000", 301],
                 "priority": 1
             }
+    },
+
+    {
+        "channel": "default",
+        "content": {
+                "command": "login",
+                "username": "myUsername",
+                "password": "myPassword",
+                "bankpin": "0000",
+                "world": "301"
+            }
     }
 
 ```
