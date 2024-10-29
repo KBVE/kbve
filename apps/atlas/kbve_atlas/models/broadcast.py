@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Any, List
+from typing import Any, List, Optional
 
 class CommandModel(BaseModel):
     command: str
@@ -16,3 +16,18 @@ class LoggerModel(BaseModel):
 class BroadcastModel(BaseModel):
     channel: str
     content: Any 
+
+class KBVELoginModel(BaseModel):
+    command: str = "login"
+    username: str
+    password: str
+    bankpin: str
+    world: int
+    uuid: Optional[str] = Field(default="default-uuid")
+
+model_map = {
+    "execute": CommandModel,
+    "log": LoggerModel,
+    "login": KBVELoginModel,
+    # Add future command mappings here
+}

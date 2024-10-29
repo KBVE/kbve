@@ -4,7 +4,7 @@ from starlette.websockets import WebSocketDisconnect, WebSocketState
 import logging
 import anyio
 from broadcaster import Broadcast
-from ...models.broadcast import BroadcastModel, CommandModel, LoggerModel
+from ...models.broadcast import BroadcastModel, CommandModel, LoggerModel, KBVELoginModel, model_map
 from pydantic import ValidationError
 
 logger = logging.getLogger("uvicorn")
@@ -87,65 +87,47 @@ class BroadcastUtility:
                 logger.error(f"Unexpected error while closing WebSocket: {e}")
 
     async def send_messages(self, websocket: WebSocket, channel: str):
-        """
-        Handles receiving messages from the client and broadcasting them to a specified channel.
-        Also listens for messages on the broadcast channel and sends them back to the client.
-        """
         try:
-            while True:  # Keep the sender alive even if there is a temporary disconnection
+            while True:
                 async with anyio.create_task_group() as task_group:
                     async def receiver():
                         async for message in websocket.iter_text():
-                            # Handle incoming messages from the client
                             try:
-                                # Attempt to parse the message as JSON
+                                # Parse the incoming message as JSON
                                 message_data = json.loads(message)
+                                
+                                # Check if 'command' exists in the message data
+                                command_type = message_data.get("command", "").lower()
+                                if command_type in model_map:
+                                    # Select the appropriate model based on command type
+                                    model_class = model_map[command_type]
+                                    command_instance = model_class.parse_obj(message_data)
+                                    
+                                    # Log and handle the parsed command instance
+                                    logger.info(f"Parsed {command_type} command: {command_instance}")
+                                    
+                                    # Add message to history
+                                    self._add_to_history(message)
 
-                                # If the message is valid JSON, parse it as a BroadcastModel
-                                broadcast_message = BroadcastModel.parse_obj(message_data)
-                                target_channel = broadcast_message.channel
-                                content = broadcast_message.content
-
-                                # Add message to history
-                                self._add_to_history(message)
-
-                                # Check if content is a LoggerModel
-                                if isinstance(content, dict):
-                                    try:
-                                        logger_model = LoggerModel.parse_obj(content)
-                                        # Handle LoggerModel content
-                                        logger.info(f"Logger Message: {logger_model.message}, Priority: {logger_model.priority}")
-                                    except ValidationError:
-                                        # If not a LoggerModel, check if it's a CommandModel
-                                        try:
-                                            command_model = CommandModel.parse_obj(content)
-                                            # Handle CommandModel content
-                                            logger.info(f"Executing Command: {command_model.method} with args: {command_model.args}")
-                                        except ValidationError:
-                                            logger.warning(f"Unknown content format in BroadcastModel: {content}")
+                                    # Broadcast the message to the target channel as a JSON string
+                                    await self.broadcast.publish(channel=channel, message=command_instance.json())
                                 else:
-                                    logger.warning(f"Received non-dict content: {content}")
-
-                                # Broadcast the message to the target channel as a JSON string
-                                await self.broadcast.publish(channel=target_channel, message=json.dumps(content))
-                                logger.info(f"Published message to channel {target_channel}: {content}")
-
+                                    logger.warning(f"Unknown command type received: {command_type}")
+                                    
                             except json.JSONDecodeError:
-                                # Log and skip non-JSON messages
                                 logger.error(f"Received a non-JSON message: {message}")
+                            except ValidationError as e:
+                                logger.error(f"Validation error: {e}")
                             except Exception as e:
-                                # Log any other exceptions related to parsing the BroadcastModel
-                                logger.error(f"Error parsing message: {e}")
+                                logger.error(f"Error processing message: {e}")
 
                         task_group.cancel_scope.cancel()
 
                     async def sender():
-                        # Send messages from the specified channel to the WebSocket
                         try:
                             logger.info(f"Subscribing to channel: {channel}")
                             async with self.broadcast.subscribe(channel=channel) as subscriber:
                                 async for event in subscriber:
-                                    # Make sure the message is a JSON string before sending
                                     message_to_send = event.message
                                     if isinstance(message_to_send, dict):
                                         message_to_send = json.dumps(message_to_send)
@@ -153,9 +135,8 @@ class BroadcastUtility:
                                     await websocket.send_text(message_to_send)
                         except Exception as e:
                             logger.error(f"Error in sender while subscribing: {e}")
-                            raise e  # Raise the exception to restart the subscription
+                            raise e
 
-                    # Start receiver and sender
                     task_group.start_soon(receiver)
                     task_group.start_soon(sender)
 
