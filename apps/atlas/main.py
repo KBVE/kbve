@@ -124,3 +124,7 @@ def chrome_task_message(task_message):
 @kr_decorator.k_r("/go-to-gitlab", ChromeClient, "go_to_gitlab")
 def gitlab_navigation_message(navigation_message):
     return {"message": navigation_message}
+
+@kr_decorator.k_r("/go-to-greenboard", ChromeClient, "fetch_embedded_job_board")
+def fetch_embedded_job_board(navigation_message):
+    return {"message": navigation_message}
