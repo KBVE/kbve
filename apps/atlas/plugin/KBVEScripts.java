@@ -62,6 +62,10 @@ enum KBVEStateMachine {
     LOGIN
 }
 
+enum UserAuthStateMachine {
+    GUEST,
+    AUTHENTICATED
+}
 
 public class KBVEScripts extends Script {
 
@@ -71,12 +75,11 @@ public class KBVEScripts extends Script {
     private ConfigManager configManager;
 
     private KBVEStateMachine state;
-    private boolean init;
+    private UserAuthStateMachine userState;
     private KBVEWebSocketClient webSocketClient;
     private CountDownLatch latch = new CountDownLatch(1);
     private boolean DebugMode = false;
     private boolean EulaAgreement;
-    private boolean userState = false; 
 
     public boolean run(KBVEConfig config) {
 
@@ -84,8 +87,7 @@ public class KBVEScripts extends Script {
         Microbot.enableAutoRunOn = false;
         EulaAgreement = false;
         Rs2Antiban.resetAntibanSettings();
-        init = true;
-        userState = false;
+        userState = UserAuthStateMachine.GUEST;
 
         //  [Debug]
         if(config.debugMode())
@@ -104,17 +106,18 @@ public class KBVEScripts extends Script {
                 if (!super.run()) return;
                 //if (Rs2AntibanSettings.actionCooldownActive) return;
 
-                if (init) {
-                    if (Microbot.isLoggedIn() && initialPlayerLocation == null) {
-                        initialPlayerLocation = Rs2Player.getWorldLocation();
-                        init = false;
-                    }
-                    else {
-                        userState = false;
-                       // Microbot.log("[KBVE]: FUTURE -> Not Logged In!");
-                    }
+                // if (init) {
+                //     if (Microbot.isLoggedIn() && initialPlayerLocation == null) {
+                //         initialPlayerLocation = Rs2Player.getWorldLocation();
+                //         init = false;
+                        
+                //     }
+                //     else {
+                //         userState = UserAuthStateMachine.GUEST;
+                //        // Microbot.log("[KBVE]: FUTURE -> Not Logged In!");
+                //     }
                     
-                }
+                // }
 
                 //if (Rs2Player.isMoving() || Rs2Player.isAnimating() || Microbot.pauseAllScripts) return;
 
@@ -133,7 +136,14 @@ public class KBVEScripts extends Script {
                         //logger("[KBVE]: Idle state. Current mouse position: (" + mousePosition.getX() + ", " + mousePosition.getY() + ")");
                         break;
                     case LOGIN:
-                        logger("Login method invoked.", 0);
+                        logger("[LOGIN] Flow", 0);
+                        if (Microbot.isLoggedIn())
+                            {
+                            userState = UserAuthStateMachine.AUTHENTICATED;
+                            initialPlayerLocation = Rs2Player.getWorldLocation();
+                            logger(" [LOGIN] Preparing to activate GPS", 42);
+                            state = KBVEStateMachine.IDLE;
+                            }
                         break;
                     case TASK:
                         Microbot.log("[KBVE]: Task state");
@@ -221,7 +231,8 @@ public class KBVEScripts extends Script {
     private void performTask() {
         // Placeholder for performing some task
         logger("[KBVE]: Performing task...");
-        
+        logger("[KBVE]: Finished task... going idle");
+
         state = KBVEStateMachine.IDLE;
     }
 
@@ -314,10 +325,16 @@ public class KBVEScripts extends Script {
                 String storedWorld = configManager.getConfiguration("profile", username, "world");
 
                 // Decrypt password and bank PIN if needed (depends on how credentials are stored)
-                String decryptedPassword = Encryption.decrypt(storedPassword);
+                // String decryptedPassword = Encryption.decrypt(storedPassword);
                 int loginWorld = Integer.parseInt(storedWorld);
-
-                new Login(storedUsername, decryptedPassword, loginWorld);
+                if(loginWorld)
+                    {
+                        new Login(storedUsername, storedPassword, loginWorld);
+                    }
+                    else 
+                    {
+                        new Login(storedUsername, storedPassword);
+                    }
                 Microbot.log("Logging in with profile for user: " + username);
                 return true;
             } 
@@ -383,10 +400,32 @@ public class KBVEScripts extends Script {
                             }
                             return;
 
+                        case "login":
+                            // Parse the message as a KBVELogin object
+                            KBVELogin loginCommand = gson.fromJson(message, KBVELogin.class);
+                            state = KBVEStateMachine.LOGIN;
+                            logger("[LOGIN] " + loginCommand.toString(), 0);
+
+                                // Handle login command using SafeLogin
+                            boolean loginSuccess = SafeLogin(
+                                    loginCommand.getUsername(),
+                                    loginCommand.getPassword(),
+                                    loginCommand.getBankpin(),
+                                    loginCommand.getWorld()
+                                );
+
+                            if (loginSuccess) {
+                                //     state = KBVEStateMachine.AUTHENTICATED;
+                                logger("Login successful for user: " + loginCommand.getUsername(), 0);
+                                } else {
+                                //     state = KBVEStateMachine.IDLE;
+                                    logger("Failed login attempt for user: " + loginCommand.getUsername(), 0);
+                                }
+                            return;
                         default:
                             logger("[KBVE]: Unknown command type: " + commandType, 0);
                             logger("Unknown command type: " + commandType, 0);
-                            state = KBVEStateMachine.IDLE;
+                            //  state = KBVEStateMachine.IDLE;
                             return;
                     }
                 }
