@@ -96,12 +96,14 @@ class BroadcastUtility:
                                 # Parse the incoming message as JSON
                                 message_data = json.loads(message)
                                 
-                                # Check if 'command' exists in the message data
-                                command_type = message_data.get("command", "").lower()
+                                # Check if 'content' exists and if it has 'command' inside it
+                                content = message_data.get("content", {})
+                                command_type = content.get("command", "").lower()
+
                                 if command_type in model_map:
                                     # Select the appropriate model based on command type
                                     model_class = model_map[command_type]
-                                    command_instance = model_class.parse_obj(message_data)
+                                    command_instance = model_class.parse_obj(content)
                                     
                                     # Log and handle the parsed command instance
                                     logger.info(f"Parsed {command_type} command: {command_instance}")
@@ -146,6 +148,7 @@ class BroadcastUtility:
             logger.error(f"WebSocket error occurred: {e}")
         except Exception as e:
             logger.error(f"Error in send_messages: {e}")
+
 
 
     async def send_command_model(self, websocket: WebSocket, command_data: CommandModel, channel: str = "default"):

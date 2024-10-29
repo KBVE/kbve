@@ -55,6 +55,7 @@ import java.util.concurrent.CountDownLatch;
 
 //  [ENUM]
 enum KBVEStateMachine {
+    BOOT,
     IDLE,
     TASK,
     API,
@@ -88,6 +89,7 @@ public class KBVEScripts extends Script {
         EulaAgreement = false;
         Rs2Antiban.resetAntibanSettings();
         userState = UserAuthStateMachine.GUEST;
+        state = KBVEStateMachine.BOOT;
 
         //  [Debug]
         if(config.debugMode())
@@ -316,34 +318,30 @@ public class KBVEScripts extends Script {
         }
 
 
-        if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN) {
+        try {
+            // Retrieve encrypted credentials if necessary
+            String storedUsername = configManager.getConfiguration("profile", username, "username");
+            String storedPassword = configManager.getConfiguration("profile", username, "password");
+            String storedWorld = configManager.getConfiguration("profile", username, "world");
+
+            // Decrypt password if necessary (uncomment if encryption is applied)
+            // String decryptedPassword = Encryption.decrypt(storedPassword);
+
             try {
-
-                // Retrieve encrypted credentials if necessary
-                String storedUsername = configManager.getConfiguration("profile", username, "username");
-                String storedPassword = configManager.getConfiguration("profile", username, "password");
-                String storedWorld = configManager.getConfiguration("profile", username, "world");
-
-                // Decrypt password and bank PIN if needed (depends on how credentials are stored)
-                // String decryptedPassword = Encryption.decrypt(storedPassword);
+                // Attempt to parse storedWorld as an integer
                 int loginWorld = Integer.parseInt(storedWorld);
-                if(loginWorld)
-                    {
-                        new Login(storedUsername, storedPassword, loginWorld);
-                    }
-                    else 
-                    {
-                        new Login(storedUsername, storedPassword);
-                    }
-                Microbot.log("Logging in with profile for user: " + username);
-                return true;
-            } 
-            catch (Exception e) {
-                Microbot.log("Error during login: " + e.getMessage());
-                return false;
+                // Login with world specified if parsing succeeds
+                new Login(storedUsername, storedPassword, loginWorld);
+            } catch (NumberFormatException e) {
+                // Log an error if storedWorld is invalid and proceed with default login
+                Microbot.log("Invalid world format for user " + username + ". Logging in without specific world.");
+                new Login(storedUsername, storedPassword);  // Login without the world
             }
-        } else {
-            Microbot.log("Unknown Screen");
+            
+            Microbot.log("Logging in with profile for user: " + username);
+            return true;
+        } catch (Exception e) {
+            Microbot.log("Error during login: " + e.getMessage());
             return false;
         }
     }
