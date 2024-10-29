@@ -3,8 +3,8 @@ from typing import Any, List, Optional, Union
 
 class CommandModel(BaseModel):
     command: str
-    package: str
-    class_name: str
+    package: str = Field(alias="packageName")
+    class_name: str = Field(alias="className")
     method: str
     args: List[Union[str, int, float, bool]] = []
     priority: int = 5
