@@ -141,13 +141,13 @@ public class KBVEScripts extends Script {
                         break;
                     case LOGIN:
                         logger("[LOGIN] Flow", 0);
-                        if (Microbot.isLoggedIn())
-                            {
-                            userState = UserAuthStateMachine.AUTHENTICATED;
-                            initialPlayerLocation = Rs2Player.getWorldLocation();
-                            logger(" [LOGIN] Preparing to activate GPS", 42);
-                            state = KBVEStateMachine.IDLE;
-                            }
+                        // if (Microbot.isLoggedIn())
+                        //     {
+                        //     userState = UserAuthStateMachine.AUTHENTICATED;
+                        //     initialPlayerLocation = Rs2Player.getWorldLocation();
+                        //     logger(" [LOGIN] Preparing to activate GPS", 42);
+                        //     state = KBVEStateMachine.IDLE;
+                        //     }
                         break;
                     case TASK:
                         Microbot.log("[KBVE]: Task state");
@@ -304,42 +304,46 @@ public class KBVEScripts extends Script {
     }
 
 
-    public boolean SafeLogin(String username, String password, String pin, int world)
-    {
-        if(Microbot.isLoggedIn())
-        {
+    public boolean SafeLogin(String username, String password, String pin, int world) {
+        if (Microbot.isLoggedIn()) {
             Microbot.log("A user is already logged in");
             return false;
         }
 
-
         ConfigProfile profile = loadOrCreateProfile(username, password, pin, world);
         if (profile == null) {
-                Microbot.log("Failed to create or load profile for user " + username);
-                return false;
+            Microbot.log("Failed to create or load profile for user " + username);
+            return false;
         }
-
 
         try {
             // Retrieve encrypted credentials if necessary
             String storedUsername = configManager.getConfiguration("profile", username, "username");
+            if (storedUsername == null) {
+                Microbot.log("No stored username found for user " + username);
+                return false;
+            }
+
             String storedPassword = configManager.getConfiguration("profile", username, "password");
+            if (storedPassword == null) {
+                Microbot.log("No stored password found for user " + username);
+                return false;
+            }
+
             String storedWorld = configManager.getConfiguration("profile", username, "world");
+            if (storedWorld == null) {
+                Microbot.log("No stored world found for user " + username + ". Proceeding without specific world.");
+            }
 
-            // Decrypt password if necessary (uncomment if encryption is applied)
-            // String decryptedPassword = Encryption.decrypt(storedPassword);
-
+            // Attempt to parse the world as an integer and login with specified world
             try {
-                // Attempt to parse storedWorld as an integer
                 int loginWorld = Integer.parseInt(storedWorld);
-                // Login with world specified if parsing succeeds
                 new Login(storedUsername, storedPassword, loginWorld);
             } catch (NumberFormatException e) {
-                // Log an error if storedWorld is invalid and proceed with default login
                 Microbot.log("Invalid world format for user " + username + ". Logging in without specific world.");
                 new Login(storedUsername, storedPassword);  // Login without the world
             }
-            
+
             Microbot.log("Logging in with profile for user: " + username);
             return true;
         } catch (Exception e) {
@@ -347,6 +351,7 @@ public class KBVEScripts extends Script {
             return false;
         }
     }
+
 
     // WebSocket Client class to handle connection and messaging
     private class KBVEWebSocketClient extends WebSocketClient {
