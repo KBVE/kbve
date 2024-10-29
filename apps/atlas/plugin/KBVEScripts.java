@@ -8,11 +8,16 @@ import net.runelite.api.NPC;
 import net.runelite.api.TileObject;
 import net.runelite.api.GameState;
 import net.runelite.api.Point;
+import net.runelite.client.config.ConfigProfile;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.ProfileManager;
+
 
 //  [Microbot]
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.util.security.Login;
+import net.runelite.client.plugins.microbot.util.security.Encryption;
 
 //  [Microbot Utils]
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
@@ -34,6 +39,7 @@ import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 //  [Java]
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 
 //  [KBVE]
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
@@ -56,6 +62,11 @@ enum KBVEStateMachine {
 
 
 public class KBVEScripts extends Script {
+
+    @Inject
+    private ProfileManager profileManager;
+    @Inject
+    private ConfigManager configManager;
 
     private KBVEStateMachine state;
     private boolean init;
@@ -233,7 +244,43 @@ public class KBVEScripts extends Script {
         return true;
     }
 
-    public boolean SafeLogin(String username, String password, int world)
+    private ConfigProfile loadOrCreateProfile(String username, String password, String bankPin, int world) {
+        ConfigProfile profile;
+
+        try (ProfileManager.Lock lock = profileManager.lock()) {
+            profile = lock.findProfile(username);
+
+            // If profile doesn't exist, create a new one
+            if (profile == null) {
+                profile = lock.createProfile(username);
+                logger("Created new profile for user " + username, 0);
+
+                // Encrypt and save password
+                String encryptedPassword = Encryption.encrypt(password);
+                configManager.setConfiguration("profile", username, "password", encryptedPassword);
+
+                // Encrypt and save bank PIN
+                String encryptedBankPin = Encryption.encrypt(bankPin);
+                configManager.setConfiguration("profile", username, "bankPin", encryptedBankPin);
+
+                // Save additional settings like world if needed
+                configManager.setConfiguration("profile", username, "world", String.valueOf(world));
+
+                lock.dirty();  // Mark as modified for saving
+                logger("Profile created and configured for user " + username, 0);
+            } else {
+                logger("Profile already exists for user " + username, 0);
+            }
+        } catch (Exception e) {
+            logger("Error creating profile: " + e.getMessage(), 0);
+            return null;
+        }
+
+        return profile;
+    }
+
+
+    public boolean SafeLogin(String username, String password, String pin, int world)
     {
         if(Microbot.isLoggedIn())
         {
@@ -241,11 +288,40 @@ public class KBVEScripts extends Script {
             return false;
         }
 
+        if(!EulaAgreement) {
+            AcceptEULA(0,0);
+             // Load or create profile, and store credentials in ConfigManager
+            ConfigProfile profile = loadOrCreateProfile(username, password, pin, world);
+            if (profile == null) {
+                logger("Failed to create or load profile for user " + username, 0);
+                return false;
+            }
+
+            // Mark EULA as accepted to prevent re-acceptance
+            EulaAgreement = true;
+        }
+
         if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN) {
-            new Login(username, password, world);
+            try {
+
+            // Retrieve encrypted credentials if necessary
+            String storedUsername = configManager.getConfiguration("profile", username, "username");
+            String storedPassword = configManager.getConfiguration("profile", username, "password");
+            String storedWorld = configManager.getConfiguration("profile", username, "world");
+
+            // Decrypt password and bank PIN if needed (depends on how credentials are stored)
+            String decryptedPassword = Encryption.decrypt(storedPassword);
+            int loginWorld = Integer.parseInt(storedWorld);
+
+            new Login(storedUsername, decryptedPassword, loginWorld);
+            logger("Logging in with profile for user: " + username, 0);
             return true;
-        } else 
-        {
+            } 
+                catch (Exception e) {
+                logger("Error during login: " + e.getMessage(), 0);
+                return false;
+            }
+        } else {
             logger("Unknown Screen", 0);
             return false;
         }
