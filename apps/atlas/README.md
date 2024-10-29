@@ -58,7 +58,7 @@ docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/atlas:1.42
                 "packageName": "net.runelite.client.plugins.microbot.kbve",
                 "className": "KBVEScripts",
                 "method": "AcceptEULA",
-                "args": [755, 490],
+                "args": [300, 301],
                 "priority": 1
             }
     },

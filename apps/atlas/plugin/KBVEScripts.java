@@ -62,6 +62,7 @@ public class KBVEScripts extends Script {
     private KBVEWebSocketClient webSocketClient;
     private CountDownLatch latch = new CountDownLatch(1);
     private boolean DebugMode = false;
+    private boolean EulaAgreement = false;
 
     public boolean run(KBVEConfig config) {
 

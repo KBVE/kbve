@@ -104,3 +104,29 @@ class RuneLiteClient:
     async def close(self):
         # This method is required by the KRDecorator's pattern, even if it does nothing
         pass
+
+    async def status_runelite(self):
+        """
+        Check if the RuneLite (runelite.jar) process is running using `pgrep`.
+        Returns a status message based on whether the process is found.
+        """
+        try:
+            # Use `pgrep` to find the process by its name
+            result = subprocess.run(
+                ["pgrep", "-f", "runelite.jar"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Check if any process ID was found
+            if result.stdout.strip():
+                logger.info("RuneLite is currently running.")
+                return "RuneLite is running."
+            else:
+                logger.info("RuneLite is not running.")
+                return "RuneLite is not running."
+
+        except Exception as e:
+            logger.error(f"Error checking RuneLite status: {e}")
+            return f"Error checking RuneLite status: {e}"
