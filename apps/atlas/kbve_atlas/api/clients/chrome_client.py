@@ -103,3 +103,28 @@ class ChromeClient:
     async def close(self):
         # This method is required by the KRDecorator's pattern, even if it does nothing
         pass
+
+    async def fetch_embedded_job_board(self):
+        url = "https://boards.greenhouse.io/embed/job_board?for=weedmaps77&b=https%3A%2F%2Fweedmaps.com%2Fcareers"
+        self.set_display()
+
+        # Start Chromedriver session in a context manager
+        try:
+            with SB(uc=True, headless=self.headless, browser="chrome", headed=True) as sb:
+                self.sb = sb
+                # Open the URL
+                self.sb.open(url)
+                logger.info(f"Navigated to {url}")
+
+                # Wait until the embedded job board wrapper is available
+                self.sb.wait_for_element_visible("#embedded_job_board_wrapper", timeout=10)
+
+                # Retrieve the HTML content of the embedded job board wrapper
+                job_board_html = self.sb.get_attribute("#embedded_job_board_wrapper", "outerHTML")
+                print(job_board_html)  # Print the HTML content
+                logger.info("Successfully retrieved embedded job board content.")
+                
+                return job_board_html
+        except Exception as e:
+            logger.error(f"Failed to fetch embedded job board: {e}")
+            return f"Failed to fetch embedded job board: {e}"
