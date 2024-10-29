@@ -16,3 +16,9 @@ fi
 export DISPLAY=${DISPLAY:-:1}
 
 . ~/.venv/bin/activate && DISPLAY=$DISPLAY poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5 | tee -a uvicorn.log &
+
+# Wait for 5 seconds before sending the curl request
+sleep 5
+
+# Make a GET request to start Runelite
+curl -X GET "http://localhost:8086/start-runelite"
