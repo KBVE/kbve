@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 class CommandModel(BaseModel):
     command: str
     package: str
     class_name: str
     method: str
-    args: List[str] = []
+    args: List[Union[str, int, float, bool]] = []
     priority: int = 5
 
 class LoggerModel(BaseModel):

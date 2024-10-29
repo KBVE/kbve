@@ -132,6 +132,8 @@ public class KBVEScripts extends Script {
 
                 // Handle the state
                 switch (state) {
+                    case BOOT:
+                        break;
                     case IDLE:
                         //Point mousePosition = Microbot.getMouse().getMousePosition();
                         // Log the current state and mouse position
