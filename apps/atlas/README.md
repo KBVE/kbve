@@ -59,7 +59,7 @@ docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/atlas:1.42
                 "packageName": "net.runelite.client.plugins.microbot.kbve",
                 "className": "KBVEScripts",
                 "method": "SafeLogin",
-                "args": ["myUsername", "myPassword", 301],
+                "args": ["myUsername", "myPassword", "0000", 301],
                 "priority": 1
             }
     }

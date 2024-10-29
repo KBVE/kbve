@@ -15,6 +15,8 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.config.ProfileManager;
+
 
 //  [Micro]
 import net.runelite.client.plugins.microbot.Microbot;
@@ -47,6 +49,8 @@ public class KBVEPlugin extends Plugin {
     private OverlayManager overlayManager;
     @Inject
     private KBVEOverlay overlay;
+    @Inject
+    private ProfileManager profileManager;
 
     @Provides
     KBVEConfig provideConfig(ConfigManager configManager){
