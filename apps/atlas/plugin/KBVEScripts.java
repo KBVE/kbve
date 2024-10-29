@@ -73,12 +73,13 @@ public class KBVEScripts extends Script {
     private KBVEWebSocketClient webSocketClient;
     private CountDownLatch latch = new CountDownLatch(1);
     private boolean DebugMode = false;
-    private boolean EulaAgreement = false;
+    private boolean EulaAgreement;
 
     public boolean run(KBVEConfig config) {
 
         // [Microbot]
         Microbot.enableAutoRunOn = false;
+        EulaAgreement = false;
         Rs2Antiban.resetAntibanSettings();
         init = true;
 
@@ -284,45 +285,40 @@ public class KBVEScripts extends Script {
     {
         if(Microbot.isLoggedIn())
         {
-            logger("A user is already logged in", 0);
+            Microbot.log("A user is already logged in");
             return false;
         }
 
-        if(!EulaAgreement) {
-            AcceptEULA(0,0);
-             // Load or create profile, and store credentials in ConfigManager
-            ConfigProfile profile = loadOrCreateProfile(username, password, pin, world);
-            if (profile == null) {
-                logger("Failed to create or load profile for user " + username, 0);
-                return false;
-            }
 
-            // Mark EULA as accepted to prevent re-acceptance
-            EulaAgreement = true;
+        ConfigProfile profile = loadOrCreateProfile(username, password, pin, world);
+        if (profile == null) {
+                Microbot.log("Failed to create or load profile for user " + username);
+                return false;
         }
+
 
         if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN) {
             try {
 
-            // Retrieve encrypted credentials if necessary
-            String storedUsername = configManager.getConfiguration("profile", username, "username");
-            String storedPassword = configManager.getConfiguration("profile", username, "password");
-            String storedWorld = configManager.getConfiguration("profile", username, "world");
+                // Retrieve encrypted credentials if necessary
+                String storedUsername = configManager.getConfiguration("profile", username, "username");
+                String storedPassword = configManager.getConfiguration("profile", username, "password");
+                String storedWorld = configManager.getConfiguration("profile", username, "world");
 
-            // Decrypt password and bank PIN if needed (depends on how credentials are stored)
-            String decryptedPassword = Encryption.decrypt(storedPassword);
-            int loginWorld = Integer.parseInt(storedWorld);
+                // Decrypt password and bank PIN if needed (depends on how credentials are stored)
+                String decryptedPassword = Encryption.decrypt(storedPassword);
+                int loginWorld = Integer.parseInt(storedWorld);
 
-            new Login(storedUsername, decryptedPassword, loginWorld);
-            logger("Logging in with profile for user: " + username, 0);
-            return true;
+                new Login(storedUsername, decryptedPassword, loginWorld);
+                Microbot.log("Logging in with profile for user: " + username);
+                return true;
             } 
-                catch (Exception e) {
-                logger("Error during login: " + e.getMessage(), 0);
+            catch (Exception e) {
+                Microbot.log("Error during login: " + e.getMessage());
                 return false;
             }
         } else {
-            logger("Unknown Screen", 0);
+            Microbot.log("Unknown Screen");
             return false;
         }
     }
