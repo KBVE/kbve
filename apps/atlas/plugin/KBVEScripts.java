@@ -74,6 +74,7 @@ public class KBVEScripts extends Script {
     private CountDownLatch latch = new CountDownLatch(1);
     private boolean DebugMode = false;
     private boolean EulaAgreement;
+    private boolean userState = false; 
 
     public boolean run(KBVEConfig config) {
 
@@ -82,6 +83,7 @@ public class KBVEScripts extends Script {
         EulaAgreement = false;
         Rs2Antiban.resetAntibanSettings();
         init = true;
+        userState = false;
 
         //  [Debug]
         if(config.debugMode())
@@ -106,7 +108,8 @@ public class KBVEScripts extends Script {
                         init = false;
                     }
                     else {
-                        Microbot.log("[KBVE]: FUTURE -> Not Logged In!");
+                        userState = false;
+                       // Microbot.log("[KBVE]: FUTURE -> Not Logged In!");
                     }
                     
                 }
@@ -127,6 +130,9 @@ public class KBVEScripts extends Script {
                         // Log the current state and mouse position
                         //logger("[KBVE]: Idle state. Current mouse position: (" + mousePosition.getX() + ", " + mousePosition.getY() + ")");
                         break;
+                    case LOGIN:
+                        logger("Login method invoked.", 0);
+                        break;
                     case TASK:
                         Microbot.log("[KBVE]: Task state");
                         performTask();
@@ -143,7 +149,7 @@ public class KBVEScripts extends Script {
                         break;
                 }
             } catch (Exception ex) {
-                Microbot.log("[KBVE] Future Try Error: " + ex.getMessage());
+                logger("[KBVE] Future Try Error: " + ex.getMessage(), -1);
             }
         }, 0, 1000, TimeUnit.MILLISECONDS);
         return true;
@@ -161,7 +167,7 @@ public class KBVEScripts extends Script {
     }
 
     private void logger(String message, int priority) {
-        if (DebugMode) {
+        if (DebugMode && priority > -1) {
             Microbot.log("[KBVE]: " + message);
         }
 
@@ -357,6 +363,9 @@ public class KBVEScripts extends Script {
                         logger("[KBVE]: Ignoring message from non-default channel: " + channel, 0);
                         return; // Ignore the message if it's not from the "default" channel
                     }
+                } else 
+                {
+                    Microbot.log("No Channel Found");
                 }
 
                 // Step 3: Check for the "content" field or try to parse the whole message
