@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.kbve;
+package net.runelite.client.plugins.microbot.kbve.json;
 
 import lombok.Getter;
 import lombok.Setter;

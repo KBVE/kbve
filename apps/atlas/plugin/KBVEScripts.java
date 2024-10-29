@@ -43,6 +43,7 @@ import javax.inject.Inject;
 
 //  [KBVE]
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
+import net.runelite.client.plugins.microbot.kbve.json.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
@@ -58,6 +59,7 @@ enum KBVEStateMachine {
     TASK,
     API,
     KILL,
+    LOGIN
 }
 
 
@@ -74,6 +76,7 @@ public class KBVEScripts extends Script {
     private CountDownLatch latch = new CountDownLatch(1);
     private boolean DebugMode = false;
     private boolean EulaAgreement;
+    private boolean userState = false; 
 
     public boolean run(KBVEConfig config) {
 
@@ -82,6 +85,7 @@ public class KBVEScripts extends Script {
         EulaAgreement = false;
         Rs2Antiban.resetAntibanSettings();
         init = true;
+        userState = false;
 
         //  [Debug]
         if(config.debugMode())
@@ -106,7 +110,8 @@ public class KBVEScripts extends Script {
                         init = false;
                     }
                     else {
-                        Microbot.log("[KBVE]: FUTURE -> Not Logged In!");
+                        userState = false;
+                       // Microbot.log("[KBVE]: FUTURE -> Not Logged In!");
                     }
                     
                 }
@@ -127,13 +132,16 @@ public class KBVEScripts extends Script {
                         // Log the current state and mouse position
                         //logger("[KBVE]: Idle state. Current mouse position: (" + mousePosition.getX() + ", " + mousePosition.getY() + ")");
                         break;
+                    case LOGIN:
+                        logger("Login method invoked.", 0);
+                        break;
                     case TASK:
                         Microbot.log("[KBVE]: Task state");
                         performTask();
                         break;
                     case API:
                         Microbot.log("[KBVE]: API state");
-                        sendMessageToWebSocket("Performing API task");
+                        logger("Performing API task", 0);
                         break;
                     case KILL:
                         Microbot.log("[KBVE]: Stopping...");
@@ -143,7 +151,7 @@ public class KBVEScripts extends Script {
                         break;
                 }
             } catch (Exception ex) {
-                Microbot.log("[KBVE] Future Try Error: " + ex.getMessage());
+                logger("[KBVE] Future Try Error: " + ex.getMessage(), -1);
             }
         }, 0, 1000, TimeUnit.MILLISECONDS);
         return true;
@@ -161,7 +169,7 @@ public class KBVEScripts extends Script {
     }
 
     private void logger(String message, int priority) {
-        if (DebugMode) {
+        if (DebugMode && priority > -1) {
             Microbot.log("[KBVE]: " + message);
         }
 
@@ -193,7 +201,7 @@ public class KBVEScripts extends Script {
                 webSocketClient.send(message);
                 //state = KBVEStateMachine.IDLE;
             } else {
-                logger("WS - Skipping non-JSON message: " + message, 0);
+                logger("WS - Skipping non-JSON message: " + message, -1);
             }
         } else {
             logger("WS - WebSocket is not connected. Cannot send message.", 0);
@@ -339,72 +347,62 @@ public class KBVEScripts extends Script {
 
         @Override
         public void onMessage(String message) {
-            logger("[KBVE]: Received message: " + message, 0); // Log the entire message for debugging
+            logger("[KBVE]: Received message: " + message, 0);
 
             Gson gson = new Gson();
             KBVECommand command;
             try {
-                // Step 1: Parse the message as a JSON object
+                // Parse the message as a JSON object
                 JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
-
-                // Log the entire JSON object for debugging
                 logger("[KBVE]: Full JSON object: " + jsonObject.toString(), 0);
 
-                // Step 2: Check if the message contains a "channel" field and validate it
-                if (jsonObject.has("channel")) {
-                    String channel = jsonObject.get("channel").getAsString();
-                    if (!"default".equals(channel)) {
-                        logger("[KBVE]: Ignoring message from non-default channel: " + channel, 0);
-                        return; // Ignore the message if it's not from the "default" channel
+                // Check if the message contains a "message" field and skip to avoid loops
+                if (jsonObject.has("message")) {
+                    logger("[KBVE]: Skipping processing of message containing 'message' field to avoid loop.", 0);
+                    return;
+                }
+
+                // Check for "command" field and process as usual
+                if (jsonObject.has("command")) {
+                    String commandType = jsonObject.get("command").getAsString();
+
+                    switch (commandType) {
+                        case "execute":
+                            command = gson.fromJson(message, KBVECommand.class);
+                            state = KBVEStateMachine.API;
+                            logger("[EXECUTION] " + command.toString(), 0);
+
+                            // Handle command
+                            boolean taskStarted = handleCommand(command);
+                            if (taskStarted) {
+                                state = KBVEStateMachine.TASK;
+                                logger("Executing task: " + command.getMethod(), 0);
+                            } else {
+                                state = KBVEStateMachine.IDLE;
+                                logger("Failed to start task: " + command.getMethod(), 0);
+                            }
+                            return;
+
+                        default:
+                            logger("[KBVE]: Unknown command type: " + commandType, 0);
+                            logger("Unknown command type: " + commandType, 0);
+                            state = KBVEStateMachine.IDLE;
+                            return;
                     }
                 }
 
-                // Step 3: Check for the "content" field or try to parse the whole message
-                if (jsonObject.has("content")) {
-                    JsonElement content = jsonObject.get("content");
-                    if (content == null || !content.isJsonObject()) {
-                        Microbot.log("[KBVE]: Content field is not a valid JSON object.");
-                        sendMessageToWebSocket("Content field is not a valid JSON object.");
-                        state = KBVEStateMachine.IDLE;
-                        return;
-                    }
-                    // Log the content before deserialization
-                    Microbot.log("[KBVE]: Content field: " + content.toString());
-
-                    // Deserialize the "content" field into a KBVECommand
-                    command = gson.fromJson(content, KBVECommand.class);
-                } else {
-                    // If there is no "content" field, assume the whole message is a KBVECommand
-                    Microbot.log("[KBVE]: No 'content' field found. Attempting to parse the whole message.");
-                    command = gson.fromJson(message, KBVECommand.class);
-                }
-
-                // Step 4: Acknowledge the command and set the state to API
-                state = KBVEStateMachine.API;
-                sendMessageToWebSocket("Command received: " + command.toString());
-
-                // Step 5: Attempt to handle the command
-                boolean taskStarted = handleCommand(command);
-                if (taskStarted) {
-                    // If the task started successfully, set the state to TASK
-                    state = KBVEStateMachine.TASK;
-                    sendMessageToWebSocket("Executing task: " + command.getMethod());
-                } else {
-                    // If the task could not be started, revert the state to IDLE
-                    state = KBVEStateMachine.IDLE;
-                    sendMessageToWebSocket("Failed to start task: " + command.getMethod());
-                }
+                // Fallback if no "command" or unexpected format
+                logger("No 'command' field or unrecognized format.", 0);
+                //state = KBVEStateMachine.IDLE;
             } catch (JsonSyntaxException e) {
-                // If the message is not a valid JSON format, log an error and set the state to IDLE
                 logger("Invalid JSON format: " + e.getMessage(), 0);
                 //state = KBVEStateMachine.IDLE;
             } catch (Exception e) {
-                // Handle other exceptions, log the error, and set the state to IDLE
                 logger("Error processing command: " + e.getMessage(), 0);
                 //state = KBVEStateMachine.IDLE;
-                //sendMessageToWebSocket("Error processing command.");
             }
         }
+
 
 
         private boolean handleCommand(KBVECommand command) {
