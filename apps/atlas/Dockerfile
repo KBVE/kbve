@@ -59,6 +59,9 @@ RUN poetry install
 ENV PATH="$HOME/.venv/bin:$PATH"
 
 ENV TITLE="kbveATLASv1.42"
+
+ENV NO_FULL=true
+
 EXPOSE 3000 8086
 
 COPY entrypoint.sh /usr/local/bin/

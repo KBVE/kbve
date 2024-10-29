@@ -62,6 +62,7 @@ public class KBVEScripts extends Script {
     private KBVEWebSocketClient webSocketClient;
     private CountDownLatch latch = new CountDownLatch(1);
     private boolean DebugMode = false;
+    private boolean EulaAgreement = false;
 
     public boolean run(KBVEConfig config) {
 
@@ -213,30 +214,11 @@ public class KBVEScripts extends Script {
         Rs2Antiban.resetAntibanSettings();
     }
 
-        public static void clickOnCanvas(int x, int y) {
-        // Get the absolute position of the canvas on the screen
-        java.awt.Point canvasScreenPosition = Microbot.getClient().getCanvas().getLocationOnScreen();
-        Microbot.log("Canvas position on screen: (" + canvasScreenPosition.x + ", " + canvasScreenPosition.y + ")");
+    public static void clickOnCanvas(int x, int y) {
 
-        // Get the dimensions of the canvas
-        int canvasWidth = Microbot.getClient().getCanvas().getWidth();
-        int canvasHeight = Microbot.getClient().getCanvas().getHeight();
-        Microbot.log("Canvas dimensions: width=" + canvasWidth + ", height=" + canvasHeight);
-
-        // Determine if scaling is needed based on the actual canvas size
-        double scaleX = canvasWidth / 765.0; // Assuming 765 is the default game width
-        double scaleY = canvasHeight / 503.0; // Assuming 503 is the default game height
-        Microbot.log("Scale factors: scaleX=" + scaleX + ", scaleY=" + scaleY);
-
-        // Scale the input coordinates
-        int scaledX = (int) (x * scaleX);
-        int scaledY = (int) (y * scaleY);
-        Microbot.log("Scaled coordinates: (" + scaledX + ", " + scaledY + ")");
-
-        // Calculate the screen coordinates for the click
-        int actualX = canvasScreenPosition.x + scaledX;
-        int actualY = canvasScreenPosition.y + scaledY;
-        Microbot.log("Calculated screen coordinates for click: (" + actualX + ", " + actualY + ")");
+        
+        int actualX = Microbot.getClient().getViewportXOffset() + x;
+        int actualY = Microbot.getClient().getViewportYOffset() + y;
 
         // Perform the click at the calculated screen position
         Microbot.getMouse().click(new Point(actualX, actualY));
@@ -247,15 +229,8 @@ public class KBVEScripts extends Script {
 
     public boolean AcceptEULA(int x, int y)
     {
-        //Microbot.log("Processing EULA");
-        // if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN)
-        // {
-        //     return true;
-        // }
-
-        Microbot.log("Clicking at coordinates (" + x + ", " + y + ")");
-        clickOnCanvas(x, y);
-        return false;
+        clickOnCanvas(350, 300);
+        return true;
     }
 
     public boolean SafeLogin(String username, String password, int world)
