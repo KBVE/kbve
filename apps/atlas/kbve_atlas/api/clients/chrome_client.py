@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import os
+from bs4 import BeautifulSoup
+import json
 from seleniumbase import SB
 from seleniumbase.common.exceptions import NoSuchElementException, TimeoutException
 
@@ -23,6 +25,35 @@ class ChromeClient:
 
     def open_the_turnstile_page(self, url):
         self.sb.driver.uc_open_with_reconnect(url, reconnect_time=2)
+
+    def parse_job_board_html(self, job_board_html):
+        # Initialize BeautifulSoup to parse the HTML content
+        soup = BeautifulSoup(job_board_html, "html.parser")
+        job_data = []
+
+        # Loop through each department section
+        for section in soup.find_all("section", class_="level-0"):
+            department_name = section.find("h3").get_text(strip=True) if section.find("h3") else "Unknown Department"
+
+            # Process job listings within the department
+            for job_listing in section.find_all("div", class_="opening"):
+                # Extract job title, location, and link to job
+                job_title = job_listing.find("a").get_text(strip=True) if job_listing.find("a") else "No Title"
+                job_link = job_listing.find("a")["href"] if job_listing.find("a") else ""
+                location = job_listing.find("span", class_="location").get_text(strip=True) if job_listing.find("span", class_="location") else "No Location"
+
+                # Append job details to the job_data list
+                job_data.append({
+                    "department": department_name,
+                    "title": job_title,
+                    "location": location,
+                    "link": job_link
+                })
+
+        # Convert job_data list to JSON format
+        # job_data_json = json.dumps(job_data, indent=4)
+        #return job_data_json
+        return json.dumps(job_data)
 
     async def start_chrome_async(self):
         try:
@@ -121,10 +152,12 @@ class ChromeClient:
 
                 # Retrieve the HTML content of the embedded job board wrapper
                 job_board_html = self.sb.get_attribute("#embedded_job_board_wrapper", "outerHTML")
-                print(job_board_html)  # Print the HTML content
+                job_board_json = self.parse_job_board_html(job_board_html)
                 logger.info("Successfully retrieved embedded job board content.")
                 
-                return job_board_html
+                return job_board_json
         except Exception as e:
             logger.error(f"Failed to fetch embedded job board: {e}")
             return f"Failed to fetch embedded job board: {e}"
+
+
