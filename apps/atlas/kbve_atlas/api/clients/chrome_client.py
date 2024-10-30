@@ -153,6 +153,8 @@ class ChromeClient:
                 # Retrieve the HTML content of the embedded job board wrapper
                 job_board_html = self.sb.get_attribute("#embedded_job_board_wrapper", "outerHTML")
                 job_board_json = self.parse_job_board_html(job_board_html)
+                if isinstance(job_board_json, str):
+                    job_board_json = json.loads(job_board_json)
                 logger.info("Successfully retrieved embedded job board content.")
                 
                 return job_board_json

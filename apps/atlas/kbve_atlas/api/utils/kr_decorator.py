@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, JSONResponse
-from typing import Type, Callable, Union
+from fastapi import FastAPI, HTTPException
+from typing import Type, Callable
 
 class KRDecorator:
     def __init__(self, app: FastAPI):
