@@ -40,6 +40,7 @@ import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
+import java.util.Arrays;
 
 //  [KBVE]
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
@@ -450,76 +451,94 @@ public class KBVEScripts extends Script {
 
 
         private boolean handleCommand(KBVECommand command) {
-            try {
-                // Step 1: Construct the full class name and load the class
-                String fullClassName = command.getPackageName() + "." + command.getClassName();
-                Class<?> clazz = Class.forName(fullClassName);
+                try {
+                    // Step 1: Construct the full class name and load the class
+                    String fullClassName = command.getPackageName() + "." + command.getClassName();
+                    Class<?> clazz = Class.forName(fullClassName);
 
-                Object instance;
+                    Object instance;
 
-                // Step 2: Determine the appropriate constructor based on the number and type of arguments
-                Object[] args = command.getArgs();
-                if (args.length == 1 && args[0] instanceof Integer) {
-                    // Constructor with one argument (world number)
-                    instance = clazz.getConstructor(int.class).newInstance(args[0]);
-                } else if (args.length == 2 && args[0] instanceof String && args[1] instanceof String) {
-                    // Constructor with two arguments (username, password)
-                    instance = clazz.getConstructor(String.class, String.class).newInstance(args[0], args[1]);
-                } else if (args.length == 3 && args[0] instanceof String && args[1] instanceof String && args[2] instanceof Integer) {
-                    // Constructor with three arguments (username, password, world)
-                    instance = clazz.getConstructor(String.class, String.class, int.class).newInstance(args[0], args[1], args[2]);
-                } else {
-                    // Default constructor if no matching constructor found
-                    instance = clazz.getDeclaredConstructor().newInstance();
-                }
+                    // Step 2: Determine the argument types and adjust values for constructor selection
+                    Object[] args = command.getArgs();
+                    Class<?>[] argTypes = new Class<?>[args.length];
 
-                // Log instance creation
-                logger("Created instance of class " + command.getClassName(), 1);
-
-                // Step 3: Determine the parameter types for the method based on the command's arguments
-                Class<?>[] parameterTypes = new Class<?>[args.length];
-                for (int i = 0; i < args.length; i++) {
-                    if (args[i] instanceof Double) {
-                        // Check if the Double represents an integer value
-                        Double doubleValue = (Double) args[i];
-                        if (doubleValue % 1 == 0) {
-                            parameterTypes[i] = int.class;
-                            args[i] = doubleValue.intValue(); // Cast to Integer
+                    for (int i = 0; i < args.length; i++) {
+                        if (args[i] instanceof Integer) {
+                            argTypes[i] = int.class;
+                        } else if (args[i] instanceof Double) {
+                            Double doubleValue = (Double) args[i];
+                            // Check if Double can be converted to an int (i.e., it has no fractional part)
+                            if (doubleValue % 1 == 0) {
+                                argTypes[i] = int.class;
+                                args[i] = doubleValue.intValue(); // Convert to Integer
+                            } else {
+                                argTypes[i] = double.class;
+                            }
+                        } else if (args[i] instanceof Boolean) {
+                            argTypes[i] = boolean.class;
+                        } else if (args[i] instanceof String) {
+                            argTypes[i] = String.class;
                         } else {
-                            parameterTypes[i] = double.class;
+                            argTypes[i] = Object.class; // Fallback if the type is unknown
                         }
-                    } else if (args[i] instanceof Integer) {
-                        parameterTypes[i] = int.class;
-                    } else if (args[i] instanceof Boolean) {
-                        parameterTypes[i] = boolean.class;
-                    } else if (args[i] instanceof String) {
-                        parameterTypes[i] = String.class;
-                    } else {
-                        parameterTypes[i] = Object.class; // Fallback to Object if the type is unknown
                     }
-                }
 
-                // Step 4: Get the specified method from the class
-                java.lang.reflect.Method method = clazz.getMethod(command.getMethod(), parameterTypes);
+                    // Step 3: Try to find a constructor with the argument types and create an instance
+                    try {
+                        instance = clazz.getConstructor(argTypes).newInstance(args);
+                    } catch (NoSuchMethodException e) {
+                        // If no matching constructor, use the default constructor
+                        logger("No matching constructor found for " + clazz.getName() + " with argument types " + Arrays.toString(argTypes) + ". Falling back to default constructor.", 2);
+                        instance = clazz.getDeclaredConstructor().newInstance();
+                    }
 
-                // Step 5: Invoke the method on the instance with the provided arguments
-                Object result = method.invoke(instance, args);
+                    // Log instance creation
+                    logger("Created instance of class " + command.getClassName(), 1);
 
-                // Step 6: Log and send a WebSocket message indicating successful task completion
-                logger("Task completed successfully: " + (result != null ? result.toString() : "void"), 1);
-                state = KBVEStateMachine.IDLE;
-                return true; // Indicate successful task execution
-            } catch (ClassNotFoundException e) {
-                logger("Class not found: " + command.getClassName(), 3);
-            } catch (NoSuchMethodException e) {
-                logger("Method not found: " + command.getMethod(), 3);
-            } catch (IllegalArgumentException e) {
-                logger("Invalid arguments for method: " + command.getMethod() + " - " + e.getMessage(), 3);
-            } catch (Exception e) {
-                logger("Error executing command: " + e.getMessage(), 3);
+                    // Step 4: Determine the parameter types for the method based on the command's arguments
+                    Class<?>[] parameterTypes = new Class<?>[args.length];
+                    for (int i = 0; i < args.length; i++) {
+                        if (args[i] instanceof Integer) {
+                            parameterTypes[i] = int.class;
+                        } else if (args[i] instanceof Double) {
+                            parameterTypes[i] = double.class;
+                        } else if (args[i] instanceof Boolean) {
+                            parameterTypes[i] = boolean.class;
+                        } else if (args[i] instanceof String) {
+                            parameterTypes[i] = String.class;
+                        } else {
+                            parameterTypes[i] = Object.class; // Fallback to Object if the type is unknown
+                        }
+                    }
+
+                    // Log the parameter types for debugging
+                    logger("Parameter types for method " + command.getMethod() + ": " + Arrays.toString(parameterTypes), 1);
+
+                    // Step 5: Get the specified method from the class
+                    java.lang.reflect.Method method = clazz.getMethod(command.getMethod(), parameterTypes);
+
+                    // Log method invocation attempt
+                    logger("Invoking method " + command.getMethod() + " on instance with args: " + Arrays.toString(args), 1);
+
+                    // Step 6: Invoke the method on the instance with the provided arguments
+                    Object result = method.invoke(instance, args);
+
+                    // Step 7: Log and send a WebSocket message indicating successful task completion
+                    logger("Task completed successfully: " + (result != null ? result.toString() : "void"), 1);
+                    state = KBVEStateMachine.IDLE;
+                    return true; // Indicate successful task execution
+                    } catch (ClassNotFoundException e) {
+                        logger("Class not found: " + command.getClassName() + " - " + e, 3);
+                    } catch (NoSuchMethodException e) {
+                        logger("Method not found: " + command.getMethod() + " - " + e, 3);
+                    } catch (IllegalArgumentException e) {
+                        logger("Invalid arguments for method: " + command.getMethod() + " - " + e.getMessage(), 3);
+                    } catch (Exception e) {
+                        logger("Error executing command: " + e.getMessage(), 3);
+                    }
+                
+                return false;
             }
-            return false;
-        }
 
 
 
