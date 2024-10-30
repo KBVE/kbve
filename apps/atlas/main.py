@@ -86,45 +86,45 @@ async def google_news():
 
 @kr_decorator.k_r("/bitcoin-price", CoinDeskClient, "get_current_bitcoin_price")
 def bitcoin_price(price):
-    return {"bitcoin_price": price}
+    return price
 
 @kr_decorator.k_r("/poem", PoetryDBClient, "get_random_poem")
 def poetry_db(poem):
-    return {"poem": poem}
+    return  poem
 
 @kr_decorator.k_r("/start-runelite", RuneLiteClient, "start_runelite_async")
 def runelite_startup_message(startup_message):
-    return {"message": startup_message}
+    return startup_message
 
 @kr_decorator.k_r("/stop-runelite", RuneLiteClient, "stop_runelite_async")
 def runelite_shutdown_message(shutdown_message):
-    return {"message": shutdown_message}
+    return shutdown_message
 
 @kr_decorator.k_r("/status", RuneLiteClient, "status_runelite")
 def status_runelite(message):
-    return {"message": message}
+    return message
 
 @kr_decorator.k_r("/config-runelite", RuneLiteClient, "start_and_configure_runelite")
 def runelite_configuration_message(configuration_message):
-    return {"message": configuration_message}
+    return configuration_message
 
 @kr_decorator.k_r("/start-chrome", ChromeClient, "start_chrome_async")
 def chrome_startup_message(startup_message):
-    return {"message": startup_message}
+    return startup_message
 
 @kr_decorator.k_r("/stop-chrome", ChromeClient, "stop_chrome_async")
 def chrome_shutdown_message(shutdown_message):
-    return {"message": shutdown_message}
+    return shutdown_message
 
 @kr_decorator.k_r("/perform-chrome-task", ChromeClient, "perform_task_with_chrome")
 def chrome_task_message(task_message):
-    return {"message": task_message}
+    return task_message
 
 
 @kr_decorator.k_r("/go-to-gitlab", ChromeClient, "go_to_gitlab")
 def gitlab_navigation_message(navigation_message):
-    return {"message": navigation_message}
+    return navigation_message
 
 @kr_decorator.k_r("/go-to-greenboard", ChromeClient, "fetch_embedded_job_board")
 def fetch_embedded_job_board(navigation_message):
-    return {"message": navigation_message}
+    return navigation_message
