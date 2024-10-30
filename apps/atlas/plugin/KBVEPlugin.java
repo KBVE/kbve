@@ -16,6 +16,8 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.config.ProfileManager;
+import net.runelite.client.game.WorldService;
+
 
 
 //  [Micro]
@@ -51,7 +53,9 @@ public class KBVEPlugin extends Plugin {
     private KBVEOverlay overlay;
     @Inject
     private ProfileManager profileManager;
-
+    @Inject
+    private WorldService worldService;
+    
     @Provides
     KBVEConfig provideConfig(ConfigManager configManager){
         return configManager.getConfig(KBVEConfig.class);
@@ -63,14 +67,18 @@ public class KBVEPlugin extends Plugin {
         Microbot.setClient(client);
         Microbot.setClientThread(clientThread);
         Microbot.setMouse(new VirtualMouse());
+        Microbot.setProfileManager(profileManager);
+        Microbot.setWorldService(worldService);
         if (overlayManager != null) {
             overlayManager.add(overlay);
         }
         switch (config.kbveActivity()) {
             case PYTHON:
                 kbveScripts.run(config);
+                Microbot.log("Python!");
             default:
-                Microbot.log("UwU Socks are dirty!");
+                kbveScripts.run(config);
+                Microbot.log("Default Chan!");
         }
     }
 
