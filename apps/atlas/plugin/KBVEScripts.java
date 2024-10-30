@@ -1,8 +1,6 @@
 package net.runelite.client.plugins.microbot.kbve;
 
-//  [Script] - Majority of the base script is from the AutoCooking, I am just going to strip it down and get a better understanding of the logical flow.
-
-//  [RUNELITE]
+//  [Runelite]
 import net.runelite.api.AnimationID;
 import net.runelite.api.NPC;
 import net.runelite.api.TileObject;
@@ -11,6 +9,7 @@ import net.runelite.api.Point;
 import net.runelite.client.config.ConfigProfile;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.ProfileManager;
+import net.runelite.client.callback.ClientThread;
 
 
 //  [Microbot]
@@ -19,7 +18,7 @@ import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.util.security.Login;
 import net.runelite.client.plugins.microbot.util.security.Encryption;
 
-//  [Microbot Utils]
+//  [Microbot -> Utils*]
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2AntibanSettings;
 import net.runelite.client.plugins.microbot.util.antiban.enums.Activity;
@@ -36,15 +35,25 @@ import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 
+
 //  [Java]
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import java.util.Arrays;
 
+//  [Java -> Nio Locks]
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+
+
 //  [KBVE]
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
 import net.runelite.client.plugins.microbot.kbve.json.*;
+
+//  [**Recent Imports**]
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
@@ -75,6 +84,8 @@ public class KBVEScripts extends Script {
     private ProfileManager profileManager;
     @Inject
     private ConfigManager configManager;
+    @Inject
+    private ClientThread clientThread;
 
     private KBVEStateMachine state;
     private UserAuthStateMachine userState;
@@ -142,13 +153,13 @@ public class KBVEScripts extends Script {
                         break;
                     case LOGIN:
                         logger("[LOGIN] Flow", 0);
-                        // if (Microbot.isLoggedIn())
-                        //     {
-                        //     userState = UserAuthStateMachine.AUTHENTICATED;
-                        //     initialPlayerLocation = Rs2Player.getWorldLocation();
-                        //     logger(" [LOGIN] Preparing to activate GPS", 42);
-                        //     state = KBVEStateMachine.IDLE;
-                        //     }
+                        if (Microbot.isLoggedIn())
+                            {
+                                userState = UserAuthStateMachine.AUTHENTICATED;
+                                initialPlayerLocation = Rs2Player.getWorldLocation();
+                                logger(" [LOGIN] Preparing to activate GPS...", 42);
+                                state = KBVEStateMachine.IDLE;
+                            }
                         break;
                     case TASK:
                         Microbot.log("[KBVE]: Task state");
@@ -177,7 +188,7 @@ public class KBVEScripts extends Script {
             URI serverUri = new URI(config.apiEndpoint());
             webSocketClient = new KBVEWebSocketClient(serverUri);
             webSocketClient.connect();
-            webSocketClient.waitForConnection(); // Wait for the connection to be established
+            webSocketClient.waitForConnection();
         } catch (Exception e) {
             logger("Error connecting to WebSocket: " + e.getMessage(), 0);
         }
@@ -234,7 +245,7 @@ public class KBVEScripts extends Script {
 
 
     private void performTask() {
-        // Placeholder for performing some task
+        // Placeholder for performing some task?
         logger("[KBVE]: Performing task...");
         logger("[KBVE]: Finished task... going idle");
 
@@ -269,36 +280,17 @@ public class KBVEScripts extends Script {
         return true;
     }
 
-    private ConfigProfile loadOrCreateProfile(String username, String password, String bankPin, int world) {
-
-        if (configManager == null || profileManager == null) {
-            logger("Error: Configuration manager or profile manager is not initialized.", 0);
-            return null;
-        }
-
-        ConfigProfile profile;
+    private synchronized ConfigProfile loadOrCreateProfile(String username, String password, String bankPin, int world) 
+    {
+        ConfigProfile profile = null;
 
         try (ProfileManager.Lock lock = profileManager.lock()) {
             profile = lock.findProfile(username);
-
-            // If profile doesn't exist, create a new one
+            
             if (profile == null) {
                 profile = lock.createProfile(username);
                 logger("Created new profile for user " + username, 0);
-
-                // Encrypt and set the password
-                String encryptedPassword = Encryption.encrypt(password);
-                configManager.setPassword(profile, encryptedPassword);
-
-                // Encrypt and set the bank PIN
-                String encryptedBankPin = Encryption.encrypt(bankPin);
-                configManager.setBankPin(profile, encryptedBankPin);
-
-                // Save additional settings like world if needed
-                configManager.setConfiguration("profile", username, "world", String.valueOf(world));
-
-                lock.dirty();  // Mark as modified for saving
-                logger("Profile created and configured for user " + username, 0);
+                lock.dirty(); 
             } else {
                 logger("Profile already exists for user " + username, 0);
             }
@@ -307,14 +299,28 @@ public class KBVEScripts extends Script {
             return null;
         }
 
+        try {
+            String encryptedPassword = Encryption.encrypt(password);
+            configManager.setPassword(profile, encryptedPassword);
+
+            String encryptedBankPin = Encryption.encrypt(bankPin);
+            configManager.setBankPin(profile, encryptedBankPin); 
+
+            configManager.setMember(profile, false);
+
+            logger("Profile created and configured for user " + username, 0);
+        } catch (Exception e) {
+            logger("Error configuring profile: " + e.getMessage(), 0);
+            return null;
+        }
+
         return profile;
     }
-
 
     public boolean SafeLogin(String username, String password, String pin, int world) {
         if (Microbot.isLoggedIn()) {
             Microbot.log("A user is already logged in");
-            return false;
+            return true;
         }
 
         ConfigProfile profile = loadOrCreateProfile(username, password, pin, world);
@@ -323,42 +329,21 @@ public class KBVEScripts extends Script {
             return false;
         }
 
-        configManager.switchProfile(profile);
-    
-        try {
-            // Retrieve encrypted credentials if necessary
-            String storedUsername = configManager.getConfiguration("profile", username, "username");
-            if (storedUsername == null) {
-                Microbot.log("No stored username found for user " + username);
-                return false;
-            }
+        Login.activeProfile = profile;
+       
+        clientThread.invokeLater(() -> {
+            configManager.switchProfile(profile);
 
-            String storedPassword = configManager.getConfiguration("profile", username, "password");
-            if (storedPassword == null) {
-                Microbot.log("No stored password found for user " + username);
-                return false;
-            }
-
-            String storedWorld = configManager.getConfiguration("profile", username, "world");
-            if (storedWorld == null) {
-                Microbot.log("No stored world found for user " + username + ". Proceeding without specific world.");
-            }
-
-            // Attempt to parse the world as an integer and login with specified world
             try {
-                int loginWorld = Integer.parseInt(storedWorld);
-                new Login(storedUsername, storedPassword, loginWorld);
-            } catch (NumberFormatException e) {
-                Microbot.log("Invalid world format for user " + username + ". Logging in without specific world.");
-                new Login(storedUsername, storedPassword);  // Login without the world
+                new Login(world);
+                Microbot.log("Logging in with profile for user: " + username);
+            } catch (Exception e) {
+                Microbot.log("Error during login: " + e.getMessage());
             }
+        });
 
-            Microbot.log("Logging in with profile for user: " + username);
-            return true;
-        } catch (Exception e) {
-            Microbot.log("Error during login: " + e.getMessage());
-            return false;
-        }
+        return true;
+
     }
 
 
