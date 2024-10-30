@@ -280,13 +280,13 @@ public class KBVEScripts extends Script {
                 profile = lock.createProfile(username);
                 logger("Created new profile for user " + username, 0);
 
-                // Encrypt and save password
+                // Encrypt and set the password
                 String encryptedPassword = Encryption.encrypt(password);
-                configManager.setConfiguration("profile", username, "password", encryptedPassword);
+                configManager.setPassword(profile, encryptedPassword);
 
-                // Encrypt and save bank PIN
+                // Encrypt and set the bank PIN
                 String encryptedBankPin = Encryption.encrypt(bankPin);
-                configManager.setConfiguration("profile", username, "bankPin", encryptedBankPin);
+                configManager.setBankPin(profile, encryptedBankPin);
 
                 // Save additional settings like world if needed
                 configManager.setConfiguration("profile", username, "world", String.valueOf(world));
@@ -317,6 +317,8 @@ public class KBVEScripts extends Script {
             return false;
         }
 
+        configManager.switchProfile(profile);
+    
         try {
             // Retrieve encrypted credentials if necessary
             String storedUsername = configManager.getConfiguration("profile", username, "username");
