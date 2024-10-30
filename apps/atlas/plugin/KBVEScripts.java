@@ -270,6 +270,12 @@ public class KBVEScripts extends Script {
     }
 
     private ConfigProfile loadOrCreateProfile(String username, String password, String bankPin, int world) {
+
+        if (configManager == null || profileManager == null) {
+            logger("Error: Configuration manager or profile manager is not initialized.", 0);
+            return null;
+        }
+
         ConfigProfile profile;
 
         try (ProfileManager.Lock lock = profileManager.lock()) {
