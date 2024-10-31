@@ -349,7 +349,7 @@ public class KBVEScripts extends Script {
 
 
     // WebSocket Client class to handle connection and messaging
-    private class KBVEWebSocketClient extends WebSocketClient {
+    public class KBVEWebSocketClient extends WebSocketClient {
 
         public KBVEWebSocketClient(URI serverUri) {
             super(serverUri);

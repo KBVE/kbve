@@ -10,6 +10,7 @@ class CommandModel(BaseModel):
     priority: int = 5
 
 class LoggerModel(BaseModel):
+    command: str = "log"
     message: str
     priority: int
     
