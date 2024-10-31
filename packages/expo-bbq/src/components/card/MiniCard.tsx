@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { YStack, XStack, SizableText, Image, Card, Button, Popover, Adapt } from 'tamagui';
-import { HelpCircle, Info } from '@tamagui/lucide-icons';
+import { HelpCircle, Info, Aperture, PawPrint } from '@tamagui/lucide-icons';
 
 interface MiniCardProps {
 	title: string;
@@ -8,9 +8,11 @@ interface MiniCardProps {
 	image?: string;
 	info?: { content: string };
 	help?: { content: string };
+    aperture?: { content: string};
+    paw?: { content: string}
 }
 
-export const MiniCard = memo(function MiniCard({ title, description, image, info, help }: MiniCardProps) {
+export const MiniCard = memo(function MiniCard({ title, description, image, info, help, aperture, paw }: MiniCardProps) {
 	return (
 		<Card padding="$4" borderRadius="$4" shadowColor={'cyan'} shadowRadius={8} gap="$2" backgroundColor="$background">
 
@@ -43,6 +45,9 @@ export const MiniCard = memo(function MiniCard({ title, description, image, info
 					<XStack gap="$2">
 						{info && <PopoverButton icon={Info} content={info.content} />}
 						{help && <PopoverButton icon={HelpCircle} content={help.content} />}
+						{aperture && <PopoverButton icon={Aperture} content={aperture.content} />}
+						{paw && <PopoverButton icon={PawPrint} content={paw.content} />}
+                        
 					</XStack>
 				</XStack>
 
