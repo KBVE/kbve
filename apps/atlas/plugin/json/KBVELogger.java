@@ -11,7 +11,7 @@ public class KBVELogger {
         this.webSocketClient = webSocketClient;
     }
 
-    public void log(String command, String message, String priority) {
+    public void log(String command, String message, int priority) {
         if (webSocketClient != null && webSocketClient.isOpen()) {
             JsonObject logMessage = new JsonObject();
             logMessage.addProperty("channel", "default");
