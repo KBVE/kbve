@@ -289,10 +289,10 @@ public class KBVEScripts extends Script {
             
             if (profile == null) {
                 profile = lock.createProfile(username);
-                logger("Created new profile for user " + username, 0);
+                logger("Created new profile for user " + username, -1);
                 lock.dirty(); 
             } else {
-                logger("Profile already exists for user " + username, 0);
+                logger("Profile already exists for user " + username, -1);
             }
         } catch (Exception e) {
             logger("Error creating profile: " + e.getMessage(), 0);
@@ -308,7 +308,7 @@ public class KBVEScripts extends Script {
 
             configManager.setMember(profile, false);
 
-            logger("Profile created and configured for user " + username, 0);
+            logger("Profile created and configured for user " + username, -1);
         } catch (Exception e) {
             logger("Error configuring profile: " + e.getMessage(), 0);
             return null;
@@ -331,16 +331,17 @@ public class KBVEScripts extends Script {
 
         Login.activeProfile = profile;
        
-        clientThread.invokeLater(() -> {
-            configManager.switchProfile(profile);
+        // clientThread.invokeLater(() -> {
+        //     configManager.switchProfile(profile);
+        // });
 
-            try {
+        
+        try {
                 new Login(world);
                 Microbot.log("Logging in with profile for user: " + username);
             } catch (Exception e) {
                 Microbot.log("Error during login: " + e.getMessage());
-            }
-        });
+        }
 
         return true;
 
