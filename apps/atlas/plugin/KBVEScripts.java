@@ -93,6 +93,7 @@ public class KBVEScripts extends Script {
     private CountDownLatch latch = new CountDownLatch(1);
     private boolean DebugMode = false;
     private boolean EulaAgreement;
+    private KBVELogger wslog;
 
     public boolean run(KBVEConfig config) {
 
@@ -189,6 +190,8 @@ public class KBVEScripts extends Script {
             webSocketClient = new KBVEWebSocketClient(serverUri);
             webSocketClient.connect();
             webSocketClient.waitForConnection();
+
+            wslog = new KBVELogger(webSocketClient);
         } catch (Exception e) {
             logger("Error connecting to WebSocket: " + e.getMessage(), 0);
         }
@@ -200,20 +203,14 @@ public class KBVEScripts extends Script {
         }
 
         if (priority > 9) {
-            // Create a JSON message that follows the BroadcastModel structure
-            JsonObject broadcastMessage = new JsonObject();
-            broadcastMessage.addProperty("channel", "default"); // Use "default" or set dynamically if needed
-
-            // Create the LoggerModel content as another JSON object
-            JsonObject loggerContent = new JsonObject();
-            loggerContent.addProperty("message", message);
-            loggerContent.addProperty("priority", priority);
-
-            // Add the LoggerModel object to the BroadcastModel under "content"
-            broadcastMessage.add("content", loggerContent);
-
-            // Convert the broadcastMessage to a string and send it
-            sendMessageToWebSocket(broadcastMessage.toString());
+          
+          // Use KBVELogger to send the message via WebSocket
+            if (this.wslog != null) {
+                this.wslog.log("log", message, priority);
+            } else {
+                Microbot.log("[KBVE]: Logger not initialized. Unable to send message.");
+            }
+            
         }
     }
 
@@ -349,7 +346,7 @@ public class KBVEScripts extends Script {
 
 
     // WebSocket Client class to handle connection and messaging
-    private class KBVEWebSocketClient extends WebSocketClient {
+    public class KBVEWebSocketClient extends WebSocketClient {
 
         public KBVEWebSocketClient(URI serverUri) {
             super(serverUri);
