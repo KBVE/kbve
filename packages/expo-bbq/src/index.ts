@@ -1,6 +1,7 @@
 export { TamaHero } from './components/TamaHero';
 export { TamaCard } from './components/TamaCard';
 export { InstaCard } from './components/card/InstaCard';
+export { MiniCard } from './components/card/MiniCard';
 export { BBQEmbed } from './components/BBQEmbed';
 export { TamaSimpleCardList } from './components/TamaSimpleCardList';
 export { LottieAnimation } from './components/animation/LottieAnimation';

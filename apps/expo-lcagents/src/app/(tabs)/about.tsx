@@ -1,6 +1,6 @@
 import React from 'react';
 import { YStack, XStack, SizableText, ScrollView, Button } from 'tamagui';
-import { TamaHero, TamaCard, useBBQ } from '@kbve/expo-bbq';
+import { TamaHero, TamaCard, useBBQ, MiniCard } from '@kbve/expo-bbq';
 
 const AboutScreen = () => {
 	const bbq = useBBQ();
@@ -36,13 +36,14 @@ const AboutScreen = () => {
 				</YStack>
 
 				<YStack alignItems="center" gap="$4" paddingHorizontal="$4">
-					<SizableText size="$6" fontWeight="700">
-						Our Projects
-					</SizableText>
-					<SizableText size="$4" textAlign="center" color="$gray11">
-						We specialize in innovative solutions across a variety
-						of industries. Here are some of our latest projects.
-					</SizableText>
+					
+					<MiniCard
+						title="Our Projects"
+						description="We specialize in innovative solutions across a variety of industries. Here are some of our latest projects."
+						info={{ content: "Discover our approach to solving industry challenges." }}
+						help={{ content: "Need help with a project? Contact us for more details." }}
+						image="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop"
+					/>
 
 					<XStack
 						gap="$4"
@@ -79,6 +80,11 @@ const AboutScreen = () => {
 							image="https://images.unsplash.com/photo-1541976844346-f18aeac57b06?q=80&w=300&auto=format&fit=crop"
 						/>
 					</XStack>
+
+					<SizableText size="$4" textAlign="center" color="$gray11">
+						Reach out to us for a new project today!
+					</SizableText>
+
 				</YStack>
 			</XStack>
 		</ScrollView>
