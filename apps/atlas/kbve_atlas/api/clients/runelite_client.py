@@ -16,17 +16,22 @@ class RuneLiteClient:
     async def start_runelite_async(self):
         env = os.environ.copy()
         env["DISPLAY"] = self.display
+
+        # Schedule the subprocess to run in the background without waiting for it
+        asyncio.create_task(self._run_subprocess_in_background(env))
+
+        # Return immediately
+        return "RuneLite is starting in the background."
+
+    async def _run_subprocess_in_background(self, env):
         try:
-            # Since subprocess.run is not async, use asyncio to run it in a thread pool
+            # Run the subprocess in a thread pool without blocking the main coroutine
             await asyncio.to_thread(
                 subprocess.run, ["java", "-jar", self.jar_path], env=env
             )
             logger.info("RuneLite started successfully.")
-            return "RuneLite started successfully."
         except Exception as e:
             logger.error(f"Failed to start RuneLite: {e}")
-            return f"Failed to start RuneLite: {e}"
-
 
     async def stop_runelite_async(self):
         try:
@@ -99,3 +104,29 @@ class RuneLiteClient:
     async def close(self):
         # This method is required by the KRDecorator's pattern, even if it does nothing
         pass
+
+    async def status_runelite(self):
+        """
+        Check if the RuneLite (runelite.jar) process is running using `pgrep`.
+        Returns a status message based on whether the process is found.
+        """
+        try:
+            # Use `pgrep` to find the process by its name
+            result = subprocess.run(
+                ["pgrep", "-f", "runelite.jar"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Check if any process ID was found
+            if result.stdout.strip():
+                logger.info("RuneLite is currently running.")
+                return "RuneLite is running."
+            else:
+                logger.info("RuneLite is not running.")
+                return "RuneLite is not running."
+
+        except Exception as e:
+            logger.error(f"Error checking RuneLite status: {e}")
+            return f"Error checking RuneLite status: {e}"

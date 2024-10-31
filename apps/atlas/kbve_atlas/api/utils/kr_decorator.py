@@ -13,8 +13,15 @@ class KRDecorator:
                     method = getattr(client, method_name)
                     if not callable(method):
                         raise HTTPException(status_code=500, detail="Method not callable")
+                    
                     result = await method()
-                    return func(result)
+                    
+                    # Check if result is JSON-compatible (dict or list)
+                    if isinstance(result, (dict, list)):
+                        return result  # Directly return if JSON-compatible
+                    else:
+                        # Wrap non-JSON responses in a JSON structure
+                        return {"message": str(result)}
                 finally:
                     await client.close()
 
