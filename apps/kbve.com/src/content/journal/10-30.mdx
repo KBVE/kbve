@@ -20,3 +20,20 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
     The realm of trying to figure out profiles has begun again, ugh, so much time wasted.
     I am just not understanding how the profiles are being created and stored, hmm.
+
+-   06:44PM
+
+    **Login**
+    
+    This is actually a two part concept, we want to make sure that we can setup supabase and log into that instance.
+    Then after the supabase connection is established, pull the relatable runescape account information and then login from there using that information?
+    There are still a couple moving parts that we would need to address before we can really get this going but we will start small.
+
+    The command to add a package will be:
+
+    ```shell
+
+    pnpm nx run atlas:add --name supabase
+
+    ```
+    
