@@ -21,9 +21,10 @@ readme = 'README.md'
   include = "fudster"
 
   [tool.poetry.dependencies]
-  python = ">=3.9,<3.13"
+  python = ">=3.9,<3.14"
   haystack-ai = "^2.2.3"
   pgvector-haystack = "^1.0.0"
+  fastapi = {extras = ["standard"], version = "^0.115.4"}
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.0.2"
