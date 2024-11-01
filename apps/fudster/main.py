@@ -17,14 +17,6 @@ CORS(app)
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
-@routes.get("/start-runelite", RuneLiteClient, "start_runelite_async")
-def runelite_startup_message(startup_message):
-    return startup_message
-
-@routes.get("/stop-runelite",  RuneLiteClient, "stop_runelite_async")
-def runelite_shutdown_message(shutdown_message):
-    return shutdown_message
-
-@routes.get("/status", RuneLiteClient, "status_runelite")
-def status_runelite(message):
-    return message
+routes.get("/start-runelite", RuneLiteClient, "start_runelite_async")
+routes.get("/stop-runelite", RuneLiteClient, "stop_runelite_async")
+routes.get("/status", RuneLiteClient, "status_runelite")
