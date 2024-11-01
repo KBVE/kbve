@@ -1,6 +1,4 @@
 from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
-
 from fudster import Routes, CORS, RuneLiteClient
 
 import logging
@@ -8,15 +6,11 @@ import logging
 logger = logging.getLogger("uvicorn")
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-routes = Routes(app)
+routes = Routes(app, templates_dir="templates")
 
 CORS(app)
 
-@app.get("/")
-async def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
-
+routes.render("/", "home.html")
 routes.get("/start-runelite", RuneLiteClient, "start_runelite_async")
 routes.get("/stop-runelite", RuneLiteClient, "stop_runelite_async")
 routes.get("/status", RuneLiteClient, "status_runelite")

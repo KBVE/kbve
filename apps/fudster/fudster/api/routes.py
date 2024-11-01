@@ -1,10 +1,13 @@
 from fastapi import FastAPI, HTTPException, Request
-from typing import Type
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from typing import Type, Callable
 from pydantic import ValidationError
 
 class Routes:
-    def __init__(self, app: FastAPI):
+    def __init__(self, app: FastAPI, templates_dir: str = "templates"):
         self.app = app
+        self.templates = Jinja2Templates(directory=templates_dir)
 
     async def parse_json_body(self, request: Request):
         try:
@@ -34,6 +37,12 @@ class Routes:
                 await client.close()
 
         self.app.add_api_route(path, wrapper, methods=methods)
+
+    def render(self, path: str, template_name: str):
+        async def wrapper(request: Request):
+            return self.templates.TemplateResponse(template_name, {"request": request})
+
+        self.app.add_api_route(path, wrapper, methods=["GET"])
 
     def get(self, path: str, client_class: Type, method_name: str):
         self.add_route(path, client_class, method_name, methods=["GET"])
