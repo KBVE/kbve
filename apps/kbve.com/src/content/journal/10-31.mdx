@@ -29,3 +29,22 @@ import { Adsense, Tasks } from '@kbve/astropad';
     Decided to take a bit of a break from the java + python world and switch back over to the react native realm.
     I am starting to get a bit back into the drift of just running multiple codespaces again, but will try not to over do it this round.
     We will stick to around 3 max screens for now.
+
+    On a side note, we are now officially done with the [tamagui](https://github.com/KBVE/kbve/issues/786) integration, so we can close that year old ticket out.
+
+-   06:19PM
+
+    **Components**
+
+    Going to build a couple more updates tamagui components, after the minicard and then the next will be an improved slider / carousel tamagui component.
+    I will place this inside of its own folder, then make adjustments from there.
+    That might be a mistake, I think it will be another name that might not be `slider` but rather hmm.
+    We can go with `Gallery` as the base folder and component holder for it all.
+
+-   06:42PM
+
+    **Migration**
+
+    Moving the `plugin` / java code out of Atlas and into the Fudster package.
+    The premise will be to decouple the the osrs / rsps from atlas and split the production of the two.
+    This is just to make things easier when it comes to optimization and execution.
