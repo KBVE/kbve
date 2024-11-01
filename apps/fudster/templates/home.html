@@ -28,13 +28,71 @@
 			import preline from 'https://cdn.jsdelivr.net/npm/preline@2.5.1/+esm';
 		
 			document.addEventListener('DOMContentLoaded', () => {
+				// Initialize Preline
 				if (window.HSStaticMethods) {
 					window.HSStaticMethods.autoInit();
+		
+					// Modal toggle functionality after Preline initialization
+					const overlays = document.querySelectorAll('.hs-overlay');
+		
+					overlays.forEach((overlay) => {
+						const triggerButton = document.querySelector(`[data-hs-overlay="#${overlay.id}"]`);
+						const closeButton = overlay.querySelector(`[data-hs-overlay="#${overlay.id}"]`);
+		
+						// Function to toggle overlay and backdrop visibility
+						const toggleOverlay = () => {
+							const isOpen = overlay.classList.contains('hs-overlay-open');
+							
+							// Toggle overlay classes
+							overlay.classList.toggle('hs-overlay-open', !isOpen);
+							overlay.classList.toggle('hidden', isOpen);
+							overlay.classList.toggle('opacity-100', !isOpen);
+		
+							// Locate or create the backdrop
+							let backdrop = document.querySelector('.hs-overlay-backdrop');
+							if (!backdrop && !isOpen) {
+								// Create the backdrop if it doesn’t exist and modal is opening
+								backdrop = document.createElement('div');
+								backdrop.className = 'hs-overlay-backdrop transition duration fixed inset-0 bg-gray-900 bg-opacity-50 dark:bg-opacity-80 dark:bg-neutral-900';
+								backdrop.style.zIndex = '79';
+								document.body.appendChild(backdrop);
+							}
+		
+							// Toggle backdrop visibility
+							if (backdrop) {
+								backdrop.classList.toggle('hidden', isOpen);
+								backdrop.classList.toggle('opacity-100', !isOpen);
+								
+								// Remove backdrop when modal closes
+								if (isOpen) {
+									backdrop.remove();
+								}
+							}
+						};
+		
+						// Event listener to open the modal
+						if (triggerButton) {
+							triggerButton.addEventListener('click', (event) => {
+								event.preventDefault();
+								toggleOverlay();
+							});
+						}
+		
+						// Event listener to close the modal
+						if (closeButton) {
+							closeButton.addEventListener('click', (event) => {
+								event.preventDefault();
+								toggleOverlay();
+							});
+						}
+					});
 				} else {
 					console.error("Preline plugin couldn't initialize. Check the imports.");
 				}
 			});
 		</script>
+		
+		
 	</head>
 	<body class="bg-gray-100">
 		<!-- Navbar -->
@@ -117,7 +175,7 @@
 		<!-- Services Modal -->
 		<div
 			id="services-modal"
-			class="hs-overlay hs-overlay-open:opacity-100 hs-overlay-open:duration-500 hidden size-full fixed top-0 start-0 z-[80] opacity-0 overflow-x-hidden transition-all overflow-y-auto pointer-events-none"
+			class="hs-overlay hidden size-full fixed top-0 start-0 z-[80] overflow-x-hidden transition-all overflow-y-auto pointer-events-none"
 			role="dialog"
 			tabindex="-1"
 			aria-labelledby="services-modal-label">
