@@ -61,6 +61,37 @@
 				"command": "poetry run pytest tests/",
 				"cwd": "apps/fudster"
 			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/fudster",
+				"file": "apps/fudster/Dockerfile",
+				"metadata": {
+					"images": ["kbve/fudster"],
+					"load": true,
+					"tags": ["1.03", "1.03.0"]
+				},
+				"configurations": {
+					"local": {
+						"tags": ["1.03", "1.03.0"],
+						"push": false
+					},
+					"production": {
+						"tags": ["1.03", "1.03.0"],
+						"push": true,
+						"customBuildOptions": "--push",
+						"cache-from": [
+							"type=registry,ref=kbve/fudster:buildcache"
+						],
+						"cache-to": [
+							"type=registry,ref=kbve/fudster:buildcache,mode=max"
+						]
+					}
+				}
+			}
 		}
 	}
 }
