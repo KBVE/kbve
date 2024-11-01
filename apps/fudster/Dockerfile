@@ -26,49 +26,32 @@ RUN mvn clean package
 ############
 ##  [Stage] - 2
 ############
-FROM ubuntu:22.04 AS build
+FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-venv python3-dev build-essential curl git && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-ENV PATH="/root/.local/bin:$PATH"
-
-##  [2:C] -> Copy Python project files to the container.
-WORKDIR /app
-COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-root
-
-##  [2:D] -> Copy the remaining Python application files.
-COPY . .
-RUN python3 -m compileall -b .
-
-############
-##  [Stage] - 3
-############
-FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
-
-RUN \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
     openjdk-11-jre \
-    python3-minimal \
+    python3 python3-pip python3-venv python3-xdg python3-dev python3-distutils build-essential curl git && \
     apt-get autoclean && \
-    rm -rf /config/.cache /var/lib/apt/lists/* /var/tmp/* /tmp/*
-
-## ENV
-
-ENV TITLE="kbveATLASv1.42"
-ENV NO_FULL=true
-
+    rm -rf /var/lib/apt/lists/* /var/tmp/* /tmp/*
 
 COPY /root /
 
 COPY --from=jar /root/microbot/runelite-client/target/*.jar /usr/local/bin/runelite.jar
-COPY --from=build /app /usr/local/bin/app
+
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+RUN curl -sSL https://install.python-poetry.org | python -
+ENV PATH="$HOME/.local/bin:$HOME/.poetry/bin:${PATH}"
+
+WORKDIR $HOME
+COPY pyproject.toml poetry.lock poetry.toml $HOME
+RUN poetry install --no-root
+COPY . $HOME
+
+ENV PATH="$HOME/.venv/bin:$PATH"
+ENV TITLE="Fudster v1.03"
+ENV NO_FULL=true
 
 VOLUME /config
 RUN chown -R abc:abc /config
