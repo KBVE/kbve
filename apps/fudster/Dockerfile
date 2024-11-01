@@ -53,7 +53,6 @@ ENV PATH="$HOME/.venv/bin:$PATH"
 ENV TITLE="Fudster v1.03"
 ENV NO_FULL=true
 
-VOLUME /config
 RUN chown -R abc:abc /config
 
 EXPOSE 3000 8086
