@@ -92,6 +92,22 @@
 					}
 				}
 			}
+		},
+		"orb": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					{
+						"command": "pnpm nx container fudster",
+						"forwardAllArgs": false
+					},
+					{
+						"command": "docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/fudster:1.03",
+						"forwardAllArgs": false
+					}
+				],
+				"parallel": false
+			}
 		}
 	}
 }
