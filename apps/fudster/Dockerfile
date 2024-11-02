@@ -31,21 +31,6 @@ FROM eclipse-temurin:11-jdk AS jar
 
 RUN apt-get update && apt-get install -y git maven
 
-RUN apt-get update && apt-get install -y wget unzip
-
-# Download and install `mvnd` based on architecture
-RUN ARCH=$(uname -m) && \
-    if [ "$ARCH" = "x86_64" ]; then \
-        wget https://github.com/apache/maven-mvnd/releases/download/1.0.2/maven-mvnd-1.0.2-linux-amd64.zip -O mvnd.zip; \
-    elif [ "$ARCH" = "aarch64" ]; then \
-        wget https://github.com/apache/maven-mvnd/releases/download/1.0.2/maven-mvnd-1.0.2-linux-aarch64.zip -O mvnd.zip; \
-    else \
-        echo "Unsupported architecture: $ARCH" && exit 1; \
-    fi && \
-    unzip mvnd.zip -d /opt && \
-    ln -s /opt/maven-mvnd-1.0.2/bin/mvnd /usr/local/bin/mvnd && \
-    rm mvnd.zip
-
 COPY --from=jardeps /root/microbot /root/microbot
 COPY --from=jardeps /root/.m2 /root/.m2
 
@@ -54,10 +39,9 @@ WORKDIR /root/microbot
 RUN mkdir -p /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
 COPY ./plugin /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
 
-RUN mvnd verify
-
 ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-RUN mvn clean package -T 1C -DskipTests -Dmaven.test.skip=true
+#   RUN mvn clean package -T 1C -DskipTests -Dmaven.test.skip=true -Dparallel=all
+RUN mvn clean package -T 1C -DskipTests -Dmaven.test.skip=true -Dparallel=all
 
 
 ############
