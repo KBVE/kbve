@@ -147,6 +147,19 @@ public class KBVEScripts extends Script {
                 // Handle the state
                 switch (state) {
                     case BOOT:
+                        if (Microbot.getClient().getGameState() == GameState.STARTING)
+                        {
+                            
+                            break;
+                        }
+                        
+                        if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN)
+                        {
+                            sleep(3000);
+                            AcceptEULA(0,0);
+                            state = KBVEStateMachine.READY;
+                            break;
+                        }
                         //logger("[Boot] " + Microbot.getClient().getGameState(), 1);
                         // if Microbot.getClient().getGameState() -> [ => STARTING => ] -> DO NOTHING
                         // if Microbot.getClient().getGameState() -> [ => LOGIN_SCREEN => ] -> ACCEPT EULA (?) -> Prepare READY STATE
