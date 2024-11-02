@@ -205,7 +205,7 @@
 				try {
 					var data = JSON.parse(event.data);
 					var content = document.createTextNode(
-						data.content || event.data,
+						formatJsonDisplay(data),
 					);
 				} catch (e) {
 					var content = document.createTextNode(event.data);
@@ -214,6 +214,16 @@
 				message.appendChild(content);
 				messages.appendChild(message);
 			};
+
+			function formatJsonDisplay(data) {
+				var formatted = '';
+				for (var key in data) {
+					if (data.hasOwnProperty(key)) {
+						formatted += `${key}: ${data[key]}  `;
+					}
+				}
+				return formatted;
+			}
 
 			function sendMessage(event) {
 				if (ws.readyState === WebSocket.OPEN) {

@@ -36,5 +36,5 @@ model_map = {
     "execute": CommandModel,
     "log": LoggerModel,
     "login": KBVELoginModel,
-     "handshake": HandshakeModel,
+    "handshake": HandshakeModel,
 }

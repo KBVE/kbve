@@ -4,7 +4,7 @@ from starlette.websockets import WebSocketDisconnect, WebSocketState
 import logging
 import anyio
 from broadcaster import Broadcast
-from fudster.models.broadcast_models import model_map, CommandModel, HandshakeModel
+from fudster.models.broadcast_models import model_map, CommandModel, HandshakeModel, LoggerModel
 from pydantic import ValidationError
 
 logger = logging.getLogger("uvicorn")
@@ -64,10 +64,22 @@ class WS:
                 handshake_data = json.loads(client_message)
                 handshake_instance = HandshakeModel.parse_obj(handshake_data)
                 logger.info(f"Received valid handshake from client: {handshake_instance}")
-                await websocket.send_text("Handshake successful! Connected to the server.")
+
+                success_log = LoggerModel(
+                    command="log",
+                    message="Handshake successful! Connected to the server.",
+                    priority=1
+                )
+
+                await websocket.send_text(success_log.json())
+
             except (json.JSONDecodeError, ValidationError) as e:
-                logger.error(f"Invalid handshake message: {e}")
-                await websocket.send_text("Invalid handshake format.")
+                error_log = LoggerModel(
+                    command="log",
+                    message=f"Invalid handshake format: {e}",
+                    priority=3
+                )
+                await websocket.send_text(error_log.json())
                 await websocket.close()
                 return
 
@@ -83,6 +95,7 @@ class WS:
         finally:
             if websocket.client_state == WebSocketState.CONNECTED:
                 await websocket.close()
+
 
     async def send_messages(self, websocket: WebSocket, channel: str):
         """Handles receiving and broadcasting messages for WebSocket clients."""
