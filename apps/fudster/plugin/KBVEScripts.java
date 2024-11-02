@@ -355,8 +355,9 @@ public class KBVEScripts extends Script {
         @Override
         public void onOpen(ServerHandshake handshakedata) {
             logger("[KBVE]: WebSocket connection opened.", 1);
-            send("{\"channel\":\"default\",\"content\":\"Hello, server! This is the handshake message.\"}");
-            latch.countDown(); // Signal that the connection is established
+            String handshakeJson = KBVEHandshake.createDefaultHandshakeJson();
+            send(handshakeJson);
+            latch.countDown();
         }
 
         @Override

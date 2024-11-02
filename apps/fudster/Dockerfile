@@ -15,7 +15,7 @@ RUN /root/add_dependency.sh
 
 WORKDIR /root/microbot
 
-RUN mvn dependency:resolve
+RUN mvn dependency:go-offline -B
 
 RUN mkdir -p /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
 

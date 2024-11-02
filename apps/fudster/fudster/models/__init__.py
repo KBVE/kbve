@@ -1,1 +1,1 @@
-from .broadcast_models import CommandModel, LoggerModel, BroadcastModel, KBVELoginModel, model_map
+from .broadcast_models import CommandModel, LoggerModel, BroadcastModel, KBVELoginModel, HandshakeModel, model_map
