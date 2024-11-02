@@ -66,11 +66,12 @@ import java.util.concurrent.CountDownLatch;
 //  [ENUM]
 enum KBVEStateMachine {
     BOOT,
+    READY,
+    LOGIN,
     IDLE,
     TASK,
     API,
-    KILL,
-    LOGIN
+    KILL
 }
 
 enum UserAuthStateMachine {
@@ -146,6 +147,13 @@ public class KBVEScripts extends Script {
                 // Handle the state
                 switch (state) {
                     case BOOT:
+                        //logger("[Boot] " + Microbot.getClient().getGameState(), 1);
+                        // if Microbot.getClient().getGameState() -> [ => STARTING => ] -> DO NOTHING
+                        // if Microbot.getClient().getGameState() -> [ => LOGIN_SCREEN => ] -> ACCEPT EULA (?) -> Prepare READY STATE
+                        break;
+                    case READY:
+                        logger("[READY]" , 1);
+                        //  if(READY)
                         break;
                     case IDLE:
                         //Point mousePosition = Microbot.getMouse().getMousePosition();
@@ -362,18 +370,18 @@ public class KBVEScripts extends Script {
 
         @Override
         public void onMessage(String message) {
-            logger("[KBVE]: Received message: " + message, 0);
+            logger("[KBVE]: Received message: " + message, -1);
 
             Gson gson = new Gson();
             KBVECommand command;
             try {
                 // Parse the message as a JSON object
                 JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
-                logger("[KBVE]: Full JSON object: " + jsonObject.toString(), 0);
+                logger("[KBVE]: Full JSON object: " + jsonObject.toString(), -1);
 
                 // Check if the message contains a "message" field and skip to avoid loops
                 if (jsonObject.has("message")) {
-                    logger("[KBVE]: Skipping processing of message containing 'message' field to avoid loop.", 0);
+                    logger("[KBVE]: Skipping processing of message containing 'message' field to avoid loop.", -1);
                     return;
                 }
 
@@ -391,10 +399,10 @@ public class KBVEScripts extends Script {
                             boolean taskStarted = handleCommand(command);
                             if (taskStarted) {
                                 state = KBVEStateMachine.TASK;
-                                logger("Executing task: " + command.getMethod(), 0);
+                                logger("Executing task: " + command.getMethod(), 42);
                             } else {
                                 state = KBVEStateMachine.IDLE;
-                                logger("Failed to start task: " + command.getMethod(), 0);
+                                logger("Failed to start task: " + command.getMethod(), 69);
                             }
                             return;
 
@@ -414,10 +422,10 @@ public class KBVEScripts extends Script {
 
                             if (loginSuccess) {
                                 //     state = KBVEStateMachine.AUTHENTICATED;
-                                logger("Login successful for user: " + loginCommand.getUsername(), 0);
+                                logger("Login successful for user: " + loginCommand.getUsername(), 42);
                                 } else {
                                 //     state = KBVEStateMachine.IDLE;
-                                    logger("Failed login attempt for user: " + loginCommand.getUsername(), 0);
+                                    logger("Failed login attempt for user: " + loginCommand.getUsername(), 69);
                                 }
                             return;
                         default:

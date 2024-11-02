@@ -15,10 +15,14 @@ RUN /root/add_dependency.sh
 
 WORKDIR /root/microbot
 
-RUN mvn dependency:go-offline -B
+#RUN mvn dependency:go-offline -B
+RUN mvn -f /root/microbot/pom.xml dependency:go-offline -B
+RUN mvn -f /root/microbot/runelite-api/pom.xml dependency:go-offline -B
+RUN mvn -f /root/microbot/runelite-jshell/pom.xml dependency:go-offline -B
+RUN mvn -f /root/microbot/runelite-client/pom.xml dependency:go-offline -B
+RUN mvn -f /root/microbot/runelite-maven-plugin/pom.xml dependency:go-offline -B
 
 RUN mkdir -p /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
-
 COPY ./plugin /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
 
 RUN mvn clean package
