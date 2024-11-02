@@ -26,6 +26,7 @@ readme = 'README.md'
   pgvector-haystack = "^1.0.0"
   fastapi = {extras = ["standard"], version = "^0.115.4"}
   uvicorn = {extras = ["standard"], version = "^0.32.0"}
+  broadcaster = "^0.3.1"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.0.2"

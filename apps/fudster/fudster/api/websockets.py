@@ -4,7 +4,7 @@ from starlette.websockets import WebSocketDisconnect, WebSocketState
 import logging
 import anyio
 from broadcaster import Broadcast
-from ...models.broadcast import model_map, CommandModel
+from fudster.models.broadcast_models import model_map, CommandModel
 from pydantic import ValidationError
 
 logger = logging.getLogger("uvicorn")
