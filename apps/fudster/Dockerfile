@@ -1,11 +1,13 @@
 ############
 ##  [Stage] - 1
 ############
-FROM eclipse-temurin:11-jdk AS jar
+FROM eclipse-temurin:11-jdk AS jardeps
 
 RUN apt-get update && apt-get install -y git maven
 
 RUN git clone https://github.com/chsami/microbot.git /root/microbot
+
+RUN mkdir /root/.m2
 
 COPY add_dependency.sh /root/add_dependency.sh
 
@@ -15,13 +17,32 @@ RUN /root/add_dependency.sh
 
 WORKDIR /root/microbot
 
-RUN mvn dependency:resolve
+RUN mvn -f /root/microbot/pom.xml dependency:go-offline dependency:resolve dependency:resolve-plugins clean package -DskipTests -B
+RUN mvn -f /root/microbot/runelite-api/pom.xml dependency:go-offline dependency:resolve dependency:resolve-plugins clean package -DskipTests -B
+RUN mvn -f /root/microbot/runelite-jshell/pom.xml dependency:go-offline dependency:resolve dependency:resolve-plugins clean package -DskipTests -B
+RUN mvn -f /root/microbot/runelite-client/pom.xml dependency:go-offline dependency:resolve dependency:resolve-plugins -DskipTests -B
+RUN mvn -f /root/microbot/runelite-maven-plugin/pom.xml dependency:go-offline dependency:resolve dependency:resolve-plugins clean package -DskipTests -B
+
+
+############
+##  [STAGE] - 1D
+############
+FROM eclipse-temurin:11-jdk AS jar
+
+RUN apt-get update && apt-get install -y git maven
+
+COPY --from=jardeps /root/microbot /root/microbot
+COPY --from=jardeps /root/.m2 /root/.m2
+
+WORKDIR /root/microbot
 
 RUN mkdir -p /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
-
 COPY ./plugin /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
 
-RUN mvn clean package
+ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+#   RUN mvn clean package -T 1C -DskipTests -Dmaven.test.skip=true -Dparallel=all
+RUN mvn clean package -T 1C -DskipTests -Dmaven.test.skip=true -Dparallel=all
+
 
 ############
 ##  [Stage] - 2

@@ -24,6 +24,14 @@ To build the base docker image and then run it:
 
 ```shell
 
+./kbve.sh -nx fudster:orb
+
+```
+
+or to run them isolated:
+
+```shell
+
 pnpm nx container fudster
 docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/fudster:1.03
 

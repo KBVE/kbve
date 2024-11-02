@@ -4,7 +4,7 @@ from starlette.websockets import WebSocketDisconnect, WebSocketState
 import logging
 import anyio
 from broadcaster import Broadcast
-from fudster.models.broadcast_models import model_map, CommandModel
+from fudster.models.broadcast_models import model_map, CommandModel, HandshakeModel, LoggerModel
 from pydantic import ValidationError
 
 logger = logging.getLogger("uvicorn")
@@ -59,14 +59,35 @@ class WS:
             if not self.connected:
                 await self.connect()
 
-            # Send previous message history to the newly connected client
+            client_message = await websocket.receive_text()
+            try:
+                handshake_data = json.loads(client_message)
+                handshake_instance = HandshakeModel.parse_obj(handshake_data)
+                logger.info(f"Received valid handshake from client: {handshake_instance}")
+
+                success_log = LoggerModel(
+                    command="log",
+                    message="Handshake successful! Connected to the server.",
+                    priority=1
+                )
+
+                await websocket.send_text(success_log.json())
+
+            except (json.JSONDecodeError, ValidationError) as e:
+                error_log = LoggerModel(
+                    command="log",
+                    message=f"Invalid handshake format: {e}",
+                    priority=3
+                )
+                await websocket.send_text(error_log.json())
+                await websocket.close()
+                return
+
             for message in self.message_history:
                 await websocket.send_text(message)
 
-            client_message = await websocket.receive_text()
-            logger.info(f"Received handshake message from client: {client_message}")
-            await websocket.send_text("Handshake successful! Connected to the server.")
             await self.send_messages(websocket, "default")
+
         except WebSocketDisconnect:
             logger.info("Client disconnected.")
         except Exception as e:
@@ -74,6 +95,7 @@ class WS:
         finally:
             if websocket.client_state == WebSocketState.CONNECTED:
                 await websocket.close()
+
 
     async def send_messages(self, websocket: WebSocket, channel: str):
         """Handles receiving and broadcasting messages for WebSocket clients."""
