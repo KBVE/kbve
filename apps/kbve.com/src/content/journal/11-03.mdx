@@ -23,3 +23,35 @@ import { Adsense, Tasks } from '@kbve/astropad';
     Kinda sad tht our whole pipeline has to be held off because of a nx extension breaking, which kinda of does not make logistical sense.
     Spent the whole day trying to get it to work but stil lost in the sauce.
     The only other solution I have would be to just remove the whole astro extension and migrate down to the typescript level of operations.
+
+    Okay the only option that I see is just to drop the nx extension for astro and use a custom typescript builder.
+    We will have to remake the commands in the astro nx extension.
+
+    ```json
+
+    "targets": {
+		"build": {
+			"executor": "@nxtensions/astro:build",
+			"options": {}
+		},
+		"dev": {
+			"executor": "@nxtensions/astro:dev",
+			"options": {}
+		},
+		"preview": {
+			"executor": "@nxtensions/astro:preview",
+			"options": {}
+		},
+		"check": {
+			"executor": "@nxtensions/astro:check"
+		},
+		"sync": {
+			"executor": "@nxtensions/astro:sync"
+		}
+	}
+
+    ```
+
+    Furthermore I am thinking we can migrate the existing astro websites to expo, besides our kbve main repo.
+    RareIcon, Herbmail, ect.. should be all 
+    
