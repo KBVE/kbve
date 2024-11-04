@@ -1,0 +1,27 @@
+---
+title: 'November: 4th'
+category: Daily
+date: 2024-11-04 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 4th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+-   04:15PM
+
+    **Supabase**
+
+	There are two points to the supabase, the first one we will be tackling the onboarding function.
+	The goal would be to move the process of registering into an isolated scope within the onboarding.
+	This way we can make a function that only logged in users can call and it would check if the username is unique but also allows us to rate control the call.
+	In the previous way that we were handling it, the username query could have been abused and instead of working around fixing that, it would make more sense to disable guests or anons from using the function.
+	By moving more of the future logic into an authenticated role, we can build a better system for controlling the permissions and rate controls.
+	So if the user is making too many queries, we can issue a warning and/or a ban.
+	Furthermore, we will extend out the kilobase image to include a fail2ban at the container level.
