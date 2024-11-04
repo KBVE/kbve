@@ -26,9 +26,15 @@ class KBVELoginModel(BaseModel):
     world: int
     uuid: Optional[str] = Field(default="default-uuid")
 
+class HandshakeModel(BaseModel):
+    command: str = "handshake"
+    channel: str
+    content: str
+    timestamp: str
+
 model_map = {
     "execute": CommandModel,
     "log": LoggerModel,
     "login": KBVELoginModel,
-    # Add future command mappings here
+    "handshake": HandshakeModel,
 }
