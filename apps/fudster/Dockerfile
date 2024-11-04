@@ -5,7 +5,7 @@ FROM eclipse-temurin:11-jdk AS jardeps
 
 RUN apt-get update && apt-get install -y git maven
 
-RUN git clone https://github.com/chsami/microbot.git /root/microbot
+RUN git clone --depth 1 https://github.com/chsami/microbot.git /root/microbot
 
 RUN mkdir /root/.m2
 
