@@ -25,3 +25,38 @@ import { Adsense, Tasks } from '@kbve/astropad';
 	By moving more of the future logic into an authenticated role, we can build a better system for controlling the permissions and rate controls.
 	So if the user is making too many queries, we can issue a warning and/or a ban.
 	Furthermore, we will extend out the kilobase image to include a fail2ban at the container level.
+
+	Hmm, okay so we would tackle the username issue first, then switch over to updating the user card next.
+	I create a new sql file called 20241104120000_remove_username_for_auth.sql and that will be what we run to adjust our username function.
+	We want this to be only for a situation of giving the username out during the onboarding process, hopefully not updating an exisiting username.
+
+	Ah, to be safe, I will also include this:
+
+	```sql
+
+	-- Check if _user_id is NULL (i.e., the caller is not authenticated)
+    IF _user_id IS NULL THEN
+        RAISE EXCEPTION 'not_authenticated';
+    END IF;
+
+	```
+
+	Even if the `auth.id()` is not providing a valid UUID, I want to make sure the function gracefully fails if the `_user_id` is null.
+
+-	05:39PM
+
+	**HouseOfMemes**
+
+	This season of house of memes is about to be over and I am just waiting for the crazy plot twists to occur!
+	Will it be a poll attack? 
+	Another massive riot breaking out in NYC?
+	There are so many questions and I would be on full alert if I was near any voting booth.
+
+-	06:24PM
+
+	**UserCards**
+
+	Moving forward with the next Supabase adjustment, we have to make minor changes to how we handle the usercards.
+	The first being the situation where they get their initial card, hmmmm, I believe it will be during the onboarding phase and we can place null spots into the table.
+	However, like the bio, we might have to split the fields of the usercard into a couple different subsections?
+	I am still trying my best to figure out the way to handle the json verification for this, which I am going to assume will be just a series of guess and checks until it works.
