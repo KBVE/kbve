@@ -60,3 +60,25 @@ import { Adsense, Tasks } from '@kbve/astropad';
 	The first being the situation where they get their initial card, hmmmm, I believe it will be during the onboarding phase and we can place null spots into the table.
 	However, like the bio, we might have to split the fields of the usercard into a couple different subsections?
 	I am still trying my best to figure out the way to handle the json verification for this, which I am going to assume will be just a series of guess and checks until it works.
+
+	```sql
+
+	BEGIN;
+	--  Drop older trigger and function
+	DROP TRIGGER IF EXISTS on_auth_new_card_created ON auth.users;
+	DROP FUNCTION IF EXISTS public.handle_user_card_update();
+	COMMIT;
+
+	```
+
+	These two functions will remove the trigger on the `auth.users` and drop the function to `handle_user_card_update()`.
+	Similar to how we were handling the `user_profiles` earlier.
+
+-	11:56PM
+
+	**DB**
+
+	The database will be split amoung three core areas that we will focus on, the tables under public, the triggers and finally the functions.
+	These will be the point of focus of this week, after we establish a baseline of operating the functions within expo too.
+	We know that registering and login work fine, but there was some issues with upodating the bio that need to be resolved.
+	The problem we made with that function was that it was not too specific and that needs to be addressed during the user card process.
