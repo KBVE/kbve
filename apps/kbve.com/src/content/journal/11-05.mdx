@@ -48,3 +48,8 @@ import { Adsense, Tasks } from '@kbve/astropad';
 		-	`handle_user_cards_update` - under table `user_cards` with function `moddatetime`
 		-	`handle_user_profile_update` - under table `user_profiles` with function `handle_profile_update`
 		-	`handle_user_profiles_update` - under table `user_profiles` with function `moddatetime`
+
+	Finally we have the database functions, which are split into into the two schemas again, `auth` and `public`.
+	Under the `public`, we have:
+		-	`before_insert_hcaptcha_verfication` with 0 arguements, a return type of trigger and security of invoker.
+		-	`create_user_profile` - with `_username` as text, a return type of void and a security definer.
