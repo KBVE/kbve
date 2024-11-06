@@ -15,6 +15,7 @@
 
 
 # compiled output
+/src
 dist
 tmp
 /out-tsc

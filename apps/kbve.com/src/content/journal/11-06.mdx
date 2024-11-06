@@ -1,0 +1,34 @@
+---
+title: 'November: 6th'
+category: Daily
+date: 2024-11-06 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 6th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+-	03:38AM
+
+	**PostTrump**
+
+	Looks like the elections are over and we can all finally move on.
+	It was way too long of a process and I am so glad this poopfest is officially over.
+	Too many people, too many opinions, just a massive rat nest with emotional baggage in each nanometer.
+
+	**Astro**
+
+	To test case the astro migration, I think it would make sense to start with an example repo?
+	Let us try to use the rareicon as an example repo that we can build around.
+	Eventually we want to either swap it out with a tamagui interface or maybe keep the astro for the landing page.
+	Then release an app.rareicon.com for the expo build, but regardless, we will need to migrate and replace the nx extension.
+	To get started, we will have to replace the `tsconfig.json` and manually handle some of the linking.
+	We can replace this: `"extends": "../../tsconfig.base.json",` with a direct reference to astro's ts base.
+	Okay this fix seems to work for `rareicon.com`
+	We could also update the `.gitignore` to not add in the `src` folder that gets created.
