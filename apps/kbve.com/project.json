@@ -5,11 +5,33 @@
 	"sourceRoot": "apps/kbve.com/src",
 	"tags": [],
 	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve.com",
+				"commands": [
+					"nx exec -- astro dev"
+				],
+				"parallel": false
+			}
+			
+		},
 		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve.com",
+				"commands": [
+					"nx exec -- astro build"
+				],
+				"parallel": false
+			}
+			
+		},
+		"buildx": {
 			"executor": "@nxtensions/astro:build",
 			"options": {}
 		},
-		"dev": {
+		"devx": {
 			"executor": "@nxtensions/astro:dev",
 			"options": {}
 		},
