@@ -26,6 +26,7 @@ export default defineConfig({
 			//extendPlugins: "astroDefaults"
 		}),
     tailwind({
+      applyBaseStyles: false,
       configFile: fileURLToPath(
         new URL('./tailwind.config.cjs', import.meta.url)
       ),

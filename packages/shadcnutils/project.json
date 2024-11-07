@@ -1,0 +1,9 @@
+{
+  "name": "shadcnutils",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/shadcnutils/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project shadcnutils --web",
+  "targets": {}
+}
