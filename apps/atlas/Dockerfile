@@ -1,23 +1,3 @@
-FROM eclipse-temurin:11-jdk AS build
-
-RUN apt-get update && apt-get install -y git maven
-
-RUN git clone https://github.com/chsami/microbot.git /root/microbot
-
-RUN mkdir -p /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
-
-COPY ./plugin /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
-
-COPY add_dependency.sh /root/add_dependency.sh
-
-RUN chmod +x /root/add_dependency.sh
-
-RUN /root/add_dependency.sh
-
-WORKDIR /root/microbot
-
-RUN mvn clean package
-
 FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
 
 RUN \
@@ -34,7 +14,6 @@ RUN \
     python3-venv \
     python3-distutils \
     gnome-screenshot \
-    openjdk-11-jre \
     chromium-browser \
     chromium-chromedriver && \
     apt-get autoclean && \
@@ -43,8 +22,6 @@ RUN \
 
 COPY /root /
 
-
-COPY --from=build /root/microbot/runelite-client/target/*.jar /usr/local/bin/runelite.jar
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN curl -sSL https://install.python-poetry.org | python -
