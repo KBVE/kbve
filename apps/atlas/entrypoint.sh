@@ -14,6 +14,8 @@ xauth generate $DISPLAY . trusted 2>/dev/null
 # Set XDG_SESSION_TYPE to x11
 export XDG_SESSION_TYPE=x11
 
+Xvfb $DISPLAY -screen 0 1280x800x24 -ac &
+
 
 # Start Virtual Frame Buffer in the background
 # Added `-ac` to disable access control, i.e., allow connections from any host
@@ -28,5 +30,7 @@ sleep 5
 
 # Verify the DISPLAY setting before running the Python script
 echo "Running on DISPLAY: $DISPLAY"
+pgrep Xvfb > /dev/null && echo "Xvfb is running" || { echo "Xvfb failed to start"; exit 1; }
 
 # exec 
+exec java -jar /usr/local/bin/microbot.jar

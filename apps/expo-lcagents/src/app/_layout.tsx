@@ -1,30 +1,31 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
-import { Link, SplashScreen, Stack } from 'expo-router'
+import { Link, SplashScreen, Stack, usePathname } from 'expo-router'
 import { Pressable, useColorScheme } from 'react-native'
 import { TamaguiProvider } from 'tamagui'
+import { PortalProvider } from 'tamagui';
 
-import '../../tamagui-web.css'
+
 
 import { Platform } from "react-native";
 
-import { config } from '../../tamagui.config'
+import config  from '../../tamagui.config'
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'
 import { MenuSquare } from '@tamagui/lucide-icons'
 
 import { NavBar } from './_nav'
-
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router'
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 }
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+if (Platform.OS === 'web') {
+  require('../../tamagui-web.css');
+}
+
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
@@ -35,7 +36,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (interLoaded || interError) {
-      // Hide the splash screen after the fonts have loaded (or an error was returned) and the UI is ready.
       SplashScreen.hideAsync()
     }
   }, [interLoaded, interError])
@@ -48,26 +48,25 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme()
+  const colorScheme = 'dark';  // Hardcode the theme to 'dark'
 
   return (
     <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
-      <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
+      <PortalProvider shouldAddRootHost>
+      <ThemeProvider value={DarkTheme}>
+      
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="menu" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="consulting" />
-          <Stack.Screen name="projects"
-           options={{
-            headerShown: true, // Ensure the header is shown
-            title: 'Projects', // Set the title for the header
-            // Add more options as needed
-            headerLeft: () => (
-              <NavBar />
-            ),
-          }}  />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="menu" options={{ presentation: 'modal', animation: 'fade' }} />
+          <Stack.Screen name="consulting"  options={{  animation: 'fade' }} />
+          <Stack.Screen name="register"  options={{  animation: 'fade' }} />
+          <Stack.Screen name="login"  options={{  animation: 'fade' }} />
+          <Stack.Screen name="profile" options={{  animation: 'fade' }} />
+
         </Stack>
+       
       </ThemeProvider>
+      </PortalProvider>
     </TamaguiProvider>
-  )
+  );
 }
