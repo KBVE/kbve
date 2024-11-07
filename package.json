@@ -125,6 +125,7 @@
 		"verdaccio": "^5.32.2",
 		"vite": "5.0.9",
 		"vite-plugin-dts": "~3.8.3",
+		"vite-plugin-top-level-await": "^1.4.4",
 		"vitest": "^1.6.0",
 		"vue": "^3.5.12"
 	},
