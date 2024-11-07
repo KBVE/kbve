@@ -1,0 +1,41 @@
+/* global.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Background colors */
+  --border: 220 20% 20%; /* darker zinc-like shade */
+  --input: 210 22% 96%;
+  --ring: 206 100% 50%;
+  --background: 210 40% 98%; /* dark zinc background */
+  --foreground: 220 13% 13%; /* light foreground for contrast */
+
+  /* Button colors */
+  --primary: 130 80% 40%; /* vibrant green */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 140 40% 30%; /* subdued green for secondary buttons */
+  --secondary-foreground: 0 0% 100%;
+
+  /* Alert/Destructive colors */
+  --destructive: 4 90% 58%; /* red for destructive actions */
+  --destructive-foreground: 0 0% 100%;
+
+  /* Muted, accent, and additional colors */
+  --muted: 210 16% 93%; /* soft muted gray */
+  --muted-foreground: 210 22% 49%;
+
+  --accent: 174 62% 47%; /* teal accent */
+  --accent-foreground: 0 0% 100%;
+
+  --popover: 210 24% 92%; /* popover with slight contrast to background */
+  --popover-foreground: 210 22% 33%;
+
+  /* Card colors */
+  --card: 220 13% 15%; /* slightly lighter than background */
+  --card-foreground: 210 22% 20%;
+
+  /* Border radius */
+  --radius: 8px;
+}

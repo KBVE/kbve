@@ -1,8 +1,9 @@
 ---
+//	[IMPORTS]
 import Layout from '../layouts/Layout.astro';
-import { AstroVe as VE } from '@kbve/astro-ve';
-let title = 'HerbMail Dashboard';
-let description = 'HB Dashboard Proof of Concept';
+//	[Constants]
+const title = `HerbMail Dashboard`;
+const description = `HB Dashboard Proof of Concept`;
 ---
 
 <Layout title={title} description={description}>
@@ -11,7 +12,6 @@ let description = 'HB Dashboard Proof of Concept';
 			class="grid gap-4 grid-flow-row-dense grid-rows-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8 3xl:grid-cols-12">
 			<section
 				class="p-4 sm:p-6 bg-gray-800 border border-gray-700 rounded-lg shadow-sm 2xl:col-span-3 text-kbve-primary transition ease-in-out hover:scale-110">
-				
 			</section>
 
 			<section
@@ -59,18 +59,14 @@ let description = 'HB Dashboard Proof of Concept';
 						</div>
 						<span
 							class="flex items-center justify-center w-full p-3 font-semibold tracki rounded-md">
-							<VE widget="button:shutter:dashboard" href="#_">
-								Read This Now
-							</VE>
 						</span>
 					</div>
 				</div>
 			</section>
 
-			<section class="md:p-4 bg-gray-800 border border-gray-700 rounded-lg shadow-sm 2xl:col-span-2 transition ease-in-out hover:scale-110 focus:overscroll-contain focus:pointer-events-auto">
-				<VE widget="header:embed:yorha" class="" />
+			<section
+				class="md:p-4 bg-gray-800 border border-gray-700 rounded-lg shadow-sm 2xl:col-span-2 transition ease-in-out hover:scale-110 focus:overscroll-contain focus:pointer-events-auto">
 			</section>
-
 
 			<section
 				class="p-4 bg-gray-800 border border-gray-700 rounded-lg shadow-sm 2xl:col-span-2 sm:p-6 text-kbve-primary text-kbve-primary transition ease-in-out hover:scale-110">
@@ -105,16 +101,10 @@ let description = 'HB Dashboard Proof of Concept';
 				</div>
 			</section>
 
-			
-
 			<section
 				class="p-4 bg-gray-800 border border-gray-700 rounded-lg shadow-sm sm:p-6 h-24 text-kbve-primary">
 				User Nav Bar Here!
 			</section>
-
-
-
 		</div>
 	</main>
-	<VE widget="header:external:apexcharts" />
 </Layout>

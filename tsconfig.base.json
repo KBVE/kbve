@@ -1,27 +1,57 @@
 {
-	"compileOnSave": false,
-	"compilerOptions": {
-		"rootDir": ".",
-		"sourceMap": true,
-		"declaration": false,
-		"moduleResolution": "node",
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"importHelpers": true,
-		"target": "es2015",
-		"module": "esnext",
-		"lib": ["es2020", "dom"],
-		"skipLibCheck": true,
-		"skipDefaultLibCheck": true,
-		"baseUrl": ".",
-		"paths": {
-			"@kbve/astro-ve": ["packages/astro-ve/index.ts"],
-			"@kbve/astropad": ["packages/astropad/index.ts"],
-			"@kbve/devops": ["packages/devops/src/index.ts"],
-			"@kbve/expo-bbq": ["packages/expo-bbq/src/index.ts"],
-			"@kbve/khashvault": ["packages/khashvault/src/index.ts"],
-			"@kbve/laser": ["packages/laser/src/index.ts"]
-		}
-	},
-	"exclude": ["node_modules", "tmp"]
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": [
+      "es2020",
+      "dom"
+    ],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@kbve/astro-ve": [
+        "packages/astro-ve/index.ts"
+      ],
+      "@kbve/astropad": [
+        "packages/astropad/index.ts"
+      ],
+      "@kbve/devops": [
+        "packages/devops/src/index.ts"
+      ],
+      "@kbve/expo-bbq": [
+        "packages/expo-bbq/src/index.ts"
+      ],
+      "@kbve/khashvault": [
+        "packages/khashvault/src/index.ts"
+      ],
+      "@kbve/laser": [
+        "packages/laser/src/index.ts"
+      ],
+      "@kbve/shadcnui": [
+        "packages/shadcnui/src/index.ts"
+      ],
+      "@kbve/shadcnutils": [
+        "packages/shadcnutils/src/index.ts"
+      ],
+      "@kbve/shadcnui/*": [
+        "packages/shadcnui/src/*"
+      ],
+      "@kbve/shadcnutils/*": [
+        "packages/shadcnutils/src/*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }
