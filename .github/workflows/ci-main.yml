@@ -187,7 +187,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
         with:
           source_file: 'dist/apps/kbve.com/'
-          destination_repo: 'kbve/kbve.com'
+          destination_repo: 'KBVE/kbve.com'
           destination_folder: '/docs'
           destination_branch: 'dev'
           destination_branch_create: 'patch-kbve-deploy-${{ needs.globals.outputs.sha256head }}'
@@ -211,7 +211,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
         with:
           source_file: 'dist/apps/herbmail.com/'
-          destination_repo: 'kbve/herbmail.com'
+          destination_repo: 'KBVE/herbmail.com'
           destination_folder: '/docs'
           destination_branch: 'main'
           destination_branch_create: 'patch-herbmail-deploy-${{ needs.globals.outputs.sha256head }}'
@@ -275,7 +275,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
         with:
           source_file: 'dist/apps/cryptothrone.com/'
-          destination_repo: 'kbve/cryptothrone.com'
+          destination_repo: 'KBVE/cryptothrone.com'
           destination_folder: '/docs'
           destination_branch: 'main'
           destination_branch_create: 'patch-cryptothrone-deploy-${{ needs.globals.outputs.sha256head }}'
@@ -547,15 +547,6 @@ jobs:
           name: atlas-python-package-distributions
           path: apps/atlas/dist/
 
-      - name: KBVE Shell
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-pythonbump apps/atlas'
-          create_pull_request: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pull_request_title: 'python-atlas-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-          pull_request_body: 'Bumping up the minor version of the Python ATLAS package.'
-
 
   #   [Fudster] -> Publish (As App)
   python_fudster_build:
@@ -616,14 +607,6 @@ jobs:
           name: fudster-python-package-distributions
           path: apps/fudster/dist/
 
-      - name: KBVE Shell
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-pythonbump apps/fudster'
-          create_pull_request: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pull_request_title: 'python-fudster-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-          pull_request_body: 'Bumping up the minor version of the Python fudster package.'
 
 
   #   @[ERust] -> Publish
