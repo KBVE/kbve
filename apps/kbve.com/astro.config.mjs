@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
 
 import { defineConfig as defineViteConfig } from 'vite';
-import topLevelAwait from 'vite-plugin-top-level-await';
+// import topLevelAwait from 'vite-plugin-top-level-await';
 
 // https://astro.build/config
 export default defineConfig({
@@ -235,6 +235,9 @@ export default defineConfig({
 	],
 	markdown: markdownConfig,
 	vite: defineViteConfig({
+		ssr: {
+			noExternal: ['path-to-regexp'],
+		  },
 		build: {
 			rollupOptions: {
 				// maxConcurrency: 2,
@@ -267,11 +270,11 @@ export default defineConfig({
 			},
 		},
 		// Apply the top-level await plugin to our vite.config.js
-		plugins: [
-			topLevelAwait({
-				promiseExportName: '__tla',
-				promiseImportName: (i) => `__tla_${i}`,
-			}),
-		],
+		// plugins: [
+		// 	topLevelAwait({
+		// 		promiseExportName: '__tla',
+		// 		promiseImportName: (i) => `__tla_${i}`,
+		// 	}),
+		// ],
 	}),
 });
