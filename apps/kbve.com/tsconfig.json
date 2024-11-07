@@ -12,7 +12,7 @@
     // Enable node-style module resolution, for things like npm package imports
     "moduleResolution": "node",
     // Import
-    // "allowImportingTsExtensions": true,
+    "allowImportingTsExtensions": true,
     // Enable JSON imports
     "resolveJsonModule": true,
     // Enable stricter transpilation for better output
@@ -28,7 +28,8 @@
     // Enable strict mode
     "strict": true,
     // Error when a value import is only used as a type
-    "importsNotUsedAsValues": "error",
+    //"importsNotUsedAsValues": "error",
+    //  11-07-2024 - verbatimModuleSyntax
     // TypeScript 5.0 changed how `isolatedModules` and `importsNotUsedAsValues` works, deprecating the later
     // Until the majority of users are on TypeScript 5.0, we'll have to supress those deprecation errors
     "ignoreDeprecations": "5.0",
