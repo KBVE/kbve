@@ -2,7 +2,7 @@ const {
 	createGlobPatternsForDependencies,
 } = require('@nxtensions/astro/tailwind');
 const { join } = require('path');
-const { buildConfig } = require('../../packages/uti/src/tailwind.config'); // Adjust the relative path
+// const { buildConfig } = require('../../packages/uti/src/tailwind.config');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = buildConfig(__dirname, {

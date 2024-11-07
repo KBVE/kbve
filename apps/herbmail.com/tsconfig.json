@@ -1,6 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
+    "baseUrl": ".",
     // Enable top-level await, and other modern ESM features
     "target": "ESNext",
     "module": "ESNext",
@@ -26,7 +27,19 @@
     // Until the majority of users are on TypeScript 5.0, we'll have to supress those deprecation errors
     "ignoreDeprecations": "5.0",
     // Allow JavaScript files to be imported
-    "allowJs": true
+    "allowJs": true,
+
+    // Plugins 11-07-2024
+         "plugins": [
+          {
+            "name": "@astrojs/ts-plugin"
+          }
+          ],
+          "paths": {
+            "@kbve/astropad": ["../../packages/astropad/index.ts"],
+            "@kbve/astro-ve": ["../../packages/astro-ve/index.ts"],
+            "@kbve/laser": ["../../packages/laser/src/index.ts"],
+          }
   },
   "include": ["src"]
 }

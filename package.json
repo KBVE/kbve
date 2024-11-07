@@ -27,7 +27,7 @@
 		"@nanostores/react": "^0.7.3",
 		"@nestjs/schematics": "^10.2.2",
 		"@nestjs/testing": "^10.4.5",
-		"@nx-extend/shadcn-ui": "^4.0.0",
+		"@nx-extend/shadcn-ui": "^4.1.2",
 		"@nx-go/nx-go": "^3.2.0",
 		"@nx-tools/nx-container": "^6.1.0",
 		"@nx/cypress": "20.0.1",
