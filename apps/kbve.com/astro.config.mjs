@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
 
 import { defineConfig as defineViteConfig } from 'vite';
-import topLevelAwait from "vite-plugin-top-level-await";
+import topLevelAwait from 'vite-plugin-top-level-await';
 
 // https://astro.build/config
 export default defineConfig({
@@ -24,17 +24,17 @@ export default defineConfig({
 	prefetch: true,
 	i18n: {
 		defaultLocale: 'en',
-		locales: ['en', 'fr'],
-		fallback: {
-			fr: 'en',
-		},
+		locales: ['en'],
+		// fallback: {
+		// 	fr: 'en',
+		// },
 		routing: {
 			prefixDefaultLocale: false,
 		},
 	},
 	// experimental: {
 	// 	contentCollectionCache: true,
-	// },	
+	// },
 	integrations: [
 		starlight({
 			title: 'KBVE Docs',
@@ -49,12 +49,12 @@ export default defineConfig({
 					label: 'English',
 					lang: 'en',
 				},
-				de: { label: 'Deutsch', lang: 'de' },
-				es: { label: 'Español', lang: 'es' },
-				fa: { label: 'Persian', lang: 'fa', dir: 'rtl' },
-				fr: { label: 'Français', lang: 'fr' },
-				ja: { label: '日本語', lang: 'ja' },
-				'zh-cn': { label: '简体中文', lang: 'zh-CN' },
+				// de: { label: 'Deutsch', lang: 'de' },
+				// es: { label: 'Español', lang: 'es' },
+				// fa: { label: 'Persian', lang: 'fa', dir: 'rtl' },
+				// fr: { label: 'Français', lang: 'fr' },
+				// ja: { label: '日本語', lang: 'ja' },
+				// 'zh-cn': { label: '简体中文', lang: 'zh-CN' },
 			},
 			// https://starlight.astro.build/guides/sidebar/
 			sidebar: [
@@ -117,7 +117,6 @@ export default defineConfig({
 					autogenerate: { directory: 'gaming' },
 				},
 
-				
 				{
 					label: 'Shop',
 					collapsed: true,
@@ -150,7 +149,7 @@ export default defineConfig({
 					label: 'Projects',
 					autogenerate: { directory: 'project' },
 				},
-				
+
 				{
 					label: 'ItemDB',
 					collapsed: true,
@@ -165,7 +164,6 @@ export default defineConfig({
 							collapsed: false,
 							autogenerate: { directory: 'itemdb/food' },
 						},
-						
 					],
 				},
 
@@ -217,7 +215,7 @@ export default defineConfig({
 				defaultLocale: 'en',
 				locales: {
 					en: 'en',
-					fr: 'fr',
+					// fr: 'fr',
 				},
 			},
 		}),
@@ -237,22 +235,43 @@ export default defineConfig({
 	],
 	markdown: markdownConfig,
 	vite: defineViteConfig({
-	 	build: {
+		build: {
 			rollupOptions: {
+				// maxConcurrency: 2,
+				output: {
+					manualChunks: (id) => {
+						if (id.includes('node_modules')) {
+							return id
+								.toString()
+								.split('node_modules/')[1]
+								.split('/')[0];
+						}
+					},
+				},
 			},
- 		},
+		},
 		resolve: {
 			alias: {
-			   'three': '/node_modules/three/build/three.module.js',
-			}
-			
+				'three/examples/jsm/controls/DragControls.js':
+					'three/examples/jsm/controls/DragControls.js',
+				'three/examples/jsm/controls/OrbitControls.js':
+					'three/examples/jsm/controls/OrbitControls.js',
+				'three/examples/jsm/controls/TrackballControls.js':
+					'three/examples/jsm/controls/TrackballControls.js',
+				'three/examples/jsm/controls/FlyControls.js':
+					'three/examples/jsm/controls/FlyControls.js',
+				'three/examples/jsm/postprocessing/EffectComposer.js':
+					'three/examples/jsm/postprocessing/EffectComposer.js',
+				'three/examples/jsm/postprocessing/RenderPass.js':
+					'three/examples/jsm/postprocessing/RenderPass.js',
+			},
 		},
 		// Apply the top-level await plugin to our vite.config.js
-		plugins:[
+		plugins: [
 			topLevelAwait({
-			  promiseExportName: "__tla",
-			  promiseImportName: i => `__tla_${i}`
-			})
-		  ],
+				promiseExportName: '__tla',
+				promiseImportName: (i) => `__tla_${i}`,
+			}),
+		],
 	}),
 });
