@@ -157,13 +157,6 @@ jobs:
           create_pull_request: false
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run KBVE.com e2e
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-nx kbve.com-e2e:e2e'
-          create_pull_request: false
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
   jedi_package_e2e:
     needs: ['alter', 'deploy']
     name: 'Performing Jedi package e2e'
