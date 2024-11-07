@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "[STARTING] : Fudster"
+echo "[ACTION] : AutoStart | Home -> $HOME Display -> $DISPLAY"
+
+if [ ! -f $HOME/.Xauthority ]; then
+    touch $HOME/.Xauthority
+    chown abc:abc $HOME/.Xauthority
+fi
+
+export DISPLAY=${DISPLAY:-:1}
+
+. ~/.venv/bin/activate && DISPLAY=$DISPLAY poetry run uvicorn main:app --host 0.0.0.0 --port 8086 --ws-ping-interval 25 --ws-ping-timeout 5 | tee -a uvicorn.log &
+
+sleep 5
+
+curl -X GET "http://localhost:8086/start-runelite"

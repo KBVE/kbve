@@ -39,9 +39,7 @@
 		"dry": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": [
-					"cargo publish -p jedi --dry-run --allow-dirty"
-				],
+				"commands": ["cargo publish -p jedi --dry-run --allow-dirty"],
 				"parallel": false
 			}
 		}

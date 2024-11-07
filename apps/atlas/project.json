@@ -61,6 +61,37 @@
 				"command": "poetry run pytest tests/",
 				"cwd": "apps/atlas"
 			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/atlas",
+				"file": "apps/atlas/Dockerfile",
+				"metadata": {
+					"images": ["kbve/atlas"],
+					"load": true,
+					"tags": ["1.42", "1.42.0"]
+				},
+				"configurations": {
+					"local": {
+						"tags": ["1.42", "1.42.0"],
+						"push": false
+					},
+					"production": {
+						"tags": ["1.42", "1.42.0"],
+						"push": true,
+						"customBuildOptions": "--push",
+						"cache-from": [
+							"type=registry,ref=kbve/atlas:buildcache"
+						],
+						"cache-to": [
+							"type=registry,ref=kbve/atlas:buildcache,mode=max"
+						]
+					}
+				}
+			}
 		}
 	}
 }

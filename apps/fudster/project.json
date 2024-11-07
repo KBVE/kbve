@@ -1,66 +1,113 @@
 {
-  "name": "fudster",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "projectType": "application",
-  "sourceRoot": "apps/fudster/fudster",
-  "targets": {
-    "lock": {
-      "executor": "@nxlv/python:run-commands",
-      "options": {
-        "command": "poetry lock --no-update",
-        "cwd": "apps/fudster"
-      }
-    },
-    "add": {
-      "executor": "@nxlv/python:add",
-      "options": {}
-    },
-    "update": {
-      "executor": "@nxlv/python:update",
-      "options": {}
-    },
-    "remove": {
-      "executor": "@nxlv/python:remove",
-      "options": {}
-    },
-    "build": {
-      "executor": "@nxlv/python:build",
-      "outputs": ["{projectRoot}/dist"],
-      "options": {
-        "outputPath": "apps/fudster/dist",
-        "publish": true,
-        "lockedVersions": true,
-        "bundleLocalDependencies": true
-      }
-    },
-    "install": {
-      "executor": "@nxlv/python:install",
-      "options": {
-        "silent": false,
-        "args": "",
-        "cacheDir": ".cache/pypoetry",
-        "verbose": false,
-        "debug": false
-      }
-    },
-    "lint": {
-      "executor": "@nxlv/python:flake8",
-      "outputs": ["{workspaceRoot}/reports/apps/fudster/pylint.txt"],
-      "options": {
-        "outputFile": "reports/apps/fudster/pylint.txt"
-      }
-    },
-    "test": {
-      "executor": "@nxlv/python:run-commands",
-      "outputs": [
-        "{workspaceRoot}/reports/apps/fudster/unittests",
-        "{workspaceRoot}/coverage/apps/fudster"
-      ],
-      "options": {
-        "command": "poetry run pytest tests/",
-        "cwd": "apps/fudster"
-      }
-    }
-  },
-  "tags": []
+	"name": "fudster",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/fudster/fudster",
+	"tags": [],
+	"targets": {
+		"lock": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "poetry lock --no-update",
+				"cwd": "apps/fudster"
+			}
+		},
+		"add": {
+			"executor": "@nxlv/python:add",
+			"options": {}
+		},
+		"update": {
+			"executor": "@nxlv/python:update",
+			"options": {}
+		},
+		"remove": {
+			"executor": "@nxlv/python:remove",
+			"options": {}
+		},
+		"build": {
+			"executor": "@nxlv/python:build",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"outputPath": "apps/fudster/dist",
+				"publish": true,
+				"lockedVersions": true,
+				"bundleLocalDependencies": true
+			}
+		},
+		"install": {
+			"executor": "@nxlv/python:install",
+			"options": {
+				"silent": false,
+				"args": "",
+				"cacheDir": ".cache/pypoetry",
+				"verbose": false,
+				"debug": false
+			}
+		},
+		"lint": {
+			"executor": "@nxlv/python:flake8",
+			"outputs": ["{workspaceRoot}/reports/apps/fudster/pylint.txt"],
+			"options": {
+				"outputFile": "reports/apps/fudster/pylint.txt"
+			}
+		},
+		"test": {
+			"executor": "@nxlv/python:run-commands",
+			"outputs": [
+				"{workspaceRoot}/reports/apps/fudster/unittests",
+				"{workspaceRoot}/coverage/apps/fudster"
+			],
+			"options": {
+				"command": "poetry run pytest tests/",
+				"cwd": "apps/fudster"
+			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/fudster",
+				"file": "apps/fudster/Dockerfile",
+				"metadata": {
+					"images": ["kbve/fudster"],
+					"load": true,
+					"tags": ["1.03", "1.03.0"]
+				},
+				"configurations": {
+					"local": {
+						"tags": ["1.03", "1.03.0"],
+						"push": false
+					},
+					"production": {
+						"tags": ["1.03", "1.03.0"],
+						"push": true,
+						"customBuildOptions": "--push",
+						"cache-from": [
+							"type=registry,ref=kbve/fudster:buildcache"
+						],
+						"cache-to": [
+							"type=registry,ref=kbve/fudster:buildcache,mode=max"
+						]
+					}
+				}
+			}
+		},
+		"orb": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					{
+						"command": "pnpm nx container fudster",
+						"forwardAllArgs": false
+					},
+					{
+						"command": "docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/fudster:1.03",
+						"forwardAllArgs": false
+					}
+				],
+				"parallel": false
+			}
+		}
+	}
 }
