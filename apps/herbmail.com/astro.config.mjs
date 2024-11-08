@@ -5,10 +5,7 @@ import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
-
 import starlight from '@astrojs/starlight';
-
-
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
 

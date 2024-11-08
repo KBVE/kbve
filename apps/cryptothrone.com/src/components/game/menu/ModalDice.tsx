@@ -48,23 +48,23 @@ const ModalDice: React.FC = () => {
     let message = '';
 
     switch (true) {
-      case roll >= 24:
+      case roll == 24:
         itemName = '01J27QABD2GPFNRVK69S51HSGB';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 20:
+      case roll == 23:
         itemName = '01J27QN2KZG1RDZW4CE9Q9Z3YQ';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 18:
+      case roll == 19:
         itemName = '01J269PK47V1DWX2S1251DEASD';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 15:
+      case roll == 18:
         itemName = 'Blue Shark';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 12:
+      case roll == 17:
         itemName = 'Salmon';
         message = `You successfully stole a ${itemName}!`;
         break;
@@ -111,7 +111,7 @@ const ModalDice: React.FC = () => {
   if (!_npc$) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-zinc-800 bg-opacity-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-zinc-800 bg-opacity-50 text-white">
       <div className="bg-zinc-800 p-4 rounded-lg shadow-lg w-3/4">
         <DiceRollMessage npcName={_npc$.npcName} roll={currentRoll} />
         <MemoizedMinigameDiceComponent />
