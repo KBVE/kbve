@@ -1,38 +1,52 @@
 ---
 import { Button } from '@kbve/shadcnui/button';
 import { Icon } from '@astrojs/starlight/components';
-
 ---
 
-
-<footer class="bg-zinc-950 text-white py-8">
-	<div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+<footer
+	class="border-t border-border/40 py-6 dark:border-border md:px-8 md:py-0 text-white"
+	role="contentinfo">
+	<div
+		class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
 		<!-- Logo or Brand Name -->
 		<div class="mb-4 md:mb-0">
 			<a href="/" class="text-lg font-bold hover:text-gray-300">
-				YourBrand
+				HerbMail
 			</a>
 		</div>
-		
+
 		<!-- Navigation Links -->
-		<nav class="mb-4 md:mb-0">
+		<nav class="mb-4 md:mb-0 p-4">
 			<ul class="flex space-x-4">
 				<li><a href="/about" class="hover:text-gray-300">About</a></li>
-				<li><a href="/services" class="hover:text-gray-300">Services</a></li>
+				<li>
+					<a href="/services" class="hover:text-gray-300">Services</a>
+				</li>
 				<li><a href="/blog" class="hover:text-gray-300">Blog</a></li>
-				<li><a href="/contact" class="hover:text-gray-300">Contact</a></li>
-			</ul>
+				<li>
+					<a href="/contact" class="hover:text-gray-300">Contact</a>
+				</li>
+			</ul> 
 		</nav>
 
 		<!-- Social Media Icons -->
 		<div class="flex space-x-4">
-			<a href="https://twitter.com/yourbrand" target="_blank" rel="noopener noreferrer">
-				<Icon name="seti:folder" class="h-6 w-6 hover:text-gray-300" />
+			<a
+				href="https://twitter.com/yourbrand"
+				target="_blank"
+				rel="noopener noreferrer">
+				<Icon name="seti:folder" class="h-6 w-6 hover:text-gray-500" />
 			</a>
-			<a href="https://github.com/yourbrand" target="_blank" rel="noopener noreferrer">
+			<a
+				href="https://github.com/yourbrand"
+				target="_blank"
+				rel="noopener noreferrer">
 				<Icon name="seti:github" class="h-6 w-6 hover:text-gray-300" />
 			</a>
-			<a href="https://linkedin.com/company/yourbrand" target="_blank" rel="noopener noreferrer">
+			<a
+				href="https://linkedin.com/company/yourbrand"
+				target="_blank"
+				rel="noopener noreferrer">
 				<Icon name="seti:mdo" class="h-6 w-6 hover:text-gray-300" />
 			</a>
 		</div>
