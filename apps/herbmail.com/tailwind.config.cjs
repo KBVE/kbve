@@ -13,18 +13,4 @@ module.exports = buildConfig(__dirname, {
 		),
 		...createGlobPatternsForDependencies(__dirname),
 	],
-	theme: {
-		extend: {
-			keyframes: {
-				float: {
-					'0%, 100%': { transform: 'translate3d(0, 0, 0)' },
-					'50%': { transform: 'translate3d(0, 30px, 0)' },
-				},
-				'ltr-linear-infinite': {
-					'0%, 100%': { 'background-position': '0 0' },
-					'50%': { 'background-position': '400% 0%' },
-				},
-			},
-		},
-	},
 });
