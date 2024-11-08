@@ -37,7 +37,8 @@
       ],
       "paths": {
         "@kbve/astropad": ["../../packages/astropad/index.ts"],
-        "@kbve/laser": ["../../packages/laser/src/index.ts"]
+        "@kbve/laser": ["../../packages/laser/src/index.ts"],
+        "@kbve/khashvault": ["../../packages/khashvault/src/index.ts"],
       }
   },
   "include": ["src"]
