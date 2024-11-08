@@ -1,5 +1,5 @@
 // DiceRollModal.tsx
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { useStore } from '@nanostores/react';
 import { playerStealDiceRoll } from './tempstore';
 import { eventEmitterInstance as EventEmitter, notificationType, queryItemDB, type DiceRollResultEventData, type PlayerStealEventData } from '@kbve/laser';
@@ -101,12 +101,12 @@ const ModalDice: React.FC = () => {
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     updateDiceValues([]);
     setDiceValues([]);
     setCurrentRoll(null);
     playerStealDiceRoll.set(null);
-  };
+  }, []);
 
   if (!_npc$) return null;
 
@@ -152,13 +152,13 @@ const MinigameDiceComponent: React.FC = () => (
 
 const MemoizedMinigameDiceComponent = memo(MinigameDiceComponent);
 
-const CloseButton: React.FC<{ handleClose: () => void }> = ({ handleClose }) => (
+const CloseButton: React.FC<{ handleClose: () => void }> = memo(({ handleClose }) => (
   <button
     onClick={handleClose}
     className="block w-full py-2 bg-red-500 text-white rounded hover:bg-red-700 mt-2"
   >
     Close
   </button>
-);
+));
 
 export default ModalDice;
