@@ -1,32 +1,59 @@
 ---
 import { Button } from '@kbve/shadcnui/button';
 import { Icon } from '@astrojs/starlight/components';
+import type { Icons } from '@astrojs/starlight/components/Icons';
+
 import Logo from '../../public/assets/img/logo.svg?raw';
 
 const navigationLinks = [
-	{ href: '/about', icon: 'seti:folder', label: 'About' },
-	{ href: '/services', icon: 'seti:folder', label: 'Services' },
-	{ href: '/blog', icon: 'rss', label: 'Blog' },
-	{ href: 'https://kbve.com/contact', icon: 'email', label: 'Contact' },
+	{ 
+		href: '/about', 
+		icon: 'folder' as keyof typeof Icons, 
+		label: 'About' 
+	},
+	{ 
+		href: '/services', 
+		icon: 'folder' as keyof typeof Icons, 
+		label: 'Services' 
+	},
+	{ 
+		href: '/blog', 
+		icon: 'rss' as keyof typeof Icons, 
+		label: 'Blog' 
+	},
+	{ 
+		href: 'https://kbve.com/contact', 
+		icon: 'email' as keyof typeof Icons, 
+		label: 'Contact', 
+		target: '_blank', 
+		rel: 'noopener noreferrer' 
+	},
 ];
 
 const socialLinks = [
 	{
 		href: 'https://twitter.com/yourbrand',
-		icon: 'seti:folder',
+		icon: 'folder' as keyof typeof Icons,
 		label: 'Twitter',
+		target: '_blank',
+		rel: 'noopener noreferrer'
 	},
 	{
 		href: 'https://github.com/kbve',
-		icon: 'seti:github',
+		icon: 'github' as keyof typeof Icons,
 		label: 'GitHub',
+		target: '_blank',
+		rel: 'noopener noreferrer'
 	},
 	{
 		href: 'https://linkedin.com/company/yourbrand',
-		icon: 'linkedin',
+		icon: 'linkedin' as keyof typeof Icons,
 		label: 'LinkedIn',
+		target: '_blank',
+		rel: 'noopener noreferrer'
 	},
 ];
+
 ---
 
 <footer
@@ -51,7 +78,7 @@ const socialLinks = [
 									href={href}
 									class="flex items-center space-x-2">
 									<Icon name={icon} class="h-4 w-4" />
-									<span class="ml-1">{label}</span>
+									<span class="ml-1 hidden md:block">{label}</span>
 								</a>
 							</Button>
 						</li>
