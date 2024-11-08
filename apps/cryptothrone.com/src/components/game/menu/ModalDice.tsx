@@ -125,7 +125,7 @@ const DiceRollMessage: React.FC<{ npcName: string, roll: number | null }> = ({ n
   <div>
     <h2 className="text-lg text-yellow-400 font-bold mb-4">Steal Attempt</h2>
     <p className="mb-4">
-      Roll the dice to steal from {npcName}. You need a total of 12 or higher to succeed.
+      Roll the dice to steal from {npcName}. You need a total of 17 or higher to succeed.
     </p>
     {roll !== null && (
       <p className="mb-4">
