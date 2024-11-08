@@ -7,13 +7,13 @@ let description =
 import { Button } from '@kbve/shadcnui/button';
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from  '@kbve/shadcnui/card';
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '@kbve/shadcnui/card';
 ---
 
 <Layout title={title} description={description}>
@@ -31,22 +31,22 @@ import {
 							src="/assets/json/lottie/mailer.lottie"
 						></dotlottie-player>
 					</div>
+					
 				</div>
-
-				<Card>
-					<CardHeader>
-					  <CardTitle>Card Title</CardTitle>
-					  <CardDescription>Card Description</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Button variant="secondary"> Hi
-						</Button>
-					</CardContent>
-					<CardFooter>
-					  <p>Card Footer</p>
-					</CardFooter>
-				</Card>
-				
+				<div class="flex items-center justify-center">
+					<Card>
+						<CardHeader>
+							<CardTitle>Card Title</CardTitle>
+							<CardDescription>Card Description</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<Button variant="secondary"> Hi </Button>
+						</CardContent>
+						<CardFooter>
+							<p>Card Footer</p>
+						</CardFooter>
+					</Card>
+				</div>
 			</div>
 		</section>
 	</main>

@@ -1,45 +1,85 @@
 ---
 import { Button } from '@kbve/shadcnui/button';
 import { Icon } from '@astrojs/starlight/components';
+import Logo from '../../public/assets/img/logo.svg?raw';
 
+const navigationLinks = [
+	{ href: '/about', icon: 'seti:folder', label: 'About' },
+	{ href: '/services', icon: 'seti:folder', label: 'Services' },
+	{ href: '/blog', icon: 'rss', label: 'Blog' },
+	{ href: 'https://kbve.com/contact', icon: 'email', label: 'Contact' },
+];
+
+const socialLinks = [
+	{
+		href: 'https://twitter.com/yourbrand',
+		icon: 'seti:folder',
+		label: 'Twitter',
+	},
+	{
+		href: 'https://github.com/kbve',
+		icon: 'seti:github',
+		label: 'GitHub',
+	},
+	{
+		href: 'https://linkedin.com/company/yourbrand',
+		icon: 'linkedin',
+		label: 'LinkedIn',
+	},
+];
 ---
 
-
-<footer class="bg-zinc-950 text-white py-8">
-	<div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+<footer
+	class="border-t border-border/40 py-6 dark:border-border md:px-8 md:py-0 text-primary"
+	role="contentinfo">
+	<div
+		class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
 		<!-- Logo or Brand Name -->
-		<div class="mb-4 md:mb-0">
-			<a href="/" class="text-lg font-bold hover:text-gray-300">
-				YourBrand
+		<div class="mb-4 md:mb-0 hover:animate-float">
+			<a href="/" class="text-lg font-bold">
+				<Fragment set:html={Logo} />
 			</a>
 		</div>
-		
-		<!-- Navigation Links -->
-		<nav class="mb-4 md:mb-0">
+
+		<div class="mb-4 md:mb-0 p-4">
 			<ul class="flex space-x-4">
-				<li><a href="/about" class="hover:text-gray-300">About</a></li>
-				<li><a href="/services" class="hover:text-gray-300">Services</a></li>
-				<li><a href="/blog" class="hover:text-gray-300">Blog</a></li>
-				<li><a href="/contact" class="hover:text-gray-300">Contact</a></li>
+				{
+					navigationLinks.map(({ href, icon, label }) => (
+						<li>
+							<Button variant="secondary" size="sm">
+								<a
+									href={href}
+									class="flex items-center space-x-2">
+									<Icon name={icon} class="h-4 w-4" />
+									<span class="ml-1">{label}</span>
+								</a>
+							</Button>
+						</li>
+					))
+				}
 			</ul>
-		</nav>
+		</div>
 
 		<!-- Social Media Icons -->
 		<div class="flex space-x-4">
-			<a href="https://twitter.com/yourbrand" target="_blank" rel="noopener noreferrer">
-				<Icon name="seti:folder" class="h-6 w-6 hover:text-gray-300" />
-			</a>
-			<a href="https://github.com/yourbrand" target="_blank" rel="noopener noreferrer">
-				<Icon name="seti:github" class="h-6 w-6 hover:text-gray-300" />
-			</a>
-			<a href="https://linkedin.com/company/yourbrand" target="_blank" rel="noopener noreferrer">
-				<Icon name="seti:mdo" class="h-6 w-6 hover:text-gray-300" />
-			</a>
+			{
+				socialLinks.map(({ href, icon, label }) => (
+					<Button variant="secondary" size="icon" aria-label={label}>
+						<a
+							href={href}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="hover:scale-110">
+							<Icon name={icon} class="h-6 w-6" />
+						</a>
+					</Button>
+				))
+			}
 		</div>
 	</div>
 
 	<!-- Copyright Section -->
 	<div class="text-center mt-4 text-sm text-gray-400">
-		&copy; {new Date().getFullYear()} YourBrand. All rights reserved.
+		&copy; {new Date().getFullYear()} HerbMail. All rights reserved.
 	</div>
 </footer>
