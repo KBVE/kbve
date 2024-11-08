@@ -3,39 +3,32 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Background colors */
-  --border: 220 20% 20%; /* darker zinc-like shade */
-  --input: 210 22% 96%;
-  --ring: 206 100% 50%;
-  --background: 210 40% 98%; /* dark zinc background */
-  --foreground: 220 13% 13%; /* light foreground for contrast */
 
-  /* Button colors */
-  --primary: 130 80% 40%; /* vibrant green */
-  --primary-foreground: 0 0% 100%;
-
-  --secondary: 140 40% 30%; /* subdued green for secondary buttons */
-  --secondary-foreground: 0 0% 100%;
-
-  /* Alert/Destructive colors */
-  --destructive: 4 90% 58%; /* red for destructive actions */
-  --destructive-foreground: 0 0% 100%;
-
-  /* Muted, accent, and additional colors */
-  --muted: 210 16% 93%; /* soft muted gray */
-  --muted-foreground: 210 22% 49%;
-
-  --accent: 174 62% 47%; /* teal accent */
-  --accent-foreground: 0 0% 100%;
-
-  --popover: 210 24% 92%; /* popover with slight contrast to background */
-  --popover-foreground: 210 22% 33%;
-
-  /* Card colors */
-  --card: 220 13% 15%; /* slightly lighter than background */
-  --card-foreground: 210 22% 20%;
-
-  /* Border radius */
-  --radius: 8px;
+@layer base {
+  :root {
+    --background: 20 14.3% 4.1%;
+    --foreground: 0 0% 95%;
+    --card: 24 9.8% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 130 80% 40%; /* vibrant green */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 140 40% 30%; /* subdued green for secondary buttons */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 85.7% 97.3%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 142.4 71.8% 29.2%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
 }

@@ -8,6 +8,7 @@ const { title, description, image } = Astro.props;
 // import { Toastify } from '@kbve/astropad';
 
 import Footer from './Footer.astro';
+import Nav from './Nav.astro';
 import './global.css';
 ---
 
@@ -35,8 +36,8 @@ import './global.css';
 	</head>
 
 	<body role="document">
+		<Nav />
 		<slot role="main" />
 		<Footer />
 	</body>
-	
 </html>
