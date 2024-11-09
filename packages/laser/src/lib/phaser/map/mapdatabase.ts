@@ -41,6 +41,8 @@ class MapDatabase extends Dexie {
 	chunkHeight = 0;
 	tileWidth = 0;
 	tileHeight = 0;
+	chunkSizeX = 10;
+	chunkSizeY = 10;
 	scale = 1;
 	displayedChunks: Set<string> = new Set();
 
@@ -917,7 +919,9 @@ class MapDatabase extends Dexie {
 		this.resetMapSettings();
 
 		const mapData = await this.getMap(tilemapKey);
-		Debug.log(`Map data retrieved for ${tilemapKey}: ${JSON.stringify(mapData)}`);
+		Debug.log(
+			`Map data retrieved for ${tilemapKey}: ${JSON.stringify(mapData)}`,
+		);
 		if (!mapData) {
 			Debug.error(`Map data not found for ${tilemapKey}`);
 			return null;
@@ -928,23 +932,19 @@ class MapDatabase extends Dexie {
 			Debug.error(`Parsed JSON data for ${tilemapKey} not found.`);
 			return null;
 		} else {
-			Debug.log(`Loading the chunk data ${tilemapKey}`);
+			Debug.log(`Loaded the getParsedJsonData chunk data ${tilemapKey}`);
 		}
 
 		if (mapData && jsonData) {
 			this.tileWidth = jsonData.tilewidth || 32;
 			this.tileHeight = jsonData.tileheight || 32;
 			this.scale = mapData.scale || 1;
-
-			this.chunkWidth = this.tileWidth * (jsonData.chunkSizeX || 10);
-			this.chunkHeight = this.tileHeight * (jsonData.chunkSizeY || 10);
-
-			this.nbChunksX = Math.ceil(
-				jsonData.width / (jsonData.chunkSizeX || 10),
-			);
-			this.nbChunksY = Math.ceil(
-				jsonData.height / (jsonData.chunkSizeY || 10),
-			);
+		
+			this.chunkWidth = this.tileWidth * this.chunkSizeX;
+			this.chunkHeight = this.tileHeight * this.chunkSizeY;
+		
+			this.nbChunksX = Math.ceil(jsonData.width / this.chunkSizeX);
+			this.nbChunksY = Math.ceil(jsonData.height / this.chunkSizeY);
 
 			const tilesetKey = mapData.tilesetKey;
 			if (!scene.textures.exists(tilesetKey)) {
@@ -974,11 +974,11 @@ class MapDatabase extends Dexie {
 				}
 				return map; // Return the created tilemap
 			} else {
-				console.error(`Tileset ${tilesetKey} could not be created.`);
+				Debug.error(`Tileset ${tilesetKey} could not be created.`);
 				return null;
 			}
 		} else {
-			console.error(
+			Debug.error(
 				`Map data or JSON entry for tilemap key ${tilemapKey} not found.`,
 			);
 			return null;
