@@ -908,7 +908,7 @@ class MapDatabase extends Dexie {
 
 	/**
 	 * Load map data and set tile dimensions and scale based on JSON data.
-	 * @param {any} scene - Phaser Scene
+	 * @param {Phaser.Scene} scene - Phaser Scene
 	 * @param {string} tilemapKey - The map identifier.
 	 */
 	async loadNewMap(
@@ -920,7 +920,7 @@ class MapDatabase extends Dexie {
 
 		const mapData = await this.getMap(tilemapKey);
 		Debug.log(
-			`Map data retrieved for ${tilemapKey}: ${JSON.stringify(mapData)}`,
+			`Map data loaded for ${tilemapKey}: ${JSON.stringify(mapData)}`,
 		);
 		if (!mapData) {
 			Debug.error(`Map data not found for ${tilemapKey}`);
@@ -932,57 +932,68 @@ class MapDatabase extends Dexie {
 			Debug.error(`Parsed JSON data for ${tilemapKey} not found.`);
 			return null;
 		} else {
-			Debug.log(`Loaded the getParsedJsonData chunk data ${tilemapKey}`);
+			Debug.log(`Loaded JSON data for ${tilemapKey}`);
 		}
 
-		if (mapData && jsonData) {
-			this.tileWidth = jsonData.tilewidth || 32;
-			this.tileHeight = jsonData.tileheight || 32;
-			this.scale = mapData.scale || 1;
-		
-			this.chunkWidth = this.tileWidth * this.chunkSizeX;
-			this.chunkHeight = this.tileHeight * this.chunkSizeY;
-		
-			this.nbChunksX = Math.ceil(jsonData.width / this.chunkSizeX);
-			this.nbChunksY = Math.ceil(jsonData.height / this.chunkSizeY);
+		this.tileWidth = jsonData.tilewidth || 32;
+		this.tileHeight = jsonData.tileheight || 32;
+		this.scale = mapData.scale || 1;
+		this.chunkWidth = this.tileWidth * this.chunkSizeX;
+		this.chunkHeight = this.tileHeight * this.chunkSizeY;
+		this.nbChunksX = Math.ceil(jsonData.width / this.chunkSizeX);
+		this.nbChunksY = Math.ceil(jsonData.height / this.chunkSizeY);
 
-			const tilesetKey = mapData.tilesetKey;
-			if (!scene.textures.exists(tilesetKey)) {
-				const tilesetImage = await this.getTilesetImage(tilemapKey);
-				if (tilesetImage) {
-					const tilesetImageUrl = URL.createObjectURL(tilesetImage);
-					scene.load.image(tilesetKey, tilesetImageUrl);
-					await new Promise((resolve) =>
-						scene.load.once('complete', resolve),
-					);
+		const tilesetKey = mapData.tilesetKey;
+
+		// Load tileset image if not already in the texture cache
+		if (!scene.textures.exists(tilesetKey)) {
+			const tilesetImage = await this.getTilesetImage(tilemapKey);
+			if (tilesetImage) {
+				const tilesetImageUrl = URL.createObjectURL(tilesetImage);
+				Debug.log(
+					`Created object URL for tileset image: ${tilesetImageUrl}`,
+				);
+				scene.load.image(tilesetKey, tilesetImageUrl);
+
+				// Wait for Phaser to load the image
+				await new Promise((resolve) => {
+					scene.load.once('complete', () => {
+						Debug.log(`Image loading complete for ${tilesetKey}`);
+						resolve(true);
+					});
 					scene.load.start();
-				}
-			}
-
-			// Create and return the tilemap in the scene
-			const map = scene.make.tilemap({ key: tilemapKey });
-			const tileset = map.addTilesetImage(
-				mapData.tilesetName,
-				tilesetKey,
-			);
-			if (tileset) {
-				for (let i = 0; i < map.layers.length; i++) {
-					const layer = map.createLayer(i, tileset, 0, 0);
-					if (layer) {
-						layer.setScale(this.scale);
-					}
-				}
-				return map; // Return the created tilemap
+				});
 			} else {
-				Debug.error(`Tileset ${tilesetKey} could not be created.`);
+				Debug.error(`Failed to load tileset image for ${tilesetKey}`);
 				return null;
 			}
-		} else {
-			Debug.error(
-				`Map data or JSON entry for tilemap key ${tilemapKey} not found.`,
-			);
+		}
+
+		// Create the tilemap and add tileset
+		const map = scene.make.tilemap({ key: tilemapKey });
+		if (!map) {
+			Debug.error(`Tilemap could not be created for key: ${tilemapKey}`);
 			return null;
 		}
+
+		const tileset = map.addTilesetImage(mapData.tilesetName, tilesetKey);
+		if (!tileset) {
+			Debug.error(`Tileset ${tilesetKey} could not be added to tilemap.`);
+			return null;
+		}
+
+		// Add and scale each layer
+		for (let i = 0; i < map.layers.length; i++) {
+			const layer = map.createLayer(i, tileset, 0, 0);
+			if (layer) {
+				layer.setScale(this.scale);
+				Debug.log(`Layer ${i} created and scaled.`);
+			} else {
+				Debug.error(`Layer ${i} could not be created.`);
+			}
+		}
+
+		return map; // Return the created tilemap
 	}
 }
 
