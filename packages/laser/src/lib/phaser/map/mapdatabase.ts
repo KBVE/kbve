@@ -13,6 +13,23 @@ class MapDatabase extends Dexie {
 	maps: Dexie.Table<IMapData, string>;
 	jsonFiles: Dexie.Table<{ tilemapKey: string; jsonData: string }, string>;
 	tilesetImages: Dexie.Table<{ tilemapKey: string; imageData: Blob }, string>;
+	chunks: Dexie.Table<
+		{
+			tilemapKey: string;
+			chunkX: number;
+			chunkY: number;
+			jsonData: string;
+			imageData?: Blob;
+		},
+		[string, number, number]
+	>;
+
+	//	Map Settings - quick access to avoid calling dexie.
+	nbChunksX = 0;
+	nbChunksY = 0;
+	chunkWidth = 0;
+	chunkHeight = 0;
+	displayedChunks: Set<number> = new Set();
 
 	constructor() {
 		super('MapDatabase');
@@ -20,10 +37,23 @@ class MapDatabase extends Dexie {
 			maps: 'tilemapKey',
 			jsonFiles: 'tilemapKey',
 			tilesetImages: 'tilemapKey',
+			chunks: '[tilemapKey+chunkX+chunkY]',
 		});
 		this.maps = this.table('maps');
 		this.jsonFiles = this.table('jsonFiles');
 		this.tilesetImages = this.table('tilesetImages');
+		this.chunks = this.table('chunks');
+	}
+
+	/**
+	 * Resets map-related variables for safety before loading a new map.
+	 */
+	resetMapSettings() {
+		this.nbChunksX = 0;
+		this.nbChunksY = 0;
+		this.chunkWidth = 0;
+		this.chunkHeight = 0;
+		this.displayedChunks.clear();
 	}
 
 	/**
@@ -444,6 +474,182 @@ class MapDatabase extends Dexie {
 
 			scene.load.start();
 		});
+	}
+
+	//** Map Chunking */
+	/**
+	 * Adds a chunk to the database with a reference to its parent map.
+	 * @param {string} tilemapKey - The map identifier.
+	 * @param {number} chunkX - The X coordinate of the chunk.
+	 * @param {number} chunkY - The Y coordinate of the chunk.
+	 * @param {string} jsonData - JSON data specific to the chunk.
+	 * @param {Blob} [imageData] - Optional image data for the chunk's tileset.
+	 */
+	async addChunk(
+		tilemapKey: string,
+		chunkX: number,
+		chunkY: number,
+		jsonData: string,
+		imageData?: Blob,
+	) {
+		await this.chunks.put({
+			tilemapKey,
+			chunkX,
+			chunkY,
+			jsonData,
+			imageData,
+		});
+	}
+
+	/**
+	 * Retrieves a specific chunk by its coordinates within a map.
+	 * @param {string} tilemapKey - The map identifier.
+	 * @param {number} chunkX - The X coordinate of the chunk.
+	 * @param {number} chunkY - The Y coordinate of the chunk.
+	 * @returns {Promise<{ jsonData: string; imageData?: Blob } | undefined>} The chunk data if found.
+	 */
+	async getChunk(
+		tilemapKey: string,
+		chunkX: number,
+		chunkY: number,
+	): Promise<{ jsonData: string; imageData?: Blob } | undefined> {
+		return await this.chunks.get([tilemapKey, chunkX, chunkY]);
+	}
+
+	/**
+	 * Removes a specific chunk from the database using a compound key array.
+	 * @param {string} tilemapKey - The map identifier.
+	 * @param {number} chunkX - The X coordinate of the chunk.
+	 * @param {number} chunkY - The Y coordinate of the chunk.
+	 * @returns {Promise<void>} A promise that resolves once the chunk is removed.
+	 */
+	async removeChunk(
+		tilemapKey: string,
+		chunkX: number,
+		chunkY: number,
+	): Promise<void> {
+		await this.chunks.delete([tilemapKey, chunkX, chunkY]);
+	}
+
+	/**
+	 * Removes multiple chunks that are no longer needed (e.g., out-of-view chunks).
+	 * @param {string} tilemapKey - The map identifier.
+	 * @param {Array<{ chunkX: number; chunkY: number }>} chunkCoords - Array of chunk coordinates to remove.
+	 * @returns {Promise<void>} A promise that resolves once all specified chunks are removed.
+	 */
+	async removeChunks(
+		tilemapKey: string,
+		chunkCoords: Array<{ chunkX: number; chunkY: number }>,
+	): Promise<void> {
+		const removalPromises = chunkCoords.map(({ chunkX, chunkY }) =>
+			this.removeChunk(tilemapKey, chunkX, chunkY),
+		);
+		await Promise.all(removalPromises);
+	}
+
+	private async extractChunkJsonData(
+		tilemapKey: string,
+		chunkX: number,
+		chunkY: number,
+		chunkSize: number,
+	): Promise<string> {
+		// Retrieve the full JSON data for the map from jsonFiles table
+		const jsonFileEntry = await this.jsonFiles.get(tilemapKey);
+		if (!jsonFileEntry) {
+			Debug.error(`JSON data for map ${tilemapKey} not found`);
+			return '';
+		}
+
+		const fullTileData = JSON.parse(jsonFileEntry.jsonData); // Assume jsonData holds the entire map JSON
+
+		// Calculate the start and end indices for the chunk
+		const startX = chunkX * chunkSize;
+		const startY = chunkY * chunkSize;
+		const endX = Math.min(startX + chunkSize, fullTileData.width); // Ensure we don't exceed map bounds
+		const endY = Math.min(startY + chunkSize, fullTileData.height);
+
+		// Extract the tile data within the chunk's bounds
+		const chunkTileData = [];
+		for (let y = startY; y < endY; y++) {
+			const row = fullTileData.layers[0].data.slice(
+				y * fullTileData.width + startX,
+				y * fullTileData.width + endX,
+			);
+			chunkTileData.push(...row);
+		}
+
+		// Construct a chunk-specific JSON structure
+		const chunkJson = {
+			width: endX - startX,
+			height: endY - startY,
+			layers: [
+				{
+					...fullTileData.layers[0],
+					data: chunkTileData,
+				},
+			],
+			tilesets: fullTileData.tilesets, // Reference to the same tilesets
+			tilewidth: fullTileData.tilewidth,
+			tileheight: fullTileData.tileheight,
+		};
+
+		return JSON.stringify(chunkJson);
+	}
+
+	/**
+	 * Retrieves the width and height of a map from its JSON data.
+	 * @param {string} tilemapKey - The unique key identifying the map.
+	 * @returns {Promise<{ width: number, height: number } | undefined>} The dimensions of the map if found.
+	 */
+	async getMapDimensions(
+		tilemapKey: string,
+	): Promise<{ width: number; height: number } | undefined> {
+		const mapData = await this.getMap(tilemapKey);
+		if (!mapData || !mapData.bounds) {
+			Debug.error(`Bounds data for map ${tilemapKey} not found`);
+			return undefined;
+		}
+
+		const { xMin, xMax, yMin, yMax } = mapData.bounds;
+		const width = xMax - xMin;
+		const height = yMax - yMin;
+
+		if (width > 0 && height > 0) {
+			return { width, height };
+		} else {
+			Debug.error(`Invalid bounds data for map ${tilemapKey}`);
+			return undefined;
+		}
+	}
+
+	/**
+	 * Initializes and chunks the map data into 10x10 pieces.
+	 * @param {string} tilemapKey - The unique key identifying the map.
+	 * @returns {Promise<void>} Resolves when the map has been chunked and stored.
+	 */
+	async chunkMap(tilemapKey: string): Promise<void> {
+		const mapDimensions = await this.getMapDimensions(tilemapKey);
+		if (!mapDimensions) {
+			Debug.error(`Failed to retrieve dimensions for map ${tilemapKey}`);
+			return;
+		}
+
+		const { width, height } = mapDimensions;
+		const chunkSize = 10; // Size of each chunk
+		const numChunksX = Math.ceil(width / chunkSize);
+		const numChunksY = Math.ceil(height / chunkSize);
+
+		for (let chunkX = 0; chunkX < numChunksX; chunkX++) {
+			for (let chunkY = 0; chunkY < numChunksY; chunkY++) {
+				const jsonData = await this.extractChunkJsonData(
+					tilemapKey,
+					chunkX,
+					chunkY,
+					chunkSize,
+				);
+				await this.addChunk(tilemapKey, chunkX, chunkY, jsonData);
+			}
+		}
 	}
 }
 
