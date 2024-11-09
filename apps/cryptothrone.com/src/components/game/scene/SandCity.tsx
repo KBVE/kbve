@@ -46,6 +46,8 @@ export class SandCity extends Scene {
 			cloudCityTilemap = await mapDatabase.loadNewMap(
 				this,
 				'cloud-city-map',
+				5,
+				12,
 			);
 		} catch (error) {
 			Debug.error('Failed to load map:', error);
@@ -199,12 +201,12 @@ export class SandCity extends Scene {
 
 	update() {
 		this.playerController?.handleMovement();
-		//   mapDatabase.updateVisibleChunks(
-		//     this,
-		//     'cloud-city-map', // tilemap key
-		//     this.playerController?.getPlayerCoordsX() || 0,
-		//     this.playerController?.getPlayerCoordsY() || 0,
-		//     1
-		// );
+		mapDatabase.updateVisibleChunks(
+			this,
+			'cloud-city-map',
+			this.playerController?.getPlayerCoordsX() || 0,
+			this.playerController?.getPlayerCoordsY() || 0,
+			1,
+		);
 	}
 }
