@@ -3,7 +3,12 @@
 import Dexie from 'dexie';
 import axios from 'axios';
 import { Debug } from '../../utils/debug';
-import { IMapData, type Bounds, type INPCObjectGPS } from '../../../types';
+import {
+	IMapData,
+	type Bounds,
+	type INPCObjectGPS,
+	type ITilemapJson,
+} from '../../../types';
 
 /**
  * Represents a Dexie-based database for managing maps, JSON files, and tileset images.
@@ -18,10 +23,15 @@ class MapDatabase extends Dexie {
 			tilemapKey: string;
 			chunkX: number;
 			chunkY: number;
-			jsonData: string;
+			jsonData: ITilemapJson;
 			imageData?: Blob;
 		},
 		[string, number, number]
+	>;
+	//tileJsonData: Dexie.Table<{ tilemapKey: string; jsonContent: object }, string>;
+	tileJsonData: Dexie.Table<
+		{ tilemapKey: string; jsonContent: ITilemapJson },
+		string
 	>;
 
 	//	Map Settings - quick access to avoid calling dexie.
@@ -41,11 +51,13 @@ class MapDatabase extends Dexie {
 			jsonFiles: 'tilemapKey',
 			tilesetImages: 'tilemapKey',
 			chunks: '[tilemapKey+chunkX+chunkY]',
+			tileJsonData: 'tilemapKey',
 		});
 		this.maps = this.table('maps');
 		this.jsonFiles = this.table('jsonFiles');
 		this.tilesetImages = this.table('tilesetImages');
 		this.chunks = this.table('chunks');
+		this.tileJsonData = this.table('tileJsonData');
 	}
 
 	/**
@@ -483,22 +495,105 @@ class MapDatabase extends Dexie {
 	}
 
 	//** Map Chunking */
+	//** vChunk */
 	//** v0 - Still building out the core functions. */
+
+	/**
+	 * Ensures all necessary assets for the given tilemap are available in the database.
+	 * This includes map data, JSON data, and tileset image.
+	 *
+	 * @param {string} tilemapKey - The unique key identifying the map.
+	 * @returns {Promise<void>} Resolves when all assets are verified and available in Dexie.
+	 */
+	async prepareMapLoad(tilemapKey: string): Promise<void> {
+		// Check and ensure map data is available
+		const mapData = await this.getMap(tilemapKey);
+		if (!mapData) {
+			throw new Error(`Map with key ${tilemapKey} not found`);
+		}
+
+		// Check and ensure JSON data is available
+		const jsonData = await this.getJsonData(tilemapKey);
+		if (!jsonData) {
+			throw new Error(`JSON data for map ${tilemapKey} not found`);
+		}
+
+		// Check and ensure tileset image is available
+		const tilesetImage = await this.getTilesetImage(tilemapKey);
+		if (!tilesetImage) {
+			throw new Error(`Tileset image for map ${tilemapKey} not found`);
+		}
+
+		// Create URL for tileset image if not already set
+		let tilesetImageUrl: string | null = null;
+		try {
+			tilesetImageUrl = URL.createObjectURL(tilesetImage);
+		} catch (error) {
+			throw new Error(
+				`Failed to create object URL for tileset image: ${error}`,
+			);
+		}
+
+		if (!tilesetImageUrl) {
+			throw new Error(
+				`Tileset image URL for map ${tilemapKey} could not be created.`,
+			);
+		}
+	}
+
+	/**
+	 * Helper function to retrieve parsed JSON data for a tilemap.
+	 * @param {string} tilemapKey - The unique key identifying the map.
+	 * @returns {Promise<ITilemapJson | null>} Parsed JSON data if available.
+	 */
+	async getParsedJsonData(tilemapKey: string): Promise<ITilemapJson | null> {
+		// Check if parsed JSON data is already stored in `tileJsonData`
+		const tileJsonEntry = await this.tileJsonData.get(tilemapKey);
+		if (tileJsonEntry) {
+			return tileJsonEntry.jsonContent as ITilemapJson;
+		}
+
+		// Fetch JSON data path from `jsonFiles` table
+		const jsonFileEntry = await this.jsonFiles.get(tilemapKey);
+		if (!jsonFileEntry) {
+			Debug.error(`JSON file path for ${tilemapKey} not found`);
+			return null;
+		}
+
+		try {
+			// Fetch and parse the JSON data from the file path
+			const response = await axios.get(jsonFileEntry.jsonData);
+			const jsonData: ITilemapJson = response.data;
+
+			// Store parsed JSON data in `tileJsonData`
+			await this.tileJsonData.put({ tilemapKey, jsonContent: jsonData });
+			return jsonData;
+		} catch (error) {
+			Debug.error(
+				`Failed to fetch or parse JSON data for ${tilemapKey}:`,
+				error,
+			);
+			return null;
+		}
+	}
+
 	/**
 	 * Adds a chunk to the database with a reference to its parent map.
 	 * @param {string} tilemapKey - The map identifier.
 	 * @param {number} chunkX - The X coordinate of the chunk.
 	 * @param {number} chunkY - The Y coordinate of the chunk.
-	 * @param {string} jsonData - JSON data specific to the chunk.
+	 * @param {ITilemapJson} jsonData - JSON data specific to the chunk.
 	 * @param {Blob} [imageData] - Optional image data for the chunk's tileset.
 	 */
 	async addChunk(
 		tilemapKey: string,
 		chunkX: number,
 		chunkY: number,
-		jsonData: string,
+		jsonData: ITilemapJson,
 		imageData?: Blob,
 	) {
+		Debug.log(`Adding chunk for (${chunkX}, ${chunkY}) of ${tilemapKey}`);
+		Debug.log(`Chunk data: ${jsonData}`);
 		await this.chunks.put({
 			tilemapKey,
 			chunkX,
@@ -513,14 +608,18 @@ class MapDatabase extends Dexie {
 	 * @param {string} tilemapKey - The map identifier.
 	 * @param {number} chunkX - The X coordinate of the chunk.
 	 * @param {number} chunkY - The Y coordinate of the chunk.
-	 * @returns {Promise<{ jsonData: string; imageData?: Blob } | undefined>} The chunk data if found.
+	 * @returns {Promise<{ jsonData: ITilemapJson; imageData?: Blob } | undefined>} The chunk data if found.
 	 */
 	async getChunk(
 		tilemapKey: string,
 		chunkX: number,
 		chunkY: number,
-	): Promise<{ jsonData: string; imageData?: Blob } | undefined> {
-		return await this.chunks.get([tilemapKey, chunkX, chunkY]);
+	): Promise<{ jsonData: ITilemapJson; imageData?: Blob } | undefined> {
+		const chunk = await this.chunks.get([tilemapKey, chunkX, chunkY]);
+		Debug.log(
+			`Retrieved chunk for (${chunkX}, ${chunkY}) of ${tilemapKey}: ${chunk}`,
+		);
+		return chunk;
 	}
 
 	/**
@@ -559,24 +658,21 @@ class MapDatabase extends Dexie {
 		chunkX: number,
 		chunkY: number,
 		chunkSize: number,
-	): Promise<string> {
-		// Retrieve the full JSON data for the map from jsonFiles table
+	): Promise<ITilemapJson | null> {
 		const jsonFileEntry = await this.jsonFiles.get(tilemapKey);
 		if (!jsonFileEntry) {
 			Debug.error(`JSON data for map ${tilemapKey} not found`);
-			return '';
+			return null;
 		}
 
-		const fullTileData = JSON.parse(jsonFileEntry.jsonData); // Assume jsonData holds the entire map JSON
+		const fullTileData = JSON.parse(jsonFileEntry.jsonData);
 
-		// Calculate the start and end indices for the chunk
 		const startX = chunkX * chunkSize;
 		const startY = chunkY * chunkSize;
-		const endX = Math.min(startX + chunkSize, fullTileData.width); // Ensure we don't exceed map bounds
+		const endX = Math.min(startX + chunkSize, fullTileData.width);
 		const endY = Math.min(startY + chunkSize, fullTileData.height);
 
-		// Extract the tile data within the chunk's bounds
-		const chunkTileData = [];
+		const chunkTileData: number[] = [];
 		for (let y = startY; y < endY; y++) {
 			const row = fullTileData.layers[0].data.slice(
 				y * fullTileData.width + startX,
@@ -585,8 +681,8 @@ class MapDatabase extends Dexie {
 			chunkTileData.push(...row);
 		}
 
-		// Construct a chunk-specific JSON structure
-		const chunkJson = {
+		return {
+			...fullTileData, // Spread the full data structure
 			width: endX - startX,
 			height: endY - startY,
 			layers: [
@@ -595,12 +691,7 @@ class MapDatabase extends Dexie {
 					data: chunkTileData,
 				},
 			],
-			tilesets: fullTileData.tilesets, // Reference to the same tilesets
-			tilewidth: fullTileData.tilewidth,
-			tileheight: fullTileData.tileheight,
 		};
-
-		return JSON.stringify(chunkJson);
 	}
 
 	/**
@@ -611,20 +702,19 @@ class MapDatabase extends Dexie {
 	async getMapDimensions(
 		tilemapKey: string,
 	): Promise<{ width: number; height: number } | undefined> {
-		const mapData = await this.getMap(tilemapKey);
-		if (!mapData || !mapData.bounds) {
-			Debug.error(`Bounds data for map ${tilemapKey} not found`);
+		const jsonData = await this.getParsedJsonData(tilemapKey);
+		if (!jsonData) {
+			Debug.error(`Failed to retrieve JSON data for ${tilemapKey}`);
 			return undefined;
 		}
 
-		const { xMin, xMax, yMin, yMax } = mapData.bounds;
-		const width = xMax - xMin;
-		const height = yMax - yMin;
+		const width = jsonData.width;
+		const height = jsonData.height;
 
 		if (width > 0 && height > 0) {
 			return { width, height };
 		} else {
-			Debug.error(`Invalid bounds data for map ${tilemapKey}`);
+			Debug.error(`Invalid JSON data for map ${tilemapKey}`);
 			return undefined;
 		}
 	}
@@ -646,6 +736,7 @@ class MapDatabase extends Dexie {
 		const numChunksX = Math.ceil(width / chunkSize);
 		const numChunksY = Math.ceil(height / chunkSize);
 
+		Debug.log(`Starting chunkMap for ${tilemapKey}`);
 		for (let chunkX = 0; chunkX < numChunksX; chunkX++) {
 			for (let chunkY = 0; chunkY < numChunksY; chunkY++) {
 				const jsonData = await this.extractChunkJsonData(
@@ -654,9 +745,21 @@ class MapDatabase extends Dexie {
 					chunkY,
 					chunkSize,
 				);
+
+				if (!jsonData) {
+					Debug.error(
+						`Failed to extract JSON data for chunk (${chunkX}, ${chunkY}) of ${tilemapKey}`,
+					);
+					continue; // Skip this chunk if JSON data extraction failed
+				}
+
+				Debug.log(
+					`Storing chunk (${chunkX}, ${chunkY}) for ${tilemapKey}`,
+				);
 				await this.addChunk(tilemapKey, chunkX, chunkY, jsonData);
 			}
 		}
+		Debug.log(`Finished chunkMap for ${tilemapKey}`);
 	}
 
 	/**
@@ -674,7 +777,7 @@ class MapDatabase extends Dexie {
 	): Promise<void> {
 		const chunkData = await this.getChunk(tilemapKey, chunkX, chunkY);
 		if (!chunkData) {
-			console.error(`Chunk data for (${chunkX}, ${chunkY}) not found`);
+			Debug.error(`Chunk data for (${chunkX}, ${chunkY}) not found`);
 			return;
 		}
 
@@ -709,7 +812,7 @@ class MapDatabase extends Dexie {
 				layer.setScale(this.scale);
 			}
 		} else {
-			console.error(`Tileset ${tilesetKey} could not be created.`);
+			Debug.error(`Tileset ${tilesetKey} could not be created.`);
 		}
 	}
 
@@ -806,28 +909,43 @@ class MapDatabase extends Dexie {
 	 * @param {any} scene - Phaser Scene
 	 * @param {string} tilemapKey - The map identifier.
 	 */
-	async loadNewMap(scene: Phaser.Scene, tilemapKey: string) {
+	async loadNewMap(
+		scene: Phaser.Scene,
+		tilemapKey: string,
+	): Promise<Phaser.Tilemaps.Tilemap | null> {
+		Debug.log(`Loading map with key: ${tilemapKey}`);
 		this.resetMapSettings();
-	
+
 		const mapData = await this.getMap(tilemapKey);
-		const jsonFileEntry = await this.jsonFiles.get(tilemapKey);
-	
-		if (mapData && jsonFileEntry) {
-			const jsonData = JSON.parse(jsonFileEntry.jsonData);
-	
-			// Set tile dimensions and scale
+		Debug.log(`Map data retrieved for ${tilemapKey}: ${JSON.stringify(mapData)}`);
+		if (!mapData) {
+			Debug.error(`Map data not found for ${tilemapKey}`);
+			return null;
+		}
+
+		const jsonData = await this.getParsedJsonData(tilemapKey);
+		if (!jsonData) {
+			Debug.error(`Parsed JSON data for ${tilemapKey} not found.`);
+			return null;
+		} else {
+			Debug.log(`Loading the chunk data ${tilemapKey}`);
+		}
+
+		if (mapData && jsonData) {
 			this.tileWidth = jsonData.tilewidth || 32;
 			this.tileHeight = jsonData.tileheight || 32;
 			this.scale = mapData.scale || 1;
-	
-			// Calculate chunk dimensions (in pixels)
-			this.chunkWidth = this.tileWidth * jsonData.chunkSizeX;
-			this.chunkHeight = this.tileHeight * jsonData.chunkSizeY;
-	
-			this.nbChunksX = Math.ceil(jsonData.width / jsonData.chunkSizeX);
-			this.nbChunksY = Math.ceil(jsonData.height / jsonData.chunkSizeY);
-	
-			// Load the initial tileset image into the Phaser scene
+
+			this.chunkWidth = this.tileWidth * (jsonData.chunkSizeX || 10);
+			this.chunkHeight = this.tileHeight * (jsonData.chunkSizeY || 10);
+
+			this.nbChunksX = Math.ceil(
+				jsonData.width / (jsonData.chunkSizeX || 10),
+			);
+			this.nbChunksY = Math.ceil(
+				jsonData.height / (jsonData.chunkSizeY || 10),
+			);
+
 			const tilesetKey = mapData.tilesetKey;
 			if (!scene.textures.exists(tilesetKey)) {
 				const tilesetImage = await this.getTilesetImage(tilemapKey);
@@ -835,18 +953,37 @@ class MapDatabase extends Dexie {
 					const tilesetImageUrl = URL.createObjectURL(tilesetImage);
 					scene.load.image(tilesetKey, tilesetImageUrl);
 					await new Promise((resolve) =>
-						scene.load.once('complete', resolve)
+						scene.load.once('complete', resolve),
 					);
 					scene.load.start();
 				}
 			}
-	
-			console.log("Map and initial tileset loaded successfully.");
+
+			// Create and return the tilemap in the scene
+			const map = scene.make.tilemap({ key: tilemapKey });
+			const tileset = map.addTilesetImage(
+				mapData.tilesetName,
+				tilesetKey,
+			);
+			if (tileset) {
+				for (let i = 0; i < map.layers.length; i++) {
+					const layer = map.createLayer(i, tileset, 0, 0);
+					if (layer) {
+						layer.setScale(this.scale);
+					}
+				}
+				return map; // Return the created tilemap
+			} else {
+				console.error(`Tileset ${tilesetKey} could not be created.`);
+				return null;
+			}
 		} else {
-			console.error(`Map data or JSON entry for tilemap key ${tilemapKey} not found.`);
+			console.error(
+				`Map data or JSON entry for tilemap key ${tilemapKey} not found.`,
+			);
+			return null;
 		}
 	}
-	
 }
 
 // Export the class itself

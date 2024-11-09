@@ -42,7 +42,8 @@ export class SandCity extends Scene {
     let cloudCityTilemap: Phaser.Tilemaps.Tilemap | null = null;
 
     try {
-      cloudCityTilemap = await mapDatabase.loadMap(this, 'cloud-city-map');
+      await mapDatabase.prepareMapLoad('cloud-city-map');
+      cloudCityTilemap = await mapDatabase.loadNewMap(this, 'cloud-city-map');
     } catch (error) {
       Debug.error('Failed to load map:', error);
       return;
@@ -52,6 +53,11 @@ export class SandCity extends Scene {
       Debug.error('Tilemap could not be loaded.');
       return;
     }
+
+      if(cloudCityTilemap)
+      {
+        Debug.log('New Tilemap Loaded');
+      }
 
     const bounds = await mapDatabase.getBounds('cloud-city-map');
     if (bounds) {
@@ -187,5 +193,12 @@ export class SandCity extends Scene {
 
   update() {
     this.playerController?.handleMovement();
+  //   mapDatabase.updateVisibleChunks(
+  //     this,
+  //     'cloud-city-map', // tilemap key
+  //     this.playerController?.getPlayerCoordsX() || 0,
+  //     this.playerController?.getPlayerCoordsY() || 0, 
+  //     1
+  // );
   }
 }
