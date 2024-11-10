@@ -61,7 +61,7 @@ export function TamaProfile({
 
 			if (profileError || !profileData) {
 				// If no profile exists for the new user, redirect to onboarding
-				router.replace('/onboarding');
+				router.replace('/onboard');
 				return;
 			}
 

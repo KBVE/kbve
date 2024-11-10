@@ -62,6 +62,7 @@ function RootLayoutNav() {
           <Stack.Screen name="register"  options={{  animation: 'fade' }} />
           <Stack.Screen name="login"  options={{  animation: 'fade' }} />
           <Stack.Screen name="profile" options={{  animation: 'fade' }} />
+          
 
         </Stack>
        
