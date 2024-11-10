@@ -33,4 +33,19 @@ import { Adsense, Tasks } from '@kbve/astropad';
     We are no longer supporting `appwrite`, so lets go ahead and remove that one.
     I believe we can also drop the `preact` libraries as well.
     `"@astrojs/preact": "^3.5.3"` and `preact` both could be removed.
+
+-   07:30AM
+
+    **Vue**
+
+    We can take out the `vue` package as well, following the same command from the `preact` earlier.
+    ```shell
+    pnpm remove @astrojs/vue vue
+    ```
+
+    However I will run those later when I get back to the monorepo.
+    After we run that, we will need to make sure to clean up the cache.
     
+    ```shell
+    pnpm nx reset
+    ```
