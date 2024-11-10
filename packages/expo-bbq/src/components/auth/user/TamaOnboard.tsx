@@ -28,16 +28,23 @@ export function TamaOnboard({
 		[supabaseUrl, supabaseAnonKey],
 	);
 
+    //  [User] -> Memoize the user object.
+    const user = useMemo(async () => {
+		return (await supabase.auth.getUser())?.data.user;
+	}, [supabase]);
+
+
 	// Handler to submit the username
 	const handleUsernameSubmit = useCallback(async () => {
 		try {
             
-			const user = (await supabase.auth.getUser())?.data.user;
-
+			const userData = await user;
+			if (!userData) throw new Error('UserData not found');
+            
 			const { error } = await supabase
 				.from('user_profiles')
 				.update({ username })
-				.eq('id', user?.id);
+				.eq('id', userData.id);
 
 			if (error) throw error;
 
@@ -46,19 +53,20 @@ export function TamaOnboard({
 			setError('Failed to set username. Please try again.');
 			console.error(err);
 		}
-	}, [username, supabase]);
+	}, [username, user, supabase]);
 
 	// Handler to submit the user card details
 	const handleUserCardSubmit = useCallback(async () => {
 		try {
 
-            const user = (await supabase.auth.getUser())?.data.user;
-
+            const userData = await user;
+			if (!userData) throw new Error('UserData not found');
+            
 
 			const { error } = await supabase
 				.from('user_profiles')
 				.update({ bio, socials, style })
-				.eq('id', user?.id);
+				.eq('id', userData.id);
 
 			if (error) throw error;
 
@@ -67,7 +75,7 @@ export function TamaOnboard({
 			setError('Failed to save user card details. Please try again.');
 			console.error(err);
 		}
-	}, [bio, socials, style, supabase, router]);
+	}, [bio, socials, style, user, supabase, router]);
 
 	return (
 		<YStack
