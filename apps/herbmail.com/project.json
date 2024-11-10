@@ -5,11 +5,33 @@
 	"sourceRoot": "apps/herbmail.com/src",
 	"tags": [],
 	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/herbmail.com",
+				"commands": [
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro dev"
+				],
+				"parallel": false
+			}
+			
+		},
 		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/herbmail.com",
+				"commands": [
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
+				],
+				"parallel": false
+			}
+			
+		},
+		"buildx": {
 			"executor": "@nxtensions/astro:build",
 			"options": {}
 		},
-		"dev": {
+		"devx": {
 			"executor": "@nxtensions/astro:dev",
 			"options": {}
 		},

@@ -1,7 +1,7 @@
 {
-  "name": "shade",
+  "name": "shadcnui",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/shade/src",
+  "sourceRoot": "packages/shadcnui/src",
   "projectType": "library",
   "tags": [],
   "targets": {

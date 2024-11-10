@@ -103,3 +103,4 @@ apps/expo-cityvote/.tamagui/css/*
 # NuGetScracthroot
 NuGetScratchroot/
 dotnet-install.sh
+vite.config.*.timestamp*

@@ -3,13 +3,13 @@
   "style": "default",
   "rsc": false,
   "tailwind": {
-    "config": "packages/uti/tailwind.config.js",
-    "css": "packages/uti/global.css",
+    "config": "packages/shadcnutils/tailwind.config.js",
+    "css": "packages/shadcnutils/global.css",
     "baseColor": "neutral",
     "cssVariables": true
   },
   "aliases": {
-    "components": "@kbve/shade",
-    "utils": "@kbve/uti"
+    "components": "@kbve/shadcnui",
+    "utils": "@kbve/shadcnutils"
   }
 }

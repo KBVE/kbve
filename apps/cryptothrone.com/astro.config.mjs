@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://cryptothrone.com',
   outDir: '../../dist/apps/cryptothrone.com',
   integrations: [
     react(),
