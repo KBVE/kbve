@@ -57,3 +57,41 @@ import { Adsense, Tasks } from '@kbve/astropad';
     I grabbed the ERW tilesets from Matos and threw them into the `Rareicon` asset folder.
     With the generic collection of tilesets, we should have enough to build a couple generic maps.
     Now the bigger question would be to figure out how to get the hang of the animation.
+
+    **Supabase**
+
+    While making changes to the Unity configuration, I can spend some time thinking through the changes that I want to do with the `user_cards`.
+    One of the goals for the user cards after this base update will be to pull the stats from the character sheet and render them.
+    We want the goal of the card to contain all the public information that a random guest or user would require.
+    So lets take abit of a step back and review the psql for it.
+
+    We will keep parts of the table, like the `CONSTRAINT` for the function, example:
+
+    ```sql
+
+    CONSTRAINT bio_length CHECK (char_length(bio) <= 255), -- Limit bio length to 255 characters
+    CONSTRAINT bio_format CHECK (bio ~ '^[a-zA-Z0-9.!? ]*$'), -- Allow alphanumeric characters, spaces, and basic punctuation
+
+    ```
+
+    Okay, yet the `JSONB` needs to be adjusted within the function because it does not let specific nulls through, like if the user has a github but not a twitter.
+    
+    Wait I am a tart, I can just drop these functions and use the row level security to handle the updating and managing of the table.
+    Thus the PSQL will make this so much easier to manage in the future, yay!
+    Okay so we will just run these and move forward with the current project.
+    
+    ```sql
+
+    BEGIN;
+
+    --  Drop older trigger and function
+    DROP TRIGGER IF EXISTS on_auth_new_card_created ON auth.users;
+    DROP FUNCTION IF EXISTS public.handle_user_card_update();
+    DROP FUNCTION IF EXISTS public.handle_new_user_card();
+    DROP TRIGGER IF EXISTS handle_user_card_update ON public.user_cards;
+
+    COMMIT;
+
+    ```
+
+    Then we can update the command to just handle these directly for us.
