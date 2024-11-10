@@ -1,6 +1,8 @@
 import { createGlobPatternsForDependencies } from '@nx/react/tailwind'
 import { join } from 'node:path'
 import TailwindAnimate from 'tailwindcss-animate'
+// import defaultTheme from 'tailwindcss/defaultTheme';
+
 
 import type { Config } from 'tailwindcss'
 
@@ -11,13 +13,14 @@ export function buildConfig(
     content: [
       join(
         appDir,
-        '{src,pages,components,app}/**/*!(*.stories|*.spec).{ts,tsx,html}'
+        '{src,pages,components,app}/**/*!(*.stories|*.spec).{ts,tsx,html,astro,md,mdx}'
       ),
       ...createGlobPatternsForDependencies(appDir)
     ],
     theme: {
       extend: {
         colors: {
+          //...defaultTheme.colors,
           border: 'hsl(var(--border))',
           input: 'hsl(var(--input))',
           ring: 'hsl(var(--ring))',
@@ -65,11 +68,20 @@ export function buildConfig(
           'accordion-up': {
             from: { height: 'var(--radix-accordion-content-height)' },
             to: { height: '0' }
-          }
+          },
+          float: {
+            '0%, 100%': { transform: 'translate3d(0, 0, 0)' },
+            '50%': { transform: 'translate3d(0, 30px, 0)' },
+          },
+          'ltr-linear-infinite': {
+            '0%, 100%': { 'background-position': '0 0' },
+            '50%': { 'background-position': '400% 0%' },
+          },
         },
         animation: {
           'accordion-down': 'accordion-down 0.2s ease-out',
-          'accordion-up': 'accordion-up 0.2s ease-out'
+          'accordion-up': 'accordion-up 0.2s ease-out',
+          'float': 'float 2s ease-in-out infinite',
         }
       }
     },
