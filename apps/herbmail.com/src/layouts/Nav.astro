@@ -1,0 +1,43 @@
+---
+import { Button } from '@kbve/shadcnui/button';
+import { Icon } from '@astrojs/starlight/components';
+import Logo from '../../public/assets/img/logo.svg?raw';
+
+const navLinks = [
+	{ href: '/', label: 'Home' },
+	{ href: '/about', label: 'About' },
+	{ href: '/services', label: 'Services' },
+	{ href: '/blog', label: 'Blog' },
+	{ href: 'https://kbve.com/contact', label: 'Contact' },
+];
+---
+
+<header class="sticky top-0 z-50 bg-background border-b border-border/40 py-4 shadow-sm dark:border-border">
+	<div class="container mx-auto px-4 flex justify-between items-center">
+		<!-- Logo Section -->
+		<a href="/" class="flex items-center space-x-2">
+			<div class="h-8 w-8">
+				<Fragment set:html={Logo} />
+			</div>
+			
+		</a>
+
+		<!-- Navigation Links -->
+		<nav class="hidden md:flex space-x-4">
+			{navLinks.map(({ href, label }) => (
+				<a href={href} class="text-foreground hover:text-primary transition-colors">
+					<Button variant="default" size="sm">
+						<span>{label}</span>
+					</Button>
+				</a>
+			))}
+		</nav>
+
+		<!-- Mobile Menu Button -->
+		<div class="md:hidden">
+			<Button variant="secondary" size="icon" aria-label="Open menu">
+				<Icon name="bars" class="h-6 w-6 text-foreground" />
+			</Button>
+		</div>
+	</div>
+</header>

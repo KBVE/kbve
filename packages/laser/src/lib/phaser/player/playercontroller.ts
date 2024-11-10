@@ -12,6 +12,7 @@ export class PlayerController {
   private cursor: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private wasdKeys!: { [key: string]: Phaser.Input.Keyboard.Key; };
   private tooltip: Phaser.GameObjects.Text;
+  private tileSize = 48;
 
 
   constructor(scene: Scene, gridEngine: any, quadtree: Quadtree) {
@@ -25,6 +26,7 @@ export class PlayerController {
       font: '16px Arial',
       backgroundColor: '#000000',
     }).setDepth(4).setPadding(3,2,2,3).setVisible(false);
+    this.tileSize;
   }
 
   private initializeWASDKeys() {
@@ -195,18 +197,30 @@ export class PlayerController {
   }
 
   private checkForNearbyObjects() {
-    const tileSize = 48; // Adjust this based on your game's tile size
     const playerPosition = this.gridEngine.getPosition('player') as Point;
-    const screenX = playerPosition.x * tileSize;
-    const screenY = playerPosition.y * tileSize;
-  
+    const screenX = playerPosition.x * this.tileSize;
+    const screenY = playerPosition.y * this.tileSize;
+
     const foundRanges = this.quadtree.query(playerPosition);
-  
+
     if (foundRanges.length > 0) {
-      this.tooltip.setPosition(screenX, screenY - 60).setVisible(true);
+        this.tooltip.setPosition(screenX, screenY - 60).setVisible(true);
     } else {
-      this.tooltip.setVisible(false);
+        this.tooltip.setVisible(false);
     }
+}
+
+
+  // Method to get the player's X coordinate in the world
+  getPlayerCoordsX(): number {
+    const playerPosition = this.gridEngine.getPosition('player') as Point;
+    return playerPosition.x;
+  }
+
+  // Method to get the player's Y coordinate in the world
+  getPlayerCoordsY(): number {
+    const playerPosition = this.gridEngine.getPosition('player') as Point;
+    return playerPosition.y; 
   }
 
   handleMovement() {

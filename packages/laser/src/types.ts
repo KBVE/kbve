@@ -565,6 +565,72 @@ export interface IMapData {
 	jsonDataUrl: string;
 }
 
+export interface ITilemapJson {
+	compressionlevel: number;
+	height: number;
+	infinite: boolean;
+	layers: Layer[];
+	nextlayerid: number;
+	nextobjectid: number;
+	orientation: string;
+	renderorder: string;
+	tiledversion: string;
+	tileheight: number;
+	tilesets: Tileset[];
+	tilewidth: number;
+	type: string;
+	version: string;
+	width: number;
+	properties?: Property[];  // Root-level properties, if any like 'ge_collide'
+  }
+  
+  export interface Layer {
+	data: number[];
+	height: number;
+	id: number;
+	name: string;
+	opacity: number;
+	type: string;
+	visible: boolean;
+	width: number;
+	x: number;
+	y: number;
+	properties?: Property[];  // Layer-specific properties
+  }
+  
+  export interface Property {
+	name: string;
+	type: string;
+	value: boolean | number | string | any;
+  }
+  
+  export interface Tileset {
+	columns: number;
+	firstgid: number;
+	image: string;
+	imageheight: number;
+	imagewidth: number;
+	margin: number;
+	name: string;
+	spacing: number;
+	tilecount: number;
+	tileheight: number;
+	tilewidth: number;
+	tiles?: Tile[];  // Optional in case no specific tiles are defined
+  }
+  
+  export interface Tile {
+	id: number;
+	properties?: Property[];  // Tile-specific properties
+  }
+
+  export interface ChunkedLayer {
+	chunks: Map<string, number[]>;
+	width: number;
+	height: number;
+	chunkSize: number;
+  }
+
 //* QuadTree */
 export interface Bounds {
 	xMin: number;

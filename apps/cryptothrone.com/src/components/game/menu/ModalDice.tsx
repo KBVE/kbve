@@ -1,5 +1,5 @@
 // DiceRollModal.tsx
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { useStore } from '@nanostores/react';
 import { playerStealDiceRoll } from './tempstore';
 import { eventEmitterInstance as EventEmitter, notificationType, queryItemDB, type DiceRollResultEventData, type PlayerStealEventData } from '@kbve/laser';
@@ -48,23 +48,23 @@ const ModalDice: React.FC = () => {
     let message = '';
 
     switch (true) {
-      case roll >= 24:
+      case roll == 24:
         itemName = '01J27QABD2GPFNRVK69S51HSGB';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 20:
+      case roll == 23:
         itemName = '01J27QN2KZG1RDZW4CE9Q9Z3YQ';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 18:
+      case roll == 19:
         itemName = '01J269PK47V1DWX2S1251DEASD';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 15:
+      case roll == 18:
         itemName = 'Blue Shark';
         message = `You successfully stole a ${itemName}!`;
         break;
-      case roll >= 12:
+      case roll == 17:
         itemName = 'Salmon';
         message = `You successfully stole a ${itemName}!`;
         break;
@@ -101,17 +101,17 @@ const ModalDice: React.FC = () => {
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     updateDiceValues([]);
     setDiceValues([]);
     setCurrentRoll(null);
     playerStealDiceRoll.set(null);
-  };
+  }, []);
 
   if (!_npc$) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-zinc-800 bg-opacity-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-zinc-800 bg-opacity-50 text-white">
       <div className="bg-zinc-800 p-4 rounded-lg shadow-lg w-3/4">
         <DiceRollMessage npcName={_npc$.npcName} roll={currentRoll} />
         <MemoizedMinigameDiceComponent />
@@ -125,7 +125,7 @@ const DiceRollMessage: React.FC<{ npcName: string, roll: number | null }> = ({ n
   <div>
     <h2 className="text-lg text-yellow-400 font-bold mb-4">Steal Attempt</h2>
     <p className="mb-4">
-      Roll the dice to steal from {npcName}. You need a total of 12 or higher to succeed.
+      Roll the dice to steal from {npcName}. You need a total of 17 or higher to succeed.
     </p>
     {roll !== null && (
       <p className="mb-4">
@@ -152,13 +152,13 @@ const MinigameDiceComponent: React.FC = () => (
 
 const MemoizedMinigameDiceComponent = memo(MinigameDiceComponent);
 
-const CloseButton: React.FC<{ handleClose: () => void }> = ({ handleClose }) => (
+const CloseButton: React.FC<{ handleClose: () => void }> = memo(({ handleClose }) => (
   <button
     onClick={handleClose}
     className="block w-full py-2 bg-red-500 text-white rounded hover:bg-red-700 mt-2"
   >
     Close
   </button>
-);
+));
 
 export default ModalDice;

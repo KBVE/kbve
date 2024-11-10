@@ -1,12 +1,18 @@
 {
-  "migrations": [
-    {
-      "cli": "nx",
-      "version": "18.2.0",
-      "description": "Move executor options to target defaults.",
-      "factory": "./src/migrations/update-18-2-0/move-options-to-target-defaults",
-      "package": "@nxtensions/astro",
-      "name": "move-options-to-target-defaults"
-    }
-  ]
+	"migrations": [
+		{
+			"version": "20.0.4-beta.0",
+			"description": "Add gitignore entry for temporary vite config files.",
+			"implementation": "./src/migrations/update-20-0-4/add-vite-temp-files-to-git-ignore",
+			"package": "@nx/vite",
+			"name": "update-20-0-4"
+		},
+		{
+			"version": "20.0.6-beta.0",
+			"description": "Add gitignore entry for temporary vite config files and remove previous incorrect glob.",
+			"implementation": "./src/migrations/update-20-0-4/add-vite-temp-files-to-git-ignore",
+			"package": "@nx/vite",
+			"name": "update-20-0-6"
+		}
+	]
 }

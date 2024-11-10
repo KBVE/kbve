@@ -1,0 +1,112 @@
+---
+import { Button } from '@kbve/shadcnui/button';
+import { Icon } from '@astrojs/starlight/components';
+import type { Icons } from '@astrojs/starlight/components/Icons';
+
+import Logo from '../../public/assets/img/logo.svg?raw';
+
+const navigationLinks = [
+	{ 
+		href: '/about', 
+		icon: 'folder' as keyof typeof Icons, 
+		label: 'About' 
+	},
+	{ 
+		href: '/services', 
+		icon: 'folder' as keyof typeof Icons, 
+		label: 'Services' 
+	},
+	{ 
+		href: '/blog', 
+		icon: 'rss' as keyof typeof Icons, 
+		label: 'Blog' 
+	},
+	{ 
+		href: 'https://kbve.com/contact', 
+		icon: 'email' as keyof typeof Icons, 
+		label: 'Contact', 
+		target: '_blank', 
+		rel: 'noopener noreferrer' 
+	},
+];
+
+const socialLinks = [
+	{
+		href: 'https://twitter.com/yourbrand',
+		icon: 'folder' as keyof typeof Icons,
+		label: 'Twitter',
+		target: '_blank',
+		rel: 'noopener noreferrer'
+	},
+	{
+		href: 'https://github.com/kbve',
+		icon: 'github' as keyof typeof Icons,
+		label: 'GitHub',
+		target: '_blank',
+		rel: 'noopener noreferrer'
+	},
+	{
+		href: 'https://linkedin.com/company/yourbrand',
+		icon: 'linkedin' as keyof typeof Icons,
+		label: 'LinkedIn',
+		target: '_blank',
+		rel: 'noopener noreferrer'
+	},
+];
+
+---
+
+<footer
+	class="border-t border-border/40 py-6 dark:border-border md:px-8 md:py-0 text-primary"
+	role="contentinfo">
+	<div
+		class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+		<!-- Logo or Brand Name -->
+		<div class="mb-4 md:mb-0 hover:animate-float">
+			<a href="/" class="text-lg font-bold">
+				<Fragment set:html={Logo} />
+			</a>
+		</div>
+
+		<div class="mb-4 md:mb-0 p-4">
+			<ul class="flex space-x-4">
+				{
+					navigationLinks.map(({ href, icon, label }) => (
+						<li>
+							<Button variant="secondary" size="sm">
+								<a
+									href={href}
+									class="flex items-center space-x-2">
+									<Icon name={icon} class="h-4 w-4" />
+									<span class="ml-1 hidden md:block">{label}</span>
+								</a>
+							</Button>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		<!-- Social Media Icons -->
+		<div class="flex space-x-4">
+			{
+				socialLinks.map(({ href, icon, label }) => (
+					<Button variant="secondary" size="icon" aria-label={label}>
+						<a
+							href={href}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="hover:scale-110">
+							<Icon name={icon} class="h-6 w-6" />
+						</a>
+					</Button>
+				))
+			}
+		</div>
+	</div>
+
+	<!-- Copyright Section -->
+	<div class="text-center mt-4 text-sm text-gray-400">
+		&copy; {new Date().getFullYear()} HerbMail. All rights reserved.
+	</div>
+</footer>
