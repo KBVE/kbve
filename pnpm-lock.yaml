@@ -699,9 +699,6 @@ importers:
       nanostores:
         specifier: ^0.9.5
         version: 0.9.5
-      node-appwrite:
-        specifier: ^11.1.1
-        version: 11.1.1
       nx:
         specifier: 20.0.12
         version: 20.0.12(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.13)(typescript@5.3.3))(@swc/core@1.5.7(@swc/helpers@0.5.13))
@@ -12544,9 +12541,6 @@ packages:
 
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
-
-  node-appwrite@11.1.1:
-    resolution: {integrity: sha512-j9QTHfsDx/RoLq9shVtpDWofCG8u/izy6uQrlzet7+UV14OMikaPUNZpQhtZGi5KjLy5R+JvJfx6HHXrfdcIvQ==}
 
   node-dir@0.1.17:
     resolution: {integrity: sha512-tmPX422rYgofd4epzrNoOXiE8XFZYOcCq1vD7MAXCDO+O+zndlA2ztdKKMa+EeuBG5tHETpr4ml4RGgpqDCCAg==}
@@ -32587,13 +32581,6 @@ snapshots:
     optional: true
 
   node-addon-api@7.1.1: {}
-
-  node-appwrite@11.1.1:
-    dependencies:
-      axios: 1.6.7
-      form-data: 4.0.1
-    transitivePeerDependencies:
-      - debug
 
   node-dir@0.1.17:
     dependencies:

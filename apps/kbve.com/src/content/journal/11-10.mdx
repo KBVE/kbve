@@ -20,4 +20,14 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
     Updated the monorepo to nx v20.0.12.
     Also moved up the build process to see where the main branch fails, hopefully we can address that problem tonight.
-    
+
+    **Main**
+
+    The branch seems to build without any major issues, but it did skip a couple libraries from being built.
+    What we could do is try to maybe start changing the triggers to be all via readme updates?
+    Hmm, I will have to think through it again, let me get some coffee and revisit this concept again within the next hour.
+
+    **Package**
+
+    I am going to go through the package again and see if there are any libraries that we need to update or remove.
+    We are no longer supporting `appwrite`, so lets go ahead and remove that one.
