@@ -42,13 +42,14 @@ export class SandCity extends Scene {
 		let cloudCityTilemap: Phaser.Tilemaps.Tilemap | null = null;
 
 		try {
-			await mapDatabase.prepareMapLoad('cloud-city-map');
-			cloudCityTilemap = await mapDatabase.loadNewMap(
-				this,
-				'cloud-city-map',
-				5,
-				12,
-			);
+			// await mapDatabase.prepareMapLoad('cloud-city-map');
+			// cloudCityTilemap = await mapDatabase.loadNewMap(
+			// 	this,
+			// 	'cloud-city-map',
+			// 	5,
+			// 	12,
+			// );
+			cloudCityTilemap = await mapDatabase.loadMap(this, 'cloud-city-map');
 		} catch (error) {
 			Debug.error('Failed to load map:', error);
 			return;
