@@ -1,14 +1,17 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { YStack, Input, Button, TextArea, Text } from 'tamagui';
-import { useRouter } from 'expo-router';
 import { createSupabaseClient } from '../../wrapper/Supabase';
 
 export function TamaOnboard({
 	supabaseUrl,
 	supabaseAnonKey,
+    onSuccess,
+    onError,
 }: {
 	supabaseUrl: string;
 	supabaseAnonKey: string;
+    onSuccess?: () => void;
+    onError?: (error: string) => void;
 }) {
 
     //  [States]
@@ -17,10 +20,6 @@ export function TamaOnboard({
 	const [bio, setBio] = useState('');
 	const [socials, setSocials] = useState('');
 	const [style, setStyle] = useState('');
-	const [error, setError] = useState<string | null>(null);
-
-    //  [Router] -> [could be swapped with the useBBQ]
-	const router = useRouter();
 
     //  [Supabase]
 	const supabase = useMemo(
@@ -50,10 +49,10 @@ export function TamaOnboard({
 
 			setStep(2); // Move to the next step for bio/socials
 		} catch (err) {
-			setError('Failed to set username. Please try again.');
+			if (onError) onError('Failed to set username. Please try again.');
 			console.error(err);
 		}
-	}, [username, user, supabase]);
+	}, [username, user, supabase, onError]);
 
 	// Handler to submit the user card details
 	const handleUserCardSubmit = useCallback(async () => {
@@ -62,20 +61,18 @@ export function TamaOnboard({
             const userData = await user;
 			if (!userData) throw new Error('UserData not found');
             
-
 			const { error } = await supabase
 				.from('user_profiles')
 				.update({ bio, socials, style })
 				.eq('id', userData.id);
 
 			if (error) throw error;
-
-			router.replace('/profile'); // Redirect to profile page after successful onboarding
+            if (onSuccess) onSuccess();
 		} catch (err) {
-			setError('Failed to save user card details. Please try again.');
+			if (onError) onError('Failed to save user card details. Please try again.');
 			console.error(err);
 		}
-	}, [bio, socials, style, user, supabase, router]);
+	}, [bio, socials, style, user, supabase, onSuccess, onError]);
 
 	return (
 		<YStack
@@ -92,7 +89,7 @@ export function TamaOnboard({
 						onChangeText={setUsername}
 						placeholder="Username"
 					/>
-					{error && <Text color="red">{error}</Text>}
+					
 					<Button onPress={handleUsernameSubmit}>Next</Button>
 				</>
 			) : (
@@ -113,7 +110,6 @@ export function TamaOnboard({
 						onChangeText={setStyle}
 						placeholder="Preferred style"
 					/>
-					{error && <Text color="red">{error}</Text>}
 					<Button onPress={handleUserCardSubmit}>
 						Complete Onboarding
 					</Button>
