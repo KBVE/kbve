@@ -54,8 +54,15 @@ export function TamaProfile({
 					.eq('id', session.session.user.id) // Use session.user.id for filtering
 					.single();
 
-			if (profileError) {
-				throw profileError;
+			//	11-10-2024 - Going to redirect the user to the onboarding.
+			// if (profileError) {
+			// 	throw profileError;
+			// }
+
+			if (profileError || !profileData) {
+				// If no profile exists for the new user, redirect to onboarding
+				router.replace('/onboard');
+				return;
 			}
 
 			setUsername(

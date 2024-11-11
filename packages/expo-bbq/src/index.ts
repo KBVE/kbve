@@ -14,6 +14,7 @@ export { TamaRegister } from './components/auth/TamaRegister';
 export { TamaLogin } from './components/auth/TamaLogin';
 export { TamaProfile } from './components/auth/TamaProfile';
 export { TamaUserCard } from './components/auth/user/TamaUserCard';
+export { TamaOnboard } from './components/auth/user/TamaOnboard';
 
 //  [PANELS]
 export { TamaSheet } from './components/panels/TamaSheet';

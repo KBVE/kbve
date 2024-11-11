@@ -3,11 +3,11 @@ BEGIN;
 -- Drop the function and trigger for creating an empty user profile row on registration
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS public.handle_new_user_profile();
-
+DROP FUNCTION IF EXISTS public.create_user_profile(_username TEXT);
 
 -- Function to create a user profile using the caller's UUID
 CREATE OR REPLACE FUNCTION public.create_user_profile(_username TEXT)
-    RETURNS VOID AS $$
+    RETURNS TEXT AS $$
 DECLARE
     _user_id UUID := auth.uid(); -- Automatically get the UUID of the caller
 BEGIN
@@ -41,8 +41,12 @@ BEGIN
     -- Insert the profile with the username if it doesn't already exist
     INSERT INTO public.user_profiles (id, username)
     VALUES (_user_id, _username);
+
+    -- Return the created username
+    RETURN _username;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
 
 
 COMMIT;
