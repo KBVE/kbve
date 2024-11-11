@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { YStack, Input, Button, TextArea, Text } from 'tamagui';
 import { createSupabaseClient } from '../../wrapper/Supabase';
+import { socialsSchema, styleSchema } from './UserSchema';
 
 export function TamaOnboard({
 	supabaseUrl,
