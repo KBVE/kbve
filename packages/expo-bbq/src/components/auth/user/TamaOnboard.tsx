@@ -1,42 +1,37 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { YStack, Input, Button, TextArea, Text } from 'tamagui';
+import { YStack, Input, Button, TextArea, Text, Form as TamaguiForm, Spinner } from 'tamagui';
 import { createSupabaseClient } from '../../wrapper/Supabase';
-import { socialsSchema, styleSchema } from './UserSchema';
+import { userCardSchema } from './UserSchema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+type UserCardFormData = z.infer<typeof userCardSchema>;
 
 export function TamaOnboard({
 	supabaseUrl,
 	supabaseAnonKey,
-    onSuccess,
-    onError,
+	onSuccess,
+	onError,
 }: {
 	supabaseUrl: string;
 	supabaseAnonKey: string;
-    onSuccess?: () => void;
-    onError?: (error: string) => void;
+	onSuccess?: () => void;
+	onError?: (error: string) => void;
 }) {
 
-    //  [States]
 	const [step, setStep] = useState(1);
 	const [username, setUsername] = useState('');
-	const [bio, setBio] = useState('');
-	const [socials, setSocials] = useState('');
-	const [style, setStyle] = useState('');
-    const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(true);
+	const [status, setStatus] = useState<'off' | 'submitting' | 'submitted'>('off');
 
+	const supabase = useMemo(() => createSupabaseClient(supabaseUrl, supabaseAnonKey), [supabaseUrl, supabaseAnonKey]);
 
-    //  [Supabase]
-	const supabase = useMemo(
-		() => createSupabaseClient(supabaseUrl, supabaseAnonKey),
-		[supabaseUrl, supabaseAnonKey],
-	);
+	const { register, handleSubmit, formState: { errors } } = useForm<UserCardFormData>({
+		resolver: zodResolver(userCardSchema),
+		defaultValues: { bio: '', socials: {}, style: {} },
+	});
 
-    //  [User] -> Memoize the user object.
-    // const user = useMemo(async () => {
-	// 	return (await supabase.auth.getUser())?.data.user;
-	// }, [supabase]);
-
-
-        // Check if username is already set
 	useEffect(() => {
 		const checkExistingUsername = async () => {
 			try {
@@ -51,10 +46,7 @@ export function TamaOnboard({
 
 				if (error) throw new Error(error.message);
 
-				// If username exists, skip to step 2
-				if (data?.username) {
-					setStep(2);
-				}
+				if (data?.username) setStep(2);
 			} catch (err) {
 				if (onError) onError('Failed to check username. Please try again.');
 				console.error(err);
@@ -66,107 +58,87 @@ export function TamaOnboard({
 		checkExistingUsername();
 	}, [supabase, onError]);
 
-	// Handler to submit the username
-    const handleUsernameSubmit = useCallback(async () => {
-        try {
-            const user = (await supabase.auth.getUser())?.data.user;
-            if (!user) throw new Error('User data not found');
-    
-            // Lowercase the username for consistency
-            const lowercasedUsername = username.toLowerCase();
-    
-            
-            // Call the stored function to handle the new user profile
-            const { data, error } = await supabase
-            .rpc('create_user_profile', { _username: lowercasedUsername });
+	const handleUsernameSubmit = useCallback(async () => {
+		try {
+			const user = (await supabase.auth.getUser())?.data.user;
+			if (!user) throw new Error('User data not found');
 
-            
-            if (error) throw new Error(JSON.stringify(error));
-    
-            // Check if data was returned to confirm successful update
-            if (data && data.length > 0) {
-                setStep(2); // Move to the next step for bio/socials
-            } else {
-                throw new Error('Update failed, no data returned');
-            }
-        } catch (err) {
-            if (onError) onError('Failed to set username. Please try again.');
-            console.error(err);
-        }
-    }, [username, supabase, onError]);
-    
-	// Handler to submit the user card details
-    const handleUserCardSubmit = useCallback(async () => {
-        try {
-            const user = (await supabase.auth.getUser())?.data.user;
-            if (!user) throw new Error('User data not found');
-    
-            // Prepare the payload, excluding `socials` and `style` if they're empty
-            const payload: Record<string, any> = { id: user.id, bio };
-            if (socials) payload.socials = socials;
-            if (style) payload.style = style;
-    
-            // Use upsert to insert or update the row
-            const { data, error } = await supabase
-                .from('user_cards')
-                .upsert(payload, { onConflict: 'id' }) // Handle conflicts based on the user's id
-                .select();
-    
-            if (error) throw new Error(JSON.stringify(error));
-            if (!data || data.length === 0) throw new Error('Failed to save user card details');
-    
-            if (onSuccess) onSuccess();
-        } catch (err) {
-            if (onError) onError('Failed to save user card details. Please try again.');
-            console.error(err);
-        }
-    }, [bio, socials, style, supabase, onSuccess, onError]);
-    
+			const lowercasedUsername = username.toLowerCase();
 
-    if (loading) {
-		return <Text>Loading...</Text>;
-	}
+			const { data, error } = await supabase
+				.rpc('create_user_profile', { _username: lowercasedUsername });
+
+			if (error) throw new Error(JSON.stringify(error));
+
+			if (data && data.length > 0) setStep(2);
+			else throw new Error('Update failed, no data returned');
+		} catch (err) {
+			if (onError) onError('Failed to set username. Please try again.');
+			console.error(err);
+		}
+	}, [username, supabase, onError]);
+
+	const handleUserCardSubmit = useCallback(
+		async (formData: UserCardFormData) => {
+			setStatus('submitting');
+			try {
+				const user = (await supabase.auth.getUser())?.data.user;
+				if (!user) throw new Error('User data not found');
+
+				const payload = { id: user.id, ...formData };
+				const { data, error } = await supabase
+					.from('user_cards')
+					.upsert(payload, { onConflict: 'id' })
+					.select();
+
+				if (error) throw new Error(JSON.stringify(error));
+				if (!data || data.length === 0) throw new Error('Failed to save user card details');
+
+				setStatus('submitted');
+				if (onSuccess) onSuccess();
+			} catch (err) {
+				setStatus('off');
+				if (onError) onError('Failed to save user card details. Please try again.');
+				console.error(err);
+			}
+		},
+		[supabase, onSuccess, onError]
+	);
+
+	if (loading) return <Text>Loading...</Text>;
 
 	return (
-		<YStack
-			padding="$4"
-			alignItems="center"
-			justifyContent="center"
-			flex={1}
-			gap={2}>
+		<YStack padding="$4" alignItems="center" justifyContent="center" flex={1} gap={2}>
 			{step === 1 ? (
 				<>
 					<Text>Please choose your public username:</Text>
-					<Input
-						value={username}
-						onChangeText={setUsername}
-						placeholder="Username"
-					/>
-					
+					<Input value={username} onChangeText={setUsername} placeholder="Username" />
 					<Button onPress={handleUsernameSubmit}>Next</Button>
 				</>
 			) : (
-				<>
+				<TamaguiForm onSubmit={handleSubmit(handleUserCardSubmit)}>
 					<Text>Tell us more about yourself:</Text>
-					<TextArea
-						value={bio}
-						onChangeText={setBio}
-						placeholder="Write a short bio"
-					/>
-					<Input
-						value={socials}
-						onChangeText={setSocials}
-						placeholder="Your social links"
-					/>
-					<Input
-						value={style}
-						onChangeText={setStyle}
-						placeholder="Preferred style"
-					/>
-					<Button onPress={handleUserCardSubmit}>
-						Complete Onboarding
-					</Button>
-				</>
+					<TextArea {...register('bio')} placeholder="Write a short bio" />
+					{errors.bio && <Text color="red">{errors.bio.message}</Text>}
+
+					<Input {...register('socials.twitter')} placeholder="Twitter URL" />
+					{errors.socials?.twitter && <Text color="red">{errors.socials.twitter.message}</Text>}
+
+					<Input {...register('socials.github')} placeholder="GitHub URL" />
+					{errors.socials?.github && <Text color="red">{errors.socials.github.message}</Text>}
+
+					<Input {...register('socials.linkedin')} placeholder="LinkedIn URL" />
+					{errors.socials?.linkedin && <Text color="red">{errors.socials.linkedin.message}</Text>}
+
+					<Input {...register('socials.website')} placeholder="Website URL" />
+					{errors.socials?.website && <Text color="red">{errors.socials.website.message}</Text>}
+
+					<TamaguiForm.Trigger asChild disabled={status !== 'off'}>
+						<Button icon={status === 'submitting' ? () => <Spinner /> : undefined}>
+							Complete Onboarding
+						</Button>
+					</TamaguiForm.Trigger>
+				</TamaguiForm>
 			)}
 		</YStack>
 	);
