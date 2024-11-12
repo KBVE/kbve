@@ -7,7 +7,10 @@ export { TamaSimpleCardList } from './components/TamaSimpleCardList';
 export { LottieAnimation } from './components/animation/LottieAnimation';
 export { LottieHero } from './components/animation/LottieHero';
 export { MaskedView } from './components/creative/MaskedView';
+
+//  [CORE]
 export { useBBQ } from './core/BBQ';
+export { payloadInstance } from './core/Payload';
 
 //  [AUTH]
 export { TamaRegister } from './components/auth/TamaRegister';
