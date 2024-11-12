@@ -14,3 +14,10 @@ export const styleSchema = z.object({
 	cover: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional(),
 	background: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional(),
 }).partial();
+
+// User card schema combining bio, socials, and style
+export const userCardSchema = z.object({
+	bio: z.string().max(255).optional(),
+	socials: socialsSchema.optional(),
+	style: styleSchema.optional(),
+});
