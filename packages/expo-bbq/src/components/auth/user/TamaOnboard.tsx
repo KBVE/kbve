@@ -113,7 +113,7 @@ export function TamaOnboard({
 	if (loading) return <Text>Loading...</Text>;
 
 	return (
-		<YStack padding="$4" alignItems="center" justifyContent="center" flex={1} gap={2}>
+		<YStack padding="$4" alignItems="center" justifyContent="center" flex={1} gap={'$2'}>
 			{step === 1 ? (
 				<>
 					<Text>Please choose your public username:</Text>
@@ -121,12 +121,12 @@ export function TamaOnboard({
 					<Button onPress={handleUsernameSubmit}>Next</Button>
 				</>
 			) : (
-				<TamaguiForm onSubmit={handleSubmit(handleUserCardSubmit)}>
-					<Text>Tell us more about yourself:</Text>
+				<TamaguiForm onSubmit={handleSubmit(handleUserCardSubmit)} padding="$2" gap="$3">
+					<SizableText>Tell us more about yourself:</SizableText>
 
 					<TextArea 
 						{...register('bio')} 
-						placeholder="Write a short bio" 
+						placeholder="Write a short bio that will be shared with the public!" 
 						onChangeText={(text) => setValue('bio', text)}
 					/>
 					{errors.bio && <Text color="red">{errors.bio.message}</Text>}
