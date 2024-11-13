@@ -40,7 +40,23 @@ import { Adsense, Tasks } from '@kbve/astropad';
     Which means that we have two additional options, one being using an event system and the other using a worklet, hmm, maybe a combo of both?
     Lets go ahead and tackle this right now before I forgot.
 
+    There are six areas that we need to test out, the first is improving the memo utilization and memory usage.
+    React should be able to handle the memory management, but we should look at maybe adding our own ways to make this easier, hmm.
+    The second part was the `React.lazy` and having it help us offset some of the loading of the more complex animations and components, I suppose that can be used with our offscreen objects.
+    The third part would be the `React Context API` but that might be too much of an issue for us to utilize right now, but it does make sense to have it pass some objects.
+    The fourth part will be having the useTransitions to help smooth out the hicups and then there are the other additional libraries, ugh!
+    I need to becareful not to bloat up the application as well, maybe we can keep these noted and tackle the optimization later on.
     
+    So the goal would be to build these components out:
 
+    -   `useIdleCallback`
+    -   `useCache`
+    -   `useMemory`
+    -   `useLazyMemory`
+    -   `useOffScreen`
+    -   `useVirtual`
+
+    All of them can then be placed into the `core` of our expo package, making it so that we can use them in the future to help us handle some of the future issues that will require optimization.
+    
 
 <Adsense />
