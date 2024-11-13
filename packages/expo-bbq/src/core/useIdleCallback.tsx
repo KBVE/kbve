@@ -12,10 +12,16 @@ interface IdleDeadline {
   timeRemaining: () => number;
 }
 
-const requestIdleCallbackPolyfill = <T,>(callback: IdleCallback<T>, options: IdleOptions = { timeout: 1000 }) => {
+type InteractionHandle = ReturnType<typeof InteractionManager.runAfterInteractions>;
+
+const requestIdleCallbackPolyfill = <T,>(
+  callback: IdleCallback<T>, 
+  options: IdleOptions = { timeout: 1000 }
+): unknown => {
   if (typeof window !== 'undefined' && window.requestIdleCallback) {
     return window.requestIdleCallback(callback, options);
   }
+
   const start = Date.now();
   return setTimeout(() => {
     callback({
@@ -25,27 +31,28 @@ const requestIdleCallbackPolyfill = <T,>(callback: IdleCallback<T>, options: Idl
   }, options.timeout);
 };
 
-const cancelIdleCallbackPolyfill = (id: number | ReturnType<typeof setTimeout>) => {
+const cancelIdleCallbackPolyfill = (id: unknown) => {
   if (typeof window !== 'undefined' && window.cancelIdleCallback) {
-    return window.cancelIdleCallback(id as number);
+    window.cancelIdleCallback(id as number);
+  } else {
+    clearTimeout(id as ReturnType<typeof setTimeout>); 
   }
-  clearTimeout(id as ReturnType<typeof setTimeout>);
 };
 
 const useIdleCallback = <T,>(callback: IdleCallback<T>, options?: IdleOptions) => {
-    useEffect(() => {
-      const idleTask = Platform.OS === 'web'
-        ? requestIdleCallbackPolyfill(callback, options)
-        : InteractionManager.runAfterInteractions(() => callback({ didTimeout: false, timeRemaining: () => 50 }));
-  
-      return () => {
-        if (Platform.OS === 'web') {
-          cancelIdleCallbackPolyfill(idleTask as number);
-        } else if (typeof idleTask === 'object' && 'cancel' in idleTask) {
-            idleTask.cancel();
-        }
-      };
-    }, [callback, options]);
-  };
+  useEffect(() => {
+    const idleTask = Platform.OS === 'web'
+      ? requestIdleCallbackPolyfill(callback, options)
+      : InteractionManager.runAfterInteractions(() => callback({ didTimeout: false, timeRemaining: () => 50 }));
+
+    return () => {
+      if (Platform.OS === 'web') {
+        cancelIdleCallbackPolyfill(idleTask);
+      } else if (typeof idleTask === 'object' && idleTask !== null && 'cancel' in idleTask) {
+        (idleTask as InteractionHandle).cancel();
+      }
+    };
+  }, [callback, options]);
+};
 
 export default useIdleCallback;
