@@ -39,7 +39,7 @@ const cancelIdleCallbackPolyfill = (id: unknown) => {
   }
 };
 
-const useIdleCallback = <T,>(callback: IdleCallback<T>, options?: IdleOptions) => {
+export const useIdleCallback = <T,>(callback: IdleCallback<T>, options?: IdleOptions) => {
   useEffect(() => {
     const idleTask = Platform.OS === 'web'
       ? requestIdleCallbackPolyfill(callback, options)

@@ -37,7 +37,7 @@ const isCacheExpired = (cachedTimestamp: number): boolean => {
 	return now - cachedTimestamp > CACHE_EXPIRY_TIME;
 };
 
-const useCache = <T,>(key: string, fetchData: () => Promise<T>) => {
+export const useCache = <T,>(key: string, fetchData: () => Promise<T>) => {
 	const [data, setData] = useState<T | null>(null);
 	const [loading, setLoading] = useState(true);
 
