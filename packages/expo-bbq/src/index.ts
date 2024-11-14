@@ -1,3 +1,5 @@
+
+
 export { TamaHero } from './components/TamaHero';
 export { TamaCard } from './components/TamaCard';
 export { InstaCard } from './components/card/InstaCard';
@@ -11,6 +13,9 @@ export { MaskedView } from './components/creative/MaskedView';
 //  [CORE]
 export { useBBQ } from './core/BBQ';
 export { payloadInstance } from './core/Payload';
+export { useCache } from './core/useCache';
+export { useIdleCallback } from './core/useIdleCallback';
+export { useMemory } from './core/useMemory';
 
 //  [AUTH]
 export { TamaRegister } from './components/auth/TamaRegister';
