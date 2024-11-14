@@ -7,11 +7,12 @@ type LazyComponentProps<T> = {
 	loading: boolean;
 };
 
-export const useMemory = <T,>(
+export const useMemory = <T, P, >(
 	key: string,
 	fetchData: () => Promise<T>,
-	Component: React.ComponentType<LazyComponentProps<T>>,
+	Component: React.ComponentType<LazyComponentProps<T> & P>,
 	Skeleton?: React.ComponentType,
+	extraProps?: P,
 ) => {
 	const { data, loading } = useCache<T>(key, fetchData);
 
@@ -21,11 +22,10 @@ export const useMemory = <T,>(
 
 	const LazyLoadedComponent = useMemo(() => {
 		const LazyComponent = React.lazy(async () => {
-			await fetchData();
 			return {
 				default: () =>
 					data ? (
-						<Component data={data} loading={loading} />
+						<Component data={data} loading={loading} {...(extraProps as P)} />
 					) : Skeleton ? (
 						<Skeleton />
 					) : (
@@ -42,7 +42,7 @@ export const useMemory = <T,>(
 				<LazyComponent />
 			</Suspense>
 		);
-	}, [data, loading, fetchData, Component, Skeleton]);
+	}, [data, loading, Component, Skeleton, extraProps]);
 
 	return { LazyLoadedComponent, refreshData };
 };
