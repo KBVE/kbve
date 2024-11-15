@@ -186,7 +186,7 @@ jobs:
       fail-fast: false
       matrix:
         projectPath:
-          - /azure-rareicon
+          - azure-rareicon
         unityVersion:
           - 6000.0.25f1
         targetPlatform:
