@@ -10,6 +10,12 @@ export { LottieAnimation } from './components/animation/LottieAnimation';
 export { LottieHero } from './components/animation/LottieHero';
 export { MaskedView } from './components/creative/MaskedView';
 
+//  [WRAPPER]
+export { createSupabaseClient } from './components/wrapper/Supabase';
+
+//  [CONTAINER]
+export { TamaProfileContainer } from './components/container/TamaProfileContainer';
+
 //  [CORE]
 export { useBBQ } from './core/BBQ';
 export { payloadInstance } from './core/Payload';
