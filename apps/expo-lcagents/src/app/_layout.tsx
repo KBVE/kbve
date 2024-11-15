@@ -63,7 +63,7 @@ function RootLayoutNav() {
           <Stack.Screen name="login"  options={{  animation: 'fade' }} />
           <Stack.Screen name="profile" options={{  animation: 'fade' }} />
           <Stack.Screen name="onboard" options={{  animation: 'fade' }} />
-
+          <Stack.Screen name="users" options={{ animation: 'fade'}} />
 
         </Stack>
        

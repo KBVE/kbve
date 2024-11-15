@@ -1,11 +1,9 @@
 import React from 'react';
 import { View, Text, XStack, ScrollView } from 'tamagui';
-import { TamaHero, TamaCard } from '@kbve/expo-bbq';
+import { TamaHero, TamaCard, useBBQ } from '@kbve/expo-bbq';
 import { Platform, Linking } from 'react-native';
 
 import { useNavigation, useRouter } from 'expo-router';
-
-
 
 function ServiceSection() {
 	return (
@@ -20,14 +18,14 @@ function ServiceSection() {
 }
 
 const ServiceScreen = () => {
-	const router = useRouter();
+	const router = useBBQ();
 
 	const handleButtonOnePress = () => {
-		router.navigate('/contact'); 
+		router.go('/contact');
 	};
 
 	const handleButtonTwoPress = () => {
-		router.navigate('/support'); 
+		router.go('/support');
 	};
 
 	return (
