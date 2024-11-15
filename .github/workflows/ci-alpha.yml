@@ -193,8 +193,11 @@ jobs:
           - StandaloneWindows64
           - WebGL
     steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v4
+      # - name: Checkout this repository
+      #   uses: actions/checkout@v4
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
 
       - name: Pull RareIcon Kilonet Repo
         env:
