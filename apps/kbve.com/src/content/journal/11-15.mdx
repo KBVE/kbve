@@ -36,3 +36,19 @@ import { Adsense, Tasks } from '@kbve/astropad';
     Now trying to get this resolved, we first need to fix the azure pipeline and make sure that we can pull from the repo.
     The best move would be test it within the alpha pull request, so lets go ahead and try that out!
     If everything goes as planned, we should be able to build the unity game each time there are changes to the `kilonet` readme.
+
+    To verify the files are from the azure repo, we will just run this command:
+
+    ```shell
+
+    cd azure-rareicon
+    echo "Current working directory: $(pwd)"
+    echo "Listing all files in the repository:"
+    find . -type f
+    echo "Listing all contents (including hidden files):"
+    ls -la
+
+    ```
+
+    Okay! We ran into another issue, our current build is `6000.0.26f1` and the gameci only has up to `6000.0.25f1` supported.
+    We will downgrade the game by one version and once the gameci releases the `6000.0.26f1`, we will upgrade back to the LTS.
