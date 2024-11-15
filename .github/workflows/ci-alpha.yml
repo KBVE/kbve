@@ -196,6 +196,9 @@ jobs:
       - name: Checkout this repository
         uses: actions/checkout@v4
 
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+
       - name: Pull RareIcon Kilonet Repo
         env:
             AZURE_PAT: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET }}
