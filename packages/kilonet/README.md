@@ -2,6 +2,8 @@
 <a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/letter_logo.png" width="200"></a>
 </center>
 
+---
+
 ## Kilonet
 
 ![Discord](https://img.shields.io/discord/342732838598082562?logo=discord)
