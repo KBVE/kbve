@@ -36,3 +36,26 @@ import { Adsense, Tasks } from '@kbve/astropad';
     Now trying to get this resolved, we first need to fix the azure pipeline and make sure that we can pull from the repo.
     The best move would be test it within the alpha pull request, so lets go ahead and try that out!
     If everything goes as planned, we should be able to build the unity game each time there are changes to the `kilonet` readme.
+
+    To verify the files are from the azure repo, we will just run this command:
+
+    ```shell
+
+    cd azure-rareicon
+    echo "Current working directory: $(pwd)"
+    echo "Listing all files in the repository:"
+    find . -type f
+    echo "Listing all contents (including hidden files):"
+    ls -la
+
+    ```
+
+    Okay! We ran into another issue, our current build is `6000.0.26f1` and the gameci only has up to `6000.0.25f1` supported.
+    We will downgrade the game by one version and once the gameci releases the `6000.0.26f1`, we will upgrade back to the LTS.
+
+    Minor tweaks to the action to fix some path errors, this is always the boring and painful guess and check process! Ugh!
+
+    We got the build process started, now I am going to configure the linking with the unity.
+    Yet there seems to be that lack of space issue again, so maybe we need to fix that right now.
+    Both builds, the standard windows and the webgl are running out of space, but I believe that might be because some parts of our original repo are way too large and are not needed.
+    Thus, we could just remove the checkout of our repo, then come back around in the future and remove the extra unity files that are in our repo.
