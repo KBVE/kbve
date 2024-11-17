@@ -6,7 +6,10 @@ using Cysharp.Threading.Tasks;
 using Supabase;
 using Supabase.Gotrue;
 using UnityEngine;
+
+#if !UNITY_WEBGL
 using Vuplex.WebView;
+#endif
 
 namespace KBVE.Kilonet.Utils
 {
@@ -16,7 +19,10 @@ namespace KBVE.Kilonet.Utils
     public string CanvasWebViewPrefabName = "CanvasWebViewPrefab";
     public string CanvasWebViewPrefabViewName = "CanvasWebViewPrefabView";
 
-    private CanvasWebViewPrefab _canvasWebViewPrefab;
+    #if !UNITY_WEBGL
+      private CanvasWebViewPrefab _canvasWebViewPrefab;
+    #endif
+
     private Supabase.Client _supabaseClient;
 
     private const string SUPABASE_URL = "https://supabase.kbve.com";
@@ -27,8 +33,10 @@ namespace KBVE.Kilonet.Utils
     {
       try
       {
+        #if !UNITY_WEBGL
         // Use UniTask to manage initialization
         InitializeWebView().Forget(); // Use UniTask's Forget to run async without awaiting
+        #endif
         InitializeSupabaseClientAsync().Forget(); // Initialize Supabase client asynchronously
       }
       catch (Exception ex)
@@ -37,6 +45,8 @@ namespace KBVE.Kilonet.Utils
       }
     }
 
+
+    #if !UNITY_WEBGL
     private async UniTaskVoid InitializeWebView()
     {
       GameObject canvasObject = GameObject.Find(CanvasObjectName);
@@ -85,6 +95,7 @@ namespace KBVE.Kilonet.Utils
       _canvasWebViewPrefab.WebView.MessageEmitted += OnMessageReceived;
       Debug.Log("Vuplex CanvasWebView successfully initialized and ready to receive messages.");
     }
+    #endif
 
     private async UniTaskVoid InitializeSupabaseClientAsync()
     {
