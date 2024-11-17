@@ -212,7 +212,7 @@ jobs:
         with:
           path: ${{ matrix.projectPath }}/Library
           key:
-            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-${{hashFiles(matrix.projectPath) }}
+            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
           restore-keys: |
             Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-
             Library-${{ matrix.projectPath }}-

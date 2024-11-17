@@ -13,8 +13,7 @@ This is a sample unity for Supabase integration within Rareicon and a couple inh
 I will wrap back around and update this package more often once we get the realtime operational on the supabse instance.
 
 Unity Version: 6000.0.25f1
-
-Added some new characters and going to trigger a build!
+Packages: MM/TPD, VuPlex (Desktop)
 
 - [KBVE](https://kbve.com/)
 - [RareIcon](https://rareicon.com/)
