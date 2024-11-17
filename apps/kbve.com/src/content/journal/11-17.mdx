@@ -30,3 +30,27 @@ import { Adsense, Tasks } from '@kbve/astropad';
     The map would automatically generate the tiles and things that would be in your way through your quest, including mobs, traps, npcs and more?
     This might feel like its going to be a huge part of the gameplay loop, because it will generate additional side content for the player to try out.
 
+-   01:00PM
+
+    **JSON**
+
+    Looks like the json package was missing from the build process, I am not too sure why it got removed or if I forgot to install it in the first place?
+    Anyhow, going to add that into the build setup and see if we can move forward with the build process.
+    I can already tell there might be a bunch of other issues during the linking process of unity and the final build, but having the bug reports directly there in the logs does make things easier.
+    For the ally management, I am thinking we add a couple additional characters for our bullet hell type game, the first was Gala, she will be our space pirate type character.
+    We should pull references from cowboy bebop and one piece, maybe a bit of that iron fleet too into her story line.
+
+-   01:58PM
+
+    **WebView**
+
+    Okay it seems that during the WebGL build, it is pulling in the Vuplex configuration, which we do not want.
+    i.e
+    ```c#
+
+    #if UNITY_WEBGL && !UNITY_EDITOR
+        WebGLWebView.FocusUnity();
+    #endif
+    ```
+
+    So we need to go back around in our code and make those adjustments.
