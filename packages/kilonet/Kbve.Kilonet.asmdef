@@ -2,13 +2,14 @@
   "name": "Kbve.Kilonet",
   "rootNamespace": "KBVE.Kilonet",
   "references": [
-     "Vuplex.WebView",
+      "Vuplex.WebView",
       "Supabase.Core",
       "Supabase.Functions",
       "Supabase.Gotrue",
       "Supabase.Postgrest",
       "Supabase.Realtime",
-      "Supabase.Storage"
+      "Supabase.Storage",
+      "Cysharp.Threading.Tasks"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

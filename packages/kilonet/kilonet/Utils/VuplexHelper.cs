@@ -12,6 +12,7 @@ namespace KBVE.Kilonet.Utils
 {
   public class VuplexHelper : MonoBehaviour
   {
+    
     public Canvas CanvasObject;
     public CanvasWebViewPrefab CanvasWebViewPrefab;
     public IWebView CanvasWebViewPrefabView;
@@ -46,15 +47,12 @@ namespace KBVE.Kilonet.Utils
           return;
         }
 
-        // Initialize the CanvasWebViewPrefab
         await CanvasWebViewPrefab.WaitUntilInitialized();
 
-        // Dynamically assign the WebView to CanvasWebViewPrefabView
         if (CanvasWebViewPrefab.WebView != null)
         {
           CanvasWebViewPrefabView = CanvasWebViewPrefab.WebView;
 
-          // Subscribe to the WebView's MessageEmitted event
           CanvasWebViewPrefabView.MessageEmitted += OnMessageReceived;
 
           Debug.Log("Vuplex WebView successfully initialized and ready to receive messages.");
