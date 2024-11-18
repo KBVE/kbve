@@ -1,12 +1,16 @@
 ---
 name: Bug report
-about: Create a bug report on any of our KBVE services.
+about: Create a bug report on any of our KBVE services, besides Unity!
 title: '[Bug] : '
 labels: ["0", "bug"]
 projects: ["kbve/5"]
 assignees: 'h0lybyte'
 
 ---
+
+* * *
+**This bug report is not for unity games**
+We created a new issue ticket template for unity bug reports.
 
 **Describe the bug**
 A clear and concise description of what the bug is.

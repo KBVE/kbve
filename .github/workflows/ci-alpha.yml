@@ -212,7 +212,7 @@ jobs:
         with:
           path: ${{ matrix.projectPath }}/Library
           key:
-            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-${{hashFiles(matrix.projectPath) }}
+            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
           restore-keys: |
             Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-
             Library-${{ matrix.projectPath }}-
@@ -234,6 +234,28 @@ jobs:
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
+
+  kilonet-rareicon-itch-deployment:
+    needs: ['kilonet-rareicon-build']
+    name: Kilonet Rareicon Itch Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download WebGL Build
+        uses: actions/download-artifact@v4
+        id: download
+        with:
+          name: Build-WebGL
+          path: build/WebGL
+
+      - name: Itch Deploy
+        uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{ secrets.ITCH_API }}
+          gameData: ${{steps.download.outputs.download-path}}
+          itchUsername: kbve
+          itchGameId: rareicon
+          buildChannel: webgl
+
           
   # Alpha Builds
 
