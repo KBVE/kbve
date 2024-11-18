@@ -14,9 +14,7 @@ namespace KBVE.Kilonet.Utils
   {
     public Canvas CanvasObject;
     public CanvasWebViewPrefab CanvasWebViewPrefab;
-
-    public CanvasWebViewPrefab CanvasWebViewPrefabView;
-    private CanvasWebViewPrefab _canvasWebViewPrefab;
+    public IWebView CanvasWebViewPrefabView;
 
     private Supabase.Client _supabaseClient;
 
@@ -38,32 +36,24 @@ namespace KBVE.Kilonet.Utils
     }
 
 
-    private async UniTask InitializeWebView()
+       private async UniTask InitializeWebView()
     {
-      if (CanvasObject == null)
-      {
-        Debug.LogError("CanvasObject is not set in the Unity Editor.");
-        return;
-      }
+        try
+        {
+            if (CanvasObject == null || CanvasWebViewPrefab == null || CanvasWebViewPrefabView == null)
+            {
+                Debug.LogError("CanvasObject, CanvasWebViewPrefab, or CanvasWebViewPrefabView is not set in the Unity Editor.");
+                return;
+            }
 
-      if (CanvasWebViewPrefab == null)
-      {
-        Debug.LogError("CanvasWebViewPrefab is not set in the Unity Editor.");
-        return;
-      }
-
-      if (CanvasWebViewPrefabView == null)
-      {
-        Debug.LogError("CanvasWebViewPrefabView is not set in the Unity Editor.");
-        return;
-      }
-
-      // Ensure CanvasWebViewPrefabView is properly initialized
-      await CanvasWebViewPrefabView.WaitUntilInitialized();
-
-      // Register message handling
-      CanvasWebViewPrefabView.WebView.MessageEmitted += OnMessageReceived;
-      Debug.Log("Vuplex CanvasWebView successfully initialized and ready to receive messages.");
+            await CanvasWebViewPrefabView.WaitUntilInitialized();
+            CanvasWebViewPrefabView.MessageEmitted += OnMessageReceived;
+            Debug.Log("Vuplex WebView successfully initialized.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error during WebView initialization: {ex.Message}\n{ex.StackTrace}");
+        }
     }
 
 
@@ -75,7 +65,7 @@ namespace KBVE.Kilonet.Utils
         var options = new SupabaseOptions { AutoRefreshToken = true, AutoConnectRealtime = false, };
 
         _supabaseClient = new Supabase.Client(SUPABASE_URL, SUPABASE_ANON_KEY, options);
-        await _supabaseClient.InitializeAsync(); // Await the initialization instead of using .Wait()
+        await _supabaseClient.InitializeAsync();
 
         Debug.Log("Supabase client initialized successfully.");
       }
