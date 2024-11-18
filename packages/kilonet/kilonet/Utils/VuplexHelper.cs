@@ -12,8 +12,10 @@ namespace KBVE.Kilonet.Utils
 {
   public class VuplexHelper : MonoBehaviour
   {
-    public GameObject CanvasObject;
-    public GameObject CanvasWebViewPrefab;
+    public Canvas CanvasObject;
+    public BaseWebViewPrefab CanvasWebViewPrefab;
+
+    public BaseWebViewPrefab CanvasWebViewPrefab;
 
     private CanvasWebViewPrefab _canvasWebViewPrefab;
 
