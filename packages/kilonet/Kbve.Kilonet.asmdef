@@ -1,7 +1,15 @@
 {
   "name": "Kbve.Kilonet",
   "rootNamespace": "KBVE.Kilonet",
-  "references": [],
+  "references": [
+     "Vuplex.WebView",
+      "Supabase.Core",
+      "Supabase.Functions",
+      "Supabase.Gotrue",
+      "Supabase.Postgrest",
+      "Supabase.Realtime",
+      "Supabase.Storage"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
