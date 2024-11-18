@@ -182,9 +182,22 @@ jobs:
     name: Kilonet RareIcon
     runs-on: ubuntu-latest
     if: needs.alter.outputs.kilonet == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        projectPath:
+          - azure-rareicon
+        unityVersion:
+          - 6000.0.25f1
+        targetPlatform:
+          - StandaloneWindows64
+          - WebGL
     steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v4
+      # - name: Checkout this repository
+      #   uses: actions/checkout@v4
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
 
       - name: Pull RareIcon Kilonet Repo
         env:
@@ -193,13 +206,57 @@ jobs:
               git config --global user.name "GitHub Actions"
               git config --global user.email "actions@github.com"
               git clone https://kbve:${AZURE_PAT}@dev.azure.com/kbve/rareicon/_git/rareicon azure-rareicon
-              cd azure-rareicon
-              echo "Current working directory: $(pwd)"
-              echo "Listing all files in the repository:"
-              find . -type f
-              echo "Listing all contents (including hidden files):"
-              ls -la
 
+      - name: Unity Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.projectPath }}/Library
+          key:
+            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
+          restore-keys: |
+            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-
+            Library-${{ matrix.projectPath }}-
+            Library-
+          
+      - name: Unity Builder
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+
+      - name: Unity Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+
+  kilonet-rareicon-itch-deployment:
+    needs: ['kilonet-rareicon-build']
+    name: Kilonet Rareicon Itch Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download WebGL Build
+        uses: actions/download-artifact@v4
+        id: download
+        with:
+          name: Build-WebGL
+          path: build/WebGL
+
+      - name: Itch Deploy
+        uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{ secrets.ITCH_API }}
+          gameData: ${{steps.download.outputs.download-path}}
+          itchUsername: kbve
+          itchGameId: rareicon
+          buildChannel: webgl
+
+          
   # Alpha Builds
 
   # buildSaber:

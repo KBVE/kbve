@@ -17,6 +17,7 @@ namespace KBVE.Kilonet.Utils
     public string CanvasWebViewPrefabViewName = "CanvasWebViewPrefabView";
 
     private CanvasWebViewPrefab _canvasWebViewPrefab;
+
     private Supabase.Client _supabaseClient;
 
     private const string SUPABASE_URL = "https://supabase.kbve.com";
@@ -29,6 +30,7 @@ namespace KBVE.Kilonet.Utils
       {
         // Use UniTask to manage initialization
         InitializeWebView().Forget(); // Use UniTask's Forget to run async without awaiting
+        
         InitializeSupabaseClientAsync().Forget(); // Initialize Supabase client asynchronously
       }
       catch (Exception ex)
@@ -36,6 +38,7 @@ namespace KBVE.Kilonet.Utils
         Debug.LogError($"Vuplex CanvasWebView initialization failed: {ex.Message}");
       }
     }
+
 
     private async UniTaskVoid InitializeWebView()
     {
