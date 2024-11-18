@@ -12,9 +12,8 @@ namespace KBVE.Kilonet.Utils
 {
   public class VuplexHelper : MonoBehaviour
   {
-    public string CanvasObjectName = "Canvas";
-    public string CanvasWebViewPrefabName = "CanvasWebViewPrefab";
-    public string CanvasWebViewPrefabViewName = "CanvasWebViewPrefabView";
+    public GameObject CanvasObject;
+    public GameObject CanvasWebViewPrefab;
 
     private CanvasWebViewPrefab _canvasWebViewPrefab;
 
@@ -30,7 +29,7 @@ namespace KBVE.Kilonet.Utils
       {
         // Use UniTask to manage initialization
         InitializeWebView().Forget(); // Use UniTask's Forget to run async without awaiting
-        
+
         InitializeSupabaseClientAsync().Forget(); // Initialize Supabase client asynchronously
       }
       catch (Exception ex)
@@ -42,45 +41,31 @@ namespace KBVE.Kilonet.Utils
 
     private async UniTaskVoid InitializeWebView()
     {
-      GameObject canvasObject = GameObject.Find(CanvasObjectName);
-      if (canvasObject == null)
+      if (CanvasObject == null)
       {
-        Debug.LogError($"No GameObject found with the name {CanvasObjectName}");
+        Debug.LogError("CanvasObject is not set in the Unity Editor.");
         return;
       }
 
-      Transform canvasWebViewPrefabTransform = canvasObject.transform.Find(CanvasWebViewPrefabName);
-      if (canvasWebViewPrefabTransform == null)
+      if (CanvasWebViewPrefab == null)
       {
-        Debug.LogError(
-          $"No GameObject found with the name {CanvasWebViewPrefabName} under {CanvasObjectName}."
-        );
+        Debug.LogError("CanvasWebViewPrefab is not set in the Unity Editor.");
         return;
       }
 
-      Transform canvasWebViewPrefabViewTransform = canvasWebViewPrefabTransform.Find(
-        CanvasWebViewPrefabViewName
-      );
-      if (canvasWebViewPrefabViewTransform == null)
+      // Attempt to locate the CanvasWebViewPrefabView inside CanvasWebViewPrefab
+      Transform prefabViewTransform = CanvasWebViewPrefab.transform.Find("CanvasWebViewPrefabView");
+      if (prefabViewTransform == null)
       {
-        Debug.LogError(
-          $"No GameObject found with the name {CanvasWebViewPrefabViewName} under {CanvasWebViewPrefabName}."
-        );
+        Debug.LogError("Failed to locate CanvasWebViewPrefabView inside CanvasWebViewPrefab.");
         return;
       }
 
-      _canvasWebViewPrefab = canvasWebViewPrefabViewTransform.GetComponent<CanvasWebViewPrefab>();
+      _canvasWebViewPrefab = prefabViewTransform.GetComponent<CanvasWebViewPrefab>();
       if (_canvasWebViewPrefab == null)
       {
-        _canvasWebViewPrefab = canvasWebViewPrefabTransform.GetComponent<CanvasWebViewPrefab>();
-
-        if (_canvasWebViewPrefab == null)
-        {
-          Debug.LogError(
-            "Failed to locate the CanvasWebViewPrefab component after multiple attempts."
-          );
-          return;
-        }
+        Debug.LogError("CanvasWebViewPrefabView does not have a CanvasWebViewPrefab component.");
+        return;
       }
 
       await _canvasWebViewPrefab.WaitUntilInitialized();
@@ -88,6 +73,7 @@ namespace KBVE.Kilonet.Utils
       _canvasWebViewPrefab.WebView.MessageEmitted += OnMessageReceived;
       Debug.Log("Vuplex CanvasWebView successfully initialized and ready to receive messages.");
     }
+
 
     private async UniTaskVoid InitializeSupabaseClientAsync()
     {
