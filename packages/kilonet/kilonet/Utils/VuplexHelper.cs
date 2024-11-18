@@ -113,7 +113,7 @@ namespace KBVE.Kilonet.Utils
         Debug.Log("Raw JSON received: " + eventArgs.Value);
 
         // Parse JSON message
-        var dict = MiniJSON.Json.Deserialize(eventArgs.Value) as Dictionary<string, object>;
+        var dict = JEDI.ParseMiniJSON(eventArgs.Value) as Dictionary<string, object>;
         if (dict == null)
         {
           Debug.LogError("Failed to parse JSON into dictionary. Check JSON format.");
