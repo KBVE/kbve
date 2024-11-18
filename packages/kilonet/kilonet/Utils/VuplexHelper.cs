@@ -36,27 +36,42 @@ namespace KBVE.Kilonet.Utils
     }
 
 
-       private async UniTask InitializeWebView()
+    private async UniTask InitializeWebView()
     {
-        try
+      try
+      {
+        if (CanvasObject == null || CanvasWebViewPrefab == null || CanvasWebViewPrefabView == null)
         {
-            if (CanvasObject == null || CanvasWebViewPrefab == null || CanvasWebViewPrefabView == null)
-            {
-                Debug.LogError("CanvasObject, CanvasWebViewPrefab, or CanvasWebViewPrefabView is not set in the Unity Editor.");
-                return;
-            }
+          Debug.LogError("CanvasObject, CanvasWebViewPrefab, or CanvasWebViewPrefabView is not set in the Unity Editor.");
+          return;
+        }
 
-            await CanvasWebViewPrefabView.WaitUntilInitialized();
-            CanvasWebViewPrefabView.MessageEmitted += OnMessageReceived;
-            Debug.Log("Vuplex WebView successfully initialized.");
-        }
-        catch (Exception ex)
+        // Ensure the CanvasWebViewPrefab itself is initialized
+        await CanvasWebViewPrefab.WaitUntilInitialized();
+
+        // Assign CanvasWebViewPrefab's WebView to CanvasWebViewPrefabView if not already assigned
+        if (CanvasWebViewPrefabView == null)
         {
-            Debug.LogError($"Error during WebView initialization: {ex.Message}\n{ex.StackTrace}");
+          CanvasWebViewPrefabView = CanvasWebViewPrefab.WebView;
         }
+
+        // Check if CanvasWebViewPrefabView is valid
+        if (CanvasWebViewPrefabView == null)
+        {
+          Debug.LogError("CanvasWebViewPrefabView is null even after initialization.");
+          return;
+        }
+
+        // Subscribe to the WebView's MessageEmitted event
+        CanvasWebViewPrefabView.MessageEmitted += OnMessageReceived;
+
+        Debug.Log("Vuplex WebView successfully initialized and ready to receive messages.");
+      }
+      catch (Exception ex)
+      {
+        Debug.LogError($"Error during WebView initialization: {ex.Message}\n{ex.StackTrace}");
+      }
     }
-
-
 
     private async UniTask InitializeSupabaseClientAsync()
     {
