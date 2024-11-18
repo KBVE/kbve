@@ -13,10 +13,9 @@ namespace KBVE.Kilonet.Utils
   public class VuplexHelper : MonoBehaviour
   {
     public Canvas CanvasObject;
-    public BaseWebViewPrefab CanvasWebViewPrefab;
+    public CanvasWebViewPrefab CanvasWebViewPrefab;
 
-    public BaseWebViewPrefab CanvasWebViewPrefab;
-
+    public CanvasWebViewPrefab CanvasWebViewPrefabView;
     private CanvasWebViewPrefab _canvasWebViewPrefab;
 
     private Supabase.Client _supabaseClient;
@@ -29,10 +28,11 @@ namespace KBVE.Kilonet.Utils
     {
       try
       {
-        // Use UniTask to manage initialization
-        InitializeWebView().Forget(); // Use UniTask's Forget to run async without awaiting
+        await UniTask.WhenAll(
+          InitializeWebView().Timeout(TimeSpan.FromSeconds(10)),
+          InitializeSupabaseClientAsync().Timeout(TimeSpan.FromSeconds(10))
+      );
 
-        InitializeSupabaseClientAsync().Forget(); // Initialize Supabase client asynchronously
       }
       catch (Exception ex)
       {
@@ -55,26 +55,20 @@ namespace KBVE.Kilonet.Utils
         return;
       }
 
-      // Attempt to locate the CanvasWebViewPrefabView inside CanvasWebViewPrefab
-      Transform prefabViewTransform = CanvasWebViewPrefab.transform.Find("CanvasWebViewPrefabView");
-      if (prefabViewTransform == null)
+      if (CanvasWebViewPrefabView == null)
       {
-        Debug.LogError("Failed to locate CanvasWebViewPrefabView inside CanvasWebViewPrefab.");
+        Debug.LogError("CanvasWebViewPrefabView is not set in the Unity Editor.");
         return;
       }
 
-      _canvasWebViewPrefab = prefabViewTransform.GetComponent<CanvasWebViewPrefab>();
-      if (_canvasWebViewPrefab == null)
-      {
-        Debug.LogError("CanvasWebViewPrefabView does not have a CanvasWebViewPrefab component.");
-        return;
-      }
+      // Ensure CanvasWebViewPrefabView is properly initialized
+      await CanvasWebViewPrefabView.WaitUntilInitialized();
 
-      await _canvasWebViewPrefab.WaitUntilInitialized();
-
-      _canvasWebViewPrefab.WebView.MessageEmitted += OnMessageReceived;
+      // Register message handling
+      CanvasWebViewPrefabView.WebView.MessageEmitted += OnMessageReceived;
       Debug.Log("Vuplex CanvasWebView successfully initialized and ready to receive messages.");
     }
+
 
 
     private async UniTaskVoid InitializeSupabaseClientAsync()
