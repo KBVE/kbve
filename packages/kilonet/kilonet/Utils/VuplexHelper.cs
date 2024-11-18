@@ -40,32 +40,29 @@ namespace KBVE.Kilonet.Utils
     {
       try
       {
-        if (CanvasObject == null || CanvasWebViewPrefab == null || CanvasWebViewPrefabView == null)
+        if (CanvasObject == null || CanvasWebViewPrefab == null)
         {
-          Debug.LogError("CanvasObject, CanvasWebViewPrefab, or CanvasWebViewPrefabView is not set in the Unity Editor.");
+          Debug.LogError("CanvasObject or CanvasWebViewPrefab is not set in the Unity Editor.");
           return;
         }
 
-        // Ensure the CanvasWebViewPrefab itself is initialized
+        // Initialize the CanvasWebViewPrefab
         await CanvasWebViewPrefab.WaitUntilInitialized();
 
-        // Assign CanvasWebViewPrefab's WebView to CanvasWebViewPrefabView if not already assigned
-        if (CanvasWebViewPrefabView == null)
+        // Dynamically assign the WebView to CanvasWebViewPrefabView
+        if (CanvasWebViewPrefab.WebView != null)
         {
           CanvasWebViewPrefabView = CanvasWebViewPrefab.WebView;
-        }
 
-        // Check if CanvasWebViewPrefabView is valid
-        if (CanvasWebViewPrefabView == null)
+          // Subscribe to the WebView's MessageEmitted event
+          CanvasWebViewPrefabView.MessageEmitted += OnMessageReceived;
+
+          Debug.Log("Vuplex WebView successfully initialized and ready to receive messages.");
+        }
+        else
         {
-          Debug.LogError("CanvasWebViewPrefabView is null even after initialization.");
-          return;
+          Debug.LogError("CanvasWebViewPrefab.WebView is null after initialization.");
         }
-
-        // Subscribe to the WebView's MessageEmitted event
-        CanvasWebViewPrefabView.MessageEmitted += OnMessageReceived;
-
-        Debug.Log("Vuplex WebView successfully initialized and ready to receive messages.");
       }
       catch (Exception ex)
       {
