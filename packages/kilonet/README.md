@@ -17,6 +17,7 @@ Packages: MM/TPD, VuPlex (Desktop/WebGL)
 Issue tickets can be found via unity tag, still need to link the issues directly to discord.
 Adding the itch io release of the webgl build.
 Updating the distance for the ally.
+Added WebGL build optimizations.
 
 - [KBVE](https://kbve.com/)
 - [RareIcon](https://rareicon.com/)
