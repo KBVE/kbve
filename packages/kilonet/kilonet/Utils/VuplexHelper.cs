@@ -38,7 +38,7 @@ namespace KBVE.Kilonet.Utils
     }
 
 
-    private async UniTaskVoid InitializeWebView()
+    private async UniTask InitializeWebView()
     {
       if (CanvasObject == null)
       {
@@ -68,7 +68,7 @@ namespace KBVE.Kilonet.Utils
 
 
 
-    private async UniTaskVoid InitializeSupabaseClientAsync()
+    private async UniTask InitializeSupabaseClientAsync()
     {
       try
       {
