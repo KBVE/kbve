@@ -12,11 +12,10 @@ namespace KBVE.Kilonet.Utils
 {
   public class VuplexHelper : MonoBehaviour
   {
-    public string CanvasObjectName = "Canvas";
-    public string CanvasWebViewPrefabName = "CanvasWebViewPrefab";
-    public string CanvasWebViewPrefabViewName = "CanvasWebViewPrefabView";
-
-    private CanvasWebViewPrefab _canvasWebViewPrefab;
+    
+    public Canvas CanvasObject;
+    public CanvasWebViewPrefab CanvasWebViewPrefab;
+    public IWebView CanvasWebViewPrefabView;
 
     private Supabase.Client _supabaseClient;
 
@@ -24,14 +23,12 @@ namespace KBVE.Kilonet.Utils
     private const string SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzI0NTM2ODAwLAogICJleHAiOiAxODgyMzAzMjAwCn0._fmEmblm0afeLoPXxt8wP2mYpa9gzU-ufx3v8oRTFGg";
 
-    private void Start()
+    private async void Start()
     {
       try
       {
-        // Use UniTask to manage initialization
-        InitializeWebView().Forget(); // Use UniTask's Forget to run async without awaiting
-        
-        InitializeSupabaseClientAsync().Forget(); // Initialize Supabase client asynchronously
+        await InitializeWebView();
+        await InitializeSupabaseClientAsync();
       }
       catch (Exception ex)
       {
@@ -40,63 +37,45 @@ namespace KBVE.Kilonet.Utils
     }
 
 
-    private async UniTaskVoid InitializeWebView()
+    private async UniTask InitializeWebView()
     {
-      GameObject canvasObject = GameObject.Find(CanvasObjectName);
-      if (canvasObject == null)
+      try
       {
-        Debug.LogError($"No GameObject found with the name {CanvasObjectName}");
-        return;
-      }
-
-      Transform canvasWebViewPrefabTransform = canvasObject.transform.Find(CanvasWebViewPrefabName);
-      if (canvasWebViewPrefabTransform == null)
-      {
-        Debug.LogError(
-          $"No GameObject found with the name {CanvasWebViewPrefabName} under {CanvasObjectName}."
-        );
-        return;
-      }
-
-      Transform canvasWebViewPrefabViewTransform = canvasWebViewPrefabTransform.Find(
-        CanvasWebViewPrefabViewName
-      );
-      if (canvasWebViewPrefabViewTransform == null)
-      {
-        Debug.LogError(
-          $"No GameObject found with the name {CanvasWebViewPrefabViewName} under {CanvasWebViewPrefabName}."
-        );
-        return;
-      }
-
-      _canvasWebViewPrefab = canvasWebViewPrefabViewTransform.GetComponent<CanvasWebViewPrefab>();
-      if (_canvasWebViewPrefab == null)
-      {
-        _canvasWebViewPrefab = canvasWebViewPrefabTransform.GetComponent<CanvasWebViewPrefab>();
-
-        if (_canvasWebViewPrefab == null)
+        if (CanvasObject == null || CanvasWebViewPrefab == null)
         {
-          Debug.LogError(
-            "Failed to locate the CanvasWebViewPrefab component after multiple attempts."
-          );
+          Debug.LogError("CanvasObject or CanvasWebViewPrefab is not set in the Unity Editor.");
           return;
         }
+
+        await CanvasWebViewPrefab.WaitUntilInitialized();
+
+        if (CanvasWebViewPrefab.WebView != null)
+        {
+          CanvasWebViewPrefabView = CanvasWebViewPrefab.WebView;
+
+          CanvasWebViewPrefabView.MessageEmitted += OnMessageReceived;
+
+          Debug.Log("Vuplex WebView successfully initialized and ready to receive messages.");
+        }
+        else
+        {
+          Debug.LogError("CanvasWebViewPrefab.WebView is null after initialization.");
+        }
       }
-
-      await _canvasWebViewPrefab.WaitUntilInitialized();
-
-      _canvasWebViewPrefab.WebView.MessageEmitted += OnMessageReceived;
-      Debug.Log("Vuplex CanvasWebView successfully initialized and ready to receive messages.");
+      catch (Exception ex)
+      {
+        Debug.LogError($"Error during WebView initialization: {ex.Message}\n{ex.StackTrace}");
+      }
     }
 
-    private async UniTaskVoid InitializeSupabaseClientAsync()
+    private async UniTask InitializeSupabaseClientAsync()
     {
       try
       {
         var options = new SupabaseOptions { AutoRefreshToken = true, AutoConnectRealtime = false, };
 
         _supabaseClient = new Supabase.Client(SUPABASE_URL, SUPABASE_ANON_KEY, options);
-        await _supabaseClient.InitializeAsync(); // Await the initialization instead of using .Wait()
+        await _supabaseClient.InitializeAsync();
 
         Debug.Log("Supabase client initialized successfully.");
       }
@@ -113,7 +92,7 @@ namespace KBVE.Kilonet.Utils
         Debug.Log("Raw JSON received: " + eventArgs.Value);
 
         // Parse JSON message
-        var dict = MiniJSON.Json.Deserialize(eventArgs.Value) as Dictionary<string, object>;
+        var dict = JEDI.ParseMiniJSON(eventArgs.Value) as Dictionary<string, object>;
         if (dict == null)
         {
           Debug.LogError("Failed to parse JSON into dictionary. Check JSON format.");

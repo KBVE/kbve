@@ -1,0 +1,23 @@
+{
+  "name": "Kbve.Kilonet",
+  "rootNamespace": "KBVE.Kilonet",
+  "references": [
+      "Vuplex.WebView",
+      "Supabase.Core",
+      "Supabase.Functions",
+      "Supabase.Gotrue",
+      "Supabase.Postgrest",
+      "Supabase.Realtime",
+      "Supabase.Storage",
+      "Cysharp.Threading.Tasks"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
