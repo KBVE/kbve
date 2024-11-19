@@ -43,3 +43,20 @@ import { Adsense, Tasks } from '@kbve/astropad';
     Hoping, Coping, Copium! errr... that it automatically does its magic without us having to do any major changes.
     We want the login screen to be the same for the Standalone64 build and the Webgl build, if both are working without then we can move forward.
 
+-   06:19PM
+
+    **Penguin**
+
+    Since the first season of the show is complete, I am thinking that it be time to grab the whole thing and setup a stream session for it?
+    I am going to try and aim that session right after kill tony, I think it be a great follow up to the show.
+    Actually considering that kill tony ends at around 11pm, we might just skip that part and work around the time slots.
+
+-   07:09PM
+
+    **Realtime**
+
+    The best way to handle realtime will be in two parts, we will have the axum that is directly hosting the files listening for smaller sessions and the supabase realtime functions for important information.
+    By splitting up the connections, we can manage the temporary sessions through rust, easily removing the pointers and threads while keeping the supabase realtime open for more serious operations!
+    Now the question is how to go about building the `rust_rareicon_multiplayer` for this instance?!
+    Maybe we do not think too hard about it and just jump right in, possible that we could also make it so that the screen just jumps to a discord session?
+    When we wake the title screen, we could set itg up so that it goes directly to the discord wasm scene, hmm, that means we would have to build a full docker image with the axum and the static wasm files?
