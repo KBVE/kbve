@@ -1,8 +1,10 @@
 using System;
+using System.IO;
 using Unity.Networking.Transport;
-//using System.IO;
-//using WebSocketSharp;
 using UnityEngine;
+
+//using WebSocketSharp;
+
 
 namespace KBVE.Kilonet.Networks
 {
@@ -31,6 +33,26 @@ namespace KBVE.Kilonet.Networks
       }
     }
 
+    public void Send(Stream dataStream)
+    {
+      if (!m_Connection.IsCreated)
+      {
+        return;
+      }
+
+      using (var memoryStream = new MemoryStream())
+      {
+        dataStream.CopyTo(memoryStream);
+        byte[] data = memoryStream.ToArray();
+
+        using (var writer = m_Driver.BeginSend(m_Connection))
+        {
+          writer.WriteBytes(data);
+          m_Driver.EndSend(writer);
+        }
+      }
+    }
+
     public void Update()
     {
       m_Driver.ScheduleUpdate().Complete();
@@ -46,6 +68,17 @@ namespace KBVE.Kilonet.Networks
           case NetworkEvent.Type.Data:
             var buffer = new byte[stream.Length];
             stream.ReadBytesIntoArray(buffer, 0, buffer.Length);
+
+            onReceive?.Invoke(buffer);
+
+            if (onReceiveStream != null)
+            {
+              using (var memoryStream = new MemoryStream(buffer))
+              {
+                onReceiveStream(memoryStream);
+              }
+            }
+
             Debug.Log($"WebSocketTransport: Received {buffer.Length} bytes");
             break;
           case NetworkEvent.Type.Disconnect:
@@ -64,5 +97,18 @@ namespace KBVE.Kilonet.Networks
 
       m_Driver.Dispose();
     }
+
+    private Action<byte[]> onReceive;
+    public void Receive(Action<byte[]> onReceive)
+    {
+        this.onReceive = onReceive;
+    }
+
+    private Action<Stream> onReceiveStream;
+    public void Receive(Action<Stream> onReceiveStream)
+    {
+        this.onReceiveStream = onReceiveStream;
+    }
+
   }
 }
