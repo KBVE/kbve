@@ -61,9 +61,11 @@ namespace KBVE.Kilonet.Networks
     {
       m_Driver.ScheduleUpdate().Complete();
       DataStreamReader stream;
-      while (m_Connection.PopEvent(m_Driver, out stream) != NetworkEvent.Type.Empty)
+      NetworkEvent.Type eventType;
+
+      while ((eventType = m_Connection.PopEvent(m_Driver, out stream)) != NetworkEvent.Type.Empty)
       {
-        if (stream.EventType == NetworkEvent.Type.Data)
+        if (eventType == NetworkEvent.Type.Data)
         {
           var buffer = BytesUtils.ReadAllBytes(stream);
           callback?.Invoke(buffer);
@@ -75,9 +77,11 @@ namespace KBVE.Kilonet.Networks
     {
       m_Driver.ScheduleUpdate().Complete();
       DataStreamReader stream;
-      while (m_Connection.PopEvent(m_Driver, out stream) != NetworkEvent.Type.Empty)
+      NetworkEvent.Type eventType;
+
+      while ((eventType = m_Connection.PopEvent(m_Driver, out stream)) != NetworkEvent.Type.Empty)
       {
-        if (stream.EventType == NetworkEvent.Type.Data)
+        if (eventType == NetworkEvent.Type.Data)
         {
           var buffer = BytesUtils.ReadAllBytes(stream);
 
@@ -93,9 +97,11 @@ namespace KBVE.Kilonet.Networks
     {
       m_Driver.ScheduleUpdate().Complete();
       DataStreamReader stream;
-      while (m_Connection.PopEvent(m_Driver, out stream) != NetworkEvent.Type.Empty)
+      NetworkEvent.Type eventType;
+
+      while ((eventType = m_Connection.PopEvent(m_Driver, out stream)) != NetworkEvent.Type.Empty)
       {
-        switch (stream.EventType)
+        switch (eventType)
         {
           case NetworkEvent.Type.Connect:
             Debug.Log("UDPTransport: Connected via UDPT_9a3a12ead28e46b085d6532e02cdac50");
