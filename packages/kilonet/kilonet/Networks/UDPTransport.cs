@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using KBVE.Kilonet.Utils;
+using Unity.Collections;
 using Unity.Networking.Transport;
 using UnityEngine;
 
@@ -53,8 +55,7 @@ namespace KBVE.Kilonet.Networks
       {
         if (stream.EventType == NetworkEvent.Type.Data)
         {
-          var buffer = new byte[stream.Length];
-          stream.ReadBytesIntoArray(buffer, 0, buffer.Length);
+          var buffer = BytesUtils.ReadAllBytes(stream);
           callback?.Invoke(buffer);
         }
       }
@@ -68,8 +69,7 @@ namespace KBVE.Kilonet.Networks
       {
         if (stream.EventType == NetworkEvent.Type.Data)
         {
-          var buffer = new byte[stream.Length];
-          stream.ReadBytesIntoArray(buffer, 0, buffer.Length);
+          var buffer = BytesUtils.ReadAllBytes(stream);
 
           using (var memoryStream = new MemoryStream(buffer))
           {
@@ -91,8 +91,7 @@ namespace KBVE.Kilonet.Networks
             Debug.Log("UDPTransport: Connected via UDPT_9a3a12ead28e46b085d6532e02cdac50");
             break;
           case NetworkEvent.Type.Data:
-            var buffer = new byte[stream.Length];
-            stream.ReadBytesIntoArray(buffer, 0, buffer.Length);
+            var buffer = BytesUtils.ReadAllBytes(stream);
             Debug.Log($"UDPTransport: Received {buffer.Length} bytes");
             break;
           case NetworkEvent.Type.Disconnect:
