@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Unity.Networking.Transport;
 using UnityEngine;
 
@@ -26,6 +27,54 @@ namespace KBVE.Kilonet.Networks
       {
         writer.WriteBytes(data);
         m_Driver.EndSend(writer);
+      }
+    }
+
+    public void Send(Stream dataStream)
+    {
+      if (!m_Connection.IsCreated)
+        return;
+
+      using (var writer = m_Driver.BeginSend(m_Connection))
+      {
+        byte[] buffer = new byte[dataStream.Length];
+        dataStream.Read(buffer, 0, buffer.Length);
+        writer.WriteBytes(buffer);
+        m_Driver.EndSend(writer);
+      }
+    }
+
+    public void Receive(Action<byte[]> callback)
+    {
+      m_Driver.ScheduleUpdate().Complete();
+      DataStreamReader stream;
+      while (m_Connection.PopEvent(m_Driver, out stream) != NetworkEvent.Type.Empty)
+      {
+        if (stream.EventType == NetworkEvent.Type.Data)
+        {
+          var buffer = new byte[stream.Length];
+          stream.ReadBytesIntoArray(buffer, 0, buffer.Length);
+          callback?.Invoke(buffer);
+        }
+      }
+    }
+
+    public void Receive(Action<Stream> callback)
+    {
+      m_Driver.ScheduleUpdate().Complete();
+      DataStreamReader stream;
+      while (m_Connection.PopEvent(m_Driver, out stream) != NetworkEvent.Type.Empty)
+      {
+        if (stream.EventType == NetworkEvent.Type.Data)
+        {
+          var buffer = new byte[stream.Length];
+          stream.ReadBytesIntoArray(buffer, 0, buffer.Length);
+
+          using (var memoryStream = new MemoryStream(buffer))
+          {
+            callback?.Invoke(memoryStream);
+          }
+        }
       }
     }
 
