@@ -58,3 +58,13 @@ import { Adsense, Tasks } from '@kbve/astropad';
     
     This will give us a quick roadmap for what we want this package to do for the networking.
     Forgot to include the `System.IO`, going to push that up right now.
+    AFter adding in the `INetworkTransport`, we can add the next item to the setup, the `WebSocketTransport.cs`.
+    This will be our transport layer for the base networking, oh boi.
+
+-   01:57PM
+
+    **Conditional**
+
+    For the networking, I am going to split the `WebGL` and `Native` at the manager level.
+    We should not have any major issues with the data because we can skip the JSON and stick with a protobuf and binary.
+    
