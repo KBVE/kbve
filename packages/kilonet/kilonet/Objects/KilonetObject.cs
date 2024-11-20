@@ -7,7 +7,7 @@ namespace KBVE.Kilonet.Objects
     public class KilonetObject : MonoBehaviour
     {
         [HideInInspector]
-        public byte[] ULID { get; private set; }
+        public byte[] ULID { get; set; }
 
         private void Awake()
         {
