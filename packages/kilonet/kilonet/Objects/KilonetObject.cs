@@ -1,25 +1,30 @@
 using UnityEngine;
+using KBVE.Kilonet.Managers;
 
 namespace KBVE.Kilonet.Objects
 {
     public class KilonetObject : MonoBehaviour
     {
         [HideInInspector]
-        public string ULID { get; private set; }
+        public byte[] ULID { get; private set; }
 
         private void Awake()
         {
-            if (string.IsNullOrEmpty(ULID))
+            if (ULID == null || ULID.Length == 0)
             {
-                ULID = ULIDHelper.GenerateULID();
+                ULID = ULIDHelper.GenerateBinaryULID();
             }
 
             KilonetManager.Instance.Register(this);
         }
-
         private void OnDestroy()
         {
             KilonetManager.Instance.Unregister(this);
+        }
+
+        public string GetULIDAsString()
+        {
+            return ULIDHelper.ToBase32(ULID);
         }
     }
 }
