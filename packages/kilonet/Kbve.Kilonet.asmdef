@@ -9,7 +9,8 @@
       "Supabase.Postgrest",
       "Supabase.Realtime",
       "Supabase.Storage",
-      "Cysharp.Threading.Tasks"
+      "Cysharp.Threading.Tasks",
+      "Unity.Transport" 
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
