@@ -20,3 +20,40 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
     Two major meetings coming up on Friday and Saturday, so I need to push the code out quickly.
     Grind is on!
+
+-   12:40PM
+
+    **Contract**
+
+    Finished up some of the contract work that was getting in the way!
+    Now I should have some free time to breeze through the networking issues and build something fast.
+    The goals will be two parts for today, the first is to get the base mutliplayer working with moving game objects!
+    Once this is accomplished, we will go ahead and add an auth system integration and make sure that each game room works without any issue.
+
+-   12:48PM
+
+    **Transport**
+
+    We will be adding the `com.unity.transport` to our build, hopefully this route will be easier but I think I will have to still include a manual jslib.
+    I am not too worried about this but I can see it becoming a problem really quickly.
+    After that, I am going to switch over to the `kilonet` package and start the process of adding in networking.
+    We will be using the `KBVE.Kilonet.Networks` namespace to hold all our networking.
+    Inside of the namespace, the first file we will create is this:
+
+    ```c#
+
+    namespace KBVE.Kilonet.Networks
+    {
+        public interface INetworkTransport
+        {
+            void Connect(string serverUri);
+            void Send(byte[] data);
+            void Send(Stream dataStream);
+            void Receive(Action<byte[]> onReceive);
+            void Receive(Action<Stream> onReceiveStream);
+            void Disconnect();
+        }
+    }
+    ```
+    
+    This will give us a quick roadmap for what we want this package to do for the networking.
