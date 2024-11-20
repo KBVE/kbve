@@ -26,10 +26,17 @@ namespace KBVE.Kilonet.Networks
       if (!m_Connection.IsCreated)
         return;
 
-      using (var writer = m_Driver.BeginSend(m_Connection))
+      var writer = m_Driver.BeginSend(m_Connection, NetworkPipeline.Null);
+
+      if (writer != 0)
       {
-        writer.WriteBytes(data);
+        var dataStreamWriter = m_Driver.GetWriter(writer);
+        dataStreamWriter.WriteBytes(data);
         m_Driver.EndSend(writer);
+      }
+      else
+      {
+        Debug.LogWarning("UDPTransport: Failed to begin send operation.");
       }
     }
 
@@ -38,12 +45,19 @@ namespace KBVE.Kilonet.Networks
       if (!m_Connection.IsCreated)
         return;
 
-      using (var writer = m_Driver.BeginSend(m_Connection))
+      var writer = m_Driver.BeginSend(m_Connection, NetworkPipeline.Null);
+
+      if (writer != 0)
       {
+        var dataStreamWriter = m_Driver.GetWriter(writer);
         byte[] buffer = new byte[dataStream.Length];
         dataStream.Read(buffer, 0, buffer.Length);
-        writer.WriteBytes(buffer);
+        dataStreamWriter.WriteBytes(buffer);
         m_Driver.EndSend(writer);
+      }
+      else
+      {
+        Debug.LogWarning("UDPTransport: Failed to begin send operation.");
       }
     }
 
