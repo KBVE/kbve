@@ -10,7 +10,7 @@
       "Supabase.Realtime",
       "Supabase.Storage",
       "Cysharp.Threading.Tasks",
-      "Unity.Transport" 
+      "Unity.Networking.Transport"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
