@@ -1,10 +1,9 @@
 using System;
 using System.IO;
+using KBVE.Kilonet.Utils;
+using Unity.Collections;
 using Unity.Networking.Transport;
 using UnityEngine;
-
-//using WebSocketSharp;
-
 
 namespace KBVE.Kilonet.Networks
 {
@@ -26,30 +25,39 @@ namespace KBVE.Kilonet.Networks
       if (!m_Connection.IsCreated)
         return;
 
-      using (var writer = m_Driver.BeginSend(m_Connection))
+      DataStreamWriter writer;
+      if (m_Driver.BeginSend(NetworkPipeline.Null, m_Connection, out writer) == 0)
       {
         writer.WriteBytes(data);
         m_Driver.EndSend(writer);
+      }
+      else
+      {
+        Debug.LogWarning("WebSocketTransport: Failed to begin send operation.");
       }
     }
 
     public void Send(Stream dataStream)
     {
       if (!m_Connection.IsCreated)
-      {
         return;
-      }
 
-      using (var memoryStream = new MemoryStream())
+      DataStreamWriter writer;
+      if (m_Driver.BeginSend(NetworkPipeline.Null, m_Connection, out writer) == 0)
       {
-        dataStream.CopyTo(memoryStream);
-        byte[] data = memoryStream.ToArray();
-
-        using (var writer = m_Driver.BeginSend(m_Connection))
+        using (var memoryStream = new MemoryStream())
         {
+          dataStream.CopyTo(memoryStream);
+          byte[] data = memoryStream.ToArray();
+
           writer.WriteBytes(data);
-          m_Driver.EndSend(writer);
         }
+
+        m_Driver.EndSend(writer);
+      }
+      else
+      {
+        Debug.LogWarning("WebSocketTransport: Failed to begin send operation.");
       }
     }
 
@@ -58,17 +66,17 @@ namespace KBVE.Kilonet.Networks
       m_Driver.ScheduleUpdate().Complete();
 
       DataStreamReader stream;
-      while (m_Connection.PopEvent(m_Driver, out stream) != NetworkEvent.Type.Empty)
+      NetworkEvent.Type eventType;
+
+      while ((eventType = m_Connection.PopEvent(m_Driver, out stream)) != NetworkEvent.Type.Empty)
       {
-        switch (stream.EventType)
+        switch (eventType)
         {
           case NetworkEvent.Type.Connect:
             Debug.Log("WebSocketTransport: Connected!");
             break;
           case NetworkEvent.Type.Data:
-            var buffer = new byte[stream.Length];
-            stream.ReadBytesIntoArray(buffer, 0, buffer.Length);
-
+            var buffer = BytesUtils.ReadAllBytes(stream);
             onReceive?.Invoke(buffer);
 
             if (onReceiveStream != null)
@@ -99,16 +107,17 @@ namespace KBVE.Kilonet.Networks
     }
 
     private Action<byte[]> onReceive;
+
     public void Receive(Action<byte[]> onReceive)
     {
-        this.onReceive = onReceive;
+      this.onReceive = onReceive;
     }
 
     private Action<Stream> onReceiveStream;
+
     public void Receive(Action<Stream> onReceiveStream)
     {
-        this.onReceiveStream = onReceiveStream;
+      this.onReceiveStream = onReceiveStream;
     }
-
   }
 }
