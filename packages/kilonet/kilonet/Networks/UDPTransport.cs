@@ -26,12 +26,10 @@ namespace KBVE.Kilonet.Networks
       if (!m_Connection.IsCreated)
         return;
 
-      var writer = m_Driver.BeginSend(m_Connection, NetworkPipeline.Null);
-
-      if (writer != 0)
+      DataStreamWriter writer;
+      if (m_Driver.BeginSend(NetworkPipeline.Null, m_Connection, out writer) == 0)
       {
-        var dataStreamWriter = m_Driver.GetWriter(writer);
-        dataStreamWriter.WriteBytes(data);
+        writer.WriteBytes(data);
         m_Driver.EndSend(writer);
       }
       else
@@ -45,14 +43,12 @@ namespace KBVE.Kilonet.Networks
       if (!m_Connection.IsCreated)
         return;
 
-      var writer = m_Driver.BeginSend(m_Connection, NetworkPipeline.Null);
-
-      if (writer != 0)
+      DataStreamWriter writer;
+      if (m_Driver.BeginSend(NetworkPipeline.Null, m_Connection, out writer) == 0)
       {
-        var dataStreamWriter = m_Driver.GetWriter(writer);
         byte[] buffer = new byte[dataStream.Length];
         dataStream.Read(buffer, 0, buffer.Length);
-        dataStreamWriter.WriteBytes(buffer);
+        writer.WriteBytes(buffer);
         m_Driver.EndSend(writer);
       }
       else
