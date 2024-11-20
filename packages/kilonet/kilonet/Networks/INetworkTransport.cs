@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 namespace KBVE.Kilonet.Networks
 {
   public interface INetworkTransport
