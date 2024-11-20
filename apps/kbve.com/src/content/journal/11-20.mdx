@@ -61,6 +61,10 @@ import { Adsense, Tasks } from '@kbve/astropad';
     AFter adding in the `INetworkTransport`, we can add the next item to the setup, the `WebSocketTransport.cs`.
     This will be our transport layer for the base networking, oh boi.
 
+    The two main transports again the `WebSocketTransport` and `UDPTransport`, both will take some time to build out.
+    When looking at our assembly references, we need to make sure that `Unity.Collections` are included as well as, uh the `Unity.Networking.Transport`!
+    Here we go with another round 8 hit xD.
+
 -   01:57PM
 
     **Conditional**
@@ -68,3 +72,32 @@ import { Adsense, Tasks } from '@kbve/astropad';
     For the networking, I am going to split the `WebGL` and `Native` at the manager level.
     We should not have any major issues with the data because we can skip the JSON and stick with a protobuf and binary.
     
+-   03:12PM
+
+    **Plan**
+
+    Here is the proposed `Networks` structure that we can try and implement:
+    
+    -   Managers
+        -   NetworkManager
+    -   Networks
+        -   INetworkTransport
+        -   WebSocketTransport
+        -   UDPTransport
+    
+    Yet for the `Protocols` and `Utils`, I am thinking we can move that out of the Networks folder and into the right areas?
+    I suppose we can keep the Protocols under the Networks folder strucutre but the Utils should definitely be in their own namespace.
+
+    Under the protocols, we will need:
+
+    -   IMessageProtocol
+    -   JsonProtocol
+    -   ProtobufProtocol
+
+    As for the Utils, we will need:
+
+    -   ByteUtils - handling all the byte arrays, bitwise operations, bTree algos.
+    -   MessageQueue - isolated instance for the queue management, chat, ect...
+
+    This seems like the best way to approach this for now.
+

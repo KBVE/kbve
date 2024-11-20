@@ -12,7 +12,8 @@ namespace KBVE.Kilonet.Networks
 
     public void Connect(string serverUri, ushort port)
     {
-      m_Driver = NetworkDriver.Create(new UDPNetworkInterface());
+      //m_Driver = NetworkDriver.Create(new UDPNetworkInterface());
+      m_Driver = NetworkDriver.Create();
       var endpoint = NetworkEndPoint.Parse(serverUri, port);
       m_Connection = m_Driver.Connect(endpoint);
       Debug.Log($"UDPTransport: Connecting to {serverUri}:{port}");
