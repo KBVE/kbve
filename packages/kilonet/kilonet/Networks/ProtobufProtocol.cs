@@ -1,12 +1,20 @@
 using System;
 using System.IO;
 using ProtoBuf;
+using ProtoBuf.Meta;
 
 namespace KBVE.Kilonet.Networks
 {
     public class ProtobufProtocol : IMessageProtocol
     {
         public string ContentType => "application/protobuf";
+
+        public RuntimeTypeModel Model { get; private set; }
+
+        public ProtobufProtocol()
+        {
+            Model = RuntimeTypeModel.Default;
+        }
 
         public byte[] Serialize<T>(T message)
         {
@@ -17,7 +25,8 @@ namespace KBVE.Kilonet.Networks
             {
                 using (var memoryStream = new MemoryStream())
                 {
-                    Serializer.Serialize(memoryStream, message);
+                    // Serializer.Serialize(memoryStream, message);
+                    Model.Serialize(memoryStream, message); 
                     return memoryStream.ToArray();
                 }
             }
@@ -36,7 +45,7 @@ namespace KBVE.Kilonet.Networks
             {
                 using (var memoryStream = new MemoryStream(data))
                 {
-                    return Serializer.Deserialize<T>(memoryStream);
+                    return (T)Model.Deserialize(memoryStream, null, typeof(T));
                 }
             }
             catch (Exception ex)
@@ -44,5 +53,12 @@ namespace KBVE.Kilonet.Networks
                 throw new InvalidOperationException($"Failed to deserialize message to type {typeof(T).Name}: {ex.Message}", ex);
             }
         }
+
+        public void RegisterType<T>(Action<MetaType> configure = null)
+        {
+            var metaType = Model.Add(typeof(T), false);
+            configure?.Invoke(metaType);
+        }
+
     }
 }
