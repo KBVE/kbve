@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using UnityEngine;
 
-namespace KBVE.Kilonet.Network
+namespace KBVE.Kilonet.Networks
 {
     public class JSONProtocol : IMessageProtocol
     {
