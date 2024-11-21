@@ -1,6 +1,6 @@
 using System;
 
-namespace KBVE.Kilonet.Network
+namespace KBVE.Kilonet.Networks
 {
     public interface IMessageProtocol
     {
