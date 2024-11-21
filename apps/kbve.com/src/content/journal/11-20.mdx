@@ -113,3 +113,14 @@ import { Adsense, Tasks } from '@kbve/astropad';
     The rust server will be very basic, handling the UDP and WS connections and will be deployed through our kubernetes cluster.
     After it gets deployed through the helm chart, we can start the discord activity build, with our url mapper pointed to the self hosted server.
     By tomorrow, if we get a discord multiplayer build running, it should make the development process even easier because we can just play test it in the call while building it out.
+
+-   07:13PM
+
+    **Events**
+
+    Okay it looks like the UDP and WS Transport layers are okay, seem to be compiling without throwing any errors within the unity editor.
+    For now, we can move forward with a couple more files that we will add?
+    They will be these:
+
+    -   NetworkEvent
+    -   NetworkManager
