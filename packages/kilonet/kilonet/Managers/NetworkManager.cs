@@ -48,8 +48,9 @@ namespace KBVE.Kilonet.Managers
       activeTransport = new UDPTransport();
 #endif
 
-      activeTransport.Receive(OnDataReceived);
-      activeTransport.Receive(OnStreamReceived);
+    activeTransport.Receive((Action<byte[]>)OnDataReceived);
+    activeTransport.Receive((Action<Stream>)OnDataReceived);
+
     }
 
     public void Connect()
