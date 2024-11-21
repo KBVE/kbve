@@ -11,7 +11,8 @@
       "Supabase.Storage",
       "Cysharp.Threading.Tasks",
       "Unity.Networking.Transport",
-      "Unity.Collections"
+      "Unity.Collections",
+      "protobuf-net"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
