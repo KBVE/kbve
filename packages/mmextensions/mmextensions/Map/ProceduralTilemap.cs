@@ -11,9 +11,10 @@ using UnityEngine.Tilemaps;
 
 namespace KBVE.MMExtensions.Map
 {
-  public class KBVETilemapLevelGenerator : TilemapLevelGenerator
+  public class KBVETilemapLevelGenerator
+    : TilemapLevelGenerator,
+      MMEventListener<TopDownEngineEvent>
   {
-    //  [Crash] - Chunks - [START]
     [Header("Chunk Settings")]
     [Tooltip("Width of each chunk in tiles.")]
     public int ChunkWidth = 10;
@@ -25,13 +26,11 @@ namespace KBVE.MMExtensions.Map
     public int MaxActiveChunks = 5;
 
     [Tooltip("Time (in milliseconds) to wait between generating chunks.")]
-    public int ChunkGenerationDelay = 50;
+    public double ChunkGenerationDelay = 50;
 
     private Dictionary<Vector2Int, bool> _generatedChunks;
     private Transform _playerTransform;
     private List<Vector3> _filledPositions;
-
-    //  [Crash] - Chunks - [END]
 
     [Header("Extended Settings")]
     [Tooltip("Enable debug logs for generation steps.")]
@@ -43,8 +42,6 @@ namespace KBVE.MMExtensions.Map
     [Tooltip("Custom logic to handle tilemap decorations.")]
     public Tilemap DecorationsTilemap;
 
-    //  [Crash] - Awake Overide - [START]
-
     /// <summary>
     /// On Awake, set up chunk tracking and filled positions.
     /// </summary>
@@ -54,9 +51,6 @@ namespace KBVE.MMExtensions.Map
       _generatedChunks = new Dictionary<Vector2Int, bool>();
       _filledPositions = new List<Vector3>();
     }
-
-    //  [Crash] - Awake Overide [END]
-
 
     /// <summary>
     /// Overrides the Generate method to add custom functionality after base generation.
@@ -201,7 +195,7 @@ namespace KBVE.MMExtensions.Map
     {
       switch (topDownEngineEvent.EventType)
       {
-        case TopDownEngineEventTypes.CharacterSpawn:
+        case TopDownEngineEventTypes.SpawnComplete:
           _playerTransform = topDownEngineEvent.Origin?.transform;
           Debug.Log("[ChunkedTilemapLevelGenerator] Player transform assigned.");
           break;
@@ -226,7 +220,7 @@ namespace KBVE.MMExtensions.Map
       while (_playerTransform == null)
       {
         Debug.LogWarning("[ChunkedTilemapLevelGenerator] Waiting for player transform...");
-        await UniTask.Delay(100); // Poll every 100ms to check if _playerTransform is set
+        await UniTask.Delay(TimeSpan.FromMilliseconds(100)); // Poll every 100ms to check if _playerTransform is set
       }
 
       Debug.Log(
@@ -237,9 +231,9 @@ namespace KBVE.MMExtensions.Map
       while (true)
       {
         Vector2Int currentChunk = GetChunkPosition(_playerTransform.position);
-        GenerateChunksAround(currentChunk).Forget();
+        await GenerateChunksAround(currentChunk);
         UnloadDistantChunks(currentChunk);
-        await UniTask.Delay(100); // Small delay to avoid performance spikes
+        await UniTask.Delay(TimeSpan.FromMilliseconds(100)); // Small delay to avoid performance spikes
       }
     }
 
@@ -271,6 +265,134 @@ namespace KBVE.MMExtensions.Map
         _generatedChunks.Remove(chunk);
         Debug.Log($"[ChunkedTilemapLevelGenerator] Unloaded chunk at {chunk}");
       }
+    }
+
+    /// <summary>
+    /// Generates chunks around the given center chunk asynchronously.
+    /// </summary>
+    /// <param name="centerChunk">The center chunk based on the player's current position.</param>
+    private async UniTask GenerateChunksAround(Vector2Int centerChunk)
+    {
+      // Loop through the chunks within the active radius
+      for (int x = -MaxActiveChunks; x <= MaxActiveChunks; x++)
+      {
+        for (int y = -MaxActiveChunks; y <= MaxActiveChunks; y++)
+        {
+          Vector2Int chunkPosition = new Vector2Int(centerChunk.x + x, centerChunk.y + y);
+
+          // Check if the chunk has already been generated
+          if (_generatedChunks.ContainsKey(chunkPosition))
+          {
+            continue;
+          }
+
+          // Generate the chunk and mark it as generated
+          await GenerateChunk(chunkPosition);
+          _generatedChunks[chunkPosition] = true;
+
+          if (EnableDebugLogs)
+          {
+            Debug.Log($"[ChunkedTilemapLevelGenerator] Generated chunk at {chunkPosition}");
+          }
+        }
+      }
+    }
+
+    /// <summary>
+    /// Generates a single chunk asynchronously.
+    /// </summary>
+    /// <param name="chunkPosition">The chunk position to generate.</param>
+    private async UniTask GenerateChunk(Vector2Int chunkPosition)
+    {
+      // Define the bounds of the chunk
+      BoundsInt chunkBounds = new BoundsInt(
+        chunkPosition.x * ChunkWidth,
+        chunkPosition.y * ChunkHeight,
+        0,
+        ChunkWidth,
+        ChunkHeight,
+        1
+      );
+
+      // Generate tiles for the chunk
+      await GenerateChunkTiles(chunkBounds);
+
+      // Optionally spawn prefabs in the chunk
+      await SpawnPrefabsInChunk(chunkBounds);
+
+      await UniTask.Delay(TimeSpan.FromMilliseconds(ChunkGenerationDelay)); // Delay to avoid performance spikes
+    }
+
+    /// <summary>
+    /// Generates tiles within the given chunk bounds.
+    /// </summary>
+    /// <param name="chunkBounds">The bounds of the chunk.</param>
+    private async UniTask GenerateChunkTiles(BoundsInt chunkBounds)
+    {
+      foreach (var position in chunkBounds.allPositionsWithin)
+      {
+        if (UnityEngine.Random.value > 0.8f) // Example: Randomly place tiles
+        {
+          TileBase tile = ObstaclesTilemap.GetTile(position); // Retrieve a sample tile
+          if (tile != null)
+          {
+            ObstaclesTilemap.SetTile(position, tile);
+          }
+        }
+      }
+
+      await UniTask.Yield(); // Yield control to maintain performance
+    }
+
+    // NOT READY - JUST ADDED
+
+    /// <summary>
+    /// Spawns prefabs within the given chunk bounds asynchronously.
+    /// </summary>
+    /// <param name="chunkBounds">The bounds of the chunk.</param>
+    private async UniTask SpawnPrefabsInChunk(BoundsInt chunkBounds)
+    {
+      foreach (var data in AdditionalPrefabsToSpawn)
+      {
+        for (int i = 0; i < data.Quantity; i++)
+        {
+          Vector3 spawnPosition = Vector3.zero;
+          bool validPosition = false;
+          int iterations = 0;
+
+          while (!validPosition && iterations < _maxIterationsCount)
+          {
+            // Generate a random position within the chunk bounds
+            spawnPosition = new Vector3(
+              UnityEngine.Random.Range(chunkBounds.xMin, chunkBounds.xMax),
+              UnityEngine.Random.Range(chunkBounds.yMin, chunkBounds.yMax),
+              0
+            );
+
+            validPosition = true;
+
+            // Ensure the position isn't too close to existing positions
+            foreach (Vector3 filledPosition in _filledPositions)
+            {
+              if (Vector3.Distance(spawnPosition, filledPosition) < PrefabsSpawnMinDistance)
+              {
+                validPosition = false;
+                break;
+              }
+            }
+
+            iterations++;
+          }
+
+          if (validPosition)
+          {
+            Instantiate(data.Prefab, spawnPosition, Quaternion.identity);
+            _filledPositions.Add(spawnPosition);
+          }
+        }
+      }
+
+      await UniTask.Yield(); // Yield control for performance
     }
   }
 }
