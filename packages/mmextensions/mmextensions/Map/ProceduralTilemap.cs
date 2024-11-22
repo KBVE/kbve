@@ -178,13 +178,13 @@ namespace KBVE.MMExtensions.Map
     protected virtual void OnEnable()
     {
       // base.OnEnable();
-      MMEventStartListening<TopDownEngineEvent>();
+      this.MMEventStartListening<TopDownEngineEvent>();
     }
 
     protected virtual void OnDisable()
     {
       // base.OnDisable();
-      MMEventStopListening<TopDownEngineEvent>();
+      this.MMEventStopListening<TopDownEngineEvent>();
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ namespace KBVE.MMExtensions.Map
       switch (topDownEngineEvent.EventType)
       {
         case TopDownEngineEventTypes.SpawnComplete:
-          _playerTransform = topDownEngineEvent.Origin?.transform;
+          _playerTransform = topDownEngineEvent.OriginCharacter?.transform;
           Debug.Log("[ChunkedTilemapLevelGenerator] Player transform assigned.");
           break;
 
@@ -220,7 +220,7 @@ namespace KBVE.MMExtensions.Map
       while (_playerTransform == null)
       {
         Debug.LogWarning("[ChunkedTilemapLevelGenerator] Waiting for player transform...");
-        await UniTask.Delay(TimeSpan.FromMilliseconds(100)); // Poll every 100ms to check if _playerTransform is set
+        // await UniTask.Delay(TimeSpan.FromMilliseconds(100), DelayType.DeltaTime); // Poll every 100ms to check if _playerTransform is set
       }
 
       Debug.Log(
@@ -233,7 +233,7 @@ namespace KBVE.MMExtensions.Map
         Vector2Int currentChunk = GetChunkPosition(_playerTransform.position);
         await GenerateChunksAround(currentChunk);
         UnloadDistantChunks(currentChunk);
-        await UniTask.Delay(TimeSpan.FromMilliseconds(100)); // Small delay to avoid performance spikes
+        // await UniTask.Delay(TimeSpan.FromMilliseconds(100), DelayType.DeltaTime); // Small delay to avoid performance spikes
       }
     }
 
@@ -320,7 +320,7 @@ namespace KBVE.MMExtensions.Map
       // Optionally spawn prefabs in the chunk
       await SpawnPrefabsInChunk(chunkBounds);
 
-      await UniTask.Delay(TimeSpan.FromMilliseconds(ChunkGenerationDelay)); // Delay to avoid performance spikes
+      // await UniTask.Delay(TimeSpan.FromMilliseconds(ChunkGenerationDelay), DelayType.DeltaTime); // Delay to avoid performance spikes
     }
 
     /// <summary>
