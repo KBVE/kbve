@@ -1,5 +1,5 @@
 using Cysharp.Threading.Tasks;
-using KBVE.Kilonet.Network;
+using KBVE.Kilonet.Networks;
 
 namespace KBVE.Kilonet.Managers
 {
