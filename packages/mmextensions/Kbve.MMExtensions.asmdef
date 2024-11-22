@@ -1,0 +1,19 @@
+{
+  "name": "Kbve.MMExtensions",
+  "rootNamespace": "KBVE.MMExtensions",
+  "references": [
+      "Cysharp.Threading.Tasks",
+      "Unity.Collections",
+      "MoreMountains.Tools",
+      "MoreMountains.TopDownEngine",
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
