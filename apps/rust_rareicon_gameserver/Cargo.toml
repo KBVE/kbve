@@ -2,10 +2,14 @@
 name = "rust_rareicon_gameserver"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 
 [dependencies]
 tokio = { version = "1.41.1", features = ["full"] }
 axum = "0.7"
 tower = { version = "0.5", features = ["full"] }
-tower-http = "0.5"
+tower-http = { version = "0.5.1", features = ["cors"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0"
+prost = "0.13"
