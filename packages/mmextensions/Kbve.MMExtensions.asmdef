@@ -5,7 +5,7 @@
       "Cysharp.Threading.Tasks",
       "Unity.Collections",
       "MoreMountains.Tools",
-      "MoreMountains.TopDownEngine",
+      "MoreMountains.TopDownEngine"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
