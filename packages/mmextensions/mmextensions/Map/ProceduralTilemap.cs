@@ -181,15 +181,15 @@ namespace KBVE.MMExtensions.Map
     }
 
     //  [CRASH - Event Listener
-    protected override void OnEnable()
+    protected virtual void OnEnable()
     {
-      base.OnEnable();
+      // base.OnEnable();
       MMEventStartListening<TopDownEngineEvent>();
     }
 
-    protected override void OnDisable()
+    protected virtual void OnDisable()
     {
-      base.OnDisable();
+      // base.OnDisable();
       MMEventStopListening<TopDownEngineEvent>();
     }
 
