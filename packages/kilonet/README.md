@@ -19,6 +19,8 @@ Adding the itch io release of the webgl build.
 Updating the distance for the ally.
 Added WebGL build optimizations.
 Started the IFrame Interactions but need to fix the cross origin issue.
+Added the `com.unity.transport` to the packages.
+Preparing the Discord build - ETA 12 hours.
 
 - [KBVE](https://kbve.com/)
 - [RareIcon](https://rareicon.com/)

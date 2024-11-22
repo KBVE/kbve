@@ -9,10 +9,14 @@ members = [
 	'packages/holy',
 	'packages/jedi',
 	'apps/kilobase',
+	'apps/rust_rareicon_gameserver',
 ]
 
 [profile.dev]
 opt-level = 1
+
+[profile.dev.overrides.kilobase]
+panic = 'unwind'
 
 [profile.release]
 opt-level = 3
@@ -21,12 +25,8 @@ strip = true
 codegen-units = 1
 panic = 'abort'
 
-# Overrides for specific packages like `kilobase`
-[profile.dev.overrides."kilobase"]
-panic = "unwind"
-
-[profile.release.overrides."kilobase"]
-panic = "unwind"
+[profile.release.overrides.kilobase]
+panic = 'unwind'
 opt-level = 3
-lto = "fat"
+lto = 'fat'
 codegen-units = 1
