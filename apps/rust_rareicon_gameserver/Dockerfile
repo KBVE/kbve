@@ -1,15 +1,16 @@
 #   [STAGE A] - Base Image
-FROM rust:1.82 AS base
-RUN cargo install cargo-chef --version ^0.1
+FROM --platform=linux/amd64 rust:1.82 AS base
+RUN rustup target add x86_64-unknown-linux-gnu \
+    && cargo install cargo-chef --version ^0.1
 WORKDIR /app
 
 #   [STAGE B] - Planner
-FROM base AS planner
+FROM --platform=linux/amd64 base AS planner
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 #   [STAGE C] - Builder
-FROM base AS builder
+FROM --platform=linux/amd64 base AS builder
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
@@ -17,7 +18,7 @@ RUN cargo build --release
 
 #   [STAGE D] - Chisel
 # Rust Profile Chisel by h0lybyte and special thanks to Fernando Silva for Chisel Go core.
-FROM ubuntu:24.04 AS os_builder
+FROM --platform=linux/amd64 ubuntu:24.04 AS os_builder
 
 RUN apt-get update && apt-get update && apt-get install -y wget
 
@@ -38,7 +39,7 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         openssl_config
 
 #   [STAGE E] - Jemalloc
-FROM ubuntu:24.04 AS jemalloc
+FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc
 RUN apt-get update \
       && apt-get install -y --no-install-recommends libjemalloc-dev \
       && apt-get autoremove -y \
@@ -46,11 +47,12 @@ RUN apt-get update \
       && rm -rf /var/lib/apt/lists/*
 
 #   [STAGE Z] - Release
-FROM scratch
+FROM --platform=linux/amd64 scratch
 COPY --from=os_builder /rootfs /
 COPY --from=builder /app/target/release/rust_rareicon_gameserver ./rust_rareicon_gameserver
 #COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 
 #ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 #ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:16,narenas:4,oversize_threshold:8388608"
+EXPOSE 3000 8081
 ENTRYPOINT ["./rust_rareicon_gameserver"]
