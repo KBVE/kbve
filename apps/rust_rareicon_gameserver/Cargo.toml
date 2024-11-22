@@ -1,0 +1,11 @@
+[package]
+name = "rust_rareicon_gameserver"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+tokio = { version = "1.41.1", features = ["full"] }
+axum = "0.7"
+tower = { version = "0.5", features = ["full"] }
+tower-http = "0.5"
