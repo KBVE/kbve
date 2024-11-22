@@ -1,0 +1,6 @@
+apiVersion: v2
+name: rareicon
+description: The RareIcon GameServer , a proof of concept stack from KBVE.
+type: application
+version: 0.0.1
+icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
