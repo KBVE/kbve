@@ -1,3 +1,5 @@
+using System;
+
 namespace KBVE.Kilonet.Networks
 {
   [Serializable]
