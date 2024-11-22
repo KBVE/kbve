@@ -11,29 +11,56 @@ namespace KBVE.Kilonet.Utils
 
     public static string GenerateULID()
     {
-      byte[] timestampBytes = GetTimestampBytes();
-      byte[] randomBytes = GetRandomBytes();
-      byte[] ulidBytes = CombineBytes(timestampBytes, randomBytes);
-
-      return EncodeBase32(ulidBytes);
+      byte[] ulidBytes = GenerateBinaryULID();
+      return ToBase32(ulidBytes);
     }
 
     public static UniTask<string> GenerateULIDAsync()
     {
       return UniTask.Run(() =>
       {
-        byte[] timestampBytes = GetTimestampBytes();
-        byte[] randomBytes = GetRandomBytes();
-        byte[] ulidBytes = CombineBytes(timestampBytes, randomBytes);
-
-        return EncodeBase32(ulidBytes);
+        byte[] ulidBytes = GenerateBinaryULID();
+        return ToBase32(ulidBytes);
       });
+    }
+
+    public static byte[] GenerateBinaryULID()
+    {
+      byte[] timestampBytes = GetTimestampBytes();
+      byte[] randomBytes = GetRandomBytes();
+      return CombineBytes(timestampBytes, randomBytes);
+    }
+
+    public static string ToBase32(byte[] ulidBytes)
+    {
+      StringBuilder result = new StringBuilder(26);
+      ulong value = 0;
+      int bits = 0;
+
+      foreach (byte b in ulidBytes)
+      {
+        value = (value << 8) | b;
+        bits += 8;
+
+        while (bits >= 5)
+        {
+          result.Append(CrockfordBase32[(int)((value >> (bits - 5)) & 0x1F)]);
+          bits -= 5;
+        }
+      }
+
+      if (bits > 0)
+      {
+        result.Append(CrockfordBase32[(int)((value << (5 - bits)) & 0x1F)]);
+      }
+
+      return result.ToString();
     }
 
     private static byte[] GetTimestampBytes()
     {
       long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-      byte[] bytes = new byte[6];
+      byte[] bytes = new byte[6]; // since 48 bits = 6 bytes
 
       for (int i = 5; i >= 0; i--)
       {
@@ -60,32 +87,6 @@ namespace KBVE.Kilonet.Utils
       Array.Copy(timestampBytes, 0, combined, 0, timestampBytes.Length);
       Array.Copy(randomBytes, 0, combined, timestampBytes.Length, randomBytes.Length);
       return combined;
-    }
-
-    private static string EncodeBase32(byte[] data)
-    {
-      StringBuilder result = new StringBuilder(26);
-      ulong value = 0;
-      int bits = 0;
-
-      for (int i = 0; i < data.Length; i++)
-      {
-        value = (value << 8) | data[i];
-        bits += 8;
-
-        while (bits >= 5)
-        {
-          result.Append(CrockfordBase32[(int)((value >> (bits - 5)) & 0x1F)]);
-          bits -= 5;
-        }
-      }
-
-      if (bits > 0)
-      {
-        result.Append(CrockfordBase32[(int)((value << (5 - bits)) & 0x1F)]);
-      }
-
-      return result.ToString();
     }
   }
 }

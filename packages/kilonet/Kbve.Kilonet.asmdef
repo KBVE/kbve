@@ -9,7 +9,10 @@
       "Supabase.Postgrest",
       "Supabase.Realtime",
       "Supabase.Storage",
-      "Cysharp.Threading.Tasks"
+      "Cysharp.Threading.Tasks",
+      "Unity.Networking.Transport",
+      "Unity.Collections",
+      "protobuf-net"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
