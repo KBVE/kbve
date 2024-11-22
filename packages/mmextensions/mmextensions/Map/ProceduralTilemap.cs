@@ -320,7 +320,7 @@ namespace KBVE.MMExtensions.Map
       // Optionally spawn prefabs in the chunk
       await SpawnPrefabsInChunk(chunkBounds);
 
-      // await UniTask.Delay(TimeSpan.FromMilliseconds(ChunkGenerationDelay), DelayType.DeltaTime); // Delay to avoid performance spikes
+      await UniTask.Yield(); // Delay to avoid performance spikes
     }
 
     /// <summary>
