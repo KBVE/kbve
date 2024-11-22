@@ -4,7 +4,8 @@
   "references": [
       "Cysharp.Threading.Tasks",
       "Unity.Collections",
-      "MoreMountains.Tools"
+      "MoreMountains.Tools",
+      "MoreMountains.TopDownEngine",
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
