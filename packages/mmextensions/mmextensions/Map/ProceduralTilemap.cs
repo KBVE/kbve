@@ -31,6 +31,7 @@ namespace KBVE.MMExtensions.Map
     private Dictionary<Vector2Int, bool> _generatedChunks;
     private Transform _playerTransform;
     private List<Vector3> _filledPositions;
+    private bool _isChunkGenerationActive = false;
 
     [Header("Extended Settings")]
     [Tooltip("Enable debug logs for generation steps.")]
@@ -42,9 +43,6 @@ namespace KBVE.MMExtensions.Map
     [Tooltip("Custom logic to handle tilemap decorations.")]
     public Tilemap DecorationsTilemap;
 
-    /// <summary>
-    /// On Awake, set up chunk tracking and filled positions.
-    /// </summary>
     protected override void Awake()
     {
       base.Awake();
@@ -52,14 +50,11 @@ namespace KBVE.MMExtensions.Map
       _filledPositions = new List<Vector3>();
     }
 
-    /// <summary>
-    /// Overrides the Generate method to add custom functionality after base generation.
-    /// </summary>
     public override void Generate()
     {
       if (EnableDebugLogs)
       {
-        Debug.Log("[ExtendedTilemapLevelGenerator] Starting generation...");
+        Debug.Log("[ProceduralTilemap] Starting generation...");
       }
 
       base.Generate();
@@ -68,13 +63,10 @@ namespace KBVE.MMExtensions.Map
 
       if (EnableDebugLogs)
       {
-        Debug.Log("[ExtendedTilemapLevelGenerator] Generation complete.");
+        Debug.Log("[ProceduralTilemap] Generation complete.");
       }
     }
 
-    /// <summary>
-    /// Handles adding decorations to the tilemap.
-    /// </summary>
     protected virtual void HandleDecorations()
     {
       if (DecorationsTilemap == null || ObstaclesTilemap == null)
@@ -82,7 +74,7 @@ namespace KBVE.MMExtensions.Map
         if (EnableDebugLogs)
         {
           Debug.LogWarning(
-            "[ExtendedTilemapLevelGenerator] DecorationsTilemap or ObstaclesTilemap is not set."
+            "[ProceduralTilemap] DecorationsTilemap or ObstaclesTilemap is not set."
           );
         }
         return;
@@ -90,7 +82,7 @@ namespace KBVE.MMExtensions.Map
 
       if (EnableDebugLogs)
       {
-        Debug.Log("[ExtendedTilemapLevelGenerator] Adding decorations...");
+        Debug.Log("[ProceduralTilemap] Adding decorations...");
       }
 
       // Example: Copy some tiles from ObstaclesTilemap to DecorationsTilemap
@@ -105,9 +97,6 @@ namespace KBVE.MMExtensions.Map
       }
     }
 
-    /// <summary>
-    /// Spawns additional prefabs defined in AdditionalPrefabsToSpawn.
-    /// </summary>
     protected virtual void SpawnAdditionalPrefabs()
     {
       if (AdditionalPrefabsToSpawn == null || AdditionalPrefabsToSpawn.Count == 0)
@@ -117,7 +106,7 @@ namespace KBVE.MMExtensions.Map
 
       if (EnableDebugLogs)
       {
-        Debug.Log("[ExtendedTilemapLevelGenerator] Spawning additional prefabs...");
+        Debug.Log("[ProceduralTilemap] Spawning additional prefabs...");
       }
 
       foreach (var data in AdditionalPrefabsToSpawn)
@@ -161,43 +150,39 @@ namespace KBVE.MMExtensions.Map
       }
     }
 
-    /// <summary>
-    /// Optional: Add more customization by overriding other methods or introducing new ones.
-    /// </summary>
     protected override void HandleWallsShadow()
     {
       base.HandleWallsShadow();
 
       if (EnableDebugLogs)
       {
-        Debug.Log("[ExtendedTilemapLevelGenerator] Custom shadow handling can be added here.");
+        Debug.Log("[ProceduralTilemap] Custom shadow handling can be added here.");
       }
     }
 
-    //  [CRASH - Event Listener
     protected virtual void OnEnable()
     {
-      // base.OnEnable();
       this.MMEventStartListening<TopDownEngineEvent>();
     }
 
     protected virtual void OnDisable()
     {
-      // base.OnDisable();
       this.MMEventStopListening<TopDownEngineEvent>();
     }
 
-    /// <summary>
-    /// Handles TopDownEngine events.
-    /// </summary>
-    /// <param name="topDownEngineEvent">The event data.</param>
     public virtual void OnMMEvent(TopDownEngineEvent topDownEngineEvent)
     {
       switch (topDownEngineEvent.EventType)
       {
         case TopDownEngineEventTypes.SpawnComplete:
+          if (_isChunkGenerationActive)
+            return;
+
           _playerTransform = topDownEngineEvent.OriginCharacter?.transform;
           Debug.Log("[ChunkedTilemapLevelGenerator] Player transform assigned.");
+
+          StartChunkGenerationLoop().Forget();
+          _isChunkGenerationActive = true;
           break;
 
         default:
@@ -211,29 +196,25 @@ namespace KBVE.MMExtensions.Map
       }
     }
 
-    /// <summary>
-    /// Main loop to generate chunks dynamically as the player moves.
-    /// </summary>
     private async UniTaskVoid StartChunkGenerationLoop()
     {
       // Wait until _playerTransform is assigned
       while (_playerTransform == null)
       {
         Debug.LogWarning("[ChunkedTilemapLevelGenerator] Waiting for player transform...");
-        // await UniTask.Delay(TimeSpan.FromMilliseconds(100), DelayType.DeltaTime); // Poll every 100ms to check if _playerTransform is set
+        await UniTask.Yield();
       }
 
       Debug.Log(
         "[ChunkedTilemapLevelGenerator] Player transform found. Starting chunk generation."
       );
 
-      // Main chunk generation loop
       while (true)
       {
         Vector2Int currentChunk = GetChunkPosition(_playerTransform.position);
         await GenerateChunksAround(currentChunk);
         UnloadDistantChunks(currentChunk);
-        // await UniTask.Delay(TimeSpan.FromMilliseconds(100), DelayType.DeltaTime); // Small delay to avoid performance spikes
+        await UniTask.Yield();
       }
     }
 
@@ -268,25 +249,23 @@ namespace KBVE.MMExtensions.Map
     }
 
     /// <summary>
-    /// Generates chunks around the given center chunk asynchronously.
+    /// Generates chunks around the given center chunk using BFS.
     /// </summary>
-    /// <param name="centerChunk">The center chunk based on the player's current position.</param>
     private async UniTask GenerateChunksAround(Vector2Int centerChunk)
     {
-      // Loop through the chunks within the active radius
-      for (int x = -MaxActiveChunks; x <= MaxActiveChunks; x++)
+      Queue<Vector2Int> queue = new Queue<Vector2Int>();
+      HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+
+      queue.Enqueue(centerChunk);
+      visited.Add(centerChunk);
+
+      while (queue.Count > 0)
       {
-        for (int y = -MaxActiveChunks; y <= MaxActiveChunks; y++)
+        Vector2Int chunkPosition = queue.Dequeue();
+
+        // Generate the chunk
+        if (!_generatedChunks.ContainsKey(chunkPosition))
         {
-          Vector2Int chunkPosition = new Vector2Int(centerChunk.x + x, centerChunk.y + y);
-
-          // Check if the chunk has already been generated
-          if (_generatedChunks.ContainsKey(chunkPosition))
-          {
-            continue;
-          }
-
-          // Generate the chunk and mark it as generated
           await GenerateChunk(chunkPosition);
           _generatedChunks[chunkPosition] = true;
 
@@ -295,13 +274,32 @@ namespace KBVE.MMExtensions.Map
             Debug.Log($"[ChunkedTilemapLevelGenerator] Generated chunk at {chunkPosition}");
           }
         }
+
+        // Add neighboring chunks to the queue
+        foreach (
+          Vector2Int direction in new[]
+          {
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right
+          }
+        )
+        {
+          Vector2Int neighbor = chunkPosition + direction;
+
+          if (
+            !visited.Contains(neighbor)
+            && Vector2Int.Distance(centerChunk, neighbor) <= MaxActiveChunks
+          )
+          {
+            queue.Enqueue(neighbor);
+            visited.Add(neighbor);
+          }
+        }
       }
     }
 
-    /// <summary>
-    /// Generates a single chunk asynchronously.
-    /// </summary>
-    /// <param name="chunkPosition">The chunk position to generate.</param>
     private async UniTask GenerateChunk(Vector2Int chunkPosition)
     {
       // Define the bounds of the chunk
@@ -343,8 +341,6 @@ namespace KBVE.MMExtensions.Map
 
       await UniTask.Yield(); // Yield control to maintain performance
     }
-
-    // NOT READY - JUST ADDED
 
     /// <summary>
     /// Spawns prefabs within the given chunk bounds asynchronously.
