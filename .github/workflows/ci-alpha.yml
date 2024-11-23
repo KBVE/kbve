@@ -313,7 +313,50 @@ jobs:
               run: |
                   pnpm nx run rust_rareicon_gameserver:container --configuration=production  --push
     
+    rareicon_webgl_deployment:
+      needs: ['kilonet-rareicon-build']
+      name: RareIcon GH Pages Deployment
+      runs-on: 'ubuntu-latest'
+      steps:
+            - name: Download Cache
+              uses: actions/download-artifact@v4
+              id: download
+              with:
+                  name: Build-WebGL
+                  path: build/WebGL.zip
 
+            - name: Exact WebGL Files
+              run: |
+                  echo "Extracting WebGL artifact..."
+                  mkdir -p build/WebGL
+                  unzip build/WebGL.zip -d build/WebGL
+                  echo "Listing extracted files..."
+                  ls -al build/WebGL
+
+            - name: Copy WebGL files
+              run: |
+                  echo "Preparing files for deployment..."
+                  mkdir -p dist/apps/rareicon/
+                  cp -R build/WebGL/* dist/apps/rareicon/
+                  echo "Files prepared in dist/apps/rareicon/"
+                  ls -al dist/apps/rareicon/
+
+            - name: WebGL Build -> Deployment
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+              with:
+                  source_file: 'dist/apps/rareicon/'
+                  destination_repo: 'KBVE/unity.rareicon.com'
+                  destination_folder: '/docs'
+                  destination_branch: 'main'
+                  destination_branch_create: 'patch-kbve-rareicon-unity-deploy-${{ needs.globals.outputs.sha256head }}'
+                  user_email: 'h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: ${{ github.event.head_commit.message }}
+                  rsync_option: '-avrh --delete'
+
+      
 
     # Alpha Builds
 
