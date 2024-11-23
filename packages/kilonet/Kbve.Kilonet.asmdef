@@ -2,6 +2,7 @@
   "name": "Kbve.Kilonet",
   "rootNamespace": "KBVE.Kilonet",
   "references": [
+      "UniTask",
       "Vuplex.WebView",
       "Supabase.Core",
       "Supabase.Functions",

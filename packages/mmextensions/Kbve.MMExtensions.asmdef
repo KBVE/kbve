@@ -2,6 +2,7 @@
   "name": "Kbve.MMExtensions",
   "rootNamespace": "KBVE.MMExtensions",
   "references": [
+      "UniTask",
       "Cysharp.Threading.Tasks",
       "Unity.Collections",
       "MoreMountains.Tools",
