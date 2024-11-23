@@ -36,6 +36,7 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         ca-certificates_data \
         libgcc-s1_libs \
         libc6_libs \
+        libstdc++6_libs \
         openssl_config
 
 #   [STAGE E] - Jemalloc
@@ -51,7 +52,7 @@ FROM --platform=linux/amd64 scratch
 COPY --from=os_builder /rootfs /
 COPY --from=builder /app/target/release/rust_rareicon_gameserver ./rust_rareicon_gameserver
 COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-
+COPY /build /build
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:16,narenas:4,oversize_threshold:8388608"
 EXPOSE 3000 8081
