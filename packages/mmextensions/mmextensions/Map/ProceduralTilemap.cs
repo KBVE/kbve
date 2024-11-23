@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-//  [Crash]
 using Cysharp.Threading.Tasks;
 using MoreMountains.Tools;
 using MoreMountains.TopDownEngine;
@@ -85,7 +84,6 @@ namespace KBVE.MMExtensions.Map
         Debug.Log("[ProceduralTilemap] Adding decorations...");
       }
 
-      // Example: Copy some tiles from ObstaclesTilemap to DecorationsTilemap
       BoundsInt bounds = ObstaclesTilemap.cellBounds;
       foreach (var position in bounds.allPositionsWithin)
       {
@@ -198,7 +196,6 @@ namespace KBVE.MMExtensions.Map
 
     private async UniTaskVoid StartChunkGenerationLoop()
     {
-      // Wait until _playerTransform is assigned
       while (_playerTransform == null)
       {
         Debug.LogWarning("[ChunkedTilemapLevelGenerator] Waiting for player transform...");
@@ -218,9 +215,6 @@ namespace KBVE.MMExtensions.Map
       }
     }
 
-    /// <summary>
-    /// Determines the chunk position for a given world position.
-    /// </summary>
     private Vector2Int GetChunkPosition(Vector3 worldPosition)
     {
       int chunkX = Mathf.FloorToInt(worldPosition.x / ChunkWidth);
@@ -242,15 +236,11 @@ namespace KBVE.MMExtensions.Map
 
       foreach (var chunk in chunksToUnload)
       {
-        // Optionally clear the tilemap or destroy prefab instances
         _generatedChunks.Remove(chunk);
         Debug.Log($"[ChunkedTilemapLevelGenerator] Unloaded chunk at {chunk}");
       }
     }
 
-    /// <summary>
-    /// Generates chunks around the given center chunk using BFS.
-    /// </summary>
     private async UniTask GenerateChunksAround(Vector2Int centerChunk)
     {
       Queue<Vector2Int> queue = new Queue<Vector2Int>();
@@ -263,7 +253,6 @@ namespace KBVE.MMExtensions.Map
       {
         Vector2Int chunkPosition = queue.Dequeue();
 
-        // Generate the chunk
         if (!_generatedChunks.ContainsKey(chunkPosition))
         {
           await GenerateChunk(chunkPosition);
@@ -275,7 +264,6 @@ namespace KBVE.MMExtensions.Map
           }
         }
 
-        // Add neighboring chunks to the queue
         foreach (
           Vector2Int direction in new[]
           {
@@ -302,7 +290,6 @@ namespace KBVE.MMExtensions.Map
 
     private async UniTask GenerateChunk(Vector2Int chunkPosition)
     {
-      // Define the bounds of the chunk
       BoundsInt chunkBounds = new BoundsInt(
         chunkPosition.x * ChunkWidth,
         chunkPosition.y * ChunkHeight,
@@ -311,27 +298,18 @@ namespace KBVE.MMExtensions.Map
         ChunkHeight,
         1
       );
-
-      // Generate tiles for the chunk
       await GenerateChunkTiles(chunkBounds);
-
-      // Optionally spawn prefabs in the chunk
       await SpawnPrefabsInChunk(chunkBounds);
-
-      await UniTask.Yield(); // Delay to avoid performance spikes
+      await UniTask.Yield();
     }
 
-    /// <summary>
-    /// Generates tiles within the given chunk bounds.
-    /// </summary>
-    /// <param name="chunkBounds">The bounds of the chunk.</param>
     private async UniTask GenerateChunkTiles(BoundsInt chunkBounds)
     {
       foreach (var position in chunkBounds.allPositionsWithin)
       {
-        if (UnityEngine.Random.value > 0.8f) // Example: Randomly place tiles
+        if (UnityEngine.Random.value > 0.8f)
         {
-          TileBase tile = ObstaclesTilemap.GetTile(position); // Retrieve a sample tile
+          TileBase tile = ObstaclesTilemap.GetTile(position);
           if (tile != null)
           {
             ObstaclesTilemap.SetTile(position, tile);
@@ -339,13 +317,9 @@ namespace KBVE.MMExtensions.Map
         }
       }
 
-      await UniTask.Yield(); // Yield control to maintain performance
+      await UniTask.Yield();
     }
 
-    /// <summary>
-    /// Spawns prefabs within the given chunk bounds asynchronously.
-    /// </summary>
-    /// <param name="chunkBounds">The bounds of the chunk.</param>
     private async UniTask SpawnPrefabsInChunk(BoundsInt chunkBounds)
     {
       foreach (var data in AdditionalPrefabsToSpawn)
@@ -358,7 +332,6 @@ namespace KBVE.MMExtensions.Map
 
           while (!validPosition && iterations < _maxIterationsCount)
           {
-            // Generate a random position within the chunk bounds
             spawnPosition = new Vector3(
               UnityEngine.Random.Range(chunkBounds.xMin, chunkBounds.xMax),
               UnityEngine.Random.Range(chunkBounds.yMin, chunkBounds.yMax),
@@ -367,7 +340,6 @@ namespace KBVE.MMExtensions.Map
 
             validPosition = true;
 
-            // Ensure the position isn't too close to existing positions
             foreach (Vector3 filledPosition in _filledPositions)
             {
               if (Vector3.Distance(spawnPosition, filledPosition) < PrefabsSpawnMinDistance)
@@ -388,7 +360,7 @@ namespace KBVE.MMExtensions.Map
         }
       }
 
-      await UniTask.Yield(); // Yield control for performance
+      await UniTask.Yield();
     }
   }
 }
