@@ -17,6 +17,9 @@
 	"ignore": [
 		"mmextensions-test"
 	],
+	"dependencies": {
+		"com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask"
+	},
 	"license": "MIT",
 	"licensesUrl": "https://kbve.com/legal/",
 	"changelogUrl": "https://kbve.com/",
