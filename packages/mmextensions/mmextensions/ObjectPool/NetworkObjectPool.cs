@@ -36,7 +36,7 @@ namespace KBVE.MMExtensions.ObjectPool
       switch (topDownEngineEvent.EventType)
       {
         case TopDownEngineEventTypes.SpawnComplete:
-          Debug.Log("[NetworkObjectPool] Player transform assigned.");
+          Debug.Log("[NetworkObjectPool] TopDownEngineEventTypes.SpawnComplete");
           break;
 
         default:
