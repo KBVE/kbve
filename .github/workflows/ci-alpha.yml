@@ -312,12 +312,12 @@ jobs:
                   INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   pnpm nx run rust_rareicon_gameserver:container --configuration=production  --push
-    
+
     rareicon_webgl_deployment:
-      needs: ['kilonet-rareicon-build']
-      name: RareIcon GH Pages Deployment
-      runs-on: 'ubuntu-latest'
-      steps:
+        needs: ['kilonet-rareicon-build']
+        name: RareIcon GH Pages Deployment
+        runs-on: 'ubuntu-latest'
+        steps:
             - name: Download Cache
               uses: actions/download-artifact@v4
               id: download
@@ -325,13 +325,24 @@ jobs:
                   name: Build-WebGL
                   path: build/WebGL
 
+            - name: Check Downloaded Artifact
+              run: |
+                  echo "Checking contents of build/WebGL..."
+                  ls -al build/WebGL
+
             - name: Extract WebGL Files
               run: |
-                echo "Extracting WebGL artifact..."
-                mkdir -p build/WebGL_extracted
-                unzip -o "build/WebGL/WebGL.zip" -d build/WebGL_extracted
-                echo "Listing extracted files..."
-                ls -al build/WebGL_extracted
+                  echo "Finding WebGL artifact..."
+                  mkdir -p build/WebGL_extracted
+                  WEBGL_ZIP=$(find build/WebGL -name "*.zip" | head -n 1)
+                  if [ -z "$WEBGL_ZIP" ]; then
+                    echo "No zip file found in build/WebGL."
+                    exit 1
+                  fi
+                  echo "Found zip file: $WEBGL_ZIP"
+                  unzip -o "$WEBGL_ZIP" -d build/WebGL_extracted
+                  echo "Listing extracted files..."
+                  ls -al build/WebGL_extracted
 
             - name: Copy WebGL files
               run: |
@@ -340,16 +351,14 @@ jobs:
                   cp -R build/WebGL_extracted/* dist/apps/rareicon/
                   echo "Files prepared in dist/apps/rareicon/"
                   ls -al dist/apps/rareicon/
-            
-            
+
             - name: Create .nojekyll and CNAME files
               run: |
-                echo "Creating .nojekyll and CNAME files..."
-                touch dist/apps/rareicon/.nojekyll
-                echo "unity.rareicon.com" > dist/apps/rareicon/CNAME
-                echo "CNAME file content:"
-                cat dist/apps/rareicon/CNAME
-
+                  echo "Creating .nojekyll and CNAME files..."
+                  touch dist/apps/rareicon/.nojekyll
+                  echo "unity.rareicon.com" > dist/apps/rareicon/CNAME
+                  echo "CNAME file content:"
+                  cat dist/apps/rareicon/CNAME
 
             - name: WebGL Build -> Deployment
               uses: dobbelina/copy_file_to_another_repo_action@main
@@ -365,8 +374,6 @@ jobs:
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
                   rsync_option: '-avrh --delete'
-
-      
 
     # Alpha Builds
 
