@@ -2,10 +2,30 @@
 name = "rust_rareicon_gameserver"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 
 [dependencies]
 tokio = { version = "1.41.1", features = ["full"] }
-axum = "0.7"
+tokio-rustls = "0.26.0"
+axum = { version = "0.7", features = ["ws"] }
+axum-extra = "0.9.6"
+futures = "0.3"
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 tower = { version = "0.5", features = ["full"] }
-tower-http = "0.5"
+tower-http = { version = "0.6.1", features = ["cors", "fs", "trace"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0"
+prost = "0.13"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { version = "0.6", optional = true }
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1
+panic = 'abort'

@@ -1,8 +1,8 @@
 {
-	"name": "com.kbve.kilonet",
-	"displayName": "Kilonet",
+	"name": "com.kbve.mmextensions",
+	"displayName": "MMExtensions",
 	"version": "0.0.1",
-	"description": "A KBVE Package for Unity",
+	"description": "A TopDownEngine Extension for Unity by KBVE",
 	"unity": "2023.1",
 	"author": {
 		"name": "KBVE",
@@ -10,11 +10,12 @@
 	},
 	"keywords": [
 		"kbve",
-		"unity"
+		"unity",
+        "mm"
 	],
-	"path": "kilonet",
+	"path": "mmextensions",
 	"ignore": [
-		"kilonet-test"
+		"mmextensions-test"
 	],
 	"dependencies": {
 		"com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",

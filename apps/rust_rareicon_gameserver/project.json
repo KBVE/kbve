@@ -54,7 +54,54 @@
           "release": true
         }
       }
-    }
+    },
+    "container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/rust_rareicon_gameserver",
+				"file": "apps/rust_rareicon_gameserver/Dockerfile",
+				"metadata": {
+					"images": ["kbve/rareicongs"],
+					"load": true,
+					"tags": ["1.03", "1.03.0"]
+				},
+				"configurations": {
+					"local": {
+						"tags": ["1.03", "1.03.0"],
+						"push": false
+					},
+					"production": {
+						"tags": ["1.03", "1.03.0"],
+						"push": true,
+						"customBuildOptions": "--push",
+						"cache-from": [
+							"type=registry,ref=kbve/rareicongs:buildcache"
+						],
+						"cache-to": [
+							"type=registry,ref=kbve/rareicongs:buildcache,mode=max"
+						]
+					}
+				}
+			}
+		},
+    "orb": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					{
+						"command": "pnpm nx container rust_rareicon_gameserver",
+						"forwardAllArgs": false
+					},
+					{
+						"command": "docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/rareicongs:1.03",
+						"forwardAllArgs": false
+					}
+				],
+				"parallel": false
+			}
+		}
   },
   "tags": []
 }
