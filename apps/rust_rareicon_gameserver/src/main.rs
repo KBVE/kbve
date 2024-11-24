@@ -12,6 +12,14 @@ use std::{net::SocketAddr, path::PathBuf};
 use tokio::net::{ UdpSocket, TcpListener};
 use tower_http::services::ServeDir;
 
+#[cfg(feature = "jemalloc")]
+mod allocator {
+  #[cfg(not(target_env = "msvc"))]
+  use tikv_jemallocator::Jemalloc;
+  #[cfg(not(target_env = "msvc"))]
+  #[global_allocator]
+  static GLOBAL: Jemalloc = Jemalloc;
+}
 
 #[tokio::main]
 async fn main() {

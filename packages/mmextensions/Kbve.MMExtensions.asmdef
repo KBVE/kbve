@@ -1,19 +1,12 @@
 {
-  "name": "Kbve.Kilonet",
-  "rootNamespace": "KBVE.Kilonet",
+  "name": "Kbve.MMExtensions",
+  "rootNamespace": "KBVE.MMExtensions",
   "references": [
       "UniTask",
-      "Vuplex.WebView",
-      "Supabase.Core",
-      "Supabase.Functions",
-      "Supabase.Gotrue",
-      "Supabase.Postgrest",
-      "Supabase.Realtime",
-      "Supabase.Storage",
       "Cysharp.Threading.Tasks",
-      "Unity.Networking.Transport",
       "Unity.Collections",
-      "protobuf-net"
+      "MoreMountains.Tools",
+      "MoreMountains.TopDownEngine"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

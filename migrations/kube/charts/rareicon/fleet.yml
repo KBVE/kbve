@@ -1,0 +1,6 @@
+defaultNamespace: rareicon
+helm:
+    chart: ./shipyard
+    releaseName: rareicon-release
+    valuesFiles:
+        - shipyard/values.yaml
