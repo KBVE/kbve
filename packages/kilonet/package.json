@@ -17,7 +17,8 @@
 		"kilonet-test"
 	],
 	"dependencies": {
-		"com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask"
+		"com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+		"jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.16.5"
 	},
 	"license": "MIT",
 	"licensesUrl": "https://kbve.com/legal/",

@@ -6,7 +6,8 @@
       "Cysharp.Threading.Tasks",
       "Unity.Collections",
       "MoreMountains.Tools",
-      "MoreMountains.TopDownEngine"
+      "MoreMountains.TopDownEngine",
+      "VContainer"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

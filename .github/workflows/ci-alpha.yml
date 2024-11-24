@@ -323,21 +323,21 @@ jobs:
               id: download
               with:
                   name: Build-WebGL
-                  path: build/WebGL.zip
+                  path: build/WebGL
 
-            - name: Exact WebGL Files
+            - name: Extract WebGL Files
               run: |
-                  echo "Extracting WebGL artifact..."
-                  mkdir -p build/WebGL
-                  unzip build/WebGL.zip -d build/WebGL
-                  echo "Listing extracted files..."
-                  ls -al build/WebGL
+                echo "Extracting WebGL artifact..."
+                mkdir -p build/WebGL_extracted
+                unzip -o "build/WebGL/WebGL.zip" -d build/WebGL_extracted
+                echo "Listing extracted files..."
+                ls -al build/WebGL_extracted
 
             - name: Copy WebGL files
               run: |
                   echo "Preparing files for deployment..."
                   mkdir -p dist/apps/rareicon/
-                  cp -R build/WebGL/* dist/apps/rareicon/
+                  cp -R build/WebGL_extracted/* dist/apps/rareicon/
                   echo "Files prepared in dist/apps/rareicon/"
                   ls -al dist/apps/rareicon/
             
