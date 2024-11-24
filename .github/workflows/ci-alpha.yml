@@ -330,27 +330,13 @@ jobs:
                   echo "Checking contents of build/WebGL..."
                   ls -al build/WebGL
 
-            - name: Extract WebGL Files
-              run: |
-                  echo "Finding WebGL artifact..."
-                  mkdir -p build/WebGL_extracted
-                  WEBGL_ZIP=$(find build/WebGL -name "*.zip" | head -n 1)
-                  if [ -z "$WEBGL_ZIP" ]; then
-                    echo "No zip file found in build/WebGL."
-                    exit 1
-                  fi
-                  echo "Found zip file: $WEBGL_ZIP"
-                  unzip -o "$WEBGL_ZIP" -d build/WebGL_extracted
-                  echo "Listing extracted files..."
-                  ls -al build/WebGL_extracted
-
             - name: Copy WebGL files
               run: |
-                  echo "Preparing files for deployment..."
-                  mkdir -p dist/apps/rareicon/
-                  cp -R build/WebGL_extracted/* dist/apps/rareicon/
-                  echo "Files prepared in dist/apps/rareicon/"
-                  ls -al dist/apps/rareicon/
+                    echo "Preparing files for deployment..."
+                    mkdir -p dist/apps/rareicon/
+                    cp -R build/WebGL/WebGL/* dist/apps/rareicon/
+                    echo "Files prepared in dist/apps/rareicon/"
+                    ls -al dist/apps/rareicon/
 
             - name: Create .nojekyll and CNAME files
               run: |
