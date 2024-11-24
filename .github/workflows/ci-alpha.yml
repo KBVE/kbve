@@ -340,6 +340,16 @@ jobs:
                   cp -R build/WebGL/* dist/apps/rareicon/
                   echo "Files prepared in dist/apps/rareicon/"
                   ls -al dist/apps/rareicon/
+            
+            
+            - name: Create .nojekyll and CNAME files
+              run: |
+                echo "Creating .nojekyll and CNAME files..."
+                touch dist/apps/rareicon/.nojekyll
+                echo "unity.rareicon.com" > dist/apps/rareicon/CNAME
+                echo "CNAME file content:"
+                cat dist/apps/rareicon/CNAME
+
 
             - name: WebGL Build -> Deployment
               uses: dobbelina/copy_file_to_another_repo_action@main
