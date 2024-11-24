@@ -13,7 +13,8 @@
       "Cysharp.Threading.Tasks",
       "Unity.Networking.Transport",
       "Unity.Collections",
-      "protobuf-net"
+      "protobuf-net",
+      "VContainer"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
