@@ -1,9 +1,9 @@
-using KBVE.Kilonet;
-using MoreMountains.Tools;
-using MoreMountains.TopDownEngine;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using MoreMountains.Tools;
+using MoreMountains.TopDownEngine;
+using KBVE.Kilonet;
 
 namespace KBVE.MMExtensions.Shaco
 {
@@ -20,7 +20,16 @@ namespace KBVE.MMExtensions.Shaco
 
     protected override void Configure(IContainerBuilder builder)
     {
-      builder.RegisterComponentInNewPrefab(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
+      builder.UseComponents(components =>
+      {
+        var gameManager = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
+        DontDestroyOnLoad(gameManager.gameObject);
+        components.AddInstance(gameManager);
+
+      });
+
+      // builder.RegisterComponentInNewPrefab(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
+
 
       // Register the EntryPoint for GameManager initialization
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
