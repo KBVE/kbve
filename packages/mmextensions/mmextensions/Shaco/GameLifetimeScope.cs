@@ -21,20 +21,16 @@ namespace KBVE.MMExtensions.Shaco
 
     protected override void Configure(IContainerBuilder builder)
     {
-      // Register GameManager
-      builder.Register<GameManager>(Lifetime.Singleton, resolver =>
+      // Register GameManager as a MonoBehaviour
+      builder.RegisterComponent<GameManager>(resolver =>
       {
-          var instance = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
-          
-          // Set initial values
-          instance.TargetFrameRate = 60;
-          instance.MaximumLives = 3;
-          instance.CurrentLives = 3;
-
-          DontDestroyOnLoad(instance.gameObject);
-
-          return instance;
+        var instance = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
+        DontDestroyOnLoad(instance.gameObject);
+        return instance;
       });
+
+      // Register the EntryPoint for initializing GameManager
+      builder.RegisterEntryPoint<GameManagerEntryPoint>();
 
       // builder.Register<NetworkManager>(Lifetime.Singleton);
       // builder.Register<PlayerManager>(Lifetime.Singleton);
