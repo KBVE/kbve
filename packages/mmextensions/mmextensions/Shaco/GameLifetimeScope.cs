@@ -33,13 +33,13 @@ namespace KBVE.MMExtensions.Shaco
 
 
 
-      builder.Register<NetworkManager>(Lifetime.Singleton);
-      builder.Register<PlayerManager>(Lifetime.Singleton);
+      // builder.Register<NetworkManager>(Lifetime.Singleton);
+      // builder.Register<PlayerManager>(Lifetime.Singleton);
 
-      builder.Register<LevelManager>(Lifetime.Singleton).WithParameter(localPlayerPrefab);
-      builder.Register<MultiplayerManager>(Lifetime.Singleton).WithParameter(remotePlayerPrefab);
+      // builder.Register<LevelManager>(Lifetime.Singleton).WithParameter(localPlayerPrefab);
+      // builder.Register<MultiplayerManager>(Lifetime.Singleton).WithParameter(remotePlayerPrefab);
 
-      builder.Register<PlayerPool>(Lifetime.Singleton).WithParameter(remotePlayerPrefab);
+      // builder.Register<PlayerPool>(Lifetime.Singleton).WithParameter(remotePlayerPrefab);
     }
   }
 }
