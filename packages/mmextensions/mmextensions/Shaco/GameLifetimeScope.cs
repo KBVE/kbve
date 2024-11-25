@@ -1,6 +1,8 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using MoreMountains.Tools;
+using MoreMountains.TopDownEngine;
 using KBVE.Kilonet;
 
 namespace KBVE.MMExtensions.Shaco
@@ -13,33 +15,21 @@ namespace KBVE.MMExtensions.Shaco
     [SerializeField]
     private GameObject remotePlayerPrefab;
 
+    [SerializeField]
+    private GameObject gameManagerPrefab;
+
     protected override void Configure(IContainerBuilder builder)
     {
-      // Register GameManager
+      builder.UseComponents(components =>
+      {
+        var gameManager = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
+        DontDestroyOnLoad(gameManager.gameObject);
+        components.AddInstance(gameManager);
 
-      builder
-        .RegisterComponentInHierarchy<GameManager>()
-        .OnInitialized(
-          (resolver, gameManager) =>
-          {
-            gameManager.TargetFrameRate = 300;
-            gameManager.MaximumLives = 0;
-            gameManager.CurrentLives = 0;
-            gameManager.GameOverScene = "Title";
-            gameManager.PauseGameWhenInventoryOpens = false;
-          }
-        );
+      });
 
-
-
-
-      // builder.Register<NetworkManager>(Lifetime.Singleton);
-      // builder.Register<PlayerManager>(Lifetime.Singleton);
-
-      // builder.Register<LevelManager>(Lifetime.Singleton).WithParameter(localPlayerPrefab);
-      // builder.Register<MultiplayerManager>(Lifetime.Singleton).WithParameter(remotePlayerPrefab);
-
-      // builder.Register<PlayerPool>(Lifetime.Singleton).WithParameter(remotePlayerPrefab);
+      // Register the EntryPoint for GameManager initialization
+      builder.RegisterEntryPoint<GameManagerEntryPoint>();
     }
   }
 }
