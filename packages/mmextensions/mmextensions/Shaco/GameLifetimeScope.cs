@@ -18,27 +18,18 @@ namespace KBVE.MMExtensions.Shaco
     [SerializeField]
     private GameObject gameManagerPrefab;
 
-
     protected override void Configure(IContainerBuilder builder)
     {
-      // Register GameManager as a MonoBehaviour
-      builder.RegisterComponent<GameManager>(resolver =>
+      builder.UseComponents(components =>
       {
-        var instance = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
-        DontDestroyOnLoad(instance.gameObject);
-        return instance;
+        var gameManager = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
+        DontDestroyOnLoad(gameManager.gameObject);
+        components.AddInstance(gameManager);
+
       });
 
-      // Register the EntryPoint for initializing GameManager
+      // Register the EntryPoint for GameManager initialization
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
-
-      // builder.Register<NetworkManager>(Lifetime.Singleton);
-      // builder.Register<PlayerManager>(Lifetime.Singleton);
-
-      // builder.Register<LevelManager>(Lifetime.Singleton).WithParameter(localPlayerPrefab);
-      // builder.Register<MultiplayerManager>(Lifetime.Singleton).WithParameter(remotePlayerPrefab);
-
-      // builder.Register<PlayerPool>(Lifetime.Singleton).WithParameter(remotePlayerPrefab);
     }
   }
 }
