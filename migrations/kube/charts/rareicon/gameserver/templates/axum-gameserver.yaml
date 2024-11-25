@@ -59,7 +59,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-ingress
+  name: rareicon-ingress
   namespace: {{ .Release.Namespace | default "rareicon" }}
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
@@ -73,14 +73,14 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-service
+                name: rareicon-service
                 port:
                   number: {{ (index .Values.gameserver.service.ports | where "name" "tcp" | first).port | default 3000 }}
           - path: /ws/
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-service
+                name: rareicon-service
                 port:
                   number: {{ (index .Values.gameserver.service.ports | where "name" "tcp" | first).port | default 3000 }}
 {{- end }}
