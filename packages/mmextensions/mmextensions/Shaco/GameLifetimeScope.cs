@@ -1,6 +1,7 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using KBVE.Kilonet;
 
 namespace KBVE.MMExtensions.Shaco
 {
