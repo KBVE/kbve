@@ -1,0 +1,107 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-gameserver
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.gameserver.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+      tier: gameserver
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+        tier: gameserver
+    spec:
+      containers:
+        - name: gameserver
+          image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
+          ports:
+            {{- range .Values.gameserver.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.gameserver.resources | nindent 12 }}
+
+---
+
+# Service (TCP and UDP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+    {{- range .Values.gameserver.service.ports }}
+    - name: {{ .name }}
+      protocol: {{ .protocol }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+    {{- end }}
+  type: ClusterIP
+
+---
+
+# WebSocket Ingress
+{{- if .Values.gameserver.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Chart.Name }}-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  rules:
+    - host: {{ .Values.gameserver.ingress.host }}
+      http:
+        paths:
+          {{- range .Values.gameserver.ingress.paths }}
+          - path: {{ .path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Chart.Name }}-service
+                port:
+                  number: {{ if eq .backend "html" }}{{ (index .Values.gameserver.service.ports 0).port }}{{ else if eq .backend "websocket" }}{{ (index .Values.gameserver.service.ports 1).port }}{{ end }}
+          {{- end }}
+{{- end }}
+
+---
+
+# UDP LoadBalancer Service
+{{- if .Values.gameserver.service.udp.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-udp-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+    {{- range $index, $port := .Values.gameserver.service.ports }}
+    {{- if eq $port.protocol "UDP" }}
+    - name: {{ $port.name }}
+      protocol: {{ $port.protocol }}
+      port: {{ $port.port }}
+      targetPort: {{ $port.targetPort }}
+    {{- end }}
+    {{- end }}
+  type: LoadBalancer
+{{- end }}
