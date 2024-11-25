@@ -54,7 +54,7 @@ spec:
 
 ---
 
-# WebSocket Ingress
+# WebSocket Ingress - TODO: Values
 {{- if .Values.gameserver.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -75,14 +75,14 @@ spec:
               service:
                 name: rareicon-service
                 port:
-                  number: {{ (index .Values.gameserver.service.ports | where "name" "tcp" | first).port | default 3000 }}
+                  number: 3000
           - path: /ws/
             pathType: Prefix
             backend:
               service:
                 name: rareicon-service
                 port:
-                  number: {{ (index .Values.gameserver.service.ports | where "name" "tcp" | first).port | default 3000 }}
+                  number: 3000
 {{- end }}
 
 ---
