@@ -1,5 +1,6 @@
 gameserver:
-    name: rareicon-gameserver
+    nameOverride: rareicon
+    name: rareicon-app
     replicaCount: 1
     image:
         repository: kbve/rareicongs
