@@ -1,6 +1,6 @@
 defaultNamespace: rareicon
 helm:
-    chart: ./shipyard
+    chart: ./gameserver
     releaseName: rareicon-release
     valuesFiles:
-        - shipyard/values.yaml
+        - gameserver/values.yaml
