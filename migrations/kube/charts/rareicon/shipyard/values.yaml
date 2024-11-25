@@ -1,10 +1,29 @@
-service:
-  name: gameserver
-  ports:
-    tcp: 3000
-    udp: 8081
-image:
-  repository: kbve/rareicongs
-  tag: latest
-replicaCount: 1
-resources: {}
+gameserver:
+    replicaCount: 1
+    image:
+        repository: kbve/rareicongs
+        tag: latest
+    service:
+        name: gameserver
+        ports:
+            - name: tcp
+              protocol: TCP
+              port: 3000
+              targetPort: 3000
+            - name: udp
+              protocol: UDP
+              port: 8081
+              targetPort: 8081
+        webscoket:
+            enabled: true
+        udp:
+            enabled: true
+    ingress:
+        enabled: true
+        host: discord.rareicon.com
+        paths:
+            - path: /
+              backend: html
+            - path: /ws/
+              backend: websocket
+    resources: {}
