@@ -15,25 +15,26 @@ namespace KBVE.MMExtensions.Shaco
     [SerializeField]
     private GameObject remotePlayerPrefab;
 
+    [SerializeField]
+    private GameObject gameManagerPrefab;
+
+
     protected override void Configure(IContainerBuilder builder)
     {
       // Register GameManager
+      builder.Register<GameManager>(Lifetime.Singleton, resolver =>
+      {
+          var instance = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
+          
+          // Set initial values
+          instance.TargetFrameRate = 60;
+          instance.MaximumLives = 3;
+          instance.CurrentLives = 3;
 
-      builder
-        .RegisterComponentInHierarchy<GameManager>()
-        .OnInitialized(
-          (resolver, gameManager) =>
-          {
-            gameManager.TargetFrameRate = 300;
-            gameManager.MaximumLives = 0;
-            gameManager.CurrentLives = 0;
-            gameManager.GameOverScene = "Title";
-            gameManager.PauseGameWhenInventoryOpens = false;
-          }
-        );
+          DontDestroyOnLoad(instance.gameObject);
 
-
-
+          return instance;
+      });
 
       // builder.Register<NetworkManager>(Lifetime.Singleton);
       // builder.Register<PlayerManager>(Lifetime.Singleton);
