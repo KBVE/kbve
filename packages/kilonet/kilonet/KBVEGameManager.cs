@@ -6,9 +6,9 @@ using Cysharp.Threading.Tasks;
 namespace KBVE.Kilonet
 {
 
-    public class GameManager : MonoBehaviour
+    public class KBVEGameManager : MonoBehaviour
     {
-        public static GameManager Instance { get; private set; }
+        public static KBVEGameManager Instance { get; private set; }
 
         private StateMachine stateMachine;
 

@@ -8,7 +8,7 @@
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
       "VContainer",
-      "KBVE.Kilonet"
+      "Kbve.Kilonet"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
