@@ -59,8 +59,8 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rareicon-ingress
-  namespace: rareicon
+  name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-ingress
+  namespace: {{ .Release.Namespace | default "rareicon" }}
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
@@ -69,15 +69,20 @@ spec:
     - host: {{ .Values.gameserver.ingress.host }}
       http:
         paths:
-          {{- range .Values.gameserver.ingress.paths }}
-          - path: {{ .path }}
+          - path: /
             pathType: Prefix
             backend:
               service:
-                name: rareicon-service
+                name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-service
                 port:
-                  number: {{ if eq .backend "html" }}{{ (index .Values.gameserver.service.ports 0).port }}{{ else if eq .backend "websocket" }}{{ (index .Values.gameserver.service.ports 1).port }}{{ end }}
-          {{- end }}
+                  number: {{ (index .Values.gameserver.service.ports | where "name" "tcp" | first).port | default 3000 }}
+          - path: /ws/
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-service
+                port:
+                  number: {{ (index .Values.gameserver.service.ports | where "name" "tcp" | first).port | default 3000 }}
 {{- end }}
 
 ---
