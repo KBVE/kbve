@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-gameserver
-  namespace: {{ .Release.Namespace }}
+  name: rareicon-gameserver
+  namespace: rareicon
   labels:
-    app: {{ .Values.gameserver.nameOverride | default "rareicon" }}
+    app: rareicon
 spec:
   replicas: {{ .Values.gameserver.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.gameserver.nameOverride | default "rareicon" }}
+      app: rareicon
       tier: gameserver
   template:
     metadata:
       labels:
-        app: {{ .Values.gameserver.nameOverride | default "rareicon" }}
+        app: rareicon
         tier: gameserver
     spec:
       containers:
@@ -36,13 +36,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-service
-  namespace: {{ .Release.Namespace }}
+  name: rareicon-service
+  namespace: rareicon
   labels:
-    app: {{ .Values.gameserver.nameOverride | default "rareicon" }}
+    app: rareicon
 spec:
   selector:
-    app: {{ .Values.gameserver.nameOverride | default "rareicon" }}
+    app: rareicon
   ports:
     {{- range .Values.gameserver.service.ports }}
     - name: {{ .name }}
@@ -59,8 +59,8 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-ingress
-  namespace: {{ .Release.Namespace }}
+  name: rareicon-ingress
+  namespace: rareicon
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
@@ -74,7 +74,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-service
+                name: rareicon-service
                 port:
                   number: {{ if eq .backend "html" }}{{ (index .Values.gameserver.service.ports 0).port }}{{ else if eq .backend "websocket" }}{{ (index .Values.gameserver.service.ports 1).port }}{{ end }}
           {{- end }}
@@ -87,13 +87,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.gameserver.nameOverride | default "rareicon" }}-udp-service
-  namespace: {{ .Release.Namespace }}
+  name: rareicon-udp-service
+  namespace: rareicon
   labels:
-    app: {{ .Values.gameserver.nameOverride | default "rareicon" }}
+    app: rareicon
 spec:
   selector:
-    app: {{ .Values.gameserver.nameOverride | default "rareicon" }}
+    app: rareicon
   ports:
     {{- range $index, $port := .Values.gameserver.service.ports }}
     {{- if eq $port.protocol "UDP" }}
