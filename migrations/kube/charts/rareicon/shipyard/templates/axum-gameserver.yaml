@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Chart.Name }}-gameserver
+  name: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}-gameserver
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Chart.Name }}
+    app: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}
 spec:
   replicas: {{ .Values.gameserver.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Chart.Name }}
+      app: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}
       tier: gameserver
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name }}
+        app: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}
         tier: gameserver
     spec:
       containers:
@@ -36,13 +36,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Chart.Name }}-service
+  name: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}-service
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Chart.Name }}
+    app: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}
 spec:
   selector:
-    app: {{ .Chart.Name }}
+    app: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}
   ports:
     {{- range .Values.gameserver.service.ports }}
     - name: {{ .name }}
@@ -59,7 +59,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Chart.Name }}-ingress
+  name: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}-ingress
   namespace: {{ .Release.Namespace }}
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
@@ -74,7 +74,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Chart.Name }}-service
+                name: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}-service
                 port:
                   number: {{ if eq .backend "html" }}{{ (index .Values.gameserver.service.ports 0).port }}{{ else if eq .backend "websocket" }}{{ (index .Values.gameserver.service.ports 1).port }}{{ end }}
           {{- end }}
@@ -87,13 +87,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Chart.Name }}-udp-service
+  name: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}-udp-service
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Chart.Name }}
+    app: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}
 spec:
   selector:
-    app: {{ .Chart.Name }}
+    app: {{ .Release.Name | default .Chart.Name | default "rareicon-app" }}
   ports:
     {{- range $index, $port := .Values.gameserver.service.ports }}
     {{- if eq $port.protocol "UDP" }}

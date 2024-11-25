@@ -1,8 +1,9 @@
 gameserver:
+    name: rareicon-gameserver
     replicaCount: 1
     image:
         repository: kbve/rareicongs
-        tag: latest
+        tag: 1.03.0
     service:
         name: gameserver
         ports:
