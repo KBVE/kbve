@@ -7,7 +7,8 @@
       "Unity.Collections",
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
-      "VContainer"
+      "VContainer",
+      "KBVE.Kilonet"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
