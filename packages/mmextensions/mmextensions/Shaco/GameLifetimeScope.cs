@@ -28,6 +28,7 @@ namespace KBVE.MMExtensions.Shaco
       builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
 
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
+      builder.RegisterEntryPoint<TimeManagerEntryPoint>();
     }
   }
 }
