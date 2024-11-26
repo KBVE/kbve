@@ -1,0 +1,112 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rareicon-gameserver
+  namespace: rareicon
+  labels:
+    app: rareicon
+spec:
+  replicas: {{ .Values.gameserver.replicaCount }}
+  selector:
+    matchLabels:
+      app: rareicon
+      tier: gameserver
+  template:
+    metadata:
+      labels:
+        app: rareicon
+        tier: gameserver
+    spec:
+      containers:
+        - name: gameserver
+          image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
+          ports:
+            {{- range .Values.gameserver.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.gameserver.resources | nindent 12 }}
+
+---
+
+# Service (TCP and UDP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: rareicon-service
+  namespace: rareicon
+  labels:
+    app: rareicon
+spec:
+  selector:
+    app: rareicon
+  ports:
+    {{- range .Values.gameserver.service.ports }}
+    - name: {{ .name }}
+      protocol: {{ .protocol }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+    {{- end }}
+  type: ClusterIP
+
+---
+
+# WebSocket Ingress - TODO: Values
+{{- if .Values.gameserver.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rareicon-ingress
+  namespace: rareicon
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  rules:
+    - host: {{ .Values.gameserver.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rareicon-service
+                port:
+                  number: 3000
+          - path: /ws/
+            pathType: Prefix
+            backend:
+              service:
+                name: rareicon-service
+                port:
+                  number: 3000
+{{- end }}
+
+---
+
+# UDP LoadBalancer Service
+{{- if .Values.gameserver.service.udp.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: rareicon-udp-service
+  namespace: rareicon
+  labels:
+    app: rareicon
+spec:
+  selector:
+    app: rareicon
+  ports:
+    {{- range $index, $port := .Values.gameserver.service.ports }}
+    {{- if eq $port.protocol "UDP" }}
+    - name: {{ $port.name }}
+      protocol: {{ $port.protocol }}
+      port: {{ $port.port }}
+      targetPort: {{ $port.targetPort }}
+    {{- end }}
+    {{- end }}
+  type: LoadBalancer
+{{- end }}
