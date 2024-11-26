@@ -23,6 +23,9 @@ namespace KBVE.MMExtensions.Shaco
     private MMTimeManager timeManagerPrefab;
 
     [SerializeField]
+    private MMSoundManager soundManagerPrefab;
+
+    [SerializeField]
     private GameObject cameraPrefab;
 
 
@@ -37,6 +40,7 @@ namespace KBVE.MMExtensions.Shaco
 
       builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
       builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
+      builder.RegisterComponentInNewPrefab<MMSoundManager>(soundManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
       // builder.RegisterComponentInNewPrefab<GameObject>(cameraPrefab, Lifetime.Singleton).DontDestroyOnLoad();
 
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
