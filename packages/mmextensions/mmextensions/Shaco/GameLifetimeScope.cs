@@ -3,6 +3,7 @@ using VContainer;
 using VContainer.Unity;
 using MoreMountains.Tools;
 using MoreMountains.TopDownEngine;
+using MoreMountains.Feedbacks;
 using KBVE.Kilonet;
 
 namespace KBVE.MMExtensions.Shaco
@@ -17,9 +18,6 @@ namespace KBVE.MMExtensions.Shaco
 
     [SerializeField]
     private GameManager gameManagerPrefab;
-
-    [SerializeField]
-    private MMTimeManager timeManagerPrefab;
 
     [SerializeField]
     private MMTimeManager timeManagerPrefab;
