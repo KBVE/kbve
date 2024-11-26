@@ -28,12 +28,22 @@ namespace KBVE.MMExtensions.Shaco
 
     protected override void Configure(IContainerBuilder builder)
     {
-     
+
+      // Instantiate and Register Camera Prefab
+      var cameraInstance = Object.Instantiate(cameraPrefab);
+      builder.RegisterComponentInHierarchy<Camera>(cameraInstance.GetComponent<Camera>());
+      cameraInstance.transform.parent = null; // TODO: swap out the parent.
+      DontDestroyOnLoad(cameraInstance);
+
+
       builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
       builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
+      // builder.RegisterComponentInNewPrefab<GameObject>(cameraPrefab, Lifetime.Singleton).DontDestroyOnLoad();
 
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
       builder.RegisterEntryPoint<TimeManagerEntryPoint>();
+      // builder.RegisterEntryPoint<CameraManagerEntryPoint>();
+
     }
   }
 }
