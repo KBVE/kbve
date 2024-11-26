@@ -1,7 +1,7 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-
+// TODO: Cinemachine3.1 Integration.
 namespace KBVE.MMExtensions.Shaco
 {
     public class CameraManagerEntryPoint : IStartable
@@ -15,7 +15,7 @@ namespace KBVE.MMExtensions.Shaco
 
         public void Start()
         {
-            Debug.Log("Camera System initialized.");
+            Debug.Log("TODO - Camera Manager initialized.");
         }
     }
 }

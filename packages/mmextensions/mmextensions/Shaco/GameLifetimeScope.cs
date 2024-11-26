@@ -31,10 +31,9 @@ namespace KBVE.MMExtensions.Shaco
 
       // Instantiate and Register Camera Prefab
       var cameraInstance = Object.Instantiate(cameraPrefab);
-      builder.RegisterComponentInHierarchy<Camera>(cameraInstance.GetComponent<Camera>());
-      cameraInstance.transform.parent = null; // TODO: swap out the parent.
+      cameraInstance.transform.parent = null;
+      builder.RegisterInstance(cameraInstance).AsSelf();
       DontDestroyOnLoad(cameraInstance);
-
 
       builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
       builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
