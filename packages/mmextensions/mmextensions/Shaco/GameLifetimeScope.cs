@@ -21,6 +21,11 @@ namespace KBVE.MMExtensions.Shaco
 
     [SerializeField]
     private MMTimeManager timeManagerPrefab;
+
+    [SerializeField]
+    private GameObject cameraPrefab;
+
+
     protected override void Configure(IContainerBuilder builder)
     {
      
