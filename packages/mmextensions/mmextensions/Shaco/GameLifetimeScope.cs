@@ -3,6 +3,7 @@ using VContainer;
 using VContainer.Unity;
 using MoreMountains.Tools;
 using MoreMountains.TopDownEngine;
+using MoreMountains.Feedbacks;
 using KBVE.Kilonet;
 
 namespace KBVE.MMExtensions.Shaco
@@ -20,9 +21,6 @@ namespace KBVE.MMExtensions.Shaco
 
     [SerializeField]
     private MMTimeManager timeManagerPrefab;
-
-    [SerializeField]
-    private MMTimeManager timeManagerPrefab;
     protected override void Configure(IContainerBuilder builder)
     {
      
@@ -30,6 +28,7 @@ namespace KBVE.MMExtensions.Shaco
       builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
 
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
+      builder.RegisterEntryPoint<TimeManagerEntryPoint>();
     }
   }
 }
