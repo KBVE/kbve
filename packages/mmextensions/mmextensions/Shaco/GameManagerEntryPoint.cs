@@ -18,8 +18,8 @@ namespace KBVE.MMExtensions.Shaco
         {
             // Initialize GameManager values
             _gameManager.TargetFrameRate = 60;
-            _gameManager.MaximumLives = 5;
-            _gameManager.CurrentLives = 5;
+            _gameManager.MaximumLives = 1;
+            _gameManager.CurrentLives = 1;
             _gameManager.GameOverScene = "GameOver";
 
             Debug.Log("GameManager initialized via EntryPoint!");
