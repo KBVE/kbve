@@ -24,6 +24,7 @@ Preparing the Discord build - ETA 12 hours.
 Adding new tilemap generator script and fixed some asmdefs.
 Triggering another build once more, oh boi, another docker build.
 We got the helm chart working and now are preparing for a basic multiplayer game.
+The WebGL build is a bit slower and needs some adjustments, starting the test case now.
 
 - [KBVE](https://kbve.com/)
 - [RareIcon](https://rareicon.com/)
