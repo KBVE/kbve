@@ -16,22 +16,19 @@ namespace KBVE.MMExtensions.Shaco
     private GameObject remotePlayerPrefab;
 
     [SerializeField]
-    private GameObject gameManagerPrefab;
+    private GameManager gameManagerPrefab;
 
+    [SerializeField]
+    private MMTimeManager timeManagerPrefab;
+
+    [SerializeField]
+    private MMTimeManager timeManagerPrefab;
     protected override void Configure(IContainerBuilder builder)
     {
-      builder.UseComponents(components =>
-      {
-        var gameManager = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
-        DontDestroyOnLoad(gameManager.gameObject);
-        components.AddInstance(gameManager);
+     
+      builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
+      builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
 
-      });
-
-      // builder.RegisterComponentInNewPrefab(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
-
-
-      // Register the EntryPoint for GameManager initialization
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
     }
   }
