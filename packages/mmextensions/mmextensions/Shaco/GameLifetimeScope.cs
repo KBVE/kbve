@@ -36,11 +36,17 @@ namespace KBVE.MMExtensions.Shaco
       var cameraInstance = Object.Instantiate(cameraPrefab);
       cameraInstance.transform.parent = null;
       builder.RegisterInstance(cameraInstance).AsSelf();
-      DontDestroyOnLoad(cameraInstance);
+     // DontDestroyOnLoad(cameraInstance);
 
-      builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
-      builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
-      builder.RegisterComponentInNewPrefab<MMSoundManager>(soundManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
+
+
+      builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped);
+      builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton);
+      builder.RegisterComponentInNewPrefab<MMSoundManager>(soundManagerPrefab, Lifetime.Singleton);
+
+      // builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
+      // builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
+      // builder.RegisterComponentInNewPrefab<MMSoundManager>(soundManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
       // builder.RegisterComponentInNewPrefab<GameObject>(cameraPrefab, Lifetime.Singleton).DontDestroyOnLoad();
 
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
