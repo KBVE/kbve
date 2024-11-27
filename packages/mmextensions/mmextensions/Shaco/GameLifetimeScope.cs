@@ -45,6 +45,7 @@ namespace KBVE.MMExtensions.Shaco
 
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
       builder.RegisterEntryPoint<TimeManagerEntryPoint>();
+      builder.RegisterEntryPoint<SoundManagerEntrypoint>();
       // builder.RegisterEntryPoint<CameraManagerEntryPoint>();
 
     }
