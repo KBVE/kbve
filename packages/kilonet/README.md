@@ -25,6 +25,7 @@ Adding new tilemap generator script and fixed some asmdefs.
 Triggering another build once more, oh boi, another docker build.
 We got the helm chart working and now are preparing for a basic multiplayer game.
 The WebGL build is a bit slower and needs some adjustments, starting the test case now.
+Vcontainers added and a new model is coming soon.
 
 - [KBVE](https://kbve.com/)
 - [RareIcon](https://rareicon.com/)
