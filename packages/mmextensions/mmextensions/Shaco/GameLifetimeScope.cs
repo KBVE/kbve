@@ -28,6 +28,9 @@ namespace KBVE.MMExtensions.Shaco
 
       });
 
+      // builder.RegisterComponentInNewPrefab(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
+
+
       // Register the EntryPoint for GameManager initialization
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
     }
