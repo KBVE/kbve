@@ -19,10 +19,10 @@ namespace KBVE.MMExtensions.Shaco
         public void Start()
         {
             // Example Initialization Logic
-            _soundManager.NormalTimeScale = 1f;
-            _soundManager.UpdateTimescale = true;
-            _soundManager.UpdateFixedDeltaTime = true;
-            _soundManager.UpdateMaximumDeltaTime = true;
+            // _soundManager.NormalTimeScale = 1f;
+            // _soundManager.UpdateTimescale = true;
+            // _soundManager.UpdateFixedDeltaTime = true;
+            // _soundManager.UpdateMaximumDeltaTime = true;
             Debug.Log("MMSoundManager initialized in SoundManagerEntryPoint");
         }
     }
