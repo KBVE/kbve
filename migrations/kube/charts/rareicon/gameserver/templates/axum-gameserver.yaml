@@ -82,13 +82,6 @@ spec:
                 name: rareicon-service
                 port:
                   number: 3000
-          - path: /ws/
-            pathType: Prefix
-            backend:
-              service:
-                name: rareicon-service
-                port:
-                  number: 3000
 {{- end }}
 
 ---
