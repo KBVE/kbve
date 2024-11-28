@@ -3,6 +3,7 @@ using VContainer;
 using VContainer.Unity;
 using MoreMountains.Tools;
 using MoreMountains.TopDownEngine;
+using MoreMountains.Feedbacks;
 using KBVE.Kilonet;
 
 namespace KBVE.MMExtensions.Shaco
@@ -16,23 +17,43 @@ namespace KBVE.MMExtensions.Shaco
     private GameObject remotePlayerPrefab;
 
     [SerializeField]
-    private GameObject gameManagerPrefab;
+    private GameManager gameManagerPrefab;
+
+    [SerializeField]
+    private MMTimeManager timeManagerPrefab;
+
+    [SerializeField]
+    private MMSoundManager soundManagerPrefab;
+
+    [SerializeField]
+    private GameObject cameraPrefab;
+
 
     protected override void Configure(IContainerBuilder builder)
     {
-      builder.UseComponents(components =>
-      {
-        var gameManager = Object.Instantiate(gameManagerPrefab).GetComponent<GameManager>();
-        DontDestroyOnLoad(gameManager.gameObject);
-        components.AddInstance(gameManager);
 
-      });
-
-      // builder.RegisterComponentInNewPrefab(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
+      // Instantiate and Register Camera Prefab
+      var cameraInstance = Object.Instantiate(cameraPrefab);
+      cameraInstance.transform.parent = null;
+      builder.RegisterInstance(cameraInstance).AsSelf();
+     // DontDestroyOnLoad(cameraInstance);
 
 
-      // Register the EntryPoint for GameManager initialization
+
+      builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped);
+      builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton);
+      builder.RegisterComponentInNewPrefab<MMSoundManager>(soundManagerPrefab, Lifetime.Singleton);
+
+      // builder.RegisterComponentInNewPrefab<GameManager>(gameManagerPrefab, Lifetime.Scoped).DontDestroyOnLoad();
+      // builder.RegisterComponentInNewPrefab<MMTimeManager>(timeManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
+      // builder.RegisterComponentInNewPrefab<MMSoundManager>(soundManagerPrefab, Lifetime.Singleton).DontDestroyOnLoad();
+      // builder.RegisterComponentInNewPrefab<GameObject>(cameraPrefab, Lifetime.Singleton).DontDestroyOnLoad();
+
       builder.RegisterEntryPoint<GameManagerEntryPoint>();
+      builder.RegisterEntryPoint<TimeManagerEntryPoint>();
+      builder.RegisterEntryPoint<SoundManagerEntryPoint>();
+      // builder.RegisterEntryPoint<CameraManagerEntryPoint>();
+
     }
   }
 }
