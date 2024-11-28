@@ -179,7 +179,7 @@ jobs:
     kilonet-rareicon-build:
         needs: ['alter', 'globals']
         name: Kilonet RareIcon
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-20.04
         if: needs.alter.outputs.kilonet == 'true'
         strategy:
             fail-fast: false
