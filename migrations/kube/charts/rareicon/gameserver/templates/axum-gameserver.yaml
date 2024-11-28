@@ -70,20 +70,11 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
     nginx.ingress.kubernetes.io/keepalive: "on"
     nginx.ingress.kubernetes.io/connection-proxy-header: "keep-alive"
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
     - host: {{ .Values.gameserver.ingress.host }}
       http:
         paths:
-          - path: /ws(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: rareicon-service
-                port:
-                  number: 3000
           - path: /
             pathType: Prefix
             backend:
