@@ -75,6 +75,13 @@ spec:
     - host: {{ .Values.gameserver.ingress.host }}
       http:
         paths:
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: rareicon-service
+                port:
+                  number: 3000
           - path: /
             pathType: Prefix
             backend:
