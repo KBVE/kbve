@@ -100,13 +100,9 @@ spec:
   selector:
     app: rareicon
   ports:
-    {{- range $index, $port := .Values.gameserver.service.ports }}
-    {{- if eq $port.protocol "UDP" }}
-    - name: {{ $port.name }}
-      protocol: {{ $port.protocol }}
-      port: {{ $port.port }}
-      targetPort: {{ $port.targetPort }}
-    {{- end }}
-    {{- end }}
-  type: LoadBalancer
+    - name: udp-port
+      protocol: UDP
+      port: 8081
+      targetPort: 8081
+  type: NodePort
 {{- end }}
