@@ -70,7 +70,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
     nginx.ingress.kubernetes.io/keepalive: "on"
     nginx.ingress.kubernetes.io/connection-proxy-header: "keep-alive"
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
