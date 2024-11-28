@@ -7,8 +7,10 @@
       "Unity.Collections",
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
+      "MoreMountains.Feedbacks",
       "VContainer",
-      "Kbve.Kilonet"
+      "Kbve.Kilonet",
+      "Unity.Addressables"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
