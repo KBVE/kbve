@@ -26,7 +26,8 @@ async fn main() {
 
     let app = Router::new()
      .fallback_service(ServeDir::new("build").append_index_html_on_directories(true))
-     .route("/ws", any(websocket_handler));
+     .route("/ws", any(websocket_handler))
+     .route("/ws/", any(websocket_handler));
     
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
     println!("Server running on http://0.0.0.0:3000");
