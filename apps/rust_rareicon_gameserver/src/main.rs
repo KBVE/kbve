@@ -48,10 +48,7 @@ async fn main() {
     .with(tracing_subscriber::fmt::layer())
     .init();
 
-  let cors = CorsLayer::new()
-    .allow_origin(Any)
-    .allow_methods(Any)
-    .allow_headers(Any);
+  let cors = CorsLayer::new().allow_origin(Any).allow_methods(Any).allow_headers(Any);
 
   let app = Router::new()
     .fallback_service(ServeDir::new("build").append_index_html_on_directories(true))
@@ -64,12 +61,8 @@ async fn main() {
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::debug!("listening on {}", listener.local_addr().unwrap());
-
   tokio::spawn(run_udp_server());
-
-  axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
-  .await
-  .unwrap();
+  axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
 }
 
 // WebSocket handler
