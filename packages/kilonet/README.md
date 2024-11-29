@@ -27,6 +27,7 @@ We got the helm chart working and now are preparing for a basic multiplayer game
 The WebGL build is a bit slower and needs some adjustments, starting the test case now.
 Vcontainers added and a new model is coming soon, getting the build ready to be triggered!
 Last build failed, maybe we are back at our gh action failing again. There are two possible options, first is to downgrade the runner and the other is to disable the SuperTiled package.
+11-28-2024 - Removing the SuperUnityTiled2PackageMeme and seeing if it builds without it?
 
 - [KBVE](https://kbve.com/)
 - [RareIcon](https://rareicon.com/)
