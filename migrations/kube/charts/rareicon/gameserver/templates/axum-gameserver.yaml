@@ -66,6 +66,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     #nginx.ingress.kubernetes.io/http2-push-preload: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
     nginx.ingress.kubernetes.io/keepalive: "on"
@@ -75,6 +76,13 @@ spec:
     - host: {{ .Values.gameserver.ingress.host }}
       http:
         paths:
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: rareicon-service
+                port:
+                  number: 3000
           - path: /
             pathType: Prefix
             backend:
