@@ -1,7 +1,7 @@
 use axum::{
   extract::ws::{ Message, WebSocket, WebSocketUpgrade },
   response::IntoResponse,
-  routing::get,
+  routing::any,
   http::HeaderValue,
   Router,
 };
@@ -24,7 +24,6 @@ use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
 
 use axum::extract::connect_info::ConnectInfo;
 use axum::extract::ws::CloseFrame;
-
 
 #[cfg(feature = "jemalloc")]
 mod allocator {
@@ -49,20 +48,15 @@ async fn main() {
     .with(tracing_subscriber::fmt::layer())
     .init();
 
-    // .allow_origin([
-    //   HeaderValue::from_static("https://discord.rareicon.com"),
-    //   HeaderValue::from_static("http://localhost:3000"),
-    // ])
-
   let cors = CorsLayer::new()
     .allow_origin(Any)
-    .allow_methods([axum::http::Method::GET, axum::http::Method::POST])
+    .allow_methods(Any)
     .allow_headers(Any);
 
   let app = Router::new()
-    .route("/ws", get(websocket_handler))
-    .route("/ws/", get(websocket_handler))
     .fallback_service(ServeDir::new("build").append_index_html_on_directories(true))
+    .route("/ws", any(websocket_handler))
+    .route("/ws/", any(websocket_handler))
     .layer(
       TraceLayer::new_for_http().make_span_with(DefaultMakeSpan::default().include_headers(true))
     )
@@ -73,20 +67,29 @@ async fn main() {
 
   tokio::spawn(run_udp_server());
 
-  axum::serve(listener, app.into_make_service()).await.unwrap();
+  axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
+  .await
+  .unwrap();
 }
 
 // WebSocket handler
 async fn websocket_handler(
   ws: WebSocketUpgrade,
+  user_agent: Option<TypedHeader<headers::UserAgent>>,
   ConnectInfo(addr): ConnectInfo<SocketAddr>
 ) -> impl IntoResponse {
-  println!("Connection from {addr}");
+  let user_agent = if let Some(TypedHeader(user_agent)) = user_agent {
+    user_agent.to_string()
+  } else {
+    String::from("Unknown browser")
+  };
+  println!("`{user_agent}` at {addr} connected.");
+
   ws.on_upgrade(move |socket| handle_socket(socket, addr))
 }
 
 // Handle WebSocket connections
-async fn handle_socket(mut socket: axum::extract::ws::WebSocket, who: SocketAddr) {
+async fn handle_socket(mut socket: WebSocket, who: SocketAddr) {
   println!("WebSocket connection established with {who}");
 
   while let Some(Ok(msg)) = socket.next().await {
@@ -106,7 +109,7 @@ async fn handle_socket(mut socket: axum::extract::ws::WebSocket, who: SocketAddr
 
 // UDP server
 async fn run_udp_server() {
-  let socket = tokio::net::UdpSocket::bind("0.0.0.0:8081").await.unwrap();
+  let socket = UdpSocket::bind("0.0.0.0:8081").await.unwrap();
   println!("UDP server running on 0.0.0.0:8081");
 
   let mut buf = [0; 1024];
