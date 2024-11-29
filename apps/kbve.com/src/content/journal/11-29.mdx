@@ -23,4 +23,12 @@ import { Adsense, Tasks } from '@kbve/astropad';
     Furthermore, we could also add the discord bot into the workflow too but that might make our build just a bit larger?
     There are some interesting points that we can look into but for the most part, I think we will just rawdog and run into it all blind.
 
+-   05:17PM
+
+    **Auths**
+
+    For the auth system, we would need to include a couple sealed secrets for the client id and client password, specifically the discord information.
+    I am thinking that we could also build it around just a global secret that then pulls those secrets from the vault?
+    Both ways could work but for now, since we do not have a vault system fully functional, we will just stick with a basic sealed secret.
+
 <Adsense />
