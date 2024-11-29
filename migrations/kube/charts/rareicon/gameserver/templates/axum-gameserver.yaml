@@ -20,19 +20,8 @@ spec:
     spec:
       containers:
         - name: gameserver
-          image: "{{ .Values.gameserver.image.repository }}@{{ .Values.gameserver.image.digest }}"
-          # image: |
-          #   {{- if .Values.gameserver.image.repository }}
-          #     {{ .Values.gameserver.image.repository }}
-          #     {{- if .Values.gameserver.image.digest }}
-          #       @{{ .Values.gameserver.image.digest }}
-          #     {{- else }}
-          #       :{{ .Values.gameserver.image.tag | default "latest" }}
-          #     {{- end }}
-          #   {{- else }}
-          #     kbve/rareicongs:1.03
-          #   {{- end }}
-          # image: "{{- if .Values.gameserver.image.repository -}}{{ .Values.gameserver.image.repository }}{{- if .Values.gameserver.image.digest }}@{{ .Values.gameserver.image.digest }}{{- else }}:{{ .Values.gameserver.image.tag | default 'latest' }}{{- end }}{{- else }}kbve/rareicongs:1.03{{- end }}"
+          image: "kbve/rareicongs@sha256:fdaca75d1612b517f85a78b5954b26302f17c92e11e4c7e4d100cef57b739c68"
+          #image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
           ports:
             {{- range .Values.gameserver.service.ports }}
             - name: {{ .name }}
