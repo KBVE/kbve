@@ -26,12 +26,12 @@ spec:
             - name: DISCORD_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: DISCORD_CLIENT_SECRET
+                  name: discord-client-secret
                   key: DISCORD_CLIENT_ID
             - name: DISCORD_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: DISCORD_CLIENT_SECRET
+                  name: discord-client-secret
                   key: DISCORD_CLIENT_SECRET
           ports:
             {{- range .Values.gameserver.service.ports }}
