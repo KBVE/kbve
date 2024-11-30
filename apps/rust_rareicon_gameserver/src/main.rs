@@ -25,6 +25,9 @@ use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
 use axum::extract::connect_info::ConnectInfo;
 use axum::extract::ws::CloseFrame;
 
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+
 #[cfg(feature = "jemalloc")]
 mod allocator {
   #[cfg(not(target_env = "msvc"))]
@@ -32,6 +35,48 @@ mod allocator {
   #[cfg(not(target_env = "msvc"))]
   #[global_allocator]
   static GLOBAL: Jemalloc = Jemalloc;
+}
+
+static ENV_VARS: Lazy<HashMap<&'static str, String>> = Lazy::new(|| {
+  let mut map = HashMap::new();
+  map.insert(
+      "DISCORD_CLIENT_ID",
+      std::env::var("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID not set"),
+  );
+  map.insert(
+      "DISCORD_CLIENT_SECRET",
+      std::env::var("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET not set"),
+  );
+  map
+});
+
+pub fn get_env_var(key: &str) -> Option<&String> {
+  ENV_VARS.get(key)
+}
+
+fn validate_env_vars() {
+  for &key in &["CLIENT_ID", "CLIENT_SECRET"] {
+      if ENV_VARS.get(key).is_none() {
+          panic!("Environment variable {} is missing", key);
+      }
+  }
+}
+
+fn log_env_vars() {
+  // Retrieve environment variables securely
+  let client_id = ENV_VARS.get("CLIENT_ID").expect("CLIENT_ID not set");
+  let client_secret = ENV_VARS.get("CLIENT_SECRET").expect("CLIENT_SECRET not set");
+
+  // Mask the client secret for secure logging
+  let masked_secret = if client_secret.len() > 5 {
+      format!("{}{}", &client_secret[..5], "****") // First 5 characters + mask
+  } else {
+      "****".to_string() // Fully masked if too short
+  };
+
+  // Log the environment variables securely
+  tracing::info!("Client ID: {}", client_id);
+  tracing::info!("Client Secret: {}", masked_secret);
 }
 
 #[tokio::main]
@@ -61,6 +106,10 @@ async fn main() {
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::debug!("listening on {}", listener.local_addr().unwrap());
+  // Validate environment variables
+  validate_env_vars();
+  // Log them securely
+  log_env_vars();
   tokio::spawn(run_udp_server());
   axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
 }
