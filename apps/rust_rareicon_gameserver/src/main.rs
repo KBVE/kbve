@@ -55,7 +55,7 @@ pub fn get_env_var(key: &str) -> Option<&String> {
 }
 
 fn validate_env_vars() {
-  for &key in &["CLIENT_ID", "CLIENT_SECRET"] {
+  for &key in &["DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET"] {
       if ENV_VARS.get(key).is_none() {
           panic!("Environment variable {} is missing", key);
       }
@@ -64,8 +64,8 @@ fn validate_env_vars() {
 
 fn log_env_vars() {
   // Retrieve environment variables securely
-  let client_id = ENV_VARS.get("CLIENT_ID").expect("CLIENT_ID not set");
-  let client_secret = ENV_VARS.get("CLIENT_SECRET").expect("CLIENT_SECRET not set");
+  let client_id = ENV_VARS.get("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID not set");
+  let client_secret = ENV_VARS.get("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET not set");
 
   // Mask the client secret for secure logging
   let masked_secret = if client_secret.len() > 5 {
