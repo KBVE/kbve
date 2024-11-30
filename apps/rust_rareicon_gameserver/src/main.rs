@@ -25,6 +25,9 @@ use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
 use axum::extract::connect_info::ConnectInfo;
 use axum::extract::ws::CloseFrame;
 
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+
 #[cfg(feature = "jemalloc")]
 mod allocator {
   #[cfg(not(target_env = "msvc"))]
@@ -33,6 +36,19 @@ mod allocator {
   #[global_allocator]
   static GLOBAL: Jemalloc = Jemalloc;
 }
+
+static ENV_VARS: Lazy<HashMap<&'static str, String>> = Lazy::new(|| {
+  let mut map = HashMap::new();
+  map.insert(
+      "DISCORD_CLIENT_ID",
+      std::env::var("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID not set"),
+  );
+  map.insert(
+      "DISCORD_CLIENT_SECRET",
+      std::env::var("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET not set"),
+  );
+  map
+});
 
 #[tokio::main]
 async fn main() {
