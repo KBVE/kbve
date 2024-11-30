@@ -20,7 +20,19 @@ spec:
     spec:
       containers:
         - name: gameserver
-          image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
+          image: "kbve/rareicongs@sha256:fdaca75d1612b517f85a78b5954b26302f17c92e11e4c7e4d100cef57b739c68"
+          #image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
+          env:
+            - name: DISCORD_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: DISCORD_CLIENT_SECRET
+                  key: DISCORD_CLIENT_ID
+            - name: DISCORD_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: DISCORD_CLIENT_SECRET
+                  key: DISCORD_CLIENT_SECRET
           ports:
             {{- range .Values.gameserver.service.ports }}
             - name: {{ .name }}
@@ -65,12 +77,11 @@ metadata:
     nginx.ingress.kubernetes.io/enable-websocket: "true"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    #nginx.ingress.kubernetes.io/http2-push-preload: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    #nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
-    nginx.ingress.kubernetes.io/keepalive: "on"
-    nginx.ingress.kubernetes.io/connection-proxy-header: "keep-alive"
+    #nginx.ingress.kubernetes.io/keepalive: "on"
+    #nginx.ingress.kubernetes.io/http2-push-preload: "true"
 spec:
   rules:
     - host: {{ .Values.gameserver.ingress.host }}
