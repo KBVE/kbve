@@ -29,7 +29,7 @@ Vcontainers added and a new model is coming soon, getting the build ready to be 
 Last build failed, maybe we are back at our gh action failing again. There are two possible options, first is to downgrade the runner and the other is to disable the SuperTiled package.
 11-28-2024 - Removing the SuperUnityTiled2PackageMeme and seeing if it builds without it?
 11-29-2024 - Build works but websockets are still giving us a bit of pain, let me see what we can do about it.
-11-30-2024 - Updating the env and preparing a test case deployment.
+11-30-2024 - Updating the env and preparing a test case deployment. Forgot the variable name.
 
 - [KBVE](https://kbve.com/)
 - [RareIcon](https://rareicon.com/)
