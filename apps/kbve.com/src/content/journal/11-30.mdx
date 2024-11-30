@@ -55,3 +55,13 @@ import { Adsense, Tasks } from '@kbve/astropad';
     ```shell
     ./kbve.sh -nx kilobase:seal  --namespace="rareicon" --keyName="DISCORD_CLIENT_SECRET" --secrets="DISCORD_CLIENT_ID=numbers&DISCORD_CLIENT_SECRET=pepethefroog"
     ```
+
+-   03:55PM
+
+    **Helm**
+
+    Time to update the docker image for the helm chart and see if we can get the discord oauth / token / login out of the way.
+    Inside of the `axum-gameserver.yaml` , we will manually update the rareicon game server image with this hash:
+    `image: "kbve/rareicongs@sha256:32fecd31c9d84b002455fc6e10fbdf26d8d693521774b940e3d658d2eb281b5b"`
+
+    I would do this via tag systems but the number of deployments would drive me crazy, or well further insane, or well to the edge of escapism.
