@@ -65,6 +65,32 @@ namespace KBVE.MMExtensions.Ai
             base.Awake();
         }
 
+        protected virtual void SetupAllyStates()
+        {
+            States = new List<AIState>();
+            AIState idleState = new AIState();
+            idleState.StateName = "Idle";
+            
+            idleState.Actions = new AIActionsList();
+            AIAction doNothingAction = gameObject.MMGetOrAddComponent<AIActionDoNothing>();
+            idleState.Actions.Add(doNothingAction);
+
+            idleState.Transitions = new AITransitionsList();
+            AITransition detectTargetTransition = new AITransition();
+            AIDecision detectTargetDecision = gameObject.MMGetOrAddComponent<AIDecisionDetectTargetRadius2D>();
+            detectTargetTransition.Decision = detectTargetDecision;
+            idleState.Transitions.Add(detectTargetTransition);
+
+            // AIState followState = new AIState();
+            // followState.StateName = "Follow";
+
+            // AIState moveToEnemyState = new AIState();
+            // moveToEnemyState.StateName = "Move To Enemy";
+
+            // AIState attackState = new AIState();
+            // attackState.StateName = "Attack";
+
+        }
         // var AllyPlayer = null; So an empty hashmap (dictionary) of all "ally players"
         // funnction -^ set the AllyPlayer via its ID.
     }
