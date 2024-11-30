@@ -20,7 +20,19 @@ spec:
     spec:
       containers:
         - name: gameserver
-          image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
+          image: "kbve/rareicongs@sha256:4d16ec3896e6b4cfc15ae13b36cf74aeb22a62c02bac6ebb70d6ae38e2f3881d"
+          #image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
+          env:
+            - name: DISCORD_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: DISCORD_CLIENT_SECRET
+                  key: DISCORD_CLIENT_ID
+            - name: DISCORD_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: DISCORD_CLIENT_SECRET
+                  key: DISCORD_CLIENT_SECRET
           ports:
             {{- range .Values.gameserver.service.ports }}
             - name: {{ .name }}
@@ -62,21 +74,27 @@ metadata:
   name: rareicon-ingress
   namespace: rareicon
   annotations:
+    nginx.ingress.kubernetes.io/enable-websocket: "true"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    #nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    #nginx.ingress.kubernetes.io/keepalive: "on"
+    #nginx.ingress.kubernetes.io/http2-push-preload: "true"
 spec:
   rules:
     - host: {{ .Values.gameserver.ingress.host }}
       http:
         paths:
-          - path: /
+          - path: /ws
             pathType: Prefix
             backend:
               service:
                 name: rareicon-service
                 port:
                   number: 3000
-          - path: /ws/
+          - path: /
             pathType: Prefix
             backend:
               service:
@@ -100,13 +118,9 @@ spec:
   selector:
     app: rareicon
   ports:
-    {{- range $index, $port := .Values.gameserver.service.ports }}
-    {{- if eq $port.protocol "UDP" }}
-    - name: {{ $port.name }}
-      protocol: {{ $port.protocol }}
-      port: {{ $port.port }}
-      targetPort: {{ $port.targetPort }}
-    {{- end }}
-    {{- end }}
-  type: LoadBalancer
+    - name: udp-port
+      protocol: UDP
+      port: 8081
+      targetPort: 8081
+  type: NodePort
 {{- end }}

@@ -177,6 +177,12 @@ export default defineConfig({
 					collapsed: true,
 					autogenerate: { directory: 'advanced' },
 				},
+
+				{
+					label: 'Legal',
+					collapsed: true,
+					autogenerate: { directory: 'legal' },
+				},
 			],
 			social: {
 				github: 'https://github.com/kbve/kbve',
