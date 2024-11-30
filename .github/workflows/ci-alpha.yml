@@ -314,7 +314,7 @@ jobs:
                   pnpm nx run rust_rareicon_gameserver:container --configuration=production  --push
 
     rareicon_webgl_deployment:
-        needs: ['kilonet-rareicon-build']
+        needs: ['kilonet-rareicon-build', 'globals']
         name: RareIcon GH Pages Deployment
         runs-on: 'ubuntu-latest'
         steps:
