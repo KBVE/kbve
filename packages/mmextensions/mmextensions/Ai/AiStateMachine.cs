@@ -28,6 +28,11 @@ namespace KBVE.MMExtensions.Ai
             Dead = 1 << 8
         }
 
+        public static double Log2(double value)
+        {
+            return Math.Log(value) / Math.Log(2);
+        }
+
         private static readonly Queue<AiStateType> _stateHistory = new();
         private const int MaxHistorySize = 10;
         private static AiStateType _currentState = AiStateType.Idle; 
@@ -145,7 +150,7 @@ namespace KBVE.MMExtensions.Ai
             int fromValue = (int)fromState;
             int toValue = (int)toState;
 
-            int shiftAmount = (int)Math.Log2(toValue) - (int)Math.Log2(fromValue);
+            int shiftAmount = (int)Log2(toValue) - (int)Log2(fromValue);
             AiStateType result = MoveBitShiftState(fromState, shiftAmount);
 
             await CacheTransitionAsync(fromState, toState, shiftAmount);
