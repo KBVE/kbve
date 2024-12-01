@@ -8,6 +8,11 @@ namespace KBVE.Kilonet.Managers
 {
   public class NetworkManager : MonoBehaviour
   {
+    //  Default Websockets
+
+    [SerializeField]
+    private string defaultWebSocketServer = "WebSocketServer";
+
     private INetworkTransport activeTransport;
     private ConnectionProfile activeProfile;
 
@@ -45,7 +50,7 @@ namespace KBVE.Kilonet.Managers
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
       Debug.Log("Selecting WebSocket profile for WebGL build...");
-      var profile = NetworkManagerHelper.GetProfile("DefaultWebGLServer");
+      var profile = NetworkManagerHelper.GetProfile(defaultWebSocketServer);
 #else
       Debug.Log("Selecting UDP profile for non-WebGL build...");
       var profile = NetworkManagerHelper.GetProfile("DefaultUDPServer");
