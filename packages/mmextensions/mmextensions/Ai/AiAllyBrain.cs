@@ -65,8 +65,6 @@ namespace KBVE.MMExtensions.Ai
 
         //  AllyPlayers - [END]
 
-        //  The JigSaw Ai Machine
-
 
         protected override void Awake()
         {
@@ -193,12 +191,12 @@ namespace KBVE.MMExtensions.Ai
                 new AITransition()
                 {
                     Decision = distanceToTargetDecision,
-                    FalseState = "MoveToEnemy"
+                    FalseState = "ChaseEnemy"
                 },
                 new AITransition()
                 {
                     Decision = timeInStateDecision,
-                    TrueState = "MoveToEnemy"
+                    TrueState = "ChaseEnemy"
                 }
             };
             return attackState;
@@ -209,6 +207,7 @@ namespace KBVE.MMExtensions.Ai
             AIDecisionDetectTargetRadius2D detectTargetDecision = gameObject.AddComponent<AIDecisionDetectTargetRadius2D>();
             detectTargetDecision.TargetLayer = 1 << targetLayerInt;
             detectTargetDecision.Radius = radius;
+
             return detectTargetDecision;
         }
 
