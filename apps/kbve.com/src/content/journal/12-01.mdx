@@ -38,3 +38,15 @@ import { Adsense, Tasks } from '@kbve/astropad';
     The discord embed sdk should make sure that the user that is in the activity has a valid session.
     We will focus on the `NetworkManager`, making sure that it loads the right configurations.
     Furthermore, we should make sure that the `index.html` has no issues either, hmm.
+
+-   03:52PM
+
+    **NetworkManager**
+
+    For the networking, we have to account for three possible connection points, two being different websockets and the other being the UDP.
+    With that being said, having the cross-play will be easier once we get the different connections setup and doing this all in advance will save us time in the future.
+    The whole networking will be packaged, so that when we build new games in the future, we will not have to go back and do it again.
+
+    However with that being said, we do need to focus on how we would point the network around and that would include the ability of adding new networks without having issues.
+    This does limit the package to being only used with kbve-related services but we can work around that by fixing up adding a couple abstraction methods?
+    Like if it does not use the default, we could add the ability to add external networks, maybe a map to hold those and a quick setting that can be changed in the map.
