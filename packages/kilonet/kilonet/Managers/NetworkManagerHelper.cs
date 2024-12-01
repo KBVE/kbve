@@ -7,6 +7,22 @@ using UnityEngine;
 
 namespace KBVE.Kilonet.Managers
 {
+  public class ConnectionProfile
+  {
+    public string Name;
+    public string Uri;
+    public ushort Port;
+    public TransportType TransportType;
+
+    public ConnectionProfile(string name, string uri, ushort port, TransportType transportType)
+    {
+      Name = name;
+      Uri = uri;
+      Port = port;
+      TransportType = transportType;
+    }
+  }
+
   public class NetworkManagerHelper : MonoBehaviour
   {
     [Flags]
@@ -99,25 +115,7 @@ namespace KBVE.Kilonet.Managers
 
     public static TransportType ToggleFlag(TransportType value, TransportType flag) => value ^ flag;
 
-    //* ConnectionProfiles *//
-    //? DiscordSays + RareIcon Integrations.
-
-    // Connection Profile Class
-    public class ConnectionProfile
-    {
-      public string Name;
-      public string Uri;
-      public ushort Port;
-      public TransportType TransportType;
-
-      public ConnectionProfile(string name, string uri, ushort port, TransportType transportType)
-      {
-        Name = name;
-        Uri = uri;
-        Port = port;
-        TransportType = transportType;
-      }
-    }
+    //? ConnectionProfiles Helpers
 
     private static readonly List<ConnectionProfile> Profiles =
       new()
@@ -143,19 +141,22 @@ namespace KBVE.Kilonet.Managers
         )
       };
 
-    public static ConnectionProfile GetProfile(string name)
+    public static ConnectionProfile GetProfile(string name, bool throwIfNotFound = true)
     {
-      return Profiles.Find(profile => profile.Name == name)
-        ?? throw new InvalidOperationException($"Profile with name '{name}' not found.");
+      var profile = Profiles.Find(profile => profile.Name == name);
+      if (profile == null && throwIfNotFound)
+      {
+        throw new InvalidOperationException($"Profile with name '{name}' not found.");
+      }
+      return profile;
     }
 
     public static void AddProfile(ConnectionProfile profile)
     {
+      if (profile == null)
+        throw new ArgumentNullException(nameof(profile), "Profile cannot be null.");
       if (Profiles.Exists(p => p.Name == profile.Name))
-      {
         throw new InvalidOperationException($"Profile with name '{profile.Name}' already exists.");
-      }
-
       Profiles.Add(profile);
     }
 
@@ -169,6 +170,15 @@ namespace KBVE.Kilonet.Managers
       foreach (var profile in Profiles)
       {
         yield return profile.Name;
+      }
+    }
+
+    public static void PrintAllProfiles()
+    {
+      Debug.Log("Available Profiles:");
+      foreach (var profile in Profiles)
+      {
+        Debug.Log($"- {profile.Name}: {profile.Uri}:{profile.Port} ({profile.TransportType})");
       }
     }
   }
