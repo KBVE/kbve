@@ -14,7 +14,12 @@ namespace KBVE.Kilonet.Managers
     public ushort Port;
     public NetworkManagerHelper.TransportType TransportType;
 
-    public ConnectionProfile(string name, string uri, ushort port, NetworkManagerHelper.TransportType transportType)
+    public ConnectionProfile(
+      string name,
+      string uri,
+      ushort port,
+      NetworkManagerHelper.TransportType transportType
+    )
     {
       Name = name;
       Uri = uri;
@@ -42,6 +47,10 @@ namespace KBVE.Kilonet.Managers
       SecureJsonUDP = 1 << 10, // 0100 0000 0000
       SecureBinaryUDP = 1 << 11 // 1000 0000 0000
     }
+
+
+
+    private static JavaScriptListenerState listenerState = JavaScriptListenerState.Initializing;
 
     private static readonly Dictionary<TransportType, TransportType> SecureVariantMap =
       new()
