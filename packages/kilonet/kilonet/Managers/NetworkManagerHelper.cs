@@ -12,9 +12,9 @@ namespace KBVE.Kilonet.Managers
     public string Name;
     public string Uri;
     public ushort Port;
-    public TransportType TransportType;
+    public NetworkManagerHelper.TransportType TransportType;
 
-    public ConnectionProfile(string name, string uri, ushort port, TransportType transportType)
+    public ConnectionProfile(string name, string uri, ushort port, NetworkManagerHelper.TransportType transportType)
     {
       Name = name;
       Uri = uri;
