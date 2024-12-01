@@ -50,3 +50,13 @@ import { Adsense, Tasks } from '@kbve/astropad';
     However with that being said, we do need to focus on how we would point the network around and that would include the ability of adding new networks without having issues.
     This does limit the package to being only used with kbve-related services but we can work around that by fixing up adding a couple abstraction methods?
     Like if it does not use the default, we could add the ability to add external networks, maybe a map to hold those and a quick setting that can be changed in the map.
+
+-   04:15PM
+
+    **JavascriptFFI**
+
+    The FFI for JavaScript should be placed under the `Networks` and I believe we might need to move the `NetworkManagerHelper` to be under the `Networks` namespace?
+    The first aspect makes sense because the javascript ffi would all be done within the reference of networking.
+    Yet the helper might make sense to keep next to the network manager, as it would be rough to keep them too far away.
+    For the javascript ffi, since most of it all will be in webgl, I am thinking we could just avoid the interlocked methods.
+    And for the rust ffi, we will use the interlocked because those builds are for native, I am just keeping this here as a reference.
