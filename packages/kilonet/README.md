@@ -30,6 +30,7 @@ Last build failed, maybe we are back at our gh action failing again. There are t
 11-28-2024 - Removing the SuperUnityTiled2PackageMeme and seeing if it builds without it?
 11-29-2024 - Build works but websockets are still giving us a bit of pain, let me see what we can do about it.
 11-30-2024 - Updating the env and preparing a test case deployment. Forgot the variable name.
+12-02-2024 - Starting JavaScript FFI.
 
 - [KBVE](https://kbve.com/)
 - [RareIcon](https://rareicon.com/)
