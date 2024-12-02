@@ -1,6 +1,9 @@
 using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    using System.Runtime.InteropServices;
+#endif
 
 namespace KBVE.Kilonet.Networks
 {
@@ -57,12 +60,18 @@ namespace KBVE.Kilonet.Networks
 
   public class JavascriptFFI : MonoBehaviour
   {
+
+
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    
     [DllImport("__Internal")]
     private static extern void ListenForJavaScriptMessages();
 
     [DllImport("__Internal")]
     private static extern void SendMessageToBrowser(string method, string parameter);
 
+#endif
     public static Action<string> OnJavaScriptMessageReceived;
 
     private void Start()
