@@ -7,10 +7,16 @@
 		"noImplicitOverride": true,
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
-		"noPropertyAccessFromIndexSignature": true
+		"noPropertyAccessFromIndexSignature": true,
+		"jsx": "react-jsx",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true
 	},
 	"files": [],
-	"include": [],
+	"include": [   
+		"src/**/*.ts",
+		"src/**/*.tsx"
+	  ],
 	"references": [
 		{
 			"path": "./tsconfig.lib.json"
