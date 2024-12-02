@@ -45,16 +45,15 @@ namespace KBVE.Kilonet.Networks
   [Flags]
   public enum JavaScriptMessageType
   {
-    None = 0,          // 0000000 - No type
-    Text = 1 << 0,     // 0000001 - Plain text
-    JSON = 1 << 1,     // 0000010 - JSON data
-    Binary = 1 << 2,   // 0000100 - Binary data
-    Command = 1 << 3,  // 0001000 - Command or action message
-    Event = 1 << 4,    // 0010000 - Real-time event
-    Error = 1 << 5,    // 0100000 - Error message
+    None = 0, // 0000000 - No type
+    Text = 1 << 0, // 0000001 - Plain text
+    JSON = 1 << 1, // 0000010 - JSON data
+    Binary = 1 << 2, // 0000100 - Binary data
+    Command = 1 << 3, // 0001000 - Command or action message
+    Event = 1 << 4, // 0010000 - Real-time event
+    Error = 1 << 5, // 0100000 - Error message
     Notification = 1 << 6 // 1000000 - Notification message
   }
-
 
   public class JavascriptFFI : MonoBehaviour
   {
@@ -62,10 +61,9 @@ namespace KBVE.Kilonet.Networks
     private static extern void ListenForJavaScriptMessages();
 
     [DllImport("__Internal")]
-    private static extern void SendMessageToUnity(string message);
+    private static extern void SendMessageToBrowser(string method, string parameter);
 
     public static Action<string> OnJavaScriptMessageReceived;
-    public static Action<object> OnJsonReceived;
 
     private void Start()
     {
@@ -75,17 +73,28 @@ namespace KBVE.Kilonet.Networks
 #endif
     }
 
-    // Called by JavaScript
     public void HandleJavaScriptMessage(string message)
     {
       Debug.Log($"JavaScriptBridge: Message received: {message}");
-      OnMessageReceived?.Invoke(message);
+      OnJavaScriptMessageReceived?.Invoke(message);
     }
 
     public static void SendMessageToJavaScript(string method, string parameter)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-      Application.ExternalCall(method, parameter);
+      try
+      {
+        Debug.Log($"Sending message to JavaScript: {method}({parameter})");
+        SendMessageToBrowser(method, parameter);
+      }
+      catch
+      {
+        Debug.LogError(
+          "Failed to send message to JavaScript. Ensure the WebGL environment is set up."
+        );
+      }
+#else
+      Debug.Log($"Mocked SendMessageToJavaScript: {method}({parameter})");
 #endif
     }
   }
