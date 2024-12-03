@@ -49,10 +49,10 @@ export interface CompatibleUser {
 	username: string;
 	discriminator: string;
 	avatar?: string | null;
-	globalName?: string | null;
-	flags: number;
-	bot: boolean;
-	publicFlags?: number;
+	global_name?: string | null;
+	public_flags?: number;
+	flags?: number;
+	bot?: boolean;
 }
 
 export type Nullable<T> = T | null | undefined;
