@@ -53,4 +53,6 @@ import { Adsense, Tasks } from '@kbve/astropad';
     Finally once we are in sync, I will use the readme as a way to build the website/docs for the package.
 
     Commented out the code for the tag and just directly running `image: "kbve/fudster@sha256:0ccf7e46e8871098c1e8ca3432933f2f5da92cac1f843d4f877eaef2aa58a1f2"` and now we can see what happens next.
-    Preparing the deployment.
+    Preparing the deployment, okay we were able to get the helm chart deployed but there was some issues with the runelite plugin that we created.
+    I forgot to update the java code to the new websocket location and furthermore, the other sideeffect is that the plugin automatically starts, so we can not update the websocket uri directly.
+    Okay! Now that we get the image built again, I will have to go back and update the sha256.
