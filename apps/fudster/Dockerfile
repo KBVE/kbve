@@ -39,7 +39,7 @@ WORKDIR /root/microbot
 RUN mkdir -p /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
 COPY ./plugin /root/microbot/runelite-client/src/main/java/net/runelite/client/plugins/microbot/kbve
 
-ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+ENV MAVEN_OPTS="-Xmx2048m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 #   RUN mvn clean package -T 1C -DskipTests -Dmaven.test.skip=true -Dparallel=all
 RUN mvn clean package -T 1C -DskipTests -Dmaven.test.skip=true -Dparallel=all
 
