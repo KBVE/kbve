@@ -58,7 +58,8 @@ namespace KBVE.Kilonet.Networks
     Authentication = 1 << 7,
     Configuration = 1 << 8,
     Sync = 1 << 9,
-    Heartbeat = 1 << 10
+    Heartbeat = 1 << 10,
+    Purge = 1 << 11
   }
 
   public class JavascriptFFI : MonoBehaviour

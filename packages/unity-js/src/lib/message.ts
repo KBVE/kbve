@@ -52,9 +52,16 @@ class MessageHandler {
 		}
 	}
 
+    private validateSdkInitialized(): void {
+        if (!this.discordSdk) {
+          throw new Error('DiscordSDK is not initialized.');
+        }
+    }
+
 	private async subscribe(args: any, { event }: MessageData): Promise<void> {
+        this.validateSdkInitialized();
 		if (!event) throw new Error('SUBSCRIBE event is undefined.');
-		await this.discordSdk!.subscribe(
+		await this.discordSdk?.subscribe(
 			event,
 			this.handleEvent.bind(this),
 			args,
@@ -65,14 +72,16 @@ class MessageHandler {
 		args: any,
 		{ event }: MessageData,
 	): Promise<void> {
+        this.validateSdkInitialized();
 		if (!event) throw new Error('UNSUBSCRIBE event is undefined.');
-		await this.discordSdk!.unsubscribe(event, this.handleEvent.bind(this));
+		await this.discordSdk?.unsubscribe(event, this.handleEvent.bind(this));
 	}
 
 	private async setActivity(args: any): Promise<void> {
+        this.validateSdkInitialized();
 		if (!args.activity)
 			throw new Error('No activity provided for SET_ACTIVITY.');
-		await this.discordSdk!.commands.setActivity(args);
+		await this.discordSdk?.commands.setActivity(args);
 	}
 
 	private async pingLoad(): Promise<void> {
