@@ -22,13 +22,13 @@ class Manager {
 		return Manager.instance;
 	}
 
-	public SDK<T>(fn: (sdk: DiscordSDKManager) => T): T {
-		return fn(this.discordManager);
-	}
+    public SDK<T>(fn?: (sdk: DiscordSDKManager) => T): T | DiscordSDKManager {
+        return fn ? fn(this.discordManager) : this.discordManager;
+    }
 
-	public Helper<T>(fn: (helper: typeof Help) => T): T {
-		return fn(this.helper);
-	}
+    public Helper<T>(fn?: (helper: typeof Help) => T): T | typeof Help {
+        return fn ? fn(this.helper) : this.helper;
+      }
 
 	public async initialize(config: DiscordConfigOptions): Promise<void> {
 		await this.SDK((sdk) => sdk.initialize(config));
@@ -46,8 +46,6 @@ class Manager {
 
 		this.SDK((sdk) => sdk.sendMessage(message));
 	}
-
-    
 }
 
 export default Manager;
