@@ -150,6 +150,32 @@ export enum JavaScriptMessageType {
     Purge = 1 << 11, // Purge all messages & GC + alloc trigger
 }
 
+export enum Commands {
+	NONE = 0,
+    SUBSCRIBE = 1 << 0, // 1
+    UNSUBSCRIBE = 1 << 1, // 2
+    SET_ACTIVITY = 1 << 2, // 4
+    PING_LOAD = 1 << 3, // 8
+    GET_INSTANCE_ID = 1 << 4, // 16
+    GET_CHANNEL_ID = 1 << 5, // 32
+    GET_GUILD_ID = 1 << 6, // 64
+    GET_USER_ID = 1 << 7, // 128
+    GET_USER = 1 << 8, // 256
+    GET_INSTANCE_PARTICIPANTS = 1 << 9, // 512
+    HARDWARE_ACCELERATION = 1 << 10, // 1024
+    GET_CHANNEL = 1 << 11, // 2048
+    GET_CHANNEL_PERMISSIONS = 1 << 12, // 4096
+    GET_ENTITLEMENTS = 1 << 13, // 8192
+    GET_PLATFORM_BEHAVIORS = 1 << 14, // 16384
+    GET_SKUS = 1 << 15, // 32768
+    IMAGE_UPLOAD = 1 << 16, // 65536
+    EXTERNAL_LINK = 1 << 17, // 131072
+    INVITE_DIALOG = 1 << 18, // 262144
+    SHARE_MOMENT_DIALOG = 1 << 19, // 524288
+}
+
+
+
 //  Combined JSFFI
 
 export interface JSFFI_Message<TPlayload = any> {
