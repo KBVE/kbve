@@ -1,5 +1,15 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk';
 
+//  [LOGGER]
+
+export type LogLevel = 'info' | 'warn' | 'error';
+
+export interface LogEntry {
+    level: LogLevel;
+    message: string;
+    context?: Record<string, unknown>;
+}
+
 //  [Discord]
 
 export type DiscordConfigOptions = {
@@ -122,6 +132,7 @@ export enum JavaScriptMessageType {
 	Configuration = 1 << 8, // Configuration data
 	Sync = 1 << 9, // Synchronization message
 	Heartbeat = 1 << 10, // Heartbeat message
+    Purge = 1 << 11, // Purge all messages & GC + alloc trigger
 }
 
 //  Combined JSFFI
