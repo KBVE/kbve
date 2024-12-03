@@ -29,3 +29,8 @@ export function utf8ToString(utf8Array: Uint8Array): string {
 	const decoder = new TextDecoder('utf-8');
 	return decoder.decode(utf8Array);
 }
+
+export function stringToUtf8(str: string): Uint8Array {
+	const encoder = new TextEncoder();
+	return encoder.encode(str);
+}
