@@ -61,7 +61,7 @@ class DiscordSDKManager {
 				throw new Error('No access_token field found in response.');
 			}
 
-			const { user } = await this.discordSdk.commands.authenticate({
+			const { user }: { user: CompatibleUser } = await this.discordSdk.commands.authenticate({
 				access_token: tokenData.access_token,
 			});
 
