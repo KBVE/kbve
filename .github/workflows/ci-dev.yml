@@ -236,7 +236,7 @@ jobs:
                   pnpm nx report
 
     fudster_dev_cicd:
-        needs: ['deploy', 'alter']
+        needs: ['handle', 'deploy', 'alter']
         name: Fudster Dev CI-CD
         if: needs.alter.outputs.fudster == 'true'
         runs-on: 'ubuntu-latest'

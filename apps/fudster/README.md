@@ -6,7 +6,7 @@ A python library that helps with mL application development through using REST/W
 ## Dev
 
 These are notes for the development of the Fudster package.
-Added a Docker hub image build.
+Added a Docker hub image build, fixing the config file error.
 
 ### Packages
 
