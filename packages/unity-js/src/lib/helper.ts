@@ -140,6 +140,21 @@ class Helper {
 	} {
 		return this.safeCall(() => getNestedIFrame(iframeId));
 	}
+
+	public sanitizeFields(
+		target: any,
+		fieldsToClean: Array<{ field: string; key: string }>,
+	): any {
+		if (!target) return target;
+
+		for (const { field, key } of fieldsToClean) {
+			if (target[field]?.[key] === '') {
+				delete target[field];
+			}
+		}
+
+		return target;
+	}
 }
 
 export const Help = Helper.getInstance();
