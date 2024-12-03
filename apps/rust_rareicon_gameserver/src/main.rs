@@ -40,13 +40,14 @@ mod allocator {
 static ENV_VARS: Lazy<HashMap<&'static str, String>> = Lazy::new(|| {
   let mut map = HashMap::new();
   map.insert(
-      "DISCORD_CLIENT_ID",
-      std::env::var("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID not set"),
+    "DISCORD_CLIENT_ID",
+    std::env::var("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID not set")
   );
   map.insert(
-      "DISCORD_CLIENT_SECRET",
-      std::env::var("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET not set"),
+    "DISCORD_CLIENT_SECRET",
+    std::env::var("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET not set")
   );
+  map.insert("DISCORD_TOKEN", std::env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN not set"));
   map
 });
 
@@ -55,10 +56,10 @@ pub fn get_env_var(key: &str) -> Option<&String> {
 }
 
 fn validate_env_vars() {
-  for &key in &["DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET"] {
-      if ENV_VARS.get(key).is_none() {
-          panic!("Environment variable {} is missing", key);
-      }
+  for &key in &["DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "DISCORD_TOKEN"] {
+    if ENV_VARS.get(key).is_none() {
+      panic!("Environment variable {} is missing", key);
+    }
   }
 }
 
@@ -66,17 +67,25 @@ fn log_env_vars() {
   // Retrieve environment variables securely
   let client_id = ENV_VARS.get("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID not set");
   let client_secret = ENV_VARS.get("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET not set");
+  let discord_token = ENV_VARS.get("DISCORD_TOKEN").expect("DISCORD_TOKEN not set");
 
   // Mask the client secret for secure logging
   let masked_secret = if client_secret.len() > 5 {
-      format!("{}{}", &client_secret[..5], "****") // First 5 characters + mask
+    format!("{}{}", &client_secret[..5], "****") // First 5 characters + mask
   } else {
-      "****".to_string() // Fully masked if too short
+    "****".to_string() // Fully masked if too short
+  };
+
+  let masked_token = if discord_token.len() > 5 {
+    format!("{}{}", &discord_token[..5], "****") // First 5 characters + mask
+  } else {
+    "****".to_string() // Fully masked if too short
   };
 
   // Log the environment variables securely
   tracing::info!("Client ID: {}", client_id);
   tracing::info!("Client Secret: {}", masked_secret);
+  tracing::info!("Discord Token: {}", masked_token);
 }
 
 #[tokio::main]
