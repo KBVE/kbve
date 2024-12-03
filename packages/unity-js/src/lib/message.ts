@@ -1,4 +1,5 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk';
+import DiscordSDKManager from './discord';
 import {
 	MessageData,
 	MessageParentCommand,
@@ -11,23 +12,26 @@ type CommandHandler = (args: any, messageData: MessageData) => Promise<void>;
 
 class MessageHandler {
 	private static instance: MessageHandler;
-	private discordSdk: DiscordSDK | null = null;
+	private discordSdkManager: DiscordSDKManager | null = null;
 	private commandMap: Map<string, CommandHandler> = new Map();
 	private logs: Map<number, LogEntry> = new Map();
 
-	private constructor() {
+	private constructor(discordSdkManager: DiscordSDKManager) {
+		this.discordSdkManager = discordSdkManager;
 		this.initializeCommandMap();
 	}
 
-	public static getInstance(): MessageHandler {
+	public static getInstance(
+		discordSdkManager: DiscordSDKManager,
+	): MessageHandler {
 		if (!MessageHandler.instance) {
-			MessageHandler.instance = new MessageHandler();
+			MessageHandler.instance = new MessageHandler(discordSdkManager);
 		}
 		return MessageHandler.instance;
 	}
 
-	public initialize(discordSdk: DiscordSDK): void {
-		this.discordSdk = discordSdk;
+	private get discordSdk(): DiscordSDK | null {
+		return this.discordSdkManager?.getSdk() || null;
 	}
 
 	public getLogs(): LogEntry[] {
@@ -43,6 +47,15 @@ class MessageHandler {
 		this.commandMap.set('UNSUBSCRIBE', this.unsubscribe.bind(this));
 		this.commandMap.set('SET_ACTIVITY', this.setActivity.bind(this));
 		this.commandMap.set('PING_LOAD', this.pingLoad.bind(this));
+		this.commandMap.set('GET_INSTANCE_ID', this.getInstanceId.bind(this));
+		this.commandMap.set('GET_CHANNEL_ID', this.getChannelId.bind(this));
+		this.commandMap.set('GET_GUILD_ID', this.getGuildId.bind(this));
+		this.commandMap.set('GET_USER_ID', this.getUserId.bind(this));
+		this.commandMap.set('GET_USER', this.getUser.bind(this));
+		this.commandMap.set(
+			'GET_INSTANCE_PARTICIPANTS',
+			this.getInstanceParticipants.bind(this),
+		);
 	}
 
 	public async handleMessage(messageData: MessageData): Promise<void> {
@@ -185,12 +198,124 @@ class MessageHandler {
 		this.log('info', 'Ping load dispatched');
 	}
 
+	private async getInstanceId(
+		_: any,
+		{ nonce, command }: MessageData,
+	): Promise<void> {
+		if (!command || !nonce) {
+			throw new Error('Command/Nonce is undefined.');
+		}
+
+		await this.postSdkProperty('instanceId', command, nonce);
+	}
+
+	private async getChannelId(
+		_: any,
+		{ nonce, command }: MessageData,
+	): Promise<void> {
+		if (!command || !nonce) {
+			throw new Error('Command/Nonce is undefined.');
+		}
+
+		await this.postSdkProperty('channelId', command, nonce);
+	}
+
+	private async getGuildId(
+		_: any,
+		{ nonce, command }: MessageData,
+	): Promise<void> {
+		if (!command || !nonce) {
+			throw new Error('Command/Nonce is undefined.');
+		}
+
+		await this.postSdkProperty('guildId', command, nonce);
+	}
+
+	private async getUserId(
+		_: any,
+		{ nonce, command }: MessageData,
+	): Promise<void> {
+		if (!command || !nonce) {
+			throw new Error('Command/Nonce is undefined.');
+		}
+
+		if (!this.discordSdk || !this.discordSdkManager) {
+			throw new Error('Discord SDK is not initialized.');
+		}
+
+		const user = this.discordSdkManager.getUser();
+		if (!user) {
+			throw new Error(
+				'You need to be authenticated to get the current user ID.',
+			);
+		}
+
+		this.postMessage(command, { nonce, data: user.id });
+		this.log('info', `User ID fetched: ${user.id}`);
+	}
+
+	private async getUser(
+		_: any,
+		{ nonce, command }: MessageData,
+	): Promise<void> {
+		if (!command || !nonce) {
+			throw new Error('Command/Nonce is undefined.');
+		}
+
+		if (!this.discordSdk || !this.discordSdkManager) {
+			throw new Error('Discord SDK is not initialized.');
+		}
+
+		const user = this.discordSdkManager.getUser();
+		if (!user) {
+			throw new Error(
+				'You need to be authenticated to get the current user.',
+			);
+		}
+
+		this.postMessage(command, { nonce, data: user });
+		this.log(
+			'info',
+			`User details fetched: ${user.username}#${user.discriminator}`,
+		);
+	}
+
+	private async getInstanceParticipants(
+		_: any,
+		{ nonce, command }: MessageData,
+	): Promise<void> {
+		if (!command || !nonce) {
+			throw new Error('Command/Nonce is undefined.');
+		}
+
+		this.validateSdkInitialized();
+
+		try {
+			const data =
+				await this.discordSdk?.commands.getInstanceConnectedParticipants();
+			this.postMessage(command, { nonce, data });
+			this.log(
+				'info',
+				`Fetched instance participants: ${JSON.stringify(data)}`,
+			);
+		} catch (error) {
+			this.log(
+				'error',
+				error instanceof Error
+					? `Failed to fetch instance participants: ${error.message}`
+					: `Failed to fetch instance participants: ${String(error)}`,
+				{ error },
+			);
+			throw error;
+		}
+	}
+
 	private handleEvent(eventData: Record<string, unknown>): void {
 		this.postMessage('DISPATCH', { eventData });
 	}
 
 	private postMessage(command: string, data: any): void {
-		getNestedIFrame().contentWindow?.postMessage({ command, data }, '*');
+		getNestedIFrame().contentWindow?.postMessage({ command, ...data }, '*');
 	}
 
 	private sanitizeFields(
@@ -208,6 +333,39 @@ class MessageHandler {
 		return target;
 	}
 
+	private async postSdkProperty(
+		key: keyof DiscordSDK,
+		command: string,
+		nonce: string,
+	): Promise<void> {
+		try {
+			this.validateSdkInitialized();
+
+			if (!this.discordSdk) {
+				throw new Error(`Discord SDK is null`);
+			}
+
+			const propertyValue = this.discordSdk[key];
+			if (propertyValue === undefined) {
+				throw new Error(
+					`Property '${key}' does not exist on DiscordSDK.`,
+				);
+			}
+
+			this.postMessage(command, { nonce, data: propertyValue });
+			this.log('info', `Fetched '${key}': ${propertyValue}`);
+		} catch (error) {
+			this.log(
+				'error',
+				error instanceof Error
+					? `Failed to fetch '${key}': ${error.message}`
+					: `Failed to fetch '${key}': ${String(error)}`,
+				{ error },
+			);
+			throw error;
+		}
+	}
+
 	//  [Logger]
 
 	private log(
@@ -220,4 +378,4 @@ class MessageHandler {
 	}
 }
 
-export default MessageHandler.getInstance();
+export default MessageHandler;
