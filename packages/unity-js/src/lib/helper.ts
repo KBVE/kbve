@@ -1,18 +1,25 @@
 export function stringifyBigInt(obj: Record<string, unknown>): string {
-	return JSON.stringify(obj, (key, value) => {
-		if (typeof value === 'bigint') {
-			return value.toString();
-		}
-		return value;
-	});
+	try {
+		return JSON.stringify(obj, (key, value) => {
+			if (typeof value === 'bigint') {
+				return value.toString();
+			}
+			return value;
+		});
+	} catch (error) {
+		throw new Error(
+			`Failed to stringify object with BigInt values: ${error instanceof Error ? error.message : error}`,
+		);
+	}
 }
 
 export function safeParse<T>(jsonString: string): T | null {
 	try {
 		return JSON.parse(jsonString) as T;
 	} catch (error) {
-		console.error('Failed to parse JSON:', error);
-		return null;
+		throw new Error(
+			`Failed to parse JSON: ${error instanceof Error ? error.message : error}`,
+		);
 	}
 }
 
@@ -20,8 +27,9 @@ export function safeStringify(obj: unknown): string {
 	try {
 		return JSON.stringify(obj);
 	} catch (error) {
-		console.error('Failed to stringify JSON:', error);
-		return '';
+		throw new Error(
+			`Failed to stringify JSON: ${error instanceof Error ? error.message : error}`,
+		);
 	}
 }
 
