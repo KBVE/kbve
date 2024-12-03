@@ -142,4 +142,4 @@ class Helper {
 	}
 }
 
-export default Helper.getInstance();
+export const Help = Helper.getInstance();
