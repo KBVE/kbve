@@ -63,7 +63,7 @@ public interface KBVEConfig extends Config {
         section = apiSection
     )
     default String apiEndpoint() {
-        return "ws://localhost:8086";
+        return "ws://localhost:8086/ws";
     }
 
 
