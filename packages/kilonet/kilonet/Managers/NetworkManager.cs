@@ -8,13 +8,13 @@ namespace KBVE.Kilonet.Managers
 {
   public class NetworkManager : MonoBehaviour
   {
+    //  Default Websockets
+
+    [SerializeField]
+    private string defaultWebSocketServer = "WebSocketServer";
+
     private INetworkTransport activeTransport;
-
-    [SerializeField]
-    private string serverUri = "wss://server.rareicon.com";
-
-    [SerializeField]
-    private ushort serverPort = 443;
+    private ConnectionProfile activeProfile;
 
     //  Action Hooks
     public Action OnConnected;
@@ -24,8 +24,16 @@ namespace KBVE.Kilonet.Managers
 
     private void Start()
     {
-      InitializeTransport();
-      Connect();
+      try
+      {
+        var profile = GetDefaultProfile();
+        InitializeTransport(profile);
+        Connect();
+      }
+      catch (Exception ex)
+      {
+        Debug.LogError($"Failed to initialize transport: {ex.Message}");
+      }
     }
 
     private void Update()
@@ -38,31 +46,66 @@ namespace KBVE.Kilonet.Managers
       Disconnect();
     }
 
-    private void InitializeTransport()
+    private ConnectionProfile GetDefaultProfile()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-      Debug.Log("NetworkManager: Initializing WebSocket transport for WebGL...");
-      activeTransport = new WebSocketTransport();
+      Debug.Log("Selecting WebSocket profile for WebGL build...");
+      var profile = NetworkManagerHelper.GetProfile(defaultWebSocketServer);
 #else
-      Debug.Log("NetworkManager: Initializing UDP transport for non-WebGL...");
-      activeTransport = new UDPTransport();
+      Debug.Log("Selecting UDP profile for non-WebGL build...");
+      var profile = NetworkManagerHelper.GetProfile("DefaultUDPServer");
 #endif
+      if (profile == null)
+      {
+        throw new InvalidOperationException("Default profile is not configured properly.");
+      }
+      return profile;
+    }
 
-    activeTransport.Receive((Action<byte[]>)OnDataReceived);
-    activeTransport.Receive((Action<Stream>)OnDataReceived);
+    public void InitializeTransport(ConnectionProfile profile)
+    {
+      if (profile == null)
+      {
+        throw new ArgumentNullException(nameof(profile), "Connection profile cannot be null.");
+      }
 
+      Debug.Log($"Initializing transport for profile: {profile.Name}");
+      switch (profile.TransportType)
+      {
+        case NetworkManagerHelper.TransportType.WebSocket:
+        case NetworkManagerHelper.TransportType.SecureWebSocket:
+          Debug.Log("NetworkManager: Initializing WebSocket transport...");
+          activeTransport = new WebSocketTransport();
+          break;
+
+        case NetworkManagerHelper.TransportType.UDP:
+        case NetworkManagerHelper.TransportType.SecureUDP:
+          Debug.Log("NetworkManager: Initializing UDP transport...");
+          activeTransport = new UDPTransport();
+          break;
+
+        default:
+          throw new InvalidOperationException(
+            $"Unsupported transport type: {profile.TransportType}"
+          );
+      }
+
+      activeTransport.Receive((Action<byte[]>)OnDataReceived);
+      activeTransport.Receive((Action<Stream>)OnDataReceived);
     }
 
     public void Connect()
     {
-      if (activeTransport == null)
+      if (activeTransport == null || activeProfile == null)
       {
-        Debug.LogError("NetworkManager: Transport is not initialized.");
+        Debug.LogError("NetworkManager: Transport or profile is not initialized.");
         return;
       }
 
-      activeTransport.Connect(serverUri, serverPort);
-      Debug.Log("NetworkManager: Connection initiated.");
+      activeTransport.Connect(activeProfile.Uri, activeProfile.Port);
+      Debug.Log(
+        $"NetworkManager: Connection initiated to {activeProfile.Uri}:{activeProfile.Port}"
+      );
       OnConnected?.Invoke();
     }
 
@@ -75,7 +118,8 @@ namespace KBVE.Kilonet.Managers
       }
 
       activeTransport.Disconnect();
-      Debug.Log("NetworkManager: Disconnected.");
+      Debug.Log($"NetworkManager: Disconnected from {activeProfile.Uri}:{activeProfile.Port}");
+      activeTransport = null;
       OnDisconnected?.Invoke();
     }
 

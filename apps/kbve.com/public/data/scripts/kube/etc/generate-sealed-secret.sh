@@ -37,8 +37,6 @@ check_armada_namespace() {
   fi
 }
 
-
-# Function to create a temporary secret YAML in memory and output it
 create_temp_secret() {
   # Generate the kubectl command to create the secret in dry-run mode and output as YAML
   SECRET_CMD="kubectl create secret generic $KEY_NAME --namespace $NAMESPACE"
@@ -46,17 +44,23 @@ create_temp_secret() {
   # Split SECRETS input by '&' and add each key-value pair to SECRET_CMD
   IFS='&' read -ra SECRETS_ARRAY <<< "$SECRETS"
   for secret in "${SECRETS_ARRAY[@]}"; do
-    if [[ "$secret" =~ ^[a-zA-Z0-9_\-]+=[a-zA-Z0-9_\-]+$ ]]; then
-      SECRET_CMD="$SECRET_CMD --from-literal=$secret"
-    else
+    # Split key and value by the first '=' only
+    KEY="${secret%%=*}"
+    VALUE="${secret#*=}"
+    # Validate that key is not empty
+    if [[ -z "$KEY" || -z "$VALUE" ]]; then
       echo "Error: Invalid secret format '$secret'. Must be in 'key=value' format."
       exit 1
     fi
+    # Append the key-value pair to the kubectl command
+    SECRET_CMD="$SECRET_CMD --from-literal=${KEY}='${VALUE}'"
   done
 
   # Run the kubectl command in dry-run mode and capture the output in TEMP_SECRET_YAML variable
   TEMP_SECRET_YAML=$(eval "$SECRET_CMD --dry-run=client -o yaml")
 }
+
+
 
 
 seal_secret() {
