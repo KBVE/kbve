@@ -12,6 +12,21 @@ export interface LogEntry {
 
 //  [Discord]
 
+export type Snowflake = string;
+
+export interface Entitlement {
+	id: Snowflake;
+	sku_id: Snowflake;
+	application_id: Snowflake;
+	user_id?: Snowflake;
+	type: number;
+	deleted: boolean;
+	starts_at?: string;
+	ends_at?: string;
+	guild_id?: Snowflake;
+	consumed?: boolean;
+  }
+
 export type DiscordConfigOptions = {
 	clientId: string;
 	scope: ScopeArgument;
