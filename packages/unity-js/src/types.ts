@@ -125,3 +125,60 @@ export enum JavaScriptMessageType {
 }
 
 //  Combined JSFFI
+
+export interface JSFFI_Message<TPlayload = any> {
+	state?: JavaScriptListenerState;
+	type: JavaScriptMessageType;
+	timestamp?: number; // ULID usually contains the timestamp.
+	payload: TPlayload;
+}
+
+export interface JSFFI_AuthMessage
+	extends JSFFI_Message<{
+		user: CompatibleUser;
+		accessToken: string;
+	}> {
+	type: JavaScriptMessageType.Authentication;
+}
+
+export interface JSFFI_EventMessage
+	extends JSFFI_Message<{
+		event: DiscordSDKEvents;
+		data: any;
+	}> {
+	type: JavaScriptMessageType.Event;
+}
+
+export interface JSFFI_ErrorMessage
+	extends JSFFI_Message<{
+		errorCode: string;
+		errorMessage: string;
+		details?: string;
+	}> {
+	type: JavaScriptMessageType.Error;
+}
+
+export interface JSFFI_CommandMessage
+	extends JSFFI_Message<{
+		command: MessageChildCommand | MessageParentCommand;
+		args: any;
+	}> {
+	type: JavaScriptMessageType.Command;
+}
+
+export interface JSFFI_NotificationMessage
+	extends JSFFI_Message<{
+		title: string;
+		message: string;
+		level: 'info' | 'warning' | 'error';
+	}> {
+	type: JavaScriptMessageType.Notification;
+}
+
+// Combined Type
+export type JSFFI_MessageVariants =
+	| JSFFI_AuthMessage
+	| JSFFI_EventMessage
+	| JSFFI_ErrorMessage
+	| JSFFI_CommandMessage
+	| JSFFI_NotificationMessage;
