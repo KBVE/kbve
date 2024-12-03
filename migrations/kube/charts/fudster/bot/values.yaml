@@ -1,0 +1,32 @@
+bot:
+    nameOverride: fudster
+    name: fudster-app
+    replicaCount: 1
+    image:
+        repository: kbve/fudster
+        tag: 1.03.0
+        digest: "sha256:sha256:cc49e2b2fede31eb242b9b7fe981c4a594e9cec797144816267f9b02e9630630"
+    service:
+        name: bot
+        ports:
+            - name: tcp
+              protocol: TCP
+              port: 3000
+              targetPort: 3000
+            - name: tcp
+              protocol: TCP
+              port: 8086
+              targetPort: 8086
+        webscoket:
+            enabled: true
+        udp:
+            enabled: false
+    ingress:
+        enabled: true
+        host: bot.kbve.com
+        paths:
+            - path: /
+              backend: html
+            - path: /ws/
+              backend: websocket
+    resources: {}
