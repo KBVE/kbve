@@ -92,6 +92,13 @@ class MessageHandler {
 			'SHARE_MOMENT_DIALOG',
 			this.shareMomentDialog.bind(this),
 		);
+		this.commandMap.set(
+			'SET_ORIENTATION_LOCK_STATE',
+			this.setOrientationLockState.bind(this),
+		);
+		this.commandMap.set('START_PURCHASE', this.startPurchase.bind(this));
+		this.commandMap.set('GET_LOCALE', this.getLocale.bind(this));
+		this.commandMap.set('SET_CONFIG', this.setConfig.bind(this));
 	}
 
 	public async handleMessage(messageData: MessageData): Promise<void> {
@@ -143,7 +150,7 @@ class MessageHandler {
 			);
 			this.log('info', `Subscribed to event '${event}'`);
 		} catch (error) {
-			this.logAndRethrowError('Failed to subscribe to event', error);			
+			this.logAndRethrowError('Failed to subscribe to event', error);
 		}
 	}
 
@@ -171,8 +178,7 @@ class MessageHandler {
 			);
 			this.log('info', `Unsubscribed from event '${event}'`);
 		} catch (error) {
-			this.logAndRethrowError('Failed to unsubscribe from event', error);			
-
+			this.logAndRethrowError('Failed to unsubscribe from event', error);
 		}
 	}
 
@@ -310,7 +316,10 @@ class MessageHandler {
 				`Fetched instance participants: ${JSON.stringify(data)}`,
 			);
 		} catch (error) {
-			this.logAndRethrowError('Failed to fetch instance participants', error);			
+			this.logAndRethrowError(
+				'Failed to fetch instance participants',
+				error,
+			);
 		}
 	}
 
@@ -332,7 +341,10 @@ class MessageHandler {
 				data,
 			});
 		} catch (error) {
-			this.logAndRethrowError('Failed to encourage hardware acceleration', error);			
+			this.logAndRethrowError(
+				'Failed to encourage hardware acceleration',
+				error,
+			);
 		}
 	}
 
@@ -355,7 +367,7 @@ class MessageHandler {
 			this.postMessage(command, { nonce, data, args });
 			this.log('info', `Fetched channel: ${JSON.stringify(data)}`);
 		} catch (error) {
-			this.logAndRethrowError('Failed to fetch channel', error);			
+			this.logAndRethrowError('Failed to fetch channel', error);
 		}
 	}
 
@@ -394,7 +406,10 @@ class MessageHandler {
 				`Fetched channel permissions for channel ID '${args.channel_id}': ${formattedData}`,
 			);
 		} catch (error) {
-			this.logAndRethrowError('Failed to fetch channel permissions', error);			
+			this.logAndRethrowError(
+				'Failed to fetch channel permissions',
+				error,
+			);
 		}
 	}
 
@@ -420,7 +435,7 @@ class MessageHandler {
 				data: data.entitlements,
 			});
 		} catch (error) {
-			this.logAndRethrowError('Failed to fetch entitlement', error);			
+			this.logAndRethrowError('Failed to fetch entitlement', error);
 		}
 	}
 
@@ -446,7 +461,10 @@ class MessageHandler {
 				data,
 			});
 		} catch (error) {
-			this.logAndRethrowError('Failed to fetch platform behaviorss', error);			
+			this.logAndRethrowError(
+				'Failed to fetch platform behaviorss',
+				error,
+			);
 		}
 	}
 
@@ -502,7 +520,6 @@ class MessageHandler {
 				data: { image_url: '', canceled: true },
 			});
 			this.logAndRethrowError('Failed to initiate image upload', error);
-
 		}
 	}
 
@@ -525,7 +542,6 @@ class MessageHandler {
 			this.log('info', `External link opened: ${args.url}`);
 		} catch (error) {
 			this.logAndRethrowError('Failed to open external link', error);
-
 		}
 	}
 
@@ -569,6 +585,61 @@ class MessageHandler {
 				'Failed to open Share Moment Dialog',
 				error,
 			);
+		}
+	}
+
+	private async setOrientationLockState(args: any): Promise<void> {
+		if (!args.lock_state) {
+			this.logAndThrowError(
+				'No lock state provided for SET_ORIENTATION_LOCK_STATE',
+			);
+		}
+
+		try {
+			await this.discordSdk?.commands.setOrientationLockState(args);
+			this.log('info', 'Orientation lock state set successfully.');
+		} catch (error) {
+			this.logAndRethrowError(
+				'Failed to set orientation lock state',
+				error,
+			);
+		}
+	}
+
+	private async startPurchase(): Promise<void> {
+		this.logAndThrowError('Purchases are not supported in this version.');
+	}
+
+	private async getLocale(
+		_: any,
+		{ command, nonce }: MessageData,
+	): Promise<void> {
+		if (!command || !nonce) {
+			this.logAndThrowError('Command or nonce is undefined.');
+		}
+
+		try {
+			const data =
+				await this.discordSdk?.commands.userSettingsGetLocale();
+			this.postMessage(command, { nonce, data });
+			this.log('info', 'Locale fetched successfully.');
+		} catch (error) {
+			this.logAndRethrowError('Failed to fetch locale', error);
+		}
+	}
+
+	private async setConfig(args: any): Promise<void> {
+		if (!args.use_interactive_pip) {
+			this.logAndThrowError(
+				"No 'use interactive pip' provided for SET_CONFIG",
+			);
+		}
+
+		try {
+			const data = await this.discordSdk?.commands.setConfig(args);
+			this.log('info', 'Config set successfully', { data });
+		} catch (error) {
+			this.logAndRethrowError('Failed to set config', error);
 		}
 	}
 
