@@ -151,27 +151,34 @@ export enum JavaScriptMessageType {
 }
 
 export enum Commands {
-	NONE = 0,
+    // MessageParentCommand
     SUBSCRIBE = 1 << 0, // 1
     UNSUBSCRIBE = 1 << 1, // 2
-    SET_ACTIVITY = 1 << 2, // 4
-    PING_LOAD = 1 << 3, // 8
-    GET_INSTANCE_ID = 1 << 4, // 16
-    GET_CHANNEL_ID = 1 << 5, // 32
-    GET_GUILD_ID = 1 << 6, // 64
-    GET_USER_ID = 1 << 7, // 128
-    GET_USER = 1 << 8, // 256
-    GET_INSTANCE_PARTICIPANTS = 1 << 9, // 512
-    HARDWARE_ACCELERATION = 1 << 10, // 1024
-    GET_CHANNEL = 1 << 11, // 2048
-    GET_CHANNEL_PERMISSIONS = 1 << 12, // 4096
-    GET_ENTITLEMENTS = 1 << 13, // 8192
-    GET_PLATFORM_BEHAVIORS = 1 << 14, // 16384
-    GET_SKUS = 1 << 15, // 32768
-    IMAGE_UPLOAD = 1 << 16, // 65536
-    EXTERNAL_LINK = 1 << 17, // 131072
-    INVITE_DIALOG = 1 << 18, // 262144
-    SHARE_MOMENT_DIALOG = 1 << 19, // 524288
+    PING_LOAD = 1 << 2, // 4
+    // MessageChildCommand
+    LOADED = 1 << 3, // 8
+    DISPATCH = 1 << 4, // 16
+    GET_INSTANCE_ID = 1 << 5, // 32
+    SET_ACTIVITY = 1 << 6, // 64
+    GET_CHANNEL_ID = 1 << 7, // 128
+    GET_GUILD_ID = 1 << 8, // 256
+    GET_USER = 1 << 9, // 512
+    GET_USER_ID = 1 << 10, // 1024
+    GET_INSTANCE_PARTICIPANTS = 1 << 11, // 2048
+    HARDWARE_ACCELERATION = 1 << 12, // 4096
+    GET_CHANNEL = 1 << 13, // 8192
+    GET_CHANNEL_PERMISSIONS = 1 << 14, // 16384
+    GET_ENTITLEMENTS = 1 << 15, // 32768
+    GET_PLATFORM_BEHAVIORS = 1 << 16, // 65536
+    GET_SKUS = 1 << 17, // 131072
+    IMAGE_UPLOAD = 1 << 18, // 262144
+    EXTERNAL_LINK = 1 << 19, // 524288
+    INVITE_DIALOG = 1 << 20, // 1048576
+    SHARE_MOMENT_DIALOG = 1 << 21, // 2097152
+    SET_ORIENTATION_LOCK_STATE = 1 << 22, // 4194304
+    START_PURCHASE = 1 << 23, // 8388608
+    GET_LOCALE = 1 << 24, // 16777216
+    SET_CONFIG = 1 << 25, // 33554432
 }
 
 

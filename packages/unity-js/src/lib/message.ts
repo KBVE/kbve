@@ -110,13 +110,7 @@ class MessageHandler {
 		try {
 			await handler(args, messageData);
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Error handling command '${messageData.command}': ${error.message}`
-					: `Unknown error occurred while handling command '${messageData.command}': ${String(error)}`,
-				{ error },
-			);
+			throw new Error('[Message Handler] handleMessage error');
 		}
 	}
 
@@ -130,7 +124,6 @@ class MessageHandler {
 		this.validateSdkInitialized();
 
 		if (!event) {
-			this.log('error', 'SUBSCRIBE event is undefined.');
 			throw new Error('SUBSCRIBE event is undefined.');
 		}
 
@@ -150,14 +143,7 @@ class MessageHandler {
 			);
 			this.log('info', `Subscribed to event '${event}'`);
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to subscribe to event '${event}': ${error.message}`
-					: `Failed to subscribe to event '${event}': ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to subscribe to event', error);			
 		}
 	}
 
@@ -167,7 +153,6 @@ class MessageHandler {
 	): Promise<void> {
 		this.validateSdkInitialized();
 		if (!event) {
-			this.log('error', 'UNSUBSCRIBE event is undefined.');
 			throw new Error('UNSUBSCRIBE event is undefined.');
 		}
 
@@ -186,14 +171,8 @@ class MessageHandler {
 			);
 			this.log('info', `Unsubscribed from event '${event}'`);
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to unsubscribe from event '${event}': ${error.message}`
-					: `Failed to unsubscribe from event '${event}': ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to unsubscribe from event', error);			
+
 		}
 	}
 
@@ -221,14 +200,7 @@ class MessageHandler {
 			const data = await this.discordSdk?.commands.setActivity(args);
 			this.log('info', 'Activity set successfully', { data });
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to set activity: ${error.message}`
-					: `Failed to set activity: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to set activity', error);
 		}
 	}
 
@@ -338,14 +310,7 @@ class MessageHandler {
 				`Fetched instance participants: ${JSON.stringify(data)}`,
 			);
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to fetch instance participants: ${error.message}`
-					: `Failed to fetch instance participants: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to fetch instance participants', error);			
 		}
 	}
 
@@ -367,14 +332,7 @@ class MessageHandler {
 				data,
 			});
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to encourage hardware acceleration: ${error.message}`
-					: `Failed to encourage hardware acceleration: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to encourage hardware acceleration', error);			
 		}
 	}
 
@@ -397,14 +355,7 @@ class MessageHandler {
 			this.postMessage(command, { nonce, data, args });
 			this.log('info', `Fetched channel: ${JSON.stringify(data)}`);
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to fetch channel: ${error.message}`
-					: `Failed to fetch channel: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to fetch channel', error);			
 		}
 	}
 
@@ -443,14 +394,7 @@ class MessageHandler {
 				`Fetched channel permissions for channel ID '${args.channel_id}': ${formattedData}`,
 			);
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to fetch channel permissions: ${error.message}`
-					: `Failed to fetch channel permissions: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to fetch channel permissions', error);			
 		}
 	}
 
@@ -476,14 +420,7 @@ class MessageHandler {
 				data: data.entitlements,
 			});
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to fetch entitlement: ${error.message}`
-					: `Failed to fetch entitlement: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to fetch entitlement', error);			
 		}
 	}
 
@@ -509,14 +446,7 @@ class MessageHandler {
 				data,
 			});
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to fetch platform behaviors: ${error.message}`
-					: `Failed to fetch platform behaviors: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to fetch platform behaviorss', error);			
 		}
 	}
 
@@ -540,14 +470,7 @@ class MessageHandler {
 			this.postMessage(command, { nonce, data: data.skus });
 			this.log('info', 'Fetched SKUs successfully', { data: data.skus });
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to fetch SKUs: ${error.message}`
-					: `Failed to fetch SKUs: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to fetch SKUs', error);
 		}
 	}
 
@@ -578,13 +501,8 @@ class MessageHandler {
 				nonce,
 				data: { image_url: '', canceled: true },
 			});
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to initiate image upload: ${error.message}`
-					: `Failed to initiate image upload: ${String(error)}`,
-				{ error },
-			);
+			this.logAndRethrowError('Failed to initiate image upload', error);
+
 		}
 	}
 
@@ -606,14 +524,8 @@ class MessageHandler {
 			await this.discordSdk?.commands.openExternalLink(args);
 			this.log('info', `External link opened: ${args.url}`);
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to open external link '${args.url}': ${error.message}`
-					: `Failed to open external link '${args.url}': ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to open external link', error);
+
 		}
 	}
 
@@ -631,14 +543,7 @@ class MessageHandler {
 			await this.discordSdk?.commands.openInviteDialog();
 			this.log('info', 'Invite dialog opened successfully.');
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to open invite dialog: ${error.message}`
-					: `Failed to open invite dialog: ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError('Failed to open invite dialog', error);
 		}
 	}
 
@@ -646,15 +551,12 @@ class MessageHandler {
 		args: any,
 		{ command }: MessageData,
 	): Promise<void> {
-		if (!command) {
-			throw new Error('Command is undefined.');
-		}
+		if (!command) throw new Error('Command is undefined.');
 
 		this.validateSdkInitialized();
 
-		if (!args?.mediaUrl) {
+		if (!args?.mediaUrl)
 			throw new Error('No media URL provided for SHARE_MOMENT_DIALOG.');
-		}
 
 		try {
 			await this.discordSdk?.commands.openShareMomentDialog(args);
@@ -663,14 +565,10 @@ class MessageHandler {
 				`Shared moment dialog opened with URL: ${args.mediaUrl}`,
 			);
 		} catch (error) {
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to open share moment dialog: ${error.message}`
-					: `Failed to open share moment dialog: ${String(error)}`,
-				{ error },
+			this.logAndRethrowError(
+				'Failed to open Share Moment Dialog',
+				error,
 			);
-			throw error;
 		}
 	}
 
@@ -702,11 +600,8 @@ class MessageHandler {
 		nonce: string,
 	): Promise<void> {
 		try {
-			this.validateSdkInitialized();
+			if (!this.discordSdk) throw new Error(`Discord SDK is null`);
 
-			if (!this.discordSdk) {
-				throw new Error(`Discord SDK is null`);
-			}
 			const propertyKey = String(key);
 			const propertyValue =
 				this.discordSdk[propertyKey as keyof DiscordSDK];
@@ -719,15 +614,7 @@ class MessageHandler {
 			this.postMessage(command, { nonce, data: propertyValue });
 			this.log('info', `Fetched '${propertyKey}': ${propertyValue}`);
 		} catch (error) {
-			const keyString = String(key);
-			this.log(
-				'error',
-				error instanceof Error
-					? `Failed to fetch '${keyString}': ${error.message}`
-					: `Failed to fetch '${keyString}': ${String(error)}`,
-				{ error },
-			);
-			throw error;
+			this.logAndRethrowError(`Failed to fetch '${String(key)}'`, error);
 		}
 	}
 
@@ -740,6 +627,25 @@ class MessageHandler {
 	): void {
 		const logId = Date.now();
 		this.logs.set(logId, { level, message, context });
+	}
+
+	private logAndThrowError(message: string): never {
+		this.log('error', message);
+		throw new Error(message);
+	}
+
+	private logAndRethrowError(
+		baseMessage: string,
+		error: unknown,
+		context?: Record<string, unknown>,
+	): never {
+		const errorMessage =
+			error instanceof Error
+				? `${baseMessage}: ${error.message}`
+				: `${baseMessage}: ${String(error)}`;
+
+		this.log('error', errorMessage, { ...context, error });
+		throw error instanceof Error ? error : new Error(String(error));
 	}
 }
 
