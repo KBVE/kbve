@@ -14,7 +14,7 @@ import {
 	MessageData,
 } from '../types';
 
-class DiscordSDKManager {
+export class DiscordSDKManager {
 	private static instance: DiscordSDKManager | null = null;
 	private messageHandler: MessageHandler | null = null;
 	private helper: typeof Help | null = null;
