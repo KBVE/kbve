@@ -44,6 +44,18 @@ import { Adsense, Tasks } from '@kbve/astropad';
     ```
 
     After getting the helper added, we can rotate back around and reference the help in the message handler instance.
+    Okay we got the base of the sdk setup and then we need to quickly bundle all of this up?
+    I saw that vite 6 was out but right now, we will keep using vite 5 until the next nx update.
+    To bundle all of this, we will quickly create a new vite configuration file and then a quick command for the nx system.
+    Our end result will be:
+
+    ```shell
+    ./kbve.sh -nx unity-js:alpha
+    ```
+
+    This will take the unity-js code and run it through vite, thus giving us a single esm bundle.
+    From this point,we need to figure out the best way to import this and at what level do we need to call it from?
+    The obvious choice would be to integrate it all into the rust static build, since that is where we call the nested iframe from.    
 
 
 <Adsense />
