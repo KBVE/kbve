@@ -45,6 +45,8 @@ class MessageHandler {
 		return this.discordSdkManager?.getSdk() || null;
 	}
 
+	
+
 	public getLogs(): LogEntry[] {
 		return Array.from(this.logs.values());
 	}

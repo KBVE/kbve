@@ -1,0 +1,49 @@
+---
+title: 'Decemeber: 05th'
+category: Daily
+date: 2024-12-05 12:00:00
+client: Self
+unsplash: 1511512578047-dfb367046420
+img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Decemeber 5th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+-   02:19PM
+
+    **UnityJS**
+
+    The focus for today will be to finish up the rest of the unity-js pre-alpha code changes and then prepare to release it.
+    We could make this a hybrid setup and just push the compiled version directly into the template code, hmm.
+    I saw that there is a whole build process injection method too, we can look into that as well.
+
+    We were last working on the `message.ts`, so lets go ahead and switch back over to the `DiscordSDKManager` finishing up the message handler integration and the setup functions.
+    Okay the first step that I see is making sure our instances are initialized, specifically the helper and the event manager, then we can integrate the message handler?
+    The goal is still the same, we want all our singletons to be called through our instance of `DiscordSDKManager`!
+    I did notice that in our notes, we would want to integrate supabase as well from the client side for the javascript functions, this way we can have the wasm build call supabase and have the javascript call it as well.
+    There would be an issue where each user now has two instances of a supabase connection, so we could work on making sure that they are both in-sync?
+    Hmm, this is just food for thought and we should table this part of the integration until after we get all the discord issues resolved.
+    
+
+    Adding the helper will be easy, because we already did it in the `message.ts`, so it will be something like this:
+    ```ts
+
+    import {Help} from './helper';
+    private helper: typeof Help | null = null;
+    this.helper = Help;
+
+    public getHelper(): typeof Help | null {
+    return this.helper;
+    }
+
+    ```
+
+    After getting the helper added, we can rotate back around and reference the help in the message handler instance.
+
+
+<Adsense />

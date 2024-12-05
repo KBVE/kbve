@@ -1,4 +1,6 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk';
+import MessageHandler from './message';
+import { Help } from './helper';
 
 import {
 	DiscordConfigOptions,
@@ -9,10 +11,14 @@ import {
 	JavaScriptListenerState,
 	JavaScriptMessageType,
 	CompatibleUser,
+	MessageData,
 } from '../types';
 
 class DiscordSDKManager {
 	private static instance: DiscordSDKManager | null = null;
+	private messageHandler: MessageHandler | null = null;
+	private helper: typeof Help | null = null;
+
 	private discordSdk: DiscordSDK | null = null;
 	private user: CompatibleUser | null = null;
 	private state: JavaScriptListenerState = JavaScriptListenerState.None;
@@ -61,17 +67,72 @@ class DiscordSDKManager {
 				throw new Error('No access_token field found in response.');
 			}
 
-			const { user }: { user: CompatibleUser } = await this.discordSdk.commands.authenticate({
-				access_token: tokenData.access_token,
-			});
+			const { user }: { user: CompatibleUser } =
+				await this.discordSdk.commands.authenticate({
+					access_token: tokenData.access_token,
+				});
 
 			this.user = user;
 			this.state = JavaScriptListenerState.Authenticated;
+			this.helper = Help;
+			this.messageHandler = MessageHandler.getInstance(this, this.helper);
+			this.setupMessageListener();
 		} catch (error) {
 			this.state = JavaScriptListenerState.Error;
 			console.error('Error initializing DiscordSDK:', error);
 			throw error;
 		}
+	}
+
+	private setupMessageListener(): void {
+		if (!this.messageHandler) {
+			throw new Error('MessageHandler is not initialized.');
+		}
+
+		window.addEventListener('message', async (event: MessageEvent) => {
+			try {
+				const messageData = event.data as MessageData;
+
+				if (
+					typeof messageData !== 'object' ||
+					Array.isArray(messageData) ||
+					messageData === null
+				) {
+					console.warn(
+						'Received invalid or empty message:',
+						event.data,
+					);
+					return;
+				}
+
+				if (!this.discordSdk || !this.user) {
+					console.warn(
+						'SDK or user not ready. Waiting for initialization...',
+					);
+					await this.initializePending();
+				}
+
+				if (this.messageHandler) {
+					await this.messageHandler.handleMessage(messageData);
+				} else {
+					console.error(
+						'MessageHandler is not available to handle the message.',
+					);
+				}
+			} catch (error) {
+				console.error('Error handling message:', error);
+			}
+		});
+	}
+
+	private async initializePending(): Promise<void> {
+		while (!this.discordSdk || !this.user) {
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
+	}
+
+	public getHelper(): typeof Help | null {
+		return this.helper;
 	}
 
 	/**
