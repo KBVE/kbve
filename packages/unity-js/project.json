@@ -19,7 +19,10 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "packages/unity-js",
-				"command": ["vite build"],
+				"commands": [
+					"vite build",
+					"cp -r ../../dist/packages/unity-js/vite/* ../../apps/rust_rareicon_gameserver/build/vite"
+				],
 				"parallel": false
 			}
 		}

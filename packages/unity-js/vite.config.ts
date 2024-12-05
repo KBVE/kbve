@@ -8,7 +8,8 @@ export default defineConfig({
 			name: 'DiscordSDKManager',
 			fileName: (format) => `discord-sdk-manager.${format}.js`,
 		},
-		outDir: path.resolve(__dirname, '../../dist/packages/unity-js'),
+		outDir: path.resolve(__dirname, '../../dist/packages/unity-js/vite'),
+        emptyOutDir: true,
 		rollupOptions: {
 			external: [],
 		},

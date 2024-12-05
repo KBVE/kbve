@@ -55,7 +55,18 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
     This will take the unity-js code and run it through vite, thus giving us a single esm bundle.
     From this point,we need to figure out the best way to import this and at what level do we need to call it from?
-    The obvious choice would be to integrate it all into the rust static build, since that is where we call the nested iframe from.    
+    The obvious choice would be to integrate it all into the rust static build, since that is where we call the nested iframe from.
+
+-   05:10PM
+
+    **Alpha**
+
+    We want the nx commands to move the build esm javascript files from the vite over to the rust static build folder.
+    To accomplish this, we will have to make sure that we can easily access , uhh, actually we will just update the vite command to push the vite folders out into a subfolder under the unity-js called `vite` and then just move those files.
+    The moving of the files will be done through the nx command, making it a bit easier to manage?
+    One of the other options was to just build the whole javascript bundle each time before running the rust files but I feel like that would be too much of an overkill?
+    The goal here would be to try and minimize the amount of double builds, hmm, for now we should just focus on getting a functional MVP.
+    There can be future adjustments made on how we handle it.
 
 
 <Adsense />
