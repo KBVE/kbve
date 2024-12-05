@@ -79,4 +79,16 @@ import { Adsense, Tasks } from '@kbve/astropad';
     For the time being, I am going to decouple the game server build from the unity games and just keep it isolated because it should be decoupled moving forward.
     Since the game server will also have the ability to handle UDP connections, we can look at the networking for the windows build next week too.
 
+    Updating the cargo toml to use the reqwest library but without the openssl, which will be used to connect and verify the discord token.
+    Ugh, told myself that I would keep it simple but it would make sense to wrap the whole discord client call concept into a quick mini-pool, we will have it hold about 10 clients that should give us enough room to handle burst connections.
+    Since the call is only for grabbing the access token, we can control that thread quickly by dropping and adding it back into the pool.
+    We have enough vcpus to manage a small pool of about 10 clients, so that should be good enough for this part of the code.
+    Instead of placing it all inside of the `main.rs`, I will make it a small file called `discord.rs` and then when I get time, I will move it into the jedi crate and we can just call it from there.
+    So the first step would be to build out that mini-pool within the application, find the point of failures and once it is functional, we move it over into the jedi crate and call it from there.
+    This would give us the flexibility to use it again in the future and speed up compiling time in the future.
+    Okay, lets start with building the client out next.
+
+    Oh, for building out the docker image, I think it would make sense to do it on the macbook too because it will be faster on the orbstack.
+    Let me push this up and then split the vscode up to a macbook instance.
+
 <Adsense />

@@ -7,8 +7,10 @@ use axum::{
 };
 
 use axum_extra::TypedHeader;
+use std::sync::Arc;
 use std::borrow::Cow;
 use std::ops::ControlFlow;
+use reqwest::Client;
 
 use tokio::sync::broadcast;
 use futures::{ sink::SinkExt, stream::StreamExt };
@@ -115,10 +117,9 @@ async fn main() {
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::debug!("listening on {}", listener.local_addr().unwrap());
-  // Validate environment variables
   validate_env_vars();
-  // Log them securely
   log_env_vars();
+  //  Removing Debug After wired confirmation, so no leaks inside of the logs.
   tokio::spawn(run_udp_server());
   axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
 }
@@ -228,4 +229,34 @@ async fn echo_helper_function(
     }
   }
   ControlFlow::Continue(())
+}
+
+//  [Reqwest Discord] -> TODO: Move to the Jedi Cargo Crate once it works.
+//  Structs
+
+#[derive(Clone)]
+struct AppState {
+    client: Arc<Client>,
+}
+
+
+#[derive(Deserialize)]
+struct TokenRequest {
+    code: String,
+}
+
+#[derive(Serialize)]
+struct TokenResponse {
+    access_token: String,
+}
+
+//  Shared Arc
+
+fn create_shared_clienmt() -> Arc<Client> {
+  Arc::new(
+    Client::builder()
+      .use_rustls_tls()
+      .build()
+      .expect("Failed to build HTTP client"),
+  )
 }
