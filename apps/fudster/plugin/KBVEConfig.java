@@ -5,8 +5,6 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
-//  [Microbot]
-import net.runelite.client.plugins.microbot.util.inventory.DropOrder;
 
 @ConfigGroup("kbve")
 public interface KBVEConfig extends Config {
@@ -65,7 +63,7 @@ public interface KBVEConfig extends Config {
         section = apiSection
     )
     default String apiEndpoint() {
-        return "ws://localhost:8086";
+        return "ws://localhost:8086/ws";
     }
 
 
@@ -140,17 +138,4 @@ public interface KBVEConfig extends Config {
         return KBVEActivity.PYTHON;
     }
 
-
-
-    // Optional Utility Setting
-    @ConfigItem(
-        name = "Drop Order",
-        keyName = "dropOrder",
-        position = 4,
-        description = "The order in which to drop items",
-        section = generalSection
-    )
-    default DropOrder getDropOrder() {
-        return DropOrder.STANDARD;
-    }
 }

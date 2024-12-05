@@ -126,6 +126,7 @@
 	},
 	"dependencies": {
 		"@astrojs/ts-plugin": "^1.10.3",
+		"@discord/embedded-app-sdk": "^1.7.0",
 		"@dnd-kit/core": "^6.1.0",
 		"@dotlottie/react-player": "^1.6.19",
 		"@expo/metro-config": "0.18.11",

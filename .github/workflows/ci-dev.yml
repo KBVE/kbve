@@ -161,6 +161,8 @@ jobs:
             api: ${{ steps.delta.outputs.api_any_changed  }}
             rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
             kilobase: ${{ steps.delta.outputs.kilobase_any_changed}}
+            fudster: ${{ steps.delta.outputs.fudster_any_changed}}
+
             ##  [PACKAGES]
         steps:
             - name: Checkout the repository using git
@@ -189,6 +191,8 @@ jobs:
                           - 'apps/rust_api_profile/**'
                       kilobase:
                           - 'apps/kilobase/Cargo.toml'
+                      fudster:
+                          - 'apps/fudster/README.md'
 
     deploy:
         needs: alter
@@ -231,6 +235,66 @@ jobs:
               run: |
                   pnpm nx report
 
+    fudster_dev_cicd:
+        needs: ['handle', 'deploy', 'alter']
+        name: Fudster Dev CI-CD
+        if: needs.alter.outputs.fudster == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm dependencies
+              shell: bash
+              run: |
+                  pnpm install
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build Docker container with Nx
+              env:
+                  INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  pnpm nx run fudster:container --configuration=production  --push
+
     kilobase_dev_cicd:
         needs: ['deploy', 'alter']
         name: KiloBase Dev CI-CD
@@ -258,8 +322,8 @@ jobs:
             - name: Get pnpm Store
               shell: bash
               run: |
-                    echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-                  
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
@@ -291,12 +355,12 @@ jobs:
 
             # - name: Install PGRX
             #   run: cargo install cargo-pgrx --version 0.12.3 --locked
-        
+
             # - name: Get PostgreSQL 15 pg_config path
             #   run: |
             #     PG_CONFIG_PATH=$(find /usr/lib/postgresql/15/ -name pg_config)
             #     echo "PG_CONFIG_PATH=$PG_CONFIG_PATH" >> $GITHUB_ENV
-                            
+
             # - name: Initialize PGRX
             #   run: cargo pgrx init --pg15 $PG_CONFIG_PATH
 
@@ -314,7 +378,7 @@ jobs:
 
             - name: Build Docker container with Nx
               env:
-                INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   pnpm nx run kilobase:container --configuration=production  --push
 

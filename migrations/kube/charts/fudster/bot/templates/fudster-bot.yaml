@@ -1,0 +1,115 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fudster-bot
+  namespace: fudster
+  labels:
+    app: fudster
+spec:
+  replicas: {{ .Values.bot.replicaCount }}
+  selector:
+    matchLabels:
+      app: fudster
+      tier: bot
+  template:
+    metadata:
+      labels:
+        app: fudster
+        tier: bot
+    spec:
+      containers:
+        - name: bot
+          image: "kbve/fudster@sha256:9c2bd3d77a991104511ed006f56d34d0f9720722c0811af7928b308757fbaaef"
+          #image: "{{ .Values.bot.image.repository }}:{{ .Values.bot.image.tag }}"
+          ports:
+            {{- range .Values.bot.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.bot.resources | nindent 12 }}
+
+---
+
+# Service (TCP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: fudster-service
+  namespace: fudster
+  labels:
+    app: fudster
+spec:
+  selector:
+    app: fudster
+  ports:
+    {{- range .Values.bot.service.ports }}
+    - name: {{ .name }}
+      protocol: {{ .protocol }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+    {{- end }}
+  type: ClusterIP
+
+---
+
+# WebSocket Ingress - TODO: Values
+{{- if .Values.bot.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fudster-ingress
+  namespace: fudster
+  annotations:
+    nginx.ingress.kubernetes.io/enable-websocket: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    #nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    #nginx.ingress.kubernetes.io/keepalive: "on"
+    #nginx.ingress.kubernetes.io/http2-push-preload: "true"
+spec:
+  rules:
+    - host: {{ .Values.bot.ingress.host }}
+      http:
+        paths:
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: fudster-service
+                port:
+                  number: 8086
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fudster-service
+                port:
+                  number: 3000
+{{- end }}
+
+---
+
+# UDP LoadBalancer Service
+{{- if .Values.bot.service.udp.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: rareicon-udp-service
+  namespace: rareicon
+  labels:
+    app: rareicon
+spec:
+  selector:
+    app: rareicon
+  ports:
+    - name: udp-port
+      protocol: UDP
+      port: 8081
+      targetPort: 8081
+  type: NodePort
+{{- end }}
