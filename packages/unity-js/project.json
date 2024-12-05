@@ -21,9 +21,7 @@
 				"cwd": "packages/unity-js",
 				"commands": [
 					"vite build",
-					"mv ../../apps/rust_rareicon_gameserver/build/index.html ../../apps/rust_rareicon_gameserver/build/index.html.bak || true",
-					"cp -r ../../dist/packages/unity-js/vite/* ../../apps/rust_rareicon_gameserver/build/",
-					"mv ../../apps/rust_rareicon_gameserver/build/index.html.bak ../../apps/rust_rareicon_gameserver/build/index.html || true"
+					"cp -r ../../dist/packages/unity-js/vite/* ../../apps/rust_rareicon_gameserver/build/vite"
 				],
 				"parallel": false
 			}
