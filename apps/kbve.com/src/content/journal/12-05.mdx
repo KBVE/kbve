@@ -69,4 +69,14 @@ import { Adsense, Tasks } from '@kbve/astropad';
     There can be future adjustments made on how we handle it.
 
 
+-   05:50PM
+
+    **DiscordAPI**
+
+    We will need to quickly configure the api route for the discord oauth, hmm.
+    The way that we can approach this is by skipping any advance wafs or ebpf stuff, keeping it simple for now would be the best option.
+    Let me start the route, ship the build and then come back around to making some minor changes that reflect the changes.
+    For the time being, I am going to decouple the game server build from the unity games and just keep it isolated because it should be decoupled moving forward.
+    Since the game server will also have the ability to handle UDP connections, we can look at the networking for the windows build next week too.
+
 <Adsense />
