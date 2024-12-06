@@ -6,21 +6,18 @@ import {
 	JSFFI_CommandMessage,
 	JSFFI_AuthMessage,
 	JavaScriptMessageType,
+	LogEntry,
 } from '../types';
 
 class Manager {
 	private static instance: Manager;
 	private helper = Help;
-	private discordManager: DiscordSDKManager;
-	private messageHandler: MessageHandler;
+	private discordManager: DiscordSDKManager | null = null;
+	private messageHandler: MessageHandler | null = null;
+	private ready = false;
 
-	private constructor() {
-		this.discordManager = DiscordSDKManager.getInstance(this.helper);
-		this.messageHandler = MessageHandler.getInstance(
-			this.discordManager,
-			this.helper,
-		);
-	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	private constructor() {}
 
 	public static getInstance(): Manager {
 		if (!Manager.instance) {
@@ -29,20 +26,52 @@ class Manager {
 		return Manager.instance;
 	}
 
+	public async initialize(config: DiscordConfigOptions): Promise<void> {
+		if (this.ready) {
+			console.warn('Manager is already initialized.');
+			return;
+		}
+
+		this.discordManager = DiscordSDKManager.getInstance(this.helper);
+		await this.discordManager.initialize(config);
+
+		this.messageHandler = MessageHandler.getInstance(
+			this.discordManager,
+			this.helper,
+		);
+
+		this.ready = true;
+	}
+
+	private getSDKManager(): DiscordSDKManager {
+		if (!this.ready || !this.discordManager) {
+			throw new Error(
+				'Manager is not initialized. Call initialize() first.',
+			);
+		}
+		return this.discordManager;
+	}
+
+	private getMessageHandler(): MessageHandler {
+		if (!this.ready || !this.messageHandler) {
+			throw new Error(
+				'MessageHandler is not initialized. Call initialize() first.',
+			);
+		}
+		return this.messageHandler;
+	}
+
 	public SDK<T>(fn?: (sdk: DiscordSDKManager) => T): T | DiscordSDKManager {
-		return fn ? fn(this.discordManager) : this.discordManager;
+		return fn ? fn(this.getSDKManager()) : this.getSDKManager();
 	}
 
 	public Helper<T>(fn?: (helper: typeof Help) => T): T | typeof Help {
 		return fn ? fn(this.helper) : this.helper;
 	}
 
-	public Message<T>(fn?: (handler: MessageHandler) => T): T | MessageHandler {
-		return fn ? fn(this.messageHandler) : this.messageHandler;
-	}
-
-	public async initialize(config: DiscordConfigOptions): Promise<void> {
-		await this.SDK((sdk) => sdk.initialize(config));
+	public Message<T = MessageHandler>(fn?: (handler: MessageHandler) => T): T {
+		const messageHandler = this.getMessageHandler();
+		return fn ? fn(messageHandler) : messageHandler as T;
 	}
 
 	public getAuthenticatedUser() {
@@ -62,12 +91,12 @@ class Manager {
 		await this.Message((handler) => handler.handleMessage(data));
 	}
 
-	public getLogs(): any[] {
-		return this.messageHandler.getLogs();
+	public getLogs(): LogEntry[] {
+		return this.Message((handler) => handler.getLogs());
 	}
 
 	public purgeLogs(): void {
-		this.messageHandler.purgeLogs();
+		this.Message((handler) => handler.purgeLogs());
 	}
 }
 

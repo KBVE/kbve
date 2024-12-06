@@ -118,7 +118,6 @@ export class DiscordSDKManager {
 
 		console.log('Sending message:', message);
 
-		// Example: process message here, e.g., send it via the SDK
 		switch (message.type) {
 			case JavaScriptMessageType.Command:
 				this.processCommandMessage(message as JSFFI_CommandMessage);
@@ -144,7 +143,6 @@ export class DiscordSDKManager {
 		message: JSFFI_NotificationMessage,
 	): void {
 		console.log('Notification received:', message.payload.message);
-		// Example: Handle notifications as needed
 	}
 }
 
