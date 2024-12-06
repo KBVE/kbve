@@ -1,4 +1,5 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk';
+import { Help } from './helper';
 
 import {
 	DiscordConfigOptions,
@@ -9,20 +10,24 @@ import {
 	JavaScriptListenerState,
 	JavaScriptMessageType,
 	CompatibleUser,
+	MessageData,
 } from '../types';
 
-class DiscordSDKManager {
+export class DiscordSDKManager {
 	private static instance: DiscordSDKManager | null = null;
+	private helper: typeof Help;
+
 	private discordSdk: DiscordSDK | null = null;
 	private user: CompatibleUser | null = null;
 	private state: JavaScriptListenerState = JavaScriptListenerState.None;
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private constructor() {}
+	private constructor(helper: typeof Help) {
+		this.helper = helper;
+	}
 
-	public static getInstance(): DiscordSDKManager {
+	public static getInstance(helper: typeof Help): DiscordSDKManager {
 		if (!DiscordSDKManager.instance) {
-			DiscordSDKManager.instance = new DiscordSDKManager();
+			DiscordSDKManager.instance = new DiscordSDKManager(helper);
 		}
 		return DiscordSDKManager.instance;
 	}
@@ -61,9 +66,10 @@ class DiscordSDKManager {
 				throw new Error('No access_token field found in response.');
 			}
 
-			const { user }: { user: CompatibleUser } = await this.discordSdk.commands.authenticate({
-				access_token: tokenData.access_token,
-			});
+			const { user }: { user: CompatibleUser } =
+				await this.discordSdk.commands.authenticate({
+					access_token: tokenData.access_token,
+				});
 
 			this.user = user;
 			this.state = JavaScriptListenerState.Authenticated;
@@ -112,7 +118,6 @@ class DiscordSDKManager {
 
 		console.log('Sending message:', message);
 
-		// Example: process message here, e.g., send it via the SDK
 		switch (message.type) {
 			case JavaScriptMessageType.Command:
 				this.processCommandMessage(message as JSFFI_CommandMessage);
@@ -138,7 +143,6 @@ class DiscordSDKManager {
 		message: JSFFI_NotificationMessage,
 	): void {
 		console.log('Notification received:', message.payload.message);
-		// Example: Handle notifications as needed
 	}
 }
 
