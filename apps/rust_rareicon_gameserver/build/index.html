@@ -32,8 +32,8 @@
 
 			const discordConfig = {
 				clientId: '1308198462155653180',
-				tokenRoute: '/api/token',
-				scope: ['identify', 'rpc', 'guilds'],
+				tokenRoute: '/.proxy/api/token',
+				scope: ['identify', 'applications.commands', 'guilds', 'guilds.members.read'],
 			};
 
 			(async () => {
