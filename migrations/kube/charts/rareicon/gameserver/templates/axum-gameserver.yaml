@@ -20,8 +20,7 @@ spec:
     spec:
       containers:
         - name: gameserver
-          image: "kbve/rareicongs@sha256:32fecd31c9d84b002455fc6e10fbdf26d8d693521774b940e3d658d2eb281b5b"
-          #image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
+          image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
           env:
             - name: DISCORD_CLIENT_ID
               valueFrom:
