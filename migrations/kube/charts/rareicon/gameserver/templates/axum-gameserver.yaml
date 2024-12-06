@@ -32,6 +32,11 @@ spec:
                 secretKeyRef:
                   name: discord-client-secret
                   key: DISCORD_CLIENT_SECRET
+            - name: DISCORD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: discord-token
+                  key: DISCORD_TOKEN
           ports:
             {{- range .Values.gameserver.service.ports }}
             - name: {{ .name }}
