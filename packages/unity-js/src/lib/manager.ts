@@ -1,16 +1,20 @@
 import DiscordSDKManager from './discord';
+import MessageHandler from './message';
 import { Help } from './helper';
 import {
 	DiscordConfigOptions,
 	JSFFI_CommandMessage,
 	JSFFI_AuthMessage,
 	JavaScriptMessageType,
+	LogEntry,
 } from '../types';
 
 class Manager {
 	private static instance: Manager;
-	private discordManager = DiscordSDKManager.getInstance();
 	private helper = Help;
+	private discordManager: DiscordSDKManager | null = null;
+	private messageHandler: MessageHandler | null = null;
+	private ready = false;
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private constructor() {}
@@ -22,16 +26,52 @@ class Manager {
 		return Manager.instance;
 	}
 
-    public SDK<T>(fn?: (sdk: DiscordSDKManager) => T): T | DiscordSDKManager {
-        return fn ? fn(this.discordManager) : this.discordManager;
-    }
-
-    public Helper<T>(fn?: (helper: typeof Help) => T): T | typeof Help {
-        return fn ? fn(this.helper) : this.helper;
-      }
-
 	public async initialize(config: DiscordConfigOptions): Promise<void> {
-		await this.SDK((sdk) => sdk.initialize(config));
+		if (this.ready) {
+			console.warn('Manager is already initialized.');
+			return;
+		}
+
+		this.discordManager = DiscordSDKManager.getInstance(this.helper);
+		await this.discordManager.initialize(config);
+
+		this.messageHandler = MessageHandler.getInstance(
+			this.discordManager,
+			this.helper,
+		);
+
+		this.ready = true;
+	}
+
+	private getSDKManager(): DiscordSDKManager {
+		if (!this.ready || !this.discordManager) {
+			throw new Error(
+				'Manager is not initialized. Call initialize() first.',
+			);
+		}
+		return this.discordManager;
+	}
+
+	private getMessageHandler(): MessageHandler {
+		if (!this.ready || !this.messageHandler) {
+			throw new Error(
+				'MessageHandler is not initialized. Call initialize() first.',
+			);
+		}
+		return this.messageHandler;
+	}
+
+	public SDK<T>(fn?: (sdk: DiscordSDKManager) => T): T | DiscordSDKManager {
+		return fn ? fn(this.getSDKManager()) : this.getSDKManager();
+	}
+
+	public Helper<T>(fn?: (helper: typeof Help) => T): T | typeof Help {
+		return fn ? fn(this.helper) : this.helper;
+	}
+
+	public Message<T = MessageHandler>(fn?: (handler: MessageHandler) => T): T {
+		const messageHandler = this.getMessageHandler();
+		return fn ? fn(messageHandler) : messageHandler as T;
 	}
 
 	public getAuthenticatedUser() {
@@ -45,6 +85,18 @@ class Manager {
 		} as JSFFI_CommandMessage;
 
 		this.SDK((sdk) => sdk.sendMessage(message));
+	}
+
+	public async handleMessage(data: any): Promise<void> {
+		await this.Message((handler) => handler.handleMessage(data));
+	}
+
+	public getLogs(): LogEntry[] {
+		return this.Message((handler) => handler.getLogs());
+	}
+
+	public purgeLogs(): void {
+		this.Message((handler) => handler.purgeLogs());
 	}
 }
 
