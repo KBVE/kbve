@@ -22,15 +22,29 @@
 	<body>
 		<iframe
 			src="https://1308198462155653180.discordsays.com/.proxy/nested"
-			id="nestedFrame"
+			id="nested"
 			scrolling="no"></iframe>
 		<script type="module">
-			import { discordFunction } from 'https://1308198462155653180.discordsays.com/.proxy/nested/TemplateData/discord.js';
+			//import { discordFunction } from 'https://1308198462155653180.discordsays.com/.proxy/nested/TemplateData/discord.js';
+			//discordFunction();
 
-			discordFunction();
+			import { Manager } from 'https://1308198462155653180.discordsays.com/.proxy/vite/discord-sdk-manager.es.js';
 
-			import * as discordembeddedAppSdk from 'https://1308198462155653180.discordsays.com/.proxy/discord-sdk/+esm';
-			
+			const discordConfig = {
+				clientId: '1308198462155653180',
+				tokenRoute: '/.proxy/api/token',
+				scope: ['identify', 'guilds'],
+			};
+
+			(async () => {
+				try {
+					const manager = Manager.getInstance();
+					await manager.initialize(discordConfig);
+					console.log('Discord SDK initialized successfully!');
+				} catch (error) {
+					console.error('Failed to initialize Discord SDK:', error);
+				}
+			})();
 		</script>
 	</body>
 </html>

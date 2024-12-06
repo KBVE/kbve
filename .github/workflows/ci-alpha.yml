@@ -71,6 +71,7 @@ jobs:
             rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
             expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
             kilonet: ${{ steps.delta.outputs.kilonet_any_changed }}
+            rustrareicongameserver: ${{ steps.delta.outputs.rustrareicongameserver_any_changed }}
 
         steps:
             - name: Checkout the repository using git
@@ -99,6 +100,8 @@ jobs:
                           - 'apps/expo-lcagents/**'
                       kilonet:
                           - 'packages/kilonet/README.md'
+                      rustrareicongameserver:
+                          - 'apps/rust_rareicon_gameserver/README.md'
 
     expo-lcagents-web-build:
         needs: ['alter', 'globals']
@@ -255,7 +258,8 @@ jobs:
                   buildChannel: webgl
 
     rareicon_gameserver:
-        needs: ['kilonet-rareicon-build']
+        needs: ['alter', 'globals']
+        if: needs.alter.outputs.rustrareicongameserver == 'true'
         name: RareIcon Game Server
         runs-on: 'ubuntu-latest'
         permissions:

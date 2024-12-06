@@ -2,65 +2,50 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rareicon-gameserver
-  namespace: rareicon
+  name: fudster-bot
+  namespace: fudster
   labels:
-    app: rareicon
+    app: fudster
 spec:
-  replicas: {{ .Values.gameserver.replicaCount }}
+  replicas: {{ .Values.bot.replicaCount }}
   selector:
     matchLabels:
-      app: rareicon
-      tier: gameserver
+      app: fudster
+      tier: bot
   template:
     metadata:
       labels:
-        app: rareicon
-        tier: gameserver
+        app: fudster
+        tier: bot
     spec:
       containers:
-        - name: gameserver
-          image: "{{ .Values.gameserver.image.repository }}:{{ .Values.gameserver.image.tag }}"
-          env:
-            - name: DISCORD_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: discord-client-secret
-                  key: DISCORD_CLIENT_ID
-            - name: DISCORD_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: discord-client-secret
-                  key: DISCORD_CLIENT_SECRET
-            - name: DISCORD_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: discord-token
-                  key: DISCORD_TOKEN
+        - name: bot
+          image: "kbve/fudster@sha256:9c2bd3d77a991104511ed006f56d34d0f9720722c0811af7928b308757fbaaef"
+          #image: "{{ .Values.bot.image.repository }}:{{ .Values.bot.image.tag }}"
           ports:
-            {{- range .Values.gameserver.service.ports }}
+            {{- range .Values.bot.service.ports }}
             - name: {{ .name }}
               containerPort: {{ .targetPort }}
               protocol: {{ .protocol }}
             {{- end }}
           resources:
-            {{- toYaml .Values.gameserver.resources | nindent 12 }}
+            {{- toYaml .Values.bot.resources | nindent 12 }}
 
 ---
 
-# Service (TCP and UDP)
+# Service (TCP)
 apiVersion: v1
 kind: Service
 metadata:
-  name: rareicon-service
-  namespace: rareicon
+  name: fudster-service
+  namespace: fudster
   labels:
-    app: rareicon
+    app: fudster
 spec:
   selector:
-    app: rareicon
+    app: fudster
   ports:
-    {{- range .Values.gameserver.service.ports }}
+    {{- range .Values.bot.service.ports }}
     - name: {{ .name }}
       protocol: {{ .protocol }}
       port: {{ .port }}
@@ -71,12 +56,12 @@ spec:
 ---
 
 # WebSocket Ingress - TODO: Values
-{{- if .Values.gameserver.ingress.enabled }}
+{{- if .Values.bot.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rareicon-ingress
-  namespace: rareicon
+  name: fudster-ingress
+  namespace: fudster
   annotations:
     nginx.ingress.kubernetes.io/enable-websocket: "true"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
@@ -88,21 +73,21 @@ metadata:
     #nginx.ingress.kubernetes.io/http2-push-preload: "true"
 spec:
   rules:
-    - host: {{ .Values.gameserver.ingress.host }}
+    - host: {{ .Values.bot.ingress.host }}
       http:
         paths:
           - path: /ws
             pathType: Prefix
             backend:
               service:
-                name: rareicon-service
+                name: fudster-service
                 port:
-                  number: 3000
+                  number: 8086
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: rareicon-service
+                name: fudster-service
                 port:
                   number: 3000
 {{- end }}
@@ -110,7 +95,7 @@ spec:
 ---
 
 # UDP LoadBalancer Service
-{{- if .Values.gameserver.service.udp.enabled }}
+{{- if .Values.bot.service.udp.enabled }}
 apiVersion: v1
 kind: Service
 metadata:

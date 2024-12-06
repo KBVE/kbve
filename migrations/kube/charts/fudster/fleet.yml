@@ -1,0 +1,6 @@
+defaultNamespace: fudster
+helm:
+    chart: ./bot
+    releaseName: fudster-release
+    valuesFiles:
+        - bot/values.yaml

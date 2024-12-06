@@ -6,11 +6,15 @@ use axum::{
   Router,
 };
 
+use axum::{ extract::State, Json };
+
 use axum_extra::TypedHeader;
+use std::sync::Arc;
 use std::borrow::Cow;
 use std::ops::ControlFlow;
+use reqwest::Client;
 
-use tokio::sync::broadcast;
+use tokio::{ sync::broadcast, time::{ sleep, Duration } };
 use futures::{ sink::SinkExt, stream::StreamExt };
 use std::{ net::SocketAddr, path::PathBuf };
 use tokio::net::{ UdpSocket, TcpListener };
@@ -27,6 +31,10 @@ use axum::extract::ws::CloseFrame;
 
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
+use serde::{ Deserialize, Serialize };
+
+mod discord;
+use crate::discord::{ DiscordClient, TokenRequest, TokenResponse };
 
 #[cfg(feature = "jemalloc")]
 mod allocator {
@@ -88,6 +96,11 @@ fn log_env_vars() {
   tracing::info!("Discord Token: {}", masked_token);
 }
 
+#[derive(Clone)]
+struct AppState {
+  pub discord_client: Arc<DiscordClient>,
+}
+
 #[tokio::main]
 async fn main() {
   tracing_subscriber
@@ -102,23 +115,31 @@ async fn main() {
     .with(tracing_subscriber::fmt::layer())
     .init();
 
+  let discord_client = DiscordClient::new(10, Duration::from_secs(2), 3);
+  tracing::info!("DiscordClient initialized successfully");
+
+  let app_state = AppState {
+    discord_client: Arc::new(discord_client),
+  };
+
   let cors = CorsLayer::new().allow_origin(Any).allow_methods(Any).allow_headers(Any);
 
   let app = Router::new()
     .fallback_service(ServeDir::new("build").append_index_html_on_directories(true))
     .route("/ws", any(websocket_handler))
     .route("/ws/", any(websocket_handler))
+    .route("/api/token", axum::routing::post(token_handler))
     .layer(
       TraceLayer::new_for_http().make_span_with(DefaultMakeSpan::default().include_headers(true))
     )
-    .layer(cors);
+    .layer(cors)
+    .with_state(app_state);
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::debug!("listening on {}", listener.local_addr().unwrap());
-  // Validate environment variables
   validate_env_vars();
-  // Log them securely
   log_env_vars();
+  //  Removing Debug After wired confirmation, so no leaks inside of the logs.
   tokio::spawn(run_udp_server());
   axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
 }
@@ -139,26 +160,21 @@ async fn websocket_handler(
   ws.on_upgrade(move |socket| handle_socket(socket, addr))
 }
 
-// Handle WebSocket connections
 async fn handle_socket(mut socket: WebSocket, who: SocketAddr) {
   println!("WebSocket connection established with {who}");
 
   while let Some(Ok(msg)) = socket.next().await {
-    // Log the message first
     if logger_helper_function(&msg, who).is_break() {
-      break; // Exit if the logger indicates the connection should close
+      break;
     }
-
-    // Then echo the message back to the client
     if echo_helper_function(&msg, who, &mut socket).await.is_break() {
-      break; // Exit if the echo function indicates the connection should close
+      break;
     }
   }
 
   println!("WebSocket connection with {who} closed");
 }
 
-// UDP server
 async fn run_udp_server() {
   let socket = UdpSocket::bind("0.0.0.0:8081").await.unwrap();
   println!("UDP server running on 0.0.0.0:8081");
@@ -169,7 +185,7 @@ async fn run_udp_server() {
       let data = &buf[..size];
       println!("Received UDP data from {}: {:?}", addr, data);
 
-      // Echo response
+      // Echo response - Remove once the eBPF / Firewall is setup.
       socket.send_to(data, addr).await.unwrap();
     }
   }
@@ -228,4 +244,28 @@ async fn echo_helper_function(
     }
   }
   ControlFlow::Continue(())
+}
+
+async fn token_handler(
+  State(state): State<AppState>,
+  Json(payload): Json<TokenRequest>
+) -> Json<TokenResponse> {
+  match
+    state.discord_client.fetch_access_token(
+      get_env_var("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID not set in static map"),
+      get_env_var("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET not set in static map"),
+      &payload.code
+    ).await
+  {
+    Ok(access_token) => {
+      tracing::info!("Successfully fetched access token");
+      Json(TokenResponse { access_token })
+    }
+    Err(e) => {
+      tracing::error!("Failed to fetch access token: {}", e);
+      Json(TokenResponse {
+        access_token: "ERROR".to_string(),
+      })
+    }
+  }
 }

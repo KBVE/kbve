@@ -4,7 +4,7 @@ gameserver:
     replicaCount: 1
     image:
         repository: kbve/rareicongs
-        tag: 1.03.0
+        tag: 1.04.3
         digest: "sha256:fdaca75d1612b517f85a78b5954b26302f17c92e11e4c7e4d100cef57b739c68"
     service:
         name: gameserver

@@ -23,11 +23,11 @@ routes = Routes(app, templates_dir="templates")
 
 CORS(app)
 
-@app.websocket("/")
+@app.websocket("/ws")
 async def websocket_handshake(websocket: WebSocket):
     await ws_handler.handle_websocket(websocket)
 
-routes.render("/", "home.html")
-routes.get("/start-runelite", RuneLiteClient, "start_runelite_async")
-routes.get("/stop-runelite", RuneLiteClient, "stop_runelite_async")
-routes.get("/status", RuneLiteClient, "status_runelite")
+routes.render("/ws/", "home.html")
+routes.get("/ws/start-runelite", RuneLiteClient, "start_runelite_async")
+routes.get("/ws/stop-runelite", RuneLiteClient, "stop_runelite_async")
+routes.get("/ws/status", RuneLiteClient, "status_runelite")
