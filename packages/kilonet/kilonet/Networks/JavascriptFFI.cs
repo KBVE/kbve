@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
-
 #if UNITY_WEBGL && !UNITY_EDITOR
-    using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 #endif
 
 namespace KBVE.Kilonet.Networks
@@ -55,22 +54,23 @@ namespace KBVE.Kilonet.Networks
     Command = 1 << 3, // 0001000 - Command or action message
     Event = 1 << 4, // 0010000 - Real-time event
     Error = 1 << 5, // 0100000 - Error message
-    Notification = 1 << 6 // 1000000 - Notification message
+    Notification = 1 << 6, // 1000000 - Notification message
+    Authentication = 1 << 7,
+    Configuration = 1 << 8,
+    Sync = 1 << 9,
+    Heartbeat = 1 << 10,
+    Purge = 1 << 11
   }
 
   public class JavascriptFFI : MonoBehaviour
   {
-
-
-
 #if UNITY_WEBGL && !UNITY_EDITOR
-    
+
     [DllImport("__Internal")]
     private static extern void ListenForJavaScriptMessages();
 
     [DllImport("__Internal")]
     private static extern void SendMessageToBrowser(string method, string parameter);
-
 #endif
     public static Action<string> OnJavaScriptMessageReceived;
 

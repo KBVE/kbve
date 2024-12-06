@@ -65,15 +65,15 @@
 				"metadata": {
 					"images": ["kbve/rareicongs"],
 					"load": true,
-					"tags": ["1.03", "1.03.0"]
+					"tags": ["1.04", "1.04.3"]
 				},
 				"configurations": {
 					"local": {
-						"tags": ["1.03", "1.03.0"],
+						"tags": ["1.04", "1.04.3"],
 						"push": false
 					},
 					"production": {
-						"tags": ["1.03", "1.03.0"],
+						"tags": ["1.04", "1.04.3"],
 						"push": true,
 						"customBuildOptions": "--push",
 						"cache-from": [
@@ -95,7 +95,7 @@
 						"forwardAllArgs": false
 					},
 					{
-						"command": "docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/rareicongs:1.03",
+						"command": "docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/rareicongs:1.04",
 						"forwardAllArgs": false
 					}
 				],
