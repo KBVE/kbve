@@ -28,7 +28,7 @@
 			//import { discordFunction } from 'https://1308198462155653180.discordsays.com/.proxy/nested/TemplateData/discord.js';
 			//discordFunction();
 
-			import { DiscordSDKManager } from 'https://1308198462155653180.discordsays.com/.proxy/vite/discord-sdk-manager.es.js';
+			import { Manager } from 'https://1308198462155653180.discordsays.com/.proxy/vite/discord-sdk-manager.es.js';
 
 			const discordConfig = {
 				clientId: '1308198462155653180',
@@ -38,7 +38,7 @@
 
 			(async () => {
 				try {
-					const manager = DiscordSDKManager.getInstance();
+					const manager = Manager.getInstance();
 					await manager.initialize(discordConfig);
 					console.log('Discord SDK initialized successfully!');
 				} catch (error) {
