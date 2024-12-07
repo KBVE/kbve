@@ -9,7 +9,7 @@ import {
 	LogEntry,
 } from '../types';
 
-class Manager {
+export class Manager {
 	private static instance: Manager;
 	private helper = Help;
 	private discordManager: DiscordSDKManager | null = null;

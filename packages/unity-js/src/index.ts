@@ -9,4 +9,4 @@ export {
 	getNestedIFrame,
 	Help,
 } from './lib/helper';
-export { default as Manager } from './lib/manager';
+export { Manager } from './lib/manager';
