@@ -65,15 +65,15 @@
 				"metadata": {
 					"images": ["kbve/rareicongs"],
 					"load": true,
-					"tags": ["1.04", "1.04.3"]
+					"tags": ["1.04", "1.04.4"]
 				},
 				"configurations": {
 					"local": {
-						"tags": ["1.04", "1.04.3"],
+						"tags": ["1.04", "1.04.4"],
 						"push": false
 					},
 					"production": {
-						"tags": ["1.04", "1.04.3"],
+						"tags": ["1.04", "1.04.4"],
 						"push": true,
 						"customBuildOptions": "--push",
 						"cache-from": [
