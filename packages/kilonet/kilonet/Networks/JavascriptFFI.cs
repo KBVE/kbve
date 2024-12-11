@@ -214,12 +214,12 @@ namespace KBVE.Kilonet.Networks
 #endif
     }
 
-    public static void RequestUserId()
+    public static void InvokeRequestUserId()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
       RequestUserId();
 #else
-      Debug.LogWarning("Mocked RequestUserId");
+      Debug.LogWarning("Mocked InvokeRequestUserId");
 #endif
     }
 
