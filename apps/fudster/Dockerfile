@@ -50,6 +50,15 @@ RUN mvn clean package -T 1C -DskipTests -Dmaven.test.skip=true -Dparallel=all
 FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntujammy
 
 RUN apt-get update && \
+    apt-get install -y --no-install-recommends libjemalloc2 libjemalloc-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:16,narenas:4,oversize_threshold:8388608"
+
+
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     openjdk-11-jre \
     python3 python3-pip python3-venv python3-xdg python3-dev python3-distutils build-essential curl git && \

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_WEBGL && !UNITY_EDITOR
 using System.Runtime.InteropServices;
@@ -67,18 +68,167 @@ namespace KBVE.Kilonet.Networks
 #if UNITY_WEBGL && !UNITY_EDITOR
 
     [DllImport("__Internal")]
-    private static extern void ListenForJavaScriptMessages();
+    private static extern void InitializeIFrameBridge();
+
+    [DllImport("__Internal")]
+    private static extern void RequestSetActivity(string activity);
+
+    [DllImport("__Internal")]
+    private static extern void RequestInstanceId();
+
+    [DllImport("__Internal")]
+    private static extern void RequestChannelId();
+
+    [DllImport("__Internal")]
+    private static extern void RequestGuildId();
+
+    [DllImport("__Internal")]
+    private static extern void RequestUserId();
+
+    [DllImport("__Internal")]
+    private static extern void RequestUser();
+
+    [DllImport("__Internal")]
+    private static extern void RequestInstanceParticipants();
+
+    [DllImport("__Internal")]
+    private static extern void RequestHardwareAcceleration();
+
+    [DllImport("__Internal")]
+    private static extern void RequestChannel(string channelId);
+
+    [DllImport("__Internal")]
+    private static extern void RequestChannelPermissions(string channelId);
+
+    [DllImport("__Internal")]
+    private static extern void RequestEntitlements();
+
+    [DllImport("__Internal")]
+    private static extern void RequestPlatformBehaviors();
+
+    [DllImport("__Internal")]
+    private static extern void RequestSkus();
+
+    [DllImport("__Internal")]
+    private static extern void RequestImageUpload();
+
+    [DllImport("__Internal")]
+    private static extern void RequestOpenExternalLink(string url);
+
+    [DllImport("__Internal")]
+    private static extern void RequestInviteDialog();
+
+    [DllImport("__Internal")]
+    private static extern void RequestShareMomentDialog(string mediaUrl);
+
+    [DllImport("__Internal")]
+    private static extern void RequestSetOrientationLockState(
+      int lockState,
+      string pictureInPictureLockState,
+      string gridLockState
+    );
+
+    [DllImport("__Internal")]
+    private static extern void RequestPurchase();
+
+    [DllImport("__Internal")]
+    private static extern void RequestLocale();
+
+    [DllImport("__Internal")]
+    private static extern void RequestSetConfig(bool useInteractivePip);
+
+    [DllImport("__Internal")]
+    private static extern void PingLoad();
+
+    [DllImport("__Internal")]
+    private static extern void Subscribe(string eventName);
+
+    [DllImport("__Internal")]
+    private static extern void Unsubscribe(string eventName);
 
     [DllImport("__Internal")]
     private static extern void SendMessageToBrowser(string method, string parameter);
 #endif
+
+    private static readonly Dictionary<string, Action<string>> EventHandlers = new();
     public static Action<string> OnJavaScriptMessageReceived;
 
     private void Start()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-      Debug.Log("JavaScriptBridge: Starting JavaScript listener...");
-      ListenForJavaScriptMessages();
+      Debug.Log("JavaScriptBridge: Initializing IFrame Bridge...");
+      InitializeIFrameBridge();
+#endif
+    }
+
+    public static void InitializeBridge()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+      InitializeIFrameBridge();
+      Debug.Log("IFrame Bridge Initialized");
+#else
+      Debug.LogWarning("Bridge initialization is mocked in non-WebGL builds.");
+#endif
+    }
+
+    public static void SubscribeToEvent(string eventName, Action<string> callback)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+      if (!EventHandlers.ContainsKey(eventName))
+      {
+        EventHandlers[eventName] = callback;
+        Subscribe(eventName);
+      }
+      else
+      {
+        Debug.LogWarning($"Event {eventName} is already subscribed.");
+      }
+#else
+      Debug.LogWarning($"Mocked SubscribeToEvent: {eventName}");
+#endif
+    }
+
+    public static void UnsubscribeFromEvent(string eventName)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+      if (EventHandlers.ContainsKey(eventName))
+      {
+        EventHandlers.Remove(eventName);
+        Unsubscribe(eventName);
+      }
+      else
+      {
+        Debug.LogWarning($"Event {eventName} is not subscribed.");
+      }
+#else
+      Debug.LogWarning($"Mocked UnsubscribeFromEvent: {eventName}");
+#endif
+    }
+
+    public static void SetActivity(string activityJson)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+      RequestSetActivity(activityJson);
+#else
+      Debug.LogWarning($"Mocked SetActivity: {activityJson}");
+#endif
+    }
+
+    public static void InvokeRequestUserId()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+      RequestUserId();
+#else
+      Debug.LogWarning("Mocked InvokeRequestUserId");
+#endif
+    }
+
+    public static void RequestLocale()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+      RequestLocale();
+#else
+      Debug.LogWarning("Mocked RequestLocale");
 #endif
     }
 
