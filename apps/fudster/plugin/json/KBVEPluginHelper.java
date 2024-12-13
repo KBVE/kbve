@@ -55,30 +55,30 @@ public class KBVEPluginHelper {
         }
 
         boolean status;
-           if ("enable".equalsIgnoreCase(command)) {
-        try {
-            pluginManager.setPluginEnabled(plugin, true);
-            pluginManager.startPlugin(plugin);
-            status = true;
-            System.out.println("[KBVE]: " + pluginName + " plugin has been enabled.");
-        } catch (net.runelite.client.plugins.PluginInstantiationException e) {
-            System.out.println("[KBVE]: Failed to start " + pluginName + " plugin: " + e.getMessage());
+        if ("enable".equalsIgnoreCase(command)) {
+            try {
+                pluginManager.setPluginEnabled(plugin, true);
+                pluginManager.startPlugin(plugin);
+                status = true;
+                System.out.println("[KBVE]: " + pluginName + " plugin has been enabled.");
+            } catch (net.runelite.client.plugins.PluginInstantiationException e) {
+                System.out.println("[KBVE]: Failed to start " + pluginName + " plugin: " + e.getMessage());
+                return gson.toJson(new KBVEPluginHelper(command, pluginName, false));
+            }
+        } else if ("disable".equalsIgnoreCase(command)) {
+            try {
+                pluginManager.setPluginEnabled(plugin, false);
+                pluginManager.stopPlugin(plugin);
+                status = false;
+                System.out.println("[KBVE]: " + pluginName + " plugin has been disabled.");
+            } catch (net.runelite.client.plugins.PluginInstantiationException e) {
+                System.out.println("[KBVE]: Failed to stop " + pluginName + " plugin: " + e.getMessage());
+                return gson.toJson(new KBVEPluginHelper(command, pluginName, true));
+            }
+        } else {
+            System.out.println("[KBVE]: Invalid command for " + pluginName + " plugin.");
             return gson.toJson(new KBVEPluginHelper(command, pluginName, false));
         }
-    } else if ("disable".equalsIgnoreCase(command)) {
-        try {
-            pluginManager.setPluginEnabled(plugin, false);
-            pluginManager.stopPlugin(plugin);
-            status = false;
-            System.out.println("[KBVE]: " + pluginName + " plugin has been disabled.");
-        } catch (net.runelite.client.plugins.PluginInstantiationException e) {
-            System.out.println("[KBVE]: Failed to stop " + pluginName + " plugin: " + e.getMessage());
-            return gson.toJson(new KBVEPluginHelper(command, pluginName, true));
-        }
-    } else {
-        System.out.println("[KBVE]: Invalid command for " + pluginName + " plugin.");
-        return gson.toJson(new KBVEPluginHelper(command, pluginName, false));
-    }
 
         return gson.toJson(new KBVEPluginHelper(command, pluginName, status));
     }
@@ -93,5 +93,19 @@ public class KBVEPluginHelper {
                 .filter(p -> p.getClass().getSimpleName().equalsIgnoreCase(pluginName))
                 .findFirst()
                 .orElse(null);
+    }
+    /**
+     * Custom ExclusionStrategy to handle problematic fields in Gson serialization.
+     */
+    private static class PhantomCleanableExclusionStrategy implements ExclusionStrategy {
+        @Override
+        public boolean shouldSkipField(FieldAttributes f) {
+            return f.getName().equals("next");
+        }
+
+        @Override
+        public boolean shouldSkipClass(Class<?> clazz) {
+            return clazz.getName().contains("jdk.internal.ref.PhantomCleanable");
+        }
     }
 }
