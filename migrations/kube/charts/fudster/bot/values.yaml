@@ -4,7 +4,7 @@ bot:
     replicaCount: 1
     image:
         repository: kbve/fudster
-        tag: 1.04.0
+        tag: 1.05.0
         digest: 'sha256:sha256:cc49e2b2fede31eb242b9b7fe981c4a594e9cec797144816267f9b02e9630630'
     service:
         name: bot
