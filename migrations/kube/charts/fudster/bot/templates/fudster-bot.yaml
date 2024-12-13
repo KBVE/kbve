@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: bot
-          image: "kbve/fudster@sha256:9c2bd3d77a991104511ed006f56d34d0f9720722c0811af7928b308757fbaaef"
-          #image: "{{ .Values.bot.image.repository }}:{{ .Values.bot.image.tag }}"
+          #image: "kbve/fudster@sha256:9c2bd3d77a991104511ed006f56d34d0f9720722c0811af7928b308757fbaaef"
+          image: "{{ .Values.bot.image.repository }}:{{ .Values.bot.image.tag }}"
           ports:
             {{- range .Values.bot.service.ports }}
             - name: {{ .name }}
