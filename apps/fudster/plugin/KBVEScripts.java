@@ -144,7 +144,6 @@ public class KBVEScripts extends Script {
                     return;
                 }
 
-                // Handle the state
                 switch (state) {
                     case BOOT:
                         if (Microbot.getClient().getGameState() == GameState.STARTING)
