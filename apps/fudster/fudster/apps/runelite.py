@@ -23,12 +23,23 @@ class RuneLiteClient:
         # Return immediately
         return "RuneLite is starting in the background."
 
+
     async def _run_subprocess_in_background(self, env):
         try:
+            max_memory = "512m"
+            initial_memory = "256m"
             # Run the subprocess in a thread pool without blocking the main coroutine
             await asyncio.to_thread(
-                subprocess.run, ["java", "-jar", self.jar_path], env=env
-            )
+            subprocess.run,
+            [
+                "java",
+                f"-Xmx{max_memory}",
+                f"-Xms{initial_memory}", 
+                "-jar",
+                self.jar_path
+            ],
+            env=env
+        )
             logger.info("RuneLite started successfully.")
         except Exception as e:
             logger.error(f"Failed to start RuneLite: {e}")
