@@ -7,6 +7,7 @@ A python library that helps with mL application development through using REST/W
 
 These are notes for the development of the Fudster package.
 The docker image is released under `kbve/fudster`.
+Next update was the malloc changes and memory changes.
 
 ### Packages
 

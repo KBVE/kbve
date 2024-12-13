@@ -10,6 +10,8 @@ import net.runelite.client.config.ConfigProfile;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.ProfileManager;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginManager;
 
 
 //  [Microbot]
@@ -87,6 +89,9 @@ public class KBVEScripts extends Script {
     private ConfigManager configManager;
     @Inject
     private ClientThread clientThread;
+    @Inject
+    private KBVEPluginHelper kbvePluginHelper;
+
 
     private KBVEStateMachine state;
     private UserAuthStateMachine userState;
@@ -144,7 +149,6 @@ public class KBVEScripts extends Script {
                     return;
                 }
 
-                // Handle the state
                 switch (state) {
                     case BOOT:
                         if (Microbot.getClient().getGameState() == GameState.STARTING)
@@ -156,7 +160,9 @@ public class KBVEScripts extends Script {
                         if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN)
                         {
                             sleep(3000);
-                            AcceptEULA(0,0);
+                            String gpuStatusJson = kbvePluginHelper.managePlugin("disable", "GPU");
+                            logger("[GPU] " + gpuStatusJson , 1);
+                            //AcceptEULA(0,0);
                             state = KBVEStateMachine.READY;
                             break;
                         }

@@ -72,15 +72,15 @@
 				"metadata": {
 					"images": ["kbve/fudster"],
 					"load": true,
-					"tags": ["1.03", "1.03.0"]
+					"tags": ["1.05", "1.05.0"]
 				},
 				"configurations": {
 					"local": {
-						"tags": ["1.03", "1.03.0"],
+						"tags": ["1.05", "1.05.0"],
 						"push": false
 					},
 					"production": {
-						"tags": ["1.03", "1.03.0"],
+						"tags": ["1.05", "1.05.0"],
 						"push": true,
 						"customBuildOptions": "--push",
 						"cache-from": [
