@@ -1,6 +1,9 @@
 package net.runelite.client.plugins.microbot.kbve.json;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -22,7 +25,10 @@ public class KBVEPluginHelper {
     @Inject
     private PluginManager pluginManager;
 
-    private final Gson gson = new Gson();
+    //private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .addSerializationExclusionStrategy(new PhantomCleanableExclusionStrategy())
+            .create();
 
     public KBVEPluginHelper() {
         // Default constructor

@@ -73,15 +73,18 @@ public class KBVEPlugin extends Plugin {
         Microbot.setMouse(new VirtualMouse());
         Microbot.setProfileManager(profileManager);
         Microbot.setWorldService(worldService);
+        
         if (overlayManager != null) {
             overlayManager.add(overlay);
         }
+
+        String gpuStatusJson = kbvePluginHelper.managePlugin("disable", "GpuPlugin");
+
         switch (config.kbveActivity()) {
             case PYTHON:
                 kbveScripts.run(config);
                 Microbot.log("Python!");
             default:
-                String gpuStatusJson = kbvePluginHelper.managePlugin("disable", "GpuPlugin");
                 kbveScripts.run(config);
                 Microbot.log("Default Chan!");
         }
