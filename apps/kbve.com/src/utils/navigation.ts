@@ -2,9 +2,9 @@
 const navBarLinks = [
   { name: "Home", url: "/" },
   { name: "Products", url: "/products/" },
-  { name: "Arcade", url: "/arcade/"},
+  { name: "Arcade", url: "/arcade/" },
   { name: "Services", url: "/services/" },
-  { name: "Docs", url: "/welcome-to-docs/"},
+  { name: "Docs", url: "/welcome-to-docs/" },
   { name: "Blog", url: "/blog/" },
   { name: "Contact", url: "/contact" },
 ];
@@ -25,6 +25,16 @@ const footerLinks = [
       { name: "Journal", url: "/journal/" },
       { name: "Tools", url: "/tools/" },
       { name: "Support", url: "/support/" },
+    ],
+  },
+  {
+    section: "Legal Documentation",
+    links: [
+      { name: "Legal", url: "/legal/" },
+      { name: "Privacy", url: "/legal/privacy/" },
+      { name: "EULA", url: "/legal/eula/" },
+      { name: "Terms of Service", url: "/legal/tos/" },
+      { name: "Disclaimer", url: "/legal/disclaimer/" }
     ],
   },
 ];
