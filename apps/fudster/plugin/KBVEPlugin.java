@@ -18,7 +18,8 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.config.ProfileManager;
 import net.runelite.client.game.WorldService;
 
-
+//  [KBVE]
+import net.runelite.client.plugins.microbot.kbve.json.KBVEPluginHelper;
 
 //  [Micro]
 import net.runelite.client.plugins.microbot.Microbot;
@@ -55,6 +56,9 @@ public class KBVEPlugin extends Plugin {
     private ProfileManager profileManager;
     @Inject
     private WorldService worldService;
+    @Inject
+    private KBVEPluginHelper kbvePluginHelper;
+
     
     @Provides
     KBVEConfig provideConfig(ConfigManager configManager){
@@ -69,9 +73,14 @@ public class KBVEPlugin extends Plugin {
         Microbot.setMouse(new VirtualMouse());
         Microbot.setProfileManager(profileManager);
         Microbot.setWorldService(worldService);
+
         if (overlayManager != null) {
             overlayManager.add(overlay);
         }
+
+        String gpuStatusJson = kbvePluginHelper.managePlugin("disable", "GpuPlugin");
+        Microbot.log("[KBVE]: GPU Plugin Status: " + gpuStatusJson);
+        
         switch (config.kbveActivity()) {
             case PYTHON:
                 kbveScripts.run(config);

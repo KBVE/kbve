@@ -160,8 +160,7 @@ public class KBVEScripts extends Script {
                         if (Microbot.getClient().getGameState() == GameState.LOGIN_SCREEN)
                         {
                             sleep(3000);
-                            String gpuStatusJson = kbvePluginHelper.managePlugin("disable", "GPU");
-                            logger("[GPU] " + gpuStatusJson , 1);
+
                             //AcceptEULA(0,0);
                             state = KBVEStateMachine.READY;
                             break;
