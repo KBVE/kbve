@@ -8,11 +8,13 @@
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
       "MoreMountains.Feedbacks",
+      "MoreMountains",
       "VContainer",
       "Kbve.Kilonet",
       "Unity.Addressables",
       "AstarPathfindingProject",
-      "Pathfinding"
+      "Pathfinding",
+      "com.arongranberg.astar"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
