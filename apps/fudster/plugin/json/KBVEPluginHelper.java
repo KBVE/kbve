@@ -1,9 +1,6 @@
 package net.runelite.client.plugins.microbot.kbve.json;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
+import com.google.gson.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -27,6 +24,8 @@ public class KBVEPluginHelper {
 
     //private final Gson gson = new Gson();
     private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(Class.class, new ClassTypeAdapter())
+            .addSerializationExclusionStrategy(new ReflectionExclusionStrategy())
             .addSerializationExclusionStrategy(new PhantomCleanableExclusionStrategy())
             .create();
 
@@ -46,7 +45,7 @@ public class KBVEPluginHelper {
      * @param pluginName The simple class name of the plugin.
      * @return JSON representation of the plugin's status.
      */
-    public String managePlugin(String command, String pluginName) {
+      public String managePlugin(String command, String pluginName) {
         Plugin plugin = findPlugin(pluginName);
 
         if (plugin == null) {
@@ -83,6 +82,7 @@ public class KBVEPluginHelper {
         return gson.toJson(new KBVEPluginHelper(command, pluginName, status));
     }
 
+
     /**
      * Find a plugin by its class name.
      * @param pluginName The simple class name of the plugin to find.
@@ -94,6 +94,43 @@ public class KBVEPluginHelper {
                 .findFirst()
                 .orElse(null);
     }
+
+     /**
+     * Custom TypeAdapter for Class to handle serialization.
+     */
+    private static class ClassTypeAdapter extends TypeAdapter<Class<?>> {
+        @Override
+        public void write(JsonWriter out, Class<?> value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+            out.value(value.getName()); // Serialize Class as its name
+        }
+
+        @Override
+        public Class<?> read(JsonReader in) throws IOException {
+            throw new UnsupportedOperationException("Deserialization of Class is not supported");
+        }
+    }
+
+    /**
+     * Custom ExclusionStrategy to skip problematic fields or classes.
+     */
+    private static class ReflectionExclusionStrategy implements ExclusionStrategy {
+        @Override
+        public boolean shouldSkipField(FieldAttributes f) {
+            // Exclude fields related to Class or reflection
+            return f.getDeclaredClass() == Class.class || f.getName().equals("accessibleObject");
+        }
+
+        @Override
+        public boolean shouldSkipClass(Class<?> clazz) {
+            // Skip problematic reflection-related classes
+            return clazz.getName().startsWith("java.lang.reflect");
+        }
+    }
+
     /**
      * Custom ExclusionStrategy to handle problematic fields in Gson serialization.
      */
