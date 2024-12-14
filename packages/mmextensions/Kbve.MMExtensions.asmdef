@@ -11,7 +11,8 @@
       "VContainer",
       "Kbve.Kilonet",
       "Unity.Addressables",
-      "AstarPathfindingProject"
+      "AstarPathfindingProject",
+      "Pathfinding"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
