@@ -72,6 +72,7 @@ namespace KBVE.MMExtensions.Ai
     {
       // Setup the character with required decisions + actions
       gameObject.MMGetOrAddComponent<CharacterSwap>();
+      gameObject.MMGetOrAddComponent<AiCharacterPathfinder2D>();
       handleWeapon = gameObject.MMGetOrAddComponent<CharacterHandleWeapon>();
       handleWeapon.InitialWeapon = initialWeapon;
       handleWeapon.ForceWeaponAimControl = true;
@@ -129,7 +130,7 @@ namespace KBVE.MMExtensions.Ai
 
       followState.Actions = new AIActionsList()
       {
-        gameObject.MMGetOrAddComponent<AIActionMoveTowardsTarget2D>()
+        gameObject.MMGetOrAddComponent<AiActionPathfinderToTarget2D>()
       };
 
       followState.Transitions = new AITransitionsList
