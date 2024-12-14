@@ -11,7 +11,9 @@ interface Props {
 
 <a
   class="group relative block rounded-xl outline-none ring-zinc-500 transition duration-500 focus-visible:ring dark:ring-zinc-200 dark:focus:outline-none"
-  href={`/arcade/${arcadeEntry.slug}/`}
+  href={`${arcadeEntry.data.url}`}
+  target="_blank"
+  rel="noopener noreferrer"
   data-astro-prefetch
 >
   <!-- The container for the blog post's cover image. Uses astro:assets' Image for image source -->
@@ -37,9 +39,6 @@ interface Props {
           <h4 class="font-bold text-neutral-50">
             {arcadeEntry.data.author}
           </h4>
-          <p class="text-xs text-neutral-50/[.8]">
-            Nani
-          </p>
         </div>
       </div>
     </div>
