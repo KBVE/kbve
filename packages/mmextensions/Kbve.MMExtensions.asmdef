@@ -13,7 +13,8 @@
       "Kbve.Kilonet",
       "Unity.Addressables",
       "AstarPathfindingProject",
-      "Pathfinding"
+      "Pathfinding",
+      "com.arongranberg.astar"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
