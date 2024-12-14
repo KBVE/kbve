@@ -48,36 +48,41 @@ Here are the step-by-step instructions to set up and run the KBVE repository on 
    ```
    Follow the on-screen instructions to complete the Rust installation.
 
-8. Clone the KBVE repository by running the following command:
+8. Install Golang by running the following command:
    ```bash
-   git clone https://github.com/KBVE/kbve.git
+   sudo apt install golang-go
    ```
 
-9. Change into the cloned repository directory:
-   ```bash
-   cd kbve
-   ```
+9. Clone the KBVE repository by running the following command:
+    ```bash
+    git clone https://github.com/KBVE/kbve.git
+    ```
+   
+10. Change into the cloned repository directory:
+    ```bash
+    cd kbve
+    ```
 
-10. Install the project dependencies using pnpm:
+11. Install the project dependencies using pnpm:
     ```bash
     pnpm install
     ```
 
-11. To run the code watcher, use the following command:
+12. To run the code watcher, use the following command:
     ```bash
     ./kbve.sh -nx kbve.com:dev
     ```
 
-12. To create a new branch for a new pull request, use the following command:
+13. To create a new branch for a new pull request, use the following command:
     ```bash
     ./kbve.sh -atomic you can type anything here and spaces do not matter
     ```
 
-13. If you don't have Visual Studio Code running, you can open it from the terminal by running the following command while inside the repository:
+14. If you don't have Visual Studio Code running, you can open it from the terminal by running the following command while inside the repository:
     ```bash
     code .
     ```
 
-14. Visual Studio Code will automatically suggest plugins to install. Install the recommended plugins and reload the editor if needed.
+15. Visual Studio Code will automatically suggest plugins to install. Install the recommended plugins and reload the editor if needed.
 
 That's it! You should now have the KBVE repository set up and ready to use on your WSL Ubuntu environment.
