@@ -11,7 +11,9 @@
       "VContainer",
       "Kbve.Kilonet",
       "Unity.Addressables",
-      "Pathfinding"
+      "Pathfinding",
+      "PackageTools",
+      "Drawing"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
