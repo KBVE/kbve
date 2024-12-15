@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MoreMountains.Tools;
 using MoreMountains.TopDownEngine;
+using Pathfinding;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
@@ -73,6 +74,7 @@ namespace KBVE.MMExtensions.Ai
       // Setup the character with required decisions + actions
       gameObject.MMGetOrAddComponent<CharacterSwap>();
       gameObject.MMGetOrAddComponent<AiCharacterPathfinder2D>();
+      gameObject.MMGetOrAddComponent<Seeker>();
       handleWeapon = gameObject.MMGetOrAddComponent<CharacterHandleWeapon>();
       handleWeapon.InitialWeapon = initialWeapon;
       handleWeapon.ForceWeaponAimControl = true;
