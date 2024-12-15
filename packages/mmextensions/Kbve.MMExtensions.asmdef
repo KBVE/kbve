@@ -12,9 +12,7 @@
       "VContainer",
       "Kbve.Kilonet",
       "Unity.Addressables",
-      "AstarPathfindingProject",
-      "Pathfinding",
-      "com.arongranberg.astar"
+      "AstarPathfindingProject"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
