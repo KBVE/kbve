@@ -11,6 +11,7 @@
       "VContainer",
       "Kbve.Kilonet",
       "Unity.Addressables",
+      "AstarPathfindingProject",
       "Pathfinding",
       "PackageTools",
       "Drawing"
