@@ -10,7 +10,11 @@
       "MoreMountains.Feedbacks",
       "VContainer",
       "Kbve.Kilonet",
-      "Unity.Addressables"
+      "Unity.Addressables",
+      "AstarPathfindingProject",
+      "Pathfinding",
+      "PackageTools",
+      "Drawing"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
