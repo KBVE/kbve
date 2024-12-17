@@ -69,7 +69,7 @@ spec:
   backup:
     barmanObjectStore:
       destinationPath: s3://kilobase/barman/backup
-      serverName: {{ include "supabase.db.fullname" . }}-recovery-1224
+      serverName: {{ include "supabase.db.fullname" . }}-recovery-1225
       s3Credentials:
         accessKeyId:
           name: {{ .Values.secret.s3.secretRef }}
@@ -88,7 +88,7 @@ spec:
   externalClusters:
     - name: supabase
       barmanObjectStore:
-        serverName: supabase-release-supabase-db-recovery
+        serverName: supabase-release-supabase-db-recovery-1224
         destinationPath: s3://kilobase/barman/backup
         s3Credentials:
           accessKeyId:
