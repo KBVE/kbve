@@ -278,7 +278,7 @@ realtime:
         RLIMIT_NOFILE: 1000000
         SECRET_KEY_BASE: UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq
         ERL_AFLAGS: -proto_dist inet_tcp
-        SEED_SELF_HOST: 'true'
+        SEED_SELF_HOST: 'false'
         ENABLE_TAILSCALE: 'false'
         JANITOR_INTERVAL: 60000
         RUN_JANITOR: 'true'
