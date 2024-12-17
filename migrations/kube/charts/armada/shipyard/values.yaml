@@ -34,6 +34,10 @@ redis:
         passwordKey: redis-password
     replica:
         replicaCount: 1
+    persistence: 
+        enabled: true
+        size: 2Gi
+        storageClass: longhorn
     metrics:
         enabled: true
         extraArgs:
