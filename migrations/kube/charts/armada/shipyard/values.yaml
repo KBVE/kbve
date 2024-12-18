@@ -27,17 +27,22 @@ sealed-secrets:
 
 redis:
     fullnameOverride: redis
+    global:
+        defaultStorageClass: longhorn-uno
     architecture: standalone
     auth:
         enabled: true
         existingSecret: redis-auth
-        passwordKey: redis-password
+        existingSecretPasswordKey: redis-password
     replica:
         replicaCount: 1
-    persistence: 
-        enabled: true
-        size: 2Gi
-        storageClass: longhorn
+    master:
+        persistence: 
+            enabled: true
+            size: 2Gi
+            storageClass: longhorn-uno
+        persistentVolumeClaimRetentionPolicy:
+            whenDeleted: Delete
     metrics:
         enabled: true
         extraArgs:
