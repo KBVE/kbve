@@ -41,8 +41,6 @@ redis:
             enabled: true
             size: 2Gi
             storageClass: longhorn-uno
-        persistentVolumeClaimRetentionPolicy:
-            whenDeleted: Delete
     metrics:
         enabled: true
         extraArgs:
