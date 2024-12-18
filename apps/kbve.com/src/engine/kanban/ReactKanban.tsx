@@ -144,7 +144,7 @@ const DroppableSidebar: React.FC<{
 				'border-2 border-dashed border-gray-400',
 				clsx({ 'bg-cyan-500': isOver }),
 			)}>
-			<h3 className={twMerge('font-bold text-xl mb-4')}>{`${$profile$.username}'s Inventory`}</h3>
+			<h3 className={twMerge('font-bold text-xl mb-4')}>{`${$profile$.username}'s Kanban`}</h3>
 			{children}
 		</div>
 	);
@@ -377,7 +377,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 
 // Use the DroppableStory component with predefined containers
 const ReactKanban = () => (
-	<DroppableStory containers={['Deploy', 'B', 'C', 'D', 'E', 'F', 'Kill']} />
+	<DroppableStory containers={['TODO', 'IN-PROGRESS', 'DONE']} />
 );
 
 export default ReactKanban;
