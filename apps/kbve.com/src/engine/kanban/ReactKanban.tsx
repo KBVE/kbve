@@ -21,9 +21,12 @@ import { kanbanBase } from './KanbanBase';
 
 import { CSS } from '@dnd-kit/utilities';
 
-import { ExpandIcon, $profileStore } from '@kbve/laser';
-import { eventEmitterInstance, type OpenModalEventData } from '@kbve/laser';
-
+import { ExpandIcon } from '@kbve/laser';
+import {
+	eventEmitterInstance,
+	type OpenModalEventData,
+	type NPCInteractionEventData,
+} from '@kbve/laser';
 
 interface DroppableStoryProps {
 	containers: string[];
@@ -40,13 +43,13 @@ const containerStyles = twMerge(
 	'w-full md:w-3/4',
 );
 
-
 // Modal Component
 const Modal: React.FC<{
 	title: string;
+	message: string;
 	isVisible: boolean;
 	onClose: () => void;
-}> = ({ title, isVisible, onClose }) => {
+}> = ({ title, message, isVisible, onClose }) => {
 	if (!isVisible) return null;
 
 	return (
@@ -54,7 +57,7 @@ const Modal: React.FC<{
 			<div className="bg-white p-5 rounded shadow-lg w-96">
 				<h2 className="text-xl font-bold mb-4">{title}</h2>
 				<p className="mb-4">
-					This is the content of the modal for item {title}.
+					This is the content of the modal for item {title}.{message}
 				</p>
 				<button
 					className="bg-cyan-500 text-gray-500 py-2 px-4 rounded hover:bg-cyan-600"
@@ -134,7 +137,7 @@ const DroppableSidebar: React.FC<{
 		id,
 	});
 
-	const $profile$ = useStore($profileStore);
+	//const $profile$ = useStore($profileStore);
 
 	return (
 		<div
@@ -144,7 +147,7 @@ const DroppableSidebar: React.FC<{
 				'border-2 border-dashed border-gray-400',
 				clsx({ 'bg-cyan-500': isOver }),
 			)}>
-			<h3 className={twMerge('font-bold text-xl mb-4')}>{`${$profile$.username}'s Kanban`}</h3>
+			<h3 className={twMerge('font-bold text-xl mb-4')}>{`Kanban`}</h3>
 			{children}
 		</div>
 	);
@@ -188,8 +191,41 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 	const [isModalVisible, setModalVisible] = useState(false);
 	const [modalTitle, setModalTitle] = useState('');
+	const [modalMessage, setModalMessage] = useState('');
 
+	// Reset
+	const resetKanban = () => {
+		// Define the reset template for containers
+		const resetTemplate = {
+			TODO: [],
+			'IN-PROGRESS': [],
+			DONE: [],
+		};
 
+		// Load the current positions to find all items
+		const currentPositions = kanbanBase.loadItemPositions();
+
+		// Collect all item IDs currently in containers
+		const allItemIds = Object.values(currentPositions).flatMap((items) =>
+			items.map((item) => item.id),
+		);
+
+		// Move items back to the sidebar if not already present
+		setSidebarItems((prevSidebarItems) => {
+			const uniqueItems = [
+				...new Set([...prevSidebarItems, ...allItemIds]),
+			];
+			return uniqueItems;
+		});
+
+		// Reset the item positions in KanbanBase
+		kanbanBase.resetItemPositions(resetTemplate);
+
+		// Clear the state of items in containers
+		setItems(resetTemplate);
+
+		console.log('Kanban reset completed.');
+	};
 
 	// Configure sensors for both pointer and touch events
 	const sensors = useSensors(
@@ -204,7 +240,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 			try {
 				// Load profile data
 				const profileData = await kanbanBase.loadProfile();
-				console.log(`Data: ${profileData}`)
+				console.log(`Data: ${profileData}`);
 			} catch (error) {
 				console.error(
 					'Error loading profile or item positions:',
@@ -247,6 +283,26 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 		eventEmitterInstance.on('openModal', handleOpenModal);
 		return () => {
 			eventEmitterInstance.off('openModal', handleOpenModal);
+		};
+	}, []);
+
+	// Listen for handleNpcInteraction
+	useEffect(() => {
+		const handleNpcInteraction = (data?: NPCInteractionEventData) => {
+			if (data) {
+				switch (data.npcId) {
+					case 'Reset':
+						resetKanban();
+
+					default:
+						break;
+				}
+			}
+		};
+
+		eventEmitterInstance.on('npcInteraction', handleNpcInteraction);
+		return () => {
+			eventEmitterInstance.off('npcInteraction', handleNpcInteraction);
 		};
 	}, []);
 
@@ -368,6 +424,7 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 			{/* Modal for Item Details */}
 			<Modal
 				title={modalTitle}
+				message={modalMessage}
 				isVisible={isModalVisible}
 				onClose={() => setModalVisible(false)}
 			/>
