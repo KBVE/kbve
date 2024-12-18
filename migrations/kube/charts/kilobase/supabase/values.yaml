@@ -58,7 +58,7 @@ db:
     persistence:
         enabled: false
     storage:
-        storageClassName: 'longhorn'
+        storageClassName: 'longhorn-uno'
         annotations:
             helm.sh/resource-policy: 'keep'
         size: 8Gi
@@ -397,7 +397,7 @@ storage:
             memory: 128Mi
     persistence:
         enabled: true
-        storageClassName: ''
+        storageClassName: 'longhorn-uno'
         annotations: {}
         size: 10Gi
         accessModes:
