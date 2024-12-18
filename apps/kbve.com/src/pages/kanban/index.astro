@@ -1,6 +1,7 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import ReactKanban from '../../engine/kanban/ReactKanban';
+import KanbanMenu from '../../engine/kanban/KanbanMenu';
 
 import { SITE } from '../../data_files/constants';
 
@@ -60,7 +61,7 @@ const pageDescription: string = ``;
 			<div
 				id="dashboard_loader"
 				class="relative z-10 dashboard-container">
-				<div class="pb-5">Hello</div>
+				<div class="pb-5"><KanbanMenu client:only="react" /></div>
 				<ReactKanban client:only="react" />
 			</div>
 		</div>
