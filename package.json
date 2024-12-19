@@ -24,7 +24,6 @@
 		"@nanostores/persistent": "^0.9.1",
 		"@nanostores/react": "^0.7.3",
 		"@nx-extend/shadcn-ui": "^4.1.2",
-		"@nx-go/nx-go": "^3.2.0",
 		"@nx-tools/nx-container": "^6.2.0",
 		"@nx/cypress": "20.2.2",
 		"@nx/devkit": "20.2.2",
