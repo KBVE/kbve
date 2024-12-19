@@ -58,7 +58,7 @@ db:
     persistence:
         enabled: false
     storage:
-        storageClassName: 'longhorn'
+        storageClassName: 'longhorn-uno'
         annotations:
             helm.sh/resource-policy: 'keep'
         size: 8Gi
@@ -78,7 +78,7 @@ studio:
     image:
         repository: supabase/studio
         pullPolicy: IfNotPresent
-        tag: '20240729-ce42139'
+        tag: '20241202-71e5240'
     imagePullSecrets: []
     replicaCount: 1
     livenessProbe:
@@ -127,7 +127,7 @@ auth:
     image:
         repository: supabase/gotrue
         pullPolicy: IfNotPresent
-        tag: 'v2.158.1'
+        tag: 'v2.164.0'
     replicaCount: 1
     serviceAccount:
         create: true
@@ -241,6 +241,7 @@ rest:
 # Realtime Service
 realtime:
     enabled: true
+    fullnameOverride: "realtime-dev"
     image:
         repository: supabase/realtime
         pullPolicy: IfNotPresent
@@ -274,9 +275,13 @@ realtime:
         PORT: '4000'
         FLY_ALLOC_ID: fly123
         FLY_APP_NAME: realtime
+        RLIMIT_NOFILE: 1000000
         SECRET_KEY_BASE: UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq
         ERL_AFLAGS: -proto_dist inet_tcp
+        SEED_SELF_HOST: 'false'
         ENABLE_TAILSCALE: 'false'
+        JANITOR_INTERVAL: 60000
+        RUN_JANITOR: 'true'
         APP_NAME: 'supabase_realtime'
         DNS_NODES: "''"
     resources:
@@ -299,7 +304,7 @@ meta:
     image:
         repository: supabase/postgres-meta
         pullPolicy: IfNotPresent
-        tag: 'v0.83.2'
+        tag: 'v0.84.2'
     replicaCount: 1
     serviceAccount:
         create: true
@@ -343,7 +348,7 @@ storage:
     image:
         repository: supabase/storage-api
         pullPolicy: IfNotPresent
-        tag: 'v1.10.1'
+        tag: 'v1.11.13'
     replicaCount: 1
     livenessProbe:
         httpGet:
@@ -392,7 +397,7 @@ storage:
             memory: 128Mi
     persistence:
         enabled: true
-        storageClassName: ''
+        storageClassName: 'longhorn-uno'
         annotations: {}
         size: 10Gi
         accessModes:
