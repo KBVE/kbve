@@ -1,8 +1,5 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "affected": {
-    "defaultBase": "main"
-  },
   "targetDefaults": {
     "build": {
       "dependsOn": [
@@ -140,7 +137,6 @@
     ]
   },
   "workspaceLayout": {
-    "projectNameAndRootFormat": "derived",
     "appsDir": "apps",
     "libsDir": "packages"
   },
@@ -185,8 +181,7 @@
         "buildTargetName": "build",
         "submitTargetName": "submit"
       }
-    },
-    "@nx-go/nx-go"
+    }
   ],
   "defaultProject": "kbve.com",
   "generators": {

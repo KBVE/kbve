@@ -49,7 +49,7 @@ const KanbanMenu: React.FC = () => {
 	};
      */
 
-	const handleClick = () => {
+	const handleResetButton = () => {
 		console.log('Button clicked!');
 		eventEmitterInstance.emit('npcInteraction', {
 			npcId: 'Reset',
@@ -92,7 +92,7 @@ const KanbanMenu: React.FC = () => {
 						className={twMerge(
 							'py-3 sm:py-0 flex flex-col sm:flex-row sm:justify-end gap-y-2 sm:gap-y-0 sm:gap-x-6',
 						)}>
-						<FancyButton onClick={handleClick}>Reset</FancyButton>
+						<FancyButton onClick={handleResetButton}>Reset</FancyButton>
 					</div>
 				</div>
 			</div>

@@ -1,0 +1,14 @@
+apiVersion: elemental.cattle.io/v1beta1
+kind: SeedImage
+metadata:
+  name: fire-pi-img
+  namespace: fleet-default  # Change this to fleet-local (or your desired namespace)
+spec:
+  type: raw
+  baseImage: registry.opensuse.org/isv/rancher/elemental/staging/containers/suse/sl-micro/6.1/baremetal-os-container:latest
+  targetPlatform: linux/arm64  # Ensure this is the correct platform for your Raspberry Pi (arm64)
+  registrationRef:
+    apiVersion: elemental.cattle.io/v1beta1
+    kind: MachineRegistration
+    name: fire-pies  # Ensure this matches your MachineRegistration name
+    namespace: fleet-default  # Ensure the MachineRegistration is under the correct namespace

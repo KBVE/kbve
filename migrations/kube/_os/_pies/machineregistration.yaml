@@ -1,0 +1,31 @@
+apiVersion: elemental.cattle.io/v1beta1
+kind: MachineRegistration
+metadata:
+  name: fire-pies
+  namespace: fleet-default  # Place this in the appropriate namespace
+spec:
+  config:
+    cloud-config:
+      users:
+        - name: root
+          passwd: root  # Replace this with a secure password
+    elemental:
+      install:
+        reboot: true
+        device: /dev/sda  # Adjust to the Raspberry Pi's installation device
+        debug: true
+      reset:
+        enabled: true
+        debug: true
+        reset-persistent: true
+        reset-oem: true
+        reboot: true
+  machineInventoryLabels:
+    element: fire
+    manufacturer: "${System Information/Manufacturer}"
+    productName: "${System Information/Product Name}"
+    serialNumber: "${System Information/Serial Number}"
+    machineUUID: "${System Information/UUID}"
+  machineInventoryAnnotations:
+    edge: "true"
+    cluster-role: "worker"
