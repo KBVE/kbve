@@ -6,7 +6,10 @@ CREATE TABLE public.kanban_boards (
     board_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), -- Unique identifier for each board
     user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE, -- Board owner
     name TEXT NOT NULL, -- Board name
-    created_at TIMESTAMP DEFAULT NOW() -- Timestamp of creation
+    created_at TIMESTAMP DEFAULT NOW(), -- Timestamp of creation
+    CONSTRAINT unique_board_name_per_user UNIQUE (user_id, name), -- Ensure unique board names per user
+    CONSTRAINT valid_name_format CHECK (name ~ '^[a-zA-Z0-9 -]+$') -- Ensure name contains only a-z, A-Z, 0-9, spaces, and hyphens
+
 );
 
 -- Enable RLS for Kanban Boards
@@ -31,15 +34,18 @@ CREATE TABLE public.kanban_items (
     item_id SERIAL PRIMARY KEY, -- Unique identifier for each item
     board_id UUID NOT NULL REFERENCES public.kanban_boards (board_id) ON DELETE CASCADE, -- Associated board
     user_id UUID, -- Optional: User who created the item (NULL for anonymous users)
-    title TEXT NOT NULL, -- Title of the item
+    title TEXT NOT NULL CHECK (char_length(title) > 0), -- Title of the item (cannot be empty or null)
     description TEXT, -- Optional description
-    status TEXT NOT NULL DEFAULT 'TODO', -- Item status (e.g., TODO, IN-PROGRESS, DONE)
-    created_at TIMESTAMP DEFAULT NOW() -- Timestamp of creation
+    status TEXT NOT NULL DEFAULT 'TODO' CHECK (status IN ('TODO', 'IN-PROGRESS', 'DONE')), -- Item status
+    created_at TIMESTAMP DEFAULT NOW(), -- Timestamp of creation
+    CONSTRAINT valid_title_format CHECK (title ~ '^[a-zA-Z0-9 -]+$'), -- Title allows only a-z, A-Z, 0-9, spaces, and hyphens
+    CONSTRAINT valid_description_format CHECK (description IS NULL OR description ~ '^[a-zA-Z0-9 .,!?-]*$') -- Description allows alphanumeric, punctuation, and spaces
 );
 
 -- Enable RLS for Kanban Items
 ALTER TABLE public.kanban_items ENABLE ROW LEVEL SECURITY;
 
+-- Add additional constraints for Kanban Items
 -- Policy: Allow anyone to insert items
 CREATE POLICY allow_anon_insert ON public.kanban_items
     FOR INSERT
