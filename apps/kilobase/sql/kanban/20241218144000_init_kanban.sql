@@ -6,10 +6,10 @@ CREATE TABLE public.kanban_boards (
     board_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), -- Unique identifier for each board
     user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE, -- Board owner
     name TEXT NOT NULL, -- Board name
+    kanban_data JSONB DEFAULT '{}'::JSONB NOT NULL, -- Kanban items stored as JSON
     created_at TIMESTAMP DEFAULT NOW(), -- Timestamp of creation
     CONSTRAINT unique_board_name_per_user UNIQUE (user_id, name), -- Ensure unique board names per user
     CONSTRAINT valid_name_format CHECK (name ~ '^[a-zA-Z0-9 -]+$') -- Ensure name contains only a-z, A-Z, 0-9, spaces, and hyphens
-
 );
 
 -- Enable RLS for Kanban Boards
@@ -41,25 +41,21 @@ CREATE TABLE public.kanban_items (
 -- Enable RLS for Kanban Items
 ALTER TABLE public.kanban_items ENABLE ROW LEVEL SECURITY;
 
--- Add additional constraints for Kanban Items
--- Policy: Allow anyone to insert items
+-- Policies for Kanban Items
 CREATE POLICY allow_anon_insert ON public.kanban_items
     FOR INSERT
     USING (true);
 
--- Policy: Allow anyone to view items
 CREATE POLICY allow_anon_select ON public.kanban_items
     FOR SELECT
     USING (true);
 
--- Policy: Allow only the item owner or board owner to update items
 CREATE POLICY allow_owner_update ON public.kanban_items
     FOR UPDATE
     USING (
         auth.role() = 'authenticated' AND (user_id = auth.uid() OR auth.uid() IN (SELECT user_id FROM public.kanban_boards WHERE public.kanban_boards.board_id = public.kanban_items.board_id))
     );
 
--- Policy: Allow only the item owner or board owner to delete items
 CREATE POLICY allow_owner_delete ON public.kanban_items
     FOR DELETE
     USING (
@@ -69,11 +65,57 @@ CREATE POLICY allow_owner_delete ON public.kanban_items
 -- Enforce RLS
 ALTER TABLE public.kanban_items FORCE ROW LEVEL SECURITY;
 
+-- 3. JSONB Trigger to Update Kanban Data
+CREATE OR REPLACE FUNCTION update_kanban_data()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE public.kanban_boards
+    SET kanban_data = jsonb_set(
+        kanban_data,
+        ARRAY[NEW.status],
+        COALESCE(kanban_data->NEW.status, '[]'::JSONB) || to_jsonb(NEW)
+    )
+    WHERE board_id = NEW.board_id;
 
--- 3. Additional Indexes (Optional but Recommended)
-CREATE INDEX idx_board_id ON public.kanban_items (board_id);
-CREATE INDEX idx_user_id ON public.kanban_items (user_id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+-- Attach Trigger to Kanban Items Table
+CREATE TRIGGER trigger_update_kanban_data
+AFTER INSERT OR UPDATE OR DELETE
+ON public.kanban_items
+FOR EACH ROW
+EXECUTE FUNCTION update_kanban_data();
+
+-- 4. Real-Time Policies for Broadcasting
+CREATE POLICY "Project members can receive presence and broadcast messages."
+ON realtime.messages
+FOR SELECT
+USING (is_project_member(realtime.topic()::uuid));
+
+CREATE POLICY "Project members can send presence and broadcast messages."
+ON realtime.messages
+FOR INSERT
+WITH CHECK (is_project_member(realtime.topic()::uuid));
+
+-- Helper Function to Check Project Membership
+CREATE OR REPLACE FUNCTION is_project_member(project_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    -- Allow anonymous users by default
+    IF auth.role() = 'anon' THEN
+        RETURN TRUE;
+    END IF;
+    
+    RETURN EXISTS (
+        SELECT 1
+        FROM project_members
+        WHERE project_members.project_id = project_id
+        AND project_members.user_id = auth.uid()
+    );
+END;
+$$ LANGUAGE plpgsql;
 
 -- Commit the transaction
 COMMIT;
