@@ -95,7 +95,7 @@
 						"forwardAllArgs": false
 					},
 					{
-						"command": "docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/kanban:1.01",
+						"command": "docker run --env-file /app/rust_kanban/.env -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/kanban:1.01",
 						"forwardAllArgs": false
 					}
 				],
