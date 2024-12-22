@@ -7,6 +7,7 @@ CREATE TABLE public.kanban_boards (
     user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE, -- Board owner
     name TEXT NOT NULL, -- Board name
     kanban_data JSONB DEFAULT '{}'::JSONB NOT NULL, -- Kanban items stored as JSON
+    guest BOOLEAN DEFAULT FALSE NOT NULL, -- Determines if the board is accessible to anonymous users
     created_at TIMESTAMP DEFAULT NOW(), -- Timestamp of creation
     CONSTRAINT unique_board_name_per_user UNIQUE (user_id, name), -- Ensure unique board names per user
     CONSTRAINT valid_name_format CHECK (name ~ '^[a-zA-Z0-9 -]+$') -- Ensure name contains only a-z, A-Z, 0-9, spaces, and hyphens
@@ -15,21 +16,46 @@ CREATE TABLE public.kanban_boards (
 -- Enable RLS for Kanban Boards
 ALTER TABLE public.kanban_boards ENABLE ROW LEVEL SECURITY;
 
--- Policy: Only authenticated users can create boards
-CREATE POLICY allow_authenticated_create ON public.kanban_boards
-    FOR INSERT
-    USING (auth.role() = 'authenticated');
+-- Policy: Allow authenticated and anon users to SELECT boards
+CREATE POLICY allow_all_select_boards ON public.kanban_boards
+FOR SELECT
+USING (
+    (SELECT auth.uid()) = user_id OR 
+    (guest = TRUE AND auth.role() = 'anon')
+);
 
--- Policy: Only the owner can manage their boards
-CREATE POLICY allow_board_owner ON public.kanban_boards
-    FOR ALL
-    USING (auth.role() = 'authenticated' AND user_id = auth.uid());
+-- Policy: Allow authenticated and anon users to INSERT boards
+CREATE POLICY allow_all_insert_boards ON public.kanban_boards
+FOR INSERT
+WITH CHECK (
+    (SELECT auth.uid()) = user_id
+);
+
+-- Policy: Allow authenticated and anon users to UPDATE boards
+CREATE POLICY allow_all_update_boards ON public.kanban_boards
+FOR UPDATE
+USING (
+    (SELECT auth.uid()) = user_id OR 
+    (guest = TRUE AND auth.role() = 'anon')
+)
+WITH CHECK (
+    (SELECT auth.uid()) = user_id OR 
+    (guest = TRUE AND auth.role() = 'anon')
+);
+
+-- Policy: Allow authenticated and anon users to DELETE boards
+CREATE POLICY allow_all_delete_boards ON public.kanban_boards
+FOR DELETE
+USING (
+    (SELECT auth.uid()) = user_id OR 
+    (guest = TRUE AND auth.role() = 'anon')
+);
 
 -- 2. Create Kanban Items Table
 CREATE TABLE public.kanban_items (
     item_id SERIAL PRIMARY KEY, -- Unique identifier for each item
     board_id UUID NOT NULL REFERENCES public.kanban_boards (board_id) ON DELETE CASCADE, -- Associated board
-    user_id UUID, -- Optional: User who created the item (NULL for anonymous users)
+    user_id UUID NOT NULL, -- User who created the item (guests and authenticated users have IDs)
     title TEXT NOT NULL CHECK (char_length(title) > 0), -- Title of the item (cannot be empty or null)
     description TEXT, -- Optional description
     status TEXT NOT NULL DEFAULT 'TODO' CHECK (status IN ('TODO', 'IN-PROGRESS', 'DONE')), -- Item status
@@ -41,26 +67,47 @@ CREATE TABLE public.kanban_items (
 -- Enable RLS for Kanban Items
 ALTER TABLE public.kanban_items ENABLE ROW LEVEL SECURITY;
 
+-- Helper Function for Access Control
+CREATE OR REPLACE FUNCTION can_access_board(board_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM public.kanban_boards
+        WHERE kanban_boards.board_id = board_id
+        AND (
+            guest = TRUE OR (SELECT auth.uid()) = kanban_boards.user_id
+        )
+    );
+END;
+$$ LANGUAGE plpgsql;
+
 -- Policies for Kanban Items
-CREATE POLICY allow_anon_insert ON public.kanban_items
-    FOR INSERT
-    USING (true);
+CREATE POLICY allow_all_select_items ON public.kanban_items
+FOR SELECT
+USING (
+    (SELECT auth.uid()) = user_id OR can_access_board(board_id)
+);
 
-CREATE POLICY allow_anon_select ON public.kanban_items
-    FOR SELECT
-    USING (true);
+CREATE POLICY allow_all_insert_items ON public.kanban_items
+FOR INSERT
+WITH CHECK (
+    (SELECT auth.uid()) = user_id AND can_access_board(board_id)
+);
 
-CREATE POLICY allow_owner_update ON public.kanban_items
-    FOR UPDATE
-    USING (
-        auth.role() = 'authenticated' AND (user_id = auth.uid() OR auth.uid() IN (SELECT user_id FROM public.kanban_boards WHERE public.kanban_boards.board_id = public.kanban_items.board_id))
-    );
+CREATE POLICY allow_all_update_items ON public.kanban_items
+FOR UPDATE
+USING (
+    (SELECT auth.uid()) = user_id OR can_access_board(board_id)
+)
+WITH CHECK (
+    (SELECT auth.uid()) = user_id OR can_access_board(board_id)
+);
 
-CREATE POLICY allow_owner_delete ON public.kanban_items
-    FOR DELETE
-    USING (
-        auth.role() = 'authenticated' AND (user_id = auth.uid() OR auth.uid() IN (SELECT user_id FROM public.kanban_boards WHERE public.kanban_boards.board_id = public.kanban_items.board_id))
-    );
+CREATE POLICY allow_all_delete_items ON public.kanban_items
+FOR DELETE
+USING (
+    (SELECT auth.uid()) = user_id OR can_access_board(board_id)
+);
 
 -- Enforce RLS
 ALTER TABLE public.kanban_items FORCE ROW LEVEL SECURITY;
@@ -88,34 +135,42 @@ ON public.kanban_items
 FOR EACH ROW
 EXECUTE FUNCTION update_kanban_data();
 
--- 4. Real-Time Policies for Broadcasting
-CREATE POLICY "Project members can receive presence and broadcast messages."
-ON realtime.messages
-FOR SELECT
-USING (is_project_member(realtime.topic()::uuid));
-
-CREATE POLICY "Project members can send presence and broadcast messages."
-ON realtime.messages
-FOR INSERT
-WITH CHECK (is_project_member(realtime.topic()::uuid));
-
--- Helper Function to Check Project Membership
-CREATE OR REPLACE FUNCTION is_project_member(project_id UUID)
-RETURNS BOOLEAN AS $$
+-- 4. JSONB Trigger for Validation
+CREATE OR REPLACE FUNCTION validate_kanban_data()
+RETURNS TRIGGER AS $$
+DECLARE
+    item JSONB;
 BEGIN
-    -- Allow anonymous users by default
-    IF auth.role() = 'anon' THEN
-        RETURN TRUE;
-    END IF;
-    
-    RETURN EXISTS (
-        SELECT 1
-        FROM project_members
-        WHERE project_members.project_id = project_id
-        AND project_members.user_id = auth.uid()
-    );
+    -- Validate all items in all statuses
+    FOR item IN SELECT * FROM jsonb_array_elements(NEW.kanban_data->'TODO')
+    UNION ALL SELECT * FROM jsonb_array_elements(NEW.kanban_data->'IN-PROGRESS')
+    UNION ALL SELECT * FROM jsonb_array_elements(NEW.kanban_data->'DONE')
+    LOOP
+        -- Ensure required fields exist
+        IF NOT (item ? 'id' AND item ? 'container') THEN
+            RAISE EXCEPTION 'Invalid item: %', item;
+        END IF;
+
+        -- Validate field formats
+        IF NOT (item->>'id' ~ '^[a-zA-Z0-9 -]+$') THEN
+            RAISE EXCEPTION 'Invalid ID format: %', item->>'id';
+        END IF;
+
+        IF NOT (item->>'container' IN ('TODO', 'IN-PROGRESS', 'DONE')) THEN
+            RAISE EXCEPTION 'Invalid container value: %', item->>'container';
+        END IF;
+    END LOOP;
+
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Attach Validation Trigger
+CREATE TRIGGER validate_kanban_data_trigger
+BEFORE INSERT OR UPDATE
+ON public.kanban_boards
+FOR EACH ROW
+EXECUTE FUNCTION validate_kanban_data();
 
 -- Commit the transaction
 COMMIT;
