@@ -16,16 +16,36 @@ CREATE TABLE public.kanban_boards (
 -- Enable RLS for Kanban Boards
 ALTER TABLE public.kanban_boards ENABLE ROW LEVEL SECURITY;
 
--- Policy: Allow authenticated and anon users to create boards
-CREATE POLICY allow_all_create ON public.kanban_boards
-TO authenticated, anon
-FOR INSERT
-WITH CHECK ((SELECT auth.uid()) = user_id);
+-- Policy: Allow authenticated and anon users to SELECT boards
+CREATE POLICY allow_all_select_boards ON public.kanban_boards
+FOR SELECT
+USING (
+    (SELECT auth.uid()) = user_id OR 
+    (guest = TRUE AND auth.role() = 'anon')
+);
 
--- Policy: Allow authenticated and anon users to manage their boards if the board is marked as guest
-CREATE POLICY allow_all_manage ON public.kanban_boards
-TO authenticated, anon
-FOR ALL
+-- Policy: Allow authenticated and anon users to INSERT boards
+CREATE POLICY allow_all_insert_boards ON public.kanban_boards
+FOR INSERT
+WITH CHECK (
+    (SELECT auth.uid()) = user_id
+);
+
+-- Policy: Allow authenticated and anon users to UPDATE boards
+CREATE POLICY allow_all_update_boards ON public.kanban_boards
+FOR UPDATE
+USING (
+    (SELECT auth.uid()) = user_id OR 
+    (guest = TRUE AND auth.role() = 'anon')
+)
+WITH CHECK (
+    (SELECT auth.uid()) = user_id OR 
+    (guest = TRUE AND auth.role() = 'anon')
+);
+
+-- Policy: Allow authenticated and anon users to DELETE boards
+CREATE POLICY allow_all_delete_boards ON public.kanban_boards
+FOR DELETE
 USING (
     (SELECT auth.uid()) = user_id OR 
     (guest = TRUE AND auth.role() = 'anon')
@@ -62,22 +82,19 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Policies for Kanban Items
-CREATE POLICY allow_all_insert ON public.kanban_items
-TO authenticated, anon
-FOR INSERT
-WITH CHECK (
-    (SELECT auth.uid()) = user_id AND can_access_board(board_id)
-);
-
-CREATE POLICY allow_all_select ON public.kanban_items
-TO authenticated, anon
+CREATE POLICY allow_all_select_items ON public.kanban_items
 FOR SELECT
 USING (
     (SELECT auth.uid()) = user_id OR can_access_board(board_id)
 );
 
-CREATE POLICY allow_all_update ON public.kanban_items
-TO authenticated, anon
+CREATE POLICY allow_all_insert_items ON public.kanban_items
+FOR INSERT
+WITH CHECK (
+    (SELECT auth.uid()) = user_id AND can_access_board(board_id)
+);
+
+CREATE POLICY allow_all_update_items ON public.kanban_items
 FOR UPDATE
 USING (
     (SELECT auth.uid()) = user_id OR can_access_board(board_id)
@@ -86,8 +103,7 @@ WITH CHECK (
     (SELECT auth.uid()) = user_id OR can_access_board(board_id)
 );
 
-CREATE POLICY allow_all_delete ON public.kanban_items
-TO authenticated, anon
+CREATE POLICY allow_all_delete_items ON public.kanban_items
 FOR DELETE
 USING (
     (SELECT auth.uid()) = user_id OR can_access_board(board_id)
