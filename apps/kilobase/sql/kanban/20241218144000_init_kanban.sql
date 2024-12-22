@@ -25,10 +25,6 @@ CREATE POLICY allow_board_owner ON public.kanban_boards
     FOR ALL
     USING (auth.role() = 'authenticated' AND user_id = auth.uid());
 
--- Enforce RLS
-ALTER TABLE public.kanban_boards FORCE ROW LEVEL SECURITY;
-
-
 -- 2. Create Kanban Items Table
 CREATE TABLE public.kanban_items (
     item_id SERIAL PRIMARY KEY, -- Unique identifier for each item
