@@ -70,6 +70,9 @@ export class KanbanBase extends Kilobase {
 		this.itemPositionsStore.set(resetPositions); // Save the reset structure
 		console.log('Item positions reset to:', resetPositions);
 	}
+
+
+	
 }
 
 // Export a singleton instance of the extended class for use throughout the application
