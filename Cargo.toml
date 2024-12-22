@@ -10,6 +10,7 @@ members = [
 	'packages/jedi',
 	'apps/kilobase',
 	'apps/rust_rareicon_gameserver',
+	'apps/rust_kanban',
 ]
 
 [profile.dev]
