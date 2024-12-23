@@ -1,0 +1,6 @@
+defaultNamespace: kanban
+helm:
+    chart: ./templates
+    releaseName: kanban-release
+    valuesFiles:
+        - templates/values.yaml
