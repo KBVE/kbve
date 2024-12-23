@@ -1,6 +1,6 @@
 defaultNamespace: kanban
 helm:
-    chart: ./templates
+    chart: ./services
     releaseName: kanban-release
     valuesFiles:
-        - templates/values.yaml
+        - services/values.yaml
