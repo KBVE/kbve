@@ -3,9 +3,11 @@ use axum::{
   routing::{ get, post },
   response::IntoResponse,
   Router,
-  Json,
-  State,
 };
+use axum::http::StatusCode;
+
+use axum::{ extract::State, Json };
+use futures::{ sink::SinkExt, stream::StreamExt };
 use serde::{ Deserialize, Serialize };
 use std::{ sync::Arc, collections::HashMap, net::SocketAddr };
 use tokio::sync::broadcast;
@@ -13,6 +15,7 @@ use tower_http::{ services::ServeDir, cors::CorsLayer, trace::TraceLayer };
 use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
 use aws_sdk_dynamodb::{ Client, types::AttributeValue };
 use serde_dynamo::{ to_item, from_item };
+use tokio::net::{ TcpListener };
 
 #[derive(Clone)]
 struct AppState {
@@ -74,15 +77,15 @@ async fn main() {
     .route("/api/get_board", post(get_board))
     .route("/api/save_board", post(save_board_handler))
     .route("/ws", get(websocket_handler))
-    .nest_service("/", ServeDir::new("build").append_index_html_on_directories(true))
+    .fallback_service(ServeDir::new("build").append_index_html_on_directories(true))
     .with_state(state)
     .layer(cors)
     .layer(TraceLayer::new_for_http());
 
   // Run the server
-  let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-  tracing::info!("Listening on {}", addr);
-  axum::Server::bind(&addr).serve(app.into_make_service()).await.unwrap();
+  let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+  tracing::debug!("listening on {}", listener.local_addr().unwrap());
+  axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
 }
 
 // RESTful API: Fetch board from DynamoDB
@@ -105,47 +108,90 @@ async fn get_board(
 }
 
 // RESTful API: Save board to DynamoDB
-//  TODO: Fixture.
 async fn save_board_handler(
   State(state): State<AppState>,
-  Json(payload): Json<KanbanBoard>
-) -> impl IntoResponse {
-  let board_id = "example-board-id";
-  match save_board(&state.dynamo_client, board_id, payload).await {
-    Ok(_) => Json("Board saved successfully"),
+  Json(payload): Json<HashMap<String, serde_json::Value>>
+) -> Result<Json<&'static str>, impl IntoResponse> {
+  let board_id = payload
+    .get("board_id")
+    .and_then(|v| v.as_str())
+    .ok_or_else(|| {
+      tracing::error!("Missing or invalid 'board_id' in the payload");
+      (StatusCode::BAD_REQUEST, "Missing or invalid 'board_id'")
+    })?;
+
+  let board_data = payload
+    .get("todo")
+    .and_then(|v| serde_json::from_value(v.clone()).ok())
+    .unwrap_or_default();
+
+  let in_progress = payload
+    .get("in_progress")
+    .and_then(|v| serde_json::from_value(v.clone()).ok())
+    .unwrap_or_default();
+
+  let done = payload
+    .get("done")
+    .and_then(|v| serde_json::from_value(v.clone()).ok())
+    .unwrap_or_default();
+
+  let board = KanbanBoard {
+    todo: board_data,
+    in_progress,
+    done,
+  };
+
+  match save_board(&state.dynamo_client, board_id, board).await {
+    Ok(_) => Ok(Json("Board saved successfully")),
     Err(e) => {
       tracing::error!("Failed to save board: {}", e);
-      Json("Failed to save board")
+      Err((StatusCode::INTERNAL_SERVER_ERROR, "Failed to save board"))
     }
   }
 }
 
+
 pub async fn save_board(client: &Client, board_id: &str, board: KanbanBoard) -> Result<(), String> {
-  let item = to_item(board).map_err(|e| e.to_string())?;
+    // Annotate the type for `item`
+    let item: HashMap<String, AttributeValue> = to_item(board).map_err(|e| {
+        tracing::error!("Failed to serialize board: {}", e);
+        e.to_string()
+    })?;
 
-  client
-    .put_item()
-    .table_name("KanbanBoards")
-    .item("board_id", AttributeValue::S(board_id.to_string()))
-    .set_item(Some(item))
-    .send().await
-    .map_err(|e| e.to_string())?;
+    // Add the partition key to the item
+    let mut item_with_key = item;
+    item_with_key.insert("board_id".to_string(), AttributeValue::S(board_id.to_string()));
 
-  Ok(())
+    tracing::debug!("Final item for PutItem: {:?}", item_with_key);
+
+    // Execute the PutItem request
+    client
+        .put_item()
+        .table_name("KanbanBoards")
+        .set_item(Some(item_with_key))
+        .send()
+        .await
+        .map_err(|e| {
+            tracing::error!("PutItem request failed: {:?}", e);
+            e.to_string()
+        })?;
+
+    Ok(())
 }
+
 
 async fn fetch_board(client: &Client, board_id: &str) -> Result<KanbanBoard, String> {
   let result = client
     .get_item()
     .table_name("KanbanBoards")
-    .key("board_id", board_id.into())
+    .key("board_id", AttributeValue::S(board_id.to_string()))
     .send().await
     .map_err(|e| e.to_string())?;
+
   let item = result.item.ok_or("Board not found")?;
   let board: KanbanBoard = from_item(item).map_err(|e| e.to_string())?;
   Ok(board)
 }
-
 //  Websockets
 //TODO: Websockets
 
