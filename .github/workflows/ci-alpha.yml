@@ -261,7 +261,7 @@ jobs:
                   buildChannel: webgl
     rust_kanban:
         needs: ['alter', 'globals']
-        if: needs.alter.outputs.rust_kanban == 'true'
+        if: needs.alter.outputs.kanban == 'true'
         name: Rust Kanaban Docker
         runs-on: 'ubuntu-latest'
         permissions:
