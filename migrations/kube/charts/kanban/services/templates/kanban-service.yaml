@@ -1,0 +1,83 @@
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.kanban.name }}
+  namespace: kanban
+  labels:
+    app: {{ .Values.kanban.name }}
+spec:
+  replicas: {{ .Values.kanban.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.kanban.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.kanban.name }}
+    spec:
+      containers:
+        - name: {{ .Values.kanban.name }}
+          image: "{{ .Values.kanban.image.repository }}:{{ .Values.kanban.image.tag }}"
+          ports:
+            {{- range .Values.kanban.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.kanban.resources | nindent 12 }}
+
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.kanban.service.name }}
+  namespace: kanban
+  labels:
+    app: {{ .Values.kanban.name }}
+spec:
+  selector:
+    app: {{ .Values.kanban.name }}
+  ports:
+    {{- range .Values.kanban.service.ports }}
+    - name: {{ .name }}
+      protocol: {{ .protocol }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+    {{- end }}
+  type: ClusterIP
+
+---
+
+# Ingress
+{{- if .Values.kanban.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.kanban.name }}-ingress
+  namespace: kanban
+  annotations:
+    nginx.ingress.kubernetes.io/enable-websocket: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+spec:
+  rules:
+    - host: {{ .Values.kanban.ingress.host }}
+      http:
+        paths:
+          {{- range .Values.kanban.ingress.paths }}
+          - path: {{ .path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $.Values.kanban.service.name }}
+                port:
+                  number: {{ if eq .backend "websocket" }}8086{{ else }}3000{{ end }}
+          {{- end }}
+{{- end }}
