@@ -26,6 +26,9 @@ spec:
               containerPort: {{ .targetPort }}
               protocol: {{ .protocol }}
             {{- end }}
+          envFrom:
+            - secretRef:
+                name: aws-config  
           resources:
             {{- toYaml .Values.kanban.resources | nindent 12 }}
 
