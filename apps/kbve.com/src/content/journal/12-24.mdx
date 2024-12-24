@@ -19,4 +19,11 @@ import { Adsense, Tasks } from '@kbve/astropad';
     **Kanban**
 
     Start the morning off with a fresh deployment of the kanban helm chart.
+    To build out the chart we need to make sure.
+    `https://github.com/KBVE/kbve.git` This is the repo that we are pulling in and the path is `/migrations/kube/charts/kanban`
+    We need to pass in the secrets too, so lets go ahead and resolve that
+    ```shell
+    ./kbve.sh -nx kilobase:seal --namespace=kanban --keyName=aws-config --secrets=AWS_ACCESS_KEY_I
+    ```
+
     
