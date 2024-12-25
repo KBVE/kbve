@@ -4,7 +4,7 @@ kanban:
     replicaCount: 1
     image:
         repository: kbve/kanban
-        tag: 1.01.1
+        tag: 1.02.1
         digest: 'sha256:c002234843480e38de0d9fa6fde5f18a449feea238be757c5afe7cd5bffaecf1'
     service:
         name: kanban
