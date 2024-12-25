@@ -13,6 +13,8 @@ export class KanbanBase extends Kilobase {
 		Record<string, { id: string; container: string }[]>
 	>;
 
+	private boardIdStore: WritableAtom<string | null>;
+
 	constructor() {
 		super();
 
@@ -22,6 +24,16 @@ export class KanbanBase extends Kilobase {
 		>(
 			'kanBanItemPositions',
 			{},
+			{
+				encode: JSON.stringify,
+				decode: JSON.parse,
+			},
+		);
+
+		// Persistent store for the current board_id
+		this.boardIdStore = persistentAtom<string | null>(
+			'kanBanBoardId',
+			null,
 			{
 				encode: JSON.stringify,
 				decode: JSON.parse,
@@ -71,8 +83,101 @@ export class KanbanBase extends Kilobase {
 		console.log('Item positions reset to:', resetPositions);
 	}
 
+	/**
+	 * Load board data by board_id from the API.
+	 * @param boardId - The board_id to load data for.
+	 * @returns Promise<Record<string, { id: string; container: string }[]> | null> - The board data if found, or null if not found.
+	 */
+	async loadBoardData(
+		boardId: string,
+	): Promise<Record<string, { id: string; container: string }[]> | null> {
+		try {
+			const response = await fetch(
+				`https://kanban.kbve.com/api/get_board`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ board_id: boardId }),
+				},
+			);
 
-	
+			if (!response.ok) {
+				// If the response is not ok, log an error and return null
+				console.error(
+					`Failed to fetch board data for board ID: ${boardId}`,
+				);
+				return null;
+			}
+
+			const result = await response.json();
+
+			// Validate the structure of the response
+			if (
+				result &&
+				typeof result === 'object' &&
+				'todo' in result &&
+				'in_progress' in result &&
+				'done' in result
+			) {
+				this.itemPositionsStore.set(result); // Cache the data locally
+				console.log(`Loaded board data for board ID: ${boardId}`);
+				return result;
+			}
+
+			console.error(
+				`Invalid board data structure for board ID: ${boardId}`,
+			);
+			return null;
+		} catch (error) {
+			console.error('Error loading board data:', error);
+			return null; // Return null on error
+		}
+	}
+
+	/**
+	 * Save board data by board_id.
+	 * @param boardId - The board_id to save data for.
+	 * @param data - The Kanban data to save.
+	 * @returns Promise<void>
+	 */
+	async saveBoardData(
+		boardId: string,
+		data: Record<string, { id: string; container: string }[]>,
+	): Promise<void> {
+		// Save to local storage
+		this.itemPositionsStore.set(data);
+		console.log(`Saved board data to local storage for ${boardId}`);
+
+		// Save to the API
+		try {
+			const response = await fetch(
+				`https://kanban.kbve.com/api/get_board`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ board_id: boardId, ...data }),
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to save board data to API');
+			}
+
+			console.log(`Saved board data to API for ${boardId}`);
+		} catch (error) {
+			console.error('Error saving board data:', error);
+		}
+	}
+
+	/**
+	 * Validate the board_id by attempting to load its data.
+	 * @param boardId - The board_id to validate.
+	 * @returns Promise<boolean> - True if the board_id is valid, false otherwise.
+	 */
+	async validateBoardId(boardId: string): Promise<boolean> {
+		const boardData = await this.loadBoardData(boardId);
+		return boardData !== null; // Valid if board data is found
+	}
 }
 
 // Export a singleton instance of the extended class for use throughout the application

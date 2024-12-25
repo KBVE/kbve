@@ -30,6 +30,14 @@ import {
 
 interface DroppableStoryProps {
 	containers: string[];
+	items: Record<string, { id: string; container: string }[]>;
+	sidebarItems: string[];
+	setItems: React.Dispatch<
+		React.SetStateAction<
+			Record<string, { id: string; container: string }[]>
+		>
+	>;
+	setSidebarItems: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 // Sidebar wrapper and container styles
@@ -432,9 +440,159 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 	);
 };
 
+//	TODO: API Changes - Having the ability to load and save board data to the API Server
+
+const BoardForm: React.FC<{ onSubmit: (boardId: string) => void }> = ({
+	onSubmit,
+}) => {
+	const [boardId, setBoardId] = useState('');
+
+	return (
+		<div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+			<h2 className="text-2xl font-bold mb-4">Enter Board ID</h2>
+			<input
+				type="text"
+				placeholder="Board ID"
+				value={boardId}
+				onChange={(e) => setBoardId(e.target.value)}
+				className="border p-2 rounded-md mb-4 w-64"
+			/>
+			<button
+				onClick={() => boardId && onSubmit(boardId)}
+				className="bg-cyan-500 text-white py-2 px-4 rounded hover:bg-cyan-600">
+				Submit
+			</button>
+		</div>
+	);
+};
+
 // Use the DroppableStory component with predefined containers
-const ReactKanban = () => (
-	<DroppableStory containers={['TODO', 'IN-PROGRESS', 'DONE']} />
-);
+// const ReactKanban = () => (
+// 	<DroppableStory containers={['TODO', 'IN-PROGRESS', 'DONE']} />
+// );
+
+const ReactKanban: React.FC = () => {
+	const [boardId, setBoardId] = useState<string | null>(null);
+	const [items, setItems] = useState<
+		Record<string, { id: string; container: string }[]>
+	>({});
+	const [sidebarItems, setSidebarItems] = useState<string[]>([
+		'Item 1',
+		'Item 2',
+		'Item 3',
+		'Function',
+		'IGBC',
+	]);
+	const [isLoading, setIsLoading] = useState(false);
+
+	// Fetch and validate board data
+	const fetchBoardData = async (id: string) => {
+		setIsLoading(true);
+		try {
+			const boardData = await kanbanBase.loadBoardData(id);
+
+			if (boardData) {
+				setItems(boardData);
+
+				// Remove placed items from the sidebar
+				const placedItems = new Set(
+					Object.values(boardData).flatMap((itemList) =>
+						itemList.map((item) => item.id),
+					),
+				);
+				setSidebarItems((prevSidebarItems) =>
+					prevSidebarItems.filter((item) => !placedItems.has(item)),
+				);
+			} else {
+				alert('Invalid board ID. Please try again.');
+				setBoardId(null);
+			}
+		} catch (error) {
+			console.error('Error fetching board data:', error);
+			alert('Failed to load board data.');
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	// Save board data
+	const saveBoardData = async () => {
+		if (!boardId) return;
+
+		try {
+			await kanbanBase.saveBoardData(boardId, items);
+			alert('Board saved successfully!');
+		} catch (error) {
+			console.error('Error saving board data:', error);
+			alert('Failed to save board.');
+		}
+	};
+
+	// Reset board
+	const resetBoard = async () => {
+		const resetTemplate = {
+			TODO: [],
+			'IN-PROGRESS': [],
+			DONE: [],
+		};
+
+		setItems(resetTemplate);
+		if (boardId) {
+			await kanbanBase.saveBoardData(boardId, resetTemplate);
+		}
+	};
+
+	// Handle form submission
+	const handleBoardIdSubmit = (id: string) => {
+		setBoardId(id);
+		fetchBoardData(id);
+	};
+
+	// Fetch data when `boardId` changes
+	useEffect(() => {
+		if (boardId) {
+			fetchBoardData(boardId);
+		}
+	}, [boardId]);
+
+	// Render loading state
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center h-screen">
+				Loading...
+			</div>
+		);
+	}
+
+	// Render the board form if no board ID is set
+	if (!boardId) {
+		return <BoardForm onSubmit={handleBoardIdSubmit} />;
+	}
+
+	// Render the Kanban board
+	return (
+		<div>
+			<DroppableStory
+				containers={['TODO', 'IN-PROGRESS', 'DONE']}
+				items={items}
+				sidebarItems={sidebarItems}
+				setItems={setItems}
+				setSidebarItems={setSidebarItems}
+			/>
+			<div className="mt-4 text-center">
+				<button
+					className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+					onClick={saveBoardData}>
+					Save Board
+				</button>
+				<button
+					className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 ml-4"
+					onClick={resetBoard}>
+					Reset Board
+				</button>
+			</div>
+		</div>
+	);
+};
 
 export default ReactKanban;
