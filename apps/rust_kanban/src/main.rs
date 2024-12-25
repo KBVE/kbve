@@ -92,6 +92,7 @@ async fn main() {
   let app = Router::new()
     .route("/api/get_board", post(get_board))
     .route("/api/save_board", post(save_board_handler))
+    .route("/api/delete_board", post(delete_board_handler))
     .route("/ws", get(websocket_handler))
     .fallback_service(ServeDir::new("build").append_index_html_on_directories(true))
     .with_state(state)
@@ -234,4 +235,43 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
       }
     }
   }
+}
+
+
+//  TODO: Delete
+
+async fn delete_board_handler(
+  State(state): State<AppState>,
+  Json(payload): Json<HashMap<String, String>>
+) -> impl IntoResponse {
+  let board_id = match payload.get("board_id") {
+      Some(id) => id,
+      None => {
+          let error_response = json!({"error": "Missing 'board_id' in request payload"});
+          return (StatusCode::BAD_REQUEST, Json(error_response)).into_response();
+      }
+  };
+
+  match delete_board(&state.dynamo_client, board_id).await {
+      Ok(_) => Json(json!({"message": "Board deleted successfully"})).into_response(),
+      Err(e) => {
+          tracing::error!("Failed to delete board: {}", e);
+          let error_response = json!({"error": "Failed to delete board"});
+          (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)).into_response()
+      }
+  }
+}
+
+pub async fn delete_board(client: &Client, board_id: &str) -> Result<(), String> {
+  client
+      .delete_item()
+      .table_name("KanbanBoards")
+      .key("board_id", AttributeValue::S(board_id.to_string()))
+      .send()
+      .await
+      .map_err(|e| {
+          tracing::error!("DeleteItem request failed: {:?}", e);
+          e.to_string()
+      })?;
+  Ok(())
 }
