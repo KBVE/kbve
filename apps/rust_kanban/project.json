@@ -65,15 +65,15 @@
 				"metadata": {
 					"images": ["kbve/kanban"],
 					"load": true,
-					"tags": ["1.02", "1.02.1"]
+					"tags": ["1.03", "1.03.1"]
 				},
 				"configurations": {
 					"local": {
-						"tags": ["1.02", "1.02.1"],
+						"tags": ["1.03", "1.03.1"],
 						"push": false
 					},
 					"production": {
-						"tags": ["1.02", "1.02.1"],
+						"tags": ["1.03", "1.03.1"],
 						"push": true,
 						"customBuildOptions": "--push",
 						"cache-from": [
@@ -95,7 +95,7 @@
 						"forwardAllArgs": false
 					},
 					{
-						"command": "docker run --env-file /app/rust_kanban/.env -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/kanban:1.02",
+						"command": "docker run --env-file /app/rust_kanban/.env -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/kanban:1.03",
 						"forwardAllArgs": false
 					}
 				],
