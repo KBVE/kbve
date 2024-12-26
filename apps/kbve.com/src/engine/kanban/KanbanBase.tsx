@@ -115,18 +115,28 @@ export class KanbanBase extends Kilobase {
 				typeof result === 'object' &&
 				'todo' in result &&
 				'in_progress' in result &&
-				'done' in result
+				'done' in result &&
+				'unassigned' in result &&
+				'metadata' in result &&
+				'actions' in result
 			) {
 				// Save to local storage
 				const formattedResult = {
 					TODO: result.todo || [],
 					'IN-PROGRESS': result.in_progress || [],
 					DONE: result.done || [],
+					UNASSIGNED: result.unassigned || [],
 				};
+
 				this.itemPositionsStore.set(formattedResult);
 				console.log(
 					`Loaded and saved board data for board ID: ${boardId}`,
 				);
+
+				// Optionally, you could handle metadata and actions separately if needed
+				console.log('Metadata:', result.metadata);
+				console.log('Actions:', result.actions);
+
 				return formattedResult;
 			}
 
