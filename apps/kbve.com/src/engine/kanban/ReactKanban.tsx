@@ -30,6 +30,14 @@ import {
 
 interface DroppableStoryProps {
 	containers: string[];
+	items: Record<string, { id: string; container: string }[]>;
+	sidebarItems: string[];
+	setItems: React.Dispatch<
+		React.SetStateAction<
+			Record<string, { id: string; container: string }[]>
+		>
+	>;
+	setSidebarItems: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 // Sidebar wrapper and container styles
@@ -432,9 +440,164 @@ const DroppableStory: React.FC<DroppableStoryProps> = ({ containers }) => {
 	);
 };
 
+//	TODO: API Changes - Having the ability to load and save board data to the API Server
+
+const BoardForm: React.FC<{ onSubmit: (boardId: string) => void }> = ({
+	onSubmit,
+}) => {
+	const [boardId, setBoardId] = useState('');
+
+	return (
+		<div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+			<h2 className="text-2xl font-bold mb-4">Enter Board ID</h2>
+			<input
+				type="text"
+				placeholder="Board ID"
+				value={boardId}
+				onChange={(e) => setBoardId(e.target.value)}
+				className="border p-2 rounded-md mb-4 w-64"
+			/>
+			<button
+				onClick={() => boardId && onSubmit(boardId)}
+				className="bg-cyan-500 text-white py-2 px-4 rounded hover:bg-cyan-600">
+				Submit
+			</button>
+		</div>
+	);
+};
+
 // Use the DroppableStory component with predefined containers
-const ReactKanban = () => (
-	<DroppableStory containers={['TODO', 'IN-PROGRESS', 'DONE']} />
-);
+// const ReactKanban = () => (
+// 	<DroppableStory containers={['TODO', 'IN-PROGRESS', 'DONE']} />
+// );
+const ReactKanban: React.FC = () => {
+    const [boardId, setBoardId] = useState<string | null>(null);
+    const [items, setItems] = useState<Record<string, { id: string; container: string }[]>>({});
+    const [sidebarItems, setSidebarItems] = useState<string[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    /**
+     * Load board data by boardId and update state.
+     * @param id - The boardId to load data for.
+     */
+    const loadBoardData = async (id: string) => {
+        setIsLoading(true);
+        try {
+            // Fetch board data from the API or local storage
+            const boardData = await kanbanBase.loadBoardData(id);
+
+            if (boardData) {
+                setItems(boardData);
+
+                // Extract item IDs already placed in containers
+                const placedItems = new Set(
+                    Object.values(boardData).flatMap((container) =>
+                        container.map((item) => item.id)
+                    )
+                );
+
+                // Update sidebar with items not in containers
+                setSidebarItems((prev) =>
+                    prev.filter((item) => !placedItems.has(item))
+                );
+            } else {
+                alert('No board data found for the provided Board ID.');
+                setBoardId(null);
+            }
+        } catch (error) {
+            console.error('Error loading board data:', error);
+            alert('Failed to load board data.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    /**
+     * Save the current board data to the API.
+     */
+    const saveBoardData = async () => {
+        if (!boardId) return;
+
+        try {
+            await kanbanBase.saveBoardData(boardId, items);
+            alert('Board saved successfully!');
+        } catch (error) {
+            console.error('Error saving board data:', error);
+            alert('Failed to save board.');
+        }
+    };
+
+    /**
+     * Reset the Kanban board to the initial state.
+     */
+    const resetBoard = () => {
+        const resetTemplate = { TODO: [], 'IN-PROGRESS': [], DONE: [] };
+        setItems(resetTemplate);
+
+        // Move all items back to the sidebar
+        const allItems = Object.values(items)
+            .flatMap((container) => container.map((item) => item.id))
+            .filter((id) => !sidebarItems.includes(id));
+
+        setSidebarItems((prev) => [...prev, ...allItems]);
+    };
+
+    /**
+     * Handle the submission of a new board ID.
+     * @param id - The boardId to set and load.
+     */
+    const handleBoardIdSubmit = (id: string) => {
+        setBoardId(id);
+        loadBoardData(id);
+    };
+
+    // Fetch data whenever `boardId` is set
+    useEffect(() => {
+        if (boardId) {
+            loadBoardData(boardId);
+        }
+    }, [boardId]);
+
+    // Render loading state
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                Loading...
+            </div>
+        );
+    }
+
+    // Render the board form if no board ID is set
+    if (!boardId) {
+        return <BoardForm onSubmit={handleBoardIdSubmit} />;
+    }
+
+    // Render the Kanban board
+    return (
+        <div>
+            <DroppableStory
+                containers={['TODO', 'IN-PROGRESS', 'DONE']}
+                items={items}
+                sidebarItems={sidebarItems}
+                setItems={setItems}
+                setSidebarItems={setSidebarItems}
+            />
+            <div className="mt-4 text-center">
+                <button
+                    className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+                    onClick={saveBoardData}
+                >
+                    Save Board
+                </button>
+                <button
+                    className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 ml-4"
+                    onClick={resetBoard}
+                >
+                    Reset Board
+                </button>
+            </div>
+        </div>
+    );
+};
 
 export default ReactKanban;
