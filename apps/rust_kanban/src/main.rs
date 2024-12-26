@@ -30,15 +30,45 @@ struct AppState {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct KanbanBoard {
-  pub todo: Vec<KanbanItem>,
-  pub in_progress: Vec<KanbanItem>,
-  pub done: Vec<KanbanItem>,
+    pub todo: Vec<KanbanItem>,
+    pub in_progress: Vec<KanbanItem>,
+    pub done: Vec<KanbanItem>,
+    pub unassigned: Vec<KanbanItem>, // New field for unassigned items
+    pub metadata: Option<KanbanMetadata>, // Optional metadata for the board
+    pub actions: Vec<KanbanAction>, // List of actions performed on the board
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct KanbanMetadata {
+    pub board_id: String,          // Unique ID for the board
+    pub owner: Option<String>,     // Owner's ID or name
+    pub created_at: Option<String>, // ISO 8601 timestamp
+    pub updated_at: Option<String>, // ISO 8601 timestamp
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct KanbanItem {
-  pub id: String,
-  pub container: String,
+    pub id: String,             // Unique identifier for the item
+    pub container: String,      // The board/container this item belongs to
+    pub notes: Vec<KanbanNote>, // New field for notes
+    pub priority: Option<u8>,   // Optional priority (1 = high, 5 = low)
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct KanbanNote {
+    pub note_id: String,      // Unique identifier for the note
+    pub content: String,      // The note's content
+    pub created_at: Option<String>, // Timestamp for when the note was created
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct KanbanAction {
+    pub action_id: String,        // Unique identifier for the action
+    pub item_id: Option<String>, // The item ID this action is related to (optional for board-wide actions)
+    pub action_type: String,      // The type of action, e.g., "move", "delete", "create"
+    pub performed_by: Option<String>, // The user who performed the action
+    pub timestamp: String,        // ISO 8601 timestamp for when the action occurred
+    pub details: Option<String>,  // Optional details about the action
 }
 
 #[cfg(feature = "jemalloc")]
@@ -92,6 +122,7 @@ async fn main() {
   let app = Router::new()
     .route("/api/get_board", post(get_board))
     .route("/api/save_board", post(save_board_handler))
+    .route("/api/delete_board", post(delete_board_handler))
     .route("/ws", get(websocket_handler))
     .fallback_service(ServeDir::new("build").append_index_html_on_directories(true))
     .with_state(state)
@@ -107,65 +138,104 @@ async fn main() {
 // RESTful API: Fetch board from DynamoDB
 async fn get_board(
   State(state): State<AppState>,
-  Json(payload): Json<HashMap<String, String>>
+  Json(payload): Json<HashMap<String, String>>,
 ) -> impl IntoResponse {
+  // Extract board_id from the request payload
   let board_id = match payload.get("board_id") {
-    Some(id) => id,
-    None => {
-      let error_response = json!({"error": "Missing 'board_id' in request payload"});
-      return (StatusCode::BAD_REQUEST, Json(error_response)).into_response();
-    }
+      Some(id) => id,
+      None => {
+          let error_response = json!({ "error": "Missing 'board_id' in request payload" });
+          return (StatusCode::BAD_REQUEST, Json(error_response)).into_response();
+      }
   };
 
+  // Fetch the board from DynamoDB
   match fetch_board(&state.dynamo_client, board_id).await {
-    Ok(board) => Json(board).into_response(),
-    Err(e) => {
-      tracing::error!("Failed to fetch board: {}", e);
-      let error_response = json!({"error": "Failed to fetch board data"});
-      (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)).into_response()
-    }
+      Ok(board) => {
+          tracing::debug!("Successfully fetched board: {:?}", board);
+          Json(board).into_response()
+      }
+      Err(e) => {
+          tracing::error!("Failed to fetch board: {}", e);
+          let error_response = json!({ "error": "Failed to fetch board data" });
+          (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)).into_response()
+      }
   }
 }
+
 // RESTful API: Save board to DynamoDB
 async fn save_board_handler(
   State(state): State<AppState>,
-  Json(payload): Json<HashMap<String, serde_json::Value>>
+  Json(payload): Json<HashMap<String, serde_json::Value>>,
 ) -> Result<Json<&'static str>, impl IntoResponse> {
   let board_id = payload
-    .get("board_id")
-    .and_then(|v| v.as_str())
-    .ok_or_else(|| {
-      tracing::error!("Missing or invalid 'board_id' in the payload");
-      (StatusCode::BAD_REQUEST, "Missing or invalid 'board_id'")
-    })?;
+      .get("board_id")
+      .and_then(|v| v.as_str())
+      .ok_or_else(|| {
+          tracing::error!("Missing or invalid 'board_id' in the payload");
+          (StatusCode::BAD_REQUEST, "Missing or invalid 'board_id'")
+      })?;
 
-  let board_data = payload
-    .get("todo")
-    .and_then(|v| serde_json::from_value(v.clone()).ok())
-    .unwrap_or_default();
+  // Validate and deserialize fields
+  let todo = payload
+      .get("todo")
+      .and_then(|v| serde_json::from_value(v.clone()).ok())
+      .unwrap_or_else(|| {
+          tracing::warn!("'todo' field missing or invalid, defaulting to empty");
+          vec![]
+      });
 
   let in_progress = payload
-    .get("in_progress")
-    .and_then(|v| serde_json::from_value(v.clone()).ok())
-    .unwrap_or_default();
+      .get("in_progress")
+      .and_then(|v| serde_json::from_value(v.clone()).ok())
+      .unwrap_or_else(|| {
+          tracing::warn!("'in_progress' field missing or invalid, defaulting to empty");
+          vec![]
+      });
 
   let done = payload
-    .get("done")
-    .and_then(|v| serde_json::from_value(v.clone()).ok())
-    .unwrap_or_default();
+      .get("done")
+      .and_then(|v| serde_json::from_value(v.clone()).ok())
+      .unwrap_or_else(|| {
+          tracing::warn!("'done' field missing or invalid, defaulting to empty");
+          vec![]
+      });
+
+  let unassigned = payload
+      .get("unassigned")
+      .and_then(|v| serde_json::from_value(v.clone()).ok())
+      .unwrap_or_else(|| {
+          tracing::warn!("'unassigned' field missing or invalid, defaulting to empty");
+          vec![]
+      });
+
+  let metadata = payload
+      .get("metadata")
+      .and_then(|v| serde_json::from_value(v.clone()).ok());
+
+  let actions = payload
+      .get("actions")
+      .and_then(|v| serde_json::from_value(v.clone()).ok())
+      .unwrap_or_else(|| {
+          tracing::warn!("'actions' field missing or invalid, defaulting to empty");
+          vec![]
+      });
 
   let board = KanbanBoard {
-    todo: board_data,
-    in_progress,
-    done,
+      todo,
+      in_progress,
+      done,
+      unassigned,
+      metadata,
+      actions,
   };
 
   match save_board(&state.dynamo_client, board_id, board).await {
-    Ok(_) => Ok(Json("Board saved successfully")),
-    Err(e) => {
-      tracing::error!("Failed to save board: {}", e);
-      Err((StatusCode::INTERNAL_SERVER_ERROR, "Failed to save board"))
-    }
+      Ok(_) => Ok(Json("Board saved successfully")),
+      Err(e) => {
+          tracing::error!("Failed to save board: {}", e);
+          Err((StatusCode::INTERNAL_SERVER_ERROR, "Failed to save board"))
+      }
   }
 }
 
@@ -198,15 +268,32 @@ pub async fn save_board(client: &Client, board_id: &str, board: KanbanBoard) -> 
 
 async fn fetch_board(client: &Client, board_id: &str) -> Result<KanbanBoard, String> {
   let result = client
-    .get_item()
-    .table_name("KanbanBoards")
-    .key("board_id", AttributeValue::S(board_id.to_string()))
-    .send().await
-    .map_err(|e| e.to_string())?;
+      .get_item()
+      .table_name("KanbanBoards")
+      .key("board_id", AttributeValue::S(board_id.to_string()))
+      .send()
+      .await
+      .map_err(|e| {
+          tracing::error!("Failed to fetch item from DynamoDB: {:?}", e);
+          e.to_string()
+      })?;
 
   let item = result.item.ok_or("Board not found")?;
-  let board: KanbanBoard = from_item(item).map_err(|e| e.to_string())?;
-  Ok(board)
+
+  let board: KanbanBoard = from_item(item).map_err(|e| {
+      tracing::error!("Failed to deserialize board: {}", e);
+      e.to_string()
+  })?;
+
+  // Ensure all fields are present
+  Ok(KanbanBoard {
+    todo: board.todo,
+    in_progress: board.in_progress,
+    done: board.done,
+    unassigned: board.unassigned, // Already a Vec<KanbanItem>, no need for unwrap_or_else
+    metadata: board.metadata,
+    actions: board.actions, // Already a Vec<KanbanAction>, no need for unwrap_or_else
+})
 }
 //  Websockets
 //TODO: Websockets
@@ -234,4 +321,43 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
       }
     }
   }
+}
+
+
+//  TODO: Delete
+
+async fn delete_board_handler(
+  State(state): State<AppState>,
+  Json(payload): Json<HashMap<String, String>>
+) -> impl IntoResponse {
+  let board_id = match payload.get("board_id") {
+      Some(id) => id,
+      None => {
+          let error_response = json!({"error": "Missing 'board_id' in request payload"});
+          return (StatusCode::BAD_REQUEST, Json(error_response)).into_response();
+      }
+  };
+
+  match delete_board(&state.dynamo_client, board_id).await {
+      Ok(_) => Json(json!({"message": "Board deleted successfully"})).into_response(),
+      Err(e) => {
+          tracing::error!("Failed to delete board: {}", e);
+          let error_response = json!({"error": "Failed to delete board"});
+          (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response)).into_response()
+      }
+  }
+}
+
+pub async fn delete_board(client: &Client, board_id: &str) -> Result<(), String> {
+  client
+      .delete_item()
+      .table_name("KanbanBoards")
+      .key("board_id", AttributeValue::S(board_id.to_string()))
+      .send()
+      .await
+      .map_err(|e| {
+          tracing::error!("DeleteItem request failed: {:?}", e);
+          e.to_string()
+      })?;
+  Ok(())
 }
