@@ -82,6 +82,7 @@ export class KanbanBase extends Kilobase {
 		this.itemPositionsStore.set(resetPositions); // Save the reset structure
 		console.log('Item positions reset to:', resetPositions);
 	}
+
 	/**
 	 * Load board data by board_id from the API.
 	 * Saves the fetched data to local storage.
@@ -201,7 +202,14 @@ export class KanbanBase extends Kilobase {
 	 */
 	async validateBoardId(boardId: string): Promise<boolean> {
 		const boardData = await this.loadBoardData(boardId);
-		return boardData !== null; // Valid if board data is found
+
+		if (boardData) {
+			console.log('Validation passed for board ID:', boardId);
+			return true;
+		}
+
+		console.error('Validation failed for board ID:', boardId);
+		return false;
 	}
 }
 
