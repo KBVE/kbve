@@ -223,7 +223,7 @@ namespace KBVE.Kilonet.Networks
 #endif
     }
 
-    public static void RequestLocale()
+    public static void InvokeRequestLocale()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
       RequestLocale();
