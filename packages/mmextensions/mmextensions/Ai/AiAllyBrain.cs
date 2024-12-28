@@ -79,7 +79,7 @@ namespace KBVE.MMExtensions.Ai
       handleWeapon = gameObject.MMGetOrAddComponent<CharacterHandleWeapon>();
       handleWeapon.InitialWeapon = initialWeapon;
       handleWeapon.ForceWeaponAimControl = true;
-      handleWeapon.ForcedWeaponAimControl = WeaponAim.AimControls.Off;
+      handleWeapon.ForcedWeaponAimControl = WeaponAim.AimControls.Script;
       SetupDecisionsAndActions();
       SetupAllyStates();
       base.Awake();
@@ -174,10 +174,10 @@ namespace KBVE.MMExtensions.Ai
       AIState attackState = new AIState();
       attackState.StateName = "Attack";
 
-      attackState.Actions = new AIActionsList()
-      {
-        gameObject.MMGetOrAddComponent<AIActionShoot2D>()
-      };
+      AIActionShoot2D aIActionShoot2D = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
+      aIActionShoot2D.AimAtTarget = true;
+
+      attackState.Actions = new AIActionsList() { aIActionShoot2D };
 
       attackState.Transitions = new AITransitionsList
       {
