@@ -20,6 +20,7 @@ namespace KBVE.MMExtensions.Ai
     private AIDecisionDetectTargetRadius2D detectPlayerDecision;
     private AIDecisionDetectTargetRadius2D detectEnemyDecision;
     private AIDecisionDistanceToTarget distanceToTargetDecision;
+    private AIDecisionDistanceToTarget distanceToTargetFarDecision;
     private AIDecisionTargetIsAlive targetIsAliveDecision;
     private AIDecisionTimeInState timeInStateDecision;
     private CharacterHandleWeapon handleWeapon;
@@ -86,10 +87,14 @@ namespace KBVE.MMExtensions.Ai
 
     protected virtual void SetupDecisionsAndActions()
     {
-      detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 20f);
+      detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 100f, false);
       detectEnemyDecision = CreateDetectTarget2DDecision(ENEMY_LAYER_INT, 20f);
       distanceToTargetDecision = CreateDistanceToTarget2DDecision(
         2f,
+        AIDecisionDistanceToTarget.ComparisonModes.LowerThan
+      );
+      distanceToTargetFarDecision = CreateDistanceToTarget2DDecision(
+        4f,
         AIDecisionDistanceToTarget.ComparisonModes.LowerThan
       );
       targetIsAliveDecision = CreateTargetIsAliveDecision();
@@ -137,7 +142,8 @@ namespace KBVE.MMExtensions.Ai
 
       followState.Transitions = new AITransitionsList
       {
-        new AITransition() { Decision = detectEnemyDecision, TrueState = "ChaseEnemy" }
+        new AITransition() { Decision = detectEnemyDecision, TrueState = "ChaseEnemy" },
+        new AITransition() { Decision = distanceToTargetFarDecision, TrueState = "Idle" }
       };
 
       return followState;
@@ -184,12 +190,14 @@ namespace KBVE.MMExtensions.Ai
 
     private AIDecisionDetectTargetRadius2D CreateDetectTarget2DDecision(
       int targetLayerInt,
-      float radius
+      float radius,
+      bool obstacleDetection = true
     )
     {
       AIDecisionDetectTargetRadius2D detectTargetDecision =
         gameObject.AddComponent<AIDecisionDetectTargetRadius2D>();
       detectTargetDecision.TargetLayer = 1 << targetLayerInt;
+      detectTargetDecision.ObstacleDetection = obstacleDetection;
       detectTargetDecision.Radius = radius;
 
       return detectTargetDecision;
