@@ -194,11 +194,11 @@ namespace KBVE.MMExtensions.Ai
           NextWaypointIndex = 0;
           while (NextWaypointIndex < Waypoints.Length)
           {
-            if (
-              (Waypoints[NextWaypointIndex] - transform.position).magnitude
-              < DistanceToWaypointThreshold
-            )
+            var distance = (Waypoints[NextWaypointIndex] - transform.position).magnitude;
+            Debug.Log("distanceToWaypoint=" + distance);
+            if (distance < DistanceToWaypointThreshold)
             {
+              Debug.Log("distanceToWaypoint changed=" + distance);
               NextWaypointIndex++;
             }
             else
