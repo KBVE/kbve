@@ -76,6 +76,8 @@ namespace KBVE.MMExtensions.Ai
       gameObject.MMGetOrAddComponent<CharacterSwap>();
       gameObject.MMGetOrAddComponent<AiCharacterPathfinder2D>();
       gameObject.MMGetOrAddComponent<Seeker>();
+      gameObject.MMGetOrAddComponent<Rigidbody2D>().sharedMaterial =
+        CreateFrictionlessPhysicsMaterial();
       handleWeapon = gameObject.MMGetOrAddComponent<CharacterHandleWeapon>();
       handleWeapon.InitialWeapon = initialWeapon;
       handleWeapon.ForceWeaponAimControl = true;
@@ -176,7 +178,6 @@ namespace KBVE.MMExtensions.Ai
 
       AIActionShoot2D aIActionShoot2D = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
       aIActionShoot2D.AimAtTarget = true;
-
       attackState.Actions = new AIActionsList() { aIActionShoot2D };
 
       attackState.Transitions = new AITransitionsList
@@ -227,6 +228,11 @@ namespace KBVE.MMExtensions.Ai
       timeInState.AfterTimeMin = afterTimeMin;
       timeInState.AfterTimeMax = afterTimeMax;
       return timeInState;
+    }
+
+    public PhysicsMaterial2D CreateFrictionlessPhysicsMaterial()
+    {
+      return new PhysicsMaterial2D() { friction = 0 };
     }
 
     // var AllyPlayer = null; So an empty hashmap (dictionary) of all "ally players"
