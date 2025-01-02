@@ -6,3 +6,4 @@ from .screen_client import ScreenClient
 from .novnc_client import NoVNCClient
 from .runelite_client import RuneLiteClient
 from .chrome_client import ChromeClient
+from .discord_client import DiscordClient

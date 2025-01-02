@@ -130,6 +130,7 @@ async fn main() {
     .allow_origin([
       "https://kbve.com".parse::<HeaderValue>().unwrap(), // Main domain
       "https://kanban.kbve.com".parse::<HeaderValue>().unwrap(), // Subdomain
+      "https://websocketking.com".parse::<HeaderValue>().unwrap(), // Websocket King Test
       "http://localhost".parse::<HeaderValue>().unwrap(), // Localhost for development
       "http://127.0.0.1".parse::<HeaderValue>().unwrap(), // Localhost alternative
     ])
