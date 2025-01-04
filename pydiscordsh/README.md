@@ -1,3 +1,0 @@
-# pydiscordsh
-
-Project description here.
