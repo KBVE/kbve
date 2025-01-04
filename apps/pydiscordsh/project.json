@@ -1,14 +1,14 @@
 {
 	"name": "pydiscordsh",
-	"$schema": "../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "pydiscordsh/pydiscordsh",
+	"sourceRoot": "apps/pydiscordsh/pydiscordsh",
 	"targets": {
 		"lock": {
 			"executor": "@nxlv/python:run-commands",
 			"options": {
 				"command": "poetry lock --no-update",
-				"cwd": "pydiscordsh"
+				"cwd": "apps/pydiscordsh"
 			}
 		},
 		"add": {
@@ -27,7 +27,7 @@
 			"executor": "@nxlv/python:build",
 			"outputs": ["{projectRoot}/dist"],
 			"options": {
-				"outputPath": "pydiscordsh/dist",
+				"outputPath": "apps/pydiscordsh/dist",
 				"publish": false,
 				"lockedVersions": true,
 				"bundleLocalDependencies": true
@@ -46,21 +46,21 @@
 		},
 		"lint": {
 			"executor": "@nxlv/python:flake8",
-			"outputs": ["{workspaceRoot}/reports/pydiscordsh/pylint.txt"],
+			"outputs": ["{workspaceRoot}/reports/apps/pydiscordsh/pylint.txt"],
 			"options": {
-				"outputFile": "reports/pydiscordsh/pylint.txt"
+				"outputFile": "reports/apps/pydiscordsh/pylint.txt"
 			},
 			"cache": true
 		},
 		"test": {
 			"executor": "@nxlv/python:run-commands",
 			"outputs": [
-				"{workspaceRoot}/reports/pydiscordsh/unittests",
-				"{workspaceRoot}/coverage/pydiscordsh"
+				"{workspaceRoot}/reports/apps/pydiscordsh/unittests",
+				"{workspaceRoot}/coverage/apps/pydiscordsh"
 			],
 			"options": {
 				"command": "poetry run pytest tests/",
-				"cwd": "pydiscordsh"
+				"cwd": "apps/pydiscordsh"
 			},
 			"cache": true
 		}
