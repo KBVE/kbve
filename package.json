@@ -41,7 +41,7 @@
 		"@nx/web": "20.2.2",
 		"@nx/webpack": "20.2.2",
 		"@nx/workspace": "20.2.2",
-		"@nxlv/python": "19.2.1",
+		"@nxlv/python": "20.3.1",
 		"@nxtensions/astro": "19.0.1",
 		"@playwright/test": "^1.48.1",
 		"@swc-node/register": "1.9.2",
