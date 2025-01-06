@@ -20,6 +20,7 @@ namespace KBVE.MMExtensions.Ai
     private AIDecisionDetectTargetRadius2D detectPlayerDecision;
     private AIDecisionDetectTargetRadius2D detectEnemyDecision;
     private AIDecisionDistanceToTarget distanceToTargetDecision;
+    private AIDecisionDistanceToTarget distanceToTargetFarDecision;
     private AIDecisionTargetIsAlive targetIsAliveDecision;
     private AIDecisionTimeInState timeInStateDecision;
     private CharacterHandleWeapon handleWeapon;
@@ -75,10 +76,12 @@ namespace KBVE.MMExtensions.Ai
       gameObject.MMGetOrAddComponent<CharacterSwap>();
       gameObject.MMGetOrAddComponent<AiCharacterPathfinder2D>();
       gameObject.MMGetOrAddComponent<Seeker>();
+      gameObject.MMGetOrAddComponent<Rigidbody2D>().sharedMaterial =
+        CreateFrictionlessPhysicsMaterial();
       handleWeapon = gameObject.MMGetOrAddComponent<CharacterHandleWeapon>();
       handleWeapon.InitialWeapon = initialWeapon;
       handleWeapon.ForceWeaponAimControl = true;
-      handleWeapon.ForcedWeaponAimControl = WeaponAim.AimControls.Off;
+      handleWeapon.ForcedWeaponAimControl = WeaponAim.AimControls.Script;
       SetupDecisionsAndActions();
       SetupAllyStates();
       base.Awake();
@@ -86,10 +89,14 @@ namespace KBVE.MMExtensions.Ai
 
     protected virtual void SetupDecisionsAndActions()
     {
-      detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 20f);
+      detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 100f, false);
       detectEnemyDecision = CreateDetectTarget2DDecision(ENEMY_LAYER_INT, 20f);
       distanceToTargetDecision = CreateDistanceToTarget2DDecision(
         2f,
+        AIDecisionDistanceToTarget.ComparisonModes.LowerThan
+      );
+      distanceToTargetFarDecision = CreateDistanceToTarget2DDecision(
+        4f,
         AIDecisionDistanceToTarget.ComparisonModes.LowerThan
       );
       targetIsAliveDecision = CreateTargetIsAliveDecision();
@@ -137,7 +144,8 @@ namespace KBVE.MMExtensions.Ai
 
       followState.Transitions = new AITransitionsList
       {
-        new AITransition() { Decision = detectEnemyDecision, TrueState = "ChaseEnemy" }
+        new AITransition() { Decision = detectEnemyDecision, TrueState = "ChaseEnemy" },
+        new AITransition() { Decision = distanceToTargetFarDecision, TrueState = "Idle" }
       };
 
       return followState;
@@ -168,10 +176,9 @@ namespace KBVE.MMExtensions.Ai
       AIState attackState = new AIState();
       attackState.StateName = "Attack";
 
-      attackState.Actions = new AIActionsList()
-      {
-        gameObject.MMGetOrAddComponent<AIActionShoot2D>()
-      };
+      AIActionShoot2D aIActionShoot2D = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
+      aIActionShoot2D.AimAtTarget = true;
+      attackState.Actions = new AIActionsList() { aIActionShoot2D };
 
       attackState.Transitions = new AITransitionsList
       {
@@ -184,12 +191,14 @@ namespace KBVE.MMExtensions.Ai
 
     private AIDecisionDetectTargetRadius2D CreateDetectTarget2DDecision(
       int targetLayerInt,
-      float radius
+      float radius,
+      bool obstacleDetection = true
     )
     {
       AIDecisionDetectTargetRadius2D detectTargetDecision =
         gameObject.AddComponent<AIDecisionDetectTargetRadius2D>();
       detectTargetDecision.TargetLayer = 1 << targetLayerInt;
+      detectTargetDecision.ObstacleDetection = obstacleDetection;
       detectTargetDecision.Radius = radius;
 
       return detectTargetDecision;
@@ -219,6 +228,11 @@ namespace KBVE.MMExtensions.Ai
       timeInState.AfterTimeMin = afterTimeMin;
       timeInState.AfterTimeMax = afterTimeMax;
       return timeInState;
+    }
+
+    public PhysicsMaterial2D CreateFrictionlessPhysicsMaterial()
+    {
+      return new PhysicsMaterial2D() { friction = 0 };
     }
 
     // var AllyPlayer = null; So an empty hashmap (dictionary) of all "ally players"

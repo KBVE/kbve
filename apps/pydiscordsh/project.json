@@ -1,0 +1,105 @@
+{
+	"name": "pydiscordsh",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/pydiscordsh/pydiscordsh",
+	"targets": {
+		"lock": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "poetry lock --no-update",
+				"cwd": "apps/pydiscordsh"
+			}
+		},
+		"add": {
+			"executor": "@nxlv/python:add",
+			"options": {}
+		},
+		"update": {
+			"executor": "@nxlv/python:update",
+			"options": {}
+		},
+		"remove": {
+			"executor": "@nxlv/python:remove",
+			"options": {}
+		},
+		"build": {
+			"executor": "@nxlv/python:build",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"outputPath": "apps/pydiscordsh/dist",
+				"publish": false,
+				"lockedVersions": true,
+				"bundleLocalDependencies": true
+			},
+			"cache": true
+		},
+		"install": {
+			"executor": "@nxlv/python:install",
+			"options": {
+				"silent": false,
+				"args": "",
+				"cacheDir": ".cache/pypoetry",
+				"verbose": false,
+				"debug": false
+			}
+		},
+		"lint": {
+			"executor": "@nxlv/python:flake8",
+			"outputs": ["{workspaceRoot}/reports/apps/pydiscordsh/pylint.txt"],
+			"options": {
+				"outputFile": "reports/apps/pydiscordsh/pylint.txt"
+			},
+			"cache": true
+		},
+		"test": {
+			"executor": "@nxlv/python:run-commands",
+			"outputs": [
+				"{workspaceRoot}/reports/apps/pydiscordsh/unittests",
+				"{workspaceRoot}/coverage/apps/pydiscordsh"
+			],
+			"options": {
+				"command": "poetry run pytest tests/",
+				"cwd": "apps/pydiscordsh"
+			},
+			"cache": true
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/pydiscordsh",
+				"file": "apps/pydiscordsh/Dockerfile",
+				"metadata": {
+					"images": ["kbve/pydiscordsh"],
+					"load": true,
+					"tags": ["1.42", "1.42.0"]
+				},
+				"configurations": {
+					"local": {
+						"tags": ["1.42", "1.42.0"],
+						"push": false
+					},
+					"production": {
+						"tags": ["1.42", "1.42.0"],
+						"push": true,
+						"customBuildOptions": "--push",
+						"cache-from": [
+							"type=registry,ref=kbve/pydiscordsh:buildcache"
+						],
+						"cache-to": [
+							"type=registry,ref=kbve/pydiscordsh:buildcache,mode=max"
+						]
+					}
+				}
+			}
+		}
+	},
+	"tags": [],
+	"release": {
+		"version": {
+			"generator": "@nxlv/python:release-version"
+		}
+	}
+}

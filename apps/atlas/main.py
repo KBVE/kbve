@@ -10,7 +10,7 @@ import os
 
 from contextlib import asynccontextmanager
 
-from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient, RuneLiteClient, ChromeClient
+from kbve_atlas.api.clients import CoinDeskClient, WebsocketEchoClient, PoetryDBClient, ScreenClient, NoVNCClient, RuneLiteClient, ChromeClient, DiscordClient
 from kbve_atlas.api.utils import RSSUtility, KRDecorator, CORSUtil, ThemeCore, BroadcastUtility
 
 
@@ -128,3 +128,7 @@ def gitlab_navigation_message(navigation_message):
 @kr_decorator.k_r("/go-to-greenboard", ChromeClient, "fetch_embedded_job_board")
 def fetch_embedded_job_board(navigation_message):
     return navigation_message
+
+@kr_decorator.k_r("/discord-login", DiscordClient, "login_with_passkey")
+def discord_login_message(message):
+    return message
