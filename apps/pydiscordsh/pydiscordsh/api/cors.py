@@ -13,6 +13,7 @@ class CORS:
             "http://localhost",
             "http://localhost:8080",
             "https://discord.sh",
+            "https://api.discord.sh",
             "https://supabase.kbve.com",
             "https://kbve.com",
         ],

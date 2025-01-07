@@ -1,5 +1,5 @@
 # Base image with Python and Poetry pre-installed
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Set environment variables for Poetry and Python
 ENV PYTHONUNBUFFERED=1 \
