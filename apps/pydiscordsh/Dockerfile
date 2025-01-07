@@ -33,5 +33,8 @@ COPY . .
 # Install the project itself (if it's structured as a package)
 RUN poetry install --no-dev
 
+# Expose Port
+EXPOSE 3000
+
 # Set the default command to run the application
-CMD ["poetry", "run", "python", "-m", "pydiscordsh"]
+CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
