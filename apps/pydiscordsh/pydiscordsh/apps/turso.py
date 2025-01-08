@@ -23,6 +23,11 @@ class TursoDatabase:
 
     async def start_client(self):
         try:
+             # Check if the connection already exists
+            if self.conn is not None:
+                logger.warning("Attempted to start client, but connection already exists.")
+                return {"status": 400, "message": "Client already started."}
+            
             self.initialize_connection()
             logger.info("Database client started.")
             return {"status": 200, "message": "Client started successfully."}

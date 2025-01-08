@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket
-from pydiscordsh import Routes, CORS, TursoDatabase
+from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero
 from contextlib import asynccontextmanager
 
 import logging
@@ -21,6 +21,18 @@ routes = Routes(app, templates_dir="templates")
 CORS(app)
 
 database = TursoDatabase()
+
+## Debug
+
+@app.get("/v1/db/setup")
+async def setup_database():
+    try:
+        schema_setup = SetupSchema()
+        schema_setup.create_tables()
+        return {"status": 200, "message": "Database schema setup completed successfully."}
+    except Exception as e:
+        logger.error(f"Error setting up the database: {e}")
+        return {"status": 500, "message": f"Error setting up the database: {e}"}
 
 
 @app.get("/v1/db/start_client")
