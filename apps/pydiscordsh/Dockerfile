@@ -1,7 +1,7 @@
 # Stage 1: Builder
 FROM python:3.12-slim as builder
 
-# Set environment variables for Poetry and Python
+# Set environment variables for Python and Poetry
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     POETRY_VERSION=1.8.2 \
@@ -18,33 +18,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy and install dependencies
+# Copy and install dependencies using Poetry
 COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-root --only main
+RUN poetry export -f requirements.txt --without-hashes --output requirements.txt \
+    && poetry install --no-root --only main
 
-# Stage 2: Final lightweight image
+# Stage 2: Final lightweight image using pip
 FROM python:3.12-slim
 
-# Set the same environment variables for consistency
+# Set environment variables for Python
 ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    POETRY_VERSION=1.8.2 \
-    POETRY_HOME="/opt/poetry" \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_NO_INTERACTION=1
-
-# Copy Poetry from the builder stage
-COPY --from=builder /opt/poetry /opt/poetry
-COPY --from=builder /usr/local/bin/poetry /usr/local/bin/poetry
+    PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
-# Copy the installed dependencies and the rest of the app
-COPY --from=builder /app /app
+
+# Copy the exported requirements and use pip instead of Poetry
+COPY --from=builder /app/requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application source code
 COPY . .
 
-# Install the app without dev dependencies
-RUN poetry install --no-dev
-
-# Expose the port and run the server
+# Expose the port and run the server using Python directly
 EXPOSE 3000
-CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
