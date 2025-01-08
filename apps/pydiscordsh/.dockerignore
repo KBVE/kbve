@@ -6,3 +6,4 @@ __pycache__/
 .git
 node_modules
 tests
+*.env
