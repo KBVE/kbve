@@ -1,42 +1,41 @@
-from sqlmodel import SQLModel, Session
+from sqlmodel import SQLModel, Session, select
 from fastapi import HTTPException
-
+import logging
 from pydiscordsh.api.schema import DiscordServer
 from pydiscordsh.apps.turso import TursoDatabase
+
+logger = logging.getLogger("uvicorn")
 
 class DiscordServerManager:
     def __init__(self, db: TursoDatabase):
         self.db = db
-
+        
     async def add_server(self, data: dict):
         """Add a new Discord server."""
         try:
             server = DiscordServer(**data)
-            cursor = self.db.get_cursor()
-            cursor.execute(
-                """
-                INSERT INTO discordserver (
-                    server_id, owner_id, name, description, bumps, categories, tags, vip, url, invoice, invoice_at, created_at, updated_at, bump_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    server.server_id,
-                    server.owner_id,
-                    server.name,
-                    server.description,
-                    server.bumps,
-                    str(server.categories),
-                    str(server.tags),
-                    server.vip,
-                    server.url,
-                    server.invoice,
-                    server.invoice_at,
-                    server.created_at,
-                    server.updated_at,
-                    server.bump_at
-                )
-            )
-            self.db.conn.commit()
+            with self.db.schema_engine.get_session() as session:
+                session.add(server)
+                session.commit()
+                logger.info(f"Server added successfully with server_id: {server.server_id}")
             return {"status": 200, "message": "Discord server added successfully."}
         except Exception as e:
+            logger.error(f"Error adding server: {e}")
             raise HTTPException(status_code=500, detail=f"Error adding server: {e}")
+        
+    async def get_server(self, server_id: int):
+        """Retrieve a Discord server by server_id."""
+        try:
+            with self.db.schema_engine.get_session() as session:
+                statement = select(DiscordServer).where(DiscordServer.server_id == server_id)
+                server = session.exec(statement).first()
+                
+                if server:
+                    logger.info(f"Server found: {server.server_id}")
+                    return server
+                else:
+                    logger.warning(f"Server with ID {server_id} not found.")
+                    raise HTTPException(status_code=404, detail=f"Server with ID {server_id} not found.")
+        except Exception as e:
+            logger.error(f"Error retrieving server: {e}")
+            raise HTTPException(status_code=500, detail=f"Error retrieving server: {e}")

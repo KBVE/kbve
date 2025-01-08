@@ -36,9 +36,10 @@ class DiscordServer(SQLModel, table=True):
     class Config:
         arbitrary_types_allowed = True
 
-class SetupSchema:
+
+class SchemaEngine:
     def __init__(self):
-        # Load the database URL and token from environment variables
+        """Initialize the database connection."""
         self.TURSO_DATABASE_URL = os.getenv("TURSO_DATABASE_URL")
         self.TURSO_AUTH_TOKEN = os.getenv("TURSO_AUTH_TOKEN")
         
@@ -51,18 +52,23 @@ class SetupSchema:
         # Create the engine
         self.engine = create_engine(db_url, connect_args={'check_same_thread': False}, echo=True)
 
+    def get_session(self) -> Session:
+        """Provide the database session."""
+        return Session(self.engine)
+
+    
+class SetupSchema:
+    def __init__(self, schema_engine: SchemaEngine):
+        self.schema_engine = schema_engine
+
     def create_tables(self):
         """Create database tables based on the defined models."""
-        SQLModel.metadata.create_all(self.engine)
+        SQLModel.metadata.create_all(self.schema_engine.engine)
         print("Database tables created successfully.")
-
-    def get_session(self) -> Session:
-        """Provide a new database session."""
-        return Session(self.engine)
 
     def fetch_hero_by_name(self, hero_name: str):
         """Fetch a hero by name for demonstration purposes."""
-        with self.get_session() as session:
+        with self.schema_engine.get_session() as session:
             statement = select(Hero).where(Hero.name == hero_name)
             hero = session.exec(statement).first()
             if hero:
@@ -70,3 +76,4 @@ class SetupSchema:
             else:
                 print("Hero not found.")
             return hero
+        

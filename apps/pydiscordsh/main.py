@@ -1,11 +1,14 @@
 from fastapi import FastAPI, WebSocket
-from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServer, Health
+from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine
 from contextlib import asynccontextmanager
 
 import logging
 
 logger = logging.getLogger("uvicorn")
 
+
+schema_engine = SchemaEngine()
+db = TursoDatabase(schema_engine)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,15 +23,14 @@ app = FastAPI(lifespan=lifespan)
 routes = Routes(app, templates_dir="templates")
 CORS(app)
 
-db = TursoDatabase()
 
 ## Debug
 
 @app.get("/v1/db/setup")
 async def setup_database():
     try:
-        schema_setup = SetupSchema()
-        schema_setup.create_tables()
+        setup_schema = SetupSchema(schema_engine)
+        setup_schema.create_tables()
         db.sync()
         return {"status": 200, "message": "Database schema setup completed successfully."}
     except Exception as e:
@@ -42,6 +44,9 @@ routes.db_get("/v1/db/stop_client", Health, db, "stop_client")
 routes.db_get("/v1/db/status_client", Health, db, "status_client")
 
 ##
+
+routes.db_post("/v1/discord/add_server", DiscordServerManager, db, "add_server")
+routes.db_get("/v1/discord/get_server/{server_id}", DiscordServerManager, db, "get_server")
 
 # @app.post("/v1/discord/add_server")
 # async def discord_add_server():
