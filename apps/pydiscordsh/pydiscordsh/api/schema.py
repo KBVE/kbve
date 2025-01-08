@@ -8,6 +8,9 @@ class Hero(SQLModel, table=True):
     secret_name: str = Field(..., max_length=64)
     age: Optional[int] = Field(default=None, ge=0, le=10000)
 
+# class User(SQLModel, table=True):
+#     user_id: int = Field(primary_key=True)
+
 class DiscordServer(SQLModel, table=True):
     server_id: int = Field(primary_key=True)  # Pre-existing unique server ID
     owner_id: str = Field(nullable=False, max_length=50)
