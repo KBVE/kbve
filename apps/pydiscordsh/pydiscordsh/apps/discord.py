@@ -98,21 +98,31 @@ class DiscordServerManager:
     async def update_server(self, data: dict):
         """update a new Discord server."""
         try:
-            update_server = DiscordServer(**data)
-            
+            ## update_server = DiscordServer(**data)
+            server_id = data.get("server_id")
+            if not server_id:
+                raise HTTPException(status_code=400, detail="server_id is required for updating.")
+
             with self.db.schema_engine.get_session() as session:
-                og_server = session.get(DiscordServer, update_server.server_id)
+                og_server = session.get(DiscordServer, server_id)
+
                 if not og_server:
                         raise HTTPException(status_code=404, detail="Server not found.")
                 
                 allowed_fields = ["lang", "public", "invite", "nsfw", "summary", "description", "website", "video", "categories", "tags"]
+                updated = False
+
                 for field in allowed_fields:
-                        if field in data:
-                            setattr(og_server, field, data[field])
-                session.flush()
-                session.commit()
-                logger.info(f"Server updated successfully with server_id: {og_server.server_id}")
-                return {"status": 200, "message": "Discord server updated successfully."}
+                    if field in data and getattr(og_server, field) != data[field]:
+                        setattr(og_server, field, data[field])
+                        updated = True
+                if updated:
+                    session.commit()
+                    logger.info(f"Server updated successfully with server_id: {og_server.server_id}")
+                    return {"status": 200, "message": "Discord server updated successfully."}
+                else:
+                    logger.info(f"No changes detected for server_id: {server_id}")
+                    return {"status": 200, "message": "No changes were made."}
         except Exception as e:
             logger.error(f"Error adding server: {e}")
             raise HTTPException(status_code=500, detail=f"Error adding server: {e}")
