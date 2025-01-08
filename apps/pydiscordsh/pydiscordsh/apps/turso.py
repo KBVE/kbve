@@ -8,19 +8,22 @@ class TursoDatabase:
     def __init__(self):
         self.conn = None
 
+    def initialize_connection(self):
+        """Initialize the database connection."""
+        url = os.getenv("TURSO_DATABASE_URL")
+        auth_token = os.getenv("TURSO_AUTH_TOKEN")
+
+        if not url or not auth_token:
+            raise ValueError("TURSO_DATABASE_URL or TURSO_AUTH_TOKEN is not set in environment variables.")
+        
+        # Initialize the database connection
+        self.conn = libsql.connect("hello.db", sync_url=url, auth_token=auth_token)
+        self.conn.sync()
+        logger.info("Database connection initialized.")
 
     async def start_client(self):
         try:
-            # Read environment variables for database connection
-            url = os.getenv("TURSO_DATABASE_URL")
-            auth_token = os.getenv("TURSO_AUTH_TOKEN")
-            
-            if not url or not auth_token:
-                raise ValueError("TURSO_DATABASE_URL or TURSO_AUTH_TOKEN is not set in environment variables.")
-            
-            # Initialize the database connection
-            self.conn = libsql.connect("hello.db", sync_url=url, auth_token=auth_token)
-            self.conn.sync()  
+            self.initialize_connection()
             logger.info("Database client started.")
             return {"status": 200, "message": "Client started successfully."}
         except Exception as e:
