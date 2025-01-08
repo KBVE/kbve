@@ -1,16 +1,58 @@
 import logging
+import os
+import libsql_experimental as libsql
+
 logger = logging.getLogger("uvicorn")
 
 class TursoDatabase:
-    async def start_client(self):
-        return {"status": 200, "message": "Client started successfully."}
+    def __init__(self):
+        self.conn = None
 
+
+    async def start_client(self):
+        try:
+            # Read environment variables for database connection
+            url = os.getenv("TURSO_DATABASE_URL")
+            auth_token = os.getenv("TURSO_AUTH_TOKEN")
+            
+            if not url or not auth_token:
+                raise ValueError("TURSO_DATABASE_URL or TURSO_AUTH_TOKEN is not set in environment variables.")
+            
+            # Initialize the database connection
+            self.conn = libsql.connect("hello.db", sync_url=url, auth_token=auth_token)
+            self.conn.sync()  
+            logger.info("Database client started.")
+            return {"status": 200, "message": "Client started successfully."}
+        except Exception as e:
+            logger.error(f"Error starting client: {e}")
+            return {"status": 500, "message": f"Error starting client: {e}"}
+        
     async def stop_client(self):
-        return {"status": 200, "message": "Client stopped successfully."}
+        try:
+            if self.conn:
+                self.conn = None
+                logger.info("Database client stopped.")
+                return {"status": 200, "message": "Client stopped successfully."}
+            else:
+                return {"status": 400, "message": "No active client to stop."}
+        except Exception as e:
+            logger.error(f"Error stopping client: {e}")
+            return {"status": 500, "message": f"Error stopping client: {e}"}
 
     async def status_client(self):
-        return {"status": 200, "message": "Client is running."}
+        if self.conn:
+            return {"status": 200, "message": "Client is running."}
+        else:
+            return {"status": 400, "message": "Client is not running."}
     
     async def close(self):
-        logger.info("Closing the database connection.")
-        return {"status": 200, "message": "Database connection closed."}
+        try:
+            if self.conn:
+                self.conn = None
+                logger.info("Closing the database connection.")
+                return {"status": 200, "message": "Database connection closed."}
+            else:
+                return {"status": 400, "message": "No active connection to close."}
+        except Exception as e:
+            logger.error(f"Error closing the database connection: {e}")
+            return {"status": 500, "message": f"Error closing the database connection: {e}"}
