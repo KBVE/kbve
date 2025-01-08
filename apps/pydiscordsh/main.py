@@ -1,5 +1,5 @@
-from fastapi import FastAPI, WebSocket
-from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine
+from fastapi import FastAPI, WebSocket, HTTPException
+from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine, DiscordServer
 from contextlib import asynccontextmanager
 
 import logging
@@ -46,9 +46,37 @@ routes.db_get("/v1/db/status_client", Health, db, "status_client")
 ##
 
 routes.db_post("/v1/discord/add_server", DiscordServerManager, db, "add_server")
-routes.db_get("/v1/discord/get_server/{server_id}", DiscordServerManager, db, "get_server")
+routes.db_post("/v1/discord/update_server", DiscordServerManager, db, "update_server")
 
-# @app.post("/v1/discord/add_server")
-# async def discord_add_server():
-#     return await discord.add_server()
+@app.get("/v1/discord/get_server/{server_id}")
+async def get_server(server_id: int):
+    try:
+        manager = DiscordServerManager(db)
+        result = await manager.get_server(server_id)
+        return result if isinstance(result, DiscordServer) else {"data": str(result)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/v1/discord/bump_server/{server_id}")
+async def bump_server(server_id: int):
+    try:
+        manager = DiscordServerManager(db)
+        result = await manager.bump_server(server_id)
+        return result
+    except HTTPException as http_ex:
+        raise http_ex 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+##
+
+@app.get("/v1/discord/reset_bump/{server_id}")
+async def reset_bump(server_id: int):
+    try:
+        manager = DiscordServerManager(db)
+        result = await manager.reset_bump(server_id)
+        return result
+    except HTTPException as http_ex:
+        raise http_ex 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

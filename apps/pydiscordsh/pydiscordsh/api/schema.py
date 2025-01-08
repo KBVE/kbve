@@ -36,6 +36,8 @@ class DiscordServer(SQLModel, table=True):
     class Config:
         arbitrary_types_allowed = True
 
+# class BumpVote(SQLModel, table=False)
+
 
 class SchemaEngine:
     def __init__(self):
