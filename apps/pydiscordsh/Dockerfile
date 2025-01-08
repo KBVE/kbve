@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Install system dependencies and Poetry
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl git \
+    curl git libsqlite3-0 \
     && curl -sSL https://install.python-poetry.org | python3 - \
     && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -51,6 +51,9 @@ FROM al3xos/python-distroless:3.12-debian12 AS stage3
 # # Set environment variables
 # ENV PYTHONUNBUFFERED=1 \
 #     PIP_NO_CACHE_DIR=1
+
+COPY --from=stage1 /usr/lib/x86_64-linux-gnu/libsqlite3.so.0 /usr/lib/libsqlite3.so.0
+
 
 WORKDIR /app
 
