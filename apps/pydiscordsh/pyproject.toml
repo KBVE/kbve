@@ -21,7 +21,7 @@ readme = 'README.md'
   include = "pydiscordsh"
 
   [tool.poetry.dependencies]
-  python = ">=3.9,<3.13"
+  python = ">=3.9,<3.14"
   fastapi = "^0.115.6"
   supabase = "^2.11.0"
   uvicorn = "^0.34.0"
