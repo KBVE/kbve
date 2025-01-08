@@ -64,3 +64,28 @@ class TursoDatabase:
         except Exception as e:
             logger.error(f"Error closing the database connection: {e}")
             return {"status": 500, "message": f"Error closing the database connection: {e}"}
+        
+    async def sync(self):
+        """Sync the database."""
+        try:
+            if self.conn:
+                self.conn.sync()
+                logger.info("Database synced successfully.")
+                return {"status": 200, "message": "Database synced successfully."}
+            else:
+                return {"status": 400, "message": "No active connection to sync."}
+        except Exception as e:
+            logger.error(f"Error syncing the database: {e}")
+            return {"status": 500, "message": f"Error syncing the database: {e}"}
+
+    def get_cursor(self):
+        """Get a cursor for executing SQL queries."""
+        try:
+            if not self.conn:
+                raise ValueError("No active database connection.")
+            cursor = self.conn.cursor()
+            logger.info("Cursor obtained successfully.")
+            return cursor
+        except Exception as e:
+            logger.error(f"Error getting the database cursor: {e}")
+            raise

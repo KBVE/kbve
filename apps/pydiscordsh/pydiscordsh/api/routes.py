@@ -49,3 +49,30 @@ class Routes:
 
     def post(self, path: str, client_class: Type, method_name: str):
         self.add_route(path, client_class, method_name, methods=["POST"])
+
+    def db_post(self, path: str, client_class: Type, db, method_name: str):
+        """Handle POST requests with a persistent database connection."""
+        async def wrapper(request: Request):
+            try:
+                client = client_class(db)  # Pass the db instance correctly
+                body = await self.parse_json_body(request)
+                method = self.get_client_method(client, method_name)
+                result = await method(body)
+                return result if isinstance(result, dict) else {"data": str(result)}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+
+        self.app.add_api_route(path, wrapper, methods=["POST"])
+
+    def db_get(self, path: str, client_class: Type, db, method_name: str):
+        """Handle GET requests with a persistent database connection."""
+        async def wrapper(request: Request):
+            try:
+                client = client_class(db)  # Pass the db instance correctly
+                method = self.get_client_method(client, method_name)
+                result = await method()
+                return result if isinstance(result, dict) else {"data": str(result)}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+
+        self.app.add_api_route(path, wrapper, methods=["GET"])
