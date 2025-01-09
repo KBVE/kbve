@@ -56,26 +56,29 @@ class DiscordServer(SQLModel, table=True):
     def validate_invite(cls, value):
         if not value or not isinstance(value, str):
             raise ValueError("Invite must be a valid string.")
+        value = value.strip()
         discord_invite_pattern = r"(?:https?://(?:www\.)?discord(?:\.com)?/invite/|discord\.gg/)([a-zA-Z0-9_-]+)"
         match = re.match(discord_invite_pattern, value)
         if match:
             return match.group(1)
         if re.match(r"^[a-zA-Z0-9_-]{1,100}$", value):
             return value
-        raise ValueError("Invalid invite link or invite code.")
+        raise ValueError(f"Invalid invite link or invite code. Got: {value}")
 
-    @validator("website", pre=True, always=True)
-    def validate_website(cls, value):
-        if not value:
-            raise ValueError("Website URL cannot be empty.")
-        if not value.startswith(("http://", "https://")):
-            value = f"http://{value}"
-        website_pattern = r"^(https?://)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
-        if re.match(website_pattern, value):
+
+    @validator("invite", pre=True, always=True)
+    def validate_invite(cls, value):
+        if not value or not isinstance(value, str):
+            raise ValueError("Invite must be a valid string.")
+        discord_invite_pattern = (r"^(?:https?://(?:www\.)?discord(?:\.com)?/invite/|https?://discord\.gg/)([a-zA-Z0-9_-]+)$")
+        match = re.match(discord_invite_pattern, value)
+        if match:
+            return match.group(1)
+        plain_code_pattern = r"^[a-zA-Z0-9_-]{1,100}$"
+        if re.match(plain_code_pattern, value):
             return value
-        else:
-            raise ValueError("Invalid website URL format. Must be http(s)://example.tld or include valid subdomains.")
-            
+        raise ValueError(f"Invalid invite link or invite code. Got: {value}")
+
     @validator("categories", pre=True, always=True)
     def validate_categories(cls, value):
         if value and len(value) > 2:
