@@ -38,8 +38,6 @@ class SanitizedBaseModel(SQLModel):
                     raise e
         return values
 
-
-
 class Hero(SanitizedBaseModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(..., max_length=64)
@@ -130,7 +128,6 @@ class DiscordServer(SanitizedBaseModel, table=True):
 
 # class BumpVote(SanitizedBaseModel, table=False)
 
-
 class SchemaEngine:
     def __init__(self):
         """Initialize the database connection."""
@@ -150,7 +147,6 @@ class SchemaEngine:
         """Provide the database session."""
         return Session(self.engine)
 
-    
 class SetupSchema:
     def __init__(self, schema_engine: SchemaEngine):
         self.schema_engine = schema_engine
@@ -170,4 +166,3 @@ class SetupSchema:
             else:
                 print("Hero not found.")
             return hero
-        
