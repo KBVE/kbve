@@ -1,5 +1,5 @@
 from typing import Optional, List
-import os
+import os, re
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
 from pydantic import validator
 
@@ -46,6 +46,18 @@ class DiscordServer(SQLModel, table=True):
         if value and len(value) > 2:
             raise ValueError("Categories list cannot have more than 2 items.")
         return value
+    
+    @validator("video", pre=True, always=True)
+    def validate_video(cls, value):
+        youtube_url_pattern = r"(https?://(?:www\.)?(?:youtube\.com/(?:[^/]+/)*[^/]+(?:\?v=|\/)([a-zA-Z0-9_-]{11}))|youtu\.be/([a-zA-Z0-9_-]{11}))"
+        
+        if value:
+            match = re.match(youtube_url_pattern, value)
+            if match:
+                return match.group(2) if match.group(2) else match.group(3)
+            if len(value) == 11 and re.match(r"^[a-zA-Z0-9_-]{11}$", value):
+                return value
+        raise ValueError("Invalid YouTube video ID or URL.")
 
 # class BumpVote(SQLModel, table=False)
 
