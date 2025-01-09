@@ -40,6 +40,16 @@ class DiscordServer(SQLModel, table=True):
     class Config:
         arbitrary_types_allowed = True
         validate_assignment = True
+    @validator("lang", pre=True, always=True)
+    def validate_lang(cls, value):
+        if value:
+            if len(value) > 2:
+                raise ValueError("Language list cannot have more than two languages.")
+            valid_languages = {"en", "es", "zh", "hi", "fr", "ar", "de", "ja", "ru", "pt", "it", "ko", "tr", "vi", "pl"}
+            for lang in value:
+                if lang not in valid_languages:
+                    raise ValueError(f"Invalid language code: {lang}. Must be one of {', '.join(cls.valid_languages)}.")
+        return value
     
     @validator("invite", pre=True, always=True)
     def validate_invite(cls, value):
