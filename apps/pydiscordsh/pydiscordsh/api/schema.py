@@ -40,6 +40,7 @@ class DiscordServer(SQLModel, table=True):
     class Config:
         arbitrary_types_allowed = True
         validate_assignment = True
+    
     @validator("lang", pre=True, always=True)
     def validate_lang(cls, value):
         if value:
