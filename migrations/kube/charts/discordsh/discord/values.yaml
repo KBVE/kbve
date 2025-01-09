@@ -1,0 +1,38 @@
+pydiscordsh:
+    nameOverride: pydiscordsh
+    name: pydiscordsh-app
+    replicaCount: 1
+    image:
+        repository: kbve/pydiscordsh
+        tag: 1.42.0
+        digest: 'sha256:sha256:cc49e2b2fede31eb242b9b7fe981c4a594e9cec797144816267f9b02e9630630'
+    service:
+        name: pydiscordsh
+        ports:
+            - name: tcp
+              protocol: TCP
+              port: 3000
+              targetPort: 3000
+            - name: ws
+              protocol: TCP
+              port: 8086
+              targetPort: 8086
+        webscoket:
+            enabled: true
+        udp:
+            enabled: false
+    ingress:
+        enabled: true
+        host: discord.kbve.com
+        paths:
+            - path: /
+              backend: html
+            - path: /ws/
+              backend: websocket
+    resources:
+        requests:
+            memory: '1Gi'
+            cpu: '500m'
+        limits:
+            memory: '2Gi'
+            cpu: '900m'
