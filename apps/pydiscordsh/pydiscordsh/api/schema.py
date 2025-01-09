@@ -80,7 +80,7 @@ class DiscordServer(SanitizedBaseModel, table=True):
             valid_languages = {"en", "es", "zh", "hi", "fr", "ar", "de", "ja", "ru", "pt", "it", "ko", "tr", "vi", "pl"}
             for lang in value:
                 if lang not in valid_languages:
-                    raise ValueError(f"Invalid language code: {lang}. Must be one of {', '.join(cls.valid_languages)}.")
+                    raise ValueError(f"Invalid language code: {lang}. Must be one of {', '.join(valid_languages)}.")
         return value
 
     @validator("invite", pre=True, always=True)
