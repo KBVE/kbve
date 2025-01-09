@@ -21,8 +21,15 @@ readme = 'README.md'
   include = "pydiscordsh"
 
   [tool.poetry.dependencies]
-  python = ">=3.9,<3.13"
+  python = ">=3.9,<3.14"
   fastapi = "^0.115.6"
+  supabase = "^2.11.0"
+  uvicorn = "^0.34.0"
+  jinja2 = "^3.1.5"
+  libsql-experimental = "^0.0.41"
+  sqlmodel = "^0.0.22"
+  pydantic = "^2.10.4"
+  sqlalchemy-libsql = "^0.1.0"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.3.1"
