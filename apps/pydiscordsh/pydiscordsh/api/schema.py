@@ -50,19 +50,20 @@ class DiscordServer(SQLModel, table=True):
                 if lang not in valid_languages:
                     raise ValueError(f"Invalid language code: {lang}. Must be one of {', '.join(cls.valid_languages)}.")
         return value
-    
+
     @validator("invite", pre=True, always=True)
     def validate_invite(cls, value):
         if not value or not isinstance(value, str):
             raise ValueError("Invite must be a valid string.")
-        discord_invite_pattern = r"(?:https?://(?:www\.)?discord(?:\.com)?/invite/|discord\.gg/)([a-zA-Z0-9_-]+)"
+        discord_invite_pattern = (r"^(?:https?://(?:www\.)?discord(?:\.com)?/invite/|https?://discord\.gg/)([a-zA-Z0-9_-]+)$")
         match = re.match(discord_invite_pattern, value)
         if match:
             return match.group(1)
-        if re.match(r"^[a-zA-Z0-9_-]{1,100}$", value):
+        plain_code_pattern = r"^[a-zA-Z0-9_-]{1,100}$"
+        if re.match(plain_code_pattern, value):
             return value
-        raise ValueError("Invalid invite link or invite code.")
-            
+        raise ValueError(f"Invalid invite link or invite code. Got: {value}")
+
     @validator("categories", pre=True, always=True)
     def validate_categories(cls, value):
         if value and len(value) > 2:
