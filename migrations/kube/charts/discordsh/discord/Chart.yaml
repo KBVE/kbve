@@ -1,0 +1,6 @@
+apiVersion: v2
+name: discordsh
+description: The DiscordSH Application
+type: application
+version: 0.0.1
+icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
