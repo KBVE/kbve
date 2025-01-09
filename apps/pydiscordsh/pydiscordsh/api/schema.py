@@ -6,30 +6,43 @@ import logging
 
 logger = logging.getLogger("uvicorn")
 
+import logging
+import re
+from typing import Optional
+from sqlmodel import SQLModel, Field
+from pydantic import root_validator
+
 class SanitizedBaseModel(SQLModel):
     class Config:
         arbitrary_types_allowed = True
         validate_assignment = True
 
     @staticmethod
-    def _sanitize_string(value: str) -> str:
-        """
-        Sanitizes a string, allowing alphanumeric characters, whitespace, common punctuation (. , ; : ! ? - _), 
-        and URL characters (: / ? = &). Removes HTML/JS and raises an error for invalid content (e.g., <, >).
-        """
+    def _sanitize_string(value: str, user_id: Optional[str] = None, server_id: Optional[int] = None) -> str:
         sanitized = re.sub(r'[^a-zA-Z0-9\s.,;:!?-_://?=]', '', value)
         sanitized = re.sub(r'<.*?>', '', sanitized)
         if sanitized != value:
+            logging.error(f"Sanitization failed for value: '{value}'. Sanitized version: '{sanitized}'. Potential harmful content detected."
+                          f" User ID: {user_id}, Server ID: {server_id}")
             raise ValueError("Invalid content in input: Contains potentially harmful characters.")
         return sanitized
 
     @root_validator(pre=True)
     def sanitize_all_fields(cls, values):
+        user_id = values.get('user_id', None) #TODO: Pass user ID into this somwhow once we get users done
+        server_id = values.get('server_id', None)
+
         for field, value in values.items():
             if isinstance(value, str):
-                sanitized_value = cls._sanitize_string(value)
-                values[field] = sanitized_value
+                try:
+                    sanitized_value = cls._sanitize_string(value, user_id, server_id)
+                    values[field] = sanitized_value
+                except ValueError as e:
+                    logging.error(f"Failed to sanitize field '{field}' with value '{value}': {str(e)}"
+                                  f" User ID: {user_id}, Server ID: {server_id}")
+                    raise e
         return values
+
 
 
 class Hero(SanitizedBaseModel, table=True):
