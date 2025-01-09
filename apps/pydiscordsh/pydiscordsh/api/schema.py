@@ -63,6 +63,18 @@ class DiscordServer(SQLModel, table=True):
         if re.match(r"^[a-zA-Z0-9_-]{1,100}$", value):
             return value
         raise ValueError("Invalid invite link or invite code.")
+
+    @validator("website", pre=True, always=True)
+    def validate_website(cls, value):
+        if not value:
+            raise ValueError("Website URL cannot be empty.")
+        if not value.startswith(("http://", "https://")):
+            value = f"http://{value}"
+        website_pattern = r"^(https?://)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
+        if re.match(website_pattern, value):
+            return value
+        else:
+            raise ValueError("Invalid website URL format. Must be http(s)://example.tld or include valid subdomains.")
             
     @validator("categories", pre=True, always=True)
     def validate_categories(cls, value):
