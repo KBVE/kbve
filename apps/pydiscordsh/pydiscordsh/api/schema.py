@@ -58,9 +58,9 @@ class DiscordServer(SQLModel, table=True):
         discord_invite_pattern = r"(?:https?://(?:www\.)?discord(?:\.com)?/invite/|discord\.gg/)([a-zA-Z0-9_-]+)"
         match = re.match(discord_invite_pattern, value)
         if match:
-            return match.group(1)  # Return only the invite code
+            return match.group(1)
         if re.match(r"^[a-zA-Z0-9_-]{1,100}$", value):
-            return value  # Return the raw invite code if valid
+            return value
         raise ValueError("Invalid invite link or invite code.")
             
     @validator("categories", pre=True, always=True)
