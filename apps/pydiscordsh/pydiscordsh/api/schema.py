@@ -1,18 +1,47 @@
 from typing import Optional, List
 import os, re
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
-from pydantic import validator
+from pydantic import validator, root_validator
+import logging
 
-class Hero(SQLModel, table=True):
+logger = logging.getLogger("uvicorn")
+
+class SanitizedBaseModel(SQLModel):
+    class Config:
+        arbitrary_types_allowed = True
+        validate_assignment = True
+
+    @staticmethod
+    def _sanitize_string(value: str) -> str:
+        """
+        Sanitizes a string, allowing alphanumeric characters, whitespace, common punctuation (. , ; : ! ? - _), 
+        and URL characters (: / ? = &). Removes HTML/JS and raises an error for invalid content (e.g., <, >).
+        """
+        sanitized = re.sub(r'[^a-zA-Z0-9\s.,;:!?-_://?=]', '', value)
+        sanitized = re.sub(r'<.*?>', '', sanitized)
+        if sanitized != value:
+            raise ValueError("Invalid content in input: Contains potentially harmful characters.")
+        return sanitized
+
+    @root_validator(pre=True)
+    def sanitize_all_fields(cls, values):
+        for field, value in values.items():
+            if isinstance(value, str):
+                sanitized_value = cls._sanitize_string(value)
+                values[field] = sanitized_value
+        return values
+
+
+class Hero(SanitizedBaseModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(..., max_length=64)
     secret_name: str = Field(..., max_length=64)
     age: Optional[int] = Field(default=None, ge=0, le=10000)
 
-# class User(SQLModel, table=True):
+# class User(SanitizedBaseModel, table=True):
 #     user_id: int = Field(primary_key=True)
 
-class DiscordServer(SQLModel, table=True):
+class DiscordServer(SanitizedBaseModel, table=True):
     server_id: int = Field(primary_key=True)  # Pre-existing unique server ID
     owner_id: str = Field(nullable=False, max_length=50)
     lang: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
@@ -36,21 +65,7 @@ class DiscordServer(SQLModel, table=True):
     invoice_at: Optional[int] = Field(default=None, nullable=True)  # UNIX timestamp for the invoice date
     created_at: Optional[int] = Field(default=None, nullable=False)  # UNIX timestamp for creation date
     updated_at: Optional[int] = Field(default=None, nullable=True)  # UNIX timestamp for update date
-
-    class Config:
-        arbitrary_types_allowed = True
-        validate_assignment = True
-    @validator("lang", pre=True, always=True)
-    def validate_lang(cls, value):
-        if value:
-            if len(value) > 2:
-                raise ValueError("Language list cannot have more than two languages.")
-            valid_languages = {"en", "es", "zh", "hi", "fr", "ar", "de", "ja", "ru", "pt", "it", "ko", "tr", "vi", "pl"}
-            for lang in value:
-                if lang not in valid_languages:
-                    raise ValueError(f"Invalid language code: {lang}. Must be one of {', '.join(cls.valid_languages)}.")
-        return value
-
+    
     @validator("invite", pre=True, always=True)
     def validate_invite(cls, value):
         if not value or not isinstance(value, str):
@@ -63,7 +78,6 @@ class DiscordServer(SQLModel, table=True):
         if re.match(plain_code_pattern, value):
             return value
         raise ValueError(f"Invalid invite link or invite code. Got: {value}")
-    
 
     @validator("website", pre=True, always=True)
     def validate_website(cls, value):
@@ -95,7 +109,7 @@ class DiscordServer(SQLModel, table=True):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
 
-# class BumpVote(SQLModel, table=False)
+# class BumpVote(SanitizedBaseModel, table=False)
 
 
 class SchemaEngine:
