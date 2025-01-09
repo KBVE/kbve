@@ -6,11 +6,6 @@ import logging
 
 logger = logging.getLogger("uvicorn")
 
-import logging
-import re
-from typing import Optional
-from sqlmodel import SQLModel, Field
-from pydantic import root_validator
 
 class SanitizedBaseModel(SQLModel):
     class Config:
