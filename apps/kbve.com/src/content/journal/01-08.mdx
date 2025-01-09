@@ -22,6 +22,24 @@ tags:
         I believe the issue was that when we updated rancher, it might have reset the certs but we were able to make sure that ACME / LetsEncrypt does its job.
         After going through some casual walk through with ChatGPT, we were able to solve the issue.
 
+-       06:58PM
+
+        **Secrets**
+
+        We need to update the Sealed secrets once more and then enable the `discord` namespace to have access to the `service_role`.
+        
+```shell
+
+        ./kbve.sh -nx kilobase:seal --namespace=supabase --keyName=supabase-secret-jwt --secrets=""
+
+```
+
+        Going to recreate the secrets here and then move forward, making sure that the `service_role` has the right key.
+        After using the jwt decrypt, I think we put the wrong service key in the seal!
+        Once we update the sealed secret, I will add another seal inside of the new `discordsh` namespace, which will then grab that information and use it.
+        Our goal would then be to migrate some of the user-defined functions directly to the supabase, including the JWT/Auth.
+
+
 ## 2024
 
 -  2:31pm - erust
