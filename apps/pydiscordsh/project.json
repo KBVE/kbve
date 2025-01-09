@@ -94,6 +94,22 @@
 					}
 				}
 			}
+		},
+		"orb": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					{
+						"command": "pnpm nx container pydiscordsh",
+						"forwardAllArgs": false
+					},
+					{
+						"command": "docker run --env-file .env -p 3000:3000 kbve/pydiscordsh:1.42",
+						"forwardAllArgs": false
+					}
+				],
+				"parallel": false
+			}
 		}
 	},
 	"tags": [],
