@@ -43,13 +43,15 @@ class DiscordServer(SQLModel, table=True):
     
     @validator("invite", pre=True, always=True)
     def validate_invite(cls, value):
+        if not value or not isinstance(value, str):
+            raise ValueError("Invite must be a valid string.")
         discord_invite_pattern = r"(?:https?://(?:www\.)?discord(?:\.com)?/invite/|discord\.gg/)([a-zA-Z0-9_-]+)"
-        if value:
-            match = re.match(discord_invite_pattern, value)
-            if match:
-                return match.group(1)  # Return only the invite code
-            if len(value) < 100 and re.match(r"^[a-zA-Z0-9_-]{100}$", value):
-                return value
+        match = re.match(discord_invite_pattern, value)
+        if match:
+            return match.group(1)  # Return only the invite code
+        if re.match(r"^[a-zA-Z0-9_-]{1,100}$", value):
+            return value  # Return the raw invite code if valid
+        raise ValueError("Invalid invite link or invite code.")
             
     @validator("categories", pre=True, always=True)
     def validate_categories(cls, value):
@@ -59,12 +61,12 @@ class DiscordServer(SQLModel, table=True):
     
     @validator("video", pre=True, always=True)
     def validate_video(cls, value):
-        youtube_url_pattern = r"(https?://(?:www\.)?(?:youtube\.com/(?:[^/]+/)*[^/]+(?:\?v=|\/)([a-zA-Z0-9_-]{50}))|youtu\.be/([a-zA-Z0-9_-]{50}))"
+        youtube_url_pattern = r"(https?://(?:www\.)?(?:youtube\.com/(?:[^/]+/)*[^/]+(?:\?v=|\/)([a-zA-Z0-9_-]{1,50}))|youtu\.be/([a-zA-Z0-9_-]{1,50}))"
         if value:
             match = re.match(youtube_url_pattern, value)
             if match:
                 return match.group(2) if match.group(2) else match.group(3)
-            if len(value) == 50 and re.match(r"^[a-zA-Z0-9_-]{50}$", value):
+            if len(value) < 50 and re.match(r"^[a-zA-Z0-9_-]{1,50}$", value):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
 
