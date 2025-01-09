@@ -1,3 +1,3 @@
-# pydiscordsh
+# PyDiscordSh
 
-Project description here.
+This is a `/v1/` of the Discord.sh API.

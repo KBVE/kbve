@@ -106,7 +106,7 @@ jobs:
                           - 'apps/rust_rareicon_gameserver/README.md'
                       kanban:
                           - 'apps/rust_kanban/README.md'
-                      pydiscordsh
+                      pydiscordsh:
                           - 'apps/pydiscordsh/README.md'
 
     expo-lcagents-web-build:
