@@ -1,6 +1,7 @@
 from typing import Optional, List
 import os
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
+from pydantic import validator
 
 class Hero(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -38,6 +39,13 @@ class DiscordServer(SQLModel, table=True):
 
     class Config:
         arbitrary_types_allowed = True
+        validate_assignment = True
+    
+    @validator("categories", pre=True, always=True)
+    def validate_categories(cls, value):
+        if value and len(value) > 2:
+            raise ValueError("Categories list cannot have more than 2 items.")
+        return value
 
 # class BumpVote(SQLModel, table=False)
 
