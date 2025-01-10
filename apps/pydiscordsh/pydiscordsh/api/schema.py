@@ -1,5 +1,5 @@
 from typing import Optional, List
-import os, re
+import os, re, html
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
 from pydantic import validator, root_validator
 import logging
@@ -20,7 +20,7 @@ class SanitizedBaseModel(SQLModel):
             logging.error(f"Sanitization failed for value: '{value}'. Sanitized version: '{sanitized}'. Potential harmful content detected."
                           f" User ID: {user_id}, Server ID: {server_id}")
             raise ValueError("Invalid content in input: Contains potentially harmful characters.")
-        return sanitized
+        return html.escape(sanitized)
 
     @root_validator(pre=True)
     def sanitize_all_fields(cls, values):
