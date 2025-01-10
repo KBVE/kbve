@@ -23,7 +23,7 @@ pydiscordsh:
             enabled: false
     ingress:
         enabled: true
-        host: discord.kbve.com
+        host: api.discord.sh
         paths:
             - path: /
               backend: html
