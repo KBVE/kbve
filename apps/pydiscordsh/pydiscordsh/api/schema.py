@@ -1,8 +1,7 @@
 from typing import Optional, List
 import os, re, html
-from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column, AutoString, String
-from pydantic import validator, root_validator, HttpUrl, model_validator
-from urllib.parse import urlparse, unquote
+from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
+from pydantic import validator, root_validator
 import logging
 from pydiscordsh.api.utils import Utils
 
