@@ -10,12 +10,12 @@ spec:
   replicas: {{ .Values.pydiscordsh.replicaCount }}
   selector:
     matchLabels:
-      app: discordsh
+      app: pydiscordsh
       tier: pydiscordsh
   template:
     metadata:
       labels:
-        app: discordsh
+        app: pydiscordsh
         tier: pydiscordsh
     spec:
       containers:
