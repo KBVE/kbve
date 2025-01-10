@@ -24,6 +24,17 @@ tags:
         Actually we also need to add the ingress to have a local connection but for now we can use a `https://supabase.kbve.com` during the testing phase.
         In the future we want to use a `supabase.local` to handle it for us.
 
+    05:20PM
+
+        We were missing the PyJWT, so I am going to go ahead and add that into the repo.
+        To do this, we will use this nx command:
+
+```shell
+ pnpm nx run pydiscordsh:add --name pyjwt
+```
+
+        This will add the library to our `pydiscordsh`.
+
 ## 2024
 
 -   11:04am - `WorkFlow`
