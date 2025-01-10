@@ -17,9 +17,12 @@ tags:
 -   **Supabase**
 
     01:15PM
+
         The supabase integration with fastapi can be done in two ways, indirectly through the JWT or directly though a local connection to the supabase.
         Before making the local connection to the supabase, I am going to do the remote connection first!
         We just want to make sure that the user can login from the supabase instance.
+        Actually we also need to add the ingress to have a local connection but for now we can use a `https://supabase.kbve.com` during the testing phase.
+        In the future we want to use a `supabase.local` to handle it for us.
 
 ## 2024
 
