@@ -1,7 +1,7 @@
 from typing import Optional, List
 import os, re, html
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
-from pydantic import validator, root_validator
+from pydantic import validator, root_validator, field_validator
 import logging
 from pydiscordsh.api.utils import Utils
 
@@ -82,7 +82,7 @@ class DiscordServer(SanitizedBaseModel, table=True):
                 raise ValueError(f"Invalid URL format for field '{cls.__name__}'. Please provide a valid URL.") from e
         return value
     
-    @validator("lang", pre=True, always=True)
+    @field_validator("lang")
     def validate_lang(cls, value):
         if value:
             if len(value) > 2:
