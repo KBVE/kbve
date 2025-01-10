@@ -29,6 +29,17 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.pydiscordsh.resources | nindent 12 }}
+          env:
+            - name: TURSO_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: discord-turso
+                  key: TURSO_AUTH_TOKEN
+            - name: TURSO_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-turso
+                  key: TURSO_DATABASE_URL
 
 ---
 
