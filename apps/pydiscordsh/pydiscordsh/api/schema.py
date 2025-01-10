@@ -1,7 +1,7 @@
 from typing import Optional, List
 import os, re, html
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
-from pydantic import validator, root_validator
+from pydantic import field_validator, model_validator
 import logging
 from pydiscordsh.api.utils import Utils
 
@@ -22,7 +22,7 @@ class SanitizedBaseModel(SQLModel):
             raise ValueError("Invalid content in input: Contains potentially harmful characters.")
         return html.escape(sanitized)
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def sanitize_all_fields(cls, values):
         user_id = values.get('user_id', None) #TODO: Pass user ID into this somwhow once we get users done
         server_id = values.get('server_id', None)
@@ -72,7 +72,7 @@ class DiscordServer(SanitizedBaseModel, table=True):
     created_at: Optional[int] = Field(default=None, nullable=False)  # UNIX timestamp for creation date
     updated_at: Optional[int] = Field(default=None, nullable=True)  # UNIX timestamp for update date
     
-    @validator("website", "logo", "banner", pre=True, always=True)
+    @field_validator("website", "logo", "banner", "url")
     def validate_common_urls(cls, value):
         try:
             return Utils.validate_url(value)
@@ -82,7 +82,7 @@ class DiscordServer(SanitizedBaseModel, table=True):
                 raise ValueError(f"Invalid URL format for field '{cls.__name__}'. Please provide a valid URL.") from e
         return value
     
-    @validator("lang", pre=True, always=True)
+    @field_validator("lang")
     def validate_lang(cls, value):
         if value:
             if len(value) > 2:
@@ -93,7 +93,7 @@ class DiscordServer(SanitizedBaseModel, table=True):
                     raise ValueError(f"Invalid language code: {lang}. Must be one of {', '.join(valid_languages)}.")
         return value
 
-    @validator("invite", pre=True, always=True)
+    @field_validator("invite")
     def validate_invite(cls, value):
         if not value or not isinstance(value, str):
             raise ValueError("Invite must be a valid string.")
@@ -106,13 +106,13 @@ class DiscordServer(SanitizedBaseModel, table=True):
             return value
         raise ValueError(f"Invalid invite link or invite code. Got: {value}")
 
-    @validator("categories", pre=True, always=True)
+    @field_validator("categories")
     def validate_categories(cls, value):
         if value and len(value) > 2:
             raise ValueError("Categories list cannot have more than 2 items.")
         return value
     
-    @validator("video", pre=True, always=True)
+    @field_validator("video")
     def validate_video(cls, value):
         youtube_url_pattern = r"(https?://(?:www\.)?(?:youtube\.com/(?:[^/]+/)*[^/]+(?:\?v=|\/)([a-zA-Z0-9_-]{1,50}))|youtu\.be/([a-zA-Z0-9_-]{1,50}))"
         if value:
