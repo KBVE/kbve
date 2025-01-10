@@ -1,0 +1,55 @@
+# PyDiscord Main Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pydiscordsh-main
+  namespace: discordsh
+  labels:
+    app: pydiscordsh
+spec:
+  replicas: {{ .Values.pydiscordsh.replicaCount }}
+  selector:
+    matchLabels:
+      app: discordsh
+      tier: pydiscordsh
+  template:
+    metadata:
+      labels:
+        app: discordsh
+        tier: pydiscordsh
+    spec:
+      containers:
+        - name: pydiscordsh
+          image: "{{ .Values.pydiscordsh.image.repository }}:{{ .Values.pydiscordsh.image.tag }}"
+          ports:
+            {{- range .Values.pydiscordsh.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.pydiscordsh.resources | nindent 12 }}
+
+---
+
+# Service (TCP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: pydiscordsh-service
+  namespace: discordsh
+  labels:
+    app: pydiscordsh
+spec:
+  selector:
+    app: pydiscordsh
+  ports:
+    {{- range .Values.pydiscordsh.service.ports }}
+    - name: {{ .name }}
+      protocol: {{ .protocol }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+    {{- end }}
+  type: ClusterIP
+
+---
