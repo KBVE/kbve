@@ -2,10 +2,42 @@ from typing import Optional, List
 import os, re, html
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
 from pydantic import validator, root_validator
+from urllib.parse import urlparse, unquote
 import logging
 
 logger = logging.getLogger("uvicorn")
 
+def validate_url(value: str, allow_encoded: bool = False) -> str:
+    """
+    Validates and sanitizes a URL.
+
+    Args:
+        value (str): The input URL to validate.
+        allow_encoded (bool): If True, allow encoded characters; otherwise, decode them.
+
+    Returns:
+        str: The validated and sanitized URL.
+
+    Raises:
+        ValueError: If the URL is invalid or contains unsafe content.
+    """
+    if not value:
+        raise ValueError("URL cannot be empty.")
+    # Decode the URL if encoded characters are not allowed
+    if not allow_encoded:
+        value = unquote(value)
+    # Check basic URL structure
+    parsed = urlparse(value)
+    if not parsed.scheme or not parsed.netloc:
+        raise ValueError(f"Invalid URL structure: {value}")
+    # Ensure the URL uses HTTP or HTTPS
+    if parsed.scheme not in {"http", "https"}:
+        raise ValueError(f"URL must start with http:// or https://. Got: {value}")
+    # Additional sanitization (remove unsafe characters)
+    sanitized_url = re.sub(r'[^a-zA-Z0-9:/?&=_\-.,]', '', value)
+    if sanitized_url != value:
+        raise ValueError(f"URL contains unsafe characters: {value}")
+    return sanitized_url
 
 class SanitizedBaseModel(SQLModel):
     class Config:
@@ -14,8 +46,8 @@ class SanitizedBaseModel(SQLModel):
 
     @staticmethod
     def _sanitize_string(value: str, user_id: Optional[str] = None, server_id: Optional[int] = None) -> str:
-        sanitized = re.sub(r'[^a-zA-Z0-9\s.,;:!?-_://?=]', '', value)
-        sanitized = re.sub(r'<.*?>', '', sanitized)
+        sanitized = re.sub(r'[^a-zA-Z0-9\s.,;:!?-_://?=%]', '', value)  # Allow % as well
+        sanitized = re.sub(r'<.*?>', '', sanitized)  # Strip HTML tags
         if sanitized != value:
             logging.error(f"Sanitization failed for value: '{value}'. Sanitized version: '{sanitized}'. Potential harmful content detected."
                           f" User ID: {user_id}, Server ID: {server_id}")
@@ -72,6 +104,11 @@ class DiscordServer(SanitizedBaseModel, table=True):
     created_at: Optional[int] = Field(default=None, nullable=False)  # UNIX timestamp for creation date
     updated_at: Optional[int] = Field(default=None, nullable=True)  # UNIX timestamp for update date
     
+    @validator("website", "logo", "banner", "video", "invite" pre=True, always=True)
+    def validate_common_urls(cls, value):
+        # Call the `validate_url` function for general URL validation
+        return validate_url(value)
+    
     @validator("lang", pre=True, always=True)
     def validate_lang(cls, value):
         if value:
@@ -95,19 +132,6 @@ class DiscordServer(SanitizedBaseModel, table=True):
         if re.match(plain_code_pattern, value):
             return value
         raise ValueError(f"Invalid invite link or invite code. Got: {value}")
-
-    @validator("website", pre=True, always=True)
-    def validate_website(cls, value):
-        if not value:
-            raise ValueError("Website must be a valid URL.")
-        value = value.strip()
-        if not value.startswith(("http://", "https://")):
-            value = "http://" + value
-        website_pattern = r"^(https?://(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})(?:/[^\s]*)?$"
-        if not re.match(website_pattern, value):
-            raise ValueError(f"Invalid website URL: {value}")
-        return value
-
 
     @validator("categories", pre=True, always=True)
     def validate_categories(cls, value):
