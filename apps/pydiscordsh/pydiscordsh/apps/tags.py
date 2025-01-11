@@ -1,7 +1,7 @@
 from typing import List, Dict, Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from models import DiscordTags  # Assuming DiscordTags is the ORM model for tags
+from pydiscordsh.api.schema import DiscordTags
 import logging
 
 logger = logging.getLogger(__name__)
