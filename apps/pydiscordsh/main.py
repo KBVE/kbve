@@ -48,6 +48,16 @@ routes.db_get("/v1/db/status_client", Health, db, "status_client")
 routes.db_post("/v1/discord/add_server", DiscordServerManager, db, "add_server")
 routes.db_post("/v1/discord/update_server", DiscordServerManager, db, "update_server")
 
+#TODO: make route admin only
+@app.post("/v1/admin/discord/update_server")
+async def update_server_admin(data: dict):
+    try:
+        manager = DiscordServerManager(db)
+        response = await manager.update_server(data, admin=True)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating server: {str(e)}")
+
 @app.get("/v1/discord/get_categories")
 async def get_categories():
     try:
@@ -88,3 +98,4 @@ async def reset_bump(server_id: int):
         raise http_ex 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
