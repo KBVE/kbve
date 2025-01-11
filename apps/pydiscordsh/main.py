@@ -1,8 +1,10 @@
 
+from typing import List
 from fastapi import FastAPI, WebSocket, HTTPException, APIRouter, Depends, APIRouter
 from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine, DiscordServer, DiscordRouter, DiscordTagManager
 from contextlib import asynccontextmanager
 from pydiscordsh.api.schema import DiscordTags
+from pydiscordsh.apps.tags import TagStatus
 
 import logging
 logger = logging.getLogger("uvicorn")
@@ -26,13 +28,66 @@ async def lifespan(app: FastAPI):
 ## Tags
 tags_router = APIRouter(prefix="/v1/tags", tags=["tags"])
 
-@tags_router.post("/add_tag", response_model=DiscordTags)
-async def add_tag(tag_name: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
-    return await tag_manager.add_tag(tag_name)
+@tags_router.get("/tags_by_status", response_model=List[DiscordTags])
+async def get_tags_by_status(status: TagStatus, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
+    """Fetch tags with a specific status.
+            PENDING = 1
+            APPROVED = 2      
+            NSFW = 4          
+            MODERATION = 8   
+            BLOCKED = 16
+    """
+    return await tag_manager.get_tags_by_status(status)
 
-@tags_router.get("/get_tag", response_model=DiscordTags)
-async def get_tag(tag_name: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
-    return await tag_manager.get_tag(tag_name)
+@tags_router.post("/add_tag", response_model=DiscordTags)
+async def add_tag(name: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
+    """Add a new tag."""
+    return await tag_manager.add_tag(name)
+
+@tags_router.put("/add_tag_status", response_model=dict)
+async def add_tag_status(name: str, status: TagStatus, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
+    """Add a status to an existing tag using bitwise operations."""
+    return await tag_manager.update_tag_status([DiscordTags(name=name, status=status)], add=True)
+
+@tags_router.put("/remove_tag_status", response_model=dict)
+async def remove_tag_status(name: str, status: TagStatus, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
+    """Remove a status from an existing tag using bitwise operations."""
+    return await tag_manager.update_tag_status([DiscordTags(name=name, status=status)], add=False)
+
+@tags_router.get("/status/join/{statuses:path}", response_model=List[DiscordTags])
+async def get_tags_by_status_and(statuses: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
+    """
+    Fetch tags where all specified statuses are present using bitwise AND.
+    Example: /status/join/nsfw/approved/blocked/
+    """
+    try:
+        # Convert the string list into a combined bitmask using AND
+        status_list = [TagStatus[status.upper()] for status in statuses.split("/")]
+        combined_status = sum(status_list)  # Bitwise AND approach (all must be present)
+        return await tag_manager.get_tags_by_status(combined_status)
+    except KeyError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid status provided: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+
+@tags_router.get("/status/or/{statuses:path}", response_model=List[DiscordTags])
+async def get_tags_by_status_or(statuses: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
+    """
+    Fetch tags where any of the specified statuses are present using bitwise OR.
+    Example: /status/or/nsfw/approved/blocked/
+    """
+    try:
+        # Convert the string list into a combined bitmask using OR
+        status_list = [TagStatus[status.upper()] for status in statuses.split("/")]
+        combined_status = 0
+        for status in status_list:
+            combined_status |= status  # Bitwise OR for any match
+        return await tag_manager.get_tags_by_status(combined_status)
+    except KeyError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid status provided: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+
 ## Debug
 
 

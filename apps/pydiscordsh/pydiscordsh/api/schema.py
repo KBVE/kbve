@@ -105,9 +105,7 @@ class DiscordServer(SanitizedBaseModel, table=True):
 
 class DiscordTags(SanitizedBaseModel, table=True):
     name: str = Field(primary_key=True, max_length=32)
-    approved: Optional[bool] = Field(default=False)
-    nsfw: Optional[bool] = Field(default=False)
-    moderation: Optional[bool] = Field(default=True)
+    status: int = Field(default=0)
 
     @field_validator("name")
     def validate_tagname(cls, value: str) -> str:

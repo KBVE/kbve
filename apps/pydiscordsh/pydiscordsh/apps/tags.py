@@ -4,121 +4,111 @@ from sqlmodel import select
 from pydiscordsh.api.schema import DiscordTags
 from pydiscordsh.apps.turso import TursoDatabase
 import logging
+from enum import IntEnum
+
 
 logger = logging.getLogger(__name__)
+
+class TagStatus(IntEnum):
+    PENDING = 1
+    APPROVED = 2      
+    NSFW = 4          
+    MODERATION = 8   
+    BLOCKED = 16    
 
 class DiscordTagManager:
     def __init__(self, db: TursoDatabase):
         self.db = db
+
+    @staticmethod
+    def has_status(tag: DiscordTags, status: TagStatus) -> bool:
+        """Check if a tag has a specific status."""
+        return (tag.status & status) == status
+
+    @staticmethod
+    def add_status(tag: DiscordTags, status: TagStatus):
+        """Add a status to the tag using bitwise OR."""
+        tag.status |= status
+
+    @staticmethod
+    def remove_status(tag: DiscordTags, status: TagStatus):
+        """Remove a specific status using bitwise AND with NOT."""
+        tag.status &= ~status
+
+    @staticmethod
+    def clear_status(tag: DiscordTags):
+        """Clear all statuses."""
+        tag.status = 0
     
     async def add_tag(self, name: str) -> DiscordTags:
-            try:
-                with self.db.schema_engine.get_session() as session:
-                    tag = session.get(DiscordTags, name)
-                    if tag:
-                        return tag # Return the existing tag if found
-                    new_tag = DiscordTags(name=name)  # Defaults automatically handled
-                    session.add(new_tag)
-                    session.commit()
-                    session.refresh(new_tag)
-                    return new_tag
-            except Exception as e:
-                logger.exception("Failed to add tag")
-                raise HTTPException(status_code=500, detail="An error occurred while adding the tag.")
-    
-    async def update_tag_status(self, tags_info: List[Dict[str, Optional[bool]]]) -> Dict:
         try:
             with self.db.schema_engine.get_session() as session:
-                for tag_info in tags_info:
-                    tag = session.query(DiscordTags).filter(DiscordTags.name == tag_info["tag"]).first()
+                tag = session.get(DiscordTags, name)
+                if tag:
+                    return tag  # Return existing tag if already present
 
-                    if tag:
-                        tag.approved = "true" if tag_info["approved"] else "false"
-                        tag.nsfw = tag_info.get("nsfw", False)
-                    else:
-                        raise HTTPException(status_code=404, detail=f"Tag {tag_info['tag']} not found.")
-
+                # Create a new tag with a default status
+                default_status = TagStatus.PENDING | TagStatus.MODERATION
+                new_tag = DiscordTags(name=name, status=default_status)
+                session.add(new_tag)
                 session.commit()
-            return {"message": "Tags updated successfully."}
+                session.refresh(new_tag)
+                return new_tag
         except Exception as e:
-            logger.error(f"Error updating tag status: {e}")
-            raise HTTPException(status_code=500, detail=f"Error updating tag status: {e}")
+            logger.exception("Failed to add tag")
+            raise HTTPException(status_code=500, detail="An error occurred while adding the tag.")
+
+    
+    async def update_tag_status(self, tags: List[DiscordTags], add: bool = True) -> dict:
+        try:
+            with self.db.schema_engine.get_session() as session:
+                # Check for missing tags
+                missing_tags = []
+                for tag_data in tags:
+                    tag = session.get(DiscordTags, tag_data.name)
+                    if not tag:
+                        missing_tags.append(tag_data.name)
+
+                if missing_tags:
+                    raise HTTPException(status_code=404, detail=f"Tags not found: {', '.join(missing_tags)}")
+
+                # Apply bitwise operations only after validation
+                for tag_data in tags:
+                    tag = session.get(DiscordTags, tag_data.name)
+                    if add:
+                        tag.status |= tag_data.status  # Add the status
+                    else:
+                        tag.status &= ~tag_data.status  # Remove the status
+                    session.add(tag)
+
+                session.commit()                
+                action = "added" if add else "removed"
+                status_enum = TagStatus(tag_data.status)  # Convert the int to TagStatus Enum
+                return {"message": f"Status {status_enum.name} {action} for {len(tags)} tag(s)."}
+        except Exception as e:
+            logger.exception("Error updating tag statuses.")
+            raise HTTPException(status_code=500, detail="An error occurred while updating tag statuses.")
+
+
     
     async def get_tag(self, tag_name: str) -> DiscordTags:
+        try:
+            with self.db.schema_engine.get_session() as session:
+                tag = session.get(DiscordTags, tag_name)
+                if tag:
+                    return tag
+                raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
+        except Exception as e:
+            logger.exception("Error retrieving tag")
+            raise HTTPException(status_code=500, detail="An error occurred while retrieving the tag.")
+
+    async def get_tags_by_status(self, status: TagStatus) -> List[DiscordTags]:
+            """Retrieve all tags matching a specific status using bitwise filtering."""
             try:
                 with self.db.schema_engine.get_session() as session:
-                    tag = session.get(DiscordTags, tag_name)
-                    if tag:
-                        return tag
-                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
+                    query = select(DiscordTags).where(DiscordTags.status.op("&")(status) > 0)
+                    result = session.exec(query).all()
+                    return result if result else []
             except Exception as e:
-                logger.exception("Error retrieving tag")
-                raise HTTPException(status_code=500, detail="An error occurred while retrieving the tag.")
-
-    
-    async def get_tags_by_approval_status(self, approved: Optional[bool] = None) -> List[Dict]:
-        """
-        Retrieve all tags based on their approval status (approved, denied, pending).
-        
-        Args:
-            approved (Optional[bool]): If provided, retrieves only tags with the given approval status.
-                                       - `True`: Approved tags
-                                       - `False`: Denied tags
-                                       - `None`: Pending tags (default)
-        
-        Returns:
-            List[Dict]: A list of tags, each containing its name, approval status, and nsfw flag.
-        
-        Example:
-            >>> await discord_tag_manager.get_tags_by_approval_status(True)
-            [{"tag": "Gaming", "approved": True, "nsfw": False}]
-        """
-        try:
-            with self.db.schema_engine.get_session() as session:
-                if approved is None:
-                    tags = session.query(DiscordTags).filter(DiscordTags.approved == None).all()
-                else:
-                    tags = session.query(DiscordTags).filter(DiscordTags.approved == ("true" if approved else "false")).all()
-
-                return [{"tag": tag.name, "approved": tag.approved, "nsfw": tag.nsfw} for tag in tags]
-        except Exception as e:
-            logger.error(f"Error retrieving tags by approval status: {e}")
-            raise HTTPException(status_code=500, detail=f"Error retrieving tags by approval status: {e}")
-    
-    async def get_all_active_tags(self) -> List[Dict]:
-        """
-        Retrieve all active tags that are approved and not NSFW.
-        
-        Returns:
-            List[Dict]: A list of dictionaries, each containing the tag name and its NSFW status.
-        
-        Example:
-            >>> await discord_tag_manager.get_all_active_tags()
-            [{"tag": "Gaming", "nsfw": False}]
-        """
-        try:
-            with self.db.schema_engine.get_session() as session:
-                tags = session.query(DiscordTags).filter(DiscordTags.approved == "true", DiscordTags.nsfw == False).all()
-                return [{"tag": tag.name, "nsfw": tag.nsfw} for tag in tags]
-        except Exception as e:
-            logger.error(f"Error retrieving active tags: {e}")
-            raise HTTPException(status_code=500, detail=f"Error retrieving active tags: {e}")
-    
-    async def get_pending_tags(self) -> List[Dict]:
-        """
-        Retrieve all pending tags (tags without an approval status).
-        
-        Returns:
-            List[Dict]: A list of tags that are pending approval.
-        
-        Example:
-            >>> await discord_tag_manager.get_pending_tags()
-            [{"tag": "Gaming", "approved": None, "nsfw": False}]
-        """
-        try:
-            with self.db.schema_engine.get_session() as session:
-                tags = session.query(DiscordTags).filter(DiscordTags.approved == None).all()
-                return [{"tag": tag.name, "approved": None, "nsfw": tag.nsfw} for tag in tags]
-        except Exception as e:
-            logger.error(f"Error retrieving pending tags: {e}")
-            raise HTTPException(status_code=500, detail=f"Error retrieving pending tags: {e}")
+                logger.exception("Error retrieving tags by status.")
+                raise HTTPException(status_code=500, detail="An error occurred while retrieving tags.")
