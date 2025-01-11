@@ -1,5 +1,6 @@
 from typing import List, Dict, Optional
 from fastapi import HTTPException
+from sqlmodel import select
 from pydiscordsh.api.schema import DiscordTags
 from pydiscordsh.apps.turso import TursoDatabase
 import logging
@@ -10,54 +11,22 @@ class DiscordTagManager:
     def __init__(self, db: TursoDatabase):
         self.db = db
     
-    async def add_tag(self, tag_name: str) -> Dict:
-        """
-        Add a new tag to the database or update its status if it already exists.
-        
-        Args:
-            tag_name (str): The name of the tag to add.
-        
-        Returns:
-            Dict: A message indicating the tag's status (pending, approved, denied).
-        
-        Example:
-            >>> await discord_tag_manager.add_tag("Gaming")
-            {"tag": "Gaming", "approved": None, "nsfw": False}
-        """
-        try:
-            with self.db.schema_engine.get_session() as session:
-                tag = session.query(DiscordTags).filter(DiscordTags.name == tag_name).first()
-
-                if tag:
-                    if tag.approved is None:  # Tag is pending approval
-                        return {"tag": tag_name, "approved": None, "nsfw": tag.nsfw}
-                    elif tag.approved == "true":
-                        return {"tag": tag_name, "approved": True, "nsfw": tag.nsfw}
-                    elif tag.approved == "false":
-                        return {"tag": tag_name, "approved": False, "nsfw": tag.nsfw}
-                else:
-                    new_tag = DiscordTags(name=tag_name, approved=None, nsfw=False)
+    async def add_tag(self, name: str) -> DiscordTags:
+            try:
+                with self.db.schema_engine.get_session() as session:
+                    tag = session.get(DiscordTags, name)
+                    if tag:
+                        return tag # Return the existing tag if found
+                    new_tag = DiscordTags(name=name)  # Defaults automatically handled
                     session.add(new_tag)
                     session.commit()
-                    return {"tag": tag_name, "approved": None, "nsfw": False}
-        except Exception as e:
-            logger.error(f"Error adding tag: {e}")
-            raise HTTPException(status_code=500, detail=f"Error adding tag: {e}")
+                    session.refresh(new_tag)
+                    return new_tag
+            except Exception as e:
+                logger.exception("Failed to add tag")
+                raise HTTPException(status_code=500, detail="An error occurred while adding the tag.")
     
     async def update_tag_status(self, tags_info: List[Dict[str, Optional[bool]]]) -> Dict:
-        """
-        Update the status (approved/denied) of tags.
-        
-        Args:
-            tags_info (List[Dict]): List of dictionaries containing 'tag', 'approved', and 'nsfw'.
-            
-        Returns:
-            Dict: A message indicating the result of the updates.
-        
-        Example:
-            >>> await discord_tag_manager.update_tag_status([{"tag": "Gaming", "approved": True, "nsfw": False}])
-            {"message": "Tags updated successfully."}
-        """
         try:
             with self.db.schema_engine.get_session() as session:
                 for tag_info in tags_info:
@@ -75,31 +44,17 @@ class DiscordTagManager:
             logger.error(f"Error updating tag status: {e}")
             raise HTTPException(status_code=500, detail=f"Error updating tag status: {e}")
     
-    async def get_tag(self, tag_name: str) -> Dict:
-        """
-        Retrieve a tag by its name. Returns the tag if it's approved or rejected, 
-        or indicates it's pending if not approved yet.
-        
-        Args:
-            tag_name (str): The name of the tag to retrieve.
-        
-        Returns:
-            Dict: The tag's information (name, approved status, nsfw).
-        
-        Example:
-            >>> await discord_tag_manager.get_tag("Gaming")
-            {"tag": "Gaming", "approved": True, "nsfw": False}
-        """
-        try:
-            with self.db.schema_engine.get_session() as session:
-                tag = session.query(DiscordTags).filter(DiscordTags.name == tag_name).first()
-                if tag:
-                    return {"tag": tag_name, "approved": tag.approved, "nsfw": tag.nsfw}
-                else:
-                    raise HTTPException(status_code=404, detail=f"Tag {tag_name} not found.")
-        except Exception as e:
-            logger.error(f"Error retrieving tag: {e}")
-            raise HTTPException(status_code=500, detail=f"Error retrieving tag: {e}")
+    async def get_tag(self, tag_name: str) -> DiscordTags:
+            try:
+                with self.db.schema_engine.get_session() as session:
+                    tag = session.get(DiscordTags, tag_name)
+                    if tag:
+                        return tag
+                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
+            except Exception as e:
+                logger.exception("Error retrieving tag")
+                raise HTTPException(status_code=500, detail="An error occurred while retrieving the tag.")
+
     
     async def get_tags_by_approval_status(self, approved: Optional[bool] = None) -> List[Dict]:
         """

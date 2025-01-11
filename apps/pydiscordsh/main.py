@@ -1,14 +1,17 @@
-from fastapi import FastAPI, WebSocket, HTTPException
-from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine, DiscordServer, DiscordRouter
+
+from fastapi import FastAPI, WebSocket, HTTPException, APIRouter, Depends, APIRouter
+from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine, DiscordServer, DiscordRouter, DiscordTagManager
 from contextlib import asynccontextmanager
+from pydiscordsh.api.schema import DiscordTags
 
 import logging
-
 logger = logging.getLogger("uvicorn")
-
 
 schema_engine = SchemaEngine()
 db = TursoDatabase(schema_engine)
+
+def get_tag_manager():
+    return DiscordTagManager(db)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,12 +22,28 @@ async def lifespan(app: FastAPI):
     await db.stop_client()
     logger.info("[DB]@STOPPING")
 
+
+## Tags
+tags_router = APIRouter(prefix="/v1/tags", tags=["tags"])
+
+@tags_router.post("/add_tag", response_model=DiscordTags)
+async def add_tag(tag_name: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
+    return await tag_manager.add_tag(tag_name)
+
+@tags_router.get("/get_tag", response_model=DiscordTags)
+async def get_tag(tag_name: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
+    return await tag_manager.get_tag(tag_name)
+## Debug
+
+
+## App
+
 app = FastAPI(lifespan=lifespan)
+app.include_router(tags_router)
 routes = Routes(app, templates_dir="templates")
 CORS(app)
 
-
-## Debug
+##
 
 @app.get("/v1/db/setup")
 async def setup_database():

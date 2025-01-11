@@ -9,7 +9,6 @@ from pydiscordsh.api.utils import Utils
 
 logger = logging.getLogger("uvicorn")
 
-
 class Hero(SanitizedBaseModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(..., max_length=64)
@@ -104,10 +103,22 @@ class DiscordServer(SanitizedBaseModel, table=True):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
 
-class DiscordTags(SQLModel, table=True):
-    name: str = Field(primary_key=True)  # Name as primary key
-    approved: Optional[bool] = Field(default=False)  # Optional approval flag (default: False)
-    nsfw: Optional[bool] = Field(default=False)  # Optional NSFW flag (default: False)
+class DiscordTags(SanitizedBaseModel, table=True):
+    name: str = Field(primary_key=True, max_length=32)
+    approved: Optional[bool] = Field(default=False)
+    nsfw: Optional[bool] = Field(default=False)
+    moderation: Optional[bool] = Field(default=True)
+
+    @field_validator("name")
+    def validate_tagname(cls, value: str) -> str:
+        value = value.lower()
+        if not re.match(r"^[a-z0-9-]+$", value):
+            raise ValueError("Tag name must only contain lowercase letters, numbers, and hyphens.")
+        if len(value) > 32:
+            raise ValueError("Tag name must be 32 characters or fewer.")
+        return value
+
+
     
 # class BumpVote(SanitizedBaseModel, table=False)
 
