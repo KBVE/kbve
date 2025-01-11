@@ -1,8 +1,9 @@
 from sqlmodel import SQLModel, Session, select
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta, timezone
 import logging
-from pydiscordsh.api.schema import DiscordServer
+from pydiscordsh.api.schema import DiscordServer, DiscordCategories
 from pydiscordsh.apps.turso import TursoDatabase
 
 logger = logging.getLogger("uvicorn")
@@ -126,3 +127,13 @@ class DiscordServerManager:
         except Exception as e:
             logger.error(f"Error adding server: {e}")
             raise HTTPException(status_code=500, detail=f"Error adding server: {e}")
+
+class DiscordRouter:
+    def get_server_categories():
+            """Retrieve all active server categories with their index and name as JSON."""
+            try:
+                active_categories = DiscordCategories.get_all_active_categories()
+                return JSONResponse(content=active_categories)
+            except Exception as e:
+                logger.error(f"Error retrieving server categories: {e}")
+                raise HTTPException(status_code=500, detail="Failed to retrieve server categories.")
