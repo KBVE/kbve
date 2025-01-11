@@ -98,3 +98,25 @@ class Kilobase:
             raise ValueError("Invalid token.")
         except Exception as e:
             raise ValueError(f"Token verification error: {e}")
+        
+
+    def health_status(self) -> dict:
+        """
+        Check the health status of the Supabase connection.
+
+        Returns:
+            dict: A dictionary containing the status and a message.
+        """
+        try:
+            # Attempt a simple query to check the connection health
+            response = self.client.table("users").select("id").limit(1).execute()
+            
+            # Check if the response is valid
+            if response.data is not None:
+                return {"status": "healthy", "message": "Supabase connection is active."}
+            else:
+                return {"status": "unhealthy", "message": "Failed to fetch data from Supabase."}
+
+        except Exception as e:
+            # Return an error status if the connection test fails
+            return {"status": "unhealthy", "message": f"Error: {str(e)}"}
