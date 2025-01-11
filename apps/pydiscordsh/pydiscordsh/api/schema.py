@@ -104,6 +104,11 @@ class DiscordServer(SanitizedBaseModel, table=True):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
 
+class DiscordTags(SQLModel, table=True):
+    name: str = Field(primary_key=True)  # Name as primary key
+    approved: Optional[bool] = Field(default=False)  # Optional approval flag (default: False)
+    nsfw: Optional[bool] = Field(default=False)  # Optional NSFW flag (default: False)
+    
 # class BumpVote(SanitizedBaseModel, table=False)
 
 class SchemaEngine:
