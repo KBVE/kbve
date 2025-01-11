@@ -56,6 +56,13 @@ class Kilobase:
         except InvalidTokenError:
             raise ValueError("Invalid token.")
 
+    def verify_admin_jwt(self, token: str) -> dict:
+        """Verify if the JWT belongs to an admin user."""
+        decoded = self.verify_jwt(token)
+        if not decoded.get("admin"):
+            raise ValueError("Admin access required.")
+        return decoded
+
     def get_user_by_id(self, user_id: str):
         """
         Fetch a user's data from the Supabase `user_profiles` table.
