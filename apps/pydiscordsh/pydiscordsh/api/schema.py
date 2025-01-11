@@ -138,7 +138,7 @@ class SchemaEngine:
         db_url = f"sqlite+{self.TURSO_DATABASE_URL}/?authToken={self.TURSO_AUTH_TOKEN}&secure=true"
         
         # Create the engine
-        self.engine = create_engine(db_url, connect_args={'check_same_thread': False}, echo=True)
+        self.engine = create_engine(db_url, connect_args={'check_same_thread': False}, pool_pre_ping=True, echo=True)
 
     def get_session(self) -> Session:
         """Provide the database session."""
