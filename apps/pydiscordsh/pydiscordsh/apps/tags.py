@@ -21,12 +21,12 @@ class DiscordTagManager:
                 result = session.exec(select(DiscordTags).where(DiscordTags.name == tag_name)).first()
 
                 if result:  # Tag exists
-                    return {"tag": result.name, "approved": result.approved, "nsfw": result.nsfw}
+                    return {"tag": result.name, "approved": result.approved, "nsfw": result.nsfw, "pending moderation":result.moderation}
                 else:  # Tag doesn't exist, create a new one
-                    new_tag = DiscordTags(name=tag_name, approved=None, nsfw=False)
+                    new_tag = DiscordTags(name=tag_name, nsfw=False)
                     session.add(new_tag)
                     session.commit()
-                    return {"tag": tag_name, "approved": None, "nsfw": False}
+                    return {"tag": tag_name, "approved": False, "nsfw": False, "pending moderation": True}
         except Exception as e:
             logger.error(f"Error adding or getting tag: {e}")
             raise HTTPException(status_code=500, detail=f"Error adding or getting tag: {e}")
@@ -50,8 +50,8 @@ class DiscordTagManager:
                 tags_to_update = []
                 for data in tag_data:
                     tag_name = data.get("tag")
-                    approved = data.get("approved")
-                    nsfw = data.get("nsfw", False)  # Default to False if not provided
+                    approved = bool(data.get("approved"))
+                    nsfw = bool(data.get("nsfw"))
 
                     # Retrieve the tag by its name
                     tag = session.query(DiscordTags).filter(DiscordTags.name == tag_name).first()
@@ -59,6 +59,7 @@ class DiscordTagManager:
                     if tag:
                         tag.approved = approved  # Ensure approved is a boolean
                         tag.nsfw = nsfw          # Ensure nsfw is a boolean
+                        tag.moderation = True
                         tags_to_update.append(tag)
                     else:
                         logger.warning(f"Tag '{tag_name}' not found.")
@@ -66,7 +67,7 @@ class DiscordTagManager:
 
                 session.commit()
 
-            logger.info(f"Updated approval status for {len(tags_to_update)} tags.")
+            logger.info(f"Updated approval status for {len(tags_to_update)} tags. {nsfw}")
             return {"message": f"Successfully updated approval status for {len(tags_to_update)} tags."}
 
         except Exception as e:
@@ -85,7 +86,7 @@ class DiscordTagManager:
                 ).first()
 
                 if result:
-                    return {"tag": result.name, "approved": result.approved, "nsfw": result.nsfw}
+                    return {"tag": result.name, "approved": result.approved, "nsfw": result.nsfw, "pending moderation": result.moderation}
                 else:
                     raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
         except Exception as e:
@@ -106,7 +107,7 @@ class DiscordTagManager:
         """
         try:
             with self.db.schema_engine.get_session() as session:
-                tags = session.query(DiscordTags).filter(DiscordTags.approved == "true", DiscordTags.nsfw == False).all()
+                tags = session.query(DiscordTags).filter(DiscordTags.approved == True).all()
                 return [{"tag": tag.name, "nsfw": tag.nsfw} for tag in tags]
         
         except Exception as e:
@@ -126,9 +127,40 @@ class DiscordTagManager:
         """
         try:
             with self.db.schema_engine.get_session() as session:
-                tags = session.query(DiscordTags).filter(DiscordTags.approved == None).all()
+                tags = session.query(DiscordTags).filter(DiscordTags.moderation == True).all()
                 return [{"tag": tag.name, "approved": tag.approved, "nsfw": tag.nsfw} for tag in tags]
         
         except Exception as e:
             logger.error(f"Error retrieving pending tags: {e}")
             raise HTTPException(status_code=500, detail=f"Error retrieving pending tags: {e}")
+        
+
+    async def update_tag_holy(self, data: dict):
+        """Update a new Discord server."""
+        try:
+            tag_id = data.name
+            if not tag_id:
+                raise HTTPException(status_code=400, detail="tag_id is required for updating.")
+
+            with self.db.schema_engine.get_session() as session:
+                og_tag = session.get(DiscordTags, tag_id)
+
+                if not og_tag:
+                    raise HTTPException(status_code=404, detail="Tag not found.")
+                    
+                
+                for field, value in data.items():
+                        if hasattr(og_tag, field) and getattr(og_tag, field) != value:
+                            setattr(og_tag, field, value)
+                            updated = True
+
+                if updated:
+                    session.commit()
+                    logger.info(f"Tag updated successfully with tag_name: {og_tag.name}")
+                    return {"status": 200, "message": "Discord server updated successfully."}
+                else:
+                    logger.info(f"No changes detected for Tag: {tag_id}")
+                    return {"status": 200, "message": "No changes were made."}
+        except Exception as e:
+            logger.error(f"Error adding server: {e}")
+            raise HTTPException(status_code=500, detail=f"Error updating server: {e}")

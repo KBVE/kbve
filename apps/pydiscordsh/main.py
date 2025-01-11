@@ -1,13 +1,36 @@
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import FastAPI, WebSocket, HTTPException, Request, APIRouter
 from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine, DiscordServer, DiscordRouter
 from contextlib import asynccontextmanager
 from pydiscordsh.apps import DiscordTagManager
 from typing import List, Dict, Optional
+from pydiscordsh.api.schema import DiscordTags
 
 import logging
 
 logger = logging.getLogger("uvicorn")
 
+
+test_router = APIRouter(prefix="/v1/test", tags=["Test"])
+
+@test_router.get('/tags')
+async def get_all_active_tags():
+    try:
+        manager = DiscordTagManager(db)
+        result = await manager.get_all_active_tags()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@test_router.post('/update')
+async def update_tag(request: DiscordTags):
+    try:
+        manager = DiscordTagManager(db)
+        #json_data = await request.json()
+        result = await manager.update_tag_holy(request)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
 schema_engine = SchemaEngine()
 db = TursoDatabase(schema_engine)
@@ -21,10 +44,45 @@ async def lifespan(app: FastAPI):
     await db.stop_client()
     logger.info("[DB]@STOPPING")
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, debug=True)
+app.include_router(test_router)
 routes = Routes(app, templates_dir="templates")
 CORS(app)
 
+
+# tags_router = APIRouter(prefix="/v1/tags", tags=["Tags"])
+# app.include_router(tags_router)
+
+## Tags
+@app.post("/v1/tags/add")
+async def add_or_get_tag(request: Request):
+    try:
+        manager = DiscordTagManager(db)
+        json_data = await request.json()
+        response = await manager.add_or_get_tag(json_data.get("tag_name"))
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding or updating tag: {str(e)}")
+
+# Get Tag (Public)
+@app.get("/v1/tags/get/{tag_name}")
+async def get_tag(tag_name: str):
+    try:
+        manager = DiscordTagManager(db)
+        result = await manager.get_tag(tag_name)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Get All Active Tags (Public)
+@app.get("/v1/tags/active")
+async def get_all_active_tags():
+    try:
+        manager = DiscordTagManager(db)
+        result = await manager.get_all_active_tags()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 ## Debug
 
@@ -109,59 +167,13 @@ async def reset_bump(server_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.post("/v1/discord/tags/add")
-async def add_or_get_tag(data: dict):
-    try:
-        manager = DiscordTagManager(db)
-        tag_name = data.get("tag_name")
-        approved = data.get("approved")
-        nsfw = data.get("nsfw", False)
-        response = await manager.add_or_get_tag(tag_name)
-        return response
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error adding or updating tag: {str(e)}")
+## Tag Routes
 
-@app.get("/v1/discord/tags/get/{tag_name}")
-async def get_tag(tag_name: str):
-    try:
-        manager = DiscordTagManager(db)
-        tag = await manager.get_tag(tag_name)
-        return tag
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving tag: {str(e)}")
-
-# Update Tag Status (Admin Only)
-@app.post("/v1/admin/discord/tags/update")
-async def update_tag_status(tag_data: List[Dict[str, Optional[bool]]]):
-    try:
-        manager = DiscordTagManager(db)
-        result = await manager.update_tag_status(tag_data)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Get Tag (Public)
-@app.get("/v1/discord/tags/{tag_name}/get")
-async def get_tag(tag_name: str):
-    try:
-        manager = DiscordTagManager(db)
-        result = await manager.get_tag(tag_name)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Get All Active Tags (Public)
-@app.get("/v1/discord/tags/active")
-async def get_all_active_tags():
-    try:
-        manager = DiscordTagManager(db)
-        result = await manager.get_all_active_tags()
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    
+### Admin Tags
 
 # Get Pending Tags (Admin Only)
-@app.get("/v1/admin/discord/tags/pending")
+@app.get("/v1/admin/tags/pending")
 async def get_pending_tags():
     try:
         manager = DiscordTagManager(db)
@@ -169,3 +181,16 @@ async def get_pending_tags():
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+# Update Tag Status (Admin Only)
+@app.post("/v1/admin/tags/update")
+async def update_tag_status(request: Request):
+    try:
+        manager = DiscordTagManager(db)
+        json_data = await request.json()
+        result = await manager.update_tag_status(json_data)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    

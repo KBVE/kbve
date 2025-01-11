@@ -108,7 +108,7 @@ class DiscordTags(SQLModel, table=True):
     name: str = Field(primary_key=True)  # Name as primary key
     approved: Optional[bool] = Field(default=False)  # Optional approval flag (default: False)
     nsfw: Optional[bool] = Field(default=False)  # Optional NSFW flag (default: False)
-    
+    moderation: bool = Field(default=True)
 # class BumpVote(SanitizedBaseModel, table=False)
 
 class SchemaEngine:
