@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import os, re, html
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
 from pydantic import field_validator, model_validator
@@ -108,9 +108,18 @@ class DiscordServer(SanitizedBaseModel, table=True):
 
     @field_validator("categories")
     def validate_categories(cls, value):
-        if value and len(value) > 2:
-            raise ValueError("Categories list cannot have more than 2 items.")
-        return value
+            if not isinstance(value, list):
+                raise ValueError("Categories must be a list.")
+            try:
+                value = [int(item) for item in value]
+            except ValueError:
+                raise ValueError("Categories must be a list of integers or strings representing integers.")
+            if not (1 <= len(value) <= 2):
+                raise ValueError("Categories list must have 1 or 2 items.")
+            for category_index in value:
+                if not DiscordCategories.is_valid_category(category_index):
+                    raise ValueError(f"Invalid category index: {category_index}.")
+            return value
     
     @field_validator("video")
     def validate_video(cls, value):
@@ -122,6 +131,92 @@ class DiscordServer(SanitizedBaseModel, table=True):
             if len(value) < 50 and re.match(r"^[a-zA-Z0-9_-]{1,50}$", value):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
+
+class DiscordCategories:
+    # In-memory categories with their "active" status, each category will now have an index
+    CATEGORIES = {
+        0: {"category": "Anime", "active": True},
+        1: {"category": "Art", "active": True},
+        2: {"category": "Community", "active": True},
+        3: {"category": "Cooking", "active": True},
+        4: {"category": "Design", "active": True},
+        5: {"category": "Education", "active": True},
+        6: {"category": "Entertainment", "active": True},
+        7: {"category": "eSports", "active": True},
+        8: {"category": "Fitness", "active": True},
+        9: {"category": "Gaming", "active": True},
+        10: {"category": "Health", "active": True},
+        11: {"category": "Hobbies", "active": True},
+        12: {"category": "Memes", "active": True},
+        13: {"category": "Music", "active": True},
+        14: {"category": "PC", "active": True},
+        15: {"category": "Photography", "active": True},
+        16: {"category": "Programming", "active": True},
+        17: {"category": "RolePlaying", "active": True},
+        18: {"category": "Social", "active": True},
+        19: {"category": "Sports", "active": True}
+    }
+
+    @classmethod
+    def is_valid_category(cls, index: int) -> bool:
+        """
+        Check if the category with the given index is valid and active.
+        Args:
+            index (int): The index of the category to check.
+        Returns:
+            bool: True if the category exists and is active, False otherwise.
+        Example:
+            >>> DiscordCategories.is_valid_category(9)
+            True
+            >>> DiscordCategories.is_valid_category(100)
+            False
+        """
+        category = cls.CATEGORIES.get(index)
+        return category is not None and category["active"]
+    
+    @classmethod
+    def set_category_active(cls, index: int, active: bool):
+        """
+        Set the 'active' status for a specific category by its index.
+        Args:
+            index (int): The index of the category to modify.
+            active (bool): The active status to set (True or False).
+        Example:
+            >>> DiscordCategories.set_category_active(9, False)
+            >>> DiscordCategories.is_valid_category(9)
+            False
+        """
+        category = cls.CATEGORIES.get(index)
+        if category:
+            category["active"] = active
+        else:
+            raise ValueError(f"Category with index {index} does not exist.")
+    
+    @classmethod
+    def get_all_active_categories(cls) -> List[str]:
+        """
+        Get a list of all active categories by index.
+        Returns:
+            List[str]: A list of category names that are marked as active.
+        Example:
+            >>> DiscordCategories.get_all_active_categories()
+            ['Anime', 'Art', 'Community', 'Cooking', 'Design', 'Education', 'Entertainment', 'eSports', 'Fitness', 'Gaming', 'Health', 'Hobbies', 'Memes', 'Music', 'PC', 'Photography', 'Programming', 'RolePlaying', 'Social', 'Sports']
+        """
+        return [cls.CATEGORIES[index]["category"] for index, category in cls.CATEGORIES.items() if category["active"]]
+    
+    @classmethod
+    def get_all_categories(cls) -> List[Tuple[int, str]]:
+        """
+        Get a list of all categories by index, active or not.
+        Returns:
+            List[Tuple[int, str]]: A list of tuples containing index and category names, regardless of active status.
+        Example:
+            >>> DiscordCategories.get_all_categories()
+            [(0, 'Anime'), (1, 'Art'), (2, 'Community'), ...]
+        """
+        return [(index, cls.CATEGORIES[index]["category"]) for index in cls.CATEGORIES]
+
+
 
 # class BumpVote(SanitizedBaseModel, table=False)
 
@@ -138,7 +233,7 @@ class SchemaEngine:
         db_url = f"sqlite+{self.TURSO_DATABASE_URL}/?authToken={self.TURSO_AUTH_TOKEN}&secure=true"
         
         # Create the engine
-        self.engine = create_engine(db_url, connect_args={'check_same_thread': False}, echo=True)
+        self.engine = create_engine(db_url, connect_args={'check_same_thread': False}, pool_pre_ping=True, echo=True)
 
     def get_session(self) -> Session:
         """Provide the database session."""
