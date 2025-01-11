@@ -58,7 +58,7 @@ class Kilobase:
 
     def get_user_by_id(self, user_id: str):
         """
-        Fetch a user's data from the Supabase `users` table.
+        Fetch a user's data from the Supabase `user_profiles` table.
 
         Args:
             user_id (str): The user ID to query.
@@ -66,7 +66,7 @@ class Kilobase:
         Returns:
             dict: User data or None if not found.
         """
-        response = self.client.table("users").select("*").eq("id", user_id).single().execute()
+        response = self.client.table("user_profiles").select("*").eq("id", user_id).single().execute()
         return response.data if response.data else None
     
     def extract_user_id(self, token: str) -> str:
@@ -109,7 +109,7 @@ class Kilobase:
         """
         try:
             # Attempt a simple query to check the connection health
-            response = self.client.table("users").select("id").limit(1).execute()
+            response = self.client.table("user_profiles").select("id").limit(1).execute()
             
             # Check if the response is valid
             if response.data is not None:
