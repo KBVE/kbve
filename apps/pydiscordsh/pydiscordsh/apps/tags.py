@@ -1,13 +1,13 @@
 from typing import List, Dict, Optional
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
 from pydiscordsh.api.schema import DiscordTags
+from pydiscordsh.apps.turso import TursoDatabase
 import logging
 
 logger = logging.getLogger(__name__)
 
 class DiscordTagManager:
-    def __init__(self, db: Session):
+    def __init__(self, db: TursoDatabase):
         self.db = db
     
     async def add_tag(self, tag_name: str) -> Dict:
