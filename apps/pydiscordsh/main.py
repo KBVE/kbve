@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket, HTTPException
-from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine, DiscordServer
+from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine, DiscordServer, DiscordRouter
 from contextlib import asynccontextmanager
 
 import logging
@@ -47,6 +47,14 @@ routes.db_get("/v1/db/status_client", Health, db, "status_client")
 
 routes.db_post("/v1/discord/add_server", DiscordServerManager, db, "add_server")
 routes.db_post("/v1/discord/update_server", DiscordServerManager, db, "update_server")
+
+@app.get("/v1/discord/get_categories")
+async def get_categories():
+    try:
+        categories = DiscordRouter.get_server_categories()
+        return categories
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/v1/discord/get_server/{server_id}")
 async def get_server(server_id: int):

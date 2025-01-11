@@ -164,16 +164,25 @@ class DiscordCategories:
             raise ValueError(f"Category with index {index} does not exist.")
     
     @classmethod
-    def get_all_active_categories(cls) -> List[str]:
+    def get_all_active_categories(cls) -> List[dict]:
         """
-        Get a list of all active categories by index.
+        Get a list of all active categories with their index and name.
+        
         Returns:
-            List[str]: A list of category names that are marked as active.
+            List[dict]: A list of dictionaries, each containing the index and name of an active category.
+            
         Example:
             >>> DiscordCategories.get_all_active_categories()
-            ['Anime', 'Art', 'Community', 'Cooking', 'Design', 'Education', 'Entertainment', 'eSports', 'Fitness', 'Gaming', 'Health', 'Hobbies', 'Memes', 'Music', 'PC', 'Photography', 'Programming', 'RolePlaying', 'Social', 'Sports']
+            [
+                {"index": 0, "name": "Anime"},
+                {"index": 1, "name": "Art"},
+                {"index": 2, "name": "Community"},
+                {"index": 3, "name": "Cooking"},
+                ...
+            ]
         """
-        return [cls.CATEGORIES[index]["category"] for index, category in cls.CATEGORIES.items() if category["active"]]
+        return [{"index": index, "name": category["category"]} for index, category in cls.CATEGORIES.items() if category["active"]]
+
     
     @classmethod
     def get_all_categories(cls) -> List[Tuple[int, str]]:
