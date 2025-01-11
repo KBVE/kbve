@@ -110,20 +110,15 @@ class DiscordServer(SanitizedBaseModel, table=True):
     def validate_categories(cls, value):
             if not isinstance(value, list):
                 raise ValueError("Categories must be a list.")
-            
-            # Convert strings to integers and validate
             try:
                 value = [int(item) for item in value]
             except ValueError:
                 raise ValueError("Categories must be a list of integers or strings representing integers.")
-            
             if not (1 <= len(value) <= 2):
                 raise ValueError("Categories list must have 1 or 2 items.")
-            
             for category_index in value:
                 if not DiscordCategories.is_valid_category(category_index):
                     raise ValueError(f"Invalid category index: {category_index}.")
-            
             return value
     
     @field_validator("video")
@@ -136,12 +131,6 @@ class DiscordServer(SanitizedBaseModel, table=True):
             if len(value) < 50 and re.match(r"^[a-zA-Z0-9_-]{1,50}$", value):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
-
-
-
-
-
-from typing import List, Tuple
 
 class DiscordCategories:
     # In-memory categories with their "active" status, each category will now have an index
