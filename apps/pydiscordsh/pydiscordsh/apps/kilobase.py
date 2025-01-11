@@ -8,11 +8,11 @@ class Kilobase:
     def __init__(self):
         """Initialize the Supabase client and JWT secret."""
         self.supabase_url = os.getenv("SUPABASE_URL")
-        self.supabase_key = os.getenv("SUPABASE_KEY")
+        self.supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
         self.jwt_secret = os.getenv("JWT_SECRET") or "default_secret"
 
         if not self.supabase_url or not self.supabase_key:
-            raise ValueError("SUPABASE_URL and SUPABASE_KEY must be set in the environment variables.")
+            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set in the environment variables.")
 
         self.client: Client = create_client(self.supabase_url, self.supabase_key)
     

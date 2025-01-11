@@ -43,6 +43,14 @@ routes.db_get("/v1/db/start_client", Health, db, "start_client")
 routes.db_get("/v1/db/stop_client", Health, db, "stop_client")
 routes.db_get("/v1/db/status_client", Health, db, "status_client")
 
+## TODO : Health Status
+
+@app.get("/v1/health/supabase")
+async def check_supabase():
+    """Check the Supabase connection health"""
+    return await Health(db).check_supabase()
+
+
 ##
 
 routes.db_post("/v1/discord/add_server", DiscordServerManager, db, "add_server")
