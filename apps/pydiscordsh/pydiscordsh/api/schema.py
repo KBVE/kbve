@@ -1,4 +1,5 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
+
 import os, re, html
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
 from pydantic import field_validator, model_validator
@@ -139,7 +140,7 @@ class DiscordServer(SanitizedBaseModel, table=True):
 
 
 
-from typing import List
+
 
 from typing import List, Tuple
 
