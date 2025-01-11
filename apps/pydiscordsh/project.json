@@ -71,6 +71,7 @@
 				"engine": "docker",
 				"context": "apps/pydiscordsh",
 				"file": "apps/pydiscordsh/Dockerfile",
+				"platforms": ["linux/amd64"],
 				"metadata": {
 					"images": ["kbve/pydiscordsh"],
 					"load": true,
