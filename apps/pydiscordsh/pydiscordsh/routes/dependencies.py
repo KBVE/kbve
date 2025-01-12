@@ -1,7 +1,7 @@
 from pydiscordsh.apps.turso import TursoDatabase
 from fastapi import FastAPI, Security
 from contextlib import asynccontextmanager
-from pydiscordsh import DiscordTagManager, SchemaEngine, Kilobase
+from pydiscordsh import DiscordTagManager, SchemaEngine, Kilobase, UserManager
 import logging
 logger = logging.getLogger("uvicorn")
 
@@ -37,3 +37,6 @@ def get_admin_token(token: dict = Security(kb.verify_role_jwt("admin"))):
 def get_moderator_token(token: dict = Security(kb.verify_role_jwt("moderator"))):
     """Ensure the provided token has moderator access."""
     return token
+
+def get_user_manager() -> UserManager:
+    return UserManager(kb)
