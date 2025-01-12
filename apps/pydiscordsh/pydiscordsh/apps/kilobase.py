@@ -3,37 +3,37 @@ import jwt
 import time
 from supabase import create_client, Client
 from jwt import ExpiredSignatureError, InvalidTokenError
+from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
+from fastapi import HTTPException, Security, Depends
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+auth_header2 = APIKeyHeader(name="X-KBVE-STAFF")
+
 
 class Kilobase:
     def __init__(self):
         """Initialize the Supabase client and JWT secret."""
         self.supabase_url = os.getenv("SUPABASE_URL")
-        self.supabase_key = os.getenv("SUPABASE_KEY")
+        self.supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
         self.jwt_secret = os.getenv("JWT_SECRET") or "default_secret"
 
         if not self.supabase_url or not self.supabase_key:
-            raise ValueError("SUPABASE_URL and SUPABASE_KEY must be set in the environment variables.")
+            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set in the environment variables.")
 
         self.client: Client = create_client(self.supabase_url, self.supabase_key)
     
-    def issue_jwt(self, user_id: str, expires_in: int = 3600) -> str:
-        """
-        Issue a JWT for a given user.
-        
-        Args:
-            user_id (str): The user ID to include in the token.
-            expires_in (int): Token expiration time in seconds. Default is 1 hour.
+    def issue_jwt(self, user_id: str, role: str = "user", expires_in: int = 3600) -> str:
+            """Generate a JWT with role-based access."""
+            payload = {
+                "sub": user_id,
+                "iss": "supabase",
+                "exp": int(time.time()) + expires_in,
+                "iat": int(time.time()),
+                "role": role
+            }
+            token = jwt.encode(payload, self.jwt_secret, algorithm="HS256")
+            return token
 
-        Returns:
-            str: The generated JWT token.
-        """
-        payload = {
-            "sub": user_id,
-            "exp": int(time.time()) + expires_in,
-            "iat": int(time.time())
-        }
-        token = jwt.encode(payload, self.jwt_secret, algorithm="HS256")
-        return token
 
     def verify_jwt(self, token: str) -> dict:
         """
@@ -56,9 +56,35 @@ class Kilobase:
         except InvalidTokenError:
             raise ValueError("Invalid token.")
 
+    def verify_role_jwt(self, required_role: str):
+        """Dependency to verify a JWT with either Authorization header or X-KBVE-STAFF."""
+        def role_checker(
+           # token: str = Depends(oauth2_scheme, auto_error=False),
+            alt_token: str = Security(auth_header2) 
+        ) -> dict:
+            # Check both headers, prioritize standard Bearer token
+            token_to_check = alt_token
+            if not token_to_check:
+                raise HTTPException(status_code=401, detail="No token provided.")
+            
+            # Decode the token and check role
+            decoded = self.verify_jwt(token_to_check)
+            if decoded.get("role") not in [required_role, "admin"]:
+                raise HTTPException(status_code=403, detail=f"Insufficient permissions for role: {required_role}")
+            return decoded
+
+        return role_checker
+    
+    def verify_admin_jwt(self, token: str) -> dict:
+        """Verify if the JWT belongs to an admin user."""
+        decoded = self.verify_jwt(token)
+        if not decoded.get("admin"):
+            raise ValueError("Admin access required.")
+        return decoded
+
     def get_user_by_id(self, user_id: str):
         """
-        Fetch a user's data from the Supabase `users` table.
+        Fetch a user's data from the Supabase `user_profiles` table.
 
         Args:
             user_id (str): The user ID to query.
@@ -66,7 +92,7 @@ class Kilobase:
         Returns:
             dict: User data or None if not found.
         """
-        response = self.client.table("users").select("*").eq("id", user_id).single().execute()
+        response = self.client.table("user_profiles").select("*").eq("id", user_id).single().execute()
         return response.data if response.data else None
     
     def extract_user_id(self, token: str) -> str:
@@ -109,7 +135,7 @@ class Kilobase:
         """
         try:
             # Attempt a simple query to check the connection health
-            response = self.client.table("users").select("id").limit(1).execute()
+            response = self.client.table("user_profiles").select("id").limit(1).execute()
             
             # Check if the response is valid
             if response.data is not None:

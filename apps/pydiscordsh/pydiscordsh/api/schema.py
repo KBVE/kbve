@@ -3,40 +3,11 @@ import os, re, html
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
 from pydantic import field_validator, model_validator
 import logging
+from pydiscordsh.models.basemodels import SanitizedBaseModel
+from pydiscordsh.models.category import DiscordCategories
 from pydiscordsh.api.utils import Utils
 
 logger = logging.getLogger("uvicorn")
-
-class SanitizedBaseModel(SQLModel):
-    class Config:
-        arbitrary_types_allowed = True
-        validate_assignment = True
-
-    @staticmethod
-    def _sanitize_string(value: str, user_id: Optional[str] = None, server_id: Optional[int] = None) -> str:
-        sanitized = re.sub(r'[^a-zA-Z0-9\s.,;:!?-_://?=%()]', '', value)
-        sanitized = re.sub(r'<.*?>', '', sanitized)  # Strip HTML tags
-        if sanitized != value:
-            logging.error(f"Sanitization failed for value: '{value}'. Sanitized version: '{sanitized}'. Potential harmful content detected."
-                          f" User ID: {user_id}, Server ID: {server_id}")
-            raise ValueError("Invalid content in input: Contains potentially harmful characters.")
-        return html.escape(sanitized)
-
-    @model_validator(mode="before")
-    def sanitize_all_fields(cls, values):
-        user_id = values.get('user_id', None) #TODO: Pass user ID into this somwhow once we get users done
-        server_id = values.get('server_id', None)
-
-        for field, value in values.items():
-            if isinstance(value, str):
-                try:
-                    sanitized_value = cls._sanitize_string(value, user_id, server_id)
-                    values[field] = sanitized_value
-                except ValueError as e:
-                    logging.error(f"Failed to sanitize field '{field}' with value '{value}': {str(e)}"
-                                  f" User ID: {user_id}, Server ID: {server_id}")
-                    raise e
-        return values
 
 class Hero(SanitizedBaseModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -132,92 +103,21 @@ class DiscordServer(SanitizedBaseModel, table=True):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
 
-class DiscordCategories:
-    # In-memory categories with their "active" status, each category will now have an index
-    CATEGORIES = {
-        0: {"category": "Anime", "active": True},
-        1: {"category": "Art", "active": True},
-        2: {"category": "Community", "active": True},
-        3: {"category": "Cooking", "active": True},
-        4: {"category": "Design", "active": True},
-        5: {"category": "Education", "active": True},
-        6: {"category": "Entertainment", "active": True},
-        7: {"category": "eSports", "active": True},
-        8: {"category": "Fitness", "active": True},
-        9: {"category": "Gaming", "active": True},
-        10: {"category": "Health", "active": True},
-        11: {"category": "Hobbies", "active": True},
-        12: {"category": "Memes", "active": True},
-        13: {"category": "Music", "active": True},
-        14: {"category": "PC", "active": True},
-        15: {"category": "Photography", "active": True},
-        16: {"category": "Programming", "active": True},
-        17: {"category": "RolePlaying", "active": True},
-        18: {"category": "Social", "active": True},
-        19: {"category": "Sports", "active": True}
-    }
+class DiscordTags(SanitizedBaseModel, table=True):
+    name: str = Field(primary_key=True, max_length=32)
+    status: int = Field(default=0)
 
-    @classmethod
-    def is_valid_category(cls, index: int) -> bool:
-        """
-        Check if the category with the given index is valid and active.
-        Args:
-            index (int): The index of the category to check.
-        Returns:
-            bool: True if the category exists and is active, False otherwise.
-        Example:
-            >>> DiscordCategories.is_valid_category(9)
-            True
-            >>> DiscordCategories.is_valid_category(100)
-            False
-        """
-        category = cls.CATEGORIES.get(index)
-        return category is not None and category["active"]
+    @field_validator("name")
+    def validate_tagname(cls, value: str) -> str:
+        value = value.lower()
+        if not re.match(r"^[a-z0-9-]+$", value):
+            raise ValueError("Tag name must only contain lowercase letters, numbers, and hyphens.")
+        if len(value) > 32:
+            raise ValueError("Tag name must be 32 characters or fewer.")
+        return value
+
+
     
-    @classmethod
-    def set_category_active(cls, index: int, active: bool):
-        """
-        Set the 'active' status for a specific category by its index.
-        Args:
-            index (int): The index of the category to modify.
-            active (bool): The active status to set (True or False).
-        Example:
-            >>> DiscordCategories.set_category_active(9, False)
-            >>> DiscordCategories.is_valid_category(9)
-            False
-        """
-        category = cls.CATEGORIES.get(index)
-        if category:
-            category["active"] = active
-        else:
-            raise ValueError(f"Category with index {index} does not exist.")
-    
-    @classmethod
-    def get_all_active_categories(cls) -> List[str]:
-        """
-        Get a list of all active categories by index.
-        Returns:
-            List[str]: A list of category names that are marked as active.
-        Example:
-            >>> DiscordCategories.get_all_active_categories()
-            ['Anime', 'Art', 'Community', 'Cooking', 'Design', 'Education', 'Entertainment', 'eSports', 'Fitness', 'Gaming', 'Health', 'Hobbies', 'Memes', 'Music', 'PC', 'Photography', 'Programming', 'RolePlaying', 'Social', 'Sports']
-        """
-        return [cls.CATEGORIES[index]["category"] for index, category in cls.CATEGORIES.items() if category["active"]]
-    
-    @classmethod
-    def get_all_categories(cls) -> List[Tuple[int, str]]:
-        """
-        Get a list of all categories by index, active or not.
-        Returns:
-            List[Tuple[int, str]]: A list of tuples containing index and category names, regardless of active status.
-        Example:
-            >>> DiscordCategories.get_all_categories()
-            [(0, 'Anime'), (1, 'Art'), (2, 'Community'), ...]
-        """
-        return [(index, cls.CATEGORIES[index]["category"]) for index in cls.CATEGORIES]
-
-
-
 # class BumpVote(SanitizedBaseModel, table=False)
 
 class SchemaEngine:

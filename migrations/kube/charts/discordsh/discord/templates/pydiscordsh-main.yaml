@@ -40,6 +40,23 @@ spec:
                 secretKeyRef:
                   name: discord-turso
                   key: TURSO_DATABASE_URL
+            - name: SUPABASE_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: serviceKey
+            - name: SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: anonKey
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: secret
+            - name: SUPABASE_URL
+              value: "https://supabase.kbve.com"
 
 ---
 
