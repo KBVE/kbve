@@ -14,7 +14,9 @@ class TagStatus(IntEnum):
     APPROVED = 2      
     NSFW = 4          
     MODERATION = 8   
-    BLOCKED = 16    
+    BLOCKED = 16
+    POPULAR = 32
+    LEAST = 64
 
 class DiscordTagManager:
     def __init__(self, db: TursoDatabase):
@@ -112,3 +114,31 @@ class DiscordTagManager:
             except Exception as e:
                 logger.exception("Error retrieving tags by status.")
                 raise HTTPException(status_code=500, detail="An error occurred while retrieving tags.")
+            
+    async def migrate_tag_status(self, tag_name: str, state1: str, state2: str):
+        """Migrate a specific tag from one status to another using status names."""
+        try:
+            with self.db.schema_engine.get_session() as session:
+                # Fetch the tag by name
+                tag = session.get(DiscordTags, tag_name)
+                if not tag:
+                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
+
+                state1_enum = TagStatus[state1.upper()]
+                state2_enum = TagStatus[state2.upper()]
+
+                if not self.has_status(tag, state1_enum):
+                    raise HTTPException(status_code=400, detail=f"Tag '{tag_name}' does not have the status '{state1_enum.name}'")
+
+                self.remove_status(tag, state1_enum)
+                self.add_status(tag, state2_enum)
+
+                session.add(tag)
+                session.commit()
+                return {"message": f"Tag '{tag_name}' migrated from {state1_enum.name} to {state2_enum.name}."}
+        except KeyError:
+            raise HTTPException(status_code=400, detail=f"Invalid tag status provided: {state1} or {state2}")
+        except Exception as e:
+            logger.exception("Error migrating tag status.")
+            raise HTTPException(status_code=500, detail="An error occurred while migrating the tag status.")
+    

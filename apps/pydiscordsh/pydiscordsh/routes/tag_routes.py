@@ -66,3 +66,17 @@ async def get_tags_by_status_or(statuses: str, tag_manager: DiscordTagManager = 
         raise HTTPException(status_code=400, detail=f"Invalid status provided: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+    
+@tags_router.put("/migrate/{tag}/{state1}/{state2}", response_model=dict)
+async def migrate_tag_route(
+    tag: str, 
+    state1: str, 
+    state2: str, 
+    tag_manager: DiscordTagManager = Depends(get_tag_manager),
+    token: dict = Depends(get_admin_token)
+):
+    """
+    Migrate a single tag from one status to another.
+    Example: /migrate/test-tag/pending/approved
+    """
+    return await tag_manager.migrate_tag_status(tag, state1, state2)
