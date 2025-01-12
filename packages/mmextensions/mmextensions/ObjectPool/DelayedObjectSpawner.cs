@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using KBVE.MMExtensions.ObjectPool;
 using MoreMountains.Tools;
@@ -8,20 +9,43 @@ public class DelayedObjectSpawner : MonoBehaviour
 {
   public MMObjectPooler objectPool;
   public int millisToWait;
+  private CancellationTokenSource cancellationTokenSource;
 
   // Start is called once before the first execution of Update after the MonoBehaviour is created
   void OnEnable()
   {
-    DoAfterSeconds(millisToWait, () => SetupPooledObject(objectPool.GetPooledGameObject()));
+    cancellationTokenSource = new CancellationTokenSource();
+    DoAfterSeconds(
+      millisToWait,
+      () => SetupPooledObject(objectPool.GetPooledGameObject()),
+      cancellationTokenSource.Token
+    );
   }
 
-  private async UniTask DoAfterSeconds(int millisDelay, Action action)
+  void OnDisable()
   {
-    Debug.Log("a");
-    await UniTask.Delay(millisDelay);
-    Debug.Log("b");
+    cancellationTokenSource?.Cancel();
+    cancellationTokenSource?.Dispose();
+  }
 
-    action.Invoke();
+  private async UniTask DoAfterSeconds(
+    int millisDelay,
+    Action action,
+    CancellationToken cancellationToken
+  )
+  {
+    try
+    {
+      await UniTask.Delay(millisDelay, cancellationToken: cancellationToken);
+      if (!cancellationToken.IsCancellationRequested)
+      {
+        action.Invoke();
+      }
+    }
+    catch (OperationCanceledException e)
+    {
+      Debug.Log("operation canceled exception: " + e.Message);
+    }
   }
 
   private void SetupPooledObject(GameObject pooledGameObject)

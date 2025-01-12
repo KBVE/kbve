@@ -1,8 +1,9 @@
 from sqlmodel import SQLModel, Session, select
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta, timezone
 import logging
-from pydiscordsh.api.schema import DiscordServer
+from pydiscordsh.api.schema import DiscordServer, DiscordCategories
 from pydiscordsh.apps.turso import TursoDatabase
 
 logger = logging.getLogger("uvicorn")
@@ -95,10 +96,9 @@ class DiscordServerManager:
             raise HTTPException(status_code=500, detail=f"Error resetting bump: {e}")
 
     ## TODO: Add Permissions, making sure the owner / mod => are on the list    
-    async def update_server(self, data: dict):
-        """update a new Discord server."""
+    async def update_server(self, data: dict, admin=False):
+        """Update a new Discord server."""
         try:
-            ## update_server = DiscordServer(**data)
             server_id = data.get("server_id")
             if not server_id:
                 raise HTTPException(status_code=400, detail="server_id is required for updating.")
@@ -107,15 +107,24 @@ class DiscordServerManager:
                 og_server = session.get(DiscordServer, server_id)
 
                 if not og_server:
-                        raise HTTPException(status_code=404, detail="Server not found.")
-                
+                    raise HTTPException(status_code=404, detail="Server not found.")
+                    
                 allowed_fields = ["lang", "public", "invite", "nsfw", "summary", "description", "website", "video", "categories", "tags"]
                 updated = False
 
-                for field in allowed_fields:
-                    if field in data and getattr(og_server, field) != data[field]:
-                        setattr(og_server, field, data[field])
-                        updated = True
+                # If admin, bypass the allowed_fields and check all fields in data
+                if admin:
+                    for field, value in data.items():
+                        if hasattr(og_server, field) and getattr(og_server, field) != value:
+                            setattr(og_server, field, value)
+                            updated = True
+                else:
+                    # If not admin, use allowed_fields restriction
+                    for field in allowed_fields:
+                        if field in data and getattr(og_server, field) != data[field]:
+                            setattr(og_server, field, data[field])
+                            updated = True
+
                 if updated:
                     session.commit()
                     logger.info(f"Server updated successfully with server_id: {og_server.server_id}")
@@ -125,4 +134,14 @@ class DiscordServerManager:
                     return {"status": 200, "message": "No changes were made."}
         except Exception as e:
             logger.error(f"Error adding server: {e}")
-            raise HTTPException(status_code=500, detail=f"Error adding server: {e}")
+            raise HTTPException(status_code=500, detail=f"Error updating server: {e}")
+
+class DiscordRouter:
+    def get_server_categories():
+            """Retrieve all active server categories with their index and name as JSON."""
+            try:
+                active_categories = DiscordCategories.get_all_active_categories()
+                return JSONResponse(content=active_categories)
+            except Exception as e:
+                logger.error(f"Error retrieving server categories: {e}")
+                raise HTTPException(status_code=500, detail="Failed to retrieve server categories.")

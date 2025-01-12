@@ -104,3 +104,6 @@ apps/expo-cityvote/.tamagui/css/*
 NuGetScratchroot/
 dotnet-install.sh
 vite.config.*.timestamp*
+
+# Python
+.venv

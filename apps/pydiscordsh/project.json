@@ -71,18 +71,19 @@
 				"engine": "docker",
 				"context": "apps/pydiscordsh",
 				"file": "apps/pydiscordsh/Dockerfile",
+				"platforms": ["linux/amd64"],
 				"metadata": {
 					"images": ["kbve/pydiscordsh"],
 					"load": true,
-					"tags": ["1.42", "1.42.0"]
+					"tags": ["1.45", "1.45.0"]
 				},
 				"configurations": {
 					"local": {
-						"tags": ["1.42", "1.42.0"],
+						"tags": ["1.45", "1.45.0"],
 						"push": false
 					},
 					"production": {
-						"tags": ["1.42", "1.42.0"],
+						"tags": ["1.45", "1.45.0"],
 						"push": true,
 						"customBuildOptions": "--push",
 						"cache-from": [
@@ -104,7 +105,7 @@
 						"forwardAllArgs": false
 					},
 					{
-						"command": "docker run --env-file .env -p 3000:3000 kbve/pydiscordsh:1.42",
+						"command": "docker run --env-file .env -p 3000:3000 kbve/pydiscordsh:1.45",
 						"forwardAllArgs": false
 					}
 				],
