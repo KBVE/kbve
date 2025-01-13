@@ -1,11 +1,14 @@
 from typing import Optional, List, Tuple
 import os, re, html
+from fastapi import HTTPException
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
-from pydantic import field_validator, model_validator
+from pydantic import field_validator, model_validator, ValidationInfo
 import logging
 from pydiscordsh.models.basemodels import SanitizedBaseModel
 from pydiscordsh.models.category import DiscordCategories
 from pydiscordsh.api.utils import Utils
+
+
 
 logger = logging.getLogger("uvicorn")
 
@@ -102,6 +105,17 @@ class DiscordServer(SanitizedBaseModel, table=True):
             if len(value) < 50 and re.match(r"^[a-zA-Z0-9_-]{1,50}$", value):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
+
+    @field_validator("tags")
+    def validate_tags(cls, value):
+        if not isinstance(value, list):
+            raise ValueError("Tags must be a list.")
+        if len(value) > 6:
+            raise ValueError("The tags list cannot have more than 6 items.")
+        return value
+
+        
+
 
 class DiscordTags(SanitizedBaseModel, table=True):
     name: str = Field(primary_key=True, max_length=32)
