@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, timezone
 import logging
 from pydiscordsh.api.schema import DiscordServer, DiscordCategories
 from pydiscordsh.apps.turso import TursoDatabase
+# from pydiscordsh.routes.dependencies import get_tag_manager
+from pydiscordsh.apps.tags import DiscordTagManager, TagStatus
 
 logger = logging.getLogger("uvicorn")
 
@@ -96,19 +98,31 @@ class DiscordServerManager:
             raise HTTPException(status_code=500, detail=f"Error resetting bump: {e}")
 
     ## TODO: Add Permissions, making sure the owner / mod => are on the list    
-    async def update_server(self, data: dict, admin=False):
+    async def update_server(self, data: dict, tag_manager: DiscordTagManager, admin=False) -> dict:
         """Update a new Discord server."""
         try:
             server_id = data.get("server_id")
             if not server_id:
                 raise HTTPException(status_code=400, detail="server_id is required for updating.")
+            
+                    # Validate tags first to keep session synchronous
+            validated_tags = []
+            errors = {}
+            if "tags" in data:
+                validated_tags, errors = await tag_manager.validate_tags_async(data["tags"], data.get("nsfw", False))
+                # data["tags"] = validated_tags
+                data["tags"] = [tag.name for tag in validated_tags]
+                if errors.get("invalid_tags"):
+                    logger.warning(f"Invalid tags detected: {errors['invalid_tags']}")
 
             with self.db.schema_engine.get_session() as session:
                 og_server = session.get(DiscordServer, server_id)
 
                 if not og_server:
                     raise HTTPException(status_code=404, detail="Server not found.")
-                    
+
+
+                # tags was removed from allowed fields.
                 allowed_fields = ["lang", "public", "invite", "nsfw", "summary", "description", "website", "video", "categories", "tags"]
                 updated = False
 

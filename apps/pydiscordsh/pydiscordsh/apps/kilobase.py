@@ -56,11 +56,10 @@ class Kilobase:
         except InvalidTokenError:
             raise ValueError("Invalid token.")
 
-    def verify_role_jwt(self, required_role: str):
+    def verify_role_jwt(self, required_roles: list[str]):
         """Dependency to verify a JWT with either Authorization header or X-KBVE-STAFF."""
         def role_checker(
-           # token: str = Depends(oauth2_scheme, auto_error=False),
-            alt_token: str = Security(auth_header2) 
+            alt_token: str = Security(auth_header2)
         ) -> dict:
             # Check both headers, prioritize standard Bearer token
             token_to_check = alt_token
@@ -69,8 +68,8 @@ class Kilobase:
             
             # Decode the token and check role
             decoded = self.verify_jwt(token_to_check)
-            if decoded.get("role") not in [required_role, "admin"]:
-                raise HTTPException(status_code=403, detail=f"Insufficient permissions for role: {required_role}")
+            if decoded.get("role") not in required_roles:
+                raise HTTPException(status_code=403, detail=f"Insufficient permissions for role: {required_roles}")
             return decoded
 
         return role_checker
