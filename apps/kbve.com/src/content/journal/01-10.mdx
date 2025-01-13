@@ -12,7 +12,35 @@ tags:
 
 ## Notes
 
-### 2024
+## 2025
+
+-   **Supabase**
+
+    01:15PM
+
+        The supabase integration with fastapi can be done in two ways, indirectly through the JWT or directly though a local connection to the supabase.
+        Before making the local connection to the supabase, I am going to do the remote connection first!
+        We just want to make sure that the user can login from the supabase instance.
+        Actually we also need to add the ingress to have a local connection but for now we can use a `https://supabase.kbve.com` during the testing phase.
+        In the future we want to use a `supabase.local` to handle it for us.
+
+    05:20PM
+
+        We were missing the PyJWT, so I am going to go ahead and add that into the repo.
+        To do this, we will use this nx command:
+
+```shell
+ pnpm nx run pydiscordsh:add --name pyjwt
+```
+
+        This will add the library to our `pydiscordsh`.
+    
+    11:00PM
+
+        There was a solid amount of progress being made this Friday!
+        However I am going to switch the notes over to the next day.
+
+## 2024
 
 -   11:04am - `WorkFlow`
 

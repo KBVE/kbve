@@ -1,18 +1,24 @@
-from typing import Optional, List
-import os, re
+from typing import Optional, List, Tuple
+import os, re, html
 from sqlmodel import Field, Session, SQLModel, create_engine, select, JSON, Column
-from pydantic import validator
+from pydantic import field_validator, model_validator
+import logging
+from pydiscordsh.models.basemodels import SanitizedBaseModel
+from pydiscordsh.models.category import DiscordCategories
+from pydiscordsh.api.utils import Utils
 
-class Hero(SQLModel, table=True):
+logger = logging.getLogger("uvicorn")
+
+class Hero(SanitizedBaseModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(..., max_length=64)
     secret_name: str = Field(..., max_length=64)
     age: Optional[int] = Field(default=None, ge=0, le=10000)
 
-# class User(SQLModel, table=True):
+# class User(SanitizedBaseModel, table=True):
 #     user_id: int = Field(primary_key=True)
 
-class DiscordServer(SQLModel, table=True):
+class DiscordServer(SanitizedBaseModel, table=True):
     server_id: int = Field(primary_key=True)  # Pre-existing unique server ID
     owner_id: str = Field(nullable=False, max_length=50)
     lang: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
@@ -22,9 +28,9 @@ class DiscordServer(SQLModel, table=True):
     name: str = Field(..., max_length=100)
     summary: str = Field(..., max_length=255)
     description: Optional[str] = Field(default=None, max_length=1024)
-    website: str = Field(..., max_length=100)
+    website: Optional[str] = Field(default=None, max_length=255)
     logo: str = Field(..., max_length=255)
-    banner: str = Field(..., max_length=255)
+    banner: Optional[str] = Field(default=None, max_length=255)
     video: str = Field(..., max_length=255)
     bumps: int = Field(default=0, ge=0)  # Bumps or votes
     bump_at: Optional[int] = Field(default=None, nullable=True)  # UNIX timestamp for bump date
@@ -36,31 +42,83 @@ class DiscordServer(SQLModel, table=True):
     invoice_at: Optional[int] = Field(default=None, nullable=True)  # UNIX timestamp for the invoice date
     created_at: Optional[int] = Field(default=None, nullable=False)  # UNIX timestamp for creation date
     updated_at: Optional[int] = Field(default=None, nullable=True)  # UNIX timestamp for update date
-
-    class Config:
-        arbitrary_types_allowed = True
-        validate_assignment = True
     
-    @validator("categories", pre=True, always=True)
-    def validate_categories(cls, value):
-        if value and len(value) > 2:
-            raise ValueError("Categories list cannot have more than 2 items.")
+    @field_validator("website", "logo", "banner", "url")
+    def validate_common_urls(cls, value):
+        try:
+            return Utils.validate_url(value)
+        except ValueError as e:
+                # Log the error and raise a more specific error message
+                logger.error(f"URL validation failed for value: '{value}'")
+                raise ValueError(f"Invalid URL format for field '{cls.__name__}'. Please provide a valid URL.") from e
         return value
     
-    @validator("video", pre=True, always=True)
+    @field_validator("lang")
+    def validate_lang(cls, value):
+        if value:
+            if len(value) > 2:
+                raise ValueError("Language list cannot have more than two languages.")
+            valid_languages = {"en", "es", "zh", "hi", "fr", "ar", "de", "ja", "ru", "pt", "it", "ko", "tr", "vi", "pl"}
+            for lang in value:
+                if lang not in valid_languages:
+                    raise ValueError(f"Invalid language code: {lang}. Must be one of {', '.join(valid_languages)}.")
+        return value
+
+    @field_validator("invite")
+    def validate_invite(cls, value):
+        if not value or not isinstance(value, str):
+            raise ValueError("Invite must be a valid string.")
+        discord_invite_pattern = (r"^(?:https?://(?:www\.)?discord(?:\.com)?/invite/|https?://discord\.gg/)([a-zA-Z0-9_-]+)$")
+        match = re.match(discord_invite_pattern, value)
+        if match:
+            return match.group(1)
+        plain_code_pattern = r"^[a-zA-Z0-9_-]{1,100}$"
+        if re.match(plain_code_pattern, value):
+            return value
+        raise ValueError(f"Invalid invite link or invite code. Got: {value}")
+
+    @field_validator("categories")
+    def validate_categories(cls, value):
+            if not isinstance(value, list):
+                raise ValueError("Categories must be a list.")
+            try:
+                value = [int(item) for item in value]
+            except ValueError:
+                raise ValueError("Categories must be a list of integers or strings representing integers.")
+            if not (1 <= len(value) <= 2):
+                raise ValueError("Categories list must have 1 or 2 items.")
+            for category_index in value:
+                if not DiscordCategories.is_valid_category(category_index):
+                    raise ValueError(f"Invalid category index: {category_index}.")
+            return value
+    
+    @field_validator("video")
     def validate_video(cls, value):
-        youtube_url_pattern = r"(https?://(?:www\.)?(?:youtube\.com/(?:[^/]+/)*[^/]+(?:\?v=|\/)([a-zA-Z0-9_-]{11}))|youtu\.be/([a-zA-Z0-9_-]{11}))"
-        
+        youtube_url_pattern = r"(https?://(?:www\.)?(?:youtube\.com/(?:[^/]+/)*[^/]+(?:\?v=|\/)([a-zA-Z0-9_-]{1,50}))|youtu\.be/([a-zA-Z0-9_-]{1,50}))"
         if value:
             match = re.match(youtube_url_pattern, value)
             if match:
                 return match.group(2) if match.group(2) else match.group(3)
-            if len(value) == 11 and re.match(r"^[a-zA-Z0-9_-]{11}$", value):
+            if len(value) < 50 and re.match(r"^[a-zA-Z0-9_-]{1,50}$", value):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
 
-# class BumpVote(SQLModel, table=False)
+class DiscordTags(SanitizedBaseModel, table=True):
+    name: str = Field(primary_key=True, max_length=32)
+    status: int = Field(default=0)
 
+    @field_validator("name")
+    def validate_tagname(cls, value: str) -> str:
+        value = value.lower()
+        if not re.match(r"^[a-z0-9-]+$", value):
+            raise ValueError("Tag name must only contain lowercase letters, numbers, and hyphens.")
+        if len(value) > 32:
+            raise ValueError("Tag name must be 32 characters or fewer.")
+        return value
+
+
+    
+# class BumpVote(SanitizedBaseModel, table=False)
 
 class SchemaEngine:
     def __init__(self):
@@ -75,13 +133,12 @@ class SchemaEngine:
         db_url = f"sqlite+{self.TURSO_DATABASE_URL}/?authToken={self.TURSO_AUTH_TOKEN}&secure=true"
         
         # Create the engine
-        self.engine = create_engine(db_url, connect_args={'check_same_thread': False}, echo=True)
+        self.engine = create_engine(db_url, connect_args={'check_same_thread': False}, pool_pre_ping=True, echo=True)
 
     def get_session(self) -> Session:
         """Provide the database session."""
         return Session(self.engine)
 
-    
 class SetupSchema:
     def __init__(self, schema_engine: SchemaEngine):
         self.schema_engine = schema_engine
@@ -101,4 +158,3 @@ class SetupSchema:
             else:
                 print("Hero not found.")
             return hero
-        

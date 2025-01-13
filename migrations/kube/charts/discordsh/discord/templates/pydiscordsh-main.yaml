@@ -1,0 +1,121 @@
+# PyDiscord Main Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pydiscordsh-main
+  namespace: discordsh
+  labels:
+    app: pydiscordsh
+spec:
+  replicas: {{ .Values.pydiscordsh.replicaCount }}
+  selector:
+    matchLabels:
+      app: pydiscordsh
+      tier: pydiscordsh
+  template:
+    metadata:
+      labels:
+        app: pydiscordsh
+        tier: pydiscordsh
+    spec:
+      containers:
+        - name: pydiscordsh
+          image: "{{ .Values.pydiscordsh.image.repository }}:{{ .Values.pydiscordsh.image.tag }}"
+          ports:
+            {{- range .Values.pydiscordsh.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.pydiscordsh.resources | nindent 12 }}
+          env:
+            - name: TURSO_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: discord-turso
+                  key: TURSO_AUTH_TOKEN
+            - name: TURSO_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-turso
+                  key: TURSO_DATABASE_URL
+            - name: SUPABASE_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: serviceKey
+            - name: SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: anonKey
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: secret
+            - name: SUPABASE_URL
+              value: "https://supabase.kbve.com"
+
+---
+
+# Service (TCP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: pydiscordsh-service
+  namespace: discordsh
+  labels:
+    app: pydiscordsh
+spec:
+  selector:
+    app: pydiscordsh
+  ports:
+    {{- range .Values.pydiscordsh.service.ports }}
+    - name: {{ .name }}
+      protocol: {{ .protocol }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+    {{- end }}
+  type: ClusterIP
+
+---
+
+## Nginx Ingress
+
+{{- if .Values.pydiscordsh.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pydiscordsh-ingress
+  namespace: discordsh
+  annotations:
+    nginx.ingress.kubernetes.io/enable-websocket: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    #nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    #nginx.ingress.kubernetes.io/keepalive: "on"
+    #nginx.ingress.kubernetes.io/http2-push-preload: "true"
+spec:
+  rules:
+    - host: {{ .Values.pydiscordsh.ingress.host }}
+      http:
+        paths:
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: pydiscordsh-service
+                port:
+                  number: 8086
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pydiscordsh-service
+                port:
+                  number: 3000
+{{- end }}

@@ -156,7 +156,7 @@ auth:
         GOTRUE_URI_ALLOW_LIST: '*'
         GOTRUE_DISABLE_SIGNUP: 'false'
         GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
-        GOTRUE_JWT_ADMIN_ROLES: service_role
+        GOTRUE_JWT_ADMIN_ROLES: 'supabase_admin,service_role'
         GOTRUE_JWT_AUD: authenticated
         GOTRUE_JWT_EXP: '3600'
         GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true'

@@ -1,4 +1,5 @@
 import logging
+from pydiscordsh.apps.kilobase import Kilobase
 
 logger = logging.getLogger("uvicorn")
 
@@ -39,3 +40,14 @@ class Health:
             return {"status": 200, "message": "Client is running."}
         else:
             return {"status": 400, "message": "Client is not running."}
+        
+    async def check_supabase(self):
+        """Checks the supabase connection"""
+        try:
+            health_status = Kilobase().health_status()
+            # Log the health status and return the result
+            logger.info(f"Supabase Health Check: {health_status}")
+            return health_status
+        except Exception as e:
+            logger.error(f"Error checking Supabase connection: {e}")
+            return {"status": "unhealthy", "message": f"Error: {str(e)}"}

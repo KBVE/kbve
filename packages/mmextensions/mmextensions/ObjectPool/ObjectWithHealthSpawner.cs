@@ -1,14 +1,14 @@
-using UnityEngine;
 using MoreMountains.TopDownEngine;
+using UnityEngine;
 
 namespace KBVE.MMExtensions.ObjectPool
 {
-    public class ObjectWithHealthSpawner : ObjectSpawner
+  public class ObjectWithHealthSpawner : ObjectSpawner
+  {
+    protected override void SetupPooledObject(GameObject gameObject)
     {
-        protected override void SetupPooledObject(GameObject gameObject)
-        {
-            base.SetupPooledObject(gameObject);
-            gameObject.GetComponent<Health>().Revive();
-        }
+      base.SetupPooledObject(gameObject);
+      gameObject.GetComponent<Health>().Revive();
     }
+  }
 }
