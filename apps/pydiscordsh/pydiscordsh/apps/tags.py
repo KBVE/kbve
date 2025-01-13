@@ -67,45 +67,34 @@ class DiscordTagManager:
             raise HTTPException(status_code=500, detail="An error occurred while adding the tag.")
 
     
-    async def update_tag_status(self, tags: List[DiscordTags], add: bool = True) -> dict:
+    async def update_tag_status(self, tag_data: DiscordTags, add: bool = True) -> dict:
         try:
             with self.db.schema_engine.get_session() as session:
-                # 1. Check for missing tags
-                missing_tags = []
-                for tag_data in tags:
-                    tag = session.get(DiscordTags, tag_data.name)
-                    if not tag:
-                        missing_tags.append(tag_data.name)
+                # Check if the tag exists
+                tag = session.get(DiscordTags, tag_data.name)
+                if not tag:
+                    raise HTTPException(status_code=404, detail=f"Tag '{tag_data.name}' not found.")
 
-                if missing_tags:
-                    raise HTTPException(status_code=404, detail=f"Tags not found: {', '.join(missing_tags)}")
+                # Apply bitwise operations
+                if add:
+                    tag.status |= tag_data.status  # Add the status bit
+                else:
+                    tag.status &= ~tag_data.status  # Remove the status bit
 
-                # 2. Apply bitwise operations only after validation
-                for tag_data in tags:
-                    tag = session.get(DiscordTags, tag_data.name)
-
-                    if add:
-                        # ADD bits (bitwise OR) → retains all previously set bits + sets new ones
-                        tag.status |= tag_data.status
-                    else:
-                        # REMOVE bits (bitwise AND NOT) → retains all previously set bits except the ones passed in
-                        tag.status &= ~tag_data.status
-
-                    session.add(tag)
-
+                session.add(tag)
                 session.commit()
+                session.refresh(tag)  # Ensure the latest state is reflected
 
-                # For the last tag_data processed, build a response
-                breakdown = self.decode_tag_status(tag_data.status)
+                breakdown = self.decode_tag_status(tag.status)
                 return {
-                    "message": f"Tag statuses updated for {len(tags)} tag(s).",
-                    "status": tag_data.status,
+                    "message": f"Tag status updated for '{tag_data.name}'.",
+                    "status": tag.status,
                     "breakdown": breakdown
                 }
 
         except Exception as e:
-            logger.exception("Error updating tag statuses.")
-            raise HTTPException(status_code=500, detail="An error occurred while updating tag statuses.")
+            logger.exception("Error updating tag status.")
+            raise HTTPException(status_code=500, detail="An error occurred while updating tag status.")
 
 
 
@@ -268,3 +257,56 @@ class DiscordTagManager:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail="An error occurred while processing the tag status.")
+        
+    async def action_tag_status(self, tag_name: str, action: str) -> dict:
+        try:
+            with self.db.schema_engine.get_session() as session:
+                # Fetch the tag from the database
+                tag = session.get(DiscordTags, tag_name)
+                if not tag:
+                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
+
+                # Convert action to lowercase for uniform handling
+                action = action.lower()
+
+                # ✅ Match statement for specific action handling
+                match action:
+                    case "approved":
+                        tag.status &= ~TagStatus.PENDING
+                        tag.status &= ~TagStatus.MODERATION
+                        tag.status &= ~TagStatus.BLOCKED
+                        tag.status |= TagStatus.APPROVED
+
+                    case "blocked":
+                        tag.status |= TagStatus.BLOCKED
+                        tag.status &= ~(TagStatus.PENDING | TagStatus.APPROVED | TagStatus.MODERATION)
+
+                    case "nsfw":
+                        # Toggle NSFW status without touching other statuses
+                        tag.status ^= TagStatus.NSFW  # XOR toggles the bit
+
+                    case "moderation":
+                        tag.status |= TagStatus.MODERATION
+                        tag.status &= ~TagStatus.APPROVED
+
+                    case _:
+                        raise HTTPException(status_code=400, detail=f"Invalid tag action: '{action}'.")
+
+                # ✅ Persist the changes using `update_tag_status`
+                session.add(tag)
+                session.commit()
+                session.refresh(tag)  # Ensure the latest state is reflected
+
+                # Build the breakdown
+                breakdown = self.decode_tag_status(tag.status)
+                return {
+                    "message": f"Action '{action}' applied to tag '{tag_name}'.",
+                    "status": tag.status,
+                    "breakdown": breakdown
+                }
+
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            logger.exception("Error while processing tag action.")
+            raise HTTPException(status_code=500, detail="An error occurred while updating the tag status.")

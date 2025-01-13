@@ -86,14 +86,36 @@ async def add_tag(name: str, tag_manager: DiscordTagManager = Depends(get_tag_ma
     return await tag_manager.add_tag(name)
 
 @tags_router.put("/add_tag_status", response_model=dict)
-async def add_tag_status(name: str, status: TagStatus, tag_manager: DiscordTagManager = Depends(get_tag_manager), token: dict = Depends(get_admin_token)):
+async def add_tag_status(
+    name: str, 
+    status: str,  # Accepting the status as a string now
+    tag_manager: DiscordTagManager = Depends(get_tag_manager), 
+    token: dict = Depends(get_admin_token)
+):
     """Add a status to an existing tag using bitwise operations."""
-    return await tag_manager.update_tag_status([DiscordTags(name=name, status=status)], add=True)
+    try:
+        # Convert the string to TagStatus enum
+        status_enum = TagStatus[status.upper()]
+        tag_data = DiscordTags(name=name, status=status_enum)
+        return await tag_manager.update_tag_status(tag_data, add=True)
+    except KeyError:
+        raise HTTPException(status_code=400, detail=f"Invalid status: '{status}'")
 
 @tags_router.put("/remove_tag_status", response_model=dict)
-async def remove_tag_status(name: str, status: TagStatus, tag_manager: DiscordTagManager = Depends(get_tag_manager), token: dict = Depends(get_admin_token)):
+async def remove_tag_status(
+    name: str, 
+    status: str,  # Accepting the status as a string
+    tag_manager: DiscordTagManager = Depends(get_tag_manager), 
+    token: dict = Depends(get_admin_token)
+):
     """Remove a status from an existing tag using bitwise operations."""
-    return await tag_manager.update_tag_status([DiscordTags(name=name, status=status)], add=False)
+    try:
+        # Convert the string to TagStatus enum
+        status_enum = TagStatus[status.upper()]
+        tag_data = DiscordTags(name=name, status=status_enum)
+        return await tag_manager.update_tag_status(tag_data, add=False)
+    except KeyError:
+        raise HTTPException(status_code=400, detail=f"Invalid status: '{status}'")
 
 @tags_router.get("/status/join/{statuses:path}", response_model=List[DiscordTags])
 async def get_tags_by_status_and(statuses: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
@@ -173,52 +195,10 @@ async def tag_action(
     - `moderation`: Applies the MODERATION status.
     """
     try:
-        # Fetch the tag
-        tag_data = await tag_manager.get_tag(tag)
-        
-        # Boolean to determine whether to preserve or overwrite flags
-        preserve_flags = True
-
-        match action.lower():
-            case "approved":
-                # Clear conflicting statuses and apply APPROVED
-                tag_data.status &= ~TagStatus.PENDING
-                tag_data.status &= ~TagStatus.MODERATION
-                tag_data.status &= ~TagStatus.BLOCKED
-                tag_data.status |= TagStatus.APPROVED
-                preserve_flags = False  # Reset specific statuses
-
-            case "blocked":
-                # BLOCKED removes PENDING, APPROVED, MODERATION but preserves NSFW
-                tag_data.status |= TagStatus.BLOCKED
-                tag_data.status &= ~(TagStatus.PENDING | TagStatus.APPROVED | TagStatus.MODERATION)
-                preserve_flags = False
-
-            case "nsfw":
-                # Toggle NSFW status without affecting other flags
-                if tag_manager.has_status(tag_data, TagStatus.NSFW):
-                    tag_data.status &= ~TagStatus.NSFW
-                else:
-                    tag_data.status |= TagStatus.NSFW
-                preserve_flags = True  # Only toggling, no overwrite needed
-
-            case "moderation":
-                # Apply MODERATION without overwriting other statuses
-                tag_data.status |= TagStatus.MODERATION
-                preserve_flags = True
-
-            case _:
-                raise HTTPException(status_code=400, detail=f"Invalid action '{action}' provided.")
-
-        await tag_manager.update_tag_status([tag_data], add=preserve_flags)
-
-        # Return success message and current status breakdown
-        return {
-            "message": f"Action '{action}' applied to tag '{tag}'.",
-            "status": tag_data.status,
-            "breakdown": tag_manager.decode_tag_status(tag_data.status)
-        }
-
+        # ✅ Call the dedicated action method and return its result
+        return await tag_manager.action_tag_status(tag, action)
+    except KeyError:
+        raise HTTPException(status_code=400, detail=f"Invalid tag action: '{action}'.")
     except HTTPException as e:
         raise e
     except Exception as e:
