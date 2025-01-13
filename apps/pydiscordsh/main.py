@@ -4,7 +4,7 @@ from fastapi import FastAPI, WebSocket, HTTPException, APIRouter, Depends, APIRo
 from pydiscordsh import Routes, CORS, TursoDatabase, SetupSchema, Hero, DiscordServerManager, Health, SchemaEngine, DiscordServer, DiscordRouter, DiscordTagManager
 from pydiscordsh.api.schema import DiscordTags
 from pydiscordsh.apps.tags import TagStatus
-from pydiscordsh.routes import lifespan, get_database, get_tag_manager, tags_router, users_router
+from pydiscordsh.routes import lifespan, get_database, get_tag_manager, tags_router, users_router, misc_router
 
 import logging
 logger = logging.getLogger("uvicorn")
@@ -14,37 +14,9 @@ logger = logging.getLogger("uvicorn")
 app = FastAPI(lifespan=lifespan)
 app.include_router(tags_router)
 app.include_router(users_router)
+app.include_router(misc_router)
 routes = Routes(app, templates_dir="templates")
 CORS(app)
-
-##
-
-@app.get("/v1/db/setup")
-async def setup_database():
-    try:
-        setup_schema = SetupSchema(get_database().schema_engine)
-        setup_schema.create_tables()
-        get_database().sync()
-        return {"status": 200, "message": "Database schema setup completed successfully."}
-    except Exception as e:
-        logger.error(f"Error setting up the database: {e}")
-        return {"status": 500, "message": f"Error setting up the database: {e}"}
-
-## 
-
-routes.db_get("/v1/db/start_client", Health, get_database(), "start_client")
-routes.db_get("/v1/db/stop_client", Health, get_database(), "stop_client")
-routes.db_get("/v1/db/status_client", Health, get_database(), "status_client")
-
-## TODO : Health Status
-
-@app.get("/v1/health/supabase")
-async def check_supabase():
-    """Check the Supabase connection health"""
-    return await Health(get_database()).check_supabase()
-
-
-##
 
 routes.db_post("/v1/discord/add_server", DiscordServerManager, get_database(), "add_server")
 routes.db_post("/v1/discord/update_server", DiscordServerManager, get_database(), "update_server")
