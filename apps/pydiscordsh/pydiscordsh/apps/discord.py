@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import logging
 from pydiscordsh.api.schema import DiscordServer, DiscordCategories
 from pydiscordsh.apps.turso import TursoDatabase
+# from pydiscordsh.routes.dependencies import get_tag_manager
 
 logger = logging.getLogger("uvicorn")
 
@@ -96,7 +97,7 @@ class DiscordServerManager:
             raise HTTPException(status_code=500, detail=f"Error resetting bump: {e}")
 
     ## TODO: Add Permissions, making sure the owner / mod => are on the list    
-    async def update_server(self, data: dict, admin=False):
+    async def update_server(self, data: dict, admin=False) -> dict:
         """Update a new Discord server."""
         try:
             server_id = data.get("server_id")

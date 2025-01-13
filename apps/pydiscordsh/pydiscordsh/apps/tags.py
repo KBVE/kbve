@@ -17,6 +17,7 @@ class TagStatus(IntEnum):
     BLOCKED = 16
     POPULAR = 32
     LEAST = 64
+    BOT = 128
 
 class DiscordTagManager:
     def __init__(self, db: TursoDatabase):
