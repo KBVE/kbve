@@ -105,34 +105,16 @@ class DiscordServer(SanitizedBaseModel, table=True):
             if len(value) < 50 and re.match(r"^[a-zA-Z0-9_-]{1,50}$", value):
                 return value
         raise ValueError("Invalid YouTube video ID or URL.")
-    
+
     @field_validator("tags")
-    def validate_tags(cls, value: list[str], info: ValidationInfo):
-
-        from pydiscordsh.apps.tags import DiscordTagManager, TagStatus
-        from pydiscordsh.routes.dependencies import get_tag_manager
-        
-        tag_manager: DiscordTagManager = get_tag_manager()
-
+    def validate_tags(cls, value):
         if not isinstance(value, list):
             raise ValueError("Tags must be a list.")
-        
-        is_nsfw = info.data.get("nsfw", False)
-
-        invalid_tags = []
-        for tag_name in value:
-            try:
-                tag = tag_manager.get_tag(tag_name)
-                # If the tag has the NSFW status and the server isn't marked as NSFW, reject it
-                if DiscordTagManager.has_status(tag, TagStatus.NSFW) and not is_nsfw:
-                    invalid_tags.append(f"{tag_name} (NSFW tag not allowed on non-NSFW server)")
-            except HTTPException:
-                invalid_tags.append(tag_name)
-
-        if invalid_tags:
-            raise ValueError(f"The following tags are invalid or restricted: {', '.join(invalid_tags)}")
-
+        if len(value) > 6:
+            raise ValueError("The tags list cannot have more than 6 items.")
         return value
+
+        
 
 
 class DiscordTags(SanitizedBaseModel, table=True):

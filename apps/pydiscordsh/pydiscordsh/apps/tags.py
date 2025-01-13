@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from fastapi import HTTPException
 from sqlmodel import select
 from pydiscordsh.api.schema import DiscordTags
@@ -143,3 +143,65 @@ class DiscordTagManager:
             logger.exception("Error migrating tag status.")
             raise HTTPException(status_code=500, detail="An error occurred while migrating the tag status.")
     
+    async def validate_tags_async(self, tags: List[str], nsfw: bool) -> Tuple[List[DiscordTags], Dict[str, str]]:
+        """
+        Validate a list of tags against the database, ensuring they meet criteria.
+
+        - Tags must be either "approved" or "pending"
+        - Tags cannot be "blocked" or in "moderation"
+        - If a tag does not exist, create a new one
+        - If NSFW is False, NSFW tags are disallowed
+
+        Args:
+            tags (List[str]): List of tag names to validate.
+            nsfw (bool): Indicates if NSFW tags are allowed.
+
+        Returns:
+            Tuple[List[DiscordTags], Dict[str, str]]: Validated tags and a message for invalid tags.
+        """
+
+        validated_tags = []
+        invalid_tags = []
+
+        logger.info(f"Starting tag validation for tags: {tags}, NSFW allowed: {nsfw}")
+
+
+        for tag_name in tags:
+            logger.info(f"Processing tag: {tag_name}")
+            try:
+                # Try to fetch the tag from the database
+                tag = await self.get_tag(tag_name)
+
+                # Check tag status conditions
+                if not self.has_status(tag, TagStatus.APPROVED) and not self.has_status(tag, TagStatus.PENDING):
+                    invalid_tags.append(f"{tag_name} is not approved or pending.")
+                    continue
+
+                #if self.has_status(tag, TagStatus.BLOCKED) or self.has_status(tag, TagStatus.MODERATION):
+                if self.has_status(tag, TagStatus.BLOCKED):
+
+                    invalid_tags.append(f"{tag_name} is blocked")
+                    continue
+
+                # NSFW handling
+                if not nsfw and self.has_status(tag, TagStatus.NSFW):
+                    invalid_tags.append(f"{tag_name} is NSFW and cannot be used on a non-NSFW server.")
+                    continue
+
+                # Tag is valid, add to the list
+                validated_tags.append(tag)
+
+            except HTTPException as e:
+                # If tag is not found, create it
+                if e.status_code == 404:
+                    new_tag = await self.add_tag(tag_name)
+                    validated_tags.append(new_tag)
+                else:
+                    invalid_tags.append(f"Error processing tag {tag_name}: {str(e)}")
+            except Exception as e:
+                invalid_tags.append(f"Unexpected error with tag {tag_name}: {str(e)}")
+
+        # Prepare response message
+        error_message = {"invalid_tags": invalid_tags} if invalid_tags else {"message": "All tags validated successfully."}
+        logger.info(validated_tags, error_message)
+        return validated_tags, error_message

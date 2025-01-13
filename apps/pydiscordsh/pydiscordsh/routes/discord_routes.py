@@ -23,7 +23,7 @@ async def add_server(data: dict, db=Depends(get_database)):
 
 # Update server route -> token: dict = Depends(get_admin_token) || token: dict = Depends(get_user_token)
 @discord_router.post("/update_server", response_model=dict)
-async def update_server(data: dict, db=Depends(get_database), token: dict = Depends(get_user_token)):
+async def update_server(data: dict, db=Depends(get_database), tag_manager=Depends(get_tag_manager), token: dict = Depends(get_user_token)):
     try:
 
         if token is None or 'role' not in token:
@@ -32,7 +32,7 @@ async def update_server(data: dict, db=Depends(get_database), token: dict = Depe
         admin = token["role"] == "admin"
 
         manager = DiscordServerManager(db)
-        response = await manager.update_server(data, admin=admin)
+        response = await manager.update_server(data, tag_manager, admin=admin)
         if not isinstance(response, dict):
             raise ValueError("Invalid response type from manager")
         return response
