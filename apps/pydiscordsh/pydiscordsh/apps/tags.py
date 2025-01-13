@@ -43,6 +43,11 @@ class DiscordTagManager:
         """Clear all statuses."""
         tag.status = 0
     
+    @staticmethod
+    def decode_tag_status(status: int) -> List[str]:
+        """Decode a tag's status integer into a list of status names."""
+        return [tag_status.name for tag_status in TagStatus if status & tag_status == tag_status]
+
     async def add_tag(self, name: str) -> DiscordTags:
         try:
             with self.db.schema_engine.get_session() as session:
@@ -65,7 +70,7 @@ class DiscordTagManager:
     async def update_tag_status(self, tags: List[DiscordTags], add: bool = True) -> dict:
         try:
             with self.db.schema_engine.get_session() as session:
-                # Check for missing tags
+                # 1. Check for missing tags
                 missing_tags = []
                 for tag_data in tags:
                     tag = session.get(DiscordTags, tag_data.name)
@@ -75,22 +80,33 @@ class DiscordTagManager:
                 if missing_tags:
                     raise HTTPException(status_code=404, detail=f"Tags not found: {', '.join(missing_tags)}")
 
-                # Apply bitwise operations only after validation
+                # 2. Apply bitwise operations only after validation
                 for tag_data in tags:
                     tag = session.get(DiscordTags, tag_data.name)
+
                     if add:
-                        tag.status |= tag_data.status  # Add the status
+                        # ADD bits (bitwise OR) → retains all previously set bits + sets new ones
+                        tag.status |= tag_data.status
                     else:
-                        tag.status &= ~tag_data.status  # Remove the status
+                        # REMOVE bits (bitwise AND NOT) → retains all previously set bits except the ones passed in
+                        tag.status &= ~tag_data.status
+
                     session.add(tag)
 
-                session.commit()                
-                action = "added" if add else "removed"
-                status_enum = TagStatus(tag_data.status)  # Convert the int to TagStatus Enum
-                return {"message": f"Status {status_enum.name} {action} for {len(tags)} tag(s)."}
+                session.commit()
+
+                # For the last tag_data processed, build a response
+                breakdown = self.decode_tag_status(tag_data.status)
+                return {
+                    "message": f"Tag statuses updated for {len(tags)} tag(s).",
+                    "status": tag_data.status,
+                    "breakdown": breakdown
+                }
+
         except Exception as e:
             logger.exception("Error updating tag statuses.")
             raise HTTPException(status_code=500, detail="An error occurred while updating tag statuses.")
+
 
 
     
@@ -205,3 +221,50 @@ class DiscordTagManager:
         error_message = {"invalid_tags": invalid_tags} if invalid_tags else {"message": "All tags validated successfully."}
         logger.info(validated_tags, error_message)
         return validated_tags, error_message
+
+    async def get_tags_by_exception(
+    self, 
+    include_status: TagStatus, 
+    exclude_statuses: List[TagStatus] = None
+) -> List[DiscordTags]:
+        """
+        Retrieve tags based on an inclusion status and optional exclusion criteria.
+
+        Args:
+            include_status (TagStatus): Tags must have this status.
+            exclude_statuses (List[TagStatus], optional): Tags must NOT have these statuses.
+
+        Returns:
+            List[DiscordTags]: Filtered list of tags.
+        """
+        try:
+            with self.db.schema_engine.get_session() as session:
+                # Fetch tags with the include status
+                query = select(DiscordTags).where(DiscordTags.status.op("&")(include_status) > 0)
+                tags = session.exec(query).all()
+
+                # Apply exclusion filtering if specified
+                if exclude_statuses:
+                    tags = [
+                        tag for tag in tags 
+                        if not any(tag.status & exclude for exclude in exclude_statuses)
+                    ]
+
+                return tags
+        except Exception as e:
+            logger.exception("Error retrieving tags by exception.")
+            raise HTTPException(status_code=500, detail="An error occurred while retrieving tags.")
+
+
+    async def get_tag_status_info(self, tag_name: str) -> dict:
+        """Retrieve a tag's status with breakdown included."""
+        try:
+            tag = await self.get_tag(tag_name)
+            breakdown = self.decode_tag_status(tag.status)
+            return {
+                "name": tag.name,
+                "status": tag.status,
+                "breakdown": breakdown
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="An error occurred while processing the tag status.")
