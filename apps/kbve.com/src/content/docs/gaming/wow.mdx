@@ -51,4 +51,16 @@ This is a quick macro to cast `Charge` in non-combat, then Rend if in combat and
 
 This macro still needs to be worked on.
 
+#### Mage
 
+##### Arcane Missles + FrostBolt Rank 1 
+
+This is my starter combat macro for my ice hardcore mage!
+If you are not in combat, it will cast the Arcane Missiles but if you are in-combat then it will fire off a rank 1 frostbolt to apply the slow.
+
+```
+/stopcasting
+/script if UnitExists("target") then SetRaidTarget("target", 8) end
+/cast [nocombat,harm,nodead] Arcane Missiles; [harm,nodead] Frostbolt(Rank 1)
+/em zug zug missiles incoming
+```
