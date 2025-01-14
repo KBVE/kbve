@@ -4,7 +4,7 @@ pydiscordsh:
     replicaCount: 1
     image:
         repository: kbve/pydiscordsh
-        tag: 1.45.0
+        tag: 1.46.0
         digest: 'sha256:sha256:cc49e2b2fede31eb242b9b7fe981c4a594e9cec797144816267f9b02e9630630'
     service:
         name: pydiscordsh
