@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.discord_servers (
     server_id BIGINT PRIMARY KEY,              -- Unique server ID
     owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, -- Supabase Auth user linking
     lang INT DEFAULT 0,                        -- Bitmask for languages
-    status INT DEFAULT 0,                      -- Bitmask for public, nsfw, vip, etc.
+    status INT DEFAULT 0,                      -- Bitmask for public, nsfw, draft, hidden etc.
     invite TEXT NOT NULL,                      -- Server invite link
     name TEXT NOT NULL,                        -- Server name
     summary TEXT NOT NULL,                     -- Brief summary of the server
@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS public.discord_servers (
     video TEXT,                              -- Video link for promo
     categories INT DEFAULT 0,                -- Bitmask for categories (up to 50)
     updated_at BIGINT NOT NULL               -- Timestamp for last server update
+
+    -- Constraints
+    CONSTRAINT ck_valid_invite_code CHECK (invite ~ '^[A-Za-z0-9-]{2,100}$')
 );
 
 ALTER TABLE public.discord_servers ENABLE ROW LEVEL SECURITY;
