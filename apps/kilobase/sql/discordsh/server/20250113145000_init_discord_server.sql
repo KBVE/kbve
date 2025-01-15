@@ -16,10 +16,15 @@ CREATE TABLE IF NOT EXISTS public.discord_servers (
     banner TEXT,                             -- Banner URL (optional)
     video TEXT,                              -- Video link for promo
     categories INT DEFAULT 0,                -- Bitmask for categories (up to 50)
-    updated_at BIGINT NOT NULL               -- Timestamp for last server update
+    updated_at BIGINT NOT NULL,               -- Timestamp for last server update
 
-    -- Constraints
-    CONSTRAINT ck_valid_invite_code CHECK (invite ~ '^[A-Za-z0-9-]{2,100}$')
+    -- Invite Code Constraint
+    CONSTRAINT ck_valid_invite_code CHECK (invite ~ '^[A-Za-z0-9-]{2,100}$'),
+    
+    -- Combined Name Constraint (Length + Unicode Safe)
+    CONSTRAINT ck_name_combined CHECK (
+        name ~ '^[\p{L}\p{N} _-]{2,100}$'
+    ),
 );
 
 ALTER TABLE public.discord_servers ENABLE ROW LEVEL SECURITY;
