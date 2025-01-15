@@ -51,6 +51,22 @@ CONSTRAINT ck_name_combined CHECK (
         Granted we will not be letting the server owner directly edit the table through the RPC or supabase's api client.
         The plan is still to use the python server as a medium of handling the `discord_server` data.
 
+        Okay, that field is out of the way, the next field will be `summary` and we will follow the same logic.
+        Dropping the `TEXT` and using a `VARCHAR` instead.
+
+```sql
+
+summary VARCHAR(200) NOT NULL,
+
+CONSTRAINT ck_summary_combined CHECK (
+    summary ~ '^[\p{L}\p{N} _\-,.!?]{2,200}$'
+)
+
+```
+        That will handle the summary issue for our use case!
+        Okay quickly added description and website as well.
+        Both need an additional sanitization before they get added into the table but we will handle that from the python side.
+
 ### 2024
 
     -   4:40pm  - `outpost`

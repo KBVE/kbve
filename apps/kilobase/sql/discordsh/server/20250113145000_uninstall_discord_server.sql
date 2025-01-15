@@ -3,9 +3,12 @@ BEGIN;
 
 -- 1. Remove the Trigger(s)
 DROP TRIGGER IF EXISTS trigger_enforce_tag_limit ON public.discord_server_tags;
+DROP TRIGGER IF EXISTS trigger_set_updated_at ON public.discord_servers;
+
 
 -- 2. Remove the Trigger Function
 DROP FUNCTION IF EXISTS enforce_tag_limit() CASCADE;
+DROP FUNCTION IF EXISTS set_updated_at() CASCADE;
 
 -- 3. Remove the Indexes
 DROP INDEX IF EXISTS public.idx_discord_server_tags_tag_id;
