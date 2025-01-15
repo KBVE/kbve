@@ -33,6 +33,23 @@ CONSTRAINT ck_valid_invite_code CHECK (invite ~ '^[A-Za-z0-9-]{2,100}$')
 ```
 
         Next column that we want to limit is the `name`.
+        Actually, while looking at the `name` field, I believe it would make more sense to just drop the `TEXT` field and use a `varchar` field instead!
+        We should limit it to about 100 characters, to be safe, we will do 101 characters.
+        The `name` field will then be 101.
+
+```sql
+
+name VARCHAR(101) NOT NULL,
+
+CONSTRAINT ck_name_combined CHECK (
+        name ~ '^[\p{L}\p{N} _-]{2,100}$'
+    ),
+
+```
+
+        Okay the name was replaced from TEXT field to the varchar field and we added a basic check against common attack vectors.
+        Granted we will not be letting the server owner directly edit the table through the RPC or supabase's api client.
+        The plan is still to use the python server as a medium of handling the `discord_server` data.
 
 ### 2024
 
