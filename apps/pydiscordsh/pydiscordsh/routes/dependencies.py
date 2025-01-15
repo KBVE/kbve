@@ -1,3 +1,5 @@
+from typing import Optional
+from pydiscordsh.api.schema import SetupSchema
 from pydiscordsh.apps.turso import TursoDatabase
 from fastapi import FastAPI, Security
 from contextlib import asynccontextmanager
@@ -14,7 +16,11 @@ async def lifespan(app: FastAPI):
     await db.start_client()
     kilobase = get_kilobase()
     admin_token = kilobase.issue_jwt(user_id="admin_user", role="admin", expires_in=3600)
+    user_token = kilobase.issue_jwt(user_id="123456789012345678", role="user", expires_in=3600)
+
     logger.info(f"Generated Admin Token: {admin_token}")
+    logger.info(f"Generated User Token: {user_token}")
+
 
     yield
     await db.stop_client()
@@ -40,3 +46,11 @@ def get_moderator_token(token: dict = Security(kb.verify_role_jwt("moderator")))
 
 def get_user_manager() -> UserManager:
     return UserManager(kb)
+
+def get_setup_schema():
+    """Dependency to provide SetupSchema with the current database schema engine."""
+    return SetupSchema(get_database().schema_engine)
+
+def get_user_token(token: dict = Security(kb.verify_role_jwt(["admin", "user"]))):
+    """Optional token check for admin or owner roles."""
+    return token
