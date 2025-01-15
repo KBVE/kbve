@@ -1,7 +1,7 @@
 ---
 title: 'January: 15'
 category: Daily
-date: 2024-01-15 12:00:00
+date: 2025-01-15 12:00:00
 client: Self
 unsplash: 1704189125621-55e8c6cfd166
 img: https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -12,6 +12,60 @@ tags:
 
 ## Notes
 
+## 2025
+
+-   **Supabase**
+
+    01:00AM
+
+        The next major update should be ready by tomorrow, we want to keep the turso integration but also slowly build out the migration to the postgres.
+        While that is going on, I want to start the front end of the discordsh server.
+        The question remains if we want to use NextJS or Astro, hmm, both are already included in the monorepo but I am thinking that astro with shadcn would be a better move than material design and nextjs.
+    
+    01:34AM
+
+        We want to include the `Constraints` for the `discord_servers` table, even though we already have them in the python code.
+        This is just a double check for the sake of data integrity!
+        Starting with the `invite` column, this is what I am thinking we will include.
+        
+```sql
+CONSTRAINT ck_valid_invite_code CHECK (invite ~ '^[A-Za-z0-9-]{2,100}$')
+```
+
+        Next column that we want to limit is the `name`.
+        Actually, while looking at the `name` field, I believe it would make more sense to just drop the `TEXT` field and use a `varchar` field instead!
+        We should limit it to about 100 characters, to be safe, we will do 101 characters.
+        The `name` field will then be 101.
+
+```sql
+
+name VARCHAR(101) NOT NULL,
+
+CONSTRAINT ck_name_combined CHECK (
+        name ~ '^[\p{L}\p{N} _-]{2,100}$'
+    ),
+
+```
+
+        Okay the name was replaced from TEXT field to the varchar field and we added a basic check against common attack vectors.
+        Granted we will not be letting the server owner directly edit the table through the RPC or supabase's api client.
+        The plan is still to use the python server as a medium of handling the `discord_server` data.
+
+        Okay, that field is out of the way, the next field will be `summary` and we will follow the same logic.
+        Dropping the `TEXT` and using a `VARCHAR` instead.
+
+```sql
+
+summary VARCHAR(200) NOT NULL,
+
+CONSTRAINT ck_summary_combined CHECK (
+    summary ~ '^[\p{L}\p{N} _\-,.!?]{2,200}$'
+)
+
+```
+        That will handle the summary issue for our use case!
+        Okay quickly added description and website as well.
+        Both need an additional sanitization before they get added into the table but we will handle that from the python side.
 
 ### 2024
 

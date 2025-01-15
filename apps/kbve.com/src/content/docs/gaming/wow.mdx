@@ -33,6 +33,12 @@ This is still a proof of concept guide and needs to be worked on.
 However for the time being, I am going to start the document and then reference it back when I get more information.
 
 
+### Addons
+
+For the best addon management experience in World of Warcraft, opt for CurseForge.
+It provides a user-friendly interface, easy installation, and automatic updates for your addons. 
+Plus it has a vast library of addons, you can customize your gameplay easily and share it across multiple computers too.
+
 
 ### Macros
 
@@ -94,3 +100,21 @@ If you are not in combat, it will cast the Arcane Missiles but if you are in-com
 ```
 
 This macro is part of the `tab`, `111` rotation and helps you throw your damage over time.
+
+#### Rogue
+
+#### Rogue
+
+##### Throw + Sinister Strike
+
+This macro will cast throw when you are not in combat or cast sinister strike when you are in combat!
+It also throws a blue square up on the target and can cast your racial ability.
+Remember to swap out `Berserking` with whatever spell you would like to combo it with!
+
+```
+/startattack
+/cast [nocombat] Throw; [combat] Sinister Strike
+/cast [combat] Berserking
+/run if UnitExists("target") and not GetRaidTargetIndex("target") then SetRaidTarget("target", 6) end
+/script UIErrorsFrame:Clear()
+```

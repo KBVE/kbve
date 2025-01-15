@@ -6,18 +6,75 @@ CREATE TABLE IF NOT EXISTS public.discord_servers (
     server_id BIGINT PRIMARY KEY,              -- Unique server ID
     owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, -- Supabase Auth user linking
     lang INT DEFAULT 0,                        -- Bitmask for languages
-    status INT DEFAULT 0,                      -- Bitmask for public, nsfw, vip, etc.
+    status INT DEFAULT 0,                      -- Bitmask for public, nsfw, draft, hidden etc.
     invite TEXT NOT NULL,                      -- Server invite link
-    name TEXT NOT NULL,                        -- Server name
-    summary TEXT NOT NULL,                     -- Brief summary of the server
+    name VARCHAR(101) NOT NULL,                -- Server name
+    summary VARCHAR(200) NOT NULL,                     -- Brief summary of the server
     description TEXT,                          -- Optional server description
     website TEXT,                             -- Website URL (optional)
     logo TEXT,                              -- Logo URL
     banner TEXT,                             -- Banner URL (optional)
-    video TEXT,                              -- Video link for promo
+    video VARCHAR(32),                              -- Video link for promo
     categories INT DEFAULT 0,                -- Bitmask for categories (up to 50)
-    updated_at BIGINT NOT NULL               -- Timestamp for last server update
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Invite Code Constraint
+    CONSTRAINT ck_valid_invite_code CHECK (
+        invite ~ '^[A-Za-z0-9-]{2,100}$'
+    ),
+    
+    -- Combined Name Constraint (Length + Unicode Safe)
+    CONSTRAINT ck_name_combined CHECK (
+        name ~ '^[\p{L}\p{N} _\-,.!?]{2,100}$'
+    ),
+
+    -- Summary Regex
+    CONSTRAINT ck_summary_combined CHECK (
+        summary ~ '^[\p{L}\p{N} _\-,.!?]{2,200}$'
+    ),
+
+    -- Description Regex
+    CONSTRAINT ck_description_markdown CHECK (
+        description ~ '^[\p{L}\p{N} _\-,.!?*#~]{10,2000}$' OR description IS NULL
+    ),
+
+    -- Website Constraint
+    CONSTRAINT ck_website_url CHECK (
+        website ~* '^(http://|https://)[a-zA-Z0-9./?=_-]+$' OR website IS NULL
+    ),
+
+    -- Logo Constraint
+    CONSTRAINT ck_logo_url CHECK (
+        logo ~* '^(http://|https://)[a-zA-Z0-9./?=_-]+$' OR logo IS NULL
+    ),
+
+    -- Banner URL Constraint
+    CONSTRAINT ck_banner_url CHECK (
+        banner ~* '^(http://|https://)[a-zA-Z0-9./?=_-]+$' OR banner IS NULL
+    ),
+
+    -- Video Constraint
+    CONSTRAINT ck_video_id CHECK (
+        video ~ '^[A-Za-z0-9_-]{1,32}$' OR video IS NULL
+    )
+
 );
+
+-- Create the trigger function to update the `updated_at` timestamp
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Automatically update the `updated_at` column with the current timestamp
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to automatically update `updated_at` on row modifications
+CREATE TRIGGER trigger_set_updated_at
+BEFORE UPDATE ON public.discord_servers
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
 
 ALTER TABLE public.discord_servers ENABLE ROW LEVEL SECURITY;
 
