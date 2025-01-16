@@ -132,6 +132,10 @@ class DiscordTags(SanitizedBaseModel, table=False):
             raise ValueError("Tag name must be 32 characters or fewer.")
         return value
 
+    @staticmethod
+    def get_table_name() -> str:
+        """Return the table name for the DiscordTags."""
+        return "discord_tags"
 
     
 # class BumpVote(SanitizedBaseModel, table=False)

@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from sqlmodel import select
 from pydiscordsh.api.schema import DiscordTags
 from pydiscordsh.apps.turso import TursoDatabase
+from pydiscordsh.apps.kilobase import Kilobase
 import logging
 from enum import IntEnum
 
@@ -20,8 +21,8 @@ class TagStatus(IntEnum):
     BOT = 128
 
 class DiscordTagManager:
-    def __init__(self, db: TursoDatabase):
-        self.db = db
+    def __init__(self, kb: Kilobase):
+        self.kb = kb
 
     @staticmethod
     def has_status(tag: DiscordTags, status: TagStatus) -> bool:
@@ -50,54 +51,63 @@ class DiscordTagManager:
 
     async def add_tag(self, name: str) -> DiscordTags:
         try:
-            with self.db.schema_engine.get_session() as session:
-                tag = session.get(DiscordTags, name)
-                if tag:
-                    return tag  # Return existing tag if already present
+            table_name = DiscordTags.get_table_name()
+            response = self.kb.client.table(table_name).select("*").eq("name", name).single().execute()
+            if response.data:
+                return DiscordTags(**response.data)
 
-                # Create a new tag with a default status
-                default_status = TagStatus.PENDING | TagStatus.MODERATION
-                new_tag = DiscordTags(name=name, status=default_status)
-                session.add(new_tag)
-                session.commit()
-                session.refresh(new_tag)
-                return new_tag
+            default_status = TagStatus.PENDING | TagStatus.MODERATION
+            new_tag = {"name": name, "status": default_status}
+
+            insert_response = self.kb.client.table(table_name).insert(new_tag).execute()
+            if insert_response.status_code != 201:
+                raise Exception(f"Failed to add tag: {insert_response.error_message}")
+
+            return DiscordTags(**insert_response.data[0])
+
         except Exception as e:
             logger.exception("Failed to add tag")
             raise HTTPException(status_code=500, detail="An error occurred while adding the tag.")
 
-    
+        
     async def update_tag_status(self, tag_data: DiscordTags, add: bool = True) -> dict:
         try:
-            with self.db.schema_engine.get_session() as session:
-                # Check if the tag exists
-                tag = session.get(DiscordTags, tag_data.name)
-                if not tag:
-                    raise HTTPException(status_code=404, detail=f"Tag '{tag_data.name}' not found.")
+            table_name = DiscordTags.get_table_name()
 
-                # Apply bitwise operations
-                if add:
-                    tag.status |= tag_data.status  # Add the status bit
-                else:
-                    tag.status &= ~tag_data.status  # Remove the status bit
+   
+            response = self.kb.client.table(table_name).select("*").eq("name", tag_data.name).single().execute() # Fetch the tag from the database
 
-                session.add(tag)
-                session.commit()
-                session.refresh(tag)  # Ensure the latest state is reflected
+            if not response.data:
+                raise HTTPException(status_code=404, detail=f"Tag '{tag_data.name}' not found.")
 
-                breakdown = self.decode_tag_status(tag.status)
-                return {
-                    "message": f"Tag status updated for '{tag_data.name}'.",
-                    "status": tag.status,
-                    "breakdown": breakdown
-                }
+            
+            tag = DiscordTags(**response.data) # Parse the existing tag
+
+            
+            if add:
+                tag.status |= tag_data.status  # Add the status bit
+            else:
+                tag.status &= ~tag_data.status  # Remove the status bit
+
+            update_response = self.kb.client.table(table_name).update({"status": tag.status}).eq("name", tag_data.name).execute()  # Update the tag in the database
+
+            if update_response.status_code != 200:
+                raise Exception(f"Failed to update tag: {update_response.error_message}")
+
+            breakdown = self.decode_tag_status(tag.status) # Decode the updated status for the response
+
+            return {
+                "message": f"Tag status updated for '{tag_data.name}'.",
+                "status": tag.status,
+                "breakdown": breakdown
+            }
 
         except Exception as e:
             logger.exception("Error updating tag status.")
             raise HTTPException(status_code=500, detail="An error occurred while updating tag status.")
 
 
-
+## TODO Migration to Kilobase/Supabase below
     
     async def get_tag(self, tag_name: str) -> DiscordTags:
         try:
