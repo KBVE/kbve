@@ -119,8 +119,9 @@ class DiscordServer(SanitizedBaseModel, table=False):
 
 
 class DiscordTags(SanitizedBaseModel, table=False):
-    name: str = Field(primary_key=True, max_length=32)
-    status: int = Field(default=0)
+    tag_id: int = Field(default=None, primary_key=True)
+    name: str = Field(max_length=32, nullable=False, unique=True) 
+    status: int = Field(default=0, nullable=False)
 
     @field_validator("name")
     def validate_tagname(cls, value: str) -> str:
