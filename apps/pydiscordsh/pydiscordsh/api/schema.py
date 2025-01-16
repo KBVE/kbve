@@ -7,12 +7,13 @@ import logging
 from pydiscordsh.models.basemodels import SanitizedBaseModel
 from pydiscordsh.models.category import DiscordCategories
 from pydiscordsh.api.utils import Utils
+from supabase import create_client, Client
 
 
 
 logger = logging.getLogger("uvicorn")
 
-class Hero(SanitizedBaseModel, table=True):
+class Hero(SanitizedBaseModel, table=False):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(..., max_length=64)
     secret_name: str = Field(..., max_length=64)
@@ -21,7 +22,7 @@ class Hero(SanitizedBaseModel, table=True):
 # class User(SanitizedBaseModel, table=True):
 #     user_id: int = Field(primary_key=True)
 
-class DiscordServer(SanitizedBaseModel, table=True):
+class DiscordServer(SanitizedBaseModel, table=False):
     server_id: int = Field(primary_key=True)  # Pre-existing unique server ID
     owner_id: str = Field(nullable=False, max_length=50)
     lang: Optional[List[str]] = Field(default=None, sa_column=Column(JSON))
@@ -117,7 +118,7 @@ class DiscordServer(SanitizedBaseModel, table=True):
         
 
 
-class DiscordTags(SanitizedBaseModel, table=True):
+class DiscordTags(SanitizedBaseModel, table=False):
     name: str = Field(primary_key=True, max_length=32)
     status: int = Field(default=0)
 
