@@ -49,6 +49,8 @@ CREATE INDEX idx_discord_tag_safe_tag_id ON public.discord_tag_safe(tag_id);
 
 -- Grant SELECT to anon and authenticated for the materialized view only
 GRANT SELECT ON public.discord_tag_safe TO anon, authenticated;
+GRANT SELECT ON public.discord_tag_safe TO service_role;
+
 
 -- 7. Refresh Materialized Views on Data Change
 CREATE OR REPLACE FUNCTION refresh_discord_tags_materialized_views()
@@ -66,6 +68,12 @@ AFTER INSERT OR UPDATE OR DELETE
 ON public.discord_tags
 FOR EACH STATEMENT
 EXECUTE FUNCTION refresh_discord_tags_materialized_views();
+
+--  9. Grant Privileges
+
+ALTER MATERIALIZED VIEW discord_tag_all OWNER TO service_role;
+ALTER MATERIALIZED VIEW discord_tag_safe OWNER TO service_role;
+GRANT EXECUTE ON FUNCTION refresh_discord_tags_materialized_views TO service_role;
 
 -- END
 
