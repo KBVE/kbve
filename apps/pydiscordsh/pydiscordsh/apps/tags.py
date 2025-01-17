@@ -88,27 +88,28 @@ class DiscordTagManager:
         
     async def update_tag_status(self, tag_data: DiscordTags, add: bool = True) -> dict:
         try:
+
+            try:
+                DiscordTags(name=tag_data.name)  # Trigger field validation
+            except ValidationError as ve:
+                logger.error(f"Validation failed for tag name '{tag_data.name}': {str(ve)}")
+                raise HTTPException(status_code=400, detail=f"Invalid tag name: {str(ve)}")
+            
             table_name = DiscordTags.get_table_name()
 
-   
             response = self.kb.client.table(table_name).select("*").eq("name", tag_data.name).execute() # Fetch the tag from the database using the name field, we should have an index on it.
 
             if not response.data or len(response.data) == 0:
                 raise HTTPException(status_code=404, detail=f"Tag '{tag_data.name}' not found.")
             
-            existing_tag = DiscordTags(**response.data[0])
-
+            current_status = response.data[0]["status"]
             
             if add:
-                existing_tag.status |= tag_data.status  # Add the status bit to the mask.
+                updated_status = current_status | tag_data.status  # Add the status bit to the mask
             else:
-                existing_tag.status &= ~tag_data.status  # Remove the status bit from the mask.
+                updated_status = current_status & ~tag_data.status  # Remove the status bit from the mask
 
-            update_payload = {
-                field: value
-                for field, value in existing_tag.model_dump(exclude_unset=True).items()
-                if getattr(existing_tag, field) != value
-            }
+            update_payload = {"status": updated_status}
 
 
             update_response = self.kb.client.table(table_name).update(update_payload).eq("name", tag_data.name).execute()
@@ -121,11 +122,11 @@ class DiscordTagManager:
                     detail=f"Failed to update tag: [{error_code}] {error_message}"
                 )
             
-            breakdown = self.decode_tag_status(existing_tag.status) # Decode the updated status for the response to make it wee bit more user friendly.
+            breakdown = self.decode_tag_status(updated_status) # Decode the updated status for the response to make it wee bit more user friendly.
 
             return {
                 "message": f"Tag status updated for '{tag_data.name}'.",
-                "status": existing_tag.status,
+                "status": updated_status,
                 "breakdown": breakdown
             }
         
