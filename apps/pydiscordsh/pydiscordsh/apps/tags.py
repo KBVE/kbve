@@ -52,7 +52,6 @@ class DiscordTagManager:
 
     async def add_tag(self, name: str) -> DiscordTags:
         try:
-            ## ! Validation of the name tag before doing the query.
             try:
                 DiscordTags(name=name)  # This triggers the field_validator for validation
             except ValidationError as ve:
@@ -175,7 +174,7 @@ class DiscordTagManager:
                 detail=f"An error occurred while retrieving the tag: {str(e)}"
             )
         
-    async def get_tags(self, nsfw: bool = False) -> List[DiscordTags]:
+    async def get_all_tags(self, nsfw: bool = False) -> List[DiscordTags]:
         try:
             mv_table_name = (
                 DiscordTags.get_mv_table_all_tags() if nsfw else DiscordTags.get_mv_table_safe_tags()
@@ -194,6 +193,41 @@ class DiscordTagManager:
                 status_code=500,
                 detail=f"An error occurred while retrieving {'all' if nsfw else 'safe'} tags: {str(e)}"
             )
+
+    async def get_tag_mv(self, tag_name: str, nsfw: bool = False) -> DiscordTags:
+        try:
+            try:
+                DiscordTags(name=tag_name)  # Trigger field validation
+            except ValidationError as ve:
+                logger.error(f"Validation failed for tag name '{tag_name}': {str(ve)}")
+                raise HTTPException(status_code=400, detail=f"Invalid tag name: {str(ve)}")
+
+            mv_table_name = (
+                DiscordTags.get_mv_table_all_tags() if nsfw else DiscordTags.get_mv_table_safe_tags()
+            )
+
+            response = self.kb.client.table(mv_table_name).select("*").eq("name", tag_name).execute()
+
+            if hasattr(response, "code"):
+                error_code = response.code
+                if error_code == "PGRST116":  # No rows found
+                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found in materialized view.")
+                else:
+                    raise HTTPException(status_code=500, detail=f"Unexpected error: [{error_code}] {response.message}")
+
+            if not response.data or len(response.data) == 0:  # Fallback in case no rows are returned
+                raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found in materialized view.")
+
+            return DiscordTags(**response.data[0])
+
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            logger.exception(f"Error retrieving tag '{tag_name}' from materialized view.")
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while retrieving the tag from materialized view: {str(e)}"
+            )  
         
     ## ? This is the validate tags used by "discord.py"  
     async def validate_tags_async(self, tags: List[str], nsfw: bool) -> Tuple[List[DiscordTags], Dict[str, str]]:
@@ -221,10 +255,9 @@ class DiscordTagManager:
         for tag_name in tags:
             logger.info(f"Processing tag: {tag_name}")
             try:
-                # Try to fetch the tag from the database
-                tag = await self.get_tag(tag_name)
+                # tag = await self.get_tag(tag_name)
+                tag = await self.get_tag_mv(tag_name, nsfw=True)
 
-                # Check tag status conditions
                 if not self.has_status(tag, TagStatus.APPROVED) and not self.has_status(tag, TagStatus.PENDING):
                     invalid_tags.append(f"{tag_name} is not approved or pending.")
                     continue
@@ -235,16 +268,13 @@ class DiscordTagManager:
                     invalid_tags.append(f"{tag_name} is blocked")
                     continue
 
-                # NSFW handling
                 if not nsfw and self.has_status(tag, TagStatus.NSFW):
                     invalid_tags.append(f"{tag_name} is NSFW and cannot be used on a non-NSFW server.")
                     continue
 
-                # Tag is valid, add to the list
                 validated_tags.append(tag)
 
             except HTTPException as e:
-                # If tag is not found, create it
                 if e.status_code == 404:
                     new_tag = await self.add_tag(tag_name)
                     validated_tags.append(new_tag)
@@ -253,13 +283,11 @@ class DiscordTagManager:
             except Exception as e:
                 invalid_tags.append(f"Unexpected error with tag {tag_name}: {str(e)}")
 
-        # Prepare response message
         error_message = {"invalid_tags": invalid_tags} if invalid_tags else {"message": "All tags validated successfully."}
         logger.info(validated_tags, error_message)
         return validated_tags, error_message
 
-
-    ## TODO Migration to Kilobase/Supabase below
+## TODO - Migration of the exception.
 
     async def get_tags_by_exception(
     self, 
@@ -294,6 +322,7 @@ class DiscordTagManager:
             logger.exception("Error retrieving tags by exception.")
             raise HTTPException(status_code=500, detail="An error occurred while retrieving tags.")
 
+## TODO: Prepare a material view option for the tag status.
 
     async def get_tag_status_info(self, tag_name: str) -> dict:
         """Retrieve a tag's status with breakdown included."""
@@ -307,7 +336,9 @@ class DiscordTagManager:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail="An error occurred while processing the tag status.")
-        
+
+## TODO: Migrate the Tag Action Status to use Supabase.
+#         
     async def action_tag_status(self, tag_name: str, action: str) -> dict:
         try:
             with self.db.schema_engine.get_session() as session:
