@@ -136,6 +136,17 @@ class DiscordTags(SanitizedBaseModel, table=False):
     def get_table_name() -> str:
         """Return the table name for the DiscordTags."""
         return "discord_tags"
+    
+    @staticmethod
+    def get_mv_table_all_tags() -> str:
+        """Return the MV Table name for all DiscordTags."""
+        return "discord_tag_all"
+    
+    @staticmethod
+    def get_mv_table_safe_tags() -> str:
+        """Return the MV Table name for safe DiscordTags."""
+        return "discord_tag_safe"
+    
 
     
 # class BumpVote(SanitizedBaseModel, table=False)

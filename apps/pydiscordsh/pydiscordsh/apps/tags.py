@@ -174,54 +174,6 @@ class DiscordTagManager:
                 status_code=500,
                 detail=f"An error occurred while retrieving the tag: {str(e)}"
             )
-        
-    ## ! get_tags_by_status can be dropped as well.
-    ## We could just drop this route because we might not need it.
-    async def get_tags_by_status(self, status: TagStatus) -> List[DiscordTags]:
-        """Retrieve all tags matching a specific status using bitwise filtering."""
-        try:
-            table_name = DiscordTags.get_table_name()
-            response = self.kb.client.table(table_name).select("*").filter("status", "ilike", status).execute() # Using KB->Supabase to filter tags with a bitwise AND operation
-            if response.data: # Check if the response contains data, we could also check for code -> errors but that will be later on.
-                return [DiscordTags(**tag) for tag in response.data]
-            else:
-                return []
-
-        except Exception as e:
-            logger.exception("Error retrieving tags by status.")
-            raise HTTPException(
-                status_code=500,
-                detail=f"An error occurred while retrieving tags: {str(e)}"
-            )
-    
-    ## ! Function can be dropped, we can work out the migrations inside of the "action" route instead.
-
-    async def migrate_tag_status(self, tag_name: str, state1: str, state2: str):
-        """Migrate a specific tag from one status to another using status names."""
-        try:
-            with self.db.schema_engine.get_session() as session:
-                # Fetch the tag by name
-                tag = session.get(DiscordTags, tag_name)
-                if not tag:
-                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
-
-                state1_enum = TagStatus[state1.upper()]
-                state2_enum = TagStatus[state2.upper()]
-
-                if not self.has_status(tag, state1_enum):
-                    raise HTTPException(status_code=400, detail=f"Tag '{tag_name}' does not have the status '{state1_enum.name}'")
-
-                self.remove_status(tag, state1_enum)
-                self.add_status(tag, state2_enum)
-
-                session.add(tag)
-                session.commit()
-                return {"message": f"Tag '{tag_name}' migrated from {state1_enum.name} to {state2_enum.name}."}
-        except KeyError:
-            raise HTTPException(status_code=400, detail=f"Invalid tag status provided: {state1} or {state2}")
-        except Exception as e:
-            logger.exception("Error migrating tag status.")
-            raise HTTPException(status_code=500, detail="An error occurred while migrating the tag status.")
     
     ## ? This is the validate tags used by "discord.py"  
     async def validate_tags_async(self, tags: List[str], nsfw: bool) -> Tuple[List[DiscordTags], Dict[str, str]]:
