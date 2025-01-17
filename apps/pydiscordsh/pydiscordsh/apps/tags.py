@@ -52,7 +52,6 @@ class DiscordTagManager:
 
     async def add_tag(self, name: str) -> DiscordTags:
         try:
-            ## ! Validation of the name tag before doing the query.
             try:
                 DiscordTags(name=name)  # This triggers the field_validator for validation
             except ValidationError as ve:
@@ -175,54 +174,61 @@ class DiscordTagManager:
                 detail=f"An error occurred while retrieving the tag: {str(e)}"
             )
         
-    ## ! get_tags_by_status can be dropped as well.
-    ## We could just drop this route because we might not need it.
-    async def get_tags_by_status(self, status: TagStatus) -> List[DiscordTags]:
-        """Retrieve all tags matching a specific status using bitwise filtering."""
+    async def get_all_tags(self, nsfw: bool = False) -> List[DiscordTags]:
         try:
-            table_name = DiscordTags.get_table_name()
-            response = self.kb.client.table(table_name).select("*").filter("status", "ilike", status).execute() # Using KB->Supabase to filter tags with a bitwise AND operation
-            if response.data: # Check if the response contains data, we could also check for code -> errors but that will be later on.
+            mv_table_name = (
+                DiscordTags.get_mv_table_all_tags() if nsfw else DiscordTags.get_mv_table_safe_tags()
+            )
+
+            response = self.kb.client.table(mv_table_name).select("*").execute()
+
+            if response.data:
                 return [DiscordTags(**tag) for tag in response.data]
             else:
                 return []
 
         except Exception as e:
-            logger.exception("Error retrieving tags by status.")
+            logger.exception(f"Error retrieving {'all' if nsfw else 'safe'} tags from materialized view.")
             raise HTTPException(
                 status_code=500,
-                detail=f"An error occurred while retrieving tags: {str(e)}"
+                detail=f"An error occurred while retrieving {'all' if nsfw else 'safe'} tags: {str(e)}"
             )
-    
-    ## ! Function can be dropped, we can work out the migrations inside of the "action" route instead.
 
-    async def migrate_tag_status(self, tag_name: str, state1: str, state2: str):
-        """Migrate a specific tag from one status to another using status names."""
+    async def get_tag_mv(self, tag_name: str, nsfw: bool = False) -> DiscordTags:
         try:
-            with self.db.schema_engine.get_session() as session:
-                # Fetch the tag by name
-                tag = session.get(DiscordTags, tag_name)
-                if not tag:
-                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
+            try:
+                DiscordTags(name=tag_name)  # Trigger field validation
+            except ValidationError as ve:
+                logger.error(f"Validation failed for tag name '{tag_name}': {str(ve)}")
+                raise HTTPException(status_code=400, detail=f"Invalid tag name: {str(ve)}")
 
-                state1_enum = TagStatus[state1.upper()]
-                state2_enum = TagStatus[state2.upper()]
+            mv_table_name = (
+                DiscordTags.get_mv_table_all_tags() if nsfw else DiscordTags.get_mv_table_safe_tags()
+            )
 
-                if not self.has_status(tag, state1_enum):
-                    raise HTTPException(status_code=400, detail=f"Tag '{tag_name}' does not have the status '{state1_enum.name}'")
+            response = self.kb.client.table(mv_table_name).select("*").eq("name", tag_name).execute()
 
-                self.remove_status(tag, state1_enum)
-                self.add_status(tag, state2_enum)
+            if hasattr(response, "code"):
+                error_code = response.code
+                if error_code == "PGRST116":  # No rows found
+                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found in materialized view.")
+                else:
+                    raise HTTPException(status_code=500, detail=f"Unexpected error: [{error_code}] {response.message}")
 
-                session.add(tag)
-                session.commit()
-                return {"message": f"Tag '{tag_name}' migrated from {state1_enum.name} to {state2_enum.name}."}
-        except KeyError:
-            raise HTTPException(status_code=400, detail=f"Invalid tag status provided: {state1} or {state2}")
+            if not response.data or len(response.data) == 0:  # Fallback in case no rows are returned
+                raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found in materialized view.")
+
+            return DiscordTags(**response.data[0])
+
+        except HTTPException as e:
+            raise e
         except Exception as e:
-            logger.exception("Error migrating tag status.")
-            raise HTTPException(status_code=500, detail="An error occurred while migrating the tag status.")
-    
+            logger.exception(f"Error retrieving tag '{tag_name}' from materialized view.")
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while retrieving the tag from materialized view: {str(e)}"
+            )  
+        
     ## ? This is the validate tags used by "discord.py"  
     async def validate_tags_async(self, tags: List[str], nsfw: bool) -> Tuple[List[DiscordTags], Dict[str, str]]:
         """
@@ -246,14 +252,12 @@ class DiscordTagManager:
 
         logger.info(f"Starting tag validation for tags: {tags}, NSFW allowed: {nsfw}")
 
-
         for tag_name in tags:
             logger.info(f"Processing tag: {tag_name}")
             try:
-                # Try to fetch the tag from the database
-                tag = await self.get_tag(tag_name)
+                # tag = await self.get_tag(tag_name)
+                tag = await self.get_tag_mv(tag_name, nsfw=True)
 
-                # Check tag status conditions
                 if not self.has_status(tag, TagStatus.APPROVED) and not self.has_status(tag, TagStatus.PENDING):
                     invalid_tags.append(f"{tag_name} is not approved or pending.")
                     continue
@@ -264,16 +268,13 @@ class DiscordTagManager:
                     invalid_tags.append(f"{tag_name} is blocked")
                     continue
 
-                # NSFW handling
                 if not nsfw and self.has_status(tag, TagStatus.NSFW):
                     invalid_tags.append(f"{tag_name} is NSFW and cannot be used on a non-NSFW server.")
                     continue
 
-                # Tag is valid, add to the list
                 validated_tags.append(tag)
 
             except HTTPException as e:
-                # If tag is not found, create it
                 if e.status_code == 404:
                     new_tag = await self.add_tag(tag_name)
                     validated_tags.append(new_tag)
@@ -282,13 +283,11 @@ class DiscordTagManager:
             except Exception as e:
                 invalid_tags.append(f"Unexpected error with tag {tag_name}: {str(e)}")
 
-        # Prepare response message
         error_message = {"invalid_tags": invalid_tags} if invalid_tags else {"message": "All tags validated successfully."}
         logger.info(validated_tags, error_message)
         return validated_tags, error_message
 
-
-    ## TODO Migration to Kilobase/Supabase below
+## TODO - Migration of the exception.
 
     async def get_tags_by_exception(
     self, 
@@ -323,6 +322,7 @@ class DiscordTagManager:
             logger.exception("Error retrieving tags by exception.")
             raise HTTPException(status_code=500, detail="An error occurred while retrieving tags.")
 
+## TODO: Prepare a material view option for the tag status.
 
     async def get_tag_status_info(self, tag_name: str) -> dict:
         """Retrieve a tag's status with breakdown included."""
@@ -336,7 +336,9 @@ class DiscordTagManager:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail="An error occurred while processing the tag status.")
-        
+
+## TODO: Migrate the Tag Action Status to use Supabase.
+#         
     async def action_tag_status(self, tag_name: str, action: str) -> dict:
         try:
             with self.db.schema_engine.get_session() as session:
