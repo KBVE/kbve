@@ -174,7 +174,27 @@ class DiscordTagManager:
                 status_code=500,
                 detail=f"An error occurred while retrieving the tag: {str(e)}"
             )
-    
+        
+    async def get_tags(self, nsfw: bool = False) -> List[DiscordTags]:
+        try:
+            mv_table_name = (
+                DiscordTags.get_mv_table_all_tags() if nsfw else DiscordTags.get_mv_table_safe_tags()
+            )
+
+            response = self.kb.client.table(mv_table_name).select("*").execute()
+
+            if response.data:
+                return [DiscordTags(**tag) for tag in response.data]
+            else:
+                return []
+
+        except Exception as e:
+            logger.exception(f"Error retrieving {'all' if nsfw else 'safe'} tags from materialized view.")
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while retrieving {'all' if nsfw else 'safe'} tags: {str(e)}"
+            )
+        
     ## ? This is the validate tags used by "discord.py"  
     async def validate_tags_async(self, tags: List[str], nsfw: bool) -> Tuple[List[DiscordTags], Dict[str, str]]:
         """
@@ -197,7 +217,6 @@ class DiscordTagManager:
         invalid_tags = []
 
         logger.info(f"Starting tag validation for tags: {tags}, NSFW allowed: {nsfw}")
-
 
         for tag_name in tags:
             logger.info(f"Processing tag: {tag_name}")
