@@ -1,6 +1,7 @@
 from typing import List, Dict, Optional, Tuple
 from fastapi import HTTPException
 from sqlmodel import select
+from pydantic import ValidationError
 from pydiscordsh.api.schema import DiscordTags
 from pydiscordsh.apps.turso import TursoDatabase
 from pydiscordsh.apps.kilobase import Kilobase
@@ -51,86 +52,150 @@ class DiscordTagManager:
 
     async def add_tag(self, name: str) -> DiscordTags:
         try:
+            ## ! Validation of the name tag before doing the query.
+            try:
+                DiscordTags(name=name)  # This triggers the field_validator for validation
+            except ValidationError as ve:
+                raise HTTPException(status_code=400, detail=f"Invalid tag name: {str(ve)}")
+
             table_name = DiscordTags.get_table_name()
-            response = self.kb.client.table(table_name).select("*").eq("name", name).single().execute()
-            if response.data:
-                return DiscordTags(**response.data)
+            response = self.kb.client.table(table_name).select("*").eq("name", name).execute()
+
+            if response.data and len(response.data) > 0:
+                return DiscordTags(**response.data[0])
 
             default_status = TagStatus.PENDING | TagStatus.MODERATION
-            new_tag = {"name": name, "status": default_status}
+            new_tag = DiscordTags(name=name, status=default_status)
 
-            insert_response = self.kb.client.table(table_name).insert(new_tag).execute()
-            if insert_response.status_code != 201:
-                raise Exception(f"Failed to add tag: {insert_response.error_message}")
+            insert_payload = new_tag.model_dump(exclude_unset=True)
+            insert_response = self.kb.client.table(table_name).insert(insert_payload, returning="representation").execute()
+
+
+            if not insert_response.data:
+                raise Exception(f"Failed to add tag: {insert_response.response['message']}")
 
             return DiscordTags(**insert_response.data[0])
 
+        except HTTPException as http_ex:
+            raise http_ex
         except Exception as e:
             logger.exception("Failed to add tag")
-            raise HTTPException(status_code=500, detail="An error occurred while adding the tag.")
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while adding the tag: {str(e)}"
+            )
 
         
     async def update_tag_status(self, tag_data: DiscordTags, add: bool = True) -> dict:
         try:
+
+            try:
+                DiscordTags(name=tag_data.name)  # Trigger field validation
+            except ValidationError as ve:
+                logger.error(f"Validation failed for tag name '{tag_data.name}': {str(ve)}")
+                raise HTTPException(status_code=400, detail=f"Invalid tag name: {str(ve)}")
+            
             table_name = DiscordTags.get_table_name()
 
-   
-            response = self.kb.client.table(table_name).select("*").eq("name", tag_data.name).single().execute() # Fetch the tag from the database
+            response = self.kb.client.table(table_name).select("*").eq("name", tag_data.name).execute() # Fetch the tag from the database using the name field, we should have an index on it.
 
-            if not response.data:
+            if not response.data or len(response.data) == 0:
                 raise HTTPException(status_code=404, detail=f"Tag '{tag_data.name}' not found.")
-
             
-            tag = DiscordTags(**response.data) # Parse the existing tag
-
+            current_status = response.data[0]["status"]
             
             if add:
-                tag.status |= tag_data.status  # Add the status bit
+                updated_status = current_status | tag_data.status  # Add the status bit to the mask
             else:
-                tag.status &= ~tag_data.status  # Remove the status bit
+                updated_status = current_status & ~tag_data.status  # Remove the status bit from the mask
 
-            update_response = self.kb.client.table(table_name).update({"status": tag.status}).eq("name", tag_data.name).execute()  # Update the tag in the database
+            update_payload = {"status": updated_status}
 
-            if update_response.status_code != 200:
-                raise Exception(f"Failed to update tag: {update_response.error_message}")
 
-            breakdown = self.decode_tag_status(tag.status) # Decode the updated status for the response
+            update_response = self.kb.client.table(table_name).update(update_payload).eq("name", tag_data.name).execute()
+
+            if update_response.data is None and hasattr(update_response, "code"):
+                error_code = update_response.code
+                error_message = getattr(update_response, "message", "An unknown error occurred")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to update tag: [{error_code}] {error_message}"
+                )
+            
+            breakdown = self.decode_tag_status(updated_status) # Decode the updated status for the response to make it wee bit more user friendly.
 
             return {
                 "message": f"Tag status updated for '{tag_data.name}'.",
-                "status": tag.status,
+                "status": updated_status,
                 "breakdown": breakdown
             }
-
+        
+        except HTTPException as http_ex:
+            raise http_ex
         except Exception as e:
             logger.exception("Error updating tag status.")
-            raise HTTPException(status_code=500, detail="An error occurred while updating tag status.")
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while updating tag status: {str(e)}"
+            )
 
-
-## TODO Migration to Kilobase/Supabase below
     
     async def get_tag(self, tag_name: str) -> DiscordTags:
         try:
-            with self.db.schema_engine.get_session() as session:
-                tag = session.get(DiscordTags, tag_name)
-                if tag:
-                    return tag
+
+            try:
+                DiscordTags(name=tag_name)  # Trigger field validation
+            except ValidationError as ve:
+                logger.error(f"Validation failed for tag name '{tag_name}': {str(ve)}")
+                raise HTTPException(status_code=400, detail=f"Invalid tag name: {str(ve)}")
+        
+            table_name = DiscordTags.get_table_name()
+
+            response = self.kb.client.table(table_name).select("*").eq("name", tag_name).execute()
+
+            if hasattr(response, "code"):
+                error_code = response.code
+                if error_code == "PGRST116":  # No rows found
+                    raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
+                else:
+                    raise HTTPException(status_code=500, detail=f"Unexpected error: [{error_code}] {response.message}")
+
+
+            if not response.data or len(response.data) == 0: # Fallback incase the code does not give an error.
                 raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' not found.")
+
+            return DiscordTags(**response.data[0])
+
+        except HTTPException as e:
+            raise e
         except Exception as e:
             logger.exception("Error retrieving tag")
-            raise HTTPException(status_code=500, detail="An error occurred while retrieving the tag.")
-
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while retrieving the tag: {str(e)}"
+            )
+        
+    ## ! get_tags_by_status can be dropped as well.
+    ## We could just drop this route because we might not need it.
     async def get_tags_by_status(self, status: TagStatus) -> List[DiscordTags]:
-            """Retrieve all tags matching a specific status using bitwise filtering."""
-            try:
-                with self.db.schema_engine.get_session() as session:
-                    query = select(DiscordTags).where(DiscordTags.status.op("&")(status) > 0)
-                    result = session.exec(query).all()
-                    return result if result else []
-            except Exception as e:
-                logger.exception("Error retrieving tags by status.")
-                raise HTTPException(status_code=500, detail="An error occurred while retrieving tags.")
-            
+        """Retrieve all tags matching a specific status using bitwise filtering."""
+        try:
+            table_name = DiscordTags.get_table_name()
+            response = self.kb.client.table(table_name).select("*").filter("status", "ilike", status).execute() # Using KB->Supabase to filter tags with a bitwise AND operation
+            if response.data: # Check if the response contains data, we could also check for code -> errors but that will be later on.
+                return [DiscordTags(**tag) for tag in response.data]
+            else:
+                return []
+
+        except Exception as e:
+            logger.exception("Error retrieving tags by status.")
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while retrieving tags: {str(e)}"
+            )
+    
+    ## ! Function can be dropped, we can work out the migrations inside of the "action" route instead.
+
     async def migrate_tag_status(self, tag_name: str, state1: str, state2: str):
         """Migrate a specific tag from one status to another using status names."""
         try:
@@ -158,6 +223,7 @@ class DiscordTagManager:
             logger.exception("Error migrating tag status.")
             raise HTTPException(status_code=500, detail="An error occurred while migrating the tag status.")
     
+    ## ? This is the validate tags used by "discord.py"  
     async def validate_tags_async(self, tags: List[str], nsfw: bool) -> Tuple[List[DiscordTags], Dict[str, str]]:
         """
         Validate a list of tags against the database, ensuring they meet criteria.
@@ -220,6 +286,9 @@ class DiscordTagManager:
         error_message = {"invalid_tags": invalid_tags} if invalid_tags else {"message": "All tags validated successfully."}
         logger.info(validated_tags, error_message)
         return validated_tags, error_message
+
+
+    ## TODO Migration to Kilobase/Supabase below
 
     async def get_tags_by_exception(
     self, 
