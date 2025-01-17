@@ -69,6 +69,7 @@ async def get_tags_by_type_path(
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
 
 
+## ! Route can be dropped.
 @tags_router.get("/tags_by_status", response_model=List[DiscordTags])
 async def get_tags_by_status(status: TagStatus, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
     """Fetch tags with a specific status.
@@ -117,6 +118,7 @@ async def remove_tag_status(
     except KeyError:
         raise HTTPException(status_code=400, detail=f"Invalid status: '{status}'")
 
+## ! Route can be dropped.
 @tags_router.get("/status/join/{statuses:path}", response_model=List[DiscordTags])
 async def get_tags_by_status_and(statuses: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
     """
@@ -132,6 +134,8 @@ async def get_tags_by_status_and(statuses: str, tag_manager: DiscordTagManager =
         raise HTTPException(status_code=400, detail=f"Invalid status provided: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+
+## ! Route can be dropped.
 
 @tags_router.get("/status/or/{statuses:path}", response_model=List[DiscordTags])
 async def get_tags_by_status_or(statuses: str, tag_manager: DiscordTagManager = Depends(get_tag_manager)):
@@ -150,7 +154,9 @@ async def get_tags_by_status_or(statuses: str, tag_manager: DiscordTagManager = 
         raise HTTPException(status_code=400, detail=f"Invalid status provided: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-    
+
+
+## ! Route can be dropped because it would not be needed.
 @tags_router.put("/migrate/{tag}/{state1}/{state2}", response_model=dict)
 async def migrate_tag_route(
     tag: str, 

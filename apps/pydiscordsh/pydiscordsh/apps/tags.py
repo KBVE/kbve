@@ -175,20 +175,27 @@ class DiscordTagManager:
                 detail=f"An error occurred while retrieving the tag: {str(e)}"
             )
         
-    ## TODO Migration to Kilobase/Supabase below
-
-
+    ## ! get_tags_by_status can be dropped as well.
+    ## We could just drop this route because we might not need it.
     async def get_tags_by_status(self, status: TagStatus) -> List[DiscordTags]:
-            """Retrieve all tags matching a specific status using bitwise filtering."""
-            try:
-                with self.db.schema_engine.get_session() as session:
-                    query = select(DiscordTags).where(DiscordTags.status.op("&")(status) > 0)
-                    result = session.exec(query).all()
-                    return result if result else []
-            except Exception as e:
-                logger.exception("Error retrieving tags by status.")
-                raise HTTPException(status_code=500, detail="An error occurred while retrieving tags.")
-            
+        """Retrieve all tags matching a specific status using bitwise filtering."""
+        try:
+            table_name = DiscordTags.get_table_name()
+            response = self.kb.client.table(table_name).select("*").filter("status", "ilike", status).execute() # Using KB->Supabase to filter tags with a bitwise AND operation
+            if response.data: # Check if the response contains data, we could also check for code -> errors but that will be later on.
+                return [DiscordTags(**tag) for tag in response.data]
+            else:
+                return []
+
+        except Exception as e:
+            logger.exception("Error retrieving tags by status.")
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while retrieving tags: {str(e)}"
+            )
+    
+    ## ! Function can be dropped, we can work out the migrations inside of the "action" route instead.
+
     async def migrate_tag_status(self, tag_name: str, state1: str, state2: str):
         """Migrate a specific tag from one status to another using status names."""
         try:
@@ -216,6 +223,7 @@ class DiscordTagManager:
             logger.exception("Error migrating tag status.")
             raise HTTPException(status_code=500, detail="An error occurred while migrating the tag status.")
     
+    ## ? This is the validate tags used by "discord.py"  
     async def validate_tags_async(self, tags: List[str], nsfw: bool) -> Tuple[List[DiscordTags], Dict[str, str]]:
         """
         Validate a list of tags against the database, ensuring they meet criteria.
@@ -278,6 +286,9 @@ class DiscordTagManager:
         error_message = {"invalid_tags": invalid_tags} if invalid_tags else {"message": "All tags validated successfully."}
         logger.info(validated_tags, error_message)
         return validated_tags, error_message
+
+
+    ## TODO Migration to Kilobase/Supabase below
 
     async def get_tags_by_exception(
     self, 
