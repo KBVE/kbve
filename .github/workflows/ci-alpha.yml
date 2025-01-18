@@ -242,8 +242,80 @@ jobs:
             - name: Unity Upload
               uses: actions/upload-artifact@v4
               with:
-                  name: Build-${{ matrix.targetPlatform }}
+                  name: P16Build-${{ matrix.targetPlatform }}
                   path: build/${{ matrix.targetPlatform }}
+
+
+    pirate-16-itch-deployment:
+        needs: ['pirate16-build']
+        name: Pirate 16 Itch Deployment
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download WebGL Build
+              uses: actions/download-artifact@v4
+              id: download
+              with:
+                  name: P16Build-WebGL
+                  path: build/WebGL
+
+            - name: Itch Deploy
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.ITCH_API }}
+                  gameData: ${{steps.download.outputs.download-path}}
+                  itchUsername: kbve
+                  itchGameId: pirate16
+                  buildChannel: webgl
+
+
+                  
+    pirate16_webgl_deployment:
+        needs: ['pirate16-build', 'globals']
+        name: Pirate16 GH Pages Deployment
+        runs-on: 'ubuntu-latest'
+        steps:
+            - name: Download Cache
+              uses: actions/download-artifact@v4
+              id: download
+              with:
+                  name: P16Build-WebGL
+                  path: build/WebGL
+
+            - name: Check Downloaded Artifact
+              run: |
+                  echo "Checking contents of build/WebGL..."
+                  ls -al build/WebGL
+
+            - name: Copy WebGL files
+              run: |
+                    echo "Preparing files for deployment..."
+                    mkdir -p dist/apps/pirate16/
+                    cp -R build/WebGL/WebGL/* dist/apps/pirate16/
+                    echo "Files prepared in dist/apps/pirate16/"
+                    ls -al dist/apps/pirate16/
+
+            - name: Create .nojekyll and CNAME files
+              run: |
+                  echo "Creating .nojekyll and CNAME files..."
+                  touch dist/apps/pirate16/.nojekyll
+                  echo "pirate16.kbve.com" > dist/apps/pirate16/CNAME
+                  echo "CNAME file content:"
+                  cat dist/apps/pirate16/CNAME
+
+            - name: WebGL Build -> Deployment
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+              with:
+                  source_file: 'dist/apps/pirate16/'
+                  destination_repo: 'KBVE/pirate16'
+                  destination_folder: '/docs'
+                  destination_branch: 'main'
+                  destination_branch_create: 'patch-kbve-pirate16-unity-deploy-${{ needs.globals.outputs.sha256head }}'
+                  user_email: 'h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: ${{ github.event.head_commit.message }}
+                  rsync_option: '-avrh --delete'
 
 
     kilonet-rareicon-build:
@@ -323,6 +395,10 @@ jobs:
                   itchUsername: kbve
                   itchGameId: rareicon
                   buildChannel: webgl
+
+
+                  
+
     python_discordsh:
         needs: ['alter', 'globals']
         if: needs.alter.outputs.pydiscordsh == 'true'
@@ -504,6 +580,7 @@ jobs:
                   INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   pnpm nx run rust_rareicon_gameserver:container --configuration=production  --push
+
 
     rareicon_webgl_deployment:
         needs: ['kilonet-rareicon-build', 'globals']
