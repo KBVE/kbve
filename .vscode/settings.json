@@ -13,6 +13,7 @@
         "Poolable",
         "Prepopulate"
     ],
+    "python.languageServer": "Pylance",
     "python.analysis.extraPaths": [
           "./apps/atlas"
       ]
