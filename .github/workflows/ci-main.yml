@@ -752,7 +752,7 @@ jobs:
 
   python_atlas_publish:
     needs: ['deploy', 'alter', 'python_atlas_build']
-    name: Pypi Publish
+    name: Atlas KBVE Pypi Publish
     if: needs.alter.outputs.atlas == 'true'
     runs-on: ubuntu-latest
     environment:
@@ -774,7 +774,7 @@ jobs:
 
   python_fudster_publish:
     needs: ['deploy', 'alter', 'python_fudster_build']
-    name: Pypi Publish
+    name: Fudster Pypi Publish
     if: needs.alter.outputs.fudster == 'true'
     runs-on: ubuntu-latest
     environment:
