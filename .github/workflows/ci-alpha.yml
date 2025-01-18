@@ -74,6 +74,7 @@ jobs:
             rustrareicongameserver: ${{ steps.delta.outputs.rustrareicongameserver_any_changed }}
             kanban: ${{ steps.delta.outputs.kanban_any_changed }}
             pydiscordsh: ${{ steps.delta.outputs.pydiscordsh_any_changed }}
+            pirate16: ${{ steps.delta.outputs.pirate16_any_changed }}
 
         steps:
             - name: Checkout the repository using git
@@ -108,6 +109,8 @@ jobs:
                           - 'apps/rust_kanban/README.md'
                       pydiscordsh:
                           - 'apps/pydiscordsh/README.md'
+                      pirate16:
+                          - 'apps/kbve.com/src/content/docs/project/pirate16.mdx'
 
     expo-lcagents-web-build:
         needs: ['alter', 'globals']
@@ -184,6 +187,64 @@ jobs:
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
                   rsync_option: '-avrh --delete'
+    
+
+    pirate16-build:
+        needs: ['alter', 'globals']
+        name: Pirate16 Unity Build
+        runs-on: ubuntu-20.04
+        if: needs.alter.outputs.pirate16 == 'true'
+        strategy:
+            fail-fast: false
+            matrix:
+                projectPath:
+                    - azure-pirate16
+                unityVersion:
+                    - 6000.0.25f1
+                targetPlatform:
+                    - WebGL
+        steps:
+            # - name: Checkout this repository
+            #   uses: actions/checkout@v4
+
+            - name: Free Disk Space (Ubuntu)
+              uses: jlumbroso/free-disk-space@main
+
+            - name: Pull Pirate16 Repo
+              env:
+                  AZURE_PAT: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET }}
+              run: |
+                  git config --global user.name "GitHub Actions"
+                  git config --global user.email "actions@github.com"
+                  git clone https://kbve:${AZURE_PAT}@dev.azure.com/kbve/pirate16/_git/pirate16 azure-pirate16
+
+            - name: Unity Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ matrix.projectPath }}/Library
+                  key: Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
+                  restore-keys: |
+                      Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-
+                      Library-${{ matrix.projectPath }}-
+                      Library-
+
+            - name: Unity Builder
+              uses: game-ci/unity-builder@v4
+              env:
+                  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+                  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+                  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+              with:
+                  projectPath: ${{ matrix.projectPath }}
+                  unityVersion: ${{ matrix.unityVersion }}
+                  targetPlatform: ${{ matrix.targetPlatform }}
+
+            - name: Unity Upload
+              uses: actions/upload-artifact@v4
+              with:
+                  name: Build-${{ matrix.targetPlatform }}
+                  path: build/${{ matrix.targetPlatform }}
+
 
     kilonet-rareicon-build:
         needs: ['alter', 'globals']
