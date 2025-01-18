@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
     await db.stop_client()
 
 def get_tag_manager() -> DiscordTagManager:
-    return DiscordTagManager(db)
+    return DiscordTagManager(kb)
 
 def get_database() -> TursoDatabase:
     """Return the database instance directly."""
