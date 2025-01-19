@@ -157,7 +157,7 @@ const maps := {
 		"bg": "res://Assets/maps/map1.webp",
 		"scene": "res://Scenes/maps/map1.tscn",
 		"baseHp": 10,
-		"startingGold": 100,
+		"startingGold": 500,
 		"spawner_settings":
 			{
 			"difficulty": {"initial": 2.0, "increase": 1.5, "multiplies": true},

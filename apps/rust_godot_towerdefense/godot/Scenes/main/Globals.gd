@@ -9,6 +9,8 @@ signal waveStarted(wave_count, enemy_count)
 signal waveCleared(wait_time)
 @warning_ignore("unused_signal")
 signal enemyDestroyed(remain)
+@warning_ignore("unused_signal")
+signal fireStatus(fire_status)
 
 var selected_map := ""
 var mainNode : Node2D
