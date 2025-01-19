@@ -19,6 +19,24 @@ tags:
     12:10AM
 
         Fixing up the webgl build so that it has a bit better performance and making sure that it loads smoothly!
+        Okay we were able to resolve a decent amount of the issues but the mac builds still have issues, ugh.
+
+    04:39AM
+
+        Nevermind, I seem have made loading worse, ugh.
+        Maybe its because I have the progress manager being called twice, hmm?
+        Okay, let me go ahead and do a quick rebuild.
+
+    07:52AM
+
+        Break from the normal flow of C# and do some quick rust!
+        We will build the game server out following our same strat as rareicon.
+
+```shell
+
+pnpm nx g @monodon/rust:binary rust_p16_gameserver --directory=apps/rust_p16_gameserver
+
+```
 
 ## 2024
 
