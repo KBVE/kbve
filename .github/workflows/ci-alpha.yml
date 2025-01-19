@@ -129,7 +129,7 @@ jobs:
         env:
           GODOT_VERSION: 4.3
           EXPORT_NAME: TowerDef
-          PROJECT_PATH: ./apps/_test/godot-towerdefense
+          PROJECT_PATH: ./apps/rust_godot_towerdefense/godot
         steps:
           - name: Checkout repository
             uses: actions/checkout@v4
@@ -146,6 +146,7 @@ jobs:
               mkdir -v -p build/web
               EXPORT_DIR="$(readlink -f build)"
               cd $PROJECT_PATH
+              ls -a
               godot --headless --verbose --export-release "Web" "$EXPORT_DIR/web/index.html"
 
           - name: Upload Artifact
@@ -154,7 +155,26 @@ jobs:
               name: godottowerdefenseweb
               path: build/web
 
+    godot-towerdefense-itch-deployment:
+        needs: ['pirate16-build']
+        name: Pirate 16 Itch Deployment
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download WebGL Build
+              uses: actions/download-artifact@v4
+              id: download
+              with:
+                  name: godottowerdefenseweb
+                  path: build/web
 
+            - name: Itch Deploy
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.ITCH_API }}
+                  gameData: ${{steps.download.outputs.download-path}}
+                  itchUsername: kbve
+                  itchGameId: towerdefense
+                  buildChannel: webgl
 
     expo-lcagents-web-build:
         needs: ['alter', 'globals']
