@@ -75,6 +75,7 @@ jobs:
             kanban: ${{ steps.delta.outputs.kanban_any_changed }}
             pydiscordsh: ${{ steps.delta.outputs.pydiscordsh_any_changed }}
             pirate16: ${{ steps.delta.outputs.pirate16_any_changed }}
+            godottowerdefense: ${{ steps.delta.outputs.godottowerdefense_any_changed }}
 
         steps:
             - name: Checkout the repository using git
@@ -111,6 +112,69 @@ jobs:
                           - 'apps/pydiscordsh/README.md'
                       pirate16:
                           - 'apps/kbve.com/src/content/docs/project/pirate16.mdx'
+                      godottowerdefense:
+                          - 'apps/_test/godot-towerdefense/README.md'
+
+## ! Builds
+#### Godot
+
+    godot-towerdefense-build:
+        needs: ['alter', 'globals']
+        name: GoDot TowerDefense Build
+        #runs-on: ubuntu-latest
+        runs-on: ubuntu-20.04
+        container:
+          image: barichello/godot-ci:4.3
+        if: needs.alter.outputs.godottowerdefense == 'true'
+        env:
+          GODOT_VERSION: 4.3
+          EXPORT_NAME: TowerDef
+          PROJECT_PATH: ./apps/rust_godot_towerdefense/godot
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v4
+            with:
+              lfs: false
+
+          - name: Setup
+            run: |
+                  mkdir -v -p ~/.local/share/godot/export_templates/
+                  mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+                  
+          - name: Web Build
+            run: |
+              mkdir -v -p build/web
+              EXPORT_DIR="$(readlink -f build)"
+              cd $PROJECT_PATH
+              ls -a
+              godot --headless --verbose --export-release "Web" "$EXPORT_DIR/web/index.html"
+
+          - name: Upload Artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: godottowerdefenseweb
+              path: build/web
+
+    godot-towerdefense-itch-deployment:
+        needs: ['pirate16-build']
+        name: Pirate 16 Itch Deployment
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download WebGL Build
+              uses: actions/download-artifact@v4
+              id: download
+              with:
+                  name: godottowerdefenseweb
+                  path: build/web
+
+            - name: Itch Deploy
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.ITCH_API }}
+                  gameData: ${{steps.download.outputs.download-path}}
+                  itchUsername: kbve
+                  itchGameId: towerdefense
+                  buildChannel: webgl
 
     expo-lcagents-web-build:
         needs: ['alter', 'globals']
