@@ -113,7 +113,7 @@ jobs:
                       pirate16:
                           - 'apps/kbve.com/src/content/docs/project/pirate16.mdx'
                       godottowerdefense:
-                          - 'apps/_test/godot-towerdefense/README.md'
+                          - 'apps/rust_godot_towerdefense/README.md'
 
 ## ! Builds
 #### Godot
@@ -173,7 +173,7 @@ jobs:
                   butlerApiKey: ${{ secrets.ITCH_API }}
                   gameData: ${{steps.download.outputs.download-path}}
                   itchUsername: kbve
-                  itchGameId: towerdefense
+                  itchGameId: tower-defense
                   buildChannel: webgl
 
     expo-lcagents-web-build:
