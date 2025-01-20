@@ -11,6 +11,8 @@ members = [
 	'apps/kilobase',
 	'apps/rust_rareicon_gameserver',
 	'apps/rust_kanban',
+	'apps/rust_p16_gameserver',
+	'apps/rust_godot_towerdefense',
 ]
 
 [profile.dev]

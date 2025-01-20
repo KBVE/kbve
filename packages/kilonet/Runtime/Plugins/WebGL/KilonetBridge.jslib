@@ -1,13 +1,14 @@
+if (typeof BridgeLibrary === 'undefined') {
 const BridgeLibrary = {
 	InitializeIFrameBridge: function () {
 		window.addEventListener('message', BridgeLibrary._IFrameBridge);
 	},
-	_SendUnityMessage: function (methodName, data = {}) {
+	_SendUnityMessage: function (methodName, data) {
 		if (!methodName) {
 			console.error('Method name is required for SendUnityMessage.');
 			return;
 		}
-		const payload = typeof data === 'string' ? data : JSON.stringify(data);
+		const payload = data ? (typeof data === 'string' ? data : JSON.stringify(data)) : '{}';
 		unityInstance.SendMessage('DiscordBridge', methodName, payload);
 	},
 	_IFrameBridge: function ({ data: messageData }) {
@@ -195,3 +196,5 @@ const BridgeLibrary = {
 };
 
 mergeInto(LibraryManager.library, BridgeLibrary);
+console.log("KilonetBridge.jslib is loaded.");
+}
