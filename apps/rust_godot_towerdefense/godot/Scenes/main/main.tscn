@@ -62,6 +62,13 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "HP: 20/20"
 
+Fire Label - Proof of Concept
+[node name="FireLabel" type="Label" parent="UI/HUD/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+text = "Fire Status"
+
 [node name="WaveLabel" type="Label" parent="UI/HUD/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2

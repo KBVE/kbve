@@ -1,5 +1,15 @@
 extends Node2D
 
+const FIRE_STATE_NONE = 0
+const FIRE_STATE_BURNING = 1 << 0
+const FIRE_STATE_SMOLDERING = 1 << 1
+const FIRE_STATE_EXTINGUISHED = 1 << 2
+const FIRE_STATE_SPREADING = 1 << 3
+const FIRE_STATE_HELICOPTER = 1 << 29
+const FIRE_STATE_RAIN = 1 << 30
+const FIRE_STATE_DEBUG = 1 << 31
+
+
 var map_type := "":
 	set(val):
 		map_type = val
