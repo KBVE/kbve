@@ -2,9 +2,19 @@
 name = "rust_godot_towerdefense"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.80"
+publish = false
 
+
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
+rand = "0.8"
+godot = { version = "0.2.2", default-features = false, features = ["experimental-wasm", "lazy-function-tables"] }
 
+[unstable]
+build-std = ["std"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[build]
+target = ["wasm32-unknown-emscripten"]
