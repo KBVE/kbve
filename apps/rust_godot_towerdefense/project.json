@@ -25,7 +25,16 @@
         "commands": [
           "cargo +nightly build -Z build-std -Z unstable-options --target wasm32-unknown-emscripten --artifact-dir dist/wasm",
           "mkdir -p godot/wasm",
-          "cp dist/wasm/*.wasm godot/wasm/rust_godot_towerdefense.wasm",
+          "cp dist/wasm/*.wasm godot/wasm/rust_godot_towerdefense.wasm"
+        ],
+        "parallel": false
+      }
+    },
+    "build-windows": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/rust_godot_towerdefense",
+        "commands": [
           "cargo +nightly build  -Z build-std -Z unstable-options --target x86_64-pc-windows-msvc --artifact-dir dist/windows",
           "mkdir -p godot/windows",
           "cp dist/windows/*.dll godot/windows/rust_godot_towerdefense.dll"
@@ -33,6 +42,18 @@
         "parallel": false
       }
     },
+  "build-mac": {
+    "executor": "nx:run-commands",
+    "options": {
+      "cwd": "apps/rust_godot_towerdefense",
+      "commands": [
+        "cargo +nightly build -Z build-std -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos",
+        "mkdir -p godot/macos",
+        "cp dist/macos/*.dylib godot/macos/"
+      ],
+      "parallel": false
+    }
+  },
     "test": {
       "executor": "@monodon/rust:test",
       "outputs": [
