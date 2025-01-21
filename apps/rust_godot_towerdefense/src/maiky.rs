@@ -13,7 +13,7 @@ impl Maiky {
     fn start_game();
 
     #[func]
-    pub fn show_message(&self, text: GString) {
+    pub fn example_show_message(&self, text: GString) {
         let mut message_label = self.base().get_node_as::<Label>("MessageLabel");
         message_label.set_text(&text);
         message_label.show();
@@ -22,7 +22,38 @@ impl Maiky {
         timer.start();
     }
 
-    pub fn show_game_over(&self) {
+    #[func]
+    pub fn show_message(&mut self, text: GString) {
+        let mut message_label = if let Some(label) = self.base().try_get_node_as::<Label>("MessageLabel") {
+            label
+        } else {
+            let mut new_label = Label::new_alloc();
+            new_label.set_name("MessageLabel");
+            self.base_mut().add_child(&new_label);
+            new_label
+        };
+    
+        message_label.set_text(&text);
+        message_label.show();
+    
+        let mut message_timer = if let Some(timer) = self.base().try_get_node_as::<Timer>("MessageTimer") {
+            timer
+        } else {
+            let mut new_timer = Timer::new_alloc();
+            new_timer.set_name("MessageTimer");
+            new_timer.set_one_shot(true);
+            new_timer.set_wait_time(5.0);
+            self.base_mut().add_child(&new_timer);
+            new_timer.connect("timeout", &self.base().callable("on_message_timer_timeout"));
+            new_timer
+        };
+    
+        message_timer.start();
+    }
+    
+    
+
+    pub fn show_game_over(&mut self) {
         self.show_message("Game Over".into());
 
         let mut timer = self.base().get_tree().unwrap().create_timer(2.0).unwrap();

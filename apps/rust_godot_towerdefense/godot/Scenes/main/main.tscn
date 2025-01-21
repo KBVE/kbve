@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://chgwxhrtw1lln"]
+[gd_scene load_steps=5 format=3 uid="uid://chgwxhrtw1lln"]
 
 [ext_resource type="Script" path="res://Scenes/main/main.gd" id="1_22s4b"]
 [ext_resource type="Script" path="res://Scenes/ui/hud.gd" id="2_cy82p"]
-[ext_resource type="Script" path="res://addons/tower-defense/tower_defense_plugin.gd" id="2_re1u7"]
 [ext_resource type="PackedScene" uid="uid://d0otd33ubv3hq" path="res://Scenes/ui/turretUI/turret_buy_container.tscn" id="3_pljl8"]
 [ext_resource type="Script" path="res://Scenes/ui/turretUI/turrets_panel.gd" id="3_ryupq"]
 
@@ -12,7 +11,6 @@ script = ExtResource("1_22s4b")
 [node name="Camera2D" type="Camera2D" parent="."]
 
 [node name="UI" type="CanvasLayer" parent="."]
-script = ExtResource("2_re1u7")
 
 [node name="HUD" type="Control" parent="UI"]
 layout_mode = 3
