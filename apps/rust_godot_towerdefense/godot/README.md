@@ -55,3 +55,25 @@ Contributions are welcome! If you have ideas for new turrets, maps, or other fea
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+
+To add the GDExt into the project, we need to do a couple of things for the windows build.
+
+First we need to adjusst the `project.json` to include the command to build the Windows DDL
+
+```
+
+          "cargo +nightly build  -Z build-std -Z unstable-options --target x86_64-pc-windows-msvc --artifact-dir dist/windows",
+          "mkdir -p godot/windows",
+          "cp dist/windows/*.dll godot/windows/rust_godot_towerdefense.dll"
+     
+```
+
+Afterwards we need to then add the windows dll into the `.gdextension`.
+Under library, we will do this:
+
+```
+windows.x86_64 = "res://windows/rust_godot_towerdefense.dll"
+```
+
+However, you will also need to make sure that the `link.exe` is setup for the rust build.
