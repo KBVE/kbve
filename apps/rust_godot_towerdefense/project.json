@@ -42,6 +42,18 @@
         "parallel": false
       }
     },
+  "build-mac": {
+    "executor": "nx:run-commands",
+    "options": {
+      "cwd": "apps/rust_godot_towerdefense",
+      "commands": [
+        "cargo +nightly build -Z build-std -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos",
+        "mkdir -p godot/macos",
+        "cp dist/macos/*.dylib godot/macos/"
+      ],
+      "parallel": false
+    }
+  },
     "test": {
       "executor": "@monodon/rust:test",
       "outputs": [

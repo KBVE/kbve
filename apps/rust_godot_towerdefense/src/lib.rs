@@ -1,6 +1,6 @@
 use godot::prelude::*;
 
-mod hud;
+mod maiky;
 
 struct RustTowerDefense;
 
