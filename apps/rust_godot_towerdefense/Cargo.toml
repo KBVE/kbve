@@ -12,9 +12,3 @@ crate-type = ["cdylib"]
 [dependencies]
 rand = "0.8"
 godot = { version = "0.2.2", default-features = false, features = ["experimental-wasm", "lazy-function-tables"] }
-
-[unstable]
-build-std = ["std"]
-
-[build]
-target = ["wasm32-unknown-emscripten"]
