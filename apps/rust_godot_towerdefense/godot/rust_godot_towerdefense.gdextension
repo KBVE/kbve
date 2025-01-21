@@ -1,0 +1,7 @@
+[configuration]
+
+entry_symbol = "rust_godot_towerdefense"
+compatibility_minimum = "4.3"
+
+[libraries]
+web.release.threads.wasm32 = "res://wasm/rust_godot_towerdefense.wasm"

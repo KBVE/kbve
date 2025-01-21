@@ -18,6 +18,18 @@
         }
       }
     },
+    "build-wasm": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/rust_godot_towerdefense",
+        "commands": [
+          "cargo +nightly build --target wasm32-unknown-emscripten --release -Z build-std=std",
+          "mkdir -p godot/wasm",
+          "cp target/wasm32-unknown-emscripten/release/*.wasm godot/wasm/rust_godot_towerdefense.wasm"
+        ],
+        "parallel": false
+      }
+    },
     "test": {
       "executor": "@monodon/rust:test",
       "outputs": [
