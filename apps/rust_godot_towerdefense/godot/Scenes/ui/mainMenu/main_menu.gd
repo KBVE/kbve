@@ -31,6 +31,7 @@ func _ready():
 		var hex_grid = HexGridScene.new()
 		if hex_grid:
 			print("Hexgrid instance was created!")
+			add_child(hex_grid)
 		else:
 			print("Hexgrid instance failed to be created!")
 	else:
