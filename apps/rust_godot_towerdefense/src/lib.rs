@@ -2,6 +2,7 @@ use godot::prelude::*;
 
 mod maiky;
 mod hexgrid;
+mod music;
 
 struct RustTowerDefense;
 

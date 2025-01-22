@@ -13,7 +13,7 @@ pub struct HexGridScene {
 #[godot_api]
 impl HexGridScene {
   fn get_or_create_audio_player(&mut self, name: &str) -> Option<Gd<AudioStreamPlayer>> {
-    if let Some(player) = self.base().try_get_node_as::<AudioStreamPlayer>(name) {
+    if let Some(player) = self.base().try_get_nod e_as::<AudioStreamPlayer>(name) {
       Some(player)
     } else {
       let mut new_player = AudioStreamPlayer::new_alloc();

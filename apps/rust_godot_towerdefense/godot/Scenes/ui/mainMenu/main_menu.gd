@@ -25,3 +25,13 @@ func _ready():
 			print("Failed to create Maiky instance.")
 	else:
 		print("Maiky class not found.")
+
+	if HexGridScene:
+		print("HexGridScene class found!")
+		var hex_grid = HexGridScene.new()
+		if hex_grid:
+			print("Hexgrid instance was created!")
+		else:
+			print("Hexgrid instance failed to be created!")
+	else:
+		print("HexGridScene not found.")
