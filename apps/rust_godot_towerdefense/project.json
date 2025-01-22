@@ -30,18 +30,18 @@
         "parallel": false
       }
     },
-    "build-windows": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/rust_godot_towerdefense",
-        "commands": [
-          "cargo +nightly build  -Z build-std -Z unstable-options --target x86_64-pc-windows-msvc --artifact-dir dist/windows",
-          "mkdir -p godot/windows",
-          "cp dist/windows/*.dll godot/windows/rust_godot_towerdefense.dll"
-        ],
-        "parallel": false
-      }
-    },
+"build-windows": {
+  "executor": "nx:run-commands",
+  "options": {
+    "cwd": "apps/rust_godot_towerdefense",
+    "commands": [
+      "cargo +nightly build -Z build-std -Z unstable-options --target x86_64-pc-windows-gnu --artifact-dir dist/windows",
+      "mkdir -p godot/windows",
+      "cp dist/windows/*.dll godot/windows/rust_godot_towerdefense.dll"
+    ],
+    "parallel": false
+  }
+},
   "build-mac": {
     "executor": "nx:run-commands",
     "options": {
