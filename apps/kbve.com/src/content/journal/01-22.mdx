@@ -1,7 +1,7 @@
 ---
 title: 'January: 22'
 category: Daily
-date: 2024-01-22 12:00:00
+date: 2025-01-22 12:00:00
 client: Self
 unsplash: 1569396116180-210c182bedb8
 img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -11,6 +11,40 @@ tags:
 ---
 
 ## Notes
+
+## 2025
+
+-   **GoDot**
+
+    07:54AM
+
+        After burning the midnight oil, I have gotten almost somewhere and yet no where at the same time?
+        Ugh, okay here is the original toml, going to back up a bit and see what I can do to resolve some of these issues.
+
+```toml
+
+        [target.wasm32-unknown-emscripten]
+        rustflags = [
+            "-C", "link-args=-sSIDE_MODULE=2",
+            "-C", "link-args=-pthread", # was -sUSE_PTHREADS=1 in earlier emscripten versions
+            "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+            "-Z", "link-native-libraries=no",
+            "-C", "link-arg=-fwasm-exceptions",
+            "-C", "link-args=-sSUPPORT_LONGJMP=wasm",
+            "-C", "llvm-args=-enable-emscripten-cxx-exceptions=0",
+            "-C", "llvm-args=-wasm-enable-sjlj",
+            "-C", "link-args=-sDISABLE_EXCEPTION_CATCHING=1",
+        ]
+
+```
+
+        That was the original toml, but I am going to back up and remove some of the flags that are there.
+        Next going to replace this:
+```
+        "cargo +nightly build -Z build-std -Z unstable-options --target wasm32-unknown-emscripten --artifact-dir dist/wasm",
+```
+        With a bit of a better build?
+        Okay wow, 151MB to 338KB.
 
 ### 2024
 
