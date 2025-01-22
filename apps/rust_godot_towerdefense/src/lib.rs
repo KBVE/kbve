@@ -1,6 +1,7 @@
 use godot::prelude::*;
 
 mod maiky;
+mod hexgrid;
 
 struct RustTowerDefense;
 
