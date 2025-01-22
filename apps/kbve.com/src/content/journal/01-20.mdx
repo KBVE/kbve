@@ -1,7 +1,7 @@
 ---
 title: 'January: 20'
 category: Daily
-date: 2024-01-20 12:00:00
+date: 2025-01-20 12:00:00
 client: Self
 unsplash: 1704189125621-55e8c6cfd166
 img: https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -11,6 +11,36 @@ tags:
 ---
 
 ## Notes
+
+## 2025
+
+-   **President**
+
+    10:00AM
+
+        The new president is taking office, well I guess not really new but it is what it is.
+        I am wondering how the markets will react tomorrow, since they are closed today.
+
+-   **GoDot**
+
+    09:05PM
+
+        Updating the rust ffi into the godot wasm build, going to try the first build and see where it goes from there.
+        The reference issue that I was using is here [438](https://github.com/godot-rust/gdext/issues/438).
+        The target will be using a `-z` flag , so we need to setup the nightly.
+
+        ```shell
+
+        rustup toolchain install nightly
+        rustup component add rust-src --toolchain nightly
+        rustup target add wasm32-unknown-emscripten --toolchain nightly
+
+        ```
+
+        Next we need to add the emscripten to our WSL instance!
+        For this, I created a custom script that we can invoke with `./tools/scripts/public/emscripten/install_emsdk.sh`.
+        We also want to make sure that the rustup has a wasm32 nightly added `rustup target add wasm32-unknown-emscripten --toolchain nightly` 
+
 
 
 ### 2024
