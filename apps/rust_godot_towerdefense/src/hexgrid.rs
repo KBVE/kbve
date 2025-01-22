@@ -12,12 +12,6 @@ pub struct HexGridScene {
 }
 #[godot_api]
 impl HexGridScene {
-  #[func]
-  fn _ready(&mut self) {
-    self.audio = self.get_or_create_audio_player("HexAudioPlayer");
-    self.secondary_audio = self.get_or_create_audio_player("SecondaryAudioPlayer");
-  }
-
   fn get_or_create_audio_player(&mut self, name: &str) -> Option<Gd<AudioStreamPlayer>> {
     if let Some(player) = self.base().try_get_node_as::<AudioStreamPlayer>(name) {
       Some(player)
@@ -141,5 +135,9 @@ impl INode for HexGridScene {
       secondary_audio: None,
       effects: None,
     }
+  }
+  fn ready(&mut self) {
+    self.audio = self.get_or_create_audio_player("HexAudioPlayer");
+    self.secondary_audio = self.get_or_create_audio_player("SecondaryAudioPlayer");
   }
 }
