@@ -23,7 +23,7 @@
       "options": {
         "cwd": "apps/rust_godot_towerdefense",
         "commands": [
-          "cargo +nightly build -Z build-std -Z unstable-options --target wasm32-unknown-emscripten --artifact-dir dist/wasm",
+          "cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target wasm32-unknown-emscripten --artifact-dir dist/wasm --release",
           "mkdir -p godot/wasm",
           "cp dist/wasm/*.wasm godot/wasm/rust_godot_towerdefense.wasm"
         ],
