@@ -28,6 +28,23 @@ tags:
         After finishing up the music manager, we would want to figure out the best way to render the hexgrid aka the map itself.
         
 
+-   **RustConfig**
+
+    02:45AM
+
+        Going back around, I am going to include the older flags for now!
+        Granted that it would still create a bit of a larger wasm but I also want to make sure that the wasm will work on itch.
+        We can test the configuration here below when I get a bit more time.
+
+```toml
+
+    "-C", "link-args=-sSIDE_MODULE=2",
+    "-C", "link-args=-pthread", # was -sUSE_PTHREADS=1 in earlier emscripten versions
+    "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+    "-Zlink-native-libraries=no",
+    "-Cllvm-args=-enable-emscripten-cxx-exceptions=0"
+
+```
 
 ## 2024
 

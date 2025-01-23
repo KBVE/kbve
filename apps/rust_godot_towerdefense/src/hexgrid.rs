@@ -2,6 +2,7 @@ use godot::prelude::*;
 use godot::classes::{ Timer, AudioStream };
 
 use crate::music::MusicManager;
+use crate::camera::CameraManager;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
