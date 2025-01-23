@@ -26,13 +26,14 @@ func _ready():
 	else:
 		print("Maiky class not found.")
 
-	if HexGridScene:
-		print("HexGridScene class found!")
-		var hex_grid = HexGridScene.new()
-		if hex_grid:
-			print("Hexgrid instance was created!")
-			add_child(hex_grid)
+	if MusicManager:
+		print("MusicManager class found!")
+		var music_manager = MusicManager.new()
+		if music_manager:
+			print("MusicManager instance was created!")
+			add_child(music_manager)
+			music_manager.load_music("res://audio/track1.ogg")
 		else:
-			print("Hexgrid instance failed to be created!")
+			print("MusicManager instance failed to be created!")
 	else:
-		print("HexGridScene not found.")
+		print("MusicManager not found.")
