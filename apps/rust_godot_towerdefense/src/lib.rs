@@ -4,6 +4,7 @@ mod maiky;
 mod hexgrid;
 mod music;
 mod camera;
+mod hexmap;
 
 struct RustTowerDefense;
 

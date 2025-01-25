@@ -1,26 +1,34 @@
 use godot::prelude::*;
-use godot::classes::{Timer, Camera3D};
+use godot::classes::{ Camera3D };
 
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct CameraManager {
   base: Base<Node>,
+  camera: Option<Gd<Camera3D>>,
 }
 
 #[godot_api]
 impl INode for CameraManager {
   fn init(base: Base<Node>) -> Self {
-    CameraManager { base }
+    CameraManager { 
+      base,
+      camera: None,
+    }
   }
 
   fn ready(&mut self) {
-    self.get_or_create_isometric_camera();
+    self.camera = Some(self.get_or_create_isometric_camera());
   }
 }
 
 #[godot_api]
 impl CameraManager {
 
+  #[func]
+  pub fn get_camera(&self) -> Option<Gd<Camera3D>> {
+      self.camera.clone()
+  }
 
   #[func]
   pub fn get_or_create_isometric_camera(&mut self) -> Gd<Camera3D> {
@@ -35,7 +43,6 @@ impl CameraManager {
     camera.set_orthogonal(10.0, 0.1, 100.0);
     camera.set_position(Vector3::new(10.0, 10.0, 10.0));
 
-    // Transform the Camera View through the function directly.
     let mut transform = camera.get_global_transform();
     transform = transform.looking_at(Vector3::new(0.0, 0.0, 0.0), Vector3::UP, false);
     camera.set_transform(transform);
