@@ -47,9 +47,21 @@
     "options": {
       "cwd": "apps/rust_godot_towerdefense",
       "commands": [
-        "cargo +nightly build -Z build-std -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos",
+        "cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
         "mkdir -p godot/addons/tower-defense/macos",
         "cp dist/macos/*.dylib godot/addons/tower-defense/macos/"
+      ],
+      "parallel": false
+    }
+  },
+  "build-linux": {
+    "executor": "nx:run-commands",
+    "options": {
+      "cwd": "apps/rust_godot_towerdefense",
+      "commands": [
+        "cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target x86_64-unknown-linux-gnu --artifact-dir dist/linux --release",
+        "mkdir -p godot/addons/tower-defense/linux",
+        "cp dist/linux/*.so godot/addons/tower-defense/linux/"
       ],
       "parallel": false
     }
