@@ -24,8 +24,8 @@
         "cwd": "apps/rust_godot_towerdefense",
         "commands": [
           "cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target wasm32-unknown-emscripten --artifact-dir dist/wasm --release",
-          "mkdir -p godot/wasm",
-          "cp dist/wasm/*.wasm godot/wasm/rust_godot_towerdefense.wasm"
+          "mkdir -p godot/addons/tower-defense/wasm",
+          "cp dist/wasm/*.wasm godot/addons/tower-defense/wasm/rust_godot_towerdefense.wasm"
         ],
         "parallel": false
       }
@@ -36,8 +36,8 @@
     "cwd": "apps/rust_godot_towerdefense",
     "commands": [
       "cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target x86_64-pc-windows-gnu --artifact-dir dist/windows --release",
-      "mkdir -p godot/windows",
-      "cp dist/windows/*.dll godot/windows/rust_godot_towerdefense.dll"
+      "mkdir -p godot/addons/tower-defense/windows",
+      "cp dist/windows/*.dll godot/addons/tower-defense/windows/rust_godot_towerdefense.dll"
     ],
     "parallel": false
   }
@@ -47,9 +47,21 @@
     "options": {
       "cwd": "apps/rust_godot_towerdefense",
       "commands": [
-        "cargo +nightly build -Z build-std -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos",
-        "mkdir -p godot/macos",
-        "cp dist/macos/*.dylib godot/macos/"
+        "cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
+        "mkdir -p godot/addons/tower-defense/macos",
+        "cp dist/macos/*.dylib godot/addons/tower-defense/macos/"
+      ],
+      "parallel": false
+    }
+  },
+  "build-linux": {
+    "executor": "nx:run-commands",
+    "options": {
+      "cwd": "apps/rust_godot_towerdefense",
+      "commands": [
+        "cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target x86_64-unknown-linux-gnu --artifact-dir dist/linux --release",
+        "mkdir -p godot/addons/tower-defense/linux",
+        "cp dist/linux/*.so godot/addons/tower-defense/linux/"
       ],
       "parallel": false
     }
