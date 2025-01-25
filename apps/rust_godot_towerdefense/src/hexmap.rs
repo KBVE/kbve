@@ -1,0 +1,167 @@
+use godot::prelude::*;
+use godot::classes::{ Node3D, MeshInstance3D, StandardMaterial3D, PlaneMesh };
+use bevy_ecs::prelude::*;
+use rstar::{ RTree, RTreeObject, AABB, Point };
+use std::collections::HashMap;
+use crate::camera::CameraManager;
+
+#[derive(Component, Debug, Clone)]
+pub struct TransformComponent {
+  pub q: i32,
+  pub r: i32,
+  pub world_position: Vector3,
+}
+
+impl TransformComponent {
+  pub fn new(q: i32, r: i32, hex_size: f32) -> Self {
+    let x = hex_size * (3.0_f32).sqrt() * ((q as f32) + (r as f32) / 2.0);
+    let z = hex_size * 1.5 * (r as f32);
+    let y = 0.0;
+    Self {
+      q,
+      r,
+      world_position: Vector3::new(x, y, z),
+    }
+  }
+}
+
+#[derive(Component, Debug)]
+pub struct TileTypeComponent(pub String);
+
+#[derive(Debug, Clone, PartialEq)]
+struct TileEntity {
+  pub position: [f32; 2],
+  pub entity: Entity,
+}
+
+impl Point for TileEntity {
+  type Scalar = f32;
+  const DIMENSIONS: usize = 2;
+
+  fn generate(mut f: impl FnMut(usize) -> Self::Scalar) -> Self {
+    TileEntity {
+      position: [f(0), f(1)],
+      entity: Entity::PLACEHOLDER,
+    }
+  }
+  fn nth(&self, index: usize) -> Self::Scalar {
+    self.position[index]
+  }
+
+  fn nth_mut(&mut self, index: usize) -> &mut Self::Scalar {
+    &mut self.position[index]
+  }
+}
+
+// impl RTreeObject for TileEntity {
+//   type Envelope = AABB<[f32; 2]>;
+
+//   fn envelope(&self) -> Self::Envelope {
+//     AABB::from_point(self.position)
+//   }
+// }
+
+#[derive(GodotClass)]
+#[class(base = Node)]
+pub struct HexMapManager {
+  base: Base<Node>,
+  world: World,
+  entity_map: HashMap<(i32, i32), Entity>,
+  spatial_index: RTree<TileEntity>,
+  camera_manager: Option<Gd<CameraManager>>,
+}
+
+#[godot_api]
+impl INode for HexMapManager {
+  fn init(base: Base<Node>) -> Self {
+    HexMapManager {
+      base,
+      world: World::new(),
+      entity_map: HashMap::new(),
+      spatial_index: RTree::new(),
+      camera_manager: None,
+    }
+  }
+
+  fn ready(&mut self) {
+    godot_print!("HexMapManager is ready, v0 doe. REF Journal 01-24");
+    self.find_camera_manager();
+    self.setup_honeycomb_grid(10, 10, 1.0);
+  }
+
+  fn process(&mut self, _delta: f64) {
+    if let Some(camera) = self.get_camera() {
+      let visible_tiles = self.query_visible_tiles(camera);
+      self.render_tiles(visible_tiles);
+    }
+  }
+}
+
+#[godot_api]
+impl HexMapManager {
+  #[func]
+  pub fn find_camera_manager(&mut self) {
+    if let Some(camera_manager) = self.base().try_get_node_as::<CameraManager>("CameraManager") {
+      self.camera_manager = Some(camera_manager);
+      godot_print!("CameraManager found and linked.");
+    } else {
+      godot_warn!("CameraManager not found in the scene tree.");
+    }
+  }
+
+  pub fn get_camera(&self) -> Option<Gd<Camera3D>> {
+    if let Some(camera_manager) = &self.camera_manager {
+      return camera_manager.bind().get_camera();
+    }
+
+    godot_warn!("CameraManager is not initialized.");
+    None
+  }
+
+  fn setup_honeycomb_grid(&mut self, rows: i32, cols: i32, hex_size: f32) {
+    for r in 0..rows {
+      for q in 0..cols {
+        let tile_type = if (q + r) % 2 == 0 { "grass" } else { "water" };
+        self.create_tile(q, r, tile_type.to_string(), hex_size);
+      }
+    }
+  }
+
+  fn is_valid_hex(&self, x: i32, y: i32) -> bool {
+    x + y <= 10 && x + y >= -10
+  }
+
+  fn create_tile(&mut self, q: i32, r: i32, tile_type: String, hex_size: f32) {
+    let transform = TransformComponent::new(q, r, hex_size);
+
+    let entity = self.world.spawn((transform.clone(), TileTypeComponent(tile_type.clone()))).id();
+
+    self.entity_map.insert((q, r), entity);
+
+    self.spatial_index.insert(TileEntity {
+      position: [transform.world_position.x, transform.world_position.z],
+      entity,
+    });
+
+    godot_print!("Created tile at axial coords ({}, {}) with type {}", q, r, tile_type);
+  }
+
+  fn query_visible_tiles(&self, camera: Gd<Camera3D>) -> Vec<TileEntity> {
+    let camera_position = camera.get_position();
+
+    let neighbors = self.spatial_index
+        .nearest_neighbors(&TileEntity {
+            position: [camera_position.x, camera_position.z],
+            entity: Entity::PLACEHOLDER,
+        });
+
+    neighbors.into_iter().cloned().collect()
+}
+
+
+  fn render_tiles(&self, visible_tiles: Vec<TileEntity>) {
+    for tile in visible_tiles {
+      godot_print!("Rendering tile at position: ({}, {})", tile.position[0], tile.position[1]);
+    }
+  }
+}
