@@ -69,6 +69,8 @@ pub struct HexMapManager {
   entity_map: HashMap<(i32, i32), Entity>,
   spatial_index: RTree<TileEntity>,
   camera_manager: Option<Gd<CameraManager>>,
+  materials: HashMap<String,Gd<StandardMaterial3D>>,
+  shared_plane_mesh: Option<Gd<PlaneMesh>>,
 }
 
 #[godot_api]
@@ -80,12 +82,19 @@ impl INode for HexMapManager {
       entity_map: HashMap::new(),
       spatial_index: RTree::new(),
       camera_manager: None,
+      materials: HashMap::new(),
+      shared_plane_mesh: None,
     }
   }
 
   fn ready(&mut self) {
     godot_print!("HexMapManager is ready, v0 doe. REF Journal 01-24");
     self.find_camera_manager();
+
+    let mut plane_mesh = PlaneMesh::new_gd();
+    plane_mesh.set_size(Vector2::new(1.0, 1.0));
+    self.shared_plane_mesh = Some(plane_mesh);
+    self.create_shared_materials();
     self.setup_honeycomb_grid(10, 10, 1.0);
   }
 
@@ -108,6 +117,21 @@ impl HexMapManager {
       godot_warn!("CameraManager not found in the scene tree.");
     }
   }
+
+  fn create_shared_materials(&mut self) {
+    let mut create_material = |color: Color| {
+        let mut material = StandardMaterial3D::new_gd();
+        material.set_albedo(color);
+        material
+    };
+
+    self.materials.insert("grass".to_string(), create_material(Color::from_rgb(0.0, 1.0, 0.0)));
+    self.materials.insert("water".to_string(), create_material(Color::from_rgb(0.0, 0.0, 1.0)));
+    self.materials.insert("sand".to_string(), create_material(Color::from_rgb(0.8, 0.6, 0.4)));
+
+    godot_print!("Shared materials created for tiles.");
+}
+
 
   pub fn get_camera(&self) -> Option<Gd<Camera3D>> {
     if let Some(camera_manager) = &self.camera_manager {
