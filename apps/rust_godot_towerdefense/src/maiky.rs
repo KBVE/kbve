@@ -8,8 +8,13 @@ use godot::classes::{
   Texture,
   Texture2D,
   ResourceLoader,
+  RichTextLabel,
+  Tween,
 };
 use godot::classes::texture_rect::StretchMode;
+use godot::classes::tween::TransitionType;
+use godot::classes::tween::EaseType;
+
 use godot::prelude::*;
 use std::time::{ Duration, Instant };
 
@@ -45,9 +50,26 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    let mut message_label = avatar_message_box.get_node_as::<Label>("AvatarMessageLabel");
-    message_label.set_text("");
-    self.start_typewriter_effect(message_label, message);
+    let mut message_label = avatar_message_box.get_node_as::<RichTextLabel>("AvatarMessageLabel");
+    message_label.set_visible_ratio(0.0);
+    message_label.set_text(&message); 
+
+    if let Some(mut tween) = self.base_mut().create_tween() {
+      let duration = 3.0;
+      if
+        let Some(mut tweener) = tween.tween_property(
+          &message_label.upcast::<Object>(),
+          "visible_ratio",
+          &Variant::from(1.0),
+          duration
+        )
+      {
+        tweener.set_ease(EaseType::IN_OUT);
+        tweener.set_trans(TransitionType::LINEAR);
+      }
+    } else {
+        godot_print!("Failed to create Tween.");
+    }
 
     let mut timer = Timer::new_alloc();
     timer.set_one_shot(true);
@@ -83,9 +105,11 @@ impl Maiky {
       avatar_picture.set_position(Vector2::new(10.0, 10.0));
       new_avatar_box.add_child(&avatar_picture);
 
-      let mut message_label = Label::new_alloc();
+      let mut message_label = RichTextLabel::new_alloc();
       message_label.set_name("AvatarMessageLabel");
       message_label.set_position(Vector2::new(100.0, 50.0));
+      message_label.set_scroll_active(false);
+      message_label.set_scroll_follow(false);
       new_avatar_box.add_child(&message_label);
 
       let mut close_button = Button::new_alloc();
@@ -100,34 +124,6 @@ impl Maiky {
 
       new_avatar_box
     }
-  }
-
-  fn start_typewriter_effect(&mut self, label: Gd<Label>, message: GString) {
-    let chars: Vec<char> = message.to_string().chars().collect();
-    let chars_string = chars.iter().collect::<String>();
-    let args = [Variant::from(chars_string), Variant::from(label.clone()), Variant::from(0)];
-    self.base_mut().call_deferred("typewriter_step", &args);
-  }
-
-  #[func]
-  fn typewriter_step(&mut self, chars: Variant, label: Variant, index: Variant) {
-      let chars: String = chars.try_to::<String>().expect("Expected String");
-      let mut label: Gd<Label> = label.try_to::<Gd<Label>>().expect("Expected Gd<Label>");
-      let index: usize = index.try_to::<i64>().expect("Expected integer") as usize;
-  
-      if index < chars.len() {
-          let mut current_text = label.get_text().to_string();
-          current_text.push(chars.chars().nth(index).unwrap());
-          label.set_text(&GString::from(current_text));
-  
-          let next_index = index + 1;
-            let args = [
-              Variant::from(chars),
-              Variant::from(label.clone()),
-              Variant::from(next_index as i64),
-          ];
-          self.base_mut().call_deferred("typewriter_step", &args);
-      }
   }
 
   #[func]

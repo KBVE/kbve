@@ -21,3 +21,4 @@ func _ready():
 	maiky = TowerDefensePlugin.maiky
 	if maiky:
 		maiky.show_message("Welcome to Tower Defense!")
+		maiky.show_avatar_message("Watch out for the fires", "res://Assets/npc/npc_bg/wave.jpg", "res://Assets/npc/avatar/protag.png")
