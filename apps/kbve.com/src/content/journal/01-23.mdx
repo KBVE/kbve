@@ -1,10 +1,10 @@
 ---
 title: 'January: 23'
 category: Daily
-date: 2024-01-23 12:00:00
+date: 2025-01-23 12:00:00
 client: Self
-unsplash: 1569396116180-210c182bedb8
-img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1735022734031-ae0565a2554b
+img: https://images.unsplash.com/photo-1735022734031-ae0565a2554b?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: Daily Log for January 23rd of each year!
 tags:
     - daily
@@ -12,7 +12,41 @@ tags:
 
 ## Notes
 
-### 2024
+## 2025
+
+-   **DLL**
+
+    12:26AM
+
+        I believe that we are getting close to making sure that our future games within godot can run on mac, windows and the browser.
+        The only other operating system that I would target would be linux but I am not too worried about that for now.
+
+-   **HexGrid**
+
+    12:27AM
+
+        After finishing up the music manager, we would want to figure out the best way to render the hexgrid aka the map itself.
+        
+
+-   **RustConfig**
+
+    02:45AM
+
+        Going back around, I am going to include the older flags for now!
+        Granted that it would still create a bit of a larger wasm but I also want to make sure that the wasm will work on itch.
+        We can test the configuration here below when I get a bit more time.
+
+```toml
+
+    "-C", "link-args=-sSIDE_MODULE=2",
+    "-C", "link-args=-pthread", # was -sUSE_PTHREADS=1 in earlier emscripten versions
+    "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+    "-Zlink-native-libraries=no",
+    "-Cllvm-args=-enable-emscripten-cxx-exceptions=0"
+
+```
+
+## 2024
 
     -   7:30am  - `PreWork`
 
