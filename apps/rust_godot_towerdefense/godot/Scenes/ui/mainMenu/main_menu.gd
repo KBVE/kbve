@@ -1,6 +1,6 @@
 extends Control
 
-var mapSelectContainer : PanelContainer
+var mapSelectContainer : Node
 var music_manager: MusicManager
 var maiky: Maiky
 
@@ -8,11 +8,13 @@ func _on_quit_button_pressed():
 	get_tree().quit()
 
 func _on_start_button_pressed():
-	if not mapSelectContainer:
-		var mscScene := preload("res://Scenes/ui/mainMenu/select_map_container.tscn")
-		var msc := mscScene.instantiate()
-		mapSelectContainer = msc
-		add_child(msc)
+	# if not mapSelectContainer:
+	# 	#var mscScene := preload("res://Scenes/ui/mainMenu/select_map_container.tscn")
+	# 	var gridScene := preload("res://Scenes/maps/GridMapNode.tscn")
+	# 	var gs := gridScene.instantiate()
+	# 	mapSelectContainer = gs
+	# 	add_child(gs)
+	get_tree().change_scene_to_file("res://Scenes/maps/GridMapNode.tscn")
 
 func _ready():
 	music_manager = TowerDefensePlugin.music_manager

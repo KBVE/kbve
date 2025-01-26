@@ -4,12 +4,28 @@ use godot::classes::{ Timer, AudioStream };
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct MusicManager {
-    base: Base<Node>,
-    audio: Option<Gd<AudioStreamPlayer>>,
-    secondary_audio: Option<Gd<AudioStreamPlayer>>,
-    effects: Option<Gd<AudioStreamPlayer>>,
+  base: Base<Node>,
+  audio: Option<Gd<AudioStreamPlayer>>,
+  secondary_audio: Option<Gd<AudioStreamPlayer>>,
+  effects: Option<Gd<AudioStreamPlayer>>,
 }
 
+#[godot_api]
+impl INode for MusicManager {
+  fn init(base: Base<Node>) -> Self {
+    MusicManager {
+      base,
+      audio: None,
+      secondary_audio: None,
+      effects: None,
+    }
+  }
+
+  fn ready(&mut self) {
+    self.audio = self.get_or_create_audio_player("PrimaryAudioPlayer");
+    self.secondary_audio = self.get_or_create_audio_player("SecondaryAudioPlayer");
+  }
+}
 
 #[godot_api]
 impl MusicManager {
@@ -124,22 +140,4 @@ impl MusicManager {
       }
     }
   }
-}
-
-
-#[godot_api]
-impl INode for MusicManager {
-    fn init(base: Base<Node>) -> Self {
-        MusicManager {
-            base,
-            audio: None,
-            secondary_audio: None,
-            effects: None,
-        }
-    }
-
-    fn ready(&mut self) {
-        self.audio = self.get_or_create_audio_player("PrimaryAudioPlayer");
-        self.secondary_audio = self.get_or_create_audio_player("SecondaryAudioPlayer");
-    }
 }

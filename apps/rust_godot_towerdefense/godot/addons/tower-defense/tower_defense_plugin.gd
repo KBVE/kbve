@@ -8,9 +8,11 @@ var maiky: Maiky
 func _ready():
 	if not music_manager:
 		music_manager = MusicManager.new()
+		music_manager.name = "MusicManager"
 		add_child(music_manager)
 		print("MusicManager initialized and added to the scene tree!")
 	if not maiky:
 		maiky = Maiky.new()
+		maiky.name = "Maiky"
 		add_child(maiky)
 		print("Maiky UI library has been loaded!")	
