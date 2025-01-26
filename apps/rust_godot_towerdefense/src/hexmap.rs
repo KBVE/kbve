@@ -1,6 +1,15 @@
 use godot::prelude::*;
-use godot::classes::{ Node3D, MeshInstance3D, StandardMaterial3D, PlaneMesh, DirectionalLight3D };
+use godot::classes::{
+  Node3D,
+  MeshInstance3D,
+  StandardMaterial3D,
+  DirectionalLight3D,
+  SurfaceTool,
+  Mesh,
+  ArrayMesh,
+};
 use godot::classes::light_3d::Param;
+use godot::classes::mesh::PrimitiveType;
 use bevy_ecs::prelude::*;
 use rstar::{ RTree, RTreeObject, AABB, Point };
 use std::collections::{ HashMap, HashSet };
@@ -71,7 +80,7 @@ pub struct HexMapManager {
   spatial_index: RTree<TileEntity>,
   camera_manager: Option<Gd<CameraManager>>,
   materials: HashMap<String, Gd<StandardMaterial3D>>,
-  shared_plane_mesh: Option<Gd<PlaneMesh>>,
+  shared_plane_mesh: Option<Gd<ArrayMesh>>,
   rendered_tiles: HashSet<Entity>,
 }
 
@@ -97,9 +106,8 @@ impl INode for HexMapManager {
     if self.camera_manager.is_some() {
       godot_print!("CameraManager found. Proceeding with HexMapManager setup.");
       self.add_or_get_light();
-      let mut plane_mesh = PlaneMesh::new_gd();
-      plane_mesh.set_size(Vector2::new(1.0, 1.0));
-      self.shared_plane_mesh = Some(plane_mesh);
+
+      self.shared_plane_mesh = Some(self.create_hex_mesh(1.0));
       self.create_shared_materials();
       self.setup_honeycomb_grid(10, 10, 1.0); // Setup the hex grid
     } else {
@@ -118,6 +126,17 @@ impl INode for HexMapManager {
 #[godot_api]
 impl HexMapManager {
   #[func]
+  pub fn get_mouse_position(&mut self) -> Vector3 {
+    if let Some(camera) = self.get_camera() {
+      if let Some(viewport) = self.base().get_viewport() {
+        let mouse_pos = viewport.get_mouse_position();
+        return camera.upcast_ref::<Camera3D>().project_ray_origin(mouse_pos);
+      }
+    }
+    Vector3::ZERO
+  }
+
+  #[func]
   pub fn find_camera_manager(&mut self) {
     if let Some(camera_manager) = self.base().try_get_node_as::<CameraManager>("CameraManager") {
       self.camera_manager = Some(camera_manager);
@@ -130,6 +149,32 @@ impl HexMapManager {
       self.camera_manager = Some(camera_manager);
     }
   }
+
+  fn create_hex_mesh(&self, radius: f32) -> Gd<ArrayMesh> {
+    let mut surface_tool = SurfaceTool::new_gd();
+    surface_tool.begin(PrimitiveType::TRIANGLES);
+
+    let angle_step = (60.0_f32).to_radians();
+    let mut vertices = Vec::new();
+
+    for i in 0..6 {
+      let angle = (i as f32) * angle_step;
+      let x = radius * angle.cos();
+      let z = radius * angle.sin();
+      vertices.push(Vector3::new(x, 0.0, z));
+    }
+
+    let center = Vector3::new(0.0, 0.0, 0.0);
+
+    for i in 0..6 {
+      surface_tool.add_vertex(center); // Center point of a hexy
+      surface_tool.add_vertex(vertices[i]); // Current vertex
+      surface_tool.add_vertex(vertices[(i + 1) % 6]); // +n vertex
+    }
+
+    surface_tool.commit().expect("Failed to create hexagonal mesh")
+  }
+
   fn add_or_get_light(&mut self) {
     if let Some(light) = self.base().try_get_node_as::<DirectionalLight3D>("GridLight") {
       godot_print!("GridLight already exists in the scene.");
@@ -143,7 +188,11 @@ impl HexMapManager {
     light.set_param(Param::ENERGY, 3.0);
 
     let mut transform = light.get_transform();
-    transform = transform.looking_at(Vector3::new(-1.0, -1.0, -1.0).normalized(), Vector3::UP, false);
+    transform = transform.looking_at(
+      Vector3::new(-1.0, -1.0, -1.0).normalized(),
+      Vector3::UP,
+      false
+    );
     light.set_transform(transform);
 
     self.base_mut().add_child(&light);
@@ -175,10 +224,21 @@ impl HexMapManager {
   }
 
   fn setup_honeycomb_grid(&mut self, rows: i32, cols: i32, hex_size: f32) {
+    let horizontal_spacing = hex_size * (3.0_f32).sqrt(); // r * sqrt(3)
+    let vertical_spacing = hex_size * 1.5; // r * 1.5
+
     for r in 0..rows {
       for q in 0..cols {
+        let x_offset = if r % 2 == 0 { 0.0 } else { horizontal_spacing / 2.0 };
+        let x = (q as f32) * horizontal_spacing + x_offset;
+        let z = (r as f32) * vertical_spacing;
         let tile_type = if (q + r) % 2 == 0 { "grass" } else { "water" };
         self.create_tile(q, r, tile_type.to_string(), hex_size);
+        if let Some(entity) = self.entity_map.get(&(q, r)) {
+          if let Some(mut transform) = self.world.get_mut::<TransformComponent>(*entity) {
+            transform.world_position = Vector3::new(x, 0.0, z);
+          }
+        }
       }
     }
   }
@@ -188,7 +248,18 @@ impl HexMapManager {
   }
 
   fn create_tile(&mut self, q: i32, r: i32, tile_type: String, hex_size: f32) {
-    let transform = TransformComponent::new(q, r, hex_size);
+    let horizontal_spacing = hex_size * (3.0_f32).sqrt();
+    let vertical_spacing = hex_size * 1.5;
+
+    let x_offset = if r % 2 == 0 { 0.0 } else { horizontal_spacing / 2.0 };
+    let x = (q as f32) * horizontal_spacing + x_offset;
+    let z = (r as f32) * vertical_spacing;
+
+    let transform = TransformComponent {
+      q,
+      r,
+      world_position: Vector3::new(x, 0.0, z),
+    };
 
     let entity = self.world.spawn((transform.clone(), TileTypeComponent(tile_type.clone()))).id();
 
