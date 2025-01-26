@@ -1,5 +1,6 @@
 use godot::prelude::*;
-use godot::classes::{ Node3D, MeshInstance3D, StandardMaterial3D, PlaneMesh };
+use godot::classes::{ Node3D, MeshInstance3D, StandardMaterial3D, PlaneMesh, DirectionalLight3D };
+use godot::classes::light_3d::Param;
 use bevy_ecs::prelude::*;
 use rstar::{ RTree, RTreeObject, AABB, Point };
 use std::collections::{ HashMap, HashSet };
@@ -95,6 +96,7 @@ impl INode for HexMapManager {
 
     if self.camera_manager.is_some() {
       godot_print!("CameraManager found. Proceeding with HexMapManager setup.");
+      self.add_or_get_light();
       let mut plane_mesh = PlaneMesh::new_gd();
       plane_mesh.set_size(Vector2::new(1.0, 1.0));
       self.shared_plane_mesh = Some(plane_mesh);
@@ -128,11 +130,32 @@ impl HexMapManager {
       self.camera_manager = Some(camera_manager);
     }
   }
+  fn add_or_get_light(&mut self) {
+    if let Some(light) = self.base().try_get_node_as::<DirectionalLight3D>("GridLight") {
+      godot_print!("GridLight already exists in the scene.");
+      return;
+    }
+
+    let mut light = DirectionalLight3D::new_alloc();
+    light.set_name("GridLight");
+    light.set_color(Color::from_rgb(1.0, 0.95, 0.8));
+    light.set_shadow(true);
+    light.set_param(Param::ENERGY, 3.0);
+
+    let mut transform = light.get_transform();
+    transform = transform.looking_at(Vector3::new(-1.0, -1.0, -1.0).normalized(), Vector3::UP, false);
+    light.set_transform(transform);
+
+    self.base_mut().add_child(&light);
+    godot_print!("GridLight added to the scene.");
+  }
 
   fn create_shared_materials(&mut self) {
     let mut create_material = |color: Color| {
       let mut material = StandardMaterial3D::new_gd();
       material.set_albedo(color);
+      material.set_metallic(0.0);
+      material.set_roughness(0.8);
       material
     };
 
