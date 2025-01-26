@@ -2,7 +2,7 @@ use godot::prelude::*;
 use godot::classes::{ Node3D, MeshInstance3D, StandardMaterial3D, PlaneMesh };
 use bevy_ecs::prelude::*;
 use rstar::{ RTree, RTreeObject, AABB, Point };
-use std::collections::HashMap;
+use std::collections::{ HashMap, HashSet };
 use crate::camera::CameraManager;
 
 #[derive(Component, Debug, Clone)]
@@ -71,6 +71,7 @@ pub struct HexMapManager {
   camera_manager: Option<Gd<CameraManager>>,
   materials: HashMap<String, Gd<StandardMaterial3D>>,
   shared_plane_mesh: Option<Gd<PlaneMesh>>,
+  rendered_tiles: HashSet<Entity>,
 }
 
 #[godot_api]
@@ -84,6 +85,7 @@ impl INode for HexMapManager {
       camera_manager: None,
       materials: HashMap::new(),
       shared_plane_mesh: None,
+      rendered_tiles: HashSet::new(),
     }
   }
 
@@ -91,11 +93,16 @@ impl INode for HexMapManager {
     godot_print!("HexMapManager is ready, v0 doe. REF Journal 01-24");
     self.find_camera_manager();
 
-    let mut plane_mesh = PlaneMesh::new_gd();
-    plane_mesh.set_size(Vector2::new(1.0, 1.0));
-    self.shared_plane_mesh = Some(plane_mesh);
-    self.create_shared_materials();
-    self.setup_honeycomb_grid(10, 10, 1.0);
+    if self.camera_manager.is_some() {
+      godot_print!("CameraManager found. Proceeding with HexMapManager setup.");
+      let mut plane_mesh = PlaneMesh::new_gd();
+      plane_mesh.set_size(Vector2::new(1.0, 1.0));
+      self.shared_plane_mesh = Some(plane_mesh);
+      self.create_shared_materials();
+      self.setup_honeycomb_grid(10, 10, 1.0); // Setup the hex grid
+    } else {
+      godot_warn!("CameraManager not found. HexMapManager setup halted.");
+    }
   }
 
   fn process(&mut self, _delta: f64) {
@@ -175,19 +182,60 @@ impl HexMapManager {
   fn query_visible_tiles(&self, camera: Gd<Camera3D>) -> Vec<TileEntity> {
     let camera_position = camera.get_position();
 
-    let neighbors = self.spatial_index.nearest_neighbors(
-      &(TileEntity {
-        position: [camera_position.x, camera_position.z],
-        entity: Entity::PLACEHOLDER,
-      })
-    );
+    let max_view_distance = 20.0;
 
-    neighbors.into_iter().cloned().collect()
+    let neighbors = self.spatial_index
+      .nearest_neighbor_iter(
+        &(TileEntity {
+          position: [camera_position.x, camera_position.z],
+          entity: Entity::PLACEHOLDER,
+        })
+      )
+      .filter(|tile| {
+        let dx = tile.position[0] - camera_position.x;
+        let dz = tile.position[1] - camera_position.z;
+        let distance_squared = dx * dx + dz * dz;
+        distance_squared <= max_view_distance * max_view_distance
+      })
+      .cloned()
+      .collect();
+
+    neighbors
   }
 
-  fn render_tiles(&self, visible_tiles: Vec<TileEntity>) {
+  fn render_tiles(&mut self, visible_tiles: Vec<TileEntity>) {
     for tile in visible_tiles {
-      godot_print!("Rendering tile at position: ({}, {})", tile.position[0], tile.position[1]);
+      if self.rendered_tiles.contains(&tile.entity) {
+        continue;
+      }
+
+      let tile_node_name = format!("Tile_{}_{}", tile.position[0], tile.position[1]);
+      if let Some(shared_plane_mesh) = &self.shared_plane_mesh {
+        let mut mesh_instance = MeshInstance3D::new_alloc();
+        mesh_instance.set_name(tile_node_name.as_str());
+        mesh_instance.set_mesh(shared_plane_mesh);
+
+        if
+          let Some(TileTypeComponent(tile_type)) = self.world.get::<TileTypeComponent>(tile.entity)
+        {
+          if let Some(material) = self.materials.get(tile_type.as_str()) {
+            mesh_instance.set_material_override(material);
+          } else {
+            let mut default_material = StandardMaterial3D::new_gd();
+            default_material.set_albedo(Color::from_rgb(1.0, 1.0, 1.0));
+            mesh_instance.set_material_override(&default_material);
+          }
+        }
+
+        let position = Vector3::new(tile.position[0], 0.0, tile.position[1]);
+        mesh_instance.set_position(position);
+
+        self.base_mut().add_child(&mesh_instance);
+      }
+
+      self.rendered_tiles.insert(tile.entity);
+
+      godot_print!("Rendered tile at position: ({}, {})", tile.position[0], tile.position[1]);
     }
   }
 }
