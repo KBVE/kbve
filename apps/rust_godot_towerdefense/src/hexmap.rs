@@ -69,7 +69,7 @@ pub struct HexMapManager {
   entity_map: HashMap<(i32, i32), Entity>,
   spatial_index: RTree<TileEntity>,
   camera_manager: Option<Gd<CameraManager>>,
-  materials: HashMap<String,Gd<StandardMaterial3D>>,
+  materials: HashMap<String, Gd<StandardMaterial3D>>,
   shared_plane_mesh: Option<Gd<PlaneMesh>>,
 }
 
@@ -114,15 +114,19 @@ impl HexMapManager {
       self.camera_manager = Some(camera_manager);
       godot_print!("CameraManager found and linked.");
     } else {
-      godot_warn!("CameraManager not found in the scene tree.");
+      godot_warn!("CameraManager not found. Creating a new one...");
+      let mut camera_manager = CameraManager::new_alloc();
+      camera_manager.set_name("CameraManager");
+      self.base_mut().add_child(&camera_manager);
+      self.camera_manager = Some(camera_manager);
     }
   }
 
   fn create_shared_materials(&mut self) {
     let mut create_material = |color: Color| {
-        let mut material = StandardMaterial3D::new_gd();
-        material.set_albedo(color);
-        material
+      let mut material = StandardMaterial3D::new_gd();
+      material.set_albedo(color);
+      material
     };
 
     self.materials.insert("grass".to_string(), create_material(Color::from_rgb(0.0, 1.0, 0.0)));
@@ -130,14 +134,12 @@ impl HexMapManager {
     self.materials.insert("sand".to_string(), create_material(Color::from_rgb(0.8, 0.6, 0.4)));
 
     godot_print!("Shared materials created for tiles.");
-}
+  }
 
-
-  pub fn get_camera(&self) -> Option<Gd<Camera3D>> {
-    if let Some(camera_manager) = &self.camera_manager {
-      return camera_manager.bind().get_camera();
+  pub fn get_camera(&mut self) -> Option<Gd<Camera3D>> {
+    if let Some(camera_manager) = &mut self.camera_manager {
+      return camera_manager.bind_mut().get_camera();
     }
-
     godot_warn!("CameraManager is not initialized.");
     None
   }
@@ -173,15 +175,15 @@ impl HexMapManager {
   fn query_visible_tiles(&self, camera: Gd<Camera3D>) -> Vec<TileEntity> {
     let camera_position = camera.get_position();
 
-    let neighbors = self.spatial_index
-        .nearest_neighbors(&TileEntity {
-            position: [camera_position.x, camera_position.z],
-            entity: Entity::PLACEHOLDER,
-        });
+    let neighbors = self.spatial_index.nearest_neighbors(
+      &(TileEntity {
+        position: [camera_position.x, camera_position.z],
+        entity: Entity::PLACEHOLDER,
+      })
+    );
 
     neighbors.into_iter().cloned().collect()
-}
-
+  }
 
   fn render_tiles(&self, visible_tiles: Vec<TileEntity>) {
     for tile in visible_tiles {
