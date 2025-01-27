@@ -24,8 +24,12 @@ pub struct TransformComponent {
 
 impl TransformComponent {
   pub fn new(q: i32, r: i32, hex_size: f32) -> Self {
-    let x = hex_size * (3.0_f32).sqrt() * ((q as f32) + (r as f32) / 2.0);
-    let z = hex_size * 1.5 * (r as f32);
+
+    let hex_width = 2.0 * hex_size; 
+    let hex_height = (3.0_f32).sqrt() * hex_size;
+    
+    let x = (q as f32) * (hex_width * 0.75);
+    let z = (r as f32) * hex_height + if q % 2 == 0 { 0.0 } else { hex_height / 2.0 }; 
     let y = 0.0;
     Self {
       q,
@@ -107,9 +111,10 @@ impl INode for HexMapManager {
       godot_print!("CameraManager found. Proceeding with HexMapManager setup.");
       self.add_or_get_light();
 
-      self.shared_plane_mesh = Some(self.create_hex_mesh(1.0));
+      self.shared_plane_mesh = Some(self.create_hex_mesh(2.0));
       self.create_shared_materials();
-      self.setup_honeycomb_grid(10, 10, 1.0); // Setup the hex grid
+      self.setup_honeycomb_grid(10, 10, 2.0); // Setup the hex grid
+      //self.setup_diamond_shaped_grid(10,3.0);
     } else {
       godot_warn!("CameraManager not found. HexMapManager setup halted.");
     }
@@ -157,11 +162,14 @@ impl HexMapManager {
     let angle_step = (60.0_f32).to_radians();
     let mut vertices = Vec::new();
 
+    godot_print!("Generating hexagon mesh with radius = {}", radius);
+
     for i in 0..6 {
       let angle = (i as f32) * angle_step;
       let x = radius * angle.cos();
       let z = radius * angle.sin();
       vertices.push(Vector3::new(x, 0.0, z));
+      godot_print!("Vertex {}: x = {}, z = {}", i, x, z);
     }
 
     let center = Vector3::new(0.0, 0.0, 0.0);
@@ -170,9 +178,12 @@ impl HexMapManager {
       surface_tool.add_vertex(center); // Center point of a hexy
       surface_tool.add_vertex(vertices[i]); // Current vertex
       surface_tool.add_vertex(vertices[(i + 1) % 6]); // +n vertex
+      godot_print!("Triangle {}: center -> vertex {} -> vertex {}", i, i, (i + 1) % 6);
     }
 
-    surface_tool.commit().expect("Failed to create hexagonal mesh")
+    let mesh = surface_tool.commit().expect("Failed to create hexagonal mesh");
+    godot_print!("Hexagon mesh generated successfully");
+    mesh
   }
 
   fn add_or_get_light(&mut self) {
@@ -223,17 +234,25 @@ impl HexMapManager {
     None
   }
 
-  fn setup_honeycomb_grid(&mut self, rows: i32, cols: i32, hex_size: f32) {
-    let horizontal_spacing = hex_size * (3.0_f32).sqrt(); // r * sqrt(3)
-    let vertical_spacing = hex_size * 1.5; // r * 1.5
+  fn setup_diamond_shaped_grid(&mut self, size: i32, hex_size: f32) {
+    let hex_width = 2.0 * hex_size;
+    let hex_height = (3.0_f32).sqrt() * hex_size;
 
-    for r in 0..rows {
-      for q in 0..cols {
-        let x_offset = if r % 2 == 0 { 0.0 } else { horizontal_spacing / 2.0 };
-        let x = (q as f32) * horizontal_spacing + x_offset;
-        let z = (r as f32) * vertical_spacing;
+    let horizontal_spacing = hex_width * 0.75;
+    let vertical_spacing = hex_height * 0.5;
+
+    for q in -size..=size {
+      let r1 = (-size).max(-q - size);
+      let r2 = size.min(-q + size);
+      for r in r1..=r2 {
+        let x = (q as f32) * horizontal_spacing;
+        let z = (r as f32) * vertical_spacing * 2.0;
+
+        godot_print!("Placing tile: q={}, r={} -> x={}, z={}", q, r, x, z);
+
         let tile_type = if (q + r) % 2 == 0 { "grass" } else { "water" };
         self.create_tile(q, r, tile_type.to_string(), hex_size);
+
         if let Some(entity) = self.entity_map.get(&(q, r)) {
           if let Some(mut transform) = self.world.get_mut::<TransformComponent>(*entity) {
             transform.world_position = Vector3::new(x, 0.0, z);
@@ -243,26 +262,24 @@ impl HexMapManager {
     }
   }
 
+  fn setup_honeycomb_grid(&mut self, rows: i32, cols: i32, hex_size: f32) {
+    for r in 0..rows {
+        for q in 0..cols {
+            let tile_type = if (q + r) % 2 == 0 { "grass" } else { "water" };
+            self.create_tile(q, r, tile_type.to_string(), hex_size);
+        }
+    }
+}
+
+
   fn is_valid_hex(&self, x: i32, y: i32) -> bool {
     x + y <= 10 && x + y >= -10
   }
 
   fn create_tile(&mut self, q: i32, r: i32, tile_type: String, hex_size: f32) {
-    let horizontal_spacing = hex_size * (3.0_f32).sqrt();
-    let vertical_spacing = hex_size * 1.5;
 
-    let x_offset = if r % 2 == 0 { 0.0 } else { horizontal_spacing / 2.0 };
-    let x = (q as f32) * horizontal_spacing + x_offset;
-    let z = (r as f32) * vertical_spacing;
-
-    let transform = TransformComponent {
-      q,
-      r,
-      world_position: Vector3::new(x, 0.0, z),
-    };
-
+    let transform = TransformComponent::new(q, r, hex_size);
     let entity = self.world.spawn((transform.clone(), TileTypeComponent(tile_type.clone()))).id();
-
     self.entity_map.insert((q, r), entity);
 
     self.spatial_index.insert(TileEntity {
@@ -276,8 +293,8 @@ impl HexMapManager {
   fn query_visible_tiles(&self, camera: Gd<Camera3D>) -> Vec<TileEntity> {
     let camera_position = camera.get_position();
 
-    let max_view_distance = 20.0;
-
+    let max_view_distance = 5.0;
+d
     let neighbors = self.spatial_index
       .nearest_neighbor_iter(
         &(TileEntity {
