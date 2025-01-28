@@ -21,6 +21,7 @@ use godot::classes::tween::TransitionType;
 use godot::classes::tween::EaseType;
 use godot::classes::control::LayoutPreset;
 use godot::classes::text_server::AutowrapMode;
+use std::collections::HashMap;
 
 use godot::prelude::*;
 use std::time::{ Duration, Instant };
@@ -31,12 +32,13 @@ pub struct Maiky {
   base: Base<CanvasLayer>,
   avatar_message: Option<Gd<CanvasLayer>>,
   global_menu: Option<Gd<CanvasLayer>>,
+  texture_cache: HashMap<String, Gd<Texture2D>>,
 }
 
 #[godot_api]
 impl ICanvasLayer for Maiky {
   fn init(base: Base<Self::Base>) -> Self {
-    Self { base, avatar_message: None, global_menu: None }
+    Self { base, avatar_message: None, global_menu: None, texture_cache: HashMap::new() }
   }
 }
 
@@ -156,18 +158,26 @@ impl Maiky {
     }
   }
 
-  fn load_texture_2d(&self, path: &GString) -> Gd<Texture2D> {
+  fn load_texture_2d(&mut self, path: &GString) -> Gd<Texture2D> {
+  
+    if let Some(texture) = self.texture_cache.get(path.to_string().as_str()) {
+      return texture.clone();
+    }
+
     let mut loader = ResourceLoader::singleton();
-    loader
+    let texture = loader
       .load(path)
       .and_then(|res| Some(res.cast::<Texture2D>()))
       .unwrap_or_else(|| {
         godot_print!("Failed to load texture at path: {}. Using fallback texture.", path);
         Texture2D::new_gd()
-      })
+      });
+
+    self.texture_cache.insert(path.to_string(), texture.clone());
+    texture
   }
 
-  fn create_rounded_panel(&self, background_image: &GString) -> Gd<Control> {
+  fn create_rounded_panel(&mut self, background_image: &GString) -> Gd<Control> {
     let mut container = Control::new_alloc();
     container.set_name("RoundedPanelContainer");
     container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
