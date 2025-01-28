@@ -113,7 +113,7 @@ impl INode for HexMapManager {
 
       self.shared_plane_mesh = Some(self.create_hex_mesh(2.0));
       self.create_shared_materials();
-      self.setup_honeycomb_grid(10, 10, 2.0); // Setup the hex grid
+      self.setup_honeycomb_grid(20, 20, 2.0); // Setup the hex grid
       //self.setup_diamond_shaped_grid(10,3.0);
     } else {
       godot_warn!("CameraManager not found. HexMapManager setup halted.");
@@ -293,8 +293,7 @@ impl HexMapManager {
   fn query_visible_tiles(&self, camera: Gd<Camera3D>) -> Vec<TileEntity> {
     let camera_position = camera.get_position();
 
-    let max_view_distance = 5.0;
-d
+    let max_view_distance = 20.0;
     let neighbors = self.spatial_index
       .nearest_neighbor_iter(
         &(TileEntity {
