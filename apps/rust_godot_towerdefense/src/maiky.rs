@@ -10,10 +10,16 @@ use godot::classes::{
   ResourceLoader,
   RichTextLabel,
   Tween,
+  Control,
+  Shader,
+  Panel,
+  StyleBoxFlat,
+  ShaderMaterial,
 };
 use godot::classes::texture_rect::StretchMode;
 use godot::classes::tween::TransitionType;
 use godot::classes::tween::EaseType;
+use godot::classes::control::LayoutPreset;
 
 use godot::prelude::*;
 use std::time::{ Duration, Instant };
@@ -52,7 +58,7 @@ impl Maiky {
 
     let mut message_label = avatar_message_box.get_node_as::<RichTextLabel>("AvatarMessageLabel");
     message_label.set_visible_ratio(0.0);
-    message_label.set_text(&message); 
+    message_label.set_text(&message);
 
     if let Some(mut tween) = self.base_mut().create_tween() {
       let duration = 3.0;
@@ -68,7 +74,7 @@ impl Maiky {
         tweener.set_trans(TransitionType::LINEAR);
       }
     } else {
-        godot_print!("Failed to create Tween.");
+      godot_print!("Failed to create Tween.");
     }
 
     let mut timer = Timer::new_alloc();
@@ -91,31 +97,41 @@ impl Maiky {
     } else {
       let mut new_avatar_box = CanvasLayer::new_alloc();
       new_avatar_box.set_name("AvatarMessageBox");
+      new_avatar_box.set_offset(Vector2::new(0.0, 0.0));
+      new_avatar_box.set_scale(Vector2::new(0.65, 0.65));
+      new_avatar_box.set_follow_viewport(true);
+      new_avatar_box.set_follow_viewport_scale(1.0);
 
-      let mut background = TextureRect::new_alloc();
-      background.set_name("Background");
-      background.set_stretch_mode(StretchMode::SCALE);
-      background.set_texture(Some(&self.load_texture_2d(background_image)));
-      new_avatar_box.add_child(&background);
+      let mut background_panel = self.create_rounded_panel(background_image);
+      background_panel.set_name("BackgroundPanel");
+      new_avatar_box.add_child(&background_panel);
 
       let mut avatar_picture = TextureRect::new_alloc();
       avatar_picture.set_name("AvatarProfilePic");
       avatar_picture.set_stretch_mode(StretchMode::KEEP_ASPECT_CENTERED);
       avatar_picture.set_texture(Some(&self.load_texture_2d(avatar_profile_pic)));
-      avatar_picture.set_position(Vector2::new(10.0, 10.0));
+      avatar_picture.set_anchors_preset(LayoutPreset::TOP_LEFT);
+      avatar_picture.set_anchor_and_offset(Side::LEFT, 0.0, 10.0);
+      avatar_picture.set_anchor_and_offset(Side::BOTTOM, 0.0, 0.0);
+      avatar_picture.set_custom_minimum_size(Vector2::new(80.0, 80.0));
       new_avatar_box.add_child(&avatar_picture);
 
       let mut message_label = RichTextLabel::new_alloc();
       message_label.set_name("AvatarMessageLabel");
-      message_label.set_position(Vector2::new(100.0, 50.0));
+      message_label.set_anchors_preset(LayoutPreset::CENTER_TOP);
+      message_label.set_anchor_and_offset(Side::TOP, 0.0, 120.0);
       message_label.set_scroll_active(false);
       message_label.set_scroll_follow(false);
+      message_label.set_visible_ratio(0.0);
       new_avatar_box.add_child(&message_label);
 
       let mut close_button = Button::new_alloc();
       close_button.set_name("CloseButton");
       close_button.set_text("Close");
-      close_button.set_position(Vector2::new(250.0, 150.0));
+      close_button.set_anchors_preset(LayoutPreset::BOTTOM_RIGHT);
+      close_button.set_anchor_and_offset(Side::RIGHT, 1.0, -10.0);
+      close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -10.0);
+      close_button.set_custom_minimum_size(Vector2::new(100.0, 50.0));
       close_button.connect("pressed", &self.base().callable("hide_avatar_message"));
       new_avatar_box.add_child(&close_button);
 
@@ -143,6 +159,26 @@ impl Maiky {
         Texture2D::new_gd()
       })
   }
+  
+  fn create_rounded_panel(&self, background_image: &GString) -> Gd<Control> {
+    let mut container = Control::new_alloc();
+    container.set_name("RoundedPanelContainer");
+    container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+
+    let mut background = TextureRect::new_alloc();
+    background.set_name("BackgroundImage");
+    background.set_stretch_mode(StretchMode::SCALE);
+
+    background.set_texture(Some(&self.load_texture_2d(background_image)));
+    background.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    container.add_child(&background);
+
+    container
+}
+
+
+
+
 
   #[func]
   pub fn example_show_message(&self, text: GString) {
