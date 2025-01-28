@@ -67,9 +67,13 @@ impl Maiky {
 
     message_label.set_visible_ratio(0.0);
     message_label.append_text(&message);
+    // get_total_character_count
+    let char_count = message.chars().count();
+    let base_duration = 2.0; 
+    let extra_duration = (char_count / 30) as f64;
+    let duration = base_duration + extra_duration;
 
     if let Some(mut tween) = self.base_mut().create_tween() {
-      let duration = 3.0;
       if
         let Some(mut tweener) = tween.tween_property(
           &message_label.upcast::<Object>(),
@@ -186,13 +190,15 @@ impl Maiky {
     let shader_code =
       "
         shader_type canvas_item;
-        uniform float corner_radius : hint_range(0.0, 100.0) = 50.0;
-        uniform vec4 color : hint_color = vec4(0.0, 0.0, 0.0, 0.85);
-        void fragment() {
-            vec2 size = vec2(400.0, 200.0);
-            vec2 pos = FRAGCOORD.xy - size / 2.0;
+        uniform float corner_radius = 20.0;
+        uniform vec4 color = vec4(0.0, 0.0, 0.0, 0.55);
+        uniform vec2 size = vec2(400.0, 200.0);
 
-            vec2 corner = max(abs(pos) - (size / 2.0 - corner_radius), 0.0);
+        void fragment() {
+            vec2 scaled_size = size * UV
+            vec2 pos = FRAGCOORD.xy - scaled_size / 2.0;
+
+            vec2 corner = max(abs(pos) - (scaled_size / 2.0 - corner_radius), 0.0);
             float dist = length(corner) - corner_radius;
 
             float alpha = smoothstep(0.0, 1.0, dist);

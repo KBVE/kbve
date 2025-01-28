@@ -24,11 +24,30 @@ impl INode for MusicManager {
   fn ready(&mut self) {
     self.audio = self.get_or_create_audio_player("PrimaryAudioPlayer");
     self.secondary_audio = self.get_or_create_audio_player("SecondaryAudioPlayer");
+    self.effects = self.get_or_create_audio_player("EffectsAudioPlayer");
   }
 }
 
 #[godot_api]
 impl MusicManager {
+  #[func]
+  pub fn adjust_music_volume(&mut self, volume_db: f32) {
+    if let Some(audio) = self.audio.as_mut() {
+      (*audio).set_volume_db(volume_db);
+  }
+
+  if let Some(secondary_audio) = self.secondary_audio.as_mut() {
+      (*secondary_audio).set_volume_db(volume_db);
+  }
+  }
+
+  #[func]
+  pub fn adjust_effects_volume(&mut self, volume_db: f32) {
+    if let Some(effects) = self.effects.as_mut() {
+      (*effects).set_volume_db(volume_db);
+  }
+  }
+
   fn get_or_create_audio_player(&mut self, name: &str) -> Option<Gd<AudioStreamPlayer>> {
     if let Some(player) = self.base().try_get_node_as::<AudioStreamPlayer>(name) {
       Some(player)
