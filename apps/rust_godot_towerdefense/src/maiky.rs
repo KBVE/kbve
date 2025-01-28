@@ -20,6 +20,7 @@ use godot::classes::texture_rect::StretchMode;
 use godot::classes::tween::TransitionType;
 use godot::classes::tween::EaseType;
 use godot::classes::control::LayoutPreset;
+use godot::classes::text_server::AutowrapMode;
 
 use godot::prelude::*;
 use std::time::{ Duration, Instant };
@@ -57,6 +58,7 @@ impl Maiky {
     );
 
     let mut message_label = avatar_message_box.get_node_as::<RichTextLabel>("AvatarMessageLabel");
+    
     message_label.set_visible_ratio(0.0);
     message_label.set_text(&message);
 
@@ -110,9 +112,10 @@ impl Maiky {
       avatar_picture.set_name("AvatarProfilePic");
       avatar_picture.set_stretch_mode(StretchMode::KEEP_ASPECT_CENTERED);
       avatar_picture.set_texture(Some(&self.load_texture_2d(avatar_profile_pic)));
-      avatar_picture.set_anchors_preset(LayoutPreset::TOP_LEFT);
-      avatar_picture.set_anchor_and_offset(Side::LEFT, 0.0, 10.0);
-      avatar_picture.set_anchor_and_offset(Side::BOTTOM, 0.0, 0.0);
+      avatar_picture.set_anchor(Side::LEFT, 0.0);
+      avatar_picture.set_anchor(Side::BOTTOM, 1.0);
+      avatar_picture.set_offset(Side::LEFT, 10.0);
+      avatar_picture.set_offset(Side::BOTTOM, 120.0);  
       avatar_picture.set_custom_minimum_size(Vector2::new(80.0, 80.0));
       new_avatar_box.add_child(&avatar_picture);
 
@@ -122,7 +125,11 @@ impl Maiky {
       message_label.set_anchor_and_offset(Side::TOP, 0.0, 120.0);
       message_label.set_scroll_active(false);
       message_label.set_scroll_follow(false);
-      message_label.set_visible_ratio(0.0);
+      message_label.set_fit_content(true);
+      message_label.set_autowrap_mode(AutowrapMode::WORD_SMART);
+      message_label.set_use_bbcode(true);
+      message_label.set_custom_minimum_size(Vector2::new(300.0, 100.0));
+      message_label.set_visible_ratio(1.0);
       new_avatar_box.add_child(&message_label);
 
       let mut close_button = Button::new_alloc();
