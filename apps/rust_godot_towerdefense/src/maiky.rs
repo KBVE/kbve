@@ -57,10 +57,16 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    let mut message_label = avatar_message_box.get_node_as::<RichTextLabel>("AvatarMessageLabel");
-    
+    let mut avatar_message_panel = avatar_message_box
+      .try_get_node_as::<Control>("AvatarMessagePanel")
+      .expect("Failed to find AvatarMessagePanel");
+
+    let mut message_label = avatar_message_panel
+      .try_get_node_as::<RichTextLabel>("AvatarMessageLabel")
+      .expect("Failed to find AvatarMessageLabel");
+
     message_label.set_visible_ratio(0.0);
-    message_label.set_text(&message);
+    message_label.append_text(&message);
 
     if let Some(mut tween) = self.base_mut().create_tween() {
       let duration = 3.0;
@@ -108,6 +114,7 @@ impl Maiky {
       background_panel.set_name("BackgroundPanel");
       new_avatar_box.add_child(&background_panel);
 
+
       let mut avatar_picture = TextureRect::new_alloc();
       avatar_picture.set_name("AvatarProfilePic");
       avatar_picture.set_stretch_mode(StretchMode::KEEP_ASPECT_CENTERED);
@@ -115,29 +122,21 @@ impl Maiky {
       avatar_picture.set_anchor(Side::LEFT, 0.0);
       avatar_picture.set_anchor(Side::BOTTOM, 1.0);
       avatar_picture.set_offset(Side::LEFT, 10.0);
-      avatar_picture.set_offset(Side::BOTTOM, 120.0);  
+      avatar_picture.set_offset(Side::BOTTOM, 120.0);
       avatar_picture.set_custom_minimum_size(Vector2::new(80.0, 80.0));
       new_avatar_box.add_child(&avatar_picture);
 
-      let mut message_label = RichTextLabel::new_alloc();
-      message_label.set_name("AvatarMessageLabel");
-      message_label.set_anchors_preset(LayoutPreset::CENTER_TOP);
-      message_label.set_anchor_and_offset(Side::TOP, 0.0, 120.0);
-      message_label.set_scroll_active(false);
-      message_label.set_scroll_follow(false);
-      message_label.set_fit_content(true);
-      message_label.set_autowrap_mode(AutowrapMode::WORD_SMART);
-      message_label.set_use_bbcode(true);
-      message_label.set_custom_minimum_size(Vector2::new(300.0, 100.0));
-      message_label.set_visible_ratio(1.0);
-      new_avatar_box.add_child(&message_label);
+      let mut avatar_message_panel = self.create_black_rounded_panel_with_label();
+      avatar_message_panel.set_name("AvatarMessagePanel");
+      new_avatar_box.add_child(&avatar_message_panel);
+
 
       let mut close_button = Button::new_alloc();
       close_button.set_name("CloseButton");
       close_button.set_text("Close");
       close_button.set_anchors_preset(LayoutPreset::BOTTOM_RIGHT);
-      close_button.set_anchor_and_offset(Side::RIGHT, 1.0, -10.0);
-      close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -10.0);
+      close_button.set_anchor_and_offset(Side::RIGHT, 1.0, 10.0);
+      close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -100.0);
       close_button.set_custom_minimum_size(Vector2::new(100.0, 50.0));
       close_button.connect("pressed", &self.base().callable("hide_avatar_message"));
       new_avatar_box.add_child(&close_button);
@@ -166,7 +165,7 @@ impl Maiky {
         Texture2D::new_gd()
       })
   }
-  
+
   fn create_rounded_panel(&self, background_image: &GString) -> Gd<Control> {
     let mut container = Control::new_alloc();
     container.set_name("RoundedPanelContainer");
@@ -181,11 +180,76 @@ impl Maiky {
     container.add_child(&background);
 
     container
-}
+  }
 
+  fn create_black_rounded_panel(&self) -> Gd<Panel> {
+    let shader_code =
+      "
+        shader_type canvas_item;
+        uniform float corner_radius : hint_range(0.0, 100.0) = 50.0;
+        uniform vec4 color : hint_color = vec4(0.0, 0.0, 0.0, 0.85);
+        void fragment() {
+            vec2 size = vec2(400.0, 200.0);
+            vec2 pos = FRAGCOORD.xy - size / 2.0;
 
+            vec2 corner = max(abs(pos) - (size / 2.0 - corner_radius), 0.0);
+            float dist = length(corner) - corner_radius;
 
+            float alpha = smoothstep(0.0, 1.0, dist);
 
+            COLOR = vec4(color.rgb, color.a * (1.0 - alpha));
+        }
+    ";
+
+    let mut shader = Shader::new_gd();
+    shader.set_code(shader_code);
+
+    let mut shader_material = ShaderMaterial::new_gd();
+    shader_material.set_shader(&shader);
+
+    let mut panel = Panel::new_alloc();
+    panel.set_material(&shader_material);
+    panel.set_custom_minimum_size(Vector2::new(400.0, 200.0));
+
+    panel
+  }
+
+  fn create_black_rounded_panel_with_label(&self) -> Gd<Control> {
+    let mut container = Control::new_alloc();
+    container.set_name("TextPanelContainer");
+    container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+
+    let mut panel = self.create_black_rounded_panel();
+    panel.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    container.add_child(&panel);
+
+    let mut message_label = RichTextLabel::new_alloc();
+    message_label.set_name("AvatarMessageLabel");
+    // message_label.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    message_label.set_anchors_preset(LayoutPreset::CENTER_TOP);
+    message_label.set_anchor_and_offset(Side::LEFT, 0.0, 20.0); 
+    message_label.set_anchor_and_offset(Side::RIGHT, 1.0, -20.0);
+    message_label.set_anchor_and_offset(Side::TOP, 0.0, 20.0);
+    message_label.set_anchor_and_offset(Side::BOTTOM, 1.0, -20.0);
+    
+    message_label.add_theme_constant_override("margin_left", 10);
+    message_label.add_theme_constant_override("margin_right", 10);
+    message_label.add_theme_constant_override("margin_top", 10);
+    message_label.add_theme_constant_override("margin_bottom", 10);
+
+    message_label.set_scroll_active(false);
+    message_label.set_scroll_follow(false);
+    message_label.set_fit_content(true);
+    message_label.set_autowrap_mode(AutowrapMode::WORD_SMART);
+    message_label.set_use_bbcode(true);
+    message_label.add_theme_font_size_override("normal_font_size", 40);
+    message_label.push_outline_size(6);
+    message_label.push_outline_color(Color::from_rgb(0.0, 0.0, 0.0));
+    message_label.set_visible_ratio(1.0);
+    container.add_child(&message_label);
+
+    container
+  }
 
   #[func]
   pub fn example_show_message(&self, text: GString) {
