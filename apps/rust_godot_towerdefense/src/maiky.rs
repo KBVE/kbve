@@ -21,6 +21,7 @@ use godot::classes::tween::TransitionType;
 use godot::classes::tween::EaseType;
 use godot::classes::control::LayoutPreset;
 use godot::classes::text_server::AutowrapMode;
+use std::collections::HashMap;
 
 use godot::prelude::*;
 use std::time::{ Duration, Instant };
@@ -30,13 +31,14 @@ use std::time::{ Duration, Instant };
 pub struct Maiky {
   base: Base<CanvasLayer>,
   avatar_message: Option<Gd<CanvasLayer>>,
-  typewriter_start: Option<Instant>,
+  global_menu: Option<Gd<CanvasLayer>>,
+  texture_cache: HashMap<String, Gd<Texture2D>>,
 }
 
 #[godot_api]
 impl ICanvasLayer for Maiky {
   fn init(base: Base<Self::Base>) -> Self {
-    Self { base, avatar_message: None, typewriter_start: None }
+    Self { base, avatar_message: None, global_menu: None, texture_cache: HashMap::new() }
   }
 }
 
@@ -67,9 +69,8 @@ impl Maiky {
 
     message_label.set_visible_ratio(0.0);
     message_label.append_text(&message);
-    // get_total_character_count
-    let char_count = message.chars().count();
-    let base_duration = 2.0; 
+    let char_count = message.len();
+    let base_duration = 2.0;
     let extra_duration = (char_count / 30) as f64;
     let duration = base_duration + extra_duration;
 
@@ -118,7 +119,6 @@ impl Maiky {
       background_panel.set_name("BackgroundPanel");
       new_avatar_box.add_child(&background_panel);
 
-
       let mut avatar_picture = TextureRect::new_alloc();
       avatar_picture.set_name("AvatarProfilePic");
       avatar_picture.set_stretch_mode(StretchMode::KEEP_ASPECT_CENTERED);
@@ -133,7 +133,6 @@ impl Maiky {
       let mut avatar_message_panel = self.create_black_rounded_panel_with_label();
       avatar_message_panel.set_name("AvatarMessagePanel");
       new_avatar_box.add_child(&avatar_message_panel);
-
 
       let mut close_button = Button::new_alloc();
       close_button.set_name("CloseButton");
@@ -159,18 +158,26 @@ impl Maiky {
     }
   }
 
-  fn load_texture_2d(&self, path: &GString) -> Gd<Texture2D> {
+  fn load_texture_2d(&mut self, path: &GString) -> Gd<Texture2D> {
+  
+    if let Some(texture) = self.texture_cache.get(path.to_string().as_str()) {
+      return texture.clone();
+    }
+
     let mut loader = ResourceLoader::singleton();
-    loader
+    let texture = loader
       .load(path)
       .and_then(|res| Some(res.cast::<Texture2D>()))
       .unwrap_or_else(|| {
         godot_print!("Failed to load texture at path: {}. Using fallback texture.", path);
         Texture2D::new_gd()
-      })
+      });
+
+    self.texture_cache.insert(path.to_string(), texture.clone());
+    texture
   }
 
-  fn create_rounded_panel(&self, background_image: &GString) -> Gd<Control> {
+  fn create_rounded_panel(&mut self, background_image: &GString) -> Gd<Control> {
     let mut container = Control::new_alloc();
     container.set_name("RoundedPanelContainer");
     container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
@@ -233,11 +240,11 @@ impl Maiky {
     message_label.set_name("AvatarMessageLabel");
     // message_label.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
     message_label.set_anchors_preset(LayoutPreset::CENTER_TOP);
-    message_label.set_anchor_and_offset(Side::LEFT, 0.0, 20.0); 
+    message_label.set_anchor_and_offset(Side::LEFT, 0.0, 20.0);
     message_label.set_anchor_and_offset(Side::RIGHT, 1.0, -20.0);
     message_label.set_anchor_and_offset(Side::TOP, 0.0, 20.0);
     message_label.set_anchor_and_offset(Side::BOTTOM, 1.0, -20.0);
-    
+
     message_label.add_theme_constant_override("margin_left", 10);
     message_label.add_theme_constant_override("margin_right", 10);
     message_label.add_theme_constant_override("margin_top", 10);

@@ -1,5 +1,6 @@
 use godot::prelude::*;
 use godot::classes::{ Timer, AudioStream };
+use std::collections::HashMap;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
@@ -8,6 +9,7 @@ pub struct MusicManager {
   audio: Option<Gd<AudioStreamPlayer>>,
   secondary_audio: Option<Gd<AudioStreamPlayer>>,
   effects: Option<Gd<AudioStreamPlayer>>,
+  effect_cache: HashMap<String, Gd<AudioStream>>,
 }
 
 #[godot_api]
@@ -18,6 +20,7 @@ impl INode for MusicManager {
       audio: None,
       secondary_audio: None,
       effects: None,
+      effect_cache: HashMap::new(),
     }
   }
 
@@ -31,21 +34,50 @@ impl INode for MusicManager {
 #[godot_api]
 impl MusicManager {
   #[func]
+  pub fn play_effect(&mut self, effect_path: GString) {
+    let effect_path = effect_path.to_string();
+    let audio_stream = self.get_or_cache_effect(&effect_path);
+    if let Some(effects_player) = self.effects.as_mut() {
+      if let Some(audio_stream) = audio_stream {
+        effects_player.set_stream(&audio_stream);
+        effects_player.play();
+      }
+    } else {
+      godot_warn!("Effects audio player is not initialized.");
+    }
+  }
+
+  fn get_or_cache_effect(&mut self, effect_path: &str) -> Option<Gd<AudioStream>> {
+    if let Some(effect) = self.effect_cache.get(effect_path) {
+      return Some(effect.clone());
+    }
+
+    let audio_stream: Gd<AudioStream> = load::<AudioStream>(effect_path);
+    if audio_stream.is_instance_valid() {
+      self.effect_cache.insert(effect_path.to_string(), audio_stream.clone());
+      Some(audio_stream)
+    } else {
+      godot_warn!("Failed to load sound effect from path: {}", effect_path);
+      None
+    }
+  }
+
+  #[func]
   pub fn adjust_music_volume(&mut self, volume_db: f32) {
     if let Some(audio) = self.audio.as_mut() {
       (*audio).set_volume_db(volume_db);
-  }
+    }
 
-  if let Some(secondary_audio) = self.secondary_audio.as_mut() {
+    if let Some(secondary_audio) = self.secondary_audio.as_mut() {
       (*secondary_audio).set_volume_db(volume_db);
-  }
+    }
   }
 
   #[func]
   pub fn adjust_effects_volume(&mut self, volume_db: f32) {
     if let Some(effects) = self.effects.as_mut() {
       (*effects).set_volume_db(volume_db);
-  }
+    }
   }
 
   fn get_or_create_audio_player(&mut self, name: &str) -> Option<Gd<AudioStreamPlayer>> {
