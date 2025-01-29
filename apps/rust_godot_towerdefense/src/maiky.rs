@@ -10,10 +10,18 @@ use godot::classes::{
   ResourceLoader,
   RichTextLabel,
   Tween,
+  Control,
+  Shader,
+  Panel,
+  StyleBoxFlat,
+  ShaderMaterial,
 };
 use godot::classes::texture_rect::StretchMode;
 use godot::classes::tween::TransitionType;
 use godot::classes::tween::EaseType;
+use godot::classes::control::LayoutPreset;
+use godot::classes::text_server::AutowrapMode;
+use std::collections::HashMap;
 
 use godot::prelude::*;
 use std::time::{ Duration, Instant };
@@ -23,13 +31,14 @@ use std::time::{ Duration, Instant };
 pub struct Maiky {
   base: Base<CanvasLayer>,
   avatar_message: Option<Gd<CanvasLayer>>,
-  typewriter_start: Option<Instant>,
+  global_menu: Option<Gd<CanvasLayer>>,
+  texture_cache: HashMap<String, Gd<Texture2D>>,
 }
 
 #[godot_api]
 impl ICanvasLayer for Maiky {
   fn init(base: Base<Self::Base>) -> Self {
-    Self { base, avatar_message: None, typewriter_start: None }
+    Self { base, avatar_message: None, global_menu: None, texture_cache: HashMap::new() }
   }
 }
 
@@ -50,12 +59,22 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    let mut message_label = avatar_message_box.get_node_as::<RichTextLabel>("AvatarMessageLabel");
+    let mut avatar_message_panel = avatar_message_box
+      .try_get_node_as::<Control>("AvatarMessagePanel")
+      .expect("Failed to find AvatarMessagePanel");
+
+    let mut message_label = avatar_message_panel
+      .try_get_node_as::<RichTextLabel>("AvatarMessageLabel")
+      .expect("Failed to find AvatarMessageLabel");
+
     message_label.set_visible_ratio(0.0);
-    message_label.set_text(&message); 
+    message_label.append_text(&message);
+    let char_count = message.len();
+    let base_duration = 2.0;
+    let extra_duration = (char_count / 30) as f64;
+    let duration = base_duration + extra_duration;
 
     if let Some(mut tween) = self.base_mut().create_tween() {
-      let duration = 3.0;
       if
         let Some(mut tweener) = tween.tween_property(
           &message_label.upcast::<Object>(),
@@ -68,7 +87,7 @@ impl Maiky {
         tweener.set_trans(TransitionType::LINEAR);
       }
     } else {
-        godot_print!("Failed to create Tween.");
+      godot_print!("Failed to create Tween.");
     }
 
     let mut timer = Timer::new_alloc();
@@ -91,31 +110,37 @@ impl Maiky {
     } else {
       let mut new_avatar_box = CanvasLayer::new_alloc();
       new_avatar_box.set_name("AvatarMessageBox");
+      new_avatar_box.set_offset(Vector2::new(0.0, 0.0));
+      new_avatar_box.set_scale(Vector2::new(0.65, 0.65));
+      new_avatar_box.set_follow_viewport(true);
+      new_avatar_box.set_follow_viewport_scale(1.0);
 
-      let mut background = TextureRect::new_alloc();
-      background.set_name("Background");
-      background.set_stretch_mode(StretchMode::SCALE);
-      background.set_texture(Some(&self.load_texture_2d(background_image)));
-      new_avatar_box.add_child(&background);
+      let mut background_panel = self.create_rounded_panel(background_image);
+      background_panel.set_name("BackgroundPanel");
+      new_avatar_box.add_child(&background_panel);
 
       let mut avatar_picture = TextureRect::new_alloc();
       avatar_picture.set_name("AvatarProfilePic");
       avatar_picture.set_stretch_mode(StretchMode::KEEP_ASPECT_CENTERED);
       avatar_picture.set_texture(Some(&self.load_texture_2d(avatar_profile_pic)));
-      avatar_picture.set_position(Vector2::new(10.0, 10.0));
+      avatar_picture.set_anchor(Side::LEFT, 0.0);
+      avatar_picture.set_anchor(Side::BOTTOM, 1.0);
+      avatar_picture.set_offset(Side::LEFT, 10.0);
+      avatar_picture.set_offset(Side::BOTTOM, 120.0);
+      avatar_picture.set_custom_minimum_size(Vector2::new(80.0, 80.0));
       new_avatar_box.add_child(&avatar_picture);
 
-      let mut message_label = RichTextLabel::new_alloc();
-      message_label.set_name("AvatarMessageLabel");
-      message_label.set_position(Vector2::new(100.0, 50.0));
-      message_label.set_scroll_active(false);
-      message_label.set_scroll_follow(false);
-      new_avatar_box.add_child(&message_label);
+      let mut avatar_message_panel = self.create_black_rounded_panel_with_label();
+      avatar_message_panel.set_name("AvatarMessagePanel");
+      new_avatar_box.add_child(&avatar_message_panel);
 
       let mut close_button = Button::new_alloc();
       close_button.set_name("CloseButton");
       close_button.set_text("Close");
-      close_button.set_position(Vector2::new(250.0, 150.0));
+      close_button.set_anchors_preset(LayoutPreset::BOTTOM_RIGHT);
+      close_button.set_anchor_and_offset(Side::RIGHT, 1.0, 10.0);
+      close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -100.0);
+      close_button.set_custom_minimum_size(Vector2::new(100.0, 50.0));
       close_button.connect("pressed", &self.base().callable("hide_avatar_message"));
       new_avatar_box.add_child(&close_button);
 
@@ -133,15 +158,110 @@ impl Maiky {
     }
   }
 
-  fn load_texture_2d(&self, path: &GString) -> Gd<Texture2D> {
+  fn load_texture_2d(&mut self, path: &GString) -> Gd<Texture2D> {
+  
+    if let Some(texture) = self.texture_cache.get(path.to_string().as_str()) {
+      return texture.clone();
+    }
+
     let mut loader = ResourceLoader::singleton();
-    loader
+    let texture = loader
       .load(path)
       .and_then(|res| Some(res.cast::<Texture2D>()))
       .unwrap_or_else(|| {
         godot_print!("Failed to load texture at path: {}. Using fallback texture.", path);
         Texture2D::new_gd()
-      })
+      });
+
+    self.texture_cache.insert(path.to_string(), texture.clone());
+    texture
+  }
+
+  fn create_rounded_panel(&mut self, background_image: &GString) -> Gd<Control> {
+    let mut container = Control::new_alloc();
+    container.set_name("RoundedPanelContainer");
+    container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+
+    let mut background = TextureRect::new_alloc();
+    background.set_name("BackgroundImage");
+    background.set_stretch_mode(StretchMode::SCALE);
+
+    background.set_texture(Some(&self.load_texture_2d(background_image)));
+    background.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    container.add_child(&background);
+
+    container
+  }
+
+  fn create_black_rounded_panel(&self) -> Gd<Panel> {
+    let shader_code =
+      "
+        shader_type canvas_item;
+        uniform float corner_radius = 20.0;
+        uniform vec4 color = vec4(0.0, 0.0, 0.0, 0.55);
+        uniform vec2 size = vec2(400.0, 200.0);
+
+        void fragment() {
+            vec2 scaled_size = size * UV
+            vec2 pos = FRAGCOORD.xy - scaled_size / 2.0;
+
+            vec2 corner = max(abs(pos) - (scaled_size / 2.0 - corner_radius), 0.0);
+            float dist = length(corner) - corner_radius;
+
+            float alpha = smoothstep(0.0, 1.0, dist);
+
+            COLOR = vec4(color.rgb, color.a * (1.0 - alpha));
+        }
+    ";
+
+    let mut shader = Shader::new_gd();
+    shader.set_code(shader_code);
+
+    let mut shader_material = ShaderMaterial::new_gd();
+    shader_material.set_shader(&shader);
+
+    let mut panel = Panel::new_alloc();
+    panel.set_material(&shader_material);
+    panel.set_custom_minimum_size(Vector2::new(400.0, 200.0));
+
+    panel
+  }
+
+  fn create_black_rounded_panel_with_label(&self) -> Gd<Control> {
+    let mut container = Control::new_alloc();
+    container.set_name("TextPanelContainer");
+    container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+
+    let mut panel = self.create_black_rounded_panel();
+    panel.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    container.add_child(&panel);
+
+    let mut message_label = RichTextLabel::new_alloc();
+    message_label.set_name("AvatarMessageLabel");
+    // message_label.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    message_label.set_anchors_preset(LayoutPreset::CENTER_TOP);
+    message_label.set_anchor_and_offset(Side::LEFT, 0.0, 20.0);
+    message_label.set_anchor_and_offset(Side::RIGHT, 1.0, -20.0);
+    message_label.set_anchor_and_offset(Side::TOP, 0.0, 20.0);
+    message_label.set_anchor_and_offset(Side::BOTTOM, 1.0, -20.0);
+
+    message_label.add_theme_constant_override("margin_left", 10);
+    message_label.add_theme_constant_override("margin_right", 10);
+    message_label.add_theme_constant_override("margin_top", 10);
+    message_label.add_theme_constant_override("margin_bottom", 10);
+
+    message_label.set_scroll_active(false);
+    message_label.set_scroll_follow(false);
+    message_label.set_fit_content(true);
+    message_label.set_autowrap_mode(AutowrapMode::WORD_SMART);
+    message_label.set_use_bbcode(true);
+    message_label.add_theme_font_size_override("normal_font_size", 40);
+    message_label.push_outline_size(6);
+    message_label.push_outline_color(Color::from_rgb(0.0, 0.0, 0.0));
+    message_label.set_visible_ratio(1.0);
+    container.add_child(&message_label);
+
+    container
   }
 
   #[func]

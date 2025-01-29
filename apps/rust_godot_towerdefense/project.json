@@ -66,6 +66,17 @@
       "parallel": false
     }
   },
+  "build-wsl": {
+    "executor": "nx:run-commands",
+    "options": {
+      "commands": [
+        "pnpm nx run rust_godot_towerdefense:build-linux",
+        "pnpm nx run rust_godot_towerdefense:build-windows",
+        "pnpm nx run rust_godot_towerdefense:build-wasm"
+      ],
+      "parallel": false
+    }
+  },
     "test": {
       "executor": "@monodon/rust:test",
       "outputs": [
