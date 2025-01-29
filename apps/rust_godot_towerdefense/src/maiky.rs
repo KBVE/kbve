@@ -17,44 +17,52 @@ use godot::classes::{
   ShaderMaterial,
 };
 use godot::classes::texture_rect::StretchMode;
-use godot::classes::tween::TransitionType;
-use godot::classes::tween::EaseType;
+use godot::classes::tween::{ TransitionType, EaseType };
 use godot::classes::control::LayoutPreset;
 use godot::classes::text_server::AutowrapMode;
 use std::collections::HashMap;
+use std::sync::{ Arc, Lazy, Mutex };
 
 use godot::prelude::*;
 use std::time::{ Duration, Instant };
+
+use crate::shader::ShaderCache;
+
+static TEXTURE2D_CACHE: Lazy<Mutex<HashMap<String, Arc<Gd<Texture2D>>>>> = Lazy::new(||
+  Mutex::new(HashMap::new())
+);
+
+static CANVASLAYER_CACHE: Lazy<Mutex<HashMap<String, Arc<Gd<CanvasLayer>>>>> = Lazy::new(||
+  Mutex::new(HashMap::new())
+);
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
 pub struct Maiky {
   base: Base<CanvasLayer>,
-  avatar_message: Option<Gd<CanvasLayer>>,
-  global_menu: Option<Gd<CanvasLayer>>,
-  texture_cache: HashMap<String, Gd<Texture2D>>,
 }
 
 #[godot_api]
 impl ICanvasLayer for Maiky {
   fn init(base: Base<Self::Base>) -> Self {
-    Self { base, avatar_message: None, global_menu: None, texture_cache: HashMap::new() }
+    Self { base }
   }
 }
 
 #[godot_api]
 impl Maiky {
-  #[signal]
-  fn start_game();
+
 
   #[func]
   pub fn show_avatar_message(
     &mut self,
+    key: GString,
     message: GString,
     background_image: GString,
     avatar_profile_pic: GString
   ) {
     let mut avatar_message_box = self.get_or_create_avatar_message_box(
+      &key,
       &background_image,
       &avatar_profile_pic
     );
@@ -159,7 +167,6 @@ impl Maiky {
   }
 
   fn load_texture_2d(&mut self, path: &GString) -> Gd<Texture2D> {
-  
     if let Some(texture) = self.texture_cache.get(path.to_string().as_str()) {
       return texture.clone();
     }
