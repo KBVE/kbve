@@ -9,7 +9,10 @@ pub struct MusicManager {
   audio: Option<Gd<AudioStreamPlayer>>,
   secondary_audio: Option<Gd<AudioStreamPlayer>>,
   effects: Option<Gd<AudioStreamPlayer>>,
+  sfx: Option<Gd<AudioStreamPlayer>>,
   effect_cache: HashMap<String, Gd<AudioStream>>,
+  global_music_volume: f32,
+  global_effects_volume: f32,
 }
 
 #[godot_api]
@@ -20,7 +23,10 @@ impl INode for MusicManager {
       audio: None,
       secondary_audio: None,
       effects: None,
+      sfx: None,
       effect_cache: HashMap::new(),
+      global_music_volume: 0.0,
+      global_effects_volume: 0.0,
     }
   }
 
@@ -28,11 +34,36 @@ impl INode for MusicManager {
     self.audio = self.get_or_create_audio_player("PrimaryAudioPlayer");
     self.secondary_audio = self.get_or_create_audio_player("SecondaryAudioPlayer");
     self.effects = self.get_or_create_audio_player("EffectsAudioPlayer");
+    self.sfx = self.get_or_create_audio_player("SFXAudioPlayer");
   }
 }
 
 #[godot_api]
 impl MusicManager {
+  #[signal]
+  fn global_music_volume_changed(volume_db: f32);
+
+  #[signal]
+  fn global_effects_volume_changed(volume_db: f32);
+
+  #[func]
+  pub fn set_global_music_volume(&mut self, volume_db: f32) {
+    self.global_music_volume = volume_db.clamp(-80.0, 0.0);
+    godot_print!("Global music volume set to: {} dB", self.global_music_volume);
+    let volume_variant = self.global_music_volume.to_variant();
+
+    self.base_mut().emit_signal("global_music_volume_changed", &[volume_variant]);
+  }
+
+  #[func]
+  pub fn set_global_effects_volume(&mut self, volume_db: f32) {
+    self.global_effects_volume = volume_db.clamp(-80.0, 0.0);
+    godot_print!("Global effects volume set to: {} dB", self.global_effects_volume);
+    let volume_variant = self.global_effects_volume.to_variant();
+
+    self.base_mut().emit_signal("global_effects_volume_changed",&[volume_variant]);
+  }
+
   #[func]
   pub fn play_effect(&mut self, effect_path: GString) {
     let effect_path = effect_path.to_string();
@@ -40,6 +71,7 @@ impl MusicManager {
     if let Some(effects_player) = self.effects.as_mut() {
       if let Some(audio_stream) = audio_stream {
         effects_player.set_stream(&audio_stream);
+        effects_player.set_volume_db(self.global_effects_volume);
         effects_player.play();
       }
     } else {

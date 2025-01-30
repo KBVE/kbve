@@ -49,7 +49,84 @@ impl ICanvasLayer for Maiky {
 
 #[godot_api]
 impl Maiky {
+  
+  #[func]
+  pub fn show_menu_canvas(
+    &mut self,
+    key: GString,
+    background_image: GString,
+    buttons: Array<Dictionary>
+  ) {
+    if let Some(mut existing_menu) = self.canvas_layer_cache.get(key.to_string().as_str()) {
+      existing_menu.show();
+      return;
+    }
 
+    let mut menu_layer = CanvasLayer::new_alloc();
+    menu_layer.set_name(format!("MenuCanvas_{}", key).as_str());
+    menu_layer.set_follow_viewport(true);
+    menu_layer.set_follow_viewport_scale(1.0);
+
+    let mut background_panel = self.create_rounded_panel(&background_image);
+    background_panel.set_name(format!("MenuBackground_{}", key).as_str());
+    background_panel.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    menu_layer.add_child(&background_panel);
+
+    let mut container = Control::new_alloc();
+    container.set_name(format!("ButtonContainer_{}", key).as_str());
+    container.set_anchors_preset(LayoutPreset::CENTER_TOP);
+
+    // TODO Dynmaic Resize Based Upon Buttons.
+    container.set_anchor_and_offset(Side::TOP, 0.0, 50.0);
+    container.set_custom_minimum_size(Vector2::new(300.0, 400.0));
+    menu_layer.add_child(&container);
+
+    for (i, entry) in buttons.iter_shared().enumerate() {
+      if let Ok(dict) = TryInto::<Dictionary>::try_into(entry) {
+        let title: GString = dict
+          .get("title")
+          .map(|v| v.to::<GString>())
+          .unwrap_or(GString::from("Button"));
+
+        let callback: Callable = dict
+          .get("fn")
+          .map(|v| v.to::<Callable>())
+          .unwrap_or(self.base().callable("placeholder_default_callback"));
+
+        let params: Array<Variant> = dict
+          .get("parameters")
+          .map(|v| v.to::<Array<Variant>>())
+          .unwrap_or(Array::new());
+
+        let mut button = Button::new_alloc();
+        button.set_name(format!("MenuButton_{}", i).as_str());
+        button.set_text(&title);
+        button.set_anchors_preset(LayoutPreset::CENTER_TOP);
+        button.set_anchor_and_offset(Side::TOP, 0.0, (i as f32) * 60.0);
+        let params_vec: Vec<Variant> = params.iter_shared().collect();
+        button.connect("pressed", &callback.bind(&params_vec));
+        container.add_child(&button);
+      } else {
+        godot_print!("[Debug] : Warning from maiky.rs -> Button Entry/Dictionary Error");
+      }
+    }
+
+    let mut close_button = Button::new_alloc();
+    close_button.set_name(format!("CloseMenuButton_{}", key).as_str());
+    close_button.set_text("Close");
+    close_button.set_anchors_preset(LayoutPreset::BOTTOM_RIGHT);
+    close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -20.0);
+    close_button.set_custom_minimum_size(Vector2::new(200.0, 50.0));
+    close_button.connect(
+      "pressed",
+      &self.base().callable("hide_menu_button").bind(&[key.to_variant()])
+    );
+
+    menu_layer.add_child(&close_button);
+    self.base_mut().add_child(&menu_layer);
+    self.canvas_layer_cache.insert(key.to_string().as_str(), menu_layer.clone());
+    menu_layer.show();
+  }
 
   #[func]
   pub fn show_avatar_message(
@@ -134,6 +211,11 @@ impl Maiky {
   }
 
   #[func]
+  fn placeholder_default_callback(&self) {
+    godot_print!("[Debug] -> Maiky.rs Callback Placeholder.");
+  }
+
+  #[func]
   fn hide_avatar_message(&mut self, key: GString) {
     let formatted_key = format!("AvatarMessageBox_{}", key);
     if
@@ -145,13 +227,10 @@ impl Maiky {
     }
   }
 
-
   #[func]
   fn hide_menu_canvas(&mut self, key: GString) {
     let formatted_key = format!("Menu_{}", key);
-    if
-      let Some(mut menu_box) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str())
-    {
+    if let Some(mut menu_box) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str()) {
       menu_box.hide();
     } else {
       godot_print!("Warning: Menu box '{}' not found.", formatted_key);

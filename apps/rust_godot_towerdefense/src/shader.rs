@@ -56,7 +56,7 @@ impl ShaderCache {
       "
             shader_type canvas_item;
             uniform float corner_radius = 20.0;
-            uniform vec4 color = vec4(0.0, 0.0, 0.0, 0.55);
+            uniform vec4 color = vec4(0.0, 0.0, 0.0, 0.10);
             uniform vec2 size = vec2(400.0, 200.0);
 
             void fragment() {
