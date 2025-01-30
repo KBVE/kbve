@@ -29,17 +29,28 @@ pub struct Maiky {
   base: Base<CanvasLayer>,
   texture_cache: ResourceCache<Texture2D>,
   canvas_layer_cache: ResourceCache<CanvasLayer>,
+  shader_cache: Gd<ShaderCache>,
 }
 
 #[godot_api]
 impl ICanvasLayer for Maiky {
   fn init(base: Base<Self::Base>) -> Self {
-    Self { base, texture_cache: ResourceCache::new(), canvas_layer_cache: ResourceCache::new() }
+    // let shader_cache = Gd::<ShaderCache>::default();
+    let shader_cache = Gd::from_init_fn(|base| ShaderCache::init(base));
+
+    Self {
+      base,
+      texture_cache: ResourceCache::new(),
+      canvas_layer_cache: ResourceCache::new(),
+      shader_cache,
+    }
   }
 }
 
 #[godot_api]
 impl Maiky {
+
+
   #[func]
   pub fn show_avatar_message(
     &mut self,
@@ -134,6 +145,19 @@ impl Maiky {
     }
   }
 
+
+  #[func]
+  fn hide_menu_canvas(&mut self, key: GString) {
+    let formatted_key = format!("Menu_{}", key);
+    if
+      let Some(mut menu_box) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str())
+    {
+      menu_box.hide();
+    } else {
+      godot_print!("Warning: Menu box '{}' not found.", formatted_key);
+    }
+  }
+
   fn load_texture_2d(&mut self, path: &GString) -> Gd<Texture2D> {
     if let Some(texture) = self.texture_cache.get(path.to_string().as_str()) {
       return texture.clone();
@@ -168,46 +192,13 @@ impl Maiky {
     container
   }
 
-  fn create_black_rounded_panel(&self) -> Gd<Panel> {
-    let shader_code =
-      "
-        shader_type canvas_item;
-        uniform float corner_radius = 20.0;
-        uniform vec4 color = vec4(0.0, 0.0, 0.0, 0.55);
-        uniform vec2 size = vec2(400.0, 200.0);
-
-        void fragment() {
-            vec2 scaled_size = size * UV;
-            vec2 pos = FRAGCOORD.xy - scaled_size / 2.0;
-
-            vec2 corner = max(abs(pos) - (scaled_size / 2.0 - corner_radius), 0.0);
-            float dist = length(corner) - corner_radius;
-
-            float alpha = smoothstep(0.0, 1.0, dist);
-
-            COLOR = vec4(color.rgb, color.a * (1.0 - alpha));
-        }
-    ";
-
-    let mut shader = Shader::new_gd();
-    shader.set_code(shader_code);
-
-    let mut shader_material = ShaderMaterial::new_gd();
-    shader_material.set_shader(&shader);
-
-    let mut panel = Panel::new_alloc();
-    panel.set_material(&shader_material);
-    panel.set_custom_minimum_size(Vector2::new(400.0, 200.0));
-
-    panel
-  }
-
-  fn create_black_rounded_panel_with_label(&self, message: &GString) -> Gd<Control> {
+  fn create_black_rounded_panel_with_label(&mut self, message: &GString) -> Gd<Control> {
     let mut container = Control::new_alloc();
     container.set_name("TextPanelContainer");
     container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
 
-    let mut panel = self.create_black_rounded_panel();
+    // let mut panel = self.create_black_rounded_panel();
+    let mut panel = self.shader_cache.bind_mut().create_black_rounded_panel();
     panel.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
     container.add_child(&panel);
 
