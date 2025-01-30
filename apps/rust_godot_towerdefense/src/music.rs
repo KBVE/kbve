@@ -96,20 +96,32 @@ impl MusicManager {
 
   #[func]
   pub fn adjust_music_volume(&mut self, volume_db: f32) {
-    if let Some(audio) = self.audio.as_mut() {
-      (*audio).set_volume_db(volume_db);
-    }
-
-    if let Some(secondary_audio) = self.secondary_audio.as_mut() {
-      (*secondary_audio).set_volume_db(volume_db);
-    }
+      self.global_music_volume = volume_db.clamp(-80.0, 0.0);
+      godot_print!("Music volume adjusted to: {} dB", self.global_music_volume);
+  
+      if let Some(audio) = self.audio.as_mut() {
+          audio.set_volume_db(self.global_music_volume);
+      }
+  
+      if let Some(secondary_audio) = self.secondary_audio.as_mut() {
+          secondary_audio.set_volume_db(self.global_music_volume);
+      }
+  
+      let volume_variant = self.global_music_volume.to_variant();
+      self.base_mut().emit_signal("global_music_volume_changed", &[volume_variant]);
   }
 
   #[func]
   pub fn adjust_effects_volume(&mut self, volume_db: f32) {
-    if let Some(effects) = self.effects.as_mut() {
-      (*effects).set_volume_db(volume_db);
-    }
+      self.global_effects_volume = volume_db.clamp(-80.0, 0.0);
+      godot_print!("Effects volume adjusted to: {} dB", self.global_effects_volume);
+  
+      if let Some(effects) = self.effects.as_mut() {
+          effects.set_volume_db(self.global_effects_volume);
+      }
+  
+      let volume_variant = self.global_effects_volume.to_variant();
+      self.base_mut().emit_signal("global_effects_volume_changed", &[volume_variant]);
   }
 
   fn get_or_create_audio_player(&mut self, name: &str) -> Option<Gd<AudioStreamPlayer>> {
@@ -144,7 +156,7 @@ impl MusicManager {
 
       let mut idle_instance = idle.clone();
       idle_instance.set_stream(&audio_stream.clone());
-      idle_instance.set_volume_db(0.0);
+      idle_instance.set_volume_db(self.global_music_volume);
       idle_instance.play();
     }
   }
@@ -171,7 +183,7 @@ impl MusicManager {
     active_player.stop();
 
     let mut idle_player = self.base_mut().get_node_as::<AudioStreamPlayer>(idle_name.arg());
-    idle_player.set_volume_db(0.0);
+    idle_player.set_volume_db(self.global_music_volume);
   }
 
   #[func]
