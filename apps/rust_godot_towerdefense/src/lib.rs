@@ -6,6 +6,7 @@ mod music;
 mod camera;
 mod hexmap;
 mod shader;
+mod cache;
 
 struct RustTowerDefense;
 

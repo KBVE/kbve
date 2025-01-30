@@ -5,54 +5,41 @@ use godot::classes::{
   Label,
   Timer,
   TextureRect,
-  Texture,
   Texture2D,
   ResourceLoader,
   RichTextLabel,
-  Tween,
   Control,
   Shader,
   Panel,
-  StyleBoxFlat,
   ShaderMaterial,
 };
 use godot::classes::texture_rect::StretchMode;
 use godot::classes::tween::{ TransitionType, EaseType };
 use godot::classes::control::LayoutPreset;
 use godot::classes::text_server::AutowrapMode;
-use std::collections::HashMap;
-use std::sync::{ Arc, Lazy, Mutex };
 
 use godot::prelude::*;
-use std::time::{ Duration, Instant };
 
 use crate::shader::ShaderCache;
-
-static TEXTURE2D_CACHE: Lazy<Mutex<HashMap<String, Arc<Gd<Texture2D>>>>> = Lazy::new(||
-  Mutex::new(HashMap::new())
-);
-
-static CANVASLAYER_CACHE: Lazy<Mutex<HashMap<String, Arc<Gd<CanvasLayer>>>>> = Lazy::new(||
-  Mutex::new(HashMap::new())
-);
+use crate::cache::ResourceCache;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
 pub struct Maiky {
   base: Base<CanvasLayer>,
+  texture_cache: ResourceCache<Texture2D>,
+  canvas_layer_cache: ResourceCache<CanvasLayer>,
 }
 
 #[godot_api]
 impl ICanvasLayer for Maiky {
   fn init(base: Base<Self::Base>) -> Self {
-    Self { base }
+    Self { base, texture_cache: ResourceCache::new(), canvas_layer_cache: ResourceCache::new() }
   }
 }
 
 #[godot_api]
 impl Maiky {
-
-
   #[func]
   pub fn show_avatar_message(
     &mut self,
@@ -63,45 +50,20 @@ impl Maiky {
   ) {
     let mut avatar_message_box = self.get_or_create_avatar_message_box(
       &key,
+      &message,
       &background_image,
       &avatar_profile_pic
     );
 
-    let mut avatar_message_panel = avatar_message_box
-      .try_get_node_as::<Control>("AvatarMessagePanel")
-      .expect("Failed to find AvatarMessagePanel");
-
-    let mut message_label = avatar_message_panel
-      .try_get_node_as::<RichTextLabel>("AvatarMessageLabel")
-      .expect("Failed to find AvatarMessageLabel");
-
-    message_label.set_visible_ratio(0.0);
-    message_label.append_text(&message);
-    let char_count = message.len();
-    let base_duration = 2.0;
-    let extra_duration = (char_count / 30) as f64;
-    let duration = base_duration + extra_duration;
-
-    if let Some(mut tween) = self.base_mut().create_tween() {
-      if
-        let Some(mut tweener) = tween.tween_property(
-          &message_label.upcast::<Object>(),
-          "visible_ratio",
-          &Variant::from(1.0),
-          duration
-        )
-      {
-        tweener.set_ease(EaseType::IN_OUT);
-        tweener.set_trans(TransitionType::LINEAR);
-      }
-    } else {
-      godot_print!("Failed to create Tween.");
-    }
+    self.base_mut().add_child(&avatar_message_box);
 
     let mut timer = Timer::new_alloc();
     timer.set_one_shot(true);
     timer.set_wait_time(30.0);
-    timer.connect("timeout", &self.base().callable("hide_avatar_message"));
+    timer.connect(
+      "timeout",
+      &self.base().callable("hide_avatar_message").bind(&[key.to_variant()])
+    );
     self.base_mut().add_child(&timer);
     timer.start();
 
@@ -110,59 +72,65 @@ impl Maiky {
 
   fn get_or_create_avatar_message_box(
     &mut self,
+    key: &GString,
+    message: &GString,
     background_image: &GString,
     avatar_profile_pic: &GString
   ) -> Gd<CanvasLayer> {
-    if let Some(avatar_box) = &self.avatar_message {
-      avatar_box.clone()
-    } else {
-      let mut new_avatar_box = CanvasLayer::new_alloc();
-      new_avatar_box.set_name("AvatarMessageBox");
-      new_avatar_box.set_offset(Vector2::new(0.0, 0.0));
-      new_avatar_box.set_scale(Vector2::new(0.65, 0.65));
-      new_avatar_box.set_follow_viewport(true);
-      new_avatar_box.set_follow_viewport_scale(1.0);
-
-      let mut background_panel = self.create_rounded_panel(background_image);
-      background_panel.set_name("BackgroundPanel");
-      new_avatar_box.add_child(&background_panel);
-
-      let mut avatar_picture = TextureRect::new_alloc();
-      avatar_picture.set_name("AvatarProfilePic");
-      avatar_picture.set_stretch_mode(StretchMode::KEEP_ASPECT_CENTERED);
-      avatar_picture.set_texture(Some(&self.load_texture_2d(avatar_profile_pic)));
-      avatar_picture.set_anchor(Side::LEFT, 0.0);
-      avatar_picture.set_anchor(Side::BOTTOM, 1.0);
-      avatar_picture.set_offset(Side::LEFT, 10.0);
-      avatar_picture.set_offset(Side::BOTTOM, 120.0);
-      avatar_picture.set_custom_minimum_size(Vector2::new(80.0, 80.0));
-      new_avatar_box.add_child(&avatar_picture);
-
-      let mut avatar_message_panel = self.create_black_rounded_panel_with_label();
-      avatar_message_panel.set_name("AvatarMessagePanel");
-      new_avatar_box.add_child(&avatar_message_panel);
-
-      let mut close_button = Button::new_alloc();
-      close_button.set_name("CloseButton");
-      close_button.set_text("Close");
-      close_button.set_anchors_preset(LayoutPreset::BOTTOM_RIGHT);
-      close_button.set_anchor_and_offset(Side::RIGHT, 1.0, 10.0);
-      close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -100.0);
-      close_button.set_custom_minimum_size(Vector2::new(100.0, 50.0));
-      close_button.connect("pressed", &self.base().callable("hide_avatar_message"));
-      new_avatar_box.add_child(&close_button);
-
-      self.base_mut().add_child(&new_avatar_box);
-      self.avatar_message = Some(new_avatar_box.clone());
-
-      new_avatar_box
+    if let Some(avatar_box) = self.canvas_layer_cache.get(key.to_string().as_str()) {
+      return avatar_box;
     }
+    let mut new_avatar_box = CanvasLayer::new_alloc();
+    new_avatar_box.set_name(format!("AvatarMessageBox_{}", key).as_str());
+    new_avatar_box.set_offset(Vector2::new(0.0, 0.0));
+    new_avatar_box.set_scale(Vector2::new(0.65, 0.65));
+    new_avatar_box.set_follow_viewport(true);
+    new_avatar_box.set_follow_viewport_scale(1.0);
+
+    let mut background_panel = self.create_rounded_panel(background_image);
+    background_panel.set_name(format!("BackgroundPanel_{}", key).as_str());
+    new_avatar_box.add_child(&background_panel);
+
+    let mut avatar_picture = TextureRect::new_alloc();
+    avatar_picture.set_name(format!("AvatarProfilePic_{}", key).as_str());
+    avatar_picture.set_stretch_mode(StretchMode::KEEP_ASPECT_CENTERED);
+    avatar_picture.set_texture(Some(&self.load_texture_2d(avatar_profile_pic)));
+    avatar_picture.set_anchor(Side::LEFT, 0.0);
+    avatar_picture.set_anchor(Side::BOTTOM, 1.0);
+    avatar_picture.set_offset(Side::LEFT, 10.0);
+    avatar_picture.set_offset(Side::BOTTOM, 120.0);
+    avatar_picture.set_custom_minimum_size(Vector2::new(80.0, 80.0));
+    new_avatar_box.add_child(&avatar_picture);
+
+    let mut avatar_message_panel = self.create_black_rounded_panel_with_label(&message);
+    avatar_message_panel.set_name(format!("AvatarMessagePanel_{}", key).as_str());
+    new_avatar_box.add_child(&avatar_message_panel);
+
+    let mut close_button = Button::new_alloc();
+    close_button.set_name("CloseButton");
+    close_button.set_text("Close");
+    close_button.set_anchors_preset(LayoutPreset::BOTTOM_RIGHT);
+    close_button.set_anchor_and_offset(Side::RIGHT, 1.0, 10.0);
+    close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -100.0);
+    close_button.set_custom_minimum_size(Vector2::new(100.0, 50.0));
+    close_button.connect(
+      "pressed",
+      &self.base().callable("hide_avatar_message").bind(&[key.to_variant()])
+    );
+    new_avatar_box.add_child(&close_button);
+    self.canvas_layer_cache.insert("avatar_message_box", new_avatar_box.clone());
+    new_avatar_box
   }
 
   #[func]
-  fn hide_avatar_message(&mut self) {
-    if let Some(avatar_box) = self.avatar_message.as_mut() {
+  fn hide_avatar_message(&mut self, key: GString) {
+    let formatted_key = format!("AvatarMessageBox_{}", key);
+    if
+      let Some(mut avatar_box) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str())
+    {
       avatar_box.hide();
+    } else {
+      godot_print!("Warning: Avatar message box '{}' not found.", formatted_key);
     }
   }
 
@@ -180,7 +148,7 @@ impl Maiky {
         Texture2D::new_gd()
       });
 
-    self.texture_cache.insert(path.to_string(), texture.clone());
+    self.texture_cache.insert(path.to_string().as_str(), texture.clone());
     texture
   }
 
@@ -209,7 +177,7 @@ impl Maiky {
         uniform vec2 size = vec2(400.0, 200.0);
 
         void fragment() {
-            vec2 scaled_size = size * UV
+            vec2 scaled_size = size * UV;
             vec2 pos = FRAGCOORD.xy - scaled_size / 2.0;
 
             vec2 corner = max(abs(pos) - (scaled_size / 2.0 - corner_radius), 0.0);
@@ -234,7 +202,7 @@ impl Maiky {
     panel
   }
 
-  fn create_black_rounded_panel_with_label(&self) -> Gd<Control> {
+  fn create_black_rounded_panel_with_label(&self, message: &GString) -> Gd<Control> {
     let mut container = Control::new_alloc();
     container.set_name("TextPanelContainer");
     container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
@@ -265,8 +233,30 @@ impl Maiky {
     message_label.add_theme_font_size_override("normal_font_size", 40);
     message_label.push_outline_size(6);
     message_label.push_outline_color(Color::from_rgb(0.0, 0.0, 0.0));
-    message_label.set_visible_ratio(1.0);
+    message_label.set_visible_ratio(0.0);
+    message_label.append_text(message);
     container.add_child(&message_label);
+
+    let char_count = message.len();
+    let base_duration = 2.0;
+    let extra_duration = (char_count / 30) as f64;
+    let duration = base_duration + extra_duration;
+
+    if let Some(mut tween) = container.create_tween() {
+      if
+        let Some(mut tweener) = tween.tween_property(
+          &message_label.upcast::<Object>(),
+          "visible_ratio",
+          &Variant::from(1.0),
+          duration
+        )
+      {
+        tweener.set_ease(EaseType::IN_OUT);
+        tweener.set_trans(TransitionType::LINEAR);
+      }
+    } else {
+      godot_print!("Failed to create Tween.");
+    }
 
     container
   }

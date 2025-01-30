@@ -1,19 +1,13 @@
-use std::collections::HashMap;
-use std::sync::{ Arc, Mutex, Lazy };
 use godot::prelude::*;
 use godot::classes::{ Panel, ShaderMaterial, Shader };
-
-static SHADER_CACHE: Lazy<Mutex<HashMap<String, Arc<Gd<Shader>>>>> = Lazy::new(||
-  Mutex::new(HashMap::new())
-);
-static SHADER_MATERIAL_CACHE: Lazy<Mutex<HashMap<String, Arc<Gd<ShaderMaterial>>>>> = Lazy::new(||
-  Mutex::new(HashMap::new())
-);
+use crate::cache::ResourceCache;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct ShaderCache {
   base: Base<Node>,
+  shader_cache: ResourceCache<Shader>,
+  material_cache: ResourceCache<ShaderMaterial>,
 }
 
 #[godot_api]
@@ -21,40 +15,40 @@ impl INode for ShaderCache {
   fn init(base: Base<Node>) -> Self {
     ShaderCache {
       base,
+      shader_cache: ResourceCache::new(),
+      material_cache: ResourceCache::new(),
     }
   }
 }
 
 #[godot_api]
 impl ShaderCache {
-  pub fn get_or_create_shader(&self, key: &str, shader_code: &str) -> Arc<Gd<Shader>> {
-    let mut cache = SHADER_CACHE.lock().unwrap();
-    if let Some(shader) = cache.get(key) {
-      return shader.clone();
+  pub fn get_or_create_shader(&mut self, key: &str, shader_code: &str) -> Gd<Shader> {
+    if let Some(shader) = self.shader_cache.get(key) {
+      return shader;
     }
 
     let mut shader = Shader::new_gd();
     shader.set_code(shader_code);
-    let shader_arc = Arc::new(shader);
-    cache.insert(key.to_string(), shader_arc.clone());
-    shader_arc
+
+    self.shader_cache.insert(key, shader.clone());
+    shader
   }
 
   pub fn get_or_create_shader_material(
     &self,
     key: &str,
-    shader: &Arc<Gd<Shader>>
-  ) -> Arc<Gd<ShaderMaterial>> {
-    let mut cache = SHADER_MATERIAL_CACHE.lock().unwrap();
-    if let Some(material) = cache.get(key) {
-      return material.clone();
+    shader: &Gd<Shader>
+  ) -> Gd<ShaderMaterial> {
+    if let Some(material) = self.material_cache.get(key) {
+      return material;
     }
 
     let mut shader_material = ShaderMaterial::new_gd();
     shader_material.set_shader(shader);
-    let material_arc = Arc::new(shader_material);
-    cache.insert(key.to_string(), material_arc.clone());
-    material_arc
+
+    self.material_cache.insert(key, shader_material.clone());
+    shader_material
   }
 
   pub fn create_black_rounded_panel(&mut self) -> Gd<Panel> {
