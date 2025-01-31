@@ -10,6 +10,7 @@ func _ready():
 		music_manager = MusicManager.new()
 		music_manager.name = "MusicManager"
 		add_child(music_manager)
+		music_manager.adjust_sfx_volume(-20.0)
 		music_manager.adjust_effects_volume(-20.0)
 		music_manager.adjust_music_volume(-20.0)
 		print("MusicManager initialized and added to the scene tree!")

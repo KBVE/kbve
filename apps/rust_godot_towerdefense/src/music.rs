@@ -11,8 +11,10 @@ pub struct MusicManager {
   effects: Option<Gd<AudioStreamPlayer>>,
   sfx: Option<Gd<AudioStreamPlayer>>,
   effect_cache: HashMap<String, Gd<AudioStream>>,
+  sfx_cache: HashMap<String, Gd<AudioStream>>,
   global_music_volume: f32,
   global_effects_volume: f32,
+  global_sfx_volume: f32,
 }
 
 #[godot_api]
@@ -25,8 +27,10 @@ impl INode for MusicManager {
       effects: None,
       sfx: None,
       effect_cache: HashMap::new(),
+      sfx_cache: HashMap::new(),
       global_music_volume: 0.0,
       global_effects_volume: 0.0,
+      global_sfx_volume: 0.0,
     }
   }
 
@@ -35,6 +39,12 @@ impl INode for MusicManager {
     self.secondary_audio = self.get_or_create_audio_player("SecondaryAudioPlayer");
     self.effects = self.get_or_create_audio_player("EffectsAudioPlayer");
     self.sfx = self.get_or_create_audio_player("SFXAudioPlayer");
+
+    let callable = self.base().callable("play_effect");
+    self.base_mut().connect("effect_play_requested", &callable);
+
+    let sfx_callable = self.base().callable("play_sfx");
+    self.base_mut().connect("sfx_play_requested", &sfx_callable);
   }
 }
 
@@ -45,6 +55,25 @@ impl MusicManager {
 
   #[signal]
   fn global_effects_volume_changed(volume_db: f32);
+
+  #[signal]
+  fn global_sfx_volume_changed(volume_db: f32);
+
+  #[signal]
+  fn effect_play_requested(effect_path: GString);
+
+  #[signal]
+  fn sfx_play_requested(sfx_path: GString);
+
+  #[func]
+  pub fn request_play_effect(&mut self, effect_path: GString) {
+    self.base_mut().emit_signal("effect_play_requested", &[effect_path.to_variant()]);
+  }
+
+  #[func]
+  pub fn request_play_sfx(&mut self, sfx_path: GString) {
+    self.base_mut().emit_signal("sfx_play_requested", &[sfx_path.to_variant()]);
+  }
 
   #[func]
   pub fn set_global_music_volume(&mut self, volume_db: f32) {
@@ -61,7 +90,15 @@ impl MusicManager {
     godot_print!("Global effects volume set to: {} dB", self.global_effects_volume);
     let volume_variant = self.global_effects_volume.to_variant();
 
-    self.base_mut().emit_signal("global_effects_volume_changed",&[volume_variant]);
+    self.base_mut().emit_signal("global_effects_volume_changed", &[volume_variant]);
+  }
+
+  #[func]
+  pub fn set_global_sfx_volume(&mut self, volume_db: f32) {
+    self.global_sfx_volume = volume_db.clamp(-80.0, 0.0);
+    godot_print!("Global SFX volume set to: {} dB", self.global_sfx_volume);
+    let volume_variant = self.global_sfx_volume.to_variant();
+    self.base_mut().emit_signal("global_sfx_volume_changed", &[volume_variant]);
   }
 
   #[func]
@@ -70,12 +107,31 @@ impl MusicManager {
     let audio_stream = self.get_or_cache_effect(&effect_path);
     if let Some(effects_player) = self.effects.as_mut() {
       if let Some(audio_stream) = audio_stream {
+        if effects_player.is_playing() {
+          return;
+        }
+
         effects_player.set_stream(&audio_stream);
         effects_player.set_volume_db(self.global_effects_volume);
         effects_player.play();
       }
     } else {
       godot_warn!("Effects audio player is not initialized.");
+    }
+  }
+
+  fn get_or_cache_sfx(&mut self, sfx_path: &str) -> Option<Gd<AudioStream>> {
+    if let Some(sfx) = self.sfx_cache.get(sfx_path) {
+      return Some(sfx.clone());
+    }
+
+    let audio_stream: Gd<AudioStream> = load::<AudioStream>(sfx_path);
+    if audio_stream.is_instance_valid() {
+      self.sfx_cache.insert(sfx_path.to_string(), audio_stream.clone());
+      Some(audio_stream)
+    } else {
+      godot_warn!("Failed to load SFX from path: {}", sfx_path);
+      None
     }
   }
 
@@ -95,33 +151,46 @@ impl MusicManager {
   }
 
   #[func]
+  pub fn adjust_sfx_volume(&mut self, volume_db: f32) {
+    self.global_sfx_volume = volume_db.clamp(-80.0, 0.0);
+    godot_print!("SFX volume adjusted to: {} dB", self.global_sfx_volume);
+
+    if let Some(sfx_player) = self.sfx.as_mut() {
+      sfx_player.set_volume_db(self.global_sfx_volume);
+    }
+
+    let volume_variant = self.global_sfx_volume.to_variant();
+    self.base_mut().emit_signal("global_sfx_volume_changed", &[volume_variant]);
+  }
+
+  #[func]
   pub fn adjust_music_volume(&mut self, volume_db: f32) {
-      self.global_music_volume = volume_db.clamp(-80.0, 0.0);
-      godot_print!("Music volume adjusted to: {} dB", self.global_music_volume);
-  
-      if let Some(audio) = self.audio.as_mut() {
-          audio.set_volume_db(self.global_music_volume);
-      }
-  
-      if let Some(secondary_audio) = self.secondary_audio.as_mut() {
-          secondary_audio.set_volume_db(self.global_music_volume);
-      }
-  
-      let volume_variant = self.global_music_volume.to_variant();
-      self.base_mut().emit_signal("global_music_volume_changed", &[volume_variant]);
+    self.global_music_volume = volume_db.clamp(-80.0, 0.0);
+    godot_print!("Music volume adjusted to: {} dB", self.global_music_volume);
+
+    if let Some(audio) = self.audio.as_mut() {
+      audio.set_volume_db(self.global_music_volume);
+    }
+
+    if let Some(secondary_audio) = self.secondary_audio.as_mut() {
+      secondary_audio.set_volume_db(self.global_music_volume);
+    }
+
+    let volume_variant = self.global_music_volume.to_variant();
+    self.base_mut().emit_signal("global_music_volume_changed", &[volume_variant]);
   }
 
   #[func]
   pub fn adjust_effects_volume(&mut self, volume_db: f32) {
-      self.global_effects_volume = volume_db.clamp(-80.0, 0.0);
-      godot_print!("Effects volume adjusted to: {} dB", self.global_effects_volume);
-  
-      if let Some(effects) = self.effects.as_mut() {
-          effects.set_volume_db(self.global_effects_volume);
-      }
-  
-      let volume_variant = self.global_effects_volume.to_variant();
-      self.base_mut().emit_signal("global_effects_volume_changed", &[volume_variant]);
+    self.global_effects_volume = volume_db.clamp(-80.0, 0.0);
+    godot_print!("Effects volume adjusted to: {} dB", self.global_effects_volume);
+
+    if let Some(effects) = self.effects.as_mut() {
+      effects.set_volume_db(self.global_effects_volume);
+    }
+
+    let volume_variant = self.global_effects_volume.to_variant();
+    self.base_mut().emit_signal("global_effects_volume_changed", &[volume_variant]);
   }
 
   fn get_or_create_audio_player(&mut self, name: &str) -> Option<Gd<AudioStreamPlayer>> {

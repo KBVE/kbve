@@ -296,11 +296,11 @@ impl Maiky {
 
   #[func]
   fn hide_menu_canvas(&mut self, key: GString) {
-    let formatted_key = format!("Menu_{}", key);
+    let formatted_key = format!("MenuCanvas_{}", key);
     if let Some(mut menu_box) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str()) {
       menu_box.hide();
     } else {
-      godot_print!("Warning: Menu box '{}' not found.", formatted_key);
+      godot_print!("Warning: Menu Canvas '{}' not found.", formatted_key);
     }
   }
 
