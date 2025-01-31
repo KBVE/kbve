@@ -17,6 +17,7 @@ use godot::classes::texture_rect::StretchMode;
 use godot::classes::tween::{ TransitionType, EaseType };
 use godot::classes::control::LayoutPreset;
 use godot::classes::text_server::AutowrapMode;
+use godot::classes::texture_rect::ExpandMode;
 
 use godot::prelude::*;
 
@@ -29,17 +30,123 @@ pub struct Maiky {
   base: Base<CanvasLayer>,
   texture_cache: ResourceCache<Texture2D>,
   canvas_layer_cache: ResourceCache<CanvasLayer>,
+  shader_cache: Gd<ShaderCache>,
 }
 
 #[godot_api]
 impl ICanvasLayer for Maiky {
   fn init(base: Base<Self::Base>) -> Self {
-    Self { base, texture_cache: ResourceCache::new(), canvas_layer_cache: ResourceCache::new() }
+    // let shader_cache = Gd::<ShaderCache>::default();
+    let shader_cache = Gd::from_init_fn(|base| ShaderCache::init(base));
+
+    Self {
+      base,
+      texture_cache: ResourceCache::new(),
+      canvas_layer_cache: ResourceCache::new(),
+      shader_cache,
+    }
   }
 }
 
 #[godot_api]
 impl Maiky {
+  #[func]
+  pub fn show_menu_canvas(
+    &mut self,
+    key: GString,
+    background_image: GString,
+    button_image: GString,
+    buttons: Array<Variant>
+  ) {
+    if let Some(mut existing_menu) = self.canvas_layer_cache.get(key.to_string().as_str()) {
+      existing_menu.show();
+      return;
+    }
+
+    let mut menu_layer = CanvasLayer::new_alloc();
+    menu_layer.set_name(format!("MenuCanvas_{}", key).as_str());
+    menu_layer.set_follow_viewport(true);
+    menu_layer.set_follow_viewport_scale(1.0);
+
+    let mut background_panel = self.create_rounded_panel(&background_image);
+    background_panel.set_name(format!("MenuBackground_{}", key).as_str());
+    background_panel.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    menu_layer.add_child(&background_panel);
+
+    let mut container = Control::new_alloc();
+    container.set_name(format!("ButtonContainer_{}", key).as_str());
+    container.set_anchors_preset(LayoutPreset::CENTER_TOP);
+
+    // TODO Dynmaic Resize Based Upon Buttons.
+    container.set_anchor_and_offset(Side::TOP, 0.0, 50.0);
+    container.set_custom_minimum_size(Vector2::new(300.0, 400.0));
+    menu_layer.add_child(&container);
+
+    for (i, entry) in buttons.iter_shared().enumerate() {
+      if let Ok(button_data) = entry.try_to::<Array<Variant>>() {
+        if button_data.len() >= 2 {
+          let title = button_data
+            .get(0)
+            .and_then(|v| Some(v.to::<GString>()))
+            .unwrap_or(GString::from("Button"));
+
+          let callback = button_data
+            .get(1)
+            .and_then(|v| Some(v.to::<Callable>()))
+            .unwrap_or(self.base().callable("placeholder_default_callback"));
+
+          let params = button_data
+            .get(2)
+            .and_then(|v| Some(v.try_to::<Array<Variant>>()))
+            .unwrap_or(Ok(Array::new()));
+
+          let button_size = Vector2::new(200.0, 80.0);
+
+          let mut button_container = self.create_button_background_panel(
+            &button_image,
+            button_size
+          );
+          button_container.set_name(format!("ButtonContainer_{}_{}", key, i).as_str());
+          button_container.set_anchors_preset(LayoutPreset::CENTER_TOP);
+          button_container.set_anchor_and_offset(Side::TOP, 0.0, (i as f32) * 100.0);
+          button_container.set_custom_minimum_size(button_size);
+
+          let mut button = Button::new_alloc();
+          button.set_name(format!("MenuButton_{}_{}", key, i).as_str());
+          button.set_text(&title);
+          button.set_anchors_preset(LayoutPreset::FULL_RECT);
+          button.set_anchor_and_offset(Side::TOP, 0.0, 0.0);
+          button.set_custom_minimum_size(button_size);
+
+          let params_vec: Vec<Variant> = params
+            .expect("[Debug] Error Maiky.rs")
+            .iter_shared()
+            .collect();
+          button.connect("pressed", &callback.bind(&params_vec));
+
+          button_container.add_child(&button);
+          container.add_child(&button_container);
+        }
+      }
+    }
+
+    let mut close_button = Button::new_alloc();
+    close_button.set_name(format!("CloseMenuButton_{}", key).as_str());
+    close_button.set_text("Close");
+    close_button.set_anchors_preset(LayoutPreset::BOTTOM_RIGHT);
+    close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -20.0);
+    close_button.set_custom_minimum_size(Vector2::new(200.0, 50.0));
+    close_button.connect(
+      "pressed",
+      &self.base().callable("hide_menu_canvas").bind(&[key.to_variant()])
+    );
+
+    menu_layer.add_child(&close_button);
+    self.base_mut().add_child(&menu_layer);
+    self.canvas_layer_cache.insert(key.to_string().as_str(), menu_layer.clone());
+    menu_layer.show();
+  }
+
   #[func]
   pub fn show_avatar_message(
     &mut self,
@@ -55,19 +162,31 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    self.base_mut().add_child(&avatar_message_box);
+    // self.base_mut().add_child(&avatar_message_box);
 
-    let mut timer = Timer::new_alloc();
-    timer.set_one_shot(true);
+    let timer_key = format!("AvatarMessageTimer_{}", key);
+
+    let mut timer = if
+      let Some(existing_timer) = self.base().try_get_node_as::<Timer>(timer_key.as_str())
+    {
+      existing_timer
+    } else {
+      let mut new_timer = Timer::new_alloc();
+      new_timer.set_name(timer_key.as_str());
+      new_timer.set_one_shot(true);
+      self.base_mut().add_child(&new_timer);
+      new_timer.connect(
+        "timeout",
+        &self.base().callable("hide_avatar_message").bind(&[key.to_variant()])
+      );
+      new_timer
+    };
+
+    timer.stop();
     timer.set_wait_time(30.0);
-    timer.connect(
-      "timeout",
-      &self.base().callable("hide_avatar_message").bind(&[key.to_variant()])
-    );
-    self.base_mut().add_child(&timer);
     timer.start();
 
-    avatar_message_box.show();
+    // avatar_message_box.show();
   }
 
   fn get_or_create_avatar_message_box(
@@ -77,11 +196,18 @@ impl Maiky {
     background_image: &GString,
     avatar_profile_pic: &GString
   ) -> Gd<CanvasLayer> {
-    if let Some(avatar_box) = self.canvas_layer_cache.get(key.to_string().as_str()) {
-      return avatar_box;
+    let avatar_box_key = format!("AvatarMessageBox_{}", key);
+
+    if let Some(avatar_box) = self.canvas_layer_cache.get(avatar_box_key.as_str()) {
+      let mut avatar_box_mut = avatar_box.clone();
+      self.update_message_label(&mut avatar_box_mut, key, message);
+      avatar_box_mut.show();
+      self.canvas_layer_cache.insert(avatar_box_key.as_str(), avatar_box_mut.clone());
+      return avatar_box_mut;
     }
+    33;
     let mut new_avatar_box = CanvasLayer::new_alloc();
-    new_avatar_box.set_name(format!("AvatarMessageBox_{}", key).as_str());
+    new_avatar_box.set_name(avatar_box_key.as_str());
     new_avatar_box.set_offset(Vector2::new(0.0, 0.0));
     new_avatar_box.set_scale(Vector2::new(0.65, 0.65));
     new_avatar_box.set_follow_viewport(true);
@@ -89,37 +215,71 @@ impl Maiky {
 
     let mut background_panel = self.create_rounded_panel(background_image);
     background_panel.set_name(format!("BackgroundPanel_{}", key).as_str());
-    new_avatar_box.add_child(&background_panel);
-
-    let mut avatar_picture = TextureRect::new_alloc();
-    avatar_picture.set_name(format!("AvatarProfilePic_{}", key).as_str());
-    avatar_picture.set_stretch_mode(StretchMode::KEEP_ASPECT_CENTERED);
-    avatar_picture.set_texture(Some(&self.load_texture_2d(avatar_profile_pic)));
-    avatar_picture.set_anchor(Side::LEFT, 0.0);
-    avatar_picture.set_anchor(Side::BOTTOM, 1.0);
-    avatar_picture.set_offset(Side::LEFT, 10.0);
-    avatar_picture.set_offset(Side::BOTTOM, 120.0);
-    avatar_picture.set_custom_minimum_size(Vector2::new(80.0, 80.0));
-    new_avatar_box.add_child(&avatar_picture);
-
-    let mut avatar_message_panel = self.create_black_rounded_panel_with_label(&message);
-    avatar_message_panel.set_name(format!("AvatarMessagePanel_{}", key).as_str());
-    new_avatar_box.add_child(&avatar_message_panel);
+    background_panel.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
 
     let mut close_button = Button::new_alloc();
-    close_button.set_name("CloseButton");
+    close_button.set_name(format!("Close_{}", key).as_str());
     close_button.set_text("Close");
     close_button.set_anchors_preset(LayoutPreset::BOTTOM_RIGHT);
-    close_button.set_anchor_and_offset(Side::RIGHT, 1.0, 10.0);
-    close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -100.0);
+    close_button.set_anchor_and_offset(Side::RIGHT, 1.0, -20.0);
+    close_button.set_anchor_and_offset(Side::BOTTOM, 1.0, -20.0);
     close_button.set_custom_minimum_size(Vector2::new(100.0, 50.0));
     close_button.connect(
       "pressed",
       &self.base().callable("hide_avatar_message").bind(&[key.to_variant()])
     );
-    new_avatar_box.add_child(&close_button);
-    self.canvas_layer_cache.insert("avatar_message_box", new_avatar_box.clone());
+    background_panel.add_child(&close_button);
+
+
+    let mut avatar_container = Control::new_alloc();
+    avatar_container.set_name(format!("AvatarProfilePicContainer_{}", key).as_str());
+    avatar_container.set_anchors_preset(LayoutPreset::CENTER_LEFT);
+    avatar_container.set_custom_minimum_size(Vector2::new(200.0, 200.0));
+    avatar_container.set_anchor_and_offset(Side::LEFT, 0.0, 20.0);
+    avatar_container.set_anchor_and_offset(Side::BOTTOM, 1.0, -20.0);
+
+    let mut avatar_picture = TextureRect::new_alloc();
+    avatar_picture.set_name(format!("AvatarProfilePic_{}", key).as_str());
+    avatar_picture.set_texture(Some(&self.load_texture_2d(avatar_profile_pic)));
+    avatar_picture.set_expand_mode(ExpandMode::FIT_HEIGHT_PROPORTIONAL);
+    avatar_picture.set_anchors_preset(LayoutPreset::FULL_RECT);
+    avatar_picture.set_custom_minimum_size(Vector2::new(200.0, 200.0));
+
+    avatar_container.add_child(&avatar_picture);
+    background_panel.add_child(&avatar_container);
+    new_avatar_box.add_child(&background_panel);
+
+    let mut avatar_message_panel = self.create_black_rounded_panel_with_label(&message);
+    avatar_message_panel.set_name(format!("AvatarMessagePanel_{}", key).as_str());
+    new_avatar_box.add_child(&avatar_message_panel);
+
+
+    self.canvas_layer_cache.insert(avatar_box_key.as_str(), new_avatar_box.clone());
+    self.base_mut().add_child(&new_avatar_box);
+    new_avatar_box.show();
     new_avatar_box
+  }
+
+  fn update_message_label(
+    &mut self,
+    avatar_box: &mut Gd<CanvasLayer>,
+    key: &GString,
+    new_message: &GString
+  ) {
+    let message_panel_name = format!("AvatarMessagePanel_{}", key);
+
+    if let Some(mut old_panel) = avatar_box.try_get_node_as::<Control>(message_panel_name.as_str()) {
+      avatar_box.remove_child(&old_panel);
+    }
+
+    let mut new_panel = self.create_black_rounded_panel_with_label(new_message);
+    new_panel.set_name(message_panel_name.as_str());
+    avatar_box.add_child(&new_panel);
+  }
+
+  #[func]
+  fn placeholder_default_callback(&self) {
+    godot_print!("[Debug] -> Maiky.rs Callback Placeholder.");
   }
 
   #[func]
@@ -131,6 +291,16 @@ impl Maiky {
       avatar_box.hide();
     } else {
       godot_print!("Warning: Avatar message box '{}' not found.", formatted_key);
+    }
+  }
+
+  #[func]
+  fn hide_menu_canvas(&mut self, key: GString) {
+    let formatted_key = format!("MenuCanvas_{}", key);
+    if let Some(mut menu_box) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str()) {
+      menu_box.hide();
+    } else {
+      godot_print!("Warning: Menu Canvas '{}' not found.", formatted_key);
     }
   }
 
@@ -152,6 +322,28 @@ impl Maiky {
     texture
   }
 
+  fn create_button_background_panel(
+    &mut self,
+    button_image: &GString,
+    size: Vector2
+  ) -> Gd<Control> {
+    let mut container = Control::new_alloc();
+
+    container.set_name("ButtonBackgroundContainer");
+    container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+    container.set_custom_minimum_size(size);
+
+    let mut background = TextureRect::new_alloc();
+    background.set_name("ButtonBackgroundImage");
+    background.set_expand_mode(ExpandMode::FIT_WIDTH_PROPORTIONAL);
+    background.set_texture(Some(&self.load_texture_2d(button_image)));
+    background.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+
+    container.add_child(&background);
+
+    container
+  }
+
   fn create_rounded_panel(&mut self, background_image: &GString) -> Gd<Control> {
     let mut container = Control::new_alloc();
     container.set_name("RoundedPanelContainer");
@@ -168,46 +360,13 @@ impl Maiky {
     container
   }
 
-  fn create_black_rounded_panel(&self) -> Gd<Panel> {
-    let shader_code =
-      "
-        shader_type canvas_item;
-        uniform float corner_radius = 20.0;
-        uniform vec4 color = vec4(0.0, 0.0, 0.0, 0.55);
-        uniform vec2 size = vec2(400.0, 200.0);
-
-        void fragment() {
-            vec2 scaled_size = size * UV;
-            vec2 pos = FRAGCOORD.xy - scaled_size / 2.0;
-
-            vec2 corner = max(abs(pos) - (scaled_size / 2.0 - corner_radius), 0.0);
-            float dist = length(corner) - corner_radius;
-
-            float alpha = smoothstep(0.0, 1.0, dist);
-
-            COLOR = vec4(color.rgb, color.a * (1.0 - alpha));
-        }
-    ";
-
-    let mut shader = Shader::new_gd();
-    shader.set_code(shader_code);
-
-    let mut shader_material = ShaderMaterial::new_gd();
-    shader_material.set_shader(&shader);
-
-    let mut panel = Panel::new_alloc();
-    panel.set_material(&shader_material);
-    panel.set_custom_minimum_size(Vector2::new(400.0, 200.0));
-
-    panel
-  }
-
-  fn create_black_rounded_panel_with_label(&self, message: &GString) -> Gd<Control> {
+  fn create_black_rounded_panel_with_label(&mut self, message: &GString) -> Gd<Control> {
     let mut container = Control::new_alloc();
     container.set_name("TextPanelContainer");
     container.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
 
-    let mut panel = self.create_black_rounded_panel();
+    // let mut panel = self.create_black_rounded_panel();
+    let mut panel = self.shader_cache.bind_mut().create_black_rounded_panel();
     panel.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
     container.add_child(&panel);
 

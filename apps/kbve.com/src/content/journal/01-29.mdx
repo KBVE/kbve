@@ -1,7 +1,7 @@
 ---
 title: 'January: 29'
 category: Daily
-date: 2024-01-29 12:00:00
+date: 2025-01-29 12:00:00
 client: Self
 unsplash: 1569396116180-210c182bedb8
 img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -12,7 +12,37 @@ tags:
 
 ## Notes
 
-### 2024
+## 2025
+
+-   **Hashmap**
+
+    04:09PM
+
+        One of the issues that we need to resolve before the end of the gamejam will be the lazy / macro / map.
+        The hashmap that we are using right now from std collections will not be the best for multithreading.
+        Thus we need to find a replacement for it, hmm.
+
+    04:11PM
+
+        The next couple builds have to focus on the part of the data structure and I also need to map out some of the caching.
+
+
+-   **Issues**
+
+    07:45PM
+
+        First issue ticket that we will have to make is for upgrading the supabase core image that gets provided or built off of in kilobase.
+        I believe the current supabase image is 15.1 and we need to upgrade to 15.6.
+
+        Issue ticket 2 will be for finishing the discord.sh tags and making sure that migration happens amoung the tags without any problems.
+
+        Issue ticket 3 is for the migration of server table, tags and their relationship inside of the postgres. This is important before we start the front
+        end development. The option for front end can be nextjs or astro. The other option could be to use tamamgui for the front-end. This would make thigns a bit more interesting, yet the otherside of this would be, hmm wait, actually nevermind.
+        We can not use tamagui and have to stick with either astro or nextjs, I will hold off on this until after the gamejam.
+
+
+
+## 2024
 
     -   7:30am  -   `Payment`
 
