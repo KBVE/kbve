@@ -118,3 +118,12 @@ Remember to swap out `Berserking` with whatever spell you would like to combo it
 /run if UnitExists("target") and not GetRaidTargetIndex("target") then SetRaidTarget("target", 6) end
 /script UIErrorsFrame:Clear()
 ```
+
+
+#### Guild
+
+This is our guild macro for messaging around in general chat!
+
+```
+/script SendChatMessage("Looking for a friendly leveling guild? Join <One Life To Live>! We offer active players, friendly community, and helpful members. Whisper me for an invite!", "CHANNEL", nil, GetChannelName("General - " .. GetZoneText()))
+```

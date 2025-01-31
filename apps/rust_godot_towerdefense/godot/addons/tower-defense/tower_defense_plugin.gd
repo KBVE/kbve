@@ -1,15 +1,20 @@
 extends Node
 
+# Global.
+var music_manager: MusicManager
+var maiky: Maiky
+# var camera_manager: CameraManager
+
 func _ready():
-	if Maiky:
-		print("Maiky class found!")
-		var maiky_instance = Maiky.new()
-		if maiky_instance:
-			print("Maiky instance created successfully.")
-			add_child(maiky_instance)
-			maiky_instance.show_message("Welcome to Tower Defense!")
-			#maiky_instance.update_score(0)
-		else:
-			print("Failed to create Maiky instance.")
-	else:
-		print("Maiky class not found.")
+	if not music_manager:
+		music_manager = MusicManager.new()
+		music_manager.name = "MusicManager"
+		add_child(music_manager)
+		music_manager.adjust_effects_volume(-3.0)
+		music_manager.adjust_music_volume(-5.0)
+		print("MusicManager initialized and added to the scene tree!")
+	if not maiky:
+		maiky = Maiky.new()
+		maiky.name = "Maiky"
+		add_child(maiky)
+		print("Maiky UI library has been loaded!")	
