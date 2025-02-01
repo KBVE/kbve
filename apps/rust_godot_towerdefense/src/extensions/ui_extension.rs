@@ -6,6 +6,7 @@ use godot::classes::control::LayoutPreset;
 
 pub trait ControlExt {
   fn with_name(self, name: &str) -> Self;
+  fn with_cache(self, prefix: &str, key: &GString) -> Self;
   fn with_anchors_preset(self, preset: LayoutPreset) -> Self;
   fn with_anchor_and_offset(self, side: Side, anchor: f32, offset: f32) -> Self;
   fn with_custom_minimum_size(self, size: Vector2) -> Self;
@@ -15,6 +16,10 @@ impl ControlExt for Gd<Control> {
   fn with_name(mut self, name: &str) -> Self {
     self.set_name(name);
     self
+  }
+
+  fn with_cache(self, prefix: &str, key: &GString) -> Self {
+    self.with_name(&format!("{}_{}", prefix, key))
   }
 
   fn with_anchors_preset(mut self, preset: LayoutPreset) -> Self {
@@ -37,6 +42,7 @@ impl ControlExt for Gd<Control> {
 
 pub trait ButtonExt {
   fn with_name(self, name: &str) -> Self;
+  fn with_cache(self, prefix: &str, key: &GString) -> Self;
   fn with_text(self, text: &GString) -> Self;
   fn with_anchors_preset(self, preset: LayoutPreset) -> Self;
   fn with_anchor_and_offset(self, side: Side, anchor: f32, offset: f32) -> Self;
@@ -47,6 +53,10 @@ impl ButtonExt for Gd<Button> {
   fn with_name(mut self, name: &str) -> Self {
     self.set_name(name);
     self
+  }
+
+  fn with_cache(self, prefix: &str, key: &GString) -> Self {
+    self.with_name(&format!("{}_{}", prefix, key))
   }
 
   fn with_text(mut self, text: &GString) -> Self {

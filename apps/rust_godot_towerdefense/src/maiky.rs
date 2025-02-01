@@ -126,9 +126,10 @@ impl Maiky {
     } else {
       let mut new_layer = CanvasLayer::new_alloc().with_cache("MenuCanvas", &key).with_responsive();
 
-      let mut background_panel = self.create_rounded_panel(&background_image);
-      background_panel.set_name(format!("MenuBackground_{}", key).as_str());
-      background_panel.set_anchors_and_offsets_preset(LayoutPreset::FULL_RECT);
+      let mut background_panel = self
+        .create_rounded_panel(&background_image)
+        .with_cache("MenuBackground", &key)
+        .with_anchors_preset(LayoutPreset::FULL_RECT);
       new_layer.add_child(&background_panel);
 
       self.canvas_layer_cache.insert(key.to_string().as_str(), new_layer.clone());
