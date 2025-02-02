@@ -137,11 +137,11 @@ impl Maiky {
       new_layer
     };
 
-    let mut container = Control::new_alloc();
-    container.set_name(format!("ButtonContainer_{}", key).as_str());
-    container.set_anchors_preset(LayoutPreset::CENTER_TOP);
-    container.set_anchor_and_offset(Side::TOP, 0.0, 50.0);
-    container.set_custom_minimum_size(Vector2::new(300.0, 400.0));
+    let mut container = Control::new_alloc()
+      .with_cache("ButtonContainer", &key)
+      .with_anchors_preset(LayoutPreset::CENTER_TOP)
+      .with_anchor_and_offset(Side::TOP, 0.0, 50.0)
+      .with_custom_minimum_size(Vector2::new(300.0, 400.0));
 
     self.build_menu_buttons(&mut container, key.clone(), button_image, buttons);
     menu_layer.add_child(&container);
