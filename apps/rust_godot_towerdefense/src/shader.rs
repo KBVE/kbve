@@ -1,43 +1,62 @@
-use std::collections::HashMap;
 use godot::prelude::*;
-use godot::classes::{Panel, ShaderMaterial, Shader};
+use godot::classes::{ Panel, ShaderMaterial, Shader };
+use crate::cache::ResourceCache;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct ShaderCache {
-    base: Base<Node>,
-    shader_cache: HashMap<String, Gd<Shader>>,
+  base: Base<Node>,
+  shader_cache: ResourceCache<Shader>,
+  material_cache: ResourceCache<ShaderMaterial>,
 }
 
 #[godot_api]
 impl INode for ShaderCache {
-    fn init(base: Base<Node>) -> Self {
-        ShaderCache {
-            base,
-            shader_cache: HashMap::new(),
-        }
+  fn init(base: Base<Node>) -> Self {
+    ShaderCache {
+      base,
+      shader_cache: ResourceCache::new(),
+      material_cache: ResourceCache::new(),
     }
+  }
 }
 
 #[godot_api]
 impl ShaderCache {
-    pub fn get_or_create_shader(&mut self, key: &str, shader_code: &str) -> Gd<Shader> {
-        if let Some(shader) = self.shader_cache.get(key) {
-            shader.clone()
-        } else {
-            let mut shader = Shader::new_gd();
-            shader.set_code(shader_code);
-
-            self.shader_cache.insert(key.to_string(), shader.clone());
-            shader
-        }
+  pub fn get_or_create_shader(&mut self, key: &str, shader_code: &str) -> Gd<Shader> {
+    if let Some(shader) = self.shader_cache.get(key) {
+      return shader;
     }
 
-    pub fn create_black_rounded_panel(&mut self) -> Gd<Panel> {
-        let shader_code = "
+    let mut shader = Shader::new_gd();
+    shader.set_code(shader_code);
+
+    self.shader_cache.insert(key, shader.clone());
+    shader
+  }
+
+  pub fn get_or_create_shader_material(
+    &self,
+    key: &str,
+    shader: &Gd<Shader>
+  ) -> Gd<ShaderMaterial> {
+    if let Some(material) = self.material_cache.get(key) {
+      return material;
+    }
+
+    let mut shader_material = ShaderMaterial::new_gd();
+    shader_material.set_shader(shader);
+
+    self.material_cache.insert(key, shader_material.clone());
+    shader_material
+  }
+
+  pub fn create_black_rounded_panel(&mut self) -> Gd<Panel> {
+    let shader_code =
+      "
             shader_type canvas_item;
             uniform float corner_radius = 20.0;
-            uniform vec4 color = vec4(0.0, 0.0, 0.0, 0.55);
+            uniform vec4 color = vec4(0.0, 0.0, 0.0, 0.10);
             uniform vec2 size = vec2(400.0, 200.0);
 
             void fragment() {
@@ -53,15 +72,16 @@ impl ShaderCache {
             }
         ";
 
-        let shader = self.get_or_create_shader("black_rounded_panel", shader_code);
+    let shader = self.get_or_create_shader("black_rounded_panel", shader_code);
+    let shader_material = self.get_or_create_shader_material(
+      "black_rounded_panel_material",
+      &shader
+    );
 
-        let mut shader_material = ShaderMaterial::new_gd();
-        shader_material.set_shader(&shader);
+    let mut panel = Panel::new_alloc();
+    panel.set_material(&shader_material);
+    panel.set_custom_minimum_size(Vector2::new(400.0, 200.0));
 
-        let mut panel = Panel::new_alloc();
-        panel.set_material(&shader_material);
-        panel.set_custom_minimum_size(Vector2::new(400.0, 200.0));
-
-        panel
-    }
+    panel
+  }
 }
