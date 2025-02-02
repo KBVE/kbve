@@ -1,5 +1,5 @@
 use godot::prelude::*;
-use godot::classes::Timer;
+use godot::classes::{ Node, Timer };
 
 pub trait TimerExt {
   fn with_name(self, name: &str) -> Self;
@@ -42,4 +42,3 @@ impl TimerExt for Gd<Timer> {
     self
   }
 }
- 
