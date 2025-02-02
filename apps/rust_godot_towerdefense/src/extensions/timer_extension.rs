@@ -7,6 +7,7 @@ pub trait TimerExt {
   fn with_one_shot(self, one_shot: bool) -> Self;
   fn with_autostart(self, autostart: bool) -> Self;
   fn with_paused(self, paused: bool) -> Self;
+  fn restart(self, time: f64) -> Self;
 }
 
 impl TimerExt for Gd<Timer> {
@@ -34,4 +35,11 @@ impl TimerExt for Gd<Timer> {
     self.set_paused(paused);
     self
   }
+  fn restart(mut self, time: f64) -> Self {
+    self.stop();
+    self.set_wait_time(time);
+    self.start();
+    self
+  }
 }
+ 
