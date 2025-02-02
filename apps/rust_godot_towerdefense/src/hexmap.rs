@@ -1,17 +1,15 @@
 use godot::prelude::*;
 use godot::classes::{
-  Node3D,
   MeshInstance3D,
   StandardMaterial3D,
   DirectionalLight3D,
   SurfaceTool,
-  Mesh,
   ArrayMesh,
 };
 use godot::classes::light_3d::Param;
 use godot::classes::mesh::PrimitiveType;
 use bevy_ecs::prelude::*;
-use rstar::{ RTree, RTreeObject, AABB, Point };
+use rstar::{ RTree, Point };
 use std::collections::{ HashMap, HashSet };
 use crate::camera::CameraManager;
 
