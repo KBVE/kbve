@@ -55,6 +55,21 @@ This is a quick macro for skinning the last target after its been killed and loo
 /cast [dead, exists] Skinning
 ```
 
+#### Priest
+
+##### Pain + Wand
+
+Single button to apply pain and follow up with wand attack.
+
+```
+#showtooltip Shadow Word: Pain
+/cast [mod:alt] !Shoot; Shadow Word: Pain
+/castsequence [nomod] reset=2 !Shoot, null
+```
+
+The macro goes `Shadow Word: Pain` into `!Shoot` but when holding alt and casting it will only do shoot.
+Mod change was by Chip.
+
 #### Hunter
 
 ##### Pet, Hunters Mark + Auto Shot
