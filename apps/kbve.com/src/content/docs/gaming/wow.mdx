@@ -44,6 +44,19 @@ Plus it has a vast library of addons, you can customize your gameplay easily and
 
 This is a quick breakdown of all the macros that we will be using, I am currently playing between a warrior and a warlock but I will try to keep them noted here for future reference.
 
+#### LFG / LFM Macro
+
+Now the LFG macro would be great
+
+#### Fast Consumable Buff
+
+A quick macro that will help apply buffs and potions.
+This is still a wor
+
+```
+/castsequence reset=30 [@player] Scroll of Spirit, Elixir of Minor Defense, Rumsey Rum Light, Boiled Clams
+```
+
 #### Skinning
 
 This is a quick macro for skinning the last target after its been killed and looted.
@@ -144,8 +157,6 @@ This macro is part of the `tab`, `111` rotation and helps you throw your damage 
 
 #### Rogue
 
-#### Rogue
-
 ##### Throw + Sinister Strike
 
 This macro will cast throw when you are not in combat or cast sinister strike when you are in combat!
@@ -155,11 +166,39 @@ Remember to swap out `Berserking` with whatever spell you would like to combo it
 ```
 /startattack
 /cast [nocombat] Throw; [combat] Sinister Strike
-/cast [combat] Berserking
 /run if UnitExists("target") and not GetRaidTargetIndex("target") then SetRaidTarget("target", 6) end
 /script UIErrorsFrame:Clear()
 ```
 
+Troll-Only Version , includes Berserking.
+
+```
+/startattack
+/cast [nocombat] Throw; [combat] Sinister Strike
+/cast [combat] Berserking
+/run if UnitExists("target") and not GetRaidTargetIndex("target") then SetRaidTarget("target", 6) end
+/script UIErrorsFrame:Clear()
+
+
+```
+
+##### Pick Pocket + Garrorte
+
+This is a macro for when you are already in stealth!
+It will pick pocket and then garrote the humanoid, however the loot for the pick pocket does not appear until after.
+
+```
+/use Pick Pocket
+/cast Garrote
+/script UIErrorsFrame:Clear()
+```
+
+##### Stealth OR Slice & Dice, Eviscerate
+
+```
+/cast [nocombat] Stealth
+/castsequence [combat] reset=target/combat Slice and Dice, Eviscerate
+```
 
 #### Guild
 
