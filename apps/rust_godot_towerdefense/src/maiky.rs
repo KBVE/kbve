@@ -21,6 +21,7 @@ use godot::prelude::*;
 use crate::shader::ShaderCache;
 use crate::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
+use crate::extensions::timer_extension::TimerExt;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
@@ -137,11 +138,11 @@ impl Maiky {
       new_layer
     };
 
-    let mut container = Control::new_alloc();
-    container.set_name(format!("ButtonContainer_{}", key).as_str());
-    container.set_anchors_preset(LayoutPreset::CENTER_TOP);
-    container.set_anchor_and_offset(Side::TOP, 0.0, 50.0);
-    container.set_custom_minimum_size(Vector2::new(300.0, 400.0));
+    let mut container = Control::new_alloc()
+      .with_cache("ButtonContainer", &key)
+      .with_anchors_preset(LayoutPreset::CENTER_TOP)
+      .with_anchor_and_offset(Side::TOP, 0.0, 50.0)
+      .with_custom_minimum_size(Vector2::new(300.0, 400.0));
 
     self.build_menu_buttons(&mut container, key.clone(), button_image, buttons);
     menu_layer.add_child(&container);
@@ -163,31 +164,8 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    // self.base_mut().add_child(&avatar_message_box);
-
-    let timer_key = format!("AvatarMessageTimer_{}", key);
-
-    let mut timer = if
-      let Some(existing_timer) = self.base().try_get_node_as::<Timer>(timer_key.as_str())
-    {
-      existing_timer
-    } else {
-      let mut new_timer = Timer::new_alloc();
-      new_timer.set_name(timer_key.as_str());
-      new_timer.set_one_shot(true);
-      self.base_mut().add_child(&new_timer);
-      new_timer.connect(
-        "timeout",
-        &self.base().callable("hide_avatar_message").bind(&[key.to_variant()])
-      );
-      new_timer
-    };
-
-    timer.stop();
-    timer.set_wait_time(30.0);
-    timer.start();
-
-    // avatar_message_box.show();
+    let mut base_node = self.base_mut().clone().upcast::<Node>();
+    let _timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
   }
 
   fn get_or_create_avatar_message_box(
