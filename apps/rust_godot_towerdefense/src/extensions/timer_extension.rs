@@ -8,7 +8,7 @@ pub trait TimerExt {
   fn with_autostart(self, autostart: bool) -> Self;
   fn with_paused(self, paused: bool) -> Self;
   fn restart(self, time: f64) -> Self;
-  fn ensure_timer(base: &Gd<Node>, key: &GString, wait_time: f64) -> Gd<Timer>;
+  fn ensure_timer(base: &mut Gd<Node>, key: &GString, wait_time: f64) -> Gd<Timer>;
 }
 
 impl TimerExt for Gd<Timer> {
@@ -44,10 +44,12 @@ impl TimerExt for Gd<Timer> {
     self
   }
 
-  fn ensure_timer(base: &Gd<Node>, key: &GString, wait_time: f64) -> Gd<Timer> {
+  fn ensure_timer(base: &mut Gd<Node>, key: &GString, wait_time: f64) -> Gd<Timer> {
     let timer_key = format!("Timer_{}", key);
 
-    if let Some(existing_timer) = base.try_get_node_as::<Timer>(timer_key.as_str()) {
+    let mut timer = if let Some(mut existing_timer) = base.try_get_node_as::<Timer>(timer_key.as_str()) {
+      existing_timer.stop();
+      existing_timer.set_wait_time(wait_time);
       existing_timer
     } else {
       let mut new_timer = Timer::new_alloc()
@@ -55,9 +57,17 @@ impl TimerExt for Gd<Timer> {
         .with_one_shot(true)
         .with_wait_time(wait_time);
 
-      base.add_child(&new_timer.clone().upcast());
+      base.add_child(&new_timer.clone().upcast::<Node>());
 
       new_timer
+    };
+
+    if !timer.is_connected("timeout", &base.callable("hide_avatar_message")) {
+      timer.connect("timeout", &base.callable("hide_avatar_message").bind(&[key.to_variant()]));
     }
+
+    timer.start();
+
+    timer
   }
 }
