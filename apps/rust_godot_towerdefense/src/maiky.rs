@@ -21,6 +21,7 @@ use godot::prelude::*;
 use crate::shader::ShaderCache;
 use crate::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
+use crate::extensions::timer_extension::TimerExt;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
@@ -163,31 +164,8 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    // self.base_mut().add_child(&avatar_message_box);
-
-    let timer_key = format!("AvatarMessageTimer_{}", key);
-
-    let mut timer = if
-      let Some(existing_timer) = self.base().try_get_node_as::<Timer>(timer_key.as_str())
-    {
-      existing_timer
-    } else {
-      let mut new_timer = Timer::new_alloc();
-      new_timer.set_name(timer_key.as_str());
-      new_timer.set_one_shot(true);
-      self.base_mut().add_child(&new_timer);
-      new_timer.connect(
-        "timeout",
-        &self.base().callable("hide_avatar_message").bind(&[key.to_variant()])
-      );
-      new_timer
-    };
-
-    timer.stop();
-    timer.set_wait_time(30.0);
-    timer.start();
-
-    // avatar_message_box.show();
+    let mut base_node = self.base_mut().clone().upcast::<Node>();
+    let _timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
   }
 
   fn get_or_create_avatar_message_box(
