@@ -124,6 +124,18 @@ This macro still needs to be worked on.
 
 #### Mage
 
+
+##### Frostbolt
+
+Quick macro for a frost bolt
+
+```
+/run UIErrorsFrame:Hide()
+/use [combat] Berserking
+/run UIErrorsFrame:Clear(); UIErrorsFrame:Show()
+/cast Frostbolt
+```
+
 ##### Arcane Missles + FrostBolt Rank 1 
 
 This is my starter combat macro for my ice hardcore mage!
@@ -134,6 +146,13 @@ If you are not in combat, it will cast the Arcane Missiles but if you are in-com
 /script if UnitExists("target") then SetRaidTarget("target", 8) end
 /cast [nocombat,harm,nodead] Arcane Missiles; [harm,nodead] Frostbolt(Rank 1)
 /em zug zug missiles incoming
+```
+
+##### Frostbolt + Wand
+
+```
+/cast Frostbolt
+/castsequence reset=2 !Shoot, null
 ```
 
 #### Warlock
