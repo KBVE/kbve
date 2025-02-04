@@ -27,15 +27,35 @@ func _ready():
 		var key = "main_menu"
 		var background_image = "res://Assets/menu/bg_main_screen.png"
 		var button_image = "res://Assets/menu/button1.png"
-		
 		var buttons = [
-			["Maiky Mike Mike", Callable(self, "_on_start_game_pressed"), []],
-			["Settings", Callable(self, "_on_settings_pressed"), []],
-			["Credits", Callable(self, "_credits"), []],
-			["Load Scene", Callable(self, "_on_load_scene"), ["res://scenes/game_scene.tscn"]],
-			["Exit", Callable(self, "_on_exit_pressed"), []]
+			{
+				"title": "Maiky Mike Mike",
+				"callback": "_on_start_game_pressed",
+				"params": []
+			},
+			{
+				"title": "Settings",
+				"callback": "_on_settings_pressed",
+				"params": []
+			},
+			{
+				"title": "Credits",
+				"callback": "_credits",
+				"params": []
+			},
+			{
+				"title": "Load Scene",
+				"callback": "_on_load_scene",
+				"params": ["res://scenes/game_scene.tscn"]
+			},
+			{
+				"title": "Exit",
+				"callback": "_on_exit_pressed",
+				"params": []
+			}
 		]
-		maiky.show_menu_canvas(key, background_image, button_image, buttons)
+		var buttons_json = JSON.stringify(buttons)
+		maiky.show_menu_canvas(key, background_image, button_image, buttons_json)
 
 func _credits():
 	if maiky:

@@ -66,6 +66,22 @@ tags:
     Instead of creating new buttons each time through allocation, we could have a pool of uxui elements that we can grab and recycle?
     However that might not be worth it for now, we can come back around to it later on.
 
+-   02:17PM
+
+    After some quick thinking, it might make sense to create another hashmap that stores all the `ui`-elements, maybe a `ui-cache` that we can use and consolidate all the `Gd<Control>` into.
+    Okay before moving forward with the `ui-cache`, I need to adjust the `JSON` from the GDScript to avoid some issues with the stringfy.
+    I will handle it while I am in the car.
+
+### Godot
+
+-   02:33PM
+
+    Windows build testing should start soon, there might be some issues that I need to resolve with the `rcedit`, but it would be wise to start the pipeline for it.
+    The goal will be to get a steam playable out really soon and push it up into the store?
+    I think it be a great treat to have the godot rust game out there for people to try, then we wrap back around and see how it works in unity.
+    Having a whole new area to tackle might be interesting but also a bit dangeorus, just a side note for me.
+
+
 ### Floor796
 
 -   12:35PM
