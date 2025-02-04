@@ -60,6 +60,12 @@ tags:
     In my notes, I will also include a note for `ULID` / `Binary(16)` mapping too, so that the json data is not passed around multiple times but just a hashmap that stores it all.
     This can be useful for caching and creating more complex data structures, but I might be going way too ahead of myself.
 
+-   01:41PM
+
+    Okay, the menu system was refactored to take the data in as json, but I am thinking that we could also optimize the allocation.
+    Instead of creating new buttons each time through allocation, we could have a pool of uxui elements that we can grab and recycle?
+    However that might not be worth it for now, we can come back around to it later on.
+
 ### Floor796
 
 -   12:35PM
