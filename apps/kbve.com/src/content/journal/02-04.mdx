@@ -21,11 +21,51 @@ tags:
     The tariffs gave everyone a nice dip to average cost around!
     I am looking to pick up a couple more NVDIA this week but if not, then I will keep the put profits.
 
+### Supabase
+
+-   12:02PM
+
+    The `kilobase` has been a bit out-dated and needs a couple upgrades to the base supabase extension.
+    I should be careful with how I approach this upgrade because we also need to fix the custom wrappers too?
+    Taking on the `kilobase` project with the additional projects that I have right now might be a bit painful to balance as well.
+
 ### Rust
 
 -   10:40AM
 
     Adding Serde will be important for our rust project.
+    
+-   12:37PM
+
+    We can extend out the `UxUiElement` to include a function that would take in the `GString` from Godot and convert it over to the json, via serde.
+    The function would look like this:
+
+    ```rust
+
+    impl UxUiElement {
+        pub fn from_json(json_str: &str) -> Result<Vec<Self>, serde_json::Error> {
+            serde_json::from_str(json_str)
+        }
+
+        pub fn from_gstring(json_gstr: GString) -> Result<Vec<Self>, serde_json::Error> {
+            let json_str = json_gstr.to_string();
+            Self::from_json(&json_str)
+        }
+    }
+
+    ```
+
+    This would make it easier for us to move from `GString` -> `String` ->  `str`, then in the future we can go back around and just replace that all with `Binary`?
+    Using json for now to make things easier and then for performance, we can go back around and add a function to help us with the binary movement.
+    In my notes, I will also include a note for `ULID` / `Binary(16)` mapping too, so that the json data is not passed around multiple times but just a hashmap that stores it all.
+    This can be useful for caching and creating more complex data structures, but I might be going way too ahead of myself.
+
+### Floor796
+
+-   12:35PM
+
+    Was venturing around the internet and came across this website, https://floor796.com/#t3r3,268,593, and I think it be perfect for this journal entry.
+    Maybe I will make it a habit to visit the site once a year, just to see what updates have been added to it.
 
 ## 2024
 
