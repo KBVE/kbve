@@ -8,6 +8,7 @@ mod hexmap;
 mod shader;
 mod cache;
 mod extensions;
+mod data;
 
 struct RustTowerDefense;
 
