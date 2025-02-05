@@ -30,6 +30,7 @@ pub struct Maiky {
   base: Base<CanvasLayer>,
   texture_cache: ResourceCache<Texture2D>,
   canvas_layer_cache: ResourceCache<CanvasLayer>,
+  ui_cache: ResourceCache<Control>,
   shader_cache: Gd<ShaderCache>,
 }
 
@@ -42,6 +43,7 @@ impl ICanvasLayer for Maiky {
       base,
       texture_cache: ResourceCache::new(),
       canvas_layer_cache: ResourceCache::new(),
+      ui_cache: ResourceCache::new(),
       shader_cache,
     }
   }
@@ -50,6 +52,29 @@ impl ICanvasLayer for Maiky {
 #[godot_api]
 impl Maiky {
   // Build Menu Buttons
+
+  #[signal]
+  fn ui_element_requested(key: GString);
+
+  #[signal]
+  fn ui_element_added(key: GString, element: Variant);
+
+  #[func]
+  pub fn request_ui_element(&mut self, key: GString) -> Option<Gd<Control>> {
+      if let Some(element) = self.ui_cache.get(key.to_string().as_str()) {
+          return Some(element.clone());
+      }
+  
+      self.base_mut().emit_signal("ui_element_requested", &[key.to_variant()]);
+      None
+  }
+
+  #[func]
+  pub fn store_ui_element(&mut self, key: GString, element: Gd<Control>) {
+      self.ui_cache.insert(key.to_string().as_str(), element.clone());
+  
+      self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
+  }
 
   fn build_menu_buttons(
     &mut self,
