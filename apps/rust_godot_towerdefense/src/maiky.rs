@@ -15,6 +15,7 @@ use godot::classes::tween::{ TransitionType, EaseType };
 use godot::classes::control::LayoutPreset;
 use godot::classes::text_server::AutowrapMode;
 use godot::classes::texture_rect::ExpandMode;
+use godot::classes::window::Flags as WindowFlags;
 
 use godot::prelude::*;
 
@@ -24,6 +25,9 @@ use crate::extensions::ui_extension::*;
 use crate::extensions::timer_extension::TimerExt;
 use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
 use crate::connect_signal;
+
+#[cfg(target_os = "macos")]
+use crate::macos::enable_mac_transparency;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
@@ -50,11 +54,30 @@ impl ICanvasLayer for Maiky {
   }
   fn ready(&mut self) {
     connect_signal!(self, "exit_game", "on_exit_game");
+    self.enable_transparency();
   }
 }
 
 #[godot_api]
 impl Maiky {
+  #[func]
+  fn enable_transparency(&mut self) {
+    if let Some(mut viewport) = self.base().get_viewport() {
+      viewport.set_transparent_background(true);
+      godot_print!("[Maiky] Viewport transparency enabled.");
+    }
+
+    if let Some(mut window) = self.base().get_window() {
+      window.set_flag(WindowFlags::ALWAYS_ON_TOP, true);
+      godot_print!("[Maiky] Window set to always on top.");
+  }
+
+    #[cfg(target_os = "macos")]
+    {
+      enable_mac_transparency();
+    }
+  }
+
   #[func]
   fn m_signal(&mut self, signal_name: StringName, params: Vec<Variant>) {
     if self.base().has_signal(&signal_name.clone()) {

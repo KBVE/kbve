@@ -11,6 +11,9 @@ mod extensions;
 mod data;
 mod macrow;
 
+#[cfg(target_os = "macos")]
+mod macos;
+
 struct RustTowerDefense;
 
 #[gdextension]
