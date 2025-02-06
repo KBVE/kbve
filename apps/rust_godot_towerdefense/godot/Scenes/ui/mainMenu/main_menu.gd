@@ -1,4 +1,4 @@
-extends Control
+extends Node
 
 signal start_game
 signal open_settings
@@ -17,6 +17,8 @@ func _on_start_button_pressed():
 	emit_signal("start_game")
 
 func _ready():
+	print("Preparing the ready")
+
 	music_manager = TowerDefensePlugin.music_manager
 	if music_manager:
 		music_manager.load_music("res://audio/track1.ogg")
