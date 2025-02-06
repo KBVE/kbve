@@ -134,24 +134,53 @@ impl Maiky {
           .with_custom_minimum_size(button_size)
       });
 
-    let callback = self.base().callable(&button_data.callback);
-
-    let params_variants: Vec<Variant> = button_data.params
-      .iter()
-      .map(|p| Variant::from(p.to_string()))
-      .collect();
-
-    if button.is_connected("pressed", &callback) {
-      button.disconnect("pressed", &callback);
+    let mut signal_owner = container.clone().upcast::<Node>();
+    while let Some(parent) = signal_owner.get_parent() {
+      if parent.has_signal(&button_data.callback) {
+        signal_owner = parent;
+        break;
+      }
+      signal_owner = parent;
     }
 
-    button.connect("pressed", &callback.bind(&params_variants));
+    if !signal_owner.has_signal(&button_data.callback) {
+      godot_warn!(
+        "[ButtonExt] Signal '{}' not found on expected parent '{}'",
+        button_data.callback,
+        signal_owner.get_name().to_string()
+      );
+    } else {
+      let params_variants: Vec<Variant> = button_data.params
+        .iter()
+        .map(|p| Variant::from(p.to_string()))
+        .collect();
 
-    if button.get_parent().is_none() {
+      let callable = signal_owner
+        .callable("emit_signal")
+        .bind(&[Variant::from(button_data.callback.clone())]);
+      if button.is_connected("pressed", &callable) {
+        button.disconnect("pressed", &callable);
+      }
+      button.connect("pressed", &callable);
+    }
+
+    if let Some(mut old_parent) = button.get_parent() {
+      if old_parent != button_container.clone().upcast::<Node>() {
+        old_parent.remove_child(&button);
+      }
+    }
+
+    if !button_container.has_node(NodePath::from(button.get_name())) {
       button_container.add_child(&button);
     }
 
-    if button_container.get_parent().is_none() {
+    if let Some(mut old_parent) = button_container.get_parent() {
+      if old_parent != container.clone().upcast::<Node>() {
+        old_parent.remove_child(&button_container);
+      }
+    }
+
+    if !container.has_node(NodePath::from(button_container.get_name())) {
       container.add_child(&button_container);
     }
 
