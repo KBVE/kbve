@@ -15,6 +15,7 @@ use godot::classes::tween::{ TransitionType, EaseType };
 use godot::classes::control::LayoutPreset;
 use godot::classes::text_server::AutowrapMode;
 use godot::classes::texture_rect::ExpandMode;
+use godot::classes::window::Flags as WindowFlags;
 
 use godot::prelude::*;
 
@@ -23,6 +24,10 @@ use crate::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
 use crate::extensions::timer_extension::TimerExt;
 use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
+use crate::connect_signal;
+
+#[cfg(target_os = "macos")]
+use crate::macos::enable_mac_transparency;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
@@ -47,15 +52,60 @@ impl ICanvasLayer for Maiky {
       shader_cache,
     }
   }
+  fn ready(&mut self) {
+    connect_signal!(self, "exit_game", "on_exit_game");
+    self.enable_transparency();
+  }
 }
 
 #[godot_api]
 impl Maiky {
+  #[func]
+  fn enable_transparency(&mut self) {
+    if let Some(mut viewport) = self.base().get_viewport() {
+      viewport.set_transparent_background(true);
+      godot_print!("[Maiky] Viewport transparency enabled.");
+    }
+
+    if let Some(mut window) = self.base().get_window() {
+      window.set_flag(WindowFlags::ALWAYS_ON_TOP, true);
+      godot_print!("[Maiky] Window set to always on top.");
+  }
+
+    #[cfg(target_os = "macos")]
+    {
+      enable_mac_transparency();
+    }
+  }
+
+  #[func]
+  fn m_signal(&mut self, signal_name: StringName, params: Vec<Variant>) {
+    if self.base().has_signal(&signal_name.clone()) {
+      self.base_mut().emit_signal(&signal_name, &params);
+    } else {
+      godot_warn!("Signal '{}' not found in Maiky!", signal_name);
+    }
+  }
+
+  #[signal]
+  fn exit_game() {}
+
   #[signal]
   fn ui_element_requested(key: GString);
 
   #[signal]
   fn ui_element_added(key: GString, element: Variant);
+
+  #[func]
+  fn on_exit_game(&mut self) {
+    godot_print!("Exit Game signal received.");
+
+    if let Some(mut scene_tree) = self.base().get_tree() {
+      scene_tree.quit();
+    } else {
+      godot_warn!("Failed to get the scene tree for quitting the game.");
+    }
+  }
 
   #[func]
   pub fn request_ui_element(&mut self, key: GString) -> Option<Gd<Control>> {
@@ -134,6 +184,8 @@ impl Maiky {
           .with_custom_minimum_size(button_size)
       });
 
+    let signal_name = StringName::from(button_data.callback.as_str());
+
     let params_variants: Vec<Variant> = button_data.params
       .iter()
       .map(|p| Variant::from(p.to_string()))
@@ -141,14 +193,15 @@ impl Maiky {
 
     let callable = self
       .base_mut()
-      .callable("emit_signal")
-      .bind(&[Variant::from(button_data.callback.clone())]);
+      .callable("m_signal")
+      .bind(&[Variant::from(signal_name.clone()), Variant::from(params_variants)]);
 
     if button.is_connected("pressed", &callable) {
       button.disconnect("pressed", &callable);
     }
-
     button.connect("pressed", &callable);
+
+    godot_print!("[Adding Button Connection]");
 
     if button.get_parent().is_none() {
       button_container.add_child(&button);

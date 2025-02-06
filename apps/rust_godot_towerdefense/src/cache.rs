@@ -1,5 +1,6 @@
 use godot::prelude::*;
 use papaya::HashMap;
+use std::sync::Arc;
 use std::marker::PhantomData;
 
 pub struct ResourceCache<T: GodotClass> {
@@ -23,6 +24,11 @@ impl<T: GodotClass> ResourceCache<T> {
   pub fn get(&self, key: &str) -> Option<Gd<T>> {
     let guard = self.map.guard();
     self.map.get(key, &guard).cloned()
+  }
+
+  pub fn get_arc(&self, key: &str) -> Option<Arc<Gd<T>>> {
+    let guard = self.map.guard();
+    self.map.get(key, &guard).map(|gd| Arc::new(gd.clone()))
   }
 
   pub fn contains(&self, key: &str) -> bool {
