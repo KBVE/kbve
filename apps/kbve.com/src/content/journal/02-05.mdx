@@ -30,6 +30,45 @@ import { Adsense } from '@kbve/astropad';
 	The goal right now is to optimize the hashmaps but I am just a bit worried that it might still have issues down the line.
 	Here is to hoping that we will not have any major problems.
 
+-	03:37PM
+
+	The issue that we are facing is the refactoring of the buttons, I made the stupid mistake of not following the kiss standard.
+	Keep it simple safe.
+	My solution to the connecting and callable will be to create a signal helper function.
+	
+```rust
+
+fn connect_button_signal(&self, button: &mut Gd<Button>, button_data: &MenuButtonData, parent_node: &Gd<Node>) {
+    let callback = parent_node.callable(&button_data.callback);
+    
+    let params_variants: Vec<Variant> = button_data.params
+        .iter()
+        .map(|p| Variant::from(p.to_string()))
+        .collect();
+
+    if callback.is_valid() {
+        if button.is_connected("pressed", &callback) {
+            button.disconnect("pressed", &callback);
+        }
+        button.connect("pressed", &callback.bind(&params_variants));
+    } else {
+        godot_warn!("[Maiky] Invalid callable: {}", button_data.callback);
+    }
+}
+
+
+```
+
+	Actually, I am thinking maybe we could just include a chainable `with_callable` into the `ButtonExt`, so that we can just chain that dynamically anywhere we need it.
+
+```rust
+
+    fn with_callback(self, parent: &Gd<Node>, method: &str, params: &[Variant]) -> Self;
+
+
+```
+	Okay, this will make the most sense, let me loop back around and do that instead.
+
 <Adsense />
 
 ### 2024
