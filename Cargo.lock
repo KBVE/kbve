@@ -5153,6 +5153,8 @@ dependencies = [
  "papaya",
  "rand",
  "rstar",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

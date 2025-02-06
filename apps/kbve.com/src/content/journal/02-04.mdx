@@ -1,10 +1,10 @@
 ---
 title: 'February: 04'
 category: Daily
-date: 2024-02-04 12:00:00
+date: 2025-02-04 12:00:00
 client: Self
-unsplash: 1569396116180-210c182bedb8
-img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1560697024-fd4affa63094
+img: https://images.unsplash.com/photo-1560697024-fd4affa63094?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: Daily Log for February 4th for each year!
 tags:
     - daily
@@ -12,10 +12,86 @@ tags:
 
 ## Notes
 
+## 2025
 
-### 2024
+### Markets
 
-#### Unity
+-   09:31AM
+
+    The tariffs gave everyone a nice dip to average cost around!
+    I am looking to pick up a couple more NVDIA this week but if not, then I will keep the put profits.
+
+### Supabase
+
+-   12:02PM
+
+    The `kilobase` has been a bit out-dated and needs a couple upgrades to the base supabase extension.
+    I should be careful with how I approach this upgrade because we also need to fix the custom wrappers too?
+    Taking on the `kilobase` project with the additional projects that I have right now might be a bit painful to balance as well.
+
+### Rust
+
+-   10:40AM
+
+    Adding Serde will be important for our rust project.
+    
+-   12:37PM
+
+    We can extend out the `UxUiElement` to include a function that would take in the `GString` from Godot and convert it over to the json, via serde.
+    The function would look like this:
+
+    ```rust
+
+    impl UxUiElement {
+        pub fn from_json(json_str: &str) -> Result<Vec<Self>, serde_json::Error> {
+            serde_json::from_str(json_str)
+        }
+
+        pub fn from_gstring(json_gstr: GString) -> Result<Vec<Self>, serde_json::Error> {
+            let json_str = json_gstr.to_string();
+            Self::from_json(&json_str)
+        }
+    }
+
+    ```
+
+    This would make it easier for us to move from `GString` -> `String` ->  `str`, then in the future we can go back around and just replace that all with `Binary`?
+    Using json for now to make things easier and then for performance, we can go back around and add a function to help us with the binary movement.
+    In my notes, I will also include a note for `ULID` / `Binary(16)` mapping too, so that the json data is not passed around multiple times but just a hashmap that stores it all.
+    This can be useful for caching and creating more complex data structures, but I might be going way too ahead of myself.
+
+-   01:41PM
+
+    Okay, the menu system was refactored to take the data in as json, but I am thinking that we could also optimize the allocation.
+    Instead of creating new buttons each time through allocation, we could have a pool of uxui elements that we can grab and recycle?
+    However that might not be worth it for now, we can come back around to it later on.
+
+-   02:17PM
+
+    After some quick thinking, it might make sense to create another hashmap that stores all the `ui`-elements, maybe a `ui-cache` that we can use and consolidate all the `Gd<Control>` into.
+    Okay before moving forward with the `ui-cache`, I need to adjust the `JSON` from the GDScript to avoid some issues with the stringfy.
+    I will handle it while I am in the car.
+
+### Godot
+
+-   02:33PM
+
+    Windows build testing should start soon, there might be some issues that I need to resolve with the `rcedit`, but it would be wise to start the pipeline for it.
+    The goal will be to get a steam playable out really soon and push it up into the store?
+    I think it be a great treat to have the godot rust game out there for people to try, then we wrap back around and see how it works in unity.
+    Having a whole new area to tackle might be interesting but also a bit dangeorus, just a side note for me.
+
+
+### Floor796
+
+-   12:35PM
+
+    Was venturing around the internet and came across this website, https://floor796.com/#t3r3,268,593, and I think it be perfect for this journal entry.
+    Maybe I will make it a habit to visit the site once a year, just to see what updates have been added to it.
+
+## 2024
+
+### Unity
 
 After storing the UserData's JWT, we need to pull the player stats and general location from previous save.
 The base of the character profile table currently would look like this:

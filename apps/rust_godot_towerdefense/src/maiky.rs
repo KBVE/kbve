@@ -22,6 +22,7 @@ use crate::shader::ShaderCache;
 use crate::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
 use crate::extensions::timer_extension::TimerExt;
+use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
@@ -29,6 +30,7 @@ pub struct Maiky {
   base: Base<CanvasLayer>,
   texture_cache: ResourceCache<Texture2D>,
   canvas_layer_cache: ResourceCache<CanvasLayer>,
+  ui_cache: ResourceCache<Control>,
   shader_cache: Gd<ShaderCache>,
 }
 
@@ -41,6 +43,7 @@ impl ICanvasLayer for Maiky {
       base,
       texture_cache: ResourceCache::new(),
       canvas_layer_cache: ResourceCache::new(),
+      ui_cache: ResourceCache::new(),
       shader_cache,
     }
   }
@@ -50,58 +53,86 @@ impl ICanvasLayer for Maiky {
 impl Maiky {
   // Build Menu Buttons
 
+  #[signal]
+  fn ui_element_requested(key: GString);
+
+  #[signal]
+  fn ui_element_added(key: GString, element: Variant);
+
+  #[func]
+  pub fn request_ui_element(&mut self, key: GString) -> Option<Gd<Control>> {
+      if let Some(element) = self.ui_cache.get(key.to_string().as_str()) {
+          return Some(element.clone());
+      }
+  
+      self.base_mut().emit_signal("ui_element_requested", &[key.to_variant()]);
+      None
+  }
+
+  #[func]
+  pub fn store_ui_element(&mut self, key: GString, element: Gd<Control>) {
+      self.ui_cache.insert(key.to_string().as_str(), element.clone());
+  
+      self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
+  }
+
   fn build_menu_buttons(
     &mut self,
     container: &mut Gd<Control>,
     key: GString,
     button_image: GString,
-    buttons: Array<Variant>
+    buttons_json: GString
   ) {
-    for (i, entry) in buttons.iter_shared().enumerate() {
-      if let Ok(button_data) = entry.try_to::<Array<Variant>>() {
-        if button_data.len() >= 2 {
-          let title = button_data
-            .get(0)
-            .and_then(|v| Some(v.to::<GString>()))
-            .unwrap_or(GString::from("Button"));
+    let elements = match UxUiElement::from_gstring(buttons_json) {
+      Ok(items) => items,
+      Err(e) => {
+        godot_error!("Failed to parse JSON for menu buttons: {:?}", e);
+        return;
+      }
+    };
 
-          let callback = button_data
-            .get(1)
-            .and_then(|v| Some(v.to::<Callable>()))
-            .unwrap_or(self.base().callable("placeholder_default_callback"));
-
-          let params = button_data
-            .get(2)
-            .and_then(|v| Some(v.try_to::<Array<Variant>>()))
-            .unwrap_or(Ok(Array::new()));
-
-          let button_size = Vector2::new(200.0, 80.0);
-
-          let mut button_container = self
-            .create_button_background_panel(&button_image, button_size)
-            .with_name(&format!("ButtonContainer_{}_{}", key, i))
-            .with_anchors_preset(LayoutPreset::CENTER_TOP)
-            .with_anchor_and_offset(Side::TOP, 0.0, (i as f32) * 100.0)
-            .with_custom_minimum_size(button_size);
-
-          let mut button = Button::new_alloc()
-            .with_name(&format!("MenuButton_{}_{}", key, i))
-            .with_text(&title)
-            .with_anchors_preset(LayoutPreset::FULL_RECT)
-            .with_anchor_and_offset(Side::TOP, 0.0, 0.0)
-            .with_custom_minimum_size(button_size);
-
-          let params_vec: Vec<Variant> = params
-            .expect("[Maiky] Params Iter Shared Error")
-            .iter_shared()
-            .collect();
-          button.connect("pressed", &callback.bind(&params_vec));
-
-          button_container.add_child(&button);
-          container.add_child(&button_container);
-        }
+    for (i, element) in elements.into_iter().enumerate() {
+      if let Ok(button_data) = MenuButtonData::try_from(element) {
+        self.create_menu_button(container, &button_image, &button_data, &key, i);
       }
     }
+  }
+
+  fn create_menu_button(
+    &mut self,
+    container: &mut Gd<Control>,
+    button_image: &GString,
+    button_data: &MenuButtonData,
+    key: &GString,
+    index: usize
+  ) {
+    let button_size = Vector2::new(200.0, 80.0);
+
+    let mut button_container = self
+      .create_button_background_panel(button_image, button_size)
+      .with_name(&format!("ButtonContainer_{}_{}", key, index))
+      .with_anchors_preset(LayoutPreset::CENTER_TOP)
+      .with_anchor_and_offset(Side::TOP, 0.0, (index as f32) * 100.0)
+      .with_custom_minimum_size(button_size);
+
+    let mut button = Button::new_alloc()
+      .with_name(&format!("MenuButton_{}_{}", key, index))
+      .with_text(&GString::from(button_data.title.clone()))
+      .with_anchors_preset(LayoutPreset::FULL_RECT)
+      .with_anchor_and_offset(Side::TOP, 0.0, 0.0)
+      .with_custom_minimum_size(button_size);
+
+    let callback = self.base().callable(&button_data.callback);
+
+    let params_variants: Vec<Variant> = button_data.params
+      .iter()
+      .map(|p| Variant::from(p.to_string()))
+      .collect();
+
+    button.connect("pressed", &callback.bind(&params_variants));
+
+    button_container.add_child(&button);
+    container.add_child(&button_container);
   }
 
   #[func]
@@ -110,7 +141,7 @@ impl Maiky {
     key: GString,
     background_image: GString,
     button_image: GString,
-    buttons: Array<Variant>
+    buttons_json: GString
   ) {
     let mut menu_layer = if
       let Some(mut cached_menu) = self.canvas_layer_cache.get(key.to_string().as_str())
@@ -131,6 +162,7 @@ impl Maiky {
         .create_rounded_panel(&background_image)
         .with_cache("MenuBackground", &key)
         .with_anchors_preset(LayoutPreset::FULL_RECT);
+
       new_layer.add_child(&background_panel);
 
       self.canvas_layer_cache.insert(key.to_string().as_str(), new_layer.clone());
@@ -144,7 +176,7 @@ impl Maiky {
       .with_anchor_and_offset(Side::TOP, 0.0, 50.0)
       .with_custom_minimum_size(Vector2::new(300.0, 400.0));
 
-    self.build_menu_buttons(&mut container, key.clone(), button_image, buttons);
+    self.build_menu_buttons(&mut container, key.clone(), button_image, buttons_json);
     menu_layer.add_child(&container);
     menu_layer.show();
   }
@@ -184,7 +216,7 @@ impl Maiky {
       self.canvas_layer_cache.insert(avatar_box_key.as_str(), avatar_box_mut.clone());
       return avatar_box_mut;
     }
-    33;
+
     let mut new_avatar_box = CanvasLayer::new_alloc();
     new_avatar_box.set_name(avatar_box_key.as_str());
     new_avatar_box.set_offset(Vector2::new(0.0, 0.0));
@@ -260,25 +292,23 @@ impl Maiky {
   }
 
   #[func]
-  fn hide_avatar_message(&mut self, key: GString) {
-    let formatted_key = format!("AvatarMessageBox_{}", key);
-    if
-      let Some(mut avatar_box) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str())
-    {
-      avatar_box.hide();
+  fn hide_canvas(&mut self, canvas_type: GString, key: GString) {
+    let formatted_key = format!("{}_{}", canvas_type, key);
+    if let Some(mut canvas) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str()) {
+      canvas.hide();
     } else {
-      godot_print!("Warning: Avatar message box '{}' not found.", formatted_key);
+      godot_print!("Warning: {} '{}' not found.", canvas_type, formatted_key);
     }
   }
 
   #[func]
+  fn hide_avatar_message(&mut self, key: GString) {
+    self.hide_canvas(GString::from("AvatarMessageBox"), key);
+  }
+
+  #[func]
   fn hide_menu_canvas(&mut self, key: GString) {
-    let formatted_key = format!("MenuCanvas_{}", key);
-    if let Some(mut menu_box) = self.base().try_get_node_as::<CanvasLayer>(formatted_key.as_str()) {
-      menu_box.hide();
-    } else {
-      godot_print!("Warning: Menu Canvas '{}' not found.", formatted_key);
-    }
+    self.hide_canvas(GString::from("MenuCanvas"), key);
   }
 
   fn load_texture_2d(&mut self, path: &GString) -> Gd<Texture2D> {
