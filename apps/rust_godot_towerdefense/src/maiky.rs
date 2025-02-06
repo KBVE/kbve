@@ -51,8 +51,6 @@ impl ICanvasLayer for Maiky {
 
 #[godot_api]
 impl Maiky {
-  // Build Menu Buttons
-
   #[signal]
   fn ui_element_requested(key: GString);
 
@@ -61,19 +59,20 @@ impl Maiky {
 
   #[func]
   pub fn request_ui_element(&mut self, key: GString) -> Option<Gd<Control>> {
-      if let Some(element) = self.ui_cache.get(key.to_string().as_str()) {
-          return Some(element.clone());
-      }
-  
-      self.base_mut().emit_signal("ui_element_requested", &[key.to_variant()]);
-      None
+    let key_str = key.to_string();
+    self.ui_cache
+      .get(key_str.as_str())
+      .map(|gd| gd.clone())
+      .or_else(|| {
+        self.base_mut().emit_signal("ui_element_requested", &[key.to_variant()]);
+        None
+      })
   }
 
   #[func]
   pub fn store_ui_element(&mut self, key: GString, element: Gd<Control>) {
-      self.ui_cache.insert(key.to_string().as_str(), element.clone());
-  
-      self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
+    self.ui_cache.insert(key.to_string().as_str(), element.clone());
+    self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
   }
 
   fn build_menu_buttons(
@@ -107,32 +106,86 @@ impl Maiky {
     index: usize
   ) {
     let button_size = Vector2::new(200.0, 80.0);
+    let offset_y = (index as f32) * 100.0;
 
-    let mut button_container = self
-      .create_button_background_panel(button_image, button_size)
-      .with_name(&format!("ButtonContainer_{}_{}", key, index))
-      .with_anchors_preset(LayoutPreset::CENTER_TOP)
-      .with_anchor_and_offset(Side::TOP, 0.0, (index as f32) * 100.0)
-      .with_custom_minimum_size(button_size);
+    let key_str = key.to_string();
+    let button_container_name = format!("ButtonContainer_{}_{}", key_str, index);
+    let button_name = format!("MenuButton_{}_{}", key_str, index);
 
-    let mut button = Button::new_alloc()
-      .with_name(&format!("MenuButton_{}_{}", key, index))
-      .with_text(&GString::from(button_data.title.clone()))
-      .with_anchors_preset(LayoutPreset::FULL_RECT)
-      .with_anchor_and_offset(Side::TOP, 0.0, 0.0)
-      .with_custom_minimum_size(button_size);
+    let mut button_container = self.ui_cache
+      .get(&button_container_name)
+      .unwrap_or_else(|| {
+        self
+          .create_button_background_panel(button_image, button_size)
+          .with_name(&button_container_name)
+          .with_anchors_preset(LayoutPreset::CENTER_TOP)
+          .with_anchor_and_offset(Side::TOP, 0.0, offset_y)
+          .with_custom_minimum_size(button_size)
+      });
 
-    let callback = self.base().callable(&button_data.callback);
+    let mut button = self.ui_cache
+      .get_as::<Button>(&button_name)
+      .unwrap_or_else(|| {
+        Button::new_alloc()
+          .with_name(&button_name)
+          .with_text(&GString::from(button_data.title.clone()))
+          .with_anchors_preset(LayoutPreset::FULL_RECT)
+          .with_anchor_and_offset(Side::TOP, 0.0, 0.0)
+          .with_custom_minimum_size(button_size)
+      });
 
-    let params_variants: Vec<Variant> = button_data.params
-      .iter()
-      .map(|p| Variant::from(p.to_string()))
-      .collect();
+    let mut signal_owner = container.clone().upcast::<Node>();
+    while let Some(parent) = signal_owner.get_parent() {
+      if parent.has_signal(&button_data.callback) {
+        signal_owner = parent;
+        break;
+      }
+      signal_owner = parent;
+    }
 
-    button.connect("pressed", &callback.bind(&params_variants));
+    if !signal_owner.has_signal(&button_data.callback) {
+      godot_warn!(
+        "[ButtonExt] Signal '{}' not found on expected parent '{}'",
+        button_data.callback,
+        signal_owner.get_name().to_string()
+      );
+    } else {
+      let params_variants: Vec<Variant> = button_data.params
+        .iter()
+        .map(|p| Variant::from(p.to_string()))
+        .collect();
 
-    button_container.add_child(&button);
-    container.add_child(&button_container);
+      let callable = signal_owner
+        .callable("emit_signal")
+        .bind(&[Variant::from(button_data.callback.clone())]);
+      if button.is_connected("pressed", &callable) {
+        button.disconnect("pressed", &callable);
+      }
+      button.connect("pressed", &callable);
+    }
+
+    if let Some(mut old_parent) = button.get_parent() {
+      if old_parent != button_container.clone().upcast::<Node>() {
+        old_parent.remove_child(&button);
+      }
+    }
+
+    if !button_container.has_node(NodePath::from(button.get_name())) {
+      button_container.add_child(&button);
+    }
+
+    if let Some(mut old_parent) = button_container.get_parent() {
+      if old_parent != container.clone().upcast::<Node>() {
+        old_parent.remove_child(&button_container);
+      }
+    }
+
+    if !container.has_node(NodePath::from(button_container.get_name())) {
+      container.add_child(&button_container);
+    }
+
+    self.ui_cache.insert(&button_container_name, button_container.clone());
+    self.ui_cache.insert_upcast(&button_name, button.clone());
   }
 
   #[func]
