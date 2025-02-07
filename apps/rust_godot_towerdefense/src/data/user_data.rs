@@ -10,17 +10,19 @@ pub struct UserData {
   pub email: String,
   pub opacity: f32,
   pub fullscreen: bool,
+  pub theme: Option<String>,
 }
 
 impl AbstractDataMap for UserData {}
 
 impl UserData {
-  pub fn new(username: &str, email: &str, opacity: f32, fullscreen: bool) -> Self {
+  pub fn new(username: &str, email: &str, opacity: f32, fullscreen: bool, theme: Option<String>) -> Self {
     Self {
       username: username.to_string(),
       email: email.to_string(),
       opacity,
       fullscreen,
+      theme,
     }
   }
 }
