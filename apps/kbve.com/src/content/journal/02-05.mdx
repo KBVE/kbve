@@ -1,16 +1,75 @@
 ---
 title: 'February: 05'
 category: Daily
-date: 2024-02-05 12:00:00
+date: 2025-02-05 12:00:00
 client: Self
-unsplash: 1569396116180-210c182bedb8
-img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1738571574302-3312deda0aa3
+img: https://images.unsplash.com/photo-1738571574302-3312deda0aa3?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: Daily Log for February 5th for each year!
 tags:
     - daily
 ---
 
+import { Adsense } from '@kbve/astropad';
+
 ## Notes
+
+## 2025
+
+### Markets
+
+-	03:16PM
+
+	Good to see Nvdia spike up and down!
+	I am hoping that I can walk away with the put profits and also after next earnings, oh baby.
+
+### Rust
+
+-	01:43PM
+
+	The goal right now is to optimize the hashmaps but I am just a bit worried that it might still have issues down the line.
+	Here is to hoping that we will not have any major problems.
+
+-	03:37PM
+
+	The issue that we are facing is the refactoring of the buttons, I made the stupid mistake of not following the kiss standard.
+	Keep it simple safe.
+	My solution to the connecting and callable will be to create a signal helper function.
+	
+```rust
+
+fn connect_button_signal(&self, button: &mut Gd<Button>, button_data: &MenuButtonData, parent_node: &Gd<Node>) {
+    let callback = parent_node.callable(&button_data.callback);
+    
+    let params_variants: Vec<Variant> = button_data.params
+        .iter()
+        .map(|p| Variant::from(p.to_string()))
+        .collect();
+
+    if callback.is_valid() {
+        if button.is_connected("pressed", &callback) {
+            button.disconnect("pressed", &callback);
+        }
+        button.connect("pressed", &callback.bind(&params_variants));
+    } else {
+        godot_warn!("[Maiky] Invalid callable: {}", button_data.callback);
+    }
+}
+
+
+```
+
+	Actually, I am thinking maybe we could just include a chainable `with_callable` into the `ButtonExt`, so that we can just chain that dynamically anywhere we need it.
+
+```rust
+
+    fn with_callback(self, parent: &Gd<Node>, method: &str, params: &[Variant]) -> Self;
+
+
+```
+	Okay, this will make the most sense, let me loop back around and do that instead.
+
+<Adsense />
 
 ### 2024
 

@@ -44,6 +44,19 @@ Plus it has a vast library of addons, you can customize your gameplay easily and
 
 This is a quick breakdown of all the macros that we will be using, I am currently playing between a warrior and a warlock but I will try to keep them noted here for future reference.
 
+#### LFG / LFM Macro
+
+Now the LFG macro would be great
+
+#### Fast Consumable Buff
+
+A quick macro that will help apply buffs and potions.
+This is still a wor
+
+```
+/castsequence reset=30 [@player] Scroll of Spirit, Elixir of Minor Defense, Rumsey Rum Light, Boiled Clams
+```
+
 #### Skinning
 
 This is a quick macro for skinning the last target after its been killed and looted.
@@ -54,6 +67,21 @@ This is a quick macro for skinning the last target after its been killed and loo
 /run if UnitIsDead("target") then InteractUnit("target") end
 /cast [dead, exists] Skinning
 ```
+
+#### Priest
+
+##### Pain + Wand
+
+Single button to apply pain and follow up with wand attack.
+
+```
+#showtooltip Shadow Word: Pain
+/cast [mod:alt] !Shoot; Shadow Word: Pain
+/castsequence [nomod] reset=2 !Shoot, null
+```
+
+The macro goes `Shadow Word: Pain` into `!Shoot` but when holding alt and casting it will only do shoot.
+Mod change was by Chip.
 
 #### Hunter
 
@@ -83,6 +111,19 @@ A simple but quick marco that will send your pet to attack, apply the hunters ma
 
 #### Warrior
 
+##### Weapon Swap Macro
+
+The one button macro switches from two handed to one handed with shield.
+
+```
+/equipslot 16 $2H_item_name
+/equipslot 16 $One_hand_item_name
+/equipslot 17 $Shield
+
+```
+
+Remember to swap out the names of the `$2H_item_name`, ect... with the items you have in your bag.
+
 ##### Charge,Rend,Throw
 
 This is a quick macro to cast `Charge` in non-combat, then Rend if in combat and finally a quick throw without a modshift.
@@ -96,6 +137,18 @@ This macro still needs to be worked on.
 
 #### Mage
 
+
+##### Frostbolt
+
+Quick macro for a frost bolt
+
+```
+/run UIErrorsFrame:Hide()
+/use [combat] Berserking
+/run UIErrorsFrame:Clear(); UIErrorsFrame:Show()
+/cast Frostbolt
+```
+
 ##### Arcane Missles + FrostBolt Rank 1 
 
 This is my starter combat macro for my ice hardcore mage!
@@ -106,6 +159,13 @@ If you are not in combat, it will cast the Arcane Missiles but if you are in-com
 /script if UnitExists("target") then SetRaidTarget("target", 8) end
 /cast [nocombat,harm,nodead] Arcane Missiles; [harm,nodead] Frostbolt(Rank 1)
 /em zug zug missiles incoming
+```
+
+##### Frostbolt + Wand
+
+```
+/cast Frostbolt
+/castsequence reset=2 !Shoot, null
 ```
 
 #### Warlock
@@ -129,8 +189,6 @@ This macro is part of the `tab`, `111` rotation and helps you throw your damage 
 
 #### Rogue
 
-#### Rogue
-
 ##### Throw + Sinister Strike
 
 This macro will cast throw when you are not in combat or cast sinister strike when you are in combat!
@@ -140,11 +198,39 @@ Remember to swap out `Berserking` with whatever spell you would like to combo it
 ```
 /startattack
 /cast [nocombat] Throw; [combat] Sinister Strike
-/cast [combat] Berserking
 /run if UnitExists("target") and not GetRaidTargetIndex("target") then SetRaidTarget("target", 6) end
 /script UIErrorsFrame:Clear()
 ```
 
+Troll-Only Version , includes Berserking.
+
+```
+/startattack
+/cast [nocombat] Throw; [combat] Sinister Strike
+/cast [combat] Berserking
+/run if UnitExists("target") and not GetRaidTargetIndex("target") then SetRaidTarget("target", 6) end
+/script UIErrorsFrame:Clear()
+
+
+```
+
+##### Pick Pocket + Garrorte
+
+This is a macro for when you are already in stealth!
+It will pick pocket and then garrote the humanoid, however the loot for the pick pocket does not appear until after.
+
+```
+/use Pick Pocket
+/cast Garrote
+/script UIErrorsFrame:Clear()
+```
+
+##### Stealth OR Slice & Dice, Eviscerate
+
+```
+/cast [nocombat] Stealth
+/castsequence [combat] reset=target/combat Slice and Dice, Eviscerate
+```
 
 #### Guild
 
