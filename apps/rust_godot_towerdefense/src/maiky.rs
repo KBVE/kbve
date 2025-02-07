@@ -52,6 +52,7 @@ impl ICanvasLayer for Maiky {
       shader_cache,
     }
   }
+
   fn ready(&mut self) {
     connect_signal!(self, "exit_game", "on_exit_game");
     self.enable_transparency();
@@ -70,7 +71,7 @@ impl Maiky {
     if let Some(mut window) = self.base().get_window() {
       window.set_flag(WindowFlags::ALWAYS_ON_TOP, true);
       godot_print!("[Maiky] Window set to always on top.");
-  }
+    }
 
     #[cfg(target_os = "macos")]
     {
