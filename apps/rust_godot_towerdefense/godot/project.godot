@@ -24,6 +24,7 @@ TowerDefensePlugin="*res://addons/tower-defense/tower_defense_plugin.gd"
 [display]
 
 window/stretch/mode="viewport"
+window/per_pixel_transparency/allowed=true
 
 [input]
 

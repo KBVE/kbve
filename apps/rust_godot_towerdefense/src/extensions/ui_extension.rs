@@ -47,6 +47,7 @@ pub trait ButtonExt {
   fn with_anchors_preset(self, preset: LayoutPreset) -> Self;
   fn with_anchor_and_offset(self, side: Side, anchor: f32, offset: f32) -> Self;
   fn with_custom_minimum_size(self, size: Vector2) -> Self;
+  fn with_callback(self, parent: &Gd<Node>, signal_name: &str, params: &[Variant]) -> Self;
 }
 
 impl ButtonExt for Gd<Button> {
@@ -76,6 +77,22 @@ impl ButtonExt for Gd<Button> {
 
   fn with_custom_minimum_size(mut self, size: Vector2) -> Self {
     self.set_custom_minimum_size(size);
+    self
+  }
+
+  fn with_callback(mut self, parent: &Gd<Node>, signal_name: &str, params: &[Variant]) -> Self {
+    if !parent.has_signal(signal_name) {
+      let parent_name = parent.get_name().to_string();
+      godot_warn!("[ButtonExt] Signal '{}' does not exist on parent node '{}'", signal_name, parent_name);
+      return self;
+      
+    }
+
+    if self.is_connected("pressed", &parent.callable(signal_name)) {
+      self.disconnect("pressed", &parent.callable(signal_name));
+    }
+
+    self.connect("pressed", &parent.callable(signal_name).bind(params));
     self
   }
 }
