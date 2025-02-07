@@ -44,6 +44,8 @@ pub trait AbstractDataMap: Serialize + for<'de> Deserialize<'de> + Sized {
         Value::Number(serde_json::Number::from(i))
       } else if let Ok(b) = value.try_to::<bool>() {
         Value::Bool(b)
+      } else if value.is_nil() {
+        Value::Null
       } else {
         Value::Null
       };

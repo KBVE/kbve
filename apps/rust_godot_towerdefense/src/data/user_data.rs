@@ -10,17 +10,25 @@ pub struct UserData {
   pub email: String,
   pub opacity: f32,
   pub fullscreen: bool,
+  pub theme: Option<String>,
 }
 
 impl AbstractDataMap for UserData {}
 
 impl UserData {
-  pub fn new(username: &str, email: &str, opacity: f32, fullscreen: bool) -> Self {
+  pub fn new(
+    username: &str,
+    email: &str,
+    opacity: f32,
+    fullscreen: bool,
+    theme: Option<String>
+  ) -> Self {
     Self {
       username: username.to_string(),
       email: email.to_string(),
       opacity,
       fullscreen,
+      theme,
     }
   }
 }
@@ -64,6 +72,23 @@ impl UserDataCache {
       true
     } else {
       false
+    }
+  }
+
+  // User Saving + File
+  
+  pub fn save_to_file(&self, file_path: &str) {
+    if let Some(user_data) = self.load_user_data() {
+      user_data.to_save_gfile_json(file_path);
+    }
+  }
+
+  pub fn load_from_file(&mut self, file_path: &str) -> Option<UserData> {
+    if let Some(user_data) = UserData::from_load_gfile_json(file_path) {
+      self.save_user_data(&user_data);
+      Some(user_data)
+    } else {
+      None
     }
   }
 
