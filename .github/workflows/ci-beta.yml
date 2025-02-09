@@ -57,7 +57,7 @@ jobs:
             rustwasmembed:
                 - 'apps/rust_wasm_embed/src/**'
             kbve:
-                - 'apps/kbve.com/**'
+                - 'apps/kbve/kbve.com/**'
             jedi:
                 - 'packages/jedi/src/**'
             rustkbve:
