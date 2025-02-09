@@ -1,5 +1,5 @@
 {
-  //"extends": "../../tsconfig.base.json",
+  //"extends": "../../../tsconfig.base.json",
   // moving to the astro strict.
   "extends": "astro/tsconfigs/strict",
   
@@ -40,8 +40,8 @@
       }
     ],
     "paths": {
-      "@kbve/astropad": ["../../packages/astropad/index.ts"],
-      "@kbve/astro-ve": ["../../packages/astro-ve/index.ts"],
+      "@kbve/astropad": ["../../../packages/astropad/index.ts"],
+      "@kbve/astro-ve": ["../../../packages/astro-ve/index.ts"],
     }
   },
   "include": ["./src"]
