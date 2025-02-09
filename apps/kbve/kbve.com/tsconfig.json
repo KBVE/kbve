@@ -1,5 +1,5 @@
 {
-  // "extends": "../../tsconfig.base.json", - removing nx extension of base
+  // "extends": "../../../tsconfig.base.json", - removing nx extension of base
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
     // Base URL - 11-05-2024
@@ -43,10 +43,10 @@
       }
       ],
       "paths": {
-        "@kbve/astropad": ["../../packages/astropad/index.ts"],
-        "@kbve/astro-ve": ["../../packages/astro-ve/index.ts"],
-        "@kbve/laser": ["../../packages/laser/src/index.ts"],
-        "@kbve/khashvault": ["../../packages/khashvault/src/index.ts"],
+        "@kbve/astropad": ["../../../packages/astropad/index.ts"],
+        "@kbve/astro-ve": ["../../../packages/astro-ve/index.ts"],
+        "@kbve/laser": ["../../../packages/laser/src/index.ts"],
+        "@kbve/khashvault": ["../../../packages/khashvault/src/index.ts"],
       }
    
   },
