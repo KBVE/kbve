@@ -1,4 +1,6 @@
 use godot::prelude::*;
+use godot::classes::file_access::ModeFlags;
+use godot::tools::GFile;
 use papaya::HashMap;
 use serde::{ Serialize, Deserialize };
 use serde_json::Value;
@@ -42,6 +44,8 @@ pub trait AbstractDataMap: Serialize + for<'de> Deserialize<'de> + Sized {
         Value::Number(serde_json::Number::from(i))
       } else if let Ok(b) = value.try_to::<bool>() {
         Value::Bool(b)
+      } else if value.is_nil() {
+        Value::Null
       } else {
         Value::Null
       };
@@ -57,5 +61,26 @@ pub trait AbstractDataMap: Serialize + for<'de> Deserialize<'de> + Sized {
 
   fn from_json(json: &str) -> Option<Self> {
     serde_json::from_str(json).ok()
+  }
+
+  fn to_save_gfile_json(&self, file_path: &str) -> bool {
+    let json_string = self.to_json();
+    if let Ok(mut file) = GFile::open(file_path, ModeFlags::WRITE) {
+      let _ = file.write_gstring_line(&GString::from(json_string));
+      true
+    } else {
+      godot_error!("Failed to save data to file: {}", file_path);
+      false
+    }
+  }
+
+  fn from_load_gfile_json(file_path: &str) -> Option<Self> {
+    if let Ok(mut file) = GFile::open(file_path, ModeFlags::READ) {
+      if let Ok(json_string) = file.read_gstring_line() {
+        return Self::from_json(&json_string.to_string());
+      }
+    }
+    godot_warn!("Failed to load data from file: {}", file_path);
+    None
   }
 }
