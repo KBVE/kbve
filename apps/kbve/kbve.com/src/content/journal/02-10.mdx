@@ -22,6 +22,17 @@ tags:
     This means that I will have to double check each execution within all the ci pipeline yamls.
     I believe the `dist` will now be under the `apps` but we shall see during the next main build. 
 
+### Migrations Nx SubFolders
+
+-   03:49AM
+
+    Next batch of migrations!
+    Moving CityVote into its own repo, then adding the deprecated folder.
+
+```shell
+pnpm nx g move --project expo-cityvote --destination apps/cityvote/expo-cityvote --skipFormat=true
+```
+
 
 ## 2024
 
