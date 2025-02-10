@@ -61,6 +61,15 @@ impl ICanvasLayer for Maiky {
 
 #[godot_api]
 impl Maiky {
+  #[signal]
+  fn exit_game() {}
+
+  #[signal]
+  fn ui_element_requested(key: GString);
+
+  #[signal]
+  fn ui_element_added(key: GString, element: Variant);
+
   #[func]
   fn enable_transparency(&mut self) {
     if let Some(mut viewport) = self.base().get_viewport() {
@@ -76,6 +85,7 @@ impl Maiky {
     #[cfg(target_os = "macos")]
     {
       enable_mac_transparency();
+      //enable_mac_always_on_top();
     }
   }
 
@@ -87,15 +97,6 @@ impl Maiky {
       godot_warn!("Signal '{}' not found in Maiky!", signal_name);
     }
   }
-
-  #[signal]
-  fn exit_game() {}
-
-  #[signal]
-  fn ui_element_requested(key: GString);
-
-  #[signal]
-  fn ui_element_added(key: GString, element: Variant);
 
   #[func]
   fn on_exit_game(&mut self) {
@@ -202,8 +203,6 @@ impl Maiky {
     }
     button.connect("pressed", &callable);
 
-    godot_print!("[Adding Button Connection]");
-
     if button.get_parent().is_none() {
       button_container.add_child(&button);
     }
@@ -278,7 +277,8 @@ impl Maiky {
     );
 
     let mut base_node = self.base_mut().clone().upcast::<Node>();
-    let _timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
+    let mut timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
+    timer.start();
   }
 
   fn get_or_create_avatar_message_box(

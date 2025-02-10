@@ -1,8 +1,9 @@
 extends Node
 
 var mapSelectContainer: Node
+var game_manager: GameManager
 var music_manager: MusicManager
-var maiky: Maiky
+var ui_manager: Maiky
 
 func _on_quit_button_pressed():
 	emit_signal("exit_game")
@@ -13,12 +14,10 @@ func _on_start_button_pressed():
 func _ready():
 	print("Preparing the ready")
 
-	music_manager = TowerDefensePlugin.music_manager
-	if music_manager:
+	game_manager = TowerDefensePlugin.game_manager
+	if game_manager:
+		music_manager = game_manager.get_music_manager()
 		music_manager.load_music("res://audio/track1.ogg")
-	
-	maiky = TowerDefensePlugin.maiky
-	if maiky:
 		var key = "main_menu"
 		var background_image = "res://Assets/menu/bg_main_screen.png"
 		var button_image = "res://Assets/menu/button1.png"
@@ -30,8 +29,9 @@ func _ready():
 			{"element_type": "button", "id": "button_5", "properties": {"title": "Exit", "callback": "exit_game", "params": []}}
 		]
 		var buttons_json = JSON.stringify(buttons)
-		maiky.show_menu_canvas(key, background_image, button_image, buttons_json)
-		maiky.show_avatar_message("avatar_1", "The wild fires are spreading all around...", "res://Assets/npc/npc_bg/wave.jpg", "res://Assets/npc/avatar/protag.png")
+		ui_manager = game_manager.get_ui_manager()
+		ui_manager.show_menu_canvas(key, background_image, button_image, buttons_json)
+		ui_manager.show_avatar_message("avatar_1", "The wild fires are spreading all around...", "res://Assets/npc/npc_bg/wave.jpg", "res://Assets/npc/avatar/protag.png")
 
 
 func _on_start_game():
