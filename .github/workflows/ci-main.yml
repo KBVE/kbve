@@ -186,7 +186,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
         with:
-          source_file: 'dist/apps/kbve.com/'
+          source_file: 'apps/dist/apps/kbve.com/'
           destination_repo: 'KBVE/kbve.com'
           destination_folder: '/docs'
           destination_branch: 'dev'
