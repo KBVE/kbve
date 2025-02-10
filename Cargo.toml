@@ -7,10 +7,10 @@ members = [
 	'packages/holy',
 	'packages/jedi',
 	'apps/kbve/kilobase',
+	'apps/kbve/rust_kanban',
+	'apps/kbve/rust_api_profile',
 	'apps/rust_rareicon_gameserver',
-	'apps/rust_api_profile',
 	'apps/rust_wasm_embed',
-	'apps/rust_kanban',
 	'apps/rust_p16_gameserver',
 	'apps/rust_godot_towerdefense',
 ]
