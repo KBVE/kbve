@@ -6,7 +6,7 @@
       
       export default defineConfig({
         root: __dirname,
-        cacheDir: '../../node_modules/.vite/apps/react-phaser-fish-chip',
+        cacheDir: '../../../node_modules/.vite/apps/react-phaser-travelbox',
         
     server:{
       port: 4200,
@@ -25,9 +25,11 @@ nxViteTsPaths()],
     // worker: {
     //  plugins: [ nxViteTsPaths() ],
     // },
+
+    base: './',
         
     build: {
-      outDir: '../../dist/apps/react-phaser-fish-chip',
+      outDir: '../../../dist/apps/react-phaser-travelbox',
       reportCompressedSize: true,
       commonjsOptions: {
         transformMixedEsModules: true,
@@ -38,7 +40,7 @@ nxViteTsPaths()],
           // ES Module Output
           format: 'es', // ES module format
           // Change the output directory structure and naming
-          entryFileNames: `fish-chip.js`,
+          entryFileNames: `travelbox.js`,
           chunkFileNames: `[name].js`,
           assetFileNames: `[name].[ext]`,
         },
@@ -49,14 +51,14 @@ nxViteTsPaths()],
         test: {
     globals: true,
     cache: {
-      dir: '../../node_modules/.vitest'
+      dir: '../../../node_modules/.vitest'
     },
     environment: 'jsdom',
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../coverage/apps/react-phaser-fish-chip',
+      reportsDirectory: '../../../coverage/apps/react-phaser-travelbox',
       provider: 'v8',
     }
   },
