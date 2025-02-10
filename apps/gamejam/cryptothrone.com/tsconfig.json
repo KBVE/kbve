@@ -1,5 +1,5 @@
 {
-  //"extends": "../../tsconfig.base.json", // Temp Remove
+  //"extends": "../../../tsconfig.base.json", // Temp Remove
   "extends": "astro/tsconfigs/strict", // Temp Add
   "compilerOptions": {
     "baseUrl": ".", // Temp Add
@@ -36,9 +36,9 @@
       }
       ],
       "paths": {
-        "@kbve/astropad": ["../../packages/astropad/index.ts"],
-        "@kbve/laser": ["../../packages/laser/src/index.ts"],
-        "@kbve/khashvault": ["../../packages/khashvault/src/index.ts"],
+        "@kbve/astropad": ["../../../packages/astropad/index.ts"],
+        "@kbve/laser": ["../../../packages/laser/src/index.ts"],
+        "@kbve/khashvault": ["../../../packages/khashvault/src/index.ts"],
       }
   },
   "include": ["src"]
