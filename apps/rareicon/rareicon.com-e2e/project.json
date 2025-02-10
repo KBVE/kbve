@@ -1,0 +1,26 @@
+{
+  "name": "rareicon.com-e2e",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/rareicon/rareicon.com-e2e/src",
+  "projectType": "application",
+  "tags": [],
+  "implicitDependencies": [
+    "rareicon.com"
+  ],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/cypress:cypress",
+      "options": {
+        "cypressConfig": "apps/rareicon/rareicon.com-e2e/cypress.config.ts",
+        "devServerTarget": "rareicon.com:dev",
+        "testingType": "e2e"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": [
+        "{options.outputFile}"
+      ]
+    }
+  }
+}
