@@ -41,6 +41,7 @@ impl TimerExt for Gd<Timer> {
     self.stop();
     self.set_wait_time(time);
     self.start();
+    self.set_autostart(true);
     self
   }
 
@@ -55,10 +56,11 @@ impl TimerExt for Gd<Timer> {
       let mut new_timer = Timer::new_alloc()
         .with_name(&timer_key)
         .with_one_shot(true)
-        .with_wait_time(wait_time);
+        .with_wait_time(wait_time)
+        .with_autostart(true);
 
       base.add_child(&new_timer.clone().upcast::<Node>());
-
+      godot_print!("[TimerExt] Added new timer: {}", timer_key);
       new_timer
     };
 
@@ -66,7 +68,7 @@ impl TimerExt for Gd<Timer> {
       timer.connect("timeout", &base.callable("hide_avatar_message").bind(&[key.to_variant()]));
     }
 
-    timer.start();
+    godot_print!("[TimerExt] Timer '{}' started with wait_time: {}", timer_key, wait_time);
 
     timer
   }

@@ -10,6 +10,7 @@ mod cache;
 mod extensions;
 mod data;
 mod macrow;
+mod manager;
 
 #[cfg(target_os = "macos")]
 mod macos;
