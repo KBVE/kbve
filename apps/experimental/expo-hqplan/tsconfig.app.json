@@ -1,10 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/out-tsc",
+    "outDir": "../../../dist/out-tsc",
     "types": ["node"]
   },
-  "files": ["../../node_modules/@nx/expo/typings/svg.d.ts"],
+  "files": ["../../../node_modules/@nx/expo/typings/svg.d.ts"],
   "exclude": [
     "jest.config.ts",
     "**/*.spec.ts",
