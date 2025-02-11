@@ -1,0 +1,104 @@
+{
+  "name": "rust_wasm_embed",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/experimental/rust_wasm_embed/src",
+  "tags": [],
+  "targets": {
+    "trunksetup": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "rustup update",
+          "sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev",
+          "rustup target add wasm32-unknown-unknown",
+          "cargo install --locked trunk"
+        ],
+        "parallel": false
+      }
+    },
+    "trunkserve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/experimental/rust_wasm_embed",
+        "commands": [
+          "trunk serve"
+        ],
+        "parallel": false
+      }
+    },
+    "trunkrelease": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/experimental/rust_wasm_embed",
+        "commands": [
+          "trunk build --release"
+        ],
+        "parallel": false
+      }
+    },
+    "pipe": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "chmod +x tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
+          "chmod +x tools/scripts/public/wasm/pipeline_kbve_wasm_build.sh",
+          "./tools/scripts/public/wasm/pipeline_herbmail_wasm_build.sh",
+          "./tools/scripts/public/wasm/pipeline_kbve_wasm_build.sh"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@monodon/rust:build",
+      "outputs": [
+        "{options.target-dir}"
+      ],
+      "options": {
+        "target-dir": "dist/target/rust_wasm_embed"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "test": {
+      "executor": "@monodon/rust:test",
+      "outputs": [
+        "{options.target-dir}"
+      ],
+      "options": {
+        "target-dir": "dist/target/rust_wasm_embed"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "lint": {
+      "executor": "@monodon/rust:lint",
+      "outputs": [
+        "{options.target-dir}"
+      ],
+      "options": {
+        "target-dir": "dist/target/rust_wasm_embed"
+      }
+    },
+    "run": {
+      "executor": "@monodon/rust:run",
+      "outputs": [
+        "{options.target-dir}"
+      ],
+      "options": {
+        "target-dir": "dist/target/rust_wasm_embed"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    }
+  }
+}

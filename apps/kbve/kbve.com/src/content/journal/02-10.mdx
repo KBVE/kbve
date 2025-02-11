@@ -36,9 +36,25 @@ pnpm nx g move --project expo-cityvote --destination apps/cityvote/expo-cityvote
 -   06:05AM
 
     Migrating `rust_godot` to rentearth subfolder.
+
 ```shell
 pnpm nx g move --project rust_godot_towerdefense --destination apps/rentearth/rust_godot_towerdefense --skipFormat=true
 ```
+
+-   05:44PM
+
+    Finishing the cryptothrone migration, now we need to add the `deprecated` folder, for apps that we need to remove.
+    Later on, I will go back in and make adjustments to them.
+    Next, we can move the pydiscord into the discord sub folder, furthermore, we can add the front end into that folder too.
+
+```shell
+pnpm nx g move --project rust_p16_gameserver --destination apps/experimental/rust_p16_gameserver --skipFormat=true
+pnpm nx g move --project expo-lcagents --destination apps/experimental/expo-lcagents --skipFormat=true
+pnpm nx g move --project expo-hqplan --destination apps/experimental/expo-hqplan --skipFormat=true
+pnpm nx g move --project rust_wasm_embed --destination apps/experimental/rust_wasm_embed --skipFormat=true
+
+```
+
 
 ## 2024
 
