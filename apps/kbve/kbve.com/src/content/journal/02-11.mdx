@@ -14,6 +14,8 @@ tags:
 
 ## 2025
 
+### Migrations
+
 -   12:37AM
 
     The shell command to start moving the discord software into the subfolder.
@@ -21,7 +23,17 @@ tags:
 ```shell
 pnpm nx g move --project pydiscordsh --destination apps/discord/pydiscordsh --skipFormat=true
 ```
+    For Atlas and Fudster, I am thinking that we need to rework those as well?
+    We could place them into their own category for now too, hmm.
 
+-   02:14AM
+
+    Next up will be the herbmail subfolder, which will just hold the astro files for now.
+
+```shell
+pnpm nx g move --project herbmail.com --destination apps/herbmail/herbmail.com --skipFormat=true
+``` 
+  Okay needed to adjust the tailwindcss because its pulling from the shadcn package that we had.
 
 ## 2024
 
