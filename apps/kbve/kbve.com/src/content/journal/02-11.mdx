@@ -33,12 +33,18 @@ pnpm nx g move --project pydiscordsh --destination apps/discord/pydiscordsh --sk
 ```shell
 pnpm nx g move --project herbmail.com --destination apps/herbmail/herbmail.com --skipFormat=true
 ``` 
-  Okay needed to adjust the tailwindcss because its pulling from the shadcn package that we had.
+    Okay needed to adjust the tailwindcss because its pulling from the shadcn package that we had.
 
-  That leaves the atlas and the fudster project, both we can keep in the apps for now and come back around with those later on.
-  Okay! Migrations are complete , let me close that ticket out for now.
+    That leaves the atlas and the fudster project, both we can keep in the apps for now and come back around with those later on.
+    Okay! Migrations are complete , let me close that ticket out for now.
+    Opps, forgot to update the cargo.toml for the workspace changes.
 
 ### Clock Extension for GoDot
+
+-   02:33AM
+
+    Clocks aka Timers are a bit of an issue right now with our godot extension?
+    I am thinking that there might be a race condition, where the timer is not yet added into the scene before it gets triggered.
 
 
 
