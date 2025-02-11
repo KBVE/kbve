@@ -1,8 +1,9 @@
 {
   "name": "rust_p16_gameserver",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "apps/rust_p16_gameserver/src",
+  "sourceRoot": "apps/experimental/rust_p16_gameserver/src",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@monodon/rust:build",
@@ -55,6 +56,5 @@
         }
       }
     }
-  },
-  "tags": []
+  }
 }
