@@ -5,7 +5,7 @@ edition = "2021"
 
 
 [dependencies]
-erust = { path = "../../packages/erust" }
+erust = { path = "../../../packages/erust" }
 egui = "0.25.0"
 eframe = { version = "0.25.0", default-features = false, features = [
     "accesskit",     # Make egui comptaible with screen readers. NOTE: adds a lot of dependencies.
