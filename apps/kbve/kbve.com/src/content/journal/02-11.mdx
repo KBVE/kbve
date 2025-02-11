@@ -39,6 +39,15 @@ pnpm nx g move --project herbmail.com --destination apps/herbmail/herbmail.com -
     Okay! Migrations are complete , let me close that ticket out for now.
     Opps, forgot to update the cargo.toml for the workspace changes.
 
+
+### Clock Extension for GoDot
+
+-   02:33AM
+
+    Clocks aka Timers are a bit of an issue right now with our godot extension?
+    I am thinking that there might be a race condition, where the timer is not yet added into the scene before it gets triggered.
+
+
 ### Markets
 
 -   03:27PM
@@ -47,12 +56,12 @@ pnpm nx g move --project herbmail.com --destination apps/herbmail/herbmail.com -
     I am hoping that tesla goes back under the $300 mark, making it a great time to pick up a couple more shares.
     Yet I really want to offload my nvidia at around $150, so maybe getting a point inbetween both of them would be great.
 
-### Clock Extension for GoDot
+### GoDot WSL Test After Migration
 
--   02:33AM
+-   05:25PM
 
-    Clocks aka Timers are a bit of an issue right now with our godot extension?
-    I am thinking that there might be a race condition, where the timer is not yet added into the scene before it gets triggered.
+    Parts of the monorepo are a bit broken since we did the subfolder migrations, mainly because the paths have changed.
+    Some of the locations are still hard coded, so just need to scope them all out and make the adjustments.
 
 
 
