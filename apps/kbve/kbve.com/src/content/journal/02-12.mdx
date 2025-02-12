@@ -1,7 +1,7 @@
 ---
 title: 'February: 12'
 category: Daily
-date: 2024-02-12 12:00:00
+date: 2025-02-12 12:00:00
 client: Self
 unsplash: 1561478908-1ceb3bcc74b6
 img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -12,9 +12,65 @@ tags:
 
 ## Notes
 
-### 2024
+## 2025
 
-#### Unity
+### Market Trump Tar-Rifts
+
+-   03:56PM
+
+    The term that would best describe these tariffs, aka `tar-rifts`, where they are just a tool to cause chaos.
+
+### Cache Manager
+
+-   04:21PM
+
+    The `CacheManager` would be structured similar to our other node-base, with the focus of moving the `ResourceCache` out of the Maiky and into this manager.
+    I am wondering if the ShaderCache could just be broken down and turned into a shader manager, hmm.
+
+    This is what I am thinking the basic structure would look:
+
+```rust
+
+#[derive(GodotClass)]
+#[class(base = Node)]
+pub struct CacheManager {
+    base: Base<Node>,
+    texture_cache: ResourceCache<Texture2D>,
+    canvas_layer_cache: ResourceCache<CanvasLayer>,
+    ui_cache: ResourceCache<Control>,
+    audio_cache: ResourceCache<AudioStream>,
+    shader_cache: Option<Gd<ShaderCache>>,
+}
+
+```
+
+-   06:38PM
+
+    To test the windows build, we will be using this command:
+
+```shell
+
+./kbve.sh -nx rust_godot_towerdefense:build-windows
+
+```
+
+    Keeping this in the notes, so that I can switch over to it easily.
+
+
+### FoodShoppin
+
+-   06:27PM
+
+    Just came back from food shipping and picked up two boxes of the most fire / epic mangoes!
+    These mangoes seem to come from Peru and have the perfect balance of sweetness and juice.
+    Anyhow, back to the grind I go.
+
+
+
+
+## 2024
+
+### Unity
 
 After finishing up my morning work session, I am going to continue working on my the unity game! Ugh character selection and the character handler, oh boy.
 
@@ -104,7 +160,7 @@ I am thinking that we we could also move the `KBVE` namespace into its own nuget
 
 The character section could be split into a couple different components, hmm, thinking it through, it might make more sense
 
-#### AutoReview
+### AutoReview
 
 During the pipeline roll out, it seems that the auto review passed on 3 of the test cases but faild on the remaining 7.
 
