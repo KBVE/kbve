@@ -128,7 +128,8 @@ impl Maiky {
     self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
   }
 
-  fn get_clock_master(&self) -> Option<Gd<ClockMaster>> {
+  fn get_clock_master(&mut self) -> Option<Gd<ClockMaster>> {
+    godot_print!("[Debug] get_clock_master() is being called...");
     let parent = self.base().get_parent()?;
     godot_print!("[Debug] Parent Node: {:?}", parent.get_name());
 
@@ -298,6 +299,9 @@ impl Maiky {
       &background_image,
       &avatar_profile_pic
     );
+
+    godot_print!("[Debug] show_avatar_message() called with key: {}", key);
+
 
     let clock_master = self.get_clock_master();
 
