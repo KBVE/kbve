@@ -1,5 +1,6 @@
 use godot::prelude::*;
 use godot::classes::{ Node, Timer };
+use crate::data::cache::ResourceCache;
 
 pub trait TimerExt {
   fn with_name(self, name: &str) -> Self;
@@ -8,7 +9,6 @@ pub trait TimerExt {
   fn with_autostart(self, autostart: bool) -> Self;
   fn with_paused(self, paused: bool) -> Self;
   fn restart(self, time: f64) -> Self;
-  fn ensure_timer(base: &mut Gd<Node>, key: &GString, wait_time: f64) -> Gd<Timer>;
 }
 
 impl TimerExt for Gd<Timer> {
@@ -44,32 +44,71 @@ impl TimerExt for Gd<Timer> {
     self.set_autostart(true);
     self
   }
+}
 
-  fn ensure_timer(base: &mut Gd<Node>, key: &GString, wait_time: f64) -> Gd<Timer> {
-    let timer_key = format!("Timer_{}", key);
+#[derive(GodotClass)]
+#[class(base = Node)]
+pub struct ClockMaster {
+  base: Base<Node>,
+  timer_cache: ResourceCache<Timer>,
+}
 
-    let mut timer = if let Some(mut existing_timer) = base.try_get_node_as::<Timer>(timer_key.as_str()) {
-      existing_timer.stop();
-      existing_timer.set_wait_time(wait_time);
-      existing_timer
-    } else {
-      let mut new_timer = Timer::new_alloc()
-        .with_name(&timer_key)
-        .with_one_shot(true)
-        .with_wait_time(wait_time)
-        .with_autostart(true);
+#[godot_api]
+impl INode for ClockMaster {
+  fn init(base: Base<Node>) -> Self {
+    Self {
+      base,
+      timer_cache: ResourceCache::new(),
+    }
+  }
+}
 
-      base.add_child(&new_timer.clone().upcast::<Node>());
-      godot_print!("[TimerExt] Added new timer: {}", timer_key);
-      new_timer
-    };
+#[godot_api]
+impl ClockMaster {
 
-    if !timer.is_connected("timeout", &base.callable("hide_avatar_message")) {
-      timer.connect("timeout", &base.callable("hide_avatar_message").bind(&[key.to_variant()]));
+  #[func]
+  pub fn ensure_timer(&mut self, key: GString, wait_time: f64) -> Gd<Timer> {
+    let timer_key = key.to_string();
+
+    if let Some(mut timer) = self.timer_cache.get(&timer_key) {
+      if timer.is_stopped() {
+        timer.set_wait_time(wait_time);
+        timer.start();
+      }
+      return timer;
     }
 
-    godot_print!("[TimerExt] Timer '{}' started with wait_time: {}", timer_key, wait_time);
+    let mut new_timer = Timer::new_alloc()
+      .with_name(&key)
+      .with_wait_time(wait_time)
+      .with_one_shot(true);
 
-    timer
+    self.base_mut().add_child(new_timer.clone().upcast::<Node>());
+    self.timer_cache.insert(&timer_key, new_timer.clone());
+    new_timer.start();
+    godot_print!("[ClockMaster] Timer '{}' Ensured from Timer Extension.", key);
+    new_timer
+  }
+
+  #[func]
+  pub fn on_timer_timeout(&mut self, key: GString) {
+    godot_print!("[ClockMaster] Timer '{}' timed out.", key);
+
+    if let Some(mut timer) = self.timer_cache.get(&key.to_string()) {
+      timer.stop();
+    } else {
+      godot_warn!("[ClockMaster] Timer '{}' not found in cache.", key);
+    }
+  }
+
+  #[func]
+  pub fn destroy_timer(&mut self, key: GString) {
+    let timer_key = key.to_string();
+    if let Some(mut timer) = self.timer_cache.remove(&timer_key) {
+      godot_print!("[ClockMaster] Destroying Timer '{}'", timer_key);
+      timer.queue_free(); // godot::prelude::Node::queue_free + https://godot-rust.github.io/docs/gdext/master/godot/classes/struct.Timer.html -> queue_free(&mut self)
+    } else {
+      godot_warn!("[ClockMaster] Cant destroy Timer '{}' as it was not found.", key);
+    }
   }
 }

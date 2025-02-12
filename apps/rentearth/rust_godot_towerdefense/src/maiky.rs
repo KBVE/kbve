@@ -20,9 +20,9 @@ use godot::classes::window::Flags as WindowFlags;
 use godot::prelude::*;
 
 use crate::shader::ShaderCache;
-use crate::cache::ResourceCache;
+use crate::data::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
-use crate::extensions::timer_extension::TimerExt;
+use crate::extensions::timer_extension::ClockMaster;
 use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
 use crate::connect_signal;
 
@@ -33,6 +33,7 @@ use crate::macos::enable_mac_transparency;
 #[class(base = CanvasLayer)]
 pub struct Maiky {
   base: Base<CanvasLayer>,
+  clock_master: Option<Gd<ClockMaster>>,
   texture_cache: ResourceCache<Texture2D>,
   canvas_layer_cache: ResourceCache<CanvasLayer>,
   ui_cache: ResourceCache<Control>,
@@ -46,6 +47,7 @@ impl ICanvasLayer for Maiky {
 
     Self {
       base,
+      clock_master: None,
       texture_cache: ResourceCache::new(),
       canvas_layer_cache: ResourceCache::new(),
       ui_cache: ResourceCache::new(),
@@ -56,6 +58,16 @@ impl ICanvasLayer for Maiky {
   fn ready(&mut self) {
     connect_signal!(self, "exit_game", "on_exit_game");
     self.enable_transparency();
+    if let Some(game_manager) = self.base().try_get_node_as::<Node>("GameManager") {
+      if let Some(clock_master) = game_manager.try_get_node_as::<ClockMaster>("ClockMaster") {
+        self.clock_master = Some(clock_master.clone());
+        godot_print!("[Maiky] Linked to ClockMaster.");
+      } else {
+        godot_warn!("[Maiky] ClockMaster not found!");
+      }
+    } else {
+      godot_warn!("[Maiky] GameManager not found!");
+    }
   }
 }
 
@@ -276,9 +288,18 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    let mut base_node = self.base_mut().clone().upcast::<Node>();
-    let mut timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
-    timer.start();
+    // let mut base_node = self.base_mut().clone().upcast::<Node>();
+    // let mut timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
+    // timer.start();
+
+    if let Some(clock_master) = &self.clock_master {
+      //TODO - Call Gd<Timer> from Clock_Master
+
+      let mut timer = clock_master.ensure_timer(key.clone(), 30.0);
+      timer.start();
+    } else {
+      godot_warn!("[Maiky] ClockMaster was not found!");
+    }
   }
 
   fn get_or_create_avatar_message_box(
