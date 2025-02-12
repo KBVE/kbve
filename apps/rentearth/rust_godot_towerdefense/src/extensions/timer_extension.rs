@@ -79,12 +79,14 @@ impl ClockMaster {
     }
 
     let mut new_timer = Timer::new_alloc()
-      .with_name(&key)
+      .with_name(&timer_key)
       .with_wait_time(wait_time)
       .with_one_shot(true);
 
-    self.base_mut().add_child(new_timer.clone().upcast::<Node>());
-    self.timer_cache.insert(&timer_key, new_timer.clone());
+    let new_timer_clone = new_timer.clone();
+
+    self.base_mut().add_child(&new_timer);
+    self.timer_cache.insert(&timer_key, new_timer_clone);
     new_timer.start();
     godot_print!("[ClockMaster] Timer '{}' Ensured from Timer Extension.", key);
     new_timer

@@ -25,6 +25,7 @@ use crate::extensions::ui_extension::*;
 use crate::extensions::timer_extension::ClockMaster;
 use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
 use crate::connect_signal;
+use crate::manager::game_manager::GameManager;
 
 #[cfg(target_os = "macos")]
 use crate::macos::enable_mac_transparency;
@@ -33,7 +34,6 @@ use crate::macos::enable_mac_transparency;
 #[class(base = CanvasLayer)]
 pub struct Maiky {
   base: Base<CanvasLayer>,
-  clock_master: Option<Gd<ClockMaster>>,
   texture_cache: ResourceCache<Texture2D>,
   canvas_layer_cache: ResourceCache<CanvasLayer>,
   ui_cache: ResourceCache<Control>,
@@ -47,7 +47,6 @@ impl ICanvasLayer for Maiky {
 
     Self {
       base,
-      clock_master: None,
       texture_cache: ResourceCache::new(),
       canvas_layer_cache: ResourceCache::new(),
       ui_cache: ResourceCache::new(),
@@ -58,16 +57,6 @@ impl ICanvasLayer for Maiky {
   fn ready(&mut self) {
     connect_signal!(self, "exit_game", "on_exit_game");
     self.enable_transparency();
-    if let Some(game_manager) = self.base().try_get_node_as::<Node>("GameManager") {
-      if let Some(clock_master) = game_manager.try_get_node_as::<ClockMaster>("ClockMaster") {
-        self.clock_master = Some(clock_master.clone());
-        godot_print!("[Maiky] Linked to ClockMaster.");
-      } else {
-        godot_warn!("[Maiky] ClockMaster not found!");
-      }
-    } else {
-      godot_warn!("[Maiky] GameManager not found!");
-    }
   }
 }
 
@@ -137,6 +126,13 @@ impl Maiky {
   pub fn store_ui_element(&mut self, key: GString, element: Gd<Control>) {
     self.ui_cache.insert(key.to_string().as_str(), element.clone());
     self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
+  }
+
+  fn get_clock_master(&mut self) -> Option<Gd<ClockMaster>> {
+    if let Some(mut game_manager) = self.base().try_get_node_as::<GameManager>("GameManager") {
+      return Some(game_manager.bind_mut().get_clock_master());
+    }
+    None
   }
 
   fn build_menu_buttons(
@@ -288,14 +284,8 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    // let mut base_node = self.base_mut().clone().upcast::<Node>();
-    // let mut timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
-    // timer.start();
-
-    if let Some(clock_master) = &self.clock_master {
-      //TODO - Call Gd<Timer> from Clock_Master
-
-      let mut timer = clock_master.ensure_timer(key.clone(), 30.0);
+    if let Some(mut clock_master) = self.get_clock_master() {
+      let mut timer: Gd<Timer> = clock_master.bind_mut().ensure_timer(key.clone(), 30.0);
       timer.start();
     } else {
       godot_warn!("[Maiky] ClockMaster was not found!");
