@@ -65,15 +65,13 @@ impl INode for ClockMaster {
 
 #[godot_api]
 impl ClockMaster {
-
-  #[func]
+  
   pub fn ensure_timer(&mut self, key: GString, wait_time: f64) -> Gd<Timer> {
     let timer_key = key.to_string();
 
     if let Some(mut timer) = self.timer_cache.get(&timer_key) {
-      if timer.is_stopped() {
+      if timer.get_wait_time() != wait_time {
         timer.set_wait_time(wait_time);
-        timer.start();
       }
       return timer;
     }
@@ -83,12 +81,21 @@ impl ClockMaster {
       .with_wait_time(wait_time)
       .with_one_shot(true);
 
-    let new_timer_clone = new_timer.clone();
+    let stored_timer = new_timer.clone();
 
-    self.base_mut().add_child(&new_timer);
-    self.timer_cache.insert(&timer_key, new_timer_clone);
-    new_timer.start();
-    godot_print!("[ClockMaster] Timer '{}' Ensured from Timer Extension.", key);
+    {
+      let mut guard = self.base_mut();
+      guard.add_child(&new_timer);
+    }
+
+    self.timer_cache.insert(&timer_key, stored_timer);
+
+    godot_print!(
+      "[ClockMaster] Timer '{}' Ensured from Timer Extension. (Wait Time: {})",
+      key,
+      wait_time
+    );
+
     new_timer
   }
 

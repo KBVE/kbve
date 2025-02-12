@@ -34,6 +34,7 @@ use crate::macos::enable_mac_transparency;
 #[class(base = CanvasLayer)]
 pub struct Maiky {
   base: Base<CanvasLayer>,
+  clock_master: Option<Gd<ClockMaster>>,
   texture_cache: ResourceCache<Texture2D>,
   canvas_layer_cache: ResourceCache<CanvasLayer>,
   ui_cache: ResourceCache<Control>,
@@ -47,6 +48,7 @@ impl ICanvasLayer for Maiky {
 
     Self {
       base,
+      clock_master: None,
       texture_cache: ResourceCache::new(),
       canvas_layer_cache: ResourceCache::new(),
       ui_cache: ResourceCache::new(),
@@ -57,6 +59,30 @@ impl ICanvasLayer for Maiky {
   fn ready(&mut self) {
     connect_signal!(self, "exit_game", "on_exit_game");
     self.enable_transparency();
+
+    if let Some(parent) = self.base().get_parent() {
+      let mut game_manager = parent.cast::<GameManager>();
+
+      if game_manager.clone().upcast::<Node>().is_instance_valid() {
+        godot_print!("[Maiky] GameManager found! Attempting to retrieve ClockMaster...");
+
+        let clock_master_variant = game_manager.call("get_clock_master", &[]);
+
+        match clock_master_variant.try_to::<Gd<ClockMaster>>() {
+          Ok(clock_master) => {
+            self.clock_master = Some(clock_master.clone());
+            godot_print!("[Maiky] Successfully linked to ClockMaster!");
+          }
+          Err(err) => {
+            godot_warn!("[Maiky] Failed to retrieve ClockMaster from GameManager! {:?}", err);
+          }
+        }
+      } else {
+        godot_warn!("[Maiky] GameManager is not valid!");
+      }
+    } else {
+      godot_warn!("[Maiky] Parent Node not found!");
+    }
   }
 }
 
@@ -126,29 +152,6 @@ impl Maiky {
   pub fn store_ui_element(&mut self, key: GString, element: Gd<Control>) {
     self.ui_cache.insert(key.to_string().as_str(), element.clone());
     self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
-  }
-
-  fn get_clock_master(&mut self) -> Option<Gd<ClockMaster>> {
-    godot_print!("[Debug] get_clock_master() is being called...");
-    let parent = self.base().get_parent()?;
-    godot_print!("[Debug] Parent Node: {:?}", parent.get_name());
-
-    let mut game_manager = parent.cast::<GameManager>();
-    godot_print!("[Debug] GameManager Found: {:?}", game_manager.get_name());
-
-    let clock_master_variant = game_manager.call("get_clock_master", &[]);
-    godot_print!("[Debug] ClockMaster Variant: {:?}", clock_master_variant);
-
-    match clock_master_variant.try_to::<Gd<ClockMaster>>() {
-      Ok(clock_master) => {
-        godot_print!("[Debug] Successfully retrieved ClockMaster: {:?}", clock_master.get_name());
-        Some(clock_master)
-      }
-      Err(err) => {
-        godot_warn!("[Warning] Failed to convert ClockMaster Variant: {:?}", err);
-        None
-      }
-    }
   }
 
   fn build_menu_buttons(
@@ -302,17 +305,10 @@ impl Maiky {
 
     godot_print!("[Debug] show_avatar_message() called with key: {}", key);
 
-
-    let clock_master = self.get_clock_master();
-
-    if let Some(mut clock_master) = clock_master {
+    if let Some(clock_master) = &mut self.clock_master {
       godot_print!("[Debug] ClockMaster found, ensuring timer for key: {}", key);
-      let mut timer: Gd<Timer> = clock_master
-        .call("ensure_timer", &[key.to_variant(), Variant::from(30.0)])
-        .to::<Gd<Timer>>();
-
+      let mut timer = clock_master.bind_mut().ensure_timer(key.clone(), 30.0);
       godot_print!("[Debug] Timer retrieved successfully for key: {}", key);
-
       timer.start();
     } else {
       godot_warn!("[Maiky] ClockMaster was not found!");

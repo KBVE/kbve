@@ -32,21 +32,24 @@ impl INode for GameManager {
       clock_master,
       music_manager,
       ui_manager,
-      
     }
   }
 
   fn ready(&mut self) {
     godot_print!("[GameManager] Ready! Adding children...");
 
-    
     let clock_master = self.clock_master.clone();
     let music_manager = self.music_manager.clone();
     let ui_manager = self.ui_manager.clone();
 
-    self.base_mut().call_deferred("add_child", &[clock_master.to_variant()]);
-    self.base_mut().call_deferred("add_child", &[music_manager.to_variant()]);
-    self.base_mut().call_deferred("add_child", &[ui_manager.to_variant()]);
+    {
+      let mut base = self.base_mut();
+      base.add_child(&clock_master.upcast::<Node>());
+      base.add_child(&music_manager.upcast::<Node>());
+      base.add_child(&ui_manager.upcast::<Node>());
+    }
+
+    godot_print!("[GameManager] All children added successfully.");
   }
 }
 
