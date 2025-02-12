@@ -128,11 +128,26 @@ impl Maiky {
     self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
   }
 
-  fn get_clock_master(&mut self) -> Option<Gd<ClockMaster>> {
-    if let Some(mut game_manager) = self.base().try_get_node_as::<GameManager>("GameManager") {
-      return Some(game_manager.bind_mut().get_clock_master());
+  fn get_clock_master(&self) -> Option<Gd<ClockMaster>> {
+    let parent = self.base().get_parent()?;
+    godot_print!("[Debug] Parent Node: {:?}", parent.get_name());
+
+    let mut game_manager = parent.cast::<GameManager>();
+    godot_print!("[Debug] GameManager Found: {:?}", game_manager.get_name());
+
+    let clock_master_variant = game_manager.call("get_clock_master", &[]);
+    godot_print!("[Debug] ClockMaster Variant: {:?}", clock_master_variant);
+
+    match clock_master_variant.try_to::<Gd<ClockMaster>>() {
+      Ok(clock_master) => {
+        godot_print!("[Debug] Successfully retrieved ClockMaster: {:?}", clock_master.get_name());
+        Some(clock_master)
+      }
+      Err(err) => {
+        godot_warn!("[Warning] Failed to convert ClockMaster Variant: {:?}", err);
+        None
+      }
     }
-    None
   }
 
   fn build_menu_buttons(
@@ -284,8 +299,16 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    if let Some(mut clock_master) = self.get_clock_master() {
-      let mut timer: Gd<Timer> = clock_master.bind_mut().ensure_timer(key.clone(), 30.0);
+    let clock_master = self.get_clock_master();
+
+    if let Some(mut clock_master) = clock_master {
+      godot_print!("[Debug] ClockMaster found, ensuring timer for key: {}", key);
+      let mut timer: Gd<Timer> = clock_master
+        .call("ensure_timer", &[key.to_variant(), Variant::from(30.0)])
+        .to::<Gd<Timer>>();
+
+      godot_print!("[Debug] Timer retrieved successfully for key: {}", key);
+
       timer.start();
     } else {
       godot_warn!("[Maiky] ClockMaster was not found!");
