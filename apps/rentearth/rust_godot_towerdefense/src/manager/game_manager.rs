@@ -5,12 +5,14 @@ use crate::data::user_data::{ UserData, UserDataCache };
 use crate::data::abstract_data_map::AbstractDataMap;
 use crate::music::MusicManager;
 use crate::maiky::Maiky;
+use crate::extensions::timer_extension::ClockMaster;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct GameManager {
   base: Base<Node>,
   user_data_cache: UserDataCache,
+  clock_master: Gd<ClockMaster>,
   music_manager: Gd<MusicManager>,
   ui_manager: Gd<Maiky>,
 }
@@ -20,31 +22,31 @@ impl INode for GameManager {
   fn init(base: Base<Self::Base>) -> Self {
     godot_print!("[GameManager] Initializing...");
 
+    let clock_master = Gd::from_init_fn(|base| ClockMaster::init(base));
     let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
     let ui_manager = Gd::from_init_fn(|base| Maiky::init(base));
 
     Self {
       base,
       user_data_cache: UserDataCache::new(),
+      clock_master,
       music_manager,
       ui_manager,
+      
     }
   }
 
   fn ready(&mut self) {
     godot_print!("[GameManager] Ready! Adding children...");
 
-
+    
+    let clock_master = self.clock_master.clone();
     let music_manager = self.music_manager.clone();
     let ui_manager = self.ui_manager.clone();
 
+    self.base_mut().call_deferred("add_child", &[clock_master.to_variant()]);
     self.base_mut().call_deferred("add_child", &[music_manager.to_variant()]);
     self.base_mut().call_deferred("add_child", &[ui_manager.to_variant()]);
-
-
-    //debug_print_tree(&self.base(), 0);
-
-    // self.load_user_settings();
   }
 }
 
@@ -70,6 +72,11 @@ impl GameManager {
   #[func]
   pub fn get_ui_manager(&self) -> Gd<Maiky> {
     self.ui_manager.clone()
+  }
+
+  #[func]
+  pub fn get_clock_master(&self) -> Gd<ClockMaster> {
+    self.clock_master.clone()
   }
 
   #[func]

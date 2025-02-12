@@ -20,11 +20,12 @@ use godot::classes::window::Flags as WindowFlags;
 use godot::prelude::*;
 
 use crate::shader::ShaderCache;
-use crate::cache::ResourceCache;
+use crate::data::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
-use crate::extensions::timer_extension::TimerExt;
+use crate::extensions::timer_extension::ClockMaster;
 use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
 use crate::connect_signal;
+use crate::manager::game_manager::GameManager;
 
 #[cfg(target_os = "macos")]
 use crate::macos::enable_mac_transparency;
@@ -125,6 +126,29 @@ impl Maiky {
   pub fn store_ui_element(&mut self, key: GString, element: Gd<Control>) {
     self.ui_cache.insert(key.to_string().as_str(), element.clone());
     self.base_mut().emit_signal("ui_element_added", &[key.to_variant(), element.to_variant()]);
+  }
+
+  fn get_clock_master(&mut self) -> Option<Gd<ClockMaster>> {
+    godot_print!("[Debug] get_clock_master() is being called...");
+    let parent = self.base().get_parent()?;
+    godot_print!("[Debug] Parent Node: {:?}", parent.get_name());
+
+    let mut game_manager = parent.cast::<GameManager>();
+    godot_print!("[Debug] GameManager Found: {:?}", game_manager.get_name());
+
+    let clock_master_variant = game_manager.call("get_clock_master", &[]);
+    godot_print!("[Debug] ClockMaster Variant: {:?}", clock_master_variant);
+
+    match clock_master_variant.try_to::<Gd<ClockMaster>>() {
+      Ok(clock_master) => {
+        godot_print!("[Debug] Successfully retrieved ClockMaster: {:?}", clock_master.get_name());
+        Some(clock_master)
+      }
+      Err(err) => {
+        godot_warn!("[Warning] Failed to convert ClockMaster Variant: {:?}", err);
+        None
+      }
+    }
   }
 
   fn build_menu_buttons(
@@ -276,9 +300,23 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    let mut base_node = self.base_mut().clone().upcast::<Node>();
-    let mut timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
-    timer.start();
+    godot_print!("[Debug] show_avatar_message() called with key: {}", key);
+
+
+    let clock_master = self.get_clock_master();
+
+    if let Some(mut clock_master) = clock_master {
+      godot_print!("[Debug] ClockMaster found, ensuring timer for key: {}", key);
+      let mut timer: Gd<Timer> = clock_master
+        .call("ensure_timer", &[key.to_variant(), Variant::from(30.0)])
+        .to::<Gd<Timer>>();
+
+      godot_print!("[Debug] Timer retrieved successfully for key: {}", key);
+
+      timer.start();
+    } else {
+      godot_warn!("[Maiky] ClockMaster was not found!");
+    }
   }
 
   fn get_or_create_avatar_message_box(

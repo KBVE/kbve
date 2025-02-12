@@ -43,4 +43,9 @@ impl<T: GodotClass> ResourceCache<T> {
   pub fn get_as<U>(&self, key: &str) -> Option<Gd<U>> where U: Inherits<T> + GodotClass {
     self.get(key)?.try_cast::<U>().ok()
   }
+
+  pub fn remove(&self, key: &str) -> Option<Gd<T>> {
+    let guard = self.map.guard();
+    self.map.remove(key, &guard).cloned()
+  }
 }
