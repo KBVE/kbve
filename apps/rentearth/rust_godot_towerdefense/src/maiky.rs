@@ -22,7 +22,7 @@ use godot::prelude::*;
 use crate::shader::ShaderCache;
 use crate::data::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
-use crate::extensions::timer_extension::ClockMaster;
+use crate::extensions::timer_extension::{ ClockMaster, TimerExt };
 use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
 use crate::connect_signal;
 use crate::manager::game_manager::GameManager;
@@ -309,7 +309,7 @@ impl Maiky {
       godot_print!("[Debug] ClockMaster found, ensuring timer for key: {}", key);
       let mut timer = clock_master.bind_mut().ensure_timer(key.clone(), 30.0);
       godot_print!("[Debug] Timer retrieved successfully for key: {}", key);
-      timer.start();
+      timer.with_connection(self.to_gd().upcast(), "hide_avatar_message",  &[key.to_variant()]).start();
     } else {
       godot_warn!("[Maiky] ClockMaster was not found!");
     }

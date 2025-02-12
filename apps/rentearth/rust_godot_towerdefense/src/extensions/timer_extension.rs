@@ -1,6 +1,8 @@
 use godot::prelude::*;
 use godot::classes::{ Node, Timer };
+use godot::builtin::Callable;
 use crate::data::cache::ResourceCache;
+use godot::global::Error;
 
 pub trait TimerExt {
   fn with_name(self, name: &str) -> Self;
@@ -9,6 +11,7 @@ pub trait TimerExt {
   fn with_autostart(self, autostart: bool) -> Self;
   fn with_paused(self, paused: bool) -> Self;
   fn restart(self, time: f64) -> Self;
+  fn with_connection(self, target: Gd<Node>, method: &str, args: &[Variant]) -> Self;
 }
 
 impl TimerExt for Gd<Timer> {
@@ -44,6 +47,18 @@ impl TimerExt for Gd<Timer> {
     self.set_autostart(true);
     self
   }
+
+  fn with_connection(mut self, target: Gd<Node>, method: &str, args: &[Variant]) -> Self {
+    let callable = Callable::from_object_method(&target, method).bind(args);
+    let result = self.connect("timeout", &callable);
+    if result != Error::OK {
+      godot_warn!("[TimerExt] Failed to connect timeout signal to '{}'", method);
+    } else {
+      godot_print!("[TimerExt] Connected timeout signal to '{}'", method);
+    }
+
+    self
+  }
 }
 
 #[derive(GodotClass)]
@@ -65,7 +80,6 @@ impl INode for ClockMaster {
 
 #[godot_api]
 impl ClockMaster {
-  
   pub fn ensure_timer(&mut self, key: GString, wait_time: f64) -> Gd<Timer> {
     let timer_key = key.to_string();
 
