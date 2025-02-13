@@ -19,7 +19,7 @@ use godot::classes::window::Flags as WindowFlags;
 
 use godot::prelude::*;
 
-use crate::shader::ShaderCache;
+use crate::data::shader_data::ShaderCache;
 use crate::data::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
 use crate::extensions::timer_extension::{ ClockMaster, TimerExt };
@@ -28,7 +28,7 @@ use crate::connect_signal;
 use crate::manager::game_manager::GameManager;
 
 #[cfg(target_os = "macos")]
-use crate::macos::enable_mac_transparency;
+use crate::macos::macos_gui_options::enable_mac_transparency;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]

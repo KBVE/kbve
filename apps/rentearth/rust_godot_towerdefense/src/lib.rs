@@ -4,10 +4,9 @@ mod maiky;
 mod hexgrid;
 mod camera;
 mod hexmap;
-mod shader;
 mod extensions;
 mod data;
-mod macrow;
+mod macros;
 mod manager;
 
 #[cfg(target_os = "macos")]
