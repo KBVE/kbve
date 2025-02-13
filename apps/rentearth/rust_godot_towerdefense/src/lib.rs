@@ -4,7 +4,6 @@ mod maiky;
 mod hexgrid;
 mod camera;
 mod hexmap;
-mod shader;
 mod extensions;
 mod data;
 mod macrow;

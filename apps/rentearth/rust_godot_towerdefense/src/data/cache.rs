@@ -3,7 +3,7 @@ use papaya::HashMap;
 use godot::classes::{ Texture2D, CanvasLayer, Control, AudioStream };
 use std::sync::Arc;
 use std::marker::PhantomData;
-use crate::shader::ShaderCache;
+use crate::data::shader_data::ShaderCache;
 
 pub struct ResourceCache<T: GodotClass> {
   map: HashMap<String, Gd<T>>,

@@ -19,7 +19,7 @@ use godot::classes::window::Flags as WindowFlags;
 
 use godot::prelude::*;
 
-use crate::shader::ShaderCache;
+use crate::data::shader_data::ShaderCache;
 use crate::data::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
 use crate::extensions::timer_extension::{ ClockMaster, TimerExt };
