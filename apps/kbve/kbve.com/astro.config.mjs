@@ -49,7 +49,7 @@ export default defineConfig({
 				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
 			},
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
-			expressiveCode: false, // Disabled Expressive Code
+			expressiveCode: true, // Disabled Expressive Code
 			defaultLocale: 'root',
 			// locales: {
 			// 	root: {
@@ -240,7 +240,7 @@ export default defineConfig({
 	],
 	// markdown: markdownConfig,
 	markdown: {
-		rehypePlugins: [rehypeMermaid],
+		rehypePlugins: [[rehypeMermaid, { strategy: "img-svg", dark: true }]],
 	  },
 	vite: defineViteConfig({
 		ssr: {
