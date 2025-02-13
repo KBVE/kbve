@@ -3,8 +3,8 @@ title: 'February: 13'
 category: Daily
 date: 2025-02-13 12:00:00
 client: Self
-unsplash: 1561478908-1ceb3bcc74b6
-img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+unsplash: 1739382445475-1cc4fcedff2c
+img: https://images.unsplash.com/photo-1739382445475-1cc4fcedff2c?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
 description: Daily Log for February 13th for each year!
 tags:
     - daily
@@ -28,6 +28,33 @@ tags:
     The morning sun is about to rise and I went off tangent really quick but got some work done.
     Upgraded the Monorepo to Nx v20.4.3 and finally upgraded to the latest Astro v5.x!
     The biggest issue was getting the vite v6 support out there and operational, which the latest nx/vite supports.
+
+-   03:08PM
+
+    The migration works fine on the mac but now its time to test it on the WSL instance.
+    Besides updating the pnpm, I need to remember to delete the `node_modules` folder and run a fresh install.
+
+### pnpm v10
+
+-   03:08PM
+
+    Updating the pnpm to v10.30.
+
+### CI - Astro v5
+
+-   03:10PM
+
+    The migration to Astro v5 has just one small issue, its the playwrite that needs to be installed before deployment / build.
+    Need to make sure that will not be a problem on my WSL instance.
+    I believe the playwrite is used to generate the mermaid graphs.
+
+```shell 
+
+    pnpm exec playwright install
+
+```
+
+    If the error comes up, it does warn us in the terminal.
 
 ## 2024
 

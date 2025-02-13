@@ -20,7 +20,6 @@
       "options": {
         "cwd": "apps/kbve/kbve.com",
         "commands": [
-          "pnpm exec playwright install",
           "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
         ],
         "parallel": false
