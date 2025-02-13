@@ -3,10 +3,10 @@ use godot::classes::window::Flags as WindowFlags;
 use godot::classes::ICanvasLayer;
 use crate::data::user_data::{ UserData, UserDataCache };
 use crate::data::abstract_data_map::AbstractDataMap;
-use crate::music::MusicManager;
+use crate::manager::music_manager::MusicManager;
 use crate::maiky::Maiky;
 use crate::extensions::timer_extension::ClockMaster;
-use crate::data::cache::{CacheManager};
+use crate::data::cache::{ CacheManager };
 
 #[derive(GodotClass)]
 #[class(base = Node)]
@@ -25,7 +25,7 @@ impl INode for GameManager {
     godot_print!("[GameManager] Initializing...");
 
     let clock_master = Gd::from_init_fn(|base| ClockMaster::init(base));
-    let cache_manager =  Gd::from_init_fn(|base| CacheManager::init(base));
+    let cache_manager = Gd::from_init_fn(|base| CacheManager::init(base));
     let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
     let ui_manager = Gd::from_init_fn(|base| Maiky::init(base));
 
@@ -72,6 +72,23 @@ impl GameManager {
 
   #[signal]
   fn game_exited();
+
+  // [INTERNAL] Rust functions
+  pub fn internal_get_music_manager(&self) -> &Gd<MusicManager> {
+    &self.music_manager
+  }
+
+  pub fn internal_get_ui_manager(&self) -> &Gd<Maiky> {
+    &self.ui_manager
+  }
+
+  pub fn internal_get_clock_master(&self) -> &Gd<ClockMaster> {
+    &self.clock_master
+  }
+
+  pub fn internal_get_cache_manager(&self) -> &Gd<CacheManager> {
+    &self.cache_manager
+  }
 
   #[func]
   pub fn get_music_manager(&self) -> Gd<MusicManager> {

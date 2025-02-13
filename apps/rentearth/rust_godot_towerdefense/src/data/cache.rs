@@ -106,7 +106,7 @@ impl CacheManager {
     &self.texture_cache
   }
 
-  fn internal_audio_cache(&self) -> &ResourceCache<AudioStream> {
+  pub fn internal_audio_cache(&self) -> &ResourceCache<AudioStream> {
     &self.audio_cache
   }
 

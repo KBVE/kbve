@@ -66,7 +66,72 @@ pub struct CacheManager {
     Anyhow, back to the grind I go.
 
 
+-   08:01PM
 
+    Took some of the fresh green peppers and tomatoes, made a ramen soup that felt so delicious!
+    For the green peppers, I boiled half of them with the water and then quickly grilled the other half, giving a wombo combo type effect to that veggie.
+
+### MusicManager with CacheManager
+
+-   08:06PM
+
+    After making sure the new CacheManager compiles, the music.rs file can be the first to test it out.
+    In the file, we can drop the `effect_cache` and `sfx_cache`, since both them will be just stored inside of the `AudioStream` cache.
+    Before in the `music.rs`:
+
+```rust
+  // New Audio Cache!
+  audio_cache: ResourceCache<AudioStream>,
+
+  // Dropping these:
+  effect_cache: HashMap<String, Gd<AudioStream>>,
+  sfx_cache: HashMap<String, Gd<AudioStream>>,
+
+  // Side-Note: These HashMaps were from the std::collections::Hashmap, which we are also dropping because of the mutex concerns.
+
+  // ++ Future Update
+
+  // Dropping these
+
+  global_music_volume: f32,
+  global_effects_volume: f32,
+  global_sfx_volume: f32,
+
+  // During the init() or ready(), we will link the CacheManager from the GameManager but while we have that ref, we can also link the pointer to the UserDataCache.
+
+```
+
+    This gives us the read-heavy hashmap as a reference and makes it easier to continue down the path of multi-threading.
+    Okay, so drop those two maps and then pull in the CacheManager into the MusicManger, but only once upon the `init` or `ready` function.
+    Since the CacheManager gets built inside of the GameManager, we can reference it from the parent, just like how we are doing it in Maiky.
+    Right when we grab the GameManager aka its parent, we can also grab the `UserDataCache` because we will need that for the user's control of audio.
+
+    Then the final volume value will just come from the `UserDataCache`, acting as a source of truth for it all.
+    In the future, we could also scope extend out into the supabase integration, allowing the user to cross-platform save their settings BUT I feel like that is an over reach.
+    We really have no reason to save data like that, but it makes sense to maybe have it so that certain core features do get saved in a remote database.
+
+    Oh boi, I was wrong, it seems that it would make more sense to just reference the GameManager, then use that reference to grab the `CacheManager` and the `UserDataCache`.
+    That makes more sense, hmm, we are splitting the UserDataCache and the CacheManager, one concern that I had was what if we also move the UserDataCache into the CacheManager but its not worth it.
+    As of right now, we have three different `cache` systems in play, one is for the static objects that we will hold in the `CacheManager`, then we have the `UserDataCache`, which is for the user-data, this will have some changes and here and there.
+    Finally the 3rd instance of a `cache` is through the ClockMaster aka the timer.
+
+    Making some progress on this front, migrated the `music.rs` into the `managers` module as `music_manager`.
+    I did not get a chance to drop the globals yet, I will have to loop back around to handling those once I get the audio moved over.
+
+```rust
+// Raw GD Function - Proof of Concept
+
+#[func]
+pub fn insert_into_audio_cache(&self, key: GString, audio_stream: Gd<AudioStream>) {
+    self.audio_cache.insert(&key.to_string(), audio_stream); // Key -> to_string -> to_str
+}
+
+```
+
+    Well, hmm, wait, since its already a `ResourceCache<T>` and we are calling this all within the Rust logic, we could just skip the `#func` creation and handle it all internally through rust.
+    Granted, having the helper functions there would make it easier on the GDScript side to interact with the audio files, but for now, we should just focus on the Rust-internal code.
+    This is because if we need to change anything, then we would have to also make sure that the `#func` have to be changed too, thus, we wait until a standard is built around it.
+    All of the moving of files is getting a bit confusing for me to keep track of. 
 
 ## 2024
 

@@ -2,7 +2,6 @@ use godot::prelude::*;
 
 mod maiky;
 mod hexgrid;
-mod music;
 mod camera;
 mod hexmap;
 mod shader;

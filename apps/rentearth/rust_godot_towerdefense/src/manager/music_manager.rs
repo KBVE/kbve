@@ -1,6 +1,8 @@
 use godot::prelude::*;
 use godot::classes::{ Timer, AudioStream };
 use std::collections::HashMap;
+use crate::manager::game_manager::{ GameManager };
+use crate::data::cache::CacheManager;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
@@ -10,8 +12,7 @@ pub struct MusicManager {
   secondary_audio: Option<Gd<AudioStreamPlayer>>,
   effects: Option<Gd<AudioStreamPlayer>>,
   sfx: Option<Gd<AudioStreamPlayer>>,
-  effect_cache: HashMap<String, Gd<AudioStream>>,
-  sfx_cache: HashMap<String, Gd<AudioStream>>,
+  game_manager: Option<Gd<GameManager>>,
   global_music_volume: f32,
   global_effects_volume: f32,
   global_sfx_volume: f32,
@@ -26,8 +27,7 @@ impl INode for MusicManager {
       secondary_audio: None,
       effects: None,
       sfx: None,
-      effect_cache: HashMap::new(),
-      sfx_cache: HashMap::new(),
+      game_manager: None,
       global_music_volume: 0.0,
       global_effects_volume: 0.0,
       global_sfx_volume: 0.0,
@@ -35,6 +35,21 @@ impl INode for MusicManager {
   }
 
   fn ready(&mut self) {
+    godot_print!("[MusicManager] Ready! Searching for GameManager...");
+
+    if let Some(parent) = self.base().get_parent() {
+      let mut game_manager = parent.cast::<GameManager>();
+
+      if game_manager.clone().upcast::<Node>().is_instance_valid() {
+        godot_print!("[MusicManager] GameManager found! Linking...");
+        self.game_manager = Some(game_manager);
+      } else {
+        godot_warn!("[MusicManager] Parent is not a GameManager!");
+      }
+    } else {
+      godot_warn!("[MusicManager] Parent Node not found!");
+    }
+
     self.audio = self.get_or_create_audio_player("PrimaryAudioPlayer");
     self.secondary_audio = self.get_or_create_audio_player("SecondaryAudioPlayer");
     self.effects = self.get_or_create_audio_player("EffectsAudioPlayer");
@@ -64,6 +79,25 @@ impl MusicManager {
 
   #[signal]
   fn sfx_play_requested(sfx_path: GString);
+
+  //  [INTERNAL]
+  fn internal_get_or_create_audio_cache(&mut self, audio_path: &str) -> Option<Gd<AudioStream>> {
+    let game_manager = self.game_manager.as_ref()?.bind();
+    let cache_manager = game_manager.internal_get_cache_manager().bind();
+    if let Some(audio) = cache_manager.internal_audio_cache().get(audio_path) {
+      return Some(audio);
+    }
+
+    let audio_stream: Gd<AudioStream> = load::<AudioStream>(audio_path);
+    if !audio_stream.is_instance_valid() {
+      godot_warn!("Failed to load AudioStream from path: {}", audio_path);
+      return None;
+    }
+
+    cache_manager.internal_audio_cache().insert(audio_path, audio_stream.clone());
+
+    Some(audio_stream)
+  }
 
   #[func]
   pub fn request_play_effect(&mut self, effect_path: GString) {
@@ -121,33 +155,11 @@ impl MusicManager {
   }
 
   fn get_or_cache_sfx(&mut self, sfx_path: &str) -> Option<Gd<AudioStream>> {
-    if let Some(sfx) = self.sfx_cache.get(sfx_path) {
-      return Some(sfx.clone());
-    }
-
-    let audio_stream: Gd<AudioStream> = load::<AudioStream>(sfx_path);
-    if audio_stream.is_instance_valid() {
-      self.sfx_cache.insert(sfx_path.to_string(), audio_stream.clone());
-      Some(audio_stream)
-    } else {
-      godot_warn!("Failed to load SFX from path: {}", sfx_path);
-      None
-    }
+    self.internal_get_or_create_audio_cache(sfx_path)
   }
 
   fn get_or_cache_effect(&mut self, effect_path: &str) -> Option<Gd<AudioStream>> {
-    if let Some(effect) = self.effect_cache.get(effect_path) {
-      return Some(effect.clone());
-    }
-
-    let audio_stream: Gd<AudioStream> = load::<AudioStream>(effect_path);
-    if audio_stream.is_instance_valid() {
-      self.effect_cache.insert(effect_path.to_string(), audio_stream.clone());
-      Some(audio_stream)
-    } else {
-      godot_warn!("Failed to load sound effect from path: {}", effect_path);
-      None
-    }
+    self.internal_get_or_create_audio_cache(effect_path)
   }
 
   #[func]
