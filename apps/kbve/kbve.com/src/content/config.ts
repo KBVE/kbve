@@ -1,5 +1,6 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
+import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
 
 
 //*     [Map Schema]
@@ -367,7 +368,7 @@ export const collections = {
   comic: comic,
   docs: defineCollection({
     schema: docsSchema({
-      extend: z.object({
+      extend: pageSiteGraphSchema.merge(z.object({
         unsplash: z.string().optional(),
         tags: z.array(z.string()).optional(),
         'yt-tracks': z.array(z.string()).optional(),
@@ -384,7 +385,7 @@ export const collections = {
         avatar: z.array(AvatarSchema).optional(),
         dialogue: z.array(DialogueObjectSchema).optional(),
         mapdb: z.array(IMapDataSchema).optional(),
-      }),
+      })),
     }),
   }),
   products: productsCollection,
