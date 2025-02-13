@@ -10,8 +10,8 @@ members = [
 	'apps/kbve/rust_kanban',
 	'apps/kbve/rust_api_profile',
 	'apps/rareicon/rust_rareicon_gameserver',
-	'apps/rust_wasm_embed',
-	'apps/rust_p16_gameserver',
+	'apps/experimental/rust_wasm_embed',
+	'apps/experimental/rust_p16_gameserver',
 	'apps/rentearth/rust_godot_towerdefense',
 ]
 

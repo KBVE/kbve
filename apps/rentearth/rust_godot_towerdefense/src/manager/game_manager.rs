@@ -3,14 +3,18 @@ use godot::classes::window::Flags as WindowFlags;
 use godot::classes::ICanvasLayer;
 use crate::data::user_data::{ UserData, UserDataCache };
 use crate::data::abstract_data_map::AbstractDataMap;
-use crate::music::MusicManager;
+use crate::manager::music_manager::MusicManager;
 use crate::maiky::Maiky;
+use crate::extensions::timer_extension::ClockMaster;
+use crate::data::cache::{ CacheManager };
 
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct GameManager {
   base: Base<Node>,
   user_data_cache: UserDataCache,
+  cache_manager: Gd<CacheManager>,
+  clock_master: Gd<ClockMaster>,
   music_manager: Gd<MusicManager>,
   ui_manager: Gd<Maiky>,
 }
@@ -20,12 +24,16 @@ impl INode for GameManager {
   fn init(base: Base<Self::Base>) -> Self {
     godot_print!("[GameManager] Initializing...");
 
+    let clock_master = Gd::from_init_fn(|base| ClockMaster::init(base));
+    let cache_manager = Gd::from_init_fn(|base| CacheManager::init(base));
     let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
     let ui_manager = Gd::from_init_fn(|base| Maiky::init(base));
 
     Self {
       base,
       user_data_cache: UserDataCache::new(),
+      cache_manager,
+      clock_master,
       music_manager,
       ui_manager,
     }
@@ -34,17 +42,20 @@ impl INode for GameManager {
   fn ready(&mut self) {
     godot_print!("[GameManager] Ready! Adding children...");
 
-
+    let cache_manager = self.cache_manager.clone();
+    let clock_master = self.clock_master.clone();
     let music_manager = self.music_manager.clone();
     let ui_manager = self.ui_manager.clone();
 
-    self.base_mut().call_deferred("add_child", &[music_manager.to_variant()]);
-    self.base_mut().call_deferred("add_child", &[ui_manager.to_variant()]);
+    {
+      let mut base = self.base_mut();
+      base.add_child(&cache_manager.upcast::<Node>());
+      base.add_child(&clock_master.upcast::<Node>());
+      base.add_child(&music_manager.upcast::<Node>());
+      base.add_child(&ui_manager.upcast::<Node>());
+    }
 
-
-    //debug_print_tree(&self.base(), 0);
-
-    // self.load_user_settings();
+    godot_print!("[GameManager] All children added successfully.");
   }
 }
 
@@ -62,6 +73,23 @@ impl GameManager {
   #[signal]
   fn game_exited();
 
+  // [INTERNAL] Rust functions
+  pub fn internal_get_music_manager(&self) -> &Gd<MusicManager> {
+    &self.music_manager
+  }
+
+  pub fn internal_get_ui_manager(&self) -> &Gd<Maiky> {
+    &self.ui_manager
+  }
+
+  pub fn internal_get_clock_master(&self) -> &Gd<ClockMaster> {
+    &self.clock_master
+  }
+
+  pub fn internal_get_cache_manager(&self) -> &Gd<CacheManager> {
+    &self.cache_manager
+  }
+
   #[func]
   pub fn get_music_manager(&self) -> Gd<MusicManager> {
     self.music_manager.clone()
@@ -70,6 +98,16 @@ impl GameManager {
   #[func]
   pub fn get_ui_manager(&self) -> Gd<Maiky> {
     self.ui_manager.clone()
+  }
+
+  #[func]
+  pub fn get_clock_master(&self) -> Gd<ClockMaster> {
+    self.clock_master.clone()
+  }
+
+  #[func]
+  pub fn get_cache_manager(&self) -> Gd<CacheManager> {
+    self.cache_manager.clone()
   }
 
   #[func]
