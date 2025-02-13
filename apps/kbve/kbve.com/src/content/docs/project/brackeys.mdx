@@ -34,6 +34,7 @@ Official Team Sign In Sheet! Make a fork and then a pull request with your name 
 ```mermaid
 
 classDiagram
+    direction LR
     class GameManager {
         - UserDataCache user_data_cache
         - Gd<CacheManager> cache_manager
@@ -90,8 +91,7 @@ classDiagram
         + remove(key: &str) Option<Gd<T>>
     }
 
-    class UserDataCache
-    class CacheManager
+    class ShaderCache
     class ClockMaster
     class MusicManager
     class Maiky
@@ -102,5 +102,7 @@ classDiagram
     GameManager --> MusicManager
     GameManager --> Maiky
     UserDataCache --> UserData : manages
+    CacheManager --> ResourceCache : manages
+    CacheManager --> ShaderCache : contains
 
 ```
