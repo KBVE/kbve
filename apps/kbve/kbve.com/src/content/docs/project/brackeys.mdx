@@ -22,6 +22,8 @@ tags:
 
 This will be KBVE entry to the Barckeys Game Jam!
 
+For this entry, we will be using [Godot](/application/godot/) with [Rust](/application/rust/)
+
 #### Team
 
 Official Team Sign In Sheet! Make a fork and then a pull request with your name and itch.
@@ -40,6 +42,54 @@ classDiagram
         - Gd<Maiky> ui_manager
     }
 
+    class UserDataCache {
+            - HashMap<String, Variant> map
+            - PhantomData<()> _marker
+            + insert<T: ToGodot>(key: &str, value: T)
+            + get<T: FromGodot>(key: &str) Option<T>
+            + contains(key: &str) bool
+            + remove(key: &str) Option<Variant>
+            + update<T: ToGodot>(key: &str, value: T) bool
+            + save_to_file(file_path: &str)
+            + load_from_file(file_path: &str) Option<UserData>
+            + save_user_data(user_data: &UserData)
+            + load_user_data() Option<UserData>
+    }
+
+    class UserData {
+        + String username
+        + String email
+        + f32 opacity
+        + bool fullscreen
+        + Option<String> theme
+        + new(username: &str, email: &str, opacity: f32, fullscreen: bool, theme: Option<String>) UserData
+    }
+
+    class CacheManager {
+        - ResourceCache<Texture2D> texture_cache
+        - ResourceCache<CanvasLayer> canvas_layer_cache
+        - ResourceCache<Control> ui_cache
+        - ResourceCache<AudioStream> audio_cache
+        - Gd<ShaderCache> shader_cache
+        + get_from_canvas_layer_cache(key: GString) Option<Gd<CanvasLayer>>
+        + get_from_ui_cache(key: GString) Option<Gd<Control>>
+        + get_from_texture_cache(key: GString) Option<Gd<Texture2D>>
+        + get_from_audio_cache(key: GString) Option<Gd<AudioStream>>
+        + obtain_shader_cache() Gd<ShaderCache>
+    }
+
+    class ResourceCache~T~ {
+        - HashMap<String, Gd<T>> map
+        - PhantomData<T> _marker
+        + insert(key: &str, object: Gd<T>)
+        + get(key: &str) Option<Gd<T>>
+        + get_arc(key: &str) Option<Arc<Gd<T>>>
+        + contains(key: &str) bool
+        + insert_upcast<U>(key: &str, object: Gd<U>) where U: Inherits<T>
+        + get_as<U>(key: &str) Option<Gd<U>> where U: Inherits<T>
+        + remove(key: &str) Option<Gd<T>>
+    }
+
     class UserDataCache
     class CacheManager
     class ClockMaster
@@ -51,6 +101,6 @@ classDiagram
     GameManager --> ClockMaster
     GameManager --> MusicManager
     GameManager --> Maiky
-
+    UserDataCache --> UserData : manages
 
 ```
