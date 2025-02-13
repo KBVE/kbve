@@ -19,20 +19,22 @@ use godot::classes::window::Flags as WindowFlags;
 
 use godot::prelude::*;
 
-use crate::shader::ShaderCache;
-use crate::cache::ResourceCache;
+use crate::data::shader_data::ShaderCache;
+use crate::data::cache::ResourceCache;
 use crate::extensions::ui_extension::*;
-use crate::extensions::timer_extension::TimerExt;
+use crate::extensions::timer_extension::{ ClockMaster, TimerExt };
 use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
 use crate::connect_signal;
+use crate::manager::game_manager::GameManager;
 
 #[cfg(target_os = "macos")]
-use crate::macos::enable_mac_transparency;
+use crate::macos::macos_gui_options::enable_mac_transparency;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
 pub struct Maiky {
   base: Base<CanvasLayer>,
+  clock_master: Option<Gd<ClockMaster>>,
   texture_cache: ResourceCache<Texture2D>,
   canvas_layer_cache: ResourceCache<CanvasLayer>,
   ui_cache: ResourceCache<Control>,
@@ -46,6 +48,7 @@ impl ICanvasLayer for Maiky {
 
     Self {
       base,
+      clock_master: None,
       texture_cache: ResourceCache::new(),
       canvas_layer_cache: ResourceCache::new(),
       ui_cache: ResourceCache::new(),
@@ -56,6 +59,30 @@ impl ICanvasLayer for Maiky {
   fn ready(&mut self) {
     connect_signal!(self, "exit_game", "on_exit_game");
     self.enable_transparency();
+
+    if let Some(parent) = self.base().get_parent() {
+      let mut game_manager = parent.cast::<GameManager>();
+
+      if game_manager.clone().upcast::<Node>().is_instance_valid() {
+        godot_print!("[Maiky] GameManager found! Attempting to retrieve ClockMaster...");
+
+        let clock_master_variant = game_manager.call("get_clock_master", &[]);
+
+        match clock_master_variant.try_to::<Gd<ClockMaster>>() {
+          Ok(clock_master) => {
+            self.clock_master = Some(clock_master.clone());
+            godot_print!("[Maiky] Successfully linked to ClockMaster!");
+          }
+          Err(err) => {
+            godot_warn!("[Maiky] Failed to retrieve ClockMaster from GameManager! {:?}", err);
+          }
+        }
+      } else {
+        godot_warn!("[Maiky] GameManager is not valid!");
+      }
+    } else {
+      godot_warn!("[Maiky] Parent Node not found!");
+    }
   }
 }
 
@@ -276,9 +303,16 @@ impl Maiky {
       &avatar_profile_pic
     );
 
-    let mut base_node = self.base_mut().clone().upcast::<Node>();
-    let mut timer = <Gd<Timer> as TimerExt>::ensure_timer(&mut base_node, &key, 30.0);
-    timer.start();
+    godot_print!("[Debug] show_avatar_message() called with key: {}", key);
+
+    if let Some(clock_master) = &mut self.clock_master {
+      godot_print!("[Debug] ClockMaster found, ensuring timer for key: {}", key);
+      let mut timer = clock_master.bind_mut().ensure_timer(key.clone(), 30.0);
+      godot_print!("[Debug] Timer retrieved successfully for key: {}", key);
+      timer.with_connection(self.to_gd().upcast(), "hide_avatar_message",  &[key.to_variant()]).start();
+    } else {
+      godot_warn!("[Maiky] ClockMaster was not found!");
+    }
   }
 
   fn get_or_create_avatar_message_box(

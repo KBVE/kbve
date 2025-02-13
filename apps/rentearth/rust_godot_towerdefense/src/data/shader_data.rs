@@ -1,6 +1,6 @@
 use godot::prelude::*;
 use godot::classes::{ Panel, ShaderMaterial, Shader };
-use crate::cache::ResourceCache;
+use crate::data::cache::ResourceCache;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
