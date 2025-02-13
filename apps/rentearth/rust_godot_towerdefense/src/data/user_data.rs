@@ -11,6 +11,9 @@ pub struct UserData {
   pub opacity: f32,
   pub fullscreen: bool,
   pub theme: Option<String>,
+  pub global_music_volume: f32,
+  pub global_effects_volume: f32,
+  pub global_sfx_volume: f32,
 }
 
 impl AbstractDataMap for UserData {}
@@ -21,7 +24,11 @@ impl UserData {
     email: &str,
     opacity: f32,
     fullscreen: bool,
-    theme: Option<String>
+    theme: Option<String>,
+    global_music_volume: f32,
+    global_effects_volume: f32,
+    global_sfx_volume: f32,
+
   ) -> Self {
     Self {
       username: username.to_string(),
@@ -29,6 +36,9 @@ impl UserData {
       opacity,
       fullscreen,
       theme,
+      global_music_volume: 0.0,
+      global_effects_volume: 0.0,
+      global_sfx_volume: 0.0,
     }
   }
 }

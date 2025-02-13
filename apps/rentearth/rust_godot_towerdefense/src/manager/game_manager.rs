@@ -123,7 +123,10 @@ impl GameManager {
         "guest@kbve.com",
         0.55,
         false,
-        Some("dark".to_string())
+        Some("dark".to_string()),
+        0.0,
+        0.0,
+        0.0
       );
       self.user_data_cache.save_user_data(&default_data);
       self.user_data_cache.save_to_file(file_path);
