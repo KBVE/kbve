@@ -22,6 +22,8 @@ tags:
 
 This will be KBVE entry to the Barckeys Game Jam!
 
+For this entry, we will be using [Godot](/application/godot/) with [Rust](/application/rust/)
+
 #### Team
 
 Official Team Sign In Sheet! Make a fork and then a pull request with your name and itch.
@@ -29,19 +31,57 @@ Official Team Sign In Sheet! Make a fork and then a pull request with your name 
 - [h0lybyte](https://kbve.itch.io/)
 - [SummationX](https://summationx.itch.io/)
 
+### FlowChart
+
+Starting the basics of the flow chart, while writing out the rust code.
+
 ```mermaid
 
 classDiagram
+    direction LR
+
     class GameManager {
         - UserDataCache user_data_cache
         - Gd<CacheManager> cache_manager
         - Gd<ClockMaster> clock_master
         - Gd<MusicManager> music_manager
         - Gd<Maiky> ui_manager
+        + init() GameManager
     }
 
-    class UserDataCache
-    class CacheManager
+    
+    namespace UserDataManagement {
+        class UserDataCache {
+            - HashMap<String, Variant> map
+        }
+
+        class UserData {
+            + String username
+            + String email
+            + f32 opacity
+            + bool fullscreen
+            + Option<String> theme
+            + new() UserData
+        }
+    }
+
+    namespace Caching {
+        class CacheManager {
+            - ResourceCache<Texture2D> texture_cache
+            - ResourceCache<CanvasLayer> canvas_layer_cache
+            - ResourceCache<Control> ui_cache
+            - ResourceCache<AudioStream> audio_cache
+            - Gd<ShaderCache> shader_cache
+            + init() CacheManager
+        }
+
+        class ResourceCache~T~ {
+            - HashMap<String, Gd<T>> map
+        }
+
+        class ShaderCache
+    }
+
     class ClockMaster
     class MusicManager
     class Maiky
@@ -51,6 +91,12 @@ classDiagram
     GameManager --> ClockMaster
     GameManager --> MusicManager
     GameManager --> Maiky
+
+    UserDataCache --> UserData : manages
+    CacheManager --> ResourceCache : manages
+    CacheManager --> ShaderCache : contains
+
+    Spacer --|> GameManager : separates
 
 
 ```
