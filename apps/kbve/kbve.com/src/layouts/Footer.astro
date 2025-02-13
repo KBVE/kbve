@@ -4,25 +4,15 @@ interface Props {
 }
 
 //*     The dynamic styling is currently disabled because it would not yet be ready for production, so we will just set the 
-const { dyn = false } = Astro.props;
+
 
 //  [IMPORTS]
 
-import { AstroVe as VE } from '@kbve/astro-ve';
 
 
 
 ---
 <Fragment>
     <div class="bg-zinc-950 p-1">
-    <VE widget="footer:hyperui:inline">
-        <div class="flex object-contain w-32 md:w-32 ">
-            <dotlottie-player
-                autoplay
-                loop
-                mode="normal"
-                src="/assets/lottie/robot.lottie"></dotlottie-player>
-        </div>
-        </VE>
     </div>
 </Fragment>

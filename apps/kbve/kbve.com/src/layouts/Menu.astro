@@ -2,45 +2,14 @@
 interface Props {
 	dyn?: boolean;
 }
+// SLATE TO DELETE
 
 const { dyn = false } = Astro.props;
 
-import { AstroVe as VE } from '@kbve/astro-ve';
 ---
 
 <Fragment>
-	<VE
-		widget="drawer:flowbite:bottom"
-		id="drawer-swipe"
-		dyn={false}
-		options={[
-			{
-				href: '/arcade/fishchip',
-				name: 'Fish & Chip',
-				img: '/assets/img/svg/fishchip.svg',
-			},
-			{
-				href: '/discord',
-				name: 'Discord',
-				img: '/assets/img/svg/discord.svg',
-			},
-			{
-				href: '/journal',
-				name: 'Journal',
-				img: '/assets/img/svg/journal.svg',
-			},
-			{
-				href: '/comic',
-				name: 'Comic',
-				img: '/assets/img/svg/comic.svg',
-			},
-			{
-				href: '/experiments',
-				name: 'Experiments',
-				img: '/assets/img/svg/experiment.svg',
-			}
-		]}
-	/>
+	
 
 
 	<slot />

@@ -1,9 +1,11 @@
 import rehypeExternalLinks from 'rehype-external-links';
 import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import rehypeMermaid from "rehype-mermaid";
 
 export default {
 	extendMarkdownConfig: true,
 	rehypePlugins: [
+		rehypeMermaid,
 		rehypeHeadingIds,
 		[
 			rehypeExternalLinks,

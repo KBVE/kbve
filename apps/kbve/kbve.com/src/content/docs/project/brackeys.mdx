@@ -28,3 +28,29 @@ Official Team Sign In Sheet! Make a fork and then a pull request with your name 
 
 - [h0lybyte](https://kbve.itch.io/)
 - [SummationX](https://summationx.itch.io/)
+
+```mermaid
+
+classDiagram
+    class GameManager {
+        - UserDataCache user_data_cache
+        - Gd<CacheManager> cache_manager
+        - Gd<ClockMaster> clock_master
+        - Gd<MusicManager> music_manager
+        - Gd<Maiky> ui_manager
+    }
+
+    class UserDataCache
+    class CacheManager
+    class ClockMaster
+    class MusicManager
+    class Maiky
+
+    GameManager --> UserDataCache
+    GameManager --> CacheManager
+    GameManager --> ClockMaster
+    GameManager --> MusicManager
+    GameManager --> Maiky
+
+
+```
