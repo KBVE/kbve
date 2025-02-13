@@ -4,8 +4,11 @@
   "compilerOptions": {
     // Base URL - 11-05-2024
     "baseUrl": ".",
+    // 02-13-2025
+    "types": ["astro/client", "react", "react-dom"],
+    "jsxImportSource": "react",
     // JSX
-    "jsx": "react",
+    "jsx": "preserve",
     // Enable top-level await, and other modern ESM features
     "target": "ESNext",
     "module": "ESNext",
@@ -50,5 +53,5 @@
       }
    
   },
-  "include": ["src"]
+  "include": ["src", ".astro/types.d.ts",  "**/*"]
 }
