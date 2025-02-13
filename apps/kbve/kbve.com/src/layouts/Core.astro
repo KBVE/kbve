@@ -7,7 +7,6 @@ interface Props {
 
 const { title, description } = Astro.props;
 
-import { AstroVe as VE } from '@kbve/astro-ve';
 ---
 
 <!doctype html>
@@ -19,9 +18,7 @@ import { AstroVe as VE } from '@kbve/astro-ve';
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
-		<VE widget="header:external:toastify" data="" />
-		<VE widget="header:external:flowbite" data="" class="" />
-		<VE widget="header:external:lottie" data="dot" />
+		
 	</head>
 
 	<div class="h-screen w-full bg-zinc-950 relative flex overflow-hidden">

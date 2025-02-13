@@ -5,10 +5,12 @@ import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
+import rehypeMermaid from "rehype-mermaid";
 import starlight from '@astrojs/starlight';
 
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
+import starlightSiteGraph from 'starlight-site-graph'
 
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
@@ -37,6 +39,11 @@ export default defineConfig({
 	// },
 	integrations: [
 		starlight({
+			plugins: [starlightSiteGraph({
+				graphConfig: {
+				"renderArrows": true
+				}
+			  })],
 			title: 'KBVE Docs',
 			editLink: {
 				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
@@ -44,30 +51,22 @@ export default defineConfig({
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
 			expressiveCode: false, // Disabled Expressive Code
 			defaultLocale: 'root',
-			locales: {
-				root: {
-					label: 'English',
-					lang: 'en',
-				},
-				// de: { label: 'Deutsch', lang: 'de' },
-				// es: { label: 'Español', lang: 'es' },
-				// fa: { label: 'Persian', lang: 'fa', dir: 'rtl' },
-				// fr: { label: 'Français', lang: 'fr' },
-				// ja: { label: '日本語', lang: 'ja' },
-				// 'zh-cn': { label: '简体中文', lang: 'zh-CN' },
-			},
+			// locales: {
+			// 	root: {
+			// 		label: 'English',
+			// 		lang: 'en',
+			// 	},
+			// 	// de: { label: 'Deutsch', lang: 'de' },
+			// 	// es: { label: 'Español', lang: 'es' },
+			// 	// fa: { label: 'Persian', lang: 'fa', dir: 'rtl' },
+			// 	// fr: { label: 'Français', lang: 'fr' },
+			// 	// ja: { label: '日本語', lang: 'ja' },
+			// 	// 'zh-cn': { label: '简体中文', lang: 'zh-CN' },
+			// },
 			// https://starlight.astro.build/guides/sidebar/
 			sidebar: [
 				{
 					label: 'Quick Start Guides',
-					translations: {
-						de: 'Schnellstartanleitungen',
-						es: 'Guías de Inicio Rápido',
-						fa: 'راهنمای شروع سریع',
-						fr: 'Guides de Démarrage Rapide',
-						ja: 'クイックスタートガイド',
-						'zh-cn': '快速入门指南',
-					},
 					autogenerate: { directory: 'guides' },
 				},
 				{
@@ -234,12 +233,15 @@ export default defineConfig({
 				new URL('./tailwind.config.cjs', import.meta.url),
 			),
 		}),
-		mdx({
-			...markdownConfig,
-			//extendPlugins: "astroDefaults"
-		}),
+		// mdx({
+		// 	...markdownConfig,
+		// 	//extendPlugins: "astroDefaults"
+		// }),
 	],
-	markdown: markdownConfig,
+	// markdown: markdownConfig,
+	markdown: {
+		rehypePlugins: [rehypeMermaid],
+	  },
 	vite: defineViteConfig({
 		ssr: {
 			noExternal: ['path-to-regexp'],
