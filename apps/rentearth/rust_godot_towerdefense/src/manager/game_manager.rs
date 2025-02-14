@@ -139,35 +139,35 @@ impl GameManager {
     godot_print!("[GameManager] Attempting to load file: {}", file_path);
 
     match user_data_cache.load_from_file(file_path) {
-      Some(_) => godot_print!("[GameManager] Successfully loaded settings file."),
+      Some(data) => {
+        godot_print!("[GameManager] Successfully loaded settings file.");
+        data;
+      }
       None => {
         godot_warn!("[GameManager] Settings file not found. Creating default settings...");
-
-        let default_data = UserData::new(
-          "Player",
-          "guest@kbve.com",
-          0.55,
-          false,
-          Some("dark".to_string()),
-          0.0,
-          0.0,
-          0.0
-        );
-
-        // user_data_cache.save_user_data(&default_data);
-        // user_data_cache.save_to_file(file_path);
-
+        user_data_cache.save_new_user_data(file_path);
         godot_print!("[GameManager] Default settings created and saved.");
       }
     }
+
+    godot_print!("[GameManager] User settings loaded successfully.");
   }
 
   #[func]
   pub fn save_user_settings(&mut self) {
     let file_path = "user://settings.json";
 
-    let user_data_cache = self.user_data_cache.get_or_insert_with(UserDataCache::new);
-    user_data_cache.save_to_file(file_path);
+    let Some(user_data_cache) = self.user_data_cache.as_mut() else {
+      godot_error!("[GameManager] ERROR: user_data_cache is None! Cannot save settings.");
+      return;
+    };
+
+    let Some(user_data) = user_data_cache.load_user_data() else {
+      godot_error!("[GameManager] ERROR: Could not retrieve user data from cache!");
+      return;
+    };
+
+    user_data_cache.save_to_file(file_path, &user_data);
 
     godot_print!("[GameManager] User settings saved.");
   }
