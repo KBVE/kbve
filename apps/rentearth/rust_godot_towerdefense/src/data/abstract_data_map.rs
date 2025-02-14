@@ -74,13 +74,31 @@ pub trait AbstractDataMap: Serialize + for<'de> Deserialize<'de> + Sized {
     }
   }
 
-  fn from_load_gfile_json(file_path: &str) -> Option<Self> {
-    if let Ok(mut file) = GFile::open(file_path, ModeFlags::READ) {
-      if let Ok(json_string) = file.read_gstring_line() {
-        return Self::from_json(&json_string.to_string());
+ fn from_load_gfile_json(file_path: &str) -> Option<Self> {
+    godot_print!("[AbstractDataMap] Attempting to open file: {}", file_path);
+
+    let file = GFile::open(file_path, ModeFlags::READ);
+
+    match file {
+      Ok(mut file) => {
+        godot_print!("[AbstractDataMap] File opened successfully.");
+
+        if let Ok(json_string) = file.read_gstring_line() {
+          godot_print!("[AbstractDataMap] Successfully read JSON file.");
+          return Self::from_json(&json_string.to_string());
+        } else {
+          godot_error!("[AbstractDataMap] ERROR: Failed to read JSON string.");
+        }
+      }
+      Err(e) => {
+        if e.to_string().contains("ERR_FILE_NOT_FOUND") {
+          godot_warn!("[AbstractDataMap] File not found, returning None.");
+        } else {
+          godot_error!("[AbstractDataMap] ERROR: Failed to open file {}: {:?}", file_path, e);
+        }
       }
     }
-    godot_warn!("Failed to load data from file: {}", file_path);
+
     None
   }
 }

@@ -93,14 +93,18 @@ impl UserDataCache {
     }
   }
 
-  pub fn load_from_file(&mut self, file_path: &str) -> Option<UserData> {
+pub fn load_from_file(&mut self, file_path: &str) -> Option<UserData> {
+    godot_print!("[UserDataCache] Attempting to load file: {}", file_path);
+
     if let Some(user_data) = UserData::from_load_gfile_json(file_path) {
-      self.save_user_data(&user_data);
-      Some(user_data)
+        godot_print!("[UserDataCache] Successfully loaded user settings.");
+        self.save_user_data(&user_data);
+        Some(user_data)
     } else {
-      None
+        godot_error!("[UserDataCache] ERROR: Failed to load from file: {}!", file_path);
+        None
     }
-  }
+}
 
   pub fn save_user_data(&self, user_data: &UserData) {
     let data_map = user_data.to_variant_map();
