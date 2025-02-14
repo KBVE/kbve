@@ -254,5 +254,8 @@
 	},
 	"nx": {
 		"includedScripts": []
+	},
+	"scripts": {
+		"postinstall": "pnpm exec playwright install"
 	}
 }
