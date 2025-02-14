@@ -22,7 +22,7 @@ export default defineConfig({
 	image: {
 		domains: ['images.unsplash.com'],
 	},
-	outDir: '../../dist/apps/kbve.com',
+	outDir: '../../../dist/apps/kbve.com',
 	prefetch: true,
 	i18n: {
 		defaultLocale: 'en',

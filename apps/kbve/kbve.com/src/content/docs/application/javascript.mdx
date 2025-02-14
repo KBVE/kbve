@@ -2817,6 +2817,68 @@ export const checkJSONendpointAPI = (endpoints: string[]) => {
 
 ---
 
+### Playwright
+
+Playwright is a powerful open-source automation library developed by Microsoft, tailored for JavaScript developers aiming to perform end-to-end testing and web scraping across multiple browsers, including Chromium, Firefox, and WebKit.
+Its single API streamlines the testing process, allowing for consistent and reliable browser automation.
+Playwright's automatic waiting mechanism ensures elements are ready before actions are performed, reducing test flakiness and enhancing reliability.
+Additionally, Playwright offers robust debugging tools, such as the Playwright Inspector and Trace Viewer, which provide comprehensive insights into test execution, aiding developers in efficiently identifying and resolving issues.
+With support for various programming languages, including JavaScript, Playwright empowers developers to write tests in their preferred language, making it a versatile and invaluable tool in modern web development workflows.
+
+
+#### Playwright Install
+
+```shell
+
+pnpm exec playwright install
+
+```
+
+To set up Playwright, run pnpm exec playwright install, which installs the core library and required browser binaries.
+This ensures seamless cross-browser automation without additional configuration.
+Playwright manages browser versions internally, providing a stable and consistent testing environment.
+With this setup, you can start writing and executing reliable tests across Chromium, Firefox, and WebKit immediately.
+
+<Aside type="danger" title="Playwright missing dependencies." >
+Incase the Host system is missing dependencies to run browsers.
+Please install them with the following command:
+
+```shell
+
+pnpm exec playwright install-deps
+
+```
+
+```shell
+
+sudo apt-get install libnss3 \
+        libnspr4 \
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libcups2 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxfixes3 \
+        libxrandr2 \
+        libgbm1 \
+        libpango-1.0-0 \
+        libcairo2 \
+        libasound2 \
+        libatspi2.0-0
+
+```
+
+```shell 
+
+sudo apt-get install libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0
+
+```
+
+</Aside>
+
+
+---
+
 ### Biome
 
 <Aside type="note" title="Note: Transition of Rome to Biome">

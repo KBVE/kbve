@@ -12,7 +12,7 @@ use crate::data::cache::{ CacheManager };
 #[class(base = Node)]
 pub struct GameManager {
   base: Base<Node>,
-  user_data_cache: UserDataCache,
+  user_data_cache: Option<UserDataCache>,
   cache_manager: Gd<CacheManager>,
   clock_master: Gd<ClockMaster>,
   music_manager: Gd<MusicManager>,
@@ -24,6 +24,14 @@ impl INode for GameManager {
   fn init(base: Base<Self::Base>) -> Self {
     godot_print!("[GameManager] Initializing...");
 
+    let user_data_cache = Some(UserDataCache::new());
+
+    if user_data_cache.is_none() {
+      godot_error!("[GameManager] ERROR: user_data_cache failed to initialize!");
+    } else {
+      godot_print!("[GameManager] user_data_cache initialized.");
+    }
+
     let clock_master = Gd::from_init_fn(|base| ClockMaster::init(base));
     let cache_manager = Gd::from_init_fn(|base| CacheManager::init(base));
     let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
@@ -31,7 +39,7 @@ impl INode for GameManager {
 
     Self {
       base,
-      user_data_cache: UserDataCache::new(),
+      user_data_cache,
       cache_manager,
       clock_master,
       music_manager,
@@ -111,37 +119,67 @@ impl GameManager {
   }
 
   #[func]
-  fn load_user_settings(&mut self) {
-    let file_path = "user://settings.json";
+  pub fn load_user_settings(&mut self) {
+    godot_print!("[GameManager] Calling Load User Settings...");
 
-    if let Some(user_data) = self.user_data_cache.load_from_file(file_path) {
-      godot_print!("[GameManager] Loaded User Settings: {:?}", user_data);
+    if self.user_data_cache.is_none() {
+      godot_error!("[GameManager] ERROR: user_data_cache is None!");
     } else {
-      godot_warn!("[GameManager] Failed to load user settings, using defaults.");
-      let default_data = UserData::new(
-        "Player",
-        "guest@kbve.com",
-        0.55,
-        false,
-        Some("dark".to_string())
-      );
-      self.user_data_cache.save_user_data(&default_data);
-      self.user_data_cache.save_to_file(file_path);
+      godot_print!("[GameManager] user_data_cache is initialized.");
     }
+
+    let Some(mut user_data_cache) = self.user_data_cache.as_mut() else {
+      godot_error!("[GameManager] ERROR: user_data_cache is None!");
+      return;
+    };
+
+    godot_print!("[GameManager] Successfully accessed user_data_cache.");
+
+    let file_path = "user://settings.json";
+    godot_print!("[GameManager] Attempting to load file: {}", file_path);
+
+    match user_data_cache.load_from_file(file_path) {
+      Some(data) => {
+        godot_print!("[GameManager] Successfully loaded settings file.");
+        data;
+      }
+      None => {
+        godot_warn!("[GameManager] Settings file not found. Creating default settings...");
+        user_data_cache.save_new_user_data(file_path);
+        godot_print!("[GameManager] Default settings created and saved.");
+      }
+    }
+
+    godot_print!("[GameManager] User settings loaded successfully.");
   }
 
   #[func]
-  fn save_user_settings(&mut self) {
+  pub fn save_user_settings(&mut self) {
     let file_path = "user://settings.json";
-    self.user_data_cache.save_to_file(file_path);
+
+    let Some(user_data_cache) = self.user_data_cache.as_mut() else {
+      godot_error!("[GameManager] ERROR: user_data_cache is None! Cannot save settings.");
+      return;
+    };
+
+    let Some(user_data) = user_data_cache.load_user_data() else {
+      godot_error!("[GameManager] ERROR: Could not retrieve user data from cache!");
+      return;
+    };
+
+    user_data_cache.save_to_file(file_path, &user_data);
+
     godot_print!("[GameManager] User settings saved.");
   }
 
   #[func]
-  fn update_setting(&mut self, key: GString, value: Variant) {
+  pub fn update_setting(&mut self, key: GString, value: Variant) {
     let key_str = key.to_string();
-    self.user_data_cache.insert(&key_str, value.clone());
+    let user_data_cache = self.user_data_cache.get_or_insert_with(UserDataCache::new);
+
+    user_data_cache.insert(&key_str, value.clone());
     self.save_user_settings();
+
     godot_print!("[GameManager] Updated Setting: {} -> {:?}", key_str, value);
   }
 

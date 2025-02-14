@@ -11,6 +11,9 @@ pub struct UserData {
   pub opacity: f32,
   pub fullscreen: bool,
   pub theme: Option<String>,
+  pub global_music_volume: f32,
+  pub global_effects_volume: f32,
+  pub global_sfx_volume: f32,
 }
 
 impl AbstractDataMap for UserData {}
@@ -21,7 +24,10 @@ impl UserData {
     email: &str,
     opacity: f32,
     fullscreen: bool,
-    theme: Option<String>
+    theme: Option<String>,
+    global_music_volume: f32,
+    global_effects_volume: f32,
+    global_sfx_volume: f32
   ) -> Self {
     Self {
       username: username.to_string(),
@@ -29,6 +35,9 @@ impl UserData {
       opacity,
       fullscreen,
       theme,
+      global_music_volume: 0.0,
+      global_effects_volume: 0.0,
+      global_sfx_volume: 0.0,
     }
   }
 }
@@ -76,28 +85,54 @@ impl UserDataCache {
   }
 
   // User Saving + File
-  
-  pub fn save_to_file(&self, file_path: &str) {
-    if let Some(user_data) = self.load_user_data() {
-      user_data.to_save_gfile_json(file_path);
+  pub fn save_new_user_data(&mut self, file_path: &str) -> UserData {
+    godot_warn!("[UserDataCache] Creating new default user data...");
+
+    let default_data = UserData::new(
+      "Player",
+      "guest@kbve.com",
+      0.55,
+      false,
+      Some("dark".to_string()),
+      0.0,
+      0.0,
+      0.0
+    );
+
+    self.save_user_data(&default_data);
+    self.save_to_file(file_path, &default_data);
+
+    godot_print!("[UserDataCache] New user data saved successfully.");
+
+    default_data
+  }
+
+  pub fn save_to_file(&self, file_path: &str, user_data: &UserData) {
+    if user_data.to_save_gfile_json(file_path) {
+      godot_print!("[UserDataCache] Successfully saved user settings.");
+    } else {
+      godot_error!("[UserDataCache] ERROR: Failed to save user settings to `{}`!", file_path);
     }
   }
 
   pub fn load_from_file(&mut self, file_path: &str) -> Option<UserData> {
+    godot_print!("[UserDataCache] Attempting to load file: {}", file_path);
+
     if let Some(user_data) = UserData::from_load_gfile_json(file_path) {
+      godot_print!("[UserDataCache] Successfully loaded user settings.");
       self.save_user_data(&user_data);
       Some(user_data)
     } else {
+      godot_error!("[UserDataCache] ERROR: Failed to load from file: {}!", file_path);
       None
     }
   }
 
-  pub fn save_user_data(&self, user_data: &UserData) {
-    let data_map = user_data.to_variant_map();
-    let guard = self.map.guard();
-    for (key, value) in data_map.iter(&guard) {
-      self.map.insert(key.clone(), value.clone(), &guard);
-    }
+  pub fn save_user_data(&mut self, user_data: &UserData) {
+    godot_print!("[UserDataCache] Storing user data in cache...");
+    let new_map = user_data.to_variant_map();
+    self.map = new_map;
+    godot_print!("[UserDataCache] User data successfully cached.");
   }
 
   pub fn load_user_data(&self) -> Option<UserData> {

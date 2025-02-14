@@ -19,23 +19,27 @@ impl<T: GodotClass> ResourceCache<T> {
   }
 
   pub fn insert(&self, key: &str, object: Gd<T>) {
-    let guard = self.map.guard();
-    self.map.insert(key.to_string(), object, &guard);
+    // let guard = self.map.guard();
+    // self.map.insert(key.to_string(), object, &guard);
+    self.map.pin().insert(key.to_string(), object); 
   }
 
   pub fn get(&self, key: &str) -> Option<Gd<T>> {
-    let guard = self.map.guard();
-    self.map.get(key, &guard).cloned()
+    // let guard = self.map.guard();
+    // self.map.get(key, &guard).cloned()
+    self.map.pin().get(&key.to_string()).cloned() 
   }
 
   pub fn get_arc(&self, key: &str) -> Option<Arc<Gd<T>>> {
-    let guard = self.map.guard();
-    self.map.get(key, &guard).map(|gd| Arc::new(gd.clone()))
+    // let guard = self.map.guard();
+    // self.map.get(key, &guard).map(|gd| Arc::new(gd.clone()))
+    self.map.pin().get(&key.to_string()).map(|gd| Arc::new(gd.clone())) 
   }
 
   pub fn contains(&self, key: &str) -> bool {
-    let guard = self.map.guard();
-    self.map.contains_key(key, &guard)
+    // let guard = self.map.guard();
+    // self.map.contains_key(key, &guard)
+    self.map.pin().contains_key(&key.to_string()) 
   }
 
   pub fn insert_upcast<U>(&self, key: &str, object: Gd<U>) where U: Inherits<T> + GodotClass {
@@ -47,8 +51,9 @@ impl<T: GodotClass> ResourceCache<T> {
   }
 
   pub fn remove(&self, key: &str) -> Option<Gd<T>> {
-    let guard = self.map.guard();
-    self.map.remove(key, &guard).cloned()
+    // let guard = self.map.guard();
+    // self.map.remove(key, &guard).cloned()
+    self.map.pin().remove(&key.to_string()).cloned()
   }
 }
 
