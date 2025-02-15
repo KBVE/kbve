@@ -4,7 +4,7 @@ use objc2::runtime::Object;
 use objc2::{ class, msg_send, sel };
 
 #[cfg(target_os = "macos")]
-pub fn enable_mac_transparency() {
+pub fn enable_mac_transparency(transparency_value: f64) {
   unsafe {
     let ns_app: *mut Object = msg_send![class!(NSApplication), sharedApplication];
     if ns_app.is_null() {
@@ -19,7 +19,7 @@ pub fn enable_mac_transparency() {
     }
 
     let _: () = msg_send![ns_window, setOpaque: false];
-    let _: () = msg_send![ns_window, setAlphaValue: 0.55];
+    let _: () = msg_send![ns_window, setAlphaValue: transparency_value];
     let _: () = msg_send![ns_window, setBackgroundColor: std::ptr::null::<Object>()];
 
     println!("[MacOS] Window transparency enabled.");
@@ -28,15 +28,15 @@ pub fn enable_mac_transparency() {
 
 #[cfg(target_os = "macos")]
 pub fn enable_mac_always_on_top() {
-    unsafe {
-        let ns_app: *mut Object = msg_send![class!(NSApplication), sharedApplication];
-        let ns_window: *mut Object = msg_send![ns_app, mainWindow];
+  unsafe {
+    let ns_app: *mut Object = msg_send![class!(NSApplication), sharedApplication];
+    let ns_window: *mut Object = msg_send![ns_app, mainWindow];
 
-        if !ns_window.is_null() {
-            let _: () = msg_send![ns_window, setLevel: 5]; // NSFloatingWindowLevel
-            println!("[MacOS] Window set to always on top.");
-        } else {
-            eprintln!("[MacOS] No main window found for always-on-top!");
-        }
+    if !ns_window.is_null() {
+      let _: () = msg_send![ns_window, setLevel: 5]; // NSFloatingWindowLevel
+      println!("[MacOS] Window set to always on top.");
+    } else {
+      eprintln!("[MacOS] No main window found for always-on-top!");
     }
+  }
 }
