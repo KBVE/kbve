@@ -1,4 +1,7 @@
 use godot::prelude::*;
+use core::ffi::c_void;
+use godot::classes::{CanvasLayer, Window, DisplayServer};
+use godot::classes::display_server::HandleType;
 
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::{ HWND, COLORREF };
@@ -14,9 +17,9 @@ use windows::Win32::UI::WindowsAndMessaging::{
 };
 
 #[cfg(target_os = "windows")]
-pub fn set_windows_opacity(transparency_value: f64) {
+pub fn set_windows_opacity(transparency_value: f64, gui_manager: &Gd<CanvasLayer>) {
   unsafe {
-    let hwnd: HWND = GetForegroundWindow();
+    let hwnd: HWND = HWND(DisplayServer::singleton().window_get_native_handle(HandleType::WINDOW_HANDLE) as *mut c_void);
     if hwnd.0.is_null() {
       godot_print!("[Windows] ERROR: Failed to get active window handle.");
       return;

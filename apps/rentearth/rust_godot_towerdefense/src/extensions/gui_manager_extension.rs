@@ -26,7 +26,7 @@ impl GUIManagerExt for Gd<CanvasLayer> {
 
     #[cfg(target_os = "windows")]
     {
-      set_windows_opacity(transparency_value);
+      set_windows_opacity(transparency_value, self);
     }
 
     #[cfg(target_os = "macos")]
