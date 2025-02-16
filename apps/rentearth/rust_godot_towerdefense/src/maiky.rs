@@ -58,7 +58,7 @@ impl ICanvasLayer for Maiky {
 
   fn ready(&mut self) {
     connect_signal!(self, "exit_game", "on_exit_game");
-    self.enable_transparency();
+    // self.enable_transparency();
 
     if let Some(parent) = self.base().get_parent() {
       let mut game_manager = parent.cast::<GameManager>();

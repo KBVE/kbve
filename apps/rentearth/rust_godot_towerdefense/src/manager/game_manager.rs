@@ -4,6 +4,7 @@ use godot::classes::ICanvasLayer;
 use crate::data::user_data::{ UserData, UserDataCache };
 use crate::data::abstract_data_map::AbstractDataMap;
 use crate::manager::music_manager::MusicManager;
+use crate::manager::gui_manager::GUIManager;
 use crate::maiky::Maiky;
 use crate::extensions::timer_extension::ClockMaster;
 use crate::data::cache::{ CacheManager };
@@ -16,7 +17,8 @@ pub struct GameManager {
   cache_manager: Gd<CacheManager>,
   clock_master: Gd<ClockMaster>,
   music_manager: Gd<MusicManager>,
-  ui_manager: Gd<Maiky>,
+  gui_manager: Gd<GUIManager>,
+  ui_manager: Gd<Maiky>, // Replacing this soon with the GUIManager
 }
 
 #[godot_api]
@@ -36,6 +38,8 @@ impl INode for GameManager {
     let cache_manager = Gd::from_init_fn(|base| CacheManager::init(base));
     let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
     let ui_manager = Gd::from_init_fn(|base| Maiky::init(base));
+    let gui_manager = Gd::from_init_fn(|base| GUIManager::init(base));
+    
 
     Self {
       base,
@@ -44,6 +48,7 @@ impl INode for GameManager {
       clock_master,
       music_manager,
       ui_manager,
+      gui_manager,
     }
   }
 
@@ -54,6 +59,7 @@ impl INode for GameManager {
     let clock_master = self.clock_master.clone();
     let music_manager = self.music_manager.clone();
     let ui_manager = self.ui_manager.clone();
+    let gui_manager = self.gui_manager.clone();
 
     {
       let mut base = self.base_mut();
@@ -61,6 +67,7 @@ impl INode for GameManager {
       base.add_child(&clock_master.upcast::<Node>());
       base.add_child(&music_manager.upcast::<Node>());
       base.add_child(&ui_manager.upcast::<Node>());
+      base.add_child(&gui_manager.upcast::<Node>());
     }
 
     godot_print!("[GameManager] All children added successfully.");
