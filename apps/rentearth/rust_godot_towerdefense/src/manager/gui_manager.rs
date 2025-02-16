@@ -43,7 +43,9 @@ impl ICanvasLayer for GUIManager {
 
   fn ready(&mut self) {
     find_game_manager!(self);
+    self.enable_always_ontop();
     self.enable_transparency();
+    
   }
 }
 
@@ -51,6 +53,11 @@ impl ICanvasLayer for GUIManager {
 impl GUIManager {
   #[func]
   fn enable_transparency(&mut self) {
-    self.base_mut().with_transparency();
+    self.base_mut().with_transparency(0.55);
+  }
+
+  #[func]
+  fn enable_always_ontop(&mut self) {
+    self.base_mut().with_windowflag(WindowFlags::ALWAYS_ON_TOP, true);
   }
 }
