@@ -1,5 +1,7 @@
 use godot::prelude::*;
 use godot::classes::{ CanvasLayer, ICanvasLayer, IControl };
+use crate::manager::game_manager::GameManager;
+use crate::{ connect_signal, find_game_manager };
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::extensions::wry_extension::GodotBrowser;
@@ -8,6 +10,8 @@ use crate::extensions::wry_extension::GodotBrowser;
 #[class(base = CanvasLayer)]
 pub struct BrowserManager {
   base: Base<CanvasLayer>,
+
+  game_manager: Option<Gd<GameManager>>,
 
   #[cfg(any(target_os = "macos", target_os = "windows"))]
   browser: Option<Gd<GodotBrowser>>,
@@ -23,12 +27,13 @@ impl ICanvasLayer for BrowserManager {
 
       #[cfg(not(any(target_os = "macos", target_os = "windows")))]
       browser: None,
+
+      game_manager: None,
     }
   }
 
   fn ready(&mut self) {
-    godot_print!("[BrowserManager] Ready!");
-
+    find_game_manager!(self);
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     {
       // use raw_window_handle::HasWindowHandle;
@@ -39,14 +44,13 @@ impl ICanvasLayer for BrowserManager {
       }
 
       if let Some(browser_gd) = &self.browser {
-          let browser = browser_gd.bind();
-          if browser.is_initialized() {
-            godot_print!("[BrowserManager] Browser initialized.");
-          } else {
-            godot_error!("[BrowserManager] WebView failed to initialize.");
-          }
+        let browser = browser_gd.bind();
+        if browser.is_initialized() {
+          godot_print!("[BrowserManager] Browser initialized.");
+        } else {
+          godot_error!("[BrowserManager] WebView failed to initialize.");
         }
-      
+      }
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -58,6 +62,17 @@ impl ICanvasLayer for BrowserManager {
 
 #[godot_api]
 impl BrowserManager {
+  #[func]
+  pub fn on_window_resize(&self) {
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    {
+      if let Some(ref browser) = self.browser {
+        godot_print!("[BrowserManager] Resizing browser after window resize event.");
+        browser.bind().resize();
+      }
+    }
+  }
+
   #[func]
   pub fn open_url(&self, url: GString) {
     #[cfg(any(target_os = "macos", target_os = "windows"))]

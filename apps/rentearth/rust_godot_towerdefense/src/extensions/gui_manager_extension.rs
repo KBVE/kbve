@@ -19,13 +19,13 @@ impl GUIManagerExt for Gd<CanvasLayer> {
       viewport.set_transparent_background(true);
     }
 
-    if let Some(mut window) = self.get_window() {
-      window.set_transparent_background(true);
-      window.set_flag(WindowFlags::TRANSPARENT, true);
-    }
-
     #[cfg(target_os = "windows")]
     {
+      if let Some(mut window) = self.get_window() {
+        window.set_transparent_background(true);
+        window.set_flag(WindowFlags::TRANSPARENT, true);
+      }
+
       set_windows_opacity(transparency_value, self);
     }
 

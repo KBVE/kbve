@@ -23,7 +23,7 @@ use crate::extensions::gui_manager_extension::GUIManagerExt;
 use crate::manager::game_manager::GameManager;
 use crate::data::cache::CacheManager;
 
-use crate::{connect_signal, find_game_manager};
+use crate::{ connect_signal, find_game_manager };
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
@@ -43,19 +43,8 @@ impl ICanvasLayer for GUIManager {
 
   fn ready(&mut self) {
     find_game_manager!(self);
-
-    #[cfg(target_os = "macos")]
-    {
-    self.enable_transparency();
-    //self.enable_always_ontop();
-    }
-
-    #[cfg(target_os = "windows")]
-    {
     self.enable_always_ontop();
     self.enable_transparency();
-    }
-
   }
 }
 
@@ -69,6 +58,7 @@ impl GUIManager {
   #[func]
   fn enable_always_ontop(&mut self) {
     self.base_mut().with_windowflag(WindowFlags::ALWAYS_ON_TOP, true);
+    //self.base_mut().with_windowflag(WindowFlags::MOUSE_PASSTHROUGH, true);
     //self.base_mut().with_windowflag(WindowFlags::BORDERLESS, false);
   }
 }
