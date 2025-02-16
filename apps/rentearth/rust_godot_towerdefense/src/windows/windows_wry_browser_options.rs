@@ -1,50 +1,64 @@
+use godot::prelude::*;
+use godot::classes::{ DisplayServer };
+use godot::classes::display_server::HandleType;
+use core::ffi::c_void;
+
 #[cfg(target_os = "windows")]
-mod windows_wry_browser_options {
-  use std::num::{ NonZero, NonZeroIsize };
-  use godot::prelude::*;
-  use godot::classes::{ DisplayServer };
-  use godot::classes::display_server::HandleType;
-  use raw_window_handle::{
-    Win32WindowHandle,
-    WindowHandle,
-    RawWindowHandle,
-    HasWindowHandle,
-    HandleError,
-  };
+use windows::Win32::Foundation::HWND;
 
-  pub struct WindowsWryBrowserOptions;
+#[cfg(target_os = "windows")]
+use windows::Win32::UI::WindowsAndMessaging::{
+  GetWindowLongPtrW,
+  GetWindowLongW,
+  GWLP_HWNDPARENT,
+  GWL_HWNDPARENT,
+};
 
-  impl WindowsWryBrowserOptions {
-    pub fn get_window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
-      let display_server = DisplayServer::singleton();
-      let window_handle = display_server.window_get_native_handle(HandleType::WINDOW_HANDLE);
-      let non_zero_window_handle = NonZero::new(window_handle).expect(
-        "WindowHandle creation failed"
+#[cfg(target_os = "windows")]
+use std::num::{ NonZero, NonZeroIsize };
+
+#[cfg(target_os = "windows")]
+use raw_window_handle::{
+  Win32WindowHandle,
+  WindowHandle,
+  RawWindowHandle,
+  HasWindowHandle,
+  HandleError,
+};
+
+#[cfg(target_os = "windows")]
+pub struct WindowsWryBrowserOptions;
+
+#[cfg(target_os = "windows")]
+impl WindowsWryBrowserOptions {
+  pub fn get_window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
+    godot_print!("[WindowsWryBrowserOptions] Fetching native window handle...");
+
+    unsafe {
+      let mut hwnd: HWND = HWND(
+        DisplayServer::singleton().window_get_native_handle(
+          HandleType::WINDOW_HANDLE
+        ) as *mut c_void
       );
-      unsafe {
-        Ok(
-          WindowHandle::borrow_raw(
-            RawWindowHandle::Win32(
-              Win32WindowHandle::new({
-                NonZeroIsize::try_from(non_zero_window_handle).expect("Invalid window_handle")
-              })
-            )
-          )
-        )
+      if hwnd.0.is_null() {
+        godot_error!("[WindowsWryBrowserOptions] ERROR: GetForegroundWindow() returned NULL!");
+        return Err(HandleError::Unavailable);
       }
+      godot_print!("[WindowsWryBrowserOptions] Successfully retrieved HWND: {:?}", hwnd);
     }
-
-    pub fn resize_window(&self, width: i32, height: i32) {
-      let mut display_server = DisplayServer::singleton();
-      display_server.window_set_size(Vector2i::new(width, height));
-      godot_print!("[WindowsWryBrowserOptions] Window resized to {}x{}", width, height);
-    }
-
+    Err(HandleError::Unavailable)
   }
 
-  impl HasWindowHandle for WindowsWryBrowserOptions {
-    fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
-      self.get_window_handle()
-    }
+  pub fn resize_window(&self, width: i32, height: i32) {
+    let mut display_server = DisplayServer::singleton();
+    display_server.window_set_size(Vector2i::new(width, height));
+    godot_print!("[WindowsWryBrowserOptions] Window resized to {}x{}", width, height);
+  }
+}
+
+#[cfg(target_os = "windows")]
+impl HasWindowHandle for WindowsWryBrowserOptions {
+  fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
+    self.get_window_handle()
   }
 }
