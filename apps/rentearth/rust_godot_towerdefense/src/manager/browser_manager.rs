@@ -1,5 +1,8 @@
 use godot::prelude::*;
-use godot::classes::{ CanvasLayer, ICanvasLayer };
+use godot::classes::{ CanvasLayer, ICanvasLayer, IControl };
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::extensions::wry_extension::GodotBrowser;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]
@@ -7,18 +10,19 @@ pub struct BrowserManager {
   base: Base<CanvasLayer>,
 
   #[cfg(any(target_os = "macos", target_os = "windows"))]
-  browser: Option<crate::extensions::wry_extension::GodotBrowser>,
+  browser: Option<Gd<GodotBrowser>>,
 }
 
 #[godot_api]
 impl ICanvasLayer for BrowserManager {
   fn init(base: Base<Self::Base>) -> Self {
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
-    let browser = Some(crate::extensions::wry_extension::GodotBrowser::new());
-
     Self {
       base,
-      #[cfg(any(target_os = "macos", target_os = "windows"))] browser,
+      #[cfg(any(target_os = "macos", target_os = "windows"))]
+      browser: Some(Gd::from_init_fn(|base| GodotBrowser::init(base))),
+
+      #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+      browser: None,
     }
   }
 
@@ -27,13 +31,22 @@ impl ICanvasLayer for BrowserManager {
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     {
-      use raw_window_handle::HasWindowHandle;
-      if let Some(ref browser) = self.browser {
-        let _window_handle = browser
-          .window_handle()
-          .expect("[BrowserManager] Failed to get window handle");
-        godot_print!("[BrowserManager] Browser initialized.");
+      // use raw_window_handle::HasWindowHandle;
+      let browser_clone = self.browser.clone();
+      {
+        let mut base = self.base_mut();
+        base.add_child(&browser_clone.expect("failed to updoot browser").upcast::<Node>());
       }
+
+      if let Some(browser_gd) = &self.browser {
+          let browser = browser_gd.bind();
+          if browser.is_initialized() {
+            godot_print!("[BrowserManager] Browser initialized.");
+          } else {
+            godot_error!("[BrowserManager] WebView failed to initialize.");
+          }
+        }
+      
     }
 
     #[cfg(target_arch = "wasm32")]

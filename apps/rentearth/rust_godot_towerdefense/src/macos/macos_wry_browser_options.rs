@@ -52,6 +52,7 @@ impl MacOSWryBrowserOptions {
 #[cfg(target_os = "macos")]
 impl HasWindowHandle for MacOSWryBrowserOptions {
   fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
+    godot_print!("[BrowserManager] -> [MacOSWryBrowserOptions] Window Handle");
     self.get_window_handle()
   }
 }
