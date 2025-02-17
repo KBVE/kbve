@@ -12,6 +12,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
   GetWindowLongW,
   GWLP_HWNDPARENT,
   GWL_HWNDPARENT,
+  IsWindow,
 };
 
 #[cfg(target_os = "windows")]
@@ -28,37 +29,33 @@ use raw_window_handle::{
 
 #[cfg(target_os = "windows")]
 pub struct WindowsWryBrowserOptions;
-
-#[cfg(target_os = "windows")]
-impl WindowsWryBrowserOptions {
-  pub fn get_window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
-    godot_print!("[WindowsWryBrowserOptions] Fetching native window handle...");
-
-    unsafe {
-      let mut hwnd: HWND = HWND(
-        DisplayServer::singleton().window_get_native_handle(
-          HandleType::WINDOW_HANDLE
-        ) as *mut c_void
-      );
-      if hwnd.0.is_null() {
-        godot_error!("[WindowsWryBrowserOptions] ERROR: GetForegroundWindow() returned NULL!");
-        return Err(HandleError::Unavailable);
-      }
-      godot_print!("[WindowsWryBrowserOptions] Successfully retrieved HWND: {:?}", hwnd);
-    }
-    Err(HandleError::Unavailable)
-  }
-
-  pub fn resize_window(&self, width: i32, height: i32) {
-    let mut display_server = DisplayServer::singleton();
-    display_server.window_set_size(Vector2i::new(width, height));
-    godot_print!("[WindowsWryBrowserOptions] Window resized to {}x{}", width, height);
-  }
-}
-
 #[cfg(target_os = "windows")]
 impl HasWindowHandle for WindowsWryBrowserOptions {
   fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
-    self.get_window_handle()
+    let display_server = DisplayServer::singleton();
+    let window_handle = display_server.window_get_native_handle(HandleType::WINDOW_HANDLE);
+
+    godot_print!("[WindowsWryBrowserOptions] Retrieved window handle: {:?}", window_handle);
+
+    if window_handle == 0 {
+      godot_error!("[WindowsWryBrowserOptions] Invalid window handle (0)");
+      return Err(HandleError::Unavailable);
+    }
+
+    let non_zero_window_handle = NonZero::new(window_handle).ok_or_else(|| {
+      godot_error!("[WindowsWryBrowserOptions] Failed to create NonZero window handle.");
+      HandleError::Unavailable
+    })?;
+
+    let non_zero_isize = NonZeroIsize::try_from(non_zero_window_handle).map_err(|_| {
+      godot_error!("[WindowsWryBrowserOptions] Failed to convert window handle to NonZeroIsize.");
+      HandleError::Unavailable
+    })?;
+
+    godot_print!("[WindowsWryBrowserOptions] NonZeroIsize: {:?}", non_zero_isize);
+
+    unsafe {
+      Ok(WindowHandle::borrow_raw(RawWindowHandle::Win32(Win32WindowHandle::new(non_zero_isize))))
+    }
   }
 }

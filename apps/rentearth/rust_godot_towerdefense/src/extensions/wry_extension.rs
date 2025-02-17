@@ -23,7 +23,6 @@ use raw_window_handle::{ HasWindowHandle, WindowHandle, HandleError };
 use wry::{
   dpi::{ LogicalPosition, LogicalSize, PhysicalPosition, PhysicalSize },
   http::{ HeaderMap, Request },
-  WebView,
   WebViewBuilder,
   Rect,
   WebViewAttributes,
@@ -42,13 +41,7 @@ pub struct GodotBrowser {
   base: Base<Control>,
 
   #[cfg(any(target_os = "macos", target_os = "windows"))]
-  webview: Option<WebView>,
-
-  #[cfg(target_os = "macos")]
-  inner: MacOSWryBrowserOptions,
-
-  #[cfg(target_os = "windows")]
-  inner: WindowsWryBrowserOptions,
+  webview: Option<wry::WebView>,
 
   full_window_size: bool,
   url: GString,
@@ -72,12 +65,6 @@ impl IControl for GodotBrowser {
       #[cfg(any(target_os = "macos", target_os = "windows"))]
       webview: None,
 
-      #[cfg(target_os = "macos")]
-      inner: MacOSWryBrowserOptions {},
-
-      #[cfg(target_os = "windows")]
-      inner: WindowsWryBrowserOptions {},
-
       full_window_size: true,
       url: "https://kbve.com/".into(),
       html: "".into(),
@@ -95,13 +82,11 @@ impl IControl for GodotBrowser {
   fn ready(&mut self) {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     {
-      let window_handle = match self.inner.window_handle() {
-        Ok(handle) => handle,
-        Err(e) => {
-          godot_error!("[GodotBrowser] Failed to get window handle: {:?}", e);
-          return;
-        }
-      };
+      #[cfg(target_os = "macos")]
+      let window = MacOSWryBrowserOptions;
+
+      #[cfg(target_os = "windows")]
+      let window = WindowsWryBrowserOptions;
 
       let base = self.base().clone();
       let webview_builder = WebViewBuilder::with_attributes(WebViewAttributes {
@@ -123,12 +108,10 @@ impl IControl for GodotBrowser {
         incognito: self.incognito,
         focused: self.focused,
         ..Default::default()
-      })
-        .with_ipc_handler(move |req: Request<String>| {
-          let body = req.body().as_str();
-          base.clone().emit_signal("ipc_message", &[body.to_variant()]);
-        })
-        .with_custom_protocol("res".into(), move |_webview_id, request| get_res_response(request));
+      }).with_ipc_handler(move |req: Request<String>| {
+        let body = req.body().as_str();
+        base.clone().emit_signal("ipc_message", &[body.to_variant()]);
+      });
 
       if !self.url.is_empty() && !self.html.is_empty() {
         godot_error!(
@@ -137,23 +120,15 @@ impl IControl for GodotBrowser {
         return;
       }
 
-      match webview_builder.build_as_child(&window_handle) {
+      match webview_builder.build_as_child(&window) {
         Ok(webview) => {
           self.webview.replace(webview);
-          godot_print!("[GodotBrowser] WebView successfully initialized.");
+          self.resize();
         }
         Err(e) => {
           godot_error!("[GodotBrowser] Failed to create WebView: {:?}", e);
-          godot_print!(
-            "[GodotBrowser] Debug Info - URL: {:?}, Transparent: {}, DevTools: {}, UserAgent: {:?}",
-            self.url,
-            self.transparent,
-            self.devtools,
-            self.user_agent
-          );
         }
       }
-      self.resize();
     }
   }
 }
@@ -181,42 +156,24 @@ impl GodotBrowser {
   #[func]
   pub fn resize(&self) {
     if let Some(webview) = &self.webview {
-        let rect = {
-            let viewport_size = self.base()
-                .get_tree()
-                .and_then(|tree| tree.get_root())
-                .map(|viewport| viewport.get_size())
-                .unwrap_or(Vector2i::new(800, 600));
+      let rect = {
+        let viewport_size = self
+          .base()
+          .get_tree()
+          .and_then(|tree| tree.get_root())
+          .map(|viewport| viewport.get_size())
+          .unwrap_or(Vector2i::new(800, 600));
 
-            Rect {
-                position: PhysicalPosition::new(0, 0).into(),
-                size: PhysicalSize::new(viewport_size.x as u32, viewport_size.y as u32).into(),
-            }
-        };
+        Rect {
+          position: PhysicalPosition::new(0, 0).into(),
+          size: PhysicalSize::new(viewport_size.x as u32, viewport_size.y as u32).into(),
+        }
+      };
       if let Err(e) = webview.set_bounds(rect) {
         godot_error!("[GodotBrowser] Failed to resize WebView: {:?}", e);
       } else {
         godot_print!("[GodotBrowser] WebView resized to {:?}.", rect.size);
       }
-    }
-  }
-}
-
-impl HasWindowHandle for GodotBrowser {
-  fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
-    #[cfg(target_os = "macos")]
-    {
-      return self.inner.window_handle();
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-      return self.inner.window_handle();
-    }
-
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    {
-      Err(HandleError::NotSupported)
     }
   }
 }
