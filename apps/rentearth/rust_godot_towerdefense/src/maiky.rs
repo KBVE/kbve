@@ -111,7 +111,7 @@ impl Maiky {
 
     #[cfg(target_os = "macos")]
     {
-      enable_mac_transparency();
+      enable_mac_transparency(0.55);
       //enable_mac_always_on_top();
     }
   }
