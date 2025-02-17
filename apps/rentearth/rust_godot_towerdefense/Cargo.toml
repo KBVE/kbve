@@ -34,7 +34,7 @@ windows = { version = "0.59", features = [
     "Win32_System_Threading",
     "Win32_UI_WindowsAndMessaging",
 ] }
-wry = { version = "0.46.2", features = ["transparent", "devtools"] }
+wry = { version = "0.48.1", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.1.0"
 infer = "0.16.0"
