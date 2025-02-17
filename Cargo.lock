@@ -175,7 +175,7 @@ dependencies = [
  "ndk-context",
  "ndk-sys 0.5.0+25.2.9519653",
  "num_enum",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -1004,7 +1004,7 @@ dependencies = [
  "axum 0.6.20",
  "axum-core 0.3.4",
  "bytes",
- "cookie",
+ "cookie 0.17.0",
  "futures-util",
  "http 0.2.12",
  "http-body 0.4.6",
@@ -1431,7 +1431,7 @@ dependencies = [
  "glib",
  "libc",
  "once_cell",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -1456,7 +1456,7 @@ dependencies = [
  "polling 3.7.3",
  "rustix 0.38.37",
  "slab",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -1470,7 +1470,7 @@ dependencies = [
  "polling 3.7.3",
  "rustix 0.38.37",
  "slab",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -1764,6 +1764,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7efb37c3e1ccb1ff97164ad95ac1606e8ccd35b3fa0a7d99a304c7f4a428cc24"
 dependencies = [
  "percent-encoding",
+ "time",
+ "version_check",
+]
+
+[[package]]
+name = "cookie"
+version = "0.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ddef33a339a91ea89fb53151bd0a4689cfce27055c291dfa69945475d22c747"
+dependencies = [
  "time",
  "version_check",
 ]
@@ -2262,7 +2272,7 @@ dependencies = [
  "ron",
  "serde",
  "static_assertions",
- "thiserror",
+ "thiserror 1.0.64",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -3005,7 +3015,7 @@ dependencies = [
  "once_cell",
  "pin-project-lite",
  "smallvec",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -3058,7 +3068,7 @@ dependencies = [
  "memchr",
  "once_cell",
  "smallvec",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -3907,7 +3917,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "thiserror",
+ "thiserror 1.0.64",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -3926,7 +3936,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "thiserror",
+ "thiserror 1.0.64",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -3943,7 +3953,7 @@ dependencies = [
  "combine",
  "jni-sys",
  "log",
- "thiserror",
+ "thiserror 1.0.64",
  "walkdir",
  "windows-sys 0.45.0",
 ]
@@ -4019,7 +4029,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "thiserror",
+ "thiserror 1.0.64",
  "time",
  "tokio",
  "tower 0.4.13",
@@ -4046,7 +4056,7 @@ dependencies = [
  "redis",
  "reqwest",
  "serde",
- "thiserror",
+ "thiserror 1.0.64",
  "tokio",
  "ulid",
 ]
@@ -4362,7 +4372,7 @@ dependencies = [
  "num_enum",
  "raw-window-handle 0.5.2",
  "raw-window-handle 0.6.2",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -4377,7 +4387,7 @@ dependencies = [
  "ndk-sys 0.6.0+11769913",
  "num_enum",
  "raw-window-handle 0.6.2",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -4989,7 +4999,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "879952a81a83930934cbf1786752d6dedc3b1f29e8f8fb2ad1d0a36f377cf442"
 dependencies = [
  "memchr",
- "thiserror",
+ "thiserror 1.0.64",
  "ucd-trie",
 ]
 
@@ -5024,7 +5034,7 @@ dependencies = [
  "serde",
  "serde_cbor",
  "serde_json",
- "thiserror",
+ "thiserror 1.0.64",
  "uuid",
 ]
 
@@ -5118,7 +5128,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sysinfo",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -5545,7 +5555,7 @@ dependencies = [
  "rustc-hash 2.0.0",
  "rustls 0.23.15",
  "socket2 0.5.7",
- "thiserror",
+ "thiserror 1.0.64",
  "tokio",
  "tracing",
 ]
@@ -5562,7 +5572,7 @@ dependencies = [
  "rustc-hash 2.0.0",
  "rustls 0.23.15",
  "slab",
- "thiserror",
+ "thiserror 1.0.64",
  "tinyvec",
  "tracing",
 ]
@@ -5775,7 +5785,7 @@ checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
 dependencies = [
  "getrandom 0.2.15",
  "libredox",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
@@ -5959,7 +5969,8 @@ dependencies = [
  "serde",
  "serde_json",
  "windows 0.59.0",
- "wry",
+ "wry 0.46.3",
+ "wry 0.48.1",
 ]
 
 [[package]]
@@ -6528,7 +6539,7 @@ checksum = "adc4e5204eb1910f40f9cfa375f6f05b68c3abac4b6fd879c8ff5e7ae8a0a085"
 dependencies = [
  "num-bigint",
  "num-traits",
- "thiserror",
+ "thiserror 1.0.64",
  "time",
 ]
 
@@ -6576,7 +6587,7 @@ dependencies = [
  "log",
  "memmap2",
  "rustix 0.38.37",
- "thiserror",
+ "thiserror 1.0.64",
  "wayland-backend",
  "wayland-client",
  "wayland-csd-frame",
@@ -6601,7 +6612,7 @@ dependencies = [
  "log",
  "memmap2",
  "rustix 0.38.37",
- "thiserror",
+ "thiserror 1.0.64",
  "wayland-backend",
  "wayland-client",
  "wayland-csd-frame",
@@ -6893,7 +6904,16 @@ version = "1.0.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d50af8abc119fb8bb6dbabcfa89656f46f84aa0ac7688088608076ad2b459a84"
 dependencies = [
- "thiserror-impl",
+ "thiserror-impl 1.0.64",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d452f284b73e6d76dd36758a0c8684b1d5be31f92b89d07fd5822175732206fc"
+dependencies = [
+ "thiserror-impl 2.0.11",
 ]
 
 [[package]]
@@ -6901,6 +6921,17 @@ name = "thiserror-impl"
 version = "1.0.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08904e7672f5eb876eaaf87e0ce17857500934f4981c4a0ab2b4aa98baac7fc3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26afc1baea8a989337eeb52b6e72a039780ce45c3edfcc9c5b9d112feeb173c2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7339,7 +7370,7 @@ dependencies = [
  "log",
  "rand 0.8.5",
  "sha1",
- "thiserror",
+ "thiserror 1.0.64",
  "utf-8",
 ]
 
@@ -7900,7 +7931,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f61ff3d9d0ee4efcb461b14eb3acfda2702d10dc329f339303fc3e57215ae2c"
 dependencies = [
  "webview2-com-macros",
- "webview2-com-sys",
+ "webview2-com-sys 0.33.0",
+ "windows 0.58.0",
+ "windows-core 0.58.0",
+ "windows-implement 0.58.0",
+ "windows-interface 0.58.0",
+]
+
+[[package]]
+name = "webview2-com"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "823e7ebcfaea51e78f72c87fc3b65a1e602c321f407a0b36dbb327d7bb7cd921"
+dependencies = [
+ "webview2-com-macros",
+ "webview2-com-sys 0.34.0",
  "windows 0.58.0",
  "windows-core 0.58.0",
  "windows-implement 0.58.0",
@@ -7924,7 +7969,18 @@ version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3a3e2eeb58f82361c93f9777014668eb3d07e7d174ee4c819575a9208011886"
 dependencies = [
- "thiserror",
+ "thiserror 1.0.64",
+ "windows 0.58.0",
+ "windows-core 0.58.0",
+]
+
+[[package]]
+name = "webview2-com-sys"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a82bce72db6e5ee83c68b5de1e2cd6ea195b9fbff91cb37df5884cbe3222df4"
+dependencies = [
+ "thiserror 1.0.64",
  "windows 0.58.0",
  "windows-core 0.58.0",
 ]
@@ -8553,10 +8609,53 @@ dependencies = [
  "sha2",
  "soup3",
  "tao-macros",
- "thiserror",
+ "thiserror 1.0.64",
  "webkit2gtk",
  "webkit2gtk-sys",
- "webview2-com",
+ "webview2-com 0.33.0",
+ "windows 0.58.0",
+ "windows-core 0.58.0",
+ "windows-version",
+ "x11-dl",
+]
+
+[[package]]
+name = "wry"
+version = "0.48.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2e33c08b174442ff80d5c791020696f9f8b4e4a87b8cfc7494aad6167ec44e1"
+dependencies = [
+ "base64 0.22.1",
+ "block2 0.5.1",
+ "cookie 0.18.1",
+ "crossbeam-channel",
+ "dpi",
+ "dunce",
+ "gdkx11",
+ "gtk",
+ "html5ever",
+ "http 1.1.0",
+ "javascriptcore-rs",
+ "jni",
+ "kuchikiki",
+ "libc",
+ "ndk 0.9.0",
+ "objc2 0.5.2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "objc2-ui-kit",
+ "objc2-web-kit",
+ "once_cell",
+ "percent-encoding",
+ "raw-window-handle 0.6.2",
+ "sha2",
+ "soup3",
+ "tao-macros",
+ "thiserror 2.0.11",
+ "url",
+ "webkit2gtk",
+ "webkit2gtk-sys",
+ "webview2-com 0.34.0",
  "windows 0.58.0",
  "windows-core 0.58.0",
  "windows-version",
