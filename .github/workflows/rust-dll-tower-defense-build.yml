@@ -1,0 +1,28 @@
+name: Build Rust Windows DLL
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust Nightly with MSVC
+        run: |
+          rustup default nightly
+          rustup target add x86_64-pc-windows-msvc
+
+      - name: Build Rust DLL
+        run: |
+            cd apps/rentearth/rust_godot_towerdefense
+            cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target x86_64-pc-windows-msvc --release --out-dir dist/windows
+
+      - name: Upload DLL as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust_godot_towerdefense
+          path: dist/windows/*.dll
