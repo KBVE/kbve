@@ -13,9 +13,9 @@ func _ready():
 	if game_manager:
 		add_child(game_manager)
 		music_manager = game_manager.get_music_manager()
-		music_manager.adjust_sfx_volume(-20.0)
-		music_manager.adjust_effects_volume(-20.0)
-		music_manager.adjust_music_volume(-20.0)
+		music_manager.adjust_sfx_volume(-80.0)
+		music_manager.adjust_effects_volume(-80.0)
+		music_manager.adjust_music_volume(-80.0)
 		print("MusicManager initialized and added to the scene tree!")
 		#game_manager.load_user_settings();
 		call_deferred("_load_settings")
