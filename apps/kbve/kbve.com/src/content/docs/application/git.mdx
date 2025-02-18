@@ -137,6 +137,37 @@ Offering features like pull requests, code reviews, and integrated issue trackin
 With its robust community and extensive ecosystem of tools and integrations, GitHub enhances productivity and innovation, making it an essential resource for both open-source projects and private repositories.
 Additionally, GitHub's user-friendly interface and powerful features make it a popular choice for developers seeking to share their work and contribute to the global coding community.
 
+### Github Pages
+
+GitHub Pages is a static site hosting service that enables developers to publish web content directly from a repository.
+Supporting custom domains, Jekyll-powered themes, and HTTPS enforcement, the platform simplifies the process of deploying personal projects, documentation, or portfolio websites.
+Pages are generated from branches within a repository, allowing seamless integration with version control while ensuring updates reflect instantly upon deployment.
+With support for Markdown and HTML, developers can craft content-rich pages without relying on complex backend infrastructure.
+The service enhances accessibility by offering free hosting for public repositories, making it a valuable tool for both individual creators and collaborative teams.
+
+<Aside type="tip">
+
+Did you know that this whole document is hosted on Github Pages?
+
+Our docs are powered by [Astro](/application/javascript/#astro)!
+
+</Aside>
+
+While Jekyll is a popular choice for generating static sites on GitHub Pages, alternative frameworks like Astro, Next.js, and Hugo provide additional flexibility and performance benefits.
+Astro excels in optimizing content delivery by shipping minimal JavaScript while enabling seamless integration with UI frameworks such as React, Vue, and Svelte.
+Next.js, although primarily designed for server-side rendering and dynamic applications, can generate static exports that work efficiently with GitHub Pages when configured correctly.
+Hugo, known for its blazing-fast build times and Go-based architecture, offers a lightweight solution for content-heavy websites.
+By leveraging these frameworks, developers can tailor their projects to suit different performance needs, content workflows, and interactive experiences beyond traditional Jekyll-based sites.
+
+<Aside type="tip">
+
+Remember to setup your CNAME and **.nojekyll** file, if you plan on using a custom domain and want to use another static generator.
+
+</Aside>
+
+Now the other topic with the Github pages is the security!
+Github recommends that you verify your domain with our profile or organization.
+
 ### Github Actions
 
 GitHub Actions are YAML files designed to automate repetitive tasks using predefined workflows and variables, enabling seamless integration and continuous deployment.
