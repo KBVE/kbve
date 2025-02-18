@@ -59,7 +59,7 @@ jobs:
       fudster: ${{ steps.delta.outputs.fudster_any_changed }}
       laser: ${{ steps.delta.outputs.laser_any_changed }}
       worker: ${{ steps.delta.outputs.worker_any_changed }}
-      
+      q: ${{ steps.delta.outputs.q_any_changed  }}
     steps:
       - name: Checkout the repository using git
         uses: actions/checkout@v4
@@ -111,6 +111,8 @@ jobs:
                 - 'apps/cryptothrone.com/src/**'
             laser:
                 - 'packages/laser/package.json'
+            q:
+                - 'packages/rust/q/README.md'
 
   debug:
     needs: ['alter', 'globals']
@@ -749,6 +751,17 @@ jobs:
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
       #     pull_request_title: 'jedi-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
       #     pull_request_body: 'Bumping up the minor version of the jedi package.'
+
+# Q Release
+
+  qrelease:
+    needs: ['deploy', 'alter', 'globals']
+    if: needs.alter.outputs.q == 'true'
+    uses: ./.github/workflows/resuable/packages/rust-publish-crate.yml
+    with:
+      package: q
+    secrets:
+      CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
   python_atlas_publish:
     needs: ['deploy', 'alter', 'python_atlas_build']

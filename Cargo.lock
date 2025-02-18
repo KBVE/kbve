@@ -5519,6 +5519,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "q"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "godot",
+ "http 1.1.0",
+ "infer",
+ "objc2 0.6.0",
+ "papaya",
+ "rand 0.8.5",
+ "raw-window-handle 0.6.2",
+ "rstar",
+ "serde",
+ "serde_json",
+ "windows 0.59.0",
+ "wry 0.46.3",
+ "wry 0.48.1",
+]
+
+[[package]]
 name = "qoi"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
