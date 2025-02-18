@@ -48,30 +48,24 @@ jobs:
             - name: Replace Existing DLL
               run: |
                   cp temp_dll/rust_godot_towerdefense.dll apps/rentearth/rust_godot_towerdefense/godot/addons/tower-defense/windows/rust_godot_towerdefense.dll
-        
-            - name: Generate Timestamp for Branch Name
-              id: timestamp
-              run: echo "BRANCH_NAME=patch-atomic-update-rust-dll-towerdefense-$(date +'%Y%m%d-%H%M%S')-${{ github.run_id }}" >> $GITHUB_ENV
-          
+
             - name: Remove temp_dll Folder
               run: rm -rf temp_dll
 
             - name: Create Pull Request
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                 git config --global user.name "github-actions[bot]"
                 git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-                # Create a new branch based on dev
-                git checkout -b $BRANCH_NAME
-
-                # Add & commit changes
+      
+                BRANCH_NAME="patch-atomic-update-rust-dll-towerdefense-$(date +'%Y%m%d-%H%M%S')-${{ github.run_id }}"
+                
+                git checkout -b "$BRANCH_NAME"
+      
                 git add apps/rentearth/rust_godot_towerdefense/godot/addons/tower-defense/windows/rust_godot_towerdefense.dll
                 git commit -m "Update Rust DLL from automated build: Run ID: ${{ github.run_id }}"
-
-                # Push the branch
-                git push origin update-rust-dll
-
-                # Create a Pull Request using GitHub CLI
-                gh pr create --base dev --head update-rust-dll --title "Update Rust DLL" --body "Automated build updating the Rust DLL for Godot."
+      
+                git push origin "$BRANCH_NAME"
+      
+                gh pr create --base dev --head "$BRANCH_NAME" --title "Update Rust DLL" --body "Automated build updating the Rust DLL for Godot."
