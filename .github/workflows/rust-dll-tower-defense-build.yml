@@ -48,10 +48,6 @@ jobs:
             - name: List Downloaded Files
               run: ls -R temp_dll
 
-            - name: Extract DLL
-              run: |
-                  unzip temp_dll/rust_godot_towerdefense.zip -d temp_dll
-                  
             - name: Replace Existing DLL
               run: |
                   cp temp_dll/rust_godot_towerdefense.dll apps/rentearth/rust_godot_towerdefense/godot/addons/tower-defense/windows/rust_godot_towerdefense.dll

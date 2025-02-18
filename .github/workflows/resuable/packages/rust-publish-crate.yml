@@ -1,0 +1,35 @@
+name: Rust Crate Publish
+
+on:
+    workflow_call:
+        inputs:
+            package:
+                required: true
+                type: string
+        secrets:
+            CRATES_TOKEN:
+                required: true
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write
+            contents: write
+            packages: write
+            issues: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Rust ToolChain
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Cargo Login
+              run: cargo login ${{ secrets.CRATES_TOKEN }}
+
+            - name: Cargo Publish
+              run: |
+                  cargo publish -p ${{ inputs.package }}
