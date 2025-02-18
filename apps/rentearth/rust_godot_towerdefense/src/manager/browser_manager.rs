@@ -41,6 +41,7 @@ impl ICanvasLayer for BrowserManager {
       {
         let mut base = self.base_mut();
         base.add_child(&browser_clone.expect("failed to updoot browser").upcast::<Node>());
+        base.set_follow_viewport(true);
       }
 
       if let Some(browser_gd) = &self.browser {
@@ -57,6 +58,25 @@ impl ICanvasLayer for BrowserManager {
     {
       godot_print!("[BrowserManager] Running on WASM. JavaScript FFI will be used.");
     }
+
+    {
+      let mut base = self.base_mut();
+      if let Some(tree) = base.get_tree() {
+        if let Some(mut root) = tree.get_root() {
+          let callable = Callable::from_object_method(
+            &base.clone().upcast::<Node>(),
+            "on_window_resize"
+          );
+
+          let error = root.connect("size_changed", &callable);
+          if error != godot::global::Error::OK {
+            godot_error!("[BrowserManager] Failed to connect root size_changed: {:?}", error);
+          } else {
+            godot_print!("[BrowserManager] Connected root size_changed to on_window_resize.");
+          }
+        }
+      }
+    }
   }
 }
 
@@ -64,6 +84,8 @@ impl ICanvasLayer for BrowserManager {
 impl BrowserManager {
   #[func]
   pub fn on_window_resize(&self) {
+    godot_print!("[BrowserManager] Browser Event Trigger...");
+
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     {
       if let Some(ref browser) = self.browser {

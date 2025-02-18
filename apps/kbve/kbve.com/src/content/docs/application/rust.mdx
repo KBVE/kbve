@@ -440,4 +440,29 @@ This crate is a user-friendly, easy-to-integrate, immediate-mode GUI library des
 
 ---
 
+--
+
+## CI
+
+For continuous integration, we recommend checking out our [git](/application/git/) section for more information.
+
+
+### MSVC Target
+
+There will come a time where the rust application that you are building will require Windows SDK and ABI!
+When that situation comes, there are three options that are available, but not limited to.
+
+**Windows Native Build**
+
+A simple approach would be to setup the Rust cargo and application on a Windows 11 operating system and compile it from there.
+
+**Github Actions**
+
+Github Actions can provide you with a cloud windows VM that will pull the source code and cargo build the target release, with pre-installed visual studio code.
+
+**Docker**
+
+Nix-ready or custom docker image that has a multi-stage build process, including a cargo chef and layer caching, provides a fast and local way to build across multiple operating systems.
+
+
 <Giscus />
