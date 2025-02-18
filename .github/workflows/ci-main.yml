@@ -757,7 +757,7 @@ jobs:
   qrelease:
     needs: ['deploy', 'alter', 'globals']
     if: needs.alter.outputs.q == 'true'
-    uses: KBVE/kbve/.github/workflows/resuable/packages/rust-publish-crate.yml@main
+    uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
     with:
       package: q
     secrets:
