@@ -1,30 +1,77 @@
 name: Build Rust Windows DLL
 
 on:
-  workflow_dispatch:
+    workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: windows-latest
+    build:
+        runs-on: windows-latest
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-      - name: Install Rust Nightly with MSVC
-        run: |
-          rustup default nightly
-          rustup target add x86_64-pc-windows-msvc
-          rustup component add rust-src --toolchain nightly-x86_64-pc-windows-msvc 
+            - name: Install Rust Nightly with MSVC
+              run: |
+                  rustup default nightly
+                  rustup target add x86_64-pc-windows-msvc
+                  rustup component add rust-src --toolchain nightly-x86_64-pc-windows-msvc
 
-      - name: Build Rust DLL
-        run: |
-            cd apps/rentearth/rust_godot_towerdefense
-            cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target x86_64-pc-windows-msvc --release --out-dir dist/windows
+            - name: Build Rust DLL
+              run: |
+                  cd apps/rentearth/rust_godot_towerdefense
+                  cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target x86_64-pc-windows-msvc --release --out-dir dist/windows
 
-      - name: Upload DLL as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: rust_godot_towerdefense
-          path: apps/rentearth/rust_godot_towerdefense/dist/windows/*.dll
-          #path: dist/windows/*.dll
+            - name: Upload DLL as Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: rust_godot_towerdefense
+                  path: apps/rentearth/rust_godot_towerdefense/dist/windows/*.dll
+                  #path: dist/windows/*.dll
+
+    update-dev-branch:
+        runs-on: ubuntu-latest
+        needs: ['build']
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+              with:
+                  ref: dev
+
+            - name: Download Built DLL
+              uses: actions/download-artifact@v4
+              with:
+                name: rust_godot_towerdefense
+                path: temp_dll
+                  
+            - name: Replace Existing DLL
+              run: |
+                  cp temp_dll/rust_godot_towerdefense.dll apps/rentearth/rust_godot_towerdefense/godot/addons/tower-defense/windows/rust_godot_towerdefense.dll
+        
+            - name: Generate Timestamp for Branch Name
+              id: timestamp
+              run: echo "BRANCH_NAME=patch-atomic-update-rust-dll-towerdefense-$(date +'%Y%m%d-%H%M%S')-${{ github.run_id }}" >> $GITHUB_ENV
+          
+            - name: Remove temp_dll Folder
+              run: rm -rf temp_dll
+
+            - name: Create Pull Request
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                git config --global user.name "github-actions[bot]"
+                git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+                # Create a new branch based on dev
+                git checkout -b $BRANCH_NAME
+
+                # Add & commit changes
+                git add apps/rentearth/rust_godot_towerdefense/godot/addons/tower-defense/windows/rust_godot_towerdefense.dll
+                git commit -m "Update Rust DLL from automated build: Run ID: ${{ github.run_id }}"
+
+                # Push the branch
+                git push origin update-rust-dll
+
+                # Create a Pull Request using GitHub CLI
+                gh pr create --base dev --head update-rust-dll --title "Update Rust DLL" --body "Automated build updating the Rust DLL for Godot."
