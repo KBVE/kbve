@@ -44,6 +44,13 @@ jobs:
               with:
                 name: rust_godot_towerdefense
                 path: temp_dll
+          
+            - name: List Downloaded Files
+              run: ls -R temp_dll
+
+            - name: Extract DLL
+              run: |
+                  unzip temp_dll/rust_godot_towerdefense.zip -d temp_dll
                   
             - name: Replace Existing DLL
               run: |
