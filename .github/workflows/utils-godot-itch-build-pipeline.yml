@@ -1,0 +1,116 @@
+name: Godot Build and Deploy Pipeline
+
+on:
+    workflow_call:
+        inputs:
+            branch:
+                description: 'Branch to check out for the build'
+                required: false
+                type: string
+                default: 'main'
+            deploy_to_itch:
+                description: 'Set to true to deploy the build to Itch.io'
+                required: false
+                type: boolean
+                default: false
+            godot_version:
+                description: 'Godot version to use for the build'
+                required: true
+                type: string
+                default: '4.3'
+            export_name:
+                description: 'Export name for the build'
+                required: true
+                type: string
+            project_path:
+                description: 'Path to the Godot project'
+                required: true
+                type: string
+            build_artifact_name:
+                description: 'Name of the build artifact'
+                required: false
+                type: string
+                default: 'godot_game_build'
+            itch_username:
+                description: 'Itch.io username'
+                required: true
+                type: string
+            itch_gameid:
+                description: 'Itch.io game ID'
+                required: true
+                type: string
+
+        secrets:
+            butler_api:
+                description: 'Itch.io Butler API Key'
+                required: true
+
+        outputs:
+            build_artifact:
+                description: 'Final exported build artifact name'
+                value: ${{ inputs.build_artifact_name }}
+
+jobs:
+    godot-build:
+        name: Godot Build Job
+        runs-on: ubuntu-latest
+        container:
+            image: barichello/godot-ci:${{ inputs.godot_version }}
+        env:
+            GODOT_VERSION: ${{ inputs.godot_version }}
+            EXPORT_NAME: ${{ inputs.export_name }}
+            PROJECT_PATH: ${{ inputs.project_path }}
+            BUILD_ARTIFACT: ${{ inputs.build_artifact_name }}
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.branch }}
+                  lfs: false
+
+            - name: Setup Godot Templates
+              run: |
+                  mkdir -p ~/.local/share/godot/export_templates/
+                  mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+
+            - name: Web Build
+              run: |
+                  mkdir -p build/web
+                  EXPORT_DIR="$(readlink -f build)"
+                  cd $PROJECT_PATH
+                  ls -a
+                  godot --headless --verbose --export-release "Web" "$EXPORT_DIR/web/index.html"
+
+            - name: Upload Build Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.build_artifact_name }}
+                  path: build/web
+
+    godot-itch-deployment:
+        name: Godot Itch Deployment
+        needs: ['godot-build']
+        runs-on: ubuntu-latest
+        if: inputs.deploy_to_itch == true
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.branch }}
+
+            - name: Download WebGL Build
+              uses: actions/download-artifact@v4
+              id: download
+              with:
+                  name: ${{ inputs.build_artifact_name }}
+                  path: build/web
+
+            - name: Deploy to Itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: "build/web"
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_gameid }}
+                  buildChannel: webgl
