@@ -13,6 +13,7 @@ members = [
 	'apps/experimental/rust_wasm_embed',
 	'apps/experimental/rust_p16_gameserver',
 	'apps/rentearth/rust_godot_towerdefense',
+	'packages/rust/q',
 ]
 
 [profile.dev]
