@@ -1,7 +1,7 @@
 ---
 title: 'February: 18'
 category: Daily
-date: 2024-02-18 12:00:00
+date: 2025-02-18 12:00:00
 client: Self
 unsplash: 1561478908-1ceb3bcc74b6
 img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -12,9 +12,39 @@ tags:
 
 ## Notes
 
-### 2024
+## Quote
 
-#### Style
+```
+
+3rd world problem - Damn ,the electricity is out.
+1st world problem - Damn, my internet is slow.
+0 world problem - Damn, I am using 8gb of ram in WSL
+imaginary world problem - Damn, these reusable workflows on the cloud vm are so slow.
+
+```
+
+## 2025
+
+### Markets
+
+### CICD Reusables
+
+-   05:38PM
+
+    Pipes were broken, but not because of the cold but rather test casing the resuable workflows.
+    One of my bad habits is going out of scope during a gamejam, but its also where I find new solutions to non-existent problems.
+    Best to call it imgainary world problems, since its not a first world nor a zero world problem, its further backwards.
+    The `utils-file-alterations.yml` seems like its good to go for testing, will push that all the way to main and see what happens with it.
+
+-   06:09PM
+
+    Next, the focus was getting the `utils-godot-itch-build-pipeline.yml`, which is another reusable workflow that I plan to call during this gamejam.
+    Eventually the goal will be to make this monorepo super modular and easy to build out even faster, there might be a point where we can go from concept to full startup in less than 48 hours.
+
+
+## 2024
+
+### Style
 
 The current plan is to build out a KBVEStyleSheet, which will nest our static and dynamic tailwindcss configurations.
 I will try to keep this as vanilla js as possible, so that it can be called and used with any library.
@@ -37,20 +67,20 @@ Let me go ahead and generated the markdown for the code as well.
 
 ---
 
-## KBVE Style Management Library
+#### KBVE Style Management Library
 
 The KBVE Style Management Library provides a TypeScript-based framework for managing and applying dynamic styles within applications. It leverages interfaces and classes to create a flexible system for handling style variables and their transformations.
 
-## Interfaces
+#### Interfaces
 
-### `IKBVEStyleSheet`
+#### `IKBVEStyleSheet`
 
 Represents the base contract for a style sheet within the KBVE framework, defining how style variables can be retrieved and manipulated.
 
 - **Methods:**
   - `getVariable(name: string, dyn?: boolean): IVariableProcessor`: Retrieves a variable processor for the specified variable name. Optionally, a dynamic flag (`dyn`) can be specified to modify the variable name retrieval process.
 
-### `IVariableProcessor`
+#### `IVariableProcessor`
 
 Defines the operations that can be performed on a style variable.
 
@@ -60,9 +90,9 @@ Defines the operations that can be performed on a style variable.
   - `getText(): string`: Returns the textual representation of the variable.
   - `setTransparent(percentage: number): IVariableProcessor`: Modifies the variable to apply a transparency based on the specified percentage and returns the processor for chaining.
 
-## Classes
+#### Classes
 
-### `KBVEStyleManager`
+#### `KBVEStyleManager`
 
 Implements `IKBVEStyleSheet`, providing the core functionality for managing style variables.
 
@@ -74,14 +104,14 @@ Implements `IKBVEStyleSheet`, providing the core functionality for managing styl
   - `replaceHyphensWithSpaces(inputString: string)`: Utility method for formatting variable names.
   - `applyTransparency(variable: string, percentage: number)`: Applies transparency to a variable based on a given percentage.
 
-### `DynamicKBVEStyleManager`
+#### `DynamicKBVEStyleManager`
 
 Extends `KBVEStyleManager` to override the `getVariable` method, enabling automatic dynamic variable processing.
 
 - **Public Methods:**
   - `getVariable(name: string)`: Overrides the parent method to always retrieve variables in their dynamic form.
 
-## Exported Instances
+#### Exported Instances
 
 - `style`: An instance of `KBVEStyleManager` for default style management.
 - `dynStyle`: An instance of `DynamicKBVEStyleManager` for dynamic style management.
