@@ -199,3 +199,71 @@ Finally we would split the `npc` and `entity` layer because we might want the `n
     - Ammo shells and lasers, used to raycast hits as well.
 
 </Steps>
+
+### Global Resources
+
+The idea behind this singleton is to hold the spaceship stats and resources, including the gold, metal, stone, ect...
+I went ahead and designed it to be modular, so we can add any resource we want without having to go crazy trying to refactor it in.
+
+Current List of Resources:
+
+```json
+{
+	"gold": 0,
+	"stone": 0,
+	"metal": 0,
+	"gems": 0
+}
+```
+
+<Steps>
+
+1.  Gold
+    - This is the main currency of the game.
+
+2.  Stone
+    - A resource for building objects within the ship.
+
+3.  Metal
+    - A limited resource for building upgrades for the ship.
+
+4.  Gems
+    - A rare resource for special upgrades.
+
+</Steps>
+
+#### Resource Examples
+
+```
+
+Global.earn_resource("gold", 100, "Mission Reward: Killing Fudster") 
+Global.earn_resource("stone", 50, "Mining Bonus")  
+
+```
+
+For using the resources, it would be like this:
+
+```
+
+if Global.spend_resource("gold", 50, "Bought Shield Upgrade"):
+    print("Purchase successful!")
+else:
+    print("Not enough gold!")
+
+```
+
+Then on the UI, we can listen to the signals and make changes.
+
+```
+
+func _ready():
+    Global.connect("resource_changed", _on_resource_updated)
+    Global.connect("resource_receipt", _on_resource_receipt)
+
+func _on_resource_updated(resource_name, new_value):
+    print(resource_name + " updated: " + str(new_value))
+
+func _on_resource_receipt(resource_name, amount, new_value, invoice):
+    print("Transaction: ", invoice, " Resource: ", resource_name, " Amount: ", amount, " New Balance: ", new_value)
+
+```
