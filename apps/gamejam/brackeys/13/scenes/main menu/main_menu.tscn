@@ -1,0 +1,43 @@
+[gd_scene load_steps=2 format=3 uid="uid://uqtr3tawf4qc"]
+
+[ext_resource type="Texture2D" uid="uid://cm4cl3gt00wvx" path="res://assets/kenny/space-shooter-redux/background/black.png" id="1_tt0bq"]
+
+[node name="MainMenu" type="TextureRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_tt0bq")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = 525.0
+offset_top = 96.0
+offset_right = 868.0
+offset_bottom = 187.0
+theme_override_font_sizes/font_size = 66
+text = "Game Title"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 85.0
+offset_top = 319.0
+offset_right = 278.0
+offset_bottom = 586.0
+
+[node name="PlayButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 41
+text = "Play"
+
+[node name="OptionsButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 41
+text = "Options"
+
+[node name="ExitButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 41
+text = "Exit
+"
