@@ -1,32 +1,42 @@
 class_name Spaceship extends CharacterBody2D
 
-## Attacks
-signal gunship_fire
+func _physics_process(delta):
+	var acceleration = Global.get_starship_stat("acceleration")
+	var max_speed = Global.get_starship_stat("max_speed")
+	var rotation_speed = Global.get_starship_stat("rotation_speed")
+	var input_vector := Vector2(0, Input.get_axis("thrust", "reverse"))
+	velocity += input_vector.rotated(rotation) * acceleration
+	velocity = velocity.limit_length(max_speed)
+	
+	if Input.is_action_pressed("pan_right"):
+		rotate(deg_to_rad(rotation_speed*delta))
+	if Input.is_action_pressed("pan_left"):
+		rotate(deg_to_rad(-rotation_speed*delta))
+	
+	var drift_force = acceleration * 1.0
+	var drift_direction = Vector2.RIGHT.rotated(rotation)
+	
+	if Input.is_action_pressed("drift_right"):
+		print("E Pressed - Thrust Right Detected")
+		global_position = global_position.lerp(global_position + drift_direction * drift_force, delta * 5)
 
-## Defense
-signal shield_decay
+		
+	if Input.is_action_pressed("drift_left"):
+		print("Q Pressed - Thrust Left Detected")
+		global_position = global_position.lerp(global_position - drift_direction * drift_force, delta * 5)
 
-
-
-const SPEED = 300.0
-const JUMP_VELOCITY = -400.0
-
-
-func _physics_process(delta: float) -> void:
-	# Add the gravity. for later on.
-	if not is_on_floor():
-		velocity += get_gravity() * delta
-
-	# Handle jump.
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-
-	# Get the input direction and handle the movement/deceleration.
-	# As good practice, you should replace UI actions with custom gameplay actions.
-	var direction := Input.get_axis("ui_left", "ui_right")
-	if direction:
-		velocity.x = direction * SPEED
-	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-
+	if input_vector.y == 0:
+		velocity = velocity.move_toward(Vector2.ZERO, 3)
+	
+	
 	move_and_slide()
+	
+	var screen_size = get_viewport_rect().size
+	if global_position.y < 0:
+		global_position.y = screen_size.y
+	elif global_position.y > screen_size.y:
+		global_position.y = 0
+	if global_position.x < 0:
+		global_position.x = screen_size.x
+	elif global_position.x > screen_size.x:
+		global_position.x = 0

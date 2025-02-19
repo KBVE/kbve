@@ -1,0 +1,61 @@
+[gd_resource type="Theme" load_steps=18 format=3 uid="uid://bkt3waoihtb6j"]
+
+[ext_resource type="Texture2D" uid="uid://c73g314v1aohm" path="res://assets/audioknobs-ui/slider.png" id="1_4ho6j"]
+[ext_resource type="Texture2D" uid="uid://wwlxthw1p5px" path="res://assets/audioknobs-ui/button-toggle-off.png" id="1_467wl"]
+[ext_resource type="Texture2D" uid="uid://bwhtv183g5vma" path="res://assets/audioknobs-ui/button-toggle-on.png" id="2_dcdwy"]
+[ext_resource type="Texture2D" uid="uid://7h4qiorvtq3q" path="res://assets/audioknobs-ui/metalbackground1.png" id="2_wr8kl"]
+[ext_resource type="Texture2D" uid="uid://byxtqi4hn1crh" path="res://assets/audioknobs-ui/v-slider-small.png" id="3_j3fil"]
+[ext_resource type="Texture2D" uid="uid://bt4me1jtt6j6a" path="res://assets/audioknobs-ui/slider-bg.png" id="4_4s0nj"]
+[ext_resource type="Texture2D" uid="uid://cn2g0hmq78i57" path="res://assets/audioknobs-ui/progress-bar-bg.png" id="6_v1is8"]
+[ext_resource type="Texture2D" uid="uid://b5ctfdi4s4nsl" path="res://assets/audioknobs-ui/progress-bar-fill.png" id="7_f3kbi"]
+[ext_resource type="Texture2D" uid="uid://dlhr1icsocw1m" path="res://assets/audioknobs-ui/v-slider-bg.png" id="7_r6trc"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0jei3"]
+texture = ExtResource("1_467wl")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_60gn8"]
+texture = ExtResource("2_dcdwy")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_64pwo"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_upa0w"]
+texture = ExtResource("4_4s0nj")
+texture_margin_top = 20.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_umxe3"]
+texture = ExtResource("6_v1is8")
+axis_stretch_vertical = 1
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_es6xy"]
+texture = ExtResource("7_f3kbi")
+axis_stretch_vertical = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xdt0a"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_q3unm"]
+texture = ExtResource("7_r6trc")
+texture_margin_left = 20.0
+
+[resource]
+Button/styles/disabled = SubResource("StyleBoxTexture_0jei3")
+Button/styles/hover = SubResource("StyleBoxTexture_0jei3")
+Button/styles/hover_pressed = SubResource("StyleBoxTexture_60gn8")
+Button/styles/normal = SubResource("StyleBoxTexture_0jei3")
+Button/styles/pressed = SubResource("StyleBoxTexture_60gn8")
+HSlider/icons/grabber = ExtResource("1_4ho6j")
+HSlider/icons/grabber_disabled = ExtResource("1_4ho6j")
+HSlider/icons/grabber_highlight = ExtResource("1_4ho6j")
+HSlider/styles/grabber_area = SubResource("StyleBoxFlat_64pwo")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_64pwo")
+HSlider/styles/slider = SubResource("StyleBoxTexture_upa0w")
+MarginContainer/icons/texture = ExtResource("2_wr8kl")
+ProgressBar/styles/background = SubResource("StyleBoxTexture_umxe3")
+ProgressBar/styles/fill = SubResource("StyleBoxTexture_es6xy")
+VSlider/icons/grabber = ExtResource("3_j3fil")
+VSlider/icons/grabber_disabled = ExtResource("3_j3fil")
+VSlider/icons/grabber_highlight = ExtResource("3_j3fil")
+VSlider/styles/grabber_area = SubResource("StyleBoxFlat_xdt0a")
+VSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_xdt0a")
+VSlider/styles/slider = SubResource("StyleBoxTexture_q3unm")
