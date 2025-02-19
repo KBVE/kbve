@@ -20,11 +20,6 @@ config/icon="res://icon.svg"
 window/stretch/mode="canvas_items"
 window/per_pixel_transparency/allowed=true
 
-[rendering]
-
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
-
 [layer_names]
 
 2d_physics/layer_1="timespace"
@@ -36,3 +31,8 @@ renderer/rendering_method.mobile="gl_compatibility"
 2d_physics/layer_7="npc"
 2d_physics/layer_8="entity"
 2d_physics/layer_9="projectile"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
