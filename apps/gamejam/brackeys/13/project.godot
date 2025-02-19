@@ -20,6 +20,10 @@ config/icon="res://icon.svg"
 window/stretch/mode="canvas_items"
 window/per_pixel_transparency/allowed=true
 
+[gui]
+
+theme/custom="res://theme/Theme.tres"
+
 [layer_names]
 
 2d_physics/layer_1="timespace"
