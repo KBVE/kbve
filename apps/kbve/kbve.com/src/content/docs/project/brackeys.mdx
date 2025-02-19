@@ -15,6 +15,16 @@ tags:
     - gaming
 ---
 
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
 ## Barckeys Game Jam 
 
 
@@ -156,3 +166,36 @@ The first three layers, `timespace`, `universe` and `galaxy` will act as the bac
 Using the layer 1 through 3, we can create a parallax style simulation of space.
 The actual ship that the player controls will inherit the layer 6 aka `spaceship`.
 Finally we would split the `npc` and `entity` layer because we might want the `npc` to have additional abilities, like a star path finding.
+
+
+<Steps>
+
+1.  Timespace
+    - Tracks the time without a reference to frames.
+
+2.  Universe
+    - Client-side background
+
+3.  Galaxy
+    - Sub-background with the purpose of creating a parallax effect.
+
+4.  Environment
+    - Tracks the delta-time, with a reference to the client's frame.
+
+5.  Planet
+    - This layer will include spacestations and presents an entity that has true collision.
+    - Players will be to enter the planet, which can open up minigames or special UI screens.
+
+6.  Spaceship
+    - The actual layermask for the player.
+
+7.  NPC
+    - Layermask for pirates or friendly ships.
+
+8.  Entity
+    - Layermask for objects that can be mined, cause damage and/or hold any interaction.
+
+9.  Projectile
+    - Ammo shells and lasers, used to raycast hits as well.
+
+</Steps>
