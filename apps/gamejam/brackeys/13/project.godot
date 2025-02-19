@@ -24,3 +24,15 @@ window/per_pixel_transparency/allowed=true
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+
+[layer_names]
+
+2d_physics/layer_1="timespace"
+2d_physics/layer_2="universe"
+2d_physics/layer_3="galaxy"
+2d_physics/layer_4="environment"
+2d_physics/layer_5="planet"
+2d_physics/layer_6="spaceship"
+2d_physics/layer_7="npc"
+2d_physics/layer_8="entity"
+2d_physics/layer_9="projectile"

@@ -133,3 +133,26 @@ inspired by spaceteam
 The spaceship asset pack that we will be using is from [Kenny Space Shooter Redux](https://kenney.nl/assets/space-shooter-redux), released as a CC0.
 There are two folders, `_space-shooter-redux` and `space-shooter-redux`, all of the assets from the pack are under the `_space-shooter-redux` and objects that we will use will be copied over to `space-shooter-redux`.
 Without having to dump a bunch of assets, I will try to use as many as needed and then going to delete the `_space-shooter-redux` folder.
+
+### Layers
+
+These are the layers that I am thinking we will be operating in:
+
+```
+
+2d_physics/layer_1="timespace"
+2d_physics/layer_2="universe"
+2d_physics/layer_3="galaxy"
+2d_physics/layer_4="environment"
+2d_physics/layer_5="planet"
+2d_physics/layer_6="spaceship"
+2d_physics/layer_7="npc"
+2d_physics/layer_8="entity"
+2d_physics/layer_9="projectile"
+
+```
+
+The first three layers, `timespace`, `universe` and `galaxy` will act as the background layers and the `environment` will be the first delta-time layer from the client-side point of view.
+Using the layer 1 through 3, we can create a parallax style simulation of space.
+The actual ship that the player controls will inherit the layer 6 aka `spaceship`.
+Finally we would split the `npc` and `entity` layer because we might want the `npc` to have additional abilities, like a star path finding.
