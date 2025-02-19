@@ -5,12 +5,12 @@ import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
-import rehypeMermaid from "rehype-mermaid";
+import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
 
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
-import starlightSiteGraph from 'starlight-site-graph'
+import starlightSiteGraph from 'starlight-site-graph';
 
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
@@ -39,11 +39,13 @@ export default defineConfig({
 	// },
 	integrations: [
 		starlight({
-			plugins: [starlightSiteGraph({
-				graphConfig: {
-				"renderArrows": true
-				}
-			  })],
+			plugins: [
+				starlightSiteGraph({
+					graphConfig: {
+						renderArrows: true,
+					},
+				}),
+			],
 			title: 'KBVE Docs',
 			editLink: {
 				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
@@ -240,12 +242,17 @@ export default defineConfig({
 	],
 	// markdown: markdownConfig,
 	markdown: {
-		rehypePlugins: [[rehypeMermaid, { strategy: "img-svg", dark: true }]],
-	  },
+		rehypePlugins: [[rehypeMermaid, { strategy: 'img-svg', dark: true }]],
+	},
 	vite: defineViteConfig({
 		ssr: {
 			noExternal: ['path-to-regexp'],
-		  },
+		},
+		server: {
+			watch: {
+				ignored: ['**/*'],
+			},
+		},
 		build: {
 			rollupOptions: {
 				// maxConcurrency: 2,

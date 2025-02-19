@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://1s5v0llrjq3"]
+
+[ext_resource type="Texture2D" uid="uid://c0kmvkwygg0ox" path="res://assets/kenny/space-shooter-redux/png/playerShip3_red.png" id="1_8hcjj"]
+[ext_resource type="Script" path="res://scripts/spaceship.gd" id="1_uejed"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_s734v"]
+radius = 40.05
+
+[node name="Spaceship" type="CharacterBody2D"]
+script = ExtResource("1_uejed")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -1)
+texture = ExtResource("1_8hcjj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 4)
+rotation = -0.0497135
+shape = SubResource("CircleShape2D_s734v")

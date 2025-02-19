@@ -41,6 +41,31 @@ imaginary world problem - Damn, these reusable workflows on the cloud vm are so 
     Next, the focus was getting the `utils-godot-itch-build-pipeline.yml`, which is another reusable workflow that I plan to call during this gamejam.
     Eventually the goal will be to make this monorepo super modular and easy to build out even faster, there might be a point where we can go from concept to full startup in less than 48 hours.
 
+-   11:58PM
+
+    To test the reusable workflow, we would call it under the `jobs` like this:
+
+```yaml
+
+jobs:
+  trigger-godot-build:
+    uses: KBVE/kbve/.github/workflows/utils-godot-itch-build-pipeline.yml@main
+    with:
+      branch: "dev"
+      deploy_to_itch: true
+      godot_version: "4.3"
+      export_name: "TowerDef"
+      project_path: "./apps/rust_godot_towerdefense/godot"
+      build_artifact_name: "towerdefense_web_build"
+      itch_username: "kbve"
+      itch_gameid: "tower-defense"
+    secrets:
+      butler_api: ${{ secrets.ITCH_API }}
+
+
+```
+
+    However, I will do this tomorrow, after I finish up the core player script and the movement.
 
 ### B13
 
