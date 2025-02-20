@@ -5,7 +5,7 @@ signal resource_changed(resource_name, new_value)
 signal resource_receipt(resource_name, amount, new_value, invoice)
 signal starship_stat_changed(stat_name, new_value)
 signal starship_data_changed(data_name, new_value)
-
+signal notification_received(message_id: String, message: String, type: String)
 var resources := {
 	"gold": 0,
 	"stone": 0,
