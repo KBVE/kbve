@@ -24,10 +24,6 @@ Global="*res://scripts/global.gd"
 window/stretch/mode="canvas_items"
 window/per_pixel_transparency/allowed=true
 
-[gui]
-
-theme/custom="res://theme/Theme.tres"
-
 [input]
 
 thrust={
