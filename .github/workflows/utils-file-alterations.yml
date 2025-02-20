@@ -76,12 +76,16 @@ on:
       q:
         description: "Q package changed"
         value: ${{ jobs.alter.outputs.q }}
+      asteroids:
+        description: "Asteroids & Droids changed"
+        value: ${{ jobs.alter.outputs.asteroids }}
 
 jobs:
   alter:
     runs-on: ubuntu-latest
     name: File Alterations
     outputs:
+      kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
       herbmail: ${{ steps.delta.outputs.herbmail_any_changed }}
       kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
       rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
@@ -104,6 +108,7 @@ jobs:
       laser: ${{ steps.delta.outputs.laser_any_changed }}
       worker: ${{ steps.delta.outputs.worker_any_changed }}
       q: ${{ steps.delta.outputs.q_any_changed }}
+      asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -157,3 +162,7 @@ jobs:
                 - 'packages/laser/package.json'
             q:
                 - 'packages/rust/q/README.md'
+            asteroids:
+                - 'apps/gamejam/brackeys/13/**'
+            kilobase:
+                -  'apps/kbve/kilobase/README.md'
