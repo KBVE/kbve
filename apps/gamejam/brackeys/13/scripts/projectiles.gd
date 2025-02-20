@@ -1,7 +1,7 @@
 extends Node
 
 const LASER_SCENE = preload("res://scenes/laser.tscn")
-
+@onready var tm = get_parent().get_node("ToastManager")
 # Shift these to the Q crate later on.
 var laser_pool: Array = []
 var active_lasers: Array = []
@@ -22,7 +22,8 @@ func shoot_laser(global_position: Vector2, rotation: float):
 		laser.set_deferred("visible", true)
 		active_lasers.append(laser)
 	else:
-		print("Out of laser energy shots")
+		Global.emit_signal("notification_received","laser_low", "Laser Overheating", "error")
+		#print("Out of laser energy shots")
 
 func _on_laser_exited(laser):
 	if laser in active_lasers:
@@ -41,6 +42,7 @@ func dynamic_pool_adjustment():
 			laser.set_deferred("visible", false)
 			laser_pool.append(laser)
 			add_child(laser)
+		emit_signal("notification_received","laser_upgrade", "Laser Upgraded", "info")
 		print("Laser pool increased to:", desired_pool_size)
 
 	elif desired_pool_size < current_pool_size:
@@ -49,4 +51,5 @@ func dynamic_pool_adjustment():
 			if laser_pool.size() > 0:
 				var laser = laser_pool.pop_back()
 				laser.queue_free()
+		emit_signal("notification_received","laser_downgrade", "Laser Downgraded", "warning")
 		print("Laser pool decreased to:", desired_pool_size)
