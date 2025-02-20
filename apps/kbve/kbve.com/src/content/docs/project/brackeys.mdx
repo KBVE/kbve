@@ -271,3 +271,8 @@ func _on_resource_receipt(resource_name, amount, new_value, invoice):
     print("Transaction: ", invoice, " Resource: ", resource_name, " Amount: ", amount, " New Balance: ", new_value)
 
 ```
+
+### Weapons
+
+The first weapon that we will introduce is the laser for the spaceship, later on we will include a couple more guns, maybe a machine gun type weapon.
+Majority of the laser's logic will be stored under `/scripts/laser.gd` and we will not implement any sort of pooling for it yet, that might be something that I will look into later on.
