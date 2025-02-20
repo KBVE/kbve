@@ -148,52 +148,12 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     alter:
-        name: 'Dev Deployment Checks'
-        runs-on: ubuntu-latest
-        if: github.repository == 'kbve/kbve'
-        outputs:
-            ##  [APPS]
-            herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
-            kbve: ${{ steps.delta.outputs.kbve_any_changed }}
-            rareicon: ${{ steps.delta.outputs.rareicon_any_changed }}
-            discordsh: ${{ steps.delta.outputs.discordsh_any_changed }}
-            atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
-            api: ${{ steps.delta.outputs.api_any_changed  }}
-            rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
-            kilobase: ${{ steps.delta.outputs.kilobase_any_changed}}
-            fudster: ${{ steps.delta.outputs.fudster_any_changed}}
-
-            ##  [PACKAGES]
-        steps:
-            - name: Checkout the repository using git
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: File Changes
-              id: delta
-              uses: tj-actions/changed-files@v39
-              with:
-                  files_yaml: |
-                      herbmail:
-                          - 'apps/herbmail.com/**'
-                      kbve:
-                          - 'apps/kbve/kbve.com/**'
-                      rareicon:
-                          - 'apps/rareicon.com/**'
-                      discordsh:
-                          - 'apps/discord.sh/**'
-                      atlas:
-                          - 'apps/atlas/kbve_atlas/**'
-                      api:
-                          - 'apps/api/**'
-                      rustapiprofile:
-                          - 'apps/rust_api_profile/**'
-                      kilobase:
-                          - 'apps/kilobase/Cargo.toml'
-                      fudster:
-                          - 'apps/fudster/README.md'
-
+      name: "Dev Alters"
+      if: github.repository == 'kbve/kbve'
+      uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
+      with:
+          branch: "dev"
+                
     deploy:
         needs: alter
         name: 'Process Dev'
@@ -234,6 +194,23 @@ jobs:
               shell: bash
               run: |
                   pnpm nx report
+
+    asteroids:
+        needs: ['handle', 'alter']
+        if: needs.alter.outputs.asteroids == 'true'
+        uses: KBVE/kbve/.github/workflows/utils-godot-itch-build-pipeline.yml@main
+        with:
+          branch: "dev"
+          deploy_to_itch: true
+          godot_version: "4.3"
+          export_name: "asteroids-driods"
+          project_path: "./apps/gamejam/brackeys/13"
+          build_artifact_name: "asteroids-driods"
+          itch_username: "kbve"
+          itch_gameid: "asteroids-driods"
+        secrets:
+          butler_api: ${{ secrets.ITCH_API }}
+    
 
     fudster_dev_cicd:
         needs: ['handle', 'deploy', 'alter']

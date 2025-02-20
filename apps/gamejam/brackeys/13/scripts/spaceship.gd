@@ -6,6 +6,9 @@ signal laser_shot(laser)
 
 var laser_scene = preload("res://scenes/laser.tscn")
 
+func _ready():
+	position = get_viewport_rect().size / 2
+	
 func _process(delta):
 	if Input.is_action_pressed("shoot"):
 		shoot_laser()

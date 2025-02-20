@@ -11,3 +11,12 @@ func _on_visible_on_screen_notifier_2d_screen_exited():
 	if get_parent():
 		get_parent()._on_laser_exited(self)
 	#queue_free()
+
+
+func _on_area_entered(area):
+	if area is Asteroid:
+		var asteroid = area
+		asteroid.destroy()
+		visible = false
+		if get_parent():
+			get_parent()._on_laser_exited(self)
