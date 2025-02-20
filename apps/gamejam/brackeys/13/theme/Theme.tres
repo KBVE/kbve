@@ -1,14 +1,14 @@
 [gd_resource type="Theme" load_steps=18 format=3 uid="uid://bkt3waoihtb6j"]
 
-[ext_resource type="Texture2D" uid="uid://c73g314v1aohm" path="res://assets/audioknobs-ui/slider.png" id="1_4ho6j"]
-[ext_resource type="Texture2D" uid="uid://wwlxthw1p5px" path="res://assets/audioknobs-ui/button-toggle-off.png" id="1_467wl"]
-[ext_resource type="Texture2D" uid="uid://bwhtv183g5vma" path="res://assets/audioknobs-ui/button-toggle-on.png" id="2_dcdwy"]
-[ext_resource type="Texture2D" uid="uid://7h4qiorvtq3q" path="res://assets/audioknobs-ui/metalbackground1.png" id="2_wr8kl"]
-[ext_resource type="Texture2D" uid="uid://byxtqi4hn1crh" path="res://assets/audioknobs-ui/v-slider-small.png" id="3_j3fil"]
-[ext_resource type="Texture2D" uid="uid://bt4me1jtt6j6a" path="res://assets/audioknobs-ui/slider-bg.png" id="4_4s0nj"]
-[ext_resource type="Texture2D" uid="uid://cn2g0hmq78i57" path="res://assets/audioknobs-ui/progress-bar-bg.png" id="6_v1is8"]
-[ext_resource type="Texture2D" uid="uid://b5ctfdi4s4nsl" path="res://assets/audioknobs-ui/progress-bar-fill.png" id="7_f3kbi"]
-[ext_resource type="Texture2D" uid="uid://dlhr1icsocw1m" path="res://assets/audioknobs-ui/v-slider-bg.png" id="7_r6trc"]
+[ext_resource type="Texture2D" uid="uid://c73g314v1aohm" path="res://assets/audioknobs-ui/audioknobs/slider.png" id="1_4ho6j"]
+[ext_resource type="Texture2D" uid="uid://wwlxthw1p5px" path="res://assets/audioknobs-ui/audioknobs/button-toggle-off.png" id="1_467wl"]
+[ext_resource type="Texture2D" uid="uid://bwhtv183g5vma" path="res://assets/audioknobs-ui/audioknobs/button-toggle-on.png" id="2_dcdwy"]
+[ext_resource type="Texture2D" uid="uid://7h4qiorvtq3q" path="res://assets/audioknobs-ui/audioknobs/metalbackground1.png" id="2_wr8kl"]
+[ext_resource type="Texture2D" uid="uid://byxtqi4hn1crh" path="res://assets/audioknobs-ui/audioknobs/v-slider-small.png" id="3_j3fil"]
+[ext_resource type="Texture2D" uid="uid://bt4me1jtt6j6a" path="res://assets/audioknobs-ui/audioknobs/slider-bg.png" id="4_4s0nj"]
+[ext_resource type="Texture2D" uid="uid://cn2g0hmq78i57" path="res://assets/audioknobs-ui/audioknobs/progress-bar-bg.png" id="6_v1is8"]
+[ext_resource type="Texture2D" uid="uid://b5ctfdi4s4nsl" path="res://assets/audioknobs-ui/audioknobs/progress-bar-fill.png" id="7_f3kbi"]
+[ext_resource type="Texture2D" uid="uid://dlhr1icsocw1m" path="res://assets/audioknobs-ui/audioknobs/v-slider-bg.png" id="7_r6trc"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0jei3"]
 texture = ExtResource("1_467wl")
