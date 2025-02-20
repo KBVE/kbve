@@ -1,6 +1,6 @@
 extends Node2D
 
-const ASTEROID_SCENE = preload("res://scenes/Asteroid.tscn")
+const ASTEROID_SCENE = preload("res://scenes/asteroid.tscn")
 
 var asteroid_pool: Array = []
 var active_asteroids: Array = []
