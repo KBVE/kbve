@@ -8,6 +8,8 @@ signal starship_data_changed(data_name, new_value)
 signal environment_data_changed(data_name, new_value)
 signal notification_received(message_id: String, message: String, type: String)
 
+@export var resources_list: Array[String] = ["gold", "stone", "metal", "gems"]
+
 var environment_data := {
 	"asteroids": 10,
 	"asteroid_speed": 200,
@@ -27,7 +29,7 @@ var base_starship_stats := {
 	"rotation_speed": 270.0,
 	"laser_speed": 550.0,
 	"overheat": 0.0,
-	"laser_ammo": 25.0,
+	"laser_ammo": 10.0,
 }
 
 var starship_bonuses := {
