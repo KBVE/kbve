@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://cuap8jmc5xla2"]
+
+[ext_resource type="Script" path="res://scripts/toast.gd" id="1_jpci1"]
+[ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="2_7g1or"]
+
+[node name="Toast" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_jpci1")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme = ExtResource("2_7g1or")
+
+[node name="Label" type="Label" parent="Panel"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+theme = ExtResource("2_7g1or")

@@ -5,6 +5,14 @@ signal resource_changed(resource_name, new_value)
 signal resource_receipt(resource_name, amount, new_value, invoice)
 signal starship_stat_changed(stat_name, new_value)
 signal starship_data_changed(data_name, new_value)
+signal environment_data_changed(data_name, new_value)
+signal notification_received(message_id: String, message: String, type: String)
+
+var environment_data := {
+	"asteroids": 10,
+	"asteroid_speed": 200,
+	"asteroid_belt": false
+}
 
 var resources := {
 	"gold": 0,
@@ -96,3 +104,10 @@ func get_starship_data(data_name: String):
 func set_starship_data(data_name: String, new_value):
 	starship_data[data_name] = new_value
 	emit_signal("starship_data_changed", data_name, new_value)
+
+func get_environment_data(data_name: String):
+	return environment_data.get(data_name, null)
+
+func set_environment_data(data_name: String, new_value):
+	environment_data[data_name] = new_value
+	emit_signal("environment_data_changed", data_name, new_value)
