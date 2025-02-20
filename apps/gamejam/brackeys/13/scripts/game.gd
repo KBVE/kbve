@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var spaceship = $Spaceship
 @onready var projectiles = $Projectiles
+@onready var background = $Background
 
 const LASER_POOL_SIZE = 25
 
