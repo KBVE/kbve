@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://dd2eekysgtc4"]
+
+[ext_resource type="Script" path="res://scripts/laser.gd" id="1_5kyoc"]
+[ext_resource type="Texture2D" uid="uid://cpg870sshds0m" path="res://assets/kenny/space-shooter-redux/png/laserGreen11.png" id="1_s4xlg"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_44da2"]
+radius = 3.0
+height = 28.0
+
+[node name="Laser" type="Area2D"]
+collision_layer = 256
+collision_mask = 216
+script = ExtResource("1_5kyoc")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -15)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_s4xlg")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -15)
+shape = SubResource("CapsuleShape2D_44da2")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+position = Vector2(0, -14.5)
+scale = Vector2(0.5, 1.35)
+
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

@@ -1,5 +1,15 @@
 class_name Spaceship extends CharacterBody2D
 
+signal laser_shot(laser)
+
+@onready var scope = $OmniScope
+
+var laser_scene = preload("res://scenes/laser.tscn")
+
+func _process(delta):
+	if Input.is_action_pressed("shoot"):
+		shoot_laser()
+
 func _physics_process(delta):
 	var acceleration = Global.get_starship_stat("acceleration")
 	var max_speed = Global.get_starship_stat("max_speed")
@@ -40,3 +50,6 @@ func _physics_process(delta):
 		global_position.x = screen_size.x
 	elif global_position.x > screen_size.x:
 		global_position.x = 0
+
+func shoot_laser():
+	emit_signal("laser_shot", scope.global_position, rotation)
