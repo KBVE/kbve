@@ -56,6 +56,21 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_4vpul")
 layout_mode = 2
 alignment = 1
 
+[node name="Stone" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="Metal" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="Gems" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="Gold" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="StarshipName" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
 [node name="Label" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
 layout_mode = 2
 
