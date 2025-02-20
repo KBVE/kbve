@@ -1,7 +1,18 @@
-[gd_scene format=3 uid="uid://c4tfp7xjvfd2t"]
+[gd_scene load_steps=4 format=3 uid="uid://c4tfp7xjvfd2t"]
+
+[ext_resource type="Texture2D" uid="uid://ct1megp1rctxi" path="res://assets/kenny/space-shooter-redux/png/meteorGrey_big3.png" id="1_bra2q"]
+[ext_resource type="Script" path="res://scripts/asteroid.gd" id="1_luuic"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qw1xp"]
+radius = 44.6542
 
 [node name="Asteroid" type="Area2D"]
+collision_layer = 128
+collision_mask = 288
+script = ExtResource("1_luuic")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_bra2q")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_qw1xp")
