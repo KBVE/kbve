@@ -1,9 +1,10 @@
-[gd_scene load_steps=14 format=3 uid="uid://cbrda40vq26pj"]
+[gd_scene load_steps=15 format=3 uid="uid://cbrda40vq26pj"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_oyaqx"]
 [ext_resource type="PackedScene" uid="uid://1s5v0llrjq3" path="res://scenes/spaceship.tscn" id="1_rlyye"]
 [ext_resource type="Script" path="res://scripts/projectiles.gd" id="3_hgajf"]
 [ext_resource type="Script" path="res://scripts/background.gd" id="4_8k503"]
+[ext_resource type="Texture2D" uid="uid://hprhaqdtcn8j" path="res://assets/kbve/png/hud_bg.png" id="4_e6jc8"]
 [ext_resource type="Script" path="res://scripts/timespace_layer.gd" id="5_jsdqu"]
 [ext_resource type="Script" path="res://scripts/universe_layer.gd" id="6_1rkq4"]
 [ext_resource type="Script" path="res://scripts/galaxy_layer.gd" id="7_hvh2v"]
@@ -13,10 +14,10 @@
 [ext_resource type="Script" path="res://scripts/hud.gd" id="11_e1u8f"]
 [ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="11_je1f8"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4vpul"]
-bg_color = Color(0.6, 0.6, 0.6, 0.5)
-expand_margin_left = 20.0
-expand_margin_right = 20.0
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ekd6t"]
+texture = ExtResource("4_e6jc8")
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_oyaqx")
@@ -50,7 +51,7 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 23.0
 grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_4vpul")
+theme_override_styles/panel = SubResource("StyleBoxTexture_ekd6t")
 
 [node name="Menu" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel"]
 layout_mode = 2
