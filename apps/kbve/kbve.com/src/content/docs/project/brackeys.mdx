@@ -144,6 +144,10 @@ The spaceship asset pack that we will be using is from [Kenny Space Shooter Redu
 There are two folders, `_space-shooter-redux` and `space-shooter-redux`, all of the assets from the pack are under the `_space-shooter-redux` and objects that we will use will be copied over to `space-shooter-redux`.
 Without having to dump a bunch of assets, I will try to use as many as needed and then going to delete the `_space-shooter-redux` folder.
 
+### auidioknobs
+This asset will be used as UI panel that players will interact with in the world. [auidioknobs](https://opengameart.org/node/7969), released as CC-BY-3.0.
+Credited to ville.seppanen@gmail.com
+
 ### Layers
 
 These are the layers that I am thinking we will be operating in:
@@ -199,3 +203,76 @@ Finally we would split the `npc` and `entity` layer because we might want the `n
     - Ammo shells and lasers, used to raycast hits as well.
 
 </Steps>
+
+### Global Resources
+
+The idea behind this singleton is to hold the spaceship stats and resources, including the gold, metal, stone, ect...
+I went ahead and designed it to be modular, so we can add any resource we want without having to go crazy trying to refactor it in.
+
+Current List of Resources:
+
+```json
+{
+	"gold": 0,
+	"stone": 0,
+	"metal": 0,
+	"gems": 0
+}
+```
+
+<Steps>
+
+1.  Gold
+    - This is the main currency of the game.
+
+2.  Stone
+    - A resource for building objects within the ship.
+
+3.  Metal
+    - A limited resource for building upgrades for the ship.
+
+4.  Gems
+    - A rare resource for special upgrades.
+
+</Steps>
+
+#### Resource Examples
+
+```
+
+Global.earn_resource("gold", 100, "Mission Reward: Killing Fudster") 
+Global.earn_resource("stone", 50, "Mining Bonus")  
+
+```
+
+For using the resources, it would be like this:
+
+```
+
+if Global.spend_resource("gold", 50, "Bought Shield Upgrade"):
+    print("Purchase successful!")
+else:
+    print("Not enough gold!")
+
+```
+
+Then on the UI, we can listen to the signals and make changes.
+
+```
+
+func _ready():
+    Global.connect("resource_changed", _on_resource_updated)
+    Global.connect("resource_receipt", _on_resource_receipt)
+
+func _on_resource_updated(resource_name, new_value):
+    print(resource_name + " updated: " + str(new_value))
+
+func _on_resource_receipt(resource_name, amount, new_value, invoice):
+    print("Transaction: ", invoice, " Resource: ", resource_name, " Amount: ", amount, " New Balance: ", new_value)
+
+```
+
+### Weapons
+
+The first weapon that we will introduce is the laser for the spaceship, later on we will include a couple more guns, maybe a machine gun type weapon.
+Majority of the laser's logic will be stored under `/scripts/laser.gd` and we will not implement any sort of pooling for it yet, that might be something that I will look into later on.

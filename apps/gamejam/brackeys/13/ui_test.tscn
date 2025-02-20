@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://7nagtgcugiin"]
 
 [ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="1_5oj2w"]
-[ext_resource type="Texture2D" uid="uid://7h4qiorvtq3q" path="res://assets/audioknobs-ui/metalbackground1.png" id="2_22l8h"]
+[ext_resource type="Texture2D" uid="uid://7h4qiorvtq3q" path="res://assets/audioknobs-ui/audioknobs/metalbackground1.png" id="2_22l8h"]
 
 [sub_resource type="GDScript" id="GDScript_uoe4c"]
 script/source = "extends Control

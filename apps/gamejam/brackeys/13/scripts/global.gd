@@ -4,6 +4,7 @@ extends Node
 signal resource_changed(resource_name, new_value)
 signal resource_receipt(resource_name, amount, new_value, invoice)
 signal starship_stat_changed(stat_name, new_value)
+signal starship_data_changed(data_name, new_value)
 
 var resources := {
 	"gold": 0,
@@ -13,15 +14,27 @@ var resources := {
 }
 
 var base_starship_stats := {
-	"acceleration": 10.0,
-	"max_speed": 350.0,
-	"rotation_speed": 250.0
+	"acceleration": 15.0,
+	"max_speed": 400.0,
+	"rotation_speed": 270.0,
+	"laser_speed": 550.0,
+	"overheat": 0.0,
+	"laser_ammo": 25.0,
 }
 
 var starship_bonuses := {
 	"acceleration": 0.0,
 	"max_speed": 0.0,
-	"rotation_speed": 0.0
+	"rotation_speed": 0.0,
+	"laser_speed": 0.0,
+	"overheat": 0.0,
+	"laser_ammo": 0.0
+}
+
+var starship_data := {
+	"name": "Explorer-X",
+	"emergency_rockets_used": false,
+	"shield_active": false
 }
 
 func earn_resource(resource_name: String, amount: int, invoice: String = "Earned"):
@@ -76,3 +89,10 @@ func set_base_starship_stat(stat_name: String, new_value: float):
 		return
 	base_starship_stats[stat_name] = new_value
 	emit_signal("starship_stat_changed", stat_name, get_starship_stat(stat_name))
+
+func get_starship_data(data_name: String):
+	return starship_data.get(data_name, null)
+
+func set_starship_data(data_name: String, new_value):
+	starship_data[data_name] = new_value
+	emit_signal("starship_data_changed", data_name, new_value)
