@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cbrda40vq26pj"]
+[gd_scene load_steps=10 format=3 uid="uid://cbrda40vq26pj"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_oyaqx"]
 [ext_resource type="PackedScene" uid="uid://1s5v0llrjq3" path="res://scenes/spaceship.tscn" id="1_rlyye"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/universe_layer.gd" id="6_1rkq4"]
 [ext_resource type="Script" path="res://scripts/galaxy_layer.gd" id="7_hvh2v"]
 [ext_resource type="Script" path="res://scripts/environment_layer.gd" id="8_rakg7"]
+[ext_resource type="Script" path="res://scripts/toast_manager.gd" id="9_tiuga"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_oyaqx")
@@ -36,3 +37,10 @@ script = ExtResource("7_hvh2v")
 
 [node name="EnvironmentLayer" type="Node2D" parent="Background"]
 script = ExtResource("8_rakg7")
+
+[node name="ToastManager" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("9_tiuga")
