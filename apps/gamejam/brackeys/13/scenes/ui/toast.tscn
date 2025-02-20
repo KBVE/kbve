@@ -5,7 +5,12 @@
 
 [node name="Toast" type="Control"]
 layout_mode = 3
-anchors_preset = 0
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
 script = ExtResource("1_jpci1")
 
 [node name="Panel" type="Panel" parent="."]
