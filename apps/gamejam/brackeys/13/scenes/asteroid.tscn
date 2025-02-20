@@ -1,3 +1,7 @@
 [gd_scene format=3 uid="uid://c4tfp7xjvfd2t"]
 
-[node name="Astroid" type="Area2D"]
+[node name="Asteroid" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
