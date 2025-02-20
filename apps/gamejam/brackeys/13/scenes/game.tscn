@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cbrda40vq26pj"]
+[gd_scene load_steps=14 format=3 uid="uid://cbrda40vq26pj"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_oyaqx"]
 [ext_resource type="PackedScene" uid="uid://1s5v0llrjq3" path="res://scenes/spaceship.tscn" id="1_rlyye"]
@@ -10,9 +10,89 @@
 [ext_resource type="Script" path="res://scripts/environment_layer.gd" id="8_rakg7"]
 [ext_resource type="Script" path="res://scripts/toast_manager.gd" id="9_tiuga"]
 [ext_resource type="Script" path="res://scripts/entity.gd" id="10_1liq3"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="11_e1u8f"]
+[ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="11_je1f8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4vpul"]
+bg_color = Color(0.6, 0.6, 0.6, 0.5)
+expand_margin_left = 20.0
+expand_margin_right = 20.0
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_oyaqx")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="UI" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HUD" type="Control" parent="CanvasLayer/UI"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+theme = ExtResource("11_je1f8")
+script = ExtResource("11_e1u8f")
+
+[node name="Panel" type="PanelContainer" parent="CanvasLayer/UI/HUD"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 23.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_4vpul")
+
+[node name="Menu" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel"]
+layout_mode = 2
+alignment = 1
+
+[node name="Stone" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="Metal" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="Gems" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="Gold" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="StarshipName" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+
+[node name="Bottom" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ToastManager" type="Control" parent="CanvasLayer/Bottom"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+offset_right = 40.0
+offset_bottom = -40.0
+grow_vertical = 0
+script = ExtResource("9_tiuga")
 
 [node name="Spaceship" parent="." instance=ExtResource("1_rlyye")]
 position = Vector2(500, 300)
@@ -38,13 +118,6 @@ script = ExtResource("7_hvh2v")
 
 [node name="EnvironmentLayer" type="Node2D" parent="Background"]
 script = ExtResource("8_rakg7")
-
-[node name="ToastManager" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-script = ExtResource("9_tiuga")
 
 [node name="Entity" type="Node2D" parent="."]
 script = ExtResource("10_1liq3")
