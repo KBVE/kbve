@@ -1,8 +1,12 @@
-[gd_scene load_steps=2 format=3 uid="uid://cbrda40vq26pj"]
+[gd_scene load_steps=3 format=3 uid="uid://cbrda40vq26pj"]
 
+[ext_resource type="Script" path="res://scripts/game.gd" id="1_oyaqx"]
 [ext_resource type="PackedScene" uid="uid://1s5v0llrjq3" path="res://scenes/spaceship.tscn" id="1_rlyye"]
 
 [node name="Game" type="Node2D"]
+script = ExtResource("1_oyaqx")
 
 [node name="Spaceship" parent="." instance=ExtResource("1_rlyye")]
 position = Vector2(500, 300)
+
+[node name="Projectiles" type="Node" parent="."]

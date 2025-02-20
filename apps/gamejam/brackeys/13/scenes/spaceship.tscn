@@ -7,6 +7,8 @@
 radius = 20.91
 
 [node name="Spaceship" type="CharacterBody2D"]
+collision_layer = 32
+collision_mask = 472
 script = ExtResource("1_uejed")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
@@ -18,3 +20,5 @@ texture = ExtResource("1_8hcjj")
 position = Vector2(0, 4)
 rotation = -0.0497135
 shape = SubResource("CircleShape2D_s734v")
+
+[node name="OmniScope" type="Node2D" parent="."]

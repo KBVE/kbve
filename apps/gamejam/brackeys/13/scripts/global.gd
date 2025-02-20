@@ -13,15 +13,19 @@ var resources := {
 }
 
 var base_starship_stats := {
-	"acceleration": 10.0,
-	"max_speed": 350.0,
-	"rotation_speed": 250.0
+	"acceleration": 15.0,
+	"max_speed": 400.0,
+	"rotation_speed": 270.0,
+	"laser_speed": 550.0,
+	"overheat": 0.0
 }
 
 var starship_bonuses := {
 	"acceleration": 0.0,
 	"max_speed": 0.0,
-	"rotation_speed": 0.0
+	"rotation_speed": 0.0,
+	"laser_speed": 0.0,
+	"overheat": 0.0
 }
 
 func earn_resource(resource_name: String, amount: int, invoice: String = "Earned"):
