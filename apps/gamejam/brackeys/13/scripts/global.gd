@@ -47,6 +47,11 @@ var starship_data := {
 	"shield_active": false
 }
 
+func earn_random_resource(resource_name: String, min_value: int = 3, max_value: int = 15):
+	var amount = randi_range(min_value, max_value)
+	earn_resource(resource_name, amount)
+
+
 func earn_resource(resource_name: String, amount: int, invoice: String = "Earned"):
 	if amount <= 0:
 		return 

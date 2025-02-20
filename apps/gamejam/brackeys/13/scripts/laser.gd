@@ -18,7 +18,7 @@ func _on_area_entered(area):
 		var asteroid = area
 		asteroid.destroy()
 		Global.emit_signal("notification_received", "asteroid_hit", "Asteroid was destoried!", "success")
-		Global.earn_resource("stone", 10)
+		Global.earn_random_resource("stone")
 		visible = false
 		if get_parent():
 			get_parent()._on_laser_exited(self)
