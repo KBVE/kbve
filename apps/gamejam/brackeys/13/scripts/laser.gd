@@ -1,6 +1,5 @@
 extends Area2D
 
-
 var movement_vector := Vector2(0, -1)
 
 func _physics_process(delta):

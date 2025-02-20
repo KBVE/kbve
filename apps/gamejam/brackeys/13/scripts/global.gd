@@ -19,7 +19,7 @@ var base_starship_stats := {
 	"rotation_speed": 270.0,
 	"laser_speed": 550.0,
 	"overheat": 0.0,
-	"laser_ammo": 20.0,
+	"laser_ammo": 25.0,
 }
 
 var starship_bonuses := {
