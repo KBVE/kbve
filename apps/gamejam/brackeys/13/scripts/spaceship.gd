@@ -52,7 +52,4 @@ func _physics_process(delta):
 		global_position.x = 0
 
 func shoot_laser():
-	var laser = laser_scene.instantiate();
-	laser.global_position = scope.global_position
-	laser.rotation = rotation
-	emit_signal("laser_shot", laser)
+	emit_signal("laser_shot", scope.global_position, rotation)
