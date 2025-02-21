@@ -6,12 +6,11 @@ extends Node2D
 @onready var entity = $Entity
 @onready var auto_save_timer = $AutoSaveTimer
 
-const LASER_POOL_SIZE = 10
 const AUTO_SAVE_INTERVAL = 30.0
 
 func _ready():
 	spaceship.connect("laser_shot", _on_spaceship_laser_shot)
-	projectiles.initialize_pool(LASER_POOL_SIZE)
+	projectiles.initialize_pool(int(Global.get_starship_stat("laser_ammo")))
 	entity.initialize_pool(int(Global.get_environment_data("asteroids")))
 	entity.start_spawn()
 	Global.emit_signal("notification_received", "game_start", "Game Started! Ready for launch.", "info")
