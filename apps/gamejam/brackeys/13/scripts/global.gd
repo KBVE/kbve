@@ -49,7 +49,8 @@ var starship_data := {
 	"name": "Explorer-X",
 	"emergency_rockets_used": false,
 	"shield_active": false,
-	"coordinates": Vector2.ZERO
+	"coordinates": Vector2.ZERO,
+	"heat": 0.0
 }
 
 func earn_random_resource(resource_name: String, min_value: int = 3, max_value: int = 15):
@@ -111,12 +112,15 @@ func set_base_starship_stat(stat_name: String, new_value: float):
 	emit_signal("starship_stat_changed", stat_name, get_starship_stat(stat_name))
 
 func get_starship_data(data_name: String):
-	return starship_data.get(data_name, null)
-
+	if not starship_data.has(data_name):
+		return null
+	return starship_data[data_name]
+	
 func set_starship_data(data_name: String, new_value):
+	print("set_starship_data called from:", get_stack()[1].source, "-> Setting", data_name, "to", new_value)
 	starship_data[data_name] = new_value
 	emit_signal("starship_data_changed", data_name, new_value)
-
+	
 func get_environment_data(data_name: String):
 	return environment_data.get(data_name, null)
 
