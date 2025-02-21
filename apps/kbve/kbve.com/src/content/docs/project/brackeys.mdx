@@ -144,9 +144,26 @@ The spaceship asset pack that we will be using is from [Kenny Space Shooter Redu
 There are two folders, `_space-shooter-redux` and `space-shooter-redux`, all of the assets from the pack are under the `_space-shooter-redux` and objects that we will use will be copied over to `space-shooter-redux`.
 Without having to dump a bunch of assets, I will try to use as many as needed and then going to delete the `_space-shooter-redux` folder.
 
-### auidioknobs
+#### auidioknobs
 This asset will be used as UI panel that players will interact with in the world. [auidioknobs](https://opengameart.org/node/7969), released as CC-BY-3.0.
 Credited to ville.seppanen@gmail.com
+
+#### Galaxy Pixel Art
+
+The first three objects for the universe layer were made by Iftikhar Alam from Vecteezy / IftiStock.com.
+
+#### Pixel Space Background
+
+The main background of the `timespace` layer comes from the [Space Backgorund Pixel Art Pack](https://norma-2d.itch.io/space-backgrounds-pack).
+
+#### Void Fleet Pack
+
+The spaceship will come from the [Void Fleet Pack 3](https://foozlecc.itch.io/void-fleet-pack-3) , which is released as a CC0 license.
+Then there is the [Void Fleet Pack 1](https://foozlecc.itch.io/void-fleet-pack-1), that we will be using for the main ship.
+
+#### Pixel Art Sci Fi Spaceships
+
+This is the spaceship asset pack from FrostWindz, [Pixel Art Sci Fi Spacepack](https://frostwindz.itch.io/pixel-art-sci-fi-spaceships).
 
 ### Layers
 
@@ -236,6 +253,37 @@ Current List of Resources:
 
 </Steps>
 
+#### Entity
+
+```
+Asteroid
+Meteor
+Comet
+
+```
+
+<Steps>
+
+1.  Asteroid
+    -   Large entity that spawns meteors upon destruction.
+    -   Drops stone resources.
+    -   Poolable Entity, can be expanded from the spaceport upgrade.
+
+2.  Meteor
+    -   Medium entity that gets created after an asteroid is hit by laser.
+    -   Drops metal resources.
+    -   Moves slowly but despawns after leaving the scene.
+    -   Poolable Entity, increase from 1-3 drop to 5+ as an upgrade from the spaceport.
+
+3.  Comet
+    -   Small entity that has a chance to spawn after a meteor is hit by a laser.
+    -   Rare drops like gold and gems but always drops metal.
+    -   Moves quickly and despawns after leaving the scene.
+    -   Poolable Entity, but limited to only max of 5 that drop on the screen, % of drop increases via upgrades from the spaceport.
+
+
+</Steps>
+
 #### Resource Examples
 
 ```
@@ -271,6 +319,14 @@ func _on_resource_receipt(resource_name, amount, new_value, invoice):
     print("Transaction: ", invoice, " Resource: ", resource_name, " Amount: ", amount, " New Balance: ", new_value)
 
 ```
+
+#### Drop Rate
+
+The default drop rate of resources like stone will be 3 to 15, then we can use the space port to transfer the stone into metal.
+Furthermore, we could add special asteroids that spawn into the game with bonus resources like gold, gems and metals. 
+
+When an asteroid is hit initially, it should break into smaller ones that will include the chance to spawn a rare comet.
+
 
 ### Weapons
 
