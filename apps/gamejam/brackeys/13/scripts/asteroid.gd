@@ -31,3 +31,8 @@ func destroy():
 	visible = false
 	print("Asteroid Destroyed")
 	Global.emit_signal("entity_destroyed", "asteroid", get_instance_id(), {"position": global_position})
+
+func _on_body_entered(body):
+	if body is Spaceship:
+		var starship = body
+		starship.activate_shield()
