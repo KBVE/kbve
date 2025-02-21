@@ -235,7 +235,7 @@ rotation = -0.0497135
 shape = SubResource("CircleShape2D_s734v")
 
 [node name="OmniScope" type="Node2D" parent="."]
-position = Vector2(0, -46)
+position = Vector2(0, -49)
 
 [node name="Engine" type="AnimatedSprite2D" parent="."]
 position = Vector2(-0.125006, 1.5)

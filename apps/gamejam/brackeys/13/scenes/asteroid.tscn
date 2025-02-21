@@ -82,10 +82,8 @@ texture = ExtResource("2_dvxfl")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_qw1xp")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="Explosion" type="AnimatedSprite2D" parent="."]
 visible = false
 sprite_frames = SubResource("SpriteFrames_30yq2")
-frame = 6
-frame_progress = 0.643016
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
