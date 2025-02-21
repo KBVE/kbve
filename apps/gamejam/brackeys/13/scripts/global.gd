@@ -7,11 +7,12 @@ signal starship_stat_changed(stat_name, new_value)
 signal starship_data_changed(data_name, new_value)
 signal environment_data_changed(data_name, new_value)
 signal notification_received(message_id: String, message: String, type: String)
+signal entity_destroyed(entity_type: String, entity_id: int, additional_data: Dictionary)
 
 @export var resources_list: Array[String] = ["gold", "stone", "metal", "gems"]
 
 var environment_data := {
-	"asteroids": 10,
+	"asteroids": 20,
 	"universe_objects":15,
 	"asteroid_speed": 200,
 	"asteroid_belt": false

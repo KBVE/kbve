@@ -1,8 +1,6 @@
 extends Node
 
 const LASER_SCENE = preload("res://scenes/laser.tscn")
-# @onready var tm = get_parent().get_node("ToastManager")
-# Shift these to the Q crate later on.
 var laser_pool: Array = []
 var active_lasers: Array = []
 
