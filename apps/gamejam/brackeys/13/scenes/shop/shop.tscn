@@ -1,0 +1,380 @@
+[gd_scene load_steps=20 format=3 uid="uid://dafbmqoy3qcy3"]
+
+[ext_resource type="Script" path="res://scripts/shop.gd" id="1_3omsn"]
+[ext_resource type="Texture2D" uid="uid://d07qbaay5wanp" path="res://assets/audioknobs-ui/audioknobs/panel2.png" id="1_x5466"]
+[ext_resource type="Texture2D" uid="uid://sgs4hcughaca" path="res://assets/audioknobs-ui/audioknobs/metaltile1.png" id="2_3j53l"]
+[ext_resource type="Texture2D" uid="uid://b0owywtbixr6b" path="res://assets/audioknobs-ui/audioknobs/screen-panel.png" id="3_pd5pr"]
+[ext_resource type="Texture2D" uid="uid://pnucsbsdbg23" path="res://assets/audioknobs-ui/audioknobs/panel.png" id="4_atpsb"]
+[ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="5_lsrhg"]
+[ext_resource type="Texture2D" uid="uid://dcrqllgsdaexs" path="res://assets/audioknobs-ui/audioknobs/green-light-off.png" id="6_75t5l"]
+[ext_resource type="Script" path="res://scripts/flicker_progress_bar.gd" id="6_lok5i"]
+[ext_resource type="Texture2D" uid="uid://bc8nwvte2yhis" path="res://assets/audioknobs-ui/audioknobs/yellow-light-off.png" id="7_xbhgy"]
+[ext_resource type="Texture2D" uid="uid://biq68ip5epeqt" path="res://assets/audioknobs-ui/audioknobs/red-light-on.png" id="8_dlq7y"]
+[ext_resource type="Texture2D" uid="uid://2liukuvfgr4v" path="res://assets/audioknobs-ui/audioknobs/red-light-off.png" id="9_f5tfu"]
+[ext_resource type="Texture2D" uid="uid://kfwtoid8jdk5" path="res://assets/audioknobs-ui/audioknobs/yellow-light-on.png" id="10_c5p2i"]
+[ext_resource type="Texture2D" uid="uid://fs6ow7sk8icp" path="res://assets/audioknobs-ui/audioknobs/green-light-on.png" id="11_jcbtr"]
+[ext_resource type="Texture2D" uid="uid://c3v31w8acyyn0" path="res://assets/audioknobs-ui/audioknobs/box-green-light-off.png" id="12_2lry1"]
+[ext_resource type="Texture2D" uid="uid://chemwe16wbpdg" path="res://assets/audioknobs-ui/audioknobs/box-yellow-light-off.png" id="13_swidh"]
+[ext_resource type="Script" path="res://scenes/shop/flicker_box_lights.gd" id="14_mhgll"]
+[ext_resource type="Texture2D" uid="uid://c1pcq6r81csym" path="res://assets/audioknobs-ui/audioknobs/box-green-light-on.png" id="15_dyc2a"]
+[ext_resource type="Texture2D" uid="uid://ccyvse33p3bm1" path="res://assets/audioknobs-ui/audioknobs/box-yellow-light-on.png" id="17_2kql4"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mr6sy"]
+texture = ExtResource("1_x5466")
+expand_margin_left = 20.0
+expand_margin_top = 10.0
+expand_margin_right = 20.0
+expand_margin_bottom = 10.0
+
+[node name="Shop" type="ColorRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.201527, 0.201527, 0.201527, 1)
+script = ExtResource("1_3omsn")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 81.0
+offset_top = 27.0
+offset_right = 1071.0
+offset_bottom = 104.0
+theme_override_constants/separation = 105
+
+[node name="Label" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 56
+theme_override_styles/normal = SubResource("StyleBoxTexture_mr6sy")
+horizontal_alignment = 1
+
+[node name="ShopTitle" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_font_sizes/font_size = 56
+theme_override_styles/normal = SubResource("StyleBoxTexture_mr6sy")
+text = "Shop"
+horizontal_alignment = 1
+
+[node name="Label3" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 56
+theme_override_styles/normal = SubResource("StyleBoxTexture_mr6sy")
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="HBoxContainer/Label3"]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 322.0
+offset_bottom = 70.0
+theme = ExtResource("5_lsrhg")
+theme_type_variation = &"SpaceBar"
+
+[node name="MainBG" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 37.0
+offset_top = 148.0
+offset_right = 1114.0
+offset_bottom = 613.0
+theme = ExtResource("5_lsrhg")
+texture = ExtResource("2_3j53l")
+
+[node name="CenterScreen" type="TextureRect" parent="MainBG"]
+layout_mode = 0
+offset_left = 436.0
+offset_top = 10.0
+offset_right = 798.0
+offset_bottom = 324.0
+texture = ExtResource("3_pd5pr")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainBG/CenterScreen"]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 55.0
+offset_right = 335.0
+offset_bottom = 150.0
+
+[node name="Left" type="Label" parent="MainBG/CenterScreen/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "dada  
+dada"
+vertical_alignment = 3
+
+[node name="Right" type="Label" parent="MainBG/CenterScreen/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "dad
+sdsd"
+horizontal_alignment = 2
+vertical_alignment = 3
+
+[node name="Label" type="Label" parent="MainBG/CenterScreen"]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 201.0
+offset_right = 332.0
+offset_bottom = 224.0
+text = "Left Right"
+horizontal_alignment = 3
+
+[node name="LeftPanel" type="TextureRect" parent="MainBG"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = 323.0
+offset_bottom = 351.0
+texture = ExtResource("1_x5466")
+
+[node name="ScreenPanel" type="TextureRect" parent="MainBG/LeftPanel"]
+offset_left = 32.0
+offset_top = 34.0
+offset_right = 264.0
+offset_bottom = 177.0
+texture = ExtResource("3_pd5pr")
+
+[node name="Title" type="Label" parent="MainBG/LeftPanel/ScreenPanel"]
+layout_mode = 0
+offset_left = 77.0
+offset_top = 21.0
+offset_right = 160.0
+offset_bottom = 44.0
+text = "Categories"
+horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="MainBG/LeftPanel/ScreenPanel"]
+layout_mode = 0
+offset_left = 51.0
+offset_top = 73.0
+offset_right = 183.0
+offset_bottom = 96.0
+text = "Weapons"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainBG/LeftPanel"]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 206.0
+offset_right = 267.0
+offset_bottom = 269.0
+theme = ExtResource("5_lsrhg")
+metadata/_edit_group_ = true
+
+[node name="LeftButton" type="Button" parent="MainBG/LeftPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("5_lsrhg")
+theme_type_variation = &"LeftButton"
+
+[node name="EnterButton" type="Button" parent="MainBG/LeftPanel/HBoxContainer"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("5_lsrhg")
+theme_type_variation = &"SpaceBar"
+
+[node name="RightButton" type="Button" parent="MainBG/LeftPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("5_lsrhg")
+theme_type_variation = &"RightButton"
+
+[node name="LeftButtons" type="TextureRect" parent="MainBG"]
+layout_mode = 0
+offset_left = 339.0
+offset_top = 33.0
+offset_right = 424.0
+offset_bottom = 284.0
+texture = ExtResource("4_atpsb")
+metadata/_edit_group_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainBG/LeftButtons"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 23.0
+offset_right = -13.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("5_lsrhg")
+
+[node name="Button" type="Button" parent="MainBG/LeftButtons/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"RightButton"
+
+[node name="Button2" type="Button" parent="MainBG/LeftButtons/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"RightButton"
+
+[node name="Button3" type="Button" parent="MainBG/LeftButtons/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"RightButton"
+
+[node name="RightButtons" type="TextureRect" parent="MainBG"]
+layout_mode = 0
+offset_left = 816.0
+offset_top = 33.0
+offset_right = 901.0
+offset_bottom = 284.0
+texture = ExtResource("4_atpsb")
+metadata/_edit_group_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainBG/RightButtons"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 23.0
+offset_right = -13.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("5_lsrhg")
+metadata/_edit_group_ = true
+
+[node name="Button" type="Button" parent="MainBG/RightButtons/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"LeftButton"
+
+[node name="Button2" type="Button" parent="MainBG/RightButtons/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"LeftButton"
+
+[node name="Button3" type="Button" parent="MainBG/RightButtons/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"LeftButton"
+
+[node name="NonInteractable" type="Control" parent="MainBG"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="BottomScreen" type="TextureRect" parent="MainBG/NonInteractable"]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 366.0
+offset_right = 1034.0
+offset_bottom = 449.0
+texture = ExtResource("3_pd5pr")
+
+[node name="VSlider" type="VSlider" parent="MainBG/NonInteractable"]
+layout_mode = 0
+offset_left = 901.0
+offset_top = 35.0
+offset_right = 991.0
+offset_bottom = 166.0
+value = 24.0
+editable = false
+scrollable = false
+
+[node name="VSlider2" type="VSlider" parent="MainBG/NonInteractable"]
+layout_mode = 0
+offset_left = 947.0
+offset_top = 35.0
+offset_right = 1037.0
+offset_bottom = 166.0
+value = 79.0
+editable = false
+scrollable = false
+
+[node name="ProgressBar" type="ProgressBar" parent="MainBG/NonInteractable"]
+layout_mode = 0
+offset_left = 937.0
+offset_top = 179.0
+offset_right = 962.0
+offset_bottom = 271.0
+fill_mode = 3
+show_percentage = false
+script = ExtResource("6_lok5i")
+
+[node name="ProgressBar2" type="ProgressBar" parent="MainBG/NonInteractable"]
+layout_mode = 0
+offset_left = 980.0
+offset_top = 178.0
+offset_right = 1005.0
+offset_bottom = 270.0
+fill_mode = 3
+show_percentage = false
+script = ExtResource("6_lok5i")
+
+[node name="GridContainer" type="GridContainer" parent="MainBG/NonInteractable"]
+layout_mode = 0
+offset_left = 351.0
+offset_top = 299.0
+offset_right = 415.0
+offset_bottom = 340.0
+columns = 4
+
+[node name="TextureRect" type="TextureRect" parent="MainBG/NonInteractable/GridContainer"]
+layout_mode = 2
+texture = ExtResource("6_75t5l")
+
+[node name="TextureRect5" type="TextureRect" parent="MainBG/NonInteractable/GridContainer"]
+layout_mode = 2
+texture = ExtResource("7_xbhgy")
+
+[node name="TextureRect6" type="TextureRect" parent="MainBG/NonInteractable/GridContainer"]
+layout_mode = 2
+texture = ExtResource("8_dlq7y")
+
+[node name="TextureRect7" type="TextureRect" parent="MainBG/NonInteractable/GridContainer"]
+layout_mode = 2
+texture = ExtResource("9_f5tfu")
+
+[node name="TextureRect8" type="TextureRect" parent="MainBG/NonInteractable/GridContainer"]
+layout_mode = 2
+texture = ExtResource("10_c5p2i")
+
+[node name="TextureRect2" type="TextureRect" parent="MainBG/NonInteractable/GridContainer"]
+layout_mode = 2
+texture = ExtResource("11_jcbtr")
+
+[node name="TextureRect3" type="TextureRect" parent="MainBG/NonInteractable/GridContainer"]
+layout_mode = 2
+texture = ExtResource("6_75t5l")
+
+[node name="TextureRect4" type="TextureRect" parent="MainBG/NonInteractable/GridContainer"]
+layout_mode = 2
+texture = ExtResource("8_dlq7y")
+
+[node name="TextureRect" type="TextureRect" parent="MainBG/NonInteractable"]
+layout_mode = 0
+offset_left = 812.0
+offset_top = 300.0
+offset_right = 852.0
+offset_bottom = 340.0
+texture = ExtResource("12_2lry1")
+script = ExtResource("14_mhgll")
+lights_on = ExtResource("15_dyc2a")
+lights_off = ExtResource("12_2lry1")
+
+[node name="TextureRect2" type="TextureRect" parent="MainBG/NonInteractable"]
+layout_mode = 0
+offset_left = 860.0
+offset_top = 300.0
+offset_right = 900.0
+offset_bottom = 340.0
+texture = ExtResource("13_swidh")
+script = ExtResource("14_mhgll")
+lights_on = ExtResource("17_2kql4")
+lights_off = ExtResource("13_swidh")
+
+[connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/LeftButton" to="." method="_on_left_button_pressed_left_panel"]
+[connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/EnterButton" to="." method="_on_enter_button_pressed_left_panel"]
+[connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/RightButton" to="." method="_on_right_button_pressed_left_panel"]

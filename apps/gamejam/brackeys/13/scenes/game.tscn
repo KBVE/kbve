@@ -1,22 +1,28 @@
-[gd_scene load_steps=14 format=3 uid="uid://cbrda40vq26pj"]
+[gd_scene load_steps=20 format=3 uid="uid://cbrda40vq26pj"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_oyaqx"]
 [ext_resource type="PackedScene" uid="uid://1s5v0llrjq3" path="res://scenes/spaceship.tscn" id="1_rlyye"]
 [ext_resource type="Script" path="res://scripts/projectiles.gd" id="3_hgajf"]
 [ext_resource type="Script" path="res://scripts/background.gd" id="4_8k503"]
+[ext_resource type="Texture2D" uid="uid://hprhaqdtcn8j" path="res://assets/kbve/png/hud_bg.png" id="4_e6jc8"]
+[ext_resource type="Texture2D" uid="uid://cmoqerarvgxal" path="res://assets/kbve/png/gems_icon.png" id="5_hfl3j"]
 [ext_resource type="Script" path="res://scripts/timespace_layer.gd" id="5_jsdqu"]
+[ext_resource type="Texture2D" uid="uid://rbsla3vwolru" path="res://assets/kbve/png/stone_icon.png" id="5_yiayc"]
 [ext_resource type="Script" path="res://scripts/universe_layer.gd" id="6_1rkq4"]
+[ext_resource type="Texture2D" uid="uid://ckdgs4480fqfn" path="res://assets/kbve/png/gold_icon.png" id="6_be8e0"]
+[ext_resource type="Texture2D" uid="uid://yjanqqiiiwdo" path="res://assets/kbve/png/metal_icon.png" id="7_h47ne"]
 [ext_resource type="Script" path="res://scripts/galaxy_layer.gd" id="7_hvh2v"]
 [ext_resource type="Script" path="res://scripts/environment_layer.gd" id="8_rakg7"]
 [ext_resource type="Script" path="res://scripts/toast_manager.gd" id="9_tiuga"]
 [ext_resource type="Script" path="res://scripts/entity.gd" id="10_1liq3"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="11_e1u8f"]
 [ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="11_je1f8"]
+[ext_resource type="Texture2D" uid="uid://c3ugpxqaf4oud" path="res://assets/kbve/png/universe/timespace_bg.png" id="14_72ru8"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4vpul"]
-bg_color = Color(0.6, 0.6, 0.6, 0.5)
-expand_margin_left = 20.0
-expand_margin_right = 20.0
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ekd6t"]
+texture = ExtResource("4_e6jc8")
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_oyaqx")
@@ -50,48 +56,98 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 23.0
 grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_4vpul")
+theme_override_styles/panel = SubResource("StyleBoxTexture_ekd6t")
 
 [node name="Menu" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel"]
 layout_mode = 2
 alignment = 1
 
-[node name="Stone" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+[node name="Nav" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel/Menu"]
 layout_mode = 2
 
-[node name="Metal" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+[node name="StarshipName" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/Nav"]
 layout_mode = 2
 
-[node name="Gems" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+[node name="Label" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/Nav"]
 layout_mode = 2
 
-[node name="Gold" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+[node name="HSplitContainer" type="HSplitContainer" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+split_offset = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 
-[node name="StarshipName" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+[node name="ResourceBar" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+layout_mode = 2
+alignment = 2
+
+[node name="StoneBox" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu"]
+[node name="StoneIcon" type="TextureRect" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar/StoneBox"]
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("5_yiayc")
+stretch_mode = 2
+
+[node name="StoneLabel" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar/StoneBox"]
+layout_mode = 2
+
+[node name="GoldBox" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar"]
+layout_mode = 2
+
+[node name="GoldIcon" type="TextureRect" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar/GoldBox"]
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("6_be8e0")
+
+[node name="GoldLabel" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar/GoldBox"]
+layout_mode = 2
+
+[node name="MetalBox" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar"]
+layout_mode = 2
+
+[node name="MetalIcon" type="TextureRect" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar/MetalBox"]
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("7_h47ne")
+
+[node name="MetalLabel" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar/MetalBox"]
+layout_mode = 2
+
+[node name="GemsBox" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar"]
+layout_mode = 2
+
+[node name="GemsIcon" type="TextureRect" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar/GemsBox"]
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("5_hfl3j")
+stretch_mode = 2
+
+[node name="GemsLabel" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/ResourceBar/GemsBox"]
 layout_mode = 2
 
 [node name="Bottom" type="Control" parent="CanvasLayer"]
 layout_mode = 3
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 0
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+grow_vertical = 2
+size_flags_horizontal = 3
 
-[node name="ToastManager" type="Control" parent="CanvasLayer/Bottom"]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_top = -80.0
+[node name="Note" type="HBoxContainer" parent="CanvasLayer/Bottom"]
+layout_mode = 0
 offset_right = 40.0
-offset_bottom = -40.0
-grow_vertical = 0
+offset_bottom = 40.0
+alignment = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/Bottom/Note"]
+layout_mode = 2
+
+[node name="ToastManager" type="Control" parent="CanvasLayer/Bottom/Note/PanelContainer"]
+layout_mode = 2
 script = ExtResource("9_tiuga")
 
 [node name="Spaceship" parent="." instance=ExtResource("1_rlyye")]
@@ -103,12 +159,16 @@ script = ExtResource("3_hgajf")
 [node name="Background" type="Node2D" parent="."]
 script = ExtResource("4_8k503")
 
-[node name="TimespaceLayer" type="Node2D" parent="Background"]
+[node name="TimespaceLayer" type="CanvasLayer" parent="Background"]
+layer = -2
 script = ExtResource("5_jsdqu")
 
 [node name="ColorRect" type="ColorRect" parent="Background/TimespaceLayer"]
 offset_right = 40.0
 offset_bottom = 40.0
+
+[node name="BackgroundSprite" type="Sprite2D" parent="Background/TimespaceLayer"]
+texture = ExtResource("14_72ru8")
 
 [node name="UniverseLayer" type="Parallax2D" parent="Background"]
 script = ExtResource("6_1rkq4")
@@ -121,3 +181,5 @@ script = ExtResource("8_rakg7")
 
 [node name="Entity" type="Node2D" parent="."]
 script = ExtResource("10_1liq3")
+
+[node name="AutoSaveTimer" type="Timer" parent="."]

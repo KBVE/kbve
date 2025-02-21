@@ -1,5 +1,7 @@
 extends Node
 
+const SAVE_PATH = "user://player_save.json"
+
 ## Signals
 signal resource_changed(resource_name, new_value)
 signal resource_receipt(resource_name, amount, new_value, invoice)
@@ -7,11 +9,13 @@ signal starship_stat_changed(stat_name, new_value)
 signal starship_data_changed(data_name, new_value)
 signal environment_data_changed(data_name, new_value)
 signal notification_received(message_id: String, message: String, type: String)
+signal entity_destroyed(entity_type: String, entity_id: int, additional_data: Dictionary)
 
 @export var resources_list: Array[String] = ["gold", "stone", "metal", "gems"]
 
 var environment_data := {
-	"asteroids": 10,
+	"asteroids": 20,
+	"universe_objects":15,
 	"asteroid_speed": 200,
 	"asteroid_belt": false
 }
@@ -44,7 +48,8 @@ var starship_bonuses := {
 var starship_data := {
 	"name": "Explorer-X",
 	"emergency_rockets_used": false,
-	"shield_active": false
+	"shield_active": false,
+	"coordinates": Vector2.ZERO
 }
 
 func earn_random_resource(resource_name: String, min_value: int = 3, max_value: int = 15):
@@ -118,3 +123,55 @@ func get_environment_data(data_name: String):
 func set_environment_data(data_name: String, new_value):
 	environment_data[data_name] = new_value
 	emit_signal("environment_data_changed", data_name, new_value)
+
+func get_starship_coordinates() -> Vector2:
+	return starship_data.get("coordinates", Vector2.ZERO)
+
+func set_starship_coordinates(new_position: Vector2):
+	starship_data["coordinates"] = new_position
+	call_deferred("emit_signal", "starship_data_changed", "coordinates", new_position)
+
+
+func save_player_data() -> bool:
+	var save_data = {
+		"resources": resources,
+		"base_starship_stats": base_starship_stats,
+		"starship_bonuses": starship_bonuses,
+		"starship_data": starship_data,
+		"environment_data": environment_data
+	}
+	
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(save_data, "\t"))
+		file.close()
+		print("Player data saved successfully.")
+		return true
+	else:
+		print("Failed to save player data.")
+		return false
+
+func load_player_data() -> bool:
+	if not FileAccess.file_exists(SAVE_PATH):
+		print("No save file found.")
+		return false
+	
+	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file:
+		var content = file.get_as_text()
+		file.close()
+		
+		var parsed_data = JSON.parse_string(content)
+		if parsed_data is Dictionary:
+			resources = parsed_data.get("resources", resources)
+			base_starship_stats = parsed_data.get("base_starship_stats", base_starship_stats)
+			starship_bonuses = parsed_data.get("starship_bonuses", starship_bonuses)
+			starship_data = parsed_data.get("starship_data", starship_data)
+			environment_data = parsed_data.get("environment_data", environment_data)
+			print("Player data loaded successfully.")
+			return true
+		else:
+			print("Failed to parse save file.")
+			return false
+	
+	return false
