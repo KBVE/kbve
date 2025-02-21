@@ -1,6 +1,6 @@
 extends Control
 
-@onready var score_label = $Panel/Menu/Nav/Label
+@onready var coordinates_label = $Panel/Menu/Nav/Label
 @onready var name_label = $Panel/Menu/Nav/StarshipName
 
 # Resources
@@ -38,13 +38,18 @@ func _ready():
 	call_deferred("_update_starship_name")
 	call_deferred("_update_starship_resources")
 	Global.connect("resource_changed", Callable(self, "_on_resource_changed"))
-	update_score(0)
+	Global.connect("starship_data_changed", Callable(self, "_update_starship_data"))
+	update_coordinates(Global.get_starship_coordinates())
 
-func update_score(new_score):
-	if score_label:
-		score_label.text = "Score: %d" % new_score
+func update_coordinates(coords: Vector2):
+	if coordinates_label:
+		coordinates_label.text = "Coords X: %d, Y: %d" % [coords.x, coords.y]
 	else:
-		push_warning("Score label not found!")
+		push_warning("Coordinates label not found!")
+
+func _update_starship_data(data_name: String, value):
+	if data_name == "coordinates":
+		update_coordinates(value)
 
 func _update_starship_resources():
 	for resource in Global.resources_list:

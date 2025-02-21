@@ -159,7 +159,8 @@ script = ExtResource("3_hgajf")
 [node name="Background" type="Node2D" parent="."]
 script = ExtResource("4_8k503")
 
-[node name="TimespaceLayer" type="Node2D" parent="Background"]
+[node name="TimespaceLayer" type="CanvasLayer" parent="Background"]
+layer = -2
 script = ExtResource("5_jsdqu")
 
 [node name="ColorRect" type="ColorRect" parent="Background/TimespaceLayer"]

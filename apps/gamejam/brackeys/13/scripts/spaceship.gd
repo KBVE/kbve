@@ -14,6 +14,7 @@ func _ready():
 	position = get_viewport_rect().size / 2
 	
 func _process(delta):
+	call_deferred("defer_set_starship_coordinates")
 	if Input.is_action_pressed("shoot"):
 		shield.visible = false
 		shoot_laser()
@@ -54,15 +55,15 @@ func _physics_process(delta):
 	
 	move_and_slide()
 	
-	var screen_size = get_viewport_rect().size
-	if global_position.y < 0:
-		global_position.y = screen_size.y
-	elif global_position.y > screen_size.y:
-		global_position.y = 0
-	if global_position.x < 0:
-		global_position.x = screen_size.x
-	elif global_position.x > screen_size.x:
-		global_position.x = 0
+	#var screen_size = get_viewport_rect().size
+	#if global_position.y < 0:
+		#global_position.y = screen_size.y
+	#elif global_position.y > screen_size.y:
+		#global_position.y = 0
+	#if global_position.x < 0:
+		#global_position.x = screen_size.x
+	#elif global_position.x > screen_size.x:
+		#global_position.x = 0
 
 func shoot_laser():
 	emit_signal("laser_shot", scope.global_position, rotation)
@@ -72,3 +73,6 @@ func activate_shield():
 	Global.emit_signal("notification_received", "shield_active", "Shield was deployed", "warning")
 	shield.visible = true
 	shield.play("shield")
+
+func defer_set_starship_coordinates():
+	Global.set_starship_coordinates(global_position)

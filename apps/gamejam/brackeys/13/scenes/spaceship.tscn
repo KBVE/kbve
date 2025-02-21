@@ -248,3 +248,8 @@ position = Vector2(-8.34465e-07, 1.75)
 scale = Vector2(0.84375, 0.832031)
 sprite_frames = SubResource("SpriteFrames_wdipm")
 animation = &"shield"
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+drag_horizontal_enabled = true
+drag_vertical_enabled = true
