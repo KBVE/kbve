@@ -1,11 +1,11 @@
-extends Node2D
+extends CanvasLayer
 
 @onready var color_rect := $ColorRect
 @onready var background_sprite := $BackgroundSprite
 
 func _ready() -> void:
-	color_rect.color = Color(0,0,0)
-	background_sprite.centered = false
+	color_rect.color = Color.BLACK
+	background_sprite.centered = true
 	update_background_size()
 	get_viewport().connect("size_changed", Callable(self, "_on_viewport_resized"))
 
@@ -17,9 +17,9 @@ func update_background_size():
 		var scale_x: float = viewport_size.x / texture_size.x
 		var scale_y: float = viewport_size.y / texture_size.y
 		background_sprite.scale = Vector2(scale_x, scale_y)
-		background_sprite.position = Vector2.ZERO
+		background_sprite.position = viewport_size / 2  # Keep centered
 
-	color_rect.size = viewport_size
+	color_rect.size = viewport_size  # Make sure the color rect covers the screen
 
 func _on_viewport_resized():
 	update_background_size()

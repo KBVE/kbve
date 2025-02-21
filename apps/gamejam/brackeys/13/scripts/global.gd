@@ -46,7 +46,8 @@ var starship_bonuses := {
 var starship_data := {
 	"name": "Explorer-X",
 	"emergency_rockets_used": false,
-	"shield_active": false
+	"shield_active": false,
+	"coordinates": Vector2.ZERO
 }
 
 func earn_random_resource(resource_name: String, min_value: int = 3, max_value: int = 15):
@@ -120,3 +121,10 @@ func get_environment_data(data_name: String):
 func set_environment_data(data_name: String, new_value):
 	environment_data[data_name] = new_value
 	emit_signal("environment_data_changed", data_name, new_value)
+
+func get_starship_coordinates() -> Vector2:
+	return starship_data.get("coordinates", Vector2.ZERO)
+
+func set_starship_coordinates(new_position: Vector2):
+	starship_data["coordinates"] = new_position
+	call_deferred("emit_signal", "starship_data_changed", "coordinates", new_position)
