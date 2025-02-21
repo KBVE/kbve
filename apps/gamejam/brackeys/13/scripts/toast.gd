@@ -2,7 +2,7 @@ extends Control
 
 signal toast_fade_out
 
-@onready var label = $Panel/Label
+@onready var label = $CanvasGroup/Panel/Label
 
 var toast_lifetime := 3.0
 var fade_duration := 0.5
@@ -28,10 +28,10 @@ func _ready():
 func show_notification(text: String, type: String = "info"):
 	label.text = text
 	match type:
-		"success": $Panel.modulate = Color(0.2, 1.0, 0.2, 1)  # Green
-		"error": $Panel.modulate = Color(1.0, 0.2, 0.2, 1)  # Red
-		"warning": $Panel.modulate = Color(1.0, 0.5, 0.2, 1)  # Orange
-		_ : $Panel.modulate = Color(0.2, 0.2, 1.0, 1)  # Default: Blue (info)
+		"success": $CanvasGroup/Panel.modulate = Color(0.2, 1.0, 0.2, 1)  # Green
+		"error": $CanvasGroup/Panel.modulate = Color(1.0, 0.2, 0.2, 1)  # Red
+		"warning": $CanvasGroup/Panel.modulate = Color(1.0, 0.5, 0.2, 1)  # Orange
+		_ : $CanvasGroup/Panel.modulate = Color(0.2, 0.2, 1.0, 1)  # Default: Blue (info)
 
 	self.modulate.a = 0
 	var tween = get_tree().create_tween()
