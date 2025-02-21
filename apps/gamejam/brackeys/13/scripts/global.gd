@@ -12,6 +12,7 @@ signal notification_received(message_id: String, message: String, type: String)
 
 var environment_data := {
 	"asteroids": 10,
+	"universe_objects":15,
 	"asteroid_speed": 200,
 	"asteroid_belt": false
 }
