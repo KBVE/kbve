@@ -1,8 +1,11 @@
 class_name Spaceship extends CharacterBody2D
 
+
 signal laser_shot(laser)
 
 @onready var scope = $OmniScope
+@onready var engine = $Engine
+
 
 var laser_scene = preload("res://scenes/laser.tscn")
 
@@ -20,6 +23,7 @@ func _physics_process(delta):
 	var input_vector := Vector2(0, Input.get_axis("thrust", "reverse"))
 	velocity += input_vector.rotated(rotation) * acceleration
 	velocity = velocity.limit_length(max_speed)
+	engine.play("engine")
 	
 	if Input.is_action_pressed("pan_right"):
 		rotate(deg_to_rad(rotation_speed*delta))
