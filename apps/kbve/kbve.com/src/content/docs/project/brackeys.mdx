@@ -236,6 +236,37 @@ Current List of Resources:
 
 </Steps>
 
+#### Entity
+
+```
+Asteroid
+Meteor
+Comet
+
+```
+
+<Steps>
+
+1.  Asteroid
+    -   Large entity that spawns meteors upon destruction.
+    -   Drops stone resources.
+    -   Poolable Entity, can be expanded from the spaceport upgrade.
+
+2.  Meteor
+    -   Medium entity that gets created after an asteroid is hit by laser.
+    -   Drops metal resources.
+    -   Moves slowly but despawns after leaving the scene.
+    -   Poolable Entity, increase from 1-3 drop to 5+ as an upgrade from the spaceport.
+
+3.  Comet
+    -   Small entity that has a chance to spawn after a meteor is hit by a laser.
+    -   Rare drops like gold and gems but always drops metal.
+    -   Moves quickly and despawns after leaving the scene.
+    -   Poolable Entity, but limited to only max of 5 that drop on the screen, % of drop increases via upgrades from the spaceport.
+
+
+</Steps>
+
 #### Resource Examples
 
 ```
@@ -271,6 +302,14 @@ func _on_resource_receipt(resource_name, amount, new_value, invoice):
     print("Transaction: ", invoice, " Resource: ", resource_name, " Amount: ", amount, " New Balance: ", new_value)
 
 ```
+
+#### Drop Rate
+
+The default drop rate of resources like stone will be 3 to 15, then we can use the space port to transfer the stone into metal.
+Furthermore, we could add special asteroids that spawn into the game with bonus resources like gold, gems and metals. 
+
+When an asteroid is hit initially, it should break into smaller ones that will include the chance to spawn a rare comet.
+
 
 ### Weapons
 

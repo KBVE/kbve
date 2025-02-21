@@ -8,6 +8,8 @@ signal starship_data_changed(data_name, new_value)
 signal environment_data_changed(data_name, new_value)
 signal notification_received(message_id: String, message: String, type: String)
 
+@export var resources_list: Array[String] = ["gold", "stone", "metal", "gems"]
+
 var environment_data := {
 	"asteroids": 10,
 	"asteroid_speed": 200,
@@ -27,7 +29,7 @@ var base_starship_stats := {
 	"rotation_speed": 270.0,
 	"laser_speed": 550.0,
 	"overheat": 0.0,
-	"laser_ammo": 25.0,
+	"laser_ammo": 10.0,
 }
 
 var starship_bonuses := {
@@ -44,6 +46,11 @@ var starship_data := {
 	"emergency_rockets_used": false,
 	"shield_active": false
 }
+
+func earn_random_resource(resource_name: String, min_value: int = 3, max_value: int = 15):
+	var amount = randi_range(min_value, max_value)
+	earn_resource(resource_name, amount)
+
 
 func earn_resource(resource_name: String, amount: int, invoice: String = "Earned"):
 	if amount <= 0:
