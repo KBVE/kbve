@@ -1,5 +1,7 @@
 extends Node
 
+const SAVE_PATH = "user://player_save.json"
+
 ## Signals
 signal resource_changed(resource_name, new_value)
 signal resource_receipt(resource_name, amount, new_value, invoice)
@@ -128,3 +130,48 @@ func get_starship_coordinates() -> Vector2:
 func set_starship_coordinates(new_position: Vector2):
 	starship_data["coordinates"] = new_position
 	call_deferred("emit_signal", "starship_data_changed", "coordinates", new_position)
+
+
+func save_player_data() -> bool:
+	var save_data = {
+		"resources": resources,
+		"base_starship_stats": base_starship_stats,
+		"starship_bonuses": starship_bonuses,
+		"starship_data": starship_data,
+		"environment_data": environment_data
+	}
+	
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(save_data, "\t"))
+		file.close()
+		print("Player data saved successfully.")
+		return true
+	else:
+		print("Failed to save player data.")
+		return false
+
+func load_player_data() -> bool:
+	if not FileAccess.file_exists(SAVE_PATH):
+		print("No save file found.")
+		return false
+	
+	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file:
+		var content = file.get_as_text()
+		file.close()
+		
+		var parsed_data = JSON.parse_string(content)
+		if parsed_data is Dictionary:
+			resources = parsed_data.get("resources", resources)
+			base_starship_stats = parsed_data.get("base_starship_stats", base_starship_stats)
+			starship_bonuses = parsed_data.get("starship_bonuses", starship_bonuses)
+			starship_data = parsed_data.get("starship_data", starship_data)
+			environment_data = parsed_data.get("environment_data", environment_data)
+			print("Player data loaded successfully.")
+			return true
+		else:
+			print("Failed to parse save file.")
+			return false
+	
+	return false

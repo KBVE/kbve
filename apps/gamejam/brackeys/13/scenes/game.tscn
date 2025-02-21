@@ -181,3 +181,5 @@ script = ExtResource("8_rakg7")
 
 [node name="Entity" type="Node2D" parent="."]
 script = ExtResource("10_1liq3")
+
+[node name="AutoSaveTimer" type="Timer" parent="."]
