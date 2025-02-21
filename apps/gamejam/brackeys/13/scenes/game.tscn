@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://cbrda40vq26pj"]
+[gd_scene load_steps=20 format=3 uid="uid://cbrda40vq26pj"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_oyaqx"]
 [ext_resource type="PackedScene" uid="uid://1s5v0llrjq3" path="res://scenes/spaceship.tscn" id="1_rlyye"]
@@ -17,6 +17,7 @@
 [ext_resource type="Script" path="res://scripts/entity.gd" id="10_1liq3"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="11_e1u8f"]
 [ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="11_je1f8"]
+[ext_resource type="Texture2D" uid="uid://c3ugpxqaf4oud" path="res://assets/kbve/png/universe/timespace_bg.png" id="14_72ru8"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ekd6t"]
 texture = ExtResource("4_e6jc8")
@@ -163,6 +164,9 @@ script = ExtResource("5_jsdqu")
 [node name="ColorRect" type="ColorRect" parent="Background/TimespaceLayer"]
 offset_right = 40.0
 offset_bottom = 40.0
+
+[node name="BackgroundSprite" type="Sprite2D" parent="Background/TimespaceLayer"]
+texture = ExtResource("14_72ru8")
 
 [node name="UniverseLayer" type="Parallax2D" parent="Background"]
 script = ExtResource("6_1rkq4")
