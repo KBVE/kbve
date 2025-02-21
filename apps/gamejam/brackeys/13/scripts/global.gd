@@ -49,7 +49,8 @@ var starship_data := {
 	"name": "Explorer-X",
 	"emergency_rockets_used": false,
 	"shield_active": false,
-	"coordinates": Vector2.ZERO
+	"coordinates": Vector2.ZERO,
+	"heat": 0.0
 }
 
 func earn_random_resource(resource_name: String, min_value: int = 3, max_value: int = 15):
@@ -115,6 +116,7 @@ func get_starship_data(data_name: String):
 
 func set_starship_data(data_name: String, new_value):
 	starship_data[data_name] = new_value
+	print("Set", data_name, "to", new_value, "- Current stored value:", starship_data[data_name])
 	emit_signal("starship_data_changed", data_name, new_value)
 
 func get_environment_data(data_name: String):

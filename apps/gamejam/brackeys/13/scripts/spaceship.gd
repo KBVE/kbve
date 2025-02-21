@@ -14,16 +14,26 @@ func _ready():
 	position = get_viewport_rect().size / 2
 	
 func _process(delta):
-	call_deferred("defer_set_starship_coordinates")
 	if Input.is_action_pressed("shoot"):
 		shield.visible = false
 		shoot_laser()
+	call_deferred("defer_set_starship_coordinates")
+	
 
 func _physics_process(delta):
 	var acceleration = Global.get_starship_stat("acceleration")
 	var max_speed = Global.get_starship_stat("max_speed")
 	var rotation_speed = Global.get_starship_stat("rotation_speed")
 	var input_vector := Vector2(0, Input.get_axis("thrust", "reverse"))
+	var heat = int(Global.get_starship_data("heat") or 0)
+	if input_vector.y != 0:
+		Global.set_starship_data("heat", heat + 1)
+		print("Heat increased:", heat + 1)
+
+	if heat >= 100:
+		Global.emit_signal("notification_received", "heat_error", "Ship is Overheating!", "error")
+		input_vector = Vector2.ZERO
+
 	velocity += input_vector.rotated(rotation) * acceleration
 	velocity = velocity.limit_length(max_speed)
 	
@@ -68,6 +78,9 @@ func _physics_process(delta):
 func shoot_laser():
 	emit_signal("laser_shot", scope.global_position, rotation)
 
+
+func exhaust():
+	shield.play("exhaust")
 
 func activate_shield():
 	Global.emit_signal("notification_received", "shield_active", "Shield was deployed", "warning")

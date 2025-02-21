@@ -2,6 +2,7 @@ extends Control
 
 @onready var coordinates_label = $Panel/Menu/Nav/Label
 @onready var name_label = $Panel/Menu/Nav/StarshipName
+@onready var heat_label = $Panel/Menu/Nav/StarshipHeat
 
 # Resources
 
@@ -41,6 +42,11 @@ func _ready():
 	Global.connect("starship_data_changed", Callable(self, "_update_starship_data"))
 	update_coordinates(Global.get_starship_coordinates())
 
+
+func update_heat(heat: int):
+	if heat_label:
+		heat_label.text = "%d C" % [heat]
+
 func update_coordinates(coords: Vector2):
 	if coordinates_label:
 		coordinates_label.text = "Coords X: %d, Y: %d" % [coords.x, coords.y]
@@ -50,6 +56,8 @@ func update_coordinates(coords: Vector2):
 func _update_starship_data(data_name: String, value):
 	if data_name == "coordinates":
 		update_coordinates(value)
+	if data_name == "heat":
+		update_heat(value)
 
 # func _update_starship_resources():
 # 	for resource in Global.resources_list:
