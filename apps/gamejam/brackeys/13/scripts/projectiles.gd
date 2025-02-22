@@ -21,6 +21,8 @@ func shoot_laser(global_position: Vector2, rotation: float):
 		active_lasers.append(laser)
 	else:
 		Global.emit_signal("notification_received","laser_low", "Laser Overheating", "error")
+		Global.set_starship_data("heat", (Global.get_starship_data("heat") as int) + 1)
+
 		#print("Out of laser energy shots")
 
 func _on_laser_exited(laser):
