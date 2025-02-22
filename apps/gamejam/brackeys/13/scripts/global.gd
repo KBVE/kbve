@@ -95,8 +95,10 @@ func get_starship_stat(stat_name: String) -> float:
 
 func apply_starship_bonus(stat_name: String, bonus: float):
 	if not base_starship_stats.has(stat_name):
+		print("not applying bonus")
 		return
 	starship_bonuses[stat_name] += bonus
+	print("applied bonus")
 	emit_signal("starship_stat_changed", stat_name, get_starship_stat(stat_name))
 
 func reset_starship_bonus(stat_name: String):
