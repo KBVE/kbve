@@ -684,6 +684,7 @@ position = Vector2(-8.34465e-07, 1.75)
 scale = Vector2(0.84375, 0.832031)
 sprite_frames = SubResource("SpriteFrames_wdipm")
 animation = &"short_exhaust"
+speed_scale = 2.0
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_enabled = true
