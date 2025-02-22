@@ -37,18 +37,26 @@ script = ExtResource("1_3omsn")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
-offset_left = 81.0
+offset_left = 32.0
 offset_top = 27.0
 offset_right = 1071.0
 offset_bottom = 104.0
 theme_override_constants/separation = 105
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="ResourcePanel" type="TextureRect" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 56
-theme_override_styles/normal = SubResource("StyleBoxTexture_mr6sy")
-horizontal_alignment = 1
+size_flags_stretch_ratio = 1.86
+texture = ExtResource("1_x5466")
+
+[node name="Label" type="Label" parent="HBoxContainer/ResourcePanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 6.0
+offset_right = 443.0
+offset_bottom = 69.0
+horizontal_alignment = 3
+vertical_alignment = 3
 
 [node name="ShopTitle" type="Label" parent="HBoxContainer"]
 layout_mode = 2
@@ -67,10 +75,10 @@ horizontal_alignment = 1
 
 [node name="Button" type="Button" parent="HBoxContainer/Label3"]
 layout_mode = 0
-offset_left = 7.0
-offset_top = 4.0
-offset_right = 322.0
-offset_bottom = 70.0
+offset_left = 18.0
+offset_top = 8.0
+offset_right = 234.0
+offset_bottom = 74.0
 theme = ExtResource("5_lsrhg")
 theme_type_variation = &"SpaceBar"
 
@@ -119,6 +127,22 @@ offset_right = 332.0
 offset_bottom = 224.0
 text = "Left Right"
 horizontal_alignment = 3
+
+[node name="GreenLight" type="TextureRect" parent="MainBG/CenterScreen"]
+layout_mode = 0
+offset_left = 191.0
+offset_top = 302.0
+offset_right = 231.0
+offset_bottom = 342.0
+texture = ExtResource("6_75t5l")
+
+[node name="RedLight" type="TextureRect" parent="MainBG/CenterScreen"]
+layout_mode = 0
+offset_left = 148.0
+offset_top = 302.0
+offset_right = 188.0
+offset_bottom = 342.0
+texture = ExtResource("9_f5tfu")
 
 [node name="LeftPanel" type="TextureRect" parent="MainBG"]
 layout_mode = 0
@@ -211,6 +235,7 @@ theme_type_variation = &"RightButton"
 [node name="Button2" type="Button" parent="MainBG/LeftButtons/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme = ExtResource("5_lsrhg")
 theme_type_variation = &"RightButton"
 
 [node name="Button3" type="Button" parent="MainBG/LeftButtons/VBoxContainer"]
@@ -268,6 +293,15 @@ offset_top = 366.0
 offset_right = 1034.0
 offset_bottom = 449.0
 texture = ExtResource("3_pd5pr")
+
+[node name="Label" type="Label" parent="MainBG/NonInteractable/BottomScreen"]
+layout_mode = 0
+offset_left = 47.0
+offset_top = 5.0
+offset_right = 949.0
+offset_bottom = 76.0
+horizontal_alignment = 3
+vertical_alignment = 1
 
 [node name="VSlider" type="VSlider" parent="MainBG/NonInteractable"]
 layout_mode = 0
