@@ -71,6 +71,9 @@ layout_mode = 2
 [node name="Label" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/Nav"]
 layout_mode = 2
 
+[node name="StarshipHeat" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/Nav"]
+layout_mode = 2
+
 [node name="HSplitContainer" type="HSplitContainer" parent="CanvasLayer/UI/HUD/Panel/Menu"]
 layout_mode = 2
 split_offset = 10

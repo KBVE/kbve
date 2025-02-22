@@ -41,6 +41,11 @@ region = Rect2(672, 0, 96, 96)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_30yq2"]
 animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_faa0d")
@@ -66,8 +71,8 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_c77nx")
 }],
-"loop": true,
-"name": &"default",
+"loop": false,
+"name": &"explode",
 "speed": 5.0
 }]
 
@@ -83,7 +88,6 @@ texture = ExtResource("2_dvxfl")
 shape = SubResource("CircleShape2D_qw1xp")
 
 [node name="Explosion" type="AnimatedSprite2D" parent="."]
-visible = false
 sprite_frames = SubResource("SpriteFrames_30yq2")
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
