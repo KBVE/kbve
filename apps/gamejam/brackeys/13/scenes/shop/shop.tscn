@@ -102,16 +102,12 @@ offset_bottom = 150.0
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
-text = "dada  
-dada"
 vertical_alignment = 3
 
 [node name="Right" type="Label" parent="MainBG/CenterScreen/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
-text = "dad
-sdsd"
 horizontal_alignment = 2
 vertical_alignment = 3
 
@@ -133,6 +129,7 @@ offset_bottom = 351.0
 texture = ExtResource("1_x5466")
 
 [node name="ScreenPanel" type="TextureRect" parent="MainBG/LeftPanel"]
+layout_mode = 0
 offset_left = 32.0
 offset_top = 34.0
 offset_right = 264.0
@@ -192,7 +189,6 @@ offset_top = 33.0
 offset_right = 424.0
 offset_bottom = 284.0
 texture = ExtResource("4_atpsb")
-metadata/_edit_group_ = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MainBG/LeftButtons"]
 layout_mode = 1
@@ -378,3 +374,9 @@ lights_off = ExtResource("13_swidh")
 [connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/LeftButton" to="." method="_on_left_button_pressed_left_panel"]
 [connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/EnterButton" to="." method="_on_enter_button_pressed_left_panel"]
 [connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/RightButton" to="." method="_on_right_button_pressed_left_panel"]
+[connection signal="pressed" from="MainBG/LeftButtons/VBoxContainer/Button" to="." method="_on_button_1_left_pressed"]
+[connection signal="pressed" from="MainBG/LeftButtons/VBoxContainer/Button2" to="." method="_on_button_2_left_pressed"]
+[connection signal="pressed" from="MainBG/LeftButtons/VBoxContainer/Button3" to="." method="_on_button_3_left_pressed"]
+[connection signal="pressed" from="MainBG/RightButtons/VBoxContainer/Button" to="." method="_on_button_right_pressed"]
+[connection signal="pressed" from="MainBG/RightButtons/VBoxContainer/Button2" to="." method="_on_button_2_right_pressed"]
+[connection signal="pressed" from="MainBG/RightButtons/VBoxContainer/Button3" to="." method="_on_button_right_3_pressed"]
