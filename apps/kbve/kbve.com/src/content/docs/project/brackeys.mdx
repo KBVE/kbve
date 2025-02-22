@@ -41,6 +41,22 @@ The theme for the sister jam, hosted by Wild, is `ERASE` and the wild cards are:
 * Style Shift - Visuals switch between two art styles.
 * Shopaholic - include some kind of shopping mechanism.
 
+#### Submission
+
+-   `How does the game fit the theme?`
+
+    Nothing can go wrong when you are piloting the ship! We made a game that is similar to Asteroids but the ship does not automatically get destoried.
+    Our goal was to make an idle space game that you can play anytime you want, without having to pay attention or worry about destruction.
+    However we did add some challenges and bonuses to the game!
+    
+-   `What code and assets did you not make from scratch during the jam, if any?`
+
+    Code, we used godot and a couple extension examples, like GDExt.
+    As for the assets, we used several from Kenny.nl, OpenGameArt and itch assets, all of which are listed in our game description.
+    This includes but not limited to, Auidioknobs from OpenGameArt, Kenny.nl's Space Redux, VOID pack from Itch's Foozlecc.
+
+-   
+
 #### Team
 
 Official Team Sign In Sheet! Make a fork and then a pull request with your name and itch.
@@ -332,3 +348,11 @@ When an asteroid is hit initially, it should break into smaller ones that will i
 
 The first weapon that we will introduce is the laser for the spaceship, later on we will include a couple more guns, maybe a machine gun type weapon.
 Majority of the laser's logic will be stored under `/scripts/laser.gd` and we will not implement any sort of pooling for it yet, that might be something that I will look into later on.
+
+
+### Heat
+
+Heat management is vital when piloting the ship because once the player goes over the heat, the ship should stop moving.
+The movement of the engines and the lasers would stop, thus it acts like an anti-spam.
+As for the heat release, we will have a couple keys to help the exhausting of the said heat, but we can go further into that before finishing up the game.
+
