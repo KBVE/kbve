@@ -26,13 +26,14 @@ expand_margin_top = 10.0
 expand_margin_right = 20.0
 expand_margin_bottom = 10.0
 
-[node name="Shop" type="ColorRect"]
+[node name="Shop" type="ColorRect" groups=["shop"]]
 process_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 color = Color(0.201527, 0.201527, 0.201527, 1)
 script = ExtResource("1_3omsn")
 
@@ -80,6 +81,7 @@ offset_left = 18.0
 offset_top = 8.0
 offset_right = 234.0
 offset_bottom = 74.0
+mouse_filter = 1
 theme = ExtResource("5_lsrhg")
 theme_type_variation = &"SpaceBar"
 
@@ -191,6 +193,7 @@ metadata/_edit_group_ = true
 [node name="LeftButton" type="Button" parent="MainBG/LeftPanel/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 theme = ExtResource("5_lsrhg")
 theme_type_variation = &"LeftButton"
 
@@ -198,12 +201,14 @@ theme_type_variation = &"LeftButton"
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 theme = ExtResource("5_lsrhg")
 theme_type_variation = &"SpaceBar"
 
 [node name="RightButton" type="Button" parent="MainBG/LeftPanel/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 theme = ExtResource("5_lsrhg")
 theme_type_variation = &"RightButton"
 
@@ -231,17 +236,20 @@ theme = ExtResource("5_lsrhg")
 [node name="Button" type="Button" parent="MainBG/LeftButtons/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 1
 theme_type_variation = &"RightButton"
 
 [node name="Button2" type="Button" parent="MainBG/LeftButtons/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 1
 theme = ExtResource("5_lsrhg")
 theme_type_variation = &"RightButton"
 
 [node name="Button3" type="Button" parent="MainBG/LeftButtons/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 1
 theme_type_variation = &"RightButton"
 
 [node name="RightButtons" type="TextureRect" parent="MainBG"]
@@ -286,6 +294,7 @@ theme_type_variation = &"LeftButton"
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
+mouse_filter = 1
 
 [node name="BottomScreen" type="TextureRect" parent="MainBG/NonInteractable"]
 layout_mode = 0
@@ -330,6 +339,7 @@ offset_left = 937.0
 offset_top = 179.0
 offset_right = 962.0
 offset_bottom = 271.0
+mouse_filter = 1
 fill_mode = 3
 show_percentage = false
 script = ExtResource("6_lok5i")
@@ -340,6 +350,7 @@ offset_left = 980.0
 offset_top = 178.0
 offset_right = 1005.0
 offset_bottom = 270.0
+mouse_filter = 1
 fill_mode = 3
 show_percentage = false
 script = ExtResource("6_lok5i")
