@@ -5,10 +5,17 @@ const ASTEROID_SCENE = preload("res://scenes/asteroid.tscn")
 var asteroid_pool: Array = []
 var max_asteroids := int(Global.get_environment_data("asteroids"))
 var spawn_timer: Timer
+var spaceship: Node2D
+
+func _ready():
+	spaceship = get_tree().get_root().find_child("Spaceship", true, false)
+	if not spaceship:
+			print("Warning: Spaceship not found in the scene!")
+
 
 func start_spawn():
 	spawn_timer = Timer.new()
-	spawn_timer.wait_time = 2.0
+	spawn_timer.wait_time = 1.0
 	spawn_timer.one_shot = false
 	add_child(spawn_timer)
 	spawn_timer.connect("timeout", Callable(self, "_spawn_asteroid"))
@@ -23,22 +30,20 @@ func initialize_pool(size: int):
 		add_child(asteroid)
 
 func _spawn_asteroid():
+	if not spaceship:
+		print("No spaceship reference, cannot spawn asteroids!")
+		return
+
 	for asteroid in asteroid_pool:
 		if not asteroid.visible:
 			var screen_size = get_viewport().get_visible_rect().size
-			var spawn_margin = 50
+			var screen_center = screen_size / 2
+			var spawn_distance = max(screen_size.x, screen_size.y) * 0.6 
 
-			var spawn_side = randi_range(0, 3)
-			var spawn_position = Vector2()
+			var angle = randf_range(0, 2 * PI)
+			var spawn_position = spaceship.global_position + Vector2.RIGHT.rotated(angle) * spawn_distance
 
-			match spawn_side:
-				0: spawn_position = Vector2(randf_range(0, screen_size.x), -spawn_margin)  # Top
-				1: spawn_position = Vector2(randf_range(0, screen_size.x), screen_size.y + spawn_margin)  # Bottom
-				2: spawn_position = Vector2(-spawn_margin, randf_range(0, screen_size.y))  # Left
-				3: spawn_position = Vector2(screen_size.x + spawn_margin, randf_range(0, screen_size.y))  # Right
-
-			var target_position = screen_size / 2.0 + Vector2(randf_range(-100, 100), randf_range(-100, 100))
-			asteroid.movement_vector = (target_position - spawn_position).normalized()
+			asteroid.movement_vector = (spaceship.global_position - spawn_position).normalized()
 
 			asteroid.global_position = spawn_position
 			asteroid.visible = true
@@ -48,7 +53,10 @@ func _spawn_asteroid():
 
 func _on_asteroid_destroyed(asteroid):
 	asteroid.visible = false
-	asteroid.global_position = Vector2(-1000, -1000)
+	if spaceship:
+		asteroid.global_position = spaceship.global_position + Vector2(-1000, -1000)
+	else:
+		asteroid.global_position = Vector2(-1000, -1000)
 	print("Asteroid returned to pool")
 
 func _on_entity_destroyed(entity_type: String, entity_id: int, additional_data: Dictionary):
