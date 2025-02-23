@@ -24,3 +24,12 @@ func _ready():
     npc.visible = false
 
     pass;
+
+func show_npc(image: Texture, name: String, text: String):
+    if npc:
+        npc.set_npc_data(image, name, text)
+        npc.visible = true 
+
+func hide_npc():
+    if npc:
+        npc.hide_npc()

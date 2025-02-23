@@ -11,7 +11,7 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="TextureRect" type="TextureRect" parent="Control"]
+[node name="NPCImage" type="TextureRect" parent="Control"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
