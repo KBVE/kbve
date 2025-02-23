@@ -119,7 +119,7 @@ func get_starship_data(data_name: String):
 	return starship_data[data_name]
 	
 func set_starship_data(data_name: String, new_value):
-	print("set_starship_data called from:", get_stack()[1].source, "-> Setting", data_name, "to", new_value)
+	# print("set_starship_data called from:", get_stack()[1].source, "-> Setting", data_name, "to", new_value)
 	starship_data[data_name] = new_value
 	emit_signal("starship_data_changed", data_name, new_value)
 	

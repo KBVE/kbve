@@ -6,7 +6,7 @@ extends Node2D
 @onready var entity = $Entity
 @onready var auto_save_timer = $AutoSaveTimer
 
-const AUTO_SAVE_INTERVAL = 30.0
+const AUTO_SAVE_INTERVAL = 60.0
 
 func _ready():
 	spaceship.connect("laser_shot", _on_spaceship_laser_shot)
@@ -31,6 +31,9 @@ func _on_spaceship_laser_shot(scope_position: Vector2, rotation: float):
 
 
 func _on_auto_save_timer_timeout():
+	call_deferred("_save_game_process")
+
+func _save_game_process():
 	if Global.save_player_data():
 		Global.emit_signal("notification_received", "saved_game", "Game process has been saved.", "success")
 	else:
