@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://beh1le5ow114t"]
+
+[node name="Earth" type="Node2D"]
+
+[node name="Earth" type="Sprite2D" parent="."]
