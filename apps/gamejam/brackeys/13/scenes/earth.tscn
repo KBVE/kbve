@@ -551,7 +551,7 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wey4h"]
-radius = 388.861
+radius = 170.106
 
 [node name="Earth" type="Area2D"]
 collision_layer = 16

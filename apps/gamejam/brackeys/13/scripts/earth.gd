@@ -2,13 +2,15 @@ extends Area2D
 
 @onready var anime = $PlanetAnimation
 
-
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	anime.play()
-	pass # Replace with function body.
+	connect("body_entered", _on_body_entered)
+	connect("body_exited", _on_body_exited)
 
+func _on_body_entered(body):
+	if body is Spaceship:
+		print('Spaceship has entered')
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func _on_body_exited(body):
+	if body is Spaceship:
+		print('Spaceship left the Earth bounds')
