@@ -37,27 +37,25 @@ var chosen_upgrade
 var shown_text
 var weapons := [
 	{"name": "+1 laser speed", "stat_name": "laser_speed", "value": 1.0, "cost": 
-		{"stone": 200.0, "metal": 50.0}},
+		{"stone": 200.0}},
 	{"name": "+1 ammo count", "stat_name": "laser_ammo", "value": 1.0, "cost": 
-		{"gems": 10, "gold": 5}}
+		{"stone": 200.0}}
 ]
 var power := [
 	{"name": "Overheat?", "stat_name": "overheat", "value": 1.0, "cost":
-		{}}
+		{"stone": 200.0}}
 ]
 var thrusters := [
 	{"name": "+1 acceleration", "stat_name": "acceleration", "value": 1.0, "cost":
-		{}},
+		{"stone": 200.0}},
 	{"name": "+1 rotation speed", "stat_name": "rotation_speed", "value": 1.0, "cost":
-		{}}
+		{"stone": 200.0}}
 ]
 var chosen = [weapons, power, thrusters]
 
 
 func _ready():
 	update_bottom_panel_screen()
-
-func _process(delta):
 	update_resource_panel()
 
 #region LeftPanelRegion
@@ -120,6 +118,8 @@ func _on_button_3_left_pressed() -> void:
 func _on_button_right_pressed() -> void:
 	if is_on_confirm: # Confirm upgrade
 		if can_afford():
+			increment_prices()
+			Global.resources.stone = Global.resources.stone - chosen_upgrade.cost.stone
 			Global.apply_starship_bonus(chosen_upgrade.stat_name, chosen_upgrade.value)
 			update_resource_panel()
 			update_bottom_panel_screen()
@@ -204,5 +204,12 @@ func _on_button_pressed_exit(): # Hides the shop on exit
 
 func open_shop() -> void:
 	show()
+	update_resource_panel()
 	get_tree().paused = true
 	
+
+func increment_prices() -> void:
+	chosen_upgrade.cost.stone = chosen_upgrade.cost.stone * 1.2
+	show_cost()
+	print(chosen_upgrade.cost.stone)
+	pass
