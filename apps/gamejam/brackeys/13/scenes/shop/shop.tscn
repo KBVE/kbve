@@ -27,6 +27,7 @@ expand_margin_right = 20.0
 expand_margin_bottom = 10.0
 
 [node name="Shop" type="ColorRect"]
+process_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -405,6 +406,7 @@ script = ExtResource("14_mhgll")
 lights_on = ExtResource("17_2kql4")
 lights_off = ExtResource("13_swidh")
 
+[connection signal="pressed" from="HBoxContainer/Label3/Button" to="." method="_on_button_pressed_exit"]
 [connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/LeftButton" to="." method="_on_left_button_pressed_left_panel"]
 [connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/EnterButton" to="." method="_on_enter_button_pressed_left_panel"]
 [connection signal="pressed" from="MainBG/LeftPanel/HBoxContainer/RightButton" to="." method="_on_right_button_pressed_left_panel"]

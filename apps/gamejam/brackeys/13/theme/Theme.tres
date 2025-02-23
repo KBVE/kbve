@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://c73g314v1aohm" path="res://assets/audioknobs-ui/audioknobs/slider.png" id="1_4ho6j"]
 [ext_resource type="Texture2D" uid="uid://wwlxthw1p5px" path="res://assets/audioknobs-ui/audioknobs/button-toggle-off.png" id="1_467wl"]
 [ext_resource type="Texture2D" uid="uid://bwhtv183g5vma" path="res://assets/audioknobs-ui/audioknobs/button-toggle-on.png" id="2_dcdwy"]
-[ext_resource type="StyleBox" uid="uid://i2i5a12n6yo3" path="res://theme/empty.stylebox" id="2_ma0tk"]
+[ext_resource type="StyleBox" path="res://theme/empty.stylebox" id="2_ma0tk"]
 [ext_resource type="Texture2D" uid="uid://7h4qiorvtq3q" path="res://assets/audioknobs-ui/audioknobs/metalbackground1.png" id="2_wr8kl"]
 [ext_resource type="Texture2D" uid="uid://byxtqi4hn1crh" path="res://assets/audioknobs-ui/audioknobs/v-slider-small.png" id="3_j3fil"]
 [ext_resource type="Texture2D" uid="uid://bt4me1jtt6j6a" path="res://assets/audioknobs-ui/audioknobs/slider-bg.png" id="4_4s0nj"]
@@ -30,10 +30,10 @@ bg_color = Color(0.6, 0.6, 0.6, 0)
 texture = ExtResource("4_4s0nj")
 texture_margin_top = 20.0
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2n2so"]
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_nfv2t"]
 texture = ExtResource("6_oemoe")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2n2so"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bnh2f"]
 texture = ExtResource("7_s6l0y")
@@ -46,10 +46,10 @@ axis_stretch_vertical = 1
 texture = ExtResource("7_f3kbi")
 axis_stretch_vertical = 1
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xiin7"]
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0f342"]
 texture = ExtResource("9_0vmdh")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xiin7"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4rt04"]
 texture = ExtResource("12_0ebru")
@@ -83,6 +83,7 @@ HSlider/styles/grabber_area = SubResource("StyleBoxFlat_64pwo")
 HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_64pwo")
 HSlider/styles/slider = SubResource("StyleBoxTexture_upa0w")
 LeftButton/base_type = &"Button"
+LeftButton/styles/disabled = SubResource("StyleBoxTexture_nfv2t")
 LeftButton/styles/focus = SubResource("StyleBoxEmpty_2n2so")
 LeftButton/styles/hover = SubResource("StyleBoxTexture_nfv2t")
 LeftButton/styles/hover_pressed = SubResource("StyleBoxTexture_bnh2f")
@@ -92,6 +93,7 @@ MarginContainer/icons/texture = ExtResource("2_wr8kl")
 ProgressBar/styles/background = SubResource("StyleBoxTexture_umxe3")
 ProgressBar/styles/fill = SubResource("StyleBoxTexture_es6xy")
 RightButton/base_type = &"Button"
+RightButton/styles/disabled = SubResource("StyleBoxTexture_0f342")
 RightButton/styles/focus = SubResource("StyleBoxEmpty_xiin7")
 RightButton/styles/hover = SubResource("StyleBoxTexture_0f342")
 RightButton/styles/hover_pressed = SubResource("StyleBoxTexture_4rt04")
