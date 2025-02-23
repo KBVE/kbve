@@ -1,7 +1,10 @@
 extends Area2D
 
-const CEO_TEXTURE = preload("res://assets/kbve/png/npc/earth/ceo.png")
+# const CEO_TEXTURE = preload("res://assets/kbve/png/npc/earth/ceo.png")
+
 @onready var anime = $PlanetAnimation
+@onready var button := $Button
+
 
 func _ready() -> void:
 	anime.play()
@@ -10,9 +13,17 @@ func _ready() -> void:
 
 func _on_body_entered(body):
 	if body is Spaceship:
-		UI.show_npc(CEO_TEXTURE, "Earth CEO", "Welcome to Earth, press X to open up the shop!")
+		# UI.show_npc(CEO_TEXTURE, "Earth CEO", "Welcome to Earth, press X to open up the shop!")
 		print('Spaceship has entered')
+
+func _on_body_entered(body):
+	if body is Spaceship:
+		button.show()
+
 
 func _on_body_exited(body):
 	if body is Spaceship:
-		print('Spaceship left the Earth bounds')
+		button.hide()
+    
+func _on_button_pressed():
+  get_tree().call_group("shop", "open_shop")
