@@ -192,3 +192,9 @@ func update_bottom_panel_screen() -> void:
 	for i in Global.base_starship_stats.keys():
 		full_text += "%s: %d " % [i.capitalize(), Global.base_starship_stats[i] + Global.starship_bonuses[i]]
 	bottom_panel_screen_label.text = full_text
+
+func _on_button_pressed_exit(): # Hides the shop on exit
+		self.hide()
+		get_tree().paused = false
+		pass
+
