@@ -32,7 +32,7 @@ func _physics_process(delta):
 	var max_speed = Global.get_starship_stat("max_speed")
 	var rotation_speed = Global.get_starship_stat("rotation_speed")
 	var input_vector := Vector2(0, Input.get_axis("thrust", "reverse"))
-	var heat = 1#Global.get_starship_data("heat") as int
+	var heat = Global.get_starship_data("heat") as int
 	
 	if heat == null:
 		heat = 0
