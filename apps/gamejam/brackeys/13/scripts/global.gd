@@ -13,6 +13,10 @@ signal entity_destroyed(entity_type: String, entity_id: int, additional_data: Di
 
 @export var resources_list: Array[String] = ["gold", "stone", "metal", "gems"]
 
+var droids:= {
+	"autorepair": true
+}
+
 var environment_data := {
 	"asteroids": 20,
 	"universe_objects":15,
@@ -144,7 +148,8 @@ func save_player_data() -> bool:
 		"base_starship_stats": base_starship_stats,
 		"starship_bonuses": starship_bonuses,
 		"starship_data": starship_data,
-		"environment_data": environment_data
+		"environment_data": environment_data,
+		"droids": droids
 	}
 	
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -174,6 +179,7 @@ func load_player_data() -> bool:
 			starship_bonuses.merge(parsed_data.get("starship_bonuses", {}), true)
 			starship_data.merge(parsed_data.get("starship_data", {}), true)
 			environment_data.merge(parsed_data.get("environment_data", {}), true)
+			droids.merge(parsed_data.get("droids", {}), true)
 
 			print("Player data loaded successfully.")
 			return true
