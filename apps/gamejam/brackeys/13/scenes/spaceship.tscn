@@ -663,7 +663,7 @@ script = ExtResource("1_uejed")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(0, 1)
-scale = Vector2(0.8, 0.8)
+scale = Vector2(0.4, 0.4)
 texture = ExtResource("2_kvtre")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -671,17 +671,17 @@ rotation = -0.0497135
 shape = SubResource("CircleShape2D_s734v")
 
 [node name="OmniScope" type="Node2D" parent="."]
-position = Vector2(0, -49)
+position = Vector2(0, -23)
 
 [node name="Engine" type="AnimatedSprite2D" parent="."]
 position = Vector2(-0.125006, 1.5)
-scale = Vector2(0.798828, 0.820312)
+scale = Vector2(0.4, 0.411)
 sprite_frames = SubResource("SpriteFrames_0gnt7")
 animation = &"engine"
 
 [node name="Shield" type="AnimatedSprite2D" parent="."]
 position = Vector2(-8.34465e-07, 1.75)
-scale = Vector2(0.84375, 0.832031)
+scale = Vector2(0.406, 0.4)
 sprite_frames = SubResource("SpriteFrames_wdipm")
 animation = &"short_exhaust"
 speed_scale = 2.0
