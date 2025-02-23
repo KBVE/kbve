@@ -89,5 +89,9 @@ shape = SubResource("CircleShape2D_qw1xp")
 
 [node name="Explosion" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_30yq2")
+animation = &"explode"
+frame = 7
+frame_progress = 1.0
+speed_scale = 2.0
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]

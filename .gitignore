@@ -108,3 +108,4 @@ vite.config.*.timestamp*
 # Python
 .venv
 vitest.config.*.timestamp*
+.vscode/settings.json

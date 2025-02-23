@@ -111,6 +111,8 @@ func exhaust():
 
 func short_exhaust():
 	shield.play("short_exhaust")
+	# Global.set_starship_data("heat", ((Global.get_starship_data("heat") as int) - 1) as int)
+
 
 func activate_shield():
 	Global.emit_signal("notification_received", "shield_active", "Shield was deployed", "warning")
