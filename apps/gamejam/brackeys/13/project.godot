@@ -18,11 +18,16 @@ config/icon="res://icon.svg"
 [autoload]
 
 Global="*res://scripts/global.gd"
+UI="*res://scripts/ui.gd"
 
 [display]
 
 window/stretch/mode="canvas_items"
 window/per_pixel_transparency/allowed=true
+
+[global_group]
+
+shop=""
 
 [input]
 

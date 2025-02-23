@@ -5,10 +5,12 @@ extends Node2D
 @onready var background = $Background
 @onready var entity = $Entity
 @onready var auto_save_timer = $AutoSaveTimer
+@onready var base = $Base
 
-const AUTO_SAVE_INTERVAL = 30.0
+const AUTO_SAVE_INTERVAL = 60.0
 
 func _ready():
+	base._spawn_earth()
 	spaceship.connect("laser_shot", _on_spaceship_laser_shot)
 	projectiles.initialize_pool(int(Global.get_starship_stat("laser_ammo")))
 	entity.initialize_pool(int(Global.get_environment_data("asteroids")))
@@ -31,8 +33,12 @@ func _on_spaceship_laser_shot(scope_position: Vector2, rotation: float):
 
 
 func _on_auto_save_timer_timeout():
+	call_deferred("_save_game_process")
+
+func _save_game_process():
 	if Global.save_player_data():
 		Global.emit_signal("notification_received", "saved_game", "Game process has been saved.", "success")
+		Global.emit_signal("notification_received", "tip_1", "Remember to use your exhaust Q or E!.", "info")
 	else:
 		Global.emit_signal("notification_received", "save_failed", "Failed to save game.", "error")
 		print("Auto-save failed.")

@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/shop.gd" id="1_xq0us"]
 
-[node name="Shop" type="Control"]
+[node name="Shop" type="Control" groups=["shop"]]
+z_index = 21
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

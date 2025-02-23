@@ -77,6 +77,7 @@ animations = [{
 }]
 
 [node name="Asteroid" type="Area2D"]
+z_index = 2
 collision_layer = 128
 collision_mask = 288
 script = ExtResource("1_luuic")

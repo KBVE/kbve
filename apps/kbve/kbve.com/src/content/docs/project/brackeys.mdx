@@ -223,6 +223,9 @@ Finally we would split the `npc` and `entity` layer because we might want the `n
     - This layer will include spacestations and presents an entity that has true collision.
     - Players will be to enter the planet, which can open up minigames or special UI screens.
 
+    The first planet that we will be adding is an Earth-like one, located at X: 0, Y: 0!
+    This planet will serve as the base shop for upgrading your ship.
+
 6.  Spaceship
     - The actual layermask for the player.
 
@@ -356,3 +359,8 @@ Heat management is vital when piloting the ship because once the player goes ove
 The movement of the engines and the lasers would stop, thus it acts like an anti-spam.
 As for the heat release, we will have a couple keys to help the exhausting of the said heat, but we can go further into that before finishing up the game.
 
+### Earth
+
+The Earth planet will be on layer 5 with collision mask being for layer 6 aka the spaceship.
+Once the player is within the collision circle of the planet, a display will come up that says "Press X to Interact with the Planet!".
+After the player presses the X, it should open up the shop UI and let the player purchase upgrades.
