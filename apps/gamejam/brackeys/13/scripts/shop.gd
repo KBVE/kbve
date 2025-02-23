@@ -194,6 +194,10 @@ func update_bottom_panel_screen() -> void:
 	bottom_panel_screen_label.text = full_text
 
 func _on_button_pressed_exit(): # Hides the shop on exit
-		self.hide()
-		get_tree().paused = false
-		pass
+	hide()
+	get_tree().paused = false
+
+func open_shop() -> void:
+	show()
+	get_tree().paused = true
+	

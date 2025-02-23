@@ -1,7 +1,9 @@
-[gd_scene load_steps=82 format=3 uid="uid://beh1le5ow114t"]
+[gd_scene load_steps=86 format=3 uid="uid://beh1le5ow114t"]
 
 [ext_resource type="Texture2D" uid="uid://veqcurbi85ee" path="res://assets/frostwindz/earth.png" id="1_7ar7q"]
 [ext_resource type="Script" path="res://scripts/earth.gd" id="1_b2nuq"]
+[ext_resource type="Texture2D" uid="uid://d07qbaay5wanp" path="res://assets/audioknobs-ui/audioknobs/panel2.png" id="3_hsui2"]
+[ext_resource type="Texture2D" uid="uid://pnucsbsdbg23" path="res://assets/audioknobs-ui/audioknobs/panel.png" id="4_h7o45"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b4tcp"]
 atlas = ExtResource("1_7ar7q")
@@ -553,6 +555,12 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_wey4h"]
 radius = 388.861
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7emhd"]
+texture = ExtResource("3_hsui2")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bw5ia"]
+texture = ExtResource("4_h7o45")
+
 [node name="Earth" type="Area2D"]
 collision_layer = 16
 collision_mask = 32
@@ -569,3 +577,29 @@ frame_progress = 0.412462
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_wey4h")
+
+[node name="Button" type="Button" parent="."]
+visible = false
+z_index = 20
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.5
+offset_top = -21.5
+offset_right = 40.5
+offset_bottom = 21.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+mouse_default_cursor_shape = 1
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_7emhd")
+theme_override_styles/hover = SubResource("StyleBoxTexture_bw5ia")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_7emhd")
+theme_override_styles/normal = SubResource("StyleBoxTexture_bw5ia")
+text = "Land"
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

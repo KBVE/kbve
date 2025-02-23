@@ -1,14 +1,18 @@
 extends Area2D
 
-@onready var anime = $PlanetAnimation
+@onready var anime := $PlanetAnimation
+@onready var button := $Button
 
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	anime.play()
-	pass # Replace with function body.
+func _on_button_pressed():
+	get_tree().call_group("shop", "open_shop")
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func _on_body_entered(body):
+	if body is Spaceship:
+		button.show()
+
+
+func _on_body_exited(body):
+	if body is Spaceship:
+		button.hide()
