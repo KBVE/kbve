@@ -1,6 +1,7 @@
 extends Node2D
 
 @onready var spaceship = $Spaceship
+@onready var autorepair = $Autorepair
 @onready var projectiles = $Projectiles
 @onready var background = $Background
 @onready var entity = $Entity

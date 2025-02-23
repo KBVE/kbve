@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://cbrda40vq26pj"]
+[gd_scene load_steps=24 format=3 uid="uid://cbrda40vq26pj"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_oyaqx"]
 [ext_resource type="PackedScene" uid="uid://1s5v0llrjq3" path="res://scenes/spaceship.tscn" id="1_rlyye"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://hprhaqdtcn8j" path="res://assets/kbve/png/hud_bg.png" id="4_e6jc8"]
 [ext_resource type="Texture2D" uid="uid://cmoqerarvgxal" path="res://assets/kbve/png/gems_icon.png" id="5_hfl3j"]
 [ext_resource type="Script" path="res://scripts/timespace_layer.gd" id="5_jsdqu"]
+[ext_resource type="Texture2D" uid="uid://duoiqvk5s0sfn" path="res://assets/kbve/png/ui/temp.png" id="5_wylu2"]
 [ext_resource type="Texture2D" uid="uid://rbsla3vwolru" path="res://assets/kbve/png/stone_icon.png" id="5_yiayc"]
 [ext_resource type="Script" path="res://scripts/universe_layer.gd" id="6_1rkq4"]
 [ext_resource type="Texture2D" uid="uid://ckdgs4480fqfn" path="res://assets/kbve/png/gold_icon.png" id="6_be8e0"]
@@ -20,6 +21,7 @@
 [ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="11_je1f8"]
 [ext_resource type="Texture2D" uid="uid://c3ugpxqaf4oud" path="res://assets/kbve/png/universe/timespace_bg.png" id="14_72ru8"]
 [ext_resource type="Script" path="res://scripts/base.gd" id="19_pu4p0"]
+[ext_resource type="PackedScene" uid="uid://c37seeevmae65" path="res://scenes/npc/autorepair.tscn" id="22_yhsl2"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ekd6t"]
 texture = ExtResource("4_e6jc8")
@@ -78,7 +80,16 @@ mouse_filter = 1
 layout_mode = 2
 mouse_filter = 1
 
-[node name="StarshipHeat" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/Nav"]
+[node name="TempBox" type="HBoxContainer" parent="CanvasLayer/UI/HUD/Panel/Menu/Nav"]
+layout_mode = 2
+
+[node name="TempIcon" type="TextureRect" parent="CanvasLayer/UI/HUD/Panel/Menu/Nav/TempBox"]
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("5_wylu2")
+stretch_mode = 2
+
+[node name="StarshipHeat" type="Label" parent="CanvasLayer/UI/HUD/Panel/Menu/Nav/TempBox"]
 layout_mode = 2
 mouse_filter = 1
 
@@ -209,3 +220,5 @@ script = ExtResource("10_1liq3")
 [node name="Base" type="Node2D" parent="."]
 z_index = -1
 script = ExtResource("19_pu4p0")
+
+[node name="Autorepair" parent="." instance=ExtResource("22_yhsl2")]

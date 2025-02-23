@@ -27,7 +27,7 @@ var red_light_off : CompressedTexture2D = preload("res://assets/audioknobs-ui/au
 var red_light_on : CompressedTexture2D = preload("res://assets/audioknobs-ui/audioknobs/red-light-on.png")
 
 # Left Panel
-var categories : Array[StringName] = ["Weapons", "Shield", "Power", "Thrusters"]
+var categories : Array[StringName] = ["Weapons", "Power", "Thrusters"]
 var current_category : int = 0
 
 # Center Panel
@@ -41,10 +41,6 @@ var weapons := [
 	{"name": "+1 ammo count", "stat_name": "laser_ammo", "value": 1.0, "cost": 
 		{"gems": 10, "gold": 5}}
 ]
-var shield := [
-	{"name": "None", "stat_name": "none", "value": 1.0, "cost":
-		{}}
-]
 var power := [
 	{"name": "Overheat?", "stat_name": "overheat", "value": 1.0, "cost":
 		{}}
@@ -55,12 +51,14 @@ var thrusters := [
 	{"name": "+1 rotation speed", "stat_name": "rotation_speed", "value": 1.0, "cost":
 		{}}
 ]
-var chosen = [weapons, shield, power, thrusters]
+var chosen = [weapons, power, thrusters]
 
 
 func _ready():
-	update_resource_panel()
 	update_bottom_panel_screen()
+
+func _process(delta):
+	update_resource_panel()
 
 #region LeftPanelRegion
 
@@ -72,7 +70,7 @@ func _on_left_button_pressed_left_panel() -> void:
 	update_categories()
 
 func _on_right_button_pressed_left_panel() -> void:
-	if cate_selected == categories[3]:
+	if cate_selected == categories[2]:
 		pass
 	else:
 		current_category += 1
@@ -165,7 +163,7 @@ func show_confirm_upgrade(button: int) -> void:
 			chosen_upgrade = shown_text[current_parts][button]
 			center_label_left.text = chosen_upgrade.name
 			center_label_right.text = "Confirm" + "\n" + "Cancel"
-			center_label_bottom.text = ""
+			show_cost()
 			button_1_left.disabled = true
 			button_2_left.disabled = true
 			button_3_left.disabled = true
@@ -180,6 +178,13 @@ func unshow_confirm_upgrade() -> void:
 	center_label_bottom.text = "Left Right"
 
 #endregion
+
+
+func show_cost():
+	var full_text = ""
+	for resource in chosen_upgrade.cost.keys():
+		full_text += "%s: %d " % [resource.capitalize(), chosen_upgrade.cost[resource]]
+	center_label_bottom.text = "Cost" + "\n" + full_text
 
 func update_resource_panel() -> void:
 	var full_text = ""
