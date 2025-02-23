@@ -197,4 +197,3 @@ func _on_button_pressed_exit(): # Hides the shop on exit
 		self.hide()
 		get_tree().paused = false
 		pass
-
