@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://cbrda40vq26pj"]
+[gd_scene load_steps=24 format=3 uid="uid://cbrda40vq26pj"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_oyaqx"]
 [ext_resource type="PackedScene" uid="uid://1s5v0llrjq3" path="res://scenes/spaceship.tscn" id="1_rlyye"]
@@ -21,6 +21,7 @@
 [ext_resource type="Theme" uid="uid://bkt3waoihtb6j" path="res://theme/Theme.tres" id="11_je1f8"]
 [ext_resource type="Texture2D" uid="uid://c3ugpxqaf4oud" path="res://assets/kbve/png/universe/timespace_bg.png" id="14_72ru8"]
 [ext_resource type="Script" path="res://scripts/base.gd" id="19_pu4p0"]
+[ext_resource type="PackedScene" uid="uid://c37seeevmae65" path="res://scenes/npc/autorepair.tscn" id="22_yhsl2"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ekd6t"]
 texture = ExtResource("4_e6jc8")
@@ -219,3 +220,5 @@ script = ExtResource("10_1liq3")
 [node name="Base" type="Node2D" parent="."]
 z_index = -1
 script = ExtResource("19_pu4p0")
+
+[node name="Autorepair" parent="." instance=ExtResource("22_yhsl2")]
