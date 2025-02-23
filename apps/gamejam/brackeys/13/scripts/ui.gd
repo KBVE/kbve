@@ -3,16 +3,12 @@ extends Node
 
 const SHOP_SCENE = preload("res://scenes/shop/shop.tscn")
 var shop_instance: Node
-# var shop_ui: Control
-const INTERACTIONS_UI = preload("res://scenes/ui/interactions.tscn")
-var interactions: Control
 
-# const UI_SCENE = preload("res://scenes/ui/ui.tscn")
-# var ui_instance: Node
-# var interaction_prompt: Control
+const INTERACTIONS_UI = preload("res://scenes/ui/interactions.tscn")
+var interactions: CanvasLayer
 
 const NPC_UI = preload("res://scenes/npc/npc.tscn")
-var npc: Control
+var npc: CanvasLayer
 
 func _ready():
     shop_instance = SHOP_SCENE.instantiate()

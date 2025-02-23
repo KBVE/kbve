@@ -2,13 +2,5 @@
 
 [ext_resource type="Script" path="res://scripts/interactions.gd" id="1_jqaob"]
 
-[node name="Control" type="Control"]
-layout_mode = 3
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Canvas" type="CanvasLayer"]
 script = ExtResource("1_jqaob")
