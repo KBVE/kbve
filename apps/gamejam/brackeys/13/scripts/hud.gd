@@ -2,7 +2,7 @@ extends Control
 
 @onready var coordinates_label = $Panel/Menu/Nav/Label
 @onready var name_label = $Panel/Menu/Nav/StarshipName
-@onready var heat_label = $Panel/Menu/Nav/StarshipHeat
+@onready var heat_label = $Panel/Menu/Nav/TempBox/StarshipHeat
 
 # Resources
 
