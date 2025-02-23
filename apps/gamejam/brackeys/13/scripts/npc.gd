@@ -8,10 +8,13 @@ extends CanvasLayer
 var tween: Tween
 
 func _ready():
+	layer = 10
+	dialog_box.z_index = 100
 	visible = false
 	close_button.connect("pressed", hide_npc)
 	
 func set_npc_data(image: Texture, name: String, text: String):
+	print("Showing NPC Dialog")
 	npc_image.texture = image
 	npc_name.text = name
 	dialog_text.text = text
@@ -20,7 +23,7 @@ func set_npc_data(image: Texture, name: String, text: String):
 
 	dialog_box.modulate = Color(1, 1, 1, 0)
 	tween = create_tween()
-	tween.tween_property(self, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(dialog_box, "modulate", Color(1, 1, 1, 1), 0.5)
 
 	start_typing_effect(text)
 
@@ -37,6 +40,6 @@ func hide_npc():
 	if tween:
 		tween.kill()
 	tween = create_tween()
-	tween.tween_property(dialog_box, "modulate", Color(1, 1, 1, 0), 0.5).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(dialog_box, "modulate", Color(1, 1, 1, 0), 0.5)
 	await tween.finished
 	dialog_box.visible = false
