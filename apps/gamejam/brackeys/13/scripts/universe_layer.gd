@@ -1,6 +1,6 @@
 extends Parallax2D
 
-@export var pool_size: int = 6
+@export var pool_size: int = 2
 @export var despawn_distance: float = 2000
 
 var active_sprites: Array[Sprite2D] = []
