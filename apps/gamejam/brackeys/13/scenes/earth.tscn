@@ -551,7 +551,7 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wey4h"]
-radius = 106.0
+radius = 388.861
 
 [node name="Earth" type="Area2D"]
 collision_layer = 16
@@ -559,9 +559,13 @@ collision_mask = 32
 script = ExtResource("1_b2nuq")
 
 [node name="Earth" type="Sprite2D" parent="."]
+scale = Vector2(3, 3)
 
 [node name="PlanetAnimation" type="AnimatedSprite2D" parent="."]
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_7c12b")
+frame = 29
+frame_progress = 0.412462
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_wey4h")
