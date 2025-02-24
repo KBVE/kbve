@@ -3,16 +3,13 @@ import {
 	YStack,
 	XStack,
 	SizableText,
-	Separator,
 	ScrollView,
-	View,
 } from 'tamagui';
 import { InstaCard, LottieAnimation } from '@kbve/expo-bbq';
-import { useNavigation, useRouter } from 'expo-router';
+import { useNavigation } from 'expo-router';
 
 const Consulting = () => {
 	const navigation = useNavigation();
-	const router = useRouter();
 
 	const postData = {
 		username: 'john_doe',
@@ -31,7 +28,7 @@ const Consulting = () => {
 
 	const handleAction = (actionState: string, content: string) => {
 		console.log(`Action: ${actionState}, Content: ${content}`);
-		// Handle the action and content here (e.g., update state or UI)
+		//
 	};
 
 	// Memoizing navigation update function
@@ -76,7 +73,7 @@ const Consulting = () => {
 					$gtLg={{
 						flex: 1,
 						flexGrow: 1,
-						// maxWidth: '33%', // Slightly smaller maxWidth on extra-large screens
+						// maxWidth: '33%',
 						paddingLeft: '$8',
 					}}>
 					<MemoizedLottieAnimation
@@ -102,7 +99,7 @@ const Consulting = () => {
 						flexDirection: 'row',
 						flexWrap: 'wrap',
 						gap: "$5",
-						// maxWidth: '33%', // Slightly smaller maxWidth on extra-large screens
+						// maxWidth: '33%', 
 						
 					}}>
 					<InstaCard
@@ -113,7 +110,7 @@ const Consulting = () => {
 						likes={postData.likes}
 						caption={postData.caption}
 						ulid={postId}
-						onAction={handleAction} // Pass the callback to handle actions
+						onAction={handleAction} 
 					/>
 					<InstaCard
 						username={postData.username}
@@ -123,7 +120,7 @@ const Consulting = () => {
 						likes={postData.likes}
 						caption={postData.caption}
 						ulid={postId}
-						onAction={handleAction} // Pass the callback to handle actions
+						onAction={handleAction}
 					/>
 					<InstaCard
 						username={postData.username}
@@ -133,7 +130,7 @@ const Consulting = () => {
 						likes={postData.likes}
 						caption={postData.caption}
 						ulid={postId}
-						onAction={handleAction} // Pass the callback to handle actions
+						onAction={handleAction}
 					/>
 				</YStack>
 			</XStack>
