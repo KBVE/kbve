@@ -1,7 +1,6 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
 import { YStack, XStack, SizableText, Separator, ScrollView } from 'tamagui';
 import {
-	TamaUserCard,
 	LottieAnimation,
 	createSupabaseClient,
 	TamaProfileContainer,

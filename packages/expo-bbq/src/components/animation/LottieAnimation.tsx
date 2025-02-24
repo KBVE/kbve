@@ -13,7 +13,7 @@ type LottieAnimationProps = {
 	style?: object; // Custom style prop for the animation
 };
 
-export const LottieAnimation: React.FC<LottieAnimationProps> = ({
+const LottieAnimation: React.FC<LottieAnimationProps> = ({
 	lottieJSON,
 	style,
 }) => {
@@ -51,3 +51,6 @@ const styles = StyleSheet.create({
 		height: 200,
 	},
 });
+
+export default LottieAnimation;
+export { LottieAnimation };

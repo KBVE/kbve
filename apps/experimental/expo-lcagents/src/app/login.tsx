@@ -5,20 +5,18 @@ import React, {
 	useMemo,
 	useCallback,
 } from 'react';
-import { YStack, SizableText, ScrollView, View, Button, useMedia} from 'tamagui';
+import { YStack, SizableText, ScrollView, View, Button} from 'tamagui';
 import {
 	TamaLogin,
 	LottieAnimation,
 	TamaSheet,
-	useBBQ,
-	TamaSkeleton,
+	useBBQ
 } from '@kbve/expo-bbq';
 import { useNavigation } from 'expo-router';
 
 const Login = () => {
 	const navigation = useNavigation();
 	const router = useBBQ();
-	const media = useMedia();
 	const sheetRef = useRef<{
 		showSheet: () => void;
 		hideSheet: () => void;
