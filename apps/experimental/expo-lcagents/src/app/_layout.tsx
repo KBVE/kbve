@@ -11,9 +11,7 @@ import { Platform } from "react-native";
 import config  from '../../tamagui.config'
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'
-import { MenuSquare } from '@tamagui/lucide-icons'
 
-import { NavBar } from './_nav'
 export {
   ErrorBoundary,
 } from 'expo-router'
@@ -63,7 +61,7 @@ function RootLayoutNav() {
           <Stack.Screen name="login"  options={{  animation: 'fade' }} />
           <Stack.Screen name="profile" options={{  animation: 'fade' }} />
           <Stack.Screen name="onboard" options={{  animation: 'fade' }} />
-          <Stack.Screen name="users" options={{ animation: 'fade'}} />
+         <Stack.Screen name="users" options={{ animation: 'fade'}} />
 
         </Stack>
        

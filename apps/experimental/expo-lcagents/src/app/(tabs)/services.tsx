@@ -1,9 +1,6 @@
 import React from 'react';
 import { View, Text, XStack, ScrollView } from 'tamagui';
-import { TamaHero, TamaCard, useBBQ } from '@kbve/expo-bbq';
-import { Platform, Linking } from 'react-native';
-
-import { useNavigation, useRouter } from 'expo-router';
+import { TamaHero, useBBQ } from '@kbve/expo-bbq';
 
 function ServiceSection() {
 	return (
