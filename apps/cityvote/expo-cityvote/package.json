@@ -1,6 +1,7 @@
 {
   "name": "expo-cityvote",
   "version": "0.0.1",
+  "main": "index.js",
   "private": true,
   "dependencies": {
     "@react-native-masked-view/masked-view": "*",

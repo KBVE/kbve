@@ -2,6 +2,8 @@
 
 import '../../tamagui-web.css'
 
+
+
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { Stack } from 'expo-router'
 import { useColorScheme } from 'react-native'
@@ -9,7 +11,7 @@ import { TamaguiProvider } from 'tamagui'
 
 import { tamaguiConfig } from '../../tamagui.config'
 
-export default function RootLayout() {
+export const RootLayout = () => {
 
   const colorScheme = useColorScheme()
 
@@ -25,3 +27,5 @@ export default function RootLayout() {
     </TamaguiProvider>
   )
 }
+
+export default RootLayout

@@ -13,7 +13,7 @@ import {
 
 import { NavBar } from '../_nav';
 
-export default function TabLayout() {
+export const TabLayout = () => {
 	return (
 		<Tabs
 			screenOptions={{
@@ -23,7 +23,7 @@ export default function TabLayout() {
 				name="index"
 				options={{
 					title: 'LC',
-					tabBarIcon: ({ color }) => <Home color={`${color}`} />,
+					tabBarIcon: ({ color }) => <Home />,
 					headerLeft: () => (
 						<NavBar />
 					),
@@ -33,7 +33,7 @@ export default function TabLayout() {
 				name="support"
 				options={{
 					title: 'Support',
-					tabBarIcon: ({ color }) => <HelpingHand  color={`${color}`} />,
+					tabBarIcon: ({ color }) => <HelpingHand  />,
 					headerLeft: () => (
 						<NavBar />
 					),
@@ -43,7 +43,7 @@ export default function TabLayout() {
 				name="services"
 				options={{
 					title: 'Services',
-					tabBarIcon: ({ color }) => <DollarSign  color={`${color}`} />,
+					tabBarIcon: ({ color }) => <DollarSign />,
 					headerLeft: () => (
 						<NavBar />
 					),
@@ -53,7 +53,7 @@ export default function TabLayout() {
 				name="about"
 				options={{
 					title: 'About',
-					tabBarIcon: ({ color }) => <Fish  color={`${color}`} />,
+					tabBarIcon: ({ color }) => <Fish />,
 					headerLeft: () => (
 						<NavBar />
 					),
@@ -63,3 +63,5 @@ export default function TabLayout() {
 		</Tabs>
 	);
 }
+
+export default TabLayout
