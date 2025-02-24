@@ -45,7 +45,7 @@ module.exports = withNxMetro(
     outputCSS: TAMAGUI_OUTPUT_CSS_PATH,
   }),
   {
-    debug: false,
+    debug: true,
     extensions: [],
     watchFolders: [],
   }
