@@ -1,6 +1,7 @@
 import { Link, Tabs } from 'expo-router';
 import { Pressable } from 'react-native';
 import { Text } from 'tamagui';
+
 import {
 	Home,
 	HelpingHand,
@@ -10,7 +11,7 @@ import {
 } from '@tamagui/lucide-icons';
 
 
-import { NavBar  } from '../_nav';
+import { NavBar } from '../_nav';
 
 export default function TabLayout() {
 	return (
