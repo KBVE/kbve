@@ -8,7 +8,7 @@ import { PortalProvider } from 'tamagui';
 
 import { Platform } from "react-native";
 
-import config  from '../../tamagui.config'
+import { tamaguiConfig }  from '../../tamagui.config'
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'
 
@@ -27,6 +27,8 @@ if (Platform.OS === 'web') {
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
+  const colorScheme = 'dark';
+
   const [interLoaded, interError] = useFonts({
     Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
     InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
@@ -42,14 +44,8 @@ export default function RootLayout() {
     return null
   }
 
-  return <RootLayoutNav />
-}
-
-function RootLayoutNav() {
-  const colorScheme = 'dark';  // Hardcode the theme to 'dark'
-
   return (
-    <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
+    <TamaguiProvider config={tamaguiConfig} defaultTheme={"dark"}>
       <PortalProvider shouldAddRootHost>
       <ThemeProvider value={DarkTheme}>
       

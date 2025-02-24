@@ -25,3 +25,5 @@ const NavBarSection = () => {
 export const NavBar = () => {
 	return <NavBarSection />;
 };
+
+export default NavBar;

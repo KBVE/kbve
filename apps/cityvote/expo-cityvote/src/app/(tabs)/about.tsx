@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, XStack, ScrollView } from 'tamagui';
 
-import { TamaHero, TamaCard } from '@kbve/expo-bbq';
+// import { TamaHero, TamaCard } from '@kbve/expo-bbq';
 
 import * as Linking from 'expo-linking';
 // import { Linking } from 'react-native';
@@ -34,7 +34,7 @@ const AboutScreen = () => {
 	return (
 		<ScrollView>
 			<View flex={1} alignItems="center">
-				<TamaHero
+				{/* <TamaHero
 					backgroundImageUri="https://images.unsplash.com/photo-1524803504179-6d7ae4d283f7?q=80&w=2056&auto=format&fit=crop"
 					title="About L & C"
 					description="L & C Agency"
@@ -42,7 +42,7 @@ const AboutScreen = () => {
 					buttonTwoText="Support"
 					onButtonOnePress={handleButtonOnePress}
 					onButtonTwoPress={handleUpworkButton}
-				/>
+				/> */}
 
 				<AboutSection />
 			</View>

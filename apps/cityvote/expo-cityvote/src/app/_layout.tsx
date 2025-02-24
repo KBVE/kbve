@@ -3,8 +3,6 @@ import { Link, SplashScreen, Stack } from 'expo-router'
 import { Pressable, useColorScheme } from 'react-native'
 import { TamaguiProvider } from 'tamagui'
 
-import '../../tamagui-web.css'
-
 import { Platform } from "react-native";
 
 import { config } from '../../tamagui.config'
@@ -14,20 +12,17 @@ import { MenuSquare } from '@tamagui/lucide-icons'
 
 import { NavBar } from './_nav'
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router'
+// export {
+//   ErrorBoundary,
+// } from 'expo-router'
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-}
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync()
+// SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
+
+  const colorScheme = useColorScheme()
   const [interLoaded, interError] = useFonts({
     Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
     InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
@@ -40,15 +35,6 @@ export default function RootLayout() {
     }
   }, [interLoaded, interError])
 
-  if (!interLoaded && !interError) {
-    return null
-  }
-
-  return <RootLayoutNav />
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme()
 
   return (
     <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
@@ -57,15 +43,6 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="menu" options={{ presentation: 'modal' }} />
           <Stack.Screen name="consulting" />
-          {/* <Stack.Screen name="projects"
-           options={{
-            headerShown: true, // Ensure the header is shown
-            title: 'Projects', // Set the title for the header
-            // Add more options as needed
-            headerLeft: () => (
-              <NavBar />
-            ),
-          }}  /> */}
         </Stack>
       </ThemeProvider>
     </TamaguiProvider>

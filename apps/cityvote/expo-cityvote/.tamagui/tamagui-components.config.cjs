@@ -32296,10 +32296,6 @@ var min = Math.min;
 var max = Math.max;
 var round = Math.round;
 var floor = Math.floor;
-var createCoords = /* @__PURE__ */ __name((v) => ({
-  x: v,
-  y: v
-}), "createCoords");
 var oppositeSideMap = {
   left: "right",
   right: "left",
@@ -33020,7 +33016,17 @@ var size = /* @__PURE__ */ __name(function(options) {
   };
 }, "size");
 
-// ../../../node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
+// ../../../node_modules/@floating-ui/dom/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
+var min2 = Math.min;
+var max2 = Math.max;
+var round2 = Math.round;
+var floor2 = Math.floor;
+var createCoords = /* @__PURE__ */ __name((v) => ({
+  x: v,
+  y: v
+}), "createCoords");
+
+// ../../../node_modules/@floating-ui/dom/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
 function hasWindow() {
   return typeof window !== "undefined";
 }
@@ -33195,7 +33201,7 @@ function getCssDimensions(element) {
   const hasOffset = isHTMLElement(element);
   const offsetWidth = hasOffset ? element.offsetWidth : width;
   const offsetHeight = hasOffset ? element.offsetHeight : height;
-  const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
+  const shouldFallback = round2(width) !== offsetWidth || round2(height) !== offsetHeight;
   if (shouldFallback) {
     width = offsetWidth;
     height = offsetHeight;
@@ -33222,8 +33228,8 @@ function getScale(element) {
     height,
     $
   } = getCssDimensions(domElement);
-  let x = ($ ? round(rect.width) : rect.width) / width;
-  let y = ($ ? round(rect.height) : rect.height) / height;
+  let x = ($ ? round2(rect.width) : rect.width) / width;
+  let y = ($ ? round2(rect.height) : rect.height) / height;
   if (!x || !Number.isFinite(x)) {
     x = 1;
   }
@@ -33366,12 +33372,12 @@ function getDocumentRect(element) {
   const html = getDocumentElement(element);
   const scroll = getNodeScroll(element);
   const body = element.ownerDocument.body;
-  const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
-  const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
+  const width = max2(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
+  const height = max2(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
   let x = -scroll.scrollLeft + getWindowScrollBarX(element);
   const y = -scroll.scrollTop;
   if (getComputedStyle2(body).direction === "rtl") {
-    x += max(html.clientWidth, body.clientWidth) - width;
+    x += max2(html.clientWidth, body.clientWidth) - width;
   }
   return {
     width,
@@ -33489,10 +33495,10 @@ function getClippingRect(_ref) {
   const firstClippingAncestor = clippingAncestors[0];
   const clippingRect = clippingAncestors.reduce((accRect, clippingAncestor) => {
     const rect = getClientRectFromClippingAncestor(element, clippingAncestor, strategy);
-    accRect.top = max(rect.top, accRect.top);
-    accRect.right = min(rect.right, accRect.right);
-    accRect.bottom = min(rect.bottom, accRect.bottom);
-    accRect.left = max(rect.left, accRect.left);
+    accRect.top = max2(rect.top, accRect.top);
+    accRect.right = min2(rect.right, accRect.right);
+    accRect.bottom = min2(rect.bottom, accRect.bottom);
+    accRect.left = max2(rect.left, accRect.left);
     return accRect;
   }, getClientRectFromClippingAncestor(element, firstClippingAncestor, strategy));
   return {
@@ -33658,14 +33664,14 @@ function observeMove(element, onMove) {
     if (!width || !height) {
       return;
     }
-    const insetTop = floor(top);
-    const insetRight = floor(root.clientWidth - (left + width));
-    const insetBottom = floor(root.clientHeight - (top + height));
-    const insetLeft = floor(left);
+    const insetTop = floor2(top);
+    const insetRight = floor2(root.clientWidth - (left + width));
+    const insetBottom = floor2(root.clientHeight - (top + height));
+    const insetLeft = floor2(left);
     const rootMargin = -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px";
     const options = {
       rootMargin,
-      threshold: max(0, min(1, threshold)) || 1
+      threshold: max2(0, min2(1, threshold)) || 1
     };
     let isFirstUpdate = true;
     function handleObserve(entries) {
@@ -34362,7 +34368,7 @@ var import_react36 = __toESM(require("react"), 1);
 var React45 = __toESM(require("react"), 1);
 var import_react35 = require("react");
 
-// ../../../node_modules/@floating-ui/react/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
+// ../../../node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
 function hasWindow2() {
   return typeof window !== "undefined";
 }
@@ -34579,16 +34585,6 @@ function isTypeableCombobox(element) {
 }
 __name(isTypeableCombobox, "isTypeableCombobox");
 
-// ../../../node_modules/@floating-ui/react/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
-var min2 = Math.min;
-var max2 = Math.max;
-var round2 = Math.round;
-var floor2 = Math.floor;
-function evaluate2(value, param) {
-  return typeof value === "function" ? value(param) : value;
-}
-__name(evaluate2, "evaluate");
-
 // ../../../node_modules/@floating-ui/react/dist/floating-ui.react.mjs
 var import_jsx_runtime33 = require("react/jsx-runtime");
 var import_tabbable = __toESM(require_dist(), 1);
@@ -34736,7 +34732,7 @@ function getGridNavigatedIndex(elementsRef, _ref) {
     }
   }
   if (orientation === "both") {
-    const prevRow = floor2(prevIndex / cols);
+    const prevRow = floor(prevIndex / cols);
     if (event.key === (rtl ? ARROW_LEFT : ARROW_RIGHT)) {
       stop && stopEvent(event);
       if (prevIndex % cols !== cols - 1) {
@@ -34786,7 +34782,7 @@ function getGridNavigatedIndex(elementsRef, _ref) {
         nextIndex = prevIndex;
       }
     }
-    const lastRow = floor2(maxIndex / cols) === prevRow;
+    const lastRow = floor(maxIndex / cols) === prevRow;
     if (isIndexOutOfBounds(elementsRef, nextIndex)) {
       if (loop && lastRow) {
         nextIndex = event.key === (rtl ? ARROW_RIGHT : ARROW_LEFT) ? maxIndex : findNonDisabledIndex(elementsRef, {
@@ -37790,7 +37786,7 @@ var inner = /* @__PURE__ */ __name((props) => ({
       referenceOverflowThreshold = 0,
       scrollRef,
       ...detectOverflowOptions
-    } = evaluate2(props, state);
+    } = evaluate(props, state);
     const {
       rects,
       elements: {
@@ -37820,15 +37816,15 @@ var inner = /* @__PURE__ */ __name((props) => ({
       ...detectOverflowOptions,
       elementContext: "reference"
     });
-    const diffY = max2(0, overflow.top);
+    const diffY = max(0, overflow.top);
     const nextY = nextArgs.y + diffY;
     const isScrollable = scrollEl.scrollHeight > scrollEl.clientHeight;
-    const rounder = isScrollable ? (v) => v : round2;
-    const maxHeight = rounder(max2(0, scrollEl.scrollHeight + (floatingIsBordered && floatingIsScrollEl || scrollElIsBordered ? clientTop * 2 : 0) - diffY - max2(0, overflow.bottom)));
+    const rounder = isScrollable ? (v) => v : round;
+    const maxHeight = rounder(max(0, scrollEl.scrollHeight + (floatingIsBordered && floatingIsScrollEl || scrollElIsBordered ? clientTop * 2 : 0) - diffY - max(0, overflow.bottom)));
     scrollEl.style.maxHeight = maxHeight + "px";
     scrollEl.scrollTop = diffY;
     if (onFallbackChange) {
-      const shouldFallback = scrollEl.offsetHeight < item.offsetHeight * min2(minItemsVisible, listRef.current.length) - 1 || refOverflow.top >= -referenceOverflowThreshold || refOverflow.bottom >= -referenceOverflowThreshold;
+      const shouldFallback = scrollEl.offsetHeight < item.offsetHeight * min(minItemsVisible, listRef.current.length) - 1 || refOverflow.top >= -referenceOverflowThreshold || refOverflow.bottom >= -referenceOverflowThreshold;
       ReactDOM3.flushSync(() => onFallbackChange(shouldFallback));
     }
     if (overflowRef) {
