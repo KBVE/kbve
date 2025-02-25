@@ -58,7 +58,9 @@
     "@react-native-async-storage/async-storage": "*",
     "@supabase/supabase-js": "*",
     "react-native-url-polyfill": "*",
-    "@tamagui/portal": "*"
+    "@tamagui/portal": "*",
+    "react-native-safe-area-context": "*",
+    "expo-system-ui": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../../ && node tools/scripts/eas-build-pre-install.mjs . apps/experimental/expo-lcagents && cp pnpm-lock.yaml apps/experimental/expo-lcagents",
