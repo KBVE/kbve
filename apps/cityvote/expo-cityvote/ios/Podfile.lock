@@ -3,8 +3,218 @@ PODS:
   - DoubleConversion (1.1.6)
   - EXConstants (17.0.7):
     - ExpoModulesCore
+  - EXJSONUtils (0.14.0)
+  - EXManifests (0.15.6):
+    - ExpoModulesCore
   - Expo (52.0.37):
     - ExpoModulesCore
+  - expo-dev-client (5.0.12):
+    - EXManifests
+    - expo-dev-launcher
+    - expo-dev-menu
+    - expo-dev-menu-interface
+    - EXUpdatesInterface
+  - expo-dev-launcher (5.0.29):
+    - DoubleConversion
+    - EXManifests
+    - expo-dev-launcher/Main (= 5.0.29)
+    - expo-dev-menu
+    - expo-dev-menu-interface
+    - ExpoModulesCore
+    - EXUpdatesInterface
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsinspector
+    - React-NativeModulesApple
+    - React-RCTAppDelegate
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - expo-dev-launcher/Main (5.0.29):
+    - DoubleConversion
+    - EXManifests
+    - expo-dev-launcher/Unsafe
+    - expo-dev-menu
+    - expo-dev-menu-interface
+    - ExpoModulesCore
+    - EXUpdatesInterface
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsinspector
+    - React-NativeModulesApple
+    - React-RCTAppDelegate
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - expo-dev-launcher/Unsafe (5.0.29):
+    - DoubleConversion
+    - EXManifests
+    - expo-dev-menu
+    - expo-dev-menu-interface
+    - ExpoModulesCore
+    - EXUpdatesInterface
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsinspector
+    - React-NativeModulesApple
+    - React-RCTAppDelegate
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - expo-dev-menu (6.0.19):
+    - DoubleConversion
+    - expo-dev-menu/Main (= 6.0.19)
+    - expo-dev-menu/ReactNativeCompatibles (= 6.0.19)
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - expo-dev-menu-interface (1.9.3)
+  - expo-dev-menu/Main (6.0.19):
+    - DoubleConversion
+    - EXManifests
+    - expo-dev-menu-interface
+    - expo-dev-menu/Vendored
+    - ExpoModulesCore
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsinspector
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - expo-dev-menu/ReactNativeCompatibles (6.0.19):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - expo-dev-menu/SafeAreaView (6.0.19):
+    - DoubleConversion
+    - ExpoModulesCore
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - expo-dev-menu/Vendored (6.0.19):
+    - DoubleConversion
+    - expo-dev-menu/SafeAreaView
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - ExpoAsset (11.0.4):
     - ExpoModulesCore
   - ExpoFileSystem (18.0.11):
@@ -14,6 +224,8 @@ PODS:
   - ExpoHead (4.0.17):
     - ExpoModulesCore
   - ExpoKeepAwake (14.0.3):
+    - ExpoModulesCore
+  - ExpoLinearGradient (14.0.2):
     - ExpoModulesCore
   - ExpoLinking (7.0.5):
     - ExpoModulesCore
@@ -40,7 +252,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpoSplashScreen (0.29.22):
+    - ExpoModulesCore
   - ExpoSystemUI (4.0.8):
+    - ExpoModulesCore
+  - EXUpdatesInterface (1.0.0):
     - ExpoModulesCore
   - FBLazyVector (0.76.7)
   - fmt (9.1.0)
@@ -1839,15 +2055,24 @@ DEPENDENCIES:
   - boost (from `../../../../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../../../../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXConstants (from `../../../../node_modules/expo-constants/ios`)
+  - EXJSONUtils (from `../../../../node_modules/expo-json-utils/ios`)
+  - EXManifests (from `../../../../node_modules/expo-manifests/ios`)
   - Expo (from `../../../../node_modules/expo`)
+  - expo-dev-client (from `../../../../node_modules/expo-dev-client/ios`)
+  - expo-dev-launcher (from `../../../../node_modules/expo-dev-launcher`)
+  - expo-dev-menu (from `../../../../node_modules/expo-dev-menu`)
+  - expo-dev-menu-interface (from `../../../../node_modules/expo-dev-menu-interface/ios`)
   - ExpoAsset (from `../../../../node_modules/expo-asset/ios`)
   - ExpoFileSystem (from `../../../../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../../../../node_modules/expo-font/ios`)
   - ExpoHead (from `../../../../node_modules/expo-router/ios`)
   - ExpoKeepAwake (from `../../../../node_modules/expo-keep-awake/ios`)
+  - ExpoLinearGradient (from `../../../../node_modules/expo-linear-gradient/ios`)
   - ExpoLinking (from `../../../../node_modules/expo-linking/ios`)
   - ExpoModulesCore (from `../../../../node_modules/expo-modules-core`)
+  - ExpoSplashScreen (from `../../../../node_modules/expo-splash-screen/ios`)
   - ExpoSystemUI (from `../../../../node_modules/expo-system-ui/ios`)
+  - EXUpdatesInterface (from `../../../../node_modules/expo-updates-interface/ios`)
   - FBLazyVector (from `../../../../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../../../../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../../../../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -1931,8 +2156,20 @@ EXTERNAL SOURCES:
     :podspec: "../../../../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXConstants:
     :path: "../../../../node_modules/expo-constants/ios"
+  EXJSONUtils:
+    :path: "../../../../node_modules/expo-json-utils/ios"
+  EXManifests:
+    :path: "../../../../node_modules/expo-manifests/ios"
   Expo:
     :path: "../../../../node_modules/expo"
+  expo-dev-client:
+    :path: "../../../../node_modules/expo-dev-client/ios"
+  expo-dev-launcher:
+    :path: "../../../../node_modules/expo-dev-launcher"
+  expo-dev-menu:
+    :path: "../../../../node_modules/expo-dev-menu"
+  expo-dev-menu-interface:
+    :path: "../../../../node_modules/expo-dev-menu-interface/ios"
   ExpoAsset:
     :path: "../../../../node_modules/expo-asset/ios"
   ExpoFileSystem:
@@ -1943,12 +2180,18 @@ EXTERNAL SOURCES:
     :path: "../../../../node_modules/expo-router/ios"
   ExpoKeepAwake:
     :path: "../../../../node_modules/expo-keep-awake/ios"
+  ExpoLinearGradient:
+    :path: "../../../../node_modules/expo-linear-gradient/ios"
   ExpoLinking:
     :path: "../../../../node_modules/expo-linking/ios"
   ExpoModulesCore:
     :path: "../../../../node_modules/expo-modules-core"
+  ExpoSplashScreen:
+    :path: "../../../../node_modules/expo-splash-screen/ios"
   ExpoSystemUI:
     :path: "../../../../node_modules/expo-system-ui/ios"
+  EXUpdatesInterface:
+    :path: "../../../../node_modules/expo-updates-interface/ios"
   FBLazyVector:
     :path: "../../../../node_modules/react-native/Libraries/FBLazyVector"
   fmt:
@@ -2091,15 +2334,24 @@ SPEC CHECKSUMS:
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXConstants: 0472d3c23d97943fe3505306daf9cde8024365c2
+  EXJSONUtils: 01fc7492b66c234e395dcffdd5f53439c5c29c93
+  EXManifests: b1586049a30ba7ec9ca7ec9afbd4cc233c4b2316
   Expo: f1d13d22815979ad85a0a59fcf6d23660c813ecd
+  expo-dev-client: be653fa8a57337215e8557c07ddced0e8c576af6
+  expo-dev-launcher: e791741ba46eafa8db5fc72c387ffee208bdb29c
+  expo-dev-menu: 3bdb3a7eda40823ef01975ef39bc319aa068b483
+  expo-dev-menu-interface: 00dc42302a72722fdecec3fa048de84a9133bcc4
   ExpoAsset: a4cbc27a7cd24a6e87eb719603790b2cfa8dd326
   ExpoFileSystem: 4d2e7f77a41cfde8c3ae98580d872cd49437f993
   ExpoFont: 773955186469acc5108ff569712a2d243857475f
   ExpoHead: 3d555eb5d0d68c478b9ea259337686c58de22c71
   ExpoKeepAwake: 2a5f15dd4964cba8002c9a36676319a3394c85c7
+  ExpoLinearGradient: ee9efc5acb988b911320e964fab9b4cbdeb198c4
   ExpoLinking: 0381341519ca7180a3a057d20edb1cf6a908aaf4
   ExpoModulesCore: 561a787bc626ab9bcfee2a688bd588bf2667405f
+  ExpoSplashScreen: 643666b96a84e8d97d55fac43926fb4183c692d9
   ExpoSystemUI: ba4507df7d8d15f5e1694a3c7fc6bc3cca3803e5
+  EXUpdatesInterface: 1dcebac98ac5dad4289e6ff2bd5616822e894397
   FBLazyVector: ca8044c9df513671c85167838b4188791b6f37e1
   fmt: 10c6e61f4be25dc963c36bd73fc7b1705fe975be
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
