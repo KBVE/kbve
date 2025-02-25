@@ -1,73 +1,108 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
-import { Link, SplashScreen, Stack } from 'expo-router'
-import { Pressable, useColorScheme } from 'react-native'
-import { TamaguiProvider } from 'tamagui'
+import {
+	DarkTheme,
+	DefaultTheme,
+	NavigationContainer,
+	ThemeProvider,
+} from '@react-navigation/native';
+import { Link, SplashScreen, Stack, usePathname } from 'expo-router';
+import {
+	initialWindowMetrics,
+	SafeAreaProvider,
+	SafeAreaView,
+} from 'react-native-safe-area-context';
+import { StatusBar, useColorScheme } from 'react-native';
+import { PortalProvider, TamaguiProvider, useTheme, View } from 'tamagui';
+// import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
-import '../../tamagui-web.css'
+import { Platform } from 'react-native';
 
-import { Platform } from "react-native";
+import tamaguiConfig from '../../tamagui.config';
+import { useFonts } from 'expo-font';
+import { useEffect } from 'react';
 
-import { config } from '../../tamagui.config'
-import { useFonts } from 'expo-font'
-import { useEffect } from 'react'
-import { MenuSquare } from '@tamagui/lucide-icons'
+// export { ErrorBoundary } from 'expo-router';
 
-import { NavBar } from './_nav'
+// export const unstable_settings = {
+// 	initialRouteName: 'menu',
+// };
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router'
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+if (Platform.OS === 'web') {
+	require('../../tamagui-web.css');
 }
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync()
+SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const [interLoaded, interError] = useFonts({
-    Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
-    InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
-  })
+export function RootLayout() {
+	const colorScheme = useColorScheme();
 
-  useEffect(() => {
-    if (interLoaded || interError) {
-      // Hide the splash screen after the fonts have loaded (or an error was returned) and the UI is ready.
-      SplashScreen.hideAsync()
-    }
-  }, [interLoaded, interError])
+	const [interLoaded, interError] = useFonts({
+		Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
+		InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
+	});
 
-  if (!interLoaded && !interError) {
-    return null
-  }
+	useEffect(() => {
+		if (interLoaded || interError) {
+			SplashScreen.hideAsync();
+		}
+	}, [interLoaded, interError]);
 
-  return <RootLayoutNav />
+	if (!interLoaded && !interError) {
+		return null;
+	}
+
+	return (
+		<TamaguiProvider
+			config={tamaguiConfig}
+			defaultTheme={colorScheme || 'dark'}>
+			<PortalProvider shouldAddRootHost>
+				<ThemeProvider
+					value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+					<SafeAreaView>
+
+						<Stack>
+							<Stack.Screen
+								name="(tabs)"
+								options={{
+									headerShown: false,
+									animation: 'slide_from_bottom',
+								}}
+							/>
+
+							<Stack.Screen
+								name="menu"
+								options={{
+									presentation: 'modal',
+									animation: 'fade',
+								}}
+							/>
+							<Stack.Screen
+								name="consulting"
+								options={{ animation: 'fade' }}
+							/>
+						</Stack>
+					</SafeAreaView>
+				</ThemeProvider>
+			</PortalProvider>
+		</TamaguiProvider>
+	);
 }
 
-function RootLayoutNav() {
-  const colorScheme = useColorScheme()
+const InnerApp = () => {
+	const colorScheme = useColorScheme() || 'light';
+	const isDarkMode = colorScheme === 'dark';
+	const theme = useTheme();
 
-  return (
-    <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
-      <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="menu" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="consulting" />
-          {/* <Stack.Screen name="projects"
-           options={{
-            headerShown: true, // Ensure the header is shown
-            title: 'Projects', // Set the title for the header
-            // Add more options as needed
-            headerLeft: () => (
-              <NavBar />
-            ),
-          }}  /> */}
-        </Stack>
-      </ThemeProvider>
-    </TamaguiProvider>
-  )
-}
+	return (
+		<SafeAreaProvider initialMetrics={initialWindowMetrics}>
+			<StatusBar
+				backgroundColor={theme.borderColor?.val}
+				barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+			/>
+			<NavigationContainer
+				theme={isDarkMode ? DarkTheme : DefaultTheme}
+				children={undefined}></NavigationContainer>
+		</SafeAreaProvider>
+	);
+};
+
+export default RootLayout;

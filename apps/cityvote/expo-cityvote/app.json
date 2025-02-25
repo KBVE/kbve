@@ -30,15 +30,16 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
-      "outpuit": "static"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
       "expo-font"
     ],
     "experiments" : {
-      "tsconfigPaths": true,
-      "typeRoutes": true
-    }
+      "tsconfigPaths": true
+    },
+    "newArchEnabled": true
+
   }
 }

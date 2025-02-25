@@ -1,7 +1,7 @@
-import { ExpoRoot } from 'expo-router';
-import 'expo-router/entry';
+// import { ExpoRoot } from 'expo-router';
+// import 'expo-router/entry';
 
-export default function App() {
-	const ctx = require.context('./src/app');
-	return <ExpoRoot context={ctx} />;
-}
+// export default function App() {
+// 	const ctx = require.context('./app');
+// 	return <ExpoRoot context={ctx} />;
+// }

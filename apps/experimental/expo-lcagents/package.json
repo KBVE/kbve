@@ -60,7 +60,7 @@
     "@tamagui/portal": "*"
   },
   "scripts": {
-    "eas-build-pre-install": "cd ../../../ && node tools/scripts/eas-build-pre-install.mjs . apps/experimental/expo-lcagents && cp pnpm-lock.yaml apps/expo-lcagents",
+    "eas-build-pre-install": "cd ../../../ && node tools/scripts/eas-build-pre-install.mjs . apps/experimental/expo-lcagents && cp pnpm-lock.yaml apps/experimental/expo-lcagents",
     "eas-build-post-install": "cd ../../../ && node tools/scripts/eas-build-post-install.mjs . apps/experimental/expo-lcagents",
     "android": "expo run:android",
     "ios": "expo run:ios"
