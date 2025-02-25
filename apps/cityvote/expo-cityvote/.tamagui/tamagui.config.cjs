@@ -31504,21 +31504,24 @@ function createSheet({
       frameSize,
       contentRef,
       open
-    } = context2, composedContentRef = useComposedRefs(forwardedRef, contentRef), offscreenSize = useSheetOffscreenSize(context2), sheetContents = (0, import_react23.useMemo)(() => /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(StackZIndexContext, {
-      zIndex: resolveViewZIndex(props.zIndex),
-      children: /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(Frame2, {
+    } = context2, composedContentRef = useComposedRefs(forwardedRef, contentRef), offscreenSize = useSheetOffscreenSize(context2), sheetContents = (0, import_react23.useMemo)(() => (
+      // @ts-expect-error
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(Frame2, {
         ref: composedContentRef,
         flex: hasFit ? 0 : 1,
         height: hasFit ? void 0 : frameSize,
         pointerEvents: open ? "auto" : "none",
         ...props,
-        children: [children, adjustPaddingForOffscreenContent && /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(import_core9.Stack, {
+        children: [/* @__PURE__ */ (0, import_jsx_runtime14.jsx)(StackZIndexContext, {
+          zIndex: resolveViewZIndex(props.zIndex),
+          children
+        }), adjustPaddingForOffscreenContent && /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(import_core9.Stack, {
           "data-sheet-offscreen-pad": true,
           height: offscreenSize,
           width: "100%"
         })]
       })
-    }), [open, props, frameSize, offscreenSize, adjustPaddingForOffscreenContent, hasFit]);
+    ), [open, props, frameSize, offscreenSize, adjustPaddingForOffscreenContent, hasFit]);
     return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(import_jsx_runtime14.Fragment, {
       children: [/* @__PURE__ */ (0, import_jsx_runtime14.jsx)(RemoveScroll, {
         forwardProps: true,

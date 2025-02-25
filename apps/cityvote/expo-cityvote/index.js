@@ -10,4 +10,4 @@ export function App() {
   return <ExpoRoot context={ctx} />;
 }
 
-AppRegistry.registerComponent(appName, () => App);
+AppRegistry.registerComponent(appName, App);
