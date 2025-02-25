@@ -1,17 +1,12 @@
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
-import { Text } from 'tamagui';
-
+import { Tabs } from 'expo-router';
 import {
 	Home,
 	HelpingHand,
 	DollarSign,
-	Fish,
-	MenuSquare,
-} from '@tamagui/lucide-icons';
+	Fish} from '@tamagui/lucide-icons';
 
 
-import { NavBar } from '../_nav';
+import NavBar  from '../_nav';
 
 export const TabLayout = () => {
 	return (
@@ -23,7 +18,7 @@ export const TabLayout = () => {
 				name="index"
 				options={{
 					title: 'LC',
-					tabBarIcon: ({ color }) => <Home />,
+					tabBarIcon: () => <Home />,
 					headerLeft: () => (
 						<NavBar />
 					),
@@ -33,7 +28,7 @@ export const TabLayout = () => {
 				name="support"
 				options={{
 					title: 'Support',
-					tabBarIcon: ({ color }) => <HelpingHand  />,
+					tabBarIcon: () => <HelpingHand  />,
 					headerLeft: () => (
 						<NavBar />
 					),
@@ -43,7 +38,7 @@ export const TabLayout = () => {
 				name="services"
 				options={{
 					title: 'Services',
-					tabBarIcon: ({ color }) => <DollarSign />,
+					tabBarIcon: () => <DollarSign />,
 					headerLeft: () => (
 						<NavBar />
 					),
@@ -53,7 +48,7 @@ export const TabLayout = () => {
 				name="about"
 				options={{
 					title: 'About',
-					tabBarIcon: ({ color }) => <Fish />,
+					tabBarIcon: () => <Fish />,
 					headerLeft: () => (
 						<NavBar />
 					),
