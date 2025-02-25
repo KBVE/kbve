@@ -39,8 +39,7 @@
     "experiments" : {
       "tsconfigPaths": true
     },
-    "newArchEnabled": true,
-    "sdkVersion": "52.0.0"
+    "newArchEnabled": true
 
   }
 }

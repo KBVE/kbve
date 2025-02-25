@@ -4,6 +4,9 @@ const { withNxMetro } = require('@nx/expo');
 const { getDefaultConfig } = require('@expo/metro-config');
 const { mergeConfig } = require('metro-config');
 const { withTamagui } = require('@tamagui/metro-plugin');
+const {
+  wrapWithReanimatedMetroConfig,
+} = require('react-native-reanimated/metro-config');
 
 // Constants for repeated values
 const TAMAGUI_CONFIG_PATH = './tamagui.config.ts';
@@ -38,7 +41,7 @@ let mergedConfig = mergeConfig(defaultConfig, getCustomResolverConfig(defaultCon
 mergedConfig = mergeConfig(mergedConfig, getCustomTransformerConfig());
 mergedConfig = mergeConfig(mergedConfig, getTamaguiConfig());
 
-module.exports = withNxMetro(
+module.exports = withNxMetro(wrapWithReanimatedMetroConfig(
   withTamagui(mergedConfig, {
     components: ['tamagui'],
     config: TAMAGUI_CONFIG_PATH,
@@ -49,4 +52,4 @@ module.exports = withNxMetro(
     extensions: [],
     watchFolders: [],
   }
-);
+));

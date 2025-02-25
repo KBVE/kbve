@@ -29,6 +29,32 @@
       "dependsOn": [
         "sync-deps"
       ]
+    },
+    "ios-prebuild": {
+      "executor": "@nx/expo:prebuild",
+      "options": {
+        "platform": "ios",
+        "clean": true
+      },
+      "dependsOn": [
+        "sync-deps"
+      ]
+    },
+    "ios": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "pnpm nx ios-prebuild expo-cityvote",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "TAMAGUI_TARGET=native pnpm nx start expo-cityvote --clear",
+            "forwardAllArgs": false
+          }
+        ],
+        "parallel": false
+      }
     }
   }
 }
