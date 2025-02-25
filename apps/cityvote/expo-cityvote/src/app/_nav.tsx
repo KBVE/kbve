@@ -6,7 +6,7 @@ import { Pressable } from 'react-native';
 
 import { XStack } from 'tamagui';
 
-export const NavBar = () => {
+const NavBar = () => {
 	return (
 		<XStack>
 			<Link href="/menu" asChild>
@@ -23,7 +23,5 @@ export const NavBar = () => {
 		</XStack>
 	);
 };
-
-
 
 export default NavBar;
