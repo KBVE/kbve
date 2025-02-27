@@ -1,17 +1,12 @@
 import {
 	DarkTheme,
 	DefaultTheme,
-	NavigationContainer,
-	ThemeProvider,
+	ThemeProvider
 } from '@react-navigation/native';
-import { Link, SplashScreen, Stack, usePathname } from 'expo-router';
-import {
-	initialWindowMetrics,
-	SafeAreaProvider,
-	SafeAreaView,
-} from 'react-native-safe-area-context';
-import { StatusBar, useColorScheme } from 'react-native';
-import { PortalProvider, TamaguiProvider, useTheme, View } from 'tamagui';
+import { SplashScreen, Stack } from 'expo-router';
+
+import { useColorScheme } from 'react-native';
+import { PortalProvider, TamaguiProvider } from 'tamagui';
 // import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import { Platform } from 'react-native';
@@ -32,7 +27,7 @@ if (Platform.OS === 'web') {
 
 SplashScreen.preventAutoHideAsync();
 
-export function RootLayout() {
+export default function RootLayout() {
 	const colorScheme = useColorScheme();
 
 	const [interLoaded, interError] = useFonts({
@@ -57,52 +52,29 @@ export function RootLayout() {
 			<PortalProvider shouldAddRootHost>
 				<ThemeProvider
 					value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-					<SafeAreaView>
+					<Stack>
+						<Stack.Screen
+							name="(tabs)"
+							options={{
+								headerShown: false,
+								animation: 'slide_from_bottom',
+							}}
+						/>
 
-						<Stack>
-							<Stack.Screen
-								name="(tabs)"
-								options={{
-									headerShown: false,
-									animation: 'slide_from_bottom',
-								}}
-							/>
-
-							<Stack.Screen
-								name="menu"
-								options={{
-									presentation: 'modal',
-									animation: 'fade',
-								}}
-							/>
-							<Stack.Screen
-								name="consulting"
-								options={{ animation: 'fade' }}
-							/>
-						</Stack>
-					</SafeAreaView>
+						<Stack.Screen
+							name="menu"
+							options={{
+								presentation: 'modal',
+								animation: 'fade',
+							}}
+						/>
+						<Stack.Screen
+							name="consulting"
+							options={{ animation: 'fade' }}
+						/>
+					</Stack>
 				</ThemeProvider>
 			</PortalProvider>
 		</TamaguiProvider>
 	);
 }
-
-const InnerApp = () => {
-	const colorScheme = useColorScheme() || 'light';
-	const isDarkMode = colorScheme === 'dark';
-	const theme = useTheme();
-
-	return (
-		<SafeAreaProvider initialMetrics={initialWindowMetrics}>
-			<StatusBar
-				backgroundColor={theme.borderColor?.val}
-				barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-			/>
-			<NavigationContainer
-				theme={isDarkMode ? DarkTheme : DefaultTheme}
-				children={undefined}></NavigationContainer>
-		</SafeAreaProvider>
-	);
-};
-
-export default RootLayout;

@@ -3030,4 +3030,30 @@ Regularly update and review your tools to keep up with new features and improvem
 
 </Aside>
 
+---
+
+## Expo
+
+
+### Expo Webpack
+
+This section is for the `Expo` webpack.
+
+In the event that you encounter this error: `Error: ENOSPC: System limit for number of file watchers reached` , update the `webpack.config.js` with an ignore on `node_modules` folder.
+
+```js
+
+config.watchOptions = {
+		...config.watchOptions,
+		ignored: ['**/node_modules/**'], // Ignore all files in node_modules
+	};
+
+```
+
+### Expo Tamagui
+
+Work in Progress Notes
+
+---
+
 <Giscus />

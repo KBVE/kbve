@@ -22,10 +22,12 @@ const customConfig = withNativeWind({
     assetExts: assetExts.filter((ext) => ext !== 'svg'),
     sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg'],
   },
+ 
 });
 
 module.exports = withNxMetro(mergeConfig(defaultConfig, customConfig), {
   debug: false,
   extensions: [],
-  watchFolders: [],
+  watchFolders: ['./src'],
+  maxWorkers: 2,
 });

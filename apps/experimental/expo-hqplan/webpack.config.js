@@ -55,5 +55,10 @@ module.exports = async function (env, argv) {
 		stream: require.resolve('stream-browserify'),
 	};
 
+	config.watchOptions = {
+		...config.watchOptions,
+		ignored: ['**/node_modules/**'],
+	};
+
 	return config;
 };
