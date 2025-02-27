@@ -1,8 +1,8 @@
 const { withNxMetro } = require('@nx/expo');
 const { getDefaultConfig } = require('@expo/metro-config');
-const { mergeConfig } = require('metro-config');
 const { withNativeWind } = require('nativewind/metro');
 
+<<<<<<< Updated upstream
 const defaultConfig = getDefaultConfig(__dirname);
 const { assetExts, sourceExts, resolveRequest } = defaultConfig.resolver;
 
@@ -22,10 +22,21 @@ const customConfig = withNativeWind({
     resolveRequest: resolveRequest ?? require('metro-resolver').resolve, // Preserve Metro's resolver if it exists
   },
 });
+=======
+// Default Metro configuration
+const defaultConfig = getDefaultConfig(__dirname);
 
-module.exports = withNxMetro(mergeConfig(defaultConfig, customConfig), {
-  debug: false,
-  extensions: [],
-  watchFolders: ['./src'],
-  maxWorkers: 2,
+// Apply Nx modifications first
+// const nxConfig = withNxMetro(defaultConfig, {
+//   debug: false,
+//   extensions: [],
+//   watchFolders: ['./src'],
+//   maxWorkers: 2,
+// });
+>>>>>>> Stashed changes
+
+// Apply NativeWind Plugin last
+module.exports = withNativeWind(defaultConfig, {
+  input: './src/global.css',
+  configPath: './tailwind.config.js',
 });
