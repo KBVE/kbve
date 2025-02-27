@@ -1,15 +1,11 @@
 import { View, XStack, Separator, ScrollView, Button } from 'tamagui';
 
 import {
-	Activity,
-	LogIn,
 	BadgePoundSterling,
-	BadgeHelp,
 } from '@tamagui/lucide-icons';
 
 import { TamaHero, TamaCard, LottieHero, useBBQ } from '@kbve/expo-bbq';
 
-import { useRouter, Link } from 'expo-router';
 
 function HomeCards() {
 	return (

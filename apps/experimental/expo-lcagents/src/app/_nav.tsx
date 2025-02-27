@@ -22,6 +22,9 @@ const NavBarSection = () => {
 	);
 };
 
-export const NavBar = () => {
+const NavBar = () => {
 	return <NavBarSection />;
-};
+  };
+
+export default NavBar;
+export { NavBar };

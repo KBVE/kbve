@@ -1,18 +1,6 @@
 import React from 'react';
 import { View, Text, XStack, ScrollView } from 'tamagui';
-
-import { TamaHero, TamaCard } from '@kbve/expo-bbq';
-
-import * as Linking from 'expo-linking';
-// import { Linking } from 'react-native';
-import { router } from 'expo-router';
-
-const handleUpworkButton = () => {
-	const url = 'https://www.example.com'; // Your URL here
-	Linking.openURL(url).catch((err) =>
-		console.error('Failed to open URL:', err),
-	);
-};
+import { TamaHero, useBBQ } from '@kbve/expo-bbq';
 
 function ServiceSection() {
 	return (
@@ -27,8 +15,14 @@ function ServiceSection() {
 }
 
 const ServiceScreen = () => {
+	const router = useBBQ();
+
 	const handleButtonOnePress = () => {
-		router.navigate('/contact'); // Replace '/your-target-route' with the path you want to navigate to
+		router.go('/contact');
+	};
+
+	const handleButtonTwoPress = () => {
+		router.go('/support');
 	};
 
 	return (
@@ -41,7 +35,7 @@ const ServiceScreen = () => {
 					buttonOneText="Contact"
 					buttonTwoText="Support"
 					onButtonOnePress={handleButtonOnePress}
-					onButtonTwoPress={handleUpworkButton}
+					onButtonTwoPress={handleButtonTwoPress}
 				/>
 
 				<ServiceSection />

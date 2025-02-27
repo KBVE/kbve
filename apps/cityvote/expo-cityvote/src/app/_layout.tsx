@@ -1,73 +1,80 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
-import { Link, SplashScreen, Stack } from 'expo-router'
-import { Pressable, useColorScheme } from 'react-native'
-import { TamaguiProvider } from 'tamagui'
+import {
+	DarkTheme,
+	DefaultTheme,
+	ThemeProvider
+} from '@react-navigation/native';
+import { SplashScreen, Stack } from 'expo-router';
 
-import '../../tamagui-web.css'
+import { useColorScheme } from 'react-native';
+import { PortalProvider, TamaguiProvider } from 'tamagui';
+// import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
-import { Platform } from "react-native";
+import { Platform } from 'react-native';
 
-import { config } from '../../tamagui.config'
-import { useFonts } from 'expo-font'
-import { useEffect } from 'react'
-import { MenuSquare } from '@tamagui/lucide-icons'
+import tamaguiConfig from '../../tamagui.config';
+import { useFonts } from 'expo-font';
+import { useEffect } from 'react';
 
-import { NavBar } from './_nav'
+// export { ErrorBoundary } from 'expo-router';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router'
+// export const unstable_settings = {
+// 	initialRouteName: 'menu',
+// };
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+if (Platform.OS === 'web') {
+	require('../../tamagui-web.css');
 }
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync()
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [interLoaded, interError] = useFonts({
-    Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
-    InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
-  })
+	const colorScheme = useColorScheme();
 
-  useEffect(() => {
-    if (interLoaded || interError) {
-      // Hide the splash screen after the fonts have loaded (or an error was returned) and the UI is ready.
-      SplashScreen.hideAsync()
-    }
-  }, [interLoaded, interError])
+	const [interLoaded, interError] = useFonts({
+		Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
+		InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
+	});
 
-  if (!interLoaded && !interError) {
-    return null
-  }
+	useEffect(() => {
+		if (interLoaded || interError) {
+			SplashScreen.hideAsync();
+		}
+	}, [interLoaded, interError]);
 
-  return <RootLayoutNav />
-}
+	if (!interLoaded && !interError) {
+		return null;
+	}
 
-function RootLayoutNav() {
-  const colorScheme = useColorScheme()
+	return (
+		<TamaguiProvider
+			config={tamaguiConfig}
+			defaultTheme={colorScheme || 'dark'}>
+			<PortalProvider shouldAddRootHost>
+				<ThemeProvider
+					value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+					<Stack>
+						<Stack.Screen
+							name="(tabs)"
+							options={{
+								headerShown: false,
+								animation: 'slide_from_bottom',
+							}}
+						/>
 
-  return (
-    <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
-      <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="menu" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="consulting" />
-          {/* <Stack.Screen name="projects"
-           options={{
-            headerShown: true, // Ensure the header is shown
-            title: 'Projects', // Set the title for the header
-            // Add more options as needed
-            headerLeft: () => (
-              <NavBar />
-            ),
-          }}  /> */}
-        </Stack>
-      </ThemeProvider>
-    </TamaguiProvider>
-  )
+						<Stack.Screen
+							name="menu"
+							options={{
+								presentation: 'modal',
+								animation: 'fade',
+							}}
+						/>
+						<Stack.Screen
+							name="consulting"
+							options={{ animation: 'fade' }}
+						/>
+					</Stack>
+				</ThemeProvider>
+			</PortalProvider>
+		</TamaguiProvider>
+	);
 }

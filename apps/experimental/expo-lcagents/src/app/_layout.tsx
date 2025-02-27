@@ -8,12 +8,10 @@ import { PortalProvider } from 'tamagui';
 
 import { Platform } from "react-native";
 
-import config  from '../../tamagui.config'
+import { tamaguiConfig }  from '../../tamagui.config'
 import { useFonts } from 'expo-font'
 import { useEffect } from 'react'
-import { MenuSquare } from '@tamagui/lucide-icons'
 
-import { NavBar } from './_nav'
 export {
   ErrorBoundary,
 } from 'expo-router'
@@ -29,6 +27,8 @@ if (Platform.OS === 'web') {
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
+  const colorScheme = 'dark';
+
   const [interLoaded, interError] = useFonts({
     Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
     InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
@@ -44,14 +44,8 @@ export default function RootLayout() {
     return null
   }
 
-  return <RootLayoutNav />
-}
-
-function RootLayoutNav() {
-  const colorScheme = 'dark';  // Hardcode the theme to 'dark'
-
   return (
-    <TamaguiProvider config={config} defaultTheme={colorScheme as any}>
+    <TamaguiProvider config={tamaguiConfig} defaultTheme={"dark"}>
       <PortalProvider shouldAddRootHost>
       <ThemeProvider value={DarkTheme}>
       
@@ -63,7 +57,7 @@ function RootLayoutNav() {
           <Stack.Screen name="login"  options={{  animation: 'fade' }} />
           <Stack.Screen name="profile" options={{  animation: 'fade' }} />
           <Stack.Screen name="onboard" options={{  animation: 'fade' }} />
-          <Stack.Screen name="users" options={{ animation: 'fade'}} />
+         <Stack.Screen name="users" options={{ animation: 'fade'}} />
 
         </Stack>
        
