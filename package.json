@@ -265,5 +265,19 @@
 	},
 	"scripts": {
 		"postinstall": "pnpm exec playwright install"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"@parcel/watcher",
+			"@swc/core",
+			"core-js",
+			"core-js-pure",
+			"cypress",
+			"esbuild",
+			"grpc-tools",
+			"nx",
+			"sharp",
+			"styled-components"
+		]
 	}
 }
