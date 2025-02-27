@@ -6,46 +6,43 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
-// Get the default config from Expo
+// Get Expo's default Metro config
 const defaultConfig = getDefaultConfig(__dirname);
 
-// Extract relevant properties for easier manipulation
-const { assetExts, sourceExts } = defaultConfig.resolver;
+// Extract properties for modification
+const { assetExts, sourceExts, resolveRequest } = defaultConfig.resolver;
 
-// Custom configuration for handling SVGs and adding new file extensions
-const svgAndExtensionConfig = {
+// 🔹 Step 1: Customize SVG and File Extensions
+const fileConfig = {
   transformer: {
     babelTransformerPath: require.resolve('react-native-svg-transformer'),
   },
   resolver: {
-    assetExts: [
-      ...assetExts.filter((ext) => ext !== 'svg'),
-      'json',
-      'png',
-    ],
+    assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'json', 'png'],
     sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg', 'jsx', 'js', 'ts', 'tsx'],
+    resolveRequest: resolveRequest ?? require('metro-resolver').resolve, // Preserve Metro's resolver
   },
 };
 
-// Merge the SVG and extension customization into the default config
-let mergedConfig = mergeConfig(defaultConfig, svgAndExtensionConfig);
+// 🔹 Step 2: Merge File Config with Default Metro Config
+let mergedConfig = mergeConfig(defaultConfig, fileConfig);
 
-// Enable CSS support and configure for Tamagui (only if needed for web)
-const tamaguiBaseConfig = getDefaultConfig(__dirname, {
-  isCSSEnabled: true, // Enable CSS only for web
-});
-mergedConfig = mergeConfig(mergedConfig, tamaguiBaseConfig);
-
-// Apply Tamagui plugin with native-aware settings
-const tamaguiConfig = withTamagui(mergedConfig, {
+// 🔹 Step 3: Apply Tamagui Plugin (Now Includes `isCSSEnabled`)
+mergedConfig = withTamagui(mergedConfig, {
   components: ['tamagui'],
   config: './tamagui.config.ts',
   outputCSS: './tamagui-web.css',
+  isCSSEnabled: true, // Enable CSS support directly inside Tamagui
 });
 
-// Export with Reanimated wrapper
-module.exports = withNxMetro(wrapWithReanimatedMetroConfig(tamaguiConfig), {
-  debug: true, // Change this to true to see debugging info.
-  extensions: [], // All the file extensions used for imports other than 'ts', 'tsx', 'js', 'jsx', 'json'
-  watchFolders: [], // Specify folders to watch, in addition to Nx defaults (workspace libraries and node_modules)
-});
+// 🔹 Step 4: Apply Nx & Reanimated Enhancements
+const finalConfig = withNxMetro(
+  wrapWithReanimatedMetroConfig(mergedConfig),
+  {
+    debug: false, // Change to true for more logging
+    extensions: [],
+    watchFolders: [], // Keep empty unless additional folders are needed
+  }
+);
+
+module.exports = finalConfig;

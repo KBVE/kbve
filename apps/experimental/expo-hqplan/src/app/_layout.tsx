@@ -11,15 +11,18 @@ import {
 	Linking,
 } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
+import { verifyInstallation } from 'nativewind';
+
 
 export const App = () => {
 	const [whatsNextYCoord, setWhatsNextYCoord] = useState<number>(0);
 	const scrollViewRef = useRef<null | ScrollView>(null);
+	verifyInstallation();
 
 	return (
 		<>
 			<StatusBar barStyle="dark-content" />
-			<SafeAreaView className="flex">
+			<SafeAreaView className="flex-1">
 				<ScrollView
 					ref={(ref) => {
 						scrollViewRef.current = ref;
