@@ -1,6 +1,5 @@
 import { ChevronDown } from '@tamagui/lucide-icons';
-import { Accordion, Paragraph, Square, Stack, View } from 'tamagui';
-import { XStack, YStack } from 'tamagui';
+import { Accordion, Paragraph, Square, YStack, View } from 'tamagui';
 
 interface AccordionTriggerProps {
 	open: boolean;
@@ -10,9 +9,7 @@ export function AccordionDemo() {
 	return (
 		<Accordion overflow="hidden" width="$20" type="multiple">
 			<Accordion.Item value="a1">
-				<Accordion.Trigger
-					flexDirection="row"
-					justifyContent="space-between">
+				<Accordion.Trigger flexDirection="row">
 					{({ open }: AccordionTriggerProps) => (
 						<>
 							<Paragraph>Menu</Paragraph>
@@ -34,9 +31,7 @@ export function AccordionDemo() {
 			</Accordion.Item>
 
 			<Accordion.Item value="a2">
-				<Accordion.Trigger
-					flexDirection="row"
-					justifyContent="space-between">
+				<Accordion.Trigger flexDirection="row">
 					{({ open }: AccordionTriggerProps) => (
 						<>
 							<Paragraph>Socials</Paragraph>
@@ -62,16 +57,7 @@ export function AccordionDemo() {
 const ModalScreen = () => {
 	return (
 		<View>
-			<YStack
-				flex={1}
-				space="$2"
-				borderWidth={2}
-				borderColor="$color"
-				borderRadius="$4"
-				padding="$2"
-				alignItems="center" // Center children horizontally in the cross axis (since YStack is a vertical stack)
-				justifyContent="center" // Center children vertically in the main axis
-			>
+			<YStack flex={1} borderWidth={2} borderColor="$color">
 				<AccordionDemo />
 			</YStack>
 		</View>
