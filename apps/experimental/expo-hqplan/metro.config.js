@@ -1,42 +1,42 @@
 const { withNxMetro } = require('@nx/expo');
 const { getDefaultConfig } = require('@expo/metro-config');
 const { withNativeWind } = require('nativewind/metro');
+const { mergeConfig } = require("metro-config");
 
-<<<<<<< Updated upstream
 const defaultConfig = getDefaultConfig(__dirname);
-const { assetExts, sourceExts, resolveRequest } = defaultConfig.resolver;
+const { assetExts, sourceExts } = defaultConfig.resolver;
 
 /**
  * Metro configuration
- * https://facebook.github.io/metro/docs/configuration
+ * https://reactnative.dev/docs/metro
  *
  * @type {import('metro-config').MetroConfig}
  */
-const customConfig = withNativeWind({
+const customConfig = {
+  cacheVersion: "mobile",
   transformer: {
-    babelTransformerPath: require.resolve('react-native-svg-transformer'),
+    babelTransformerPath: require.resolve("react-native-svg-transformer")
   },
   resolver: {
-    assetExts: assetExts.filter((ext) => ext !== 'svg'),
-    sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg'],
-    resolveRequest: resolveRequest ?? require('metro-resolver').resolve, // Preserve Metro's resolver if it exists
-  },
-});
-=======
-// Default Metro configuration
-const defaultConfig = getDefaultConfig(__dirname);
+    assetExts: assetExts.filter((ext) => ext !== "svg"),
+    sourceExts: [...sourceExts, "cjs", "mjs", "svg"]
+  }
+};
 
-// Apply Nx modifications first
-// const nxConfig = withNxMetro(defaultConfig, {
-//   debug: false,
-//   extensions: [],
-//   watchFolders: ['./src'],
-//   maxWorkers: 2,
-// });
->>>>>>> Stashed changes
+async function createConfig() {
+  return await withNxMetro(mergeConfig(defaultConfig, customConfig), {
+    // Change this to true to see debugging info.
+    // Useful if you have issues resolving modules
+    debug: false,
+    // all the file extensions used for imports other than 'ts', 'tsx', 'js', 'jsx', 'json'
+    extensions: [],
+    // Specify folders to watch, in addition to Nx defaults (workspace libraries and node_modules)
+    watchFolders: []
+  }).then((nxConfig) =>
+    withNativeWind(nxConfig, {
+      input: "./src/global.css"
+    })
+  );
+}
 
-// Apply NativeWind Plugin last
-module.exports = withNativeWind(defaultConfig, {
-  input: './src/global.css',
-  configPath: './tailwind.config.js',
-});
+module.exports = createConfig();

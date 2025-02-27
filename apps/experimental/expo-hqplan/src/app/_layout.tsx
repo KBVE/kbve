@@ -11,21 +11,13 @@ import {
 	Linking,
 } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
-import { verifyInstallation } from 'nativewind';
-
-
-import { verifyInstallation } from 'nativewind';
 
 
 
 export const App = () => {
 
-	verifyInstallation();
-
-
 	const [whatsNextYCoord, setWhatsNextYCoord] = useState<number>(0);
 	const scrollViewRef = useRef<null | ScrollView>(null);
-	verifyInstallation();
 
 	return (
 		<>
