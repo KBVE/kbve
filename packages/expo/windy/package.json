@@ -1,0 +1,32 @@
+{
+    "name": "@kbve/windy",
+    "version": "0.1.0",
+    "description": "A lightweight utility package for NativeWind in Expo projects.",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+      "build": "tsc -p tsconfig.lib.json",
+      "lint": "eslint . --ext .ts,.tsx",
+      "test": "jest"
+    },
+    "dependencies": {
+      "nativewind": "^2.x.x",
+      "react-native": ">=0.72.0",
+      "expo": ">=52.0.0",
+      "react-native-reanimated": ">=3.16.0"
+    },
+    "devDependencies": {
+      "typescript": "^5.0.0",
+      "eslint": "^8.x.x",
+      "@types/react": "^18.x.x",
+      "@types/react-native": "^0.72.0"
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/kbve/kbve"
+    },
+    "keywords": ["expo", "nativewind", "tailwind", "kbve"],
+    "author": "KBVE",
+    "license": "MIT"
+  }
+  
