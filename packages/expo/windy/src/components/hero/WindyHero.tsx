@@ -19,24 +19,32 @@ interface WindyHeroProps {
 	title: string;
 	subtitle?: string;
 	imageUrl: string;
+	minWidth?: number;
+	minHeight?: number;
+	overlayColor?: string;
+	className?: string;
 }
 
 export default function WindyHero({
 	title,
 	subtitle,
 	imageUrl,
+	minHeight = 400,
+	minWidth = 500,
+	overlayColor = 'rgba(0, 0, 0, 0.5)',
+	className = ''
 }: WindyHeroProps) {
 	const opacity = React.useRef(useSharedValue(0)).current;
 	const imageOpacity = React.useRef(useSharedValue(0)).current;
 
 	const animatedTextStyle = useAnimatedStyle(() => ({
     flex: 1,
-		opacity: withSpring(opacity.value, { damping: 10, stiffness: 100 }),
+	opacity: withSpring(opacity.value, { damping: 10, stiffness: 100 }),
 	}));
 
   const animatedImageStyle = useAnimatedStyle(() => ({
     flex: 1,
-    backgroundColor: '#0553',
+    backgroundColor: overlayColor,
     opacity: withSpring(imageOpacity.value, { damping: 10, stiffness: 100 }),
   }));
 
@@ -47,11 +55,13 @@ export default function WindyHero({
 
 	return (
 		<View
-			className={cn(
-				'flex-1 relative w-full h-[500px] md:h-[400px] lg:h-[500px] overflow-hidden border-2 border-white',
-			)}>
+		className={cn(
+			`flex-1 relative overflow-hidden border-2 border-white`,
+			`min-w-[${minWidth}px] min-h-[${minHeight}px]`,
+			className,
+		)}>
 			<AnimatedImage
-				source={{ uri: imageUrl, width: 400, height: 400 }}
+				source={{ uri: imageUrl, width: minWidth, height: minHeight }}
         style={[animatedImageStyle, { width: "100%", height: "100%" }]}
 
         placeholder={{ blurhash }}
@@ -69,14 +79,14 @@ export default function WindyHero({
 				<Animated.View style={animatedTextStyle}>
 					<Text
 						className={cn(
-							'text-white text-2xl md:text-4xl font-bold text-center',
+							'text-white mt-4 text-2xl md:text-4xl font-bold text-center',
 						)}>
 						{title}
 					</Text>
 					{subtitle && (
 						<Text
 							className={cn(
-								'text-white text-lg md:text-2xl mt-2 text-center ml-2',
+								'text-white mt-4 text-lg md:text-2xl mt-2 text-center ml-2',
 							)}>
 							{subtitle}
 						</Text>
