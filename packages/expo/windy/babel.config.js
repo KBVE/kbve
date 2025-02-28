@@ -1,21 +1,25 @@
 module.exports = function (api) {
 	api.cache(true);
-
+  
 	return {
-		presets: [
-			[
-				'@nx/react/babel',
-				{
-					runtime: 'automatic',
-					useBuiltIns: 'usage',
-				},
-			],
+	  presets: [
+		[
+		  '@nx/react/babel',
+		  {
+			runtime: 'automatic',
+			useBuiltIns: 'usage',
+		  },
 		],
-		plugins: [],
-		env: {
-			test: {
-				presets: ['babel-preset-expo'],
-			},
+	  ],
+	  plugins: [
+		'nativewind/babel',
+		'react-native-reanimated/plugin',
+	  ],
+	  env: {
+		test: {
+		  presets: ['babel-preset-expo'],
 		},
+	  },
 	};
-};
+  };
+  
