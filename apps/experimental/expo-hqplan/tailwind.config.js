@@ -8,4 +8,7 @@ module.exports = {
 	],
 	presets: [require('nativewind/preset')],
 	plugins: [],
+	corePlugins: {
+		backgroundOpacity: true,
+	  },
 };
