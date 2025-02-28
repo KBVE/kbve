@@ -65,7 +65,7 @@ const HomeScreen = () => {
 						</TouchableOpacity>
 					</View>
 				</View>
-				<View className="flex-1 my-6 mx-3 bg-[#143055] border-2 border-cyan-100 min-w-[200] min-h-[200] rounded-xl">
+				<View className="flex-1 lg:flex-row gap-4 my-6 mx-3 min-w-[200] min-h-[200] rounded-xl">
 					<WindyHero
 						title="Discover the Windy Experience!"
 						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
@@ -73,7 +73,79 @@ const HomeScreen = () => {
 						overlayColor="rgba(0, 0, 0, 0.6)"
 						minHeight={250}
 						minWidth={400}
-						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px]"
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px] bg-[#143055]"
+						onPress={() => console.log('Hero tapped!')}
+					/>
+					<WindyHero
+						title="Discover the Windy Experience!"
+						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
+						imageUrl="https://images.unsplash.com/photo-1727466928916-9789f30de10b?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3"
+						overlayColor="rgba(0, 0, 0, 0.6)"
+						minHeight={250}
+						minWidth={400}
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px] bg-[#143055]"
+						onPress={() => console.log('Hero tapped!')}
+					/>
+					<WindyHero
+						title="Discover the Windy Experience!"
+						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
+						imageUrl="https://images.unsplash.com/photo-1727466928916-9789f30de10b?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3"
+						overlayColor="rgba(0, 0, 0, 0.6)"
+						minHeight={250}
+						minWidth={400}
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px] bg-[#143055]"
+						onPress={() => console.log('Hero tapped!')}
+					/>
+					<WindyHero
+						title="Discover the Windy Experience!"
+						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
+						imageUrl="https://images.unsplash.com/photo-1727466928916-9789f30de10b?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3"
+						overlayColor="rgba(0, 0, 0, 0.6)"
+						minHeight={250}
+						minWidth={400}
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px] bg-[#143055]"
+						onPress={() => console.log('Hero tapped!')}
+					/>
+				</View>
+				<View className="flex-1 lg:flex-row gap-4 my-6 mx-3 min-w-[200] min-h-[200] rounded-xl">
+					<WindyHero
+						title="Discover the Windy Experience!"
+						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
+						imageUrl="https://images.unsplash.com/photo-1727466928916-9789f30de10b?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3"
+						overlayColor="rgba(0, 0, 0, 0.6)"
+						minHeight={250}
+						minWidth={400}
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px] bg-[#143055]"
+						onPress={() => console.log('Hero tapped!')}
+					/>
+					<WindyHero
+						title="Discover the Windy Experience!"
+						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
+						imageUrl="https://images.unsplash.com/photo-1727466928916-9789f30de10b?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3"
+						overlayColor="rgba(0, 0, 0, 0.6)"
+						minHeight={250}
+						minWidth={400}
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px] bg-[#143055]"
+						onPress={() => console.log('Hero tapped!')}
+					/>
+					<WindyHero
+						title="Discover the Windy Experience!"
+						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
+						imageUrl="https://images.unsplash.com/photo-1727466928916-9789f30de10b?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3"
+						overlayColor="rgba(0, 0, 0, 0.6)"
+						minHeight={250}
+						minWidth={400}
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px] bg-[#143055]"
+						onPress={() => console.log('Hero tapped!')}
+					/>
+					<WindyHero
+						title="Discover the Windy Experience!"
+						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
+						imageUrl="https://images.unsplash.com/photo-1727466928916-9789f30de10b?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3"
+						overlayColor="rgba(0, 0, 0, 0.6)"
+						minHeight={250}
+						minWidth={400}
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px] bg-[#143055]"
 						onPress={() => console.log('Hero tapped!')}
 					/>
 				</View>
