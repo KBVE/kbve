@@ -71,9 +71,10 @@ const HomeScreen = () => {
 						subtitle="A seamless blend of design and performance! There will be more text here, just expanding it out and testing it all out."
 						imageUrl="https://images.unsplash.com/photo-1727466928916-9789f30de10b?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3"
 						overlayColor="rgba(0, 0, 0, 0.6)"
-						minHeight={500}
-						minWidth={500}
-						className="rounded-lg shadow-lg lg:min-h-[400px]"
+						minHeight={250}
+						minWidth={400}
+						className="rounded-lg shadow-lg min-h-[350px] lg:min-h-[400px]"
+						onPress={() => console.log('Hero tapped!')}
 					/>
 				</View>
 			</ScrollView>
