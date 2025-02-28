@@ -65,7 +65,7 @@ const HomeScreen = () => {
 						</TouchableOpacity>
 					</View>
 				</View>
-				<View className="flex-1 bg-gray-900">
+				<View className="flex-1 p-4 m-4 bg-[#143055] border-2 border-cyan-100 min-w-[200] min-h-[200] rounded-xl">
 					<WindyHero
 						title="Discover the Windy Experience!"
 						subtitle="A seamless blend of design and performance"
