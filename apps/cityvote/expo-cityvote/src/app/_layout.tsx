@@ -45,6 +45,7 @@ export default function RootLayout() {
 		return null;
 	}
 
+
 	return (
 		<TamaguiProvider
 			config={tamaguiConfig}
