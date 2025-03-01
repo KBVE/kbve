@@ -3,12 +3,9 @@ use godot::classes::{
   Control,
   IControl,
   IDisplayServer,
-  DisplayServer,
   ISprite2D,
   Os,
   ProjectSettings,
-  Sprite2D,
-  display_server::HandleType,
 };
 
 #[cfg(target_os = "macos")]
@@ -16,21 +13,18 @@ use crate::macos::macos_wry_browser_options::MacOSWryBrowserOptions;
 #[cfg(target_os = "windows")]
 use crate::windows::windows_wry_browser_options::WindowsWryBrowserOptions;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use raw_window_handle::{ HasWindowHandle, WindowHandle, HandleError };
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use wry::{
-  dpi::{ LogicalPosition, LogicalSize, PhysicalPosition, PhysicalSize },
-  http::{ HeaderMap, Request },
+  dpi::{ PhysicalPosition, PhysicalSize },
+  http::Request,
   WebViewBuilder,
   Rect,
   WebViewAttributes,
-  RGBA,
 };
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
-use std::{ borrow::Cow, fs, thread, path::PathBuf };
+use std::{ borrow::Cow, fs, path::PathBuf };
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use http::{ header::CONTENT_TYPE, Response };

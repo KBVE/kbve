@@ -1,7 +1,7 @@
 use godot::prelude::*;
 use godot::classes::{ CanvasLayer, ICanvasLayer, IControl };
 use crate::manager::game_manager::GameManager;
-use crate::{ connect_signal, find_game_manager };
+use crate::find_game_manager;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::extensions::wry_extension::GodotBrowser;
@@ -60,7 +60,7 @@ impl ICanvasLayer for BrowserManager {
     }
 
     {
-      let mut base = self.base_mut();
+      let base = self.base_mut();
       if let Some(tree) = base.get_tree() {
         if let Some(mut root) = tree.get_root() {
           let callable = Callable::from_object_method(

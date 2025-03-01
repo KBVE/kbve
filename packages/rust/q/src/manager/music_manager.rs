@@ -1,8 +1,6 @@
 use godot::prelude::*;
 use godot::classes::{ Timer, AudioStream };
-use std::collections::HashMap;
 use crate::manager::game_manager::{ GameManager };
-use crate::data::cache::CacheManager;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
@@ -38,7 +36,7 @@ impl INode for MusicManager {
     godot_print!("[MusicManager] Ready! Searching for GameManager...");
 
     if let Some(parent) = self.base().get_parent() {
-      let mut game_manager = parent.cast::<GameManager>();
+      let game_manager = parent.cast::<GameManager>();
 
       if game_manager.clone().upcast::<Node>().is_instance_valid() {
         godot_print!("[MusicManager] GameManager found! Linking...");

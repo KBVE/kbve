@@ -2,31 +2,17 @@ use godot::prelude::*;
 use godot::classes::{
   CanvasLayer,
   ICanvasLayer,
-  Control,
-  TextureRect,
-  Texture2D,
-  RichTextLabel,
-  Button,
-  Timer,
   InputEvent,
   InputEventKey,
 };
-use godot::classes::control::LayoutPreset;
 use godot::classes::window::Flags as WindowFlags;
-use godot::classes::text_server::AutowrapMode;
-use godot::classes::texture_rect::ExpandMode;
-use godot::classes::tween::{ TransitionType, EaseType };
 use godot::global::Key;
 
-use crate::extensions::timer_extension::{ ClockMaster, TimerExt };
-use crate::data::uxui_data::{ UxUiElement, MenuButtonData };
-use crate::extensions::ui_extension::*;
 use crate::extensions::gui_manager_extension::GUIManagerExt;
 
 use crate::manager::game_manager::GameManager;
-use crate::data::cache::CacheManager;
 
-use crate::{ connect_signal, find_game_manager };
+use crate::find_game_manager;
 
 #[derive(GodotClass)]
 #[class(base = CanvasLayer)]

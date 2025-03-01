@@ -1,8 +1,6 @@
 use godot::prelude::*;
-use godot::classes::window::Flags as WindowFlags;
 use godot::classes::ICanvasLayer;
-use crate::data::user_data::{ UserData, UserDataCache };
-use crate::data::abstract_data_map::AbstractDataMap;
+use crate::data::user_data::UserDataCache;
 use crate::manager::music_manager::MusicManager;
 use crate::manager::gui_manager::GUIManager;
 use crate::manager::browser_manager::BrowserManager;
@@ -135,7 +133,7 @@ impl GameManager {
       godot_print!("[GameManager] user_data_cache is initialized.");
     }
 
-    let Some(mut user_data_cache) = self.user_data_cache.as_mut() else {
+    let Some(user_data_cache) = self.user_data_cache.as_mut() else {
       godot_error!("[GameManager] ERROR: user_data_cache is None!");
       return;
     };
@@ -148,7 +146,7 @@ impl GameManager {
     match user_data_cache.load_from_file(file_path) {
       Some(data) => {
         godot_print!("[GameManager] Successfully loaded settings file.");
-        data;
+        drop(data);
       }
       None => {
         godot_warn!("[GameManager] Settings file not found. Creating default settings...");

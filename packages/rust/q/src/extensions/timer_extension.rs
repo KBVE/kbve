@@ -90,7 +90,7 @@ impl ClockMaster {
       return timer;
     }
 
-    let mut new_timer = Timer::new_alloc()
+    let new_timer = Timer::new_alloc()
       .with_name(&timer_key)
       .with_wait_time(wait_time)
       .with_one_shot(true);
