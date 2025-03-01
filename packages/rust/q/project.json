@@ -40,6 +40,19 @@
       "options": {
         "target-dir": "dist/target/q"
       }
+    },
+
+    "build-mac": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/rust/q",
+        "commands": [
+          "cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
+          "mkdir -p release/addons/q/macos",
+          "cp dist/macos/*.dylib release/addons/q/macos/"
+        ],
+        "parallel": false
+      }
     }
   },
   "tags": []
