@@ -3034,10 +3034,35 @@ Regularly update and review your tools to keep up with new features and improvem
 
 ## Expo
 
+Expo is a powerful open-source platform that supercharges React Native development, letting developers craft universal apps for Android, iOS, and the web with JavaScript, all while streamlining workflows and minimizing native code hassles.
+With the release of Expo SDK 52, it embraces React Native 0.76 and introduces the New Architecture by default for new projects, boosting performance by replacing the old bridge with a faster, more efficient system—think of it as upgrading from a rickety rope bridge to a sleek steel highway.
+This SDK brings stable goodies like the `expo-video` library, offering slick video playback with lock screen controls and Picture-in-Picture support, alongside beta features like `expo-audio` and enhanced file management with expo-file-system.
+It’s a playground for developers, with tools like Expo Router v4 for seamless navigation, experimental tree shaking to trim unused code, and even a taste of React Server Components for cutting-edge app-building.
+Expo SDK 52 also ditches JSC for the speedier Hermes engine and ups minimum OS requirements (iOS 15.1, Android 24), ensuring modern compatibility.
+From rapid prototyping to polished production apps, Expo transforms complex mobile development into an engaging, accessible adventure—one line of code at a time.
+
+<Aside type="note" title="Expo SDK 52">
+
+These notes are for Expo SDK 52 with some minor references to the beta SDK 53!
+
+</Aside>
 
 ### Expo Webpack
 
 This section is for the `Expo` webpack.
+
+The Expo Webpack, once a cornerstone of Expo’s web development ecosystem, was a tailored configuration built on Webpack 4 to bundle React Native apps for the browser, enabling single-page applications (SPAs) with a setup inspired by Create React App.
+Integrated through `@expo/webpack-config`, it streamlined the process of transpiling JavaScript, optimizing assets, and managing dependencies, allowing developers to target web platforms alongside [iOS](/application/xcode/) and [Android](/application/android/) with minimal friction—think of it as a trusty Swiss Army knife for cross-platform bundling.
+Webpack leveraged tools like Babel for broad compatibility and supported progressive web app (PWA) features via Workbox, making offline functionality a breeze.
+However, as of SDK 50 in late 2023, Expo Webpack has been deprecated in favor of Metro, Expo’s newer universal bundler, which promises tighter alignment with React Native’s native ecosystem and faster performance. While customizable through expo customize:web, its maintenance mode status—announced in early 2024—signals a shift, leaving developers with a robust but aging tool that’s being sunsetted for a more cohesive future.
+Still, for legacy projects or specific use cases, it remains a battle-tested option, packing a punch of efficiency and familiarity.
+
+<Aside type="caution" title="Looking to modernize your Expo web setup?">
+
+Switch to Metro, Expo’s current universal bundler, and pair it with a static build for a leaner, faster workflow.
+With Metro’s tighter integration into the React Native ecosystem and support in SDK 50+, you’ll get quicker builds and seamless multi-platform alignment—perfect for ditching Webpack’s legacy baggage while keeping your app snappy and future-proof.
+
+</Aside>
 
 In the event that you encounter this error: `Error: ENOSPC: System limit for number of file watchers reached` , update the `webpack.config.js` with an ignore on `node_modules` folder.
 
@@ -3049,6 +3074,127 @@ config.watchOptions = {
 	};
 
 ```
+
+### Expo Metro
+
+Expo Metro is the beating heart of React Native bundling, a blazing-fast JavaScript bundler forged by Meta to power apps like Facebook and Instagram, now supercharged for the Expo ecosystem.
+Born in 2017 as an open-source spin-off from React Native’s packager, Metro transforms your sprawling code—JavaScript, TypeScript, even CSS on web—into a single, efficient bundle, ready to run on iOS, Android, or browsers with Hermes or Chakra engines.
+With Expo SDK 52 (November 2024), it’s turbocharged by the New Architecture, slashing [resolution](https://metrobundler.dev/docs/resolution/#resolve) times up to 15x via a rewritten resolver—think of it as a librarian who instantly knows every book’s shelf.
+It’s not just speed; Metro’s async route splitting, introduced in SDK 50, loads only what’s needed, making apps feel snappy—like a chef prepping just your order, not the whole menu. Maintained by Meta’s engineers, it scales effortlessly, handling over 400,000 source files with tricks like Watchman file-watching and lazy SHA-1 hashing (metro@0.81.2), cutting memory use for tools like Replit.
+Expo CLI leans hard into Metro, ditching Webpack in SDK 50 for a unified, cross-platform beast that supports DOM components—imagine web libraries popping into native apps via webviews. It’s customizable too; tweak metro.config.js to hoist assets like SQLite databases or redirect imports, all while caching aggressively to avoid Babel’s grind on every reload.
+Metro’s web game is strong—CSS module nesting and static builds mean SEO-friendly sites, while eager builds (`npx expo run --eager`) pre-bundle for native speed-ups.
+Sure, it’s not perfect—dynamic imports need hacks like `@metro-ignore`, and monorepo fans rejoice at pnpm support—but it’s battle-tested across millions of devices.
+Expo Metro isn’t just a bundler; it’s a time machine, hurling your app into the future, one optimized byte at a time.
+
+<Aside type="tip" title="Nx Metro Configuration">
+
+Below is an example of a `metro.config.js` that we use in our Nx Monorepo.
+
+</Aside>
+
+```js
+
+// Import the Nx-specific Metro integration from '@nx/expo'
+// This helper enhances Metro for Nx monorepos, managing workspace dependencies and watch folders
+const { withNxMetro } = require('@nx/expo');
+
+// Import Expo’s default Metro configuration generator
+// This provides a baseline Metro config tailored for Expo projects, rooted at the project directory
+const { getDefaultConfig } = require('@expo/metro-config');
+
+// Import NativeWind’s Metro plugin for Tailwind CSS integration
+// This wires up CSS-in-JS styling (like Tailwind) for React Native components
+const { withNativeWind } = require('nativewind/metro');
+
+// Import Metro’s config merger utility
+// This allows combining multiple config objects into one, resolving overlaps cleanly
+const { mergeConfig } = require('metro-config');
+
+// Fetch the default Expo Metro config, passing __dirname as the project root
+// __dirname ensures the config knows where to look for files relative to this script
+const defaultConfig = getDefaultConfig(__dirname);
+
+// Destructure assetExts and sourceExts from the default config’s resolver
+// assetExts lists file types Metro treats as assets (e.g., png, jpg); sourceExts lists code files (e.g., js, ts)
+const { assetExts, sourceExts } = defaultConfig.resolver;
+
+/**
+ * Custom Metro configuration object
+ * This defines overrides and extensions to the default config
+ * See: https://reactnative.dev/docs/metro for Metro’s full spec
+ * @type {import('metro-config').MetroConfig}
+ */
+const customConfig = {
+	// Set a cache version string to invalidate Metro’s cache when needed
+	// Changing 'mobile' forces a cache reset—useful for major updates
+	cacheVersion: 'mobile',
+
+	// Transformer settings for code processing
+	transformer: {
+		// Point to a custom Babel transformer for SVG files
+		// 'react-native-svg-transformer' converts SVGs into React components
+		babelTransformerPath: require.resolve('react-native-svg-transformer'),
+	},
+
+	// Resolver settings for file handling
+	resolver: {
+		// Filter out 'svg' from assetExts so it’s not treated as a static asset
+		// This lets the SVG transformer process it as code instead
+		assetExts: assetExts.filter((ext) => ext !== 'svg'),
+
+		// Extend sourceExts with additional file types Metro should process
+		// Adds CommonJS (.cjs), ES Modules (.mjs), and SVG (.svg) to the default list (js, ts, etc.)
+		sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg'],
+	},
+};
+
+// Define an async function to build the final Metro config
+// Async because withNxMetro and withNativeWind may involve promises
+async function createConfig() {
+	// Merge the default and custom configs first
+	// Then wrap with NxMetro for monorepo support (e.g., watching Nx workspace libs)
+	return await withNxMetro(mergeConfig(defaultConfig, customConfig), {
+		// Disable debug logging for NxMetro (set true to troubleshoot)
+		debug: false,
+		// No extra file extensions beyond what’s in resolver.sourceExts
+		extensions: [],
+		// No additional folders to watch (Nx handles this automatically for workspace libs)
+		watchFolders: [],
+	}).then((nxConfig) =>
+		// Take the Nx-enhanced config and pipe it into NativeWind
+		// This adds Tailwind CSS support, pointing to a global CSS file
+		withNativeWind(nxConfig, {
+			// Path to the Tailwind CSS file for styling NativeWind components
+			input: './src/global.css',
+		}),
+	);
+}
+
+// Export the config as a resolved promise
+// Metro expects a function returning the config; calling createConfig() runs it
+module.exports = createConfig();
+
+```
+
+<Steps>
+
+0.  Key Explanations for the Metro Configuration.
+1.  Imports: 
+    -   Each library integrates a specific feature—Nx for monorepos, Expo for defaults, NativeWind for Tailwind, and Metro for merging.
+2.  Default Config: 
+    -   getDefaultConfig(__dirname) sets up a standard Expo-aware Metro config, which we extend.
+3.  Custom Config:
+    -   Tweaks caching, SVG handling (via a transformer), and file extensions for broader compatibility.
+4.  SVG Handling:
+    -   Removing svg from assetExts and adding it to sourceExts ensures SVGs are processed as code, not assets.
+5.  Async Flow:
+    -   createConfig chains withNxMetro and withNativeWind asynchronously, building the config step-by-step.
+6.  NxMetro:
+    -   Enhances Metro for Nx workspaces, though here it’s minimal (no extra watchFolders).
+7.  NativeWind:
+    -   Adds Tailwind CSS, linking to global.css for styling.
+
+</Steps>
 
 ### Expo Tamagui
 

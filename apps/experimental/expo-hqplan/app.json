@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme":"hqplan",
+    "platforms": ["android","ios","web"],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -37,8 +38,7 @@
       "expo-font"
     ],
     "experiments" : {
-      "tsconfigPaths": true,
-      "typeRoutes": true
+      "tsconfigPaths": true
     },
     "newArchEnabled": true
   }
