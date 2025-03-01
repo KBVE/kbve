@@ -1,5 +1,5 @@
 use godot::prelude::*;
-use godot::classes::{ CanvasLayer, Window, Node, Control };
+use godot::classes::{ CanvasLayer, Window };
 use godot::classes::window::Flags as WindowFlags;
 
 #[cfg(target_os = "macos")]

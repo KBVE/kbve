@@ -1,7 +1,7 @@
 #[cfg(target_os = "macos")]
 use objc2::runtime::Object;
 #[cfg(target_os = "macos")]
-use objc2::{ class, msg_send, sel };
+use objc2::{ class, msg_send };
 
 #[cfg(target_os = "macos")]
 pub fn enable_mac_transparency(transparency_value: f64) {
