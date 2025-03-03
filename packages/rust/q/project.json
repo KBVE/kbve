@@ -53,6 +53,18 @@
         ],
         "parallel": false
       }
+    },
+
+    "debug-mac": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "pnpm nx run q:build-mac",
+          "mkdir -p apps/rentearth/re-game/addons/q/macos",
+          "cp packages/rust/q/release/addons/q/macos/*.dylib apps/rentearth/re-game/addons/q/macos/"
+        ],
+        "parallel": false
+      }
     }
   },
   "tags": []
