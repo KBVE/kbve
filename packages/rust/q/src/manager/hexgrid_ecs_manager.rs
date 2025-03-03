@@ -1,11 +1,13 @@
 use godot::{ classes::Engine, prelude::* };
-use godot::classes::{ Sprite2D, Texture2D };
+use godot::classes::{ Sprite2D, Texture2D, Image, ImageTexture};
+
 use papaya::HashMap;
 use tokio::sync::mpsc::{ self, UnboundedSender, UnboundedReceiver };
 use crate::threads::runtime::RuntimeManager;
 use crate::extensions::ecs_extension::{ EcsCommand, TileUpdate, run_ecs_thread };
 use crate::manager::game_manager::GameManager;
 use crate::find_game_manager;
+
 
 #[derive(GodotClass)]
 #[class(base = Node2D)]
@@ -46,7 +48,7 @@ impl INode2D for HexGridManager {
 
   fn ready(&mut self) {
     find_game_manager!(self);
-    self.create_shared_textures();
+    self.load_textures_from_cache();
   }
 
   fn process(&mut self, _delta: f64) {
@@ -70,21 +72,35 @@ impl INode2D for HexGridManager {
 
 #[godot_api]
 impl HexGridManager {
-  //TODO - Replace the create-shared-textures with a ShaderCache reference for optimization
 
-  fn create_shared_textures(&mut self) {
-    let mut create_texture = |color: Color| {
-      let mut image = Image::create(32, 32, false, Image::Format::RGBA8).unwrap();
-      image.fill(color);
-      Texture2D::create_from_image(&image).unwrap()
-    };
-    self.materials
-      .pin()
-      .insert("grass".to_string(), create_texture(Color::from_rgb(0.0, 1.0, 0.0)));
-    self.materials
-      .pin()
-      .insert("water".to_string(), create_texture(Color::from_rgb(0.0, 0.0, 1.0)));
-    self.materials.pin().insert("sand".to_string(), create_texture(Color::from_rgb(0.8, 0.6, 0.4)));
+  fn load_textures_from_cache(&mut self) {
+    if let Some(ref gm) = self.game_manager {
+      let cache_manager = gm.bind().internal_get_cache_manager();
+      let texture_cache = cache_manager.bind().internal_texture_cache();
+
+      let texture_keys = ["grass", "water", "sand"];
+      for key in texture_keys {
+        if let Some(texture) = texture_cache.get(key) {
+          self.materials.pin().insert(key.to_string(), texture);
+        } else {
+          let mut image = Image::create(32, 32, false, godot::classes::image::Format::RGBA8).unwrap();
+          let color = match key {
+            "grass" => Color::from_rgb(0.0, 1.0, 0.0),
+            "water" => Color::from_rgb(0.0, 0.0, 1.0),
+            "sand" => Color::from_rgb(0.8, 0.6, 0.4),
+            _ => Color::from_rgb(1.0, 1.0, 1.0), // Fallback white
+          };
+          image.fill(color);
+          let texture = ImageTexture::create_from_image(&image).unwrap();
+          let texture_ref: Gd<Texture2D> = texture.upcast();
+          texture_cache.insert(key, texture_ref.clone());
+          self.materials.pin().insert(key.to_string(), texture_ref);
+        }
+      }
+      godot_print!("[HexGridManager] Loaded textures from CacheManager.");
+    } else {
+      godot_warn!("[HexGridManager] No GameManager; textures not loaded.");
+    }
   }
 
   fn render_chunk(&mut self, update: TileUpdate) {
@@ -96,7 +112,7 @@ impl HexGridManager {
       }
 
       let mut sprite = Sprite2D::new_alloc();
-      sprite.set_name(format!("Tile_{}_{}", transform.q, transform.r));
+      sprite.set_name(&GString::from(format!("Tile_{}_{}", transform.q, transform.r)));
       if let Some(texture) = self.materials.pin().get(&tile_type.0) {
         sprite.set_texture(texture);
       }

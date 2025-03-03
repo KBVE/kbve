@@ -67,12 +67,12 @@ impl Point for TileEntity {
   }
 }
 
-impl RTreeObject for TileEntity {
-  type Envelope = AABB<[f32; 2]>;
-  fn envelope(&self) -> Self::Envelope {
-    AABB::from_point(self.position)
-  }
-}
+// impl RTreeObject for TileEntity {
+//   type Envelope = AABB<[f32; 2]>;
+//   fn envelope(&self) -> Self::Envelope {
+//     AABB::from_point(self.position)
+//   }
+// }
 
 #[derive(Debug)]
 pub enum EcsCommand {
