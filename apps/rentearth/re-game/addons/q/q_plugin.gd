@@ -20,6 +20,15 @@ func _ready():
 		print("[Q] -> [GM] -> [MusicManager] initialized and added to the scene tree!")
 		#game_manager.load_user_settings();
 		call_deferred("_load_settings")
+		if game_manager.has_method("test_async_node"):
+			print("[Q] -> [GM] -> Starting multi-threading test...")
+			game_manager.test_async_node()
+		else:
+			print("[Q] -> ERROR: test_async_node method not found!")
+
+func _process(_delta):
+	if game_manager and game_manager.has_method("process_callbacks"):
+		game_manager.process_callbacks()
 
 func _load_settings():
 	if game_manager == null:

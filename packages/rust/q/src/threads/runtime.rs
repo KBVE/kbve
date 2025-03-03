@@ -31,6 +31,7 @@ pub struct RuntimeManager {
     global_map: Arc<HashMap<String, String>>,
     godot_callback_tx: Option<UnboundedSender<GodotCallback>>,
     godot_callback_rx: Option<UnboundedReceiver<GodotCallback>>,
+    owner: Option<Gd<Object>>,
 }
 
 
@@ -42,7 +43,7 @@ impl IObject for RuntimeManager {
             .enable_all()
             .build()
             .expect("[Q] -> Failed to create Tokio runtime");
-
+        
         Self {
             base,
             runtime: Rc::new(runtime),
@@ -50,6 +51,7 @@ impl IObject for RuntimeManager {
             global_map: Arc::new(HashMap::new()),
             godot_callback_tx: None,
             godot_callback_rx: None,
+            owner: None,
         }
     }
 
@@ -65,6 +67,7 @@ impl RuntimeManager {
         self.sender = Some(map_tx.clone());
         self.godot_callback_tx = Some(godot_tx);
         self.godot_callback_rx = Some(godot_rx);
+        self.owner = Some(owner.clone());
 
         let global_map = self.global_map.clone();
         let godot_tx = self.godot_callback_tx.clone().unwrap();
@@ -104,13 +107,14 @@ impl RuntimeManager {
                 callbacks.push(callback);
             }
         }
-    
-        for callback in callbacks {
-            let mut this = self.to_gd();
-            this.call_deferred(
-                &StringName::from("handle_map_get"),
-                &[callback.key.to_variant(), callback.value.to_variant()],
-            );
+
+        if let Some(ref mut owner) = self.owner {
+            for callback in callbacks {
+                owner.call_deferred(
+                    &StringName::from("handle_map_get"),
+                    &[callback.key.to_variant(), callback.value.to_variant()],
+                );
+            }
         }
     }
 
@@ -138,5 +142,9 @@ impl RuntimeManager {
 
     pub fn global_map(&self) -> Arc<HashMap<String, String>> {
         self.global_map.clone()
+    }
+
+    pub fn get_sender(&self) -> Option<UnboundedSender<MapMessage>> {
+        self.sender.clone()
     }
 }

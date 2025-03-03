@@ -6,6 +6,8 @@ use crate::manager::gui_manager::GUIManager;
 use crate::manager::browser_manager::BrowserManager;
 use crate::extensions::timer_extension::ClockMaster;
 use crate::data::cache::{ CacheManager };
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::threads::asyncnode::AsyncNode;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
@@ -17,6 +19,8 @@ pub struct GameManager {
   music_manager: Gd<MusicManager>,
   gui_manager: Gd<GUIManager>,
   browser_manager: Gd<BrowserManager>,
+  #[cfg(any(target_os = "macos", target_os = "windows"))]
+  async_node: Option<Gd<AsyncNode>>,
 }
 
 #[godot_api]
@@ -37,7 +41,9 @@ impl INode for GameManager {
     let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
     let gui_manager = Gd::from_init_fn(|base| GUIManager::init(base));
     let browser_manager = Gd::from_init_fn(|base| BrowserManager::init(base));
-    
+
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    let async_node = Some(Gd::from_init_fn(|base| AsyncNode::init(base)));
 
     Self {
       base,
@@ -47,6 +53,9 @@ impl INode for GameManager {
       music_manager,
       gui_manager,
       browser_manager,
+      #[cfg(any(target_os = "macos", target_os = "windows"))] async_node,
+      #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+      async_node: None,
     }
   }
 
@@ -58,6 +67,8 @@ impl INode for GameManager {
     let music_manager = self.music_manager.clone();
     let gui_manager = self.gui_manager.clone();
     let browser_manager = self.browser_manager.clone();
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    let async_node = self.async_node.clone();
 
     {
       let mut base = self.base_mut();
@@ -66,9 +77,20 @@ impl INode for GameManager {
       base.add_child(&music_manager.upcast::<Node>());
       base.add_child(&gui_manager.upcast::<Node>());
       base.add_child(&browser_manager.upcast::<Node>());
+      #[cfg(any(target_os = "macos", target_os = "windows"))]
+      if let Some(async_node) = async_node {
+        base.add_child(&async_node.upcast::<Node>());
+      }
     }
 
     godot_print!("[GameManager] All children added successfully.");
+  }
+
+  fn process(&mut self, _delta: f64) {
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    if let Some(ref mut async_node) = self.async_node {
+      async_node.bind_mut().process_callbacks();
+    }
   }
 }
 
@@ -219,6 +241,22 @@ impl GameManager {
 
     if let Some(mut scene_tree) = self.base().get_tree() {
       scene_tree.quit();
+    }
+  }
+
+  #[cfg(any(target_os = "macos", target_os = "windows"))]
+  #[func]
+  pub fn spawn_async_task(&mut self) {
+    if let Some(ref mut async_node) = self.async_node {
+      async_node.bind_mut().spawn_async_task();
+    }
+  }
+
+  #[cfg(any(target_os = "macos", target_os = "windows"))]
+  #[func]
+  pub fn test_async_node(&mut self) {
+    if let Some(ref mut async_node) = self.async_node {
+      async_node.bind_mut().test_multi_threading();
     }
   }
 }
