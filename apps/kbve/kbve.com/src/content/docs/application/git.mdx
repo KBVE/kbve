@@ -770,6 +770,11 @@ We believe that flyio is great for launching a quick demo application when utili
 
 ## Monorepo
 
+<Aside type="caution" title="Monorepo Considerations">
+Adopting a monorepo can require a significant upfront time investment to configure tooling, establish consistent workflows, and migrate existing projects into a unified structure.
+This complexity may slow initial development velocity, especially for teams unfamiliar with managing shared dependencies and large-scale repositories.
+</Aside>
+
 In the sprawling kingdom of software development, monorepos stand as grand citadels, uniting multiple projects under a single, majestic repository to streamline collaboration and dependency management.
 Nx, a seasoned knight forged by Nrwl, wields a powerful arsenal of tools, including advanced task orchestration and a rich plugin ecosystem, to tame the complexities of enterprise-scale monorepos with its intelligent caching and interactive project graph visualizations.
 Meanwhile, Turborepo, a nimble warrior honed by Vercel, charges into the fray with a focus on blistering build speeds, leveraging Rust-based efficiency and straightforward caching to empower developers seeking simplicity without sacrificing performance.
@@ -814,3 +819,13 @@ Here is another example from the Q crate for debugging mac builds!
       }
     }
 ```
+
+<Aside type="tip" title="Nx Run Commands">
+Take advantage of the `parallel` option in `nx:run-commands` to speed up execution by running independent commands concurrently, especially for multi-step tasks across large monorepos.
+Use the `--args` flag when running `nx run <project>:<target> --args="--verbose"` to pass custom arguments to your commands dynamically, enhancing flexibility without hardcoding values.
+</Aside>
+
+<Aside type="danger" title="Nx Run Commands Security">
+Be cautious when using `nx:run-commands` with dynamic or user-provided input in shell commands, as it can expose your monorepo to security risks like command injection if not properly sanitized.
+Avoid running untrusted scripts or exposing sensitive environment variables, as these could inadvertently leak credentials or allow malicious code execution in your CI/CD pipeline.
+</Aside>
