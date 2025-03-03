@@ -757,7 +757,7 @@ By integrating development and operations, DevOps aims to deliver software more 
 
 ---
 
-### FlyIO
+## FlyIO
 
 <Aside>
 When preparing to remotely deploy to flyio via github action, we should make sure your fly token is set as a secret variable.
@@ -765,3 +765,52 @@ When preparing to remotely deploy to flyio via github action, we should make sur
 
 FlyIO is a simple way to deploy your application quickly onto the cloud.
 We believe that flyio is great for launching a quick demo application when utilizing a low level language like zig or rust.
+
+---
+
+## Monorepo
+
+In the sprawling kingdom of software development, monorepos stand as grand citadels, uniting multiple projects under a single, majestic repository to streamline collaboration and dependency management.
+Nx, a seasoned knight forged by Nrwl, wields a powerful arsenal of tools, including advanced task orchestration and a rich plugin ecosystem, to tame the complexities of enterprise-scale monorepos with its intelligent caching and interactive project graph visualizations.
+Meanwhile, Turborepo, a nimble warrior honed by Vercel, charges into the fray with a focus on blistering build speeds, leveraging Rust-based efficiency and straightforward caching to empower developers seeking simplicity without sacrificing performance.
+Together, they cater to a realm where code colocation reigns supreme, offering developers the choice between Nx’s comprehensive, battle-tested governance—ideal for sprawling, interdependent codebases—and Turborepo’s lean, agile prowess, perfect for swift, modular conquests.
+Picture a bustling medieval marketplace: Nx is the meticulous steward ensuring every stall aligns perfectly, while Turborepo is the swift courier darting through the crowd, delivering goods with minimal fuss.
+Both champions draw strength from the monorepo philosophy, where shared libraries and atomic commits forge a cohesive empire, yet they diverge in their quests—Nx fortifies the castle with deep customization, while Turborepo races to optimize the kingdom’s pulse.
+As the JavaScript ecosystem evolves, these tools stand as twin beacons, illuminating paths through the tangled forests of modern development. Whether a guild of engineers opts for Nx’s robust scaffold or Turborepo’s rapid stride, the monorepo remains a unifying banner, promising consistency and scalability beneath its vast, singular canopy.
+
+### Nx
+
+Imagine Nx as the master conductor of a grand cosmic orchestra, orchestrating the chaos of a monorepo galaxy where countless project planets orbit a single, unified repository star.
+Forged by the ingenious minds at Nrwl, this stellar system thrives on its ability to harmonize enterprise-scale codebases, wielding a high-tech baton of task orchestration to ensure builds, tests, and deployments perform in perfect symphony.
+Its intelligent caching acts like a time-warping archive, zapping redundant computations into oblivion, while the interactive project graph—a dazzling holographic map—reveals the intricate web of dependencies with the precision of a sci-fi navigator.
+Nx’s plugin ecosystem is a bustling spaceport, docking ships of customization for frameworks like React, Angular, and Node, making it a versatile ally for developers traversing vast, interdependent terrains.
+Unlike a rogue asteroid of complexity, Nx brings order to the monorepo universe, empowering teams with atomic commits and shared libraries that bind the galaxy together.
+From its command-line cockpit, developers pilot with confidence, knowing Nx’s robust tooling can scale from a lone shuttle to an armada of microservices without breaking a sweat or your galatic bank.
+In this interstellar saga of software, Nx is the trusty droid you’d want by your side, turning the sprawling void of code into a well-charted cosmos.
+
+
+#### Nx Run Executor
+
+In an Nx monorepo, the `nx:run-commands` executor is a powerful and flexible tool provided by the `@nx/run-commands` plugin, designed to execute arbitrary shell commands or scripts across one or more projects within the workspace.
+This executor is particularly useful for tasks that don’t fit neatly into predefined build, test, or serve workflows, allowing developers to customize automation for specific needs.
+It is configured in the `project.json` file (or equivalent configuration) of a project, where you define a target—such as `"lint"`, `"deploy"`, or any custom name—and specify the `commands` array containing the shell commands to execute (e.g., `"eslint ."` or `"npm run build"`).
+Options like `parallel` (to run commands concurrently), `cwd` (to set the working directory), and `env` (to pass environment variables) provide additional control over execution.
+The executor leverages Nx’s dependency graph to determine whether a command should run based on affected projects, making it efficient in large monorepos.
+For example, a target might look like: `"my-task": { "executor": "@nx/run-commands", "options": { "commands": ["echo Hello", "node script.js"], "parallel": false } }`, enabling sequential or parallel execution with full integration into Nx’s caching and task orchestration features.
+Thus making `nx:run-commands` ideal for scripting one-off tasks, integrating external tools, or handling complex workflows in a consistent, reproducible way.
+
+Here is another example from the Q crate for debugging mac builds!
+
+```json
+ "debug-mac": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "pnpm nx run q:build-mac",
+          "mkdir -p apps/rentearth/re-game/addons/q/macos",
+          "cp packages/rust/q/release/addons/q/macos/*.dylib apps/rentearth/re-game/addons/q/macos/"
+        ],
+        "parallel": false
+      }
+    }
+```
