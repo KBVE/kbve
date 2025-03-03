@@ -6,7 +6,7 @@ var music_manager: MusicManager
 
 func _init():
 	print("[Q] Initializing...")
-    if not game_manager:
+	if not game_manager:
 		game_manager = GameManager.new()
 		game_manager.name = "GameManager"
 
