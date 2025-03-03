@@ -38,8 +38,12 @@ pub struct RuntimeManager {
 #[godot_api]
 impl IObject for RuntimeManager {
     fn init(base: Base<Object>) -> Self {
+        let core_count = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(4);
+
         let runtime = runtime::Builder::new_multi_thread()
-            .worker_threads(4)
+            .worker_threads(core_count)
             .enable_all()
             .build()
             .expect("[Q] -> Failed to create Tokio runtime");

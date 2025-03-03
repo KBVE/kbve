@@ -66,7 +66,7 @@ impl IControl for GodotBrowser {
       webview: None,
 
       full_window_size: true,
-      url: "https://kbve.com/".into(),
+      url: "https://github.com/kbve/kbve".into(),
       html: "".into(),
       transparent: false,
       background_color: Color::from_rgb(1.0, 1.0, 1.0),
