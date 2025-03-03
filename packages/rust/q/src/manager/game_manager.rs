@@ -252,5 +252,11 @@ impl GameManager {
     }
   }
 
-
+  #[cfg(any(target_os = "macos", target_os = "windows"))]
+  #[func]
+  pub fn test_async_node(&mut self) {
+    if let Some(ref mut async_node) = self.async_node {
+      async_node.bind_mut().test_multi_threading();
+    }
+  }
 }
