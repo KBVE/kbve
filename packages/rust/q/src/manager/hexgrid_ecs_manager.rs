@@ -1,5 +1,5 @@
 use godot::{ classes::Engine, prelude::* };
-use godot::classes::{ Sprite2D, Texture2D, Image, ImageTexture};
+use godot::classes::{ Sprite2D, Texture2D, Image, ImageTexture };
 
 use papaya::HashMap;
 use tokio::sync::mpsc::{ self, UnboundedSender, UnboundedReceiver };
@@ -7,7 +7,6 @@ use crate::threads::runtime::RuntimeManager;
 use crate::extensions::ecs_extension::{ EcsCommand, TileUpdate, run_ecs_thread };
 use crate::manager::game_manager::GameManager;
 use crate::find_game_manager;
-
 
 #[derive(GodotClass)]
 #[class(base = Node2D)]
@@ -27,12 +26,12 @@ impl INode2D for HexGridManager {
     let (tile_tx, tile_rx) = mpsc::unbounded_channel::<TileUpdate>();
     let mut runtime = Engine::singleton()
       .get_singleton(RuntimeManager::SINGLETON)
-      .expect("[Q] HexGrid Managert could not find RuntimeManager.")
+      .expect("[Q] HexGrid Manager could not find RuntimeManager.")
       .cast::<RuntimeManager>();
 
     runtime.bind_mut().spawn({
       async move {
-        run_ecs_thread(tile_tx, ecs_rx, 16, 2.0);
+        run_ecs_thread(tile_tx, ecs_rx, 8, 32.0);
       }
     });
 
@@ -72,28 +71,30 @@ impl INode2D for HexGridManager {
 
 #[godot_api]
 impl HexGridManager {
-
   fn load_textures_from_cache(&mut self) {
     if let Some(ref gm) = self.game_manager {
-      let cache_manager = gm.bind().internal_get_cache_manager();
-      let texture_cache = cache_manager.bind().internal_texture_cache();
-
+      let cache_manager = gm.bind().get_cache_manager();
       let texture_keys = ["grass", "water", "sand"];
       for key in texture_keys {
-        if let Some(texture) = texture_cache.get(key) {
+        if let Some(texture) = cache_manager.bind().get_from_texture_cache(GString::from(key)) {
           self.materials.pin().insert(key.to_string(), texture);
         } else {
-          let mut image = Image::create(32, 32, false, godot::classes::image::Format::RGBA8).unwrap();
+          let mut image = Image::create(
+            32,
+            32,
+            false,
+            godot::classes::image::Format::RGBA8
+          ).unwrap();
           let color = match key {
             "grass" => Color::from_rgb(0.0, 1.0, 0.0),
             "water" => Color::from_rgb(0.0, 0.0, 1.0),
             "sand" => Color::from_rgb(0.8, 0.6, 0.4),
-            _ => Color::from_rgb(1.0, 1.0, 1.0), // Fallback white
+            _ => Color::from_rgb(1.0, 1.0, 1.0),
           };
           image.fill(color);
           let texture = ImageTexture::create_from_image(&image).unwrap();
           let texture_ref: Gd<Texture2D> = texture.upcast();
-          texture_cache.insert(key, texture_ref.clone());
+          cache_manager.bind_mut().texture_cache.insert(key, texture_ref.clone());
           self.materials.pin().insert(key.to_string(), texture_ref);
         }
       }
@@ -104,10 +105,9 @@ impl HexGridManager {
   }
 
   fn render_chunk(&mut self, update: TileUpdate) {
-    let pin = self.rendered_tiles.pin();
-    for (transform, tile_type) in update.tiles {
+    for (transform, tile_type) in update.tiles_to_add {
       let key = (transform.q, transform.r);
-      if pin.contains_key(&key) {
+      if self.rendered_tiles.pin().contains_key(&key) {
         continue;
       }
 
@@ -118,8 +118,13 @@ impl HexGridManager {
       }
       sprite.set_position(transform.world_position);
       self.base_mut().add_child(&sprite);
-      drop(pin);
-      self.rendered_tiles.pin().insert(key, sprite);
+      self.rendered_tiles.pin().insert(key, sprite.clone());
+    }
+
+    for key in update.tiles_to_remove {
+      if let Some(mut sprite) = self.rendered_tiles.pin().remove(&key) {
+        sprite.queue_free();
+      }
     }
   }
 }
