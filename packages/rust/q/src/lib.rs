@@ -4,6 +4,7 @@ mod macros;
 mod manager;
 mod extensions;
 mod data;
+mod entity;
 
 #[cfg(target_os = "macos")]
 mod macos;
