@@ -19,7 +19,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rand = "0.8"
-godot = { version = "0.2.2", features = ["experimental-wasm", "lazy-function-tables"] }
+godot = { version = "0.2.4", features = ["experimental-wasm", "lazy-function-tables"] }
 bevy_ecs = { version = "0.15.1", features = ["default"] }
 rstar = "0.12.2"
 papaya = "0.1.8"
