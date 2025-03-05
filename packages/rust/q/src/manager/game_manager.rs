@@ -6,7 +6,7 @@ use crate::manager::gui_manager::GUIManager;
 use crate::manager::browser_manager::BrowserManager;
 use crate::extensions::timer_extension::ClockMaster;
 use crate::data::cache::{ CacheManager };
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use crate::threads::asyncnode::AsyncNode;
 
 #[derive(GodotClass)]
@@ -19,7 +19,7 @@ pub struct GameManager {
   music_manager: Gd<MusicManager>,
   gui_manager: Gd<GUIManager>,
   browser_manager: Gd<BrowserManager>,
-  #[cfg(any(target_os = "macos", target_os = "windows"))]
+  #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
   async_node: Option<Gd<AsyncNode>>,
 }
 
@@ -53,7 +53,7 @@ impl INode for GameManager {
       music_manager,
       gui_manager,
       browser_manager,
-      #[cfg(any(target_os = "macos", target_os = "windows"))] async_node,
+      #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))] async_node,
       #[cfg(not(any(target_os = "macos", target_os = "windows")))]
       async_node: None,
     }
@@ -67,7 +67,7 @@ impl INode for GameManager {
     let music_manager = self.music_manager.clone();
     let gui_manager = self.gui_manager.clone();
     let browser_manager = self.browser_manager.clone();
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     let async_node = self.async_node.clone();
 
     {
@@ -77,7 +77,7 @@ impl INode for GameManager {
       base.add_child(&music_manager.upcast::<Node>());
       base.add_child(&gui_manager.upcast::<Node>());
       base.add_child(&browser_manager.upcast::<Node>());
-      #[cfg(any(target_os = "macos", target_os = "windows"))]
+      #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
       if let Some(async_node) = async_node {
         base.add_child(&async_node.upcast::<Node>());
       }
@@ -87,7 +87,7 @@ impl INode for GameManager {
   }
 
   fn process(&mut self, _delta: f64) {
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     if let Some(ref mut async_node) = self.async_node {
       async_node.bind_mut().process_callbacks();
     }
@@ -244,7 +244,7 @@ impl GameManager {
     }
   }
 
-  #[cfg(any(target_os = "macos", target_os = "windows"))]
+  #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
   #[func]
   pub fn spawn_async_task(&mut self) {
     if let Some(ref mut async_node) = self.async_node {
@@ -252,7 +252,7 @@ impl GameManager {
     }
   }
 
-  #[cfg(any(target_os = "macos", target_os = "windows"))]
+  #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
   #[func]
   pub fn test_async_node(&mut self) {
     if let Some(ref mut async_node) = self.async_node {
