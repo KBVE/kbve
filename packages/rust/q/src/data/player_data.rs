@@ -12,6 +12,9 @@ pub struct PlayerData {
     pub max_energy: f32,
     pub heat: f32,
     pub max_heat: f32,
+    pub mana: f32,
+    pub max_mana: f32,
+
     #[serde(with = "vector2i_serde")]
     pub position: Vector2i,
     #[serde(with = "vector2i_serde")]
