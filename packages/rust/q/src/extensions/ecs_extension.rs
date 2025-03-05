@@ -83,7 +83,8 @@ pub enum EcsCommand {
 #[derive(Debug)]
 pub struct TileUpdate {
   pub chunk: ChunkCoord,
-  pub tiles: Vec<(TransformComponent, TileTypeComponent)>,
+  pub tiles_to_add: Vec<(TransformComponent, TileTypeComponent)>,
+  pub tiles_to_remove: Vec<(i32, i32)>,
 }
 
 pub fn run_ecs_thread(
@@ -109,17 +110,18 @@ pub fn run_ecs_thread(
         let new_chunk = ChunkCoord::from_world(q, r, chunk_size);
 
         if new_chunk != player_chunk {
-          player_chunk = new_chunk;
           update_chunks(
             &mut world,
             &mut loaded_chunks,
             &mut spatial_index,
             &tx,
-            player_chunk,
+            &player_chunk,
             chunk_size,
             hex_size,
             view_radius
           );
+          player_chunk = new_chunk;
+
         }
       }
       EcsCommand::Shutdown => {
@@ -135,13 +137,14 @@ fn update_chunks(
   loaded_chunks: &mut HashMap<ChunkCoord, Vec<Entity>>,
   spatial_index: &mut RTree<TileEntity>,
   tx: &UnboundedSender<TileUpdate>,
-  player_chunk: ChunkCoord,
+  player_chunk: &ChunkCoord,
   chunk_size: i32,
   hex_size: f32,
   view_radius: i32
 ) {
-  let mut new_chunks = HashMap::new();
+  let mut new_chunks: HashMap<ChunkCoord, Vec<Entity>> = HashMap::new();
   let mut tiles_to_send = Vec::new();
+  let mut tiles_to_remove = Vec::new();
 
   for dx in -view_radius..=view_radius {
     for dy in -view_radius..=view_radius {
@@ -149,33 +152,45 @@ fn update_chunks(
         cx: player_chunk.cx + dx,
         cy: player_chunk.cy + dy,
       };
-      if !loaded_chunks.contains_key(&chunk) {
+
+      if !loaded_chunks.pin().contains_key(&chunk) {
         let tiles = generate_chunk(world, spatial_index, &chunk, chunk_size, hex_size);
         tiles_to_send.extend(tiles.clone());
-        let _ = tx.send(TileUpdate { chunk: chunk.clone(), tiles });
-        new_chunks.insert(chunk, Vec::new());
-      } else {
-        if let Some(entities) = loaded_chunks.remove(&chunk) {
-          new_chunks.insert(chunk, entities);
-        }
+        loaded_chunks.pin().insert(chunk.clone(), Vec::new());
+      } else if let Some(entities) = loaded_chunks.pin().get(&chunk).cloned() {
+        loaded_chunks.pin().insert(chunk.clone(), entities);
       }
     }
   }
 
-  for (chunk, entities) in loaded_chunks.drain() {
-    for entity in entities {
-      if let Some(transform) = world.get::<TransformComponent>(entity) {
-        spatial_index.remove(
-          &(TileEntity {
-            position: [transform.world_position.x, transform.world_position.y],
-            entity,
-          })
-        );
+  for (chunk, entities) in loaded_chunks.pin().iter() {
+    if !new_chunks.pin().contains_key(chunk) {
+      for entity in entities {
+        if let Some(transform) = world.get::<TransformComponent>(*entity) {
+          tiles_to_remove.push((transform.q, transform.r));
+          spatial_index.remove(
+            &(TileEntity {
+              position: [transform.world_position.x, transform.world_position.y],
+              entity: *entity,
+            })
+          );
+        }
+        world.despawn(*entity);
       }
-      world.despawn(entity);
     }
   }
-  *loaded_chunks = new_chunks;
+
+  for chunk in tiles_to_remove.iter().map(|(q, r)| ChunkCoord::from_world(*q, *r, chunk_size)) {
+    loaded_chunks.pin().remove(&chunk);
+  }
+
+  if !tiles_to_send.is_empty() || !tiles_to_remove.is_empty() {
+    let _ = tx.send(TileUpdate {
+      chunk: player_chunk.clone(),
+      tiles_to_add: tiles_to_send,
+      tiles_to_remove,
+    });
+  }
 }
 
 fn generate_chunk(
