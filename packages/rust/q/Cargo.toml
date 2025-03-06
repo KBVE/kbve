@@ -2,13 +2,13 @@
 name = "q"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.1"
-edition = "2021"
+edition = "2024"
 license = "MIT"
 description = "Q is a Rust GDExtension crate for Godot, offering a Game Manager, Music Manager, Bevy ECS, and Tokio-powered multi-threading. It simplifies and enhances game development with efficient tools and scalable performance."
 homepage = "https://kbve.com/application/rust/"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/erust"
 readme = "README.md"
-rust-version = "1.75"
+rust-version = "1.85"
 exclude = [
     "release/*",
     "docs/*",
@@ -19,7 +19,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rand = "0.8"
-godot = { version = "0.2.2", features = ["experimental-wasm", "lazy-function-tables"] }
+godot = { version = "0.2.4", features = ["experimental-wasm", "lazy-function-tables"] }
 bevy_ecs = { version = "0.15.1", features = ["default"] }
 rstar = "0.12.2"
 papaya = "0.1.8"
@@ -33,6 +33,8 @@ wry = { version = "0.46.2", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.1.0"
 infer = "0.16.0"
+tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
+
 
 
 [target."cfg(target_os = \"windows\")".dependencies]
@@ -46,6 +48,7 @@ wry = { version = "0.48.1", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.1.0"
 infer = "0.16.0"
+tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
 
 
 [profile.release]

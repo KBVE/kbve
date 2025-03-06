@@ -56,23 +56,22 @@ impl UserDataCache {
   }
 
   pub fn insert<T: ToGodot>(&self, key: &str, value: T) {
-    let guard = self.map.guard();
-    self.map.insert(key.to_string(), value.to_variant(), &guard);
+    self.map.pin().insert(key.to_string(), value.to_variant());
   }
 
   pub fn get<T: FromGodot>(&self, key: &str) -> Option<T> {
-    let guard = self.map.guard();
-    self.map.get(key, &guard).map(|variant| T::from_variant(variant))
+    self.map
+      .pin()
+      .get(&key.to_string())
+      .map(|variant| T::from_variant(variant))
   }
 
   pub fn contains(&self, key: &str) -> bool {
-    let guard = self.map.guard();
-    self.map.contains_key(key, &guard)
+    self.map.pin().contains_key(&key.to_string())
   }
 
   pub fn remove(&self, key: &str) -> Option<Variant> {
-    let guard = self.map.guard();
-    self.map.remove(key, &guard).cloned()
+    self.map.pin().remove(&key.to_string()).cloned()
   }
 
   pub fn update<T: ToGodot>(&self, key: &str, value: T) -> bool {
@@ -136,9 +135,10 @@ impl UserDataCache {
   }
 
   pub fn load_user_data(&self) -> Option<UserData> {
-    let guard = self.map.guard();
+    //let guard = self.map.guard();
     let data_map: HashMap<String, Variant> = self.map
-      .iter(&guard)
+      .pin()
+      .iter()
       .map(|(k, v)| (k.clone(), v.clone()))
       .collect();
 
