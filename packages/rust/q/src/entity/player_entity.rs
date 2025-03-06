@@ -5,7 +5,7 @@ use crate::data::abstract_data_map::AbstractDataMap;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
-pub struct Player2DNode {
+pub struct PlayerEntity {
   base: Base<Node>,
   #[export]
   speed: f32,
@@ -15,9 +15,9 @@ pub struct Player2DNode {
 }
 
 #[godot_api]
-impl INode for Player2DNode {
+impl INode for PlayerEntity {
   fn init(base: Base<Node>) -> Self {
-    Player2DNode {
+    PlayerEntity {
       base,
       speed: 200.0,
       data: PlayerData::default(),
@@ -26,19 +26,19 @@ impl INode for Player2DNode {
   }
 
   fn ready(&mut self) {
-    godot_print!("[Player2DNode] Ready! Initializing Player2DNode...");
+    godot_print!("[PlayerEntity] Ready! Initializing PlayerEntity...");
 
     if let Some(sprite) = self.base().try_get_node_as::<Sprite2D>("Sprite2D") {
       self.sprite = Some(sprite);
-      godot_print!("[Player2DNode] Sprite2D found and cached by name.");
+      godot_print!("[PlayerEntity] Sprite2D found and cached by name.");
     } else {
-      godot_warn!("[Player2DNode] Base could not be cast to Node.");
+      godot_warn!("[PlayerEntity] Base could not be cast to Node.");
     }
 
     // TODO We need to add another fallback method for the Sprite2D is not found.
 
     if self.sprite.is_none() {
-      godot_warn!("[Player2DNode] Sprite2D not found.");
+      godot_warn!("[PlayerEntity] Sprite2D not found.");
     }
   }
 
@@ -49,7 +49,7 @@ impl INode for Player2DNode {
 }
 
 #[godot_api]
-impl Player2DNode {
+impl PlayerEntity {
   fn handle_input(&mut self) {
     let input = Input::singleton();
 
@@ -83,7 +83,7 @@ impl Player2DNode {
         sprite.set_position(new_position);
         self.data.set_position(new_position);
       } else {
-        godot_error!("[Player2DNode] Sprite2D not linked. Cannot update position.");
+        godot_error!("[PlayerEntity] Sprite2D not linked. Cannot update position.");
       }
     }
   }
