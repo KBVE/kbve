@@ -78,15 +78,15 @@ impl Player2DNode {
   fn move_and_update(&mut self, delta: f64) {
     let velocity = self.data.get_velocity();
     if velocity != Vector2::ZERO {
-        if let Some(sprite) = &self.sprite {
-            let new_position = sprite.get_position() + velocity * (delta as f32);
-            sprite.set_position(new_position);
-            self.data.set_position(new_position);
-        } else {
-            godot_error!("[Player2DNode] Sprite2D not linked. Cannot update position.");
-        }
+      if let Some(sprite) = self.sprite.as_mut() {
+        let new_position = sprite.get_position() + velocity * (delta as f32);
+        sprite.set_position(new_position);
+        self.data.set_position(new_position);
+      } else {
+        godot_error!("[Player2DNode] Sprite2D not linked. Cannot update position.");
+      }
     }
-}
+  }
 
   fn save_player_data(&self, file_path: &str) -> bool {
     godot_print!("Saving player data to {}", file_path);
