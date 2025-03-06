@@ -10,6 +10,7 @@ pub struct Player2DNode {
   #[export]
   speed: f32,
   pub data: PlayerData,
+  #[export]
   sprite: Option<Gd<Sprite2D>>,
 }
 
@@ -27,10 +28,16 @@ impl INode for Player2DNode {
   fn ready(&mut self) {
     godot_print!("[Player2DNode] Ready! Initializing Player2DNode...");
 
-    if let Some(sprite) = self.base.get_node_as::<Sprite2D>("Sprite2D") {
+    if let Some(sprite) = self.base().try_get_node_as::<Sprite2D>("Sprite2D") {
       self.sprite = Some(sprite);
-      godot_print!("[Player2DNode] Sprite2D found and cached.");
+      godot_print!("[Player2DNode] Sprite2D found and cached by name.");
     } else {
+      godot_warn!("[Player2DNode] Base could not be cast to Node.");
+    }
+
+    // TODO We need to add another fallback method for the Sprite2D is not found.
+
+    if self.sprite.is_none() {
       godot_warn!("[Player2DNode] Sprite2D not found.");
     }
   }
@@ -71,20 +78,22 @@ impl Player2DNode {
   fn move_and_update(&mut self, delta: f64) {
     let velocity = self.data.get_velocity();
     if velocity != Vector2::ZERO {
-      let new_position = self.base.position() + velocity * delta as f32;
-      self.base.set_position(new_position);
-      self.data.set_position(new_position);
+        if let Some(sprite) = &self.sprite {
+            let new_position = sprite.get_position() + velocity * (delta as f32);
+            sprite.set_position(new_position);
+            self.data.set_position(new_position);
+        } else {
+            godot_error!("[Player2DNode] Sprite2D not linked. Cannot update position.");
+        }
     }
-  }
+}
 
-  #[func]
-  pub fn save_player_data(&self, file_path: &str) -> bool {
+  fn save_player_data(&self, file_path: &str) -> bool {
     godot_print!("Saving player data to {}", file_path);
     self.data.to_save_gfile_json(file_path)
   }
 
-  #[func]
-  pub fn load_player_data(&mut self, file_path: &str) -> bool {
+  fn load_player_data(&mut self, file_path: &str) -> bool {
     godot_print!("Loading player data from {}", file_path);
     if let Some(loaded_data) = PlayerData::from_load_gfile_json(file_path) {
       self.data = loaded_data;
