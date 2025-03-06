@@ -24,6 +24,16 @@ tags:
     We need to make sure that the sprites are there, thus have to create a 2D Resource Cache for the Sprite2D as well.
     I will take care of that first, I suppose.
 
+-   08:45AM
+
+    Okay so the Sprite2d would not be in the cache and then treat each NPC as unique objects that then stay within a hashmap + vector.
+    Active NPCs/Entity will stay in the Vec and inactive will go back into the hashmap.
+    Renaming the `player2dnode` to `playerentity`, which we can then build out as a future proof for multiplayer as well.
+    Then instead of a `player_manager`, we can do an entity manager, which will hold both the players and the NPCs that they will interact with.
+    This should be an easy thing to build out, afterwards we can go back and adjust the hexgrid manager / ecs situation because we will have a better way to keep track of positions.
+
+
+
 ## 2024
 
 ### Transition
