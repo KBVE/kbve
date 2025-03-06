@@ -1,1 +1,2 @@
-pub mod player2dnode;
+pub mod player_entity;
+pub mod npc_entity;

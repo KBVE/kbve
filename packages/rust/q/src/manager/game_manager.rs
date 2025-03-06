@@ -6,7 +6,8 @@ use crate::manager::gui_manager::GUIManager;
 use crate::manager::browser_manager::BrowserManager;
 use crate::extensions::timer_extension::ClockMaster;
 use crate::data::cache::{ CacheManager };
-use crate::entity::player2dnode::{Player2DNode};
+//use crate::entity::player2dnode::{Player2DNode};
+use crate::manager::entity_manager::{EntityManager};
 
 #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use crate::threads::asyncnode::AsyncNode;
