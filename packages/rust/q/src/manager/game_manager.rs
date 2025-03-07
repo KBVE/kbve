@@ -6,7 +6,6 @@ use crate::manager::gui_manager::GUIManager;
 use crate::manager::browser_manager::BrowserManager;
 use crate::extensions::timer_extension::ClockMaster;
 use crate::data::cache::{ CacheManager };
-//use crate::entity::player2dnode::{Player2DNode};
 use crate::manager::entity_manager::{EntityManager};
 
 #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
@@ -22,7 +21,7 @@ pub struct GameManager {
   music_manager: Gd<MusicManager>,
   gui_manager: Gd<GUIManager>,
   browser_manager: Gd<BrowserManager>,
-  player_node: Gd<Player2DNode>,
+  entity_manager: Gd<EntityManager>,
   #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
   async_node: Option<Gd<AsyncNode>>,
 }
@@ -45,7 +44,7 @@ impl INode for GameManager {
     let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
     let gui_manager = Gd::from_init_fn(|base| GUIManager::init(base));
     let browser_manager = Gd::from_init_fn(|base| BrowserManager::init(base));
-    let player_node = Gd::from_init_fn(|base| Player2DNode::init(base));
+    let entity_manager = Gd::from_init_fn(|base| EntityManager::init(base));
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     let async_node = Some(Gd::from_init_fn(|base| AsyncNode::init(base)));
@@ -58,7 +57,7 @@ impl INode for GameManager {
       music_manager,
       gui_manager,
       browser_manager,
-      player_node,
+      entity_manager,
       #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))] async_node,
       #[cfg(not(any(target_os = "macos", target_os = "windows")))]
       async_node: None,
@@ -73,7 +72,7 @@ impl INode for GameManager {
     let music_manager = self.music_manager.clone();
     let gui_manager = self.gui_manager.clone();
     let browser_manager = self.browser_manager.clone();
-    let player_node = self.player_node.clone();
+    let entity_manager = self.entity_manager.clone();
     #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     let async_node = self.async_node.clone();
 
@@ -84,7 +83,7 @@ impl INode for GameManager {
       base.add_child(&music_manager.upcast::<Node>());
       base.add_child(&gui_manager.upcast::<Node>());
       base.add_child(&browser_manager.upcast::<Node>());
-      base.add_child(&player_node.upcast::<Node>());
+      base.add_child(&entity_manager.upcast::<Node>());
       #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
       if let Some(async_node) = async_node {
         base.add_child(&async_node.upcast::<Node>());
