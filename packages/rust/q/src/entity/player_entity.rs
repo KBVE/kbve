@@ -35,8 +35,6 @@ impl INode for PlayerEntity {
       godot_warn!("[PlayerEntity] Base could not be cast to Node.");
     }
 
-    // TODO We need to add another fallback method for the Sprite2D is not found.
-
     if self.sprite.is_none() {
       godot_warn!("[PlayerEntity] Sprite2D not found.");
     }
