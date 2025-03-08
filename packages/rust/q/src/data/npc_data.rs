@@ -15,6 +15,14 @@ bitflags! {
         const FRIENDLY    = 0b00100000;
         const HOSTILE     = 0b01000000;
         const INTERACTABLE = 0b10000000;
+        const PATROLLING   = 0b00000001_00000000;
+        const SLEEPING     = 0b00000010_00000000;
+        const TRADING      = 0b00000100_00000000;
+        const ESCAPING     = 0b00001000_00000000;
+        const HIDDEN       = 0b00010000_00000000;
+        const STUNNED      = 0b00100000_00000000;
+        const FOLLOWING    = 0b01000000_00000000;
+        const HEALING      = 0b10000000_00000000;
     }
 }
 
