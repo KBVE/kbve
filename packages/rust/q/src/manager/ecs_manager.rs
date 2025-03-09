@@ -61,10 +61,18 @@ impl INode2D for ECSManager {
       let _ = tx.send(EcsCommand::UpdatePlayerPosition(player_pos));
     }
 
-    if let Some(ref mut rx) = self.ecs_rx {
+    let updates: Vec<TileUpdate> = if let Some(ref mut rx) = self.ecs_rx {
+      let mut updates = Vec::new();
       while let Ok(update) = rx.try_recv() {
-        self.render_chunk(update);
+        updates.push(update);
       }
+      updates
+    } else {
+      Vec::new()
+    };
+
+    for update in updates {
+      self.render_chunk(update);
     }
   }
 }
@@ -73,7 +81,7 @@ impl INode2D for ECSManager {
 impl ECSManager {
   fn load_textures_from_cache(&mut self) {
     if let Some(ref gm) = self.game_manager {
-      let cache_manager = gm.bind().get_cache_manager();
+      let mut cache_manager = gm.bind().get_cache_manager();
       let texture_keys = ["grass", "water", "sand"];
       for key in texture_keys {
         if let Some(texture) = cache_manager.bind().get_from_texture_cache(GString::from(key)) {
@@ -94,7 +102,7 @@ impl ECSManager {
           image.fill(color);
           let texture = ImageTexture::create_from_image(&image).unwrap();
           let texture_ref: Gd<Texture2D> = texture.upcast();
-          cache_manager.bind_mut().texture_cache.insert(key, texture_ref.clone());
+          cache_manager.bind_mut().insert_texture(key, texture_ref.clone());
           self.materials.pin().insert(key.to_string(), texture_ref);
         }
       }
@@ -122,8 +130,8 @@ impl ECSManager {
     }
 
     for key in update.tiles_to_remove {
-      if let Some(mut sprite) = self.rendered_tiles.pin().remove(&key) {
-        sprite.queue_free();
+      if let Some(sprite) = self.rendered_tiles.pin().remove(&key) {
+        sprite.clone().free();
       }
     }
   }
