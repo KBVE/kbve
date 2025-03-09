@@ -266,4 +266,9 @@ impl GameManager {
       async_node.bind_mut().test_multi_threading();
     }
   }
+
+  #[func]
+  pub fn get_player_position(&self) -> Vector2 {
+      self.entity_manager.bind().get_local_player_position()
+  }
 }
