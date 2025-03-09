@@ -3,6 +3,8 @@ use papaya::HashMap;
 use serde::{Serialize, Deserialize};
 use bitflags::bitflags;
 use crate::data::abstract_data_map::AbstractDataMap;
+use crate::data::vector_data::vector2_serde;
+
 
 bitflags! {
     #[derive(Default, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
@@ -26,11 +28,13 @@ bitflags! {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct NPCData {
     pub npc_id: String,
     pub npc_type: String,
+    #[serde(with = "vector2_serde")]
     pub position: Vector2,
+    #[serde(with = "vector2_serde")]
     pub velocity: Vector2,
     pub health: f32,
     pub state: NPCState,
