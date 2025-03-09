@@ -5,7 +5,7 @@ use bitflags::bitflags;
 use crate::data::abstract_data_map::AbstractDataMap;
 
 bitflags! {
-    #[derive(Default, Serialize, Deserialize)]
+    #[derive(Default, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
     pub struct NPCState: u32 {
         const IDLE        = 0b00000001;
         const MOVING      = 0b00000010;
