@@ -48,6 +48,12 @@ impl INode for PlayerEntity {
 
 #[godot_api]
 impl PlayerEntity {
+
+  #[func]
+  pub fn get_position(&self) -> Vector2 {
+      self.data.get_position()
+  }
+  
   fn handle_input(&mut self) {
     let input = Input::singleton();
 
