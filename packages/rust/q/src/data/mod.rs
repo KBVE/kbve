@@ -6,3 +6,4 @@ pub mod abstract_data_map;
 pub mod shader_data;
 pub mod cache;
 pub mod vector_data;
+pub mod npc_data;
