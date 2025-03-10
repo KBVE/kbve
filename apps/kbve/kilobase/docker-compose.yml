@@ -1,0 +1,27 @@
+services:
+  kilobase:
+    container_name: kilobase-postgres
+    image: kbve/kilobase:15.1
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persist PostgreSQL data
+      - ./volumes/kilobase/data:/var/lib/postgresql/data:Z
+      # Optional: Add init scripts if needed
+      - ./volumes/kilobase/init.sql:/docker-entrypoint-initdb.d/init.sql:Z
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      POSTGRES_PASSWORD: postgres
+    command:
+      [
+        "postgres",
+        "-c",
+        "config_file=/etc/postgresql/postgresql.conf",
+        "-c",
+        "log_min_messages=fatal"
+      ]

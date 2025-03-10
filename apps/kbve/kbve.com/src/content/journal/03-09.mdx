@@ -31,6 +31,20 @@ tags:
     Since I been using the tokio library in godot, I been getting a better understanding on how to handle the multi-threading!
     One of the mistakes that I made was using the crossbeam crate to handle communication, but I think using the tokio libraries to handle that would make more sense xD.
 
+-   EOD
+
+    Okay, upgrading the docker base image to 15.8.1 and then running the generic build using this command:
+
+```shell
+
+ ./kbve.sh -nx kilobase:container
+
+ ```
+
+    Afterwards, going to switch the day!
+
+    `FROM supabase/postgres:15.1.1.78 AS kilobase` to `FROM supabase/postgres:15.8.1.044 AS kilobase` is a huge jump, hopefully nothing breaks.
+
 ### RFC
 
 -   06:00PM
