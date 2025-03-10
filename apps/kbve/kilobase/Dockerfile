@@ -5,7 +5,7 @@
 ####################
 # Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
 ####################
-FROM supabase/postgres:15.1.1.78 AS kilobase
+FROM supabase/postgres:15.8.1.044 AS kilobase
 
 # Add PostgreSQL PPA and install PostgreSQL development files
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -77,7 +77,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ####################
 # Stage 3: Copy the pg_failover_slots to the final image (Supabase Postgres)
 ####################
-FROM supabase/postgres:15.1.1.78 AS supabase
+FROM supabase/postgres:15.8.1.044 AS supabase
 
 ARG postgresql_major=15
 
