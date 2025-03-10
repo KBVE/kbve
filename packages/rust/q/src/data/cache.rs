@@ -112,6 +112,10 @@ impl CacheManager {
     self.shader_cache.clone().upcast::<Node>()
   }
 
+  pub fn insert_texture(&self, key: &str, texture: Gd<Texture2D>) {
+    self.texture_cache.insert(key, texture);
+  }
+
   #[func]
   fn get_from_canvas_layer_cache(&self, key: GString) -> Option<Gd<CanvasLayer>> {
     self.canvas_layer_cache.get(key.to_string().as_str())
@@ -123,17 +127,22 @@ impl CacheManager {
   }
 
   #[func]
-  fn get_from_texture_cache(&self, key: GString) -> Option<Gd<Texture2D>> {
+  pub fn get_from_texture_cache(&self, key: GString) -> Option<Gd<Texture2D>> {
     self.texture_cache.get(key.to_string().as_str())
   }
 
   #[func]
-  fn get_from_audio_cache(&self, key: GString) -> Option<Gd<AudioStream>> {
+  pub fn insert_into_texture_cache(&self, key: GString, texture: Gd<Texture2D>) {
+      self.texture_cache.insert(key.to_string().as_str(), texture);
+  }
+
+  #[func]
+  pub fn get_from_audio_cache(&self, key: GString) -> Option<Gd<AudioStream>> {
     self.audio_cache.get(key.to_string().as_str())
   }
 
   #[func]
-  fn obtain_shader_cache(&self) -> Gd<ShaderCache> {
+  pub fn obtain_shader_cache(&self) -> Gd<ShaderCache> {
     self.shader_cache.clone()
   }
 }
