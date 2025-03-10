@@ -18,6 +18,19 @@ tags:
 
 ## 2025
 
+### Supabase Updates
+
+-   09:35AM
+
+    The Supabase image for Kilobase is starting to fall behind in updates, ugh, it might pose some security issues.
+    I am thinking that we would have to finish fixing the kilobase extension but we should be able to update the base image before having to do that.
+
+-   10:31PM
+
+    We also have to update the pgrx version that the kilobase extension is using and we need to loop back around at fixing the tokio issues.
+    Since I been using the tokio library in godot, I been getting a better understanding on how to handle the multi-threading!
+    One of the mistakes that I made was using the crossbeam crate to handle communication, but I think using the tokio libraries to handle that would make more sense xD.
+
 ### RFC
 
 -   06:00PM
