@@ -5,7 +5,7 @@
 ####################
 # Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
 ####################
-FROM --platform=linux/amd64 supabase/postgres:15.8.1.044 AS kilobase
+FROM supabase/postgres:15.8.1.044 AS kilobase
 
 # Add PostgreSQL PPA and install PostgreSQL development files
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Rust and PGRX
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN cargo install cargo-pgrx --version 0.11.3 --locked
+RUN cargo install cargo-pgrx --version 0.12.9 --locked
 
 # Initialize PGRX for PostgreSQL 15
 RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
@@ -53,7 +53,7 @@ RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --featur
 ####################
 # Stage 2 - Setup Postgres PPA
 ####################
-FROM --platform=linux/amd64 ubuntu:focal AS ppa
+FROM ubuntu:focal AS ppa
 ARG postgresql_major=15
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
@@ -77,7 +77,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ####################
 # Stage 3: Copy the pg_failover_slots to the final image (Supabase Postgres)
 ####################
-FROM --platform=linux/amd64 supabase/postgres:15.8.1.044 AS supabase
+FROM supabase/postgres:15.8.1.044 AS supabase
 
 ARG postgresql_major=15
 
@@ -197,5 +197,8 @@ RUN apt-get clean && \
 ####################
 
 
-RUN usermod -u 101 postgres
+# RUN usermod -u 101 postgres
+# USER 101
+
+RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
 USER 101
