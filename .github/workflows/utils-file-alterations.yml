@@ -79,6 +79,9 @@ on:
       asteroids:
         description: "Asteroids & Droids changed"
         value: ${{ jobs.alter.outputs.asteroids }}
+      kilobase:
+        description: "Kilobase package changed"
+        value: ${{ jobs.alter.outputs.kilobase }}
 
 jobs:
   alter:
