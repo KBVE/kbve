@@ -21,7 +21,22 @@ tags:
 
     Upgrading the Nx Workspace to the latest version, might resolve some issues with expo.
     For this, I will have to go through the `nx migrate` command and see what it does.
-    
+
+### Github Actions Utils Docker Publish
+
+-   01:23AM
+
+    There was an issue with the `utils-publish-docker-image.yml` action that I had created recently.
+    It seems that one of the variables is causing a trigger error, so let me resolve that now.
+
+    The full issue was this:
+
+    ```
+    secret name `GITHUB_TOKEN` within `workflow_call` can not be used since it would collide with system reserved name
+    ```
+
+    First attempt to resolve it would be to just rename it to another variable name.
+
 ## 2024
 
 ### Output
