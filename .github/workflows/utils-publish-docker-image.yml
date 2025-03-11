@@ -14,7 +14,7 @@ on:
                 type: string
                 default: main
         secrets:
-            GITHUB_TOKEN:
+            MY_GITHUB_TOKEN:
                 required: true
             DOCKERHUB_USERNAME:
                 required: true
@@ -73,6 +73,6 @@ jobs:
 
             - name: Build and Push Docker Image with Nx
               env:
-                  INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  INPUT_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
               run: |
                   pnpm nx run ${{ inputs.project }}:${{ inputs.target }} --configuration=production --push
