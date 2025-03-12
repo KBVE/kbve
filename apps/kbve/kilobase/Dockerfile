@@ -125,7 +125,17 @@ RUN apt-get clean && \
 
 
 ####################
-# Stage 4: Setup Python 3.11
+# Stage Final: Swith User to Postgres UID: 101
+####################
+
+# RUN usermod -u 101 postgres
+# USER 101
+
+#RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
+#USER 101
+
+####################
+# Stage DEPRECATED 42: Setup Python 3.11
 ####################
 # Add the deadsnakes PPA for Python 3.11
 # RUN apt-get update && apt-get install -y software-properties-common curl && \
@@ -141,7 +151,7 @@ RUN apt-get clean && \
 # RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 ####################
-# Stage 5: OpenSSL
+# Stage DEPRECATED 69: OpenSSL
 ####################
 
 # Install OpenSSL libraries
@@ -152,7 +162,7 @@ RUN apt-get clean && \
 #     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ####################
-# Stage 6: libc6
+# Stage DEPRECATED 70: libc6
 ####################
 
 # Install libc6
@@ -162,7 +172,7 @@ RUN apt-get clean && \
 # RUN ln -sf /lib/x86_64-linux-gnu/libc.so.6 /lib64/ld-linux-x86-64.so.2
 
 ####################
-# Stage 7: Install Barman Cloud
+# Stage DEPRECATED 79: Install Barman Cloud
 ####################
 
 # Install Barman Cloud dependencies and Barman itself
@@ -190,15 +200,5 @@ RUN apt-get clean && \
 
 
 
-
-
-####################
-# Stage Final: Swith User to Postgres UID: 101
 ####################
 
-
-# RUN usermod -u 101 postgres
-# USER 101
-
-RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
-USER 101

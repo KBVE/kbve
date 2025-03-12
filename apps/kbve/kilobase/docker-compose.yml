@@ -1,28 +1,49 @@
 services:
-  kilobase:
-    container_name: kilobase-postgres
-    image: kbve/kilobase:15.1
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
-    volumes:
-      # Persist PostgreSQL data
-      - ./volumes/kilobase/data:/var/lib/postgresql/data:Z
-      # Optional: Add init scripts if needed
-      - ./volumes/kilobase/init.sql:/docker-entrypoint-initdb.d/init.sql:Z
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    environment:
-      POSTGRES_PASSWORD: postgres
-      PGSODIUM_KEY: ${PGSODIUM_KEY}
-    command:
-      [
-        "postgres",
-        "-c",
-        "config_file=/etc/postgresql/postgresql.conf",
-        "-c",
-        "log_min_messages=fatal"
-      ]
+    kilobase-init:
+        image: busybox:latest
+        container_name: kilobase-init
+        volumes:
+            - pgsodium_key:/etc/postgresql-custom
+        command: >
+            /bin/sh -c "
+            echo '$PGSODIUM_ROOT_KEY' > /etc/postgresql-custom/pgsodium_root.key &&
+            chmod 600 /etc/postgresql-custom/pgsodium_root.key &&
+            chown 105:106 /etc/postgresql-custom/pgsodium_root.key
+            "
+        restart: 'no'
+        environment:
+            - PGSODIUM_ROOT_KEY=${PGSODIUM_ROOT_KEY}
+
+    kilobase:
+        container_name: kilobase-postgres
+        image: kbve/kilobase:15.1
+        restart: unless-stopped
+        ports:
+            - '5432:5432'
+        volumes:
+            # Persist PostgreSQL data
+            - ./volumes/kilobase/data:/var/lib/postgresql/data:Z
+            # Optional: Add init scripts if needed
+            - ./volumes/kilobase/init.sql:/docker-entrypoint-initdb.d/init.sql:Z
+            - pgsodium_key:/etc/postgresql-custom
+        healthcheck:
+            test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        environment:
+            POSTGRES_PASSWORD: postgres
+        command:
+            [
+                'postgres',
+                '-c',
+                'config_file=/etc/postgresql/postgresql.conf',
+                '-c',
+                'log_min_messages=fatal',
+            ]
+        depends_on:
+            kilobase-init:
+                condition: service_completed_successfully
+
+volumes:
+    pgsodium_key:
