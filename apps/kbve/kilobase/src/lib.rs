@@ -1,8 +1,8 @@
 use pgrx::bgworkers::*;
 use pgrx::prelude::*;
 // use pgrx::spi::SpiResult;
-// use pgrx::spi::SpiTupleTable;
-// use pgrx::spi::SpiError;
+use pgrx::spi::SpiError;
+use pgrx::spi::SpiTupleTable;
 // use pgrx::spi::SpiHeapTupleData;
 // use reqwest::blocking::Client;
 use redis::{Client as RedisClient, Commands, Connection, RedisResult};
@@ -64,9 +64,13 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
     BackgroundWorker::connect_worker_to_spi(Some("postgres"), None);
 
     log!("Starting KiloBase BG Worker");
+
     let mut redis_connection = match create_redis_connection() {
         Ok(connection) => connection,
-        Err(err) => error!("Failed to establish Redis connection: {}", err),
+        Err(err) => {
+            log!("Failed to establish Redis connection: {}", err);
+            return;
+        }
     };
 
     while BackgroundWorker::wait_latch(Some(Duration::from_secs(10))) {
@@ -74,54 +78,59 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
             log!("SIGHUP received, reloading configuration if needed");
         }
 
-        let result: Result<Option<(i32, String)>, SpiError> = Spi::connect(
-            |mut client: spi::SpiClient<'_>| {
-                let query: &str = "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1";
-                let tuple_table: spi::SpiTupleTable<'_> = client.select(query, Some(1), None)?;
+        let mut task: Option<(i32, String)> = None;
 
-                for tuple in tuple_table {
-                    let id: i32 = tuple.get_by_name::<i32, &str>("id")?.ok_or("Missing ID")?;
-                    let url: String = tuple
-                        .get_by_name::<String, &str>("url")?
-                        .ok_or("Missing URL")?;
+        let result: Result<(), SpiError> = Spi::connect(|mut client: spi::SpiClient<'_>| {
+            let query: &str = "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1";
+            let tuple_table: SpiTupleTable<'_> = client.select(query, Some(1), None)?;
 
-                    client.update(
-                        "UPDATE url_queue SET status = 'processing' WHERE id = $1",
-                        None,
-                        Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
-                    )?;
+            for tuple in tuple_table {
+                let id: i32 = tuple.get_by_name::<i32, &str>("id")?
+                .unwrap_or_else(|| error!("Missing ID in url_queue"));
+            
+            let url: String = tuple.get_by_name::<String, &str>("url")?
+                .unwrap_or_else(|| error!("Missing URL in url_queue"));
+            
 
-                    return Ok(Some((id, url)));
-                }
-                Ok(None)
-            },
-        );
+                client.update(
+                    "UPDATE url_queue SET status = 'processing' WHERE id = $1",
+                    None,
+                    Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
+                )?;
+
+                task = Some((id, url));
+                return Ok(());
+            }
+            Ok(())
+        });
 
         match result {
-            Ok(Some((id, url))) => {
-                log!("Processing task ID: {} for URL: {}", id, &url);
-                match process_url_with_redis(&url, &mut redis_connection) {
-                    Ok(data) => {
-                        if let Err(e) = archive_and_complete(&id, &url, &data) {
-                            error!("Failed to archive/complete task {}: {}", id, e);
+            Ok(()) => {
+                if let Some((id, url)) = task {
+                    log!("Processing task ID: {} for URL: {}", id, &url);
+                    match process_url_with_redis(&url, &mut redis_connection) {
+                        Ok(data) => {
+                            if let Err(e) = archive_and_complete(&id, &url, &data) {
+                                error!("Failed to archive/complete task {}: {}", id, e);
+                            }
+                        }
+                        Err(e) => {
+                            if let Err(update_err) = mark_error(id) {
+                                error!("Failed to mark task {} as error: {}", id, update_err);
+                            }
+                            error!("Processing failed for task {}: {}", id, e);
                         }
                     }
-                    Err(e) => {
-                        if let Err(update_err) = mark_error(id) {
-                            error!("Failed to mark task {} as error: {}", id, update_err);
-                        }
-                        error!("Processing failed for task {}: {}", id, e);
-                    }
+                } else {
+                    log!("No pending tasks, sleeping...");
                 }
             }
-            Ok(None) => log!("No pending tasks, sleeping..."),
             Err(e) => error!("SPI error while fetching tasks: {}", e),
         }
     }
 
     log!("Exiting KiloBase BG Worker");
 }
-
 //  [HELPERS]
 
 fn create_redis_connection() -> RedisResult<Connection> {
@@ -176,14 +185,16 @@ fn archive_and_complete(id: &i32, url: &str, data: &str) -> Result<(), String> {
                     (PgOid::from(pg_sys::TEXTOID), data.into_datum()),
                 ]),
             )
-            .map_err(|e| format!("Archive insert failed: {}", e))?;
+            .unwrap_or_else(|e| error!("Archive insert failed: {}", e));
+
         client
             .update(
                 "UPDATE url_queue SET status = 'completed', processed_at = NOW() WHERE id = $1",
                 None,
                 Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
             )
-            .map_err(|e| format!("Queue update failed: {}", e))?;
+            .unwrap_or_else(|e| error!("Archive update failed: {}", e));
+
         log!("Successfully processed and archived task {}", id);
         Ok(())
     })
