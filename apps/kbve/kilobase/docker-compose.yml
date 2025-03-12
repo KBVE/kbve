@@ -24,7 +24,7 @@ services:
             # Persist PostgreSQL data
             - ./volumes/kilobase/data:/var/lib/postgresql/data
             # Optional: Add init scripts if needed
-            - ./volumes/kilobase/init.sql:/docker-entrypoint-initdb.d/init.sql
+            # - ./volumes/kilobase/init.sql:/docker-entrypoint-initdb.d/init.sql
             - pgsodium_key:/etc/postgresql-custom
         healthcheck:
             test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
