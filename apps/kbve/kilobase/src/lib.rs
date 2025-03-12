@@ -74,25 +74,23 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
             log!("SIGHUP received, reloading configuration if needed");
         }
 
-        let result: Result<Option<(_, _)>, _> = Spi::connect(|mut client: spi::SpiClient<'_>| {
+        let result: Result<Option<(i32, String)>, SpiError> = Spi::connect(|mut client: spi::SpiClient<'_>| {
             let query: &str = "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1";
             let tuple_table: spi::SpiTupleTable<'_> = client.select(query, Some(1), None)?;
-
-            match tuple_table.rows().next() {
-                Some(tuple) => {
-                    let id: i32 = tuple.get_by_name::<i32>("id")?.ok_or("Missing ID")?;
-                    let url: String = tuple.get_by_name::<String>("url")?.ok_or("Missing URL")?;
-
-                    client.update(
-                        "UPDATE url_queue SET status = 'processing' WHERE id = $1",
-                        None,
-                        Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
-                    )?;
-
-                    Ok(Some((id, url)))
-                }
-                None => Ok(None),
+        
+            for tuple in tuple_table {
+                let id: i32 = tuple.get_by_name::<i32, &str>("id")?.ok_or("Missing ID")?;
+                let url: String = tuple.get_by_name::<String, &str>("url")?.ok_or("Missing URL")?;
+        
+                client.update(
+                    "UPDATE url_queue SET status = 'processing' WHERE id = $1",
+                    None,
+                    Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
+                )?;
+        
+                return Ok(Some((id, url)));
             }
+            Ok(None)
         });
 
         match result {
@@ -105,10 +103,10 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
                         }
                     }
                     Err(e) => {
-                        error!("Processing failed for task {}: {}", id, e);
                         if let Err(update_err) = mark_error(id) {
                             error!("Failed to mark task {} as error: {}", id, update_err);
                         }
+                        error!("Processing failed for task {}: {}", id, e);
                     }
                 }
             }
@@ -137,12 +135,10 @@ fn create_redis_connection() -> RedisResult<Connection> {
 
     let client = RedisClient::open(redis_url.clone()).map_err(|e| {
         error!("Redis connection error: {}", e);
-        e
     })?;
 
     let conn = client.get_connection().map_err(|e| {
         error!("Redis connection retrieval failed: {}", e);
-        e
     })?;
     log!("Successfully connected to Redis at {}", redis_url);
     Ok(conn)
