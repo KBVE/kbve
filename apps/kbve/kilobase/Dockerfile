@@ -1,6 +1,17 @@
 ####################
 # Stage 0 - Cargo Chef - removed.
 ####################
+FROM rust:1.85 as chef
+WORKDIR /app/kilobase
+
+RUN cargo install cargo-chef
+COPY Cargo.toml .
+COPY ./src ./src
+COPY ./sql ./sql
+COPY .cargo ./.cargo
+
+RUN cargo chef prepare --recipe-path recipe.json
+
 
 ####################
 # Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
@@ -43,15 +54,43 @@ RUN cargo install cargo-pgrx --version 0.12.9 --locked
 # Initialize PGRX for PostgreSQL 15
 RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
 
-# Set up Kilobase extension source code
-WORKDIR /app/kilobase
-COPY . .
+####################
+# Stage 2 - Build Dependencies
+####################
+FROM chef as builder
 
-# Build the Kilobase PostgreSQL extension
-RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --out-dir='./dist'
+# Install PostgreSQL development tools for `pg_config`
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-server-dev-15 \
+    && rm -rf /var/lib/apt/lists/*
+    
+# Copy the prepared dependency cache
+COPY --from=chef /app/kilobase/recipe.json recipe.json
+
+# Rebuild the dependency cache (without Cargo.lock)
+RUN cargo install cargo-pgrx --version 0.12.9 --locked
+RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
+RUN cargo chef cook --release --recipe-path recipe.json
 
 ####################
-# Stage 2 - Setup Postgres PPA
+# Stage 3 - Build Kilobase PostgreSQL Extension
+####################
+FROM kilobase as kilobase-builder
+
+WORKDIR /app/kilobase
+
+# Copy the full source code
+COPY . .
+
+# Copy cached dependencies from previous stage
+COPY --from=builder /app/kilobase/target target
+
+# Build the PostgreSQL extension
+RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --out-dir='./dist'
+
+
+####################
+# Stage 4 - Setup Postgres PPA
 ####################
 FROM ubuntu:focal AS ppa
 ARG postgresql_major=15
@@ -75,7 +114,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ####################
-# Stage 3: Copy the pg_failover_slots to the final image (Supabase Postgres)
+# Stage 5: Copy the pg_failover_slots + kilobase to the final image (Supabase Postgres)
 ####################
 FROM supabase/postgres:15.8.1.044 AS supabase
 
@@ -97,8 +136,8 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 # Stage 3.5: Skipping Stage 1 and copying over the <so> file directly from the ci-cd pipeline
 ####################
 
-COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
-COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+COPY --from=kilobase-builder /app/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so
+COPY --from=kilobase-builder /app/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/${postgresql_major}/extension/
 
 ####################
 # Stage Nani:
@@ -123,10 +162,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN sed -i \
+    -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, kilobase'|g" \
+    /etc/postgresql/postgresql.conf
 
 ####################
-# Stage Final: Swith User to Postgres UID: 101
+# Stage DEPRECATED 40: Swith User to Postgres UID: 101
 ####################
+
+## They are now using 105/106, so we need to adjust the kubernetes CNPG for this.
 
 # RUN usermod -u 101 postgres
 # USER 101
