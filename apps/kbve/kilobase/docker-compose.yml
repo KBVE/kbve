@@ -37,17 +37,36 @@ services:
             POSTGRES_PORT: 5432
             POSTGRES_HOST: /var/run/postgresql
             PGPASSWORD: postgres
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            REDIS_PASSWORD: redispassword
         command:
             [
                 'postgres',
                 '-c',
                 'config_file=/etc/postgresql/postgresql.conf',
                 '-c',
-                'log_min_messages=fatal',
+                'log_min_messages=error',
             ]
         depends_on:
             kilobase-init:
                 condition: service_completed_successfully
+
+
+    redis:
+        image: redis:7-alpine
+        container_name: kilobase-redis
+        restart: unless-stopped
+        ports:
+            - '6379:6379'
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        environment:
+            REDIS_PASSWORD: redispassword
+        command: ["redis-server", "--requirepass", "redispassword"]
 
 volumes:
     pgsodium_key:
