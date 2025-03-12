@@ -8,45 +8,18 @@ use pgrx::spi::SpiTupleTable;
 use redis::{Client as RedisClient, Commands, Connection, RedisResult};
 use reqwest::Client;
 use reqwest::ClientBuilder;
-//  *Remove Tokio*
+// use tokio::runtime::Runtime;
 use base62;
 use jedi::lazyregex::extract_url_from_regex_zero_copy;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::time::Duration;
-use tokio::runtime::Runtime;
 use ulid::Ulid;
 
 ::pgrx::pg_module_magic!();
 
-// const REDIS_URL: &str = "redis://redis";
-const REDIS_DEFAULT_HOST: &str = "localhost";
-const REDIS_DEFAULT_PORT: &str = "6379";
-
-extension_sql!(
-    "\
-    CREATE TABLE IF NOT EXISTS url_queue (
-        id SERIAL PRIMARY KEY,
-        url TEXT NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed')),
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        processed_at TIMESTAMPTZ
-    );",
-    name = "create_url_queue_table",
-    bootstrap
-);
-
-extension_sql!(
-    "\
-    CREATE TABLE IF NOT EXISTS url_archive (
-        id TEXT PRIMARY KEY,
-        url TEXT NOT NULL,
-        data TEXT NOT NULL,
-        archived_at TIMESTAMPTZ DEFAULT NOW()
-    );",
-    name = "create_url_archive_table",
-    requires = ["create_url_queue_table"]
-);
+// * Mod *
+mod sql;
 
 #[pg_guard]
 pub extern "C" fn _PG_init() {
@@ -85,11 +58,18 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
             let tuple_table: SpiTupleTable<'_> = client.select(query, Some(1), None)?;
 
             for tuple in tuple_table {
-                let id: i32 = tuple.get_by_name::<i32, &str>("id")?
-                .unwrap_or_else(|| error!("Missing ID in url_queue"));
-            
+        
+            let id: i32 = tuple.get_by_name::<i32, &str>("id")?
+                .unwrap_or_else(|| {
+                    error!("Missing ID in url_queue");
+                    0
+                });
+
             let url: String = tuple.get_by_name::<String, &str>("url")?
-                .unwrap_or_else(|| error!("Missing URL in url_queue"));
+                .unwrap_or_else(|| {
+                    error!("Missing URL in url_queue");
+                    "".to_string()
+                });
             
 
                 client.update(
@@ -185,7 +165,9 @@ fn archive_and_complete(id: &i32, url: &str, data: &str) -> Result<(), String> {
                     (PgOid::from(pg_sys::TEXTOID), data.into_datum()),
                 ]),
             )
-            .unwrap_or_else(|e| error!("Archive insert failed: {}", e));
+            .unwrap_or_else(|e| {
+                error!("Archive insert failed: {}", e);
+            });
 
         client
             .update(
@@ -193,8 +175,10 @@ fn archive_and_complete(id: &i32, url: &str, data: &str) -> Result<(), String> {
                 None,
                 Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
             )
-            .unwrap_or_else(|e| error!("Archive update failed: {}", e));
-
+            .unwrap_or_else(|e| {
+                error!("Archive update failed: {}", e);
+            });
+            
         log!("Successfully processed and archived task {}", id);
         Ok(())
     })
