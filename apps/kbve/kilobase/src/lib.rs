@@ -64,7 +64,7 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
     BackgroundWorker::connect_worker_to_spi(Some("postgres"), None);
 
     log!("Starting KiloBase BG Worker");
-    let redis_connection = match create_redis_connection() {
+    let mut redis_connection = match create_redis_connection() {
         Ok(connection) => connection,
         Err(err) => error!("Failed to establish Redis connection: {}", err),
     };
@@ -74,24 +74,28 @@ pub extern "C" fn bg_worker_main(_arg: pg_sys::Datum) {
             log!("SIGHUP received, reloading configuration if needed");
         }
 
-        let result: Result<Option<(i32, String)>, SpiError> = Spi::connect(|mut client: spi::SpiClient<'_>| {
-            let query: &str = "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1";
-            let tuple_table: spi::SpiTupleTable<'_> = client.select(query, Some(1), None)?;
-        
-            for tuple in tuple_table {
-                let id: i32 = tuple.get_by_name::<i32, &str>("id")?.ok_or("Missing ID")?;
-                let url: String = tuple.get_by_name::<String, &str>("url")?.ok_or("Missing URL")?;
-        
-                client.update(
-                    "UPDATE url_queue SET status = 'processing' WHERE id = $1",
-                    None,
-                    Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
-                )?;
-        
-                return Ok(Some((id, url)));
-            }
-            Ok(None)
-        });
+        let result: Result<Option<(i32, String)>, SpiError> = Spi::connect(
+            |mut client: spi::SpiClient<'_>| {
+                let query: &str = "SELECT id, url FROM url_queue WHERE status = 'pending' FOR UPDATE SKIP LOCKED LIMIT 1";
+                let tuple_table: spi::SpiTupleTable<'_> = client.select(query, Some(1), None)?;
+
+                for tuple in tuple_table {
+                    let id: i32 = tuple.get_by_name::<i32, &str>("id")?.ok_or("Missing ID")?;
+                    let url: String = tuple
+                        .get_by_name::<String, &str>("url")?
+                        .ok_or("Missing URL")?;
+
+                    client.update(
+                        "UPDATE url_queue SET status = 'processing' WHERE id = $1",
+                        None,
+                        Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
+                    )?;
+
+                    return Ok(Some((id, url)));
+                }
+                Ok(None)
+            },
+        );
 
         match result {
             Ok(Some((id, url))) => {
@@ -133,13 +137,8 @@ fn create_redis_connection() -> RedisResult<Connection> {
 
     log!("Attempting Redis connection to {}", redis_url);
 
-    let client = RedisClient::open(redis_url.clone()).map_err(|e| {
-        error!("Redis connection error: {}", e);
-    })?;
-
-    let conn = client.get_connection().map_err(|e| {
-        error!("Redis connection retrieval failed: {}", e);
-    })?;
+    let client = RedisClient::open(redis_url.clone())?;
+    let conn = client.get_connection()?;
     log!("Successfully connected to Redis at {}", redis_url);
     Ok(conn)
 }
@@ -154,15 +153,13 @@ fn dequeue_url(conn: &mut Connection) -> Option<String> {
         }
     }
 }
+
 fn process_url_with_redis(url: &str, conn: &mut Connection) -> Result<String, String> {
-    conn.set_ex(format!("processing:{}", url), "1", 3600)
+    conn.set_ex::<_, _, ()>(format!("processing:{}", url), "1", 3600)
         .map_err(|e| format!("Redis error: {}", e))?;
-
     let result = process_url(url);
-
-    conn.del(format!("processing:{}", url))
+    conn.del::<_, ()>(format!("processing:{}", url))
         .map_err(|e| format!("Redis cleanup error: {}", e))?;
-
     result
 }
 
@@ -187,11 +184,10 @@ fn archive_and_complete(id: &i32, url: &str, data: &str) -> Result<(), String> {
                 Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
             )
             .map_err(|e| format!("Queue update failed: {}", e))?;
-
         log!("Successfully processed and archived task {}", id);
         Ok(())
     })
-    .map_err(|e| format!("SPI error: {}", e))
+    .map_err(|e: SpiError| format!("SPI error: {}", e))
 }
 
 fn mark_error(id: i32) -> Result<(), String> {
