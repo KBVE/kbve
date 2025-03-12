@@ -17,6 +17,7 @@ services:
       retries: 10
     environment:
       POSTGRES_PASSWORD: postgres
+      PGSODIUM_KEY: ${PGSODIUM_KEY}
     command:
       [
         "postgres",
