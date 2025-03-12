@@ -22,9 +22,9 @@ services:
             - '5432:5432'
         volumes:
             # Persist PostgreSQL data
-            - ./volumes/kilobase/data:/var/lib/postgresql/data:Z
+            - ./volumes/kilobase/data:/var/lib/postgresql/data
             # Optional: Add init scripts if needed
-            - ./volumes/kilobase/init.sql:/docker-entrypoint-initdb.d/init.sql:Z
+            - ./volumes/kilobase/init.sql:/docker-entrypoint-initdb.d/init.sql
             - pgsodium_key:/etc/postgresql-custom
         healthcheck:
             test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
@@ -32,7 +32,11 @@ services:
             timeout: 5s
             retries: 10
         environment:
+            POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
+            POSTGRES_PORT: 5432
+            POSTGRES_HOST: /var/run/postgresql
+            PGPASSWORD: postgres
         command:
             [
                 'postgres',
