@@ -1,20 +1,4 @@
 ####################
-# Stage 0 - Cargo Chef - removed.
-####################
-FROM rust:1.85 as chef
-WORKDIR /app/kilobase
-
-RUN cargo install cargo-chef
-COPY Cargo.toml .
-COPY ./src ./src
-COPY ./sql ./sql
-COPY .cargo ./.cargo
-COPY kilobase.control kilobase.control
-
-RUN cargo chef prepare --recipe-path recipe.json
-
-
-####################
 # Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
 ####################
 FROM supabase/postgres:15.8.1.044 AS kilobase
@@ -55,47 +39,15 @@ RUN cargo install cargo-pgrx --version 0.12.9 --locked
 # Initialize PGRX for PostgreSQL 15
 RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
 
-####################
-# Stage 2 - Build Dependencies
-####################
-FROM chef as builder
-
-# Install PostgreSQL development tools for `pg_config`
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-server-dev-15 \
-    && rm -rf /var/lib/apt/lists/*
-    
-# Copy the prepared dependency cache
-COPY --from=chef /app/kilobase/recipe.json recipe.json
-
-# Rebuild the dependency cache (without Cargo.lock)
-RUN cargo install cargo-pgrx --version 0.12.9 --locked
-RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
-RUN cargo chef cook --release --recipe-path recipe.json
-
-####################
-# Stage 3 - Build Kilobase PostgreSQL Extension
-####################
-FROM kilobase as kilobase-builder
-
+# Set up Kilobase extension source code
 WORKDIR /app/kilobase
+COPY . .
 
-# Copy the full source code
-COPY ./src ./src
-COPY .cargo ./.cargo
-COPY ./sql ./sql
-COPY kilobase.control kilobase.control
-COPY Cargo.toml Cargo.toml
-
-# Copy cached dependencies from previous stage
-COPY --from=builder /app/kilobase/target target
-
-# Build the PostgreSQL extension
-RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --release --out-dir='./dist'
-
+# Build the Kilobase PostgreSQL extension
+RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --out-dir='./dist'
 
 ####################
-# Stage 4 - Setup Postgres PPA
+# Stage 2 - Setup Postgres PPA
 ####################
 FROM ubuntu:focal AS ppa
 ARG postgresql_major=15
@@ -119,7 +71,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ####################
-# Stage 5: Copy the pg_failover_slots + kilobase to the final image (Supabase Postgres)
+# Stage 3: Copy the pg_failover_slots to the final image (Supabase Postgres)
 ####################
 FROM supabase/postgres:15.8.1.044 AS supabase
 
@@ -134,15 +86,31 @@ LABEL name="CloudNative Supabase Container Images" \
 
 LABEL org.opencontainers.image.description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 15.1.Supabase"
 
-COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
-COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
+# Ensure custom extension directory exists
+RUN mkdir -p /usr/local/postgres_extensions/
+RUN mkdir -p /usr/share/postgresql/extension/
+RUN chown -R postgres:postgres /usr/share/postgresql/extension/
+RUN chmod 755 /usr/share/postgresql/extension/
 
-####################
-# Stage 3.5: Skipping Stage 1 and copying over the <so> file directly from the ci-cd pipeline
-####################
+# Ensure proper permissions for PostgreSQL
+RUN chown -R postgres:postgres /usr/local/postgres_extensions/ && \
+    chmod -R 755 /usr/local/postgres_extensions/
 
-COPY --from=kilobase-builder /app/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so
-COPY --from=kilobase-builder /app/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/${postgresql_major}/extension/
+
+
+# COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
+# COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
+# COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
+# COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+
+# Copy pg_failover_slots extension files
+COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/local/postgres_extensions/
+COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/local/postgres_extensions/
+
+# Copy kilobase extension files
+COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/local/postgres_extensions/
+COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/local/postgres_extensions/
+COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/extension/
 
 ####################
 # Stage Nani:
@@ -167,24 +135,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# RUN sed -i \
-#     -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, kilobase'|g" \
-#     /etc/postgresql/postgresql.conf
+RUN sed -i \
+    -e "s|^#dynamic_library_path = .*|dynamic_library_path = '/usr/local/lib/postgresql:/usr/local/postgres_extensions:\$libdir'|g" \
+    /etc/postgresql/postgresql.conf
+
+RUN sed -i \
+    -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, pg_failover_slots, kilobase'|g" \
+    /etc/postgresql/postgresql.conf
 
 ####################
-# Stage DEPRECATED 40: Swith User to Postgres UID: 101
-####################
-
-## They are now using 105/106, so we need to adjust the kubernetes CNPG for this.
-
-# RUN usermod -u 101 postgres
-# USER 101
-
-#RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
-#USER 101
-
-####################
-# Stage DEPRECATED 42: Setup Python 3.11
+# Stage 4: Setup Python 3.11
 ####################
 # Add the deadsnakes PPA for Python 3.11
 # RUN apt-get update && apt-get install -y software-properties-common curl && \
@@ -200,7 +160,7 @@ RUN apt-get clean && \
 # RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 ####################
-# Stage DEPRECATED 69: OpenSSL
+# Stage 5: OpenSSL
 ####################
 
 # Install OpenSSL libraries
@@ -211,7 +171,7 @@ RUN apt-get clean && \
 #     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ####################
-# Stage DEPRECATED 70: libc6
+# Stage 6: libc6
 ####################
 
 # Install libc6
@@ -221,7 +181,7 @@ RUN apt-get clean && \
 # RUN ln -sf /lib/x86_64-linux-gnu/libc.so.6 /lib64/ld-linux-x86-64.so.2
 
 ####################
-# Stage DEPRECATED 79: Install Barman Cloud
+# Stage 7: Install Barman Cloud
 ####################
 
 # Install Barman Cloud dependencies and Barman itself
@@ -247,7 +207,14 @@ RUN apt-get clean && \
 # 		libsnappy-dev; \
 # 	rm -rf /var/lib/apt/lists/*
 
-
-
+####################
+# Stage Final: Swith User to Postgres UID: 101
 ####################
 
+## Postgres / Supabase is UID 105/106 now 03/12/2025
+
+# # RUN usermod -u 101 postgres
+# # USER 101
+
+# RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
+# USER 101

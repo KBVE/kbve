@@ -3,3 +3,7 @@
 Dockerfile
 docker-compose.yml
 README.md
+volumes/
+.gitingore
+project.json
+project.lock.json
