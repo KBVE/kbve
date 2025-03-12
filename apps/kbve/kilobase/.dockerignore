@@ -1,0 +1,5 @@
+# Ignore Docker build artifacts
+.dockerignore
+Dockerfile
+docker-compose.yml
+README.md

@@ -9,6 +9,7 @@ COPY Cargo.toml .
 COPY ./src ./src
 COPY ./sql ./sql
 COPY .cargo ./.cargo
+COPY kilobase.control kilobase.control
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -80,13 +81,17 @@ FROM kilobase as kilobase-builder
 WORKDIR /app/kilobase
 
 # Copy the full source code
-COPY . .
+COPY ./src ./src
+COPY .cargo ./.cargo
+COPY ./sql ./sql
+COPY kilobase.control kilobase.control
+COPY Cargo.toml Cargo.toml
 
 # Copy cached dependencies from previous stage
 COPY --from=builder /app/kilobase/target target
 
 # Build the PostgreSQL extension
-RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --out-dir='./dist'
+RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --release --out-dir='./dist'
 
 
 ####################
@@ -162,9 +167,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN sed -i \
-    -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, kilobase'|g" \
-    /etc/postgresql/postgresql.conf
+# RUN sed -i \
+#     -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, kilobase'|g" \
+#     /etc/postgresql/postgresql.conf
 
 ####################
 # Stage DEPRECATED 40: Swith User to Postgres UID: 101
