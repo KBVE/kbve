@@ -1,11 +1,11 @@
+use crate::error::RedisConnectionError;
+use crate::error::SpiTransactionError;
+use crate::redis::process_url_with_redis;
 use base62;
 use pgrx::bgworkers::*;
 use pgrx::prelude::*;
 use pgrx::spi::{Spi, SpiClient, SpiError};
 use ulid::Ulid;
-use crate::error::SpiTransactionError;
-use crate::error::RedisConnectionError;
-use crate::redis::process_url_with_redis;
 
 pub fn generate_base62_ulid() -> String {
     let ulid = Ulid::new();
@@ -14,9 +14,10 @@ pub fn generate_base62_ulid() -> String {
     base62::encode(ulid_u128)
 }
 
-pub fn process_next_task(redis_connection: &mut redis::Connection) -> Result<(), SpiTransactionError> {
-
-    let (id, url, retry_count) = match get_next_task() {
+pub fn process_next_task(
+    redis_connection: &mut redis::Connection,
+) -> Result<(), SpiTransactionError> {
+    let (id, url, retry_count) = match get_next_task()? {
         Some(task) => task,
         None => {
             log!("No idle tasks available");
@@ -26,43 +27,55 @@ pub fn process_next_task(redis_connection: &mut redis::Connection) -> Result<(),
 
     log!("Processing task ID: {} for URL: {}", id, &url);
 
-    let redis_result = process_url_with_redis(&url, redis_connection)
-    .map_err(|e: RedisConnectionError| e.to_string());
+    let redis_result = process_url_with_redis(&url, redis_connection).map_err(|e| e.to_string());
 
     update_task_status(id, url, redis_result, retry_count)?;
 
     Ok(())
 }
+
 fn get_next_task() -> Result<Option<(i32, String, i32)>, SpiTransactionError> {
     BackgroundWorker::transaction(|| {
         Spi::connect(|mut client| {
+            
             let query = "
                 SELECT id, url, retry_count
                 FROM url_queue
                 WHERE status = 'idle'
                 ORDER BY priority DESC, created_at ASC
-                FOR UPDATE SKIP LOCKED
                 LIMIT 1;
             ";
 
             let tuple_table = client.select(query, Some(1), None)?;
 
             for tuple in tuple_table {
-                let id = tuple.get_by_name::<i32, &str>("id").transpose()?; // Convert Result<Option<T>, E> to Option<T>
-                let url = tuple.get_by_name::<String, &str>("url").transpose()?;
-                let retry_count = tuple.get_by_name::<i32, &str>("retry_count").transpose()?.unwrap_or(0);
+                let id = tuple.get_by_name::<i32, &str>("id")?.ok_or_else(|| {
+                    SpiTransactionError::SpiError(SpiError::CursorNotFound(
+                        "Missing id value".to_string(),
+                    ))
+                })?;
 
-                if let (Some(id), Some(url)) = (id, url) {
-                    return Ok(Some((id, url, retry_count)));
-                }
+                let url = tuple.get_by_name::<String, &str>("url")?.ok_or_else(|| {
+                    SpiTransactionError::SpiError(SpiError::CursorNotFound(
+                        "Missing url value".to_string(),
+                    ))
+                })?;
+
+                let retry_count = tuple.get_by_name::<i32, &str>("retry_count")?.unwrap_or(0);
+
+                return Ok(Some((id, url, retry_count)));
             }
             Ok(None)
         })
     })
 }
 
-
-fn update_task_status(id: i32, url: String, redis_result: Result<String, String>, retry_count: i32) -> Result<(), SpiTransactionError> {
+fn update_task_status(
+    id: i32,
+    url: String,
+    redis_result: Result<String, String>,
+    retry_count: i32,
+) -> Result<(), SpiTransactionError> {
     BackgroundWorker::transaction(|| {
         Spi::connect(|mut client| {
             match redis_result {
@@ -73,7 +86,7 @@ fn update_task_status(id: i32, url: String, redis_result: Result<String, String>
                         None,
                         Some(vec![
                             (PgOid::from(pg_sys::TEXTOID), archive_id.into_datum()),
-                            (PgOid::from(pg_sys::TEXTOID), url.into_datum()),
+                            (PgOid::from(pg_sys::TEXTOID), url.clone().into_datum()),
                             (PgOid::from(pg_sys::TEXTOID), data.into_datum()),
                         ]),
                     )?;
@@ -99,12 +112,16 @@ fn update_task_status(id: i32, url: String, redis_result: Result<String, String>
                             None,
                             Some(vec![(PgOid::from(pg_sys::INT4OID), id.into_datum())]),
                         )?;
-                        log!("Processing permanently failed for task {} after {} attempts: {}", id, retry_count, err_msg);
+                        log!(
+                            "Processing permanently failed for task {} after {} attempts: {}",
+                            id,
+                            retry_count,
+                            err_msg
+                        );
                     }
                 }
             }
             Ok(())
         })
     })
-    .map_err(|e| SpiTransactionError::SpiError(format!("SPI transaction error: {}", e)))
 }

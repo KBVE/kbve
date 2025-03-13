@@ -16,12 +16,43 @@ use ulid::Ulid;
 
 ::pgrx::pg_module_magic!();
 
+
+extension_sql!(
+    "\
+    DROP TABLE IF EXISTS url_queue CASCADE;
+
+    CREATE TABLE IF NOT EXISTS url_queue (
+        id SERIAL PRIMARY KEY,
+        url TEXT NOT NULL,
+        retry_count INT DEFAULT 0,
+        priority INT DEFAULT 0,
+        status TEXT DEFAULT 'idle' CHECK (status IN ('idle', 'pending', 'processing', 'completed', 'error')),
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        processed_at TIMESTAMPTZ
+    );",
+    name = "create_url_queue_table",
+    bootstrap
+);
+
+extension_sql!(
+    "\
+    DROP TABLE IF EXISTS url_archive CASCADE;
+
+    CREATE TABLE IF NOT EXISTS url_archive (
+        id TEXT PRIMARY KEY,
+        url TEXT NOT NULL,
+        data TEXT NOT NULL,
+        archived_at TIMESTAMPTZ DEFAULT NOW()
+    );",
+    name = "create_url_archive_table",
+    requires = ["create_url_queue_table"]
+);
+
 // * Mod *
 mod error;
 mod http;
 mod redis;
 mod spi;
-mod sql;
 
 #[pg_guard]
 pub extern "C" fn _PG_init() {
