@@ -5,14 +5,12 @@ use pgrx::spi::SpiError;
 use pgrx::spi::SpiTupleTable;
 // use pgrx::spi::SpiHeapTupleData;
 // use reqwest::blocking::Client;
-use redis::{Client as RedisClient, Commands, Connection, RedisResult};
 use reqwest::Client;
 use reqwest::ClientBuilder;
 // use tokio::runtime::Runtime;
 use base62;
 use jedi::lazyregex::extract_url_from_regex_zero_copy;
 use serde::{Deserialize, Serialize};
-use std::env;
 use std::time::Duration;
 use ulid::Ulid;
 
@@ -20,6 +18,7 @@ use ulid::Ulid;
 
 // * Mod *
 mod sql;
+mod redis;
 
 #[pg_guard]
 pub extern "C" fn _PG_init() {

@@ -31,7 +31,19 @@ tags:
     Hmm, I wonder if there might be a better way to handle the redis integration, maybe we could get creative and run our own internal map of the data, like a mini redis.
     This would avoid the connection and jump to the redis, basically maintaining our own internal memory map.
 
+-   05:12PM
 
+    I have been thinking about the redis integration and I think I have a solution.
+    I will create a mini redis that will be a part of the kilobase, this will allow us to maintain the data in memory and then sync it with the redis instance.
+    This will allow us to avoid the FFI issues and also allow us to maintain the data in memory, which will be faster than the redis instance.
+    Hmm, I am writing this a couple times and mapping it out right now, hopefully I can get something going soon.
+
+### Moomin
+
+-   06:26PM
+
+    While watching episode 2, I felt like the show was a perfect representation of questing in Silverpine!
+    Wolf and all, it was a perfect representation of the zone, even the death of Fudster was a great representation.
 
 ## 2024
 
