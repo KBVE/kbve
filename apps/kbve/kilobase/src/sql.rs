@@ -2,10 +2,12 @@ use pgrx::prelude::*;
 
 extension_sql!(
     "\
+    DROP TABLE IF EXISTS url_queue CASCADE;
+
     CREATE TABLE IF NOT EXISTS url_queue (
         id SERIAL PRIMARY KEY,
         url TEXT NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed')),
+        status TEXT DEFAULT 'idle' CHECK (status IN ('idle', 'pending', 'processing', 'completed', 'error')),
         created_at TIMESTAMPTZ DEFAULT NOW(),
         processed_at TIMESTAMPTZ
     );",
@@ -15,6 +17,8 @@ extension_sql!(
 
 extension_sql!(
     "\
+    DROP TABLE IF EXISTS url_archive CASCADE;
+
     CREATE TABLE IF NOT EXISTS url_archive (
         id TEXT PRIMARY KEY,
         url TEXT NOT NULL,
