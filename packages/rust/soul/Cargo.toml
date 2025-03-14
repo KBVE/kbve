@@ -1,8 +1,23 @@
 [package]
 name = "rust_soul"
+authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Soul is a utility library for Solana, designed to accelerate proof-of-concept development."
+homepage = "https://kbve.com/application/rust/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/erust"
+readme = "README.md"
+rust-version = "1.85"
+exclude = [
+    "release/*",
+    "docs/*",
+]
+
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
+solana-client = "2.2.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
