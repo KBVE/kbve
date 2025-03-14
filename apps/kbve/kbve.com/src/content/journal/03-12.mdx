@@ -14,11 +14,41 @@ tags:
 
 ## Notes
 
+## 2025
 
-### 2024
+### Kilobase v15.8.10
+
+-   10:53AM
+
+    It was another day at the remote office, planning or throwing bricks at the computer screen until something would stick.
+    The big issue right now is trying to figure out what I can do to improve all that older rust code and get ourselves an established redis proof of concept.
+    After the poc is built, I will try to include pg vector and the sol instance extension as well!
+
+-   03:24PM
+
+    The FFI issue that is holding us back right now is the str / String between the redis, rust and postgres.
+    The solution might be very simple at first but I can see it becoming a huge problem later on.
+    Hmm, I wonder if there might be a better way to handle the redis integration, maybe we could get creative and run our own internal map of the data, like a mini redis.
+    This would avoid the connection and jump to the redis, basically maintaining our own internal memory map.
+
+-   05:12PM
+
+    I have been thinking about the redis integration and I think I have a solution.
+    I will create a mini redis that will be a part of the kilobase, this will allow us to maintain the data in memory and then sync it with the redis instance.
+    This will allow us to avoid the FFI issues and also allow us to maintain the data in memory, which will be faster than the redis instance.
+    Hmm, I am writing this a couple times and mapping it out right now, hopefully I can get something going soon.
+
+### Moomin
+
+-   06:26PM
+
+    While watching episode 2, I felt like the show was a perfect representation of questing in Silverpine!
+    Wolf and all, it was a perfect representation of the zone, even the death of Fudster was a great representation.
+
+## 2024
 
 
-#### Git
+### Git
 
 The branch is out of sync, going to try and get it back into sync.
 
@@ -27,7 +57,7 @@ This is a test to see if I blew through the cache on github actions.
 It was github! Ugh! They were causing all my issues from their endpoint, oh well its been resolved.
 
 
-#### Supabase
+### Supabase
 
 Now back to the main setup and usage of Supabase!
 
