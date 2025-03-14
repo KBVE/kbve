@@ -6074,6 +6074,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_soul"
+version = "0.1.0"
+
+[[package]]
 name = "rust_wasm_embed"
 version = "0.1.0"
 dependencies = [
