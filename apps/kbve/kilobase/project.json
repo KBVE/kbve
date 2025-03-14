@@ -108,6 +108,16 @@
         "args"
       ]
     },
+    "debug": {
+      "executor": "nx:run-commands",
+      "options": {
+          "commands": [
+            "./kbve.sh -nx kilobase:container",
+            "cd ./apps/kbve/kilobase && docker-compose --env-file .env up --build"
+          ],
+          "parallel": false
+        }
+    },
     "container": {
       "executor": "@nx-tools/nx-container:build",
       "defaultConfiguration": "local",

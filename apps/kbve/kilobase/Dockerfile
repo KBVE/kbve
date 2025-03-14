@@ -1,8 +1,4 @@
 ####################
-# Stage 0 - Cargo Chef - removed.
-####################
-
-####################
 # Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
 ####################
 FROM supabase/postgres:15.8.1.044 AS kilobase
@@ -90,15 +86,31 @@ LABEL name="CloudNative Supabase Container Images" \
 
 LABEL org.opencontainers.image.description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 15.1.Supabase"
 
-COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
-COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
+# Ensure custom extension directory exists
+RUN mkdir -p /usr/local/postgres_extensions/
+RUN mkdir -p /usr/share/postgresql/extension/
+RUN chown -R postgres:postgres /usr/share/postgresql/extension/
+RUN chmod 755 /usr/share/postgresql/extension/
 
-####################
-# Stage 3.5: Skipping Stage 1 and copying over the <so> file directly from the ci-cd pipeline
-####################
+# Ensure proper permissions for PostgreSQL
+RUN chown -R postgres:postgres /usr/local/postgres_extensions/ && \
+    chmod -R 755 /usr/local/postgres_extensions/
 
-COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
-COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+
+
+# COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
+# COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
+# COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
+# COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+
+# Copy pg_failover_slots extension files
+COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/local/postgres_extensions/
+COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/local/postgres_extensions/
+
+# Copy kilobase extension files
+COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/local/postgres_extensions/
+COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/local/postgres_extensions/
+COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/extension/
 
 ####################
 # Stage Nani:
@@ -123,6 +135,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN sed -i \
+    -e "s|^#dynamic_library_path = .*|dynamic_library_path = '/usr/local/lib/postgresql:/usr/local/postgres_extensions:\$libdir'|g" \
+    /etc/postgresql/postgresql.conf
+
+RUN sed -i \
+    -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, pg_failover_slots, kilobase'|g" \
+    /etc/postgresql/postgresql.conf
 
 ####################
 # Stage 4: Setup Python 3.11
@@ -188,17 +207,14 @@ RUN apt-get clean && \
 # 		libsnappy-dev; \
 # 	rm -rf /var/lib/apt/lists/*
 
-
-
-
-
 ####################
 # Stage Final: Swith User to Postgres UID: 101
 ####################
 
+## Postgres / Supabase is UID 105/106 now 03/12/2025
 
-# RUN usermod -u 101 postgres
+# # RUN usermod -u 101 postgres
+# # USER 101
+
+# RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
 # USER 101
-
-RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
-USER 101
