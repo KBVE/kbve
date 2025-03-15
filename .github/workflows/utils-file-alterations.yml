@@ -10,40 +10,21 @@ on:
           default: "main"
 
     outputs:
-
-      # ! [Apps]
-      # [Atlas]
       atlas:
         description: "Atlas changed"
         value: ${{ jobs.alter.outputs.atlas }}
-
-      # [CityVote]
-
-      # [Discord]
       discordsh_website:
         description: "Discord.sh changed"
         value: ${{ jobs.alter.outputs.discordsh_website }}
-
-      # [Experimental]
-
-      # [GameJam]
-
-      # [Herbmail]
       herbmail:
         description: "Herbmail changed"
         value: ${{ jobs.alter.outputs.herbmail }}
-
-      # [KBVE]
       kbve:
         description: "KBVE changed"
         value: ${{ jobs.alter.outputs.kbve }}
-
-      # [Rareicon]
       rareicon:
         description: "Rareicon changed"
         value: ${{ jobs.alter.outputs.rareicon }}
-
-      # ! [Packages]
       proxy:
         description: "Proxy changed"
         value: ${{ jobs.alter.outputs.proxy }}
