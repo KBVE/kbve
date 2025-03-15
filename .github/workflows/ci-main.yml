@@ -32,87 +32,11 @@ jobs:
 
   alter:
     needs: ['globals']
-    runs-on: ubuntu-latest
-    name: File Alterations
+    name: 'Alpha Alters'
     if: github.repository == 'kbve/kbve'
-    outputs:
-      #   [APPS]
-      herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
-      kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
-      rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
-      discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
-      atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
-      api: ${{ steps.delta.outputs.api_any_changed  }}
-      proxy: ${{ steps.delta.outputs.proxy_any_changed  }}
-      saber: ${{ steps.delta.outputs.saber_any_changed  }}
-      rustprofile: ${{ steps.delta.outputs.rustprofile_any_changed  }}
-      expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
-      cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
-      ##  [PACKAGES]
-      erust: ${{ steps.delta.outputs.erust_any_changed  }}
-      holy: ${{ steps.delta.outputs.holy_any_changed  }}
-      kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
-      jedi: ${{ steps.delta.outputs.jedi_any_changed }}
-      dockervoid: ${{ steps.delta.outputs.dockervoid_any_changed }}
-      khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
-      devops: ${{ steps.delta.outputs.devops_any_changed }}
-      fudster: ${{ steps.delta.outputs.fudster_any_changed }}
-      laser: ${{ steps.delta.outputs.laser_any_changed }}
-      worker: ${{ steps.delta.outputs.worker_any_changed }}
-      q: ${{ steps.delta.outputs.q_any_changed  }}
-    steps:
-      - name: Checkout the repository using git
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: File Changes
-        id: delta
-        uses: tj-actions/changed-files@v39
-        with:
-          files_yaml: |
-            herbmail:
-                - 'apps/herbmail.com/**'
-            kbve:
-                - 'apps/kbve/kbve.com/**'
-            rareicon:
-                - 'apps/rareicon.com/**'
-            discordsh:
-                - 'apps/discord.sh/**'
-            atlas:
-                - 'apps/atlas/kbve_atlas/**'
-            api:
-                - 'apps/api/**'
-            proxy:
-                - 'apps/proxy/**'
-            saber:
-                - 'apps/saber/**'
-            rustprofile:
-                - 'apps/rust_api_profile/**'
-            erust:
-                - 'packages/erust/src/**'
-            holy:
-                - 'packages/holy/src/**'
-            kbvecrate:
-                - 'packages/kbve/src/**'
-            jedi:
-                - 'packages/jedi/src/**'
-            expolcagents:
-                - 'apps/expo-lcagents/src/**'
-            dockervoid:
-                - 'migrations/docker/v01d/**'
-            khashvault:
-                - 'packages/khashvault/package.json'
-            devops:
-                - 'packages/devops/package.json'
-            fudster:
-                - 'apps/fudster/fudster/**'
-            cryptothrone:
-                - 'apps/cryptothrone.com/src/**'
-            laser:
-                - 'packages/laser/package.json'
-            q:
-                - 'packages/rust/q/README.md'
+    uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
+    with:
+        branch: 'main'
 
   debug:
     needs: ['alter', 'globals']
@@ -241,7 +165,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-        
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -270,7 +194,7 @@ jobs:
         shell: bash
         run: |
           pnpm nx build cryptothrone.com
-        
+
       - name: CryptoThrone.com -> Deployment
         uses: dobbelina/copy_file_to_another_repo_action@main
         env:
@@ -348,7 +272,7 @@ jobs:
           flag: '-nx laser:build'
           create_pull_request: false
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Publish packages
         run: npx nx release publish --projects=laser
         shell: bash
@@ -418,14 +342,14 @@ jobs:
           flag: '-nx devops:build'
           create_pull_request: false
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Publish packages
         run: npx nx release publish --projects=devops
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      
+
 
   #   [KHASHVAULT] -> Publish (As NPM)
   khashvault_npm_publish:

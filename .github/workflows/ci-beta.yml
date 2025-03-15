@@ -34,34 +34,11 @@ jobs:
         run: echo ${{steps.open-pr.outputs.has_changed_files}}
 
   alter:
-    name: 'Beta Deployment Checks'
-    runs-on: ubuntu-latest
-    if: github.repository == 'kbve/kbve'
-    outputs:
-      rustwasmembed: ${{ steps.delta.outputs.rustwasmembed_any_changed }}
-      kbve: ${{ steps.delta.outputs.kbve_any_changed }}
-      rustkbve: ${{ steps.delta.outputs.rustkbve_any_changed }}
-      jedi: ${{ steps.delta.outputs.jedi_any_changed }}
-
-    steps:
-      - name: Checkout the repository using git
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: File Changes
-        id: delta
-        uses: tj-actions/changed-files@v39
-        with:
-          files_yaml: |
-            rustwasmembed:
-                - 'apps/rust_wasm_embed/src/**'
-            kbve:
-                - 'apps/kbve/kbve.com/**'
-            jedi:
-                - 'packages/jedi/src/**'
-            rustkbve:
-                - 'packages/kbve/src/**'
+          name: 'Alpha Alters'
+          if: github.repository == 'kbve/kbve'
+          uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
+          with:
+              branch: 'beta'
 
   deploy:
     needs: alter
