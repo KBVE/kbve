@@ -7,8 +7,8 @@
 [![Crates.io KBVE Version](https://img.shields.io/crates/v/kbve?label=kbve%20crates.io&logo=rust)](https://crates.io/crates/kbve)
 [![Crates.io Jedi Version](https://img.shields.io/crates/v/jedi?label=jedi%20crates.io&logo=rust)](https://crates.io/crates/jedi)
 [![Crates.io Holy Version](https://img.shields.io/crates/v/holy?label=holy%20crates.io&logo=rust)](https://crates.io/crates/holy)
-[![NPM Laser](https://img.shields.io/npm/v/%40kbve%2Flaser?label=kbve%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/laser)
-[![NPM Devops](https://img.shields.io/npm/v/%40kbve%2Fdevops?label=kbve%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/devops)
+[![NPM Laser](https://img.shields.io/npm/v/%40kbve%2Flaser?label=laser%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/laser)
+[![NPM Devops](https://img.shields.io/npm/v/%40kbve%2Fdevops?label=devops%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/devops)
 
 
 <center>
