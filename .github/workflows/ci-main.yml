@@ -536,7 +536,7 @@ jobs:
 
 
   #   @[ERust] -> Publish
-  erustpublish:
+  erust_publish:
     needs: ['deploy', 'alter', 'globals']
     name: Erust Crates Publish
     if: needs.alter.outputs.erust == 'true'
@@ -571,7 +571,7 @@ jobs:
       #     pull_request_title: 'erust-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
       #     pull_request_body: 'Bumping up the minor version of the erust package.'
 
-  holycratespublish:
+  holy_crates_publish:
     needs: ['deploy', 'alter', 'globals']
     name: Holy Crates Publish
     if: needs.alter.outputs.holy == 'true'
@@ -606,7 +606,7 @@ jobs:
       #     pull_request_title: 'holy-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
       #     pull_request_body: 'Bumping up the minor version of the holy package.'
 
-  kbvecratespublish:
+  kbve_crates_publish:
     needs: ['deploy', 'alter', 'globals']
     name: KBVE Crates Publish
     if: needs.alter.outputs.kbvecrate == 'true'

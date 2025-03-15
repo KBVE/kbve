@@ -60,15 +60,6 @@ Thumbs.db
 apps/api/.env
 .env
 
-# Saber Ignores
-
-apps/saber/.vsconfig
-apps/saber/ProjectSettings/ShaderGraphSettings.asset
-apps/saber/Assets/Polytope Studio/Lowpoly_Environments/SRP/PT_Nature_Free_URP_10.10.1.unitypackage.meta
-apps/saber/Assets/Polytope Studio/Lowpoly_Environments/SRP/PT_Nature_Free_URP_12.1.10.unitypackage.meta
-
-apps/saber/Assets/Samples
-
 # Expo
 node_modules/
 .expo/
@@ -95,9 +86,6 @@ cache/
 
 # Tamagui
 # *.tamagui
-# apps/expo-lcagents/.tamagui/*
-# /apps/expo-lcagents/.tamagui
-
 apps/expo-cityvote/.tamagui/css/*
 
 # NuGetScracthroot
@@ -108,4 +96,3 @@ vite.config.*.timestamp*
 # Python
 .venv
 vitest.config.*.timestamp*
-.vscode/settings.json
