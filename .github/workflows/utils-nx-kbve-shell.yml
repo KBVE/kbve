@@ -1,0 +1,97 @@
+name: NX KBVE Shell Runner
+
+on:
+    workflow_call:
+        inputs:
+            project:
+                required: true
+                type: string
+            target:
+                required: true
+                type: string
+            branch:
+                required: false
+                type: string
+                default: main
+            flag:
+                required: false
+                type: string
+                default: ''
+            create_pull_request:
+                required: false
+                type: boolean
+                default: false
+            pull_request_title:
+                required: false
+                type: string
+                default: ''
+            pull_request_body:
+                required: false
+                type: string
+                default: ''
+        secrets:
+            MY_GITHUB_TOKEN:
+                required: true
+
+jobs:
+    nx-kbve-shell:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.branch }}
+
+            - name: Setup Node v22
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+
+            - name: Run NX Command
+              shell: bash
+              run: |
+                chmod +x ./kbve.sh
+                ./kbve.sh -nx ${{ inputs.project }}:${{ inputs.target }}
+
+            - name: Create Pull Request (if enabled)
+              if: inputs.create_pull_request == true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+              shell: bash
+              run: |
+                git config user.name "GitHub Actions"
+                git config user.email "actions@github.com"
+
+                BRANCH_NAME="patch-atomic-gha-${{ inputs.pull_request_title }}"
+                git checkout -b "$BRANCH_NAME"
+                git add .
+                ESCAPED_FLAG=$(echo "${{ inputs.project }}:${{ inputs.target }}" | sed "s/'/'\"'\"'/g")
+                git commit -m 'Automated Atomic Patch via ./kbve.sh '"$ESCAPED_FLAG"
+                git push -u origin "$BRANCH_NAME"
+
+                gh pr create -B dev -H "$BRANCH_NAME" --title "Automated Atomic Patch : ${{ inputs.pull_request_title }}" --body "This PR includes an automated atomic patch for the monorepo. ${{ inputs.pull_request_body }}"
