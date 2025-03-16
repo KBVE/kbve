@@ -10,6 +10,12 @@ on:
           default: "main"
 
     outputs:
+      atlas:
+        description: "Atlas changed"
+        value: ${{ jobs.alter.outputs.atlas }}
+      discordsh_website:
+        description: "Discord.sh changed"
+        value: ${{ jobs.alter.outputs.discordsh_website }}
       herbmail:
         description: "Herbmail changed"
         value: ${{ jobs.alter.outputs.herbmail }}
@@ -19,27 +25,15 @@ on:
       rareicon:
         description: "Rareicon changed"
         value: ${{ jobs.alter.outputs.rareicon }}
-      discordsh:
-        description: "Discord.sh changed"
-        value: ${{ jobs.alter.outputs.discordsh }}
-      atlas:
-        description: "Atlas changed"
-        value: ${{ jobs.alter.outputs.atlas }}
-      api:
-        description: "API changed"
-        value: ${{ jobs.alter.outputs.api }}
       proxy:
         description: "Proxy changed"
         value: ${{ jobs.alter.outputs.proxy }}
       saber:
         description: "Saber changed"
         value: ${{ jobs.alter.outputs.saber }}
-      rustprofile:
+      rust_profile:
         description: "Rust profile changed"
-        value: ${{ jobs.alter.outputs.rustprofile }}
-      expolcagents:
-        description: "Expo LC Agents changed"
-        value: ${{ jobs.alter.outputs.expolcagents }}
+        value: ${{ jobs.alter.outputs.rust_profile }}
       cryptothrone:
         description: "CryptoThrone changed"
         value: ${{ jobs.alter.outputs.cryptothrone }}
@@ -49,15 +43,15 @@ on:
       holy:
         description: "Holy package changed"
         value: ${{ jobs.alter.outputs.holy }}
-      kbvecrate:
+      kbve_crate:
         description: "KBVE Crate package changed"
-        value: ${{ jobs.alter.outputs.kbvecrate }}
+        value: ${{ jobs.alter.outputs.kbve_crate }}
       jedi:
         description: "Jedi package changed"
         value: ${{ jobs.alter.outputs.jedi }}
-      dockervoid:
+      docker_void:
         description: "Dockervoid changed"
-        value: ${{ jobs.alter.outputs.dockervoid }}
+        value: ${{ jobs.alter.outputs.docker_void }}
       khashvault:
         description: "Khashvault changed"
         value: ${{ jobs.alter.outputs.khashvault }}
@@ -88,23 +82,20 @@ jobs:
     runs-on: ubuntu-latest
     name: File Alterations
     outputs:
-      kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
       herbmail: ${{ steps.delta.outputs.herbmail_any_changed }}
       kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
       rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
       discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
       atlas: ${{ steps.delta.outputs.atlas_any_changed }}
-      api: ${{ steps.delta.outputs.api_any_changed }}
       proxy: ${{ steps.delta.outputs.proxy_any_changed }}
       saber: ${{ steps.delta.outputs.saber_any_changed }}
-      rustprofile: ${{ steps.delta.outputs.rustprofile_any_changed }}
-      expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
+      rust_profile: ${{ steps.delta.outputs.rust_profile_any_changed }}
       cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
       erust: ${{ steps.delta.outputs.erust_any_changed }}
       holy: ${{ steps.delta.outputs.holy_any_changed }}
-      kbvecrate: ${{ steps.delta.outputs.kbvecrate_any_changed }}
+      kbve_crate: ${{ steps.delta.outputs.kbve_crate_any_changed }}
       jedi: ${{ steps.delta.outputs.jedi_any_changed }}
-      dockervoid: ${{ steps.delta.outputs.dockervoid_any_changed }}
+      docker_void: ${{ steps.delta.outputs.docker_void_any_changed }}
       khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
       devops: ${{ steps.delta.outputs.devops_any_changed }}
       fudster: ${{ steps.delta.outputs.fudster_any_changed }}
@@ -112,29 +103,29 @@ jobs:
       worker: ${{ steps.delta.outputs.worker_any_changed }}
       q: ${{ steps.delta.outputs.q_any_changed }}
       asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
+      kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
+
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 2
 
       - name: File Changes
         id: delta
-        uses: tj-actions/changed-files@v39
+        uses: step-security/changed-files@v45
         with:
           files_yaml: |
             herbmail:
-                - 'apps/herbmail.com/**'
+                - 'apps/herbmail/README.md'
             kbve:
                 - 'apps/kbve/kbve.com/**'
             rareicon:
-                - 'apps/rareicon.com/**'
+                - 'apps/rareicon/rareicon.com/**'
             discordsh:
                 - 'apps/discord.sh/**'
             atlas:
                 - 'apps/atlas/kbve_atlas/**'
-            api:
-                - 'apps/api/**'
             proxy:
                 - 'apps/proxy/**'
             saber:

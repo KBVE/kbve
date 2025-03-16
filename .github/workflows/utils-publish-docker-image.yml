@@ -39,7 +39,7 @@ jobs:
               with:
                   node-version: 22
 
-            - name: Setup pnpm
+            - name: Setup pnpm v10
               uses: pnpm/action-setup@v3
               with:
                   version: 10
