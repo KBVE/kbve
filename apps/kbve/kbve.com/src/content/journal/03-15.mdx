@@ -42,6 +42,38 @@ tags:
     After replacing the action, I will go through all our tokens and replace them all with new ones, i.e token and secret rotation.
     I do not think there was much of a security risk but it would make sense to be safe.
 
+### GA Matrix Round 1
+
+-   10:38PM
+
+    Usually I been using other people's matrixes for github actions, but I think it is time to build my own!
+    The last time I wrote one was for the unity builds but now I am going to try it for the publishing of the crates, npm and pip packages.
+
+    Something like this below would be nice:
+
+    ```yaml
+
+    publish_crates:
+        needs: ['deploy', 'alter', 'globals']
+        name: Publish Crates
+        strategy:
+            matrix:
+            package:
+                - { name: 'q', condition: needs.alter.outputs.q }
+                - { name: 'jedi', condition: needs.alter.outputs.jedi }
+        if: matrix.package.condition == 'true'
+        uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
+        with:
+            package: ${{ matrix.package.name }}
+        secrets:
+            CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+    ```
+
+    It would make sense that I save this information inside of the [git](https://kbve.com/application/git/) notes, so more information can be found there.
+    Okay, we had to run two jobs, one that would filter through the matrix to see what needs to be built and then the second job would be the actual publishing.
+    This can be later updated for the pip and npm packages too.
+
 ### Nx Graph
 
 -   08:57PM

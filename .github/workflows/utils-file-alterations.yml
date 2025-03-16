@@ -10,6 +10,10 @@ on:
           default: "main"
 
     outputs:
+
+
+
+      # Migrated.
       atlas:
         description: "Atlas changed"
         value: ${{ jobs.alter.outputs.atlas }}
@@ -67,9 +71,9 @@ on:
       worker:
         description: "Worker changed"
         value: ${{ jobs.alter.outputs.worker }}
-      q:
+      q_crate:
         description: "Q package changed"
-        value: ${{ jobs.alter.outputs.q }}
+        value: ${{ jobs.alter.outputs.q_crate }}
       asteroids:
         description: "Asteroids & Droids changed"
         value: ${{ jobs.alter.outputs.asteroids }}
@@ -100,8 +104,7 @@ jobs:
       devops: ${{ steps.delta.outputs.devops_any_changed }}
       fudster: ${{ steps.delta.outputs.fudster_any_changed }}
       laser: ${{ steps.delta.outputs.laser_any_changed }}
-      worker: ${{ steps.delta.outputs.worker_any_changed }}
-      q: ${{ steps.delta.outputs.q_any_changed }}
+      q_crate: ${{ steps.delta.outputs.q_crate_any_changed }}
       asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
       kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
 
@@ -154,7 +157,7 @@ jobs:
                 - 'apps/cryptothrone.com/src/**'
             laser:
                 - 'packages/laser/package.json'
-            q:
+            q_crate:
                 - 'packages/rust/q/README.md'
             asteroids:
                 - 'apps/gamejam/brackeys/13/**'
