@@ -563,15 +563,15 @@ jobs:
         secrets:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
-    q_release:
-        needs: ['deploy', 'alter', 'globals']
-        name: Q Crates Publish
-        if: needs.alter.outputs.q == 'true'
-        uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
-        with:
-            package: q
-        secrets:
-            CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+    # q_release:
+    #     needs: ['deploy', 'alter', 'globals']
+    #     name: Q Crates Publish
+    #     if: needs.alter.outputs.q == 'true'
+    #     uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
+    #     with:
+    #         package: q
+    #     secrets:
+    #         CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
     python_atlas_publish:
         needs: ['deploy', 'alter', 'python_atlas_build']
@@ -617,145 +617,145 @@ jobs:
                   user: __token__
                   password: ${{ secrets.PYPI_API_SCOPE_TOKEN }}
 
-    # Monorepo Image from https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
-    monorepo-image:
-        needs: ['deploy']
-        name: Build Monorepo Docker Image
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            packages: write
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+    # # Monorepo Image from https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
+    # monorepo-image:
+    #     needs: ['deploy']
+    #     name: Build Monorepo Docker Image
+    #     runs-on: ubuntu-latest
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v4
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Log in to the Container registry
-              uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-              with:
-                  registry: ${{ env.REGISTRY }}
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+    #         - name: Log in to the Container registry
+    #           uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+    #           with:
+    #               registry: ${{ env.REGISTRY }}
+    #               username: ${{ github.actor }}
+    #               password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Extract metadata (tags, labels) for Docker
-              id: meta
-              uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-              with:
-                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    #         - name: Extract metadata (tags, labels) for Docker
+    #           id: meta
+    #           uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+    #           with:
+    #               images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-            - name: Build and push Docker image
-              uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-              with:
-                  context: .
-                  # platforms: linux/amd64, linux/arm64
-                  platforms: linux/amd64
-                  push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
+    #         - name: Build and push Docker image
+    #           uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+    #           with:
+    #               context: .
+    #               # platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               push: true
+    #               tags: ${{ steps.meta.outputs.tags }}
+    #               labels: ${{ steps.meta.outputs.labels }}
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
 
-    # Rust Profile Image Deployment
-    rust-profile-image:
-        needs: ['monorepo-image', 'alter']
-        name: Build Rust Profile Docker Image
-        if: needs.alter.outputs.rustprofile == 'true'
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            packages: write
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+    # # Rust Profile Image Deployment
+    # rust-profile-image:
+    #     needs: ['monorepo-image', 'alter']
+    #     name: Build Rust Profile Docker Image
+    #     if: needs.alter.outputs.rustprofile == 'true'
+    #     runs-on: ubuntu-latest
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v4
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Build and push
-              uses: docker/build-push-action@v5
-              with:
-                  context: ./apps/rust_api_profile/
-                  push: true
-                  tags: kbve/rustprofile:latest
-                  #platforms: linux/amd64, linux/arm64
-                  platforms: linux/amd64
-                  file: ./apps/rust_api_profile/Dockerfile
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-                  #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-                  #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
+    #         - name: Build and push
+    #           uses: docker/build-push-action@v5
+    #           with:
+    #               context: ./apps/rust_api_profile/
+    #               push: true
+    #               tags: kbve/rustprofile:latest
+    #               #platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               file: ./apps/rust_api_profile/Dockerfile
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
+    #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+    #               #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
 
-    # Deploy Rust Profile Image
-    deploy-rust-profile-image:
-        needs: ['rust-profile-image', 'alter']
-        name: Deploy Rust Profile Docker Image to Portainer
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+    # # Deploy Rust Profile Image
+    # deploy-rust-profile-image:
+    #     needs: ['rust-profile-image', 'alter']
+    #     name: Deploy Rust Profile Docker Image to Portainer
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v4
 
-            - name: Deploy to Portainer
-              uses: ./.github/actions/shieldwall-command-center
-              with:
-                  token: ${{ secrets.KBVE_PAT }}
-                  command: 'deploy'
-                  kbve-shield-token: ${{ secrets.SHIELDWALL }}
+    #         - name: Deploy to Portainer
+    #           uses: ./.github/actions/shieldwall-command-center
+    #           with:
+    #               token: ${{ secrets.KBVE_PAT }}
+    #               command: 'deploy'
+    #               kbve-shield-token: ${{ secrets.SHIELDWALL }}
 
-    # Chisel Deployment
-    chisel-rust-profile-image:
-        needs: ['rust-profile-image', 'alter', 'deploy-rust-profile-image']
-        name: Chisel Rust Profile Docker Image
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            packages: write
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+    # # Chisel Deployment
+    # chisel-rust-profile-image:
+    #     needs: ['rust-profile-image', 'alter', 'deploy-rust-profile-image']
+    #     name: Chisel Rust Profile Docker Image
+    #     runs-on: ubuntu-latest
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v4
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Build and push
-              uses: docker/build-push-action@v5
-              with:
-                  context: ./migrations/docker/chisel/rust-profile-api/
-                  push: true
-                  tags: kbve/rustprofilechisel:latest
-                  #platforms: linux/amd64, linux/arm64
-                  platforms: linux/amd64
-                  file: ./migrations/docker/chisel/rust-profile-api/Dockerfile
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
+    #         - name: Build and push
+    #           uses: docker/build-push-action@v5
+    #           with:
+    #               context: ./migrations/docker/chisel/rust-profile-api/
+    #               push: true
+    #               tags: kbve/rustprofilechisel:latest
+    #               #platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               file: ./migrations/docker/chisel/rust-profile-api/Dockerfile
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
 
     # NodeJS
 
@@ -839,45 +839,45 @@ jobs:
 
     #   [Expo] -> [HQ Plan]
 
-    #   [Docker]
-    void-docker-base-image:
-        needs: ['monorepo-image', 'alter']
-        name: v01d Base Docker Image Build
-        runs-on: ubuntu-latest
-        if: needs.alter.outputs.dockervoid == 'true'
+    # #   [Docker]
+    # void-docker-base-image:
+    #     needs: ['monorepo-image', 'alter']
+    #     name: v01d Base Docker Image Build
+    #     runs-on: ubuntu-latest
+    #     if: needs.alter.outputs.dockervoid == 'true'
 
-        permissions:
-            contents: read
-            packages: write
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #     steps:
+    #         - name: Checkout repository
+    #           uses: actions/checkout@v4
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Build Docker Image and Push
-              uses: docker/build-push-action@v5
-              with:
-                  context: ./migrations/docker/v01d/
-                  push: true
-                  tags: kbve/v01d:latest
-                  #platforms: linux/amd64, linux/arm64
-                  platforms: linux/amd64
-                  file: ./migrations/docker/v01d/Dockerfile
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-                  #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-                  #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
+    #         - name: Build Docker Image and Push
+    #           uses: docker/build-push-action@v5
+    #           with:
+    #               context: ./migrations/docker/v01d/
+    #               push: true
+    #               tags: kbve/v01d:latest
+    #               #platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               file: ./migrations/docker/v01d/Dockerfile
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
+    #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+    #               #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
 
     python_atlas_docker:
         needs: ['python_atlas_publish', 'alter']

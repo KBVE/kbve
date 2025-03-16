@@ -10,10 +10,12 @@ on:
           default: "main"
 
     outputs:
+      # ? DONE.
+      q_crate:
+        description: "Q package changed"
+        value: ${{ jobs.alter.outputs.q_crate }}
 
-
-
-      # Migrated.
+      # TODO:
       atlas:
         description: "Atlas changed"
         value: ${{ jobs.alter.outputs.atlas }}
@@ -71,9 +73,7 @@ on:
       worker:
         description: "Worker changed"
         value: ${{ jobs.alter.outputs.worker }}
-      q_crate:
-        description: "Q package changed"
-        value: ${{ jobs.alter.outputs.q_crate }}
+
       asteroids:
         description: "Asteroids & Droids changed"
         value: ${{ jobs.alter.outputs.asteroids }}
