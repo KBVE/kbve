@@ -7,11 +7,11 @@ on:
 
     pull_request:
         branches:
-            - 'alpha'
+            - 'main'
         types: [synchronize]
 jobs:
     handle:
-        name: 'Dev to Alpha'
+        name: 'Dev to Main'
         runs-on: ubuntu-latest
         if: github.event_name == 'push'
         steps:
@@ -24,15 +24,15 @@ jobs:
               id: open-pr
               uses: diillson/auto-pull-request@v1.0.1
               with:
-                  destination_branch: 'alpha'
-                  pr_title: 'Preparing Alpha Branch'
+                  destination_branch: 'main'
+                  pr_title: 'Preparing Main Branch'
                   pr_body: |
-                      *An automated PR for Alpha*
-                      This PR is for the alpha branch
+                      *An automated PR for Main*
+                      This PR is for the main branch
                   pr_label: 'auto-pr'
 
             - name: Fetch dev branch
-              run: git fetch origin alpha
+              run: git fetch origin main
 
             - name: Update PR Body After Opening
               run: |
@@ -40,9 +40,9 @@ jobs:
 
 
                   echo "Raw commits (before cleaning):"
-                  git log --oneline origin/alpha..HEAD
+                  git log --oneline origin/main..HEAD
 
-                  cleaned_commits=$(git log --oneline origin/alpha..HEAD | sed -E 's/^[a-f0-9]{7} \([^)]*\) //')
+                  cleaned_commits=$(git log --oneline origin/main..HEAD | sed -E 's/^[a-f0-9]{7} \([^)]*\) //')
 
                   echo "Cleaned commits:"
                   echo "$cleaned_commits"
@@ -55,7 +55,7 @@ jobs:
                   other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
 
                   # Build the PR body
-                  pr_body="## Initial PR body for Alpha with categorized commits: <br> <br>"
+                  pr_body="## Initial PR body for Main with categorized commits: <br> <br>"
                   if [ -n "$ci_commits" ]; then
                     pr_body+="### CI Changes: <br>  $ci_commits <br> <br>"
                   fi
@@ -82,71 +82,6 @@ jobs:
                   gh pr edit $pr_number --body "$pr_body"
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    update_pr:
-        name: 'Update PR Body on Synchronize'
-        runs-on: ubuntu-latest
-        if: github.event.action == 'synchronize'
-
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-                  ref: alpha
-
-            - name: Fetch dev branch
-              run: git fetch origin alpha
-
-            - name: Sync PR Body
-              run: |
-                  pr_number=$(gh pr list --head ${{ github.ref }} --json number --jq '.[0].number')
-
-
-                  echo "Raw commits (before cleaning):"
-                  git log --oneline origin/alpha..HEAD
-
-                  cleaned_commits=$(git log --oneline origin/alpha..HEAD | sed -E 's/^[a-f0-9]{7} \([^)]*\) //')
-
-                  echo "Cleaned commits:"
-                  echo "$cleaned_commits"
-
-                  ci_commits=$(echo "$cleaned_commits" | grep -i " ci(" | tr '\n' '\n')
-                  fix_commits=$(echo "$cleaned_commits" | grep -i " fix(" | tr '\n' '\n')
-                  docs_commits=$(echo "$cleaned_commits" | grep -i " docs(" | tr '\n' '\n')
-                  feat_commits=$(echo "$cleaned_commits" | grep -i " feat(" | tr '\n' '\n')
-                  merge_commits=$(echo "$cleaned_commits" | grep -i " Merge pull request" | tr '\n' '\n')
-                  other_commits=$(echo "$cleaned_commits" | grep -viE " ci\(| fix\(| docs\(| feat\(| Merge pull request" | tr '\n' '\n')
-
-                  # Build the PR body
-                  pr_body="## Updated PR body for Alpha with categorized commits: <br> <br>"
-                  if [ -n "$ci_commits" ]; then
-                    pr_body+="### CI Changes: <br> $ci_commits <br> <br>"
-                  fi
-                  if [ -n "$fix_commits" ]; then
-                    pr_body+="### Fixes: <br>  $fix_commits <br> <br>"
-                  fi
-                  if [ -n "$docs_commits" ]; then
-                    pr_body+="### Documentation: <br>  $docs_commits <br> <br>"
-                  fi
-                  if [ -n "$feat_commits" ]; then
-                    pr_body+="### Features: <br>  $feat_commits <br> <br>"
-                  fi
-                  if [ -n "$merge_commits" ]; then
-                    pr_body+="### Merge Commits: <br>  $merge_commits <br> <br>"
-                  fi
-                  if [ -n "$other_commits" ]; then
-                    pr_body+="### Other Commits: <br>  $other_commits <br> <br>"
-                  fi
-
-                  # Print the PR body for debugging
-                  echo "PR Body: $pr_body"
-
-                  # Update the PR body
-                  gh pr edit $pr_number --body "$pr_body"
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     alter:
       name: "Dev Alters"
       if: github.repository == 'kbve/kbve'
@@ -195,139 +130,139 @@ jobs:
               run: |
                   pnpm nx report
 
-    asteroids:
-        needs: ['handle', 'alter']
-        if: needs.alter.outputs.asteroids == 'true'
-        uses: KBVE/kbve/.github/workflows/utils-godot-itch-build-pipeline.yml@main
-        with:
-          branch: "dev"
-          deploy_to_itch: true
-          godot_version: "4.3"
-          export_name: "asteroids-driods"
-          project_path: "./apps/gamejam/brackeys/13"
-          build_artifact_name: "asteroids-driods"
-          itch_username: "kbve"
-          itch_gameid: "asteroids-driods"
-        secrets:
-          butler_api: ${{ secrets.ITCH_API }}
+    # asteroids:
+    #     needs: ['handle', 'alter']
+    #     if: needs.alter.outputs.asteroids == 'true'
+    #     uses: KBVE/kbve/.github/workflows/utils-godot-itch-build-pipeline.yml@main
+    #     with:
+    #       branch: "dev"
+    #       deploy_to_itch: true
+    #       godot_version: "4.3"
+    #       export_name: "asteroids-driods"
+    #       project_path: "./apps/gamejam/brackeys/13"
+    #       build_artifact_name: "asteroids-driods"
+    #       itch_username: "kbve"
+    #       itch_gameid: "asteroids-driods"
+    #     secrets:
+    #       butler_api: ${{ secrets.ITCH_API }}
     
 
-    fudster_dev_cicd:
-        needs: ['handle', 'deploy', 'alter']
-        name: Fudster Dev CI-CD
-        if: needs.alter.outputs.fudster == 'true'
-        runs-on: 'ubuntu-latest'
-        permissions:
-            contents: read
-            packages: write
+    # fudster_dev_cicd:
+    #     needs: ['handle', 'deploy', 'alter']
+    #     name: Fudster Dev CI-CD
+    #     if: needs.alter.outputs.fudster == 'true'
+    #     runs-on: 'ubuntu-latest'
+    #     permissions:
+    #         contents: read
+    #         packages: write
 
-        steps:
-            - name: Checkout the monorepo using git
-              uses: actions/checkout@v4
+    #     steps:
+    #         - name: Checkout the monorepo using git
+    #           uses: actions/checkout@v4
 
-            - name: Setup Node v20
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20
+    #         - name: Setup Node v20
+    #           uses: actions/setup-node@v4
+    #           with:
+    #               node-version: 20
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v3
-              with:
-                  version: 9
-                  run_install: false
+    #         - name: Setup pnpm
+    #           uses: pnpm/action-setup@v3
+    #           with:
+    #               version: 9
+    #               run_install: false
 
-            - name: Get pnpm Store
-              shell: bash
-              run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+    #         - name: Get pnpm Store
+    #           shell: bash
+    #           run: |
+    #               echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            - name: Setup pnpm Cache
-              uses: actions/cache@v4
-              with:
-                  path: ${{ env.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
+    #         - name: Setup pnpm Cache
+    #           uses: actions/cache@v4
+    #           with:
+    #               path: ${{ env.STORE_PATH }}
+    #               key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+    #               restore-keys: |
+    #                   ${{ runner.os }}-pnpm-store-
 
-            - name: Install pnpm dependencies
-              shell: bash
-              run: |
-                  pnpm install
+    #         - name: Install pnpm dependencies
+    #           shell: bash
+    #           run: |
+    #               pnpm install
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Build Docker container with Nx
-              env:
-                  INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  pnpm nx run fudster:container --configuration=production  --push
+    #         - name: Build Docker container with Nx
+    #           env:
+    #               INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #           run: |
+    #               pnpm nx run fudster:container --configuration=production  --push
 
-    kilobase_dev_cicd:
-        needs: ['deploy', 'alter']
-        name: KiloBase Dev CI-CD
-        if: needs.alter.outputs.kilobase == 'true'
-        runs-on: 'ubuntu-latest'
-        permissions:
-            contents: read
-            packages: write
-            # id-token: write
-        steps:
-            - name: Checkout the monorepo using git
-              uses: actions/checkout@v4
+    # kilobase_dev_cicd:
+    #     needs: ['deploy', 'alter']
+    #     name: KiloBase Dev CI-CD
+    #     if: needs.alter.outputs.kilobase == 'true'
+    #     runs-on: 'ubuntu-latest'
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #         # id-token: write
+    #     steps:
+    #         - name: Checkout the monorepo using git
+    #           uses: actions/checkout@v4
 
-            - name: Setup Node v20
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20
+    #         - name: Setup Node v20
+    #           uses: actions/setup-node@v4
+    #           with:
+    #               node-version: 20
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v3
-              with:
-                  version: 9
-                  run_install: false
+    #         - name: Setup pnpm
+    #           uses: pnpm/action-setup@v3
+    #           with:
+    #               version: 9
+    #               run_install: false
 
-            - name: Get pnpm Store
-              shell: bash
-              run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+    #         - name: Get pnpm Store
+    #           shell: bash
+    #           run: |
+    #               echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            - name: Setup pnpm Cache
-              uses: actions/cache@v4
-              with:
-                  path: ${{ env.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
+    #         - name: Setup pnpm Cache
+    #           uses: actions/cache@v4
+    #           with:
+    #               path: ${{ env.STORE_PATH }}
+    #               key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+    #               restore-keys: |
+    #                   ${{ runner.os }}-pnpm-store-
 
-            - name: Install pnpm dependencies
-              shell: bash
-              run: |
-                  pnpm install
+    #         - name: Install pnpm dependencies
+    #           shell: bash
+    #           run: |
+    #               pnpm install
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Build Docker container with Nx
-              env:
-                  INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  pnpm nx run kilobase:container --configuration=production  --push
+    #         - name: Build Docker container with Nx
+    #           env:
+    #               INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #           run: |
+    #               pnpm nx run kilobase:container --configuration=production  --push
