@@ -10,11 +10,24 @@ on:
           default: "main"
 
     outputs:
-      # ? DONE.
       q_crate:
         description: "Q package changed"
         value: ${{ jobs.alter.outputs.q_crate }}
-
+      jedi_crate:
+        description: "Jedi package changed"
+        value: ${{ jobs.alter.outputs.jedi_crate }}
+      soul_crate:
+        description: "Soul package changed"
+        value: ${{ jobs.alter.outputs.soul_crate }}
+      kbve_crate:
+        description: "KBVE Crate package changed"
+        value: ${{ jobs.alter.outputs.kbve_crate }}
+      erust_crate:
+        description: "ERust Crate package changed"
+        value: ${{ jobs.alter.outputs.erust_crate }}
+      holy_crate:
+        description: "Holy Crate package changed"
+        value: ${{ jobs.alter.outputs.holy_crate }}
       # TODO:
       atlas:
         description: "Atlas changed"
@@ -43,18 +56,6 @@ on:
       cryptothrone:
         description: "CryptoThrone changed"
         value: ${{ jobs.alter.outputs.cryptothrone }}
-      erust:
-        description: "Erust package changed"
-        value: ${{ jobs.alter.outputs.erust }}
-      holy:
-        description: "Holy package changed"
-        value: ${{ jobs.alter.outputs.holy }}
-      kbve_crate:
-        description: "KBVE Crate package changed"
-        value: ${{ jobs.alter.outputs.kbve_crate }}
-      jedi:
-        description: "Jedi package changed"
-        value: ${{ jobs.alter.outputs.jedi }}
       docker_void:
         description: "Dockervoid changed"
         value: ${{ jobs.alter.outputs.docker_void }}
@@ -73,7 +74,6 @@ on:
       worker:
         description: "Worker changed"
         value: ${{ jobs.alter.outputs.worker }}
-
       asteroids:
         description: "Asteroids & Droids changed"
         value: ${{ jobs.alter.outputs.asteroids }}
@@ -86,8 +86,14 @@ jobs:
     runs-on: ubuntu-latest
     name: File Alterations
     outputs:
+      q_crate: ${{ steps.delta.outputs.q_crate_any_changed }}
+      jedi_crate: ${{ steps.delta.outputs.jedi_crate_any_changed }}
+      soul_crate: ${{ steps.delta.outputs.soul_crate_any_changed }}
+      kbve_crate: ${{ steps.delta.outputs.kbve_crate_all_changed_files }}
+      erust_crate: ${{ steps.delta.outputs.erust_crate_any_changed }}
+      holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
+
       herbmail: ${{ steps.delta.outputs.herbmail_any_changed }}
-      kbve: ${{ steps.delta.outputs.kbve_all_changed_files }}
       rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
       discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
       atlas: ${{ steps.delta.outputs.atlas_any_changed }}
@@ -95,16 +101,11 @@ jobs:
       saber: ${{ steps.delta.outputs.saber_any_changed }}
       rust_profile: ${{ steps.delta.outputs.rust_profile_any_changed }}
       cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
-      erust: ${{ steps.delta.outputs.erust_any_changed }}
-      holy: ${{ steps.delta.outputs.holy_any_changed }}
-      kbve_crate: ${{ steps.delta.outputs.kbve_crate_any_changed }}
-      jedi: ${{ steps.delta.outputs.jedi_any_changed }}
       docker_void: ${{ steps.delta.outputs.docker_void_any_changed }}
       khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
       devops: ${{ steps.delta.outputs.devops_any_changed }}
       fudster: ${{ steps.delta.outputs.fudster_any_changed }}
       laser: ${{ steps.delta.outputs.laser_any_changed }}
-      q_crate: ${{ steps.delta.outputs.q_crate_any_changed }}
       asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
       kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
 
@@ -119,6 +120,18 @@ jobs:
         uses: step-security/changed-files@v45
         with:
           files_yaml: |
+            q_crate:
+                - 'packages/rust/q/README.md'
+            jedi_crate:
+                - 'packages/rust/jedi/src/**'
+            soul_crate:
+                - 'packages/rust/soul/src/**'
+            kbve_crate:
+                - 'packages/rust/kbve/src/**'
+            erust_crate:
+                - 'packages/rust/erust/src/**'
+            holy_crate:
+                - 'packages/rust/holy/src/**'
             herbmail:
                 - 'apps/herbmail/README.md'
             kbve:
@@ -135,14 +148,6 @@ jobs:
                 - 'apps/saber/**'
             rustprofile:
                 - 'apps/rust_api_profile/**'
-            erust:
-                - 'packages/erust/src/**'
-            holy:
-                - 'packages/holy/src/**'
-            kbvecrate:
-                - 'packages/kbve/src/**'
-            jedi:
-                - 'packages/jedi/src/**'
             expolcagents:
                 - 'apps/expo-lcagents/src/**'
             dockervoid:
@@ -157,8 +162,6 @@ jobs:
                 - 'apps/cryptothrone.com/src/**'
             laser:
                 - 'packages/laser/package.json'
-            q_crate:
-                - 'packages/rust/q/README.md'
             asteroids:
                 - 'apps/gamejam/brackeys/13/**'
             kilobase:
