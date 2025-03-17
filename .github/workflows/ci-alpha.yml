@@ -59,64 +59,13 @@ jobs:
               run: echo ${{steps.open-pr.outputs.has_changed_files}}
 
     alter:
-        name: 'Alpha Deployment Checks'
-        runs-on: ubuntu-latest
+        name: 'Alpha Alters'
         if: github.repository == 'kbve/kbve'
-        outputs:
-            herbmail: ${{ steps.delta.outputs.herbmail_any_changed  }}
-            kbve: ${{ steps.delta.outputs.kbve_any_changed }}
-            rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
-            discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
-            atlas: ${{ steps.delta.outputs.atlas_any_changed  }}
-            rustapiprofile: ${{ steps.delta.outputs.rustapiprofile_any_changed  }}
-            expolcagents: ${{ steps.delta.outputs.expolcagents_any_changed }}
-            kilonet: ${{ steps.delta.outputs.kilonet_any_changed }}
-            rustrareicongameserver: ${{ steps.delta.outputs.rustrareicongameserver_any_changed }}
-            kanban: ${{ steps.delta.outputs.kanban_any_changed }}
-            pydiscordsh: ${{ steps.delta.outputs.pydiscordsh_any_changed }}
-            pirate16: ${{ steps.delta.outputs.pirate16_any_changed }}
-            godottowerdefense: ${{ steps.delta.outputs.godottowerdefense_any_changed }}
-
-        steps:
-            - name: Checkout the repository using git
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: File Changes
-              id: delta
-              uses: tj-actions/changed-files@v39
-              with:
-                  files_yaml: |
-                      herbmail:
-                          - 'apps/herbmail.com/**'
-                      kbve:
-                          - 'apps/kbve/kbve.com/**'
-                      rareicon:
-                          - 'apps/rareicon.com/**'
-                      discordsh:
-                          - 'apps/discord.sh/**'
-                      atlas:
-                          - 'apps/atlas/kbve_atlas/**'
-                      rustapiprofile:
-                          - 'apps/rust_api_profile/**'
-                      expolcagents:
-                          - 'apps/expo-lcagents/**'
-                      kilonet:
-                          - 'packages/kilonet/README.md'
-                      rustrareicongameserver:
-                          - 'apps/rust_rareicon_gameserver/README.md'
-                      kanban:
-                          - 'apps/rust_kanban/README.md'
-                      pydiscordsh:
-                          - 'apps/pydiscordsh/README.md'
-                      pirate16:
-                          - 'apps/kbve.com/src/content/docs/project/pirate16.mdx'
-                      godottowerdefense:
-                          - 'apps/rust_godot_towerdefense/README.md'
-
-## ! Builds
-#### Godot
+        uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
+        with:
+            branch: 'alpha'
+    ## ! Builds
+    #### Godot
 
     godot-towerdefense-build:
         needs: ['alter', 'globals']
@@ -124,36 +73,36 @@ jobs:
         #runs-on: ubuntu-latest
         runs-on: ubuntu-20.04
         container:
-          image: barichello/godot-ci:4.3
+            image: barichello/godot-ci:4.3
         if: needs.alter.outputs.godottowerdefense == 'true'
         env:
-          GODOT_VERSION: 4.3
-          EXPORT_NAME: TowerDef
-          PROJECT_PATH: ./apps/rust_godot_towerdefense/godot
+            GODOT_VERSION: 4.3
+            EXPORT_NAME: TowerDef
+            PROJECT_PATH: ./apps/rust_godot_towerdefense/godot
         steps:
-          - name: Checkout repository
-            uses: actions/checkout@v4
-            with:
-              lfs: false
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  lfs: false
 
-          - name: Setup
-            run: |
+            - name: Setup
+              run: |
                   mkdir -v -p ~/.local/share/godot/export_templates/
                   mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-                  
-          - name: Web Build
-            run: |
-              mkdir -v -p build/web
-              EXPORT_DIR="$(readlink -f build)"
-              cd $PROJECT_PATH
-              ls -a
-              godot --headless --verbose --export-release "Web" "$EXPORT_DIR/web/index.html"
 
-          - name: Upload Artifact
-            uses: actions/upload-artifact@v4
-            with:
-              name: godottowerdefenseweb
-              path: build/web
+            - name: Web Build
+              run: |
+                  mkdir -v -p build/web
+                  EXPORT_DIR="$(readlink -f build)"
+                  cd $PROJECT_PATH
+                  ls -a
+                  godot --headless --verbose --export-release "Web" "$EXPORT_DIR/web/index.html"
+
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: godottowerdefenseweb
+                  path: build/web
 
     godot-towerdefense-itch-deployment:
         needs: ['godot-towerdefense-build']
@@ -251,7 +200,6 @@ jobs:
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
                   rsync_option: '-avrh --delete'
-    
 
     pirate16-build:
         needs: ['alter', 'globals']
@@ -309,7 +257,6 @@ jobs:
                   name: P16Build-${{ matrix.targetPlatform }}
                   path: build/${{ matrix.targetPlatform }}
 
-
     pirate-16-itch-deployment:
         needs: ['pirate16-build']
         name: Pirate 16 Itch Deployment
@@ -331,8 +278,6 @@ jobs:
                   itchGameId: pirate16
                   buildChannel: webgl
 
-
-                  
     pirate16_webgl_deployment:
         needs: ['pirate16-build', 'globals']
         name: Pirate16 GH Pages Deployment
@@ -352,11 +297,11 @@ jobs:
 
             - name: Copy WebGL files
               run: |
-                    echo "Preparing files for deployment..."
-                    mkdir -p dist/apps/pirate16/
-                    cp -R build/WebGL/WebGL/* dist/apps/pirate16/
-                    echo "Files prepared in dist/apps/pirate16/"
-                    ls -al dist/apps/pirate16/
+                  echo "Preparing files for deployment..."
+                  mkdir -p dist/apps/pirate16/
+                  cp -R build/WebGL/WebGL/* dist/apps/pirate16/
+                  echo "Files prepared in dist/apps/pirate16/"
+                  ls -al dist/apps/pirate16/
 
             - name: Create .nojekyll and CNAME files
               run: |
@@ -380,7 +325,6 @@ jobs:
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
                   rsync_option: '-avrh --delete'
-
 
     kilonet-rareicon-build:
         needs: ['alter', 'globals']
@@ -460,9 +404,6 @@ jobs:
                   itchGameId: rareicon
                   buildChannel: webgl
 
-
-                  
-
     python_discordsh:
         needs: ['alter', 'globals']
         if: needs.alter.outputs.pydiscordsh == 'true'
@@ -473,54 +414,54 @@ jobs:
             packages: write
             # id-token: write
         steps:
-          - name: Checkout the monorepo using git
-            uses: actions/checkout@v4
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
 
-          - name: Setup Node v20
-            uses: actions/setup-node@v4
-            with:
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
                   node-version: 20
 
-          - name: Setup pnpm
-            uses: pnpm/action-setup@v3
-            with:
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
                   version: 9
                   run_install: false
 
-          - name: Get pnpm Store
-            shell: bash
-            run: |
+            - name: Get pnpm Store
+              shell: bash
+              run: |
                   echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-          - name: Setup pnpm Cache
-            uses: actions/cache@v4
-            with:
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
                   path: ${{ env.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
 
-          - name: Install pnpm dependencies
-            shell: bash
-            run: |
+            - name: Install pnpm dependencies
+              shell: bash
+              run: |
                   pnpm install
 
-          - name: Set up QEMU
-            uses: docker/setup-qemu-action@v3
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
 
-          - name: Set up Docker Buildx
-            uses: docker/setup-buildx-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-          - name: Login to Docker Hub
-            uses: docker/login-action@v3
-            with:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-          - name: Build PyDiscordSH container with Nx
-            env:
+            - name: Build PyDiscordSH container with Nx
+              env:
                   INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            run: |
+              run: |
                   pnpm nx run pydiscordsh:container --configuration=production  --push
 
     rust_kanban:
@@ -533,57 +474,55 @@ jobs:
             packages: write
             # id-token: write
         steps:
-          - name: Checkout the monorepo using git
-            uses: actions/checkout@v4
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
 
-          - name: Setup Node v20
-            uses: actions/setup-node@v4
-            with:
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
                   node-version: 20
 
-          - name: Setup pnpm
-            uses: pnpm/action-setup@v3
-            with:
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
                   version: 9
                   run_install: false
 
-          - name: Get pnpm Store
-            shell: bash
-            run: |
+            - name: Get pnpm Store
+              shell: bash
+              run: |
                   echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-          - name: Setup pnpm Cache
-            uses: actions/cache@v4
-            with:
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
                   path: ${{ env.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
 
-          - name: Install pnpm dependencies
-            shell: bash
-            run: |
+            - name: Install pnpm dependencies
+              shell: bash
+              run: |
                   pnpm install
 
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
 
-          - name: Set up QEMU
-            uses: docker/setup-qemu-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-          - name: Set up Docker Buildx
-            uses: docker/setup-buildx-action@v3
-
-          - name: Login to Docker Hub
-            uses: docker/login-action@v3
-            with:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-          - name: Build Kanban container with Nx
-            env:
+            - name: Build Kanban container with Nx
+              env:
                   INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            run: |
+              run: |
                   pnpm nx run rust_kanban:container --configuration=production  --push
-
 
     rareicon_gameserver:
         needs: ['alter', 'globals']
@@ -645,7 +584,6 @@ jobs:
               run: |
                   pnpm nx run rust_rareicon_gameserver:container --configuration=production  --push
 
-
     rareicon_webgl_deployment:
         needs: ['kilonet-rareicon-build', 'globals']
         name: RareIcon GH Pages Deployment
@@ -665,11 +603,11 @@ jobs:
 
             - name: Copy WebGL files
               run: |
-                    echo "Preparing files for deployment..."
-                    mkdir -p dist/apps/rareicon/
-                    cp -R build/WebGL/WebGL/* dist/apps/rareicon/
-                    echo "Files prepared in dist/apps/rareicon/"
-                    ls -al dist/apps/rareicon/
+                  echo "Preparing files for deployment..."
+                  mkdir -p dist/apps/rareicon/
+                  cp -R build/WebGL/WebGL/* dist/apps/rareicon/
+                  echo "Files prepared in dist/apps/rareicon/"
+                  ls -al dist/apps/rareicon/
 
             - name: Create .nojekyll and CNAME files
               run: |

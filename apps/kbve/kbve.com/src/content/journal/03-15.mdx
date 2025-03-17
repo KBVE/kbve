@@ -1,7 +1,7 @@
 ---
 title: 'March: 15'
 category: Daily
-date: 2024-03-15 12:00:00
+date: 2025-03-15 12:00:00
 client: Self
 unsplash: 1632229095740-8c75082087c5
 img: https://images.unsplash.com/photo-1632229095740-8c75082087c5?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -20,9 +20,31 @@ tags:
 [ ] - Prepare Discord Jam R&D
 [ ] - Travel Jam Repo
 
-### 2024
+## 2025
 
-#### Travel
+### Solana Soul
+
+-   12:14AM
+
+    Focus will be in two parts, the first is the generic module layout and basic modules for a demo application.
+    Before building the main application, the demo would be like a quick precursor to the main application.
+
+-   01:19AM
+
+    Okay, for this crate and future application, we would place the focus on `error.rs` and build it around `thiserror` crate.
+    We should also look into the logging crate but that can be next, hmm.
+
+### Github Tj Action
+
+-   05:29PM
+
+    Looks like the tj-action file changes was compromised and there needs to be a drop-in replacement for the action.
+    After replacing the action, I will go through all our tokens and replace them all with new ones, i.e token and secret rotation.
+    I do not think there was much of a security risk but it would make sense to be safe.
+
+## 2024
+
+### Travel
 
 Travel Game Jam!
 We are thinking David Goliath or a boeing flappy bird style game, hmmm.
@@ -54,7 +76,7 @@ Then we would update the `ci-beta` twith this code block.
                     github_token: ${{ secrets.GITHUB_TOKEN }}
                     pull_request_title: 'react-travelbox-built-request'
                     pull_request_body: 'React TravelBox Built Request'
-            
+
 
 ```
 
@@ -107,13 +129,13 @@ We will come back to this on a later date, probably need to adjust the configura
 
 Third step will be to make it so that we adjust the `travelbox/index.astro` to load the new travelbox build.
 
-#### TravelBox Menu
+### TravelBox Menu
 
 Getting started on the `TravelBox` Menu? This will be the menu of the game, while I am trying to remember the different parts of the menu haha.
 
 
-#### TravelBox GamePlay
+### TravelBox GamePlay
 
 The gameplay for the `travelbox` and the design around it will be a bit of a test casing for us.
 
-### 2023
+## 2023
