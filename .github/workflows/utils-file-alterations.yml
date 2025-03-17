@@ -10,6 +10,7 @@ on:
           default: "main"
 
     outputs:
+      # ? Rust
       q_crate:
         description: "Q package changed"
         value: ${{ jobs.alter.outputs.q_crate }}
@@ -28,19 +29,32 @@ on:
       holy_crate:
         description: "Holy Crate package changed"
         value: ${{ jobs.alter.outputs.holy_crate }}
-      # TODO:
-      atlas:
+      # ? Docker
+      kilobase:
+        description: "Kilobase package changed"
+        value: ${{ jobs.alter.outputs.kilobase }}
+      # ? Python
+      py_atlas:
         description: "Atlas changed"
-        value: ${{ jobs.alter.outputs.atlas }}
+        value: ${{ jobs.alter.outputs.py_atlas }}
+      py_fudster:
+        description: "Fudster changed"
+        value: ${{ jobs.alter.outputs.py_fudster }}
+      # ? Astro
+      astro_kbve:
+        description: "KBVE.com changed"
+        value: ${{ jobs.alter.outputs.astro_kbve }}
+      astro_herbmail:
+        description: "Herbmail.com changed"
+        value: ${{ jobs.alter.outputs.astro_herbmail }}
+      astro_rareicon:
+        description: "Rareicon.com changed"
+        value: ${{ jobs.alter.outputs.astro_rareicon }}
+
+      # TODO:
       discordsh_website:
         description: "Discord.sh changed"
         value: ${{ jobs.alter.outputs.discordsh_website }}
-      herbmail:
-        description: "Herbmail changed"
-        value: ${{ jobs.alter.outputs.herbmail }}
-      kbve:
-        description: "KBVE changed"
-        value: ${{ jobs.alter.outputs.kbve }}
       rareicon:
         description: "Rareicon changed"
         value: ${{ jobs.alter.outputs.rareicon }}
@@ -65,9 +79,6 @@ on:
       devops:
         description: "DevOps changed"
         value: ${{ jobs.alter.outputs.devops }}
-      fudster:
-        description: "Fudster changed"
-        value: ${{ jobs.alter.outputs.fudster }}
       laser:
         description: "Laser package changed"
         value: ${{ jobs.alter.outputs.laser }}
@@ -77,9 +88,7 @@ on:
       asteroids:
         description: "Asteroids & Droids changed"
         value: ${{ jobs.alter.outputs.asteroids }}
-      kilobase:
-        description: "Kilobase package changed"
-        value: ${{ jobs.alter.outputs.kilobase }}
+
 
 jobs:
   alter:
@@ -92,11 +101,13 @@ jobs:
       kbve_crate: ${{ steps.delta.outputs.kbve_crate_all_changed_files }}
       erust_crate: ${{ steps.delta.outputs.erust_crate_any_changed }}
       holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
-
-      herbmail: ${{ steps.delta.outputs.herbmail_any_changed }}
-      rareicon: ${{ steps.delta.outputs.rareicon_all_changed_files }}
+      kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
+      py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}
+      py_fudster: ${{ steps.delta.outputs.py_fudster_any_changed }}
+      astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
+      astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
+      astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
       discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
-      atlas: ${{ steps.delta.outputs.atlas_any_changed }}
       proxy: ${{ steps.delta.outputs.proxy_any_changed }}
       saber: ${{ steps.delta.outputs.saber_any_changed }}
       rust_profile: ${{ steps.delta.outputs.rust_profile_any_changed }}
@@ -104,10 +115,8 @@ jobs:
       docker_void: ${{ steps.delta.outputs.docker_void_any_changed }}
       khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
       devops: ${{ steps.delta.outputs.devops_any_changed }}
-      fudster: ${{ steps.delta.outputs.fudster_any_changed }}
       laser: ${{ steps.delta.outputs.laser_any_changed }}
       asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
-      kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
 
     steps:
       - name: Checkout the repository
@@ -132,16 +141,20 @@ jobs:
                 - 'packages/rust/erust/src/**'
             holy_crate:
                 - 'packages/rust/holy/src/**'
-            herbmail:
-                - 'apps/herbmail/README.md'
-            kbve:
+            kilobase:
+                -  'apps/kbve/kilobase/README.md'
+            py_atlas:
+                - 'apps/atlas/kbve_atlas/**'
+            py_fudster:
+                - 'apps/fudster/fudster/**'
+            astro_kbve:
                 - 'apps/kbve/kbve.com/**'
-            rareicon:
+            astro_herbmail:
+                - 'apps/herbmail/README.md'
+            astro_rareicon:
                 - 'apps/rareicon/rareicon.com/**'
             discordsh:
                 - 'apps/discord.sh/**'
-            atlas:
-                - 'apps/atlas/kbve_atlas/**'
             proxy:
                 - 'apps/proxy/**'
             saber:
@@ -156,13 +169,10 @@ jobs:
                 - 'packages/khashvault/package.json'
             devops:
                 - 'packages/devops/package.json'
-            fudster:
-                - 'apps/fudster/fudster/**'
             cryptothrone:
                 - 'apps/cryptothrone.com/src/**'
             laser:
                 - 'packages/laser/package.json'
             asteroids:
                 - 'apps/gamejam/brackeys/13/**'
-            kilobase:
-                -  'apps/kbve/kilobase/README.md'
+
