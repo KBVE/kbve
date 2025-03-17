@@ -1,24 +1,24 @@
 ---
 title: Git
 description: |
-  Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
-  Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
+    Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
+    Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
 sidebar:
-  label: Git
-  order: 1000
+    label: Git
+    order: 1000
 unsplash: 1618401479427-c8ef9465fbe1
 img: https://images.unsplash.com/photo-1618401479427-c8ef9465fbe1?fit=crop&w=1400&h=700&q=75
 tags:
-  - cloud
+    - cloud
 ---
 
 import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
 } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@kbve/astropad';
@@ -33,11 +33,11 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 ---
 
 <Aside>
-  Git commands can be powerful and sometimes destructive. Always make sure you
-  understand the implications of a command before running it, especially those
-  that alter history, such as **git reset**, **git rebase**, and **git
-  filter-branch**. It's often a good idea to create backups or work on a
-  separate branch when experimenting with these commands.
+	Git commands can be powerful and sometimes destructive. Always make sure you
+	understand the implications of a command before running it, especially those
+	that alter history, such as **git reset**, **git rebase**, and **git
+	filter-branch**. It's often a good idea to create backups or work on a
+	separate branch when experimenting with these commands.
 </Aside>
 
 <Adsense />
@@ -177,7 +177,13 @@ They enhance productivity by managing build, test, and deployment processes dire
 
 These are the custom notes on our github actions!
 
-#### ci-patch.yml
+#### CI Patch
+
+<Aside type="tip">
+
+This CI Patch is slated to be deprecated in the future!
+
+</Aside>
 
 The `ci-patch.yml` GitHub Action is designed to automate the process of creating pull requests for branches that follow a naming pattern starting with "patch".
 When a push event occurs on any of these branches, the action triggers and runs on the latest version of Ubuntu.
@@ -189,26 +195,26 @@ Additionally, the pull request will be labeled with "auto-pr".
 name: CI Patch
 
 on:
-  push:
-    branches:
-      - 'patch*'
+    push:
+        branches:
+            - 'patch*'
 
 jobs:
-  handle:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    handle:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Auto-Pull
-        uses: diillson/auto-pull-request@latest
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          destination_branch: 'dev'
-          pr_title: 'Pulling ${{ github.ref }} into Dev'
-          pr_body: |
-            *An automated PR*
-          pr_label: 'auto-pr'
+            - name: Auto-Pull
+              uses: diillson/auto-pull-request@latest
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  destination_branch: 'dev'
+                  pr_title: 'Pulling ${{ github.ref }} into Dev'
+                  pr_body: |
+                      *An automated PR*
+                  pr_label: 'auto-pr'
 ```
 
 ### kbve-shell
@@ -220,11 +226,57 @@ Example of calling the KBVE Shell
   if: needs.alter.outputs.reactfishchip == 'true'
   uses: ./.github/actions/kbve-shell
   with:
-    flag: '-build react-phaser-fish-chip'
-    create_pull_request: true
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    pull_request_title: 'react-fish-chip-built-request'
-    pull_request_body: 'React Fish and Chip Built Request'
+      flag: '-build react-phaser-fish-chip'
+      create_pull_request: true
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+      pull_request_title: 'react-fish-chip-built-request'
+      pull_request_body: 'React Fish and Chip Built Request'
+```
+
+### Matrix
+
+#### Crate Publish
+
+<Aside type="tip">
+
+Remember to setup your secrets for the `CRATES_TOKEN`!
+
+</Aside>
+
+These are brief notes on the `rust-publish-crate.yml` within our monorepo, which is used to publish Rust crates to crates.io.
+
+```yaml
+generate_crates_matrix:
+    needs: ['deploy', 'alter', 'globals']
+    runs-on: ubuntu-latest
+    outputs:
+        matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+        - name: Generate Matrix
+          id: set-matrix
+          run: |
+              MATRIX=$(jq -n '{
+                include: [
+                  { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
+                  { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
+                  { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
+                  { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
+                  { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
+                  { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
+                ]
+              } | .include |= map(select(.condition == "true"))')
+              echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+publish_crates:
+    needs: ['generate_crates_matrix']
+    name: Publish Rust Crates
+    strategy:
+        matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
+    uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
+    with:
+        package: ${{ matrix.name }}
+    secrets:
+        CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 ```
 
 #### Music
@@ -299,8 +351,8 @@ The **Itch.io Publish** GitHub Action automates the process, streamlining your w
 
 **GitHub Action - Itch.io Publish**
 
-- **Marketplace [Action](https://github.com/marketplace/actions/itch-io-publish)**: Discover the action on GitHub Marketplace, where you can integrate it directly into your repositories.
-- **Dev [Repo](https://github.com/KikimoraGames/itch-publish)**: Explore the development repository to understand the inner workings of the action, contribute, or customize it for your needs.
+-   **Marketplace [Action](https://github.com/marketplace/actions/itch-io-publish)**: Discover the action on GitHub Marketplace, where you can integrate it directly into your repositories.
+-   **Dev [Repo](https://github.com/KikimoraGames/itch-publish)**: Explore the development repository to understand the inner workings of the action, contribute, or customize it for your needs.
 
 This powerful tool takes the manual effort out of deploying to Itch.io, allowing you to focus more on development and less on the repetitive tasks of deployment.
 Embrace automation and enhance your productivity with GitHub Actions and Itch.io!
@@ -389,8 +441,8 @@ This action allows you to run unit tests, integration tests, and play mode tests
 
 **GitHub Action - Unity Test Runner**
 
-- **Marketplace [Action](https://github.com/marketplace/actions/unity-test-runner)**: Find the Unity Test Runner action on GitHub Marketplace, ready for easy integration into your workflows.
-- **Dev [Repo](https://github.com/webbertakken/unity-test-runner)**: Visit the development repository for detailed setup instructions, contribution guidelines, and customization options.
+-   **Marketplace [Action](https://github.com/marketplace/actions/unity-test-runner)**: Find the Unity Test Runner action on GitHub Marketplace, ready for easy integration into your workflows.
+-   **Dev [Repo](https://github.com/webbertakken/unity-test-runner)**: Visit the development repository for detailed setup instructions, contribution guidelines, and customization options.
 
 By incorporating the Unity Test Runner into your CI/CD pipeline, you can automate testing, catch bugs early, and maintain code quality with minimal effort.
 Elevate your Unity development process with this efficient and reliable testing solution!
@@ -416,7 +468,7 @@ Below is a sample GitHub Actions configuration for running Unity tests, ensuring
 
 ```
 
-- Remember that you will need a valid Unity license for this action!
+-   Remember that you will need a valid Unity license for this action!
 
 Here is step-by-step breakdown of a Unity GitHub Action
 
@@ -434,40 +486,40 @@ Here is step-by-step breakdown of a Unity GitHub Action
     on: [push, pull_request]
     ```
 
-    - The `on` field specifies the events that trigger this workflow. Here, it triggers on `push` and `pull_request` events.
+    -   The `on` field specifies the events that trigger this workflow. Here, it triggers on `push` and `pull_request` events.
 
 3.  **Define the Job and Environment**
 
     ```yaml
     jobs:
-      test:
-        runs-on: ubuntu-latest
+        test:
+            runs-on: ubuntu-latest
     ```
 
-    - The `jobs` field defines the jobs that will run as part of this workflow. The `test` job runs on the `ubuntu-latest` environment, which provides a clean and consistent Linux environment for running the tests.
+    -   The `jobs` field defines the jobs that will run as part of this workflow. The `test` job runs on the `ubuntu-latest` environment, which provides a clean and consistent Linux environment for running the tests.
 
 4.  **Set Up the Matrix Strategy**
 
     ```yaml
     strategy:
-      matrix:
-        projectPath: [path/to/your/project]
-        unityVersion: [2020.3.11f1, 2021.1.13f1]
+        matrix:
+            projectPath: [path/to/your/project]
+            unityVersion: [2020.3.11f1, 2021.1.13f1]
     ```
 
-    - The `matrix` strategy allows you to define multiple configurations for your jobs.
-      Here, it sets up multiple Unity versions and project paths to test against, ensuring compatibility across different environments.
+    -   The `matrix` strategy allows you to define multiple configurations for your jobs.
+        Here, it sets up multiple Unity versions and project paths to test against, ensuring compatibility across different environments.
 
 5.  **Checkout the Repository**
 
     ```yaml
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+        - name: Checkout repository
+          uses: actions/checkout@v2
     ```
 
-    - The `steps` field lists the steps in the job.
-      The first step uses the `actions/checkout` action to clone the repository, providing access to the codebase for subsequent steps.
+    -   The `steps` field lists the steps in the job.
+        The first step uses the `actions/checkout` action to clone the repository, providing access to the codebase for subsequent steps.
 
 6.  **Cache Unity Packages**
 
@@ -475,14 +527,14 @@ Here is step-by-step breakdown of a Unity GitHub Action
     - name: Cache Unity packages
       uses: actions/cache@v2
       with:
-        path: ~/.local/share/unity3d/Unity/
-        key: ${{ runner.os }}-unity-${{ matrix.unityVersion }}
-        restore-keys: |
-          ${{ runner.os }}-unity-
+          path: ~/.local/share/unity3d/Unity/
+          key: ${{ runner.os }}-unity-${{ matrix.unityVersion }}
+          restore-keys: |
+              ${{ runner.os }}-unity-
     ```
 
-    - Caching saves downloaded Unity packages between workflow runs, reducing the time needed for setup.
-      The cache is identified by a unique key based on the runner OS and Unity version.
+    -   Caching saves downloaded Unity packages between workflow runs, reducing the time needed for setup.
+        The cache is identified by a unique key based on the runner OS and Unity version.
 
 7.  **Run Unity Test Runner**
 
@@ -491,23 +543,23 @@ Here is step-by-step breakdown of a Unity GitHub Action
       uses: game-ci/unity-test-runner@v2.1.0
       id: testRunner
       env:
-        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
       with:
-        projectPath: ${{ matrix.projectPath }}
-        unityVersion: ${{ matrix.unityVersion }}
-        githubToken: ${{ secrets.GITHUB_TOKEN }}
-        customParameters: '-nographics'
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          customParameters: '-nographics'
     ```
 
-    - This step runs the Unity Test Runner action:
-      - `uses` specifies the action to run.
-      - `id` gives this step an identifier for later reference.
-      - `env` sets environment variables, including `UNITY_LICENSE`, which is essential for running Unity in batch mode.
-      - `with` specifies parameters for the action:
-        - `projectPath` sets the path to the Unity project.
-        - `unityVersion` specifies the Unity version.
-        - `githubToken` is used for authentication.
-        - `customParameters` allows passing additional parameters to Unity, such as `-nographics` for headless execution.
+    -   This step runs the Unity Test Runner action:
+        -   `uses` specifies the action to run.
+        -   `id` gives this step an identifier for later reference.
+        -   `env` sets environment variables, including `UNITY_LICENSE`, which is essential for running Unity in batch mode.
+        -   `with` specifies parameters for the action:
+            -   `projectPath` sets the path to the Unity project.
+            -   `unityVersion` specifies the Unity version.
+            -   `githubToken` is used for authentication.
+            -   `customParameters` allows passing additional parameters to Unity, such as `-nographics` for headless execution.
 
 8.  **Upload Test Results**
 
@@ -516,24 +568,24 @@ Here is step-by-step breakdown of a Unity GitHub Action
       uses: actions/upload-artifact@v2
       if: always()
       with:
-        name: Test results (all modes)
-        path: ${{ steps.testRunner.outputs.artifactsPath }}
+          name: Test results (all modes)
+          path: ${{ steps.testRunner.outputs.artifactsPath }}
     ```
 
-    - This step uploads the test results as artifacts:
-      - `if: always()` ensures this step runs regardless of the previous step’s outcome.
-      - `with` specifies parameters for the upload:
-        - `name` sets the artifact's name.
-        - `path` specifies the file path to upload, using the output from the `testRunner` step.
+    -   This step uploads the test results as artifacts:
+        -   `if: always()` ensures this step runs regardless of the previous step’s outcome.
+        -   `with` specifies parameters for the upload:
+            -   `name` sets the artifact's name.
+            -   `path` specifies the file path to upload, using the output from the `testRunner` step.
 
 </Steps>
 
 <Aside>
 
-- **Unity License**: Ensure you have a valid Unity license stored as a GitHub Secret **UNITY_LICENSE**. This license is required to run Unity in batch mode.
-- **Matrix Strategy**: Testing against multiple Unity versions and project paths ensures comprehensive coverage and compatibility.
-- **Caching**: Utilizing the cache can significantly speed up workflow runs by reusing previously downloaded Unity packages.
-- **Artifact Upload**: Storing test results as artifacts allows you to review the outcomes of your tests even after the workflow completes, facilitating debugging and quality assurance.
+-   **Unity License**: Ensure you have a valid Unity license stored as a GitHub Secret **UNITY_LICENSE**. This license is required to run Unity in batch mode.
+-   **Matrix Strategy**: Testing against multiple Unity versions and project paths ensures comprehensive coverage and compatibility.
+-   **Caching**: Utilizing the cache can significantly speed up workflow runs by reusing previously downloaded Unity packages.
+-   **Artifact Upload**: Storing test results as artifacts allows you to review the outcomes of your tests even after the workflow completes, facilitating debugging and quality assurance.
 
 </Aside>
 
@@ -543,8 +595,8 @@ When you finish following these steps, you will be setting up a robust and autom
 
 Boost your Godot development workflow with these handy GitHub Actions references! Automate your build, test, and deployment processes to streamline your project management.
 
-- **GitHub Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)**: Utilize the godot-ci action from the GitHub Marketplace to automate your Godot engine tasks, including exporting your project to multiple platforms.
-- **GitHub Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)**: Explore this detailed gist by doctor-g, showcasing a GitHub Actions workflow for exporting Godot projects to HTML5, making it easy to deploy your game on the web.
+-   **GitHub Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)**: Utilize the godot-ci action from the GitHub Marketplace to automate your Godot engine tasks, including exporting your project to multiple platforms.
+-   **GitHub Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)**: Explore this detailed gist by doctor-g, showcasing a GitHub Actions workflow for exporting Godot projects to HTML5, making it easy to deploy your game on the web.
 
 These resources will help you integrate GitHub Actions into your Godot projects, ensuring efficient and reliable automation throughout your development process.
 
@@ -691,76 +743,76 @@ By integrating development and operations, DevOps aims to deliver software more 
 
 ### Key Concepts and Principles
 
-- **Culture and Collaboration**: Promoting a culture of shared responsibility, openness, and mutual trust.
-- **Automation**: Leveraging tools to automate repetitive tasks, reducing human error and increasing efficiency.
-- **Lean Principles**: Focusing on value stream mapping and eliminating waste to optimize processes.
-- **Measurement and Feedback**: Implementing metrics to measure performance and using feedback loops to continuously improve.
+-   **Culture and Collaboration**: Promoting a culture of shared responsibility, openness, and mutual trust.
+-   **Automation**: Leveraging tools to automate repetitive tasks, reducing human error and increasing efficiency.
+-   **Lean Principles**: Focusing on value stream mapping and eliminating waste to optimize processes.
+-   **Measurement and Feedback**: Implementing metrics to measure performance and using feedback loops to continuously improve.
 
 ### DevOps Lifecycle
 
-- **Plan**: Involving stakeholders to gather requirements and plan the project roadmap.
-- **Code**: Utilizing version control systems to manage code repositories and collaboration.
-- **Build**: Automating builds and integrating code changes frequently.
-- **Test**: Implementing automated testing to ensure code quality and reliability.
-- **Release**: Deploying code to production environments seamlessly and efficiently.
-- **Deploy**: Using Infrastructure as Code (IaC) for consistent and reproducible deployments.
-- **Operate**: Monitoring systems and applications to maintain performance and availability.
-- **Monitor**: Gathering metrics and logs to gain insights and feedback for continuous improvement.
+-   **Plan**: Involving stakeholders to gather requirements and plan the project roadmap.
+-   **Code**: Utilizing version control systems to manage code repositories and collaboration.
+-   **Build**: Automating builds and integrating code changes frequently.
+-   **Test**: Implementing automated testing to ensure code quality and reliability.
+-   **Release**: Deploying code to production environments seamlessly and efficiently.
+-   **Deploy**: Using Infrastructure as Code (IaC) for consistent and reproducible deployments.
+-   **Operate**: Monitoring systems and applications to maintain performance and availability.
+-   **Monitor**: Gathering metrics and logs to gain insights and feedback for continuous improvement.
 
 ### Tools and Technologies
 
-- **Version Control**: Git, GitHub, GitLab.
-- **CI/CD**: Jenkins, Travis CI, CircleCI, GitHub Actions.
-- **Configuration Management**: Ansible, Chef, Puppet.
-- **Containerization**: Docker, Kubernetes.
-- **Cloud Providers**: AWS, Azure, Google Cloud.
-- **Monitoring and Logging**: Prometheus, Grafana, ELK Stack.
+-   **Version Control**: Git, GitHub, GitLab.
+-   **CI/CD**: Jenkins, Travis CI, CircleCI, GitHub Actions.
+-   **Configuration Management**: Ansible, Chef, Puppet.
+-   **Containerization**: Docker, Kubernetes.
+-   **Cloud Providers**: AWS, Azure, Google Cloud.
+-   **Monitoring and Logging**: Prometheus, Grafana, ELK Stack.
 
 ### Practices and Methodologies
 
-- **Continuous Integration and Continuous Deployment (CI/CD)**.
-- **Infrastructure as Code (IaC)**.
-- **Microservices and Containerization**.
-- **Automated Testing**.
-- **Security in DevOps (DevSecOps)**.
+-   **Continuous Integration and Continuous Deployment (CI/CD)**.
+-   **Infrastructure as Code (IaC)**.
+-   **Microservices and Containerization**.
+-   **Automated Testing**.
+-   **Security in DevOps (DevSecOps)**.
 
 ### Implementing DevOps
 
-- **Setting up a CI/CD Pipeline**: Step-by-step guide to setting up CI/CD pipelines.
-- **Using Docker for Containerization**: Introduction and examples of Docker usage.
-- **Managing Infrastructure with Terraform**: How to use Terraform for IaC.
-- **Configuration Management with Ansible**: Using Ansible to manage configurations.
+-   **Setting up a CI/CD Pipeline**: Step-by-step guide to setting up CI/CD pipelines.
+-   **Using Docker for Containerization**: Introduction and examples of Docker usage.
+-   **Managing Infrastructure with Terraform**: How to use Terraform for IaC.
+-   **Configuration Management with Ansible**: Using Ansible to manage configurations.
 
 ### Case Studies and Examples
 
-- **Real-World Examples**: Success stories of DevOps implementations.
-- **Step-by-Step Guides**: Detailed tutorials for practical DevOps implementations.
+-   **Real-World Examples**: Success stories of DevOps implementations.
+-   **Step-by-Step Guides**: Detailed tutorials for practical DevOps implementations.
 
 ### Best Practices and Challenges
 
-- **DevOps Best Practices**: Tips and strategies for successful DevOps.
-- **Common Challenges**: How to overcome typical DevOps challenges.
+-   **DevOps Best Practices**: Tips and strategies for successful DevOps.
+-   **Common Challenges**: How to overcome typical DevOps challenges.
 
 ### Advanced Topics
 
-- **Site Reliability Engineering (SRE)**.
-- **Advanced Monitoring and Alerting**.
-- **Scalability and High Availability**.
-- **Performance Optimization**.
+-   **Site Reliability Engineering (SRE)**.
+-   **Advanced Monitoring and Alerting**.
+-   **Scalability and High Availability**.
+-   **Performance Optimization**.
 
 ### Resources and Further Reading
 
-- **Books, Blogs, and Websites**.
-- **Online Courses and Certifications**.
-- **Community Forums and Groups**.
-
+-   **Books, Blogs, and Websites**.
+-   **Online Courses and Certifications**.
+-   **Community Forums and Groups**.
 
 ---
 
 ## FlyIO
 
 <Aside>
-When preparing to remotely deploy to flyio via github action, we should make sure your fly token is set as a secret variable.
+	When preparing to remotely deploy to flyio via github action, we should make
+	sure your fly token is set as a secret variable.
 </Aside>
 
 FlyIO is a simple way to deploy your application quickly onto the cloud.
@@ -771,8 +823,11 @@ We believe that flyio is great for launching a quick demo application when utili
 ## Monorepo
 
 <Aside type="caution" title="Monorepo Considerations">
-Adopting a monorepo can require a significant upfront time investment to configure tooling, establish consistent workflows, and migrate existing projects into a unified structure.
-This complexity may slow initial development velocity, especially for teams unfamiliar with managing shared dependencies and large-scale repositories.
+	Adopting a monorepo can require a significant upfront time investment to
+	configure tooling, establish consistent workflows, and migrate existing
+	projects into a unified structure. This complexity may slow initial
+	development velocity, especially for teams unfamiliar with managing shared
+	dependencies and large-scale repositories.
 </Aside>
 
 In the sprawling kingdom of software development, monorepos stand as grand citadels, uniting multiple projects under a single, majestic repository to streamline collaboration and dependency management.
@@ -792,7 +847,6 @@ Nx’s plugin ecosystem is a bustling spaceport, docking ships of customization 
 Unlike a rogue asteroid of complexity, Nx brings order to the monorepo universe, empowering teams with atomic commits and shared libraries that bind the galaxy together.
 From its command-line cockpit, developers pilot with confidence, knowing Nx’s robust tooling can scale from a lone shuttle to an armada of microservices without breaking a sweat or your galatic bank.
 In this interstellar saga of software, Nx is the trusty droid you’d want by your side, turning the sprawling void of code into a well-charted cosmos.
-
 
 #### Nx Run Executor
 
@@ -826,6 +880,9 @@ Use the `--args` flag when running `nx run <project>:<target> --args="--verbose"
 </Aside>
 
 <Aside type="danger" title="Nx Run Commands Security">
-Be cautious when using `nx:run-commands` with dynamic or user-provided input in shell commands, as it can expose your monorepo to security risks like command injection if not properly sanitized.
-Avoid running untrusted scripts or exposing sensitive environment variables, as these could inadvertently leak credentials or allow malicious code execution in your CI/CD pipeline.
+	Be cautious when using `nx:run-commands` with dynamic or user-provided input
+	in shell commands, as it can expose your monorepo to security risks like
+	command injection if not properly sanitized. Avoid running untrusted scripts
+	or exposing sensitive environment variables, as these could inadvertently
+	leak credentials or allow malicious code execution in your CI/CD pipeline.
 </Aside>

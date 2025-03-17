@@ -1,1035 +1,919 @@
 name: CI - Main
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+    workflow_dispatch:
+    push:
+        branches:
+            - main
 
 concurrency:
-  group: 'pages'
-  cancel-in-progress: true
+    group: 'pages'
+    cancel-in-progress: true
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+    REGISTRY: ghcr.io
+    IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  globals:
-    runs-on: ubuntu-latest
-    name: Global Variables
-    outputs:
-      sha256head: ${{ steps.hash.outputs.sha256head }}
+    globals:
+        runs-on: ubuntu-latest
+        name: Global Variables
+        outputs:
+            sha256head: ${{ steps.hash.outputs.sha256head }}
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
 
-      - name: Calculate SHA-256 Hash
-        id: hash
-        run: |
-          echo "::set-output name=sha256head::$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')"
+            - name: Calculate SHA-256 Hash
+              id: hash
+              run: |
+                  echo "::set-output name=sha256head::$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')"
 
-  alter:
-    needs: ['globals']
-    name: 'Alpha Alters'
-    if: github.repository == 'kbve/kbve'
-    uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
-    with:
-        branch: 'main'
-
-  debug:
-    needs: ['alter', 'globals']
-    name: Debug Pipeline
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
-
-      - name: Global SHA Output
-        run: |
-          echo "Using SHA-256 Hash in another job: ${{ needs.globals.outputs.sha256head }}"
-
-  deploy:
-    needs: ['alter', 'globals']
-    name: Deployment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository using git
-        uses: actions/checkout@v4
-
-      - name: Setup Node v20
-        uses: actions/setup-node@v4
+    alter:
+        needs: ['globals']
+        name: 'Alpha Alters'
+        if: github.repository == 'kbve/kbve'
+        uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
         with:
-          node-version: 20
+            branch: 'main'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+    debug:
+        needs: ['alter', 'globals']
+        name: Debug Pipeline
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout the repository
+              uses: actions/checkout@v4
+
+            - name: Global SHA Output
+              run: |
+                  echo "Using SHA-256 Hash in another job: ${{ needs.globals.outputs.sha256head }}"
+
+    deploy:
+        needs: ['alter', 'globals']
+        name: Deployment
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+            #   @[CACHE]->[START]
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            #   @[CACHE]->[END]
+
+            - name: Install pnpm dependencies
+              run: pnpm install
+
+            #   @[NX] -> [REPORT] -> [START]
+
+            # - name: KBVE Shell - Generate Report
+            #   uses: ./.github/actions/kbve-shell
+            #   with:
+            #       flag: '-outpostgraph'
+            #       create_pull_request: true
+            #       github_token: ${{ secrets.GITHUB_TOKEN }}
+            #       pull_request_title: 'outpost-nx-report-${{ needs.globals.outputs.sha256head }}'
+            #       pull_request_body: 'Generating NX Report and saving it as a MDX Report'
+
+            #   @[NX] -> [REPORT] -> [END]
+
+            #   [KBVE.com]
+
+            - name: KBVE.com -> Build
+              shell: bash
+              run: |
+                  pnpm nx build kbve.com
+
+            - name: KBVE.com -> Deployment
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+              with:
+                  source_file: 'dist/apps/kbve.com/'
+                  destination_repo: 'KBVE/kbve.com'
+                  destination_folder: '/docs'
+                  destination_branch: 'dev'
+                  destination_branch_create: 'patch-kbve-deploy-${{ needs.globals.outputs.sha256head }}'
+                  user_email: '5599058+h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: ${{ github.event.head_commit.message }}
+                  rsync_option: '-avrh --delete'
+
+            #   [HerbMail]
+
+            - name: HerbMail -> Build
+              if: needs.alter.outputs.herbmail == 'true'
+              shell: bash
+              run: |
+                  pnpm nx build herbmail.com
+
+            - name: HerbMail -> Deployment
+              if: needs.alter.outputs.herbmail == 'true'
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+              with:
+                  source_file: 'dist/apps/herbmail.com/'
+                  destination_repo: 'KBVE/herbmail.com'
+                  destination_folder: '/docs'
+                  destination_branch: 'main'
+                  destination_branch_create: 'patch-herbmail-deploy-${{ needs.globals.outputs.sha256head }}'
+                  user_email: '5599058+h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: ${{ github.event.head_commit.message }}
+                  rsync_option: '-avrh --delete'
+
+    #   [CryptoThrone]
+    cryptothrone_build_process:
+        needs: ['deploy', 'alter', 'globals']
+        name: CryptoThrone Build and Deployment
+        if: needs.alter.outputs.cryptothrone == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm dependencies
+              shell: bash
+              run: |
+                  pnpm install
+
+            - name: Build CryptoThrone.com
+              shell: bash
+              run: |
+                  pnpm nx build cryptothrone.com
+
+            - name: CryptoThrone.com -> Deployment
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+              with:
+                  source_file: 'dist/apps/cryptothrone.com/'
+                  destination_repo: 'KBVE/cryptothrone.com'
+                  destination_folder: '/docs'
+                  destination_branch: 'main'
+                  destination_branch_create: 'patch-cryptothrone-deploy-${{ needs.globals.outputs.sha256head }}'
+                  user_email: '5599058+h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: ${{ github.event.head_commit.message }}
+                  rsync_option: '-avrh --delete'
+
+    #   [Laser] -> Publish (As NPM)
+    laser_npm_publish:
+        needs: ['deploy', 'alter', 'globals']
+        name: Laser Phaser React Library Publish
+        if: needs.alter.outputs.laser == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            #   @[CACHE]->[START]
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+                  #   @[CACHE]->[END]
+
+            - name: Install pnpm dependencies
+              run: |
+                  pnpm install
+
+            - name: Install npm
+              run: |
+                  npm install --legacy-peer-deps
+
+            - name: Print Environment Info
+              shell: bash
+              run: |
+                  npx nx report
+
+            - name: Build KBVE Laser NPM Package
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-nx laser:build'
+                  create_pull_request: false
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Publish packages
+              run: npx nx release publish --projects=laser
+              shell: bash
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true
+
+    #   [Devops] -> Publish (As NPM)
+    devops_npm_publish:
+        needs: ['deploy', 'alter', 'globals']
+        name: Github Actions Helper Library
+        if: needs.alter.outputs.devops == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            #   @[CACHE]->[START]
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+                  #   @[CACHE]->[END]
+
+            - name: Install pnpm dependencies
+              run: |
+                  pnpm install
+
+            - name: Install npm
+              run: |
+                  npm install --legacy-peer-deps
+
+            - name: Print Environment Info
+              shell: bash
+              run: |
+                  npx nx report
+
+            - name: Build KBVE DevOps NPM Package
+              uses: ./.github/actions/kbve-shell
+              with:
+                  flag: '-nx devops:build'
+                  create_pull_request: false
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Publish packages
+              run: npx nx release publish --projects=devops
+              shell: bash
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true
+
+    #   [KHASHVAULT] -> Publish (As NPM)
+    khashvault_npm_publish:
+        needs: ['deploy', 'alter', 'globals']
+        name: KhashVault NPM Publish
+        if: needs.alter.outputs.khashvault == 'true'
+        runs-on: 'ubuntu-latest'
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - name: Checkout the monorepo using git
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            #   @[CACHE]->[START]
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+                  #   @[CACHE]->[END]
+
+            - name: Install pnpm dependencies
+              run: |
+                  pnpm install
+
+            - name: Install npm
+              run: |
+                  npm install --legacy-peer-deps
+
+            - name: Print Environment Info
+              shell: bash
+              run: |
+                  npx nx report
+
+            - name: Publish packages
+              run: npx nx release publish --projects=khashvault
+              shell: bash
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true
+
+    #   [ATLAS] -> Publish (As App)
+    python_atlas_build:
+        needs: ['deploy', 'alter', 'globals']
+        name: Python Atlas Module Publish
+        if: needs.alter.outputs.atlas == 'true'
+        runs-on: 'ubuntu-latest'
+        steps:
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            #   @[CACHE]->[START]
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            #   @[CACHE]->[END]
+
+            - name: Install pnpm dependencies
+              run: pnpm install
+
+            - name: Python Install
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.x'
+
+            - name: Poetry Install
+              uses: snok/install-poetry@v1
+
+            - name: Atlas Build
+              shell: bash
+              run: |
+                  pnpm nx build atlas
+
+            - name: Store the Atlas distribution packages
+              uses: actions/upload-artifact@v4
+              with:
+                  name: atlas-python-package-distributions
+                  path: apps/atlas/dist/
+
+    #   [Fudster] -> Publish (As App)
+    python_fudster_build:
+        needs: ['deploy', 'alter', 'globals']
+        name: Python Fudster Module Publish
+        if: needs.alter.outputs.fudster == 'true'
+        runs-on: 'ubuntu-latest'
+        steps:
+            - name: Checkout the repository using git
+              uses: actions/checkout@v4
+
+            - name: Setup Node v20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 9
+                  run_install: false
+
+            #   @[CACHE]->[START]
+            - name: Get pnpm Store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            #   @[CACHE]->[END]
+
+            - name: Install pnpm dependencies
+              run: pnpm install
+
+            - name: Python Install
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.x'
+
+            - name: Poetry Install
+              uses: snok/install-poetry@v1
+
+            - name: Fudster Build
+              shell: bash
+              run: |
+                  pnpm nx build fudster
+
+            - name: Store the Fudster distribution packages
+              uses: actions/upload-artifact@v4
+              with:
+                  name: fudster-python-package-distributions
+                  path: apps/fudster/dist/
+
+    generate_crates_matrix:
+        needs: ['deploy', 'alter', 'globals']
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.set-matrix.outputs.matrix }}
+        steps:
+            - name: Generate Matrix
+              id: set-matrix
+              run: |
+                  MATRIX=$(jq -n '{
+                    include: [
+                      { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
+                      { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
+                      { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
+                      { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
+                      { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
+                      { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
+                    ]
+                  } | .include |= map(select(.condition == "true"))')
+                  echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+    publish_crates:
+        needs: ['generate_crates_matrix']
+        name: Publish Rust Crates
+        strategy:
+            matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
         with:
-          version: 9
-          run_install: false
-      #   @[CACHE]->[START]
-      - name: Get pnpm Store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      #   @[CACHE]->[END]
-
-      - name: Install pnpm dependencies
-        run: pnpm install
-
-      #   @[NX] -> [REPORT] -> [START]
-
-      # - name: KBVE Shell - Generate Report
-      #   uses: ./.github/actions/kbve-shell
-      #   with:
-      #       flag: '-outpostgraph'
-      #       create_pull_request: true
-      #       github_token: ${{ secrets.GITHUB_TOKEN }}
-      #       pull_request_title: 'outpost-nx-report-${{ needs.globals.outputs.sha256head }}'
-      #       pull_request_body: 'Generating NX Report and saving it as a MDX Report'
-
-      #   @[NX] -> [REPORT] -> [END]
-
-      #   [KBVE.com]
-
-      - name: KBVE.com -> Build
-        shell: bash
-        run: |
-          pnpm nx build kbve.com
-
-      - name: KBVE.com -> Deployment
-        uses: dobbelina/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-        with:
-          source_file: 'dist/apps/kbve.com/'
-          destination_repo: 'KBVE/kbve.com'
-          destination_folder: '/docs'
-          destination_branch: 'dev'
-          destination_branch_create: 'patch-kbve-deploy-${{ needs.globals.outputs.sha256head }}'
-          user_email: '5599058+h0lybyte@users.noreply.github.com'
-          user_name: 'h0lybyte'
-          commit_message: ${{ github.event.head_commit.message }}
-          rsync_option: '-avrh --delete'
-
-      #   [HerbMail]
-
-      - name: HerbMail -> Build
-        if: needs.alter.outputs.herbmail == 'true'
-        shell: bash
-        run: |
-          pnpm nx build herbmail.com
-
-      - name: HerbMail -> Deployment
-        if: needs.alter.outputs.herbmail == 'true'
-        uses: dobbelina/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-        with:
-          source_file: 'dist/apps/herbmail.com/'
-          destination_repo: 'KBVE/herbmail.com'
-          destination_folder: '/docs'
-          destination_branch: 'main'
-          destination_branch_create: 'patch-herbmail-deploy-${{ needs.globals.outputs.sha256head }}'
-          user_email: '5599058+h0lybyte@users.noreply.github.com'
-          user_name: 'h0lybyte'
-          commit_message: ${{ github.event.head_commit.message }}
-          rsync_option: '-avrh --delete'
-
-  #   [CryptoThrone]
-  cryptothrone_build_process:
-    needs: ['deploy', 'alter', 'globals']
-    name: CryptoThrone Build and Deployment
-    if: needs.alter.outputs.cryptothrone == 'true'
-    runs-on: 'ubuntu-latest'
-    permissions:
-        contents: read
-        id-token: write
-    steps:
-      - name: Checkout the monorepo using git
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node v20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
-
-      - name: Get pnpm Store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install pnpm dependencies
-        shell: bash
-        run: |
-          pnpm install
-
-      - name: Build CryptoThrone.com
-        shell: bash
-        run: |
-          pnpm nx build cryptothrone.com
-
-      - name: CryptoThrone.com -> Deployment
-        uses: dobbelina/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-        with:
-          source_file: 'dist/apps/cryptothrone.com/'
-          destination_repo: 'KBVE/cryptothrone.com'
-          destination_folder: '/docs'
-          destination_branch: 'main'
-          destination_branch_create: 'patch-cryptothrone-deploy-${{ needs.globals.outputs.sha256head }}'
-          user_email: '5599058+h0lybyte@users.noreply.github.com'
-          user_name: 'h0lybyte'
-          commit_message: ${{ github.event.head_commit.message }}
-          rsync_option: '-avrh --delete'
-
-  #   [Laser] -> Publish (As NPM)
-  laser_npm_publish:
-    needs: ['deploy', 'alter', 'globals']
-    name: Laser Phaser React Library Publish
-    if: needs.alter.outputs.laser == 'true'
-    runs-on: 'ubuntu-latest'
-    permissions:
-          contents: read
-          id-token: write
-    steps:
-      - name: Checkout the monorepo using git
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node v20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
-
-      #   @[CACHE]->[START]
-      - name: Get pnpm Store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-          #   @[CACHE]->[END]
-
-      - name: Install pnpm dependencies
-        run: |
-          pnpm install
-
-      - name: Install npm
-        run: |
-          npm install --legacy-peer-deps
-
-      - name: Print Environment Info
-        shell: bash
-        run: |
-          npx nx report
-
-      - name: Build KBVE Laser NPM Package
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-nx laser:build'
-          create_pull_request: false
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish packages
-        run: npx nx release publish --projects=laser
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-
-  #   [Devops] -> Publish (As NPM)
-  devops_npm_publish:
-    needs: ['deploy', 'alter', 'globals']
-    name: Github Actions Helper Library
-    if: needs.alter.outputs.devops == 'true'
-    runs-on: 'ubuntu-latest'
-    permissions:
-          contents: read
-          id-token: write
-    steps:
-      - name: Checkout the monorepo using git
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node v20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
-
-      #   @[CACHE]->[START]
-      - name: Get pnpm Store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-          #   @[CACHE]->[END]
-
-      - name: Install pnpm dependencies
-        run: |
-          pnpm install
-
-      - name: Install npm
-        run: |
-          npm install --legacy-peer-deps
-
-      - name: Print Environment Info
-        shell: bash
-        run: |
-          npx nx report
-
-      - name: Build KBVE DevOps NPM Package
-        uses: ./.github/actions/kbve-shell
-        with:
-          flag: '-nx devops:build'
-          create_pull_request: false
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish packages
-        run: npx nx release publish --projects=devops
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-
-
-  #   [KHASHVAULT] -> Publish (As NPM)
-  khashvault_npm_publish:
-    needs: ['deploy', 'alter', 'globals']
-    name: KhashVault NPM Publish
-    if: needs.alter.outputs.khashvault == 'true'
-    runs-on: 'ubuntu-latest'
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Checkout the monorepo using git
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node v20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
-
-      #   @[CACHE]->[START]
-      - name: Get pnpm Store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-          #   @[CACHE]->[END]
-
-      - name: Install pnpm dependencies
-        run: |
-          pnpm install
-
-      - name: Install npm
-        run: |
-          npm install --legacy-peer-deps
-
-      - name: Print Environment Info
-        shell: bash
-        run: |
-          npx nx report
-
-      - name: Publish packages
-        run: npx nx release publish --projects=khashvault
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-
-  #   [ATLAS] -> Publish (As App)
-  python_atlas_build:
-    needs: ['deploy', 'alter', 'globals']
-    name: Python Atlas Module Publish
-    if: needs.alter.outputs.atlas == 'true'
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Checkout the repository using git
-        uses: actions/checkout@v4
-
-      - name: Setup Node v20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
-
-      #   @[CACHE]->[START]
-      - name: Get pnpm Store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      #   @[CACHE]->[END]
-
-      - name: Install pnpm dependencies
-        run: pnpm install
-
-      - name: Python Install
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Poetry Install
-        uses: snok/install-poetry@v1
-
-      - name: Atlas Build
-        shell: bash
-        run: |
-          pnpm nx build atlas
-
-      - name: Store the Atlas distribution packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: atlas-python-package-distributions
-          path: apps/atlas/dist/
-
-
-  #   [Fudster] -> Publish (As App)
-  python_fudster_build:
-    needs: ['deploy', 'alter', 'globals']
-    name: Python Fudster Module Publish
-    if: needs.alter.outputs.fudster == 'true'
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Checkout the repository using git
-        uses: actions/checkout@v4
-
-      - name: Setup Node v20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-          run_install: false
-
-      #   @[CACHE]->[START]
-      - name: Get pnpm Store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      #   @[CACHE]->[END]
-
-      - name: Install pnpm dependencies
-        run: pnpm install
-
-      - name: Python Install
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Poetry Install
-        uses: snok/install-poetry@v1
-
-      - name: Fudster Build
-        shell: bash
-        run: |
-          pnpm nx build fudster
-
-      - name: Store the Fudster distribution packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: fudster-python-package-distributions
-          path: apps/fudster/dist/
-
-
-
-  #   @[ERust] -> Publish
-  erust_publish:
-    needs: ['deploy', 'alter', 'globals']
-    name: Erust Crates Publish
-    if: needs.alter.outputs.erust == 'true'
-    runs-on: 'ubuntu-latest'
-    permissions:
-      id-token: write
-      contents: write
-      packages: write
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Rust ToolChain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cargo Login
-        run: cargo login ${{ secrets.CRATES_TOKEN }}
-
-      - name: Cargo Release
-        run: |-
-          cargo publish \
-              -p erust
-
-      # - name: KBVE Shell
-      #   uses: ./.github/actions/kbve-shell
-      #   with:
-      #     flag: '-cargobump erust'
-      #     create_pull_request: true
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     pull_request_title: 'erust-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-      #     pull_request_body: 'Bumping up the minor version of the erust package.'
-
-  holy_crates_publish:
-    needs: ['deploy', 'alter', 'globals']
-    name: Holy Crates Publish
-    if: needs.alter.outputs.holy == 'true'
-    runs-on: 'ubuntu-latest'
-    permissions:
-      id-token: write
-      contents: write
-      packages: write
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Rust ToolChain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cargo Login
-        run: cargo login ${{ secrets.CRATES_TOKEN }}
-
-      - name: Cargo Release
-        run: |-
-          cargo publish \
-          -p holy
-
-      # - name: Bump Holy Package
-      #   uses: ./.github/actions/kbve-shell
-      #   with:
-      #     flag: '-cargobump holy'
-      #     create_pull_request: true
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     pull_request_title: 'holy-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-      #     pull_request_body: 'Bumping up the minor version of the holy package.'
-
-  kbve_crates_publish:
-    needs: ['deploy', 'alter', 'globals']
-    name: KBVE Crates Publish
-    if: needs.alter.outputs.kbvecrate == 'true'
-    runs-on: 'ubuntu-latest'
-    permissions:
-      id-token: write
-      contents: write
-      packages: write
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Rust ToolChain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cargo Login
-        run: cargo login ${{ secrets.CRATES_TOKEN }}
-
-      - name: Cargo Release KBVE
-        run: |-
-          cargo publish \
-          -p kbve
-
-      # - name: Bump Holy Package
-      #   uses: ./.github/actions/kbve-shell
-      #   with:
-      #     flag: '-cargobump kbve'
-      #     create_pull_request: true
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     pull_request_title: 'kbve-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-      #     pull_request_body: 'Bumping up the minor version of the kbve package.'
-
-  jedicratespublish:
-    needs: ['deploy', 'alter', 'globals']
-    name: Jedi Crates Publish
-    if: needs.alter.outputs.jedi == 'true'
-    runs-on: 'ubuntu-latest'
-    permissions:
-      id-token: write
-      contents: write
-      packages: write
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Rust ToolChain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cargo Login
-        run: cargo login ${{ secrets.CRATES_TOKEN }}
-
-      - name: Cargo Release KBVE
-        run: |-
-          cargo publish \
-          -p jedi
-
-      # - name: Bump Holy Package
-      #   uses: ./.github/actions/kbve-shell
-      #   with:
-      #     flag: '-cargobump jedi'
-      #     create_pull_request: true
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     pull_request_title: 'jedi-crates-minor-version-bump-${{ needs.globals.outputs.sha256head }}'
-      #     pull_request_body: 'Bumping up the minor version of the jedi package.'
-
-# Q Release
-
-  qrelease:
-    needs: ['deploy', 'alter', 'globals']
-    if: needs.alter.outputs.q == 'true'
-    uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
-    with:
-      package: q
-    secrets:
-      CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
-
-  python_atlas_publish:
-    needs: ['deploy', 'alter', 'python_atlas_build']
-    name: Atlas KBVE Pypi Publish
-    if: needs.alter.outputs.atlas == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/kbve
-    permissions:
-      id-token: write
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: atlas-python-package-distributions
-          path: dist/
-      - name: Publish distribution 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
-
-  python_fudster_publish:
-    needs: ['deploy', 'alter', 'python_fudster_build']
-    name: Fudster Pypi Publish
-    if: needs.alter.outputs.fudster == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/fudster
-    permissions:
-      id-token: write
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: fudster-python-package-distributions
-          path: dist/
-      - name: Publish distribution 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_SCOPE_TOKEN }}
-
-
-
-  # Monorepo Image from https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
-  monorepo-image:
-    needs: ['deploy']
-    name: Build Monorepo Docker Image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: .
-          # platforms: linux/amd64, linux/arm64
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # Rust Profile Image Deployment
-  rust-profile-image:
-    needs: ['monorepo-image', 'alter']
-    name: Build Rust Profile Docker Image
-    if: needs.alter.outputs.rustprofile == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./apps/rust_api_profile/
-          push: true
-          tags: kbve/rustprofile:latest
-          #platforms: linux/amd64, linux/arm64
-          platforms: linux/amd64
-          file: ./apps/rust_api_profile/Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-          #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
-
-  # Deploy Rust Profile Image
-  deploy-rust-profile-image:
-    needs: ['rust-profile-image', 'alter']
-    name: Deploy Rust Profile Docker Image to Portainer
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Deploy to Portainer
-        uses: ./.github/actions/shieldwall-command-center
-        with:
-          token: ${{ secrets.KBVE_PAT }}
-          command: 'deploy'
-          kbve-shield-token: ${{ secrets.SHIELDWALL }}
-
-  # Chisel Deployment
-  chisel-rust-profile-image:
-    needs: ['rust-profile-image', 'alter', 'deploy-rust-profile-image']
-    name: Chisel Rust Profile Docker Image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./migrations/docker/chisel/rust-profile-api/
-          push: true
-          tags: kbve/rustprofilechisel:latest
-          #platforms: linux/amd64, linux/arm64
-          platforms: linux/amd64
-          file: ./migrations/docker/chisel/rust-profile-api/Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # NodeJS
-
-  # [EXPO] -> [START]
-
-  # expo-lcagents-web-build:
-  #   needs: ['alter', 'globals']
-  #   name: Expo LC Agents Web Build
-  #   runs-on: ubuntu-latest
-  #   if: needs.alter.outputs.expolcagents == 'true'
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-
-  #     - name: Setup NodeJS
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-
-  #     - name: Setup PNPM
-  #       uses: pnpm/action-setup@v3
-  #       with:
-  #         version: 9
-  #         run_install: false
-
-  #     - name: Install react-native-cli globally
-  #       run: pnpm add -g react-native-cli
-
-  #     - name: Install dependencies
-  #       run: pnpm install
-
-  #     - name: Setup Watchman (if applicable)
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y watchman
-  #         watchman --version
-
-  #     - name: NX Command
-  #       shell: bash
-  #       continue-on-error: true
-  #       run: |
-  #         pnpm nx run expo-lcagents:export --verbose
-
-  #     - name: NX Command - 2
-  #       shell: bash
-  #       continue-on-error: true
-  #       run: |
-  #         pnpm nx run expo-lcagents:export --verbose
-
-  #     - name: LCA Expo Build
-  #       uses: ./.github/actions/kbve-shell
-  #       with:
-  #         flag: '-nx expo-lcagents:export'
-  #         create_pull_request: false
-  #         github_token: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: Create .nojekyll file
-  #       run: |
-  #         mkdir -p dist/apps/expo-lcagents/
-  #         touch dist/apps/expo-lcagents/.nojekyll
-
-  #     - name: Create CNAME file
-  #       run: |
-  #         mkdir -p dist/apps/expo-lcagents/
-  #         echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
-
-  #     - name: LC Agents -> Deployment
-  #       uses: dobbelina/copy_file_to_another_repo_action@main
-  #       env:
-  #         API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-  #       with:
-  #         source_file: 'dist/apps/expo-lcagents/'
-  #         destination_repo: 'kbve/lc-agents.com'
-  #         destination_folder: '/docs'
-  #         destination_branch: 'main'
-  #         destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
-  #         user_email: '5599058+h0lybyte@users.noreply.github.com'
-  #         user_name: 'h0lybyte'
-  #         commit_message: ${{ github.event.head_commit.message }}
-  #         rsync_option: '-avrh --delete'
-
-  #   [Expo] -> [HQ Plan]
-
-  #   [Docker]
-  void-docker-base-image:
-    needs: ['monorepo-image', 'alter']
-    name: v01d Base Docker Image Build
-    runs-on: ubuntu-latest
-    if: needs.alter.outputs.dockervoid == 'true'
-
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build Docker Image and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./migrations/docker/v01d/
-          push: true
-          tags: kbve/v01d:latest
-          #platforms: linux/amd64, linux/arm64
-          platforms: linux/amd64
-          file: ./migrations/docker/v01d/Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-          #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
-
-  python_atlas_docker:
-    needs: ['python_atlas_publish', 'alter']
-    name: Atlas Docker Image Build
-    runs-on: ubuntu-latest
-    if: needs.alter.outputs.atlas == 'true'
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build Docker Image and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./apps/atlas/
-          push: true
-          tags: kbve/atlas:latest
-          #platforms: linux/amd64, linux/arm64
-          platforms: linux/amd64
-          file: ./apps/atlas/Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+            package: ${{ matrix.name }}
+        secrets:
+            CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+    # q_release:
+    #     needs: ['deploy', 'alter', 'globals']
+    #     name: Q Crates Publish
+    #     if: needs.alter.outputs.q == 'true'
+    #     uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
+    #     with:
+    #         package: q
+    #     secrets:
+    #         CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+    python_atlas_publish:
+        needs: ['deploy', 'alter', 'python_atlas_build']
+        name: Atlas KBVE Pypi Publish
+        if: needs.alter.outputs.atlas == 'true'
+        runs-on: ubuntu-latest
+        environment:
+            name: pypi
+            url: https://pypi.org/p/kbve
+        permissions:
+            id-token: write
+        steps:
+            - name: Download all the dists
+              uses: actions/download-artifact@v4
+              with:
+                  name: atlas-python-package-distributions
+                  path: dist/
+            - name: Publish distribution 📦 to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  user: __token__
+                  password: ${{ secrets.PYPI_API_TOKEN }}
+
+    python_fudster_publish:
+        needs: ['deploy', 'alter', 'python_fudster_build']
+        name: Fudster Pypi Publish
+        if: needs.alter.outputs.fudster == 'true'
+        runs-on: ubuntu-latest
+        environment:
+            name: pypi
+            url: https://pypi.org/p/fudster
+        permissions:
+            id-token: write
+        steps:
+            - name: Download all the dists
+              uses: actions/download-artifact@v4
+              with:
+                  name: fudster-python-package-distributions
+                  path: dist/
+            - name: Publish distribution 📦 to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  user: __token__
+                  password: ${{ secrets.PYPI_API_SCOPE_TOKEN }}
+
+    # # Monorepo Image from https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
+    # monorepo-image:
+    #     needs: ['deploy']
+    #     name: Build Monorepo Docker Image
+    #     runs-on: ubuntu-latest
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v4
+
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
+
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
+
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    #         - name: Log in to the Container registry
+    #           uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+    #           with:
+    #               registry: ${{ env.REGISTRY }}
+    #               username: ${{ github.actor }}
+    #               password: ${{ secrets.GITHUB_TOKEN }}
+
+    #         - name: Extract metadata (tags, labels) for Docker
+    #           id: meta
+    #           uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+    #           with:
+    #               images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+    #         - name: Build and push Docker image
+    #           uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+    #           with:
+    #               context: .
+    #               # platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               push: true
+    #               tags: ${{ steps.meta.outputs.tags }}
+    #               labels: ${{ steps.meta.outputs.labels }}
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
+
+    # # Rust Profile Image Deployment
+    # rust-profile-image:
+    #     needs: ['monorepo-image', 'alter']
+    #     name: Build Rust Profile Docker Image
+    #     if: needs.alter.outputs.rustprofile == 'true'
+    #     runs-on: ubuntu-latest
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v4
+
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
+
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
+
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    #         - name: Build and push
+    #           uses: docker/build-push-action@v5
+    #           with:
+    #               context: ./apps/rust_api_profile/
+    #               push: true
+    #               tags: kbve/rustprofile:latest
+    #               #platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               file: ./apps/rust_api_profile/Dockerfile
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
+    #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+    #               #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
+
+    # # Deploy Rust Profile Image
+    # deploy-rust-profile-image:
+    #     needs: ['rust-profile-image', 'alter']
+    #     name: Deploy Rust Profile Docker Image to Portainer
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v4
+
+    #         - name: Deploy to Portainer
+    #           uses: ./.github/actions/shieldwall-command-center
+    #           with:
+    #               token: ${{ secrets.KBVE_PAT }}
+    #               command: 'deploy'
+    #               kbve-shield-token: ${{ secrets.SHIELDWALL }}
+
+    # # Chisel Deployment
+    # chisel-rust-profile-image:
+    #     needs: ['rust-profile-image', 'alter', 'deploy-rust-profile-image']
+    #     name: Chisel Rust Profile Docker Image
+    #     runs-on: ubuntu-latest
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v4
+
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
+
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
+
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    #         - name: Build and push
+    #           uses: docker/build-push-action@v5
+    #           with:
+    #               context: ./migrations/docker/chisel/rust-profile-api/
+    #               push: true
+    #               tags: kbve/rustprofilechisel:latest
+    #               #platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               file: ./migrations/docker/chisel/rust-profile-api/Dockerfile
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
+
+    # NodeJS
+
+    # [EXPO] -> [START]
+
+    # expo-lcagents-web-build:
+    #   needs: ['alter', 'globals']
+    #   name: Expo LC Agents Web Build
+    #   runs-on: ubuntu-latest
+    #   if: needs.alter.outputs.expolcagents == 'true'
+    #   steps:
+    #     - name: Checkout repository
+    #       uses: actions/checkout@v4
+
+    #     - name: Setup NodeJS
+    #       uses: actions/setup-node@v4
+    #       with:
+    #         node-version: 20
+
+    #     - name: Setup PNPM
+    #       uses: pnpm/action-setup@v3
+    #       with:
+    #         version: 9
+    #         run_install: false
+
+    #     - name: Install react-native-cli globally
+    #       run: pnpm add -g react-native-cli
+
+    #     - name: Install dependencies
+    #       run: pnpm install
+
+    #     - name: Setup Watchman (if applicable)
+    #       run: |
+    #         sudo apt-get update
+    #         sudo apt-get install -y watchman
+    #         watchman --version
+
+    #     - name: NX Command
+    #       shell: bash
+    #       continue-on-error: true
+    #       run: |
+    #         pnpm nx run expo-lcagents:export --verbose
+
+    #     - name: NX Command - 2
+    #       shell: bash
+    #       continue-on-error: true
+    #       run: |
+    #         pnpm nx run expo-lcagents:export --verbose
+
+    #     - name: LCA Expo Build
+    #       uses: ./.github/actions/kbve-shell
+    #       with:
+    #         flag: '-nx expo-lcagents:export'
+    #         create_pull_request: false
+    #         github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    #     - name: Create .nojekyll file
+    #       run: |
+    #         mkdir -p dist/apps/expo-lcagents/
+    #         touch dist/apps/expo-lcagents/.nojekyll
+
+    #     - name: Create CNAME file
+    #       run: |
+    #         mkdir -p dist/apps/expo-lcagents/
+    #         echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
+
+    #     - name: LC Agents -> Deployment
+    #       uses: dobbelina/copy_file_to_another_repo_action@main
+    #       env:
+    #         API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+    #       with:
+    #         source_file: 'dist/apps/expo-lcagents/'
+    #         destination_repo: 'kbve/lc-agents.com'
+    #         destination_folder: '/docs'
+    #         destination_branch: 'main'
+    #         destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
+    #         user_email: '5599058+h0lybyte@users.noreply.github.com'
+    #         user_name: 'h0lybyte'
+    #         commit_message: ${{ github.event.head_commit.message }}
+    #         rsync_option: '-avrh --delete'
+
+    #   [Expo] -> [HQ Plan]
+
+    # #   [Docker]
+    # void-docker-base-image:
+    #     needs: ['monorepo-image', 'alter']
+    #     name: v01d Base Docker Image Build
+    #     runs-on: ubuntu-latest
+    #     if: needs.alter.outputs.dockervoid == 'true'
+
+    #     permissions:
+    #         contents: read
+    #         packages: write
+    #     steps:
+    #         - name: Checkout repository
+    #           uses: actions/checkout@v4
+
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
+
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
+
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    #         - name: Build Docker Image and Push
+    #           uses: docker/build-push-action@v5
+    #           with:
+    #               context: ./migrations/docker/v01d/
+    #               push: true
+    #               tags: kbve/v01d:latest
+    #               #platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               file: ./migrations/docker/v01d/Dockerfile
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
+    #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+    #               #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
+
+    python_atlas_docker:
+        needs: ['python_atlas_publish', 'alter']
+        name: Atlas Docker Image Build
+        runs-on: ubuntu-latest
+        if: needs.alter.outputs.atlas == 'true'
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build Docker Image and Push
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./apps/atlas/
+                  push: true
+                  tags: kbve/atlas:latest
+                  #platforms: linux/amd64, linux/arm64
+                  platforms: linux/amd64
+                  file: ./apps/atlas/Dockerfile
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  #cache-from: type=registry,ref=kbve/rustprofile:buildcache
