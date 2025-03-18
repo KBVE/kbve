@@ -549,13 +549,14 @@ jobs:
                       { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
                       { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
                     ]
-                  } | .include |= map(select(.condition == "true")) | if (.include | length) == 0 then {"include": [{"name": "placeholder"}]} else . end')
-                  echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
+                  } | .include |= map(select(.condition == "true")) | if (.include | length) == 0 then null else . end')
 
+                  echo "matrix=$(echo "$MATRIX" | jq -c)" >> "$GITHUB_OUTPUT"
 
     publish_crates:
         needs: ['generate_crates_matrix']
         name: Publish Rust Crates
+        if: ${{ needs.generate_crates_matrix.outputs.matrix != 'null' }}
         strategy:
             matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
