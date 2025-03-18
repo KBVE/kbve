@@ -15,6 +15,7 @@ members = [
 	'apps/rentearth/rust_godot_towerdefense',
 	'packages/rust/q',
 	'packages/rust/soul',
+	'apps//discord/disoxide',
 ]
 
 [profile.dev]
