@@ -23,6 +23,19 @@ tags:
     Damn matrix seems to fail when building a json query, the issue seems that if all the crates are false for publishing, it produces an invalid json object.
     However, the first solution would be to include a simple patch to include a placeholder object, thus I will try that first.
 
+### KBVE Fork v1
+
+-   01:53PM
+
+    Forking the whole monorepo and working on it under `h0lybyte` is the goal for this Q2.
+    If everything goes as planned, then we can look at the azure and gitlab pipelines afterwards, ideally making it so the monorepo can stay replicated in multiple locations.
+    The repo structure will be like this:
+    
+    1.  Github for Public.
+    2.  Gitlab for Private Teams + Outside Developers - focus on backend applications.
+    3.  Azure for Private Internal + Code for non-monorepo behaviors, like Unity.
+
+    Provides us with the flexibility of an open source nature with the perks of private source integrations.
 
 ## 2024
 
