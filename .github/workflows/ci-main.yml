@@ -549,8 +549,9 @@ jobs:
                       { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
                       { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
                     ]
-                  } | .include |= map(select(.condition == "true"))')
+                  } | .include |= map(select(.condition == "true")) | if .include == [] then {"include": [{"name": "placeholder"}]} else . end')
                   echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
 
     publish_crates:
         needs: ['generate_crates_matrix']
