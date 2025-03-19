@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package store;
+
+message StoreValue {
+  string value = 1;
+}
+
+message KeyValueResponse {
+  string value = 1;
+}

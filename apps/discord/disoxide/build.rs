@@ -13,7 +13,7 @@ fn main() {
 
     config
         .compile_protos(
-            &["proto/user.proto", "proto/message.proto"],
+            &["proto/user.proto", "proto/message.proto", "proto/store.proto"],
             &["proto"],
         )
         .expect("Failed to compile Protobuf files");

@@ -29,7 +29,7 @@ tokio-postgres = "0.7.2"
 tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-axum = { version = "0.8", features = ["ws"] }
+axum = { version = "0.8.1", features = ["ws", "macros"] }
 axum-extra = { version = "0.10.0", features = [
     "typed-header",
     "protobuf",
