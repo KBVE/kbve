@@ -10,12 +10,22 @@ thiserror = "2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 bitflags = { version = "2.9.0", features = ["serde"] }
+tower-http = { version = "0.5.0", features = ["fs", "trace", "cors"] }
 tokio-postgres = "0.7.2"
 tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = { version = "0.8", features = ["ws"] }
-axum-extra = { version = "0.9.6", features = ["typed-header"] }
+axum-extra = { version = "0.10.0", features = [
+    "typed-header",
+    "protobuf",
+    "query",
+    "json-deserializer",
+    "error-response",
+    "cookie",
+    "form",
+    "file-stream"
+]}
 bb8 = "0.9.0"
 bb8-postgres = "0.9.0"
 bb8-redis = "0.21.0"
