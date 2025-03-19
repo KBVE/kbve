@@ -43,15 +43,15 @@ jobs:
             - name: Checkout the repository using git
               uses: actions/checkout@v4
 
-            - name: Setup Node v20
+            - name: Setup Node v22
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 22
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v3
               with:
-                  version: 9
+                  version: 10
                   run_install: false
             #   @[CACHE]->[START]
             - name: Get pnpm Store
@@ -87,49 +87,101 @@ jobs:
 
             #   [KBVE.com]
 
-            - name: KBVE.com -> Build
-              shell: bash
-              run: |
-                  pnpm nx build kbve.com
+            # - name: KBVE.com -> Build
+            #   shell: bash
+            #   run: |
+            #       pnpm nx build kbve.com
 
-            - name: KBVE.com -> Deployment
-              uses: dobbelina/copy_file_to_another_repo_action@main
-              env:
-                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-              with:
-                  source_file: 'dist/apps/kbve.com/'
-                  destination_repo: 'KBVE/kbve.com'
-                  destination_folder: '/docs'
-                  destination_branch: 'dev'
-                  destination_branch_create: 'patch-kbve-deploy-${{ needs.globals.outputs.sha256head }}'
-                  user_email: '5599058+h0lybyte@users.noreply.github.com'
-                  user_name: 'h0lybyte'
-                  commit_message: ${{ github.event.head_commit.message }}
-                  rsync_option: '-avrh --delete'
+            # - name: KBVE.com -> Deployment
+            #   uses: dobbelina/copy_file_to_another_repo_action@main
+            #   env:
+            #       API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+            #   with:
+            #       source_file: 'dist/apps/kbve.com/'
+            #       destination_repo: 'KBVE/kbve.com'
+            #       destination_folder: '/docs'
+            #       destination_branch: 'dev'
+            #       destination_branch_create: 'patch-kbve-deploy-${{ needs.globals.outputs.sha256head }}'
+            #       user_email: '5599058+h0lybyte@users.noreply.github.com'
+            #       user_name: 'h0lybyte'
+            #       commit_message: ${{ github.event.head_commit.message }}
+            #       rsync_option: '-avrh --delete'
 
             #   [HerbMail]
 
-            - name: HerbMail -> Build
-              if: needs.alter.outputs.herbmail == 'true'
-              shell: bash
-              run: |
-                  pnpm nx build herbmail.com
+            # - name: HerbMail -> Build
+            #   if: needs.alter.outputs.herbmail == 'true'
+            #   shell: bash
+            #   run: |
+            #       pnpm nx build herbmail.com
 
-            - name: HerbMail -> Deployment
-              if: needs.alter.outputs.herbmail == 'true'
-              uses: dobbelina/copy_file_to_another_repo_action@main
-              env:
-                  API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-              with:
-                  source_file: 'dist/apps/herbmail.com/'
-                  destination_repo: 'KBVE/herbmail.com'
-                  destination_folder: '/docs'
-                  destination_branch: 'main'
-                  destination_branch_create: 'patch-herbmail-deploy-${{ needs.globals.outputs.sha256head }}'
-                  user_email: '5599058+h0lybyte@users.noreply.github.com'
-                  user_name: 'h0lybyte'
-                  commit_message: ${{ github.event.head_commit.message }}
-                  rsync_option: '-avrh --delete'
+            # - name: HerbMail -> Deployment
+            #   if: needs.alter.outputs.herbmail == 'true'
+            #   uses: dobbelina/copy_file_to_another_repo_action@main
+            #   env:
+            #       API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+            #   with:
+            #       source_file: 'dist/apps/herbmail.com/'
+            #       destination_repo: 'KBVE/herbmail.com'
+            #       destination_folder: '/docs'
+            #       destination_branch: 'main'
+            #       destination_branch_create: 'patch-herbmail-deploy-${{ needs.globals.outputs.sha256head }}'
+            #       user_email: '5599058+h0lybyte@users.noreply.github.com'
+            #       user_name: 'h0lybyte'
+            #       commit_message: ${{ github.event.head_commit.message }}
+            #       rsync_option: '-avrh --delete'
+
+
+
+    # generate_crates_matrix:
+    #     needs: ['deploy', 'alter', 'globals']
+    #     runs-on: ubuntu-latest
+    #     outputs:
+    #         matrix: ${{ steps.set-matrix.outputs.matrix }}
+    #     steps:
+    #         - name: Generate Matrix
+    #           id: set-matrix
+    #           run: |
+    #               MATRIX=$(jq -n '{
+    #                 include: [
+    #                   { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
+    #                   { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
+    #                   { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
+    #                   { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
+    #                   { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
+    #                   { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
+    #                 ]
+    #               } | .include |= map(select(.condition == "true")) | if (.include | length) == 0 then null else . end')
+
+    #               echo "matrix=$(echo "$MATRIX" | jq -c)" >> "$GITHUB_OUTPUT"
+
+    generate_crates_matrix:
+      needs: ['deploy', 'alter', 'globals']
+      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+      with:
+        items: |
+          [
+            { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
+            { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
+            { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
+            { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
+            { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
+            { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
+          ]
+
+    publish_crates:
+        needs: ['generate_crates_matrix']
+        name: Publish Rust Crates
+        if: ${{ needs.generate_crates_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
+        with:
+            package: ${{ matrix.name }}
+        secrets:
+            CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+    #   ! Everything below this line will be removed and replaced with the matrix setup.
 
     #   [CryptoThrone]
     cryptothrone_build_process:
@@ -516,39 +568,6 @@ jobs:
                   name: fudster-python-package-distributions
                   path: apps/fudster/dist/
 
-    generate_crates_matrix:
-        needs: ['deploy', 'alter', 'globals']
-        runs-on: ubuntu-latest
-        outputs:
-            matrix: ${{ steps.set-matrix.outputs.matrix }}
-        steps:
-            - name: Generate Matrix
-              id: set-matrix
-              run: |
-                  MATRIX=$(jq -n '{
-                    include: [
-                      { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
-                      { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
-                      { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
-                      { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
-                      { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
-                      { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
-                    ]
-                  } | .include |= map(select(.condition == "true")) | if (.include | length) == 0 then null else . end')
-
-                  echo "matrix=$(echo "$MATRIX" | jq -c)" >> "$GITHUB_OUTPUT"
-
-    publish_crates:
-        needs: ['generate_crates_matrix']
-        name: Publish Rust Crates
-        if: ${{ needs.generate_crates_matrix.outputs.matrix != 'null' }}
-        strategy:
-            matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
-        uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
-        with:
-            package: ${{ matrix.name }}
-        secrets:
-            CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
     # q_release:
     #     needs: ['deploy', 'alter', 'globals']
@@ -866,41 +885,41 @@ jobs:
     #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache
     #               #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
 
-    python_atlas_docker:
-        needs: ['python_atlas_publish', 'alter']
-        name: Atlas Docker Image Build
-        runs-on: ubuntu-latest
-        if: needs.alter.outputs.atlas == 'true'
+    # python_atlas_docker:
+    #     needs: ['python_atlas_publish', 'alter']
+    #     name: Atlas Docker Image Build
+    #     runs-on: ubuntu-latest
+    #     if: needs.alter.outputs.atlas == 'true'
 
-        permissions:
-            contents: read
-            packages: write
+    #     permissions:
+    #         contents: read
+    #         packages: write
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+    #     steps:
+    #         - name: Checkout repository
+    #           uses: actions/checkout@v4
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+    #         - name: Set up QEMU
+    #           uses: docker/setup-qemu-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+    #         - name: Set up Docker Buildx
+    #           uses: docker/setup-buildx-action@v3
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v3
+    #           with:
+    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Build Docker Image and Push
-              uses: docker/build-push-action@v5
-              with:
-                  context: ./apps/atlas/
-                  push: true
-                  tags: kbve/atlas:latest
-                  #platforms: linux/amd64, linux/arm64
-                  platforms: linux/amd64
-                  file: ./apps/atlas/Dockerfile
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-                  #cache-from: type=registry,ref=kbve/rustprofile:buildcache
+    #         - name: Build Docker Image and Push
+    #           uses: docker/build-push-action@v5
+    #           with:
+    #               context: ./apps/atlas/
+    #               push: true
+    #               tags: kbve/atlas:latest
+    #               #platforms: linux/amd64, linux/arm64
+    #               platforms: linux/amd64
+    #               file: ./apps/atlas/Dockerfile
+    #               cache-from: type=gha
+    #               cache-to: type=gha,mode=max
+    #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache

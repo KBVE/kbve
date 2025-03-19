@@ -1,0 +1,28 @@
+name: Utils Generate Matrix
+
+on:
+  workflow_call:
+    inputs:
+      items:
+        description: "List of items to include in the matrix"
+        required: true
+        type: string
+    outputs:
+      matrix:
+        description: "Generated matrix"
+        value: ${{ jobs.generate.outputs.matrix }}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Generate Matrix
+        id: set-matrix
+        run: |
+          MATRIX=$(jq -n --argjson items '${{ inputs.items }}' '{
+            include: ($items | map(select(.condition == "true")))
+          } | if (.include | length) == 0 then null else . end')
+
+          echo "matrix=$(echo "$MATRIX" | jq -c)" >> "$GITHUB_OUTPUT"
