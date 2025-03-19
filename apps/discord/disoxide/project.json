@@ -1,8 +1,8 @@
 {
-  "name": "_discord_disoxide",
+  "name": "disoxide",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "apps//discord/disoxide/src",
+  "sourceRoot": "apps/discord/disoxide/src",
   "targets": {
     "build": {
       "executor": "@monodon/rust:build",
@@ -10,7 +10,7 @@
         "{options.target-dir}"
       ],
       "options": {
-        "target-dir": "dist/target/_discord_disoxide"
+        "target-dir": "dist/target/disoxide"
       },
       "configurations": {
         "production": {
@@ -24,7 +24,7 @@
         "{options.target-dir}"
       ],
       "options": {
-        "target-dir": "dist/target/_discord_disoxide"
+        "target-dir": "dist/target/disoxide"
       },
       "configurations": {
         "production": {
@@ -38,7 +38,7 @@
         "{options.target-dir}"
       ],
       "options": {
-        "target-dir": "dist/target/_discord_disoxide"
+        "target-dir": "dist/target/disoxide"
       }
     },
     "run": {
@@ -47,11 +47,53 @@
         "{options.target-dir}"
       ],
       "options": {
-        "target-dir": "dist/target/_discord_disoxide"
+        "target-dir": "dist/target/disoxide"
       },
       "configurations": {
         "production": {
           "release": true
+        }
+      }
+    },
+    "container": {
+      "executor": "@nx-tools/nx-container:build",
+      "defaultConfiguration": "local",
+      "options": {
+        "engine": "docker",
+        "context": "apps/discord/disoxide",
+        "file": "apps/discord/disoxide/Dockerfile",
+        "metadata": {
+          "images": [
+            "kbve/disoxide"
+          ],
+          "load": true,
+          "tags": [
+            "1.0.0",
+            "1.0"
+          ]
+        },
+        "configurations": {
+          "local": {
+            "tags": [
+              "1.0.0",
+              "1.0"
+            ],
+            "push": false
+          },
+          "production": {
+            "tags": [
+              "1.0.0",
+              "1.0"
+            ],
+            "push": true,
+            "customBuildOptions": "--push",
+            "cache-from": [
+              "type=registry,ref=kbve/disoxide:buildcache"
+            ],
+            "cache-to": [
+              "type=registry,ref=kbve/disoxide:buildcache,mode=max"
+            ]
+          }
         }
       }
     }
