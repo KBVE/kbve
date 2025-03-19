@@ -96,6 +96,19 @@
           }
         }
       }
+    },
+    "proto": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/discord/disoxide",
+        "commands": [
+          {
+            "command": "cargo check --no-default-features",
+            "forwardAllArgs": false
+          }
+        ],
+        "parallel": false
+      }
     }
   },
   "tags": []
