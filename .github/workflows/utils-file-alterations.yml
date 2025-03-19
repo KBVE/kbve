@@ -33,6 +33,9 @@ on:
       kilobase:
         description: "Kilobase package changed"
         value: ${{ jobs.alter.outputs.kilobase }}
+      disoxide:
+        description: "Disoxide package changed"
+        value: ${{ jobs.alter.outputs.disoxide }}
       # ? Python
       py_atlas:
         description: "Atlas changed"
@@ -98,16 +101,17 @@ jobs:
       q_crate: ${{ steps.delta.outputs.q_crate_any_changed }}
       jedi_crate: ${{ steps.delta.outputs.jedi_crate_any_changed }}
       soul_crate: ${{ steps.delta.outputs.soul_crate_any_changed }}
-      kbve_crate: ${{ steps.delta.outputs.kbve_crate_all_changed_files }}
+      kbve_crate: ${{ steps.delta.outputs.kbve_crate_any_changed_files }}
       erust_crate: ${{ steps.delta.outputs.erust_crate_any_changed }}
       holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
       kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
+      disoxide: ${{ steps.delta.outputs.disoxide_any_changed }}
       py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}
       py_fudster: ${{ steps.delta.outputs.py_fudster_any_changed }}
       astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
       astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
       astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
-      discordsh: ${{ steps.delta.outputs.discordsh_all_changed_files }}
+      discordsh: ${{ steps.delta.outputs.discordsh_any_changed}}
       proxy: ${{ steps.delta.outputs.proxy_any_changed }}
       saber: ${{ steps.delta.outputs.saber_any_changed }}
       rust_profile: ${{ steps.delta.outputs.rust_profile_any_changed }}
@@ -143,6 +147,8 @@ jobs:
                 - 'packages/rust/holy/src/**'
             kilobase:
                 -  'apps/kbve/kilobase/README.md'
+            disoxide:
+                - 'apps/discord/disoxide/README.md'
             py_atlas:
                 - 'apps/atlas/kbve_atlas/**'
             py_fudster:
