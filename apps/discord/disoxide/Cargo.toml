@@ -1,10 +1,46 @@
 [package]
-name = "_discord_disoxide"
+name = "disoxide"
+authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
-edition = "2021"
-
+edition = "2024"
+publish = false
 
 [dependencies]
+thiserror = "2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bitflags = { version = "2.9.0", features = ["serde"] }
+tower-http = { version = "0.5.0", features = ["fs", "trace", "cors"] }
+tokio-postgres = "0.7.2"
+tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+axum = { version = "0.8", features = ["ws"] }
+axum-extra = { version = "0.10.0", features = [
+    "typed-header",
+    "protobuf",
+    "query",
+    "json-deserializer",
+    "error-response",
+    "cookie",
+    "form",
+    "file-stream"
+]}
+bb8 = "0.9.0"
+bb8-postgres = "0.9.0"
+bb8-redis = "0.21.0"
+redis = { version = "0.29.1", features = ["tokio-rustls-comp"] }
+prost = "0.13"
 
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { version = "0.6", optional = true }
+
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1
+panic = 'abort'
