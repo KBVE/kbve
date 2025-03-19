@@ -181,6 +181,32 @@ jobs:
         secrets:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
+    generate_docker_matrix:
+      needs: ['deploy', 'alter', 'globals']
+      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+      with:
+        items: |
+          [
+            { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
+            { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" }
+          ]
+
+    publish_docker:
+        needs: ['generate_docker_matrix']
+        name: Publish Docker Images
+        if: ${{ needs.generate_docker_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_docker_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
+        with:
+            project: ${{ matrix.name }}
+            target: ${{ matrix.target }}
+        secrets:
+            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+            MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
     #   ! Everything below this line will be removed and replaced with the matrix setup.
 
     #   [CryptoThrone]
@@ -231,7 +257,6 @@ jobs:
               shell: bash
               run: |
                   pnpm nx build cryptothrone.com
-
             - name: CryptoThrone.com -> Deployment
               uses: dobbelina/copy_file_to_another_repo_action@main
               env:
