@@ -29,6 +29,10 @@ impl StoreState {
   pub fn set(&self, key: String, value: Bytes, expires_at: Instant, guard: &impl Guard) {
     self.store.insert(key, (value, expires_at), guard);
   }
+
+  pub fn replace_store(&mut self) {
+    self.store = Arc::new(HashMap::default());
+  }
 }
 
 #[derive(Default)]
@@ -56,36 +60,36 @@ pub type MetricsSharedState = Arc<MetricsState>;
 //** Global State */
 
 pub struct GlobalState {
-    pub store: StoreSharedState,
-    pub metrics: MetricsSharedState,
+  pub store: StoreSharedState,
+  pub metrics: MetricsSharedState,
 }
 
 impl GlobalState {
-    pub fn new() -> Self {
-        Self {
-            store: Arc::new(RwLock::new(StoreState::new())),
-            metrics: Arc::new(MetricsState::new()),
-        }
+  pub fn new() -> Self {
+    Self {
+      store: Arc::new(RwLock::new(StoreState::new())),
+      metrics: Arc::new(MetricsState::new()),
     }
+  }
 
-    pub fn record_metrics(&self, method: &str, elapsed: u64) {
-        if method == "GET" {
-            self.metrics.get_key_count.fetch_add(1, Ordering::Relaxed);
-            self.metrics.get_key_sum.fetch_add(elapsed, Ordering::Relaxed);
-        } else if method == "POST" {
-            self.metrics.set_key_count.fetch_add(1, Ordering::Relaxed);
-            self.metrics.set_key_sum.fetch_add(elapsed, Ordering::Relaxed);
-        }
+  pub fn record_metrics(&self, method: &str, elapsed: u64) {
+    if method == "GET" {
+      self.metrics.get_key_count.fetch_add(1, Ordering::Relaxed);
+      self.metrics.get_key_sum.fetch_add(elapsed, Ordering::Relaxed);
+    } else if method == "POST" {
+      self.metrics.set_key_count.fetch_add(1, Ordering::Relaxed);
+      self.metrics.set_key_sum.fetch_add(elapsed, Ordering::Relaxed);
     }
+  }
 
-    pub fn get_metrics(&self) -> (u64, u64, u64, u64) {
-        let get_count = self.metrics.get_key_count.load(Ordering::Relaxed);
-        let get_sum = self.metrics.get_key_sum.load(Ordering::Relaxed);
-        let set_count = self.metrics.set_key_count.load(Ordering::Relaxed);
-        let set_sum = self.metrics.set_key_sum.load(Ordering::Relaxed);
+  pub fn get_metrics(&self) -> (u64, u64, u64, u64) {
+    let get_count = self.metrics.get_key_count.load(Ordering::Relaxed);
+    let get_sum = self.metrics.get_key_sum.load(Ordering::Relaxed);
+    let set_count = self.metrics.set_key_count.load(Ordering::Relaxed);
+    let set_sum = self.metrics.set_key_sum.load(Ordering::Relaxed);
 
-        (get_count, get_sum, set_count, set_sum)
-    }
+    (get_count, get_sum, set_count, set_sum)
+  }
 }
 
 pub type SharedState = Arc<GlobalState>;
