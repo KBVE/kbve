@@ -109,6 +109,26 @@
         ],
         "parallel": false
       }
+    },
+    "orb": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "pnpm nx reset",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "pnpm nx container disoxide",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "docker run --env-file .env -p 3000:3000 kbve/disoxide:1.0.0",
+            "forwardAllArgs": false
+          }
+        ],
+        "parallel": false
+      }
     }
   },
   "tags": []

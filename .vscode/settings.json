@@ -22,6 +22,10 @@
       "testem",
       "venv",
       "vite",
-      "vitest"
+      "vitest",
+      "jemalloc",
+      "jemallocator",
+      "msvc",
+      "tikv"
     ]
 }

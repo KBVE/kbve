@@ -11,10 +11,13 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 #   [STAGE C] - Builder
 FROM --platform=linux/amd64 base AS builder
+RUN apt-get update && apt-get install -y protobuf-compiler
+ENV PROTOC=/usr/bin/protoc
+
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
-RUN cargo build --release
+RUN cargo build --release --features jemalloc
 
 #   [STAGE D] - Chisel
 # Rust Profile Chisel by h0lybyte and special thanks to Fernando Silva for Chisel Go core.
