@@ -1,5 +1,10 @@
 mod proto;
-use crate::proto::{ store::{ StoreValue, KeyValueResponse }, disoxide::{ UserData, ChatMessage } };
+mod entity;
+mod handler;
+use crate::proto::{ store::StoreValue, disoxide::{ UserData, ChatMessage } };
+use crate::entity::state::{ GlobalState, SharedState };
+use crate::entity::helper::{ TTL_DURATION, CowKeyValueResponse };
+
 use axum::{
   body::{ Body, Bytes },
   error_handling::HandleErrorLayer,
@@ -10,11 +15,13 @@ use axum::{
   routing::{ delete, get, post },
   Json,
   Router,
+  Extension,
 };
 
-use papaya::HashMap;
-use tracing::info;
+
 use std::{ sync::Arc, borrow::Cow };
+use std::sync::atomic::{ AtomicU64, Ordering };
+
 use tokio::sync::RwLock;
 use tokio::time::{ Instant, Duration };
 use tokio::net::TcpListener;
@@ -43,14 +50,16 @@ async fn main() {
     .with(tracing_subscriber::fmt::layer())
     .init();
 
-  let shared_state = SharedState::default();
+  let shared_state = Arc::new(GlobalState::new());
+
+
   let app = Router::new()
     .route("/user", get(get_user))
     .route("/message", get(get_message))
     .route("/store/{key}", get(get_key).post(set_key))
     .route("/keys", get(list_keys))
     .route("/admin/clear", delete(clear_store))
-    .route("/metrics", get(metrics))
+    .route("/metrics", get(crate::handler::metrics::metrics))
     .layer(
       ServiceBuilder::new()
         .layer(HandleErrorLayer::new(handle_error))
@@ -58,30 +67,12 @@ async fn main() {
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
     )
-    .layer(axum::middleware::from_fn_with_state(shared_state.clone(), track_execution_time))
-    .with_state(Arc::clone(&shared_state));
+    .layer(axum::middleware::from_fn_with_state(shared_state.clone(), crate::handler::metrics::track_execution_time))
+    .with_state(shared_state.clone());
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::info!("Listening on {}", listener.local_addr().unwrap());
   axum::serve(listener, app).await.unwrap();
-}
-
-// ===================== Shared State ===================== //
-
-type SharedState = Arc<RwLock<AppState>>;
-
-#[derive(Default)]
-struct AppState {
-  store: HashMap<String, (Bytes, Instant)>,
-  get_key_time: Arc<RwLock<Vec<u64>>>,
-  set_key_time: Arc<RwLock<Vec<u64>>>,
-}
-
-const TTL_DURATION: Duration = Duration::from_secs(60);
-
-#[derive(serde::Serialize)]
-struct CowKeyValueResponse<'a> {
-  value: Cow<'a, str>,
 }
 
 // ===================== Handlers - TEST CASES ===================== //
@@ -112,19 +103,25 @@ async fn set_key(
   State(state): State<SharedState>,
   Json(payload): Json<StoreValue>
 ) -> impl IntoResponse {
-  let db = state.write().await;
-  let store = db.store.pin();
+  let state_clone = Arc::clone(&state.store);
+  let key_clone = key.clone();
+  let value_bytes = Bytes::from(payload.value);
   let expires_at = Instant::now() + TTL_DURATION;
-  store.insert(key, (Bytes::from(payload.value), expires_at));
 
-  (StatusCode::OK, "Key stored successfully with TTL")
+  tokio::spawn(async move {
+    let db = state_clone.write().await;
+    let store = db.store.pin_owned();
+    store.insert(key_clone, (value_bytes, expires_at));
+  });
+
+  (StatusCode::ACCEPTED, "Key storage in progress")
 }
 
 async fn get_key(
   Path(key): Path<String>,
   State(state): State<SharedState>
 ) -> impl IntoResponse + Send {
-  let db = state.read().await;
+  let db = state.store.read().await;
   let store = db.store.pin();
 
   match store.get(&key) {
@@ -142,18 +139,18 @@ async fn get_key(
 
 // List All Keys
 async fn list_keys(State(state): State<SharedState>) -> Json<Vec<String>> {
-  let db = state.read().await;
-  let store = db.store.pin();
-  Json(store.keys().cloned().collect())
+  let db = state.store.read().await; 
+  let store = db.store.pin(); 
+  Json(store.keys().cloned().collect()) 
 }
 
-// Admin: Clear the Store
-async fn clear_store(State(state): State<SharedState>) {
-  let db = state.write().await;
-  let store = db.store.pin();
+async fn clear_store(State(state): State<SharedState>) -> impl IntoResponse {
+  let db = state.store.write().await; 
+  let store = db.store.pin(); 
   store.clear();
-}
 
+  (StatusCode::OK, "Store cleared")
+}
 // ===================== Error Handling ===================== //
 
 async fn handle_error(error: BoxError) -> impl IntoResponse {
@@ -163,66 +160,4 @@ async fn handle_error(error: BoxError) -> impl IntoResponse {
   (StatusCode::INTERNAL_SERVER_ERROR, format!("Internal error: {error}"))
 }
 
-// ==================== Metrics ========= //
-async fn metrics(State(state): State<SharedState>) -> impl IntoResponse {
-  let db = state.read().await;
-  let get_times = db.get_key_time.read().await.clone();
-  let set_times = db.set_key_time.read().await.clone();
 
-  let avg_get = if !get_times.is_empty() {
-    (get_times.iter().sum::<u64>() as f64) / (get_times.len() as f64)
-  } else {
-    0.0
-  };
-
-  let avg_set = if !set_times.is_empty() {
-    (set_times.iter().sum::<u64>() as f64) / (set_times.len() as f64)
-  } else {
-    0.0
-  };
-
-  let response = format!(
-    "# HELP get_key_duration_microseconds Time taken to execute get_key (µs)\n\
-       # TYPE get_key_duration_microseconds gauge\n\
-       get_key_duration_microseconds {}\n\
-       # HELP set_key_duration_microseconds Time taken to execute set_key (µs)\n\
-       # TYPE set_key_duration_microseconds gauge\n\
-       set_key_duration_microseconds {}\n",
-    avg_get,
-    avg_set
-  );
-
-  Response::builder()
-    .status(StatusCode::OK)
-    .header("Content-Type", "text/plain")
-    .body(Body::from(response))
-    .unwrap()
-}
-
-async fn track_execution_time(
-  State(state): State<SharedState>,
-  req: Request<Body>,
-  next: Next
-) -> Response {
-  let start = Instant::now();
-  let path = req.uri().path().to_string();
-  let method = req.method().clone();
-
-  let response = next.run(req).await;
-
-  let elapsed = start.elapsed().as_micros() as u64;
-
-  if path.starts_with("/store/") {
-    if method == Method::GET {
-      state.read().await.get_key_time.write().await.push(elapsed);
-      info!("GET key took {}µs", elapsed);
-    } else if method == Method::POST {
-      state.read().await.set_key_time.write().await.push(elapsed);
-      info!("SET key took {}µs", elapsed);
-    }
-  } else {
-    info!("Request to {} took {}µs", path, elapsed);
-  }
-
-  response
-}
