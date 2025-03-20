@@ -44,8 +44,8 @@ async fn main() {
   let shared_state = Arc::new(GlobalState::new());
 
   let app = Router::new()
-    .route("/user", get(get_user))
-    .route("/message", get(get_message))
+    .route("/user", get(handler::message::get_user))
+    .route("/message", get(handler::message::get_message))
     .route("/store/{key}", get(handler::store::get_key).post(handler::store::set_key))
     .route("/keys", get(handler::store::list_keys))
     .route("/admin/clear", delete(handler::store::clear_store))
@@ -68,27 +68,4 @@ async fn main() {
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::info!("Listening on {}", listener.local_addr().unwrap());
   axum::serve(listener, app).await.unwrap();
-}
-
-// ===================== Handlers - TEST CASES ===================== //
-
-// Get User Data
-async fn get_user() -> impl IntoResponse {
-  let user = UserData {
-    id: 1,
-    username: "kbve".to_string(),
-    active: true,
-  };
-  Json(user)
-}
-
-// Get Chat Message
-async fn get_message() -> impl IntoResponse {
-  let message = ChatMessage {
-    id: 1,
-    sender: "kbve".to_string(),
-    content: "Hello from Axum!".to_string(),
-    timestamp: 1700000000,
-  };
-  Json(message)
 }
