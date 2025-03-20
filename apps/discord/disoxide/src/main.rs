@@ -1,31 +1,22 @@
 mod proto;
 mod entity;
 mod handler;
-use crate::proto::{ store::StoreValue, disoxide::{ UserData, ChatMessage } };
-use crate::entity::state::{ GlobalState, SharedState };
-use crate::entity::helper::{ TTL_DURATION, CowKeyValueResponse };
+use crate::proto::disoxide::{ UserData, ChatMessage };
+use crate::entity::state::GlobalState;
 
 use axum::{
-  body::{ Body, Bytes },
   error_handling::HandleErrorLayer,
-  extract::{ DefaultBodyLimit, Path, State },
-  http::{ Method, Request, StatusCode },
-  middleware::Next,
-  response::{ IntoResponse, Response },
+  response::IntoResponse,
   routing::{ delete, get, post },
   Json,
   Router,
-  Extension,
 };
 
+use std::sync::Arc;
 
-use std::{ sync::Arc, borrow::Cow };
-use std::sync::atomic::{ AtomicU64, Ordering };
-
-use tokio::sync::RwLock;
-use tokio::time::{ Instant, Duration };
+use tokio::time::Duration;
 use tokio::net::TcpListener;
-use tower::{ BoxError, ServiceBuilder };
+use tower::ServiceBuilder;
 use tower_http::{ compression::CompressionLayer, limit::RequestBodyLimitLayer, trace::TraceLayer };
 use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
 
@@ -52,13 +43,12 @@ async fn main() {
 
   let shared_state = Arc::new(GlobalState::new());
 
-
   let app = Router::new()
     .route("/user", get(get_user))
     .route("/message", get(get_message))
-    .route("/store/{key}", get(get_key).post(set_key))
-    .route("/keys", get(list_keys))
-    .route("/admin/clear", delete(clear_store))
+    .route("/store/{key}", get(handler::store::get_key).post(handler::store::set_key))
+    .route("/keys", get(handler::store::list_keys))
+    .route("/admin/clear", delete(handler::store::clear_store))
     .route("/metrics", get(crate::handler::metrics::metrics))
     .layer(
       ServiceBuilder::new()
@@ -67,7 +57,12 @@ async fn main() {
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
     )
-    .layer(axum::middleware::from_fn_with_state(shared_state.clone(), crate::handler::metrics::track_execution_time))
+    .layer(
+      axum::middleware::from_fn_with_state(
+        shared_state.clone(),
+        crate::handler::metrics::track_execution_time
+      )
+    )
     .with_state(shared_state.clone());
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -96,58 +91,4 @@ async fn get_message() -> impl IntoResponse {
     timestamp: 1700000000,
   };
   Json(message)
-}
-
-async fn set_key(
-  Path(key): Path<String>,
-  State(state): State<SharedState>,
-  Json(payload): Json<StoreValue>
-) -> impl IntoResponse {
-  let state_clone = Arc::clone(&state.store);
-  let key_clone = key.clone();
-  let value_bytes = Bytes::from(payload.value);
-  let expires_at = Instant::now() + TTL_DURATION;
-
-  tokio::spawn(async move {
-    let db = state_clone.write().await;
-    let store = db.store.pin_owned();
-    store.insert(key_clone, (value_bytes, expires_at));
-  });
-
-  (StatusCode::ACCEPTED, "Key storage in progress")
-}
-
-async fn get_key(
-  Path(key): Path<String>,
-  State(state): State<SharedState>
-) -> impl IntoResponse + Send {
-  let db = state.store.read().await;
-  let store = db.store.pin();
-
-  match store.get(&key) {
-    Some((value, _)) => {
-      let cow_value = std::str
-        ::from_utf8(value)
-        .map(Cow::Borrowed)
-        .unwrap_or_else(|_| Cow::Owned(String::from_utf8_lossy(value).into_owned()));
-
-      Json(CowKeyValueResponse { value: cow_value }).into_response()
-    }
-    None => StatusCode::NOT_FOUND.into_response(),
-  }
-}
-
-// List All Keys
-async fn list_keys(State(state): State<SharedState>) -> Json<Vec<String>> {
-  let db = state.store.read().await; 
-  let store = db.store.pin(); 
-  Json(store.keys().cloned().collect()) 
-}
-
-async fn clear_store(State(state): State<SharedState>) -> impl IntoResponse {
-  let db = state.store.write().await; 
-  let store = db.store.pin(); 
-  store.clear();
-
-  (StatusCode::OK, "Store cleared")
 }
