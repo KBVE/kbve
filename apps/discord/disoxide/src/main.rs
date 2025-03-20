@@ -43,27 +43,22 @@ async fn main() {
 
   let shared_state = Arc::new(GlobalState::new());
 
-  let app = Router::new()
-    .route("/user", get(handler::message::get_user))
-    .route("/message", get(handler::message::get_message))
-    .route("/store/{key}", get(handler::store::get_key).post(handler::store::set_key))
-    .route("/keys", get(handler::store::list_keys))
-    .route("/admin/clear", delete(handler::store::clear_store))
-    .route("/metrics", get(crate::handler::metrics::metrics))
-    .layer(
-      ServiceBuilder::new()
-        .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
-        .timeout(Duration::from_secs(10))
-        .layer(TraceLayer::new_for_http())
-        .layer(CompressionLayer::new())
-    )
-    .layer(
-      axum::middleware::from_fn_with_state(
-        shared_state.clone(),
-        crate::handler::metrics::track_execution_time
+    let app = Router::new()
+      .merge(handler::http::http_router(shared_state.clone())) 
+      .merge(handler::ws::ws_router(shared_state.clone())) 
+      .layer(
+        ServiceBuilder::new()
+          .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
+          .timeout(Duration::from_secs(10))
+          .layer(TraceLayer::new_for_http())
+          .layer(CompressionLayer::new())
       )
-    )
-    .with_state(shared_state.clone());
+      .layer(
+        axum::middleware::from_fn_with_state(
+          shared_state.clone(),
+          crate::handler::metrics::track_execution_time
+        )
+      );
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::info!("Listening on {}", listener.local_addr().unwrap());
