@@ -2873,8 +2873,8 @@ dependencies = [
  "bb8-redis",
  "bitflags 2.9.0",
  "futures-util",
+ "http-body-util",
  "hyper 1.5.0",
- "hyper-tungstenite",
  "hyper-util",
  "papaya 0.2.1",
  "prost",
@@ -2886,7 +2886,7 @@ dependencies = [
  "tikv-jemallocator",
  "tokio",
  "tokio-postgres",
- "tokio-tungstenite 0.26.2",
+ "tokio-util",
  "tonic",
  "tonic-health",
  "tonic-reflection",
@@ -4675,21 +4675,6 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tower-service",
-]
-
-[[package]]
-name = "hyper-tungstenite"
-version = "0.17.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0110a0487cbc65c3d1f38c2ef851dbf8bee8c2761e5a96be6a59ba84412b4752"
-dependencies = [
- "http-body-util",
- "hyper 1.5.0",
- "hyper-util",
- "pin-project-lite",
- "tokio",
- "tokio-tungstenite 0.26.2",
- "tungstenite 0.26.2",
 ]
 
 [[package]]
@@ -11062,6 +11047,7 @@ checksum = "6b9590b93e6fcc1739458317cccd391ad3955e2bde8913edf6f95f9e65a8f034"
 dependencies = [
  "bytes",
  "futures-core",
+ "futures-io",
  "futures-sink",
  "pin-project-lite",
  "tokio",
