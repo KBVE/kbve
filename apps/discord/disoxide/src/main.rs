@@ -62,7 +62,7 @@ async fn main() {
     .route("/metrics", get(crate::handler::metrics::metrics))
     .layer(
       ServiceBuilder::new()
-        .layer(HandleErrorLayer::new(handle_error))
+        .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
         .timeout(Duration::from_secs(10))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
@@ -151,13 +151,3 @@ async fn clear_store(State(state): State<SharedState>) -> impl IntoResponse {
 
   (StatusCode::OK, "Store cleared")
 }
-// ===================== Error Handling ===================== //
-
-async fn handle_error(error: BoxError) -> impl IntoResponse {
-  if error.is::<tower::timeout::error::Elapsed>() {
-    return (StatusCode::REQUEST_TIMEOUT, "Request timed out".to_string());
-  }
-  (StatusCode::INTERNAL_SERVER_ERROR, format!("Internal error: {error}"))
-}
-
-
