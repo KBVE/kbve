@@ -7,6 +7,7 @@ publish = false
 
 
 [build-dependencies]
+tonic-build = "0.12.3"
 prost-build = "0.13"
 
 

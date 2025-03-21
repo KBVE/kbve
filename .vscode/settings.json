@@ -26,6 +26,7 @@
       "jemalloc",
       "jemallocator",
       "msvc",
-      "tikv"
+      "tikv",
+      "protos",
     ]
 }
