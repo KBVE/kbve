@@ -36,6 +36,6 @@ post_random_kv() {
 
 export -f post_random_kv
 
-seq "$ITERATIONS" | parallel -j "$JOBS" post_random_kv
+seq "$ITERATIONS" | parallel --eta -j "$JOBS" post_random_kv
 
 echo "Completed $ITERATIONS parallel requests with $JOBS workers."
