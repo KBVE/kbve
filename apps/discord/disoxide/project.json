@@ -129,7 +129,19 @@
         ],
         "parallel": false
       }
+    },
+    "stress": {
+    "executor": "nx:run-commands",
+    "options": {
+      "commands": [
+        {
+          "command": "chmod +x ./tools/scripts/public/disoxide/disoxide-script.sh && ./tools/scripts/public/disoxide/disoxide-script.sh",
+          "forwardAllArgs": false
+        }
+      ],
+      "parallel": false
     }
+  }
   },
   "tags": []
 }
