@@ -39,11 +39,14 @@ impl StoreState {
   pub fn replace_store(&mut self) {
     let old_store = std::mem::replace(&mut self.store, Arc::new(HashMap::default()));
     tokio::spawn(async move {
-      let guard = old_store.guard();
-      old_store.clear(&guard);
-      tracing::info!("[Disoxide] Memory Cleared");
+        let guard = old_store.guard();
+        old_store.clear(&guard);
+        drop(guard);
+        drop(old_store);
+        tracing::info!("[Disoxide] Store cleared and memory dropped");
     });
-  }
+}
+
 
   
 }
