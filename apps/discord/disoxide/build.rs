@@ -9,6 +9,7 @@ fn main() {
     tonic_build::configure()
         .out_dir(out_dir)
         .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .field_attribute("status.StatusMessage.type", "#[bitflags]")
         .compile_protos(
             &["proto/user.proto", "proto/message.proto", "proto/store.proto"],
             &["proto"],
