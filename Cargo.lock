@@ -5063,10 +5063,9 @@ dependencies = [
 
 [[package]]
 name = "jedi"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "ammonia",
- "async-trait",
  "crossbeam",
  "dashmap",
  "once_cell",

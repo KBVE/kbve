@@ -1,18 +1,17 @@
 [package]
 name = "jedi"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.15"
-edition = "2021"
+version = "0.1.16"
+edition = "2024"
 license = "MIT"
 description = "Jedi is the Juggernaut Electronic Data Interchange package. This library provides a data exchange layer extended through the holy crate."
 homepage = "https://kbve.com/application/rust/#jedi"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/jedi"
 readme = "README.md"
-rust-version = "1.78"
+rust-version = "1.85"
 
 
 [dependencies]
-async-trait = "0.1.77"
 dashmap = { version = "5.5.3", features = ["serde"] }
 crossbeam = "0.8.4"
 ammonia = "3.3.0"
