@@ -1,6 +1,15 @@
 use super::status;
+use super::store;
+use axum::body::Bytes;
 use ulid::Ulid;
 use chrono::{DateTime, Utc, TimeZone};
+use tokio::time::{Instant, Duration};
+
+pub struct ReadEnvelope {
+    pub proto: store::StoreKey,
+    pub response_tx: tokio::sync::oneshot::Sender<Option<(Bytes, Instant)>>,
+}
+
 
 pub trait StatusMessageExt {
     fn ulid(&self) -> Option<Ulid>;
@@ -89,4 +98,39 @@ impl StatusMessageExt for status::StatusMessage {
     fn timestamp_as_datetime(&self) -> Option<DateTime<Utc>> {
         Utc.timestamp_millis_opt(self.timestamp).single()
     }
+}
+
+pub trait StoreObjExt {
+    fn to_write_request(&self, ttl: Duration) -> Option<(String, Bytes, Instant)>;
+    fn timestamp_as_datetime(&self) -> Option<DateTime<Utc>>;
+}
+
+impl From<store::StoreObj> for (String, Bytes, Instant) {
+    fn from(obj: store::StoreObj) -> Self {
+        let ttl = Duration::from_secs(obj.expiry.unwrap_or(60) as u64);
+        let key = obj.key;
+        let value = Bytes::from(obj.value);
+        let expires_at = Instant::now() + ttl;
+        (key, value, expires_at)
+    }
+}
+
+impl StoreObjExt for store::StoreObj {
+    fn to_write_request(&self, ttl: Duration) -> Option<(String, Bytes, Instant)> {
+        let key = self.key.clone();
+        let value = Bytes::from(self.value.clone());
+        let expires_at = if let Some(secs) = self.expiry {
+            Instant::now() + Duration::from_secs(secs as u64)
+        } else {
+            Instant::now() + ttl // fallback TTL
+        };
+
+        Some((key, value, expires_at))
+    }
+
+    fn timestamp_as_datetime(&self) -> Option<DateTime<Utc>> {
+        Utc.timestamp_millis_opt(self.timestamp).single()
+    }
+
+    
 }
