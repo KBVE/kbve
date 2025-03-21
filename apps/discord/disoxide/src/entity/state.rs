@@ -1,8 +1,12 @@
 use std::sync::{ Arc, atomic::{ AtomicU64, Ordering } };
 use tokio::sync::RwLock;
+use tokio::sync::{mpsc, oneshot};
+
 use papaya::{ HashMap, Guard };
 use axum::body::Bytes;
 use tokio::time::Instant;
+
+use super::helper::{ReadRequest, WriteRequest};
 
 #[derive(Default)]
 pub struct StoreState {
@@ -31,8 +35,15 @@ impl StoreState {
   }
 
   pub fn replace_store(&mut self) {
-    self.store = Arc::new(HashMap::default());
+    let old_store = std::mem::replace(&mut self.store, Arc::new(HashMap::default()));
+    tokio::spawn(async move {
+      let guard = old_store.guard();
+      old_store.clear(&guard);
+      tracing::info!("[Disoxide] Memory Cleared");
+    });
   }
+
+  
 }
 
 #[derive(Default)]
@@ -62,13 +73,48 @@ pub type MetricsSharedState = Arc<MetricsState>;
 pub struct GlobalState {
   pub store: StoreSharedState,
   pub metrics: MetricsSharedState,
+  pub write_tx: mpsc::Sender<WriteRequest>,
+  pub read_tx: mpsc::Sender<ReadRequest>,
 }
 
 impl GlobalState {
   pub fn new() -> Self {
+    let store = Arc::new(RwLock::new(StoreState::new()));
+    let metrics = Arc::new(MetricsState::new());
+
+    let (write_tx, mut write_rx) = mpsc::channel::<WriteRequest>(1024);
+    let (read_tx, mut read_rx) = mpsc::channel::<ReadRequest>(1024);
+
+    tokio::spawn({
+      let store_clone = store.clone();
+      async move {
+        while let Some(req) = write_rx.recv().await {
+          let store_ref = store_clone.write().await;
+          let guard = store_ref.guard();
+          store_ref.set(req.key, req.value, req.expires_at, &guard);
+          
+        }
+      }
+    });
+
+    tokio::spawn({
+      let store_clone = store.clone();
+      async move {
+        while let Some(req) = read_rx.recv().await {
+          let store_ref = store_clone.read().await;
+          let guard = store_ref.guard();
+          let result = store_ref.get(&req.key, &guard).cloned();
+          let _ = req.response_tx.send(result);
+         
+        }
+      }
+    });
+
     Self {
-      store: Arc::new(RwLock::new(StoreState::new())),
-      metrics: Arc::new(MetricsState::new()),
+      store,
+      metrics,
+      write_tx,
+      read_tx,
     }
   }
 
