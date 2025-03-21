@@ -2,8 +2,9 @@
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StatusMessage {
-    #[prost(uint32, tag = "1")]
-    pub id: u32,
+    /// ULID
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub sender: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
@@ -32,15 +33,15 @@ pub struct StatusMessage {
     /// Edited status flag
     #[prost(bool, tag = "11")]
     pub is_edited: bool,
-    /// For replies/threads
-    #[prost(uint32, tag = "12")]
-    pub parent_id: u32,
+    /// ULID for replies/threads
+    #[prost(string, tag = "12")]
+    pub parent_id: ::prost::alloc::string::String,
     /// Restatus flag
     #[prost(bool, tag = "13")]
     pub is_restatus: bool,
-    /// Original status ID for restatus
-    #[prost(uint32, tag = "14")]
-    pub original_id: u32,
+    /// ULID of original status for restatus
+    #[prost(string, tag = "14")]
+    pub original_id: ::prost::alloc::string::String,
     /// Quoted content
     #[prost(string, tag = "15")]
     pub quote_text: ::prost::alloc::string::String,
@@ -63,8 +64,9 @@ pub struct StatusMessage {
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Comment {
-    #[prost(uint32, tag = "1")]
-    pub id: u32,
+    /// ULID
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub author: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]

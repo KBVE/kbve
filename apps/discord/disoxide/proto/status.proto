@@ -3,7 +3,7 @@ syntax = "proto3";
 package status;
 
 message StatusMessage {
-  uint32 id = 1;
+  string id = 1; // ULID
   string sender = 2;
   string content = 3;
   int64 timestamp = 4; // Unix timestamp for compatibility
@@ -16,9 +16,9 @@ message StatusMessage {
   string location = 9; // Geolocation (optional)
   string device_source = 10; // "Web", "iOS", etc.
   bool is_edited = 11; // Edited status flag
-  uint32 parent_id = 12; // For replies/threads
+  string parent_id = 12; // ULID for replies/threads
   bool is_restatus = 13; // Restatus flag
-  uint32 original_id = 14; // Original status ID for restatus
+  string original_id = 14; // ULID of original status for restatus
   string quote_text = 15; // Quoted content
   repeated MediaAttachment attachments = 16; // Media metadata
   uint32 visibility = 17; // PUBLIC=1, FOLLOWERS=2, PRIVATE=4
@@ -28,7 +28,7 @@ message StatusMessage {
 }
 
 message Comment {
-  uint32 id = 1;
+  string id = 1; // ULID
   string author = 2;
   string content = 3;
   int64 timestamp = 4; // Unix timestamp for compatibility
