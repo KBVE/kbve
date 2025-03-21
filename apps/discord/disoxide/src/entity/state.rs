@@ -6,7 +6,9 @@ use papaya::{ HashMap, Guard };
 use axum::body::Bytes;
 use tokio::time::Instant;
 
-use super::helper::{ReadRequest, WriteRequest};
+// use super::helper::{ReadRequest, WriteRequest};
+
+use crate::proto::{store::StoreObj, wrapper::{ ReadEnvelope, StoreObjExt}};
 
 #[derive(Default)]
 pub struct StoreState {
@@ -73,8 +75,8 @@ pub type MetricsSharedState = Arc<MetricsState>;
 pub struct GlobalState {
   pub store: StoreSharedState,
   pub metrics: MetricsSharedState,
-  pub write_tx: mpsc::Sender<WriteRequest>,
-  pub read_tx: mpsc::Sender<ReadRequest>,
+  pub write_tx: mpsc::Sender<StoreObj>,
+  pub read_tx: mpsc::Sender<ReadEnvelope>,
 }
 
 impl GlobalState {
@@ -82,17 +84,17 @@ impl GlobalState {
     let store = Arc::new(RwLock::new(StoreState::new()));
     let metrics = Arc::new(MetricsState::new());
 
-    let (write_tx, mut write_rx) = mpsc::channel::<WriteRequest>(1024);
-    let (read_tx, mut read_rx) = mpsc::channel::<ReadRequest>(1024);
+    let (write_tx, mut write_rx) = mpsc::channel::<StoreObj>(1024);
+    let (read_tx, mut read_rx) = mpsc::channel::<ReadEnvelope>(1024);
 
     tokio::spawn({
       let store_clone = store.clone();
       async move {
-        while let Some(req) = write_rx.recv().await {
+        while let Some(obj) = write_rx.recv().await {
+          let (key, value, expires_at): (String, Bytes, Instant) = obj.into();
           let store_ref = store_clone.write().await;
           let guard = store_ref.guard();
-          store_ref.set(req.key, req.value, req.expires_at, &guard);
-          
+          store_ref.set(key, value, expires_at, &guard);
         }
       }
     });
@@ -100,12 +102,11 @@ impl GlobalState {
     tokio::spawn({
       let store_clone = store.clone();
       async move {
-        while let Some(req) = read_rx.recv().await {
+        while let Some(ReadEnvelope { proto, response_tx }) = read_rx.recv().await {
           let store_ref = store_clone.read().await;
           let guard = store_ref.guard();
-          let result = store_ref.get(&req.key, &guard).cloned();
-          let _ = req.response_tx.send(result);
-         
+          let result = store_ref.get(&proto.key, &guard).cloned();
+          let _ = response_tx.send(result);
         }
       }
     });

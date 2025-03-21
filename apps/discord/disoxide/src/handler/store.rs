@@ -3,7 +3,7 @@ use std::{ borrow::Cow, sync::Arc };
 use axum::{ body::Bytes, extract::{ Path, State }, http::StatusCode, response::IntoResponse, Json };
 use tokio::time::Instant;
 use serde::Serialize;
-use crate::entity::helper::{ ReadRequest, WriteRequest, CowKeyValueResponse, TTL_DURATION };
+use crate::{entity::helper::{ CowKeyValueResponse, TTL_DURATION }, proto::{store::{StoreKey, StoreObj}, wrapper::ReadEnvelope}};
 use crate::{ entity::state::SharedState, proto::store::StoreValue, handler::error::AppError };
 use tokio::sync::oneshot;
 
@@ -36,15 +36,18 @@ pub async fn set_key(
   State(state): State<SharedState>,
   Json(payload): Json<StoreValue>,
 ) -> Result<impl IntoResponse, AppError> {
-  let expires_at = Instant::now() + TTL_DURATION;
+  let now = chrono::Utc::now();
+  let timestamp = now.timestamp_millis();
+  let expiry_secs = TTL_DURATION.as_secs() as i64;
 
-  let write_request = WriteRequest {
+  let store_obj = StoreObj {
     key,
-    value: Bytes::from(payload.value),
-    expires_at,
+    value: payload.value,
+    timestamp,
+    expiry: Some(expiry_secs),
   };
 
-  if let Err(e) = state.write_tx.send(write_request).await {
+  if let Err(e) = state.write_tx.send(store_obj).await {
     tracing::error!("Failed to send write request: {}", e);
     return Err(AppError::Internal("Write queue is unavailable".into()));
   }
@@ -80,14 +83,17 @@ pub async fn get_key_raw(
   }
 }
 
+
 pub async fn get_key(
   Path(key): Path<String>,
   State(state): State<SharedState>
 ) -> Result<Json<CowKeyValueResponse<'static>>, AppError> {
   let (tx, rx) = oneshot::channel();
 
-  let read_req = ReadRequest {
-    key: key.clone(),
+  let store_key = StoreKey { key: key.clone() };
+
+  let read_req = ReadEnvelope {
+    proto: store_key,
     response_tx: tx,
   };
 
@@ -107,7 +113,7 @@ pub async fn get_key(
     }
 
     Ok(None) => {
-      tracing::error!("Key '{}' not found", key);
+      tracing::warn!("🔍 Key '{}' not found", key);
       Err(AppError::NotFound)
     }
 
