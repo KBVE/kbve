@@ -12,7 +12,7 @@ rust-version = "1.85"
 
 
 [dependencies]
-dashmap = { version = "5.5.3", features = ["serde"] }
+dashmap = { version = "6.1.0", features = ["serde", "rayon"] }
 crossbeam = "0.8.4"
 ammonia = "3.3.0"
 serde = { version = "1.0", features = ["derive"] }
