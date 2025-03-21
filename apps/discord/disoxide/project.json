@@ -68,22 +68,22 @@
           ],
           "load": true,
           "tags": [
-            "1.0.0",
-            "1.0"
+            "1.1.0",
+            "1.1"
           ]
         },
         "configurations": {
           "local": {
             "tags": [
-              "1.0.0",
-              "1.0"
+              "1.1.0",
+              "1.1"
             ],
             "push": false
           },
           "production": {
             "tags": [
-              "1.0.0",
-              "1.0"
+              "1.1.0",
+              "1.1"
             ],
             "push": true,
             "customBuildOptions": "--push",
@@ -123,13 +123,25 @@
             "forwardAllArgs": false
           },
           {
-            "command": "docker run --env-file .env -p 3000:3000 kbve/disoxide:1.0.0",
+            "command": "docker run --env-file .env -p 3000:3000 kbve/disoxide:1.1.0",
             "forwardAllArgs": false
           }
         ],
         "parallel": false
       }
+    },
+    "stress": {
+    "executor": "nx:run-commands",
+    "options": {
+      "commands": [
+        {
+          "command": "chmod +x ./tools/scripts/public/disoxide/disoxide-script.sh && ./tools/scripts/public/disoxide/disoxide-script.sh",
+          "forwardAllArgs": false
+        }
+      ],
+      "parallel": false
     }
+  }
   },
   "tags": []
 }

@@ -1,8 +1,14 @@
 use std::sync::{ Arc, atomic::{ AtomicU64, Ordering } };
 use tokio::sync::RwLock;
+use tokio::sync::{mpsc, oneshot};
+
 use papaya::{ HashMap, Guard };
 use axum::body::Bytes;
 use tokio::time::Instant;
+
+// use super::helper::{ReadRequest, WriteRequest};
+
+use crate::proto::{store::StoreObj, wrapper::{ ReadEnvelope, StoreObjExt}};
 
 #[derive(Default)]
 pub struct StoreState {
@@ -31,8 +37,18 @@ impl StoreState {
   }
 
   pub fn replace_store(&mut self) {
-    self.store = Arc::new(HashMap::default());
-  }
+    let old_store = std::mem::replace(&mut self.store, Arc::new(HashMap::default()));
+    tokio::spawn(async move {
+        let guard = old_store.guard();
+        old_store.clear(&guard);
+        drop(guard);
+        drop(old_store);
+        tracing::info!("[Disoxide] Store cleared and memory dropped");
+    });
+}
+
+
+  
 }
 
 #[derive(Default)]
@@ -62,13 +78,47 @@ pub type MetricsSharedState = Arc<MetricsState>;
 pub struct GlobalState {
   pub store: StoreSharedState,
   pub metrics: MetricsSharedState,
+  pub write_tx: mpsc::Sender<StoreObj>,
+  pub read_tx: mpsc::Sender<ReadEnvelope>,
 }
 
 impl GlobalState {
   pub fn new() -> Self {
+    let store = Arc::new(RwLock::new(StoreState::new()));
+    let metrics = Arc::new(MetricsState::new());
+
+    let (write_tx, mut write_rx) = mpsc::channel::<StoreObj>(1024);
+    let (read_tx, mut read_rx) = mpsc::channel::<ReadEnvelope>(1024);
+
+    tokio::spawn({
+      let store_clone = store.clone();
+      async move {
+        while let Some(obj) = write_rx.recv().await {
+          let (key, value, expires_at): (String, Bytes, Instant) = obj.into();
+          let store_ref = store_clone.write().await;
+          let guard = store_ref.guard();
+          store_ref.set(key, value, expires_at, &guard);
+        }
+      }
+    });
+
+    tokio::spawn({
+      let store_clone = store.clone();
+      async move {
+        while let Some(ReadEnvelope { proto, response_tx }) = read_rx.recv().await {
+          let store_ref = store_clone.read().await;
+          let guard = store_ref.guard();
+          let result = store_ref.get(&proto.key, &guard).cloned();
+          let _ = response_tx.send(result);
+        }
+      }
+    });
+
     Self {
-      store: Arc::new(RwLock::new(StoreState::new())),
-      metrics: Arc::new(MetricsState::new()),
+      store,
+      metrics,
+      write_tx,
+      read_tx,
     }
   }
 
