@@ -5,7 +5,7 @@ members = [
 	'packages/kbve',
 	'packages/erust',
 	'packages/holy',
-	'packages/jedi',
+	'packages/rust/jedi',
 	'apps/kbve/kilobase',
 	'apps/kbve/rust_kanban',
 	'apps/kbve/rust_api_profile',
