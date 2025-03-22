@@ -5134,6 +5134,7 @@ dependencies = [
  "tokio",
  "tokio-postgres",
  "tonic",
+ "tonic-build",
  "tonic-health",
  "tonic-reflection",
  "tower 0.5.2",
