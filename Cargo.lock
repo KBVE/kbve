@@ -5114,8 +5114,13 @@ dependencies = [
  "bb8-postgres",
  "bb8-redis",
  "bitflags 2.9.0",
+ "chrono",
  "crossbeam",
  "dashmap 6.1.0",
+ "futures-util",
+ "http-body-util",
+ "hyper 1.5.0",
+ "hyper-util",
  "once_cell",
  "papaya 0.2.1",
  "prost",
@@ -5127,8 +5132,14 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tokio-postgres",
+ "tonic",
+ "tonic-health",
+ "tonic-reflection",
+ "tower 0.5.2",
+ "tower-http 0.6.2",
  "tracing",
  "tracing-subscriber",
+ "ulid",
 ]
 
 [[package]]
