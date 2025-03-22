@@ -136,7 +136,7 @@ jobs:
             q_crate:
                 - 'packages/rust/q/README.md'
             jedi_crate:
-                - 'packages/rust/jedi/src/**'
+                - 'packages/rust/jedi/README.md'
             soul_crate:
                 - 'packages/rust/soul/src/**'
             kbve_crate:

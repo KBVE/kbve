@@ -61,29 +61,29 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
         }
     }
 
-    println!("WebSocket connection closed.");
+    tracing::info!("WebSocket connection closed.");
 }
 
 fn process_message(msg: Message) -> ControlFlow<(), ()> {
     match msg {
         Message::Text(text) => {
-            println!("Received: {}", text);
+            tracing::info!("Received: {}", text);
         }
         Message::Binary(data) => {
-            println!("Received binary data: {} bytes", data.len());
+            tracing::info!("Received binary data: {} bytes", data.len());
         }
         Message::Ping(data) => {
-            println!("Received Ping: {:?}", data);
+            tracing::info!("Received Ping: {:?}", data);
         }
         Message::Pong(data) => {
-            println!("Received Pong: {:?}", data);
+            tracing::info!("Received Pong: {:?}", data);
         }
         Message::Close(Some(CloseFrame { code, reason })) => {
-            println!("Connection closed. Code: {}, Reason: {}", code, reason);
+            tracing::info!("Connection closed. Code: {}, Reason: {}", code, reason);
             return ControlFlow::Break(());
         }
         Message::Close(None) => {
-            println!("Connection closed.");
+            tracing::info!("Connection closed.");
             return ControlFlow::Break(());
         }
     }

@@ -10,6 +10,9 @@ mod tests {
 
 pub mod builder;
 pub mod entity;
+pub mod state;
+pub mod proto;
 
 pub use builder::*;
 pub use entity::*;
+pub use state::*;
