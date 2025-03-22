@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package temple;
+package redis;
 
-service TempleService {
+service RedisService {
   rpc SendCommand(RedisCommand) returns (RedisResponse);
 }
 

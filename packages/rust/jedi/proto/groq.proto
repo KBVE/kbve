@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package groq;
 
+import "google/protobuf/struct.proto";
+
+
 message GroqMessage {
   string role = 1;
   string content = 2;

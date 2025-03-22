@@ -7,13 +7,25 @@ fn main() {
     fs::create_dir_all(out_dir).unwrap();
 
     tonic_build::configure()
-        .out_dir(out_dir)
         .build_client(true)
         .build_server(true)
-        .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize, Debug)]")
+        .out_dir(out_dir)
+        // Redis
+        .type_attribute("redis.RedisCommand", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .type_attribute("redis.RedisCommand.command", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .type_attribute("redis.SetCommand", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .type_attribute("redis.GetCommand", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .type_attribute("redis.DelCommand", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .type_attribute("redis.RedisResponse", "#[derive(serde::Serialize, serde::Deserialize)]") 
+        // Groq
+        .type_attribute("groq.GroqMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .type_attribute("groq.GroqMessageContent", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .type_attribute("groq.GroqChoice", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .type_attribute("groq.GroqUsage", "#[derive(serde::Serialize, serde::Deserialize)]")
+        // .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
         // .field_attribute("status.StatusMessage.type", "#[bitflags]")
         .compile_protos(
-            &["proto/temple.proto", "proto/groq.proto"],
+            &["proto/redis.proto", "proto/groq.proto"],
             &["proto"],
         )
         .expect("Failed to compile Protobuf files");
