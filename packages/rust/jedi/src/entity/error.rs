@@ -34,6 +34,11 @@ struct ErrorResponse {
 
 impl IntoResponse for JediError {
   fn into_response(self) -> Response {
+
+    if matches!(self, JediError::Internal(_) | JediError::Database(_)) {
+        tracing::error!("Server error occurred: {}", self);
+    }
+    
     let status = match &self {
       JediError::Timeout => StatusCode::REQUEST_TIMEOUT,
       JediError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
