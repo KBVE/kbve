@@ -9,11 +9,11 @@ fn main() {
     tonic_build::configure()
         .out_dir(out_dir)
         .build_client(true)
-        .build_server(enable)
-        .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .build_server(true)
+        .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize, Debug)]")
         // .field_attribute("status.StatusMessage.type", "#[bitflags]")
         .compile_protos(
-            &["proto/temple.proto", "proto/supabase.proto"],
+            &["proto/temple.proto", "proto/groq.proto"],
             &["proto"],
         )
         .expect("Failed to compile Protobuf files");
