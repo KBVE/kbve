@@ -15,6 +15,7 @@ rust-version = "1.85"
 tonic-build = "0.12.3"
 
 [dependencies]
+prost-types = "0.13.5"
 dashmap = { version = "6.1.0", features = ["serde", "rayon"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
