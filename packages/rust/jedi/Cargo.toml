@@ -23,8 +23,26 @@ once_cell = "1.21.1"
 thiserror = "2"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
+tokio-postgres = "0.7.2"
 tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+axum = { version = "0.8.1", features = ["ws", "macros"] }
+axum-extra = { version = "0.10.0", features = [
+    "typed-header",
+    "protobuf",
+    "query",
+    "json-deserializer",
+    "error-response",
+    "cookie",
+    "form",
+    "file-stream"
+]}
+bb8 = "0.9.0"
+bb8-postgres = "0.9.0"
+bb8-redis = "0.21.0"
+redis = { version = "0.29.1", features = ["tokio-rustls-comp"] }
+prost = { version = "0.13", features = ["prost-derive"] }
+papaya = "0.2.1"
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
