@@ -28,5 +28,6 @@
       "msvc",
       "tikv",
       "protos",
+      "thiserror",
     ]
 }
