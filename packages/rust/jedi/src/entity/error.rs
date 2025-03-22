@@ -3,6 +3,7 @@ use serde::Serialize;
 use thiserror::Error;
 use std::borrow::Cow;
 use tower::BoxError;
+use bb8::ErrorSink;
 
 #[derive(Debug, Error)]
 pub enum JediError {
@@ -32,6 +33,10 @@ pub enum JediError {
 struct ErrorResponse {
   error: String,
 }
+
+#[derive(Clone, Debug)]
+pub struct JediErrorSink;
+
 
 impl IntoResponse for JediError {
   fn into_response(self) -> Response {
@@ -105,4 +110,33 @@ impl From<BoxError> for JediError {
       JediError::Internal(Cow::Owned(err.to_string()))
     }
   }
+}
+
+impl<T: std::fmt::Display> From<bb8::RunError<T>> for JediError {
+    fn from(err: bb8::RunError<T>) -> Self {
+        match &err {
+            bb8::RunError::TimedOut => tracing::warn!("bb8 pool timeout"),
+            bb8::RunError::User(e) => tracing::error!("bb8 user error: {}", e),
+        }
+
+        match err {
+            bb8::RunError::TimedOut => JediError::Timeout,
+            bb8::RunError::User(inner) => {
+                JediError::Database(Cow::Owned(format!("bb8 pool error: {}", inner)))
+            }
+        }
+    }
+}
+
+
+impl<E: std::fmt::Display + Send + Sync + 'static> ErrorSink<E> for JediErrorSink {
+    fn sink(&self, error: E) {
+        let err = JediError::Database(Cow::Owned(format!("bb8 async error: {}", error)));
+        tracing::error!("bb8 error sink captured: {}", err);
+        // TODO: push to metrics, Sentry, etc.
+    }
+
+    fn boxed_clone(&self) -> Box<dyn ErrorSink<E>> {
+        Box::new(self.clone())
+    }
 }
