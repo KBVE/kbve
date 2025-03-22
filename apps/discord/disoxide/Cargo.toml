@@ -57,7 +57,8 @@ tonic-reflection = "0.12.3"
 http-body-util = "0.1"
 ulid = { version = "1", features = ["serde", "uuid"] }
 chrono = { version = "0.4", features = ["serde"] }
-
+jedi = { git = "https://github.com/KBVE/kbve.git", branch = "dev", package = "jedi" }
+#jedi = { path = "../../../packages/rust/jedi" }
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
 
