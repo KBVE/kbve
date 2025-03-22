@@ -28,9 +28,9 @@ pub enum JediError {
   #[error("gRPC error: {0}")] Grpc(String),
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "snake_case")]
-struct ErrorResponse {
+pub struct ErrorResponse {
   error: String,
 }
 

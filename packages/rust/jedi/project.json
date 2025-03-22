@@ -42,6 +42,19 @@
 				"commands": ["cargo publish -p jedi --dry-run --allow-dirty"],
 				"parallel": false
 			}
-		}
+		},
+		"proto": {
+			"executor": "nx:run-commands",
+			"options": {
+			  "cwd": "packages/rust/jedi",
+			  "commands": [
+				{
+				  "command": "cargo check --no-default-features",
+				  "forwardAllArgs": false
+				}
+			  ],
+			  "parallel": false
+			}
+		  }
 	}
 }
