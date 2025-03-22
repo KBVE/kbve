@@ -2916,7 +2916,6 @@ dependencies = [
  "tikv-jemallocator",
  "tokio",
  "tokio-postgres",
- "tokio-util",
  "tonic",
  "tonic-build",
  "tonic-health",
@@ -5109,6 +5108,7 @@ name = "jedi"
 version = "0.1.16"
 dependencies = [
  "ammonia 4.0.0",
+ "bitflags 2.9.0",
  "crossbeam",
  "dashmap 6.1.0",
  "once_cell",
@@ -11126,7 +11126,6 @@ checksum = "6b9590b93e6fcc1739458317cccd391ad3955e2bde8913edf6f95f9e65a8f034"
 dependencies = [
  "bytes",
  "futures-core",
- "futures-io",
  "futures-sink",
  "pin-project-lite",
  "tokio",
