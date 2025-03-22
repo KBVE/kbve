@@ -2,6 +2,7 @@ use axum::{ response::{ IntoResponse, Response }, http::StatusCode, Json };
 use serde::Serialize;
 use thiserror::Error;
 use std::borrow::Cow;
+use tower::BoxError;
 
 #[derive(Debug, Error)]
 pub enum JediError {
@@ -34,11 +35,10 @@ struct ErrorResponse {
 
 impl IntoResponse for JediError {
   fn into_response(self) -> Response {
-
     if matches!(self, JediError::Internal(_) | JediError::Database(_)) {
-        tracing::error!("Server error occurred: {}", self);
+      tracing::error!("Server error occurred: {}", self);
     }
-    
+
     let status = match &self {
       JediError::Timeout => StatusCode::REQUEST_TIMEOUT,
       JediError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -94,5 +94,15 @@ impl From<tonic::Status> for JediError {
 impl From<&'static str> for JediError {
   fn from(msg: &'static str) -> Self {
     JediError::Internal(Cow::Borrowed(msg))
+  }
+}
+
+impl From<BoxError> for JediError {
+  fn from(err: BoxError) -> Self {
+    if err.is::<tower::timeout::error::Elapsed>() {
+      JediError::Timeout
+    } else {
+      JediError::Internal(Cow::Owned(err.to_string()))
+    }
   }
 }
