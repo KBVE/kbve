@@ -24,7 +24,7 @@ services:
         command: >
             /bin/sh -c "
             echo '$PGSODIUM_ROOT_KEY' > /etc/postgresql-custom/pgsodium_root.key &&
-            chmod 600 /etc/postgresql-custom/pgsodium_root.key &&
+            chmod 644 /etc/postgresql-custom/pgsodium_root.key &&
             chown 105:106 /etc/postgresql-custom/pgsodium_root.key
             "
         restart: 'no'
@@ -33,7 +33,7 @@ services:
 
     kilobase:
         container_name: kilobase-postgres
-        image: kbve/kilobase:15.1
+        image: kbve/kilobase:15.1.10
         restart: unless-stopped
         ports:
             - '5432:5432'
@@ -52,23 +52,30 @@ services:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
             POSTGRES_PORT: 5432
-            POSTGRES_HOST: /var/run/postgresql
+            POSTGRES_HOST: /tmp/postgresql
             PGPASSWORD: postgres
             REDIS_HOST: redis
             REDIS_PORT: 6379
             REDIS_PASSWORD: redispassword
+        # command:
+        #     [
+        #         'postgres',
+        #         '-c',
+        #         'config_file=/etc/postgresql/postgresql.conf',
+        #         '-c',
+        #         'log_min_messages=error',
+        #     ]
         command:
             [
-                'postgres',
-                '-c',
-                'config_file=/etc/postgresql/postgresql.conf',
-                '-c',
-                'log_min_messages=error',
+                "sh",
+                "-c",
+                "mkdir -p /tmp/postgresql && exec postgres -c config_file=/etc/postgresql/postgresql.conf -c log_min_messages=error -c unix_socket_directories=/tmp/postgresql"
             ]
         depends_on:
             kilobase-init:
                 condition: service_completed_successfully
-
+            redis:
+                condition: service_healthy
 
     redis:
         image: redis:7-alpine
