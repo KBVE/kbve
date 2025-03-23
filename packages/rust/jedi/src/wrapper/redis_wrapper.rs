@@ -1,8 +1,9 @@
 use serde::{ Deserialize, Serialize };
-use tokio::sync::oneshot;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::{ oneshot, broadcast::Sender as BroadcastSender };
+use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver };
 use bb8_redis::{ bb8::Pool, RedisConnectionManager };
-use redis::AsyncCommands;
+use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
+use futures_util::{ StreamExt, SinkExt };
 
 use crate::proto::redis::{
   RedisCommand,
@@ -11,6 +12,8 @@ use crate::proto::redis::{
   GetCommand,
   DelCommand,
   redis_command::Command,
+  RedisEvent,
+  RedisEventObject,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -26,6 +29,13 @@ pub struct RedisEnvelope {
   #[serde(skip_serializing, skip_deserializing)]
   #[serde(default)]
   pub response_tx: Option<oneshot::Sender<RedisResponse>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedisEventEnvelope {
+  pub channel: String,
+  pub event: RedisEventObject,
+  pub received_at: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -157,4 +167,67 @@ pub async fn spawn_redis_worker(
       }
     }
   });
+}
+
+pub async fn spawn_pubsub_listener(
+  redis_url: &str,
+  channels: Vec<String>,
+  event_tx: BroadcastSender<RedisEventEnvelope>
+) -> RedisResult<()> {
+  let full_url = if redis_url.contains('?') {
+    format!("{redis_url}&protocol=resp3")
+  } else {
+    format!("{redis_url}?protocol=resp3")
+  };
+
+  let client = Client::open(full_url)?;
+  let (tx, mut rx) = unbounded_channel::<PushInfo>();
+
+  let config = AsyncConnectionConfig::default().set_push_sender(tx);
+  let mut conn = client.get_multiplexed_async_connection_with_config(&config).await?;
+
+  for ch in &channels {
+    conn.subscribe(ch).await?;
+    tracing::info!("Subscribed to Redis channel: {}", ch);
+  }
+
+  tokio::spawn(async move {
+    while let Some(push) = rx.recv().await {
+      match push.kind {
+        PushKind::Message | PushKind::PMessage | PushKind::SMessage => {
+          if push.data.len() >= 3 {
+            match (&push.data[1], &push.data[2]) {
+              (Value::BulkString(channel), Value::BulkString(payload)) => {
+                let channel = String::from_utf8_lossy(channel).to_string();
+
+                match serde_json::from_slice::<RedisEventObject>(payload) {
+                  Ok(event) => {
+                    let envelope = RedisEventEnvelope {
+                      channel,
+                      event,
+                      received_at: chrono::Utc::now().timestamp_millis() as u64,
+                    };
+                    let _ = event_tx.send(envelope);
+                  }
+                  Err(e) => {
+                    tracing::warn!("Failed to parse RedisEventObject: {}", e);
+                  }
+                }
+              }
+              _ => {
+                tracing::debug!("Unexpected pubsub data format: {:?}", push.data);
+              }
+            }
+          } else {
+            tracing::debug!("Insufficient pubsub data length: {:?}", push.data);
+          }
+        }
+        other => {
+          tracing::debug!("Ignored push kind: {:?}", other);
+        }
+      }
+    }
+  });
+
+  Ok(())
 }

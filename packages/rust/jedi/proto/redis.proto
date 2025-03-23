@@ -31,3 +31,16 @@ message RedisResponse {
   string status = 1;
   string value = 2;
 }
+
+message RedisEvent {
+  string channel = 1;
+  string payload = 2;
+  uint64 timestamp = 3;
+}
+
+message RedisEventObject {
+  oneof object {
+    RedisCommand command = 1;
+    RedisEvent event = 2;
+  }
+}
