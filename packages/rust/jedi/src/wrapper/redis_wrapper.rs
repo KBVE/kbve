@@ -1,5 +1,9 @@
 use serde::{ Deserialize, Serialize };
 use tokio::sync::oneshot;
+use tokio::sync::mpsc::Receiver;
+use bb8_redis::{ bb8::Pool, RedisConnectionManager };
+use redis::AsyncCommands;
+
 use crate::proto::redis::{
   RedisCommand,
   RedisResponse,
@@ -106,4 +110,51 @@ impl TryFrom<RedisCommand> for RedisEnvelope {
       None => Err("Missing Redis command variant"),
     }
   }
+}
+
+//  ** Redis Handler
+
+pub async fn spawn_redis_worker(
+  pool: Pool<RedisConnectionManager>,
+  mut rx: Receiver<RedisEnvelope>
+) {
+  tokio::spawn(async move {
+    while let Some(envelope) = rx.recv().await {
+      let mut conn = match pool.get().await {
+        Ok(conn) => conn,
+        Err(e) => {
+          tracing::error!("Redis pool error: {e}");
+          continue;
+        }
+      };
+
+      let response = match envelope.command {
+        RedisCommandType::Set { key, value } => {
+          let res: redis::RedisResult<()> = conn.set(&key, value).await;
+          RedisResponse {
+            status: format!("{:?}", res),
+            value: String::new(),
+          }
+        }
+        RedisCommandType::Get { key } => {
+          let res: redis::RedisResult<String> = conn.get(&key).await;
+          RedisResponse {
+            status: format!("{:?}", res),
+            value: res.unwrap_or_default(),
+          }
+        }
+        RedisCommandType::Del { key } => {
+          let res: redis::RedisResult<u64> = conn.del(&key).await;
+          RedisResponse {
+            status: format!("{:?}", res),
+            value: String::new(),
+          }
+        }
+      };
+
+      if let Some(tx) = envelope.response_tx {
+        let _ = tx.send(response);
+      }
+    }
+  });
 }
