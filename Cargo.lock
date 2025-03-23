@@ -2906,7 +2906,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
- "jedi 0.1.16 (git+https://github.com/KBVE/kbve.git?branch=dev)",
+ "jedi 0.1.16 (git+https://github.com/KBVE/kbve.git?rev=a5a3b2bd80b4370768720779dae27ed54d0a7e78)",
  "papaya 0.2.1",
  "prost",
  "prost-build",
@@ -5148,7 +5148,7 @@ dependencies = [
 [[package]]
 name = "jedi"
 version = "0.1.16"
-source = "git+https://github.com/KBVE/kbve.git?branch=dev#a60a145bf1cf53760a2a4dbe4ef881b4d8cce0b3"
+source = "git+https://github.com/KBVE/kbve.git?rev=a5a3b2bd80b4370768720779dae27ed54d0a7e78#a5a3b2bd80b4370768720779dae27ed54d0a7e78"
 dependencies = [
  "ammonia 4.0.0",
  "axum 0.8.1",
@@ -5167,6 +5167,7 @@ dependencies = [
  "once_cell",
  "papaya 0.2.1",
  "prost",
+ "prost-types",
  "redis 0.29.1",
  "regex",
  "reqwest 0.12.8",
@@ -5176,6 +5177,7 @@ dependencies = [
  "tokio",
  "tokio-postgres",
  "tonic",
+ "tonic-build",
  "tonic-health",
  "tonic-reflection",
  "tower 0.5.2",
