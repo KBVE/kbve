@@ -1,5 +1,5 @@
 use serde::{ Deserialize, Serialize };
-use tokio::sync::oneshot;
+use tokio::sync::{ oneshot, broadcast::Sender as BroadcastSender };
 use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver };
 use bb8_redis::{ bb8::Pool, RedisConnectionManager };
 use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
@@ -169,7 +169,11 @@ pub async fn spawn_redis_worker(
   });
 }
 
-pub async fn spawn_pubsub_listener(redis_url: &str, channels: Vec<String>) -> RedisResult<()> {
+pub async fn spawn_pubsub_listener(
+  redis_url: &str,
+  channels: Vec<String>,
+  event_tx: BroadcastSender<RedisEventEnvelope>
+) -> RedisResult<()> {
   let full_url = if redis_url.contains('?') {
     format!("{redis_url}&protocol=resp3")
   } else {
@@ -203,8 +207,7 @@ pub async fn spawn_pubsub_listener(redis_url: &str, channels: Vec<String>) -> Re
                       event,
                       received_at: chrono::Utc::now().timestamp_millis() as u64,
                     };
-                    tracing::info!("RedisEventEnvelope received: {:?}", envelope);
-                    // TODO: forward envelope to internal system
+                    let _ = event_tx.send(envelope);
                   }
                   Err(e) => {
                     tracing::warn!("Failed to parse RedisEventObject: {}", e);
