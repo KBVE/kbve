@@ -3,8 +3,9 @@ use std::{ borrow::Cow, sync::Arc };
 use axum::{ body::Bytes, extract::{ Path, State }, http::StatusCode, response::IntoResponse, Json };
 use tokio::time::Instant;
 use serde::Serialize;
+use jedi::entity::error::JediError as AppError;
 use crate::{entity::helper::{ CowKeyValueResponse, TTL_DURATION }, proto::{store::{StoreKey, StoreObj}, wrapper::ReadEnvelope}};
-use crate::{ entity::state::SharedState, proto::store::StoreValue, handler::error::AppError };
+use crate::{ entity::state::SharedState, proto::store::StoreValue};
 use tokio::sync::oneshot;
 
 #[derive(Serialize)]
