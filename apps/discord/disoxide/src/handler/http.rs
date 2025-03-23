@@ -1,6 +1,6 @@
 use axum::{Router, routing::{get, post, delete}};
 use std::sync::Arc;
-use crate::handler::{message, store, metrics};
+use crate::handler::{message, store, metrics, error::health};
 use crate::entity::state::GlobalState;
 
 pub fn http_router(state: Arc<GlobalState>) -> Router {
@@ -11,5 +11,6 @@ pub fn http_router(state: Arc<GlobalState>) -> Router {
         .route("/keys", get(store::list_keys))
         .route("/admin/clear", delete(store::clear_store))
         .route("/metrics", get(metrics::metrics))
+        .route("/health", get(health))
         .with_state(state)
 }
