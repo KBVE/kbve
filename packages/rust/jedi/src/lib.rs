@@ -5,6 +5,19 @@ mod tests {
         let result = 2 + 2;
         assert_eq!(result, 4);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+    
 }
 
 
@@ -12,6 +25,7 @@ pub mod builder;
 pub mod entity;
 pub mod state;
 pub mod proto;
+pub mod wrapper;
 
 pub use builder::*;
 pub use entity::*;
