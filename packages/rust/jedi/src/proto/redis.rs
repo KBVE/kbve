@@ -46,6 +46,33 @@ pub struct RedisResponse {
     #[prost(string, tag = "2")]
     pub value: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RedisEvent {
+    #[prost(string, tag = "1")]
+    pub channel: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub payload: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub timestamp: u64,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RedisEventObject {
+    #[prost(oneof = "redis_event_object::Object", tags = "1, 2")]
+    pub object: ::core::option::Option<redis_event_object::Object>,
+}
+/// Nested message and enum types in `RedisEventObject`.
+pub mod redis_event_object {
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Object {
+        #[prost(message, tag = "1")]
+        Command(super::RedisCommand),
+        #[prost(message, tag = "2")]
+        Event(super::RedisEvent),
+    }
+}
 /// Generated client implementations.
 pub mod redis_service_client {
     #![allow(

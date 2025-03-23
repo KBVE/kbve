@@ -1,8 +1,12 @@
 use serde::{ Deserialize, Serialize };
 use tokio::sync::oneshot;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::{Receiver, unbounded_channel};
 use bb8_redis::{ bb8::Pool, RedisConnectionManager };
 use redis::AsyncCommands;
+use redis::aio::ConnectionLike;
+use redis::aio::PubSub;
+use futures_util::{StreamExt, SinkExt};
+
 
 use crate::proto::redis::{
   RedisCommand,
@@ -157,4 +161,29 @@ pub async fn spawn_redis_worker(
       }
     }
   });
+}
+
+pub async fn spawn_pubsub_listener(redis_url: &str) -> redis::RedisResult<()> {
+  let full_url = if redis_url.contains('?') {
+      format!("{redis_url}&protocol=resp3")
+  } else {
+      format!("{redis_url}?protocol=resp3")
+  };
+
+  let client = redis::Client::open(full_url)?;
+  let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+
+  let config = redis::AsyncConnectionConfig::default().set_push_sender(tx);
+  let mut conn = client.get_multiplexed_async_connection_with_config(&config).await?;
+
+  conn.subscribe("temple:events").await?;
+
+  tokio::spawn(async move {
+      while let Some(msg) = rx.recv().await {
+          tracing::info!("Redis Push Message: {:?}", msg);
+          // TODO: You could forward this into your internal app bus
+      }
+  });
+
+  Ok(())
 }
