@@ -41,7 +41,9 @@ async fn main() {
     .with(tracing_subscriber::fmt::layer())
     .init();
 
-  let shared_state = Arc::new(GlobalState::new());
+  //let shared_state = Arc::new(GlobalState::new());
+  let shared_state = Arc::new(GlobalState::new("redis://:redispassword@redis:6379").await);
+
 
     let app = Router::new()
       .merge(handler::http::http_router(shared_state.clone())) 
