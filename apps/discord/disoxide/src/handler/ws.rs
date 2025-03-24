@@ -10,7 +10,14 @@ use std::{ sync::Arc, ops::ControlFlow };
 // use tokio::sync::broadcast;
 use crate::entity::state::GlobalState;
 
-use jedi::wrapper::{ redis_ws_update_msg, redis_key_update_from_command };
+use jedi::wrapper::{
+    redis_ws_update_msg,
+    redis_key_update_from_command,
+    add_watch_key,
+    parse_ws_command,
+    extract_watch_command_key,
+    build_redis_envelope_from_ws,
+};
 
 use jedi::proto::redis::{
   RedisKeyUpdate,
@@ -18,6 +25,9 @@ use jedi::proto::redis::{
   RedisEventObject,
   redis_event_object::Object,
 };
+
+use jedi::entity::ulid::new_ulid_string;
+use jedi::watchmaster::{ WatchList, WatchManager };
 
 // const MAX_CONNECTIONS: usize = 1000;
 
