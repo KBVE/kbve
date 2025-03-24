@@ -42,22 +42,24 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
   // let (tx, _rx) = broadcast::channel::<String>(MAX_CONNECTIONS);
 
   let conn_id = new_ulid_string();
-  let guard = state.temple.watch_manager.guard();
-  let watchlist = state.temple.watch_manager.create_watchlist(conn_id.clone(), &guard);
-
+  let watchlist = {
+    let guard = state.temple.watch_manager.guard();
+    state.temple.watch_manager.create_watchlist(conn_id.clone(), &guard)
+  };
   let mut rx = state.temple.subscribe_events();
   let (mut sender, mut receiver) = socket.split();
 
   let state_clone = state.clone();
   let conn_id_clone = conn_id.clone();
 
+  let watchlist_recv = watchlist.clone();
   let mut recv_task = tokio::spawn(async move {
     while let Some(Ok(msg)) = receiver.next().await {
       if let Message::Text(text) = msg {
         match parse_ws_command(&text) {
           Ok(ws_msg) => {
             if let Some(key) = extract_watch_command_key(&ws_msg) {
-              add_watch_key(&watchlist.keys, key);
+              watchlist_recv.watch_str(key);
               tracing::info!("Connection {} is now watching key: {}", conn_id_clone, key);
             } else if let Some(cmd) = build_redis_envelope_from_ws(&ws_msg) {
               let temple = &state_clone.temple;
@@ -76,6 +78,8 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
     state_clone.temple.watch_manager.remove_watchlist(&conn_id_clone, &guard);
   });
 
+  let watchlist_send = watchlist.clone();
+
   let mut send_task = tokio::spawn(async move {
     loop {
       tokio::select! {
@@ -85,7 +89,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
               let maybe_update = match envelope.event.object {
                 Some(Object::Command(cmd)) => {
                   redis_key_update_from_command(&cmd).and_then(|upd| {
-                    if watchlist.contains(&upd.key) {
+                    if watchlist_send.is_watching_str(&upd.key) {
                       Some(redis_ws_update_msg(upd))
                     } else {
                       None
@@ -97,7 +101,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
   
               if let Some(ws_msg) = maybe_update {
                 if let Some(json) = ws_msg.as_json_string() {
-                  if sender.send(Message::Text(json)).await.is_err() {
+                  if sender.send(Message::Text(json.into())).await.is_err() {
                     break;
                   }
                 }
@@ -110,7 +114,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
           }
         }
         _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
-          if sender.send(Message::Ping(vec![1, 2, 3])).await.is_err() {
+          if sender.send(Message::Ping(vec![1, 2, 3].into())).await.is_err() {
             break;
           }
         }
