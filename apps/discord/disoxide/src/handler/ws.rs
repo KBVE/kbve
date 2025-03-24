@@ -10,6 +10,15 @@ use std::{ sync::Arc, ops::ControlFlow };
 // use tokio::sync::broadcast;
 use crate::entity::state::GlobalState;
 
+use jedi::wrapper::{ redis_ws_update_msg, redis_key_update_from_command };
+
+use jedi::proto::redis::{
+  RedisKeyUpdate,
+  RedisWsMessage,
+  RedisEventObject,
+  redis_event_object::Object,
+};
+
 // const MAX_CONNECTIONS: usize = 1000;
 
 async fn websocket_handler(
@@ -36,8 +45,17 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
       tokio::select! {
             msg = rx.recv() => {
                 match msg {
-                    Ok(event) => {
-                        if let Ok(json) = serde_json::to_string(&event) {
+                    Ok(envelope) => {
+                        let message = match envelope.event.object {
+                            Some(Object::Command(cmd)) => RedisWsMessage::from_command(cmd),
+                            Some(Object::Event(evt)) => RedisWsMessage::from_event(evt),
+                            None => {
+                                tracing::debug!("Received RedisEventEnvelope with no inner object");
+                                continue;
+                            }
+                        };
+
+                        if let Some(json) = message.as_json_string() {
                             if sender.send(Message::Text(json.into())).await.is_err() {
                                 break;
                             }
