@@ -92,7 +92,7 @@ impl GlobalState {
     let (read_tx, mut read_rx) = mpsc::channel::<ReadEnvelope>(1024);
 
     let temple = TempleState::new(redis_url).await;
-    let _ = spawn_pubsub_listener(redis_url, vec!["key:*".into()], temple.event_tx.clone()).await;
+    let _ = spawn_pubsub_listener(redis_url, vec!["key:1".into()], temple.event_tx.clone()).await;
 
     tokio::spawn({
       let store_clone = store.clone();

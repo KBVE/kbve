@@ -37,6 +37,31 @@ tags:
 
     Adding the websocket protobufs to the jedi crate.
 
+-   06:32PM
+
+    The redis websockets are still somewhat of an issue, in the sense that they can process the watch but are not being updated.
+    I believe there might be a bit of a logical error on my end, so I might have to loop back around and see what went wrong.
+    There is an option to drop back down to RESP2 and use the code below:
+
+    ```rust
+    
+    use futures_util::StreamExt;
+    let client = redis::Client::open("redis://redis/")?;
+    let (mut sink, mut stream) = client.get_async_pubsub().await?.split();
+    sink.subscribe("channel_1").await?;
+
+    loop {
+        let msg = stream.next().await.unwrap();
+        let payload : String = msg.get_payload().unwrap();
+        println!("channel '{}': {}", msg.get_channel_name(), payload);
+    }
+
+    ```
+
+    This code was from the redis crate docs.
+
+
+
 ## 2024
 
 ### Actions

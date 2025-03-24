@@ -297,7 +297,10 @@ pub async fn spawn_redis_worker(
               };
       
               if let Ok(payload) = serde_json::to_string(&event) {
-                  let _res: redis::RedisResult<i64> = conn.publish(redis_channel_for_key(&key), payload).await;
+                  tracing::debug!("Publishing RedisKeyUpdate on Set for channel: {}", redis_channel_for_key(&key));
+                  let result: redis::RedisResult<i64> = conn.publish(redis_channel_for_key(&key), payload).await;
+                  tracing::debug!("Publish result SET: {:?}", result);
+
               }
           }
           RedisResponse {
@@ -321,7 +324,10 @@ pub async fn spawn_redis_worker(
             };
     
             if let Ok(payload) = serde_json::to_string(&event) {
-              let _res: redis::RedisResult<i64> = conn.publish(redis_channel_for_key(&key), payload).await;
+              tracing::debug!("Publishing RedisKeyUpdate for Del on channel: {}", redis_channel_for_key(&key));
+              let result: redis::RedisResult<i64> = conn.publish(redis_channel_for_key(&key), payload).await;
+              tracing::debug!("Publish result DEL: {:?}", result);
+
             }
         }
           RedisResponse {
@@ -349,6 +355,7 @@ pub async fn spawn_pubsub_listener(
     format!("{redis_url}?protocol=resp3")
   };
 
+  tracing::info!("Connecting to Redis for PubSub at: {}", full_url);
   let client = Client::open(full_url)?;
   let (tx, mut rx) = unbounded_channel::<PushInfo>();
 
@@ -356,21 +363,25 @@ pub async fn spawn_pubsub_listener(
   let mut conn = client.get_multiplexed_async_connection_with_config(&config).await?;
 
   for ch in &channels {
-    conn.subscribe(ch).await?;
     tracing::info!("Subscribed to Redis channel: {}", ch);
+    conn.subscribe(ch).await?;
   }
 
   tokio::spawn(async move {
     while let Some(push) = rx.recv().await {
+
+      tracing::debug!("Received push: kind={:?} data={:?}", push.kind, push.data);
       match push.kind {
         PushKind::Message | PushKind::PMessage | PushKind::SMessage => {
           if push.data.len() >= 3 {
             match (&push.data[1], &push.data[2]) {
               (Value::BulkString(channel), Value::BulkString(payload)) => {
                 let channel = String::from_utf8_lossy(channel).to_string();
-
+                tracing::debug!("Received PubSub message on channel: {}", channel);
+                tracing::debug!("Raw payload: {:?}", String::from_utf8_lossy(payload));
                 match serde_json::from_slice::<RedisEventObject>(payload) {
                   Ok(event) => {
+                    tracing::debug!("Parsed RedisEventObject successfully");
                     let envelope = RedisEventEnvelope {
                       channel,
                       event,
