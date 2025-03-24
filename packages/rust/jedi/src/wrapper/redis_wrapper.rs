@@ -4,6 +4,7 @@ use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver };
 use bb8_redis::{ bb8::Pool, RedisConnectionManager };
 use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
 use futures_util::{ StreamExt, SinkExt };
+use dashmap::DashSet;
 
 use crate::proto::redis::{ redis_ws_message, RedisWsMessage };
 use crate::proto::redis::{
@@ -162,7 +163,7 @@ impl RedisWsMessage {
       ),
     }
   }
-  
+
   pub fn as_json_string(&self) -> Option<String> {
     serde_json::to_string(self).ok()
   }
@@ -418,5 +419,84 @@ pub fn redis_key_update_from_command(cmd: &RedisCommand) -> Option<RedisKeyUpdat
     Some(Set(c)) => Some(redis_key_update_value(&c.key, &c.value)),
     Some(Del(c)) => Some(redis_key_update_deleted(&c.key)),
     _ => None,
+  }
+}
+
+pub fn should_emit_update(key_update: &RedisKeyUpdate, watchlist: &DashSet<String>) -> bool {
+  watchlist.contains(&key_update.key)
+}
+
+pub fn create_ws_update_if_watched(
+  key_update: &RedisKeyUpdate,
+  watchlist: &DashSet<String>
+) -> Option<RedisWsMessage> {
+  if should_emit_update(key_update, watchlist) {
+    Some(redis_ws_update_msg(key_update.clone()))
+  } else {
+    None
+  }
+}
+
+pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
+  serde_json::from_str::<RedisWsMessage>(json)
+}
+
+pub fn extract_watch_command_key(msg: &RedisWsMessage) -> Option<&str> {
+  match &msg.message {
+    Some(redis_ws_message::Message::Watch(cmd)) => Some(&cmd.key),
+    _ => None,
+  }
+}
+
+pub fn build_redis_envelope_from_ws(msg: &RedisWsMessage) -> Option<RedisEnvelope> {
+  match &msg.message {
+    Some(redis_ws_message::Message::Command(cmd)) => RedisEnvelope::try_from(cmd.clone()).ok(),
+    _ => None,
+  }
+}
+
+pub fn add_watch_key(watchlist: &DashSet<String>, key: impl Into<String>) {
+  watchlist.insert(key.into());
+}
+
+pub fn remove_watch_key(watchlist: &DashSet<String>, key: &str) {
+  watchlist.remove(key);
+}
+
+pub fn redis_key_update_from_response(
+  key: impl Into<String>,
+  resp: &RedisResponse
+) -> RedisKeyUpdate {
+  let key = key.into();
+  if resp.value.is_empty() {
+    redis_key_update_deleted(key)
+  } else {
+    redis_key_update_value(key, &resp.value)
+  }
+}
+
+pub fn redis_channel_for_key(key: &str) -> String {
+  format!("key:{}", key)
+}
+
+pub fn format_key_update_log(update: &RedisKeyUpdate) -> String {
+  let (k, v) = update.clone().into_log_fields();
+  format!("{} -> {}", k, v)
+}
+
+pub fn filter_updates_for_watchlist<'a>(
+  updates: impl Iterator<Item = &'a RedisKeyUpdate>,
+  watchlist: &DashSet<String>
+) -> Vec<RedisWsMessage> {
+  updates.filter_map(|upd| create_ws_update_if_watched(upd, watchlist)).collect()
+}
+
+pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
+  RedisEnvelope {
+    id: None,
+    command: RedisCommandType::Set { key, value },
+    ttl_seconds: Some(ttl),
+    timestamp: Some(chrono::Utc::now().timestamp_millis() as u64),
+    response_tx: None,
   }
 }
