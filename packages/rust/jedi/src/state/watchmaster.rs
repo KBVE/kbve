@@ -2,6 +2,15 @@ use dashmap::DashSet;
 use papaya::HashMap;
 use papaya::Guard;
 use std::sync::Arc;
+use rustc_hash::FxHasher;
+use std::hash::{Hash, Hasher};
+
+
+pub fn hash_key<T: Hash>(value: &T) -> u64 {
+    let mut hasher = FxHasher::default();
+    value.hash(&mut hasher);
+    hasher.finish()
+}
 
 pub type ConnId = String;
 
@@ -35,6 +44,22 @@ impl WatchList {
       .map(|k| *k)
       .collect()
   }
+
+  pub fn watch_str(&self, key: &str) {
+    let hash = hash_key(&key);
+    self.watch(hash);
+}
+
+pub fn unwatch_str(&self, key: &str) {
+    let hash = hash_key(&key);
+    self.unwatch(&hash);
+}
+
+pub fn is_watching_str(&self, key: &str) -> bool {
+    let hash = hash_key(&key);
+    self.is_watching(&hash)
+}
+
 }
 
 #[derive(Default)]
