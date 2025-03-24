@@ -5,6 +5,7 @@ use bb8_redis::{ bb8::Pool, RedisConnectionManager };
 use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
 use futures_util::{ StreamExt, SinkExt };
 
+use crate::proto::redis::{ redis_ws_message, RedisWsMessage };
 use crate::proto::redis::{
   RedisCommand,
   RedisResponse,
@@ -14,6 +15,8 @@ use crate::proto::redis::{
   redis_command::Command,
   RedisEvent,
   RedisEventObject,
+  RedisKeyUpdate,
+  redis_key_update::State,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,6 +56,16 @@ pub enum RedisCommandType {
   },
 }
 
+impl RedisCommandType {
+  pub fn key(&self) -> &str {
+    match self {
+      Self::Set { key, .. } => key,
+      Self::Get { key } => key,
+      Self::Del { key } => key,
+    }
+  }
+}
+
 impl RedisEnvelope {
   pub fn set(key: String, value: String) -> Self {
     Self {
@@ -82,6 +95,76 @@ impl RedisEnvelope {
       timestamp: None,
       response_tx: None,
     }
+  }
+
+  pub fn from_proto(
+    cmd: RedisCommand,
+    tx: Option<oneshot::Sender<RedisResponse>>
+  ) -> Result<Self, &'static str> {
+    let mut env = RedisEnvelope::try_from(cmd)?;
+    env.response_tx = tx;
+    Ok(env)
+  }
+
+  pub fn with_response_tx(mut self, tx: oneshot::Sender<RedisResponse>) -> Self {
+    self.response_tx = Some(tx);
+    self
+  }
+}
+
+impl RedisKeyUpdate {
+  pub fn is_deleted(&self) -> bool {
+    matches!(self.state, Some(State::Deleted(true)))
+  }
+
+  pub fn value(&self) -> Option<&str> {
+    match &self.state {
+      Some(State::Value(v)) => Some(v),
+      _ => None,
+    }
+  }
+
+  pub fn into_log_fields(self) -> (String, String) {
+    match self.state {
+      Some(State::Value(val)) => (self.key, val),
+      Some(State::Deleted(_)) => (self.key, "[deleted]".into()),
+      None => (self.key, "[unknown]".into()),
+    }
+  }
+
+  pub fn from_raw_change<K, V>(key: K, value: Option<V>) -> Self where K: AsRef<str>, V: AsRef<str> {
+    match value {
+      Some(val) => redis_key_update_value(key, val),
+      None => redis_key_update_deleted(key),
+    }
+  }
+}
+
+impl RedisWsMessage {
+  pub fn from_command(cmd: RedisCommand) -> Self {
+    RedisWsMessage {
+      message: Some(redis_ws_message::Message::Command(cmd)),
+    }
+  }
+
+  pub fn from_event(event: RedisEvent) -> Self {
+    RedisWsMessage {
+      message: Some(redis_ws_message::Message::Event(event)),
+    }
+  }
+
+  pub fn from_watch_command(key: impl Into<String>) -> Self {
+    RedisWsMessage {
+      message: Some(
+        redis_ws_message::Message::Watch(crate::proto::redis::WatchCommand {
+          key: key.into(),
+        })
+      ),
+    }
+  }
+  
+  pub fn as_json_string(&self) -> Option<String> {
+    serde_json::to_string(self).ok()
   }
 }
 
@@ -150,6 +233,38 @@ impl TryFrom<RedisCommand> for RedisEnvelope {
           command: RedisCommandType::Del { key: cmd.key },
         }),
       None => Err("Missing Redis command variant"),
+    }
+  }
+}
+
+impl From<&RedisEnvelope> for RedisCommand {
+  fn from(envelope: &RedisEnvelope) -> Self {
+    match &envelope.command {
+      RedisCommandType::Set { key, value } =>
+        RedisCommand {
+          command: Some(
+            Command::Set(SetCommand {
+              key: key.clone(),
+              value: value.clone(),
+            })
+          ),
+        },
+      RedisCommandType::Get { key } =>
+        RedisCommand {
+          command: Some(
+            Command::Get(GetCommand {
+              key: key.clone(),
+            })
+          ),
+        },
+      RedisCommandType::Del { key } =>
+        RedisCommand {
+          command: Some(
+            Command::Del(DelCommand {
+              key: key.clone(),
+            })
+          ),
+        },
     }
   }
 }
@@ -262,4 +377,46 @@ pub async fn spawn_pubsub_listener(
   });
 
   Ok(())
+}
+
+pub fn redis_key_update_value<K, V>(key: K, value: V) -> RedisKeyUpdate
+  where K: AsRef<str>, V: AsRef<str>
+{
+  RedisKeyUpdate {
+    key: key.as_ref().to_string(),
+    state: Some(State::Value(value.as_ref().to_string())),
+    timestamp: chrono::Utc::now().timestamp_millis() as u64,
+  }
+}
+
+pub fn redis_key_update_deleted<K>(key: K) -> RedisKeyUpdate where K: AsRef<str> {
+  RedisKeyUpdate {
+    key: key.as_ref().to_string(),
+    state: Some(State::Deleted(true)),
+    timestamp: chrono::Utc::now().timestamp_millis() as u64,
+  }
+}
+
+pub fn redis_ws_update_msg(update: RedisKeyUpdate) -> RedisWsMessage {
+  RedisWsMessage {
+    message: Some(redis_ws_message::Message::Update(update)),
+  }
+}
+
+pub fn redis_key_update_from_get<K, V>(key: K, value: Option<V>) -> RedisKeyUpdate
+  where K: AsRef<str>, V: AsRef<str>
+{
+  match value {
+    Some(val) => redis_key_update_value(key, val),
+    None => redis_key_update_deleted(key),
+  }
+}
+
+pub fn redis_key_update_from_command(cmd: &RedisCommand) -> Option<RedisKeyUpdate> {
+  use crate::proto::redis::redis_command::Command::*;
+  match &cmd.command {
+    Some(Set(c)) => Some(redis_key_update_value(&c.key, &c.value)),
+    Some(Del(c)) => Some(redis_key_update_deleted(&c.key)),
+    _ => None,
+  }
 }
