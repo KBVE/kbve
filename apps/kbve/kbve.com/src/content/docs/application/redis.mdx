@@ -64,3 +64,22 @@ Deploying Redis on Kubernetes offers scalable and resilient solutions for managi
 
 Deploying Redis with Kubernetes not only improves operational efficiency but also leverages cutting-edge technology to support dynamic, large-scale applications.
 
+* * *
+
+### Redis CLI
+
+To connect to a redis instance via CLI
+
+```shell
+
+redis-cli -h <host> -p <port> -a <password>
+
+```
+
+<Aside type="tip">
+
+To access the kilobase redis or any docker instance: 
+
+`docker exec -it kilobase-redis redis-cli -a redispassword`
+
+</Aside>
