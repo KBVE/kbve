@@ -42,8 +42,8 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
   // let (tx, _rx) = broadcast::channel::<String>(MAX_CONNECTIONS);
 
   let conn_id = new_ulid_string();
-  let watchlist = Arc::new(WatchList::default());
-  state.watchmaster.insert(conn_id.clone(), watchlist.clone());
+  let guard = state.temple.watch_manager.guard();
+  let watchlist = state.temple.watch_manager.create_watchlist(conn_id.clone(), &guard);
 
   let mut rx = state.temple.subscribe_events();
   let (mut sender, mut receiver) = socket.split();
@@ -57,7 +57,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
         match parse_ws_command(&text) {
           Ok(ws_msg) => {
             if let Some(key) = extract_watch_command_key(&ws_msg) {
-              add_watch_key(&watchlist, key);
+              add_watch_key(&watchlist.keys, key);
               tracing::info!("Connection {} is now watching key: {}", conn_id_clone, key);
             } else if let Some(cmd) = build_redis_envelope_from_ws(&ws_msg) {
               let temple = &state_clone.temple;
@@ -72,7 +72,8 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
     }
 
     // On disconnect ! IMPORTANT
-    state_clone.watchmaster.remove(&conn_id_clone);
+    let guard = state_clone.temple.watch_manager.guard();
+    state_clone.temple.watch_manager.remove_watchlist(&conn_id_clone, &guard);
   });
 
   let mut send_task = tokio::spawn(async move {

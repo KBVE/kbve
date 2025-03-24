@@ -19,6 +19,7 @@ use crate::proto::redis::{
   RedisKeyUpdate,
   redis_key_update::State,
 };
+use crate::watchmaster::WatchList;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RedisEnvelope {
@@ -499,4 +500,8 @@ pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
     timestamp: Some(chrono::Utc::now().timestamp_millis() as u64),
     response_tx: None,
   }
+}
+
+pub fn should_emit_update_hashed(key_update: &RedisKeyUpdate, list: &WatchList) -> bool {
+  list.is_watching_str(&key_update.key)
 }
