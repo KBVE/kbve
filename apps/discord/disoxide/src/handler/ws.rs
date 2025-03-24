@@ -11,12 +11,12 @@ use std::{ sync::Arc, ops::ControlFlow };
 use crate::entity::state::GlobalState;
 
 use jedi::wrapper::{
-    redis_ws_update_msg,
-    redis_key_update_from_command,
-    add_watch_key,
-    parse_ws_command,
-    extract_watch_command_key,
-    build_redis_envelope_from_ws,
+  redis_ws_update_msg,
+  redis_key_update_from_command,
+  add_watch_key,
+  parse_ws_command,
+  extract_watch_command_key,
+  build_redis_envelope_from_ws,
 };
 
 use jedi::proto::redis::{
@@ -40,49 +40,80 @@ async fn websocket_handler(
 
 async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
   // let (tx, _rx) = broadcast::channel::<String>(MAX_CONNECTIONS);
+
+  let conn_id = new_ulid_string();
+  let watchlist = Arc::new(WatchList::default());
+  state.watchmaster.insert(conn_id.clone(), watchlist.clone());
+
   let mut rx = state.temple.subscribe_events();
   let (mut sender, mut receiver) = socket.split();
+
+  let state_clone = state.clone();
+  let conn_id_clone = conn_id.clone();
+
   let mut recv_task = tokio::spawn(async move {
     while let Some(Ok(msg)) = receiver.next().await {
-      if process_message(msg).is_break() {
+      if let Message::Text(text) = msg {
+        match parse_ws_command(&text) {
+          Ok(ws_msg) => {
+            if let Some(key) = extract_watch_command_key(&ws_msg) {
+              add_watch_key(&watchlist, key);
+              tracing::info!("Connection {} is now watching key: {}", conn_id_clone, key);
+            } else if let Some(cmd) = build_redis_envelope_from_ws(&ws_msg) {
+              let temple = &state_clone.temple;
+              let _ = temple.send_redis(cmd).await;
+            }
+          }
+          Err(e) => tracing::warn!("Invalid WebSocket message: {}", e),
+        }
+      } else if process_message(msg).is_break() {
         break;
       }
     }
+
+    // On disconnect ! IMPORTANT
+    state_clone.watchmaster.remove(&conn_id_clone);
   });
 
   let mut send_task = tokio::spawn(async move {
     loop {
       tokio::select! {
-            msg = rx.recv() => {
-                match msg {
-                    Ok(envelope) => {
-                        let message = match envelope.event.object {
-                            Some(Object::Command(cmd)) => RedisWsMessage::from_command(cmd),
-                            Some(Object::Event(evt)) => RedisWsMessage::from_event(evt),
-                            None => {
-                                tracing::debug!("Received RedisEventEnvelope with no inner object");
-                                continue;
-                            }
-                        };
-
-                        if let Some(json) = message.as_json_string() {
-                            if sender.send(Message::Text(json.into())).await.is_err() {
-                                break;
-                            }
-                        }
+        msg = rx.recv() => {
+          match msg {
+            Ok(envelope) => {
+              let maybe_update = match envelope.event.object {
+                Some(Object::Command(cmd)) => {
+                  redis_key_update_from_command(&cmd).and_then(|upd| {
+                    if watchlist.contains(&upd.key) {
+                      Some(redis_ws_update_msg(upd))
+                    } else {
+                      None
                     }
-                    Err(err) => {
-                        tracing::warn!("Failed to receive Redis event: {:?}", err);
-                        break;
-                    }
+                  })
                 }
-            }
-            _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
-                if sender.send(Message::Ping(vec![1, 2, 3].into())).await.is_err() {
+                _ => None
+              };
+  
+              if let Some(ws_msg) = maybe_update {
+                if let Some(json) = ws_msg.as_json_string() {
+                  if sender.send(Message::Text(json)).await.is_err() {
                     break;
+                  }
                 }
+              }
             }
+            Err(err) => {
+              tracing::warn!("Failed to receive Redis event: {:?}", err);
+              break;
+            }
+          }
         }
+        _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
+          if sender.send(Message::Ping(vec![1, 2, 3])).await.is_err() {
+            break;
+          }
+        }
+      }
     }
   });
 
