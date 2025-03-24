@@ -5,7 +5,7 @@ use tokio::sync::{mpsc, oneshot};
 use papaya::{ HashMap, Guard };
 use axum::body::Bytes;
 use tokio::time::Instant;
-
+use jedi::state::temple::{TempleState};
 // use super::helper::{ReadRequest, WriteRequest};
 
 use crate::proto::{store::StoreObj, wrapper::{ ReadEnvelope, StoreObjExt}};
@@ -80,15 +80,18 @@ pub struct GlobalState {
   pub metrics: MetricsSharedState,
   pub write_tx: mpsc::Sender<StoreObj>,
   pub read_tx: mpsc::Sender<ReadEnvelope>,
+  pub temple: Arc<TempleState>,
 }
 
 impl GlobalState {
-  pub fn new() -> Self {
+  pub async fn new(redis_url: &str) -> Self {
     let store = Arc::new(RwLock::new(StoreState::new()));
     let metrics = Arc::new(MetricsState::new());
 
     let (write_tx, mut write_rx) = mpsc::channel::<StoreObj>(1024);
     let (read_tx, mut read_rx) = mpsc::channel::<ReadEnvelope>(1024);
+
+    let temple = TempleState::new(redis_url).await;
 
     tokio::spawn({
       let store_clone = store.clone();
@@ -119,6 +122,7 @@ impl GlobalState {
       metrics,
       write_tx,
       read_tx,
+      temple,
     }
   }
 
