@@ -73,6 +73,54 @@ pub mod redis_event_object {
         Event(super::RedisEvent),
     }
 }
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WatchCommand {
+    #[prost(string, tag = "1")]
+    pub key: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RedisKeyUpdate {
+    #[prost(string, tag = "1")]
+    pub key: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "4")]
+    pub timestamp: u64,
+    #[prost(oneof = "redis_key_update::State", tags = "2, 3")]
+    pub state: ::core::option::Option<redis_key_update::State>,
+}
+/// Nested message and enum types in `RedisKeyUpdate`.
+pub mod redis_key_update {
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum State {
+        #[prost(string, tag = "2")]
+        Value(::prost::alloc::string::String),
+        #[prost(bool, tag = "3")]
+        Deleted(bool),
+    }
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RedisWsMessage {
+    #[prost(oneof = "redis_ws_message::Message", tags = "1, 2, 3, 4")]
+    pub message: ::core::option::Option<redis_ws_message::Message>,
+}
+/// Nested message and enum types in `RedisWsMessage`.
+pub mod redis_ws_message {
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Message {
+        #[prost(message, tag = "1")]
+        Watch(super::WatchCommand),
+        #[prost(message, tag = "2")]
+        Update(super::RedisKeyUpdate),
+        #[prost(message, tag = "3")]
+        Command(super::RedisCommand),
+        #[prost(message, tag = "4")]
+        Event(super::RedisEvent),
+    }
+}
 /// Generated client implementations.
 pub mod redis_service_client {
     #![allow(

@@ -44,3 +44,25 @@ message RedisEventObject {
     RedisEvent event = 2;
   }
 }
+
+message WatchCommand {
+  string key = 1;
+}
+
+message RedisKeyUpdate {
+  string key = 1;
+  oneof state {
+    string value = 2;
+    bool deleted = 3;
+  }
+  uint64 timestamp = 4;
+}
+
+message RedisWsMessage {
+  oneof message {
+    WatchCommand watch = 1;
+    RedisKeyUpdate update = 2;
+    RedisCommand command = 3;
+    RedisEvent event = 4;
+  }
+}
