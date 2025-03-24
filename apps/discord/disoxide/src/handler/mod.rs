@@ -4,3 +4,4 @@ pub mod error;
 pub mod message;
 pub mod http;
 pub mod ws;
+pub mod redis;

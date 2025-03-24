@@ -53,6 +53,38 @@ pub enum RedisCommandType {
   },
 }
 
+impl RedisEnvelope {
+  pub fn set(key: String, value: String) -> Self {
+    Self {
+      id: None,
+      command: RedisCommandType::Set { key, value },
+      ttl_seconds: None,
+      timestamp: None,
+      response_tx: None,
+    }
+  }
+
+  pub fn get(key: String) -> Self {
+    Self {
+      id: None,
+      command: RedisCommandType::Get { key },
+      ttl_seconds: None,
+      timestamp: None,
+      response_tx: None,
+    }
+  }
+
+  pub fn del(key: String) -> Self {
+    Self {
+      id: None,
+      command: RedisCommandType::Del { key },
+      ttl_seconds: None,
+      timestamp: None,
+      response_tx: None,
+    }
+  }
+}
+
 impl From<RedisEnvelope> for RedisCommand {
   fn from(envelope: RedisEnvelope) -> Self {
     match envelope.command {

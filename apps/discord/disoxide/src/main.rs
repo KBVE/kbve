@@ -20,6 +20,8 @@ use tower::ServiceBuilder;
 use tower_http::{ compression::CompressionLayer, limit::RequestBodyLimitLayer, trace::TraceLayer };
 use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
 
+use jedi::sidecar::RedisConfig;
+
 #[cfg(feature = "jemalloc")]
 mod allocator {
   #[cfg(not(target_env = "msvc"))]
@@ -42,25 +44,27 @@ async fn main() {
     .init();
 
   //let shared_state = Arc::new(GlobalState::new());
-  let shared_state = Arc::new(GlobalState::new("redis://:redispassword@redis:6379").await);
+  //   let shared_state = Arc::new(GlobalState::new("redis://:redispassword@redis:6379").await);
 
+  let redis_cfg = RedisConfig::from_env();
+  let shared_state = Arc::new(GlobalState::new(&redis_cfg.url).await);
 
-    let app = Router::new()
-      .merge(handler::http::http_router(shared_state.clone())) 
-      .merge(handler::ws::ws_router(shared_state.clone())) 
-      .layer(
-        ServiceBuilder::new()
-          .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
-          .timeout(Duration::from_secs(10))
-          .layer(TraceLayer::new_for_http())
-          .layer(CompressionLayer::new())
+  let app = Router::new()
+    .merge(handler::http::http_router(shared_state.clone()))
+    .merge(handler::ws::ws_router(shared_state.clone()))
+    .layer(
+      ServiceBuilder::new()
+        .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
+        .timeout(Duration::from_secs(10))
+        .layer(TraceLayer::new_for_http())
+        .layer(CompressionLayer::new())
+    )
+    .layer(
+      axum::middleware::from_fn_with_state(
+        shared_state.clone(),
+        crate::handler::metrics::track_execution_time
       )
-      .layer(
-        axum::middleware::from_fn_with_state(
-          shared_state.clone(),
-          crate::handler::metrics::track_execution_time
-        )
-      );
+    );
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::info!("Listening on {}", listener.local_addr().unwrap());
