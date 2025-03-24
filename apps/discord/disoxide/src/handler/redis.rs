@@ -2,6 +2,11 @@ use axum::{
     extract::{State, Json},
     response::IntoResponse,
 };
+
+
+use axum::Router;
+use axum::routing::post;
+
 use jedi::wrapper::RedisEnvelope;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -42,7 +47,7 @@ pub async fn redis_get(
     let cmd = RedisEnvelope::get(payload.key.clone());
     match state.temple.send_redis(cmd).await {
         Ok(resp) => {
-            let value = String::from_utf8_lossy(&resp.value).to_string();
+            let value = resp.value;
             Json(RedisResponse {
                 key: payload.key,
                 value: Some(value),
@@ -68,10 +73,8 @@ pub async fn redis_del(
     }
 }
 
-use axum::Router;
-use axum::routing::post;
 
-pub fn redis_router(state: Arc<GlobalState>) -> Router {
+pub fn redis_router(state: Arc<GlobalState>) -> Router<Arc<GlobalState>> {
     Router::new()
         .route("/redis/set", post(redis_set))
         .route("/redis/get", post(redis_get))
