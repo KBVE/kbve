@@ -6,7 +6,7 @@ use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, P
 use futures_util::{ StreamExt, SinkExt };
 use dashmap::DashSet;
 
-use crate::proto::redis::{ redis_ws_message, RedisWsMessage };
+use crate::proto::redis::{ redis_event_object, redis_ws_message, RedisWsMessage };
 use crate::proto::redis::{
   RedisCommand,
   RedisResponse,
@@ -289,12 +289,22 @@ pub async fn spawn_redis_worker(
 
       let response = match envelope.command {
         RedisCommandType::Set { key, value } => {
-          let res: redis::RedisResult<()> = conn.set(&key, value).await;
-          RedisResponse {
-            status: format!("{:?}", res),
-            value: String::new(),
+          let res: redis::RedisResult<()> = conn.set(&key, &value).await;
+          if res.is_ok() {
+              let update = redis_key_update_value(&key, &value);
+              let event = RedisEventObject {
+                  object: Some(redis_event_object::Object::Update(update)),
+              };
+      
+              if let Ok(payload) = serde_json::to_string(&event) {
+                  let _res: redis::RedisResult<i64> = conn.publish(redis_channel_for_key(&key), payload).await;
+              }
           }
-        }
+          RedisResponse {
+              status: format!("{:?}", res),
+              value: String::new(),
+          }
+      }
         RedisCommandType::Get { key } => {
           let res: redis::RedisResult<String> = conn.get(&key).await;
           RedisResponse {
@@ -304,6 +314,16 @@ pub async fn spawn_redis_worker(
         }
         RedisCommandType::Del { key } => {
           let res: redis::RedisResult<u64> = conn.del(&key).await;
+          if res.is_ok() {
+            let update = redis_key_update_deleted(&key);
+            let event = RedisEventObject {
+                object: Some(redis_event_object::Object::Update(update)),
+            };
+    
+            if let Ok(payload) = serde_json::to_string(&event) {
+              let _res: redis::RedisResult<i64> = conn.publish(redis_channel_for_key(&key), payload).await;
+            }
+        }
           RedisResponse {
             status: format!("{:?}", res),
             value: String::new(),

@@ -59,7 +59,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
         match parse_ws_command(&text) {
           Ok(ws_msg) => {
             if let Some(key) = extract_watch_command_key(&ws_msg) {
-              watchlist_recv.watch_str(key);
+              watchlist_recv.watch(key);
               tracing::info!("Connection {} is now watching key: {}", conn_id_clone, key);
             } else if let Some(cmd) = build_redis_envelope_from_ws(&ws_msg) {
               let temple = &state_clone.temple;
@@ -89,7 +89,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
               let maybe_update = match envelope.event.object {
                 Some(Object::Command(cmd)) => {
                   redis_key_update_from_command(&cmd).and_then(|upd| {
-                    if watchlist_send.is_watching_str(&upd.key) {
+                    if watchlist_send.is_watching(&upd.key) {
                       Some(redis_ws_update_msg(upd))
                     } else {
                       None
