@@ -7,10 +7,10 @@ use axum::{
 };
 use futures_util::{ StreamExt, SinkExt };
 use std::{ sync::Arc, ops::ControlFlow };
-use tokio::sync::broadcast;
+// use tokio::sync::broadcast;
 use crate::entity::state::GlobalState;
 
-const MAX_CONNECTIONS: usize = 1000;
+// const MAX_CONNECTIONS: usize = 1000;
 
 async fn websocket_handler(
   ws: WebSocketUpgrade,
@@ -33,7 +33,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
 
   let mut send_task = tokio::spawn(async move {
     loop {
-        tokio::select! {
+      tokio::select! {
             msg = rx.recv() => {
                 match msg {
                     Ok(event) => {
@@ -56,8 +56,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
             }
         }
     }
-});
-
+  });
 
   tokio::select! {
         _ = (&mut send_task) => {

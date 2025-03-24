@@ -8,26 +8,12 @@ use axum::Router;
 use axum::routing::post;
 
 use jedi::wrapper::RedisEnvelope;
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use crate::entity::state::GlobalState;
 
-#[derive(Deserialize)]
-pub struct RedisSetPayload {
-    pub key: String,
-    pub value: String,
-}
+use jedi::proto::redis::{SetCommand as RedisSetPayload, GetCommand as RedisGetPayload, RedisResponse};
 
-#[derive(Deserialize)]
-pub struct RedisGetPayload {
-    pub key: String,
-}
 
-#[derive(Serialize)]
-pub struct RedisResponse {
-    pub key: String,
-    pub value: Option<String>,
-}
 
 pub async fn redis_set(
     State(state): State<Arc<GlobalState>>,
@@ -50,7 +36,7 @@ pub async fn redis_get(
             let value = resp.value;
             Json(RedisResponse {
                 key: payload.key,
-                value: Some(value),
+                value: value,
             })
             .into_response()
         }
