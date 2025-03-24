@@ -24,6 +24,12 @@ fn main() {
       "redis.RedisEventObject.object",
       "#[derive(serde::Serialize, serde::Deserialize)]"
     )
+    .type_attribute("redis.WatchCommand", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.RedisKeyUpdate", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.RedisKeyUpdate.state", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.RedisWsMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.RedisWsMessage.message", "#[derive(serde::Serialize, serde::Deserialize)]")
+
     // Groq
     .type_attribute("groq.GroqMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("groq.GroqMessageContent", "#[derive(serde::Serialize, serde::Deserialize)]")
