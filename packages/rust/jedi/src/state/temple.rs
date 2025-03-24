@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use bb8_redis::{ RedisConnectionManager, bb8::Pool };
 use tokio::sync::{ mpsc::{ channel, Sender }, oneshot, broadcast };
+use super::watchmaster::WatchManager;
 
 use crate::{
   error::JediError,
@@ -12,6 +13,7 @@ pub struct TempleState {
   pub redis_pool: Pool<RedisConnectionManager>,
   pub redis_tx: Sender<RedisEnvelope>,
   pub event_tx: broadcast::Sender<RedisEventEnvelope>,
+  pub watch_manager: WatchManager,
 }
 
 impl TempleState {
@@ -24,10 +26,13 @@ impl TempleState {
 
     let (event_tx, _event_rx) = broadcast::channel::<RedisEventEnvelope>(128);
 
+    let watch_manager = WatchManager::new();
+
     Arc::new(Self {
       redis_pool: pool,
       redis_tx: tx,
       event_tx,
+      watch_manager,
     })
   }
   pub async fn send_redis(&self, cmd: RedisEnvelope) -> Result<RedisResponse, JediError> {

@@ -4,6 +4,7 @@ use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver };
 use bb8_redis::{ bb8::Pool, RedisConnectionManager };
 use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
 use futures_util::{ StreamExt, SinkExt };
+use dashmap::DashSet;
 
 use crate::proto::redis::{ redis_ws_message, RedisWsMessage };
 use crate::proto::redis::{
@@ -162,7 +163,7 @@ impl RedisWsMessage {
       ),
     }
   }
-  
+
   pub fn as_json_string(&self) -> Option<String> {
     serde_json::to_string(self).ok()
   }
@@ -419,4 +420,8 @@ pub fn redis_key_update_from_command(cmd: &RedisCommand) -> Option<RedisKeyUpdat
     Some(Del(c)) => Some(redis_key_update_deleted(&c.key)),
     _ => None,
   }
+}
+
+pub fn should_emit_update(key_update: &RedisKeyUpdate, watchlist: &DashSet<String>) -> bool {
+  watchlist.contains(&key_update.key)
 }
