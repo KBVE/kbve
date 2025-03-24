@@ -2,63 +2,46 @@ use dashmap::DashSet;
 use papaya::HashMap;
 use papaya::Guard;
 use std::sync::Arc;
-use rustc_hash::FxHasher;
-use std::hash::{Hash, Hasher};
+// use rustc_hash::FxHasher;
+// use std::hash::{Hash, Hasher};
 
 
-pub fn hash_key<T: Hash>(value: &T) -> u64 {
-    let mut hasher = FxHasher::default();
-    value.hash(&mut hasher);
-    hasher.finish()
-}
+// pub fn hash_key<T: Hash>(value: &T) -> u64 {
+//     let mut hasher = FxHasher::default();
+//     value.hash(&mut hasher);
+//     hasher.finish()
+// }
 
 pub type ConnId = String;
 
 #[derive(Default)]
 pub struct WatchList {
-  keys: DashSet<u64>,
+  keys: DashSet<String>,
 }
 
 impl WatchList {
-  pub fn new() -> Self {
-    Self {
-      keys: DashSet::new(),
-    }
-  }
-
-  pub fn watch(&self, key: u64) {
-    self.keys.insert(key);
-  }
-
-  pub fn unwatch(&self, key: &u64) {
-    self.keys.remove(key);
-  }
-
-  pub fn is_watching(&self, key: &u64) -> bool {
-    self.keys.contains(key)
-  }
-
-  pub fn all(&self) -> Vec<u64> {
-    self.keys
-      .iter()
-      .map(|k| *k)
-      .collect()
-  }
-
-  pub fn watch_str(&self, key: &str) {
-    let hash = hash_key(&key);
-    self.watch(hash);
-}
-
-pub fn unwatch_str(&self, key: &str) {
-    let hash = hash_key(&key);
-    self.unwatch(&hash);
-}
-
-pub fn is_watching_str(&self, key: &str) -> bool {
-    let hash = hash_key(&key);
-    self.is_watching(&hash)
-}
+  
+    pub fn new() -> Self {
+        Self {
+          keys: DashSet::new(),
+        }
+      }
+    
+      pub fn watch(&self, key: impl Into<String>) {
+        self.keys.insert(key.into());
+      }
+    
+      pub fn unwatch(&self, key: &str) {
+        self.keys.remove(key);
+      }
+    
+      pub fn is_watching(&self, key: &str) -> bool {
+        self.keys.contains(key)
+      }
+    
+      pub fn all(&self) -> Vec<String> {
+        self.keys.iter().map(|k| k.clone()).collect()
+      }
 
 }
 

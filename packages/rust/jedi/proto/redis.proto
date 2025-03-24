@@ -49,6 +49,10 @@ message WatchCommand {
   string key = 1;
 }
 
+message UnwatchCommand {
+  string key = 1;
+}
+
 message RedisKeyUpdate {
   string key = 1;
   oneof state {
@@ -64,5 +68,16 @@ message RedisWsMessage {
     RedisKeyUpdate update = 2;
     RedisCommand command = 3;
     RedisEvent event = 4;
+    UnwatchCommand unwatch = 5;
+    Ping ping = 6;
+    Pong pong = 7;
   }
+}
+
+message Ping {
+  uint64 timestamp = 1;
+}
+
+message Pong {
+  uint64 timestamp = 1;
 }

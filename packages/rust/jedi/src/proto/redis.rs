@@ -81,6 +81,12 @@ pub struct WatchCommand {
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UnwatchCommand {
+    #[prost(string, tag = "1")]
+    pub key: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RedisKeyUpdate {
     #[prost(string, tag = "1")]
     pub key: ::prost::alloc::string::String,
@@ -103,7 +109,7 @@ pub mod redis_key_update {
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RedisWsMessage {
-    #[prost(oneof = "redis_ws_message::Message", tags = "1, 2, 3, 4")]
+    #[prost(oneof = "redis_ws_message::Message", tags = "1, 2, 3, 4, 5, 6, 7")]
     pub message: ::core::option::Option<redis_ws_message::Message>,
 }
 /// Nested message and enum types in `RedisWsMessage`.
@@ -119,7 +125,25 @@ pub mod redis_ws_message {
         Command(super::RedisCommand),
         #[prost(message, tag = "4")]
         Event(super::RedisEvent),
+        #[prost(message, tag = "5")]
+        Unwatch(super::UnwatchCommand),
+        #[prost(message, tag = "6")]
+        Ping(super::Ping),
+        #[prost(message, tag = "7")]
+        Pong(super::Pong),
     }
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct Ping {
+    #[prost(uint64, tag = "1")]
+    pub timestamp: u64,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct Pong {
+    #[prost(uint64, tag = "1")]
+    pub timestamp: u64,
 }
 /// Generated client implementations.
 pub mod redis_service_client {

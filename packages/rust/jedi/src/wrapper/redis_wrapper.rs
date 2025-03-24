@@ -503,5 +503,5 @@ pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
 }
 
 pub fn should_emit_update_hashed(key_update: &RedisKeyUpdate, list: &WatchList) -> bool {
-  list.is_watching_str(&key_update.key)
+  list.is_watching(&key_update.key)
 }
