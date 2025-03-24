@@ -42,6 +42,7 @@ message RedisEventObject {
   oneof object {
     RedisCommand command = 1;
     RedisEvent event = 2;
+    RedisKeyUpdate update = 3;
   }
 }
 

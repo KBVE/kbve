@@ -59,7 +59,7 @@ pub struct RedisEvent {
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RedisEventObject {
-    #[prost(oneof = "redis_event_object::Object", tags = "1, 2")]
+    #[prost(oneof = "redis_event_object::Object", tags = "1, 2, 3")]
     pub object: ::core::option::Option<redis_event_object::Object>,
 }
 /// Nested message and enum types in `RedisEventObject`.
@@ -71,6 +71,8 @@ pub mod redis_event_object {
         Command(super::RedisCommand),
         #[prost(message, tag = "2")]
         Event(super::RedisEvent),
+        #[prost(message, tag = "3")]
+        Update(super::RedisKeyUpdate),
     }
 }
 #[derive(serde::Serialize, serde::Deserialize)]
