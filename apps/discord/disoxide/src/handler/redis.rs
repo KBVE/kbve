@@ -7,11 +7,11 @@ use axum::{
 use axum::Router;
 use axum::routing::post;
 
-use jedi::wrapper::RedisEnvelope;
+use jedi::wrapper::{RedisEnvelope, redis_key_update_from_get};
 use std::sync::Arc;
 use crate::entity::state::GlobalState;
 
-use jedi::proto::redis::{SetCommand as RedisSetPayload, GetCommand as RedisGetPayload, RedisResponse};
+use jedi::proto::redis::{SetCommand as RedisSetPayload, GetCommand as RedisGetPayload, RedisResponse, RedisKeyUpdate};
 
 
 
@@ -26,25 +26,22 @@ pub async fn redis_set(
     }
 }
 
+
 pub async fn redis_get(
     State(state): State<Arc<GlobalState>>,
     Json(payload): Json<RedisGetPayload>,
 ) -> impl IntoResponse {
     let cmd = RedisEnvelope::get(payload.key.clone());
+
     match state.temple.send_redis(cmd).await {
         Ok(resp) => {
-            let value = resp.value;
-            Json(RedisResponse {
-                key: payload.key,
-                value: value,
-            })
-            .into_response()
+            let update = redis_key_update_from_get(payload.key, Some(resp.value));
+            Json(update).into_response()
         }
-        Err(_) => Json(RedisResponse {
-            key: payload.key,
-            value: None,
-        })
-        .into_response(),
+        Err(_) => {
+            let update = redis_key_update_from_get(payload.key, Option::<String>::None);
+            Json(update).into_response()
+        }
     }
 }
 
