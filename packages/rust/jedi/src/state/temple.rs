@@ -1,12 +1,12 @@
 use std::sync::Arc;
 use bb8_redis::{ RedisConnectionManager, bb8::Pool };
-use tokio::sync::{ mpsc::{ channel, Sender }, oneshot, broadcast };
+use tokio::{sync::{ broadcast, mpsc::{ channel, Sender }, oneshot }, task::JoinHandle};
 use super::watchmaster::WatchManager;
 
 use crate::{
   error::JediError,
   proto::redis::RedisResponse,
-  wrapper::redis_wrapper::{ spawn_redis_worker, RedisEnvelope, RedisEventEnvelope },
+  wrapper::redis_wrapper::{ spawn_redis_worker, RedisEnvelope, RedisEventEnvelope, spawn_pubsub_listener_task },
 };
 
 pub struct TempleState {
@@ -14,6 +14,7 @@ pub struct TempleState {
   pub redis_tx: Sender<RedisEnvelope>,
   pub event_tx: broadcast::Sender<RedisEventEnvelope>,
   pub watch_manager: WatchManager,
+  pub pubsub_task: JoinHandle<()>,
 }
 
 impl TempleState {
@@ -28,11 +29,20 @@ impl TempleState {
 
     let watch_manager = WatchManager::new();
 
+
+    let pubsub_task = spawn_pubsub_listener_task(
+      redis_url.to_string(),
+      vec!["key:1".into()],
+      event_tx.clone(),
+  );
+
+
     Arc::new(Self {
       redis_pool: pool,
       redis_tx: tx,
       event_tx,
       watch_manager,
+      pubsub_task
     })
   }
   pub async fn send_redis(&self, cmd: RedisEnvelope) -> Result<RedisResponse, JediError> {

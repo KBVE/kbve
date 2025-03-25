@@ -5,7 +5,7 @@ use tokio::sync::{mpsc, oneshot};
 use papaya::{ HashMap, Guard };
 use axum::body::Bytes;
 use tokio::time::Instant;
-use jedi::{state::temple::TempleState, wrapper::spawn_pubsub_listener};
+use jedi::{state::temple::TempleState, wrapper::spawn_pubsub_listener_task};
 // use super::helper::{ReadRequest, WriteRequest};
 
 use crate::proto::{store::StoreObj, wrapper::{ ReadEnvelope, StoreObjExt}};
@@ -92,7 +92,7 @@ impl GlobalState {
     let (read_tx, mut read_rx) = mpsc::channel::<ReadEnvelope>(1024);
 
     let temple = TempleState::new(redis_url).await;
-    let _ = spawn_pubsub_listener(redis_url, vec!["key:1".into()], temple.event_tx.clone()).await;
+    // let _ = spawn_pubsub_listener(redis_url, vec!["key:1".into()], temple.event_tx.clone()).await;
 
     tokio::spawn({
       let store_clone = store.clone();
