@@ -7,16 +7,16 @@ use axum::{
 use axum::Router;
 use axum::routing::post;
 
-use jedi::wrapper::{RedisEnvelope, redis_key_update_from_get};
+use jedi::{wrapper::{redis_key_update_from_get, RedisEnvelope}};
 use std::sync::Arc;
-use crate::entity::state::GlobalState;
+use crate::entity::state::{SharedState};
 
 use jedi::proto::redis::{SetCommand as RedisSetPayload, GetCommand as RedisGetPayload, RedisResponse, RedisKeyUpdate};
 
 
 
 pub async fn redis_set(
-    State(state): State<Arc<GlobalState>>,
+    State(state): State<SharedState>,
     Json(payload): Json<RedisSetPayload>,
 ) -> impl IntoResponse {
     let cmd = RedisEnvelope::set(payload.key.clone(), payload.value.clone());
@@ -28,7 +28,7 @@ pub async fn redis_set(
 
 
 pub async fn redis_get(
-    State(state): State<Arc<GlobalState>>,
+    State(state): State<SharedState>,
     Json(payload): Json<RedisGetPayload>,
 ) -> impl IntoResponse {
     let cmd = RedisEnvelope::get(payload.key.clone());
@@ -46,7 +46,7 @@ pub async fn redis_get(
 }
 
 pub async fn redis_del(
-    State(state): State<Arc<GlobalState>>,
+    State(state): State<SharedState>,
     Json(payload): Json<RedisGetPayload>,
 ) -> impl IntoResponse {
     let cmd = RedisEnvelope::del(payload.key.clone());
@@ -57,7 +57,7 @@ pub async fn redis_del(
 }
 
 
-pub fn redis_router() -> Router<Arc<GlobalState>> {
+pub fn redis_router() -> Router<SharedState> {
     Router::new()
         .route("/redis/set", post(redis_set))
         .route("/redis/get", post(redis_get))

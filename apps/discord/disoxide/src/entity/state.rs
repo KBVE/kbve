@@ -72,6 +72,7 @@ impl MetricsState {
 
 pub type StoreSharedState = Arc<RwLock<StoreState>>;
 pub type MetricsSharedState = Arc<MetricsState>;
+pub type TempleSharedState = Arc<TempleState>;
 
 //** Global State */
 
@@ -80,7 +81,7 @@ pub struct AppGlobalState {
   pub metrics: MetricsSharedState,
   pub write_tx: mpsc::Sender<StoreObj>,
   pub read_tx: mpsc::Sender<ReadEnvelope>,
-  pub temple: Arc<TempleState>,
+  pub temple: TempleSharedState,
 }
 
 impl AppGlobalState {
@@ -95,7 +96,11 @@ impl AppGlobalState {
     let (write_tx, mut write_rx) = mpsc::channel::<StoreObj>(1024);
     let (read_tx, mut read_rx) = mpsc::channel::<ReadEnvelope>(1024);
 
-    let temple = Arc::new(TempleState::new(redis_url).await);
+    let temple: Arc<TempleState> = Arc::new(
+      TempleState::new(redis_url)
+        .await
+        .expect("Failed to initialize TempleState")
+    );
     // let _ = spawn_pubsub_listener(redis_url, vec!["key:1".into()], temple.event_tx.clone()).await;
 
     tokio::spawn({
