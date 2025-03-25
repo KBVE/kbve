@@ -5,7 +5,7 @@ use tokio::sync::{mpsc, oneshot};
 use papaya::{ HashMap, Guard };
 use axum::body::Bytes;
 use tokio::time::Instant;
-use jedi::{state::temple::TempleState, wrapper::spawn_pubsub_listener_task};
+use jedi::state::temple::TempleState;
 // use super::helper::{ReadRequest, WriteRequest};
 
 use crate::proto::{store::StoreObj, wrapper::{ ReadEnvelope, StoreObjExt}};

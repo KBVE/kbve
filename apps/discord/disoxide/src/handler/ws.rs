@@ -96,6 +96,13 @@ async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
                     }
                   })
                 }
+                Some(Object::Update(update)) => {
+                    if watchlist_send.is_watching(&update.key) {
+                      Some(redis_ws_update_msg(update))
+                    } else {
+                      None
+                    }
+                  }
                 _ => None
               };
   

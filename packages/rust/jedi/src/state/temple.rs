@@ -19,6 +19,8 @@ pub struct TempleState {
 
 impl TempleState {
   pub async fn new(redis_url: &str) -> Arc<Self> {
+    tracing::info!("[Temple] TempleState::new() called");
+
     let manager = RedisConnectionManager::new(redis_url).unwrap();
     let pool = Pool::builder().build(manager).await.unwrap();
 
