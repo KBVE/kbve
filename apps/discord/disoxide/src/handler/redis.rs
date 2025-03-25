@@ -57,10 +57,9 @@ pub async fn redis_del(
 }
 
 
-pub fn redis_router(state: Arc<GlobalState>) -> Router<Arc<GlobalState>> {
+pub fn redis_router() -> Router<Arc<GlobalState>> {
     Router::new()
         .route("/redis/set", post(redis_set))
         .route("/redis/get", post(redis_get))
         .route("/redis/del", post(redis_del))
-        .with_state(state)
 }

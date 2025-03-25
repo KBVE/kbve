@@ -167,6 +167,6 @@ fn process_message(msg: Message) -> ControlFlow<(), ()> {
   ControlFlow::Continue(())
 }
 
-pub fn ws_router(state: Arc<GlobalState>) -> Router {
-  Router::new().route("/ws", get(websocket_handler)).with_state(state)
+pub fn ws_router() -> Router<Arc<GlobalState>> {
+  Router::new().route("/ws", get(websocket_handler))
 }

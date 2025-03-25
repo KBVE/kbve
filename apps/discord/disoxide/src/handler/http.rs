@@ -4,7 +4,8 @@ use crate::handler::{message, store, metrics, error::health};
 use crate::entity::state::GlobalState;
 use crate::handler::redis as redis_handler;
 
-pub fn http_router(state: Arc<GlobalState>) -> Router {
+
+pub fn http_router() -> Router<Arc<GlobalState>> {
     Router::new()
         .route("/user", get(message::get_user))
         .route("/message", get(message::get_message))
@@ -13,6 +14,5 @@ pub fn http_router(state: Arc<GlobalState>) -> Router {
         .route("/admin/clear", delete(store::clear_store))
         .route("/metrics", get(metrics::metrics))
         .route("/health", get(health))
-        .merge(redis_handler::redis_router(state.clone()))
-        .with_state(state)
+        .merge(redis_handler::redis_router())
 }

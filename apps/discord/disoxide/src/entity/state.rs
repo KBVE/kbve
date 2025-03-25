@@ -85,13 +85,17 @@ pub struct GlobalState {
 
 impl GlobalState {
   pub async fn new(redis_url: &str) -> Self {
+
+    tracing::info!("[GlobalState] GlobalState::new() called");
+
+
     let store = Arc::new(RwLock::new(StoreState::new()));
     let metrics = Arc::new(MetricsState::new());
 
     let (write_tx, mut write_rx) = mpsc::channel::<StoreObj>(1024);
     let (read_tx, mut read_rx) = mpsc::channel::<ReadEnvelope>(1024);
 
-    let temple = TempleState::new(redis_url).await;
+    let temple = Arc::new(TempleState::new(redis_url).await);
     // let _ = spawn_pubsub_listener(redis_url, vec!["key:1".into()], temple.event_tx.clone()).await;
 
     tokio::spawn({
