@@ -18,7 +18,7 @@ pub struct TempleState {
 }
 
 impl TempleState {
-  pub async fn new(redis_url: &str) -> Arc<Self> {
+  pub async fn new(redis_url: &str) -> Self {
     tracing::info!("[Temple] TempleState::new() called");
 
     let manager = RedisConnectionManager::new(redis_url).unwrap();
@@ -39,13 +39,13 @@ impl TempleState {
   );
 
 
-    Arc::new(Self {
+    Self {
       redis_pool: pool,
       redis_tx: tx,
       event_tx,
       watch_manager,
       pubsub_task
-    })
+    }
   }
   pub async fn send_redis(&self, cmd: RedisEnvelope) -> Result<RedisResponse, JediError> {
     let (tx, rx) = oneshot::channel();

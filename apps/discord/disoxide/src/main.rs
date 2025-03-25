@@ -3,7 +3,6 @@ mod entity;
 mod handler;
 use crate::proto::disoxide::{ UserData, ChatMessage };
 use crate::entity::state::GlobalState;
-
 use axum::{
   error_handling::HandleErrorLayer,
   response::IntoResponse,
@@ -46,12 +45,13 @@ async fn main() {
   //let shared_state = Arc::new(GlobalState::new());
   //   let shared_state = Arc::new(GlobalState::new("redis://:redispassword@redis:6379").await);
 
+  tracing::info!("[main] Starting Application...");
   let redis_cfg = RedisConfig::from_env();
   let shared_state = Arc::new(GlobalState::new(&redis_cfg.url).await);
 
   let app = Router::new()
-    .merge(handler::http::http_router(shared_state.clone()))
-    .merge(handler::ws::ws_router(shared_state.clone()))
+    .merge(handler::http::http_router())
+    .merge(handler::ws::ws_router())
     .layer(
       ServiceBuilder::new()
         .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
@@ -64,7 +64,8 @@ async fn main() {
         shared_state.clone(),
         crate::handler::metrics::track_execution_time
       )
-    );
+    )
+    .with_state(shared_state.clone());
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::info!("Listening on {}", listener.local_addr().unwrap());
