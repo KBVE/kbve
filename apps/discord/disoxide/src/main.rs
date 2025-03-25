@@ -2,7 +2,7 @@ mod proto;
 mod entity;
 mod handler;
 use crate::proto::disoxide::{ UserData, ChatMessage };
-use crate::entity::state::GlobalState;
+use crate::entity::state::AppGlobalState;
 use axum::{
   error_handling::HandleErrorLayer,
   response::IntoResponse,
@@ -47,7 +47,7 @@ async fn main() {
 
   tracing::info!("[main] Starting Application...");
   let redis_cfg = RedisConfig::from_env();
-  let shared_state = Arc::new(GlobalState::new(&redis_cfg.url).await);
+  let shared_state = Arc::new(AppGlobalState::new(&redis_cfg.url).await);
 
   let app = Router::new()
     .merge(handler::http::http_router())

@@ -69,6 +69,12 @@ impl TempleState {
   }
 }
 
+impl Drop for TempleState {
+  fn drop(&mut self) {
+      tracing::warn!("[Temple] TempleState has been DROPPED");
+  }
+}
+
 #[derive(Clone)]
 pub struct AppState(pub Arc<TempleState>);
 
