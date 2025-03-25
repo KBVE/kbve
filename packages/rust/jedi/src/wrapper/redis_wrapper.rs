@@ -168,9 +168,9 @@ impl RedisWsMessage {
 
   pub fn from_update(update: RedisKeyUpdate) -> Self {
     RedisWsMessage {
-        message: Some(redis_ws_message::Message::Update(update)),
+      message: Some(redis_ws_message::Message::Update(update)),
     }
-}
+  }
 
   pub fn as_json_string(&self) -> Option<String> {
     serde_json::to_string(self).ok()
@@ -284,7 +284,12 @@ pub async fn spawn_redis_worker(
   pool: Pool<RedisConnectionManager>,
   mut rx: Receiver<RedisEnvelope>
 ) {
+  
   tokio::spawn(async move {
+
+
+  tracing::info!("[Temple] About to spawn Redis worker");
+
     while let Some(envelope) = rx.recv().await {
       let mut conn = match pool.get().await {
         Ok(conn) => conn,
@@ -298,23 +303,28 @@ pub async fn spawn_redis_worker(
         RedisCommandType::Set { key, value } => {
           let res: redis::RedisResult<()> = conn.set(&key, &value).await;
           if res.is_ok() {
-              let update = redis_key_update_value(&key, &value);
-              let event = RedisEventObject {
-                  object: Some(redis_event_object::Object::Update(update)),
-              };
-      
-              if let Ok(payload) = serde_json::to_string(&event) {
-                  tracing::debug!("Publishing RedisKeyUpdate on Set for channel: {}", redis_channel_for_key(&key));
-                  let result: redis::RedisResult<i64> = conn.publish(redis_channel_for_key(&key), payload).await;
-                  tracing::debug!("Publish result SET: {:?}", result);
+            let update = redis_key_update_value(&key, &value);
+            let event = RedisEventObject {
+              object: Some(redis_event_object::Object::Update(update)),
+            };
 
-              }
+            if let Ok(payload) = serde_json::to_string(&event) {
+              tracing::debug!(
+                "Publishing RedisKeyUpdate on Set for channel: {}",
+                redis_channel_for_key(&key)
+              );
+              let result: redis::RedisResult<i64> = conn.publish(
+                redis_channel_for_key(&key),
+                payload
+              ).await;
+              tracing::debug!("Publish result SET: {:?}", result);
+            }
           }
           RedisResponse {
-              status: format!("{:?}", res),
-              value: String::new(),
+            status: format!("{:?}", res),
+            value: String::new(),
           }
-      }
+        }
         RedisCommandType::Get { key } => {
           let res: redis::RedisResult<String> = conn.get(&key).await;
           RedisResponse {
@@ -327,16 +337,21 @@ pub async fn spawn_redis_worker(
           if res.is_ok() {
             let update = redis_key_update_deleted(&key);
             let event = RedisEventObject {
-                object: Some(redis_event_object::Object::Update(update)),
+              object: Some(redis_event_object::Object::Update(update)),
             };
-    
-            if let Ok(payload) = serde_json::to_string(&event) {
-              tracing::debug!("Publishing RedisKeyUpdate for Del on channel: {}", redis_channel_for_key(&key));
-              let result: redis::RedisResult<i64> = conn.publish(redis_channel_for_key(&key), payload).await;
-              tracing::debug!("Publish result DEL: {:?}", result);
 
+            if let Ok(payload) = serde_json::to_string(&event) {
+              tracing::debug!(
+                "Publishing RedisKeyUpdate for Del on channel: {}",
+                redis_channel_for_key(&key)
+              );
+              let result: redis::RedisResult<i64> = conn.publish(
+                redis_channel_for_key(&key),
+                payload
+              ).await;
+              tracing::debug!("Publish result DEL: {:?}", result);
             }
-        }
+          }
           RedisResponse {
             status: format!("{:?}", res),
             value: String::new(),
@@ -351,13 +366,16 @@ pub async fn spawn_redis_worker(
   });
 }
 
-
 pub fn spawn_pubsub_listener_task(
   redis_url: String,
   channels: Vec<String>,
-  event_tx: BroadcastSender<RedisEventEnvelope>,
+  event_tx: BroadcastSender<RedisEventEnvelope>
 ) -> JoinHandle<()> {
-  tokio::spawn(async move {
+  tracing::info!("[Temple] About to spawn PubSub listener task");
+
+  let handle = tokio::spawn(async move {
+    tracing::info!("[Temple] PubSub task starting...");
+
     let full_url = if redis_url.contains('?') {
       format!("{redis_url}&protocol=resp3")
     } else {
@@ -432,7 +450,10 @@ pub fn spawn_pubsub_listener_task(
     }
 
     tracing::warn!("[Temple] PubSub listener has exited.");
-  })
+  });
+
+  tracing::info!("[Temple] spawn_pubsub_listener_task returned JoinHandle");
+  handle
 }
 
 pub fn redis_key_update_value<K, V>(key: K, value: V) -> RedisKeyUpdate
