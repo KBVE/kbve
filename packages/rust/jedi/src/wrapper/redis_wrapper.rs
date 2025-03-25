@@ -5,6 +5,7 @@ use bb8_redis::{ bb8::Pool, RedisConnectionManager };
 use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
 use futures_util::{ StreamExt, SinkExt };
 use dashmap::DashSet;
+use tokio::task::JoinHandle;
 
 use crate::proto::redis::{ redis_event_object, redis_ws_message, RedisWsMessage };
 use crate::proto::redis::{
@@ -344,44 +345,60 @@ pub async fn spawn_redis_worker(
   });
 }
 
-pub async fn spawn_pubsub_listener(
-  redis_url: &str,
+
+pub fn spawn_pubsub_listener_task(
+  redis_url: String,
   channels: Vec<String>,
-  event_tx: BroadcastSender<RedisEventEnvelope>
-) -> RedisResult<()> {
-  let full_url = if redis_url.contains('?') {
-    format!("{redis_url}&protocol=resp3")
-  } else {
-    format!("{redis_url}?protocol=resp3")
-  };
-
-  tracing::info!("Connecting to Redis for PubSub at: {}", full_url);
-  let client = Client::open(full_url)?;
-  let (tx, mut rx) = unbounded_channel::<PushInfo>();
-
-  let config = AsyncConnectionConfig::default().set_push_sender(tx);
-  let mut conn = client.get_multiplexed_async_connection_with_config(&config).await?;
-
-  for ch in &channels {
-    tracing::info!("Subscribed to Redis channel: {}", ch);
-    conn.subscribe(ch).await?;
-  }
-
+  event_tx: BroadcastSender<RedisEventEnvelope>,
+) -> JoinHandle<()> {
   tokio::spawn(async move {
-    while let Some(push) = rx.recv().await {
+    let full_url = if redis_url.contains('?') {
+      format!("{redis_url}&protocol=resp3")
+    } else {
+      format!("{redis_url}?protocol=resp3")
+    };
 
-      tracing::debug!("Received push: kind={:?} data={:?}", push.kind, push.data);
+    tracing::info!("[Temple] Connecting to Redis for PubSub at: {}", full_url);
+    let client = match redis::Client::open(full_url) {
+      Ok(client) => client,
+      Err(e) => {
+        tracing::error!("[Temple] Failed to create Redis client: {}", e);
+        return;
+      }
+    };
+
+    let (tx, mut rx) = unbounded_channel::<PushInfo>();
+    let config = AsyncConnectionConfig::default().set_push_sender(tx);
+
+    let mut conn = match client.get_multiplexed_async_connection_with_config(&config).await {
+      Ok(c) => c,
+      Err(e) => {
+        tracing::error!("[Temple] Failed to establish Redis connection: {}", e);
+        return;
+      }
+    };
+
+    for ch in &channels {
+      tracing::info!("[Temple] Subscribed to Redis channel: {}", ch);
+      if let Err(e) = conn.subscribe(ch).await {
+        tracing::error!("[Temple] Failed to subscribe to {}: {}", ch, e);
+      }
+    }
+
+    while let Some(push) = rx.recv().await {
+      tracing::debug!("[Temple] Received push: kind={:?} data={:?}", push.kind, push.data);
+
       match push.kind {
         PushKind::Message | PushKind::PMessage | PushKind::SMessage => {
           if push.data.len() >= 3 {
             match (&push.data[1], &push.data[2]) {
               (Value::BulkString(channel), Value::BulkString(payload)) => {
                 let channel = String::from_utf8_lossy(channel).to_string();
-                tracing::debug!("Received PubSub message on channel: {}", channel);
-                tracing::debug!("Raw payload: {:?}", String::from_utf8_lossy(payload));
+                tracing::debug!("[Temple] Received PubSub message on channel: {}", channel);
+                tracing::debug!("[Temple] Raw payload: {:?}", String::from_utf8_lossy(payload));
                 match serde_json::from_slice::<RedisEventObject>(payload) {
                   Ok(event) => {
-                    tracing::debug!("Parsed RedisEventObject successfully");
+                    tracing::debug!("[Temple] Parsed RedisEventObject successfully");
                     let envelope = RedisEventEnvelope {
                       channel,
                       event,
@@ -390,26 +407,26 @@ pub async fn spawn_pubsub_listener(
                     let _ = event_tx.send(envelope);
                   }
                   Err(e) => {
-                    tracing::warn!("Failed to parse RedisEventObject: {}", e);
+                    tracing::warn!("[Temple] Failed to parse RedisEventObject: {}", e);
                   }
                 }
               }
               _ => {
-                tracing::debug!("Unexpected pubsub data format: {:?}", push.data);
+                tracing::debug!("[Temple] Unexpected pubsub data format: {:?}", push.data);
               }
             }
           } else {
-            tracing::debug!("Insufficient pubsub data length: {:?}", push.data);
+            tracing::debug!("[Temple] Insufficient pubsub data length: {:?}", push.data);
           }
         }
         other => {
-          tracing::debug!("Ignored push kind: {:?}", other);
+          tracing::debug!("[Temple] Ignored push kind: {:?}", other);
         }
       }
     }
-  });
 
-  Ok(())
+    tracing::warn!("[Temple] PubSub listener has exited.");
+  })
 }
 
 pub fn redis_key_update_value<K, V>(key: K, value: V) -> RedisKeyUpdate
