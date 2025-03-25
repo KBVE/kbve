@@ -166,6 +166,12 @@ impl RedisWsMessage {
     }
   }
 
+  pub fn from_update(update: RedisKeyUpdate) -> Self {
+    RedisWsMessage {
+        message: Some(redis_ws_message::Message::Update(update)),
+    }
+}
+
   pub fn as_json_string(&self) -> Option<String> {
     serde_json::to_string(self).ok()
   }
