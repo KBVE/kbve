@@ -18,11 +18,14 @@ pub struct TempleState {
 }
 
 impl TempleState {
-  pub async fn new(redis_url: &str) -> Self {
+  pub async fn new(redis_url: &str) -> Result<Self, JediError> {
     tracing::info!("[Temple] TempleState::new() called");
 
-    let manager = RedisConnectionManager::new(redis_url).unwrap();
-    let pool = Pool::builder().build(manager).await.unwrap();
+    let manager = RedisConnectionManager::new(redis_url)
+    .map_err(|e| JediError::Internal(format!("RedisConnectionManager failed: {e}").into()))?;
+
+    let pool = Pool::builder().build(manager).await
+      .map_err(|e| JediError::Internal(format!("Redis pool build failed: {e}").into()))?;
 
     let (tx, rx) = channel(100);
     spawn_redis_worker(pool.clone(), rx).await;
@@ -38,14 +41,15 @@ impl TempleState {
       event_tx.clone(),
   );
 
+  tracing::info!("[Temple] TempleState fully initialized");
 
-    Self {
+    Ok(Self {
       redis_pool: pool,
       redis_tx: tx,
       event_tx,
       watch_manager,
       pubsub_task
-    }
+    })
   }
   pub async fn send_redis(&self, cmd: RedisEnvelope) -> Result<RedisResponse, JediError> {
     let (tx, rx) = oneshot::channel();
