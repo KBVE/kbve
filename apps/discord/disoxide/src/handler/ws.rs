@@ -8,7 +8,7 @@ use axum::{
 use futures_util::{ StreamExt, SinkExt };
 use std::{ sync::Arc, ops::ControlFlow };
 // use tokio::sync::broadcast;
-use crate::entity::state::GlobalState;
+use crate::entity::state::{AppGlobalState, SharedState};
 
 use jedi::wrapper::{
   redis_ws_update_msg,
@@ -33,12 +33,12 @@ use jedi::watchmaster::{ WatchList, WatchManager };
 
 async fn websocket_handler(
   ws: WebSocketUpgrade,
-  State(state): State<Arc<GlobalState>>
+  State(state): State<Arc<AppGlobalState>>
 ) -> impl IntoResponse {
   ws.on_upgrade(move |socket| handle_websocket(socket, state))
 }
 
-async fn handle_websocket(socket: WebSocket, state: Arc<GlobalState>) {
+async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
   // let (tx, _rx) = broadcast::channel::<String>(MAX_CONNECTIONS);
 
   let conn_id = new_ulid_string();
@@ -167,6 +167,6 @@ fn process_message(msg: Message) -> ControlFlow<(), ()> {
   ControlFlow::Continue(())
 }
 
-pub fn ws_router() -> Router<Arc<GlobalState>> {
+pub fn ws_router() -> Router<SharedState> {
   Router::new().route("/ws", get(websocket_handler))
 }

@@ -135,7 +135,7 @@ pub async fn list_keys(State(state): State<SharedState>) -> Result<Json<Vec<Stri
   }
 }
 
-pub async fn clear_store(State(mut state): State<SharedState>) -> Result<
+pub async fn clear_store(State(state): State<SharedState>) -> Result<
   impl IntoResponse,
   AppError
 > {

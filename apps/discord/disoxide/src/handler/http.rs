@@ -1,11 +1,11 @@
 use axum::{Router, routing::{get, post, delete}};
 use std::sync::Arc;
 use crate::handler::{message, store, metrics, error::health};
-use crate::entity::state::GlobalState;
+use crate::entity::state::{AppGlobalState, SharedState};
 use crate::handler::redis as redis_handler;
 
 
-pub fn http_router() -> Router<Arc<GlobalState>> {
+pub fn http_router() -> Router<SharedState> {
     Router::new()
         .route("/user", get(message::get_user))
         .route("/message", get(message::get_message))

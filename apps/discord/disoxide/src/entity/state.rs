@@ -75,7 +75,7 @@ pub type MetricsSharedState = Arc<MetricsState>;
 
 //** Global State */
 
-pub struct GlobalState {
+pub struct AppGlobalState {
   pub store: StoreSharedState,
   pub metrics: MetricsSharedState,
   pub write_tx: mpsc::Sender<StoreObj>,
@@ -83,10 +83,10 @@ pub struct GlobalState {
   pub temple: Arc<TempleState>,
 }
 
-impl GlobalState {
+impl AppGlobalState {
   pub async fn new(redis_url: &str) -> Self {
 
-    tracing::info!("[GlobalState] GlobalState::new() called");
+    tracing::info!("[AppGlobalState] AppGlobalState::new() called");
 
 
     let store = Arc::new(RwLock::new(StoreState::new()));
@@ -151,4 +151,4 @@ impl GlobalState {
   }
 }
 
-pub type SharedState = Arc<GlobalState>;
+pub type SharedState = Arc<AppGlobalState>;
