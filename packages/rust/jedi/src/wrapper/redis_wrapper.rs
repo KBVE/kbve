@@ -414,8 +414,8 @@ pub fn spawn_pubsub_listener_task(
 
       match push.kind {
         PushKind::Message | PushKind::PMessage | PushKind::SMessage => {
-          if push.data.len() >= 3 {
-            match (&push.data[1], &push.data[2]) {
+          if push.data.len() >= 2 {
+            match (&push.data[0], &push.data[1]) {
               (Value::BulkString(channel), Value::BulkString(payload)) => {
                 let channel = String::from_utf8_lossy(channel).to_string();
                 tracing::debug!("[Temple] Received PubSub message on channel: {}", channel);
