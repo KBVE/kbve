@@ -1,6 +1,4 @@
 use std::sync::Arc;
-
-use papaya::Guard;
 use redis::aio::MultiplexedConnection;
 use serde::{ Deserialize, Serialize };
 use tokio::sync::{ oneshot, broadcast::Sender as BroadcastSender };
@@ -524,18 +522,21 @@ pub fn redis_key_update_from_command(cmd: &RedisCommand) -> Option<RedisKeyUpdat
 pub fn should_emit_update(
   key_update: &RedisKeyUpdate,
   watch_manager: &WatchManager,
-  guard: &impl Guard
 ) -> bool {
   let key_arc = Arc::<str>::from(key_update.key.as_str());
-  watch_manager.key_to_conns.get(&key_arc, guard).map_or(false, |set| !set.is_empty())
+  let guard = watch_manager.key_to_conns.guard();
+
+  watch_manager
+    .key_to_conns
+    .get(&key_arc, &guard)
+    .map_or(false, |set| !set.is_empty())
 }
 
 pub fn create_ws_update_if_watched(
   key_update: &RedisKeyUpdate,
   watch_manager: &WatchManager,
-  guard: &impl Guard
 ) -> Option<RedisWsMessage> {
-  if should_emit_update(key_update, watch_manager, guard) {
+  if should_emit_update(key_update, watch_manager) {
     Some(redis_ws_update_msg(key_update.clone()))
   } else {
     None
@@ -618,7 +619,7 @@ pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
 pub fn should_emit_update_hashed(
   key_update: &RedisKeyUpdate,
   watch_manager: &WatchManager,
-  guard: &impl Guard
 ) -> bool {
-  watch_manager.has_watchers(&*key_update.key, guard)
+  watch_manager.has_watchers(&*key_update.key)
 }
+
