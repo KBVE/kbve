@@ -8,7 +8,7 @@ use axum::{
 use futures_util::{ StreamExt, SinkExt };
 use std::{ sync::Arc, ops::ControlFlow };
 // use tokio::sync::broadcast;
-use crate::entity::state::{AppGlobalState, SharedState};
+use crate::entity::state::{ AppGlobalState, SharedState };
 
 use jedi::wrapper::{
   redis_ws_update_msg,
@@ -26,8 +26,8 @@ use jedi::proto::redis::{
   redis_event_object::Object,
 };
 
-use jedi::entity::ulid::new_ulid_string;
-use jedi::watchmaster::{ WatchList, WatchManager };
+use jedi::entity::ulid::ConnectionId;
+use jedi::watchmaster::WatchManager;
 
 // const MAX_CONNECTIONS: usize = 1000;
 
@@ -39,31 +39,31 @@ async fn websocket_handler(
 }
 
 async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
-  // let (tx, _rx) = broadcast::channel::<String>(MAX_CONNECTIONS);
+  let conn_id = ConnectionId::new();
+  let conn_id_bytes = conn_id.as_bytes();
 
-  let conn_id = new_ulid_string();
-  let watchlist = {
-    let guard = state.temple.watch_manager.guard();
-    state.temple.watch_manager.create_watchlist(conn_id.clone(), &guard)
-  };
-  let mut rx = state.temple.subscribe_events();
   let (mut sender, mut receiver) = socket.split();
+  let mut redis_rx = state.temple.subscribe_events();
+  let state_recv = Arc::clone(&state);
+  let state_send = Arc::clone(&state);
 
-  let state_clone = state.clone();
-  let conn_id_clone = conn_id.clone();
-
-  let watchlist_recv = watchlist.clone();
   let mut recv_task = tokio::spawn(async move {
     while let Some(Ok(msg)) = receiver.next().await {
       if let Message::Text(text) = msg {
         match parse_ws_command(&text) {
           Ok(ws_msg) => {
             if let Some(key) = extract_watch_command_key(&ws_msg) {
-              watchlist_recv.watch(key);
-              tracing::info!("Connection {} is now watching key: {}", conn_id_clone, key);
+              let key_arc: Arc<str> = Arc::from(key);
+              let guard = state_recv.temple.watch_manager.guard();
+              state_recv.temple.watch_manager.watch(conn_id_bytes, key_arc.clone(), &guard);
+
+              tracing::info!(
+                "Connection {} is now watching key: {}",
+                conn_id.as_str(),
+                key_arc
+              );
             } else if let Some(cmd) = build_redis_envelope_from_ws(&ws_msg) {
-              let temple = &state_clone.temple;
-              let _ = temple.send_redis(cmd).await;
+              let _ = state_recv.temple.send_redis(cmd).await;
             }
           }
           Err(e) => tracing::warn!("Invalid WebSocket message: {}", e),
@@ -73,23 +73,21 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
       }
     }
 
-    // On disconnect ! IMPORTANT
-    let guard = state_clone.temple.watch_manager.guard();
-    state_clone.temple.watch_manager.remove_watchlist(&conn_id_clone, &guard);
+    let guard = state_recv.temple.watch_manager.guard();
+    state_recv.temple.watch_manager.remove_connection(&conn_id_bytes, &guard);
   });
-
-  let watchlist_send = watchlist.clone();
 
   let mut send_task = tokio::spawn(async move {
     loop {
       tokio::select! {
-        msg = rx.recv() => {
+        msg = redis_rx.recv() => {
           match msg {
             Ok(envelope) => {
               let maybe_update = match envelope.event.object {
                 Some(Object::Command(cmd)) => {
                   redis_key_update_from_command(&cmd).and_then(|upd| {
-                    if watchlist_send.is_watching(&upd.key) {
+                    let guard = state_send.temple.watch_manager.guard();
+                    if state_send.temple.watch_manager.is_watching(&conn_id_bytes, &*upd.key, &guard) {
                       Some(redis_ws_update_msg(upd))
                     } else {
                       None
@@ -97,15 +95,16 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
                   })
                 }
                 Some(Object::Update(update)) => {
-                    if watchlist_send.is_watching(&update.key) {
-                      Some(redis_ws_update_msg(update))
-                    } else {
-                      None
-                    }
+                  let guard = state_send.temple.watch_manager.guard();
+                  if state_send.temple.watch_manager.is_watching(&conn_id_bytes, &*update.key, &guard) {
+                    Some(redis_ws_update_msg(update))
+                  } else {
+                    None
                   }
-                _ => None
+                }
+                _ => None,
               };
-  
+
               if let Some(ws_msg) = maybe_update {
                 if let Some(json) = ws_msg.as_json_string() {
                   if sender.send(Message::Text(json.into())).await.is_err() {
@@ -115,11 +114,12 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
               }
             }
             Err(err) => {
-              tracing::warn!("Failed to receive Redis event: {:?}", err);
+              tracing::warn!("Redis event receive failed: {:?}", err);
               break;
             }
           }
         }
+
         _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
           if sender.send(Message::Ping(vec![1, 2, 3].into())).await.is_err() {
             break;
@@ -130,16 +130,13 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
   });
 
   tokio::select! {
-        _ = (&mut send_task) => {
-            recv_task.abort();
-        },
-        _ = (&mut recv_task) => {
-            send_task.abort();
-        }
-    }
+    _ = &mut send_task => recv_task.abort(),
+    _ = &mut recv_task => send_task.abort(),
+  }
 
   tracing::info!("WebSocket connection closed.");
 }
+
 
 fn process_message(msg: Message) -> ControlFlow<(), ()> {
   match msg {
