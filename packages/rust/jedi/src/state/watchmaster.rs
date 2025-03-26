@@ -68,26 +68,26 @@ impl WatchManager {
   pub fn unwatch<K: Into<Arc<str>>>(&self, conn_id: &ConnId, key: K, guard: &impl Guard) -> bool {
     let key_arc = key.into();
     let mut last = false;
-  
+
     if let Some(conns) = self.key_to_conns.get(&key_arc, guard) {
       conns.remove(conn_id);
       if conns.is_empty() {
         self.key_to_conns.remove(&key_arc, guard);
         last = true;
-  
+
         let _ = self.event_tx.try_send(WatchEvent::Unwatch(Arc::clone(&key_arc)));
       }
     }
-  
+
     if let Some(keys) = self.conn_to_keys.get(conn_id, guard) {
       keys.remove(&key_arc);
       if keys.is_empty() {
         self.conn_to_keys.remove(conn_id, guard);
       }
     }
-  
+
     last
-  }  
+  }
 
   pub fn remove_connection(&self, conn_id: &ConnId, guard: &impl Guard) -> Vec<Arc<str>> {
     let mut removed_keys = Vec::new();
@@ -136,5 +136,13 @@ impl WatchManager {
         f(key.key());
       }
     }
+  }
+
+  pub fn has_watchers<K: Into<Arc<str>>>(&self, key: K, guard: &impl Guard) -> bool {
+    let key_arc = key.into();
+    self.key_to_conns
+      .get(&key_arc, guard)
+      .map(|set| !set.is_empty())
+      .unwrap_or(false)
   }
 }

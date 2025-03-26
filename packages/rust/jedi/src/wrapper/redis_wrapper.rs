@@ -1,3 +1,7 @@
+use std::sync::Arc;
+
+use papaya::Guard;
+use redis::aio::MultiplexedConnection;
 use serde::{ Deserialize, Serialize };
 use tokio::sync::{ oneshot, broadcast::Sender as BroadcastSender };
 use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver };
@@ -7,6 +11,7 @@ use futures_util::{ StreamExt, SinkExt };
 use dashmap::DashSet;
 use tokio::task::JoinHandle;
 
+use crate::error::JediError;
 use crate::proto::redis::{ redis_event_object, redis_ws_message, RedisWsMessage };
 use crate::proto::redis::{
   RedisCommand,
@@ -20,7 +25,7 @@ use crate::proto::redis::{
   RedisKeyUpdate,
   redis_key_update::State,
 };
-use crate::watchmaster::WatchList;
+use crate::watchmaster::{ WatchEvent, WatchManager };
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RedisEnvelope {
@@ -278,17 +283,41 @@ impl From<&RedisEnvelope> for RedisCommand {
   }
 }
 
+// ** Redis Cluster Connection
+
+pub async fn create_pubsub_connection(
+  redis_url: &str
+) -> Result<(MultiplexedConnection, UnboundedReceiver<PushInfo>), JediError> {
+  let full_url = if redis_url.contains('?') {
+    format!("{redis_url}&protocol=resp3")
+  } else {
+    format!("{redis_url}?protocol=resp3")
+  };
+
+  tracing::info!("[Temple] Connecting to Redis PubSub at {full_url}");
+
+  let client = Client::open(full_url.clone()).map_err(|e|
+    JediError::Internal(format!("Redis client error: {e}").into())
+  )?;
+
+  let (push_tx, push_rx) = unbounded_channel::<PushInfo>();
+  let config = AsyncConnectionConfig::default().set_push_sender(push_tx);
+
+  let conn = client
+    .get_multiplexed_async_connection_with_config(&config).await
+    .map_err(|e| JediError::Internal(format!("Redis connection error: {e}").into()))?;
+
+  Ok((conn, push_rx))
+}
+
 //  ** Redis Handler
 
 pub async fn spawn_redis_worker(
   pool: Pool<RedisConnectionManager>,
   mut rx: Receiver<RedisEnvelope>
 ) {
-  
   tokio::spawn(async move {
-
-
-  tracing::info!("[Temple] About to spawn Redis worker");
+    tracing::info!("[Temple] About to spawn Redis worker");
 
     while let Some(envelope) = rx.recv().await {
       let mut conn = match pool.get().await {
@@ -367,49 +396,13 @@ pub async fn spawn_redis_worker(
 }
 
 pub fn spawn_pubsub_listener_task(
-  redis_url: String,
-  channels: Vec<String>,
+  mut push_rx: UnboundedReceiver<PushInfo>,
   event_tx: BroadcastSender<RedisEventEnvelope>
 ) -> JoinHandle<()> {
-  tracing::info!("[Temple] About to spawn PubSub listener task");
+  tracing::info!("[Temple] Spawning Redis PubSub listener task");
 
-  let handle = tokio::spawn(async move {
-    tracing::info!("[Temple] PubSub task starting...");
-
-    let full_url = if redis_url.contains('?') {
-      format!("{redis_url}&protocol=resp3")
-    } else {
-      format!("{redis_url}?protocol=resp3")
-    };
-
-    tracing::info!("[Temple] Connecting to Redis for PubSub at: {}", full_url);
-    let client = match redis::Client::open(full_url) {
-      Ok(client) => client,
-      Err(e) => {
-        tracing::error!("[Temple] Failed to create Redis client: {}", e);
-        return;
-      }
-    };
-
-    let (tx, mut rx) = unbounded_channel::<PushInfo>();
-    let config = AsyncConnectionConfig::default().set_push_sender(tx);
-
-    let mut conn = match client.get_multiplexed_async_connection_with_config(&config).await {
-      Ok(c) => c,
-      Err(e) => {
-        tracing::error!("[Temple] Failed to establish Redis connection: {}", e);
-        return;
-      }
-    };
-
-    for ch in &channels {
-      tracing::info!("[Temple] Subscribed to Redis channel: {}", ch);
-      if let Err(e) = conn.subscribe(ch).await {
-        tracing::error!("[Temple] Failed to subscribe to {}: {}", ch, e);
-      }
-    }
-
-    while let Some(push) = rx.recv().await {
+  tokio::spawn(async move {
+    while let Some(push) = push_rx.recv().await {
       tracing::debug!("[Temple] Received push: kind={:?} data={:?}", push.kind, push.data);
 
       match push.kind {
@@ -420,9 +413,9 @@ pub fn spawn_pubsub_listener_task(
                 let channel = String::from_utf8_lossy(channel).to_string();
                 tracing::debug!("[Temple] Received PubSub message on channel: {}", channel);
                 tracing::debug!("[Temple] Raw payload: {:?}", String::from_utf8_lossy(payload));
+
                 match serde_json::from_slice::<RedisEventObject>(payload) {
                   Ok(event) => {
-                    tracing::debug!("[Temple] Parsed RedisEventObject successfully");
                     let envelope = RedisEventEnvelope {
                       channel,
                       event,
@@ -443,17 +436,47 @@ pub fn spawn_pubsub_listener_task(
             tracing::debug!("[Temple] Insufficient pubsub data length: {:?}", push.data);
           }
         }
-        other => {
-          tracing::debug!("[Temple] Ignored push kind: {:?}", other);
+        _ => {
+          tracing::debug!("[Temple] Ignored push kind: {:?}", push.kind);
         }
       }
     }
 
     tracing::warn!("[Temple] PubSub listener has exited.");
-  });
+  })
+}
 
-  tracing::info!("[Temple] spawn_pubsub_listener_task returned JoinHandle");
-  handle
+pub fn spawn_watch_event_listener(
+  mut rx: Receiver<WatchEvent>,
+  mut conn: MultiplexedConnection
+) -> JoinHandle<()> {
+  tracing::info!("[Temple] Spawning Redis WatchEvent listener task");
+
+  tokio::spawn(async move {
+    while let Some(event) = rx.recv().await {
+      match event {
+        WatchEvent::Watch(key) => {
+          let channel = format!("key:{}", key);
+          tracing::info!("[Temple] Subscribing to Redis channel: {}", channel);
+
+          if let Err(e) = conn.subscribe(&channel).await {
+            tracing::error!("[Temple] Failed to subscribe to {channel}: {}", e);
+          }
+        }
+
+        WatchEvent::Unwatch(key) => {
+          let channel = format!("key:{}", key);
+          tracing::info!("[Temple] Unsubscribing from Redis channel: {}", channel);
+
+          if let Err(e) = conn.unsubscribe(&channel).await {
+            tracing::error!("[Temple] Failed to unsubscribe from {channel}: {}", e);
+          }
+        }
+      }
+    }
+
+    tracing::warn!("[Temple] Redis WatchEvent listener exiting");
+  })
 }
 
 pub fn redis_key_update_value<K, V>(key: K, value: V) -> RedisKeyUpdate
@@ -498,15 +521,21 @@ pub fn redis_key_update_from_command(cmd: &RedisCommand) -> Option<RedisKeyUpdat
   }
 }
 
-pub fn should_emit_update(key_update: &RedisKeyUpdate, watchlist: &DashSet<String>) -> bool {
-  watchlist.contains(&key_update.key)
+pub fn should_emit_update(
+  key_update: &RedisKeyUpdate,
+  watch_manager: &WatchManager,
+  guard: &impl Guard
+) -> bool {
+  let key_arc = Arc::<str>::from(key_update.key.as_str());
+  watch_manager.key_to_conns.get(&key_arc, guard).map_or(false, |set| !set.is_empty())
 }
 
 pub fn create_ws_update_if_watched(
   key_update: &RedisKeyUpdate,
-  watchlist: &DashSet<String>
+  watch_manager: &WatchManager,
+  guard: &impl Guard
 ) -> Option<RedisWsMessage> {
-  if should_emit_update(key_update, watchlist) {
+  if should_emit_update(key_update, watch_manager, guard) {
     Some(redis_ws_update_msg(key_update.clone()))
   } else {
     None
@@ -517,9 +546,9 @@ pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error>
   serde_json::from_str::<RedisWsMessage>(json)
 }
 
-pub fn extract_watch_command_key(msg: &RedisWsMessage) -> Option<&str> {
+pub fn extract_watch_command_key(msg: &RedisWsMessage) -> Option<Arc<str>> {
   match &msg.message {
-    Some(redis_ws_message::Message::Watch(cmd)) => Some(&cmd.key),
+    Some(redis_ws_message::Message::Watch(cmd)) => Some(Arc::from(cmd.key.as_str())),
     _ => None,
   }
 }
@@ -531,19 +560,18 @@ pub fn build_redis_envelope_from_ws(msg: &RedisWsMessage) -> Option<RedisEnvelop
   }
 }
 
-pub fn add_watch_key(watchlist: &DashSet<String>, key: impl Into<String>) {
+pub fn add_watch_key(watchlist: &DashSet<Arc<str>>, key: impl Into<Arc<str>>) {
   watchlist.insert(key.into());
 }
 
-pub fn remove_watch_key(watchlist: &DashSet<String>, key: &str) {
-  watchlist.remove(key);
+pub fn remove_watch_key(watchlist: &DashSet<Arc<str>>, key: &str) {
+  watchlist.remove(&Arc::<str>::from(key));
 }
 
 pub fn redis_key_update_from_response(
-  key: impl Into<String>,
+  key: impl AsRef<str>,
   resp: &RedisResponse
 ) -> RedisKeyUpdate {
-  let key = key.into();
   if resp.value.is_empty() {
     redis_key_update_deleted(key)
   } else {
@@ -560,11 +588,21 @@ pub fn format_key_update_log(update: &RedisKeyUpdate) -> String {
   format!("{} -> {}", k, v)
 }
 
-pub fn filter_updates_for_watchlist<'a>(
+pub fn filter_updates_for_active_keys<'a>(
   updates: impl Iterator<Item = &'a RedisKeyUpdate>,
-  watchlist: &DashSet<String>
+  watch_manager: &WatchManager,
+  guard: &impl Guard
 ) -> Vec<RedisWsMessage> {
-  updates.filter_map(|upd| create_ws_update_if_watched(upd, watchlist)).collect()
+  updates
+    .filter_map(|upd| {
+      let key_arc = Arc::<str>::from(upd.key.as_str());
+      if watch_manager.key_to_conns.get(&key_arc, guard).map_or(false, |set| !set.is_empty()) {
+        Some(redis_ws_update_msg(upd.clone()))
+      } else {
+        None
+      }
+    })
+    .collect()
 }
 
 pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
@@ -577,6 +615,10 @@ pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
   }
 }
 
-pub fn should_emit_update_hashed(key_update: &RedisKeyUpdate, list: &WatchList) -> bool {
-  list.is_watching(&key_update.key)
+pub fn should_emit_update_hashed(
+  key_update: &RedisKeyUpdate,
+  watch_manager: &WatchManager,
+  guard: &impl Guard
+) -> bool {
+  watch_manager.has_watchers(&*key_update.key, guard)
 }
