@@ -54,9 +54,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
           Ok(ws_msg) => {
             if let Some(key) = extract_watch_command_key(&ws_msg) {
               let key_arc: Arc<str> = Arc::from(key);
-              let guard = state_recv.temple.watch_manager.guard();
-              state_recv.temple.watch_manager.watch(conn_id_bytes, key_arc.clone(), &guard);
-
+              state_recv.temple.watch_manager.watch(conn_id_bytes, key_arc.clone());
               tracing::info!(
                 "Connection {} is now watching key: {}",
                 conn_id.as_str(),
@@ -73,8 +71,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
       }
     }
 
-    let guard = state_recv.temple.watch_manager.guard();
-    state_recv.temple.watch_manager.remove_connection(&conn_id_bytes, &guard);
+    state_recv.temple.watch_manager.remove_connection(&conn_id_bytes);
   });
 
   let mut send_task = tokio::spawn(async move {
@@ -86,8 +83,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
               let maybe_update = match envelope.event.object {
                 Some(Object::Command(cmd)) => {
                   redis_key_update_from_command(&cmd).and_then(|upd| {
-                    let guard = state_send.temple.watch_manager.guard();
-                    if state_send.temple.watch_manager.is_watching(&conn_id_bytes, &*upd.key, &guard) {
+                    if state_send.temple.watch_manager.is_watching(&conn_id_bytes, &*upd.key) {
                       Some(redis_ws_update_msg(upd))
                     } else {
                       None
@@ -95,8 +91,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
                   })
                 }
                 Some(Object::Update(update)) => {
-                  let guard = state_send.temple.watch_manager.guard();
-                  if state_send.temple.watch_manager.is_watching(&conn_id_bytes, &*update.key, &guard) {
+                  if state_send.temple.watch_manager.is_watching(&conn_id_bytes, &*update.key) {
                     Some(redis_ws_update_msg(update))
                   } else {
                     None

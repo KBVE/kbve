@@ -584,20 +584,20 @@ pub fn redis_channel_for_key(key: &str) -> String {
   format!("key:{}", key)
 }
 
-pub fn format_key_update_log(update: &RedisKeyUpdate) -> String {
-  let (k, v) = update.clone().into_log_fields();
-  format!("{} -> {}", k, v)
-}
-
 pub fn filter_updates_for_active_keys<'a>(
   updates: impl Iterator<Item = &'a RedisKeyUpdate>,
   watch_manager: &WatchManager,
-  guard: &impl Guard
 ) -> Vec<RedisWsMessage> {
+  let guard = watch_manager.key_to_conns.guard();
+
   updates
     .filter_map(|upd| {
       let key_arc = Arc::<str>::from(upd.key.as_str());
-      if watch_manager.key_to_conns.get(&key_arc, guard).map_or(false, |set| !set.is_empty()) {
+      if watch_manager
+        .key_to_conns
+        .get(&key_arc, &guard)
+        .map_or(false, |set| !set.is_empty())
+      {
         Some(redis_ws_update_msg(upd.clone()))
       } else {
         None
