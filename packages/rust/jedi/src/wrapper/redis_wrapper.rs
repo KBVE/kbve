@@ -1,11 +1,12 @@
 use std::sync::Arc;
+use axum::extract::ws::Message;
 use redis::aio::MultiplexedConnection;
 use serde::{ Deserialize, Serialize };
 use tokio::sync::{ oneshot, broadcast::Sender as BroadcastSender };
 use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver };
 use bb8_redis::{ bb8::Pool, RedisConnectionManager };
 use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
-use futures_util::{ StreamExt, SinkExt };
+use futures_util::{ StreamExt, SinkExt, pin_mut };
 use dashmap::DashSet;
 use tokio::task::JoinHandle;
 
@@ -519,22 +520,16 @@ pub fn redis_key_update_from_command(cmd: &RedisCommand) -> Option<RedisKeyUpdat
   }
 }
 
-pub fn should_emit_update(
-  key_update: &RedisKeyUpdate,
-  watch_manager: &WatchManager,
-) -> bool {
+pub fn should_emit_update(key_update: &RedisKeyUpdate, watch_manager: &WatchManager) -> bool {
   let key_arc = Arc::<str>::from(key_update.key.as_str());
   let guard = watch_manager.key_to_conns.guard();
 
-  watch_manager
-    .key_to_conns
-    .get(&key_arc, &guard)
-    .map_or(false, |set| !set.is_empty())
+  watch_manager.key_to_conns.get(&key_arc, &guard).map_or(false, |set| !set.is_empty())
 }
 
 pub fn create_ws_update_if_watched(
   key_update: &RedisKeyUpdate,
-  watch_manager: &WatchManager,
+  watch_manager: &WatchManager
 ) -> Option<RedisWsMessage> {
   if should_emit_update(key_update, watch_manager) {
     Some(redis_ws_update_msg(key_update.clone()))
@@ -586,18 +581,14 @@ pub fn redis_channel_for_key(key: &str) -> String {
 
 pub fn filter_updates_for_active_keys<'a>(
   updates: impl Iterator<Item = &'a RedisKeyUpdate>,
-  watch_manager: &WatchManager,
+  watch_manager: &WatchManager
 ) -> Vec<RedisWsMessage> {
   let guard = watch_manager.key_to_conns.guard();
 
   updates
     .filter_map(|upd| {
       let key_arc = Arc::<str>::from(upd.key.as_str());
-      if watch_manager
-        .key_to_conns
-        .get(&key_arc, &guard)
-        .map_or(false, |set| !set.is_empty())
-      {
+      if watch_manager.key_to_conns.get(&key_arc, &guard).map_or(false, |set| !set.is_empty()) {
         Some(redis_ws_update_msg(upd.clone()))
       } else {
         None
@@ -618,8 +609,33 @@ pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
 
 pub fn should_emit_update_hashed(
   key_update: &RedisKeyUpdate,
-  watch_manager: &WatchManager,
+  watch_manager: &WatchManager
 ) -> bool {
   watch_manager.has_watchers(&*key_update.key)
 }
 
+pub async fn send_ws_error(sender: &mut (impl SinkExt<Message> + Unpin), msg: impl ToString) {
+  let err_msg = RedisWsMessage {
+    message: Some(
+      redis_ws_message::Message::ErrorMsg(crate::proto::redis::ErrorMessage {
+        error: msg.to_string(),
+      })
+    ),
+  };
+
+  if let Some(json) = err_msg.as_json_string() {
+    let _ = sender.send(Message::Text(json.into())).await;
+  }
+}
+
+pub fn redis_ws_error_msg<S: ToString>(msg: S) -> String {
+  use crate::proto::redis::{RedisWsMessage, redis_ws_message::Message, ErrorMessage};
+
+  let error_msg = RedisWsMessage {
+      message: Some(Message::ErrorMsg(ErrorMessage {
+          error: msg.to_string(),
+      })),
+  };
+
+  error_msg.as_json_string().unwrap_or_else(|| "{\"type\":\"error\",\"payload\":{\"error\":\"unknown\"}}".into())
+}
