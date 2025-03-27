@@ -2906,7 +2906,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
- "jedi 0.1.16",
+ "jedi 0.1.16 (git+https://github.com/KBVE/kbve.git?rev=e122df7a2f3c46e0b4cfdfadb798c07e162a3111)",
  "papaya 0.2.1",
  "prost",
  "prost-build",
@@ -5107,6 +5107,49 @@ dependencies = [
 [[package]]
 name = "jedi"
 version = "0.1.16"
+dependencies = [
+ "ammonia 4.0.0",
+ "axum 0.8.1",
+ "axum-extra 0.10.0",
+ "bb8",
+ "bb8-postgres",
+ "bb8-redis",
+ "bitflags 2.9.0",
+ "chrono",
+ "crossbeam",
+ "dashmap 6.1.0",
+ "futures-util",
+ "http-body-util",
+ "hyper 1.5.0",
+ "hyper-util",
+ "once_cell",
+ "papaya 0.2.1",
+ "prost",
+ "prost-types",
+ "redis 0.29.1",
+ "regex",
+ "reqwest 0.12.8",
+ "rustc-hash 2.1.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-postgres",
+ "tonic",
+ "tonic-build",
+ "tonic-health",
+ "tonic-reflection",
+ "tower 0.5.2",
+ "tower-http 0.6.2",
+ "tracing",
+ "tracing-subscriber",
+ "ulid",
+]
+
+[[package]]
+name = "jedi"
+version = "0.1.16"
+source = "git+https://github.com/KBVE/kbve.git?rev=e122df7a2f3c46e0b4cfdfadb798c07e162a3111#e122df7a2f3c46e0b4cfdfadb798c07e162a3111"
 dependencies = [
  "ammonia 4.0.0",
  "axum 0.8.1",

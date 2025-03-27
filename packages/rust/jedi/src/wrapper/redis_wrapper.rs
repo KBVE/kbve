@@ -416,11 +416,20 @@ pub fn spawn_pubsub_listener_task(
                 match serde_json::from_slice::<RedisEventObject>(payload) {
                   Ok(event) => {
                     let envelope = RedisEventEnvelope {
-                      channel,
+                      channel: channel.clone(),
                       event,
                       received_at: chrono::Utc::now().timestamp_millis() as u64,
                     };
-                    let _ = event_tx.send(envelope);
+                    match event_tx.send(envelope) {
+                      Ok(count) => tracing::debug!(
+                        "Event sent to {} WebSocket(s) on channel: {}, payload: {:?}",
+                        count,
+                        channel,
+                        String::from_utf8_lossy(payload)
+                      ),
+                      
+                      Err(e) => tracing::warn!("Failed to send RedisEventEnvelope: {}", e),
+                    }
                   }
                   Err(e) => {
                     tracing::warn!("[Temple] Failed to parse RedisEventObject: {}", e);

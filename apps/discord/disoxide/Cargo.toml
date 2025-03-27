@@ -59,8 +59,8 @@ ulid = { version = "1", features = ["serde", "uuid"] }
 chrono = { version = "0.4", features = ["serde"] }
 
 #jedi = { git = "https://github.com/KBVE/kbve.git", branch = "dev", package = "jedi" }
-#jedi = { git = "https://github.com/KBVE/kbve.git", rev = "27e840b47e0d9bc26324b160fe04e1d80bfd309f", package = "jedi"}
-jedi = { path = "../../../packages/rust/jedi" }
+jedi = { git = "https://github.com/KBVE/kbve.git", rev = "e122df7a2f3c46e0b4cfdfadb798c07e162a3111", package = "jedi"}
+#jedi = { path = "../../../packages/rust/jedi" }
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
 
