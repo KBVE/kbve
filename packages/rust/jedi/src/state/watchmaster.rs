@@ -3,6 +3,8 @@ use papaya::{ HashMap, Guard };
 use std::sync::Arc;
 use tokio::sync::mpsc::{ Sender, Receiver };
 
+use crate::error::JediError;
+
 pub type ConnId = [u8; 16];
 
 pub type WatchedKeys = Arc<DashSet<Arc<str>>>;
@@ -29,9 +31,9 @@ impl WatchManager {
     }
   }
 
-  pub fn watch<K: Into<Arc<str>>>(&self, conn_id: ConnId, key: K) -> bool {
+  pub fn watch<K: Into<Arc<str>>>(&self, conn_id: ConnId, key: K) -> Result<(), JediError> {
     let key = key.into();
-
+  
     let key_guard = self.key_to_conns.guard();
     let conns = self.key_to_conns
       .get(&key, &key_guard)
@@ -41,13 +43,11 @@ impl WatchManager {
         self.key_to_conns.insert(Arc::clone(&key), new.clone(), &key_guard);
         new
       });
-
-    let is_first = conns.insert(conn_id);
-
-    if is_first && conns.len() == 1 {
-      let _ = self.event_tx.try_send(WatchEvent::Watch(Arc::clone(&key)));
+  
+    if !conns.insert(conn_id) {
+      return Err(JediError::Internal(format!("Already watching key: {}", key).into()));
     }
-
+  
     let conn_guard = self.conn_to_keys.guard();
     let keys = self.conn_to_keys
       .get(&conn_id, &conn_guard)
@@ -57,10 +57,14 @@ impl WatchManager {
         self.conn_to_keys.insert(conn_id, new.clone(), &conn_guard);
         new
       });
-
+  
     keys.insert(Arc::clone(&key));
-
-    conns.len() == 1
+  
+    if conns.len() == 1 {
+      let _ = self.event_tx.try_send(WatchEvent::Watch(Arc::clone(&key)));
+    }
+  
+    Ok(())
   }
 
   pub fn unwatch<K: Into<Arc<str>>>(&self, conn_id: &ConnId, key: K) -> bool {
