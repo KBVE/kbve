@@ -49,6 +49,14 @@ fn main() {
     .type_attribute("groq.GroqMessageContent", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("groq.GroqChoice", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("groq.GroqUsage", "#[derive(serde::Serialize, serde::Deserialize)]")
+
+    // Jedi
+    .type_attribute("jedi.MessageKind", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("jedi.FlagEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("jedi.FlexEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("jedi.RawEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("jedi.JediMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("jedi.JediMessage.envelope", "#[derive(serde::Serialize, serde::Deserialize)]")
     // .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
     // .field_attribute("status.StatusMessage.type", "#[bitflags]")
     .compile_protos(&["proto/redis.proto", "proto/groq.proto", "proto/jedi.proto"], &["proto"])
