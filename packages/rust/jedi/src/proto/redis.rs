@@ -111,7 +111,7 @@ pub mod redis_key_update {
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RedisWsMessage {
-    #[prost(oneof = "redis_ws_message::Message", tags = "1, 2, 3, 4, 5, 6, 7")]
+    #[prost(oneof = "redis_ws_message::Message", tags = "1, 2, 3, 4, 5, 6, 7, 8")]
     pub message: ::core::option::Option<redis_ws_message::Message>,
 }
 /// Nested message and enum types in `RedisWsMessage`.
@@ -133,6 +133,8 @@ pub mod redis_ws_message {
         Ping(super::Ping),
         #[prost(message, tag = "7")]
         Pong(super::Pong),
+        #[prost(message, tag = "8")]
+        ErrorMsg(super::ErrorMessage),
     }
 }
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -146,6 +148,12 @@ pub struct Ping {
 pub struct Pong {
     #[prost(uint64, tag = "1")]
     pub timestamp: u64,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ErrorMessage {
+    #[prost(string, tag = "1")]
+    pub error: ::prost::alloc::string::String,
 }
 /// Generated client implementations.
 pub mod redis_service_client {

@@ -72,6 +72,7 @@ message RedisWsMessage {
     UnwatchCommand unwatch = 5;
     Ping ping = 6;
     Pong pong = 7;
+    ErrorMessage error_msg = 8;
   }
 }
 
@@ -81,4 +82,8 @@ message Ping {
 
 message Pong {
   uint64 timestamp = 1;
+}
+
+message ErrorMessage {
+  string error = 1;
 }

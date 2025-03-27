@@ -33,6 +33,8 @@ fn main() {
     .type_attribute("redis.RedisWsMessage.message", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("redis.Ping", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("redis.Pong", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.ErrorMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
+
 
     // Groq
     .type_attribute("groq.GroqMessage", "#[derive(serde::Serialize, serde::Deserialize)]")

@@ -30,5 +30,6 @@
       "protos",
       "thiserror",
       "groq",
+      "Unwatch",
     ]
 }
