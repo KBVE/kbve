@@ -2,8 +2,7 @@ mod proto;
 mod entity;
 mod handler;
 use crate::proto::disoxide::{ UserData, ChatMessage };
-use crate::entity::state::GlobalState;
-
+use crate::entity::state::AppGlobalState;
 use axum::{
   error_handling::HandleErrorLayer,
   response::IntoResponse,
@@ -19,6 +18,8 @@ use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_http::{ compression::CompressionLayer, limit::RequestBodyLimitLayer, trace::TraceLayer };
 use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
+
+use jedi::sidecar::RedisConfig;
 
 #[cfg(feature = "jemalloc")]
 mod allocator {
@@ -36,29 +37,35 @@ async fn main() {
     .with(
       tracing_subscriber::EnvFilter
         ::try_from_default_env()
-        .unwrap_or_else(|_| format!("{}=debug,tower_http=debug", env!("CARGO_CRATE_NAME")).into())
+        .unwrap_or_else(|_| format!("{}=debug,tower_http=debug,jedi=debug", env!("CARGO_CRATE_NAME")).into())
     )
     .with(tracing_subscriber::fmt::layer())
     .init();
 
-  let shared_state = Arc::new(GlobalState::new());
+  //let shared_state = Arc::new(GlobalState::new());
+  //   let shared_state = Arc::new(GlobalState::new("redis://:redispassword@redis:6379").await);
 
-    let app = Router::new()
-      .merge(handler::http::http_router(shared_state.clone())) 
-      .merge(handler::ws::ws_router(shared_state.clone())) 
-      .layer(
-        ServiceBuilder::new()
-          .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
-          .timeout(Duration::from_secs(10))
-          .layer(TraceLayer::new_for_http())
-          .layer(CompressionLayer::new())
+  tracing::info!("[main] Starting Application...");
+  let redis_cfg = RedisConfig::from_env();
+  let shared_state = Arc::new(AppGlobalState::new(&redis_cfg.url).await);
+
+  let app = Router::new()
+    .merge(handler::http::http_router())
+    .merge(handler::ws::ws_router())
+    .layer(
+      ServiceBuilder::new()
+        .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
+        .timeout(Duration::from_secs(10))
+        .layer(TraceLayer::new_for_http())
+        .layer(CompressionLayer::new())
+    )
+    .layer(
+      axum::middleware::from_fn_with_state(
+        shared_state.clone(),
+        crate::handler::metrics::track_execution_time
       )
-      .layer(
-        axum::middleware::from_fn_with_state(
-          shared_state.clone(),
-          crate::handler::metrics::track_execution_time
-        )
-      );
+    )
+    .with_state(shared_state.clone());
 
   let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
   tracing::info!("Listening on {}", listener.local_addr().unwrap());

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package jedi;
+
+enum MessageKind {
+    UNKNOWN         = 0;
+    KEY_UPDATE      = 1;
+    ACTION          = 2;
+    MESSAGE         = 4;
+    DEBUG           = 8;
+    ERROR           = 16;
+    INFO            = 32;
+    AUTH            = 64;
+    HEARTBEAT       = 256;
+    CONFIG_UPDATE   = 512;
+}
+
+message FlagEnvelope {
+    int32 flag = 1;
+    bytes payload = 2;
+}
+
+message FlexEnvelope {
+    MessageKind kind = 1;
+    bytes payload = 2;
+}
+
+message RawEnvelope {
+    bytes key = 1;
+    bytes payload = 2;
+}
+
+message JediMessage {
+    oneof envelope {
+        FlexEnvelope flex = 1;
+        RawEnvelope = 2;
+        FlagEnvelope = 3;
+    }
+}

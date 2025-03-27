@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package redis;
+
+service RedisService {
+  rpc SendCommand(RedisCommand) returns (RedisResponse);
+}
+
+message RedisCommand {
+  oneof command {
+    SetCommand set = 1;
+    GetCommand get = 2;
+    DelCommand del = 3;
+  }
+}
+
+message SetCommand {
+  string key = 1;
+  string value = 2;
+}
+
+message GetCommand {
+  string key = 1;
+}
+
+message DelCommand {
+  string key = 1;
+}
+
+message RedisResponse {
+  string status = 1;
+  string value = 2;
+}
+
+message RedisEvent {
+  string channel = 1;
+  string payload = 2;
+  uint64 timestamp = 3;
+}
+
+message RedisEventObject {
+  oneof object {
+    RedisCommand command = 1;
+    RedisEvent event = 2;
+    RedisKeyUpdate update = 3;
+  }
+}
+
+message WatchCommand {
+  string key = 1;
+}
+
+message UnwatchCommand {
+  string key = 1;
+}
+
+message RedisKeyUpdate {
+  string key = 1;
+  oneof state {
+    string value = 2;
+    bool deleted = 3;
+  }
+  uint64 timestamp = 4;
+}
+
+message RedisWsMessage {
+  oneof message {
+    WatchCommand watch = 1;
+    RedisKeyUpdate update = 2;
+    RedisCommand command = 3;
+    RedisEvent event = 4;
+    UnwatchCommand unwatch = 5;
+    Ping ping = 6;
+    Pong pong = 7;
+    ErrorMessage error_msg = 8;
+  }
+}
+
+message Ping {
+  uint64 timestamp = 1;
+}
+
+message Pong {
+  uint64 timestamp = 1;
+}
+
+message ErrorMessage {
+  string error = 1;
+}

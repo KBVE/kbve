@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package groq;
+
+import "google/protobuf/struct.proto";
+
+
+message GroqMessage {
+  string role = 1;
+  string content = 2;
+}
+
+message GroqRequestBody {
+  repeated GroqMessage messages = 1;
+  string model = 2;
+  google.protobuf.Struct response_format = 3;
+}
+
+message GroqMessageContent {
+  string role = 1;
+  string content = 2;
+}
+
+message GroqChoice {
+  uint32 index = 1;
+  GroqMessageContent message = 2;
+  string finish_reason = 3;
+}
+
+message GroqUsage {
+  uint32 prompt_tokens = 1;
+  float prompt_time = 2;
+  uint32 completion_tokens = 3;
+  float completion_time = 4;
+  uint32 total_tokens = 5;
+  float total_time = 6;
+}
+
+message GroqResponse {
+  string id = 1;
+  string object = 2;
+  uint64 created = 3;
+  string model = 4;
+  repeated GroqChoice choices = 5;
+  GroqUsage usage = 6;
+  string system_fingerprint = 7;
+  google.protobuf.Struct x_groq = 8;
+}

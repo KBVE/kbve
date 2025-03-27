@@ -88,8 +88,8 @@ impl ICanvasLayer for Maiky {
 
 #[godot_api]
 impl Maiky {
-  #[signal]
-  fn exit_game() {}
+  // #[signal]
+  // fn exit_game() {}
 
   #[signal]
   fn ui_element_requested(key: GString);

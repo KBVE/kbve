@@ -165,7 +165,20 @@ version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "64e6d1c7838db705c9b756557ee27c384ce695a1c51a6fe528784cb1c6840170"
 dependencies = [
- "html5ever",
+ "html5ever 0.26.0",
+ "maplit",
+ "once_cell",
+ "tendril",
+ "url",
+]
+
+[[package]]
+name = "ammonia"
+version = "4.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ab99eae5ee58501ab236beb6f20f6ca39be615267b014899c89b2f0bc18a459"
+dependencies = [
+ "html5ever 0.27.0",
  "maplit",
  "once_cell",
  "tendril",
@@ -2703,6 +2716,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashmap"
+version = "6.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5041cc499144891f3790297212f32a74fb938e5136a14943f338ef9e0ae276cf"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+ "hashbrown 0.14.5",
+ "lock_api",
+ "once_cell",
+ "parking_lot_core",
+ "rayon",
+ "serde",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2864,7 +2893,7 @@ dependencies = [
 
 [[package]]
 name = "disoxide"
-version = "0.1.0"
+version = "1.2.0"
 dependencies = [
  "axum 0.8.1",
  "axum-extra 0.10.0",
@@ -2877,6 +2906,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
+ "jedi 0.1.16 (git+https://github.com/KBVE/kbve.git?rev=648319b9a27fa9355809e960109eaad60e73d422)",
  "papaya 0.2.1",
  "prost",
  "prost-build",
@@ -2887,7 +2917,6 @@ dependencies = [
  "tikv-jemallocator",
  "tokio",
  "tokio-postgres",
- "tokio-util",
  "tonic",
  "tonic-build",
  "tonic-health",
@@ -4178,7 +4207,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68a7f542ee6b35af73b06abc0dad1c1bae89964e4e253bc4b587b91c9637867b"
 dependencies = [
  "cfg-if",
- "dashmap",
+ "dashmap 5.5.3",
  "futures",
  "futures-timer",
  "no-std-compat",
@@ -4496,10 +4525,24 @@ checksum = "bea68cab48b8459f17cf1c944c67ddc572d272d9f2b274140f223ecb1da4a3b7"
 dependencies = [
  "log",
  "mac",
- "markup5ever",
+ "markup5ever 0.11.0",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "html5ever"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c13771afe0e6e846f1e67d038d4cb29998a6779f93c809212e4e9c32efd244d4"
+dependencies = [
+ "log",
+ "mac",
+ "markup5ever 0.12.1",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
 ]
 
 [[package]]
@@ -5046,10 +5089,10 @@ version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a48aff6f49f02d2ce38b58ba84631a38e96fe2a98e60bd18e6c4f6d8ad68b4f4"
 dependencies = [
- "ammonia",
+ "ammonia 3.3.0",
  "async-trait",
  "crossbeam",
- "dashmap",
+ "dashmap 5.5.3",
  "once_cell",
  "regex",
  "reqwest 0.12.8",
@@ -5063,21 +5106,87 @@ dependencies = [
 
 [[package]]
 name = "jedi"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
- "ammonia",
- "async-trait",
+ "ammonia 4.0.0",
+ "axum 0.8.1",
+ "axum-extra 0.10.0",
+ "bb8",
+ "bb8-postgres",
+ "bb8-redis",
+ "bitflags 2.9.0",
+ "chrono",
  "crossbeam",
- "dashmap",
+ "dashmap 6.1.0",
+ "futures-util",
+ "http-body-util",
+ "hyper 1.5.0",
+ "hyper-util",
  "once_cell",
+ "papaya 0.2.1",
+ "prost",
+ "prost-types",
+ "redis 0.29.1",
  "regex",
  "reqwest 0.12.8",
+ "rustc-hash 2.1.1",
  "serde",
  "serde_json",
- "thiserror 1.0.64",
+ "thiserror 2.0.12",
  "tokio",
+ "tokio-postgres",
+ "tonic",
+ "tonic-build",
+ "tonic-health",
+ "tonic-reflection",
+ "tower 0.5.2",
+ "tower-http 0.6.2",
  "tracing",
  "tracing-subscriber",
+ "ulid",
+]
+
+[[package]]
+name = "jedi"
+version = "0.1.16"
+source = "git+https://github.com/KBVE/kbve.git?rev=648319b9a27fa9355809e960109eaad60e73d422#648319b9a27fa9355809e960109eaad60e73d422"
+dependencies = [
+ "ammonia 4.0.0",
+ "axum 0.8.1",
+ "axum-extra 0.10.0",
+ "bb8",
+ "bb8-postgres",
+ "bb8-redis",
+ "bitflags 2.9.0",
+ "chrono",
+ "crossbeam",
+ "dashmap 6.1.0",
+ "futures-util",
+ "http-body-util",
+ "hyper 1.5.0",
+ "hyper-util",
+ "once_cell",
+ "papaya 0.2.1",
+ "prost",
+ "prost-types",
+ "redis 0.29.1",
+ "regex",
+ "reqwest 0.12.8",
+ "rustc-hash 2.1.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-postgres",
+ "tonic",
+ "tonic-build",
+ "tonic-health",
+ "tonic-reflection",
+ "tower 0.5.2",
+ "tower-http 0.6.2",
+ "tracing",
+ "tracing-subscriber",
+ "ulid",
 ]
 
 [[package]]
@@ -5177,14 +5286,14 @@ dependencies = [
 name = "kbve"
 version = "0.1.26"
 dependencies = [
- "ammonia",
+ "ammonia 3.3.0",
  "anyhow",
  "argon2",
  "async-trait",
  "axum 0.6.20",
  "axum-extra 0.7.7",
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "diesel",
  "dotenvy",
  "jedi 0.1.14",
@@ -5245,7 +5354,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f29e4755b7b995046f510a7520c42b2fed58b77bd94d5a87a8eb43d2fd126da8"
 dependencies = [
  "cssparser",
- "html5ever",
+ "html5ever 0.26.0",
  "indexmap 1.9.3",
  "matches",
  "selectors",
@@ -5420,6 +5529,20 @@ dependencies = [
  "log",
  "phf 0.10.1",
  "phf_codegen 0.10.0",
+ "string_cache",
+ "string_cache_codegen",
+ "tendril",
+]
+
+[[package]]
+name = "markup5ever"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16ce3abbeba692c8b8441d036ef91aea6df8da2c6b6e21c7e14d3c18e526be45"
+dependencies = [
+ "log",
+ "phf 0.11.2",
+ "phf_codegen 0.11.3",
  "string_cache",
  "string_cache_codegen",
  "tendril",
@@ -6189,9 +6312,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.20.2"
+version = "1.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
+checksum = "d75b0bedcc4fe52caa0e03d9f1151a323e4aa5e2d78ba3580400cd3c9e2bc4bc"
 
 [[package]]
 name = "opaque-debug"
@@ -6625,6 +6748,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "phf_codegen"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aef8048c789fa5e851558d709946d6d79a8ff88c0440c587967f8e94bfb1216a"
+dependencies = [
+ "phf_generator 0.11.3",
+ "phf_shared 0.11.2",
+]
+
+[[package]]
 name = "phf_generator"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6641,6 +6774,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d5285893bb5eb82e6aaf5d59ee909a06a16737a8970984dd7746ba9283498d6"
 dependencies = [
  "phf_shared 0.10.0",
+ "rand 0.8.5",
+]
+
+[[package]]
+name = "phf_generator"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c80231409c20246a13fddb31776fb942c38553c51e871f8cbd687a4cfb5843d"
+dependencies = [
+ "phf_shared 0.11.2",
  "rand 0.8.5",
 ]
 
@@ -6956,9 +7099,9 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.13.3"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b0487d90e047de87f984913713b85c601c05609aad5b0df4b4573fbf69aa13f"
+checksum = "2796faa41db3ec313a31f7624d9286acf277b52de526150b7e69f3debf891ee5"
 dependencies = [
  "bytes",
  "prost-derive",
@@ -6987,9 +7130,9 @@ dependencies = [
 
 [[package]]
 name = "prost-derive"
-version = "0.13.3"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9552f850d5f0964a4e4d0bf306459ac29323ddfbae05e35a7c0d35cb0803cc5"
+checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
  "itertools 0.12.1",
@@ -7000,9 +7143,9 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.13.3"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4759aa0d3a6232fb8dbdb97b61de2c20047c68aca932c7ed76da9d788508d670"
+checksum = "52c2c1bf36ddb1a1c396b3601a3cec27c2462e45f07c386894ec3ccf5332bd16"
 dependencies = [
  "prost",
 ]
@@ -7087,7 +7230,7 @@ dependencies = [
  "pin-project-lite",
  "quinn-proto",
  "quinn-udp",
- "rustc-hash 2.0.0",
+ "rustc-hash 2.1.1",
  "rustls 0.23.23",
  "socket2 0.5.8",
  "thiserror 2.0.12",
@@ -7105,7 +7248,7 @@ dependencies = [
  "getrandom 0.2.15",
  "rand 0.8.5",
  "ring 0.17.8",
- "rustc-hash 2.0.0",
+ "rustc-hash 2.1.1",
  "rustls 0.23.23",
  "rustls-pki-types",
  "rustls-platform-verifier",
@@ -7746,9 +7889,9 @@ checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustc-hash"
-version = "2.0.0"
+version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "583034fd73374156e66797ed8e5b0d5690409c9226b22d87cb7f19821c05d152"
+checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 
 [[package]]
 name = "rustc_version"
@@ -8656,7 +8799,7 @@ checksum = "de78ee6ad972ace9fe203ad676dbc80be97c88037d90f9646456985ed8d65f33"
 dependencies = [
  "async-trait",
  "bincode",
- "dashmap",
+ "dashmap 5.5.3",
  "futures",
  "futures-util",
  "indexmap 2.8.0",
@@ -10100,7 +10243,7 @@ dependencies = [
  "async-channel 1.9.0",
  "bytes",
  "crossbeam-channel",
- "dashmap",
+ "dashmap 5.5.3",
  "futures",
  "futures-util",
  "governor",
@@ -11050,7 +11193,6 @@ checksum = "6b9590b93e6fcc1739458317cccd391ad3955e2bde8913edf6f95f9e65a8f034"
 dependencies = [
  "bytes",
  "futures-core",
- "futures-io",
  "futures-sink",
  "pin-project-lite",
  "tokio",
@@ -12755,7 +12897,7 @@ dependencies = [
  "dunce",
  "gdkx11",
  "gtk",
- "html5ever",
+ "html5ever 0.26.0",
  "http 1.1.0",
  "javascriptcore-rs",
  "jni 0.21.1",
@@ -12797,7 +12939,7 @@ dependencies = [
  "dunce",
  "gdkx11",
  "gtk",
- "html5ever",
+ "html5ever 0.26.0",
  "http 1.1.0",
  "javascriptcore-rs",
  "jni 0.21.1",

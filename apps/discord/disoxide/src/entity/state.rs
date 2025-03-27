@@ -5,7 +5,7 @@ use tokio::sync::{mpsc, oneshot};
 use papaya::{ HashMap, Guard };
 use axum::body::Bytes;
 use tokio::time::Instant;
-
+use jedi::state::temple::TempleState;
 // use super::helper::{ReadRequest, WriteRequest};
 
 use crate::proto::{store::StoreObj, wrapper::{ ReadEnvelope, StoreObjExt}};
@@ -72,23 +72,36 @@ impl MetricsState {
 
 pub type StoreSharedState = Arc<RwLock<StoreState>>;
 pub type MetricsSharedState = Arc<MetricsState>;
+pub type TempleSharedState = Arc<TempleState>;
 
 //** Global State */
 
-pub struct GlobalState {
+pub struct AppGlobalState {
   pub store: StoreSharedState,
   pub metrics: MetricsSharedState,
   pub write_tx: mpsc::Sender<StoreObj>,
   pub read_tx: mpsc::Sender<ReadEnvelope>,
+  pub temple: TempleSharedState,
 }
 
-impl GlobalState {
-  pub fn new() -> Self {
+impl AppGlobalState {
+  pub async fn new(redis_url: &str) -> Self {
+
+    tracing::info!("[AppGlobalState] AppGlobalState::new() called");
+
+
     let store = Arc::new(RwLock::new(StoreState::new()));
     let metrics = Arc::new(MetricsState::new());
 
     let (write_tx, mut write_rx) = mpsc::channel::<StoreObj>(1024);
     let (read_tx, mut read_rx) = mpsc::channel::<ReadEnvelope>(1024);
+
+    let temple: Arc<TempleState> = Arc::new(
+      TempleState::new(redis_url)
+        .await
+        .expect("Failed to initialize TempleState")
+    );
+    // let _ = spawn_pubsub_listener(redis_url, vec!["key:1".into()], temple.event_tx.clone()).await;
 
     tokio::spawn({
       let store_clone = store.clone();
@@ -119,6 +132,7 @@ impl GlobalState {
       metrics,
       write_tx,
       read_tx,
+      temple,
     }
   }
 
@@ -142,4 +156,4 @@ impl GlobalState {
   }
 }
 
-pub type SharedState = Arc<GlobalState>;
+pub type SharedState = Arc<AppGlobalState>;
