@@ -57,8 +57,25 @@ fn main() {
     .type_attribute("jedi.RawEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("jedi.JediMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("jedi.JediMessage.envelope", "#[derive(serde::Serialize, serde::Deserialize)]")
+
+    // Twitch
+    .type_attribute("twitch.TwitchEventObject", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchEventObject.object", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchChatMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchJoinEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchPartEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchNoticeEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchModerationEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchSubEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchRaidEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchCheerEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchRedemptionEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchPing", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchPong", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchSender", "#[derive(serde::Serialize, serde::Deserialize)]")
+
     // .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
     // .field_attribute("status.StatusMessage.type", "#[bitflags]")
-    .compile_protos(&["proto/redis.proto", "proto/groq.proto", "proto/jedi.proto"], &["proto"])
+    .compile_protos(&["proto/redis.proto", "proto/groq.proto", "proto/jedi.proto", "proto/twitch.proto"], &["proto"])
     .expect("Failed to compile Protobuf files");
 }
