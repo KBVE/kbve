@@ -33,7 +33,7 @@ message RawEnvelope {
 message JediMessage {
     oneof envelope {
         FlexEnvelope flex = 1;
-        RawEnvelope = 2;
-        FlagEnvelope = 3;
+        RawEnvelope raw = 2;
+        FlagEnvelope flag = 3;
     }
 }
