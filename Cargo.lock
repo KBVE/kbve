@@ -202,7 +202,7 @@ dependencies = [
  "ndk 0.8.0",
  "ndk-context",
  "ndk-sys 0.5.0+25.2.9519653",
- "num_enum",
+ "num_enum 0.7.3",
  "thiserror 1.0.64",
 ]
 
@@ -3527,6 +3527,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "flexbuffers"
+version = "25.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "935627e7bc8f083035d9faad09ffaed9128f73fb1f74a8798f115749c43378e8"
+dependencies = [
+ "bitflags 1.3.2",
+ "byteorder",
+ "num_enum 0.5.11",
+ "serde",
+ "serde_derive",
+]
+
+[[package]]
 name = "flume"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5118,6 +5131,7 @@ dependencies = [
  "chrono",
  "crossbeam",
  "dashmap 6.1.0",
+ "flexbuffers",
  "futures-util",
  "http-body-util",
  "hyper 1.5.0",
@@ -5738,7 +5752,7 @@ dependencies = [
  "jni-sys",
  "log",
  "ndk-sys 0.5.0+25.2.9519653",
- "num_enum",
+ "num_enum 0.7.3",
  "raw-window-handle 0.5.2",
  "raw-window-handle 0.6.2",
  "thiserror 1.0.64",
@@ -5754,7 +5768,7 @@ dependencies = [
  "jni-sys",
  "log",
  "ndk-sys 0.6.0+11769913",
- "num_enum",
+ "num_enum 0.7.3",
  "raw-window-handle 0.6.2",
  "thiserror 1.0.64",
 ]
@@ -5989,11 +6003,32 @@ dependencies = [
 
 [[package]]
 name = "num_enum"
+version = "0.5.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1f646caf906c20226733ed5b1374287eb97e3c2a5c227ce668c1f2ce20ae57c9"
+dependencies = [
+ "num_enum_derive 0.5.11",
+]
+
+[[package]]
+name = "num_enum"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e613fc340b2220f734a8595782c551f1250e969d87d3be1ae0579e8d4065179"
 dependencies = [
- "num_enum_derive",
+ "num_enum_derive 0.7.3",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.5.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dcbff9bc912032c62bf65ef1d5aea88983b420f4f839db1e9b0c281a25c9c799"
+dependencies = [
+ "proc-macro-crate 1.3.1",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -9440,7 +9475,7 @@ version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b526398ade5dea37f1f147ce55dae49aa017a5d7326606359b0445ca8d946581"
 dependencies = [
- "num_enum",
+ "num_enum 0.7.3",
  "solana-hash",
  "solana-packet",
  "solana-pubkey",
