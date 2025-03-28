@@ -1,5 +1,12 @@
 // packages/rust/jedi/src/entity/envelope.rs
-use crate::proto::jedi::{ FlexEnvelope, MessageKind };
+use crate::proto::jedi::{
+  FlexEnvelope,
+  FlagEnvelope,
+  RawEnvelope,
+  MessageKind,
+  JediMessage,
+  jedi_message,
+};
 use crate::entity::hash::HashPayload;
 use crate::error::JediError;
 use serde::{ Serialize, Deserialize };
@@ -133,8 +140,6 @@ pub fn wrap_result_flex<T, E>(kind: MessageKind, result: Result<T, E>) -> FlexEn
   }
 }
 
-
-
 /// Trait to simplify wrapping a value into a `FlexEnvelope`.
 ///
 /// # Examples
@@ -152,11 +157,162 @@ pub fn wrap_result_flex<T, E>(kind: MessageKind, result: Result<T, E>) -> FlexEn
 /// let envelope = p.to_flex_envelope(MessageKind::Debug);
 /// ```
 pub trait ToFlexEnvelope {
-    fn to_flex_envelope(&self, kind: MessageKind) -> FlexEnvelope;
+  fn to_flex_envelope(&self, kind: MessageKind) -> FlexEnvelope;
 }
 
 impl<T: Serialize> ToFlexEnvelope for T {
-    fn to_flex_envelope(&self, kind: MessageKind) -> FlexEnvelope {
-        wrap_flex(kind, self)
+  fn to_flex_envelope(&self, kind: MessageKind) -> FlexEnvelope {
+    wrap_flex(kind, self)
+  }
+}
+
+/// Wraps a serializable payload into a `FlagEnvelope`, tagging it with an integer flag.
+///
+/// # Examples
+/// ```
+/// use jedi::entity::envelope::wrap_flag;
+/// use jedi::proto::jedi::FlagEnvelope;
+/// use serde::Serialize;
+///
+/// #[derive(Serialize)]
+/// struct FlagPayload {
+///     feature: String,
+/// }
+///
+/// let data = FlagPayload { feature: "fast-path".into() };
+/// let env: FlagEnvelope = wrap_flag(7, &data);
+/// assert_eq!(env.flag, 7);
+/// assert!(!env.payload.is_empty());
+/// ```
+pub fn wrap_flag<T: Serialize>(flag: i32, value: &T) -> FlagEnvelope {
+  let payload = HashPayload::from(value).into_vec();
+  FlagEnvelope { flag, payload }
+}
+
+/// Attempts to decode a `FlagEnvelope` into a typed value.
+///
+/// # Examples
+/// ```
+/// use jedi::entity::envelope::{wrap_flag, try_unwrap_flag};
+/// use serde::{Serialize, Deserialize};
+///
+/// #[derive(Serialize, Deserialize, PartialEq, Debug)]
+/// struct FlagPayload {
+///     message: String,
+/// }
+///
+/// let original = FlagPayload { message: "flag!".into() };
+/// let env = wrap_flag(1, &original);
+/// let decoded: FlagPayload = try_unwrap_flag(&env).unwrap();
+/// assert_eq!(original, decoded);
+/// ```
+pub fn try_unwrap_flag<T: for<'de> Deserialize<'de>>(
+  envelope: &FlagEnvelope
+) -> Result<T, JediError> {
+  let reader = flexbuffers::Reader
+    ::get_root(&*envelope.payload)
+    .map_err(|e| JediError::Internal(format!("Flexbuffers root error: {}", e).into()))?;
+  let result = T::deserialize(reader).map_err(|e|
+    JediError::Internal(format!("Flexbuffers decode error: {}", e).into())
+  )?;
+  Ok(result)
+}
+
+/// Wraps a serializable payload into a `RawEnvelope` with a custom byte key.
+///
+/// # Examples
+/// ```
+/// use jedi::entity::envelope::wrap_raw;
+/// use serde::Serialize;
+///
+/// #[derive(Serialize)]
+/// struct MyData {
+///     val: u64,
+/// }
+///
+/// let data = MyData { val: 123 };
+/// let env = wrap_raw(b"my:key", &data);
+/// assert_eq!(env.key, b"my:key");
+/// assert!(!env.payload.is_empty());
+/// ```
+pub fn wrap_raw<T: Serialize>(key: &[u8], value: &T) -> RawEnvelope {
+  let payload = HashPayload::from(value).into_vec();
+  RawEnvelope {
+    key: key.to_vec(),
+    payload,
+  }
+}
+
+/// Attempts to decode a `RawEnvelope` payload into a typed value.
+///
+/// # Examples
+/// ```
+/// use jedi::entity::envelope::{wrap_raw, try_unwrap_raw};
+/// use serde::{Serialize, Deserialize};
+///
+/// #[derive(Serialize, Deserialize, PartialEq, Debug)]
+/// struct MyData {
+///     val: i32,
+/// }
+///
+/// let original = MyData { val: 9 };
+/// let env = wrap_raw(b"key123", &original);
+/// let decoded: MyData = try_unwrap_raw(&env).unwrap();
+/// assert_eq!(original, decoded);
+/// ```
+pub fn try_unwrap_raw<T: for<'de> Deserialize<'de>>(
+  envelope: &RawEnvelope
+) -> Result<T, JediError> {
+  let reader = flexbuffers::Reader
+    ::get_root(&*envelope.payload)
+    .map_err(|e| JediError::Internal(format!("Flexbuffers root error: {}", e).into()))?;
+  let result = T::deserialize(reader).map_err(|e|
+    JediError::Internal(format!("Flexbuffers decode error: {}", e).into())
+  )?;
+  Ok(result)
+}
+
+/// Wraps a `FlexEnvelope` into a `JediMessage`.
+pub fn from_flex(env: FlexEnvelope) -> JediMessage {
+  JediMessage {
+    envelope: Some(jedi_message::Envelope::Flex(env)),
+  }
+}
+
+/// Wraps a `FlagEnvelope` into a `JediMessage`.
+pub fn from_flag(env: FlagEnvelope) -> JediMessage {
+  JediMessage {
+    envelope: Some(jedi_message::Envelope::Flag(env)),
+  }
+}
+
+/// Wraps a `RawEnvelope` into a `JediMessage`.
+pub fn from_raw(env: RawEnvelope) -> JediMessage {
+  JediMessage {
+    envelope: Some(jedi_message::Envelope::Raw(env)),
+  }
+}
+
+impl From<FlexEnvelope> for JediMessage {
+  fn from(env: FlexEnvelope) -> Self {
+    JediMessage {
+      envelope: Some(jedi_message::Envelope::Flex(env)),
     }
+  }
+}
+
+impl From<FlagEnvelope> for JediMessage {
+  fn from(env: FlagEnvelope) -> Self {
+    JediMessage {
+      envelope: Some(jedi_message::Envelope::Flag(env)),
+    }
+  }
+}
+
+impl From<RawEnvelope> for JediMessage {
+  fn from(env: RawEnvelope) -> Self {
+    JediMessage {
+      envelope: Some(jedi_message::Envelope::Raw(env)),
+    }
+  }
 }
