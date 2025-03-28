@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package twitch;
+
+message TwitchEventObject {
+  oneof object {
+    TwitchChatMessage chat = 1;
+    TwitchJoinEvent join = 2;
+    TwitchPartEvent part = 3;
+    TwitchNoticeEvent notice = 4;
+    TwitchPing ping = 5;
+    TwitchPong pong = 6;
+    TwitchModerationEvent moderation = 7;
+    TwitchSubEvent sub = 8;
+    TwitchRaidEvent raid = 9;
+    TwitchCheerEvent cheer = 10;
+    TwitchRedemptionEvent redemption = 11;
+  }
+
+  string origin = 29; 
+  bool relay_generated = 30;
+  string id = 31;
+  int64 timestamp = 32;
+}
+
+message TwitchChatMessage {
+  string channel = 1;
+  TwitchSender sender = 2;
+  string message = 3;
+  map<string, string> tags = 4;
+}
+
+message TwitchJoinEvent {
+  string channel = 1;
+  TwitchSender user = 2;
+}
+
+message TwitchPartEvent {
+  string channel = 1;
+  TwitchSender user = 2;
+}
+
+message TwitchNoticeEvent {
+  string channel = 1;
+  string message = 2;
+  string notice_type = 3;
+}
+
+message TwitchModerationEvent {
+  string channel = 1;
+  string action = 2;
+  string target_user = 3;
+  string issued_by = 4;
+  string reason = 5;
+  int64 duration = 6;
+  string source_message_id = 7;
+}
+
+message TwitchSubEvent {
+  string channel = 1;
+  string user = 2;
+  bool is_gift = 3;
+  int32 months = 4;
+  int32 tier = 5; // e.g. 1, 2, 3
+  string message = 6;
+}
+
+message TwitchRaidEvent {
+  string from_channel = 1;
+  string to_channel = 2;
+  string raider = 3;
+  int32 viewer_count = 4;
+}
+
+message TwitchCheerEvent {
+  string channel = 1;
+  string user = 2;
+  int32 bits = 3;
+  string message = 4;
+}
+
+message TwitchRedemptionEvent {
+  string channel = 1;
+  string user = 2;
+  string reward_title = 3;
+  string user_input = 4;
+
+}
+
+message TwitchPing {}
+
+message TwitchPong {}
+
+message TwitchSender {
+  string nick = 1;
+  string user = 2;
+  string host = 3;
+}
