@@ -1,8 +1,8 @@
 // packages/rust/jedi/src/entity/envelope.rs
-use crate::proto::jedi::{FlexEnvelope, MessageKind};
+use crate::proto::jedi::{ FlexEnvelope, MessageKind };
 use crate::entity::hash::HashPayload;
 use crate::error::JediError;
-use serde::{Serialize, Deserialize};
+use serde::{ Serialize, Deserialize };
 
 /// Wraps a serializable Rust value into a `FlexEnvelope` using Flexbuffers encoding.
 ///
@@ -30,11 +30,11 @@ use serde::{Serialize, Deserialize};
 /// assert!(!envelope.payload.is_empty());
 /// ```
 pub fn wrap_flex<T: Serialize>(kind: MessageKind, value: &T) -> FlexEnvelope {
-    let payload = HashPayload::from(value).into_vec();
-    FlexEnvelope {
-        kind: kind as i32,
-        payload,
-    }
+  let payload = HashPayload::from(value).into_vec();
+  FlexEnvelope {
+    kind: kind as i32,
+    payload,
+  }
 }
 
 /// Unwraps a `FlexEnvelope` and decodes the payload into a typed value.
@@ -61,9 +61,8 @@ pub fn wrap_flex<T: Serialize>(kind: MessageKind, value: &T) -> FlexEnvelope {
 /// assert_eq!(original, decoded);
 /// ```
 pub fn unwrap_flex<T: for<'de> Deserialize<'de>>(envelope: &FlexEnvelope) -> T {
-    HashPayload { bytes: envelope.payload.clone() }.decode()
+  (HashPayload { bytes: envelope.payload.clone() }).decode()
 }
-
 
 /// Attempts to decode a `FlexEnvelope` payload into a typed value.
 ///
@@ -92,11 +91,72 @@ pub fn unwrap_flex<T: for<'de> Deserialize<'de>>(envelope: &FlexEnvelope) -> T {
 /// assert_eq!(result.unwrap(), original);
 /// ```
 pub fn try_unwrap_flex<T: for<'de> Deserialize<'de>>(
-    envelope: &FlexEnvelope,
+  envelope: &FlexEnvelope
 ) -> Result<T, JediError> {
-    let reader = flexbuffers::Reader::get_root(&*envelope.payload)
-        .map_err(|e| JediError::Internal(format!("Flexbuffers root error: {}", e).into()))?;
-    let result = T::deserialize(reader)
-        .map_err(|e| JediError::Internal(format!("Flexbuffers decode error: {}", e).into()))?;
-    Ok(result)
+  let reader = flexbuffers::Reader
+    ::get_root(&*envelope.payload)
+    .map_err(|e| JediError::Internal(format!("Flexbuffers root error: {}", e).into()))?;
+  let result = T::deserialize(reader).map_err(|e|
+    JediError::Internal(format!("Flexbuffers decode error: {}", e).into())
+  )?;
+  Ok(result)
+}
+
+/// Converts a `Result<T, E>` into a `FlexEnvelope`.
+///
+/// On success, wraps `T` with the provided kind.
+/// On error, wraps the error message under `MessageKind::Error`.
+///
+/// # Examples
+/// ```
+/// use jedi::entity::envelope::wrap_result_flex;
+/// use jedi::proto::jedi::MessageKind;
+///
+/// let ok_result: Result<&str, &str> = Ok("success");
+/// let err_result: Result<&str, &str> = Err("failure");
+///
+/// let ok_env = wrap_result_flex(MessageKind::Debug, ok_result);
+/// let err_env = wrap_result_flex(MessageKind::Debug, err_result);
+///
+/// assert_eq!(ok_env.kind, MessageKind::Debug as i32);
+/// assert_eq!(err_env.kind, MessageKind::Error as i32);
+/// ```
+pub fn wrap_result_flex<T, E>(kind: MessageKind, result: Result<T, E>) -> FlexEnvelope
+  where T: Serialize, E: std::fmt::Display
+{
+  match result {
+    Ok(value) => wrap_flex(kind, &value),
+    Err(err) => {
+      let err_msg = format!("{}", err);
+      wrap_flex(MessageKind::Error, &err_msg)
+    }
+  }
+}
+
+
+
+/// Trait to simplify wrapping a value into a `FlexEnvelope`.
+///
+/// # Examples
+/// ```
+/// use jedi::entity::envelope::ToFlexEnvelope;
+/// use jedi::proto::jedi::MessageKind;
+/// use serde::Serialize;
+///
+/// #[derive(Serialize)]
+/// struct Payload {
+///     kind: String,
+/// }
+///
+/// let p = Payload { kind: "cool".into() };
+/// let envelope = p.to_flex_envelope(MessageKind::Debug);
+/// ```
+pub trait ToFlexEnvelope {
+    fn to_flex_envelope(&self, kind: MessageKind) -> FlexEnvelope;
+}
+
+impl<T: Serialize> ToFlexEnvelope for T {
+    fn to_flex_envelope(&self, kind: MessageKind) -> FlexEnvelope {
+        wrap_flex(kind, self)
+    }
 }
