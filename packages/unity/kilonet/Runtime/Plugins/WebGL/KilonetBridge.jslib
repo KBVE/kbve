@@ -192,6 +192,15 @@ const BridgeLibrary = {
 	PingLoad: function () {
 		window.parent.postMessage({ command: 'PING_LOAD' });
 	},
+	SendMessageToBrowser: function (method, parameter) {
+		method = UTF8ToString(method);
+		parameter = UTF8ToString(parameter);
+		window.parent.postMessage({
+			command: method,
+			args: { parameter },
+		});
+	},
+
 };
 
 mergeInto(LibraryManager.library, BridgeLibrary);
