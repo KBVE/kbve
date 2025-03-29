@@ -3250,6 +3250,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum_dispatch"
+version = "0.3.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa18ce2bc66555b3218614519ac839ddb759a7d6720732f979ef8d13be147ecd"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
 name = "enumflags2"
 version = "0.7.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5157,6 +5169,7 @@ dependencies = [
  "tower-http 0.6.2",
  "tracing",
  "tracing-subscriber",
+ "twitch-irc",
  "ulid",
 ]
 
@@ -5741,6 +5754,23 @@ name = "nanoserde-derive"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e943b2c21337b7e3ec6678500687cdc741b7639ad457f234693352075c082204"
+
+[[package]]
+name = "native-tls"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87de3442987e9dbec73158d5c715e7ad9072fda936bb03d19d7fa10e00520f0e"
+dependencies = [
+ "libc",
+ "log",
+ "openssl",
+ "openssl-probe",
+ "openssl-sys",
+ "schannel",
+ "security-framework 2.11.1",
+ "security-framework-sys",
+ "tempfile",
+]
 
 [[package]]
 name = "ndk"
@@ -11124,6 +11154,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-native-tls"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbae76ab933c85776efabc971569dd6119c580d8f5d448769dec1764bf796ef2"
+dependencies = [
+ "native-tls",
+ "tokio",
+]
+
+[[package]]
 name = "tokio-postgres"
 version = "0.7.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11594,6 +11634,27 @@ dependencies = [
  "sha1",
  "thiserror 2.0.12",
  "utf-8",
+]
+
+[[package]]
+name = "twitch-irc"
+version = "5.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba8e5095c3a4d4d72decb36b2ceb1e40085e7d8d93282b1d2f3cf2bba0dee4db"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "either",
+ "enum_dispatch",
+ "futures-util",
+ "smallvec",
+ "thiserror 1.0.64",
+ "tokio",
+ "tokio-native-tls",
+ "tokio-stream",
+ "tokio-util",
+ "tracing",
 ]
 
 [[package]]
