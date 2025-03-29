@@ -1,4 +1,3 @@
-if (typeof BridgeLibrary === 'undefined') {
 const BridgeLibrary = {
 	InitializeIFrameBridge: function () {
 		window.addEventListener('message', BridgeLibrary._IFrameBridge);
@@ -197,4 +196,3 @@ const BridgeLibrary = {
 
 mergeInto(LibraryManager.library, BridgeLibrary);
 console.log("KilonetBridge.jslib is loaded.");
-}
