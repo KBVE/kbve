@@ -60,7 +60,6 @@ fn main() {
 
     // Twitch
     .type_attribute("twitch.TwitchEventObject", "#[derive(serde::Serialize, serde::Deserialize)]")
-    .type_attribute("twitch.TwitchEventObject.object", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("twitch.TwitchChatMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("twitch.TwitchJoinEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("twitch.TwitchPartEvent", "#[derive(serde::Serialize, serde::Deserialize)]")
@@ -73,6 +72,8 @@ fn main() {
     .type_attribute("twitch.TwitchPing", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("twitch.TwitchPong", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("twitch.TwitchSender", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("twitch.TwitchEventObject.object", "#[derive(serde::Serialize, serde::Deserialize)]")
+
 
     // .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
     // .field_attribute("status.StatusMessage.type", "#[bitflags]")
