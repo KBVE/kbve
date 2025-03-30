@@ -204,4 +204,3 @@ const BridgeLibrary = {
 };
 
 mergeInto(LibraryManager.library, BridgeLibrary);
-console.log("KilonetBridge.jslib is loaded.");
