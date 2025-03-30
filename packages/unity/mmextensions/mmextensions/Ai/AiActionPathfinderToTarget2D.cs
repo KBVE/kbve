@@ -10,6 +10,8 @@ namespace KBVE.MMExtensions.Ai
   /// Requires a CharacterMovement ability. Makes the character move up to the specified MinimumDistance in the direction of the target.
   /// </summary>
   [AddComponentMenu("TopDown Engine/Character/AI/Actions/AiActionPathfinderToTarget2D")]
+  [RequireComponent(typeof(AiCharacterPathfinder2D))]
+  [RequireComponent(typeof(CharacterMovement))]
   //[RequireComponent(typeof(CharacterMovement))]
   //[RequireComponent(typeof(CharacterPathfinder3D))]
   public class AiActionPathfinderToTarget2D : AIAction
@@ -32,7 +34,7 @@ namespace KBVE.MMExtensions.Ai
       {
         Debug.LogWarning(
           this.name
-            + " : the AIActionPathfinderToTarget3D AI Action requires the CharacterPathfinder3D ability"
+            + " : the AIActionPathfinderToTarget2D AI Action requires the CharacterPathfinder2D ability"
         );
       }
     }
