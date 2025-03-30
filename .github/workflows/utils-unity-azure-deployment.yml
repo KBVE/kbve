@@ -1,0 +1,132 @@
+name: Unity Build and Deploy from Azure
+
+on:
+    workflow_call:
+        inputs:
+            unity_version:
+                required: true
+                type: string
+            project_path:
+                required: true
+                type: string
+            azure_repo_url:
+                required: true
+                type: string
+                description: 'Optional Azure DevOps repo URL'
+            target_platforms:
+                required: true
+                type: string
+                description: 'JSON List of Unity platforms'
+            deploy_to_itch:
+                required: false
+                type: boolean
+                default: false
+            itch_username:
+                required: false
+                type: string
+            itch_gameid:
+                required: false
+                type: string
+
+        secrets:
+            unity_license:
+                required: true
+                description: 'Unity activation license file in plain text'
+            unity_email:
+                required: true
+                description: 'Unity account email'
+            unity_password:
+                required: true
+                description: 'Unity account password'
+            butler_api:
+                required: false
+                description: 'Itch.io Butler API key (required only if deploying)'
+            azure_pat:
+                required: false
+                description: 'Azure DevOps Personal Access Token (if cloning Azure repo)'
+jobs:
+    build:
+        name: Unity Build Matrix
+        runs-on: ubuntu-20.04
+        outputs:
+            matrix: ${{ steps.set-matrix.outputs.matrix }}
+        steps:
+            - name: Parse JSON and set matrix
+              id: set-matrix
+              run: |
+                  echo "matrix=$(echo '${{ inputs.target_platforms }}' | jq -c .)" >> $GITHUB_OUTPUT
+
+    unity-build:
+        name: Build ${{ matrix.target_platform }}
+        needs: build
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                target_platform: ${{ fromJson(needs.build.outputs.matrix) }}
+
+        steps:
+            - name: Free Disk Space
+              uses: jlumbroso/free-disk-space@main
+
+            - name: Clone Azure Repo
+              if: ${{ inputs.azure_repo_url != '' }}
+              env:
+                  AZURE_PAT: ${{ secrets.azure_pat }}
+              run: |
+                  git config --global user.name "GitHub Actions"
+                  git config --global user.email "actions@github.com"
+                  git clone https://kbve:${AZURE_PAT}@${{ inputs.azure_repo_url }} ${{ inputs.project_path }}
+
+            - name: Use Local Repo if Azure not provided
+              if: ${{ inputs.azure_repo_url == '' }}
+              uses: actions/checkout@v4
+
+            - name: Unity Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ inputs.project_path }}/Library
+                  key: Library-${{ inputs.project_path }}-${{ matrix.target_platform }}
+                  restore-keys: |
+                      Library-${{ inputs.project_path }}-${{ matrix.target_platform }}-
+                      Library-${{ inputs.project_path }}-
+
+            - name: Build with Unity
+              uses: game-ci/unity-builder@v4
+              env:
+                  UNITY_LICENSE: ${{ secrets.unity_license }}
+                  UNITY_EMAIL: ${{ secrets.unity_email }}
+                  UNITY_PASSWORD: ${{ secrets.unity_password }}
+              with:
+                  projectPath: ${{ inputs.project_path }}
+                  unityVersion: ${{ inputs.unity_version }}
+                  targetPlatform: ${{ matrix.target_platform }}
+
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: Build-${{ matrix.target_platform }}
+                  path: build/${{ matrix.target_platform }}
+
+    deploy-itch:
+        name: Deploy WebGL to Itch.io
+        needs: unity-build
+        if: ${{ inputs.deploy_to_itch == true }}
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Download WebGL Build
+              uses: actions/download-artifact@v4
+              id: download
+              with:
+                  name: Build-WebGL
+                  path: build/WebGL
+
+            - name: Deploy to Itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ${{ steps.download.outputs.download-path }}
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_gameid }}
+                  buildChannel: webgl
