@@ -1,0 +1,54 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packages", "packages", "{809F86A1-1C4C-B159-0CD4-DF9D33D876CE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "node_modules", "node_modules", "{4F323C00-2DAB-898A-CB37-BBC8B5F74E19}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "unity", "unity", "{6F23F97E-1183-DB87-7207-8AB2BEC47A97}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kbve.Kilonet", "packages\unity\kilonet\Kbve.Kilonet.csproj", "{40BED1CE-7B9C-5D5A-637F-A7430A329604}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kbve.MMExtensions", "packages\unity\mmextensions\Kbve.MMExtensions.csproj", "{F21B8933-22E5-09CA-2AD7-50A465C83F3C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lottie-react-native", "lottie-react-native", "{6A585554-DC5A-4012-F3C0-768ADF1C59C4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows", "windows", "{D3D92E14-9D68-5137-BE00-6CC27E7820BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LottieReactNativeWindows", "node_modules\lottie-react-native\windows\LottieReactNativeWindows\LottieReactNativeWindows.csproj", "{8436327A-8785-8DF2-FA3E-BD8A710F6B74}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{40BED1CE-7B9C-5D5A-637F-A7430A329604}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40BED1CE-7B9C-5D5A-637F-A7430A329604}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40BED1CE-7B9C-5D5A-637F-A7430A329604}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40BED1CE-7B9C-5D5A-637F-A7430A329604}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F21B8933-22E5-09CA-2AD7-50A465C83F3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F21B8933-22E5-09CA-2AD7-50A465C83F3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F21B8933-22E5-09CA-2AD7-50A465C83F3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F21B8933-22E5-09CA-2AD7-50A465C83F3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8436327A-8785-8DF2-FA3E-BD8A710F6B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8436327A-8785-8DF2-FA3E-BD8A710F6B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8436327A-8785-8DF2-FA3E-BD8A710F6B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8436327A-8785-8DF2-FA3E-BD8A710F6B74}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6F23F97E-1183-DB87-7207-8AB2BEC47A97} = {809F86A1-1C4C-B159-0CD4-DF9D33D876CE}
+		{40BED1CE-7B9C-5D5A-637F-A7430A329604} = {6F23F97E-1183-DB87-7207-8AB2BEC47A97}
+		{F21B8933-22E5-09CA-2AD7-50A465C83F3C} = {6F23F97E-1183-DB87-7207-8AB2BEC47A97}
+		{6A585554-DC5A-4012-F3C0-768ADF1C59C4} = {4F323C00-2DAB-898A-CB37-BBC8B5F74E19}
+		{D3D92E14-9D68-5137-BE00-6CC27E7820BC} = {6A585554-DC5A-4012-F3C0-768ADF1C59C4}
+		{8436327A-8785-8DF2-FA3E-BD8A710F6B74} = {D3D92E14-9D68-5137-BE00-6CC27E7820BC}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BDF5679F-8CF1-4F4B-8EB1-793F67986775}
+	EndGlobalSection
+EndGlobal
