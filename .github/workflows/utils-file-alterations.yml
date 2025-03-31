@@ -53,7 +53,10 @@ on:
       astro_rareicon:
         description: "Rareicon.com changed"
         value: ${{ jobs.alter.outputs.astro_rareicon }}
-
+      # ? Unity
+      rareicon_unity:
+        description: "Rareicon Unity changed"
+        value: ${{ jobs.alter.outputs.rareicon_unity }}
       # TODO:
       discordsh_website:
         description: "Discord.sh changed"
@@ -111,6 +114,7 @@ jobs:
       astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
       astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
       astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
+      rareicon_unity: ${{ steps.delta.outputs.rareicon_unity_any_changed }}
       discordsh: ${{ steps.delta.outputs.discordsh_any_changed}}
       proxy: ${{ steps.delta.outputs.proxy_any_changed }}
       saber: ${{ steps.delta.outputs.saber_any_changed }}
@@ -149,6 +153,8 @@ jobs:
                 -  'apps/kbve/kilobase/README.md'
             disoxide:
                 - 'apps/discord/disoxide/README.md'
+            rareicon_unity:
+                - 'apps/kbve/kbve.com/src/content/docs/project/rareicon.mdx'
             py_atlas:
                 - 'apps/atlas/kbve_atlas/**'
             py_fudster:
