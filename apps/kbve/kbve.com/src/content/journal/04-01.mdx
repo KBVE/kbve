@@ -1,7 +1,7 @@
 ---
 title: 'April: 01'
 category: Daily
-date: 2024-04-01 12:00:00
+date: 2025-04-01 12:00:00
 client: Self
 unsplash: 1603855873822-0931a843ee3a
 img: https://images.unsplash.com/photo-1603855873822-0931a843ee3a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -15,11 +15,27 @@ tags:
 
 ## Notes
 
+## 2025
 
-### 2024
+### Unity CICD
+
+-   04:40AM
+
+    Made more changes to the base pipeline at the azure level and once the custom map is rolled out, we can start the UIUX.
+    The gameplay will be to add the custom characters, then add the first custom map + item collections.
+    Once all of that is integrated, we can do the first level roll out on Steam.
+
+### JokeCity
+
+-   09:34AM
+
+    I have to remind myself that nothing is real today and the memes are alawys in full force.
+    But that should not be a big deal, I will just stay away from the news xD.
 
 
-#### Docker
+## 2024
+
+### Docker
 
 Getting the `express-colyseus-discord` build operation on the portainer will be the goal for today!
 This includes having an endpoint for the portainer communication, which would include the deployment of any changes via github actions.
@@ -30,7 +46,7 @@ This is just extending the `TPlayerOptions` with `action` and then defining the 
 
 
 
-#### LCAgents
+### LCAgents
 
 We want to move the changes for LC Agents outside of the `ci-alpha` and towards the `ci-main`, so that we can keep the changes in order!
 After moving it towards the main branch, we can extend out the iOS and Android build process for Expo, now we need to make sure that the current flow will work.
@@ -119,7 +135,7 @@ Here is the pipeline that we are migrating with this push:
 ```
 
 
-#### Pipeline
+### Pipeline
 
 Under the `beta` branch, we can extend out integration testing, something that I can plan around this month. 
 We will start with the `kbve.com` repo , which will just build the site, making sure that it runs?
@@ -129,7 +145,7 @@ We will be using the `any_changed` to calculate any of the files that are change
 
 
 
-#### LC Agents
+### LC Agents
 
 Here is the older code block for the LC Agents Expo application.
 
