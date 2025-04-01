@@ -166,7 +166,7 @@ jobs:
               "condition": "${{ needs.alter.outputs.rareicon_unity == 'true' }}",
               "project_path": "azure-rareicon",
               "azure_repo_url": "dev.azure.com/kbve/rareicon/_git/rareicon",
-              "unity_version": "2022.3.25f1",
+              "unity_version": "6000.0.25f1",
               "target_platforms": "[\"StandaloneWindows64\", \"WebGL\"]",
               "deploy_to_itch": true,
               "itch_username": "kbve",
