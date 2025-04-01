@@ -197,7 +197,7 @@ jobs:
         unity_license: ${{ secrets.UNITY_LICENSE }}
         unity_email: ${{ secrets.UNITY_EMAIL }}
         unity_password: ${{ secrets.UNITY_PASSWORD }}
-        azure_pat: ${{ secrets.AZURE_PAT }}
+        azure_pat: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET  }}
         butler_api: ${{ secrets.ITCH_API }}
         gh_pages_pat: ${{ secrets.UNITY_PAT }}
 
