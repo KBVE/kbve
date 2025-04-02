@@ -10,30 +10,49 @@ use twitch_irc::{ ClientConfig, SecureTCPTransport, TwitchIRCClient };
 use twitch_irc::message::{ ServerMessage };
 
 use crate::proto::twitch::{
-  self, TwitchChatMessage, TwitchCheerEvent, TwitchEventObject, TwitchJoinEvent, TwitchModerationEvent, TwitchNoticeEvent, TwitchPartEvent, TwitchPing, TwitchPong, TwitchRaidEvent, TwitchRedemptionEvent, TwitchSender, TwitchSubEvent
+  self,
+  TwitchChatMessage,
+  TwitchCheerEvent,
+  TwitchEventObject,
+  TwitchJoinEvent,
+  TwitchModerationEvent,
+  TwitchNoticeEvent,
+  TwitchPartEvent,
+  TwitchPing,
+  TwitchPong,
+  TwitchRaidEvent,
+  TwitchRedemptionEvent,
+  TwitchSender,
+  TwitchSubEvent,
 };
 use crate::sidecar::{ TwitchAuth, save_twitch_json_from_env, FileTokenStorage };
 use crate::error::JediError;
 
 #[async_trait]
 impl TokenStorage for FileTokenStorage<UserAccessToken> {
-    type LoadError = std::io::Error;
-    type UpdateError = std::io::Error;
+  type LoadError = std::io::Error;
+  type UpdateError = std::io::Error;
 
-    async fn load_token<'a>(&'a mut self) -> Result<UserAccessToken, Self::LoadError> {
-        let contents = fs::read_to_string(&*self.path).await?;
-        let token = serde_json::from_str::<UserAccessToken>(&contents)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Parse error: {e}")))?;
-        Ok(token)
-    }
+  async fn load_token<'a>(&'a mut self) -> Result<UserAccessToken, Self::LoadError> {
+    let contents = fs::read_to_string(&*self.path).await?;
+    let token = serde_json
+      ::from_str::<UserAccessToken>(&contents)
+      .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Parse error: {e}")))?;
+    Ok(token)
+  }
 
-    async fn update_token<'a>(&'a mut self, token: &UserAccessToken) -> Result<(), Self::UpdateError> {
-        let json = serde_json::to_string_pretty(token)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("Serialize error: {e}")))?;
-        fs::write(&*self.path, json).await
-    }
+  async fn update_token<'a>(
+    &'a mut self,
+    token: &UserAccessToken
+  ) -> Result<(), Self::UpdateError> {
+    let json = serde_json
+      ::to_string_pretty(token)
+      .map_err(|e|
+        std::io::Error::new(std::io::ErrorKind::Other, format!("Serialize error: {e}"))
+      )?;
+    fs::write(&*self.path, json).await
+  }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct TwitchEventEnvelope {
@@ -44,7 +63,10 @@ pub struct TwitchEventEnvelope {
 pub async fn init_pubsub_twitch_connection(
   event_tx: BroadcastSender<TwitchEventEnvelope>
 ) -> Result<
-  TwitchIRCClient<SecureTCPTransport, RefreshingLoginCredentials<FileTokenStorage<UserAccessToken>>>,
+  TwitchIRCClient<
+    SecureTCPTransport,
+    RefreshingLoginCredentials<FileTokenStorage<UserAccessToken>>
+  >,
   JediError
 > {
   let auth = TwitchAuth::from_env();
@@ -55,7 +77,6 @@ pub async fn init_pubsub_twitch_connection(
 
   let token_storage = FileTokenStorage::<UserAccessToken>::new(auth.token_path.clone());
 
-
   let credentials = RefreshingLoginCredentials::init(
     auth.client_id,
     auth.client_secret,
@@ -64,19 +85,33 @@ pub async fn init_pubsub_twitch_connection(
 
   let config = ClientConfig::new_simple(credentials);
 
-
   let (mut incoming, client) = TwitchIRCClient::<SecureTCPTransport, _>::new(config);
 
   tokio::spawn(async move {
     while let Some(msg) = incoming.recv().await {
+      tracing::debug!(?msg, "[Twitch] Incoming raw IRC message");
+
+      if let ServerMessage::Privmsg(ref m) = msg {
+        tracing::debug!(
+            user = %m.sender.login,
+            channel = %m.channel_login,
+            text = %m.message_text,
+            "[Twitch] Message received"
+        );
+      }
+
       if let Some(event) = parse_twitch_message(msg) {
+        tracing::debug!(?event, "[Twitch] Parsed event");
+
         let envelope = TwitchEventEnvelope {
           event,
           received_at: Utc::now().timestamp_millis() as u64,
         };
+
         let _ = event_tx.send(envelope);
       }
     }
+
     tracing::warn!("[Twitch] Event stream closed.");
   });
 
@@ -98,7 +133,7 @@ pub fn parse_twitch_message(msg: ServerMessage) -> Option<TwitchEventObject> {
               host: "".into(),
               id: "".into(),
             }),
-          }) 
+          })
         ),
         origin: "twitch".into(),
         relay_generated: false,
@@ -149,12 +184,14 @@ pub fn parse_twitch_message(msg: ServerMessage) -> Option<TwitchEventObject> {
 }
 
 pub async fn send_twitch_chat_message(
-  client: &TwitchIRCClient<SecureTCPTransport, RefreshingLoginCredentials<FileTokenStorage<UserAccessToken>>>,
+  client: &TwitchIRCClient<
+    SecureTCPTransport,
+    RefreshingLoginCredentials<FileTokenStorage<UserAccessToken>>
+  >,
   channel: &str,
   message: &str
 ) -> Result<(), JediError> {
   client
-    .say(channel.to_owned(), message.to_owned())
-    .await
+    .say(channel.to_owned(), message.to_owned()).await
     .map_err(|e| JediError::Internal(format!("Failed to send Twitch message: {}", e).into()))
 }
