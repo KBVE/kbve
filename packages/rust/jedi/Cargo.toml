@@ -15,6 +15,7 @@ rust-version = "1.85"
 tonic-build = "0.12.3"
 
 [dependencies]
+async-trait = "0.1.88"
 prost-types = "0.13.5"
 dashmap = { version = "6.1.0", features = ["serde", "rayon"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -66,7 +67,7 @@ hyper-util = { version = "0.1", features = ["tokio", "server-auto", "http1"] }
 rustc-hash = "2.1.1"
 flexbuffers = "25.2.10"
 # Twitch
-twitch-irc = "5.0.1"
+twitch-irc = { version = "5.0.1", features = ["with-serde", "refreshing-token-rustls-webpki-roots", "transport-ws", "transport-ws-rustls-webpki-roots"] }
 # Replaceable
 crossbeam = "0.8.4"
 regex = "1.10.3"
