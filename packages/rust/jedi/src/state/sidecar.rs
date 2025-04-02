@@ -33,7 +33,7 @@ pub async fn get_env_async(key: &str, default: &str) -> String {
 
 #[derive(Debug, Clone)]
 pub struct FileTokenStorage<T> {
-  path: Arc<PathBuf>,
+  pub(crate) path: Arc<PathBuf>,
   _phantom: std::marker::PhantomData<T>,
 }
 
@@ -72,6 +72,20 @@ impl<T> FileTokenStorage<T> where T: Serialize + DeserializeOwned + Send + Sync 
       }
     }
   }
+
+    pub async fn try_load(&self) -> Result<T, JediError> {
+      let contents = fs::read_to_string(&*self.path).await?;
+      let token = serde_json::from_str::<T>(&contents)
+        .map_err(|e| JediError::Internal(Cow::Owned(format!("Parse error: {e}"))))?;
+      Ok(token)
+    }
+  
+    pub async fn try_save(&self, value: &T) -> Result<(), JediError> {
+      let json = serde_json::to_string_pretty(value)
+        .map_err(|e| JediError::Internal(Cow::Owned(format!("Serialize error: {e}"))))?;
+      fs::write(&*self.path, json).await?;
+      Ok(())
+    }
 }
 
 pub struct RedisConfig {
