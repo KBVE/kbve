@@ -7,7 +7,7 @@ use axum::{
 };
 use futures_util::{ StreamExt, SinkExt };
 use std::{ sync::Arc, ops::ControlFlow };
-use tokio::sync::{oneshot, Mutex};
+use tokio::sync::{ oneshot, Mutex };
 
 // use tokio::sync::broadcast;
 use crate::entity::state::{ AppGlobalState, SharedState };
@@ -127,19 +127,19 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
                 }
               }
             } else if let Some(mut cmd) = build_redis_envelope_from_ws(&ws_msg) {
-              //let _ = state_recv.temple.send_redis(cmd).await;
-
               let (tx, rx) = oneshot::channel();
               cmd.response_tx = Some(tx);
 
               if state_recv.temple.send_redis(cmd).await.is_ok() {
-                if let Ok(response) = rx.await {
-                  let json = serde_json
-                    ::to_string(&response)
-                    .unwrap_or_else(|_|
-                      "{\"status\":\"error\",\"value\":\"serialization error\"}".into()
-                    );
-                  let _ = ws_tx.send(Message::Text(json.into())).await;
+                match rx.await {
+                  Ok(response) => {
+                    if let Ok(json) = serde_json::to_string(&response) {
+                      let _ = ws_tx.send(Message::Text(json.into())).await;
+                    }
+                  }
+                  Err(e) => {
+                    tracing::warn!("Failed to receive Redis response: {e}");
+                  }
                 }
               }
             } else {
