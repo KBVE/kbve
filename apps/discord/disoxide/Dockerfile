@@ -56,6 +56,7 @@ COPY --from=os_builder /rootfs /
 COPY --from=builder /app/target/release/disoxide ./disoxide
 COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 COPY /build /build
+COPY /templates /templates
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:14,narenas:2,oversize_threshold:4194304"
 EXPOSE 3000 8081

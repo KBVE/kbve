@@ -418,6 +418,48 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "175571dd1d178ced59193a6fc02dde1b972eb0bc56c892cde9beeceac5bf0f6b"
 
 [[package]]
+name = "askama"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a4e46abb203e00ef226442d452769233142bbfdd79c3941e84c8e61c4112543"
+dependencies = [
+ "askama_derive",
+ "itoa 1.0.11",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "askama_derive"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54398906821fd32c728135f7b351f0c7494ab95ae421d41b6f5a020e158f28a6"
+dependencies = [
+ "askama_parser",
+ "basic-toml",
+ "memchr",
+ "proc-macro2",
+ "quote",
+ "rustc-hash 2.1.1",
+ "serde",
+ "serde_derive",
+ "syn 2.0.87",
+]
+
+[[package]]
+name = "askama_parser"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf315ce6524c857bb129ff794935cf6d42c82a6cff60526fe2a63593de4d0d4f"
+dependencies = [
+ "memchr",
+ "serde",
+ "serde_derive",
+ "winnow 0.7.4",
+]
+
+[[package]]
 name = "asn1-rs"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1470,6 +1512,15 @@ name = "base64ct"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
+
+[[package]]
+name = "basic-toml"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba62675e8242a4c4e806d12f11d136e626e6c8361d6b829310732241652a178a"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "bb8"
@@ -2911,6 +2962,7 @@ dependencies = [
 name = "disoxide"
 version = "1.2.0"
 dependencies = [
+ "askama",
  "axum 0.8.1",
  "axum-extra 0.10.0",
  "bb8",
@@ -2922,7 +2974,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
- "jedi 0.2.0",
+ "jedi 0.2.0 (git+https://github.com/KBVE/kbve.git?rev=8284af0f51697accf83c9fc791e5e4e462cddd28)",
  "papaya 0.2.1",
  "prost",
  "prost-build",
@@ -5148,6 +5200,52 @@ dependencies = [
 [[package]]
 name = "jedi"
 version = "0.2.0"
+dependencies = [
+ "ammonia 4.0.0",
+ "async-trait",
+ "axum 0.8.1",
+ "axum-extra 0.10.0",
+ "bb8",
+ "bb8-postgres",
+ "bb8-redis",
+ "bitflags 2.9.0",
+ "chrono",
+ "crossbeam",
+ "dashmap 6.1.0",
+ "flexbuffers",
+ "futures-util",
+ "http-body-util",
+ "hyper 1.5.0",
+ "hyper-util",
+ "once_cell",
+ "papaya 0.2.1",
+ "prost",
+ "prost-types",
+ "redis 0.29.1",
+ "regex",
+ "reqwest 0.12.8",
+ "rustc-hash 2.1.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-postgres",
+ "tonic",
+ "tonic-build",
+ "tonic-health",
+ "tonic-reflection",
+ "tower 0.5.2",
+ "tower-http 0.6.2",
+ "tracing",
+ "tracing-subscriber",
+ "twitch-irc",
+ "ulid",
+]
+
+[[package]]
+name = "jedi"
+version = "0.2.0"
+source = "git+https://github.com/KBVE/kbve.git?rev=8284af0f51697accf83c9fc791e5e4e462cddd28#8284af0f51697accf83c9fc791e5e4e462cddd28"
 dependencies = [
  "ammonia 4.0.0",
  "async-trait",
@@ -12922,6 +13020,15 @@ name = "winnow"
 version = "0.6.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "36c1fec1a2bb5866f07c25f68c26e565c4c200aebb96d7e55710c19d3e8ac49b"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "winnow"
+version = "0.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e97b544156e9bebe1a0ffbc03484fc1ffe3100cbce3ffb17eac35f7cdd7ab36"
 dependencies = [
  "memchr",
 ]
