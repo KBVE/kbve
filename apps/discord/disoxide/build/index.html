@@ -3,26 +3,78 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script
+			src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
+			crossorigin="anonymous"></script>
+		<script
+			src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12/dist/htmx.min.js"
+			crossorigin="anonymous"></script>
+		<script src="
+https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
+"></script>
 		<title>DiscordSH</title>
-		<style>
-			html,
-			body {
-				margin: 0;
-				padding: 0;
-				height: 100%;
-				overflow: hidden;
-			}
-			iframe {
-				border: none;
-				width: 100%;
-				height: 100%;
-			}
-		</style>
-	</head>
-	<body>
-		<iframe
-			src="https://kbve.com/kanban/"
-			id="nested"
-			scrolling="no"></iframe>
-	</body>
+	</head> 
+	<body class="h-full bg-gray-50 text-gray-900">
+		<div x-data="{ sidebarOpen: true }" class="flex h-screen overflow-hidden">
+	
+		  <!-- Sidebar -->
+		  <aside
+			:class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+			class="fixed z-50 w-64 h-full bg-gray-800 text-white flex flex-col p-4 transform transition-transform duration-200 ease-in-out md:static md:translate-x-0"
+		  >
+			<div class="flex items-center justify-between md:block">
+			  <h1 class="text-2xl font-bold mb-6">DiscordSH</h1>
+			  <button class="text-white md:hidden" @click="sidebarOpen = false">✕</button>
+			</div>
+	
+			<nav class="flex flex-col gap-3">
+			  <a href="#" class="hover:bg-gray-700 rounded px-3 py-2">Dashboard</a>
+			  <a href="#" class="hover:bg-gray-700 rounded px-3 py-2">Servers</a>
+			  <a href="#" class="hover:bg-gray-700 rounded px-3 py-2">Logs</a>
+			  <a href="#" class="hover:bg-gray-700 rounded px-3 py-2">Settings</a>
+			</nav>
+	
+			<div class="mt-auto pt-6 border-t border-gray-700">
+			  <a href="#" class="text-sm text-gray-400 hover:text-white">Logout</a>
+			</div>
+		  </aside>
+	
+		  <!-- Main Content -->
+		  <div class="flex-1 flex flex-col w-full transition-all duration-200 ease-in-out"
+			   :class="{ 'md:ml-64': sidebarOpen }">
+	
+			<!-- Header with toggle -->
+			<header class="p-4 bg-white shadow md:shadow-none flex items-center justify-between md:justify-start">
+			  <button
+				class="text-gray-700 text-xl mr-4"
+				@click="sidebarOpen = !sidebarOpen"
+				aria-label="Toggle Sidebar"
+			  >
+				☰
+			  </button>
+			  <h2 class="text-2xl font-semibold">Welcome back, Commander</h2>
+			</header>
+	
+			<!-- Page Content -->
+			<main class="p-6 overflow-y-auto">
+			  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<div class="bg-white p-4 rounded shadow">
+				  <h3 class="text-sm text-gray-500">Active Servers</h3>
+				  <p class="text-xl font-bold">5</p>
+				</div>
+	
+				<div class="bg-white p-4 rounded shadow">
+				  <h3 class="text-sm text-gray-500">Online Users</h3>
+				  <p class="text-xl font-bold">213</p>
+				</div>
+	
+				<div class="bg-white p-4 rounded shadow">
+				  <h3 class="text-sm text-gray-500">Log Volume</h3>
+				  <p class="text-xl font-bold">37 MB</p>
+				</div>
+			  </div>
+			</main>
+		  </div>
+		</div>
+	  </body>
 </html>

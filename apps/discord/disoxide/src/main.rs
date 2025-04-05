@@ -16,7 +16,7 @@ use std::sync::Arc;
 use tokio::time::Duration;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
-use tower_http::{ compression::CompressionLayer, limit::RequestBodyLimitLayer, trace::TraceLayer };
+use tower_http::{ compression::CompressionLayer, limit::RequestBodyLimitLayer, trace::TraceLayer, services::ServeDir};
 use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
 
 use jedi::sidecar::RedisConfig;
@@ -52,6 +52,7 @@ async fn main() {
   let app = Router::new()
     .merge(handler::http::http_router())
     .merge(handler::ws::ws_router())
+    .fallback_service(ServeDir::new("build"))
     .layer(
       ServiceBuilder::new()
         .layer(HandleErrorLayer::new(crate::handler::error::handle_error))

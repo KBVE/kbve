@@ -67,6 +67,9 @@ tikv-jemallocator = { version = "0.6", optional = true }
 [features]
 jemalloc = ["dep:tikv-jemallocator"]
 
+[package.metadata.askama]
+template-dir = "build"
+
 [profile.release]
 opt-level = 3
 lto = true
