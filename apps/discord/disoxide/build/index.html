@@ -20,46 +20,7 @@ https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
 	</head>
 
 	<body class="h-full bg-[#28243d] text-gray-100">
-		<!-- Scripts -->
-		<script>
-			function metricsCube() {
-				return {
-					open: false,
-					rotation: 0,
-					dataEntries: [],
-					worker: null,
-
-					init() {
-						this.worker = new Worker('/js/worker.js');
-
-						this.worker.onmessage = (e) => {
-							const { type, payload, error } = e.data;
-
-							if (type === 'metrics_result') {
-								this.dataEntries = payload;
-							} else if (type === 'metrics_error') {
-								console.error('Metrics worker error:', error);
-							}
-						};
-
-						this.fetchMetrics();
-
-						setInterval(() => {
-							if (this.open) {
-								this.rotation += 45;
-								this.fetchMetrics();
-							}
-						}, 3000);
-					},
-
-					fetchMetrics() {
-						if (this.worker) {
-							this.worker.postMessage({ type: 'fetch_metrics' });
-						}
-					},
-				};
-			}
-		</script>
+		
 
 		<div
 			x-data="{ sidebarOpen: true }"
@@ -159,31 +120,30 @@ https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
 							</p>
 						</div>
 
-						<div x-data="metricsCube()" class="relative">
+						<div x-data="metricsCube()" x-ignore class="space-y-4">
 							<button
 								@click="open = !open"
 								class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600">
-								View Metrics
+								Toggle Metrics
 							</button>
 
-							<!-- Popover Cube -->
 							<div
 								x-show="open"
-								class="absolute mt-2 size-48 perspective-[1200px] perspective-origin-center z-50"
-								@click.outside="open = false">
-								<div
-									class="relative size-full transform-style-preserve-3d transition-transform duration-700"
-									:style="'transform: rotateY(' + rotation + 'deg) rotateX(10deg)'">
-									<template
-										x-for="(value, index) in dataEntries"
-										:key="index">
+								class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+								<template
+									x-for="(metric, index) in dataEntries"
+									:key="index">
+									<div
+										class="bg-[#312d4b] border border-purple-500/20 hover:border-purple-500 rounded-xl shadow-lg p-4 flex flex-col gap-1 transition hover:scale-[1.02]"
+										:style="'background-color: hsl(' + (index * 60) + ', 40%, 20%)'">
 										<div
-											class="absolute size-full rounded bg-[#312d4b] border border-purple-500/20 text-purple-300 font-semibold text-sm flex items-center justify-center shadow-2xl"
-											:class="faceClasses[index]"
-											:style="'background-color: hsl(' + (index * 60) + ', 40%, 25%)'"
-											x-text="value.key + ': ' + value.value"></div>
-									</template>
-								</div>
+											class="text-xs text-purple-400 truncate"
+											x-text="metric.key"></div>
+										<div
+											class="text-2xl font-bold text-purple-200 leading-snug"
+											x-text="metric.value"></div>
+									</div>
+								</template>
 							</div>
 						</div>
 
@@ -198,5 +158,35 @@ https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
 				</main>
 			</div>
 		</div>
+
+		<script type="module">
+			import { subscribeToTopic } from '/js/client.js';
+		
+			window.metricsCube = function () {
+				let unsubscribe = null;
+		
+				return {
+					open: false,
+					dataEntries: [],
+		
+					init() {
+						unsubscribe = subscribeToTopic('metrics', (data) => {
+							this.dataEntries = data;
+						});
+					},
+		
+					destroy() {
+						if (unsubscribe) unsubscribe();
+					}
+				};
+			};
+
+			window.addEventListener('DOMContentLoaded', () => {
+				window.Alpine?.initTree(document.body);
+			});
+		</script>
+
 	</body>
+
+
 </html>
