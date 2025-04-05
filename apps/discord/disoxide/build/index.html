@@ -5,16 +5,62 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<script
 			src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
-			crossorigin="anonymous"></script>
+			crossorigin="anonymous"
+			defer></script>
 		<script
 			src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12/dist/htmx.min.js"
-			crossorigin="anonymous"></script>
-		<script src="
+			crossorigin="anonymous"
+			defer></script>
+		<script
+			src="
 https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
-"></script>
+"
+			defer></script>
 		<title>DiscordSH</title>
 	</head>
+
 	<body class="h-full bg-[#28243d] text-gray-100">
+		<!-- Scripts -->
+		<script>
+			function metricsCube() {
+				return {
+					open: false,
+					rotation: 0,
+					dataEntries: [],
+					worker: null,
+
+					init() {
+						this.worker = new Worker('/js/worker.js');
+
+						this.worker.onmessage = (e) => {
+							const { type, payload, error } = e.data;
+
+							if (type === 'metrics_result') {
+								this.dataEntries = payload;
+							} else if (type === 'metrics_error') {
+								console.error('Metrics worker error:', error);
+							}
+						};
+
+						this.fetchMetrics();
+
+						setInterval(() => {
+							if (this.open) {
+								this.rotation += 45;
+								this.fetchMetrics();
+							}
+						}, 3000);
+					},
+
+					fetchMetrics() {
+						if (this.worker) {
+							this.worker.postMessage({ type: 'fetch_metrics' });
+						}
+					},
+				};
+			}
+		</script>
+
 		<div
 			x-data="{ sidebarOpen: true }"
 			class="flex h-screen overflow-hidden">
@@ -79,7 +125,8 @@ https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
 				</header>
 
 				<!-- Page Content -->
-				<main class="p-6 overflow-y-auto perspective-distant">
+				<main
+					class="p-6 overflow-visible perspective-[1000px] perspective-origin-center">
 					<div
 						class="grid gap-6 grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))]">
 						<div
@@ -122,17 +169,18 @@ https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
 							<!-- Popover Cube -->
 							<div
 								x-show="open"
-								class="absolute mt-2 size-40 perspective-[1000px] perspective-origin-bottom-right"
+								class="absolute mt-2 size-48 perspective-[1200px] perspective-origin-center z-50"
 								@click.outside="open = false">
 								<div
 									class="relative size-full transform-style-preserve-3d transition-transform duration-700"
-									:style="'transform: rotateY(' + rotation + 'deg)'">
+									:style="'transform: rotateY(' + rotation + 'deg) rotateX(10deg)'">
 									<template
 										x-for="(value, index) in dataEntries"
 										:key="index">
 										<div
-											class="absolute size-full bg-[#312d4b] border border-purple-500/20 text-purple-300 font-semibold text-sm flex items-center justify-center shadow-xl"
+											class="absolute size-full rounded bg-[#312d4b] border border-purple-500/20 text-purple-300 font-semibold text-sm flex items-center justify-center shadow-2xl"
 											:class="faceClasses[index]"
+											:style="'background-color: hsl(' + (index * 60) + ', 40%, 25%)'"
 											x-text="value.key + ': ' + value.value"></div>
 									</template>
 								</div>
@@ -140,60 +188,15 @@ https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
 						</div>
 
 						<div
-						class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
-						<h3 class="text-sm text-gray-400">Metrics Data</h3>
-						<p class="text-xl font-bold text-purple-300">
-							Data MB
-						</p>
-					</div>
+							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
+							<h3 class="text-sm text-gray-400">Metrics Data</h3>
+							<p class="text-xl font-bold text-purple-300">
+								Data MB
+							</p>
+						</div>
 					</div>
 				</main>
 			</div>
 		</div>
 	</body>
-
-	<!-- Scripts -->
-	<script>
-		function metricsCube() {
-		  return {
-			open: false,
-			rotation: 0,
-			dataEntries: [],
-			faceClasses: [
-			  'translate-z-20', // front
-			  '-translate-z-20 rotate-y-180', // back
-			  'translate-x-20 rotate-y-90',   // right
-			  '-translate-x-20 -rotate-y-90', // left
-			  '-translate-y-20 rotate-x-90',  // top
-			  'translate-y-20 -rotate-x-90'   // bottom
-			],
-			async fetchData() {
-			  try {
-				const res = await fetch('/metrics');
-				const text = await res.text();
-	  
-				this.dataEntries = text
-				  .split('\n')
-				  .filter(line => line && !line.startsWith('#'))
-				  .slice(0, 6) // limit to 6 cube faces
-				  .map(line => {
-					const [key, value] = line.trim().split(/\s+/);
-					return { key, value };
-				  });
-			  } catch (e) {
-				console.error('Failed to fetch metrics:', e);
-			  }
-			},
-			init() {
-			  this.fetchData();
-			  setInterval(() => {
-				if (this.open) {
-				  this.rotation += 45;
-				  this.fetchData();
-				}
-			  }, 3000);
-			}
-		  };
-		}
-	  </script>
 </html>
