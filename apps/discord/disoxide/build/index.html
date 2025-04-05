@@ -11,17 +11,12 @@
 			src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12/dist/htmx.min.js"
 			crossorigin="anonymous"
 			defer></script>
-		<script
-			src="
-https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
-"
-			defer></script>
+			<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js" />
+
 		<title>DiscordSH</title>
 	</head>
 
 	<body class="h-full bg-[#28243d] text-gray-100">
-		
-
 		<div
 			x-data="{ sidebarOpen: true }"
 			class="flex h-screen overflow-hidden">
@@ -120,7 +115,7 @@ https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
 							</p>
 						</div>
 
-						<div x-data="metricsCube()" x-ignore class="space-y-4">
+						<div x-data="metricsCube" :class="{ 'cursor-progress': loading }"  class="space-y-4">
 							<button
 								@click="open = !open"
 								class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600">
@@ -160,33 +155,40 @@ https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
 		</div>
 
 		<script type="module">
-			import { subscribeToTopic } from '/js/client.js';
-		
-			window.metricsCube = function () {
-				let unsubscribe = null;
-		
-				return {
+			import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js';
+			import { subscribeToTopic, useSharedWorkerCall } from '/js/client.js';
+
+			document.addEventListener('alpine:init', () => {
+				Alpine.data('metricsCube', () => ({
 					open: false,
 					dataEntries: [],
-		
-					init() {
-						unsubscribe = subscribeToTopic('metrics', (data) => {
-							this.dataEntries = data;
-						});
+					unsubscribe: null,
+					loading: false,
+
+					async init() {
+						this.loading = true;
+
+						const initial = await useSharedWorkerCall('fetch_metrics');
+						this.dataEntries = initial;
+
+						this.unsubscribe = subscribeToTopic(
+							'metrics',
+							(data) => {
+								this.dataEntries = data;
+								if (this.loading) this.loading = false;
+							},
+						);
+
+						this.loading = false;
 					},
-		
+
 					destroy() {
-						if (unsubscribe) unsubscribe();
-					}
-				};
-			};
-
-			window.addEventListener('DOMContentLoaded', () => {
-				window.Alpine?.initTree(document.body);
+						if (this.unsubscribe) this.unsubscribe();
+					},
+				}));
 			});
+
+			Alpine.start();
 		</script>
-
 	</body>
-
-
 </html>

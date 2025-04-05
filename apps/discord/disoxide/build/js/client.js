@@ -20,7 +20,7 @@ export function initSharedWorker() {
 	return sharedPort;
 }
 
-export function useSharedWorkerCall(type, payload = {}, timeoutMs = 5000) {
+export function useSharedWorkerCall(type, payload = {}, timeoutMs = 10000) {
 	return new Promise((resolve, reject) => {
 		const requestId = `req_${Date.now()}_${Math.random()}`;
 		const port = initSharedWorker();
