@@ -3,26 +3,192 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script
+			src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
+			crossorigin="anonymous"
+			defer></script>
+		<script
+			src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12/dist/htmx.min.js"
+			crossorigin="anonymous"
+			defer></script>
+			<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js" />
+
 		<title>DiscordSH</title>
-		<style>
-			html,
-			body {
-				margin: 0;
-				padding: 0;
-				height: 100%;
-				overflow: hidden;
-			}
-			iframe {
-				border: none;
-				width: 100%;
-				height: 100%;
-			}
-		</style>
 	</head>
-	<body>
-		<iframe
-			src="https://kbve.com/kanban/"
-			id="nested"
-			scrolling="no"></iframe>
+
+	<body class="h-full bg-[#28243d] text-gray-100">
+		<div
+			x-data="{ sidebarOpen: true }"
+			class="flex h-screen overflow-hidden">
+			<!-- Sidebar -->
+			<aside
+				:class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+				class="fixed z-50 w-64 h-full bg-gray-800 text-white flex flex-col p-4 transform transition-transform duration-200 ease-in-out">
+				<div class="flex items-center justify-between">
+					<h1 class="text-2xl font-bold mb-6 text-purple-400">
+						DiscordSH
+					</h1>
+					<span
+						class="inline-flex shrink-0 rounded-full border border-purple-500 bg-purple-800 p-1">
+						<button
+							class="text-purple-200"
+							@click="sidebarOpen = false">
+							✕
+						</button>
+					</span>
+				</div>
+
+				<nav class="flex flex-col gap-3">
+					<a href="#" class="hover:bg-gray-700 rounded px-3 py-2">
+						Dashboard
+					</a>
+					<a href="#" class="hover:bg-gray-700 rounded px-3 py-2">
+						Servers
+					</a>
+					<a href="#" class="hover:bg-gray-700 rounded px-3 py-2">
+						Logs
+					</a>
+					<a href="#" class="hover:bg-gray-700 rounded px-3 py-2">
+						Settings
+					</a>
+				</nav>
+
+				<div class="mt-auto pt-6 border-t border-gray-700">
+					<a
+						href="#"
+						class="text-sm text-gray-400 hover:text-purple-300">
+						Logout
+					</a>
+				</div>
+			</aside>
+
+			<!-- Main Content -->
+			<div
+				class="flex-1 flex flex-col w-full transition-all duration-200 ease-in-out"
+				:class="{ 'md:ml-64': sidebarOpen }">
+				<!-- Header with toggle -->
+				<header
+					class="p-4 bg-gray-800 shadow flex items-center justify-between md:justify-start">
+					<button
+						class="text-gray-300 text-xl mr-4 hover:text-purple-400"
+						@click="sidebarOpen = !sidebarOpen"
+						aria-label="Toggle Sidebar">
+						☰
+					</button>
+					<h2 class="text-2xl font-semibold text-purple-400">
+						Welcome back, Commander
+					</h2>
+				</header>
+
+				<!-- Page Content -->
+				<main
+					class="p-6 overflow-visible perspective-[1000px] perspective-origin-center">
+					<div
+						class="grid gap-6 grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))]">
+						<div
+							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
+							<h3 class="text-sm text-gray-400">
+								Active Servers
+							</h3>
+							<p class="text-xl font-bold text-purple-300">5</p>
+						</div>
+
+						<div
+							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
+							<h3 class="text-sm text-gray-400">Online Users</h3>
+							<p class="text-xl font-bold text-purple-300">213</p>
+						</div>
+
+						<div
+							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
+							<h3 class="text-sm text-gray-400">Log Volume</h3>
+							<p class="text-xl font-bold text-purple-300">
+								37 MB
+							</p>
+						</div>
+
+						<div
+							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
+							<h3 class="text-sm text-gray-400">Metrics Data</h3>
+							<p class="text-xl font-bold text-purple-300">
+								Data MB
+							</p>
+						</div>
+
+						<div x-data="metricsCube" :class="{ 'cursor-progress': loading }"  class="space-y-4">
+							<button
+								@click="open = !open"
+								class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600">
+								Toggle Metrics
+							</button>
+
+							<div
+								x-show="open"
+								class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+								<template
+									x-for="(metric, index) in dataEntries"
+									:key="index">
+									<div
+										class="bg-[#312d4b] border border-purple-500/20 hover:border-purple-500 rounded-xl shadow-lg p-4 flex flex-col gap-1 transition hover:scale-[1.02]"
+										:style="'background-color: hsl(' + (index * 60) + ', 40%, 20%)'">
+										<div
+											class="text-xs text-purple-400 truncate"
+											x-text="metric.key"></div>
+										<div
+											class="text-2xl font-bold text-purple-200 leading-snug"
+											x-text="metric.value"></div>
+									</div>
+								</template>
+							</div>
+						</div>
+
+						<div
+							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
+							<h3 class="text-sm text-gray-400">Metrics Data</h3>
+							<p class="text-xl font-bold text-purple-300">
+								Data MB
+							</p>
+						</div>
+					</div>
+				</main>
+			</div>
+		</div>
+
+		<script type="module">
+			import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js';
+			import { subscribeToTopic, useSharedWorkerCall } from '/js/client.js';
+
+			document.addEventListener('alpine:init', () => {
+				Alpine.data('metricsCube', () => ({
+					open: false,
+					dataEntries: [],
+					unsubscribe: null,
+					loading: false,
+
+					async init() {
+						this.loading = true;
+
+						const initial = await useSharedWorkerCall('fetch_metrics');
+						this.dataEntries = initial;
+
+						this.unsubscribe = subscribeToTopic(
+							'metrics',
+							(data) => {
+								this.dataEntries = data;
+								if (this.loading) this.loading = false;
+							},
+						);
+
+						this.loading = false;
+					},
+
+					destroy() {
+						if (this.unsubscribe) this.unsubscribe();
+					},
+				}));
+			});
+
+			Alpine.start();
+		</script>
 	</body>
 </html>
