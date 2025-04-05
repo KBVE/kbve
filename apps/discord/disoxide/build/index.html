@@ -115,33 +115,31 @@
 							</p>
 						</div>
 
-						<div x-data="metricsCube" :class="{ 'cursor-progress': loading }"  class="space-y-4">
+						<div x-data="metricsCube" :class="{ 'cursor-progress': loading }" class="space-y-4">
 							<button
 								@click="open = !open"
-								class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600">
+								class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600 shadow transition">
 								Toggle Metrics
 							</button>
-
-							<div
-								x-show="open"
-								class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-								<template
-									x-for="(metric, index) in dataEntries"
-									:key="index">
+						
+							<div x-show="open" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+								<template x-for="(metric, index) in dataEntries" :key="index">
 									<div
-										class="bg-[#312d4b] border border-purple-500/20 hover:border-purple-500 rounded-xl shadow-lg p-4 flex flex-col gap-1 transition hover:scale-[1.02]"
-										:style="'background-color: hsl(' + (index * 60) + ', 40%, 20%)'">
-										<div
-											class="text-xs text-purple-400 truncate"
-											x-text="metric.key"></div>
-										<div
-											class="text-2xl font-bold text-purple-200 leading-snug"
-											x-text="metric.value"></div>
+										class="relative p-5 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-[#2b2740] to-[#312d4b] shadow-lg hover:border-purple-400/50 transition transform hover:scale-[1.02]"
+										:style="'--index: ' + index">
+										
+										<div class="flex items-center justify-between mb-1">
+											<h4 class="text-xs uppercase text-purple-400 tracking-wide" x-text="metric.key"></h4>
+											<!-- Optional icon or badge -->
+											<span class="text-[10px] text-purple-300 opacity-60">#<span x-text="index + 1"></span></span>
+										</div>
+						
+										<p class="text-3xl font-semibold text-purple-100 leading-tight" x-text="Number(metric.value).toFixed(2)"></p>
 									</div>
 								</template>
 							</div>
 						</div>
-
+						
 						<div
 							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
 							<h3 class="text-sm text-gray-400">Metrics Data</h3>
