@@ -1,4 +1,5 @@
 importScripts('/js/metrics-parser.js');
+importScripts('/js/websockets.js');
 
 const subscriptions = new Map();
 const pollers = {};

@@ -63,6 +63,15 @@ pub enum RedisCommandType {
   },
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum ThinWsCommand {
+    Set { key: String, value: String },
+    Get { key: String },
+    Del { key: String },
+    Watch { key: String },
+}
+
 impl RedisCommandType {
   pub fn key(&self) -> &str {
     match self {
@@ -180,6 +189,39 @@ impl RedisWsMessage {
     serde_json::to_string(self).ok()
   }
 }
+
+impl From<ThinWsCommand> for RedisWsMessage {
+  fn from(cmd: ThinWsCommand) -> Self {
+      use crate::proto::redis::{
+          RedisCommand, SetCommand, GetCommand, DelCommand, redis_command::Command,
+          WatchCommand, redis_ws_message::Message,
+      };
+
+      let message = match cmd {
+          ThinWsCommand::Set { key, value } => {
+              Message::Command(RedisCommand {
+                  command: Some(Command::Set(SetCommand { key, value })),
+              })
+          }
+          ThinWsCommand::Get { key } => {
+              Message::Command(RedisCommand {
+                  command: Some(Command::Get(GetCommand { key })),
+              })
+          }
+          ThinWsCommand::Del { key } => {
+              Message::Command(RedisCommand {
+                  command: Some(Command::Del(DelCommand { key })),
+              })
+          }
+          ThinWsCommand::Watch { key } => {
+              Message::Watch(WatchCommand { key })
+          }
+      };
+
+      RedisWsMessage { message: Some(message) }
+  }
+}
+
 
 impl From<RedisEnvelope> for RedisCommand {
   fn from(envelope: RedisEnvelope) -> Self {
@@ -647,4 +689,19 @@ pub fn redis_ws_error_msg<S: ToString>(msg: S) -> String {
   };
 
   error_msg.as_json_string().unwrap_or_else(|| "{\"type\":\"error\",\"payload\":{\"error\":\"unknown\"}}".into())
+}
+
+pub fn convert_thin_ws_command(cmd: ThinWsCommand) -> RedisWsMessage {
+  match cmd {
+      ThinWsCommand::Set { key, value } => RedisWsMessage::from_command(RedisCommand {
+          command: Some(Command::Set(SetCommand { key, value })),
+      }),
+      ThinWsCommand::Get { key } => RedisWsMessage::from_command(RedisCommand {
+          command: Some(Command::Get(GetCommand { key })),
+      }),
+      ThinWsCommand::Del { key } => RedisWsMessage::from_command(RedisCommand {
+          command: Some(Command::Del(DelCommand { key })),
+      }),
+      ThinWsCommand::Watch { key } => RedisWsMessage::from_watch_command(key),
+  }
 }
