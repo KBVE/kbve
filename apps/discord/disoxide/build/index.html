@@ -277,9 +277,15 @@
 					async sendMessage() {
 						if (!this.message.trim()) return;
 
-						await useSharedWorkerCall('send_websocket', {
-							content: this.message,
-						});
+						let parsed;
+						try {
+							parsed = JSON.parse(this.message);
+						} catch (err) {
+							this.messages.push('[Invalid JSON]');
+							return;
+						}
+
+						await useSharedWorkerCall('send_websocket', parsed);
 						this.messages.push(`→ ${this.message}`);
 						this.message = '';
 					},
