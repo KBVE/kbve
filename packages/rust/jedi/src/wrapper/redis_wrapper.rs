@@ -589,8 +589,18 @@ pub fn create_ws_update_if_watched(
   }
 }
 
+// pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
+//   serde_json::from_str::<RedisWsMessage>(json)
+// }
+
 pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
-  serde_json::from_str::<RedisWsMessage>(json)
+  serde_json::from_str::<RedisWsMessage>(json).or_else(|e| {
+    tracing::debug!("Failed to parse RedisWsMessage: {}. Trying ThinWsCommand...", e);
+    serde_json::from_str::<ThinWsCommand>(json).map(|thin| {
+      tracing::debug!("Parsed ThinWsCommand: {:?}", thin);
+      thin.into()
+    })
+  })
 }
 
 pub fn extract_watch_command_key(msg: &RedisWsMessage) -> Option<Arc<str>> {
