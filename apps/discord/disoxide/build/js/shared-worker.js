@@ -1,11 +1,29 @@
-importScripts('/js/metrics-parser.js');
-importScripts('/js/websockets.js');
+console.log('[SharedWorker] 🧠 Script loaded');
 
-const subscriptions = new Map(); // topic -> Set of ports
-const pollers = {};              // topic -> interval ID
+const subscriptions = new Map();
+const pollers = {};
 let socket = null;
+const reconnectInterval = 3000;
 
-// --- Utility: Broadcast to all ports subscribed to a topic ---
+// --- Util: Recreate getWebSocketURL
+function getWebSocketURL(path = '/ws') {
+	const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+	return `${protocol}//${location.host}${path}`;
+}
+
+// --- Metrics parser from metrics-parser.js
+function parsePrometheusMetrics(text, limit = 6) {
+	return text
+		.split('\n')
+		.filter(line => line && !line.startsWith('#'))
+		.slice(0, limit)
+		.map(line => {
+			const [key, value] = line.trim().split(/\s+/);
+			return { key, value };
+		});
+}
+
+// --- Broadcast to all ports subscribed to a topic
 function broadcast(topic, payload) {
 	const ports = subscriptions.get(topic);
 	if (!ports) return;
@@ -15,7 +33,7 @@ function broadcast(topic, payload) {
 	}
 }
 
-// --- Subscription Management ---
+// --- Subscription Management
 function subscribe(port, topic) {
 	if (!subscriptions.has(topic)) {
 		subscriptions.set(topic, new Set());
@@ -39,12 +57,12 @@ function unsubscribe(port, topic) {
 			if (topic !== 'websocket') {
 				stopPolling(topic);
 			}
-			// Optional: handlers.close_websocket() if no websocket subscribers
+			// Optional: handlers.close_websocket()
 		}
 	}
 }
 
-// --- Polling for topics like "metrics" ---
+// --- Polling setup
 function startPolling(topic) {
 	const handlerFn = handlers[`fetch_${topic}`];
 
@@ -68,7 +86,7 @@ function stopPolling(topic) {
 	delete pollers[topic];
 }
 
-// --- One-off request and WebSocket handlers ---
+// --- WebSocket + Metrics handlers
 const handlers = {
 	fetch_metrics: async () => {
 		const res = await fetch('/metrics');
@@ -86,12 +104,12 @@ const handlers = {
 			broadcast('websocket', { status: 'connected' });
 		});
 
-		socket.addEventListener('message', (event) => {
+		socket.addEventListener('message', (e) => {
 			let message;
 			try {
-				message = JSON.parse(event.data);
+				message = JSON.parse(e.data);
 			} catch {
-				console.warn('[WebSocket] Invalid JSON message:', event.data);
+				console.warn('[WebSocket] Invalid JSON message:', e.data);
 				return;
 			}
 			broadcast('websocket', message);
@@ -101,9 +119,7 @@ const handlers = {
 			console.warn('[WebSocket] Disconnected');
 			broadcast('websocket', { status: 'disconnected' });
 			socket = null;
-
-			// Optional: auto-reconnect
-			setTimeout(() => handlers.connect_websocket(), 3000);
+			setTimeout(() => handlers.connect_websocket(), reconnectInterval);
 		});
 
 		socket.addEventListener('error', (e) => {
@@ -132,12 +148,14 @@ const handlers = {
 	},
 };
 
-// --- Port Communication Handling ---
+// --- Handle new connections from any tab
 self.onconnect = function (e) {
+	console.log('[SharedWorker] 🔌 New connection');
 	const port = e.ports[0];
 
-	port.onmessage = async (event) => {
-		const { type, topic, requestId, payload } = event.data;
+	port.onmessage = async (msg) => {
+		const { type, topic, requestId, payload } = msg.data;
+		console.log('[SharedWorker] Message received:', type, requestId);
 
 		if (type === 'subscribe') {
 			subscribe(port, topic);

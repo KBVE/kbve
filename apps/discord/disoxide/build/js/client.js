@@ -8,6 +8,8 @@ export function initSharedWorker() {
 		sharedPort.start();
 
 		sharedPort.onmessage = (e) => {
+			console.log('[Worker] onmessage received:', e.data);
+
 			const { type, payload, error, requestId, topic } = e.data;
 
 			if (requestId && listeners.has(requestId)) {
@@ -15,14 +17,19 @@ export function initSharedWorker() {
 				listeners.delete(requestId);
 				error ? reject(error) : resolve(payload);
 			}
+			else if (requestId) {
+				console.warn('[Client] Received unknown requestId:', requestId);
+			}
 		};
 	}
 	return sharedPort;
 }
 
+
 export function useSharedWorkerCall(type, payload = {}, timeoutMs = 10000) {
 	return new Promise((resolve, reject) => {
-		const requestId = `req_${Date.now()}_${Math.random()}`;
+		const requestId = crypto.randomUUID();
+		
 		const port = initSharedWorker();
 
 		const timeout = setTimeout(() => {
@@ -43,7 +50,10 @@ export function useSharedWorkerCall(type, payload = {}, timeoutMs = 10000) {
 			}
 		});
 
-		port.postMessage({ type, ...payload, requestId });
+		//port.postMessage({ type, ...payload, requestId });
+
+		port.postMessage({ type, payload, requestId });
+
 	});
 }
 
