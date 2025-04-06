@@ -8,7 +8,3 @@ function parsePrometheusMetrics(text, limit = 6) {
             return { key, value };
         });
 }
-
-if (typeof module !== 'undefined') {
-    module.exports = { parsePrometheusMetrics };
-}

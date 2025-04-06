@@ -11,7 +11,9 @@
 			src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12/dist/htmx.min.js"
 			crossorigin="anonymous"
 			defer></script>
-			<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js" />
+		<link
+			rel="modulepreload"
+			href="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js" />
 
 		<title>DiscordSH</title>
 	</head>
@@ -115,31 +117,46 @@
 							</p>
 						</div>
 
-						<div x-data="metricsCube" :class="{ 'cursor-progress': loading }" class="space-y-4">
+						<div
+							x-data="metricsCube"
+							:class="{ 'cursor-progress': loading }"
+							class="space-y-4">
 							<button
 								@click="open = !open"
 								class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600 shadow transition">
 								Toggle Metrics
 							</button>
-						
-							<div x-show="open" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-								<template x-for="(metric, index) in dataEntries" :key="index">
+
+							<div
+								x-show="open"
+								class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+								<template
+									x-for="(metric, index) in dataEntries"
+									:key="index">
 									<div
 										class="relative p-5 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-[#2b2740] to-[#312d4b] shadow-lg hover:border-purple-400/50 transition transform hover:scale-[1.02]"
 										:style="'--index: ' + index">
-										
-										<div class="flex items-center justify-between mb-1">
-											<h4 class="text-xs uppercase text-purple-400 tracking-wide" x-text="metric.key"></h4>
+										<div
+											class="flex items-center justify-between mb-1">
+											<h4
+												class="text-xs uppercase text-purple-400 tracking-wide"
+												x-text="metric.key"></h4>
 											<!-- Optional icon or badge -->
-											<span class="text-[10px] text-purple-300 opacity-60">#<span x-text="index + 1"></span></span>
+											<span
+												class="text-[10px] text-purple-300 opacity-60">
+												#
+												<span x-text="index + 1"></span>
+											</span>
 										</div>
-						
-										<p class="text-3xl font-semibold text-purple-100 leading-tight" x-text="Number(metric.value).toFixed(2)"></p>
+
+										<p
+											class="text-3xl font-semibold text-purple-100 leading-tight"
+											x-text="Number(metric.value).toFixed(2)"></p>
 									</div>
 								</template>
 							</div>
 						</div>
-						
+
 						<div
 							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
 							<h3 class="text-sm text-gray-400">Metrics Data</h3>
@@ -147,6 +164,52 @@
 								Data MB
 							</p>
 						</div>
+
+						<!-- New WebSocket Card -->
+						<div
+							x-data="webSocketManager"
+							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
+							<h3 class="text-sm text-gray-400 mb-2">
+								WebSocket Control
+							</h3>
+							<div class="space-y-4">
+								<!-- Form to Send Messages -->
+								<form
+									@submit.prevent="sendMessage"
+									class="flex gap-2">
+									<input
+										x-model="message"
+										type="text"
+										placeholder="Type a message..."
+										class="flex-1 bg-gray-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500" />
+									<button
+										type="submit"
+										class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600 transition"
+										:disabled="!message">
+										Send
+									</button>
+								</form>
+
+								<!-- Message Log -->
+								<div
+									class="h-40 overflow-y-auto bg-gray-800 p-2 rounded">
+									<template
+										x-for="(msg, index) in messages"
+										:key="index">
+										<p
+											class="text-sm text-gray-300"
+											x-text="msg"></p>
+									</template>
+									<p
+										x-show="messages.length === 0"
+										class="text-sm text-gray-500">
+										No messages yet...
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- END -->
 					</div>
 				</main>
 			</div>
@@ -154,7 +217,10 @@
 
 		<script type="module">
 			import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js';
-			import { subscribeToTopic, useSharedWorkerCall } from '/js/client.js';
+			import {
+				subscribeToTopic,
+				useSharedWorkerCall,
+			} from '/js/client.js';
 
 			document.addEventListener('alpine:init', () => {
 				Alpine.data('metricsCube', () => ({
@@ -166,7 +232,8 @@
 					async init() {
 						this.loading = true;
 
-						const initial = await useSharedWorkerCall('fetch_metrics');
+						const initial =
+							await useSharedWorkerCall('fetch_metrics');
 						this.dataEntries = initial;
 
 						this.unsubscribe = subscribeToTopic(
@@ -182,6 +249,45 @@
 
 					destroy() {
 						if (this.unsubscribe) this.unsubscribe();
+					},
+				}));
+
+				Alpine.data('webSocketManager', () => ({
+					message: '',
+					messages: [],
+					unsubscribe: null,
+
+					async init() {
+						// Subscribe to WebSocket messages via shared worker
+						this.unsubscribe = subscribeToTopic(
+							'websocket',
+							(data) => {
+								this.messages.push(JSON.stringify(data));
+							},
+						);
+
+						// Ensure connection is open
+						await useSharedWorkerCall('connect_websocket');
+					},
+
+					destroy() {
+						if (this.unsubscribe) this.unsubscribe();
+					},
+
+					async sendMessage() {
+						if (!this.message.trim()) return;
+
+						let parsed;
+						try {
+							parsed = JSON.parse(this.message);
+						} catch (err) {
+							this.messages.push('[Invalid JSON]');
+							return;
+						}
+
+						await useSharedWorkerCall('send_websocket', parsed);
+						this.messages.push(`→ ${this.message}`);
+						this.message = '';
 					},
 				}));
 			});
