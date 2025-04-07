@@ -31,5 +31,7 @@
       "thiserror",
       "groq",
       "Unwatch",
+      "alpinejs",
+      "partytown"
     ]
 }
