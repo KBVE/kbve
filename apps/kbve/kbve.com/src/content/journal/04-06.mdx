@@ -1,7 +1,7 @@
 ---
 title: 'April: 06'
 category: Daily
-date: 2024-04-06 12:00:00
+date: 2025-04-06 12:00:00
 client: Self
 unsplash: 1603855873822-0931a843ee3a
 img: https://images.unsplash.com/photo-1603855873822-0931a843ee3a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -15,10 +15,28 @@ tags:
 
 Prepare the side account for the IRS bill.
 
-### 2024
+## 2025
+
+### Fred BB8
+
+-   07:04PM
+
+    While I was refactoring the redis wrapper to use a thin linear layer, I came to the understanding that it would make sense to swap out the bb8.
+    Replacing the bb8-redis and redis crate with the fred crate because it solves a decent amount of the issues that those two previously could not.
+    Each rewrite, puts us further back in the timeline but it improves the stability and understanding for the long term.
+    I suppose this is the rough part of rust, having to refactor over and over.
+    Thus, the next refactor after this refactor will be to use flexbuffers and binary.
+
+-   08:17PM
+
+    One of the changes with this refactor will be taking out the bb8 pool system and using a multiplex from fred.
+    I understand this but it does feel a bit weird to do.
+    
+
+## 2024
 
 
-#### DreamBound
+### DreamBound
 
 Preparing the docker build for the DreamBound platform and the state management within the structure.
 We had to move all of Erni's codebase from this repo into the `kbve` repo, but did not get a chance to refine and process the codebase.
@@ -34,7 +52,7 @@ Going to go ahead and push these changes through, as the most recent build had a
 I am thinking the build failed because we had two additional files that we did not need, so lets see if that was the case.
 
 
-#### Food
+### Food
 
 The best meal that I had today was a classic maggi soup made by my aunt!
 The taste of India hit all the notes that I was look for, savory, sweet, spicy, ect... there could be a food truck that only sold this meal and it would make thousands a week.
