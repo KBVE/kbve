@@ -28,7 +28,7 @@ Nested Direct Command Set / Get:
   "message": {
     "Command": {
       "command": {
-        "Set": { "key": "1", "value": "bobsaggy" }
+        "Set": { "key": "1", "value": "pop", "ttl": 30 }
       }
     }
   }
@@ -40,7 +40,6 @@ Then to get:
 
 ```json
 
-
 {
   "message": {
     "Command": {
@@ -50,5 +49,36 @@ Then to get:
     }
   }
 }
+
+```
+
+Watch Command:
+
+```json
+
+{
+  "message": {
+    "Watch": {
+      "key": "1"
+    }
+  }
+}
+
+```
+
+Thin JSON 
+
+```json
+
+{ "type": "set", "key": "mykey", "value": "myvalue", "ttl": 30 }
+
+```
+
+Thin JSON 2 
+
+```json
+
+{ "type": "set", "key": "mykey", "value": "myvalue", "ttl": 30 }
+
 
 ```
