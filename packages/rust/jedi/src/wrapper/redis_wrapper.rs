@@ -1,13 +1,10 @@
 use std::sync::Arc;
 use axum::extract::ws::Message;
 use chrono::Utc;
-//use redis::aio::MultiplexedConnection;
 use serde::{ Deserialize, Serialize };
 use tokio::sync::{ oneshot, broadcast::Sender as BroadcastSender };
 use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
 use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver, UnboundedSender };
-//use bb8_redis::{ bb8::Pool, RedisConnectionManager };
-//use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
 use futures_util::{ StreamExt, SinkExt, pin_mut };
 use dashmap::DashSet;
 use tokio::task::JoinHandle;
@@ -34,6 +31,8 @@ use crate::proto::redis::{
 };
 use crate::watchmaster::{ WatchEvent, WatchManager };
 
+use crate::entity::serde_arc_str;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RedisEnvelope {
   pub id: Option<String>,
@@ -51,6 +50,7 @@ pub struct RedisEnvelope {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RedisEventEnvelope {
+  #[serde(with = "serde_arc_str")]
   pub channel: Arc<str>,
   pub event: RedisEventObject,
   pub received_at: u64,
@@ -60,19 +60,25 @@ pub struct RedisEventEnvelope {
 #[serde(tag = "type", content = "payload")]
 pub enum RedisCommandType {
   Set {
+    #[serde(with = "serde_arc_str")]
     key: Arc<str>,
+    #[serde(with = "serde_arc_str")]
     value: Arc<str>,
   },
   Get {
+    #[serde(with = "serde_arc_str")]
     key: Arc<str>,
   },
   Del {
+    #[serde(with = "serde_arc_str")]
     key: Arc<str>,
   },
   Watch {
+    #[serde(with = "serde_arc_str")]
     key: Arc<str>,
   },
   Unwatch {
+    #[serde(with = "serde_arc_str")]
     key: Arc<str>,
   },
 }
