@@ -1,5 +1,6 @@
 use std::sync::Arc;
-use bb8_redis::{ RedisConnectionManager, bb8::Pool };
+// use bb8_redis::{ RedisConnectionManager, bb8::Pool };
+use fred::prelude::*;
 use tokio::{ sync::{ broadcast, mpsc::{ channel, Sender }, oneshot }, task::JoinHandle };
 use super::watchmaster::WatchManager;
 

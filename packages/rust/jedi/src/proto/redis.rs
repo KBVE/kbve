@@ -2,7 +2,7 @@
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RedisCommand {
-    #[prost(oneof = "redis_command::Command", tags = "1, 2, 3")]
+    #[prost(oneof = "redis_command::Command", tags = "1, 2, 3, 4, 5")]
     pub command: ::core::option::Option<redis_command::Command>,
 }
 /// Nested message and enum types in `RedisCommand`.
@@ -16,6 +16,10 @@ pub mod redis_command {
         Get(super::GetCommand),
         #[prost(message, tag = "3")]
         Del(super::DelCommand),
+        #[prost(message, tag = "4")]
+        Watch(super::WatchCommand),
+        #[prost(message, tag = "5")]
+        Unwatch(super::UnwatchCommand),
     }
 }
 #[derive(serde::Serialize, serde::Deserialize)]
