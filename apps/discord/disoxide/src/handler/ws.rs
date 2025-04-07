@@ -104,23 +104,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
   let mut recv_task = tokio::spawn(async move {
     while let Some(Ok(msg)) = socket_rx.next().await {
       if let Message::Text(text) = msg {
-        
-        let parsed_msg = parse_ws_command(&text).or_else(|e| {
-          tracing::debug!("Fallback to ThinWsCommand after parse_ws_command failed: {}", e);
-        
-          match serde_json::from_str::<ThinWsCommand>(&text) {
-            Ok(thin) => {
-              tracing::debug!("Parsed ThinWsCommand: {:?}", thin);
-              Ok(thin.into())
-            },
-            Err(e) => {
-              tracing::warn!("Failed to parse ThinWsCommand: {}", e);
-              Err(e)
-            }
-          }
-        });
-
-        match parsed_msg {
+        match parse_ws_command(&text) {
           Ok(ws_msg) => {
             if let Some(key) = extract_watch_command_key(&ws_msg) {
               let key_arc = Arc::<str>::from(key);

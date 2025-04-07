@@ -79,7 +79,7 @@ services:
                 condition: service_healthy
 
     redis:
-        image: redis:7-alpine
+        image: redis:7.2.7-alpine3.21
         container_name: kilobase-redis
         restart: unless-stopped
         ports:

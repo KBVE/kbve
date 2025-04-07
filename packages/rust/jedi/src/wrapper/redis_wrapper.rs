@@ -1,17 +1,22 @@
 use std::sync::Arc;
 use axum::extract::ws::Message;
-use redis::aio::MultiplexedConnection;
+use chrono::Utc;
 use serde::{ Deserialize, Serialize };
 use tokio::sync::{ oneshot, broadcast::Sender as BroadcastSender };
-use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver };
-use bb8_redis::{ bb8::Pool, RedisConnectionManager };
-use redis::{ Client, RedisResult, AsyncCommands, AsyncConnectionConfig, Value, PushInfo, PushKind };
+use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
+use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver, UnboundedSender };
 use futures_util::{ StreamExt, SinkExt, pin_mut };
 use dashmap::DashSet;
 use tokio::task::JoinHandle;
 
 use crate::error::JediError;
-use crate::proto::redis::{ redis_event_object, redis_ws_message, RedisWsMessage };
+use crate::proto::redis::{
+  redis_event_object,
+  redis_ws_message,
+  RedisWsMessage,
+  UnwatchCommand,
+  WatchCommand,
+};
 use crate::proto::redis::{
   RedisCommand,
   RedisResponse,
@@ -25,6 +30,8 @@ use crate::proto::redis::{
   redis_key_update::State,
 };
 use crate::watchmaster::{ WatchEvent, WatchManager };
+
+use crate::entity::serde_arc_str;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RedisEnvelope {
@@ -43,7 +50,8 @@ pub struct RedisEnvelope {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RedisEventEnvelope {
-  pub channel: String,
+  #[serde(with = "serde_arc_str")]
+  pub channel: Arc<str>,
   pub event: RedisEventObject,
   pub received_at: u64,
 }
@@ -52,24 +60,27 @@ pub struct RedisEventEnvelope {
 #[serde(tag = "type", content = "payload")]
 pub enum RedisCommandType {
   Set {
-    key: String,
-    value: String,
+    #[serde(with = "serde_arc_str")]
+    key: Arc<str>,
+    #[serde(with = "serde_arc_str")]
+    value: Arc<str>,
   },
   Get {
-    key: String,
+    #[serde(with = "serde_arc_str")]
+    key: Arc<str>,
   },
   Del {
-    key: String,
+    #[serde(with = "serde_arc_str")]
+    key: Arc<str>,
   },
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(tag = "type", rename_all = "lowercase")]
-pub enum ThinWsCommand {
-    Set { key: String, value: String },
-    Get { key: String },
-    Del { key: String },
-    Watch { key: String },
+  Watch {
+    #[serde(with = "serde_arc_str")]
+    key: Arc<str>,
+  },
+  Unwatch {
+    #[serde(with = "serde_arc_str")]
+    key: Arc<str>,
+  },
 }
 
 impl RedisCommandType {
@@ -78,39 +89,40 @@ impl RedisCommandType {
       Self::Set { key, .. } => key,
       Self::Get { key } => key,
       Self::Del { key } => key,
+      Self::Watch { key } => key,
+      Self::Unwatch { key } => key,
     }
   }
 }
 
 impl RedisEnvelope {
-  pub fn set(key: String, value: String) -> Self {
+  fn new(command: RedisCommandType) -> Self {
     Self {
       id: None,
-      command: RedisCommandType::Set { key, value },
+      command,
       ttl_seconds: None,
       timestamp: None,
       response_tx: None,
     }
   }
 
-  pub fn get(key: String) -> Self {
-    Self {
-      id: None,
-      command: RedisCommandType::Get { key },
-      ttl_seconds: None,
-      timestamp: None,
-      response_tx: None,
-    }
+  pub fn set<K, V>(key: K, value: V) -> Self where K: Into<Arc<str>>, V: Into<Arc<str>> {
+    Self::new(RedisCommandType::Set {
+      key: key.into(),
+      value: value.into(),
+    })
   }
 
-  pub fn del(key: String) -> Self {
-    Self {
-      id: None,
-      command: RedisCommandType::Del { key },
-      ttl_seconds: None,
-      timestamp: None,
-      response_tx: None,
-    }
+  pub fn get<K: Into<Arc<str>>>(key: K) -> Self {
+    Self::new(RedisCommandType::Get {
+      key: key.into(),
+    })
+  }
+
+  pub fn del<K: Into<Arc<str>>>(key: K) -> Self {
+    Self::new(RedisCommandType::Del {
+      key: key.into(),
+    })
   }
 
   pub fn from_proto(
@@ -190,54 +202,36 @@ impl RedisWsMessage {
   }
 }
 
-impl From<ThinWsCommand> for RedisWsMessage {
-  fn from(cmd: ThinWsCommand) -> Self {
-      use crate::proto::redis::{
-          RedisCommand, SetCommand, GetCommand, DelCommand, redis_command::Command,
-          WatchCommand, redis_ws_message::Message,
-      };
-
-      let message = match cmd {
-          ThinWsCommand::Set { key, value } => {
-              Message::Command(RedisCommand {
-                  command: Some(Command::Set(SetCommand { key, value })),
-              })
-          }
-          ThinWsCommand::Get { key } => {
-              Message::Command(RedisCommand {
-                  command: Some(Command::Get(GetCommand { key })),
-              })
-          }
-          ThinWsCommand::Del { key } => {
-              Message::Command(RedisCommand {
-                  command: Some(Command::Del(DelCommand { key })),
-              })
-          }
-          ThinWsCommand::Watch { key } => {
-              Message::Watch(WatchCommand { key })
-          }
-      };
-
-      RedisWsMessage { message: Some(message) }
-  }
-}
-
-
 impl From<RedisEnvelope> for RedisCommand {
   fn from(envelope: RedisEnvelope) -> Self {
-    match envelope.command {
-      RedisCommandType::Set { key, value } =>
-        RedisCommand {
-          command: Some(Command::Set(SetCommand { key, value })),
-        },
-      RedisCommandType::Get { key } =>
-        RedisCommand {
-          command: Some(Command::Get(GetCommand { key })),
-        },
-      RedisCommandType::Del { key } =>
-        RedisCommand {
-          command: Some(Command::Del(DelCommand { key })),
-        },
+    use RedisCommandType::*;
+
+    let command = match envelope.command {
+      Set { key, value } =>
+        Command::Set(SetCommand {
+          key: key.to_string(),
+          value: value.to_string(),
+        }),
+      Get { key } =>
+        Command::Get(GetCommand {
+          key: key.to_string(),
+        }),
+      Del { key } =>
+        Command::Del(DelCommand {
+          key: key.to_string(),
+        }),
+      Watch { key } =>
+        Command::Watch(WatchCommand {
+          key: key.to_string(),
+        }),
+      Unwatch { key } =>
+        Command::Unwatch(UnwatchCommand {
+          key: key.to_string(),
+        }),
+    };
+
+    RedisCommand {
+      command: Some(command),
     }
   }
 }
@@ -258,236 +252,248 @@ impl TryFrom<RedisCommand> for RedisEnvelope {
   type Error = &'static str;
 
   fn try_from(cmd: RedisCommand) -> Result<Self, Self::Error> {
-    use Command;
-    match cmd.command {
-      Some(Command::Set(cmd)) =>
-        Ok(RedisEnvelope {
-          id: None,
-          ttl_seconds: None,
-          timestamp: None,
-          response_tx: None,
-          command: RedisCommandType::Set {
-            key: cmd.key,
-            value: cmd.value,
-          },
-        }),
-      Some(Command::Get(cmd)) =>
-        Ok(RedisEnvelope {
-          id: None,
-          ttl_seconds: None,
-          timestamp: None,
-          response_tx: None,
-          command: RedisCommandType::Get { key: cmd.key },
-        }),
-      Some(Command::Del(cmd)) =>
-        Ok(RedisEnvelope {
-          id: None,
-          ttl_seconds: None,
-          timestamp: None,
-          response_tx: None,
-          command: RedisCommandType::Del { key: cmd.key },
-        }),
-      None => Err("Missing Redis command variant"),
-    }
+    use Command::*;
+
+    let command = match cmd.command {
+      Some(Set(cmd)) =>
+        RedisCommandType::Set {
+          key: Arc::from(cmd.key),
+          value: Arc::from(cmd.value),
+        },
+      Some(Get(cmd)) =>
+        RedisCommandType::Get {
+          key: Arc::from(cmd.key),
+        },
+      Some(Del(cmd)) =>
+        RedisCommandType::Del {
+          key: Arc::from(cmd.key),
+        },
+      Some(Watch(cmd)) =>
+        RedisCommandType::Watch {
+          key: Arc::from(cmd.key),
+        },
+      Some(Unwatch(cmd)) =>
+        RedisCommandType::Unwatch {
+          key: Arc::from(cmd.key),
+        },
+      None => {
+        return Err("Missing Redis command variant");
+      }
+    };
+
+    Ok(RedisEnvelope {
+      id: None,
+      command,
+      ttl_seconds: None,
+      timestamp: None,
+      response_tx: None,
+    })
   }
 }
 
 impl From<&RedisEnvelope> for RedisCommand {
   fn from(envelope: &RedisEnvelope) -> Self {
-    match &envelope.command {
+    use Command::*;
+
+    let command = match &envelope.command {
       RedisCommandType::Set { key, value } =>
-        RedisCommand {
-          command: Some(
-            Command::Set(SetCommand {
-              key: key.clone(),
-              value: value.clone(),
-            })
-          ),
-        },
+        Set(SetCommand {
+          key: key.to_string(),
+          value: value.to_string(),
+        }),
       RedisCommandType::Get { key } =>
-        RedisCommand {
-          command: Some(
-            Command::Get(GetCommand {
-              key: key.clone(),
-            })
-          ),
-        },
+        Get(GetCommand {
+          key: key.to_string(),
+        }),
       RedisCommandType::Del { key } =>
-        RedisCommand {
-          command: Some(
-            Command::Del(DelCommand {
-              key: key.clone(),
-            })
-          ),
-        },
+        Del(DelCommand {
+          key: key.to_string(),
+        }),
+      RedisCommandType::Watch { key } =>
+        Watch(WatchCommand {
+          key: key.to_string(),
+        }),
+      RedisCommandType::Unwatch { key } =>
+        Unwatch(UnwatchCommand {
+          key: key.to_string(),
+        }),
+    };
+
+    RedisCommand {
+      command: Some(command),
     }
   }
 }
 
 // ** Redis Cluster Connection
 
-pub async fn create_pubsub_connection(
-  redis_url: &str
-) -> Result<(MultiplexedConnection, UnboundedReceiver<PushInfo>), JediError> {
-  let full_url = if redis_url.contains('?') {
-    format!("{redis_url}&protocol=resp3")
-  } else {
-    format!("{redis_url}?protocol=resp3")
-  };
+pub async fn create_pubsub_connection_fred(
+  config: Config
+) -> Result<(SubscriberClient, UnboundedReceiver<RedisEventEnvelope>), JediError> {
+  let subscriber = Builder::from_config(config)
+    .build_subscriber_client()
+    .map_err(|e| JediError::Internal(format!("SubscriberClient build failed: {e}").into()))?;
 
-  tracing::info!("[Temple] Connecting to Redis PubSub at {full_url}");
+  subscriber
+    .init().await
+    .map_err(|e| { JediError::Internal(format!("SubscriberClient init failed: {e}").into()) })?;
 
-  let client = Client::open(full_url.clone()).map_err(|e|
-    JediError::Internal(format!("Redis client error: {e}").into())
-  )?;
+  subscriber
+    .psubscribe(vec!["key:*"]).await
+    .map_err(|e| { JediError::Internal(format!("Failed to psubscribe: {e}").into()) })?;
 
-  let (push_tx, push_rx) = unbounded_channel::<PushInfo>();
-  let config = AsyncConnectionConfig::default().set_push_sender(push_tx);
+  let _resub = subscriber.manage_subscriptions();
 
-  let conn = client
-    .get_multiplexed_async_connection_with_config(&config).await
-    .map_err(|e| JediError::Internal(format!("Redis connection error: {e}").into()))?;
+  let mut rx = subscriber.message_rx();
+  let (tx, internal_rx) = unbounded_channel::<RedisEventEnvelope>();
 
-  Ok((conn, push_rx))
+  tokio::spawn(async move {
+    while let Ok(msg) = rx.recv().await {
+      if let Some(envelope) = parse_pubsub_message(&msg) {
+        let _ = tx.send(envelope);
+      }
+    }
+  });
+
+  Ok((subscriber, internal_rx))
+}
+
+fn parse_pubsub_message(msg: &RedisMessage) -> Option<RedisEventEnvelope> {
+  let key = Arc::<str>::from(msg.channel.to_string());
+  let raw_payload = msg.value.clone().convert::<String>().ok()?;
+
+  Some(RedisEventEnvelope {
+    channel: key.clone(),
+    received_at: chrono::Utc::now().timestamp_millis() as u64,
+    event: RedisEventObject {
+      object: Some(
+        redis_event_object::Object::Update(RedisKeyUpdate {
+          key: key.to_string(),
+          timestamp: chrono::Utc::now().timestamp_millis() as u64,
+          state: Some(State::Value(raw_payload)),
+        })
+      ),
+    },
+  })
 }
 
 //  ** Redis Handler
 
-pub async fn spawn_redis_worker(
-  pool: Pool<RedisConnectionManager>,
-  mut rx: Receiver<RedisEnvelope>
-) {
+pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
   tokio::spawn(async move {
-    tracing::info!("[Temple] About to spawn Redis worker");
+    tracing::info!("[Temple] Spawning Redis worker");
 
     while let Some(envelope) = rx.recv().await {
-      let mut conn = match pool.get().await {
-        Ok(conn) => conn,
-        Err(e) => {
-          tracing::error!("Redis pool error: {e}");
+      let RedisEnvelope { command, response_tx, ttl_seconds, .. } = envelope;
+
+      let redis_response = match command {
+        RedisCommandType::Set { key, value } => {
+          let res = if let Some(ttl) = ttl_seconds {
+            pool.set::<(), _, _>(
+              key.as_ref(),
+              value.as_ref(),
+              Some(Expiration::EX(ttl as i64)),
+              None,
+              false
+            ).await
+          } else {
+            pool.set::<(), _, _>(key.as_ref(), value.as_ref(), None, None, false).await
+          };
+
+          if res.is_ok() {
+            let update = redis_key_update_value(&*key, &*value);
+            publish_update(&pool, &key, update).await;
+          }
+
+          RedisResponse {
+            status: format!("{:?}", res),
+            value: String::new(),
+          }
+        }
+
+        RedisCommandType::Get { key } => {
+          let res: Result<Option<String>, _> = pool.get(key.as_ref()).await;
+
+          RedisResponse {
+            status: format!("{:?}", res),
+            value: res.unwrap_or_default().unwrap_or_default(),
+          }
+        }
+
+        RedisCommandType::Del { key } => {
+          let res: Result<i64, _> = pool.del(key.as_ref()).await;
+
+          if res.is_ok() {
+            let update = redis_key_update_deleted(key.as_ref());
+            publish_update(&pool, key.as_ref(), update).await;
+          }
+
+          RedisResponse {
+            status: format!("{:?}", res),
+            value: String::new(),
+          }
+        }
+
+        RedisCommandType::Watch { .. } | RedisCommandType::Unwatch { .. } => {
+          tracing::debug!("Skipping Watch/Unwatch in Redis worker");
           continue;
         }
       };
 
-      let response = match envelope.command {
-        RedisCommandType::Set { key, value } => {
-          let res: redis::RedisResult<()> = conn.set(&key, &value).await;
-          if res.is_ok() {
-            let update = redis_key_update_value(&key, &value);
-            let event = RedisEventObject {
-              object: Some(redis_event_object::Object::Update(update)),
-            };
-
-            if let Ok(payload) = serde_json::to_string(&event) {
-              tracing::debug!(
-                "Publishing RedisKeyUpdate on Set for channel: {}",
-                redis_channel_for_key(&key)
-              );
-              let result: redis::RedisResult<i64> = conn.publish(
-                redis_channel_for_key(&key),
-                payload
-              ).await;
-              tracing::debug!("Publish result SET: {:?}", result);
-            }
-          }
-          RedisResponse {
-            status: format!("{:?}", res),
-            value: String::new(),
-          }
-        }
-        RedisCommandType::Get { key } => {
-          let res: redis::RedisResult<String> = conn.get(&key).await;
-          RedisResponse {
-            status: format!("{:?}", res),
-            value: res.unwrap_or_default(),
-          }
-        }
-        RedisCommandType::Del { key } => {
-          let res: redis::RedisResult<u64> = conn.del(&key).await;
-          if res.is_ok() {
-            let update = redis_key_update_deleted(&key);
-            let event = RedisEventObject {
-              object: Some(redis_event_object::Object::Update(update)),
-            };
-
-            if let Ok(payload) = serde_json::to_string(&event) {
-              tracing::debug!(
-                "Publishing RedisKeyUpdate for Del on channel: {}",
-                redis_channel_for_key(&key)
-              );
-              let result: redis::RedisResult<i64> = conn.publish(
-                redis_channel_for_key(&key),
-                payload
-              ).await;
-              tracing::debug!("Publish result DEL: {:?}", result);
-            }
-          }
-          RedisResponse {
-            status: format!("{:?}", res),
-            value: String::new(),
-          }
-        }
-      };
-
-      if let Some(tx) = envelope.response_tx {
-        let _ = tx.send(response);
+      if let Some(tx) = response_tx {
+        let _ = tx.send(redis_response);
       }
     }
+
+    tracing::warn!("[Temple] Redis worker has exited");
   });
 }
 
+async fn publish_update(pool: &fred::clients::Pool, key: &str, update: RedisKeyUpdate) {
+  let channel = redis_channel_for_key(key);
+
+  let mut buffer = Vec::with_capacity(256);
+  let event = RedisEventObject {
+    object: Some(redis_event_object::Object::Update(update)),
+  };
+
+  match serde_json::to_writer(&mut buffer, &event) {
+    Ok(_) => {
+      tracing::debug!("Publishing update to {}", channel);
+
+      let client = pool.next().clone();
+
+      match client.publish::<i64, _, _>(&channel, &buffer[..]).await {
+        Ok(_) => tracing::debug!("Published Redis update to {}", channel),
+        Err(e) => tracing::warn!("Failed to publish update to {}: {}", channel, e),
+      }
+    }
+    Err(e) => {
+      tracing::warn!("Failed to serialize Redis event: {}", e);
+    }
+  }
+}
+
 pub fn spawn_pubsub_listener_task(
-  mut push_rx: UnboundedReceiver<PushInfo>,
+  mut rx: UnboundedReceiver<RedisEventEnvelope>,
   event_tx: BroadcastSender<RedisEventEnvelope>
 ) -> JoinHandle<()> {
   tracing::info!("[Temple] Spawning Redis PubSub listener task");
 
   tokio::spawn(async move {
-    while let Some(push) = push_rx.recv().await {
-      tracing::debug!("[Temple] Received push: kind={:?} data={:?}", push.kind, push.data);
+    while let Some(envelope) = rx.recv().await {
+      tracing::debug!(
+        "[Temple] Received Redis pubsub envelope: channel={}, event={:?}",
+        envelope.channel,
+        envelope.event
+      );
 
-      match push.kind {
-        PushKind::Message | PushKind::PMessage | PushKind::SMessage => {
-          if push.data.len() >= 2 {
-            match (&push.data[0], &push.data[1]) {
-              (Value::BulkString(channel), Value::BulkString(payload)) => {
-                let channel = String::from_utf8_lossy(channel).to_string();
-                tracing::debug!("[Temple] Received PubSub message on channel: {}", channel);
-                tracing::debug!("[Temple] Raw payload: {:?}", String::from_utf8_lossy(payload));
-
-                match serde_json::from_slice::<RedisEventObject>(payload) {
-                  Ok(event) => {
-                    let envelope = RedisEventEnvelope {
-                      channel: channel.clone(),
-                      event,
-                      received_at: chrono::Utc::now().timestamp_millis() as u64,
-                    };
-                    match event_tx.send(envelope) {
-                      Ok(count) => tracing::debug!(
-                        "Event sent to {} WebSocket(s) on channel: {}, payload: {:?}",
-                        count,
-                        channel,
-                        String::from_utf8_lossy(payload)
-                      ),
-                      
-                      Err(e) => tracing::warn!("Failed to send RedisEventEnvelope: {}", e),
-                    }
-                  }
-                  Err(e) => {
-                    tracing::warn!("[Temple] Failed to parse RedisEventObject: {}", e);
-                  }
-                }
-              }
-              _ => {
-                tracing::debug!("[Temple] Unexpected pubsub data format: {:?}", push.data);
-              }
-            }
-          } else {
-            tracing::debug!("[Temple] Insufficient pubsub data length: {:?}", push.data);
-          }
+      match event_tx.send(envelope.clone()) {
+        Ok(count) => {
+          tracing::debug!("Event sent to {} WebSocket(s) on channel: {}", count, envelope.channel);
         }
-        _ => {
-          tracing::debug!("[Temple] Ignored push kind: {:?}", push.kind);
+        Err(e) => {
+          tracing::warn!("Failed to send RedisEventEnvelope: {}", e);
         }
       }
     }
@@ -496,9 +502,10 @@ pub fn spawn_pubsub_listener_task(
   })
 }
 
+
 pub fn spawn_watch_event_listener(
   mut rx: Receiver<WatchEvent>,
-  mut conn: MultiplexedConnection
+  client: SubscriberClient,
 ) -> JoinHandle<()> {
   tracing::info!("[Temple] Spawning Redis WatchEvent listener task");
 
@@ -509,7 +516,7 @@ pub fn spawn_watch_event_listener(
           let channel = format!("key:{}", key);
           tracing::info!("[Temple] Subscribing to Redis channel: {}", channel);
 
-          if let Err(e) = conn.subscribe(&channel).await {
+          if let Err(e) = client.subscribe(channel.clone()).await {
             tracing::error!("[Temple] Failed to subscribe to {channel}: {}", e);
           }
         }
@@ -518,7 +525,7 @@ pub fn spawn_watch_event_listener(
           let channel = format!("key:{}", key);
           tracing::info!("[Temple] Unsubscribing from Redis channel: {}", channel);
 
-          if let Err(e) = conn.unsubscribe(&channel).await {
+          if let Err(e) = client.unsubscribe(channel.clone()).await {
             tracing::error!("[Temple] Failed to unsubscribe from {channel}: {}", e);
           }
         }
@@ -528,6 +535,7 @@ pub fn spawn_watch_event_listener(
     tracing::warn!("[Temple] Redis WatchEvent listener exiting");
   })
 }
+// * WatchMaster END
 
 pub fn redis_key_update_value<K, V>(key: K, value: V) -> RedisKeyUpdate
   where K: AsRef<str>, V: AsRef<str>
@@ -594,11 +602,11 @@ pub fn create_ws_update_if_watched(
 // }
 
 pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
-  serde_json::from_str::<RedisWsMessage>(json).or_else(|e| {
-    tracing::debug!("Failed to parse RedisWsMessage: {}. Trying ThinWsCommand...", e);
-    serde_json::from_str::<ThinWsCommand>(json).map(|thin| {
-      tracing::debug!("Parsed ThinWsCommand: {:?}", thin);
-      thin.into()
+  serde_json::from_str::<RedisWsMessage>(json).or_else(|_| {
+    serde_json::from_str::<RedisCommand>(json).map(|cmd| {
+      RedisWsMessage {
+        message: Some(redis_ws_message::Message::Command(cmd)),
+      }
     })
   })
 }
@@ -661,7 +669,10 @@ pub fn filter_updates_for_active_keys<'a>(
 pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
   RedisEnvelope {
     id: None,
-    command: RedisCommandType::Set { key, value },
+    command: RedisCommandType::Set {
+      key: Arc::from(key),
+      value: Arc::from(value),
+    },
     ttl_seconds: Some(ttl),
     timestamp: Some(chrono::Utc::now().timestamp_millis() as u64),
     response_tx: None,
@@ -690,28 +701,17 @@ pub async fn send_ws_error(sender: &mut (impl SinkExt<Message> + Unpin), msg: im
 }
 
 pub fn redis_ws_error_msg<S: ToString>(msg: S) -> String {
-  use crate::proto::redis::{RedisWsMessage, redis_ws_message::Message, ErrorMessage};
+  use crate::proto::redis::{ RedisWsMessage, redis_ws_message::Message, ErrorMessage };
 
   let error_msg = RedisWsMessage {
-      message: Some(Message::ErrorMsg(ErrorMessage {
-          error: msg.to_string(),
-      })),
+    message: Some(
+      Message::ErrorMsg(ErrorMessage {
+        error: msg.to_string(),
+      })
+    ),
   };
 
-  error_msg.as_json_string().unwrap_or_else(|| "{\"type\":\"error\",\"payload\":{\"error\":\"unknown\"}}".into())
-}
-
-pub fn convert_thin_ws_command(cmd: ThinWsCommand) -> RedisWsMessage {
-  match cmd {
-      ThinWsCommand::Set { key, value } => RedisWsMessage::from_command(RedisCommand {
-          command: Some(Command::Set(SetCommand { key, value })),
-      }),
-      ThinWsCommand::Get { key } => RedisWsMessage::from_command(RedisCommand {
-          command: Some(Command::Get(GetCommand { key })),
-      }),
-      ThinWsCommand::Del { key } => RedisWsMessage::from_command(RedisCommand {
-          command: Some(Command::Del(DelCommand { key })),
-      }),
-      ThinWsCommand::Watch { key } => RedisWsMessage::from_watch_command(key),
-  }
+  error_msg
+    .as_json_string()
+    .unwrap_or_else(|| "{\"type\":\"error\",\"payload\":{\"error\":\"unknown\"}}".into())
 }
