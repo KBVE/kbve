@@ -64,6 +64,8 @@ pub enum RedisCommandType {
     key: Arc<str>,
     #[serde(with = "serde_arc_str")]
     value: Arc<str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    ttl: Option<u64>,
   },
   Get {
     #[serde(with = "serde_arc_str")]
@@ -81,6 +83,58 @@ pub enum RedisCommandType {
     #[serde(with = "serde_arc_str")]
     key: Arc<str>,
   },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum ThinRedisCommand {
+  Set {
+    key: String,
+    value: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ttl: Option<u64>,
+  },
+  Get {
+    key: String,
+  },
+  Del {
+    key: String,
+  },
+  Watch {
+    key: String,
+  },
+  Unwatch {
+    key: String,
+  },
+}
+
+impl From<ThinRedisCommand> for RedisEnvelope {
+  fn from(cmd: ThinRedisCommand) -> Self {
+    match cmd {
+      ThinRedisCommand::Set { key, value, ttl } =>
+        RedisEnvelope {
+          id: None,
+          command: RedisCommandType::Set {
+            key: Arc::from(key),
+            value: Arc::from(value),
+            ttl,
+          },
+          ttl_seconds: ttl,
+          timestamp: Some(chrono::Utc::now().timestamp_millis() as u64),
+          response_tx: None,
+        },
+      ThinRedisCommand::Get { key } => RedisEnvelope::get(key),
+      ThinRedisCommand::Del { key } => RedisEnvelope::del(key),
+      ThinRedisCommand::Watch { key } =>
+        RedisEnvelope::new(RedisCommandType::Watch {
+          key: Arc::from(key),
+        }),
+      ThinRedisCommand::Unwatch { key } =>
+        RedisEnvelope::new(RedisCommandType::Unwatch {
+          key: Arc::from(key),
+        }),
+    }
+  }
 }
 
 impl RedisCommandType {
@@ -110,6 +164,17 @@ impl RedisEnvelope {
     Self::new(RedisCommandType::Set {
       key: key.into(),
       value: value.into(),
+      ttl: None,
+    })
+  }
+
+  pub fn set_with_ttl<K, V>(key: K, value: V, ttl: u64) -> Self
+    where K: Into<Arc<str>>, V: Into<Arc<str>>
+  {
+    Self::new(RedisCommandType::Set {
+      key: key.into(),
+      value: value.into(),
+      ttl: Some(ttl),
     })
   }
 
@@ -207,10 +272,11 @@ impl From<RedisEnvelope> for RedisCommand {
     use RedisCommandType::*;
 
     let command = match envelope.command {
-      Set { key, value } =>
+      Set { key, value, ttl } =>
         Command::Set(SetCommand {
           key: key.to_string(),
           value: value.to_string(),
+          ttl: ttl.unwrap_or(0),
         }),
       Get { key } =>
         Command::Get(GetCommand {
@@ -259,6 +325,7 @@ impl TryFrom<RedisCommand> for RedisEnvelope {
         RedisCommandType::Set {
           key: Arc::from(cmd.key),
           value: Arc::from(cmd.value),
+          ttl: Some(cmd.ttl),
         },
       Some(Get(cmd)) =>
         RedisCommandType::Get {
@@ -296,10 +363,11 @@ impl From<&RedisEnvelope> for RedisCommand {
     use Command::*;
 
     let command = match &envelope.command {
-      RedisCommandType::Set { key, value } =>
+      RedisCommandType::Set { key, value, ttl } =>
         Set(SetCommand {
           key: key.to_string(),
           value: value.to_string(),
+          ttl: ttl.unwrap_or(0),
         }),
       RedisCommandType::Get { key } =>
         Get(GetCommand {
@@ -387,7 +455,7 @@ pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
       let RedisEnvelope { command, response_tx, ttl_seconds, .. } = envelope;
 
       let redis_response = match command {
-        RedisCommandType::Set { key, value } => {
+        RedisCommandType::Set { key, value, ttl: _ } => {
           let res = if let Some(ttl) = ttl_seconds {
             pool.set::<(), _, _>(
               key.as_ref(),
@@ -502,10 +570,9 @@ pub fn spawn_pubsub_listener_task(
   })
 }
 
-
 pub fn spawn_watch_event_listener(
   mut rx: Receiver<WatchEvent>,
-  client: SubscriberClient,
+  client: SubscriberClient
 ) -> JoinHandle<()> {
   tracing::info!("[Temple] Spawning Redis WatchEvent listener task");
 
@@ -601,14 +668,32 @@ pub fn create_ws_update_if_watched(
 //   serde_json::from_str::<RedisWsMessage>(json)
 // }
 
+// pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
+//   serde_json::from_str::<RedisWsMessage>(json).or_else(|_| {
+//     serde_json::from_str::<RedisCommand>(json).map(|cmd| {
+//       RedisWsMessage {
+//         message: Some(redis_ws_message::Message::Command(cmd)),
+//       }
+//     })
+//   })
+// }
+
 pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
-  serde_json::from_str::<RedisWsMessage>(json).or_else(|_| {
-    serde_json::from_str::<RedisCommand>(json).map(|cmd| {
-      RedisWsMessage {
+  serde_json
+    ::from_str::<RedisWsMessage>(json)
+    .or_else(|_|
+      serde_json::from_str::<RedisCommand>(json).map(|cmd| RedisWsMessage {
         message: Some(redis_ws_message::Message::Command(cmd)),
-      }
-    })
-  })
+      })
+    )
+    .or_else(|_|
+      serde_json::from_str::<ThinRedisCommand>(json).map(|thin| {
+        let env: RedisEnvelope = thin.into();
+        RedisWsMessage {
+          message: Some(redis_ws_message::Message::Command((&env).into())),
+        }
+      })
+    )
 }
 
 pub fn extract_watch_command_key(msg: &RedisWsMessage) -> Option<Arc<str>> {
@@ -672,6 +757,7 @@ pub fn set_with_ttl(key: String, value: String, ttl: u64) -> RedisEnvelope {
     command: RedisCommandType::Set {
       key: Arc::from(key),
       value: Arc::from(value),
+      ttl: Some(ttl),
     },
     ttl_seconds: Some(ttl),
     timestamp: Some(chrono::Utc::now().timestamp_millis() as u64),

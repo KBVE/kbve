@@ -138,7 +138,14 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
                 }
               }
             } else {
-              let _ = ws_tx.send(Message::Text(redis_ws_error_msg("Invalid command").into())).await;
+              tracing::warn!(
+                "WebSocket Redis error: {}",
+                ws_msg.as_json_string().unwrap_or_else(|| "<invalid serialization>".into())
+              );
+
+              let _ = ws_tx.send(
+                Message::Text(redis_ws_error_msg("[handler]: Invalid command").into())
+              ).await;
             }
           }
           Err(e) => {

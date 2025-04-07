@@ -29,6 +29,8 @@ pub struct SetCommand {
     pub key: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub value: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub ttl: u64,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
