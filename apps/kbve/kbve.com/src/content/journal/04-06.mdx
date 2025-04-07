@@ -31,7 +31,23 @@ Prepare the side account for the IRS bill.
 
     One of the changes with this refactor will be taking out the bb8 pool system and using a multiplex from fred.
     I understand this but it does feel a bit weird to do.
+    We will have to do it again when we updated Postgres to version 17 on the Supabase image.
+    In a normal pool, we would have multiple connections and use a borrowing method for each of the connections within the pool.
+    Hmm, I will have to write this out a bit more and maybe it might fully click.
+
+-   09:31PM
+
+    Updating the temple state, hmm.
+    Dropping the `pub redis_pool: Pool<RedisConnectionManager>` and replacing it with a redis client from the fred crate.
+    Wait, I was confused on the whole pool concept, but I think I understand it a bit more.
     
+
+### The Wheel of Time
+
+-   09:25PM
+
+    Season 2 of the Wheel of Time is turning out to be even better!
+    This series better not go the way towards of Game of Thrones.
 
 ## 2024
 
