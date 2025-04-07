@@ -14,3 +14,41 @@ tags:
 ## DiscordSH
 
 This is unofficial notes and docs for discordsh.
+
+
+### WebSockets
+
+For testing the websockets, we have these two JSONs
+
+Nested Direct Command Set / Get:
+
+```json
+
+{
+  "message": {
+    "Command": {
+      "command": {
+        "Set": { "key": "1", "value": "bobsaggy" }
+      }
+    }
+  }
+}
+
+```
+
+Then to get:
+
+```json
+
+
+{
+  "message": {
+    "Command": {
+      "command": {
+        "Get": { "key": "1" }
+      }
+    }
+  }
+}
+
+```
