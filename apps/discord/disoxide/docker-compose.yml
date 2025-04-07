@@ -15,7 +15,7 @@ services:
             REDIS_HOST: redis
             REDIS_PORT: 6379
             REDIS_PASSWORD: redispassword
-            RUST_LOG: debug
+            RUST_LOG: debug,disoxide=debug,jedi=debug
 
     kilobase-init:
         image: busybox:latest
@@ -79,7 +79,7 @@ services:
                 condition: service_healthy
 
     redis:
-        image: redis:7-alpine
+        image: redis:7.2.7-alpine3.21
         container_name: kilobase-redis
         restart: unless-stopped
         ports:

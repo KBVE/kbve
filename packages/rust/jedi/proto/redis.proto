@@ -11,6 +11,8 @@ message RedisCommand {
     SetCommand set = 1;
     GetCommand get = 2;
     DelCommand del = 3;
+    WatchCommand watch = 4;
+    UnwatchCommand unwatch = 5;
   }
 }
 
