@@ -276,7 +276,7 @@ impl From<RedisEnvelope> for RedisCommand {
         Command::Set(SetCommand {
           key: key.to_string(),
           value: value.to_string(),
-          ttl: ttl.unwrap_or(0),
+          ttl,
         }),
       Get { key } =>
         Command::Get(GetCommand {
@@ -325,7 +325,7 @@ impl TryFrom<RedisCommand> for RedisEnvelope {
         RedisCommandType::Set {
           key: Arc::from(cmd.key),
           value: Arc::from(cmd.value),
-          ttl: Some(cmd.ttl),
+          ttl: cmd.ttl,
         },
       Some(Get(cmd)) =>
         RedisCommandType::Get {
@@ -367,7 +367,7 @@ impl From<&RedisEnvelope> for RedisCommand {
         Set(SetCommand {
           key: key.to_string(),
           value: value.to_string(),
-          ttl: ttl.unwrap_or(0),
+          ttl: *ttl,
         }),
       RedisCommandType::Get { key } =>
         Get(GetCommand {
