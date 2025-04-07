@@ -12,7 +12,6 @@ use tokio::sync::{ oneshot, Mutex };
 // use tokio::sync::broadcast;
 use crate::entity::state::{ AppGlobalState, SharedState };
 use tokio::sync::mpsc::{ channel, Sender };
-use jedi::wrapper::ThinWsCommand;
 use jedi::wrapper::{
   add_watch_key,
   build_redis_envelope_from_ws,
