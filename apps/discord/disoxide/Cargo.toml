@@ -42,8 +42,6 @@ axum-extra = { version = "0.10.0", features = [
 ]}
 bb8 = "0.9.0"
 bb8-postgres = "0.9.0"
-bb8-redis = "0.21.0"
-redis = { version = "0.29.1", features = ["tokio-rustls-comp"] }
 prost = { version = "0.13", features = ["prost-derive"] }
 papaya = "0.2.1"
 # tokio-tungstenite = "0.26.2"
@@ -59,7 +57,7 @@ ulid = { version = "1", features = ["serde", "uuid"] }
 chrono = { version = "0.4", features = ["serde"] }
 askama = "0.13.0"
 #jedi = { git = "https://github.com/KBVE/kbve.git", branch = "dev", package = "jedi" }
-jedi = { git = "https://github.com/KBVE/kbve.git", rev = "a5be3c1ebbc2caa4e360bf48069137bab7f92e47", package = "jedi"}
+jedi = { git = "https://github.com/KBVE/kbve.git", rev = "ffb9aff288bbdc64b8df6f8dc65e245ae65bfd70", package = "jedi"}
 #jedi = { path = "../../../packages/rust/jedi" }
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }

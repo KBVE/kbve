@@ -1545,16 +1545,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bb8-redis"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a68215c76c457dccfed027a397ccd72482feabd64c2f93cbb2971a7c4121351"
-dependencies = [
- "bb8",
- "redis 0.29.1",
-]
-
-[[package]]
 name = "bevy_ecs"
 version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2397,11 +2387,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba5a308b75df32fe02788e748662718f03fde005016435c444eea572398219fd"
 dependencies = [
  "bytes",
- "futures-core",
  "memchr",
- "pin-project-lite",
- "tokio",
- "tokio-util",
 ]
 
 [[package]]
@@ -2979,18 +2965,16 @@ dependencies = [
  "axum-extra 0.10.0",
  "bb8",
  "bb8-postgres",
- "bb8-redis",
  "bitflags 2.9.0",
  "chrono",
  "futures-util",
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
- "jedi 0.2.0 (git+https://github.com/KBVE/kbve.git?rev=a5be3c1ebbc2caa4e360bf48069137bab7f92e47)",
+ "jedi 0.2.0 (git+https://github.com/KBVE/kbve.git?rev=ffb9aff288bbdc64b8df6f8dc65e245ae65bfd70)",
  "papaya 0.2.1",
  "prost",
  "prost-build",
- "redis 0.29.1",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -5306,7 +5290,7 @@ dependencies = [
 [[package]]
 name = "jedi"
 version = "0.2.0"
-source = "git+https://github.com/KBVE/kbve.git?rev=a5be3c1ebbc2caa4e360bf48069137bab7f92e47#a5be3c1ebbc2caa4e360bf48069137bab7f92e47"
+source = "git+https://github.com/KBVE/kbve.git?rev=ffb9aff288bbdc64b8df6f8dc65e245ae65bfd70#ffb9aff288bbdc64b8df6f8dc65e245ae65bfd70"
 dependencies = [
  "ammonia 4.0.0",
  "async-trait",
@@ -5314,12 +5298,12 @@ dependencies = [
  "axum-extra 0.10.0",
  "bb8",
  "bb8-postgres",
- "bb8-redis",
  "bitflags 2.9.0",
  "chrono",
  "crossbeam",
  "dashmap 6.1.0",
  "flexbuffers",
+ "fred",
  "futures-util",
  "http-body-util",
  "hyper 1.5.0",
@@ -5328,7 +5312,6 @@ dependencies = [
  "papaya 0.2.1",
  "prost",
  "prost-types",
- "redis 0.29.1",
  "regex",
  "reqwest 0.12.8",
  "rustc-hash 2.1.1",
@@ -5499,7 +5482,7 @@ dependencies = [
  "jedi 0.1.14",
  "pgrx",
  "pgrx-tests",
- "redis 0.27.4",
+ "redis",
  "reqwest 0.12.8",
  "serde",
  "thiserror 2.0.12",
@@ -7681,31 +7664,6 @@ dependencies = [
  "ryu",
  "sha1_smol",
  "socket2 0.5.8",
- "url",
-]
-
-[[package]]
-name = "redis"
-version = "0.29.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8034fb926579ff49d3fe58d288d5dcb580bf11e9bccd33224b45adebf0fd0c23"
-dependencies = [
- "arc-swap",
- "bytes",
- "combine",
- "futures-util",
- "itoa 1.0.11",
- "num-bigint 0.4.6",
- "percent-encoding",
- "pin-project-lite",
- "rustls 0.23.23",
- "rustls-native-certs 0.8.1",
- "ryu",
- "sha1_smol",
- "socket2 0.5.8",
- "tokio",
- "tokio-rustls 0.26.0",
- "tokio-util",
  "url",
 ]
 
