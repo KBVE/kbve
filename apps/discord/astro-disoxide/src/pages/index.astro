@@ -1,5 +1,6 @@
 ---
 import Layout from "src/layout/Layout.astro"
+import RegisterAlpineMetricsComponents from "src/layout/scripts/metrics";
 
 ---
 <Layout title="Dashboard" description="DiscordSH Dashboard">
@@ -207,8 +208,11 @@ import Layout from "src/layout/Layout.astro"
 			</div>
 		</div>
 
+		
+
         <script type="module" is:inline>
-            import './src/layout/scripts/metrics';
+            import RegisterAlpineMetricsComponents from '/src/layout/scripts/metrics';
+			RegisterAlpineMetricsComponents();
         </script>
 
 </Layout>
