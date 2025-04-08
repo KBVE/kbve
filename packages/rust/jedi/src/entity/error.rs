@@ -4,6 +4,8 @@ use thiserror::Error;
 use std::borrow::Cow;
 use tower::BoxError;
 use bb8::ErrorSink;
+use fred::error::Error as RedisError;
+
 
 #[derive(Debug, Error)]
 pub enum JediError {
@@ -11,6 +13,8 @@ pub enum JediError {
   Timeout,
 
   #[error("Internal error: {0}")] Internal(Cow<'static, str>),
+
+  #[error("Parse error: {0}")] Parse(String),
 
   #[error("Resource not found")]
   NotFound,
@@ -53,6 +57,8 @@ impl IntoResponse for JediError {
       JediError::Forbidden => StatusCode::FORBIDDEN,
       JediError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
       JediError::Grpc(_) => StatusCode::BAD_GATEWAY,
+      JediError::Parse(_) => StatusCode::BAD_REQUEST,
+
     };
 
     let body = Json(ErrorResponse {
@@ -86,6 +92,7 @@ impl From<JediError> for tonic::Status {
       JediError::Forbidden => tonic::Status::permission_denied(err.to_string()),
       JediError::Database(_) => tonic::Status::unavailable(err.to_string()),
       JediError::Grpc(_) => tonic::Status::unknown(err.to_string()),
+      JediError::Parse(_) => tonic::Status::internal(err.to_string()),
     }
   }
 }
@@ -128,6 +135,23 @@ impl<T: std::fmt::Display> From<bb8::RunError<T>> for JediError {
     }
 }
 
+impl From<serde_json::Error> for JediError {
+  fn from(err: serde_json::Error) -> Self {
+    JediError::Parse(format!("JSON error: {}", err))
+  }
+}
+
+impl From<flexbuffers::ReaderError> for JediError {
+  fn from(err: flexbuffers::ReaderError) -> Self {
+    JediError::Parse(format!("Flexbuffer error: {}", err))
+  }
+}
+
+impl From<RedisError> for JediError {
+  fn from(err: RedisError) -> Self {
+    JediError::Database(Cow::Owned(format!("Redis error: {}", err)))
+  }
+}
 
 impl<E: std::fmt::Display + Send + Sync + 'static> ErrorSink<E> for JediErrorSink {
     fn sink(&self, error: E) {
