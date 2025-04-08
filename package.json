@@ -124,6 +124,7 @@
   },
   "dependencies": {
     "@astrojs/ts-plugin": "^1.10.4",
+    "@astropub/worker": "^0.2.0",
     "@discord/embedded-app-sdk": "^1.7.0",
     "@dnd-kit/core": "^6.1.0",
     "@dotlottie/react-player": "^1.6.19",

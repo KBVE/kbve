@@ -1,29 +1,7 @@
 ---
+import Layout from "src/layout/Layout.astro"
 ---
-
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<script
-			src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
-			crossorigin="anonymous"
-			defer></script>
-		<script
-			src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12/dist/htmx.min.js"
-			crossorigin="anonymous"
-			defer></script>
-		<link
-			rel="modulepreload"
-			href="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js" />
-
-		<link rel="stylesheet" href="/css/style.css" />
-
-		<title>DiscordSH</title>
-	</head>
-
-	<body class="h-full bg-[#28243d] text-gray-100">
+<Layout title="Dashboard" description="DiscordSH Dashboard">
 		<div
 			x-data="{ sidebarOpen: true }"
 			class="flex h-screen min-h-0 overflow-hidden">
@@ -307,5 +285,4 @@
 
 			Alpine.start();
 		</script>
-	</body>
-</html>
+</Layout>
