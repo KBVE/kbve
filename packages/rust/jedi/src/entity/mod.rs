@@ -5,6 +5,7 @@ pub mod ulid;
 pub mod hash;
 pub mod envelope;
 pub mod serde_arc_str;
+pub mod pipe;
 
 pub use regex::*;
 pub use ai::*;
