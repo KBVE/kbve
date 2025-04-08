@@ -55,7 +55,7 @@ async fn main() {
   //   let shared_state = Arc::new(GlobalState::new("redis://:redispassword@redis:6379").await);
 
   async fn custom_404() -> impl IntoResponse {
-    const NOT_FOUND_HTML: &str = include_str!("../build/404.html");
+    const NOT_FOUND_HTML: &str = include_str!("../dist/404.html");
     (StatusCode::NOT_FOUND, Html(NOT_FOUND_HTML))
   }
 
@@ -66,7 +66,7 @@ async fn main() {
   let app = Router::new()
     .merge(handler::http::http_router())
     .merge(handler::ws::ws_router())
-    .fallback_service(ServeDir::new("build").not_found_service(axum::routing::get(custom_404)))
+    .fallback_service(ServeDir::new("dist").not_found_service(axum::routing::get(custom_404)))
     .layer(
       ServiceBuilder::new()
         .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
