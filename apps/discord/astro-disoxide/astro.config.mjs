@@ -128,7 +128,7 @@ export default defineConfig({
 		}),
 
 		react(),
-		alpine(),
+		alpine({ entrypoint: '/src/layout/scripts/alpine' }),
 		svelte(),
 		partytown(),
 		worker(),

@@ -8,7 +8,7 @@ interface Props {
 }
 
 const { title, description, image } = Astro.props as Props;
-
+import { ClientRouter } from 'astro:transitions';
 import './global.css';
 ---
 
@@ -32,23 +32,61 @@ import './global.css';
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
+
+		<ClientRouter />
 	</head>
 	<body
-		x-data="{ sidebarOpen: false }"
+		x-data="astro"
+		x-bind="refreshOnPageLoad"
 		role="document"
 		class="h-full bg-[#28243d] text-gray-100 relative">
-		<Sidebar />
+		<Sidebar transition:persist />
+
+		<!-- <div
+	id="view-transition-progress"
+	class="fixed top-0 left-0 h-1 w-full bg-purple-500 z-[999999] 
+	       transition-all duration-500 ease-in-out 
+	       scale-x-0 opacity-0 origin-left"
+	style="will-change: transform, opacity"
+></div> -->
+<div
+	id="loading"
+	class="fixed top-0 left-0 h-1 w-full bg-purple-500 z-[99999] scale-x-0 opacity-0 transition-all duration-500 ease-in-out origin-left"
+	style="will-change: transform, opacity"
+></div>
+
+<style is:global>
+	#loading.show {
+	  transform: scaleX(1);
+	  opacity: 1;
+	}
+  </style>
+
+
+<script is:inline>
+	document.addEventListener("astro:before-preparation", () => {
+	  const bar = document.getElementById("loading");
+	  if (bar) bar.classList.add("show");
+	});
+  
+	document.addEventListener("astro:after-preparation", () => {
+	  const bar = document.getElementById("loading");
+	  if (bar) {
+		setTimeout(() => bar.classList.remove("show"), 1200); // adds a smooth fade-out
+	  }
+	});
+  </script>
 
 		<div
 			x-show="sidebarOpen"
 			x-transition.opacity
 			class="fixed inset-0 bg-black bg-opacity-30 z-40"
-			@click="sidebarOpen = false">
+			@click="toggleSidebar()">
 		</div>
+
 		<div
 			:class="sidebarOpen ? 'md:ml-64 ml-16' : 'ml-16'"
 			class="relative z-10 flex flex-col min-h-screen transition-all duration-300 ease-in-out">
-			<!-- Your header can go here, or stay in the page -->
 			<slot role="main" />
 		</div>
 	</body>
