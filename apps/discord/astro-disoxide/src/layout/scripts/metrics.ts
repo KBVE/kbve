@@ -1,3 +1,5 @@
+console.log('[Alpine] Metrics Running');
+
 import { useSharedWorkerCall, subscribeToTopic } from './client';
 
 // Define a type for your metrics entry – adjust these fields as needed.
@@ -27,7 +29,7 @@ interface WebSocketManagerData {
 }
 
 // Listen for Alpine initialization
-document.addEventListener('alpine:init', () => {
+export default function RegisterAlpineMetricsComponents(Alpine: typeof window.Alpine) {
   // Define the "metricsCube" Alpine component with type annotation
   Alpine.data('metricsCube', (): MetricsCubeData => ({
     open: false,
@@ -97,7 +99,4 @@ document.addEventListener('alpine:init', () => {
       this.message = '';
     }
   }));
-});
-
-// Start Alpine
-// Alpine.start();
+};

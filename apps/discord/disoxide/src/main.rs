@@ -12,6 +12,8 @@ use axum::{
   Router,
 };
 use axum::http::StatusCode;
+use tower_http::cors::{CorsLayer, Any};
+
 
 use std::sync::Arc;
 
@@ -73,6 +75,12 @@ async fn main() {
         .timeout(Duration::from_secs(10))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
+        .layer(
+          CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods(Any)
+            .allow_headers(Any)
+        )
     )
     .layer(
       axum::middleware::from_fn_with_state(

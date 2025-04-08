@@ -1,4 +1,6 @@
 ---
+import Sidebar from 'src/layout/Sidebar.astro';
+
 interface Props {
 	title: string;
 	description: string;
@@ -6,7 +8,7 @@ interface Props {
 }
 
 const { title, description, image } = Astro.props as Props;
-
+import { ClientRouter } from 'astro:transitions';
 import './global.css';
 ---
 
@@ -30,8 +32,49 @@ import './global.css';
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
+
+		<ClientRouter />
 	</head>
-	<body role="document" class="h-full bg-[#28243d] text-gray-100">
-		<slot role="main" />
+	<body
+		x-data="astro"
+		x-bind="refreshOnPageLoad"
+		role="document"
+		class="h-full bg-[#28243d] text-gray-100 relative">
+		<Sidebar />
+
+		<!-- Glowing Progress Bar -->
+		<div
+			x-data="{ show: false, dimmed: false }"
+			x-init="
+				show = true;
+				setTimeout(() => {
+					dimmed = true;
+					setTimeout(() => show = false, 500); // hide after fade
+				}, 100)
+			"
+			x-show="show"
+			:class="dimmed ? 'bg-purple-500/50' : 'bg-purple-500 animate-pulse'"
+			id="loading"
+			class="fixed top-0 left-0 h-1 w-full z-[99999] transition-all duration-700 ease-in-out opacity-100 flex items-center justify-end pr-2 overflow-visible">
+			<img
+				src="/assets/media/logo/discordsh_small_logo.png"
+				alt="DiscordSH Mini Logo"
+				class="w-12 animate-spin transition-all duration-800 block outline-none border-none shadow-none overflow-visible"
+				
+			/>
+		</div>
+
+		<div
+			x-show="sidebarOpen"
+			x-transition.opacity
+			class="fixed inset-0 bg-black bg-opacity-30 z-40"
+			@click="toggleSidebar()">
+		</div>
+
+		<div
+			:class="sidebarOpen ? 'md:ml-64 ml-16' : 'ml-16'"
+			class="relative z-10 flex flex-col min-h-screen transition-all duration-300 ease-in-out">
+			<slot role="main" />
+		</div>
 	</body>
 </html>

@@ -1,0 +1,126 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+
+// This comes from what Icon accepts — you can extract or infer it if needed
+type IconName =
+	| 'starlight'
+	| 'laptop'
+	| 'open-book'
+	| 'setting'
+	| 'information';
+
+// Define your route config with strict typing
+type NavRoute = {
+	href: string;
+	label: string;
+	icon: IconName;
+};
+
+const navRoutes: NavRoute[] = [
+	{ href: '/', label: 'Dashboard', icon: 'starlight' },
+	{ href: '/servers', label: 'Servers', icon: 'laptop' },
+	{ href: '/logs', label: 'Logs', icon: 'open-book' },
+	{ href: '/settings', label: 'Settings', icon: 'setting' },
+];
+
+const footerRoutes: NavRoute[] = [
+	{ href: '/logout', label: 'Logout', icon: 'information' },
+];
+---
+
+<aside
+	x-data="{
+		isActive(path) {
+			return location.pathname === path;
+		}
+	}"
+	:class="sidebarOpen ? 'w-64' : 'w-16'"
+	class="fixed inset-y-0 left-0 z-50 bg-gray-800 text-white flex flex-col p-3 transition-all duration-300 ease-in-out">
+	<!-- Header -->
+	<div class="flex flex-row items-center gap-2 mb-6">
+		<button
+			@click="toggleSidebar()"
+			class="text-purple-400 hover:text-purple-200 p-1 rounded hover:bg-purple-700 transition"
+			:title="sidebarOpen ? 'Collapse' : 'Expand'">
+			<span x-show="sidebarOpen"><Icon name="close" /></span>
+			<span x-show="!sidebarOpen"><Icon name="bars" /></span>
+		</button>
+
+		<img
+			src="/assets/media/logo/discordsh_logo_menu2.png"
+			alt="DiscordSH Logo"
+			class="w-full h-12 object-contain transition-all duration-300 block outline-none border-none shadow-none cursor-pointer"
+			x-show="sidebarOpen"
+			@click="toggleSidebar()"
+		/>
+
+		<!-- Small Logo (visible when sidebar is collapsed) -->
+		<img
+			src="/assets/media/logo/discordsh_small_logo.png"
+			alt="DiscordSH Mini Logo"
+			class="w-8 transition-all duration-300 block outline-none border-none shadow-none cursor-pointer overflow-visible"
+			x-show="!sidebarOpen"
+			@click="toggleSidebar()"
+		/>
+	</div>
+
+	<!-- Nav links -->
+	<nav class="flex flex-col gap-3">
+		{
+			navRoutes.map(({ href, label, icon }) => (
+				<a
+					href={href}
+					x-bind:class={`isActive('${href}')
+						? 'bg-purple-700 text-white'
+						: 'hover:bg-gray-700 text-gray-200'`}
+					class="relative flex items-center gap-2 rounded px-3 py-2 transition hover:animate-pulse overflow-hidden group"
+					data-astro-prefetch>
+					
+					{/* Animated swipe highlight */}
+					<span
+						class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease">
+					</span>
+	
+					{/* Icon */}
+					<span class="text-lg text-purple-400 relative z-10">
+						<Icon name={icon} />
+					</span>
+	
+					{/* Label */}
+					<span
+						x-show="sidebarOpen"
+						class="transition-opacity duration-300 relative z-10">
+						{label}
+					</span>
+				</a>
+			))
+		}
+	</nav>
+
+	<!-- Footer -->
+	<div class="mt-auto pt-6 border-t border-gray-700">
+		{
+			footerRoutes.map(({ href, label, icon }) => (
+				<a
+					href={href}
+					x-bind:class={`isActive('${href}')
+					? 'bg-purple-700 text-white'
+					: 'hover:bg-gray-700 text-gray-400 hover:text-purple-300'`}
+					class="flex items-center gap-2 text-sm rounded px-3 py-2 transition">
+					<span class="text-lg text-purple-400">
+						<Icon name={icon} />
+					</span>
+					<span x-show="sidebarOpen">{label}</span>
+				</a>
+			))
+		}
+
+		<h1
+			class="font-bold text-purple-400 transition-opacity duration-300 cursor-pointer mt-2"
+			:class="{ 'text-xs scale-[.5]': !sidebarOpen }"
+			@click="toggleSidebar()">
+			DiscordSH
+		</h1>
+	</div>
+	<div class="mt-auto pt-6 border-t border-gray-700"></div>
+</aside>
