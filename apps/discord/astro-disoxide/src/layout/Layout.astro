@@ -1,4 +1,6 @@
 ---
+import Sidebar from 'src/layout/Sidebar.astro';
+
 interface Props {
 	title: string;
 	description: string;
@@ -31,7 +33,23 @@ import './global.css';
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
 	</head>
-	<body role="document" class="h-full bg-[#28243d] text-gray-100">
-		<slot role="main" />
+	<body
+		x-data="{ sidebarOpen: false }"
+		role="document"
+		class="h-full bg-[#28243d] text-gray-100 relative">
+		<Sidebar />
+
+		<div
+			x-show="sidebarOpen"
+			x-transition.opacity
+			class="fixed inset-0 bg-black bg-opacity-30 z-40"
+			@click="sidebarOpen = false">
+		</div>
+		<div
+			:class="sidebarOpen ? 'md:ml-64 ml-16' : 'ml-16'"
+			class="relative z-10 flex flex-col min-h-screen transition-all duration-300 ease-in-out">
+			<!-- Your header can go here, or stay in the page -->
+			<slot role="main" />
+		</div>
 	</body>
 </html>

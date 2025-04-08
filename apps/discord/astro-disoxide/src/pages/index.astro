@@ -5,63 +5,15 @@ import Metrics from "src/layout/scripts/components/Metrics.astro";
 ---
 <Layout title="Dashboard" description="DiscordSH Dashboard">
 		<div
-			x-data="{ sidebarOpen: true }"
 			class="flex h-screen min-h-0 overflow-hidden">
-			<!-- Sidebar -->
-			<aside
-				:class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-				class="fixed z-50 w-64 h-full bg-gray-800 text-white flex flex-col p-4 transform transition-transform duration-200 ease-in-out">
-				<div class="flex items-center justify-between">
-					<h1 class="text-2xl font-bold mb-6 text-purple-400">
-						DiscordSH
-					</h1>
-					<span
-						class="inline-flex shrink-0 rounded-full border border-purple-500 bg-purple-800 p-1">
-						<button
-							class="text-purple-200"
-							@click="sidebarOpen = false">
-							✕
-						</button>
-					</span>
-				</div>
-
-				<nav class="flex flex-col gap-3">
-					<a href="#" class="hover:bg-gray-700 rounded px-3 py-2">
-						Dashboard
-					</a>
-					<a href="#" class="hover:bg-gray-700 rounded px-3 py-2">
-						Servers
-					</a>
-					<a href="#" class="hover:bg-gray-700 rounded px-3 py-2">
-						Logs
-					</a>
-					<a href="#" class="hover:bg-gray-700 rounded px-3 py-2">
-						Settings
-					</a>
-				</nav>
-
-				<div class="mt-auto pt-6 border-t border-gray-700">
-					<a
-						href="#"
-						class="text-sm text-gray-400 hover:text-purple-300">
-						Logout
-					</a>
-				</div>
-			</aside>
-
+			
 			<!-- Main Content -->
 			<div
-				class="flex-1 flex flex-col w-full min-h-0 transition-all duration-200 ease-in-out"
-				:class="{ 'md:ml-64': sidebarOpen }">
+				class="flex-1 flex flex-col w-full min-h-0 transition-all duration-200 ease-in-out">
 				<!-- Header with toggle -->
 				<header
 					class="p-4 bg-gray-800 shadow flex items-center justify-between md:justify-start">
-					<button
-						class="text-gray-300 text-xl mr-4 hover:text-purple-400"
-						@click="sidebarOpen = !sidebarOpen"
-						aria-label="Toggle Sidebar">
-						☰
-					</button>
+					
 					<h2 class="text-2xl font-semibold text-purple-400">
 						Welcome back, Commander
 					</h2>

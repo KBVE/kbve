@@ -152,7 +152,7 @@ export default defineConfig({
 		},
 		server: {
 			watch: {
-				ignored: ['**/*'],
+				ignored: ['!**/node_modules/**'],
 			},
 		},
 		build: {
