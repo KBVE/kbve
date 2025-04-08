@@ -71,16 +71,25 @@ const footerRoutes: NavRoute[] = [
 				<a
 					href={href}
 					x-bind:class={`isActive('${href}')
-                        ? 'bg-purple-700 text-white'
-                        : 'hover:bg-gray-700 text-gray-200'`}
-					class="flex items-center gap-2 rounded px-3 py-2 transition hover:animate-pulse"
-                    data-astro-prefetch>
-					<span class="text-lg text-purple-400">
+						? 'bg-purple-700 text-white'
+						: 'hover:bg-gray-700 text-gray-200'`}
+					class="relative flex items-center gap-2 rounded px-3 py-2 transition hover:animate-pulse overflow-hidden group"
+					data-astro-prefetch>
+					
+					{/* Animated swipe highlight */}
+					<span
+						class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease">
+					</span>
+	
+					{/* Icon */}
+					<span class="text-lg text-purple-400 relative z-10">
 						<Icon name={icon} />
 					</span>
+	
+					{/* Label */}
 					<span
 						x-show="sidebarOpen"
-						class="transition-opacity duration-300">
+						class="transition-opacity duration-300 relative z-10">
 						{label}
 					</span>
 				</a>
