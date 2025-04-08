@@ -10,6 +10,7 @@ use dashmap::DashSet;
 use tokio::task::JoinHandle;
 
 use crate::error::JediError;
+use crate::pipe::Pipe;
 use crate::proto::redis::{
   redis_event_object,
   redis_ws_message,
@@ -32,7 +33,6 @@ use crate::proto::redis::{
 use crate::watchmaster::{ WatchEvent, WatchManager };
 
 use crate::entity::serde_arc_str;
-
 
 #[derive(Debug)]
 pub enum IncomingWsFormat {
@@ -676,6 +676,53 @@ pub fn create_ws_update_if_watched(
   } else {
     None
   }
+}
+
+// * Parse Websockets
+
+pub fn parse_incoming_ws_data(
+  input: IncomingWsFormat,
+  connection_id: Option<[u8; 16]>
+) -> Result<RedisWsRequestContext, JediError> {
+  let envelope = match &input {
+    IncomingWsFormat::JsonText(text) => {
+      parse_ws_command(text)
+        .map_err(|e| JediError::Parse(format!("parse_ws_command failed: {e}")))?
+        .pipe(|msg: RedisWsMessage| build_redis_envelope_from_ws(&msg))
+        .ok_or_else(|| JediError::Parse("could not extract RedisEnvelope".into()))?
+    }
+
+    IncomingWsFormat::Binary(data) => {
+      let reader = flexbuffers::Reader::get_root(&data[..])
+          .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
+    
+      let map = reader.as_map();
+    
+      let key_reader = map.idx("key");
+      let key = key_reader
+          .get_str()
+          .map_err(|_| JediError::Parse("missing or invalid 'key' field".into()))?;
+    
+      let value_reader = map.idx("value");
+      let value = value_reader.get_str().unwrap_or("");
+    
+      let ttl = map.idx("ttl").get_u64().ok();
+    
+      let envelope = if let Some(ttl) = ttl {
+        RedisEnvelope::set_with_ttl(key, value, ttl)
+      } else {
+        RedisEnvelope::set(key, value)
+      };
+    
+      envelope
+    }
+  };
+
+  Ok(RedisWsRequestContext {
+    envelope,
+    raw: Some(input),
+    connection_id,
+  })
 }
 
 // pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
