@@ -11,7 +11,7 @@ import alpine from '@astrojs/alpinejs';
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
 import starlightSiteGraph from 'starlight-site-graph';
-
+import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
 
@@ -128,8 +128,10 @@ export default defineConfig({
 		}),
 
 		react(),
+		alpine(),
 		svelte(),
 		partytown(),
+		worker(),
 		tailwind({
 			configFile: fileURLToPath(
 				new URL('./tailwind.config.cjs', import.meta.url),
