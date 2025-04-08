@@ -33,6 +33,20 @@ use crate::watchmaster::{ WatchEvent, WatchManager };
 
 use crate::entity::serde_arc_str;
 
+
+#[derive(Debug)]
+pub enum IncomingWsFormat {
+  JsonText(String),
+  Binary(Vec<u8>),
+}
+
+#[derive(Debug)]
+pub struct RedisWsRequestContext {
+  pub envelope: RedisEnvelope,
+  pub raw: Option<IncomingWsFormat>,
+  pub connection_id: Option<[u8; 16]>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RedisEnvelope {
   pub id: Option<String>,
