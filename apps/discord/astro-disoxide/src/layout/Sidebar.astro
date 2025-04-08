@@ -39,7 +39,7 @@ const footerRoutes: NavRoute[] = [
 	<!-- Header -->
 	<div class="flex flex-row items-center gap-2 mb-6">
 		<button
-			@click="sidebarOpen = !sidebarOpen"
+			@click="toggleSidebar()"
 			class="text-purple-400 hover:text-purple-200 p-1 rounded hover:bg-purple-700 transition"
 			:title="sidebarOpen ? 'Collapse' : 'Expand'">
 			<span x-show="sidebarOpen"><Icon name="close" /></span>
@@ -60,7 +60,7 @@ const footerRoutes: NavRoute[] = [
 			alt="DiscordSH Mini Logo"
 			class="w-8 transition-all duration-300 block outline-none border-none shadow-none cursor-pointer overflow-visible"
 			x-show="!sidebarOpen"
-			@click="sidebarOpen = true"
+			@click="toggleSidebar()"
 		/>
 	</div>
 
