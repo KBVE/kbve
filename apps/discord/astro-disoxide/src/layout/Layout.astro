@@ -8,7 +8,6 @@ interface Props {
 const { title, description, image } = Astro.props as Props;
 
 import './global.css';
-import Client from './scripts/Client.astro';
 
 ---
 
@@ -34,7 +33,6 @@ import Client from './scripts/Client.astro';
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
 
-        <Client />
     </head>
     <body role="document" class="h-full bg-[#28243d] text-gray-100">
         <slot role="main" />

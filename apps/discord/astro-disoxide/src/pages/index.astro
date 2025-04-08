@@ -1,5 +1,6 @@
 ---
 import Layout from "src/layout/Layout.astro"
+
 ---
 <Layout title="Dashboard" description="DiscordSH Dashboard">
 		<div
@@ -206,83 +207,8 @@ import Layout from "src/layout/Layout.astro"
 			</div>
 		</div>
 
-		<script type="module">
-			import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/module.esm.js';
-			import {
-				subscribeToTopic,
-				useSharedWorkerCall,
-			} from '/js/client.js';
+        <script type="module" is:inline>
+            import './src/layout/scripts/metrics';
+        </script>
 
-			document.addEventListener('alpine:init', () => {
-				Alpine.data('metricsCube', () => ({
-					open: false,
-					dataEntries: [],
-					unsubscribe: null,
-					loading: false,
-
-					async init() {
-						this.loading = true;
-
-						const initial =
-							await useSharedWorkerCall('fetch_metrics');
-						this.dataEntries = initial;
-
-						this.unsubscribe = subscribeToTopic(
-							'metrics',
-							(data) => {
-								this.dataEntries = data;
-								if (this.loading) this.loading = false;
-							},
-						);
-
-						this.loading = false;
-					},
-
-					destroy() {
-						if (this.unsubscribe) this.unsubscribe();
-					},
-				}));
-
-				Alpine.data('webSocketManager', () => ({
-					message: '',
-					messages: [],
-					unsubscribe: null,
-
-					async init() {
-						// Subscribe to WebSocket messages via shared worker
-						this.unsubscribe = subscribeToTopic(
-							'websocket',
-							(data) => {
-								this.messages.push(JSON.stringify(data));
-							},
-						);
-
-						// Ensure connection is open
-						await useSharedWorkerCall('connect_websocket');
-					},
-
-					destroy() {
-						if (this.unsubscribe) this.unsubscribe();
-					},
-
-					async sendMessage() {
-						if (!this.message.trim()) return;
-
-						let parsed;
-						try {
-							parsed = JSON.parse(this.message);
-						} catch (err) {
-							this.messages.push('[Invalid JSON]');
-							return;
-						}
-
-						await useSharedWorkerCall('send_websocket', parsed);
-						this.messages.push(`→ ${this.message}`);
-						this.message = '';
-					},
-				}));
-			});
-
-			Alpine.start();
-		</script>
 </Layout>
