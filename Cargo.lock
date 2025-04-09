@@ -2967,11 +2967,12 @@ dependencies = [
  "bb8-postgres",
  "bitflags 2.9.0",
  "chrono",
+ "flexbuffers",
  "futures-util",
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
- "jedi 0.2.0 (git+https://github.com/KBVE/kbve.git?rev=ffb9aff288bbdc64b8df6f8dc65e245ae65bfd70)",
+ "jedi 0.2.0 (git+https://github.com/KBVE/kbve.git?rev=819f65e837e99bb705075169526ecce1802519b8)",
  "papaya 0.2.1",
  "prost",
  "prost-build",
@@ -5290,7 +5291,7 @@ dependencies = [
 [[package]]
 name = "jedi"
 version = "0.2.0"
-source = "git+https://github.com/KBVE/kbve.git?rev=ffb9aff288bbdc64b8df6f8dc65e245ae65bfd70#ffb9aff288bbdc64b8df6f8dc65e245ae65bfd70"
+source = "git+https://github.com/KBVE/kbve.git?rev=819f65e837e99bb705075169526ecce1802519b8#819f65e837e99bb705075169526ecce1802519b8"
 dependencies = [
  "ammonia 4.0.0",
  "async-trait",
