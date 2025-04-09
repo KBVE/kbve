@@ -128,7 +128,7 @@ export default defineConfig({
 		}),
 
 		react(),
-		alpine(),
+		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
 		svelte(),
 		partytown(),
 		worker(),
@@ -152,7 +152,7 @@ export default defineConfig({
 		},
 		server: {
 			watch: {
-				ignored: ['**/*'],
+				ignored: ['!**/node_modules/**'],
 			},
 		},
 		build: {

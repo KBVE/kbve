@@ -162,6 +162,9 @@
     "executor": "nx:run-commands",
     "options": {
         "commands": [
+          "./kbve.sh -nx astro-disoxide:build",
+          "mkdir -p ./apps/discord/disoxide/dist/",
+          "cp -a ./dist/apps/astro-discord/. ./apps/discord/disoxide/dist/",
           "./kbve.sh -nx disoxide:orbnorun",
           "cd ./apps/discord/disoxide && docker-compose --env-file .env up --build"
         ],
