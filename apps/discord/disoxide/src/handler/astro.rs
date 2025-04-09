@@ -3,25 +3,40 @@ use axum::{http::StatusCode, response::{Html, IntoResponse}};
 use crate::entity::state::SharedState;
 use axum::extract::Path;
 use jedi::wrapper::RedisEnvelope;
+use std::borrow::Cow;
+
+
+#[derive(Template)]
+#[template(path = "../dist/askama/index.html")]
+pub struct AstroTemplate<'a> {
+    content: &'a str,
+    path: &'a str,
+}
+
+impl<'a> AstroTemplate<'a> {
+    pub fn new(content: &'a str, path: &'a str) -> Self {
+        Self { content, path }
+    }
+}
 
 
 #[inline]
-fn sanitize_key(path: &str) -> Option<String> {
-    let mut buf = String::with_capacity(path.len());
-
-    for b in path.bytes() {
-        if b.is_ascii_alphanumeric() {
-            buf.push(b as char);
-        }
-    }
-
-    if buf.is_empty() {
-        None
+fn sanitize_key(path: &str) -> Option<Cow<'_, str>> {
+    if path.bytes().all(|b| b.is_ascii_alphanumeric()) {
+        Some(Cow::Borrowed(path))
     } else {
-        let mut result = String::with_capacity(buf.len() + 5);
-        result.push_str("page:");
-        result.push_str(&buf);
-        Some(result)
+        let mut result = String::with_capacity(path.len());
+        for b in path.bytes() {
+            if b.is_ascii_alphanumeric() {
+                result.push(b as char);
+            }
+        }
+
+        if result.is_empty() {
+            None
+        } else {
+            Some(Cow::Owned(result))
+        }
     }
 }
 
@@ -37,18 +52,6 @@ async fn get_content(state: &SharedState, path: &str) -> String {
     }
 }
 
-#[derive(Template)]
-#[template(path = "../dist/askama/index.html")]
-pub struct AstroTemplate<'a> {
-    content: &'a str,
-    path: &'a str,
-}
-
-impl<'a> AstroTemplate<'a> {
-    pub fn new(content: &'a str, path: &'a str) -> Self {
-        Self { content, path }
-    }
-}
 
 fn render_template<T: Template>(template: T) -> Result<Html<String>, StatusCode> {
     template
@@ -70,18 +73,9 @@ pub async fn catch_all_handler(
     state: axum::extract::State<SharedState>,
     Path(path): Path<String>,
 ) -> impl IntoResponse {
-    let template_path = if path.is_empty() { "index" } else { &path };
-    let content = get_content(&state, template_path).await;
-
-    match template_path {
-        _ => {
-            #[derive(Template)]
-            #[template(path = "../dist/askama/index.html")]
-            struct DynamicTemplate<'a> { content: &'a str, path: &'a str }
-            let template = DynamicTemplate { content: &content, path: template_path };
-            render_template(template)
-        }
-    }
+    let content = get_content(&state, &path).await;
+    let template = AstroTemplate::new(&content, &path);
+    render_template(template)
 }
 
 pub fn astro_router() -> axum::Router<SharedState> {
