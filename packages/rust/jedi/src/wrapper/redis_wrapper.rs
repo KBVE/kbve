@@ -686,35 +686,15 @@ pub fn parse_incoming_ws_data(
 ) -> Result<RedisWsRequestContext, JediError> {
   let envelope = match &input {
     IncomingWsFormat::JsonText(text) => {
-      parse_ws_command(text)
-        .map_err(|e| JediError::Parse(format!("parse_ws_command failed: {e}")))?
-        .pipe(|msg: RedisWsMessage| build_redis_envelope_from_ws(&msg))
-        .ok_or_else(|| JediError::Parse("could not extract RedisEnvelope".into()))?
+      parse_redis_envelope_from_json(text)?
     }
 
     IncomingWsFormat::Binary(data) => {
       let reader = flexbuffers::Reader::get_root(&data[..])
-          .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
-    
+        .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
+      
       let map = reader.as_map();
-    
-      let key_reader = map.idx("key");
-      let key = key_reader
-          .get_str()
-          .map_err(|_| JediError::Parse("missing or invalid 'key' field".into()))?;
-    
-      let value_reader = map.idx("value");
-      let value = value_reader.get_str().unwrap_or("");
-    
-      let ttl = map.idx("ttl").get_u64().ok();
-    
-      let envelope = if let Some(ttl) = ttl {
-        RedisEnvelope::set_with_ttl(key, value, ttl)
-      } else {
-        RedisEnvelope::set(key, value)
-      };
-    
-      envelope
+      parse_redis_envelope_from_flex(&map)?
     }
   };
 
@@ -724,6 +704,71 @@ pub fn parse_incoming_ws_data(
     connection_id,
   })
 }
+
+pub fn parse_redis_envelope_from_json(text: &str) -> Result<RedisEnvelope, JediError> {
+  if let Ok(msg) = serde_json::from_str::<RedisWsMessage>(text) {
+    if let Some(envelope) = build_redis_envelope_from_ws(&msg) {
+      return Ok(envelope);
+    }
+  }
+
+  if let Ok(cmd) = serde_json::from_str::<RedisCommand>(text) {
+    return RedisEnvelope::try_from(cmd).map_err(|_|
+      JediError::Parse("invalid RedisCommand".into())
+    );
+  }
+
+  if let Ok(thin) = serde_json::from_str::<ThinRedisCommand>(text) {
+    return Ok(RedisEnvelope::from(thin));
+  }
+
+  Err(JediError::Parse("Unable to parse RedisEnvelope from JSON".into()))
+}
+
+pub fn parse_redis_envelope_from_flex(
+  map: &flexbuffers::MapReader<&[u8]>
+) -> Result<RedisEnvelope, JediError> {
+  let key_reader = map.idx("key");
+  let key = key_reader
+    .get_str()
+    .map_err(|_| JediError::Parse("missing or invalid 'key' field".into()))?;
+
+  let cmd_type = map
+    .idx("type")
+    .get_str()
+    .unwrap_or("set")
+    .to_lowercase();
+
+  match cmd_type.as_str() {
+    "set" => {
+      let value_reader = map.idx("value");
+      let value = value_reader.get_str().unwrap_or("");
+
+      let ttl = map.idx("ttl").get_u64().ok();
+
+      Ok(if let Some(ttl) = ttl {
+        RedisEnvelope::set_with_ttl(key, value, ttl)
+      } else {
+        RedisEnvelope::set(key, value)
+      })
+    }
+
+    "get" => Ok(RedisEnvelope::get(key)),
+
+    "del" => Ok(RedisEnvelope::del(key)),
+
+    "watch" => Ok(RedisEnvelope::new(RedisCommandType::Watch {
+      key: Arc::from(key),
+    })),
+
+    "unwatch" => Ok(RedisEnvelope::new(RedisCommandType::Unwatch {
+      key: Arc::from(key),
+    })),
+
+    other => Err(JediError::Parse(format!("unsupported flex command type: {}", other))),
+  }
+}
+
 
 // pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
 //   serde_json::from_str::<RedisWsMessage>(json)
@@ -756,6 +801,8 @@ pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error>
       })
     )
 }
+
+// * Additional Helper Functions */
 
 pub fn extract_watch_command_key(msg: &RedisWsMessage) -> Option<Arc<str>> {
   match &msg.message {

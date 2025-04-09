@@ -32,7 +32,19 @@ tags:
     If I refactor the code to include the u8/binary then maybe I could find where the thin command issue might be from?
     As for the event pubsub, we had it working before in the redis / bb8-redis setup, so there might be just a slight change in the logic when using the fred multiplex.
     Step one will be to check the flexbuffer crate that is under the jedi, I think I already did add it but I will double check.
-    
+
+
+-   08:34PM
+
+    One of the parts that gets a bit confusing is the isolation of the json and binary, since both need to have their own optimizations.
+    Had we gone down the path of creating an unified binary, there might be a cost in performance that would not be worth it.
+    Thus, we will have duplicate code but it should be worth it in the end.
+    There is still room for the MessagePack and Captain, but it might be something that we will have to do much later on.
+
+-   08:56PM
+
+    There will be a split in the Transport Layer and Application Logic Layer that I need to do when figuring out the right paths to take.
+    The websocket will take both the JSON and Binary, but as the data comes in, we will have to map and split it, a bit of a highway that takes both cars and trucks.
 
 ## 2024
 
