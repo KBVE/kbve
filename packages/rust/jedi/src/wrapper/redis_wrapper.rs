@@ -539,20 +539,17 @@ fn parse_pubsub_message(msg: &RedisMessage) -> Option<RedisEventEnvelope> {
   let key = Arc::<str>::from(msg.channel.to_string());
   let raw_payload = msg.value.clone().convert::<String>().ok()?;
 
+  let update: RedisKeyUpdate = serde_json::from_str(&raw_payload).ok()?;
+
   Some(RedisEventEnvelope {
     channel: key.clone(),
     received_at: chrono::Utc::now().timestamp_millis() as u64,
     event: RedisEventObject {
-      object: Some(
-        redis_event_object::Object::Update(RedisKeyUpdate {
-          key: key.to_string(),
-          timestamp: chrono::Utc::now().timestamp_millis() as u64,
-          state: Some(State::Value(raw_payload)),
-        })
-      ),
+      object: Some(redis_event_object::Object::Update(update)),
     },
   })
 }
+
 
 //  ** Redis Handler
 
