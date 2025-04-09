@@ -6,3 +6,4 @@ pub mod http;
 pub mod ws;
 pub mod redis;
 pub mod astro;
+pub mod assets;
