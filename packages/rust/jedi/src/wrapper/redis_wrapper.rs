@@ -630,11 +630,8 @@ async fn publish_update(pool: &fred::clients::Pool, key: &str, update: RedisKeyU
   let channel = redis_channel_for_key(key);
 
   let mut buffer = Vec::with_capacity(256);
-  let event = RedisEventObject {
-    object: Some(redis_event_object::Object::Update(update)),
-  };
 
-  match serde_json::to_writer(&mut buffer, &event) {
+  match serde_json::to_writer(&mut buffer, &update) {
     Ok(_) => {
       tracing::debug!("Publishing update to {}", channel);
 
@@ -646,10 +643,11 @@ async fn publish_update(pool: &fred::clients::Pool, key: &str, update: RedisKeyU
       }
     }
     Err(e) => {
-      tracing::warn!("Failed to serialize Redis event: {}", e);
+      tracing::warn!("Failed to serialize RedisKeyUpdate: {}", e);
     }
   }
 }
+
 
 pub fn spawn_pubsub_listener_task(
   mut rx: UnboundedReceiver<RedisEventEnvelope>,
