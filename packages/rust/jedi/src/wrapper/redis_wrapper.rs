@@ -806,14 +806,14 @@ pub fn parse_redis_envelope_from_json(text: &str) -> Result<RedisEnvelope, JediE
     }
   }
 
+  if let Ok(thin) = serde_json::from_str::<ThinRedisCommand>(text) {
+    return Ok(RedisEnvelope::from(thin));
+  }
+
   if let Ok(cmd) = serde_json::from_str::<RedisCommand>(text) {
     return RedisEnvelope::try_from(cmd).map_err(|_|
       JediError::Parse("invalid RedisCommand".into())
     );
-  }
-
-  if let Ok(thin) = serde_json::from_str::<ThinRedisCommand>(text) {
-    return Ok(RedisEnvelope::from(thin));
   }
 
   Err(JediError::Parse("Unable to parse RedisEnvelope from JSON".into()))
