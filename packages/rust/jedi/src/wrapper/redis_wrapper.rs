@@ -574,10 +574,10 @@ pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
             pool.set::<(), _, _>(key.as_ref(), value.as_ref(), None, None, false).await
           };
 
-          if res.is_ok() {
-            let update = redis_key_update_value(&*key, &*value);
-            publish_update(&pool, &key, update).await;
-          }
+          // if res.is_ok() {
+          //   let update = redis_key_update_value(&*key, &*value);
+          //   publish_update(&pool, &key, update).await;
+          // }
 
           RedisResponse {
             status: format!("{:?}", res),
@@ -597,10 +597,10 @@ pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
         RedisCommandType::Del { key } => {
           let res: Result<i64, _> = pool.del(key.as_ref()).await;
 
-          if res.is_ok() {
-            let update = redis_key_update_deleted(key.as_ref());
-            publish_update(&pool, key.as_ref(), update).await;
-          }
+          // if res.is_ok() {
+          //   let update = redis_key_update_deleted(key.as_ref());
+          //   publish_update(&pool, key.as_ref(), update).await;
+          // }
 
           RedisResponse {
             status: format!("{:?}", res),
