@@ -1,2 +1,20 @@
 syntax = "proto3";
 package kilobase;
+
+// ! CREATE EXTENSION IF NOT EXISTS moddatetime SCHEMA extensions; 
+
+message UserProfile {
+  //  -- id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY
+  string id = 1;
+
+  //  -- updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  string updated_at = 2;
+
+  //  -- username TEXT UNIQUE
+  //  CONSTRAINT username_length CHECK (char_length(username) >= 5 AND char_length(username) <= 24),
+  //  CONSTRAINT username_format CHECK (username ~ '^[a-z0-9_-]+$')
+  string username = 3;
+}
+
+// ! ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+// ! DROP POLICY IF EXISTS "Public user_profiles are viewable by everyone." ON public.user_profiles;
