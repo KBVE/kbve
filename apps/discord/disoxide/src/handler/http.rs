@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::handler::{message, store, metrics, error::health};
 use crate::entity::state::{AppGlobalState, SharedState};
 use crate::handler::redis as redis_handler;
+use crate::handler::astro as Astro;
 
 
 pub fn http_router() -> Router<SharedState> {
@@ -14,5 +15,6 @@ pub fn http_router() -> Router<SharedState> {
         .route("/admin/clear", delete(store::clear_store))
         .route("/metrics", get(metrics::metrics))
         .route("/health", get(health))
+        .merge(Astro::astro_router())
         .merge(redis_handler::redis_router())
 }

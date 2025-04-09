@@ -237,7 +237,7 @@ impl RedisEnvelope {
 
         Ok(RedisResponse {
           status: "OK".into(),
-          value: String::new(),
+          value: value.to_string(),
         })
       }
 
@@ -581,7 +581,7 @@ pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
 
           RedisResponse {
             status: format!("{:?}", res),
-            value: String::new(),
+            value: value.to_string(),,
           }
         }
 

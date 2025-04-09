@@ -66,9 +66,10 @@ async fn main() {
   let shared_state = Arc::new(AppGlobalState::new(&redis_cfg.url).await);
 
   let app = Router::new()
-    .merge(handler::http::http_router())
+    .merge(handler::assets::static_router())
     .merge(handler::ws::ws_router())
-    .fallback_service(ServeDir::new("dist").not_found_service(axum::routing::get(custom_404)))
+    .merge(handler::http::http_router())
+//  .fallback_service(ServeDir::new("dist").not_found_service(axum::routing::get(custom_404)))
     .layer(
       ServiceBuilder::new()
         .layer(HandleErrorLayer::new(crate::handler::error::handle_error))
