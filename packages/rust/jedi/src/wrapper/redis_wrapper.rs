@@ -217,6 +217,99 @@ impl RedisEnvelope {
     self.response_tx = Some(tx);
     self
   }
+
+  pub async fn process(&self, pool: &fred::clients::Pool) -> Result<RedisResponse, JediError> {
+    match &self.command {
+      RedisCommandType::Set { key, value, ttl } => {
+        let res = if let Some(ttl) = ttl {
+          pool.set::<(), _, _>(
+            key.as_ref(),
+            value.as_ref(),
+            Some(Expiration::EX(*ttl as i64)),
+            None,
+            false
+          ).await
+        } else {
+          pool.set::<(), _, _>(key.as_ref(), value.as_ref(), None, None, false).await
+        };
+
+        res.map_err(JediError::from)?;
+
+        Ok(RedisResponse {
+          status: "OK".into(),
+          value: String::new(),
+        })
+      }
+
+      RedisCommandType::Get { key } => {
+        let res: Option<String> = pool.get(key.as_ref()).await.map_err(JediError::from)?;
+        Ok(RedisResponse {
+          status: "OK".into(),
+          value: res.unwrap_or_default(),
+        })
+      }
+
+      RedisCommandType::Del { key } => {
+        let deleted: i64 = pool.del(key.as_ref()).await.map_err(JediError::from)?;
+        Ok(RedisResponse {
+          status: "OK".into(),
+          value: deleted.to_string(),
+        })
+      }
+
+      RedisCommandType::Watch { .. } | RedisCommandType::Unwatch { .. } => {
+        Err(JediError::BadRequest("Watch commands must be handled externally".into()))
+      }
+    }
+  }
+
+  pub fn emit(&self, response: &RedisResponse) -> Option<RedisKeyUpdate> {
+    match &self.command {
+      RedisCommandType::Set { key, .. } => {
+        if response.status == "OK" {
+          Some(redis_key_update_value(key, &response.value))
+        } else {
+          None
+        }
+      }
+
+      RedisCommandType::Del { key } => {
+        if response.status == "OK" { Some(redis_key_update_deleted(key)) } else { None }
+      }
+
+      RedisCommandType::Get { key } => {
+        if response.status == "OK" {
+          Some(redis_key_update_from_response(key, response))
+        } else {
+          None
+        }
+      }
+
+      RedisCommandType::Watch { .. } | RedisCommandType::Unwatch { .. } => None,
+    }
+  }
+
+  pub async fn publish(
+    &self,
+    update: Option<RedisKeyUpdate>,
+    pool: &fred::clients::Pool
+  ) -> Result<(), JediError> {
+    if let Some(update) = update {
+      publish_update(pool, self.command.key(), update).await;
+    }
+
+    Ok(())
+  }
+
+  pub async fn full_pipeline(
+    &mut self,
+    pool: &fred::clients::Pool
+  ) -> Result<RedisResponse, JediError> {
+    let response = self.process(pool).await?;
+    let update = self.emit(&response);
+    self.publish(update, pool).await?;
+    Ok(response)
+  }
 }
 
 impl RedisKeyUpdate {
@@ -406,6 +499,8 @@ impl From<&RedisEnvelope> for RedisCommand {
     }
   }
 }
+
+// ** Process -> Redis Envelope
 
 // ** Redis Cluster Connection
 
@@ -685,14 +780,13 @@ pub fn parse_incoming_ws_data(
   connection_id: Option<[u8; 16]>
 ) -> Result<RedisWsRequestContext, JediError> {
   let envelope = match &input {
-    IncomingWsFormat::JsonText(text) => {
-      parse_redis_envelope_from_json(text)?
-    }
+    IncomingWsFormat::JsonText(text) => { parse_redis_envelope_from_json(text)? }
 
     IncomingWsFormat::Binary(data) => {
-      let reader = flexbuffers::Reader::get_root(&data[..])
+      let reader = flexbuffers::Reader
+        ::get_root(&data[..])
         .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
-      
+
       let map = reader.as_map();
       parse_redis_envelope_from_flex(&map)?
     }
@@ -733,11 +827,7 @@ pub fn parse_redis_envelope_from_flex(
     .get_str()
     .map_err(|_| JediError::Parse("missing or invalid 'key' field".into()))?;
 
-  let cmd_type = map
-    .idx("type")
-    .get_str()
-    .unwrap_or("set")
-    .to_lowercase();
+  let cmd_type = map.idx("type").get_str().unwrap_or("set").to_lowercase();
 
   match cmd_type.as_str() {
     "set" => {
@@ -746,29 +836,36 @@ pub fn parse_redis_envelope_from_flex(
 
       let ttl = map.idx("ttl").get_u64().ok();
 
-      Ok(if let Some(ttl) = ttl {
-        RedisEnvelope::set_with_ttl(key, value, ttl)
-      } else {
-        RedisEnvelope::set(key, value)
-      })
+      Ok(
+        if let Some(ttl) = ttl {
+          RedisEnvelope::set_with_ttl(key, value, ttl)
+        } else {
+          RedisEnvelope::set(key, value)
+        }
+      )
     }
 
     "get" => Ok(RedisEnvelope::get(key)),
 
     "del" => Ok(RedisEnvelope::del(key)),
 
-    "watch" => Ok(RedisEnvelope::new(RedisCommandType::Watch {
-      key: Arc::from(key),
-    })),
+    "watch" =>
+      Ok(
+        RedisEnvelope::new(RedisCommandType::Watch {
+          key: Arc::from(key),
+        })
+      ),
 
-    "unwatch" => Ok(RedisEnvelope::new(RedisCommandType::Unwatch {
-      key: Arc::from(key),
-    })),
+    "unwatch" =>
+      Ok(
+        RedisEnvelope::new(RedisCommandType::Unwatch {
+          key: Arc::from(key),
+        })
+      ),
 
     other => Err(JediError::Parse(format!("unsupported flex command type: {}", other))),
   }
 }
-
 
 // pub fn parse_ws_command(json: &str) -> Result<RedisWsMessage, serde_json::Error> {
 //   serde_json::from_str::<RedisWsMessage>(json)
