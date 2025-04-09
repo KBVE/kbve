@@ -515,9 +515,9 @@ pub async fn create_pubsub_connection_fred(
     .init().await
     .map_err(|e| { JediError::Internal(format!("SubscriberClient init failed: {e}").into()) })?;
 
-  subscriber
-    .psubscribe(vec!["key:*"]).await
-    .map_err(|e| { JediError::Internal(format!("Failed to psubscribe: {e}").into()) })?;
+  // subscriber
+  //   .psubscribe(vec!["key:*"]).await
+  //   .map_err(|e| { JediError::Internal(format!("Failed to psubscribe: {e}").into()) })?;
 
   let _resub = subscriber.manage_subscriptions();
 
