@@ -581,7 +581,7 @@ pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
 
           RedisResponse {
             status: format!("{:?}", res),
-            value: value.to_string(),,
+            value: value.to_string(),
           }
         }
 
