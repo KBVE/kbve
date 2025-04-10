@@ -21,6 +21,8 @@ use jedi::wrapper::{
   redis_ws_error_msg,
   redis_ws_update_msg,
   send_ws_error,
+  parse_incoming_ws_data,
+  RedisWsRequestContext,
 };
 
 use jedi::proto::redis::{
@@ -99,14 +101,34 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
     }
   });
 
-  // Task to receive and process incoming WebSocket messages
   let mut recv_task = tokio::spawn(async move {
     while let Some(Ok(msg)) = socket_rx.next().await {
-      if let Message::Text(text) = msg {
-        match parse_ws_command(&text) {
-          Ok(ws_msg) => {
-            if let Some(key) = extract_watch_command_key(&ws_msg) {
-              let key_arc = Arc::<str>::from(key);
+      let parsed = match msg {
+        Message::Text(text) => parse_incoming_ws_data(
+          jedi::wrapper::IncomingWsFormat::JsonText(text.to_string()),
+          Some(conn_id_bytes),
+        ),
+        Message::Binary(data) => parse_incoming_ws_data(
+          jedi::wrapper::IncomingWsFormat::Binary(data.to_vec()),
+          Some(conn_id_bytes),
+        ),
+        Message::Ping(data) => {
+          let _ = ws_tx.send(Message::Pong(data)).await;
+          continue;
+        }
+        other => {
+          if process_message(other).is_break() {
+            break;
+          }
+          continue;
+        }
+      };
+  
+      match parsed {
+        Ok(mut ctx) => {
+          match &ctx.envelope.command {
+            jedi::wrapper::RedisCommandType::Watch { key } => {
+              let key_arc = Arc::clone(key);
               match state_recv.temple.watch_manager.watch(conn_id_bytes, key_arc.clone()) {
                 Ok(_) => {
                   tracing::info!(
@@ -114,6 +136,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
                     conn_id.as_str(),
                     key_arc
                   );
+                  let _ = ws_tx.send(Message::Text("{\"status\":\"OK\"}".into())).await;
                 }
                 Err(err) => {
                   tracing::warn!(
@@ -125,43 +148,63 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
                   let _ = ws_tx.send(Message::Text(redis_ws_error_msg(&err).into())).await;
                 }
               }
-            } else if let Some(cmd) = build_redis_envelope_from_ws(&ws_msg) {
-              match state_recv.temple.send_redis(cmd).await {
-                Ok(response) => {
-                  if let Ok(json) = serde_json::to_string(&response) {
-                    let _ = ws_tx.send(Message::Text(json.into())).await;
+            }
+  
+            jedi::wrapper::RedisCommandType::Unwatch { key } => {
+              let _ = state_recv.temple.watch_manager.unwatch(&conn_id_bytes, Arc::clone(key));
+              tracing::info!("Connection {} has stopped watching key: {}", conn_id.as_str(), key);
+            }
+  
+            _ => {
+              match ctx.envelope.full_pipeline(&state_recv.temple.redis_pool).await {
+                Ok(resp) => {
+                  let send_result = match ctx.raw {
+                    Some(jedi::wrapper::IncomingWsFormat::Binary(_)) => {
+                      match flexbuffers::to_vec(&resp) {
+                        Ok(buf) => ws_tx.send(Message::Binary(buf.into())).await,
+                        Err(e) => {
+                          tracing::warn!("Flexbuffer serialization failed: {}", e);
+                          ws_tx.send(Message::Text(redis_ws_error_msg("serialization failed").into())).await
+                        }
+                      }
+                    }
+                    _ => {
+                      match serde_json::to_string(&resp) {
+                        Ok(json) => ws_tx.send(Message::Text(json.into())).await,
+                        Err(e) => {
+                          tracing::warn!("JSON serialization failed: {}", e);
+                          ws_tx.send(Message::Text(redis_ws_error_msg("serialization failed").into())).await
+                        }
+                      }
+                    }
+                  };
+  
+                  if send_result.is_err() {
+                    break;
                   }
                 }
+  
                 Err(e) => {
-                  tracing::warn!("WebSocket Redis error: {}", e);
+                  tracing::warn!("Pipeline error: {}", e);
                   let _ = ws_tx.send(Message::Text(redis_ws_error_msg(e.to_string()).into())).await;
                 }
               }
-            } else {
-              tracing::warn!(
-                "WebSocket Redis error: {}",
-                ws_msg.as_json_string().unwrap_or_else(|| "<invalid serialization>".into())
-              );
-
-              let _ = ws_tx.send(
-                Message::Text(redis_ws_error_msg("[handler]: Invalid command").into())
-              ).await;
             }
           }
-          Err(e) => {
-            tracing::warn!("Failed to parse WebSocket message: {}", e);
-            let _ = ws_tx.send(
-              Message::Text(redis_ws_error_msg("Invalid message format").into())
-            ).await;
-          }
         }
-      } else if process_message(msg).is_break() {
-        break;
+  
+        Err(e) => {
+          tracing::warn!("Failed to parse WebSocket message: {}", e);
+          let _ = ws_tx.send(
+            Message::Text(redis_ws_error_msg("Invalid message format").into())
+          ).await;
+        }
       }
     }
-
+  
     state_recv.temple.watch_manager.remove_connection(&conn_id_bytes);
   });
+  
 
   tokio::select! {
       _ = &mut send_task => {

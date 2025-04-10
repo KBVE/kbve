@@ -10,7 +10,7 @@ import starlight from '@astrojs/starlight';
 import alpine from '@astrojs/alpinejs';
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
-import starlightSiteGraph from 'starlight-site-graph';
+// import starlightSiteGraph from 'starlight-site-graph';
 import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
@@ -40,11 +40,11 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			plugins: [
-				starlightSiteGraph({
-					graphConfig: {
-						renderArrows: true,
-					},
-				}),
+				// starlightSiteGraph({
+				// 	graphConfig: {
+				// 		renderArrows: true,
+				// 	},
+				// }),
 			],
 			title: 'KBVE Docs',
 			editLink: {
@@ -127,10 +127,10 @@ export default defineConfig({
 			},
 		}),
 
-		react(),
+		//react(),
 		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
-		svelte(),
-		partytown(),
+		//svelte(),
+		//partytown(),
 		worker(),
 		tailwind({
 			configFile: fileURLToPath(

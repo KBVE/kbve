@@ -32,7 +32,14 @@ impl WatchManager {
   }
 
   pub fn watch<K: Into<Arc<str>>>(&self, conn_id: ConnId, key: K) -> Result<(), JediError> {
+
     let key = key.into();
+    
+    tracing::debug!(
+      "[WatchManager] conn_id {:?} watching key {:?}",
+      conn_id,
+      key
+    );
 
     let key_guard = self.key_to_conns.guard();
     let conns = self.key_to_conns

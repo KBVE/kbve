@@ -237,7 +237,7 @@ impl RedisEnvelope {
 
         Ok(RedisResponse {
           status: "OK".into(),
-          value: String::new(),
+          value: value.to_string(),
         })
       }
 
@@ -515,9 +515,9 @@ pub async fn create_pubsub_connection_fred(
     .init().await
     .map_err(|e| { JediError::Internal(format!("SubscriberClient init failed: {e}").into()) })?;
 
-  subscriber
-    .psubscribe(vec!["key:*"]).await
-    .map_err(|e| { JediError::Internal(format!("Failed to psubscribe: {e}").into()) })?;
+  // subscriber
+  //   .psubscribe(vec!["key:*"]).await
+  //   .map_err(|e| { JediError::Internal(format!("Failed to psubscribe: {e}").into()) })?;
 
   let _resub = subscriber.manage_subscriptions();
 
@@ -539,20 +539,17 @@ fn parse_pubsub_message(msg: &RedisMessage) -> Option<RedisEventEnvelope> {
   let key = Arc::<str>::from(msg.channel.to_string());
   let raw_payload = msg.value.clone().convert::<String>().ok()?;
 
+  let update: RedisKeyUpdate = serde_json::from_str(&raw_payload).ok()?;
+
   Some(RedisEventEnvelope {
     channel: key.clone(),
     received_at: chrono::Utc::now().timestamp_millis() as u64,
     event: RedisEventObject {
-      object: Some(
-        redis_event_object::Object::Update(RedisKeyUpdate {
-          key: key.to_string(),
-          timestamp: chrono::Utc::now().timestamp_millis() as u64,
-          state: Some(State::Value(raw_payload)),
-        })
-      ),
+      object: Some(redis_event_object::Object::Update(update)),
     },
   })
 }
+
 
 //  ** Redis Handler
 
@@ -584,7 +581,7 @@ pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
 
           RedisResponse {
             status: format!("{:?}", res),
-            value: String::new(),
+            value: value.to_string(),
           }
         }
 
@@ -630,11 +627,8 @@ async fn publish_update(pool: &fred::clients::Pool, key: &str, update: RedisKeyU
   let channel = redis_channel_for_key(key);
 
   let mut buffer = Vec::with_capacity(256);
-  let event = RedisEventObject {
-    object: Some(redis_event_object::Object::Update(update)),
-  };
 
-  match serde_json::to_writer(&mut buffer, &event) {
+  match serde_json::to_writer(&mut buffer, &update) {
     Ok(_) => {
       tracing::debug!("Publishing update to {}", channel);
 
@@ -646,10 +640,11 @@ async fn publish_update(pool: &fred::clients::Pool, key: &str, update: RedisKeyU
       }
     }
     Err(e) => {
-      tracing::warn!("Failed to serialize Redis event: {}", e);
+      tracing::warn!("Failed to serialize RedisKeyUpdate: {}", e);
     }
   }
 }
+
 
 pub fn spawn_pubsub_listener_task(
   mut rx: UnboundedReceiver<RedisEventEnvelope>,
@@ -806,14 +801,14 @@ pub fn parse_redis_envelope_from_json(text: &str) -> Result<RedisEnvelope, JediE
     }
   }
 
+  if let Ok(thin) = serde_json::from_str::<ThinRedisCommand>(text) {
+    return Ok(RedisEnvelope::from(thin));
+  }
+
   if let Ok(cmd) = serde_json::from_str::<RedisCommand>(text) {
     return RedisEnvelope::try_from(cmd).map_err(|_|
       JediError::Parse("invalid RedisCommand".into())
     );
-  }
-
-  if let Ok(thin) = serde_json::from_str::<ThinRedisCommand>(text) {
-    return Ok(RedisEnvelope::from(thin));
   }
 
   Err(JediError::Parse("Unable to parse RedisEnvelope from JSON".into()))
