@@ -6,29 +6,46 @@ export interface Props {
 	servers: DiscordServer[];
 }
 
+//<!-- TODO: Disable autoplay on mobile/touch-only devices
+
 const { servers } = Astro.props;
 
 const slides = servers.map((server, index) => ({
 	id: `server-${server.server_id}`,
-	content: server
+	content: server,
 }));
 ---
+
 <div
 	x-data="astro"
 	x-bind="refreshOnPageLoad"
-	class="md:col-span-2 md:row-span-2 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1"
->
+	class="md:col-span-2 md:row-span-2 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
 	<template x-if="pageLoaded">
-		<div x-data={`carousel(${JSON.stringify(slides)})`} x-init="init()" x-on:destroy="destroy()" class="relative w-full overflow-hidden">
+		<div
+			x-data={`carousel(${JSON.stringify(slides)})`}
+			x-init="init()"
+			x-on:destroy="destroy()"
+			x-on:mouseenter="onMouseEnter()"
+			x-on:mouseleave="onMouseLeave()"
+			class="relative w-full overflow-hidden">
 			<!-- Previous button -->
 			<button
 				type="button"
 				class="absolute left-5 top-1/2 z-20 -translate-y-1/2 bg-purple-600/30 hover:bg-purple-600/50 text-white p-2 rounded-full"
 				@click="previous()"
-				aria-label="Previous"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+				aria-label="Previous">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="3"
+					stroke="currentColor"
+					class="w-5 h-5">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M15.75 19.5 8.25 12l7.5-7.5">
+					</path>
 				</svg>
 			</button>
 
@@ -37,33 +54,48 @@ const slides = servers.map((server, index) => ({
 				type="button"
 				class="absolute right-5 top-1/2 z-20 -translate-y-1/2 bg-purple-600/30 hover:bg-purple-600/50 text-white p-2 rounded-full"
 				@click="next()"
-				aria-label="Next"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+				aria-label="Next">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="3"
+					stroke="currentColor"
+					class="w-5 h-5">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M8.25 4.5l7.5 7.5-7.5 7.5">
+					</path>
 				</svg>
 			</button>
 
 			<!-- Carousel slides -->
-			<div class="w-full overflow-hidden">
-				<div class="flex gap-4 transition-transform duration-500 ease-in-out"
-				     :style="`transform: translateX(-${(currentSlideIndex - 1) * 100}%);`">
-					{slides.map((slide) => (
-						<div class="flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px]" id={slide.id}>
-							<ServerCard server={slide.content} />
-						</div>
-					))}
+			<div class="flex-shrink-0 w-full max-w-[240px] sm:max-w-[260px] md:max-w-[280px] min-w-0">
+				<div
+					class="flex gap-4 transition-transform duration-500 ease-in-out"
+					:style="`transform: translateX(-${(currentSlideIndex - 1) * 100}%);`">
+					{
+						slides.map((slide) => (
+							<div
+								class="flex-shrink-0 w-full max-w-xs sm:max-w-sm md:max-w-md min-w-0"
+								id={slide.id}>
+								<ServerCard server={slide.content} />
+							</div>
+						))
+					}
 				</div>
 			</div>
 
 			<!-- Slide indicators -->
-			<div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+			<div
+				class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
 				<template x-for="(slide, index) in slides">
 					<button
 						class="w-2 h-2 rounded-full"
 						:class="currentSlideIndex === index + 1 ? 'bg-purple-400' : 'bg-purple-500/30'"
-						@click="goTo(index + 1)"
-					></button>
+						@click="goTo(index + 1)">
+					</button>
 				</template>
 			</div>
 		</div>

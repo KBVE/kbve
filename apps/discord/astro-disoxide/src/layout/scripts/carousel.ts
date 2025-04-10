@@ -52,6 +52,16 @@ export default function RegisterAlpineCarousel(Alpine: typeof window.Alpine) {
 			if (index >= 1 && index <= this.slides.length) {
 				this.currentSlideIndex = index;
 			}
-		}
+		},
+
+        onMouseEnter() {
+            this.stopAutoplay();
+        },
+    
+        onMouseLeave() {
+            if (this.autoplay) {
+                this.startAutoplay();
+            }
+        }
 	}));
 }
