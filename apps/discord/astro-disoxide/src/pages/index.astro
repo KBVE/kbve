@@ -1,5 +1,25 @@
 ---
 import Layout from 'src/layout/Layout.astro';
+import ServerCarousel from 'src/layout/ui/ServerCarousel.astro';
+import type { DiscordServer } from 'src/env';
+const servers: DiscordServer[] = Array.from({ length: 20 }, (_, i) => ({
+	server_id: `server-${i + 1}`,
+	owner_id: `owner-${i + 1}`,
+	lang: i % 3,
+	status: i % 2 === 0 ? 1 : 0,
+	invite: `https://discord.gg/fakeinvite${i + 1}`,
+	name: `Server ${i + 1}`,
+	summary: `This is the summary for server ${i + 1}.`,
+	description: `Server ${i + 1} is a vibrant community focused on discussion and events.`,
+	website: i % 2 === 0 ? `https://server${i + 1}.com` : null,
+	logo: `https://api.dicebear.com/7.x/bottts/svg?seed=server${i + 1}`,
+	banner: null,
+	video: null,
+	categories: (i % 5) + 1,
+	updated_at: new Date(Date.now() - i * 3600_000).toISOString(), // Each 1hr apart
+}));
+
+
 ---
 
 <Layout title="Dashboard" description="DiscordSH Dashboard">
@@ -44,8 +64,8 @@ import Layout from 'src/layout/Layout.astro';
 						<p class="text-xl font-bold text-purple-300">Data MB</p>
 					</div>
 
-					<!-- Server Card Demo -->
-					
+					<!-- Server Carousel Demo -->
+					<ServerCarousel servers={servers} />
 					<!-- AlpineJS Start -->
 					<!-- Metrics Cube Card -->
 

@@ -8,7 +8,7 @@ export interface Props {
 const { server } = Astro.props;
 ---
 
-<div class="card-tile space-y-2">
+<div id={`server-${server.server_id}`} class="card-tile space-y-2">
 	<!-- Server Header -->
 	<div class="flex items-center space-x-4">
 		<img
@@ -17,33 +17,43 @@ const { server } = Astro.props;
 			class="w-12 h-12 rounded-full border border-purple-400 object-cover"
 		/>
 		<div>
-			<h3 class="text-lg font-semibold text-purple-200">
+			<h3 data-field="name" class="text-lg font-semibold text-purple-200">
 				{server.name}
 			</h3>
-			<p class="text-sm text-gray-400">{server.summary}</p>
+			<p data-field="summary" class="text-sm text-gray-400">
+				{server.summary}
+			</p>
 		</div>
 	</div>
 
 	<!-- Server Details -->
 	<div class="text-sm text-gray-300 space-y-1 pt-2">
 		{server.description && <p class="line-clamp-2">{server.description}</p>}
-		<p><span class="text-purple-400">Invite:</span> {server.invite}</p>
-		{server.website && (
-			<p>
-				<span class="text-purple-400">Website:</span>{' '}
-				<a
-					href={server.website}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="underline hover:text-purple-300"
-				>
-					{server.website}
-				</a>
-			</p>
-		)}
+
+		<p>
+			<span class="text-purple-400">Invite:</span>
+			<span data-field="invite">{server.invite}</span>
+		</p>
+
+		{
+			server.website && (
+				<p>
+					<span class="text-purple-400">Website:</span>{' '}
+					<a
+						data-field="website"
+						href={server.website}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="underline hover:text-purple-300">
+						{server.website}
+					</a>
+				</p>
+			)
+		}
+
 		<p>
 			<span class="text-purple-400">Updated:</span>{' '}
-			<time datetime={server.updated_at}>
+			<time data-field="updated_at" datetime={server.updated_at}>
 				{new Date(server.updated_at).toLocaleDateString()}
 			</time>
 		</p>
@@ -51,10 +61,12 @@ const { server } = Astro.props;
 
 	<!-- Tags / Categories Placeholder -->
 	<div class="flex flex-wrap gap-1 pt-2">
-		<span class="text-xs bg-purple-600/20 text-purple-300 px-2 py-1 rounded">
+		<span
+			class="text-xs bg-purple-600/20 text-purple-300 px-2 py-1 rounded">
 			Category #{server.categories}
 		</span>
-		<span class="text-xs bg-purple-600/20 text-purple-300 px-2 py-1 rounded">
+		<span
+			class="text-xs bg-purple-600/20 text-purple-300 px-2 py-1 rounded">
 			Status: {server.status}
 		</span>
 	</div>

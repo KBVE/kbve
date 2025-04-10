@@ -9,7 +9,7 @@ export interface Props {
 const { servers } = Astro.props;
 
 const slides = servers.map((server, index) => ({
-	id: `server-${index}`,
+	id: `server-${server.server_id}`,
 	content: server
 }));
 ---
@@ -48,11 +48,11 @@ const slides = servers.map((server, index) => ({
 			<div class="w-full overflow-hidden">
 				<div class="flex gap-4 transition-transform duration-500 ease-in-out"
 				     :style="`transform: translateX(-${(currentSlideIndex - 1) * 100}%);`">
-					<template x-for="(slide, index) in slides" :key="slide.id">
-						<div class="flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px]">
-							<ServerCard client:only="visible" server={slide.content} />
+					{slides.map((slide) => (
+						<div class="flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px]" id={slide.id}>
+							<ServerCard server={slide.content} />
 						</div>
-					</template>
+					))}
 				</div>
 			</div>
 
