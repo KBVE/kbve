@@ -1,5 +1,7 @@
 import type { Alpine } from 'alpinejs';
 import RegisterAlpineMetricsComponents from './metrics';
+import RegisterAlpineCarousel from './carousel';
+import RegisterAlpineLiveServerCards from './livecards';
 
 export default function RegisterAlpineEntrypoints(Alpine: Alpine) {
 	console.log('[Alpine] Entrypoints loaded');
@@ -8,17 +10,19 @@ export default function RegisterAlpineEntrypoints(Alpine: Alpine) {
 		// Read once, outside the return
 		const initialSidebar = Number(localStorage.getItem('sidebarOpen')) ?? 1;
 
-	
 		return {
 			pageLoaded: 1,
 			sidebarOpen: initialSidebar === 1,
-	
+
 			toggleSidebar() {
 				this.sidebarOpen = !this.sidebarOpen;
-				localStorage.setItem('sidebarOpen', this.sidebarOpen ? '1' : '0');
+				localStorage.setItem(
+					'sidebarOpen',
+					this.sidebarOpen ? '1' : '0',
+				);
 				console.log('Hitting it from here');
 			},
-	
+
 			refreshOnPageLoad: {
 				['@astro:page-load.document']() {
 					this.pageLoaded++;
@@ -28,6 +32,8 @@ export default function RegisterAlpineEntrypoints(Alpine: Alpine) {
 	});
 
 	RegisterAlpineMetricsComponents(Alpine);
+	RegisterAlpineCarousel(Alpine);
+	RegisterAlpineLiveServerCards(Alpine);
 
 	return Alpine;
 }
