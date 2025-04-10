@@ -10,17 +10,17 @@ const { server } = Astro.props;
 
 <div id={`server-${server.server_id}`} class="card-tile space-y-2">
 	<!-- Server Header -->
-	<div class="flex items-center space-x-4">
+	<div class="flex items-center space-x-3">
 		<img
 			src={server.logo ?? '/default-logo.png'}
 			alt={`${server.name} logo`}
-			class="w-12 h-12 rounded-full border border-purple-400 object-cover"
+			class="w-10 h-10 rounded-full border border-purple-400 object-cover"
 		/>
 		<div>
-			<h3 data-field="name" class="text-lg font-semibold text-purple-200">
+			<h3 data-field="name" class="text-base font-semibold text-purple-200">
 				{server.name}
 			</h3>
-			<p data-field="summary" class="text-sm text-gray-400">
+			<p data-field="summary" class="text-xs text-gray-400">
 				{server.summary}
 			</p>
 		</div>
@@ -28,7 +28,7 @@ const { server } = Astro.props;
 
 	<!-- Server Details -->
 	<div class="text-sm text-gray-300 space-y-1 pt-2">
-		{server.description && <p class="line-clamp-2">{server.description}</p>}
+		{server.description && <p class="line-clamp-1 text-sm">{server.description}</p>}
 
 		<p>
 			<span class="text-purple-400">Invite:</span>
