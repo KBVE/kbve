@@ -13,4 +13,8 @@ module.exports = buildConfig(__dirname, {
 		),
 		...createGlobPatternsForDependencies(__dirname),
 	],
+	safelist: [
+		'card-tile',
+		'bento-grid-3',
+	],
 });
