@@ -26,4 +26,9 @@
     .card-tile {
       @apply bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border md:col-span-2 md:row-span-2;
     }
+    .bento-grid-3 {
+      @apply grid gap-6 grid-cols-1 md:grid-cols-3 auto-rows-auto grid-flow-dense;
+    }
   }
+
+  

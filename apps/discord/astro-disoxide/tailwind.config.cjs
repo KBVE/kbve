@@ -15,5 +15,6 @@ module.exports = buildConfig(__dirname, {
 	],
 	safelist: [
 		'card-tile',
+		'bento-grid-3',
 	],
 });
