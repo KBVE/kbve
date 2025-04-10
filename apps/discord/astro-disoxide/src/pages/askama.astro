@@ -1,6 +1,6 @@
 ---
 import Layout from 'src/layout/Layout.astro';
-const rawHTMLString = `<div class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-2 md:row-span-2">Content:: {{content}} </div> <div class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-2 md:row-span-2"> Path:: {{path }} </div>`;
+const rawHTMLString = `<div class="card-tile">Content:: {{content}} </div> <div class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-2 md:row-span-2"> Path:: {{path }} </div>`;
 ---
 
 <Layout title="{% block title %}{% endblock %}" description="{% block description %}{% endblock %}">

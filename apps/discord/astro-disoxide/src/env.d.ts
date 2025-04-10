@@ -4,3 +4,26 @@
 interface Window {
     Alpine: import('alpinejs').Alpine;
 }
+
+export interface DiscordServer {
+    server_id: string;       
+    owner_id: string;        
+    lang: number;            
+    status: number;         
+    invite: string;
+    name: string;
+    summary: string;
+    description?: string | null;
+    website?: string | null;
+    logo?: string | null;
+    banner?: string | null;
+    video?: string | null;
+    categories: number;
+    updated_at: string;      
+  }
+  
+  export interface DiscordTag {
+    tag_id: string;         
+    name: string;
+    status: number;
+  }
