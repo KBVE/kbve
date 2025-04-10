@@ -1,4 +1,4 @@
-import type { CarouselSlide, DiscordServer, CarouselData } from "src/env";
+import type { CarouselSlide } from "src/env";
 
 console.log('[Alpine] Carousel Running');
 
@@ -35,22 +35,39 @@ export default function RegisterAlpineCarousel(Alpine: typeof window.Alpine) {
 		},
 
 		previous() {
-			this.currentSlideIndex =
-				this.currentSlideIndex > 1
-					? this.currentSlideIndex - 1
-					: this.slides.length;
+			this.scrollToSlide(this.currentSlideIndex - 1);
 		},
 
 		next() {
-			this.currentSlideIndex =
-				this.currentSlideIndex < this.slides.length
-					? this.currentSlideIndex + 1
-					: 1;
+			this.scrollToSlide(this.currentSlideIndex + 1);
 		},
 
 		goTo(index: number) {
-			if (index >= 1 && index <= this.slides.length) {
-				this.currentSlideIndex = index;
+			this.scrollToSlide(index);
+		},
+
+		scrollToSlide(index: number) {
+			if (index < 1) index = this.slides.length;
+			if (index > this.slides.length) index = 1;
+
+			this.currentSlideIndex = index;
+
+			requestAnimationFrame(() => {
+				const container = this.$refs.container;
+				const card = container?.querySelector(`#${this.slides[index - 1]?.id}`);
+				if (card) {
+					card.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+				}
+			});
+		},
+
+		onMouseEnter() {
+			this.stopAutoplay();
+		},
+
+		onMouseLeave() {
+			if (this.autoplay) {
+				this.startAutoplay();
 			}
 		}
 	}));
