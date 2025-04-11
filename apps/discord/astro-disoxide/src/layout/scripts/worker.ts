@@ -5,7 +5,7 @@ declare var self: SharedWorkerGlobalScope;
 
 console.log('[SharedWorker] 🧠 Script loaded');
 
-type Topic = 'metrics' | 'websocket';
+type Topic = 'metrics' | 'websocket' | 'panel';
 type PortSet = Set<MessagePort>;
 export type PrometheusMetric = {
 	key: string;
