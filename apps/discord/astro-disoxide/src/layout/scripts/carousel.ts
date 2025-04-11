@@ -49,14 +49,22 @@ export default function RegisterAlpineCarousel(Alpine: typeof window.Alpine) {
 		scrollToSlide(index: number) {
 			if (index < 1) index = this.slides.length;
 			if (index > this.slides.length) index = 1;
-
+		
 			this.currentSlideIndex = index;
-
+		
 			requestAnimationFrame(() => {
-				const container = this.$refs.container;
-				const card = container?.querySelector(`#${this.slides[index - 1]?.id}`);
-				if (card) {
-					card.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+				const container = this.$refs.container as HTMLElement;
+				const card = container?.querySelector(`#${this.slides[index - 1]?.id}`) as HTMLElement;
+		
+				if (container && card) {
+					const containerLeft = container.getBoundingClientRect().left;
+					const cardLeft = card.getBoundingClientRect().left;
+					const offset = cardLeft - containerLeft;
+		
+					container.scrollTo({
+						left: container.scrollLeft + offset,
+						behavior: 'smooth',
+					});
 				}
 			});
 		},
