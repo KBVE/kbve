@@ -1,7 +1,7 @@
 ---
 title: 'April: 11'
 category: Daily
-date: 2024-04-11 12:00:00
+date: 2025-04-11 12:00:00
 client: Self
 unsplash: 1538439907460-1596cafd4eff
 img: https://images.unsplash.com/photo-1538439907460-1596cafd4eff?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -17,10 +17,28 @@ tags:
 
 Cooking stream? When and Where?
 
+## 2025
 
-### 2024
+### Tailwindcss v4
 
-#### Logging
+-   02:00AM
+
+    Finally made the switch to v4, but that means that we will have to make the switch to react v19 soon too.
+    I am glad that I took a break from the mobile development because that would have driven me insane to work on v18 to v19 for react native.
+    Both sites build but there is still some breaking changes, like backdrop blur and ring issues, but they can all be resolved with some quick replacing.
+
+### Python Nx
+
+-   02:30AM
+
+    Before even touching the python environment, it would make sense to update the @nxlv/python plugin!
+    For this, we are just doing a minor version bump, should not affect anything.
+
+-   
+
+## 2024
+
+### Logging
 
 For the Atlas program, we will use the built in logging system that comes with `uvicorn`!
 To do this, we just import the logging and grab the `uvicorn` logger, like this below:
@@ -45,13 +63,13 @@ Then we have three functions that we can use:
 In the future we would want to integrate a way to move specific warnings out of the logger and into a metric system.
 
 
-#### Atlas Template
+### Atlas Template
 
 We have two options for the template system, i.e. loading static files from `template`.
 However, I suggest we opt for simplicity on the backend by returning a generic HTML template and dynamically loading the JavaScript.
 
 
-#### KBVE Front Page
+### KBVE Front Page
 
 Going to take a quick break from the python realm and see if I can mess around with the front page and its code for a bit.
 I noticed that the wavey carousel seems to break the viewpoint and cause the x to over extend on the mobile phone, creating this weird white space bug!
