@@ -98,7 +98,7 @@ module.exports = {
   },
   plugins: [
     require('@tailwindcss/typography'),
-    require('tailwindcss/nesting'),
+    //require('tailwindcss/nesting'),
     require('preline/plugin'),
     require('@tailwindcss/forms'),
     function ({ addUtilities }) {

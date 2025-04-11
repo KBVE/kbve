@@ -6,14 +6,14 @@
     "baseUrl": ".",
     // 02-13-2025
     "types": ["astro/client", "react", "react-dom"],
-    "jsxImportSource": "react",
+    "jsxImportSource": "astro",
     // JSX
     "jsx": "preserve",
     // Enable top-level await, and other modern ESM features
     "target": "ESNext",
     "module": "ESNext",
     // Enable node-style module resolution, for things like npm package imports
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     // Import
     "allowImportingTsExtensions": true,
     // Enable JSON imports
@@ -32,6 +32,7 @@
     "strict": true,
     // Error when a value import is only used as a type
     //"importsNotUsedAsValues": "error",
+    "verbatimModuleSyntax": true,
     //  11-07-2024 - verbatimModuleSyntax
     // TypeScript 5.0 changed how `isolatedModules` and `importsNotUsedAsValues` works, deprecating the later
     // Until the majority of users are on TypeScript 5.0, we'll have to supress those deprecation errors
@@ -53,5 +54,5 @@
       }
    
   },
-  "include": ["src", ".astro/types.d.ts",  "**/*"]
+  "include": ["src", ".astro/types.d.ts", "**/*.astro",  "**/*",  "env.d.ts" ]
 }

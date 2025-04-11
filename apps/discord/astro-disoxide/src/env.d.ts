@@ -1,5 +1,5 @@
-/// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
+/// <reference path="../.astro/types.d.ts" />
 
 interface Window {
     Alpine: import('alpinejs').Alpine;
@@ -26,4 +26,31 @@ export interface DiscordServer {
     tag_id: string;         
     name: string;
     status: number;
+  }
+
+  export interface LiveServerCardsData {
+    initial: DiscordServer[];
+    servers: Record<string, DiscordServer>;
+    refresh(): Promise<void>;
+    updateServer(server: DiscordServer): void;
+  }
+
+export interface CarouselSlide {
+    id: string;
+    content?: DiscordServer | any;
+  }
+  
+export interface CarouselData {
+    slides: CarouselSlide[];
+    currentSlideIndex: number;
+    autoplay: boolean;
+    autoplayInterval: number;
+    intervalId: number | null;
+    init(): void;
+    destroy(): void;
+    startAutoplay(): void;
+    stopAutoplay(): void;
+    previous(): void;
+    next(): void;
+    goTo(index: number): void;
   }

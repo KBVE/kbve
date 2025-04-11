@@ -1,0 +1,85 @@
+---
+import type { DiscordServer } from 'src/env';
+import ServerCard from 'src/layout/ui/ServerCard.astro';
+
+export interface Props {
+	servers: DiscordServer[];
+}
+
+const { servers } = Astro.props;
+
+const slides = servers.map((server, index) => ({
+	id: `server-${server.server_id}`,
+	content: server,
+}));
+---
+
+<div
+	x-data="astro"
+	x-bind="refreshOnPageLoad"
+	class="md:col-span-3 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 overflow-visible"
+>
+	<template x-if="pageLoaded">
+		<div
+			x-data={`carousel(${JSON.stringify(slides)})`}
+			x-init="init()"
+			x-on:destroy="destroy()"
+			x-on:mouseenter="onMouseEnter()"
+			x-on:mouseleave="onMouseLeave()"
+			class="relative overflow-visible w-full"
+		>
+
+			<!-- Scrollable snap container -->
+			<div
+				x-ref="container"
+				class="flex gap-4 overflow-x-auto overflow-y-visible scroll-smooth snap-x snap-mandatory pb-4"
+			>
+				{slides.map((slide) => (
+					<div
+						id={slide.id}
+						class="snap-start shrink-0 w-[85%] sm:w-[48%] lg:w-[32%] transition-transform duration-300 relative z-[10] min-h-[320px]"
+					>  <div class="relative z-20">
+
+						<ServerCard server={slide.content} />
+						</div>
+					</div>
+				))}
+			</div>
+
+			<!-- Previous button -->
+			<button
+				type="button"
+				class="absolute left-2 top-1/2 z-10 -translate-y-1/2 bg-purple-600/30 hover:bg-purple-600/50 text-white p-2 rounded-full"
+				@click="previous()"
+				aria-label="Previous"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+				</svg>
+			</button>
+
+			<!-- Next button -->
+			<button
+				type="button"
+				class="absolute right-2 top-1/2 z-10 -translate-y-1/2 bg-purple-600/30 hover:bg-purple-600/50 text-white p-2 rounded-full"
+				@click="next()"
+				aria-label="Next"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+				</svg>
+			</button>
+
+			<!-- Indicators -->
+			<div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+				<template x-for="(slide, index) in slides">
+					<button
+						class="w-2 h-2 rounded-full"
+						:class="currentSlideIndex === index + 1 ? 'bg-purple-400' : 'bg-purple-500/30'"
+						@click="goTo(index + 1)"
+					></button>
+				</template>
+			</div>
+		</div>
+	</template>
+</div>
