@@ -1,8 +1,13 @@
 /// <reference types="astro/client" />
 /// <reference path="../.astro/types.d.ts" />
+/// <reference lib="webworker" />
 
 interface Window {
 	Alpine: import('alpinejs').Alpine;
+}
+
+declare module 'https://esm.sh/@lottiefiles/dotlottie-web' {
+	export const DotLottieWorker: any;
 }
 
 export interface DiscordServer {

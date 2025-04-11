@@ -1,3 +1,5 @@
+/// <reference lib="webworker" />
+
 import type { Alpine } from 'alpinejs';
 
 declare global {

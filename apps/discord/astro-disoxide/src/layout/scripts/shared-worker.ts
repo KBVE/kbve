@@ -1,5 +1,8 @@
 import type { PanelRequest, PanelState, DiscordServer } from 'src/env';
 
+let lottieInstance: any = null;
+
+
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
 }
@@ -40,6 +43,10 @@ type WorkerHandlers = {
 	db_set: (args: { key: string; value: any }) => Promise<boolean>;
 	db_delete: (key: string) => Promise<boolean>;
 	db_list: () => Promise<any[]>;
+
+	// canvas
+	initCanvasWorker: (payload: { canvas: OffscreenCanvas; src: string }) => Promise<boolean>;
+
 };
 
 type HandlerType = keyof WorkerHandlers;
@@ -332,6 +339,24 @@ const handlers: WorkerHandlers = {
 		  request.onerror = () => reject(request.error);
 		});
 	  },
+
+	initCanvasWorker: async ({ canvas, src }) => {
+		const { DotLottieWorker } = await import('https://esm.sh/@lottiefiles/dotlottie-web');
+
+		if (lottieInstance) {
+			lottieInstance.destroy();
+		}
+
+		lottieInstance = new DotLottieWorker({
+			canvas,
+			src,
+			loop: true,
+			autoplay: true,
+			mode: 'normal',
+		});
+
+		return true;
+	},
 };
 
 // --- Prepopulate DB

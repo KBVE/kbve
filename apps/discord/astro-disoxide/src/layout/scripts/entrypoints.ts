@@ -1,11 +1,17 @@
+import { registerServiceWorker } from './client';
+registerServiceWorker();
+
 import type { Alpine } from 'alpinejs';
 import RegisterAlpineMetricsComponents from './metrics';
 import RegisterAlpineCarousel from './carousel';
 import RegisterAlpineLiveServerCards from './livecards';
 import RegisterAlpinePanelManager from './panel';
 
+
 export default function RegisterAlpineEntrypoints(Alpine: Alpine) {
 	console.log('[Alpine] Entrypoints loaded');
+
+
 
 	Alpine.data('astro', () => {
 		// Read once, outside the return

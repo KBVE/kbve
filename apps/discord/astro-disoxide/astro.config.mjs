@@ -15,6 +15,7 @@ import markdownConfig from './markdown.config';
 import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
+import { resolve } from 'path';
 
 // https://astro.build/config
 export default defineConfig({
@@ -130,7 +131,7 @@ export default defineConfig({
 
 		react({
 			include: ['**/react/*'],
-		  }),
+		}),
 		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
 		svelte(),
 		//partytown(),
@@ -190,8 +191,23 @@ export default defineConfig({
 			},
 		},
 		vite: {
-			plugins: [tailwindcss()],
-		  },
+			plugins: [
+				tailwindcss(),
+				// {
+				// 	name: 'emit-sw',
+				// 	apply: 'build',
+				// 	enforce: 'post',
+				// 	async generateBundle(_, bundle) {
+				// 		this.emitFile({
+				// 			type: 'chunk',
+				// 			id: resolve('./src/layout/scripts/sw.ts'),
+				// 			fileName: 'sw.js',
+				// 		});
+				// 	}
+				// },
+			]
+			,
+		},
 		// Apply the top-level await plugin to our vite.config.js
 		// plugins: [
 		// 	topLevelAwait({
