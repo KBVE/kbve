@@ -44,8 +44,13 @@ import { ClientRouter } from 'astro:transitions';
 	<body
 		x-data="astro"
 		x-bind="refreshOnPageLoad"
+		x-transition.opacity
 		role="document"
-		class="h-full bg-[#28243d] text-gray-100 relative perspective-[2000px] perspective-distant">
+		class="h-full bg-[#28243d] bg-[url('/assets/media/bg/pattern.svg')] text-gray-100 relative perspective-[2000px] perspective-distant"
+		x-bind:class="{ 
+			'': $store.panelManager.open 
+		}"
+		>
 		<Sidebar />
 		<Panel />
 
@@ -72,13 +77,13 @@ import { ClientRouter } from 'astro:transitions';
 			class="fixed inset-0 bg-zinc-800/50 z-40"
 			@click="toggleSidebar()">
 		</div>
-
+	
 		<div
-			:class="sidebarOpen ? 'ml-16' : 'ml-16'"
+			:class="sidebarOpen ? 'md:ml-64 ml-16' : 'ml-16'"
 			x-bind:class="{ 
-				'rotate-x-51 rotate-z-43 transform-3d scale-[0.60]': $store.panelManager.open 
+				'rotate-x-51 rotate-z-43 transform-3d scale-[0.55] bg-[#28243d]/80': $store.panelManager.open 
 			}"
-			class="relative z-10 flex flex-col min-h-screen transition-all duration-500 ease-out will-change-transform origin-center">
+			class="bg-[#28243d] relative z-10 flex flex-col min-h-screen transition-all duration-500 ease-in-out will-change-transform origin-center">
 			
 			<slot role="main" />
 		</div>

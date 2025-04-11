@@ -17,4 +17,17 @@ module.exports = buildConfig(__dirname, {
 		'card-tile',
 		'bento-grid-3',
 	],
+	theme: {
+		extend: {
+		  animation: {
+			'pattern-move': 'pattern-move 40s linear infinite',
+		  },
+		  keyframes: {
+			'pattern-move': {
+			  '0%': { backgroundPosition: '0% 0%' },
+			  '100%': { backgroundPosition: '100% 100%' },
+			},
+		  },
+		},
+	  },
 });
