@@ -17,7 +17,7 @@ const slides = servers.map((server, index) => ({
 <div
 	x-data="astro"
 	x-bind="refreshOnPageLoad"
-	class="md:col-span-2 md:row-span-2 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1"
+	class="md:col-span-3 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 overflow-visible"
 >
 	<template x-if="pageLoaded">
 		<div
@@ -26,19 +26,22 @@ const slides = servers.map((server, index) => ({
 			x-on:destroy="destroy()"
 			x-on:mouseenter="onMouseEnter()"
 			x-on:mouseleave="onMouseLeave()"
-			class="relative w-full"
+			class="relative overflow-visible w-full"
 		>
+
 			<!-- Scrollable snap container -->
 			<div
 				x-ref="container"
-				class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4"
+				class="flex gap-4 overflow-x-auto overflow-y-visible scroll-smooth snap-x snap-mandatory pb-4"
 			>
 				{slides.map((slide) => (
 					<div
 						id={slide.id}
-						class="snap-start shrink-0 w-[85%] sm:w-[48%] lg:w-[32%] transition-transform duration-300"
-					>
+						class="snap-start shrink-0 w-[85%] sm:w-[48%] lg:w-[32%] transition-transform duration-300 relative z-[10] min-h-[320px]"
+					>  <div class="relative z-20">
+
 						<ServerCard server={slide.content} />
+						</div>
 					</div>
 				))}
 			</div>

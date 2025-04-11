@@ -12,7 +12,7 @@ const { server } = Astro.props;
 	id={`server-${server.server_id}`}
 	x-data="{ expanded: false }"
 	@click="expanded = !expanded"
-	:class="expanded ? 'z-20 scale-[1.02] bg-[#3a335c]' : 'scale-100'"
+	:class="expanded ? 'z-[50] scale-[1.02] bg-[#3a335c] absolute left-0 right-0 mx-auto w-full max-w-xl' : 'z-10 scale-100 relative'"
 	class="card-tile space-y-2 transform transition-transform duration-300 cursor-pointer relative"
 >
 	<!-- Server Header -->
@@ -20,7 +20,7 @@ const { server } = Astro.props;
 		<img
 			src={server.logo ?? '/default-logo.png'}
 			alt={`${server.name} logo`}
-			class="w-10 h-10 rounded-full border border-purple-400 object-cover"
+			class="w-12 h-12 rounded-full border border-purple-400 object-cover"
 		/>
 		<div>
 			<h3 data-field="name" class="text-base font-semibold text-purple-200">
