@@ -31,6 +31,7 @@ readme = 'README.md'
   pydantic = "^2.10.4"
   sqlalchemy-libsql = "^0.1.0"
   pyjwt = "^2.10.1"
+  agno = "^1.2.15"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.3.1"
