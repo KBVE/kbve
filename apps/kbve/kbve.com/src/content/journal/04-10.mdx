@@ -29,6 +29,29 @@ Double check the shell execution.
     Hmm, in order to get the panel ready, I will have to also go back around and upgrade the tailwindcss from v3 to v4.
     With this update, it means that kbve.com style will be broken and so will our native wind template.
 
+### Upgrading
+
+-   10:07PM
+
+    The plan is to upgrade the tailwindcss and the additional packages that we have within the `kbve.com` and `native-wind` template.
+    We would be upgrading all the tailwindcss internal packages as well, furthermore, we would have to upgrade the Astro to the latest.
+    Okay! Time to begin this adventure and lets see how long it takes to get this all done, ugh. 
+
+    Here is the breakdown of the commands that we will be executing:
+
+    Step A0 - upgrading the tailwindcss - `pnpm add -D tailwindcss@latest postcss@latest autoprefixer@latest`
+    Step A1 - upgrading the smaller internal packages -  `pnpm add -D @tailwindcss/forms @tailwindcss/typography`
+
+    Step B0 - upgrading the Astro to the latest, `pnpm dlx @astrojs/upgrade`
+    Step B1 - testing the upgrades so far, then running a `pnpm astro check` to see if there are any issues with the current code base.
+    Step B2 - Wait, we can not just run that command, we would have make sure that the `project.json` has a check for each project that Astro is inside of.
+    Step B2.1 - Looks like we have some typescript errors and a couple failures with the development build, lets move towards a new step to focus on resolving those issues.
+
+    Step C0 - We need to migrate the tailwindcss configurations for v3 to v4, including updating the tailwindcss pipeline.
+    Step C1 - The postcss changed with v4, so let me install that next `pnpm add -D @tailwindcss/postcss`, then update the `global.css`.
+    Step C2 - Looping back around, there was a breaking change in starlight, so I will make that adjustment as well.
+    Step C3 - Running the `pnpm nx reset` , clearning out the cache and maybe we need to clear up some of the cache and modules, to avoid possible issues.
+
 ## 2024
 
 
