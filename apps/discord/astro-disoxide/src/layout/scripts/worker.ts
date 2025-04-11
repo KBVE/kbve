@@ -1,3 +1,5 @@
+import type { PanelRequest, PanelState } from 'src/env';
+
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
 }
@@ -6,6 +8,9 @@ declare var self: SharedWorkerGlobalScope;
 console.log('[SharedWorker] 🧠 Script loaded');
 
 type Topic = 'metrics' | 'websocket' | 'panel';
+
+let currentPanel: PanelState | null = null;
+
 type PortSet = Set<MessagePort>;
 export type PrometheusMetric = {
 	key: string;
@@ -25,10 +30,12 @@ type WorkerHandlers = {
 	connect_websocket: () => Promise<boolean>;
 	send_websocket: (payload: any) => Promise<boolean>;
 	close_websocket: () => Promise<boolean>;
+
+	// panel
+	panel: (payload: PanelRequest) => Promise<PanelState>;
 };
 
 type HandlerType = keyof WorkerHandlers;
-
 
 type FetchHandler<T extends Topic> = T extends keyof FetchHandlerMap
 	? FetchHandlerMap[T]
@@ -60,7 +67,10 @@ function getWebSocketURL(path: string = '/ws'): string {
 }
 
 // --- Metrics parser from metrics-parser.js
-function parsePrometheusMetrics(text: string, limit: number = 6): PrometheusMetric[] {
+function parsePrometheusMetrics(
+	text: string,
+	limit: number = 6,
+): PrometheusMetric[] {
 	return text
 		.split('\n')
 		.filter((line) => line && !line.startsWith('#'))
@@ -87,8 +97,8 @@ function subscribe(port: MessagePort, topic: Topic): void {
 	if (!subscriptions.has(topic)) {
 		subscriptions.set(topic, new Set());
 
-		if (topic !== 'websocket') {
-			startPolling(topic);
+		if (`fetch_${topic}` in handlers) {
+			startPolling(topic as keyof FetchHandlerMap);
 		}
 	}
 
@@ -99,18 +109,18 @@ function subscribe(port: MessagePort, topic: Topic): void {
 	}
 }
 
-
 function unsubscribe(port: MessagePort, topic: Topic): void {
 	const set = subscriptions.get(topic);
 	if (set) {
 		set.delete(port);
 
 		if (set.size === 0) {
-			if (topic !== 'websocket') {
-				stopPolling(topic);
-			} else {
+			if (`fetch_${topic}` in handlers) {
+				stopPolling(topic as keyof FetchHandlerMap);
+			} else if (topic === 'websocket') {
 				void handlers.close_websocket();
 			}
+
 			subscriptions.delete(topic);
 		}
 	}
@@ -177,15 +187,18 @@ const handlers: WorkerHandlers = {
 			console.warn('[WebSocket] Disconnected');
 			broadcast('websocket', { status: 'disconnected' });
 			socket = null;
-			setTimeout(() => void handlers.connect_websocket(), reconnectInterval);
+			setTimeout(
+				() => void handlers.connect_websocket(),
+				reconnectInterval,
+			);
 		});
 
-        socket.addEventListener('error', (e) => {
-            const error = e as ErrorEvent;
-            console.error('[WebSocket] Error:', error);
-            broadcast('websocket', { status: 'error', error: error.message });
-        });
-        
+		socket.addEventListener('error', (e) => {
+			const error = e as ErrorEvent;
+			console.error('[WebSocket] Error:', error);
+			broadcast('websocket', { status: 'error', error: error.message });
+		});
+
 		return true;
 	},
 
@@ -205,6 +218,32 @@ const handlers: WorkerHandlers = {
 		}
 		return false;
 	},
+
+	panel: async (payload: PanelRequest): Promise<PanelState> => {
+		if (payload.type === 'open') {
+			currentPanel = {
+				open: true,
+				id: payload.id,
+				view: payload.view,
+				payload: payload.payload,
+			};
+		} else if (payload.type === 'close') {
+			currentPanel = { open: false, id: payload.id };
+		} else if (payload.type === 'toggle') {
+			const isSame = currentPanel?.id === payload.id;
+			const isOpen = isSame ? !currentPanel?.open : true;
+
+			currentPanel = {
+				open: isOpen,
+				id: payload.id,
+				view: payload.view,
+				payload: payload.payload,
+			};
+		}
+
+		if (currentPanel) broadcast('panel', currentPanel);
+		return currentPanel!;
+	},
 };
 
 // --- Handle new connections from any tab
@@ -213,34 +252,42 @@ self.onconnect = function (e) {
 	const port = e.ports[0];
 
 	port.onmessage = async (msg) => {
-        const { type, topic, requestId, payload } = msg.data as {
-            type: string;
-            topic?: Topic;
-            requestId?: string;
-            payload?: any;
-        };
-    
-        console.log('[SharedWorker] Message received:', type, requestId);
-    
-        if (type === 'subscribe') {
-            subscribe(port, topic as Topic);
-        } else if (type === 'unsubscribe') {
-            unsubscribe(port, topic as Topic);
-        } else if (requestId && (type as HandlerType) in handlers) {
-            try {
-                const result = await handlers[type as HandlerType](payload);
-                port.postMessage({ type: `${type}_result`, payload: result, requestId });
-            } catch (error: any) {
-                port.postMessage({ type: `${type}_error`, error: error.message, requestId });
-            }
-        } else if (requestId) {
-            port.postMessage({
-                type: `${type}_error`,
-                error: `Unknown request type: ${type}`,
-                requestId,
-            });
-        }
-    };
+		const { type, topic, requestId, payload } = msg.data as {
+			type: string;
+			topic?: Topic;
+			requestId?: string;
+			payload?: any;
+		};
+
+		console.log('[SharedWorker] Message received:', type, requestId);
+
+		if (type === 'subscribe') {
+			subscribe(port, topic as Topic);
+		} else if (type === 'unsubscribe') {
+			unsubscribe(port, topic as Topic);
+		} else if (requestId && (type as HandlerType) in handlers) {
+			try {
+				const result = await handlers[type as HandlerType](payload);
+				port.postMessage({
+					type: `${type}_result`,
+					payload: result,
+					requestId,
+				});
+			} catch (error: any) {
+				port.postMessage({
+					type: `${type}_error`,
+					error: error.message,
+					requestId,
+				});
+			}
+		} else if (requestId) {
+			port.postMessage({
+				type: `${type}_error`,
+				error: `Unknown request type: ${type}`,
+				requestId,
+			});
+		}
+	};
 
 	port.start();
 };
