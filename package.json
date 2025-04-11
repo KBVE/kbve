@@ -42,7 +42,7 @@
 		"@nx/web": "20.7.2",
 		"@nx/webpack": "20.7.2",
 		"@nx/workspace": "20.7.2",
-		"@nxlv/python": "20.3.1",
+		"@nxlv/python": "20.12.4",
 		"@nxtensions/astro": "19.0.1",
 		"@playwright/test": "^1.48.1",
 		"@react-native-community/cli": "^15.1.3",
