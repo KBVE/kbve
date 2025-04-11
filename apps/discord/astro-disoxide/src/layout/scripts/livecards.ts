@@ -1,4 +1,5 @@
 import type { DiscordServer, LiveServerCardsData } from 'src/env';
+import { useSharedWorkerCall } from './client';
 
 console.log('[Alpine] Live Server Cards Running');
 
@@ -12,12 +13,25 @@ export default function RegisterAlpineLiveServerCards(Alpine: typeof window.Alpi
 
 		async refresh() {
 			try {
-				const updated = await fetch('/api/servers').then(res => res.json());
-				updated.forEach((server: DiscordServer) => this.updateServer(server));
+				const updated = await useSharedWorkerCall('db_list');
+		
+				if (!Array.isArray(updated)) {
+					console.warn('[LiveCards] db_list returned non-array:', updated);
+					return;
+				}
+		
+				updated.forEach((server: any) => {
+					if (server && typeof server.server_id === 'string') {
+						this.updateServer(server as DiscordServer);
+					} else {
+						console.warn('[LiveCards] Skipped invalid server object:', server);
+					}
+				});
 			} catch (err) {
 				console.error('[LiveCards] Refresh failed:', err);
 			}
 		},
+		
 
 		updateServer(server: DiscordServer) {
 			this.servers[server.server_id] = server;

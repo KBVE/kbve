@@ -5,6 +5,10 @@
 @import "tailwindcss";
 
 
+[x-cloak] {
+	display: none !important;
+}
+
 /* For WebKit-based browsers */
 ::-webkit-scrollbar {
 	width: 8px;
@@ -29,10 +33,10 @@
 html {
 	scrollbar-gutter: stable;
 }
-
+/* 
 * {
   outline: 1px solid rgba(255, 0, 0, 0.2);
-}
+} */
 
 .scroll-parent-isolated {
   @apply relative z-0;

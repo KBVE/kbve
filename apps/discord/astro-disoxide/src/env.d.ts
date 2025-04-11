@@ -55,18 +55,14 @@ export interface CarouselData {
 	goTo(index: number): void;
 }
 
-export type PanelView = 'ServerDetails' | 'Settings' | 'Logs';
-
 export interface PanelRequest {
 	type: 'open' | 'close' | 'toggle';
 	id: string;
-	view?: PanelView;
 	payload?: Record<string, any>;
 }
 
 export interface PanelState {
 	open: boolean;
 	id: string;
-	view?: PanelView;
 	payload?: Record<string, any>;
 }

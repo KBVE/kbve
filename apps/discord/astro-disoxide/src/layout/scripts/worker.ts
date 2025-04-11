@@ -1,4 +1,4 @@
-import type { PanelRequest, PanelState } from 'src/env';
+import type { PanelRequest, PanelState, DiscordServer } from 'src/env';
 
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
@@ -7,9 +7,10 @@ declare var self: SharedWorkerGlobalScope;
 
 console.log('[SharedWorker] 🧠 Script loaded');
 
-type Topic = 'metrics' | 'websocket' | 'panel';
+type Topic = 'metrics' | 'websocket' | 'panel' | 'db';
 
 let currentPanel: PanelState | null = null;
+let dbPromise: Promise<IDBDatabase> | null = null;
 
 type PortSet = Set<MessagePort>;
 export type PrometheusMetric = {
@@ -33,6 +34,12 @@ type WorkerHandlers = {
 
 	// panel
 	panel: (payload: PanelRequest) => Promise<PanelState>;
+
+	// db
+	db_get: (key: string) => Promise<any>;
+	db_set: (args: { key: string; value: any }) => Promise<boolean>;
+	db_delete: (key: string) => Promise<boolean>;
+	db_list: () => Promise<any[]>;
 };
 
 type HandlerType = keyof WorkerHandlers;
@@ -49,6 +56,31 @@ const reconnectInterval = 3000;
 function getAPIBaseURL(): string {
 	const isAstroDev = location.port === '4321';
 	return isAstroDev ? 'http://localhost:3000' : '';
+}
+
+// --- Util: DB
+
+function getDB(): Promise<IDBDatabase> {
+	if (dbPromise) return dbPromise;
+
+	dbPromise = new Promise((resolve, reject) => {
+		const request = indexedDB.open('shared-worker-store', 1);
+
+		request.onupgradeneeded = (event) => {
+			const db = request.result;
+			if (!db.objectStoreNames.contains('panel')) {
+				db.createObjectStore('panel');
+			}
+			if (!db.objectStoreNames.contains('custom')) {
+				db.createObjectStore('custom');
+			}
+		};
+
+		request.onsuccess = () => resolve(request.result);
+		request.onerror = () => reject(request.error);
+	});
+
+	return dbPromise;
 }
 
 // --- Util: Recreate getWebSocketURL
@@ -224,7 +256,6 @@ const handlers: WorkerHandlers = {
 			currentPanel = {
 				open: true,
 				id: payload.id,
-				view: payload.view,
 				payload: payload.payload,
 			};
 		} else if (payload.type === 'close') {
@@ -236,7 +267,6 @@ const handlers: WorkerHandlers = {
 			currentPanel = {
 				open: isOpen,
 				id: payload.id,
-				view: payload.view,
 				payload: payload.payload,
 			};
 		}
@@ -244,12 +274,122 @@ const handlers: WorkerHandlers = {
 		if (currentPanel) broadcast('panel', currentPanel);
 		return currentPanel!;
 	},
+
+	// DB
+
+	db_get: async (key) => {
+		const db = await getDB();
+		return new Promise((resolve, reject) => {
+			const tx = db.transaction('custom', 'readonly');
+			const store = tx.objectStore('custom');
+			const request = store.get(key);
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(request.error);
+		});
+	},
+	
+	db_set: async ({ key, value }) => {
+		const db = await getDB();
+		return new Promise((resolve, reject) => {
+			const tx = db.transaction('custom', 'readwrite');
+			const store = tx.objectStore('custom');
+			const request = store.put(value, key);
+	
+			request.onsuccess = () => {
+				resolve(true);
+				if (subscriptions.has('db')) {
+					broadcast('db', { key, value });
+				}
+			};
+	
+			request.onerror = () => reject(request.error);
+		});
+	},
+	
+	db_delete: async (key) => {
+		const db = await getDB();
+		return new Promise((resolve, reject) => {
+			const tx = db.transaction('custom', 'readwrite');
+			const store = tx.objectStore('custom');
+			const request = store.delete(key);
+			request.onsuccess = () => {
+				resolve(true);
+				if (subscriptions.has('db')) {
+					broadcast('db', { key, deleted: true });
+				}
+			};
+			request.onerror = () => reject(request.error);
+		});
+	},
+
+	db_list: async () => {
+		const db = await getDB();
+		return new Promise((resolve, reject) => {
+		  const tx = db.transaction('custom', 'readonly');
+		  const store = tx.objectStore('custom');
+		  const request = store.getAll();
+		  request.onsuccess = () => resolve(request.result);
+		  request.onerror = () => reject(request.error);
+		});
+	  },
 };
+
+// --- Prepopulate DB
+
+async function initializeDBIfEmpty() {
+	const db = await getDB();
+	const tx = db.transaction('custom', 'readonly');
+	const store = tx.objectStore('custom');
+	const countRequest = store.count();
+
+	countRequest.onsuccess = async () => {
+		if (countRequest.result === 0) {
+			console.log('[SharedWorker DB] Seeding initial server data...');
+
+			const now = Date.now();
+			const servers: Record<string, DiscordServer> = {};
+
+			for (let i = 1; i <= 20; i++) {
+				const server: DiscordServer = {
+					server_id: `server-${i}`,
+					owner_id: `owner-${i}`,
+					lang: i % 3,
+					status: i % 2 === 0 ? 1 : 0,
+					invite: `https://discord.gg/fakeinvite${i}`,
+					name: `Server ${i}`,
+					summary: `This is the summary for server ${i}.`,
+					description: `Server ${i} is a vibrant community focused on discussion and events.`,
+					website: i % 2 === 0 ? `https://server${i}.com` : null,
+					logo: `https://api.dicebear.com/7.x/bottts/svg?seed=server${i}`,
+					banner: null,
+					video: null,
+					categories: (i % 5) + 1,
+					updated_at: new Date(now - i * 3600_000).toISOString(),
+				};
+
+				servers[`server:${server.server_id}`] = server;
+			}
+
+			const writeTx = db.transaction('custom', 'readwrite');
+			const writeStore = writeTx.objectStore('custom');
+
+			for (const [key, value] of Object.entries(servers)) {
+				writeStore.put(value, key);
+			}
+
+			console.log('[SharedWorker DB] Seed complete with 20 servers');
+		}
+	};
+}
+
+
 
 // --- Handle new connections from any tab
 self.onconnect = function (e) {
 	console.log('[SharedWorker] New connection');
 	const port = e.ports[0];
+
+	initializeDBIfEmpty();
 
 	port.onmessage = async (msg) => {
 		const { type, topic, requestId, payload } = msg.data as {
