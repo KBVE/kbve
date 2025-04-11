@@ -3442,7 +3442,7 @@ dependencies = [
  "eframe",
  "egui",
  "ehttp",
- "holy 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "holy",
  "image",
  "log",
  "serde",
@@ -4629,18 +4629,6 @@ dependencies = [
 [[package]]
 name = "holy"
 version = "0.1.2"
-dependencies = [
- "crossbeam",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "holy"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "878583bc1917e27b90bfb82a4b492d781393c3e4e00858886edf9b1287226086"
 dependencies = [
  "crossbeam",
  "proc-macro2",
