@@ -3,14 +3,16 @@ import react from '@astrojs/react';
 import svelte from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
-import tailwind from '@astrojs/tailwind';
+import tailwindcss from "@tailwindcss/vite";
+
+//import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
 
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
-import starlightSiteGraph from 'starlight-site-graph';
+//import starlightSiteGraph from 'starlight-site-graph';
 
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
@@ -40,11 +42,11 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			plugins: [
-				starlightSiteGraph({
-					graphConfig: {
-						renderArrows: true,
-					},
-				}),
+				// starlightSiteGraph({
+				// 	graphConfig: {
+				// 		renderArrows: true,
+				// 	},
+				// }),
 			],
 			title: 'KBVE Docs',
 			editLink: {
@@ -185,10 +187,10 @@ export default defineConfig({
 					autogenerate: { directory: 'legal' },
 				},
 			],
-			social: {
-				github: 'https://github.com/kbve/kbve',
-				discord: 'https://kbve.com/discord/',
-			},
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' },
+				{ icon: 'discord', label: 'Discord', href: 'https://astro.build/chat' },
+			],
 			disable404Route: true,
 			customCss: ['./src/styles/starlight.css'],
 			favicon: '/favicon.ico',
@@ -230,11 +232,11 @@ export default defineConfig({
 		react(),
 		svelte(),
 		partytown(),
-		tailwind({
-			configFile: fileURLToPath(
-				new URL('./tailwind.config.cjs', import.meta.url),
-			),
-		}),
+		// tailwind({
+		// 	configFile: fileURLToPath(
+		// 		new URL('./tailwind.config.cjs', import.meta.url),
+		// 	),
+		// }),
 		// mdx({
 		// 	...markdownConfig,
 		// 	//extendPlugins: "astroDefaults"
@@ -284,6 +286,10 @@ export default defineConfig({
 					'three/examples/jsm/postprocessing/RenderPass.js',
 			},
 		},
+
+		vite: {
+			plugins: [tailwindcss()],
+		  },
 		// Apply the top-level await plugin to our vite.config.js
 		// plugins: [
 		// 	topLevelAwait({
