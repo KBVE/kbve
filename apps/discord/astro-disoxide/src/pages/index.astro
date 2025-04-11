@@ -1,4 +1,6 @@
 ---
+/** @jsxImportSource astro */
+
 import Layout from 'src/layout/Layout.astro';
 import ServerCarousel from 'src/layout/ui/ServerCarousel.astro';
 import type { DiscordServer } from 'src/env';
@@ -16,7 +18,7 @@ const servers: DiscordServer[] = Array.from({ length: 20 }, (_, i) => ({
 	banner: null,
 	video: null,
 	categories: (i % 5) + 1,
-	updated_at: new Date(Date.now() - i * 3600_000).toISOString(), // Each 1hr apart
+	updated_at: new Date(Date.now() - i * 3600_000).toISOString(),
 }));
 ---
 
