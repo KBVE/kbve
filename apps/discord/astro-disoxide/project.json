@@ -44,9 +44,29 @@
         "options": {}
       },
       "check": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/discord/astro-disoxide",
+          "commands": [
+            "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro check"
+          ],
+          "parallel": false
+        }
+      },
+      "checkx": {
         "executor": "@nxtensions/astro:check"
       },
       "sync": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/discord/astro-disoxide",
+          "commands": [
+            "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro sync"
+          ],
+          "parallel": false
+        }
+      },
+      "syncx": {
         "executor": "@nxtensions/astro:sync"
       },
       "graph": {

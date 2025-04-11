@@ -3,7 +3,8 @@ import react from '@astrojs/react';
 import svelte from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
-import tailwind from '@astrojs/tailwind';
+//import tailwind from '@astrojs/tailwind';
+import tailwindcss from "@tailwindcss/vite";
 import mdx from '@astrojs/mdx';
 import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
@@ -85,10 +86,10 @@ export default defineConfig({
 					autogenerate: { directory: 'blog' },
 				},
 			],
-			social: {
-				github: 'https://github.com/kbve/kbve',
-				discord: 'https://kbve.com/discord/',
-			},
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' },
+				{ icon: 'discord', label: 'Discord', href: 'https://astro.build/chat' },
+			],
 			disable404Route: true,
 			customCss: ['./src/styles/starlight.css'],
 			favicon: '/favicon.ico',
@@ -127,16 +128,16 @@ export default defineConfig({
 			},
 		}),
 
-		//react(),
+		react(),
 		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
-		//svelte(),
+		svelte(),
 		//partytown(),
 		worker(),
-		tailwind({
-			configFile: fileURLToPath(
-				new URL('./tailwind.config.cjs', import.meta.url),
-			),
-		}),
+		// tailwind({
+		// 	configFile: fileURLToPath(
+		// 		new URL('./tailwind.config.cjs', import.meta.url),
+		// 	),
+		// }),
 		// mdx({
 		// 	...markdownConfig,
 		// 	//extendPlugins: "astroDefaults"
@@ -186,6 +187,9 @@ export default defineConfig({
 					'three/examples/jsm/postprocessing/RenderPass.js',
 			},
 		},
+		vite: {
+			plugins: [tailwindcss()],
+		  },
 		// Apply the top-level await plugin to our vite.config.js
 		// plugins: [
 		// 	topLevelAwait({
