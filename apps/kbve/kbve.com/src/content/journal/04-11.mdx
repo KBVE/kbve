@@ -54,7 +54,7 @@ Cooking stream? When and Where?
 -   10:05PM
 
     The website will have the game but we can use it as our CDN as well!
-    I am thinking that it would make sense to build our first CDN, that layers ontop of exisiting ones like Cloudflare, part of this would be to make lottie files easier to access.
+    I am thinking that it would make sense to build our first CDN, that layers ontop of existing ones like Cloudflare, part of this would be to make lottie files easier to access.
     When grabbing the SVGs and lotties, we know that they are a certain size but having it all stored within the idb layer and cache layer would be great for performance.
     Object A loads from the CDN, which includes the cloudflare layer, and then inserts it into the idb client-side.
     Actually, it be really interesting if we could IPFS the files too, moving the load out of a central server and since these files will be small, it should be a great start towards building our first CDN.

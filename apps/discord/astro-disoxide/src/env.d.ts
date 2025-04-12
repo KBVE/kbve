@@ -10,6 +10,24 @@ declare module 'https://esm.sh/@lottiefiles/dotlottie-web' {
 	export const DotLottieWorker: any;
 }
 
+export type SharedWorkerCommand =
+	| { type: 'initCanvasWorker'; canvas: OffscreenCanvas; src: string }
+	| { type: 'destroyCanvasWorker' }
+	| { type: 'connect_websocket' }
+	| { type: 'close_websocket' }
+	| { type: 'fetch_metrics' }
+	| { type: 'panel'; payload: PanelRequest }
+	| { type: 'db_get'; key: string }
+	| { type: 'db_set'; key: string; value: any }
+	| { type: 'db_delete'; key: string }
+	| { type: 'db_list' };
+
+export type CommandPayload<T extends SharedWorkerCommand['type']> =
+	Extract<SharedWorkerCommand, { type: T }> extends { type: T }
+		? Omit<Extract<SharedWorkerCommand, { type: T }>, 'type'>
+		: never;
+
+
 export interface DiscordServer {
 	server_id: string;
 	owner_id: string;

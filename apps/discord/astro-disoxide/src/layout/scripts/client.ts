@@ -1,3 +1,4 @@
+import type { CommandPayload, SharedWorkerCommand } from "src/env";
 
 let sharedPort: MessagePort | null = null;
 
@@ -102,4 +103,27 @@ export async function registerServiceWorker() {
 			console.error('[SW] Registration failed:', err);
 		}
 	}
+}
+
+export function dispatchCommand<T extends SharedWorkerCommand['type']>(
+	type: T,
+	payload: CommandPayload<T>,
+	transferables: Transferable[] = []
+): Promise<any> {
+	return useSharedWorkerCall(type, { type, ...payload }, 10000, transferables);
+}
+
+const customEventTarget = new EventTarget();
+
+export function emitCustomEvent(name: string, detail?: any) {
+	customEventTarget.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
+export function onCustomEvent<T = any>(
+	name: string,
+	handler: (e: CustomEvent<T>) => void
+): () => void {
+	const wrapped = (e: Event) => handler(e as CustomEvent<T>);
+	customEventTarget.addEventListener(name, wrapped);
+	return () => customEventTarget.removeEventListener(name, wrapped);
 }
