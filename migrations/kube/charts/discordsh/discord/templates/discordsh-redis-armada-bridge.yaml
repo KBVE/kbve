@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: redis
+    namespace: discordsh
+spec:
+    type: ExternalName
+    externalName: redis-master.armada.svc.cluster.local
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: allow-disoxide-to-redis
+    namespace: armada
+spec:
+    podSelector:
+        matchLabels:
+            app: redis-master
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        name: discordsh
+          ports:
+              - protocol: TCP
+                port: 6379
+
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: redis-armada
+  namespace: discordsh
+spec:
+  encryptedData:
+    redis-password: AgBqKI+pLmpCFNPwMI5G+3225G/XUGjLRwl1Q4PplEayZ5FZav/UyBw9ZbW3sdSmL2Kx4lEKGm2g/pvQc0qY+iTP3dhUuMNmyYHSdubl26w8AY2ZdmhyWHBfUhWVZJNlCtSQCqLrlYMvB9keguJcLQrIZIyJylpuJ8yh6gh3qnBDhUkCpb7qERP5km5SDIFFz8JOdKMXXbNnPVk1aMVQY7SwyHTDttVEuGg2zfs0id4ekUiZPgM3e/+Q6b1Br18GEXn1K0NF+LI2BHaigid+9dvHBgZY0FsYATqLxOcJ3/52GM8+xFzEzHOQxLyA+Y4U1ERBlIbl/q1jcGriUDEIUd0UBDkJ7Q+lmKq6ExnzbZmUtEaVABHyLdTSYey24GPVAPgRflYz7JE1ePTkSTnLSpSKSrN1alygYf8CAMHPyJdDxwHOEiFniGXorFiqt9MaYW2UIeKKxfHQjF5vp+guBmHcEFYiRabBk051nUD9T6Dm4C3exVMJnSDuZ4GwSwYEmLG8KiHww4uU1b/cmYxs4uFKi+ZTpmQhmnj1huMFkprwJ47j1FybxihLktpv7O6nfID2ZZpUCM9ujJAtuRKFiv+6f2a82EivSX8ky+hbXHtGfgWLmih87y+x99TtqY5eSBdw2cWHuVHtcADqvv+vuU0PRvhg35i9/XxbgDpU7Rff7ABjUI4FH36F0Yc09DX1n9eSHZ7ChAEEVswD10fY1A6RJGrrPQ==
+  template:
+    metadata:
+      name: redis-armada
+      namespace: discordsh
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: redis-secret-reader
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list']
+      resourceNames:
+          - redis-auth
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+    name: redis-secret-reader-binding
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: redis-secret-reader
+subjects:
+    - kind: ServiceAccount
+      name: supabase-release-supabase-db
+      namespace: supabase
