@@ -341,7 +341,11 @@ const handlers: WorkerHandlers = {
 	  },
 
 	initCanvasWorker: async ({ canvas, src }) => {
-		const { DotLottieWorker } = await import('https://esm.sh/@lottiefiles/dotlottie-web');
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore: Remote CDN import doesn't have type declarations
+		const { DotLottieWorker } = await import('https://esm.sh/@lottiefiles/dotlottie-web') as {
+			DotLottieWorker: any;
+		};
 
 		if (lottieInstance) {
 			lottieInstance.destroy();
