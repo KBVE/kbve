@@ -41,6 +41,26 @@ Cooking stream? When and Where?
     The bigger question would be in figuring out what standard model and embeddings we should use, because then it would make things easier to build across multiple people.
     Looking at the gwen series and that might be the best choice for now, going to add that into the flow.
 
+### Wheel of Time S3
+
+-   10:25PM
+
+    Season three has been compact but filled with side stories, something that I love!
+    The world building is amazing and the characters are so well developed, that its great research material for the RareIcon.
+
+
+### RareIcon Dual.
+
+-   10:05PM
+
+    The website will have the game but we can use it as our CDN as well!
+    I am thinking that it would make sense to build our first CDN, that layers ontop of exisiting ones like Cloudflare, part of this would be to make lottie files easier to access.
+    When grabbing the SVGs and lotties, we know that they are a certain size but having it all stored within the idb layer and cache layer would be great for performance.
+    Object A loads from the CDN, which includes the cloudflare layer, and then inserts it into the idb client-side.
+    Actually, it be really interesting if we could IPFS the files too, moving the load out of a central server and since these files will be small, it should be a great start towards building our first CDN.
+    The SEO and marketing benefits of having RareIcon be an icon CDN will be great for the game too.
+
+
 ## 2024
 
 ### Logging
