@@ -374,3 +374,28 @@ Powershell - Still needs to work.
 Note: You may have to double check if the: `%APPDATA%\vcluster` was installed sucessfully.
 
 Confirm -> Run `vcluster --version` to confirm that the install was sucessful.
+
+
+---
+
+## Sealed Secrets
+
+### Encoding
+
+Here is the quick command for encoding a seal.
+
+```shell
+
+./kbve.sh -nx kilobase:seal --namespace=$NAMESPACE --keyName=$KEY --secrets="SECRET="
+
+```
+
+### Decoding 
+
+For decoding the sealed secret, use this quick command:
+
+```shell
+
+kubectl get secret $KEY -n $NAMESPACE -o jsonpath="{.data.$SECRET}" | base64 --decode
+
+```
