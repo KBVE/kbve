@@ -8,10 +8,16 @@ type Listener = {
 
 const listeners = new Map<string, Listener>();
 
+export function initCanvasWorker(canvas: HTMLCanvasElement, src: string): Promise<void> {
+	const offscreen = canvas.transferControlToOffscreen();
+
+	return useSharedWorkerCall('initCanvasWorker', { src, canvas: offscreen }, 10000, [offscreen]);
+}
+
 export function initSharedWorker(): MessagePort {
 	if (!sharedPort) {
 		//const worker = new SharedWorker('/js/shared-worker.js');
-		const worker = new SharedWorker(new URL('./worker', import.meta.url))
+		const worker = new SharedWorker(new URL('./shared-worker', import.meta.url))
 
 		sharedPort = worker.port;
 		sharedPort.start();
@@ -36,7 +42,8 @@ export function initSharedWorker(): MessagePort {
 export function useSharedWorkerCall<T = any>(
 	type: string,
 	payload: any = {},
-	timeoutMs = 10000
+	timeoutMs = 10000, 
+	transferables: Transferable[] = []
 ): Promise<T> {
 	return new Promise((resolve, reject) => {
 		const requestId = crypto.randomUUID();
@@ -60,7 +67,7 @@ export function useSharedWorkerCall<T = any>(
 			}
 		});
 
-		port.postMessage({ type, payload, requestId });
+		port.postMessage({ type, payload, requestId }, transferables || []);
 	});
 }
 
@@ -83,4 +90,16 @@ export function subscribeToTopic<T = any>(
 		port.postMessage({ type: 'unsubscribe', topic });
 		port.removeEventListener('message', handler);
 	};
+}
+
+export async function registerServiceWorker() {
+	if ('serviceWorker' in navigator) {
+		try {
+			const reg = await navigator.serviceWorker.register('/sw.js');
+			console.log('[SharedWorker-Controlled] Service Worker registered');
+			return reg;
+		} catch (err) {
+			console.error('[SW] Registration failed:', err);
+		}
+	}
 }

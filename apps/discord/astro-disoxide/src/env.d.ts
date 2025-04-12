@@ -1,8 +1,13 @@
 /// <reference types="astro/client" />
 /// <reference path="../.astro/types.d.ts" />
+/// <reference lib="webworker" />
 
 interface Window {
 	Alpine: import('alpinejs').Alpine;
+}
+
+declare module 'https://esm.sh/@lottiefiles/dotlottie-web' {
+	export const DotLottieWorker: any;
 }
 
 export interface DiscordServer {
@@ -55,18 +60,14 @@ export interface CarouselData {
 	goTo(index: number): void;
 }
 
-export type PanelView = 'ServerDetails' | 'Settings' | 'Logs';
-
 export interface PanelRequest {
 	type: 'open' | 'close' | 'toggle';
 	id: string;
-	view?: PanelView;
 	payload?: Record<string, any>;
 }
 
 export interface PanelState {
 	open: boolean;
 	id: string;
-	view?: PanelView;
 	payload?: Record<string, any>;
 }
