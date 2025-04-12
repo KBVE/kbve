@@ -2,6 +2,7 @@
 /** @jsxImportSource astro */
 
 import Sidebar from 'src/layout/Sidebar.astro';
+import Panel from 'src/layout/ui/Panel.astro';
 
 export interface Props {
 	title: string;
@@ -43,9 +44,15 @@ import { ClientRouter } from 'astro:transitions';
 	<body
 		x-data="astro"
 		x-bind="refreshOnPageLoad"
+		x-transition.opacity
 		role="document"
-		class="h-full bg-[#28243d] text-gray-100 relative">
+		class="h-full bg-[#28243d] bg-[url('/assets/media/bg/pattern.svg')] text-gray-100 relative perspective-[2000px] perspective-distant"
+		x-bind:class="{ 
+			'': $store.panelManager.open 
+		}"
+		>
 		<Sidebar />
+		<Panel />
 
 		<!-- Glowing Progress Bar -->
 		<div
@@ -61,12 +68,7 @@ import { ClientRouter } from 'astro:transitions';
 			:class="dimmed ? 'bg-purple-500/50' : 'bg-purple-500 animate-pulse'"
 			id="loading"
 			class="fixed top-0 left-0 h-1 w-full z-[99999] transition-all duration-700 ease-in-out opacity-100 flex items-center justify-end pr-2 overflow-visible">
-			<img
-				src="/assets/media/logo/discordsh_small_logo.webp"
-				alt="DiscordSH Mini Logo"
-				class="w-12 animate-spin transition-all duration-800 block outline-none border-none shadow-none overflow-visible"
-				
-			/>
+			
 		</div>
 
 		<div
@@ -75,10 +77,14 @@ import { ClientRouter } from 'astro:transitions';
 			class="fixed inset-0 bg-zinc-800/50 z-40"
 			@click="toggleSidebar()">
 		</div>
-
+	
 		<div
 			:class="sidebarOpen ? 'md:ml-64 ml-16' : 'ml-16'"
-			class="relative z-10 flex flex-col min-h-screen transition-all duration-300 ease-in-out">
+			x-bind:class="{ 
+				'rotate-x-51 rotate-z-43 transform-3d scale-[0.55] bg-[#28243d]/80': $store.panelManager.open 
+			}"
+			class="bg-[#28243d] relative z-10 flex flex-col min-h-screen transition-all duration-500 ease-in-out will-change-transform origin-center">
+			
 			<slot role="main" />
 		</div>
 	</body>

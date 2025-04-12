@@ -5,6 +5,10 @@
 @import "tailwindcss";
 
 
+[x-cloak] {
+	display: none !important;
+}
+
 /* For WebKit-based browsers */
 ::-webkit-scrollbar {
 	width: 8px;
@@ -29,15 +33,16 @@
 html {
 	scrollbar-gutter: stable;
 }
-
+/* 
 * {
   outline: 1px solid rgba(255, 0, 0, 0.2);
-}
+} */
 
 .scroll-parent-isolated {
   @apply relative z-0;
   isolation: isolate;
 }
+
 
 @keyframes float {
     0%, 100% {
@@ -66,3 +71,14 @@ html {
       @apply grid gap-6 grid-cols-1 md:grid-cols-3 auto-rows-auto grid-flow-dense overflow-visible;
     }
   }
+
+path {
+    stroke-dasharray: 15;
+    animation: move 35s linear infinite;
+}
+
+@keyframes move {
+    to {
+        stroke-dashoffset: 1000;
+    }
+}
