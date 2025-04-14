@@ -62,7 +62,7 @@ import { Icon } from '@astrojs/starlight/components';
 
 	document.addEventListener('alpine:init', () => {
 		let lottieInstance = null;
-		const src = "http://localhost:4321/assets/json/lottie/animu.lottie";
+		const src = "/assets/json/lottie/animu.lottie";
 		const createLottie = () => {
 			const container = document.getElementById("lottie-container");
 			if (!container || lottieInstance) return;
