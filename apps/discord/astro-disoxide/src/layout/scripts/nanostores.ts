@@ -1,5 +1,35 @@
-import { atom, map } from 'nanostores';
+import { atom, map, task, keepMount, type WritableAtom } from 'nanostores';
+import { persistentAtom, persistentMap } from '@nanostores/persistent';
 import type { DiscordServer, PanelState } from 'src/env';
+
+// Helper Functions:
+export async function tasker<T>(store: WritableAtom<T>, value: T) {
+	task(() => {
+		store.set(value);
+		keepMount(store);
+	});
+}
+
+/**
+ * Persistent JSON-encoded atom
+ */
+export function createJsonAtom<T>(key: string, initial: T) {
+	return persistentAtom<T>(key, initial, {
+		encode: JSON.stringify,
+		decode: JSON.parse,
+	});
+}
+
+/**
+ * Persistent plain/binary-safe atom (string fallback)
+ * Useful for primitives, short blobs, or future binary formats like Flexbuffers
+ */
+export function createBinaryAtom<T>(key: string, initial: T) {
+	return persistentAtom<T>(key, initial, {
+		encode: (value) => String(value),
+		decode: (value) => value as unknown as T,
+	});
+}
 
 // Panel state (open/close with payload)
 export const $panel = atom<PanelState>({ open: false, id: '' });

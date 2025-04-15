@@ -4,7 +4,7 @@
 		supabase?: typeof supabase;
 	  }
 	}
-	declare var videojs: any;
+	declare var supabase: any;
   </script>
 
 <script lang="ts">
