@@ -25,6 +25,16 @@ tags:
     Now the plan is to build around it.
 
 
+### NanoStores
+
+-   9:13PM
+
+    Optimization for the nano stores is the goal for tonight, we want to handle the offloading and processing via events.
+    This would keep our alpine and svelte units extremely light weight but also have the ability to handle complex tasks?
+    I am thinking that we use the indexdb for long term storage and the localStorage as a medium for state management.
+    The way we can handle this is to let nanostores be the tool that is directly handling both, since we can swap the file engine on it without any major issues.
+    Eventually we could go into building the canvas on the worker and then have the js library do a hot swap.
+
 ## 2024
 
 

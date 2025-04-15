@@ -1,4 +1,5 @@
-import { atom, map } from 'nanostores';
+import { atom, map, task, keepMount, type WritableAtom } from 'nanostores';
+import { persistentAtom, persistentMap } from '@nanostores/persistent';
 import type { DiscordServer, PanelState } from 'src/env';
 
 // Panel state (open/close with payload)
