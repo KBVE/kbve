@@ -2,6 +2,14 @@ import { atom, map, task, keepMount, type WritableAtom } from 'nanostores';
 import { persistentAtom, persistentMap } from '@nanostores/persistent';
 import type { DiscordServer, PanelState } from 'src/env';
 
+// Helper Functions:
+export async function tasker<T>(store: WritableAtom<T>, value: T) {
+	task(() => {
+		store.set(value);
+		keepMount(store);
+	});
+}
+
 // Panel state (open/close with payload)
 export const $panel = atom<PanelState>({ open: false, id: '' });
 
