@@ -61,3 +61,38 @@ export function updateServers(servers: DiscordServer[]) {
 		$servers.setKey(server.server_id, server);
 	}
 }
+
+export function syncFromWorker<T>(
+	topic: string,
+	key: string,
+	store: WritableAtom<T> | ReturnType<typeof map>,
+	transform?: (data: any) => T | undefined,
+) {
+	if (typeof SharedWorkerGlobalScope === 'undefined' && typeof window !== 'undefined') {
+		window.addEventListener('message', onMessage);
+	}
+
+	function onMessage(event: MessageEvent) {
+		const { topic: msgTopic, key: msgKey, result } = event.data || {};
+		if (msgTopic === topic && msgKey === key) {
+			if (transform) {
+				const transformed = transform(result);
+				if (transformed !== undefined && transformed !== null && 'set' in store) {
+					store.set(transformed);
+				}
+			} else if (Array.isArray(result)) {
+			} else if (isMapStore(store)) {
+				for (const [k, v] of Object.entries(result ?? {})) {
+					store.setKey(k as any, v as any);
+				}
+			} else if ('set' in store && typeof store.set === 'function') {
+				store.set(result);
+			}
+		}
+	}
+
+	function isMapStore(store: any): store is { setKey: (k: string, v: any) => void } {
+		return typeof store?.setKey === 'function';
+	}
+}
+
