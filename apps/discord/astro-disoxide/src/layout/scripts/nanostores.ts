@@ -3,6 +3,56 @@ import { persistentAtom, persistentMap } from '@nanostores/persistent';
 import type { DiscordServer, PanelState } from 'src/env';
 
 // Helper Functions:
+export function syncFromWorker<T>(
+	topic: string,
+	key: string,
+	store: WritableAtom<T> | ReturnType<typeof map>,
+	transform?: (data: any) => T | undefined
+) {
+	if (typeof window !== 'undefined') {
+		window.addEventListener('message', handleMessage);
+	}
+
+	function handleMessage(event: MessageEvent) {
+		const { topic: msgTopic, key: msgKey, result } = event.data || {};
+
+		if (msgTopic !== topic || msgKey !== key) return;
+
+		if (transform) {
+			const transformed = transform(result);
+			if (transformed != null && hasSet(store)) {
+				store.set(transformed);
+			}
+			return;
+		}
+
+		if (isMapStore(store) && isObject(result)) {
+			for (const [k, v] of Object.entries(result)) {
+				store.setKey(k, v);
+			}
+		} else if (hasSet(store)) {
+			store.set(result);
+		}
+	}
+
+	function isMapStore(
+		store: unknown
+	): store is { setKey: (key: string, value: any) => void } {
+		return typeof (store as any)?.setKey === 'function';
+	}
+
+	function hasSet(
+		store: unknown
+	): store is { set: (value: any) => void } {
+		return typeof (store as any)?.set === 'function';
+	}
+
+	function isObject(value: unknown): value is Record<string, any> {
+		return typeof value === 'object' && value !== null && !Array.isArray(value);
+	}
+}
+
+
 export async function tasker<T>(store: WritableAtom<T>, value: T) {
 	task(() => {
 		store.set(value);
@@ -61,38 +111,3 @@ export function updateServers(servers: DiscordServer[]) {
 		$servers.setKey(server.server_id, server);
 	}
 }
-
-export function syncFromWorker<T>(
-	topic: string,
-	key: string,
-	store: WritableAtom<T> | ReturnType<typeof map>,
-	transform?: (data: any) => T | undefined,
-) {
-	if (typeof SharedWorkerGlobalScope === 'undefined' && typeof window !== 'undefined') {
-		window.addEventListener('message', onMessage);
-	}
-
-	function onMessage(event: MessageEvent) {
-		const { topic: msgTopic, key: msgKey, result } = event.data || {};
-		if (msgTopic === topic && msgKey === key) {
-			if (transform) {
-				const transformed = transform(result);
-				if (transformed !== undefined && transformed !== null && 'set' in store) {
-					store.set(transformed);
-				}
-			} else if (Array.isArray(result)) {
-			} else if (isMapStore(store)) {
-				for (const [k, v] of Object.entries(result ?? {})) {
-					store.setKey(k as any, v as any);
-				}
-			} else if ('set' in store && typeof store.set === 'function') {
-				store.set(result);
-			}
-		}
-	}
-
-	function isMapStore(store: any): store is { setKey: (k: string, v: any) => void } {
-		return typeof store?.setKey === 'function';
-	}
-}
-
