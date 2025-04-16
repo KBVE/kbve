@@ -1,11 +1,11 @@
 {
   // "extends": "../../../tsconfig.base.json", - removing nx extension of base
-  "extends": "astro/tsconfigs/strict",
+  "extends": ["astro/tsconfigs/strict", "@tsconfig/svelte/tsconfig.json"],
   "compilerOptions": {
     // Base URL - 11-05-2024
     "baseUrl": ".",
     // 02-13-2025
-    "types": ["astro/client", "react", "react-dom"],
+    "types": ["astro/client", "react", "react-dom", "svelte"],
     "jsxImportSource": "astro",
     // JSX
     "jsx": "preserve",
@@ -13,13 +13,15 @@
     "target": "ESNext",
     "module": "ESNext",
     // Enable node-style module resolution, for things like npm package imports
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     // Import
     "allowImportingTsExtensions": true,
     // Enable JSON imports
     "resolveJsonModule": true,
     // Enable stricter transpilation for better output
     "isolatedModules": true,
+    // Enable verbatiim module syntax
+    "verbatimModuleSyntax": true,
     // Astro directly run TypeScript code, no transpilation needed
     "noEmit": true,
     // Report an error when importing a file using a casing different from the casing on disk
@@ -32,8 +34,6 @@
     "strict": true,
     // Error when a value import is only used as a type
     //"importsNotUsedAsValues": "error",
-    "verbatimModuleSyntax": true,
-    //  11-07-2024 - verbatimModuleSyntax
     // TypeScript 5.0 changed how `isolatedModules` and `importsNotUsedAsValues` works, deprecating the later
     // Until the majority of users are on TypeScript 5.0, we'll have to supress those deprecation errors
     "ignoreDeprecations": "5.0",
@@ -54,5 +54,5 @@
       }
    
   },
-  "include": ["src", ".astro/types.d.ts", "**/*.astro",  "**/*",  "env.d.ts" ]
+  "include": ["src", ".astro/types.d.ts", "**/*.astro",   "**/*.svelte",  "**/*",  "env.d.ts" ]
 }

@@ -133,9 +133,10 @@ export default defineConfig({
 			include: ['**/react/*'],
 		}),
 		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
-		svelte(),
 		//partytown(),
 		worker(),
+		svelte(),
+
 		// tailwind({
 		// 	configFile: fileURLToPath(
 		// 		new URL('./tailwind.config.cjs', import.meta.url),
