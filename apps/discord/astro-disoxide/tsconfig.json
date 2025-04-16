@@ -1,11 +1,11 @@
 {
   // "extends": "../../../tsconfig.base.json", - removing nx extension of base
-  "extends": ["astro/tsconfigs/strict"],
+  "extends": ["astro/tsconfigs/strict", "@tsconfig/svelte/tsconfig.json"],
   "compilerOptions": {
     // Base URL - 11-05-2024
     "baseUrl": ".",
     // 02-13-2025
-    "types": ["astro/client", "react", "react-dom"],
+    "types": ["astro/client", "react", "react-dom", "svelte"],
     "jsxImportSource": "astro",
     // JSX
     "jsx": "preserve",
@@ -13,7 +13,7 @@
     "target": "ESNext",
     "module": "ESNext",
     // Enable node-style module resolution, for things like npm package imports
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     // Import
     "allowImportingTsExtensions": true,
     // Enable JSON imports
