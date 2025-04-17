@@ -1,4 +1,3 @@
-// panels.ts
 import type { PanelRequest, PanelState } from 'src/env';
 import { subscribeToTopic, useSharedWorkerCall } from './client';
 
@@ -42,7 +41,10 @@ export default function RegisterAlpinePanelManager(Alpine: typeof window.Alpine)
 
 		async loadContent(id: string) {
 			try {
-				const html = await useSharedWorkerCall('db_get', id);
+				const html = await useSharedWorkerCall('db_get', {
+					store: 'htmlservers',
+					key: id,
+				});
 				this.content = typeof html === 'string' ? html : '';
 			} catch (e) {
 				console.warn('[panelManager] Failed to load content:', e);
@@ -68,5 +70,5 @@ export default function RegisterAlpinePanelManager(Alpine: typeof window.Alpine)
 	};
 
 	Alpine.store('panelManager', store);
-	store.init(); // no more TS error
+	store.init();
 }

@@ -1,5 +1,5 @@
 import type { CommandPayload, SharedWorkerCommand } from "src/env";
-
+const EXPECTED_SW_VERSION = '1.0.2';
 let sharedPort: MessagePort | null = null;
 
 type Listener = {
@@ -13,6 +13,10 @@ export function initCanvasWorker(canvas: HTMLCanvasElement, src: string): Promis
 	const offscreen = canvas.transferControlToOffscreen();
 
 	return useSharedWorkerCall('initCanvasWorker', { src, canvas: offscreen }, 10000, [offscreen]);
+}
+
+export function destroyCanvasWorker(): Promise<void> {
+	return useSharedWorkerCall('destroyCanvasWorker');
 }
 
 export function initSharedWorker(): MessagePort {
@@ -93,17 +97,41 @@ export function subscribeToTopic<T = any>(
 	};
 }
 
+
 export async function registerServiceWorker() {
 	if ('serviceWorker' in navigator) {
 		try {
 			const reg = await navigator.serviceWorker.register('/sw.js');
 			console.log('[SharedWorker-Controlled] Service Worker registered');
+
+			if (reg.active) {
+				reg.active.postMessage({
+					type: 'check-version',
+					expectedVersion: EXPECTED_SW_VERSION,
+				});
+
+				setInterval(() => {
+					reg.active?.postMessage({ type: 'ping' });
+				}, 60_000);
+			}
+			else {
+				console.warn('[SW] Active service worker too old or missing — forcing cleanup');
+				
+			}
+
+			navigator.serviceWorker.addEventListener('message', (event) => {
+				if (event.data?.type === 'pong') {
+					console.log('[SW] Pong received — version:', event.data.swVersion);
+				}
+			});
+
 			return reg;
 		} catch (err) {
 			console.error('[SW] Registration failed:', err);
 		}
 	}
 }
+
 
 export function dispatchCommand<T extends SharedWorkerCommand['type']>(
 	type: T,

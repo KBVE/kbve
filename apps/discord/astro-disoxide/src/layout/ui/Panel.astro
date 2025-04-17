@@ -55,14 +55,14 @@ import { Icon } from '@astrojs/starlight/components';
    
 </div>
 
-<script type="module">
+<script type="module" is:inline data-astro-rerun>
 	import {
 		DotLottieWorker
 	} from "https://esm.sh/@lottiefiles/dotlottie-web";
 
 	document.addEventListener('alpine:init', () => {
 		let lottieInstance = null;
-		const src = "/assets/json/lottie/animu.lottie";
+		const src = new URL("/assets/json/lottie/animu.json", location.origin).toString();
 		const createLottie = () => {
 			const container = document.getElementById("lottie-container");
 			if (!container || lottieInstance) return;

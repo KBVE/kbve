@@ -1,11 +1,10 @@
 
-
-
-
 const CACHE_NAME = 'kbve-cache-v1';
+const SW_VERSION = '1.0.2';
+
 const PRECACHE_URLS = [
   // Static assets, CDN files, or local fallback resources
-  '/assets/json/lottie/animu.lottie',
+  '/assets/json/lottie/animu.json',
   'https://esm.sh/@lottiefiles/dotlottie-web',
 ];
 
@@ -34,6 +33,41 @@ self.addEventListener('activate', (event) => {
     })
   );
 });
+
+self.addEventListener('message', async (event) => {
+  const data = event.data;
+
+  if (data?.type === 'ping') {
+    event.source.postMessage({ type: 'pong', swVersion: SW_VERSION });
+  }
+
+  if (data?.type === 'check-version') {
+    if (data.expectedVersion !== SW_VERSION) {
+      console.warn('[SW] Version mismatch! Triggering self-destruct');
+      triggerSelfDestruct();
+    } else {
+      console.log('[SW] Version match:', SW_VERSION);
+    }
+  }
+
+  if (data === 'self-destruct' || data?.type === 'self-destruct') {
+    triggerSelfDestruct();
+  }
+});
+
+async function triggerSelfDestruct() {
+  const keys = await caches.keys();
+  await Promise.all(keys.map((key) => caches.delete(key)));
+
+  self.registration.unregister().then((success) => {
+    console.log('[SW] Self-destruct complete:', success);
+  });
+
+  const clients = await self.clients.matchAll();
+  for (const client of clients) {
+    client.navigate(client.url);
+  }
+}
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;

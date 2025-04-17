@@ -1,0 +1,17 @@
+---
+import DiscordServerCarousel from 'src/layout/svelte/carousel/DiscordServerCarousel.svelte';
+---
+
+<div class="md:col-span-3 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 overflow-visible min-h-[350px] relative">
+	<!-- Static Astro fallback (above Svelte layer) -->
+	<div
+		id="astro-skeleton"
+		class="absolute inset-0 flex gap-4 px-2 overflow-hidden z-20 transition-opacity duration-500 bg-[#312d4b]"
+	>
+		{Array.from({ length: 3 }).map(() => (
+			<div class="card-tile animate-pulse h-[320px] w-[85%] sm:w-[48%] lg:w-[32%]"></div>
+		))}
+	</div>
+
+	<DiscordServerCarousel client:only="svelte" />
+</div>

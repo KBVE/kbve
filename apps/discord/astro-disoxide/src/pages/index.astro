@@ -3,7 +3,7 @@
 
 import Layout from 'src/layout/Layout.astro';
 import ServerCarousel from 'src/layout/ui/ServerCarousel.astro';
-import DiscordServerCarousel from 'src/layout/svelte/carousel/DiscordServerCarousel.svelte';
+import SvelteDiscordServers from 'src/layout/svelte/carousel/SvelteDiscordServers.astro';
 ---
 
 <Layout title="Dashboard" description="DiscordSH Dashboard">
@@ -58,7 +58,8 @@ import DiscordServerCarousel from 'src/layout/svelte/carousel/DiscordServerCarou
 
 						<!-- Server Carousel Demo -->
 						<!-- <ServerCarousel /> -->
-						 <DiscordServerCarousel client:only="svelte" />
+
+						<SvelteDiscordServers />
 						<!-- AlpineJS Start -->
 						<!-- Metrics Cube Card -->
 
