@@ -365,6 +365,17 @@ const handlers: WorkerHandlers = {
 
 // --- Prepopulate DB
 
+function renderHtmlForServer(server: DiscordServer): string {
+	return `
+		<div class="flex flex-col gap-2 p-2">
+			<img src="${server.logo}" alt="${server.name}" class="w-12 h-12 rounded-full" />
+			<h3 class="text-lg font-bold">${server.name}</h3>
+			<p class="text-sm opacity-70">${server.summary}</p>
+			<a href="${server.invite}" class="text-purple-400 underline text-xs">Join</a>
+		</div>
+	`.trim();
+}
+
 async function initializeDBIfEmpty() {
 	const db = await getDB();
 	const tx = db.transaction('custom', 'readonly');
@@ -376,7 +387,7 @@ async function initializeDBIfEmpty() {
 			console.log('[SharedWorker DB] Seeding initial server data...');
 
 			const now = Date.now();
-			const servers: Record<string, DiscordServer> = {};
+			const records: Record<string, any> = {};
 
 			for (let i = 1; i <= 20; i++) {
 				const server: DiscordServer = {
@@ -396,21 +407,27 @@ async function initializeDBIfEmpty() {
 					updated_at: new Date(now - i * 3600_000).toISOString(),
 				};
 
-				servers[`server:${server.server_id}`] = server;
+				const serverKey = `server:${server.server_id}`;
+				const htmlKey = `html:server:${server.server_id}`;
+				const html = renderHtmlForServer(server);
+
+				records[serverKey] = server;
+				records[htmlKey] = html;
 			}
 
 			const writeTx = db.transaction('custom', 'readwrite');
 			const writeStore = writeTx.objectStore('custom');
 
-			for (const [key, value] of Object.entries(servers)) {
+			for (const [key, value] of Object.entries(records)) {
 				writeStore.put(value, key);
 			}
 
-			console.log('[SharedWorker DB] Seed complete with 20 servers');
+			writeStore.put(true, 'meta:db_seeded');
+
+			console.log('[SharedWorker DB] Seed complete with 20 servers + HTML');
 		}
 	};
 }
-
 
 
 // --- Handle new connections from any tab
