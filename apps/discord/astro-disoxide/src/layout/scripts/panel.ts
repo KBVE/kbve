@@ -1,4 +1,3 @@
-// panels.ts
 import type { PanelRequest, PanelState } from 'src/env';
 import { subscribeToTopic, useSharedWorkerCall } from './client';
 
@@ -71,5 +70,5 @@ export default function RegisterAlpinePanelManager(Alpine: typeof window.Alpine)
 	};
 
 	Alpine.store('panelManager', store);
-	store.init(); // no more TS error
+	store.init();
 }

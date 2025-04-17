@@ -15,6 +15,10 @@ export function initCanvasWorker(canvas: HTMLCanvasElement, src: string): Promis
 	return useSharedWorkerCall('initCanvasWorker', { src, canvas: offscreen }, 10000, [offscreen]);
 }
 
+export function destroyCanvasWorker(): Promise<void> {
+	return useSharedWorkerCall('destroyCanvasWorker');
+}
+
 export function initSharedWorker(): MessagePort {
 	if (!sharedPort) {
 		//const worker = new SharedWorker('/js/shared-worker.js');

@@ -1,4 +1,4 @@
-import { initCanvasWorker, destroyCanvasWorker } from './client'; // or wherever it's defined
+import { initCanvasWorker, destroyCanvasWorker } from './client';
 
 export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) {
 	Alpine.data('lottiePanel', () => ({
@@ -14,7 +14,8 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 				canvas.className = "w-full h-full";
 				container.appendChild(canvas);
 
-				await initCanvasWorker(canvas, "/assets/json/lottie/animu.lottie");
+				const lottieUrl = new URL("/assets/json/lottie/animu.lottie", location.origin).toString();
+				await initCanvasWorker(canvas, lottieUrl);
 				this.workerReady = true;
 			} catch (e) {
 				this.error = (e as Error).message;
@@ -25,7 +26,7 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 			const container = document.getElementById("lottie-container");
 			if (container) container.innerHTML = "";
 
-			await destroyCanvasWorker(); // 🧼 Fully clean up worker instance
+			await destroyCanvasWorker();
 			this.workerReady = false;
 		}
 	}));
