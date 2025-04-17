@@ -46,6 +46,7 @@ type WorkerHandlers = {
 
 	// canvas
 	initCanvasWorker: (payload: { canvas: OffscreenCanvas; src: string }) => Promise<boolean>;
+	destroyCanvasWorker: () => Promise<boolean>;
 
 };
 
@@ -364,6 +365,15 @@ const handlers: WorkerHandlers = {
 			mode: 'normal',
 		});
 
+		return true;
+	},
+
+	destroyCanvasWorker: async () => {
+		if (lottieInstance) {
+			lottieInstance.destroy();
+			lottieInstance = null;
+			console.log('[Lottie] Worker instance destroyed');
+		}
 		return true;
 	},
 };

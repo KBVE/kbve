@@ -4,7 +4,7 @@ const SW_VERSION = '1.0.2';
 
 const PRECACHE_URLS = [
   // Static assets, CDN files, or local fallback resources
-  '/assets/json/lottie/animu.lottie',
+  '/assets/json/lottie/animu.json',
   'https://esm.sh/@lottiefiles/dotlottie-web',
 ];
 
