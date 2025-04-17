@@ -135,7 +135,7 @@ export default defineConfig({
 		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
 		//partytown(),
 		worker(),
-		svelte(),
+		svelte({ extensions: ['.svelte'] }),
 
 		// tailwind({
 		// 	configFile: fileURLToPath(
