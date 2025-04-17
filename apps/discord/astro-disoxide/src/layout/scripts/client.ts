@@ -1,5 +1,5 @@
 import type { CommandPayload, SharedWorkerCommand } from "src/env";
-
+const EXPECTED_SW_VERSION = '1.0.0';
 let sharedPort: MessagePort | null = null;
 
 type Listener = {
@@ -93,11 +93,30 @@ export function subscribeToTopic<T = any>(
 	};
 }
 
+
 export async function registerServiceWorker() {
 	if ('serviceWorker' in navigator) {
 		try {
 			const reg = await navigator.serviceWorker.register('/sw.js');
 			console.log('[SharedWorker-Controlled] Service Worker registered');
+
+			if (reg.active) {
+				reg.active.postMessage({
+					type: 'check-version',
+					expectedVersion: EXPECTED_SW_VERSION,
+				});
+
+				setInterval(() => {
+					reg.active?.postMessage({ type: 'ping' });
+				}, 60_000);
+			}
+
+			navigator.serviceWorker.addEventListener('message', (event) => {
+				if (event.data?.type === 'pong') {
+					console.log('[SW] Pong received — version:', event.data.swVersion);
+				}
+			});
+
 			return reg;
 		} catch (err) {
 			console.error('[SW] Registration failed:', err);
