@@ -110,6 +110,10 @@ export async function registerServiceWorker() {
 					reg.active?.postMessage({ type: 'ping' });
 				}, 60_000);
 			}
+			else {
+				console.warn('[SW] Active service worker too old or missing — forcing cleanup');
+				
+			}
 
 			navigator.serviceWorker.addEventListener('message', (event) => {
 				if (event.data?.type === 'pong') {
@@ -123,6 +127,7 @@ export async function registerServiceWorker() {
 		}
 	}
 }
+
 
 export function dispatchCommand<T extends SharedWorkerCommand['type']>(
 	type: T,

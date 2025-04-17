@@ -13,16 +13,32 @@
 
 
 	async function fetchServerData() {
+
+		let _guard = false;
+		while (!_guard) {
+			try {
+				_guard = await dispatchCommand('db_get', { key: 'meta:db_seeded' });
+				
+				console.log(_guard);
+			} catch (e) {
+				console.warn('[Carousel] Waiting for DB seed to complete...');
+			}
+			if (!_guard) {
+				await new Promise((resolve) => setTimeout(resolve, 2000));
+			}
+		}
+
 		const dbServers: DiscordServer[] = await dispatchCommand('db_list', {});
-		serverIds = dbServers.map((s) => s.server_id);
 
-		for (const server of dbServers) {
-			const html: string = await dispatchCommand('db_get', {
-				key: `html:server:${server.server_id}`,
+		const validServers = dbServers.filter((s) => typeof s.server_id === 'string' && s.server_id.trim() !== '');
+		serverIds = validServers.map((s) => s.server_id);
+
+		for (const id of serverIds) {
+			const html: string | null = await dispatchCommand('db_get', {
+				key: `html:server:${id}`,
 			});
-
 			if (html) {
-				renderedCards[server.server_id] = html;
+				renderedCards[id] = html;
 			}
 		}
 	}
