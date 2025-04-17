@@ -1,7 +1,7 @@
-import type { PanelRequest, PanelState, DiscordServer } from 'src/env';
+import type { PanelRequest, PanelState, DiscordServer, KnownStore  } from 'src/env';
+const knownStores = ['jsonservers', 'htmlservers', 'meta', 'panel'] as const;
 
 let lottieInstance: any = null;
-
 
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
@@ -39,10 +39,10 @@ type WorkerHandlers = {
 	panel: (payload: PanelRequest) => Promise<PanelState>;
 
 	// db
-	db_get: (key: string) => Promise<any>;
-	db_set: (args: { key: string; value: any }) => Promise<boolean>;
-	db_delete: (key: string) => Promise<boolean>;
-	db_list: () => Promise<any[]>;
+	db_get: (args: { store: KnownStore; key: string }) => Promise<any>;
+	db_set: (args: { store: KnownStore; key: string; value: any }) => Promise<boolean>;
+	db_delete: (args: { store: KnownStore; key: string }) => Promise<boolean>;
+	db_list: (args: { store: KnownStore }) => Promise<any[]>;
 
 	// canvas
 	initCanvasWorker: (payload: { canvas: OffscreenCanvas; src: string }) => Promise<boolean>;
@@ -67,19 +67,36 @@ function getAPIBaseURL(): string {
 
 // --- Util: DB
 
+async function getObjectStore<T = any>(
+	storeName: KnownStore,
+	mode: IDBTransactionMode = 'readonly'
+): Promise<IDBObjectStore> {
+	const db = await getDB();
+
+	if (!db.objectStoreNames.contains(storeName)) {
+		throw new Error(`Object store "${storeName}" does not exist`);
+	}
+
+	const tx = db.transaction(storeName, mode);
+	return tx.objectStore(storeName);
+}
+
+
+
 function getDB(): Promise<IDBDatabase> {
 	if (dbPromise) return dbPromise;
 
 	dbPromise = new Promise((resolve, reject) => {
 		const request = indexedDB.open('shared-worker-store', 1);
 
-		request.onupgradeneeded = (event) => {
+		request.onupgradeneeded = () => {
 			const db = request.result;
-			if (!db.objectStoreNames.contains('panel')) {
-				db.createObjectStore('panel');
-			}
-			if (!db.objectStoreNames.contains('custom')) {
-				db.createObjectStore('custom');
+
+			for (const store of knownStores) {
+				if (!db.objectStoreNames.contains(store)) {
+					console.log(`[DB Init] Creating store: ${store}`);
+					db.createObjectStore(store);
+				}
 			}
 		};
 
@@ -283,62 +300,50 @@ const handlers: WorkerHandlers = {
 	},
 
 	// DB
-
-	db_get: async (key) => {
-		const db = await getDB();
+	db_get: async (args) => {
+		console.log('[db_get handler] raw args:', args);
+	
+		const { store, key } = args;
+	
+		if (typeof store !== 'string' || typeof key !== 'string') {
+			console.error('[db_get] Invalid store or key:', { store, key });
+			throw new Error(`[db_get] Invalid store or key: store=${store}, key=${key}`);
+		}
+	
+		const objStore = await getObjectStore(store, 'readonly');
 		return new Promise((resolve, reject) => {
-			const tx = db.transaction('custom', 'readonly');
-			const store = tx.objectStore('custom');
-			const request = store.get(key);
+			const request = objStore.get(key);
 			request.onsuccess = () => resolve(request.result);
 			request.onerror = () => reject(request.error);
 		});
 	},
 	
-	db_set: async ({ key, value }) => {
-		const db = await getDB();
+	db_set: async ({ store, key, value }) => {
+		const objStore = await getObjectStore(store, 'readwrite');
 		return new Promise((resolve, reject) => {
-			const tx = db.transaction('custom', 'readwrite');
-			const store = tx.objectStore('custom');
-			const request = store.put(value, key);
-	
-			request.onsuccess = () => {
-				resolve(true);
-				if (subscriptions.has('db')) {
-					broadcast('db', { key, value });
-				}
-			};
-	
-			request.onerror = () => reject(request.error);
+			const req = objStore.put(value, key);
+			req.onsuccess = () => resolve(true);
+			req.onerror = () => reject(req.error);
 		});
 	},
 	
-	db_delete: async (key) => {
-		const db = await getDB();
+	db_delete: async ({ store, key }) => {
+		const objStore = await getObjectStore(store, 'readwrite');
 		return new Promise((resolve, reject) => {
-			const tx = db.transaction('custom', 'readwrite');
-			const store = tx.objectStore('custom');
-			const request = store.delete(key);
-			request.onsuccess = () => {
-				resolve(true);
-				if (subscriptions.has('db')) {
-					broadcast('db', { key, deleted: true });
-				}
-			};
-			request.onerror = () => reject(request.error);
+			const req = objStore.delete(key);
+			req.onsuccess = () => resolve(true);
+			req.onerror = () => reject(req.error);
 		});
 	},
 
-	db_list: async () => {
-		const db = await getDB();
+	db_list: async ({ store }) => {
+		const objStore = await getObjectStore(store, 'readonly');
 		return new Promise((resolve, reject) => {
-		  const tx = db.transaction('custom', 'readonly');
-		  const store = tx.objectStore('custom');
-		  const request = store.getAll();
-		  request.onsuccess = () => resolve(request.result);
-		  request.onerror = () => reject(request.error);
+			const req = objStore.getAll();
+			req.onsuccess = () => resolve(req.result);
+			req.onerror = () => reject(req.error);
 		});
-	  },
+	},
 
 	initCanvasWorker: async ({ canvas, src }) => {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -375,58 +380,59 @@ function renderHtmlForServer(server: DiscordServer): string {
 		</div>
 	`.trim();
 }
-
 async function initializeDBIfEmpty() {
-	const db = await getDB();
-	const tx = db.transaction('custom', 'readonly');
-	const store = tx.objectStore('custom');
-	const countRequest = store.count();
+	console.log('[Worker] Checking if database needs seeding...');
 
-	countRequest.onsuccess = async () => {
-		if (countRequest.result === 0) {
-			console.log('[SharedWorker DB] Seeding initial server data...');
+	const metaStore = await getObjectStore('meta', 'readonly');
 
-			const now = Date.now();
-			const records: Record<string, any> = {};
+	const seeded: boolean = await new Promise((resolve, reject) => {
+		const checkRequest = metaStore.get('db_seeded');
+		checkRequest.onsuccess = () => resolve(checkRequest.result === true);
+		checkRequest.onerror = () => reject(checkRequest.error);
+	});
 
-			for (let i = 1; i <= 20; i++) {
-				const server: DiscordServer = {
-					server_id: `server-${i}`,
-					owner_id: `owner-${i}`,
-					lang: i % 3,
-					status: i % 2 === 0 ? 1 : 0,
-					invite: `https://discord.gg/fakeinvite${i}`,
-					name: `Server ${i}`,
-					summary: `This is the summary for server ${i}.`,
-					description: `Server ${i} is a vibrant community focused on discussion and events.`,
-					website: i % 2 === 0 ? `https://server${i}.com` : null,
-					logo: `https://api.dicebear.com/7.x/bottts/svg?seed=server${i}`,
-					banner: null,
-					video: null,
-					categories: (i % 5) + 1,
-					updated_at: new Date(now - i * 3600_000).toISOString(),
-				};
+	if (seeded) {
+		console.log('[Worker] DB already seeded');
+		return;
+	}
 
-				const serverKey = `server:${server.server_id}`;
-				const htmlKey = `html:server:${server.server_id}`;
-				const html = renderHtmlForServer(server);
+	console.log('[SharedWorker DB] Seeding initial server data...');
 
-				records[serverKey] = server;
-				records[htmlKey] = html;
-			}
+	const now = Date.now();
+	const servers: DiscordServer[] = [];
 
-			const writeTx = db.transaction('custom', 'readwrite');
-			const writeStore = writeTx.objectStore('custom');
+	for (let i = 1; i <= 20; i++) {
+		servers.push({
+			server_id: `server-${i}`,
+			owner_id: `owner-${i}`,
+			lang: i % 3,
+			status: i % 2 === 0 ? 1 : 0,
+			invite: `https://discord.gg/fakeinvite${i}`,
+			name: `Server ${i}`,
+			summary: `This is the summary for server ${i}.`,
+			description: `Server ${i} is a vibrant community focused on discussion and events.`,
+			website: i % 2 === 0 ? `https://server${i}.com` : null,
+			logo: `https://api.dicebear.com/7.x/bottts/svg?seed=server${i}`,
+			banner: null,
+			video: null,
+			categories: (i % 5) + 1,
+			updated_at: new Date(now - i * 3600_000).toISOString(),
+		});
+	}
 
-			for (const [key, value] of Object.entries(records)) {
-				writeStore.put(value, key);
-			}
+	const jsonStore = await getObjectStore<DiscordServer>('jsonservers', 'readwrite');
+	const htmlStore = await getObjectStore<string>('htmlservers', 'readwrite');
+	const metaWrite = await getObjectStore<boolean>('meta', 'readwrite');
 
-			writeStore.put(true, 'meta:db_seeded');
+	for (const server of servers) {
+		jsonStore.put(server, server.server_id);
+		const html = renderHtmlForServer(server);
+		htmlStore.put(html, server.server_id);
+	}
 
-			console.log('[SharedWorker DB] Seed complete with 20 servers + HTML');
-		}
-	};
+	metaWrite.put(true, 'db_seeded');
+
+	console.log('[SharedWorker DB] Seed complete with 20 servers + HTML');
 }
 
 
