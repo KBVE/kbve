@@ -6,6 +6,7 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 		workerReady: false,
 
 		async init() {
+			console.log('[lottiePanel] init() fired');
 			try {
 				const container = document.getElementById("lottie-container");
 				if (!container) throw new Error("Missing lottie-container");
