@@ -47,7 +47,6 @@
 			goTo(currentSlideIndex + 1);
 	}
 </script>
-<div class="md:col-span-3 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 overflow-visible">
 
 <div class="relative overflow-visible w-full">
 	<div
@@ -124,5 +123,4 @@
 				d="M8.25 4.5l7.5 7.5-7.5 7.5" />
 		</svg>
 	</button>
-</div>
 </div>
