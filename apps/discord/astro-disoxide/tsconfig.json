@@ -54,5 +54,5 @@
       }
    
   },
-  "include": ["src", ".astro/types.d.ts", "**/*.astro",   "**/*.svelte",  "**/*",  "env.d.ts" ]
+  "include": ["src", ".astro/types.d.ts", "**/*.astro",   "**/*.svelte",  "**/*",  "env.d.ts", "src/**/*.svelte"]
 }
