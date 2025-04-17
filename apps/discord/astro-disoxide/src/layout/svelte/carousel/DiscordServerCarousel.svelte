@@ -91,6 +91,14 @@
 
 		goTo(newIndex);
 	}
+
+	function openPanelFromSvelte(id: string) {
+		try {
+			(window as any).Alpine?.store('panelManager')?.openPanel(id);
+		} catch (err) {
+			console.warn('[Svelte] Failed to open panel via Alpine:', err);
+		}
+	}
 </script>
 
 <div class="relative overflow-visible w-full">
@@ -103,11 +111,11 @@
 				tabindex="0"
 				aria-label="Open server panel"
 				class="snap-start shrink-0 w-[85%] sm:w-[48%] lg:w-[32%] transition-transform duration-300 relative z-[10] min-h-[320px]"
-				on:click={() => openPanel(`server:${serverId}`)}
+				on:click={() => openPanelFromSvelte(`server:${serverId}`)}
 				on:keydown={(e) => {
 					if (e.key === 'Enter' || e.key === ' ') {
 						e.preventDefault();
-						openPanel(`server:${serverId}`);
+						openPanelFromSvelte(`server:${serverId}`);
 					}
 				}}>
 				{#if renderedCards[serverId]}
