@@ -15,7 +15,9 @@
 
 		while (!seeded) {
 			try {
-				console.log('[Carousel] Fetching meta:db_seeded with correct shape...');
+				console.log(
+					'[Carousel] Fetching meta:db_seeded with correct shape...',
+				);
 
 				seeded = await dispatchCommand('db_get', {
 					store: 'meta',
@@ -58,11 +60,11 @@
 	}
 
 	onMount(() => {
-
 		fetchServerData();
 	});
 
 	function goTo(index: number) {
+		currentSlideIndex = index;
 		container?.children?.[index]?.scrollIntoView({
 			behavior: 'smooth',
 			inline: 'start',
@@ -70,12 +72,24 @@
 	}
 
 	function previous() {
-		if (currentSlideIndex > 0) goTo(currentSlideIndex - 1);
-	}
+		if (serverIds.length === 0) return;
 
+		const newIndex =
+			currentSlideIndex > 0
+				? currentSlideIndex - 1
+				: serverIds.length - 1;
+
+		goTo(newIndex);
+	}
 	function next() {
-		if (currentSlideIndex < serverIds.length - 1)
-			goTo(currentSlideIndex + 1);
+		if (serverIds.length === 0) return;
+
+		const newIndex =
+			currentSlideIndex < serverIds.length - 1
+				? currentSlideIndex + 1
+				: 0;
+
+		goTo(newIndex);
 	}
 </script>
 
