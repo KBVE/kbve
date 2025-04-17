@@ -39,7 +39,7 @@ import { ClientRouter } from 'astro:transitions';
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
 
-		<ClientRouter />
+		<ClientRouter fallback="swap" />
 	</head>
 	<body
 		x-data="astro"
