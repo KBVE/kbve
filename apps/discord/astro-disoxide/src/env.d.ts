@@ -17,15 +17,19 @@ export type SharedWorkerCommand =
 	| { type: 'close_websocket' }
 	| { type: 'fetch_metrics' }
 	| { type: 'panel'; payload: PanelRequest }
-	| { type: 'db_get'; key: string }
-	| { type: 'db_set'; key: string; value: any }
-	| { type: 'db_delete'; key: string }
-	| { type: 'db_list' };
+	| { type: 'db_get'; store: KnownStore; key: string }
+	| { type: 'db_set'; store: KnownStore; key: string; value: any }
+	| { type: 'db_delete'; store: KnownStore; key: string }
+	| { type: 'db_list'; store: KnownStore };
 
 export type CommandPayload<T extends SharedWorkerCommand['type']> =
 	Extract<SharedWorkerCommand, { type: T }> extends { type: T }
 		? Omit<Extract<SharedWorkerCommand, { type: T }>, 'type'>
 		: never;
+
+export const knownStores = ['jsonservers', 'htmlservers', 'meta', 'panel'] as const;
+export type KnownStore = (typeof knownStores)[number];
+
 
 
 export interface DiscordServer {

@@ -4,42 +4,58 @@
 	import { openPanel } from 'src/layout/scripts/nanostores';
 	import type { DiscordServer } from 'src/env';
 
-	
 	let currentSlideIndex = 0;
 	let renderedCards: Record<string, string> = {};
 	let serverIds: string[] = [];
 
 	let container: HTMLDivElement;
 
-
 	async function fetchServerData() {
+		let seeded = false;
 
-		let _guard = false;
-		while (!_guard) {
+		while (!seeded) {
 			try {
-				_guard = await dispatchCommand('db_get', { key: 'meta:db_seeded' });
-				
-				console.log(_guard);
+				console.log(
+					'[Carousel] Fetching meta:db_seeded with correct shape...',
+				);
+
+				seeded = await dispatchCommand('db_get', {
+					store: 'meta',
+					key: 'db_seeded',
+				});
+				console.log('[Carousel] DB seeded:', seeded);
 			} catch (e) {
 				console.warn('[Carousel] Waiting for DB seed to complete...');
 			}
-			if (!_guard) {
+
+			if (!seeded) {
 				await new Promise((resolve) => setTimeout(resolve, 2000));
 			}
 		}
 
-		const dbServers: DiscordServer[] = await dispatchCommand('db_list', {});
+		const dbServers: DiscordServer[] = await dispatchCommand('db_list', {
+			store: 'jsonservers',
+		});
 
-		const validServers = dbServers.filter((s) => typeof s.server_id === 'string' && s.server_id.trim() !== '');
+		const validServers = dbServers.filter(
+			(s) => typeof s.server_id === 'string' && s.server_id.trim() !== '',
+		);
 		serverIds = validServers.map((s) => s.server_id);
 
 		for (const id of serverIds) {
 			const html: string | null = await dispatchCommand('db_get', {
-				key: `html:server:${id}`,
+				store: 'htmlservers',
+				key: id,
 			});
 			if (html) {
 				renderedCards[id] = html;
 			}
+		}
+
+		const skeleton = document.getElementById('astro-skeleton');
+		if (skeleton) {
+			skeleton.classList.add('opacity-0');
+			setTimeout(() => skeleton.remove(), 600);
 		}
 	}
 
@@ -48,6 +64,7 @@
 	});
 
 	function goTo(index: number) {
+		currentSlideIndex = index;
 		container?.children?.[index]?.scrollIntoView({
 			behavior: 'smooth',
 			inline: 'start',
@@ -55,12 +72,24 @@
 	}
 
 	function previous() {
-		if (currentSlideIndex > 0) goTo(currentSlideIndex - 1);
-	}
+		if (serverIds.length === 0) return;
 
+		const newIndex =
+			currentSlideIndex > 0
+				? currentSlideIndex - 1
+				: serverIds.length - 1;
+
+		goTo(newIndex);
+	}
 	function next() {
-		if (currentSlideIndex < serverIds.length - 1)
-			goTo(currentSlideIndex + 1);
+		if (serverIds.length === 0) return;
+
+		const newIndex =
+			currentSlideIndex < serverIds.length - 1
+				? currentSlideIndex + 1
+				: 0;
+
+		goTo(newIndex);
 	}
 </script>
 

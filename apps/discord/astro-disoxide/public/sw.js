@@ -1,6 +1,6 @@
 
 const CACHE_NAME = 'kbve-cache-v1';
-const SW_VERSION = '1.0.0';
+const SW_VERSION = '1.0.2';
 
 const PRECACHE_URLS = [
   // Static assets, CDN files, or local fallback resources
