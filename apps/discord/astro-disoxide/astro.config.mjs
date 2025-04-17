@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import svelte from '@astrojs/svelte';
+import svelte, { vitePreprocess } from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 //import tailwind from '@astrojs/tailwind';
@@ -133,9 +133,10 @@ export default defineConfig({
 			include: ['**/react/*'],
 		}),
 		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
-		svelte(),
 		//partytown(),
 		worker(),
+		svelte(),
+
 		// tailwind({
 		// 	configFile: fileURLToPath(
 		// 		new URL('./tailwind.config.cjs', import.meta.url),
