@@ -1,4 +1,4 @@
-import type { CommandPayload, SharedWorkerCommand } from "src/env";
+import type { CommandPayload, SharedWorkerCommand, RenderType, RenderTypeOptionsMap } from "src/env";
 const EXPECTED_SW_VERSION = '1.0.2';
 let sharedPort: MessagePort | null = null;
 
@@ -9,10 +9,26 @@ type Listener = {
 
 const listeners = new Map<string, Listener>();
 
-export function initCanvasWorker(canvas: HTMLCanvasElement, src: string): Promise<void> {
+export function initCanvasWorker<T extends RenderType>(
+	canvas: HTMLCanvasElement,
+	renderType: T,
+	src?: string,
+	options?: RenderTypeOptionsMap[T]
+): Promise<void> {
 	const offscreen = canvas.transferControlToOffscreen();
 
-	return useSharedWorkerCall('initCanvasWorker', { src, canvas: offscreen }, 10000, [offscreen]);
+	return useSharedWorkerCall(
+		'render',
+		{
+			type: 'render',
+			renderType,
+			canvas: offscreen,
+			src,
+			options
+		},
+		10000,
+		[offscreen]
+	);
 }
 
 export function destroyCanvasWorker(): Promise<void> {
