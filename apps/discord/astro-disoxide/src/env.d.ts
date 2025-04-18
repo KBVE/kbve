@@ -93,3 +93,22 @@ export interface PanelState {
 	id: string;
 	payload?: Record<string, any>;
 }
+
+export type RenderType = 'lottie' | 'chart' | 'webgl' | 'particles' | 'text';
+export type RenderTypeOptionsMap = {
+	lottie: { loop?: boolean };
+	chart: { data: any[]; config?: object };
+	webgl: { shaderSrc: string };
+	particles: { particleCount: number };
+	text: { content: string; fontSize?: number };
+};
+
+export interface RenderMessage<T extends RenderType = RenderType> {
+	type: 'render';
+	renderType: T;
+	canvas: OffscreenCanvas;
+	src?: string;
+	options?: RenderTypeOptionsMap[T];
+}
+
+export type SpecificRenderMessage<T extends RenderType> = RenderMessage<T>;

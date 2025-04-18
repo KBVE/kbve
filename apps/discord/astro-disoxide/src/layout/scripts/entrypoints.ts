@@ -6,7 +6,7 @@ import RegisterAlpineMetricsComponents from './metrics';
 import RegisterAlpineCarousel from './carousel';
 import RegisterAlpineLiveServerCards from './livecards';
 import RegisterAlpinePanelManager from './panel';
-
+import RegisterAlpineLottiePanel from './lottie';
 
 export default function RegisterAlpineEntrypoints(Alpine: Alpine) {
 	console.log('[Alpine] Entrypoints loaded');
@@ -42,6 +42,6 @@ export default function RegisterAlpineEntrypoints(Alpine: Alpine) {
 	RegisterAlpineCarousel(Alpine);
 	RegisterAlpineLiveServerCards(Alpine);
 	RegisterAlpinePanelManager(Alpine);
-
+	RegisterAlpineLottiePanel(Alpine);
 	return Alpine;
 }
