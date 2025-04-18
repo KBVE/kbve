@@ -14,18 +14,45 @@ type Listener = {
 
 const listeners = new Map<string, Listener>();
 
+export function createCanvasId(renderType: RenderType): string {
+	return `${renderType}-${crypto.randomUUID()}`;
+}
+
 export function initCanvasWorker<T extends RenderType>(
-	canvas: HTMLCanvasElement,
-	renderType: T,
-	src?: string,
-	options?: RenderTypeOptionsMap[T],
+	idOrCanvas: string | HTMLCanvasElement,
+	canvasOrRenderType: HTMLCanvasElement | T,
+	renderTypeOrSrc?: T | string,
+	srcOrOptions?: string | RenderTypeOptionsMap[T],
+	optionsMaybe?: RenderTypeOptionsMap[T],
 ): Promise<void> {
+	let id: string;
+	let canvas: HTMLCanvasElement;
+	let renderType: T;
+	let src: string | undefined;
+	let options: RenderTypeOptionsMap[T] | undefined;
+
+	// Overload-style handling
+	if (typeof idOrCanvas === 'string') {
+		id = idOrCanvas;
+		canvas = canvasOrRenderType as HTMLCanvasElement;
+		renderType = renderTypeOrSrc as T;
+		src = srcOrOptions as string | undefined;
+		options = optionsMaybe;
+	} else {
+		canvas = idOrCanvas;
+		renderType = canvasOrRenderType as T;
+		id = createCanvasId(renderType);
+		src = renderTypeOrSrc as string | undefined;
+		options = srcOrOptions as RenderTypeOptionsMap[T];
+	}
+
 	const offscreen = canvas.transferControlToOffscreen();
 
 	return useSharedWorkerCall(
 		'render',
 		{
 			type: 'render',
+			id,
 			renderType,
 			canvas: offscreen,
 			src,
