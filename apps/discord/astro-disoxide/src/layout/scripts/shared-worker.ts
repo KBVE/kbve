@@ -1,7 +1,84 @@
-import type { PanelRequest, PanelState, DiscordServer, KnownStore  } from 'src/env';
+import type {
+	PanelRequest,
+	PanelState,
+	DiscordServer,
+	KnownStore,
+	RenderType, RenderTypeOptionsMap 
+} from 'src/env';
 const knownStores = ['jsonservers', 'htmlservers', 'meta', 'panel'] as const;
 
-let lottieInstance: any = null;
+const canvasInstances = new Map<string, any>();
+const portCanvasMap = new Map<MessagePort, Set<string>>();
+
+// * Cleanup Canvas instances on disconnect
+
+
+function trackCanvas(port: MessagePort, id: string) {
+	if (!portCanvasMap.has(port)) {
+		portCanvasMap.set(port, new Set());
+	}
+	portCanvasMap.get(port)!.add(id);
+}
+
+function cleanupPortCanvases(port: MessagePort) {
+	const ids = portCanvasMap.get(port);
+	if (ids) {
+		for (const id of ids) {
+			canvasInstances.get(id)?.destroy?.();
+			canvasInstances.delete(id);
+		}
+		portCanvasMap.delete(port);
+		console.log(`[SharedWorker] Cleaned up ${ids.size} canvas instances for closed port.`);
+	}
+}
+
+const renderHandlers: Record<
+	RenderType,
+	(payload: {
+		id: string;
+		canvas: OffscreenCanvas;
+		src?: string;
+		options?: RenderTypeOptionsMap[RenderType];
+	}) => Promise<any>
+> = {
+	lottie: async ({ id, canvas, src, options }) => {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore: Remote CDN import doesn't have type declarations
+		const { DotLottieWorker } = await import('https://esm.sh/@lottiefiles/dotlottie-web') as {
+			DotLottieWorker: any;
+		};
+
+		const instance = new DotLottieWorker({
+			canvas,
+			src,
+			loop: true,
+			autoplay: true,
+			mode: 'normal',
+			...options,
+		});
+
+		return instance;
+	},
+
+	chart: async () => {
+		throw new Error('chart renderType not implemented yet');
+	},
+
+	webgl: async () => {
+		throw new Error('webgl renderType not implemented yet');
+	},
+
+	particles: async () => {
+		throw new Error('particles renderType not implemented yet');
+	},
+
+	text: async () => {
+		throw new Error('text renderType not implemented yet');
+	},
+
+	// chart: async ({ id, canvas, options }) => { ... },
+	// particles: ...
+};
 
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
@@ -40,14 +117,26 @@ type WorkerHandlers = {
 
 	// db
 	db_get: (args: { store: KnownStore; key: string }) => Promise<any>;
-	db_set: (args: { store: KnownStore; key: string; value: any }) => Promise<boolean>;
+	db_set: (args: {
+		store: KnownStore;
+		key: string;
+		value: any;
+	}) => Promise<boolean>;
 	db_delete: (args: { store: KnownStore; key: string }) => Promise<boolean>;
 	db_list: (args: { store: KnownStore }) => Promise<any[]>;
 
 	// canvas
-	initCanvasWorker: (payload: { canvas: OffscreenCanvas; src: string }) => Promise<boolean>;
-	destroyCanvasWorker: () => Promise<boolean>;
+	render: (payload: {
+		id: string;
+		renderType: RenderType;
+		canvas: OffscreenCanvas;
+		src?: string;
+		options?: RenderTypeOptionsMap[RenderType];
+	}) => Promise<boolean>;
 
+	destroyCanvasWorker: (payload: {
+		id: string;
+	}) => Promise<boolean>;
 };
 
 type HandlerType = keyof WorkerHandlers;
@@ -70,7 +159,7 @@ function getAPIBaseURL(): string {
 
 async function getObjectStore<T = any>(
 	storeName: KnownStore,
-	mode: IDBTransactionMode = 'readonly'
+	mode: IDBTransactionMode = 'readonly',
 ): Promise<IDBObjectStore> {
 	const db = await getDB();
 
@@ -81,8 +170,6 @@ async function getObjectStore<T = any>(
 	const tx = db.transaction(storeName, mode);
 	return tx.objectStore(storeName);
 }
-
-
 
 function getDB(): Promise<IDBDatabase> {
 	if (dbPromise) return dbPromise;
@@ -303,14 +390,16 @@ const handlers: WorkerHandlers = {
 	// DB
 	db_get: async (args) => {
 		console.log('[db_get handler] raw args:', args);
-	
+
 		const { store, key } = args;
-	
+
 		if (typeof store !== 'string' || typeof key !== 'string') {
 			console.error('[db_get] Invalid store or key:', { store, key });
-			throw new Error(`[db_get] Invalid store or key: store=${store}, key=${key}`);
+			throw new Error(
+				`[db_get] Invalid store or key: store=${store}, key=${key}`,
+			);
 		}
-	
+
 		const objStore = await getObjectStore(store, 'readonly');
 		return new Promise((resolve, reject) => {
 			const request = objStore.get(key);
@@ -318,7 +407,7 @@ const handlers: WorkerHandlers = {
 			request.onerror = () => reject(request.error);
 		});
 	},
-	
+
 	db_set: async ({ store, key, value }) => {
 		const objStore = await getObjectStore(store, 'readwrite');
 		return new Promise((resolve, reject) => {
@@ -327,7 +416,7 @@ const handlers: WorkerHandlers = {
 			req.onerror = () => reject(req.error);
 		});
 	},
-	
+
 	db_delete: async ({ store, key }) => {
 		const objStore = await getObjectStore(store, 'readwrite');
 		return new Promise((resolve, reject) => {
@@ -346,36 +435,44 @@ const handlers: WorkerHandlers = {
 		});
 	},
 
-	initCanvasWorker: async ({ canvas, src }) => {
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore: Remote CDN import doesn't have type declarations
-		const { DotLottieWorker } = await import('https://esm.sh/@lottiefiles/dotlottie-web') as {
-			DotLottieWorker: any;
-		};
-
-		if (lottieInstance) {
-			lottieInstance.destroy();
+	render: async ({ id, renderType, canvas, src, options }) => {
+		const handler = renderHandlers[renderType];
+		if (!handler) {
+			throw new Error(`[CanvasWorker] Unknown renderType: "${renderType}"`);
 		}
-
-		lottieInstance = new DotLottieWorker({
-			canvas,
-			src,
-			loop: true,
-			autoplay: true,
-			mode: 'normal',
-		});
-
+	
+		if (canvasInstances.has(id)) {
+			canvasInstances.get(id)?.destroy?.();
+			canvasInstances.delete(id);
+		}
+	
+		const instance = await handler({ id, canvas, src, options });
+		canvasInstances.set(id, instance);
+	
+		console.log(`[CanvasWorker] Rendered "${renderType}" instance with id: ${id}`);
 		return true;
 	},
 
-	destroyCanvasWorker: async () => {
-		if (lottieInstance) {
-			lottieInstance.destroy();
-			lottieInstance = null;
-			console.log('[Lottie] Worker instance destroyed');
+	destroyCanvasWorker: async ({ id }) => {
+
+		for (const [port, ids] of portCanvasMap.entries()) {
+			ids.delete(id);
+			if (ids.size === 0) {
+				portCanvasMap.delete(port);
+			}
 		}
-		return true;
-	},
+
+		const instance = canvasInstances.get(id);
+		if (instance) {
+			instance.destroy?.();
+			canvasInstances.delete(id);
+			console.log(`[CanvasWorker] Destroyed canvas instance: ${id}`);
+			return true;
+		}
+		
+		console.warn(`[CanvasWorker] No canvas found for id: ${id}`);
+		return false;
+	}
 };
 
 // --- Prepopulate DB
@@ -430,7 +527,10 @@ async function initializeDBIfEmpty() {
 		});
 	}
 
-	const jsonStore = await getObjectStore<DiscordServer>('jsonservers', 'readwrite');
+	const jsonStore = await getObjectStore<DiscordServer>(
+		'jsonservers',
+		'readwrite',
+	);
 	const htmlStore = await getObjectStore<string>('htmlservers', 'readwrite');
 	const metaWrite = await getObjectStore<boolean>('meta', 'readwrite');
 
@@ -444,7 +544,6 @@ async function initializeDBIfEmpty() {
 
 	console.log('[SharedWorker DB] Seed complete with 20 servers + HTML');
 }
-
 
 // --- Handle new connections from any tab
 self.onconnect = function (e) {
@@ -463,6 +562,9 @@ self.onconnect = function (e) {
 
 		console.log('[SharedWorker] Message received:', type, requestId);
 
+		if (type === 'render') {
+			trackCanvas(port, payload.id);
+		}
 		if (type === 'subscribe') {
 			subscribe(port, topic as Topic);
 		} else if (type === 'unsubscribe') {
@@ -491,5 +593,11 @@ self.onconnect = function (e) {
 		}
 	};
 
+	port.onmessageerror = () => {
+		console.warn('[SharedWorker] Port closed or errored.');
+		cleanupPortCanvases(port);
+	};
 	port.start();
 };
+
+
