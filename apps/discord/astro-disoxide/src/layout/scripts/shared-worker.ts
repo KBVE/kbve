@@ -477,6 +477,35 @@ const handlers: WorkerHandlers = {
 
 // --- Prepopulate DB
 
+async function ensureDatabaseReady(): Promise<IDBDatabase> {
+	if (!dbPromise) {
+		dbPromise = new Promise((resolve, reject) => {
+			const request = indexedDB.open('shared-worker-store', 1);
+
+			request.onupgradeneeded = () => {
+				const db = request.result;
+				for (const store of knownStores) {
+					if (!db.objectStoreNames.contains(store)) {
+						console.log(`[DB Init] Creating store: ${store}`);
+						db.createObjectStore(store);
+					}
+				}
+			};
+
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(request.error);
+		});
+	}
+
+	const db = await dbPromise;
+
+	if (!db || db.close === undefined) {
+		throw new Error('IndexedDB connection is invalid or closing');
+	}
+
+	return db;
+}
+
 function renderHtmlForServer(server: DiscordServer): string {
 	return `
 		<div class="flex flex-col gap-2 p-2">
@@ -487,10 +516,12 @@ function renderHtmlForServer(server: DiscordServer): string {
 		</div>
 	`.trim();
 }
+
 async function initializeDBIfEmpty() {
 	console.log('[Worker] Checking if database needs seeding...');
-
-	const metaStore = await getObjectStore('meta', 'readonly');
+	const db = await ensureDatabaseReady();
+	const tx = db.transaction('meta', 'readonly');
+	const metaStore = tx.objectStore('meta');
 
 	const seeded: boolean = await new Promise((resolve, reject) => {
 		const checkRequest = metaStore.get('db_seeded');
@@ -503,6 +534,11 @@ async function initializeDBIfEmpty() {
 		return;
 	}
 
+	await seedInitialServerData();
+}
+
+
+async function seedInitialServerData() {
 	console.log('[SharedWorker DB] Seeding initial server data...');
 
 	const now = Date.now();
@@ -527,20 +563,23 @@ async function initializeDBIfEmpty() {
 		});
 	}
 
-	const jsonStore = await getObjectStore<DiscordServer>(
-		'jsonservers',
-		'readwrite',
-	);
-	const htmlStore = await getObjectStore<string>('htmlservers', 'readwrite');
-	const metaWrite = await getObjectStore<boolean>('meta', 'readwrite');
+	const db = await ensureDatabaseReady();
+	const tx = db.transaction(['jsonservers', 'htmlservers', 'meta'], 'readwrite');
+	const jsonStore = tx.objectStore('jsonservers');
+	const htmlStore = tx.objectStore('htmlservers');
+	const metaWrite = tx.objectStore('meta');
 
 	for (const server of servers) {
 		jsonStore.put(server, server.server_id);
-		const html = renderHtmlForServer(server);
-		htmlStore.put(html, server.server_id);
+		htmlStore.put(renderHtmlForServer(server), server.server_id);
 	}
 
 	metaWrite.put(true, 'db_seeded');
+
+	await new Promise((resolve, reject) => {
+		tx.oncomplete = () => resolve(true);
+		tx.onerror = () => reject(tx.error);
+	});
 
 	console.log('[SharedWorker DB] Seed complete with 20 servers + HTML');
 }
