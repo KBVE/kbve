@@ -11,8 +11,8 @@ declare module 'https://esm.sh/@lottiefiles/dotlottie-web' {
 }
 
 export type SharedWorkerCommand =
-	| { type: 'initCanvasWorker'; canvas: OffscreenCanvas; src: string }
-	| { type: 'destroyCanvasWorker' }
+	| RenderMessage
+	| { type: 'destroyCanvasWorker'; id: string }
 	| { type: 'connect_websocket' }
 	| { type: 'close_websocket' }
 	| { type: 'fetch_metrics' }
