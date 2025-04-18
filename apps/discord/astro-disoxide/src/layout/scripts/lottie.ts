@@ -1,23 +1,30 @@
-import { initCanvasWorker, destroyCanvasWorker } from './client';
+import { initCanvasWorker, destroyCanvasWorker, createCanvasId } from './client';
 
 export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) {
 	Alpine.data('lottiePanel', () => ({
 		error: null as string | null,
 		workerReady: false,
+		canvasId: '',
 
 		async init() {
 			console.log('[lottiePanel] init() fired');
 			try {
-				const container = document.getElementById("lottie-container");
-				if (!container) throw new Error("Missing lottie-container");
+				const container = document.getElementById('lottie-container');
+				if (!container) throw new Error('Missing lottie-container');
 
-				const canvas = document.createElement("canvas");
-				canvas.className = "w-full h-full";
+				const canvas = document.createElement('canvas');
+				canvas.className = 'w-full h-full';
 				container.appendChild(canvas);
 
-				//const lottieUrl = new URL("/assets/json/lottie/animu.lottie", location.origin).toString();
-				const lottieUrl = new URL("http://localhost:4321/assets/json/lottie/animu.json").toString();
-				await initCanvasWorker(canvas, lottieUrl);
+				// Generate unique ID for this canvas instance
+				const id = createCanvasId('lottie');
+				this.canvasId = id;
+
+				const lottieUrl = new URL(
+					'http://localhost:4321/assets/json/lottie/animu.json',
+				).toString();
+
+				await initCanvasWorker(id, canvas, 'lottie', lottieUrl);
 				this.workerReady = true;
 			} catch (e) {
 				this.error = (e as Error).message;
@@ -25,11 +32,14 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 		},
 
 		async destroy() {
-			const container = document.getElementById("lottie-container");
-			if (container) container.innerHTML = "";
+			const container = document.getElementById('lottie-container');
+			if (container) container.innerHTML = '';
 
-			await destroyCanvasWorker();
+			if (this.canvasId) {
+				await destroyCanvasWorker(this.canvasId);
+			}
 			this.workerReady = false;
-		}
+			this.canvasId = '';
+		},
 	}));
 }
