@@ -1,8 +1,14 @@
 import { initCanvasWorker, destroyCanvasWorker, createCanvasId } from './client';
 
 export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) {
-	Alpine.data('lottiePanel', () => ({
-		error: null as string | null,
+	Alpine.data('lottiePanel', (): {
+		error: string | null;
+		workerReady: boolean;
+		canvasId: string;
+		init(): Promise<void>;
+		destroy(): Promise<void>;
+	} => ({
+		error: null,
 		workerReady: false,
 		canvasId: '',
 
@@ -16,7 +22,6 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 				canvas.className = 'w-full h-full';
 				container.appendChild(canvas);
 
-				// Generate unique ID for this canvas instance
 				const id = createCanvasId('lottie');
 				this.canvasId = id;
 
@@ -27,7 +32,8 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 				await initCanvasWorker(id, canvas, 'lottie', lottieUrl);
 				this.workerReady = true;
 			} catch (e) {
-				this.error = (e as Error).message;
+				this.error = e instanceof Error ? e.message : 'Unknown error';
+				console.error('[lottiePanel] init() failed:', e);
 			}
 		},
 
@@ -40,6 +46,7 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 			}
 			this.workerReady = false;
 			this.canvasId = '';
+			this.error = null;
 		},
 	}));
 }
