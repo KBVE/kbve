@@ -59,13 +59,13 @@ export default function RegisterAlpinePanelManager(Alpine: typeof window.Alpine)
 		},
 
 		async requestPanel(request: PanelRequest) {
-			await useSharedWorkerCall('panel', request);
+			await useSharedWorkerCall<PanelState>('panel', request);
 		},
 
 		async openPanel(id: PanelId, payload?: Record<string, any>) {
 			await this.requestPanel({ type: 'open', id, payload });
 		},
-
+		
 		async closePanel(id: PanelId) {
 			await this.requestPanel({ type: 'close', id });
 		},
