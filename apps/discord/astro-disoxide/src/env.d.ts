@@ -11,8 +11,6 @@ declare module 'https://esm.sh/@lottiefiles/dotlottie-web' {
 }
 
 export type SharedWorkerCommand =
-	| RenderMessage
-	| { type: 'destroyCanvasWorker'; id: string }
 	| { type: 'connect_websocket' }
 	| { type: 'close_websocket' }
 	| { type: 'fetch_metrics' }
@@ -29,7 +27,6 @@ export type CommandPayload<T extends SharedWorkerCommand['type']> =
 
 export const knownStores = ['jsonservers', 'htmlservers', 'meta', 'panel'] as const;
 export type KnownStore = (typeof knownStores)[number];
-
 
 
 export interface DiscordServer {
@@ -112,3 +109,31 @@ export interface RenderMessage<T extends RenderType = RenderType> {
 }
 
 export type SpecificRenderMessage<T extends RenderType> = RenderMessage<T>;
+
+// ** Web Worker Dedicated Types ** //
+
+export type WebWorkerHandler<T extends WebWorkerCommand> = (msg: T) => Promise<void>;
+
+export type WebWorkerCommand =
+	| WebRenderMessage
+	| { type: 'destroy'; id: string };
+
+export interface WebRenderMessage<T extends RenderType = RenderType> {
+		type: 'render';
+		id: string;
+		renderType: T;
+		canvas: OffscreenCanvas;
+		src?: string;
+		options?: RenderTypeOptionsMap[T];
+	}
+
+export type WebWorkerResponse =
+	| { type: 'render_success'; id: string }
+	| { type: 'render_error'; id: string; error: string }
+	| { type: 'destroy_success'; id: string }
+	| { type: 'destroy_error'; id: string; error: string };
+
+export type WebWorkerPayload<T extends WebWorkerCommand['type']> =
+	Extract<WebWorkerCommand, { type: T }> extends { type: T }
+		? Omit<Extract<WebWorkerCommand, { type: T }>, 'type'>
+		: never;

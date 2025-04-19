@@ -1,5 +1,5 @@
-import { registerServiceWorker } from './client';
-registerServiceWorker();
+import { registerWorkers } from './client';
+registerWorkers();
 
 import type { Alpine } from 'alpinejs';
 import RegisterAlpineMetricsComponents from './metrics';

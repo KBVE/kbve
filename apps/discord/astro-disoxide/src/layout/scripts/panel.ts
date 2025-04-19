@@ -61,6 +61,7 @@ export default function RegisterAlpinePanelManager(Alpine: typeof window.Alpine)
 		},
 
 		async closePanel() {
+			console.log('[panelManager] closePanel() called');
 			await this.requestPanel({ type: 'close', id: this.id });
 		},
 
