@@ -6,6 +6,8 @@ const { panelId = 'right' } = Astro.props;
 
 <div x-data="astro" x-bind="refreshOnPageLoad" class="z-40 relative">
 	<template x-if="pageLoaded">
+		<div x-data="{ panelId: '${panelId}' }">
+
 		<div
 			x-cloak
 			x-show="$store.panelManager.openPanels?.[`${panelId}`]?.open"
@@ -38,6 +40,7 @@ const { panelId = 'right' } = Astro.props;
 			<div class="p-4 overflow-y-auto space-y-4 text-sm">
 				<slot />
 			</div>
+		</div>
 		</div>
 	</template>
 </div>

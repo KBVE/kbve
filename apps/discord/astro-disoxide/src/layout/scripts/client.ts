@@ -30,10 +30,13 @@ function createMessageHandler(
 		const { type, id, error, payload, requestId } = e.data;
 
 		const finalId = id ?? requestId;
-		if (!finalId || !listenerMap.has(finalId)) {
+
+		if (finalId && !listenerMap.has(finalId)) {
 			console.warn(`[${label}] Unknown requestId:`, finalId);
 			return;
 		}
+
+		if (!finalId) return;
 
 		const { resolve, reject } = listenerMap.get(finalId)!;
 		listenerMap.delete(finalId);
@@ -298,7 +301,7 @@ export function dispatchCommand<T extends SharedWorkerCommand['type']>(
 ): Promise<any> {
 	return useSharedWorkerCall(
 		type,
-		{ type, ...payload },
+		payload,
 		10000,
 		transferables,
 	);

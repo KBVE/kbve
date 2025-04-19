@@ -276,8 +276,9 @@ const handlers: WorkerHandlers = {
 		}
 		return false;
 	},
-
 	panel: async (payload: PanelRequest): Promise<PanelState> => {
+		console.log('[SharedWorker] Received panel request:', payload);
+	
 		if (payload.type === 'open') {
 			currentPanel = {
 				open: true,
@@ -290,16 +291,27 @@ const handlers: WorkerHandlers = {
 		} else if (payload.type === 'toggle') {
 			const isSame = currentPanel?.id === payload.id;
 			const isOpen = isSame ? !currentPanel?.open : true;
-
+	
 			currentPanel = {
 				open: isOpen,
 				id: payload.id,
 				payload: payload.payload,
 			};
+		} else {
+			console.warn('[Panel] Unknown payload type:', payload.type);
 		}
-
-		if (currentPanel) broadcast('panel', currentPanel);
-		return currentPanel!;
+	
+		if (currentPanel) {
+			console.log('[Panel] Broadcasting panel state:', currentPanel);
+			broadcast('panel', currentPanel);
+			return currentPanel;
+		} else {
+			console.warn('[Panel] No current panel state to return.');
+			return {
+				open: false,
+				id: payload.id,
+			};
+		}
 	},
 
 	// DB
@@ -484,12 +496,16 @@ self.onconnect = function (e) {
 		} else if (requestId && (type as HandlerType) in handlers) {
 			try {
 				const result = await handlers[type as HandlerType](payload);
+				console.log('[SharedWorker] Responding with result to', requestId, result);
+
 				port.postMessage({
 					type: `${type}_result`,
 					payload: result,
 					requestId,
 				});
 			} catch (error: any) {
+				console.error('[SharedWorker] Error handling', type, error);
+
 				port.postMessage({
 					type: `${type}_error`,
 					error: error.message,
