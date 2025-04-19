@@ -96,16 +96,17 @@ export interface PanelState {
 }
 
 export interface Panel {
-	id: PanelDirection;
+	id: PanelId;
+	direction: PanelDirection;
 	x: number;
 	y: number;
 	width: number;
 	height: number;
-	zIndex?: number;
+	zIndex: number;
+	open: boolean;
 	transition?: string;
 	content?: string;
 	payload?: Record<string, any>;
-	open?: boolean;
 }
 
 export interface PanelManagerStore {
