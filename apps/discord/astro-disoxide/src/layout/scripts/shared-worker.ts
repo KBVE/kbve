@@ -2,83 +2,9 @@ import type {
 	PanelRequest,
 	PanelState,
 	DiscordServer,
-	KnownStore,
-	RenderType, RenderTypeOptionsMap 
+	KnownStore
 } from 'src/env';
 const knownStores = ['jsonservers', 'htmlservers', 'meta', 'panel'] as const;
-
-const canvasInstances = new Map<string, any>();
-const portCanvasMap = new Map<MessagePort, Set<string>>();
-
-// * Cleanup Canvas instances on disconnect
-
-
-function trackCanvas(port: MessagePort, id: string) {
-	if (!portCanvasMap.has(port)) {
-		portCanvasMap.set(port, new Set());
-	}
-	portCanvasMap.get(port)!.add(id);
-}
-
-function cleanupPortCanvases(port: MessagePort) {
-	const ids = portCanvasMap.get(port);
-	if (ids) {
-		for (const id of ids) {
-			canvasInstances.get(id)?.destroy?.();
-			canvasInstances.delete(id);
-		}
-		portCanvasMap.delete(port);
-		console.log(`[SharedWorker] Cleaned up ${ids.size} canvas instances for closed port.`);
-	}
-}
-
-const renderHandlers: Record<
-	RenderType,
-	(payload: {
-		id: string;
-		canvas: OffscreenCanvas;
-		src?: string;
-		options?: RenderTypeOptionsMap[RenderType];
-	}) => Promise<any>
-> = {
-	lottie: async ({ id, canvas, src, options }) => {
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore: Remote CDN import doesn't have type declarations
-		const { DotLottieWorker } = await import('https://esm.sh/@lottiefiles/dotlottie-web') as {
-			DotLottieWorker: any;
-		};
-
-		const instance = new DotLottieWorker({
-			canvas,
-			src,
-			loop: true,
-			autoplay: true,
-			mode: 'normal',
-			...options,
-		});
-
-		return instance;
-	},
-
-	chart: async () => {
-		throw new Error('chart renderType not implemented yet');
-	},
-
-	webgl: async () => {
-		throw new Error('webgl renderType not implemented yet');
-	},
-
-	particles: async () => {
-		throw new Error('particles renderType not implemented yet');
-	},
-
-	text: async () => {
-		throw new Error('text renderType not implemented yet');
-	},
-
-	// chart: async ({ id, canvas, options }) => { ... },
-	// particles: ...
-};
 
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
@@ -125,18 +51,6 @@ type WorkerHandlers = {
 	db_delete: (args: { store: KnownStore; key: string }) => Promise<boolean>;
 	db_list: (args: { store: KnownStore }) => Promise<any[]>;
 
-	// canvas
-	render: (payload: {
-		id: string;
-		renderType: RenderType;
-		canvas: OffscreenCanvas;
-		src?: string;
-		options?: RenderTypeOptionsMap[RenderType];
-	}) => Promise<boolean>;
-
-	destroyCanvasWorker: (payload: {
-		id: string;
-	}) => Promise<boolean>;
 };
 
 type HandlerType = keyof WorkerHandlers;
@@ -371,6 +285,7 @@ const handlers: WorkerHandlers = {
 				payload: payload.payload,
 			};
 		} else if (payload.type === 'close') {
+			console.log('[Panel] Closing panel:', payload.id);
 			currentPanel = { open: false, id: payload.id };
 		} else if (payload.type === 'toggle') {
 			const isSame = currentPanel?.id === payload.id;
@@ -433,45 +348,6 @@ const handlers: WorkerHandlers = {
 			req.onsuccess = () => resolve(req.result);
 			req.onerror = () => reject(req.error);
 		});
-	},
-
-	render: async ({ id, renderType, canvas, src, options }) => {
-		const handler = renderHandlers[renderType];
-		if (!handler) {
-			throw new Error(`[CanvasWorker] Unknown renderType: "${renderType}"`);
-		}
-	
-		if (canvasInstances.has(id)) {
-			canvasInstances.get(id)?.destroy?.();
-			canvasInstances.delete(id);
-		}
-	
-		const instance = await handler({ id, canvas, src, options });
-		canvasInstances.set(id, instance);
-	
-		console.log(`[CanvasWorker] Rendered "${renderType}" instance with id: ${id}`);
-		return true;
-	},
-
-	destroyCanvasWorker: async ({ id }) => {
-
-		for (const [port, ids] of portCanvasMap.entries()) {
-			ids.delete(id);
-			if (ids.size === 0) {
-				portCanvasMap.delete(port);
-			}
-		}
-
-		const instance = canvasInstances.get(id);
-		if (instance) {
-			instance.destroy?.();
-			canvasInstances.delete(id);
-			console.log(`[CanvasWorker] Destroyed canvas instance: ${id}`);
-			return true;
-		}
-		
-		console.warn(`[CanvasWorker] No canvas found for id: ${id}`);
-		return false;
 	}
 };
 
@@ -600,10 +476,7 @@ self.onconnect = function (e) {
 		};
 
 		console.log('[SharedWorker] Message received:', type, requestId);
-
-		if (type === 'render') {
-			trackCanvas(port, payload.id);
-		}
+		
 		if (type === 'subscribe') {
 			subscribe(port, topic as Topic);
 		} else if (type === 'unsubscribe') {
@@ -634,7 +507,6 @@ self.onconnect = function (e) {
 
 	port.onmessageerror = () => {
 		console.warn('[SharedWorker] Port closed or errored.');
-		cleanupPortCanvases(port);
 	};
 	port.start();
 };
