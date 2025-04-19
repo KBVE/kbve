@@ -1,7 +1,7 @@
 ---
 title: 'April: 19'
 category: Daily
-date: 2024-04-19 12:00:00
+date: 2025-04-19 12:00:00
 client: Self
 unsplash: 1679597454485-d1d04f88b78a
 img: https://images.unsplash.com/photo-1679597454485-d1d04f88b78a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -10,6 +10,50 @@ description: |
 tags:
     - daily
 ---
+
+## 2025
+
+### Lottie Alpine
+
+-   07:39AM
+
+    Turns out that the shared worker was unable to offload the lottie worker and after a decent amount of hours being spent, ugh, I will just revert.
+    While moving a decent amount of work off the main thread was the idea, but since there are these abstract limitations within the way workers operate, it might be best to just hold off.
+    The situation becomes one where we end up going in circles that just ends up burning me out and wasting time.
+
+-   08:22AM
+
+    Lottie rewrite and adjustment, I am going to move the logic back into the alpine plugin and move forward.
+    It was working fine for what we had previously and we can just build from there.
+    Adding the SEO tags and meta information is important, so I can probably do that while I finish up the gRPC integration.
+
+### Panel
+
+-   08:28AM
+
+    Quad panel setup is the next goal, we should have 4 of them pre-rendered and cached, that we then animate based upon.
+    The panels would be like this:
+
+    ```ts
+    export type PanelDirection = 'top' | 'right' | 'bottom' | 'left';
+    export type Panel = {
+        direction: PanelDirection;
+        width: number;
+        height: number;
+        x: number;
+        y: number;
+    };
+    ```
+    
+
+### Unity Delay
+
+-   08:10AM
+
+    Pushing the unity development back a week is good for now but means we are getting closer to the end of Q2 of 2025 before we even get to a launch.
+    So many little things that are in the way, I am starting to find the whole project starting to become a bit daunghting.
+    On top of that, each of these refactors puts us back a step, thus making the movement forward more of a pain.
+    BUT I would be lying if I did not enjoy the random challenges each step presents, the progress, learning and experience is worth years.
 
 ## 2024
 

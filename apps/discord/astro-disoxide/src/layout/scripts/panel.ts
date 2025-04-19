@@ -1,54 +1,60 @@
-import type { PanelRequest, PanelState } from 'src/env';
+import type { Panel, PanelId, PanelRequest, PanelState } from 'src/env';
 import { subscribeToTopic, useSharedWorkerCall } from './client';
 
 export default function RegisterAlpinePanelManager(Alpine: typeof window.Alpine) {
 	console.log('[Alpine] panelManager store loaded');
 
-	type PanelManagerStore = {
-		open: boolean;
-		id: string;
-		content: string;
-		payload: Record<string, any>;
-		unsubscribe: (() => void) | null;
-		init: () => Promise<void>;
-		loadContent: (id: string) => Promise<void>;
-		requestPanel: (request: PanelRequest) => Promise<void>;
-		openPanel: (id: string, payload?: Record<string, any>) => Promise<void>;
-		closePanel: () => Promise<void>;
-		togglePanel: (id: string, payload?: Record<string, any>) => Promise<void>;
-	};
+	type PanelMap = Record<PanelId, Panel>;
 
-	const store: PanelManagerStore = {
+	const defaultPanel = (id: PanelId): Panel => ({
+		id,
+		direction: id,
+		x: 0,
+		y: 0,
+		width: 400,
+		height: 400,
+		zIndex: 9999,
 		open: false,
-		id: '',
 		content: '',
 		payload: {},
-		unsubscribe: null,
+		transition: '',
+	});
+
+	const store = {
+		panels: {
+			top: defaultPanel('top'),
+			right: defaultPanel('right'),
+			bottom: defaultPanel('bottom'),
+			left: defaultPanel('left'),
+		} as PanelMap,
+
+		unsubscribe: null as (() => void) | null,
 
 		async init() {
 			this.unsubscribe = subscribeToTopic('panel', async (state: PanelState) => {
-				this.open = state.open;
-				this.id = state.id;
-				this.payload = state.payload || {};
+				const panel = this.panels[state.id as PanelId];
+				if (!panel) return;
 
-				if (state.open && state.id) {
+				panel.open = state.open;
+				panel.payload = state.payload ?? {};
+				panel.content = state.content ?? '';
+
+				if (state.open && !panel.content) {
 					await this.loadContent(state.id);
-				} else {
-					this.content = '';
 				}
 			});
 		},
 
-		async loadContent(id: string) {
+		async loadContent(id: PanelId) {
 			try {
 				const html = await useSharedWorkerCall('db_get', {
 					store: 'htmlservers',
 					key: id,
 				});
-				this.content = typeof html === 'string' ? html : '';
+				this.panels[id].content = typeof html === 'string' ? html : '';
 			} catch (e) {
-				console.warn('[panelManager] Failed to load content:', e);
-				this.content = `<p class="text-sm text-red-400">Failed to load panel content.</p>`;
+				console.warn(`[panelManager] Failed to load panel "${id}" content:`, e);
+				this.panels[id].content = `<p class="text-sm text-red-400">Failed to load content.</p>`;
 			}
 		},
 
@@ -56,18 +62,25 @@ export default function RegisterAlpinePanelManager(Alpine: typeof window.Alpine)
 			await useSharedWorkerCall('panel', request);
 		},
 
-		async openPanel(id: string, payload?: Record<string, any>) {
+		async openPanel(id: PanelId, payload?: Record<string, any>) {
 			await this.requestPanel({ type: 'open', id, payload });
 		},
 
-		async closePanel() {
-			console.log('[panelManager] closePanel() called');
-			await this.requestPanel({ type: 'close', id: this.id });
+		async closePanel(id: PanelId) {
+			await this.requestPanel({ type: 'close', id });
 		},
 
-		async togglePanel(id: string, payload?: Record<string, any>) {
+		async togglePanel(id: PanelId, payload?: Record<string, any>) {
 			await this.requestPanel({ type: 'toggle', id, payload });
-		}
+		},
+
+		getPanel(id: PanelId): Panel {
+			return this.panels[id];
+		},
+
+		isOpen(id: PanelId): boolean {
+			return this.panels[id]?.open ?? false;
+		},
 	};
 
 	Alpine.store('panelManager', store);

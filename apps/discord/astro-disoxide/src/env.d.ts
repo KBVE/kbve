@@ -79,16 +79,43 @@ export interface CarouselData {
 	goTo(index: number): void;
 }
 
+export type PanelDirection = 'top' | 'right' | 'bottom' | 'left';
+export type PanelId = PanelDirection;
+
 export interface PanelRequest {
 	type: 'open' | 'close' | 'toggle';
-	id: string;
+	id: PanelId;
 	payload?: Record<string, any>;
 }
 
 export interface PanelState {
 	open: boolean;
-	id: string;
+	id: PanelId;
 	payload?: Record<string, any>;
+	content?: string;
+}
+
+export interface Panel {
+	id: PanelId;
+	direction: PanelDirection;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	zIndex: number;
+	open: boolean;
+	transition?: string;
+	content?: string;
+	payload?: Record<string, any>;
+}
+
+export interface PanelManagerStore {
+	openPanels: Partial<Record<PanelId, PanelState>>;
+	init(): Promise<void>;
+	openPanel(id: PanelId, payload?: Record<string, any>): Promise<void>;
+	closePanel(id: PanelId): Promise<void>;
+	togglePanel(id: PanelId, payload?: Record<string, any>): Promise<void>;
+	loadContent(id: PanelId): Promise<void>;
 }
 
 export type RenderType = 'lottie' | 'chart' | 'webgl' | 'particles' | 'text';
