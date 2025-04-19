@@ -32,6 +32,19 @@ tags:
 -   08:28AM
 
     Quad panel setup is the next goal, we should have 4 of them pre-rendered and cached, that we then animate based upon.
+    The panels would be like this:
+
+    ```ts
+    export type PanelDirection = 'top' | 'right' | 'bottom' | 'left';
+    export type Panel = {
+        direction: PanelDirection;
+        width: number;
+        height: number;
+        x: number;
+        y: number;
+    };
+    ```
+    
 
 ### Unity Delay
 

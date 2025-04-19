@@ -1,70 +1,117 @@
-import { initCanvasWorker, destroyCanvasWorker, createCanvasId } from './client';
-
 export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) {
+
+	type PanelManagerStore = {
+		payload?: Record<string, any>;
+	};
+
 	Alpine.data('lottiePanel', (): {
 		error: string | null;
-		workerReady: boolean;
-		canvasId: string;
+		player: any;
+		isVisible: boolean;
+		observer: IntersectionObserver | null;
 		init(): Promise<void>;
-		destroy(): Promise<void>;
+		onVisible(): void;
+		onHidden(): void;
+		destroy(): void;
 	} => ({
 		error: null,
-		workerReady: false,
-		canvasId: '',
+		player: null,
+		isVisible: false,
+		observer: null,
 
 		async init() {
-			console.log('[lottiePanel] init() fired 2.0');
-		
+			console.log('[lottiePanel] init() - dynamic + optimized');
+
 			if (typeof window === 'undefined') {
 				this.error = 'This panel requires a browser environment.';
 				return;
 			}
-			if (typeof OffscreenCanvas === 'undefined') {
-				this.error = 'OffscreenCanvas is not supported in your browser.';
-				return;
-			}
-			if (typeof SharedWorker === 'undefined') {
-				this.error = 'SharedWorker is not supported in your browser.';
-				return;
-			}
-		
+
 			try {
 				const container = document.getElementById('lottie-container');
 				if (!container) throw new Error('Missing lottie-container');
-		
-				let canvas = container.querySelector('canvas') as HTMLCanvasElement;
-				if (!canvas) {
-					canvas = document.createElement('canvas');
-					canvas.className = 'w-full h-full';
-					container.appendChild(canvas);
-				}
-		
-				// ? Only create new id if we don't already have one
-				const id = this.canvasId || createCanvasId('lottie');
-				this.canvasId = id;
-		
-				const lottieUrl = new URL(
-					'http://localhost:4321/assets/json/lottie/animu.json'
-				).toString();
-		
-				await initCanvasWorker(id, canvas, 'lottie', lottieUrl);
-				this.workerReady = true;
+
+				// Clean previous instance
+				container.innerHTML = '';
+
+				const canvas = document.createElement('canvas');
+				canvas.className = 'w-full h-full';
+				canvas.id = 'lottieCanvas';
+				container.appendChild(canvas);
+
+				const payload = Alpine.store('panelManager').payload ?? {};
+				const lottieUrl = payload?.lottie || 'https://lottie.host/placeholder.json';
+
+				const { DotLottie } = await import(
+					// @ts-ignore
+					'https://esm.sh/@lottiefiles/dotlottie-web'
+				) as { DotLottie: any };
+
+				this.player = new DotLottie({
+					canvas,
+					src: lottieUrl,
+					loop: true,
+					autoplay: false, // ❗ Don't autoplay until visible
+					mode: 'normal',
+				});
+
+				// Setup intersection observer
+				this.observer = new IntersectionObserver(
+					(entries) => {
+						for (const entry of entries) {
+							if (entry.isIntersecting) {
+								this.onVisible();
+							} else {
+								this.onHidden();
+							}
+						}
+					},
+					{
+						root: null,
+						threshold: 0.1,
+					},
+				);
+
+				this.observer.observe(canvas);
 			} catch (e) {
 				console.error('[lottiePanel] init() caught:', e);
 				this.error = e instanceof Error ? e.message : String(e);
 			}
 		},
 
-		async destroy() {
+		onVisible() {
+			this.isVisible = true;
+			if (this.player?.play) {
+				this.player.play();
+				console.log('[lottiePanel] Playing animation');
+			}
+		},
+
+		onHidden() {
+			this.isVisible = false;
+			if (this.player?.pause) {
+				this.player.pause();
+				console.log('[lottiePanel] Paused animation');
+			}
+		},
+
+		destroy() {
+			if (this.player?.destroy) {
+				this.player.destroy();
+			}
+			this.player = null;
+
+			const canvas = document.getElementById('lottieCanvas');
+			if (canvas && this.observer) {
+				this.observer.unobserve(canvas);
+			}
+			this.observer = null;
+
 			const container = document.getElementById('lottie-container');
 			if (container) container.innerHTML = '';
 
-			if (this.canvasId) {
-				await destroyCanvasWorker(this.canvasId);
-			}
-			this.workerReady = false;
-			this.canvasId = '';
 			this.error = null;
+			this.isVisible = false;
 		},
 	}));
 }
