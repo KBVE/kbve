@@ -10,6 +10,11 @@ const EXPECTED_SW_VERSION = '1.0.2';
 let sharedPort: MessagePort | null = null;
 let webWorker: Worker | null = null;
 
+// * Memoizing
+
+const activeLottieInstances = new Map<string, any>();
+
+
 // * Listeners
 
 type MessageListenerMap = Map<
@@ -52,10 +57,10 @@ function initWebWorker(): Worker {
 	}
 	return webWorker;
 }
-
 function useWebWorkerCall<T = any>(
 	msg: WebWorkerCommand,
 	timeoutMs = 10000,
+	transferables: Transferable[] = [],
 ): Promise<T> {
 	return new Promise((resolve, reject) => {
 		const id = (msg as any).id ?? crypto.randomUUID();
@@ -79,9 +84,10 @@ function useWebWorkerCall<T = any>(
 			},
 		});
 
-		initWebWorker().postMessage(msg);
+		initWebWorker().postMessage(msg, transferables);
 	});
 }
+
 
 
 //	* UI Canvas
@@ -90,7 +96,7 @@ export function createCanvasId(renderType: RenderType): string {
 	return `${renderType}-${crypto.randomUUID()}`;
 }
 
-export async  function initCanvasWorker<T extends RenderType>(
+export async function initCanvasWorker<T extends RenderType>(
 	idOrCanvas: string | HTMLCanvasElement,
 	canvasOrRenderType: HTMLCanvasElement | T,
 	renderTypeOrSrc?: T | string,
@@ -117,8 +123,40 @@ export async  function initCanvasWorker<T extends RenderType>(
 		options = srcOrOptions as RenderTypeOptionsMap[T];
 	}
 
-	const offscreen = canvas.transferControlToOffscreen();
+	// ? Shortcut Lottie to main thread
+	if (renderType === 'lottie') {
+		if (activeLottieInstances.has(id)) {
+			console.warn(`[Lottie] Instance for ${id} already exists`);
+			return id;
+		}
 
+		const { DotLottieWorker } = await import(
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			'https://esm.sh/@lottiefiles/dotlottie-web'
+		) as { DotLottieWorker: any };
+
+		const instance = new DotLottieWorker({
+			canvas,
+			src,
+			loop: true,
+			autoplay: true,
+			mode: 'normal',
+			...options,
+		});
+
+		activeLottieInstances.set(id, instance);
+		return id;
+	}
+
+	// ! Only call this if not lottie
+	let offscreen: OffscreenCanvas;
+	try {
+		offscreen = canvas.transferControlToOffscreen();
+	} catch (err) {
+		throw new Error(`[Offscreen] Failed to transfer canvas "${id}": ${err}`);
+	}
+	
 	await useWebWorkerCall(
 		{
 			type: 'render',
@@ -129,13 +167,22 @@ export async  function initCanvasWorker<T extends RenderType>(
 			options,
 		},
 		10000,
+		[offscreen],
 	);
 
 	return id;
 }
 
+
 export function destroyCanvasWorker(id: string): Promise<void> {
 	if (!id) return Promise.reject(new Error('Missing canvas ID for destroy'));
+
+	if (id.startsWith('lottie')) {
+		activeLottieInstances.get(id)?.destroy?.();
+		activeLottieInstances.delete(id);
+		return Promise.resolve();
+	}
+
 	return useWebWorkerCall({ type: 'destroy', id });
 }
 
