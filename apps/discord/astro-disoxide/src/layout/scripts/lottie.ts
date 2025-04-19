@@ -1,26 +1,14 @@
+import type {DotLottieInstance, PanelId, PanelManagerStore } from 'src/env';
+
 export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) {
-
-	type PanelManagerStore = {
-		payload?: Record<string, any>;
-	};
-
-	Alpine.data('lottiePanel', (): {
-		error: string | null;
-		player: any;
-		isVisible: boolean;
-		observer: IntersectionObserver | null;
-		init(): Promise<void>;
-		onVisible(): void;
-		onHidden(): void;
-		destroy(): void;
-	} => ({
-		error: null,
-		player: null,
+	Alpine.data('lottiePanel', (panelId: PanelId = 'right') => ({
+		error: null as string | null,
+		player: null as DotLottieInstance | null,
 		isVisible: false,
-		observer: null,
+		observer: null as IntersectionObserver | null,
 
 		async init() {
-			console.log('[lottiePanel] init() - dynamic + optimized');
+			console.log(`[lottiePanel] init() for panel "${panelId}"`);
 
 			if (typeof window === 'undefined') {
 				this.error = 'This panel requires a browser environment.';
@@ -28,19 +16,19 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 			}
 
 			try {
-				const container = document.getElementById('lottie-container');
-				if (!container) throw new Error('Missing lottie-container');
+				const container = document.getElementById(`lottie-container-${panelId}`);
+				if (!container) throw new Error(`Missing lottie-container-${panelId}`);
 
-				// Clean previous instance
 				container.innerHTML = '';
 
 				const canvas = document.createElement('canvas');
 				canvas.className = 'w-full h-full';
-				canvas.id = 'lottieCanvas';
+				canvas.id = `lottieCanvas-${panelId}`;
 				container.appendChild(canvas);
 
-				const payload = Alpine.store('panelManager').payload ?? {};
-				const lottieUrl = payload?.lottie || 'https://lottie.host/placeholder.json';
+				const store = Alpine.store('panelManager') as PanelManagerStore;
+				const panel = store.getPanel(panelId);
+				const lottieUrl = panel?.payload?.lottie || 'https://lottie.host/placeholder.json';
 
 				const { DotLottie } = await import(
 					// @ts-ignore
@@ -51,11 +39,11 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 					canvas,
 					src: lottieUrl,
 					loop: true,
-					autoplay: false, // ❗ Don't autoplay until visible
+					autoplay: false,
 					mode: 'normal',
 				});
 
-				// Setup intersection observer
+				// 👁️‍🗨️ IntersectionObserver for viewport visibility
 				this.observer = new IntersectionObserver(
 					(entries) => {
 						for (const entry of entries) {
@@ -69,45 +57,39 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 					{
 						root: null,
 						threshold: 0.1,
-					},
+					}
 				);
 
 				this.observer.observe(canvas);
 			} catch (e) {
-				console.error('[lottiePanel] init() caught:', e);
+				console.error(`[lottiePanel] init() error for "${panelId}":`, e);
 				this.error = e instanceof Error ? e.message : String(e);
 			}
 		},
 
 		onVisible() {
 			this.isVisible = true;
-			if (this.player?.play) {
-				this.player.play();
-				console.log('[lottiePanel] Playing animation');
-			}
+			this.player?.play?.();
+			console.log(`[lottiePanel] "${panelId}" visible: playing`);
 		},
 
 		onHidden() {
 			this.isVisible = false;
-			if (this.player?.pause) {
-				this.player.pause();
-				console.log('[lottiePanel] Paused animation');
-			}
+			this.player?.pause?.();
+			console.log(`[lottiePanel] "${panelId}" hidden: paused`);
 		},
 
 		destroy() {
-			if (this.player?.destroy) {
-				this.player.destroy();
-			}
+			this.player?.destroy?.();
 			this.player = null;
 
-			const canvas = document.getElementById('lottieCanvas');
+			const canvas = document.getElementById(`lottieCanvas-${panelId}`);
 			if (canvas && this.observer) {
 				this.observer.unobserve(canvas);
 			}
 			this.observer = null;
 
-			const container = document.getElementById('lottie-container');
+			const container = document.getElementById(`lottie-container-${panelId}`);
 			if (container) container.innerHTML = '';
 
 			this.error = null;

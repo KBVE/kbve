@@ -10,6 +10,12 @@ declare module 'https://esm.sh/@lottiefiles/dotlottie-web' {
 	export const DotLottieWorker: any;
 }
 
+export interface DotLottieInstance {
+	play(): void;
+	pause(): void;
+	destroy(): void;
+}
+
 export type SharedWorkerCommand =
 	| { type: 'connect_websocket' }
 	| { type: 'close_websocket' }
@@ -116,6 +122,7 @@ export interface PanelManagerStore {
 	closePanel(id: PanelId): Promise<void>;
 	togglePanel(id: PanelId, payload?: Record<string, any>): Promise<void>;
 	loadContent(id: PanelId): Promise<void>;
+	getPanel(id: PanelId): PanelState | undefined;
 }
 
 export type RenderType = 'lottie' | 'chart' | 'webgl' | 'particles' | 'text';
