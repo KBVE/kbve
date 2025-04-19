@@ -16,19 +16,14 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 			console.log('[lottiePanel] init() fired 2.0');
 		
 			if (typeof window === 'undefined') {
-				console.warn('[lottiePanel] Skipping init — not in a browser environment.');
 				this.error = 'This panel requires a browser environment.';
 				return;
 			}
-		
 			if (typeof OffscreenCanvas === 'undefined') {
-				console.warn('[lottiePanel] Skipping init — OffscreenCanvas not supported.');
 				this.error = 'OffscreenCanvas is not supported in your browser.';
 				return;
 			}
-		
 			if (typeof SharedWorker === 'undefined') {
-				console.warn('[lottiePanel] Skipping init — SharedWorker not available.');
 				this.error = 'SharedWorker is not supported in your browser.';
 				return;
 			}
@@ -37,15 +32,19 @@ export default function RegisterAlpineLottiePanel(Alpine: typeof window.Alpine) 
 				const container = document.getElementById('lottie-container');
 				if (!container) throw new Error('Missing lottie-container');
 		
-				const canvas = document.createElement('canvas');
-				canvas.className = 'w-full h-full';
-				container.appendChild(canvas);
+				let canvas = container.querySelector('canvas') as HTMLCanvasElement;
+				if (!canvas) {
+					canvas = document.createElement('canvas');
+					canvas.className = 'w-full h-full';
+					container.appendChild(canvas);
+				}
 		
-				const id = createCanvasId('lottie');
+				// ? Only create new id if we don't already have one
+				const id = this.canvasId || createCanvasId('lottie');
 				this.canvasId = id;
 		
 				const lottieUrl = new URL(
-					'http://localhost:4321/assets/json/lottie/animu.json',
+					'http://localhost:4321/assets/json/lottie/animu.json'
 				).toString();
 		
 				await initCanvasWorker(id, canvas, 'lottie', lottieUrl);

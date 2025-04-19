@@ -6,7 +6,7 @@ import type {
 	WebRenderMessage,
 	RenderType,
 	RenderTypeOptionsMap,
-    WebWorkerHandler,
+	WebWorkerHandler,
 } from 'src/env';
 
 const canvasInstances = new Map<string, any>();
@@ -18,10 +18,23 @@ const handlers: {
 	destroy: ({ id }) => handleDestroy(id),
 };
 
-//  TODO: Add Guards*
+// Type guard for OffscreenCanvas
+function isOffscreenCanvas(obj: unknown): obj is OffscreenCanvas {
+	return (
+		typeof obj === 'object' &&
+		!!obj &&
+		'getContext' in obj &&
+		'width' in obj &&
+		'height' in obj
+	);
+}
 
 async function handleRender<T extends RenderType>(msg: WebRenderMessage<T>) {
 	const { id, renderType, canvas, src, options } = msg;
+
+	if (!isOffscreenCanvas(canvas)) {
+		throw new Error(`Expected OffscreenCanvas for renderType "${renderType}"`);
+	}
 
 	if (canvasInstances.has(id)) {
 		canvasInstances.get(id)?.destroy?.();
@@ -30,52 +43,62 @@ async function handleRender<T extends RenderType>(msg: WebRenderMessage<T>) {
 
 	switch (renderType) {
 		case 'lottie': {
-			const { DotLottieWorker } = (await import(
+            if (typeof self.HTMLCanvasElement === 'undefined') {
+                (self as any).HTMLCanvasElement = OffscreenCanvas;
+            }
+        
+            const mod = await import(
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		        // @ts-ignore: Remote CDN import doesn't have type declarations
-				'https://esm.sh/@lottiefiles/dotlottie-web'
-			)) as { DotLottieWorker: any };
-
-			const instance = new DotLottieWorker({
-				canvas,
-				src,
-				loop: true,
-				autoplay: true,
-				mode: 'normal',
-				...options,
-			});
-
-			canvasInstances.set(id, instance);
-			postSuccess('render_success', id);
-			return;
-		}
+                // @ts-ignore
+                'https://esm.sh/@lottiefiles/dotlottie-web'
+            ) as any;
+        
+            const { DotLottie } = mod;
+        
+            if (!DotLottie) {
+                throw new Error('DotLottie is not available in this environment.');
+            }
+        
+            const instance = new DotLottie({
+                canvas,
+                src,
+                loop: true,
+                autoplay: true,
+                mode: 'normal',
+                ...options,
+            });
+        
+            canvasInstances.set(id, instance);
+            postSuccess('render_success', id);
+            return;
+        }
+        
 
 		case 'chart': {
-			// TODO: Implement chart rendering logic here (e.g., using Chart.js in OffscreenCanvas)
 			throw new Error('Chart rendering not yet implemented.');
 		}
 
 		case 'webgl': {
-			// TODO: Compile shaders + draw with WebGL context from canvas
 			throw new Error('WebGL rendering not yet implemented.');
 		}
 
 		case 'particles': {
-			// TODO: Render particles via a lightweight engine (or wasm?)
 			throw new Error('Particles rendering not yet implemented.');
 		}
 
-        case 'text': {
-            const ctx = canvas.getContext('2d');
-            if (!ctx) throw new Error('Failed to get 2D context for text rendering.');
-            const textOptions = options as RenderTypeOptionsMap['text'];
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.font = `${textOptions.fontSize ?? 24}px sans-serif`;
-            ctx.fillStyle = 'white';
-            ctx.fillText(textOptions.content ?? '', 20, 60);
-            postSuccess('render_success', id);
-            return;
-        }
+		case 'text': {
+			const ctx = canvas.getContext('2d');
+			if (!ctx) throw new Error('Failed to get 2D context for text rendering.');
+
+			const textOptions = options as RenderTypeOptionsMap['text'];
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.font = `${textOptions.fontSize ?? 24}px sans-serif`;
+			ctx.fillStyle = 'white';
+			ctx.fillText(textOptions.content ?? '', 20, 60);
+
+			postSuccess('render_success', id);
+			return;
+		}
 	}
 
 	throw new Error(`Render type "${renderType}" not yet supported.`);
@@ -99,9 +122,6 @@ function postSuccess(type: WebWorkerResponse['type'], id: string) {
 function postError(type: string, id: string, error: string) {
 	self.postMessage({ type: `${type}_error`, id, error });
 }
-
-
-// TODO: Add Guards*(mut, readonly)
 
 self.onmessage = async <T extends WebWorkerCommand>({ data }: MessageEvent<T>) => {
 	const type = data.type as WebWorkerCommand['type'];
