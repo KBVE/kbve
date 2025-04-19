@@ -21,7 +21,7 @@ import { Icon } from '@astrojs/starlight/components';
 				<div
 					x-data="lottiePanel"
 					x-id="['lottiePanel']"
-					x-init="queueMicrotask(() => init())"
+					x-init="init()"
 					x-effect="if (!Alpine.store('panelManager').open) destroy()"
 					class="w-full h-[450px] scale-[1.03] sepia-50 z-20"
 					id="lottie-container">

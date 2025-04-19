@@ -3,35 +3,106 @@ import type {
 	SharedWorkerCommand,
 	RenderType,
 	RenderTypeOptionsMap,
+	WebWorkerCommand, WebWorkerResponse
 } from 'src/env';
 const EXPECTED_SW_VERSION = '1.0.2';
+
 let sharedPort: MessagePort | null = null;
+let webWorker: Worker | null = null;
 
-type Listener = {
-	resolve: (data: any) => void;
-	reject: (err: any) => void;
-};
+// * Listeners
 
-const listeners = new Map<string, Listener>();
+type MessageListenerMap = Map<
+	string,
+	{ resolve: (data: any) => void; reject: (err: any) => void }
+>;
+
+function createMessageHandler(
+	listenerMap: MessageListenerMap,
+	label = 'Worker',
+): (event: MessageEvent) => void {
+	return (e: MessageEvent) => {
+		const { type, id, error, payload, requestId } = e.data;
+
+		const finalId = id ?? requestId;
+		if (!finalId || !listenerMap.has(finalId)) {
+			console.warn(`[${label}] Unknown requestId:`, finalId);
+			return;
+		}
+
+		const { resolve, reject } = listenerMap.get(finalId)!;
+		listenerMap.delete(finalId);
+
+		error ? reject(error) : resolve(payload ?? e.data);
+	};
+}
+
+const sharedListeners: MessageListenerMap = new Map();
+const webListeners: MessageListenerMap = new Map();
+
+// * Web Worker
+
+function initWebWorker(): Worker {
+	if (!webWorker) {
+		webWorker = new Worker(new URL('./web-worker', import.meta.url), { type: 'module' });
+		webWorker.onmessage = createMessageHandler(webListeners, 'WebWorker');
+		webWorker.onerror = (e) => {
+			console.error('[WebWorker] Error:', e);
+		};
+	}
+	return webWorker;
+}
+
+function useWebWorkerCall<T = any>(
+	msg: WebWorkerCommand,
+	timeoutMs = 10000,
+): Promise<T> {
+	return new Promise((resolve, reject) => {
+		const id = (msg as any).id ?? crypto.randomUUID();
+		(msg as any).id = id;
+
+		const timeout = setTimeout(() => {
+			webListeners.delete(id);
+			reject(new Error(`WebWorker request timed out: ${msg.type}`));
+		}, timeoutMs);
+
+		webListeners.set(id, {
+			resolve: (data: T) => {
+				clearTimeout(timeout);
+				webListeners.delete(id);
+				resolve(data);
+			},
+			reject: (err: any) => {
+				clearTimeout(timeout);
+				webListeners.delete(id);
+				reject(err);
+			},
+		});
+
+		initWebWorker().postMessage(msg);
+	});
+}
+
+
+//	* UI Canvas
 
 export function createCanvasId(renderType: RenderType): string {
 	return `${renderType}-${crypto.randomUUID()}`;
 }
 
-export function initCanvasWorker<T extends RenderType>(
+export async  function initCanvasWorker<T extends RenderType>(
 	idOrCanvas: string | HTMLCanvasElement,
 	canvasOrRenderType: HTMLCanvasElement | T,
 	renderTypeOrSrc?: T | string,
 	srcOrOptions?: string | RenderTypeOptionsMap[T],
 	optionsMaybe?: RenderTypeOptionsMap[T],
-): Promise<void> {
+): Promise<string> {
 	let id: string;
 	let canvas: HTMLCanvasElement;
 	let renderType: T;
 	let src: string | undefined;
 	let options: RenderTypeOptionsMap[T] | undefined;
 
-	// Overload-style handling
 	if (typeof idOrCanvas === 'string') {
 		id = idOrCanvas;
 		canvas = canvasOrRenderType as HTMLCanvasElement;
@@ -48,8 +119,7 @@ export function initCanvasWorker<T extends RenderType>(
 
 	const offscreen = canvas.transferControlToOffscreen();
 
-	return useSharedWorkerCall(
-		'render',
+	await useWebWorkerCall(
 		{
 			type: 'render',
 			id,
@@ -59,36 +129,25 @@ export function initCanvasWorker<T extends RenderType>(
 			options,
 		},
 		10000,
-		[offscreen],
 	);
+
+	return id;
 }
 
 export function destroyCanvasWorker(id: string): Promise<void> {
-	return useSharedWorkerCall('destroy', { type: 'destroy', id });
+	if (!id) return Promise.reject(new Error('Missing canvas ID for destroy'));
+	return useWebWorkerCall({ type: 'destroy', id });
 }
 
 export function initSharedWorker(): MessagePort {
 	if (!sharedPort) {
-		//const worker = new SharedWorker('/js/shared-worker.js');
-		const worker = new SharedWorker(
-			new URL('./shared-worker', import.meta.url),
-		);
-
+		const worker = new SharedWorker(new URL('./shared-worker', import.meta.url));
 		sharedPort = worker.port;
 		sharedPort.start();
 
-		sharedPort.onmessage = (e: MessageEvent) => {
-			console.log('[Worker] onmessage received:', e.data);
-
-			const { type, payload, error, requestId, topic } = e.data;
-
-			if (requestId && listeners.has(requestId)) {
-				const { resolve, reject } = listeners.get(requestId)!;
-				listeners.delete(requestId);
-				error ? reject(error) : resolve(payload);
-			} else if (requestId) {
-				console.warn('[Client] Received unknown requestId:', requestId);
-			}
+		sharedPort.onmessage = createMessageHandler(sharedListeners, 'SharedWorker');
+		sharedPort.onmessageerror = (e) => {
+			console.error('[SharedWorker] Message error:', e);
 		};
 	}
 	return sharedPort;
@@ -105,26 +164,27 @@ export function useSharedWorkerCall<T = any>(
 		const port = initSharedWorker();
 
 		const timeout = setTimeout(() => {
-			listeners.delete(requestId);
+			sharedListeners.delete(requestId);
 			reject(new Error(`Request timed out: ${type}`));
 		}, timeoutMs);
 
-		listeners.set(requestId, {
+		sharedListeners.set(requestId, {
 			resolve: (data: T) => {
 				clearTimeout(timeout);
-				listeners.delete(requestId);
+				sharedListeners.delete(requestId);
 				resolve(data);
 			},
 			reject: (err: any) => {
 				clearTimeout(timeout);
-				listeners.delete(requestId);
+				sharedListeners.delete(requestId);
 				reject(err);
 			},
 		});
 
-		port.postMessage({ type, payload, requestId }, transferables || []);
+		port.postMessage({ type, payload, requestId }, transferables);
 	});
 }
+
 
 export function subscribeToTopic<T = any>(
 	topic: string,
@@ -210,4 +270,19 @@ export function onCustomEvent<T = any>(
 	const wrapped = (e: Event) => handler(e as CustomEvent<T>);
 	customEventTarget.addEventListener(name, wrapped);
 	return () => customEventTarget.removeEventListener(name, wrapped);
+}
+
+
+// ? Enclosed Functions
+
+export async function registerWorkers(): Promise<void> {
+	if (typeof window === 'undefined') return;
+
+	try {
+		await registerServiceWorker();
+		initWebWorker();
+		console.log('[Worker Init] All workers registered');
+	} catch (err) {
+		console.error('[Worker Init] Failed to initialize workers:', err);
+	}
 }
