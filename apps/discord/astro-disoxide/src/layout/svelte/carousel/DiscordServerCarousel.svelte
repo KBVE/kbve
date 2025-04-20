@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { dispatchCommand } from 'src/layout/scripts/client';
-	import { openPanel } from 'src/layout/scripts/nanostores';
 	import type { DiscordServer } from 'src/env';
 
 	let currentSlideIndex = 0;
