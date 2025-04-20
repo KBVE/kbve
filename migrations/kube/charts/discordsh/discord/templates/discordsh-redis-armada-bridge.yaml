@@ -46,7 +46,8 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-    name: redis-secret-reader
+    name: redis-secret-reader-discordsh
+
 rules:
     - apiGroups: ['']
       resources: ['secrets']
@@ -58,11 +59,11 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-    name: redis-secret-reader-binding
+    name: redis-secret-reader-discordsh-binding
 roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: ClusterRole
-    name: redis-secret-reader
+    name: redis-secret-reader-discordsh
 subjects:
     - kind: ServiceAccount
       name: supabase-release-supabase-db
