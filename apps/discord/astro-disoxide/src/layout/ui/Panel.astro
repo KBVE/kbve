@@ -10,7 +10,7 @@ const { panelId = 'right' } = Astro.props;
 
 		<div
 			x-cloak
-			x-show="$store.panelManager.openPanels?.[`${panelId}`]?.open"
+			x-show="$store.panelManager.panels?.[panelId]?.open"
 			x-transition:enter="transition ease-out duration-300"
 			x-transition:enter-start="translate-${panelId}-full"
 			x-transition:enter-end="translate-${panelId}-0"
@@ -26,7 +26,7 @@ const { panelId = 'right' } = Astro.props;
 			<div class="p-4 flex justify-between items-center border-b border-gray-700">
 				<h2
 					class="text-lg font-semibold capitalize"
-					x-text="$store.panelManager.openPanels?.[`${panelId}`]?.payload?.name || 'Details'">
+					x-text="$store.panelManager.panels?.[panelId]?.payload?.name || 'Details'">
 				</h2>
 				<button
 					@click="$store.panelManager.closePanel(panelId)"

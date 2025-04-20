@@ -1,8 +1,8 @@
 import { atom, map, task, keepMount, type WritableAtom } from 'nanostores';
-import { persistentAtom, persistentMap } from '@nanostores/persistent';
+import { persistentAtom } from '@nanostores/persistent';
 import type { DiscordServer, PanelState } from 'src/env';
 
-// Helper Functions:
+// Helper: Sync values from SharedWorker topic to a nanostore
 export function syncFromWorker<T>(
 	topic: string,
 	key: string,
@@ -15,7 +15,6 @@ export function syncFromWorker<T>(
 
 	function handleMessage(event: MessageEvent) {
 		const { topic: msgTopic, key: msgKey, result } = event.data || {};
-
 		if (msgTopic !== topic || msgKey !== key) return;
 
 		if (transform) {
@@ -35,15 +34,11 @@ export function syncFromWorker<T>(
 		}
 	}
 
-	function isMapStore(
-		store: unknown
-	): store is { setKey: (key: string, value: any) => void } {
+	function isMapStore(store: unknown): store is { setKey: (key: string, value: any) => void } {
 		return typeof (store as any)?.setKey === 'function';
 	}
 
-	function hasSet(
-		store: unknown
-	): store is { set: (value: any) => void } {
+	function hasSet(store: unknown): store is { set: (value: any) => void } {
 		return typeof (store as any)?.set === 'function';
 	}
 
@@ -52,7 +47,7 @@ export function syncFromWorker<T>(
 	}
 }
 
-
+// Run and keep mounted (deferred/async safe)
 export async function tasker<T>(store: WritableAtom<T>, value: T) {
 	task(() => {
 		store.set(value);
@@ -60,9 +55,7 @@ export async function tasker<T>(store: WritableAtom<T>, value: T) {
 	});
 }
 
-/**
- * Persistent JSON-encoded atom
- */
+// JSON-persistent atom
 export function createJsonAtom<T>(key: string, initial: T) {
 	return persistentAtom<T>(key, initial, {
 		encode: JSON.stringify,
@@ -70,10 +63,7 @@ export function createJsonAtom<T>(key: string, initial: T) {
 	});
 }
 
-/**
- * Persistent plain/binary-safe atom (string fallback)
- * Useful for primitives, short blobs, or future binary formats like Flexbuffers
- */
+// Binary-safe fallback atom (for simple values or future binary encoding)
 export function createBinaryAtom<T>(key: string, initial: T) {
 	return persistentAtom<T>(key, initial, {
 		encode: (value) => String(value),
@@ -81,25 +71,7 @@ export function createBinaryAtom<T>(key: string, initial: T) {
 	});
 }
 
-// Panel state (open/close with payload)
-export const $panel = atom<PanelState>({ open: false, id: '' });
-
-export function openPanel(id: string, payload?: Record<string, any>) {
-	$panel.set({ open: true, id, payload });
-}
-
-export function closePanel() {
-	$panel.set({ open: false, id: '' });
-}
-
-export function togglePanel(id: string, payload?: Record<string, any>) {
-	const current = $panel.get();
-	const isSame = current.id === id;
-	const isOpen = isSame ? !current.open : true;
-	$panel.set({ open: isOpen, id, payload });
-}
-
-// Servers map by server_id
+// Servers map store (by server_id)
 export const $servers = map<Record<string, DiscordServer>>({});
 
 export function updateServer(server: DiscordServer) {
@@ -111,3 +83,6 @@ export function updateServers(servers: DiscordServer[]) {
 		$servers.setKey(server.server_id, server);
 	}
 }
+
+// Optional: bridge panel state from Alpine (read-only in Svelte)
+export const $panelBridge = atom<PanelState | null>(null);
