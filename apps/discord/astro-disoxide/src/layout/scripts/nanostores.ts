@@ -1,7 +1,7 @@
 import { atom, map, task, keepMount, type WritableAtom } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 import type { DiscordServer, PanelState } from 'src/env';
-import type { PanelPayload, PanelId, PanelSlot } from 'src/env';
+import type { PanelPayload, PanelSlot } from 'src/env';
 
 // Helper: Sync values from SharedWorker topic to a nanostore
 export function syncFromWorker<T>(
@@ -87,3 +87,45 @@ export function updateServers(servers: DiscordServer[]) {
 
 // Optional: bridge panel state from Alpine (read-only in Svelte)
 export const $panelBridge = atom<PanelState | null>(null);
+
+//	* Panel State
+export const PANEL_IDS = ['top', 'right', 'bottom', 'left'] as const;
+export type PanelId = typeof PANEL_IDS[number];
+
+export const INITIAL_PANELS: Record<PanelId, PanelSlot> = {
+	top: { open: false, payload: null },
+	right: { open: false, payload: null },
+	bottom: { open: false, payload: null },
+	left: { open: false, payload: null },
+};
+
+export const panelManager = map<{
+	panels: Record<PanelId, PanelSlot>;
+	openPanel: (id: PanelId, payload?: PanelPayload | null) => void;
+	closePanel: (id: PanelId) => void;
+	reset: () => void;
+}>({
+	panels: INITIAL_PANELS,
+
+	openPanel: (id, payload = null) => {
+		const current = panelManager.get();
+		const updated = {
+			...current.panels,
+			[id]: { open: true, payload },
+		};
+		panelManager.setKey('panels', updated);
+	},
+
+	closePanel: (id) => {
+		const current = panelManager.get();
+		const updated = {
+			...current.panels,
+			[id]: { open: false, payload: null },
+		};
+		panelManager.setKey('panels', updated);
+	},
+
+	reset: () => {
+		panelManager.setKey('panels', INITIAL_PANELS);
+	},
+});
