@@ -1,6 +1,7 @@
 import { atom, map, task, keepMount, type WritableAtom } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 import type { DiscordServer, PanelState } from 'src/env';
+import type { PanelPayload, PanelId, PanelSlot } from 'src/env';
 
 // Helper: Sync values from SharedWorker topic to a nanostore
 export function syncFromWorker<T>(
@@ -11,7 +12,7 @@ export function syncFromWorker<T>(
 ) {
 	if (typeof window !== 'undefined') {
 		window.addEventListener('message', handleMessage);
-	}
+	}``
 
 	function handleMessage(event: MessageEvent) {
 		const { topic: msgTopic, key: msgKey, result } = event.data || {};
