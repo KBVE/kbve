@@ -2,7 +2,8 @@
 /** @jsxImportSource astro */
 
 import Sidebar from 'src/layout/Sidebar.astro';
-import Panel from 'src/layout/ui/Panel.astro';
+// import Panel from 'src/layout/ui/Panel.astro';
+import SveltePanels from './svelte/panel/SveltePanels.astro';
 
 export interface Props {
 	title: string;
@@ -53,10 +54,11 @@ import { ClientRouter } from 'astro:transitions';
 		>
 		<Sidebar />
 		<!-- <Panel /> -->
-		<Panel panelId="top" />
+		<!-- <Panel panelId="top" />
 		<Panel panelId="right" />
 		<Panel panelId="bottom" />
-		<Panel panelId="left" />
+		<Panel panelId="left" /> -->
+		<SveltePanels />
 
 		<!-- Glowing Progress Bar -->
 		<div
