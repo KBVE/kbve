@@ -1,5 +1,5 @@
 import { defineConfig } from 'astro/config';
-import react from '@astrojs/react';
+//import react from '@astrojs/react';
 import svelte, { vitePreprocess } from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
@@ -129,9 +129,9 @@ export default defineConfig({
 			},
 		}),
 
-		react({
-			include: ['**/react/*'],
-		}),
+		// react({
+		// 	include: ['**/react/*'],
+		// }),
 		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
 		//partytown(),
 		worker(),
