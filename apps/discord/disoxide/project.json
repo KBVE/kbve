@@ -56,6 +56,19 @@
       }
     },
     "container": {
+    "executor": "nx:run-commands",
+    "options": {
+        "commands": [
+          "./kbve.sh -nx astro-disoxide:build",
+          "rm -rf ./apps/discord/disoxide/dist/",
+          "mkdir -p ./apps/discord/disoxide/dist/",
+          "cp -a ./dist/apps/astro-discord/. ./apps/discord/disoxide/dist/",
+          "./kbve.sh -nx disoxide:containerx"
+        ],
+        "parallel": false
+      }
+  },
+    "containerx": {
       "executor": "@nx-tools/nx-container:build",
       "defaultConfiguration": "local",
       "options": {
