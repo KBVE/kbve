@@ -1,3 +1,33 @@
+disoxide:
+    nameOverride: disoxide
+    name: disoxide
+    replicaCount: 1
+    image:
+        repository: kbve/disoxide
+        tag: 1.2.0
+    service:
+        name: disoxide
+        ports:
+            - name: tcp
+              protocol: TCP
+              port: 3000
+              targetPort: 3000
+    ingress:
+        enabled: true
+        host: discord.sh
+        paths:
+            - path: /
+              backend: html
+            - path: /ws/
+              backend: websocket
+    resources:
+        requests:
+            memory: '1Gi'
+            cpu: '500m'
+        limits:
+            memory: '2Gi'
+            cpu: '900m'
+
 pydiscordsh:
     nameOverride: pydiscordsh
     name: pydiscordsh-app
