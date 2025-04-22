@@ -42,6 +42,16 @@ tags:
     After that, we can make some tweaks to the `askama.astro` template, including the removal of the `Layout` template.
     The information from the layout will have to be generated ahead of time.
 
+### Kubernetes Ingress
+
+-   05:53PM
+
+    For the gzip compression, we have to update the nginx to pass through the gz files from Axum.
+    After making sure that the files do not get double compressed, we still have two more tweaks to be made.
+    Gzip all the static files inside of the dist folder and update the axum to include the basic cache layer, both of which can be done easily from our end!
+    The goal will be to hit the 100 performance metric across the board on the Google Pagefind.
+    Wait, we could just run through the astro compress, which seems to be able to handle that for us, thus it be just the axum that we need to append.
+
 ## 2024
 
 The journal entry for today will be a bit behind because I have to update the template that we are using!
