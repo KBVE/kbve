@@ -17,6 +17,11 @@ import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
 import { resolve } from 'path';
 
+// Compression Optimizations - 04-22-2025
+
+import compressor from "astro-compressor";
+
+
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://discord.sh/',
@@ -136,6 +141,34 @@ export default defineConfig({
 		//partytown(),
 		worker(),
 		svelte(),
+
+		(await import("@playform/compress")).default({
+			CSS: true,
+			HTML: {
+				"html-minifier-terser": {
+					removeAttributeQuotes: false,
+				},
+			},
+			Image: false,
+			JavaScript: true,
+			SVG: true,
+		}),
+
+		compressor({
+			gzip: true,
+			brotli: false,
+			fileExtensions: [
+				".html",
+				".js",
+				".css",
+				".mjs",
+				".cjs",
+				".svg",
+				".xml",
+				".txt",
+				".json"
+			  ]
+		}),
 
 		// tailwind({
 		// 	configFile: fileURLToPath(
