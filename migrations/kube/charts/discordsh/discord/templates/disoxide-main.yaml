@@ -1,1 +1,113 @@
 # Disoxide Main App
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: disoxide-main
+  namespace: discordsh
+  labels:
+    app: disoxide
+spec:
+  replicas: {{ .Values.disoxide.replicaCount }}
+  selector:
+    matchLabels:
+      app: disoxide
+      tier: disoxide
+  template:
+    metadata:
+      labels:
+        app: disoxide
+        tier: disoxide
+    spec:
+      containers:
+        - name: disoxide
+          image: "{{ .Values.disoxide.image.repository }}:{{ .Values.disoxide.image.tag }}"
+          ports:
+            {{- range .Values.disoxide.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.disoxide.resources | nindent 12 }}
+          env:
+            - name: TURSO_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: discord-turso
+                  key: TURSO_AUTH_TOKEN
+            - name: TURSO_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-turso
+                  key: TURSO_DATABASE_URL
+            - name: SUPABASE_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: serviceKey
+            - name: SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: anonKey
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: secret
+            - name: SUPABASE_URL
+              value: "https://supabase.kbve.com"
+
+---
+
+# Service (TCP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: disoxide-service
+  namespace: discordsh
+  labels:
+    app: disoxide
+spec:
+  selector:
+    app: disoxide
+  ports:
+    {{- range .Values.disoxide.service.ports }}
+    - name: {{ .name }}
+      protocol: {{ .protocol }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+    {{- end }}
+  type: ClusterIP
+
+---
+
+## Nginx Ingress
+{{- if .Values.disoxide.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: disoxide-ingress
+  namespace: discordsh
+  annotations:
+    nginx.ingress.kubernetes.io/enable-websocket: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    #nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    #nginx.ingress.kubernetes.io/keepalive: "on"
+    #nginx.ingress.kubernetes.io/http2-push-preload: "true"
+spec:
+  rules:
+    - host: {{ .Values.disoxide.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: disoxide-service
+                port:
+                  number: 3000
+{{- end }}
