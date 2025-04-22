@@ -163,6 +163,26 @@ check_root() {
     [ "$(id -u)" -eq 0 ] && echo "true" || echo "false"
 }
 
+# Function to help prepare the Disoxide Container
+prepare_disoxide_container() {
+    echo "Cleaning disoxide/dist..."
+    rm -rf ./apps/discord/disoxide/dist/
+
+    echo "Creating dist directory..."
+    mkdir -p ./apps/discord/disoxide/dist/
+
+    echo "Copying Astro build output to disoxide/dist..."
+    cp -a ./dist/apps/astro-discord/. ./apps/discord/disoxide/dist/
+
+    echo "[Prep] Prepared disoxide build. You can now run: pnpm nx run disoxide:containerx [--push]"
+    #echo "Building container with optional push... here we can loop back and pre-compress the files"
+    #if [[ "$1" == "--push" ]]; then
+        # pnpm nx run disoxide:containerx --push
+    #else
+        # pnpm nx run disoxide:containerx
+    #fi
+}
+
 # Function for atomic patching. 
 atomic_function() {
     set -e
@@ -531,6 +551,9 @@ case "$1" in
         ;;
     -ulid)
         generate_ulid
+        ;;
+    -preparecontainer)
+        prepare_disoxide_container
         ;;
     -db)
         if is_installed "diesel_ext"; then
