@@ -1,5 +1,5 @@
 import { defineConfig } from 'astro/config';
-import react from '@astrojs/react';
+//import react from '@astrojs/react';
 import svelte, { vitePreprocess } from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
@@ -16,6 +16,11 @@ import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
 import { resolve } from 'path';
+
+// Compression Optimizations - 04-22-2025
+
+import compressor from "astro-compressor";
+
 
 // https://astro.build/config
 export default defineConfig({
@@ -129,13 +134,41 @@ export default defineConfig({
 			},
 		}),
 
-		react({
-			include: ['**/react/*'],
-		}),
+		// react({
+		// 	include: ['**/react/*'],
+		// }),
 		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
 		//partytown(),
 		worker(),
 		svelte(),
+
+		(await import("@playform/compress")).default({
+			CSS: true,
+			HTML: {
+				"html-minifier-terser": {
+					removeAttributeQuotes: false,
+				},
+			},
+			Image: false,
+			JavaScript: true,
+			SVG: true,
+		}),
+
+		compressor({
+			gzip: true,
+			brotli: false,
+			fileExtensions: [
+				".html",
+				".js",
+				".css",
+				".mjs",
+				".cjs",
+				".svg",
+				".xml",
+				".txt",
+				".json"
+			  ]
+		}),
 
 		// tailwind({
 		// 	configFile: fileURLToPath(
