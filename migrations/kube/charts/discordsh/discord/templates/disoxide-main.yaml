@@ -57,7 +57,15 @@ spec:
                   key: secret
             - name: SUPABASE_URL
               value: "https://supabase.kbve.com"
-
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-armada
+                  key: redis-password
+            - name: REDIS_HOST
+              value: "redis-armada.discordsh.svc.cluster.local"
+            - name: RUST_LOG
+              value: "debug,disoxide=debug,jedi=debug"
 ---
 
 # Service (TCP)
