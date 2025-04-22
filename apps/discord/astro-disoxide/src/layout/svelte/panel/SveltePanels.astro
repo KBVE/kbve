@@ -1,0 +1,10 @@
+---
+import Panel from './Panel.svelte';
+
+const PANEL_IDS = ['top', 'right', 'bottom', 'left'] as const;
+type PanelId = typeof PANEL_IDS[number];
+---
+
+{PANEL_IDS.map((id) => (
+  <Panel client:only="svelte" panelId={id} />
+))}
