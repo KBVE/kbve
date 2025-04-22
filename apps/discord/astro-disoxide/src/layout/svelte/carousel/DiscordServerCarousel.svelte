@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { panelManager } from 'src/layout/scripts/nanostores'; 
 	import { dispatchCommand } from 'src/layout/scripts/client';
 	import type { DiscordServer } from 'src/env';
 
@@ -92,24 +93,15 @@
 	}
 
 	function openPanelFromSvelte(serverId: string) {
-	try {
-		const panelStore = (window as any).Alpine?.store('panelManager');
-		console.log('[Svelte] Alpine panelManager:', panelStore);
+			const html = renderedCards[serverId];
 
-		if (!panelStore?.openPanel) {
-			console.warn('[Svelte] openPanel not found on panelManager');
-			return;
+			panelManager.get().openPanel('right', {
+				name: `Server: ${serverId}`,
+				description: 'Pre-rendered server from carousel',
+				server_id: serverId,
+				html,
+			});
 		}
-
-		const html = renderedCards[serverId];
-		panelStore.openPanel('right', {
-			server_id: serverId,
-			html,
-		});
-	} catch (err) {
-		console.warn('[Svelte] Failed to open right panel with server:', err);
-	}
-}
 </script>
 
 <div class="relative overflow-visible w-full">
