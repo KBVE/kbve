@@ -88,16 +88,31 @@ export interface CarouselData {
 export type PanelDirection = 'top' | 'right' | 'bottom' | 'left';
 export type PanelId = PanelDirection;
 
+export interface PanelPayload {
+name?: string;
+description?: string;
+server?: DiscordServer;
+tag?: DiscordTag;
+image?: string;
+video?: string;
+[key: string]: any;
+}
+
+export type PanelSlot = {
+open: boolean;
+payload?: PanelPayload | null;
+};
+
 export interface PanelRequest {
 	type: 'open' | 'close' | 'toggle';
 	id: PanelId;
-	payload?: Record<string, any>;
+	payload?: PanelPayload;
 }
 
 export interface PanelState {
 	open: boolean;
 	id: PanelId;
-	payload?: Record<string, any>;
+	payload?: PanelPayload;
 	content?: string;
 }
 
