@@ -31,6 +31,26 @@ tags:
 	Okay, making some progress with the sidebar and handling the bigger issue, which is the i18n.
 	The plan would be to load all the different keys for each language and then build an astro collection holding the translations.
 	If it works out fine, I might make it into a library and add it back into the kbve website for our collections.
+	The loading of the i18n keys, values and basically the whole database should be done via the shared worker but we want to make sure that it will not be an issue.
+	I think there might be a couple ways we can address this, but I also need to make sure that we update the axum with the new folder for i18n.
+	Under the assets.rs file, a quick edit to include the ServeDir for `i18n`, and that should be fine on the rust-side of things.
+	
+```rust
+
+	.nest_service("/i18n", ServeDir::new("dist/i18n").not_found_service(get(custom_404)))
+
+```
+
+	That should make sure the next docker image build serves the json files from that folder without any issues.
+
+### Astro Toast
+
+-	05:45PM
+
+	The toast can be added in two ways, we could create our worker and then delegate the toast tasks to it.
+	However, I am thinking that we move into an event based system that then modularizes each of the scripts into their own workers.
+	The event system and message system would move amoung the shared worker, client and N-workers, using events to trigger the deployment.
+	I can already tell that I will have to rewrite this all again in the future, but for now this is part of the learning system.
 
 ### MusicJams
 
