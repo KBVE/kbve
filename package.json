@@ -21,6 +21,7 @@
 		"@babel/preset-react": "^7.25.9",
 		"@babel/runtime": "7.26.0",
 		"@expo/cli": "0.21.8",
+		"@kindspells/astro-shield": "^1.7.1",
 		"@monodon/rust": "1.2.0",
 		"@nanostores/persistent": "^0.9.1",
 		"@nanostores/react": "^0.7.3",
