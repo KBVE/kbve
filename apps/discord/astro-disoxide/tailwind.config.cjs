@@ -19,15 +19,16 @@ module.exports = buildConfig(__dirname, {
 	],
 	theme: {
 		extend: {
-		  animation: {
-			'pattern-move': 'pattern-move 40s linear infinite',
-		  },
-		  keyframes: {
-			'pattern-move': {
-			  '0%': { backgroundPosition: '0% 0%' },
-			  '100%': { backgroundPosition: '100% 100%' },
+			animation: {
+				'pattern-move': 'pattern-move 40s linear infinite',
 			},
-		  },
+			keyframes: {
+				'pattern-move': {
+					'0%': { backgroundPosition: '0% 0%' },
+					'100%': { backgroundPosition: '100% 100%' },
+				},
+			},
+
 		},
-	  },
+	},
 });
