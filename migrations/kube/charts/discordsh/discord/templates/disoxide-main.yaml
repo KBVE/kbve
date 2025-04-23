@@ -105,7 +105,14 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header Accept-Encoding $http_accept_encoding;
-    nginx.ingress.kubernetes.io/enable-modsecurity: "false"
+      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://api.dicebear.com https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' wss:; object-src 'none'; frame-ancestors 'none'; base-uri 'self';";
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecRule REQUEST_URI "@rx \.(?:js|mjs|css|ico|svg|png|jpg|jpeg|webp|avif|woff2?|ttf|eot|json|xml|map|wasm|txt)(\?.*)?$" \
+        "id:1000,phase:1,pass,nolog,ctl:ruleEngine=Off"
+      SecRule REQUEST_URI "@rx ^/(assets|images|_astro|pagefind|collections|integrations|sitegraph|~partytown)" \
+        "id:1100,phase:1,pass,nolog,ctl:ruleEngine=Off"
+    
     nginx.ingress.kubernetes.io/enable-opentracing: "false"   
     #nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     #nginx.ingress.kubernetes.io/keepalive: "on"

@@ -57,7 +57,7 @@ const footerRoutes: NavRoute[] = [
 		<img
 			src="/assets/media/logo/discordsh_small_logo.webp"
 			alt="DiscordSH Mini Logo"
-			class="w-8 transition-all duration-300 block outline-none border-none shadow-none cursor-pointer overflow-visible"
+			class="w-8 transition-all duration-300 block outline-none border-none shadow-none cursor-pointer"
 			x-show="!sidebarOpen"
 			@click="toggleSidebar()"
 		/>
@@ -69,6 +69,7 @@ const footerRoutes: NavRoute[] = [
 			navRoutes.map(({ href, label, icon }) => (
 				<a
 					href={href}
+					aria-label={label}
 					x-bind:class={`isActive('${href}')
 						? 'bg-purple-700 text-white'
 						: 'hover:bg-gray-700 text-gray-200'`}
@@ -81,7 +82,7 @@ const footerRoutes: NavRoute[] = [
 					</span>
 	
 					{/* Icon */}
-					<span class="text-lg text-purple-400 relative z-10">
+					<span class="text-lg text-purple-400 relative z-10" aria-hidden="true">
 						<Icon name={icon} />
 					</span>
 	
@@ -102,11 +103,12 @@ const footerRoutes: NavRoute[] = [
 			footerRoutes.map(({ href, label, icon }) => (
 				<a
 					href={href}
+					aria-label={label}
 					x-bind:class={`isActive('${href}')
 					? 'bg-purple-700 text-white'
 					: 'hover:bg-gray-700 text-gray-400 hover:text-purple-300'`}
 					class="flex items-center gap-2 text-sm rounded px-3 py-2 transition">
-					<span class="text-lg text-purple-400">
+					<span class="text-lg text-purple-400" aria-hidden="true">
 						<Icon name={icon} />
 					</span>
 					<span x-show="sidebarOpen">{label}</span>
