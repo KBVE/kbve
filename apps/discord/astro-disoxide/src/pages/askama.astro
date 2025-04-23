@@ -3,7 +3,7 @@ import Layout from 'src/layout/Layout.astro';
 const rawHTMLString = `<div class="card-tile">Content:: {{content}} </div> <div class="card-tile"> Path:: {{path}} </div>`;
 ---
 
-<Layout title="{% block title %}{% endblock %}" description="{% block description %}{% endblock %}">
+<Layout title="{{title}}" description="{{description}}">
     <div class="flex h-screen min-h-0 overflow-hidden">
         <div
 			class="flex-1 flex flex-col w-full min-h-0 transition-all duration-200 ease-in-out">
