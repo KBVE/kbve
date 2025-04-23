@@ -492,6 +492,9 @@ importers:
       '@monodon/rust':
         specifier: 1.2.0
         version: 1.2.0(@babel/traverse@7.27.0)(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.21)(typescript@5.8.3))(@swc/core@1.5.7(@swc/helpers@0.5.13))(nx@20.7.2(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.21)(typescript@5.8.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))(typescript@5.8.3)(verdaccio@6.0.5(encoding@0.1.13)(typanion@3.14.0))
+      '@nanostores/i18n':
+        specifier: ^1.0.0
+        version: 1.0.0(nanostores@0.9.5)
       '@nanostores/persistent':
         specifier: ^0.9.1
         version: 0.9.1(nanostores@0.9.5)
@@ -3111,6 +3114,12 @@ packages:
 
   '@motionone/utils@10.18.0':
     resolution: {integrity: sha512-3XVF7sgyTSI2KWvTf6uLlBJ5iAgRgmvp3bpuOiQJvInd4nZ19ET8lX5unn30SlmRH7hXbBbH+Gxd0m0klJ3Xtw==}
+
+  '@nanostores/i18n@1.0.0':
+    resolution: {integrity: sha512-nryvahZr695YDK7C9qGimNJfxvxIu6azaAARW7mwXx0jabmS1KiTDXh4bd+7kUMKdt2KGKw9nblwmdIqzIHahw==}
+    engines: {node: ^20.0.0 || >=22.0.0}
+    peerDependencies:
+      nanostores: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^1.0.0
 
   '@nanostores/persistent@0.9.1':
     resolution: {integrity: sha512-ow57Hxm5VMaI5GHET/cVk8hX/iKMmbhcGrB9owfN8p8OHiiJgUlYxe1giacwlAALJXAh2t8bxXh42hHb64BCEA==}
@@ -20850,6 +20859,10 @@ snapshots:
       '@motionone/types': 10.17.1
       hey-listen: 1.0.8
       tslib: 2.8.1
+
+  '@nanostores/i18n@1.0.0(nanostores@0.9.5)':
+    dependencies:
+      nanostores: 0.9.5
 
   '@nanostores/persistent@0.9.1(nanostores@0.9.5)':
     dependencies:

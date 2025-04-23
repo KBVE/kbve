@@ -1,6 +1,15 @@
 <script lang="ts">
 	// import { Icon } from '@astrojs/starlight/components';
 	import { panelManager } from 'src/layout/scripts/nanostores';
+	import { t, loadI18nJson } from 'src/layout/scripts/i18n';
+	import { onMount } from 'svelte';
+
+		
+	onMount(() => {
+		loadI18nJson();
+	});
+	
+	const sidebar = t('sidebar');
 
 	// Icon typing — infer from Icon component
 	type IconName =
@@ -17,15 +26,15 @@
 		icon: IconName;
 	};
 
-	const navRoutes: NavRoute[] = [
-		{ href: '/', label: 'Dashboard', icon: 'starlight' },
-		{ href: '/servers', label: 'Servers', icon: 'laptop' },
-		{ href: '/logs', label: 'Logs', icon: 'open-book' },
-		{ href: '/settings', label: 'Settings', icon: 'setting' },
-	];
+	const navRoutes = [
+		{ href: '/', label: 'dashboard', icon: 'starlight' },
+		{ href: '/servers', label: 'servers', icon: 'laptop' },
+		{ href: '/logs', label: 'logs', icon: 'open-book' },
+		{ href: '/settings', label: 'settings', icon: 'setting' },
+	] as const satisfies readonly { href: string; label: keyof any; icon: string }[];
 
 	const footerRoutes: NavRoute[] = [
-		{ href: '/logout', label: 'Logout', icon: 'logout' },
+		{ href: '/logout', label: 'logout', icon: 'logout' },
 	];
 
 	const navLinkClass =
@@ -75,7 +84,7 @@
 				</span>
 
 				<!-- Label -->
-				<span class="relative z-10">{label}</span>
+				<span class="relative z-10">{sidebar.get(label)}</span>
 			</a>
 		{/each}
 	</nav>
@@ -91,7 +100,7 @@
 				class={`${navLinkClass} text-sm text-gray-400 hover:text-purple-300`}>
 				<!-- <Icon name={icon} /> -->
 				{@html safeIcon(icon)}
-				{label}
+				{sidebar.get(label)}
 			</a>
 		{/each}
 	</div>
