@@ -20,6 +20,7 @@ import { resolve } from 'path';
 // Compression Optimizations - 04-22-2025
 
 import compressor from "astro-compressor";
+import { shield } from '@kindspells/astro-shield'
 
 
 // https://astro.build/config
@@ -152,6 +153,10 @@ export default defineConfig({
 			Image: false,
 			JavaScript: true,
 			SVG: true,
+		}),
+
+		shield({
+			sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
 		}),
 
 		compressor({
