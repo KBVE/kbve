@@ -79,22 +79,22 @@
           ],
           "load": true,
           "tags": [
-            "1.2.0",
-            "1.2"
+            "1.3.0",
+            "1.3"
           ]
         },
         "configurations": {
           "local": {
             "tags": [
-              "1.2.0",
-              "1.2"
+              "1.3.0",
+              "1.3"
             ],
             "push": false
           },
           "production": {
             "tags": [
-              "1.2.0",
-              "1.2"
+              "1.3.0",
+              "1.3"
             ],
             "push": true,
             "customBuildOptions": "--push",
@@ -134,7 +134,7 @@
             "forwardAllArgs": false
           },
           {
-            "command": "docker run --env-file .env -p 3000:3000 kbve/disoxide:1.2.0",
+            "command": "docker run --env-file .env -p 3000:3000 kbve/disoxide:1.3.0",
             "forwardAllArgs": false
           }
         ],
