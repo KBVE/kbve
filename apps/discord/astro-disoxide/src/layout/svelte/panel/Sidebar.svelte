@@ -3,6 +3,7 @@
 	import { panelManager } from 'src/layout/scripts/nanostores';
 	import { t, loadI18nJson } from 'src/layout/scripts/i18n';
 	import { onMount } from 'svelte';
+	import { emitCustomEvent } from 'src/layout/scripts/client';
 
 		
 	onMount(() => {
@@ -60,9 +61,17 @@
 		<h1 class="text-lg font-bold">DiscordSH</h1>
 		<button
 			class="text-purple-400 hover:text-white"
-			on:click={() => panelManager.get().closePanel('left')}
+			on:click={() => {
+				console.log('Closing sidebar');
+				panelManager.get().closePanel('right');
+				emitCustomEvent('toast', {
+					message: 'Sidebar closed.',
+					type: 'info',
+					duration: 2500
+				});
+			}}
 			aria-label="Close sidebar">
-			<!-- <Icon name="close" /> -->
+			X
 		</button>
 	</div>
 

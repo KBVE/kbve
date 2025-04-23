@@ -12,7 +12,8 @@ const EXPECTED_SW_VERSION = '1.0.2';
 
 let sharedPort: MessagePort | null = null;
 let webWorker: Worker | null = null;
-let toastWorker: Worker | null = null;
+let Toastify: any;
+// let toastWorker: Worker | null = null;
 
 // * Memoizing
 
@@ -358,10 +359,41 @@ function listenForToasts() {
 	});
 }
 
-export function sendToast(message: string, type: ToastType = 'info', duration = 3000): void {
-	if (!toastWorker) {
-		toastWorker = new Worker(new URL('./toast.ts', import.meta.url), { type: 'module' });
+export async function sendToast(message: string, type: ToastType = 'info', duration = 3000) {
+	if (!Toastify) {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		const mod = await import('https://esm.sh/toastify-js');
+		Toastify = mod.default;
 	}
 
-	toastWorker.postMessage({ message, type, duration });
+	
+	const tailwindTheme: Record<ToastType, string> = {
+		success: '#22c55e', // green-500
+		error: '#ef4444',   // red-500
+		info: '#3b82f6',    // blue-500
+		warning: '#f59e0b', // yellow-500
+	};
+	
+	Toastify({
+		text: message,
+		duration,
+		gravity: 'top',
+		position: 'right',
+		style: {
+			background: tailwindTheme[type],
+			color: '#f3f4f6',
+			borderRadius: '0.375rem', 
+			boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)', 
+			padding: '0.75rem 1rem',
+			fontSize: '0.875rem',
+			fontWeight: '500',
+			zIndex: 999999,
+		},
+		offset: {
+			x: 20,
+			y: 60,
+		},
+		stopOnFocus: true,
+	}).showToast();
 }
