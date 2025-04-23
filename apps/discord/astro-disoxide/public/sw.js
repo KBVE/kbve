@@ -7,6 +7,7 @@ const PRECACHE_URLS = [
   '/i18n/db.json',
   '/assets/json/lottie/animu.json',
   'https://esm.sh/@lottiefiles/dotlottie-web',
+  'https://esm.sh/toastify-js?worker',
 ];
 
 self.addEventListener('install', (event) => {

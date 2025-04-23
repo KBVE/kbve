@@ -3,13 +3,16 @@ import type {
 	SharedWorkerCommand,
 	RenderType,
 	RenderTypeOptionsMap,
-	WebWorkerCommand, WebWorkerResponse
+	WebWorkerCommand, 
+	WebWorkerResponse,
+	ToastType,
 } from 'src/env';
 
 const EXPECTED_SW_VERSION = '1.0.2';
 
 let sharedPort: MessagePort | null = null;
 let webWorker: Worker | null = null;
+let toastWorker: Worker | null = null;
 
 // * Memoizing
 
@@ -332,8 +335,33 @@ export async function registerWorkers(): Promise<void> {
 	try {
 		await registerServiceWorker();
 		initWebWorker();
+
+		listenForToasts();
+
 		console.log('[Worker Init] All workers registered');
 	} catch (err) {
 		console.error('[Worker Init] Failed to initialize workers:', err);
 	}
+}
+
+
+// ! Toast
+
+function listenForToasts() {
+	subscribeToTopic<{ message: string; type?: ToastType; duration?: number }>('toast', (data) => {
+		sendToast(data.message, data.type, data.duration);
+	});
+
+	onCustomEvent<{ message: string; type?: ToastType; duration?: number }>('toast', (e) => {
+		const { message, type, duration } = e.detail;
+		sendToast(message, type, duration);
+	});
+}
+
+export function sendToast(message: string, type: ToastType = 'info', duration = 3000): void {
+	if (!toastWorker) {
+		toastWorker = new Worker(new URL('./toast.ts', import.meta.url), { type: 'module' });
+	}
+
+	toastWorker.postMessage({ message, type, duration });
 }
