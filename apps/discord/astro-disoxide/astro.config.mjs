@@ -56,7 +56,7 @@ export default defineConfig({
 			],
 			title: 'KBVE Docs',
 			editLink: {
-				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
+				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/discord/astro-disoxide',
 			},
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
 			expressiveCode: true, // Disabled Expressive Code
@@ -94,8 +94,8 @@ export default defineConfig({
 				},
 			],
 			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' },
-				{ icon: 'discord', label: 'Discord', href: 'https://astro.build/chat' },
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/kbve/kbve' },
+				{ icon: 'discord', label: 'Discord', href: 'https://kbve.com/discord' },
 			],
 			disable404Route: true,
 			customCss: ['./src/styles/starlight.css'],
