@@ -34,6 +34,7 @@ export type CommandPayload<T extends SharedWorkerCommand['type']> =
 export const knownStores = ['jsonservers', 'htmlservers', 'meta', 'panel'] as const;
 export type KnownStore = (typeof knownStores)[number];
 
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 export interface DiscordServer {
 	server_id: string;

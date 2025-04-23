@@ -26,6 +26,7 @@ pub fn static_router() -> Router<SharedState> {
         .nest_service("/sitegraph", ServeDir::new("dist/sitegraph").not_found_service(get(custom_404)))
         .nest_service("/assets", ServeDir::new("dist/assets").not_found_service(get(custom_404)))
         .nest_service("/images", ServeDir::new("dist/images").not_found_service(get(custom_404)))
+        .nest_service("/i18n", ServeDir::new("dist/i18n").not_found_service(get(custom_404)))
         .route_service("/sw.js", ServeFile::new("dist/sw.js"))
         .route_service("/ads.txt", ServeFile::new("dist/ads.txt"))
         .route_service("/content-assets.mjs", ServeFile::new("dist/content-assets.mjs"))

@@ -5,6 +5,7 @@ import type {
 	RenderTypeOptionsMap,
 	WebWorkerCommand, WebWorkerResponse
 } from 'src/env';
+
 const EXPECTED_SW_VERSION = '1.0.2';
 
 let sharedPort: MessagePort | null = null;
