@@ -12,7 +12,7 @@ export function syncFromWorker<T>(
 ) {
 	if (typeof window !== 'undefined') {
 		window.addEventListener('message', handleMessage);
-	}``
+	}
 
 	function handleMessage(event: MessageEvent) {
 		const { topic: msgTopic, key: msgKey, result } = event.data || {};
