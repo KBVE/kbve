@@ -8,6 +8,8 @@ declare const self: SharedWorkerGlobalScope
 
 
 // --- Dexie Layer ---
+type BatchableTable = keyof Pick<AppDexie, 'meta' | 'settings' | 'i18n'>
+
 class AppDexie extends Dexie {
 	settings!: Table<{ id: string; value: any }, string>
 	meta!: Table<{ key: string; value: any }, string> 
@@ -26,6 +28,53 @@ const db = new AppDexie()
 
 // --- Unified Storage API ---
 const storageAPI = {
+
+	// ADVANCE
+	async getBatchKV<T extends BatchableTable>(
+		table: T,
+		keys: string[]
+	): Promise<Record<string, any>> {
+		const tableRef = db[table] as Table<{ key: string; value: any }, string>
+		const entries = await tableRef.bulkGet(keys)
+	
+		const result: Record<string, any> = {}
+		entries.forEach((entry, i) => {
+			if (entry) result[keys[i]] = entry.value
+		})
+	
+		return result
+	},
+	async putBatchKV<T extends BatchableTable>(
+		table: T,
+		data: Record<string, any>
+	): Promise<void> {
+		const tableRef = db[table] as Table<{ key: string; value: any }, string>
+	
+		const entries = Object.entries(data).map(([key, value]) => ({
+			key,
+			value,
+		}))
+	
+		await tableRef.bulkPut(entries)
+	},
+	async putBatchKVFromJSON<T extends BatchableTable>(table: T, path: string): Promise<void> {
+		try {
+			const res = await fetch(path)
+			const json = await res.json()
+			await storageAPI.putBatchKV(table, json)
+			console.log(`[db-worker] Loaded ${table} from ${path}:`, Object.keys(json).length, 'entries')
+		} catch (e) {
+			console.warn(`[db-worker] Failed to load ${table} from ${path}:`, e)
+		}
+	},
+	async listKeysKV<T extends BatchableTable>(table: T): Promise<string[]> {
+		const tableRef = db[table] as Table<any, string>
+		return await tableRef.toCollection().primaryKeys()
+	},
+	async getKeysByPrefix<T extends BatchableTable>(table: T, prefix: string): Promise<string[]> {
+		const allKeys = await storageAPI.listKeysKV(table)
+		return allKeys.filter(key => key.startsWith(prefix))
+	},
 	// SETTINGS (General)
 	async dbSet(id: string, value: any) {
 		await db.settings.put({ id, value })
@@ -55,15 +104,7 @@ const storageAPI = {
 
 	// I18N TABLE
 	async loadI18nFromJSON(path = '/i18n/db.json') {
-		try {
-			const res = await fetch(path)
-			const data: Record<string, string> = await res.json()
-			const entries = Object.entries(data).map(([key, value]) => ({ key, value }))
-			await db.i18n.bulkPut(entries)
-			console.log('[db-worker] Loaded i18n into Dexie:', entries.length, 'entries')
-		} catch (e) {
-			console.warn('[db-worker] Failed to load i18n:', e)
-		}
+		await storageAPI.putBatchKVFromJSON('i18n', path)
 	},
 	async getTranslation(key: string): Promise<string | null> {
 		const entry = await db.i18n.get(key)

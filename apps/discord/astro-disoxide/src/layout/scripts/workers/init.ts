@@ -1,11 +1,11 @@
-import type { LocalStorageAPI } from './db-worker';
 import type { Remote } from 'comlink'
+import type { LocalStorageAPI } from './db-worker'
 
 export interface InitWorkerOptions {
-	version: string;
-	i18nPath?: string;
-	locale?: string;
-	defaults?: Record<string, any>;
+	version: string
+	i18nPath?: string
+	locale?: string
+	defaults?: Record<string, any>
 }
 
 export async function initializeWorkerDatabase(
@@ -19,22 +19,22 @@ export async function initializeWorkerDatabase(
 		},
 	}: InitWorkerOptions,
 ) {
-	console.log('[init-worker] Initializing database...');
+	console.log('[init-worker] Initializing database...')
 
 	try {
-		await worker.loadI18nFromJSON(i18nPath);
-		console.log(`[init-worker] i18n loaded from ${i18nPath}`);
+		await worker.putBatchKVFromJSON('i18n', i18nPath)
+		console.log(`[init-worker] i18n loaded from ${i18nPath}`)
 
-		worker.setLocale(locale);
+		await worker.dbSet('locale', locale)
 
 		for (const [key, value] of Object.entries(defaults)) {
-			await worker.dbSet(key, value);
+			await worker.dbSet(key, value)
 		}
 
-		await worker.setVersion(version);
+		await worker.setVersion(version)
 
-		console.log(`[init-worker] DB initialized to version ${version}`);
+		console.log(`[init-worker] DB initialized to version ${version}`)
 	} catch (err) {
-		console.error('[init-worker] Initialization failed:', err);
+		console.error('[init-worker] Initialization failed:', err)
 	}
 }

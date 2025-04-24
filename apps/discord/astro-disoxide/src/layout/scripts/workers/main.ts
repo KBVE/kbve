@@ -57,8 +57,22 @@ export const i18n = {
 				i18nStore.setKey(key, value)
 			}
 		}
+	},
+
+	async hydrateLocale(locale = 'en') {
+		if (!this.api) return
+	
+		const allKeys = await this.api.listKeysKV('i18n')
+		const filteredKeys = allKeys.filter((key) => key.startsWith(`${locale}:`))
+	
+		const batch = await this.api.getBatchKV('i18n', filteredKeys)
+		for (const [key, value] of Object.entries(batch)) {
+			this.store.setKey(key, value)
+		}
 	}
 }
+
+
 
 // 	*	ComLink Layer
 
@@ -129,14 +143,9 @@ export async function main() {
 	}
 
 	const api = await initStorageComlink()
+	i18n.api = api
+	await i18n.hydrateLocale('en')
 
-	// 🌍 Hydrate nanostores from i18n keys (you can customize this list)
-	await i18n.hydrate(api, [
-		'en:sidebar:welcome',
-		'en:sidebar:dashboard',
-	])
-
-	// ✅ Expose global i18n with lazy fallback
 	if (typeof window !== 'undefined') {
 		window.i18n = i18n
 		console.log('[MASTA] 🌐 window.i18n ready')
