@@ -1,6 +1,9 @@
 /// <reference types="astro/client" />
 /// <reference path="../.astro/types.d.ts" />
 /// <reference lib="webworker" />
+/// <reference types="vite-plugin-pwa/client" />
+/// <reference types="vite-plugin-pwa/info" />
+/// <reference types="vite-plugin-pwa/vanillajs" />
 
 interface Window {
 	Alpine: import('alpinejs').Alpine;
