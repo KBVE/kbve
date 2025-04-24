@@ -58,6 +58,19 @@ tags:
 	We want both a subscription based way of triggering the toast and also a custom event system!
 	This should give us the ability to handle both live events and events triggered from the main thread.
 
+-	06:56PM
+
+	After looking through all the code and building it out, I decided that it be best to just throw it all out and start fresh again.
+	I am thinking that it would make sense to structure it around a notification system that sits within the idb.
+	The toasts will just act as a UX medium for the user to see the title and the core message, while the idb holds the full notification.
+	This means we can extend it out to include the redis watch and anything from the supabase end points as well.
+
+### Astro Notifications
+
+-	07:00PM
+
+	The notification system should be simple enough so that we can loop back to finishing the SW / i18n reloading.
+
 ### MusicJams
 
 -	03:04PM

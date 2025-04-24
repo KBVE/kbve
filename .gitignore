@@ -1,8 +1,8 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
-# 02-14-2024
+# 04-23-2025
 
-
+**/dev-dist/
 
 # 11-15-2023 9:19am - Ignore all __pycache__
 **/__pycache__/

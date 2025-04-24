@@ -1,8 +1,62 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { panelManager } from 'src/layout/scripts/nanostores'; 
-	import { dispatchCommand } from 'src/layout/scripts/client';
-	import type { DiscordServer } from 'src/env';
+	import { panelManager } from 'src/layout/scripts/nanostores';
+	//import { dispatchCommand } from 'src/layout/scripts/client';
+	import type {
+		DiscordServer,
+		DiscordTag,
+		Profile,
+	} from 'src/content/config';
+	// import { wrap, proxy } from 'comlink';
+
+	function renderHtmlForServer(server: DiscordServer): string {
+		return `
+			<div class="flex flex-col gap-2 p-2">
+				<img src="${server.logo}" alt="${server.name}" class="w-12 h-12 rounded-full" />
+				<h3 class="text-lg font-bold">${server.name}</h3>
+				<p class="text-sm opacity-70">${server.summary}</p>
+				<a href="${server.invite}" class="text-purple-400 underline text-xs">Join Join Join</a>
+			</div>
+		`.trim();
+	}
+
+	async function seedMockServers(count = 20) {
+		const now = Date.now();
+		const servers: DiscordServer[] = [];
+
+		for (let i = 1; i <= count; i++) {
+			servers.push({
+				server_id: `server-${i}`,
+				owner_id: `owner-${i}`,
+				lang: i % 3,
+				status: i % 2 === 0 ? 1 : 0,
+				invite: `https://discord.gg/fakeinvite${i}`,
+				name: `Server ${i}`,
+				summary: `This is the summary for server ${i}.`,
+				description: `Server ${i} is a vibrant community focused on discussion and events.`,
+				website: i % 2 === 0 ? `https://server${i}.com` : null,
+				logo: `https://api.dicebear.com/7.x/bottts/svg?seed=server${i}`,
+				banner: null,
+				video: null,
+				categories: (i % 5) + 1,
+				updated_at: new Date(now - i * 3600_000).toISOString(),
+			});
+		}
+
+		const api = window.kbve?.api;
+		if (!api) return;
+
+		await api.putServers(servers);
+
+		const htmlCards = servers.map((s) => ({
+			key: s.server_id,
+			value: renderHtmlForServer(s),
+		}));
+		await api.putHtmlCards(htmlCards);
+		await api.markSeeded();
+
+		console.log(`[seedMockServers] Seeded ${servers.length} servers ✅`);
+	}
 
 	let currentSlideIndex = 0;
 	let renderedCards: Record<string, string> = {};
@@ -11,45 +65,31 @@
 	let container: HTMLDivElement;
 
 	async function fetchServerData() {
-		let seeded = false;
+		const api = window.kbve?.api;
+		if (!api) return;
 
+		let seeded = false;
 		while (!seeded) {
 			try {
-				console.log(
-					'[Carousel] Fetching meta:db_seeded with correct shape...',
-				);
-
-				seeded = await dispatchCommand('db_get', {
-					store: 'meta',
-					key: 'db_seeded',
-				});
-				console.log('[Carousel] DB seeded:', seeded);
-			} catch (e) {
-				console.warn('[Carousel] Waiting for DB seed to complete...');
-			}
-
-			if (!seeded) {
-				await new Promise((resolve) => setTimeout(resolve, 2000));
+				seeded = await api.checkSeeded();
+				if (!seeded) {
+					await seedMockServers();
+				}
+			} catch (err) {
+				console.warn('[Carousel] Waiting for DB seed...');
+				await new Promise((res) => setTimeout(res, 1000));
 			}
 		}
 
-		const dbServers: DiscordServer[] = await dispatchCommand('db_list', {
-			store: 'jsonservers',
-		});
-
-		const validServers = dbServers.filter(
+		const servers = await api.getAllServers();
+		const validServers = servers.filter(
 			(s) => typeof s.server_id === 'string' && s.server_id.trim() !== '',
 		);
 		serverIds = validServers.map((s) => s.server_id);
 
-		for (const id of serverIds) {
-			const html: string | null = await dispatchCommand('db_get', {
-				store: 'htmlservers',
-				key: id,
-			});
-			if (html) {
-				renderedCards[id] = html;
-			}
+		for (const s of validServers) {
+			const html = await api.getHtmlCard(s.server_id);
+			if (html) renderedCards[s.server_id] = html;
 		}
 
 		const skeleton = document.getElementById('astro-skeleton');
@@ -93,15 +133,15 @@
 	}
 
 	function openPanelFromSvelte(serverId: string) {
-			const html = renderedCards[serverId];
+		const html = renderedCards[serverId];
 
-			panelManager.get().openPanel('right', {
-				name: `Server: ${serverId}`,
-				description: 'Pre-rendered server from carousel',
-				server_id: serverId,
-				html,
-			});
-		}
+		panelManager.get().openPanel('right', {
+			name: `Server: ${serverId}`,
+			description: 'Pre-rendered server from carousel',
+			server_id: serverId,
+			html,
+		});
+	}
 </script>
 
 <div class="relative overflow-visible w-full">
