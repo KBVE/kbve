@@ -1,5 +1,6 @@
 import { expose } from 'comlink'
 import Dexie, { type Table } from 'dexie'
+import type { DiscordServer, DiscordTag, Profile } from 'src/content/config'
 
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
@@ -14,6 +15,9 @@ class AppDexie extends Dexie {
 	settings!: Table<{ id: string; value: any }, string>
 	meta!: Table<{ key: string; value: any }, string> 
 	i18n!: Table<{ key: string; value: string }, string>
+	servers!: Table<DiscordServer, string>
+	tags!: Table<DiscordTag, string>
+	profiles!: Table<Profile, string>
 
 	constructor() {
 		super('AppStorage')
@@ -21,10 +25,43 @@ class AppDexie extends Dexie {
 			settings: '&id',
 			meta: '&key',
 			i18n: '&key',
+			servers: '&server_id',
+			tags: '&tag_id',
+			profiles: '&profile_id',
 		})
 	}
 }
 const db = new AppDexie()
+
+// * Table Wrapper
+
+function createTableWrapper<T extends Record<K, string>, K extends keyof T>(
+	table: Table<T, string>,
+	keyField: K
+) {
+	return {
+		async get(ids: string[]): Promise<T[]> {
+			const results = await table.bulkGet(ids)
+			return results.filter((item): item is T => item !== undefined)
+		},
+
+		async getOne(id: string): Promise<T | undefined> {
+			return await table.get(id)
+		},
+
+		async put(entries: T[]): Promise<void> {
+			await table.bulkPut(entries)
+		},
+
+		async listKeys(): Promise<string[]> {
+			return await table.toCollection().primaryKeys()
+		},
+
+		async getAll(): Promise<T[]> {
+			return await table.toArray()
+		}
+	}
+}
 
 // --- Unified Storage API ---
 const storageAPI = {
@@ -117,7 +154,13 @@ const storageAPI = {
 			if (entry) result[key] = entry.value
 		}
 		return result
-	}
+	},
+
+	// * Table Wrappers for Dynamic Objects
+	servers: createTableWrapper<DiscordServer, 'server_id'>(db.servers, 'server_id'),
+	tags: createTableWrapper<DiscordTag, 'tag_id'>(db.tags, 'tag_id'),
+	profiles: createTableWrapper<Profile, 'profile_id'>(db.profiles, 'profile_id'),
+
 }
 
 export type LocalStorageAPI = typeof storageAPI
