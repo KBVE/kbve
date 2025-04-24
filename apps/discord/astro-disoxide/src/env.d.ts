@@ -31,8 +31,16 @@ export type CommandPayload<T extends SharedWorkerCommand['type']> =
 		? Omit<Extract<SharedWorkerCommand, { type: T }>, 'type'>
 		: never;
 
-export const knownStores = ['jsonservers', 'htmlservers', 'meta', 'panel'] as const;
+export const knownStores = ['jsonservers', 'htmlservers', 'meta', 'panel', 'notifications'] as const;
 export type KnownStore = (typeof knownStores)[number];
+
+export interface NotificationToast {
+	id: string;
+	message: string;
+	type: ToastType;
+	duration?: number;
+	sent?: boolean;
+}
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 

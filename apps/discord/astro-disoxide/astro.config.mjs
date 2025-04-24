@@ -23,6 +23,11 @@ import compressor from "astro-compressor";
 import { shield } from '@kindspells/astro-shield'
 
 
+// Workers - 04-23-2025
+
+import AstroPWA from '@vite-pwa/astro'
+
+
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://discord.sh/',
@@ -138,10 +143,24 @@ export default defineConfig({
 		// react({
 		// 	include: ['**/react/*'],
 		// }),
-		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
+		//alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
 		//partytown(),
 		worker(),
 		svelte(),
+
+		AstroPWA({
+			workbox: { 
+				//navigateFallback: '/404' 
+			},
+			experimental: {
+				directoryAndTrailingSlashHandler: true,
+			  },
+			devOptions: {
+				enabled: true
+				/* other options */
+			  }
+
+		}),
 
 		(await import("@playform/compress")).default({
 			CSS: true,
