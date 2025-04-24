@@ -1,5 +1,4 @@
-import { expose, proxy } from 'comlink'
-import { persistentAtom, persistentMap } from '@nanostores/persistent'
+import { expose } from 'comlink'
 import Dexie, { type Table } from 'dexie'
 
 interface SharedWorkerGlobalScope extends Worker {
@@ -7,37 +6,19 @@ interface SharedWorkerGlobalScope extends Worker {
 }
 declare const self: SharedWorkerGlobalScope
 
-// --- Nanostores Layer ---
-const atomStore = new Map<string, ReturnType<typeof persistentAtom<string | undefined>>>()
-const mapStore = new Map<string, ReturnType<typeof persistentMap<Record<string, any>>>>()
-
-function getAtom(key: string) {
-	if (!atomStore.has(key)) {
-		atomStore.set(key, persistentAtom<string | undefined>(key, undefined))
-	}
-	return atomStore.get(key)!
-}
-
-function getMap(key: string) {
-	if (!mapStore.has(key)) {
-		mapStore.set(
-			key,
-			persistentMap<Record<string, any>>(key, {}, {
-				encode: JSON.stringify,
-				decode: JSON.parse
-			})
-		)
-	}
-	return mapStore.get(key)!
-}
 
 // --- Dexie Layer ---
 class AppDexie extends Dexie {
 	settings!: Table<{ id: string; value: any }, string>
+	meta!: Table<{ key: string; value: any }, string> 
+	i18n!: Table<{ key: string; value: string }, string>
+
 	constructor() {
 		super('AppStorage')
-		this.version(1).stores({
+		this.version(2).stores({
 			settings: '&id',
+			meta: '&key',
+			i18n: '&key',
 		})
 	}
 }
@@ -45,46 +26,7 @@ const db = new AppDexie()
 
 // --- Unified Storage API ---
 const storageAPI = {
-	// ATOM
-	getAtom(key: string): string | undefined {
-		return getAtom(key).get()
-	},
-	setAtom(key: string, value: string) {
-		getAtom(key).set(value)
-	},
-	subscribeAtom(key: string, cb: (val: string | undefined) => void) {
-		const unsub = getAtom(key).subscribe(proxy(cb))
-		return () => unsub()
-	},
-	hasAtom(key: string): boolean {
-		return atomStore.has(key)
-	},
-
-	// MAP
-	getMapKey(mapKey: string, field: string): any {
-		return getMap(mapKey).get()[field]
-	},
-	setMapKey(mapKey: string, field: string, value: any) {
-		getMap(mapKey).setKey(field, value)
-	},
-	getMapSnapshot(mapKey: string): Record<string, any> {
-		return getMap(mapKey).get()
-	},
-	deleteMapKey(mapKey: string, field: string) {
-		const map = getMap(mapKey)
-		const current = { ...map.get() }
-		delete current[field]
-		map.set(current)
-	},
-	subscribeMap(mapKey: string, cb: (val: Record<string, any>) => void) {
-		const unsub = getMap(mapKey).subscribe(proxy(cb))
-		return () => unsub()
-	},
-	hasMap(mapKey: string): boolean {
-		return mapStore.has(mapKey)
-	},
-
-	// DEXIE
+	// SETTINGS (General)
 	async dbSet(id: string, value: any) {
 		await db.settings.put({ id, value })
 	},
@@ -102,39 +44,38 @@ const storageAPI = {
 		await db.settings.clear()
 	},
 
-	// i18n helpers (now using getMap)
+	// META (Versioning)
+	async getVersion(): Promise<string | null> {
+		const entry = await db.meta.get('version')
+		return entry?.value ?? null
+	},
+	async setVersion(version: string) {
+		await db.meta.put({ key: 'version', value: version })
+	},
+
+	// I18N TABLE
 	async loadI18nFromJSON(path = '/i18n/db.json') {
 		try {
 			const res = await fetch(path)
 			const data: Record<string, string> = await res.json()
-			for (const [key, value] of Object.entries(data)) {
-				getMap('i18n-cache').setKey(key, value)
-			}
+			const entries = Object.entries(data).map(([key, value]) => ({ key, value }))
+			await db.i18n.bulkPut(entries)
+			console.log('[db-worker] Loaded i18n into Dexie:', entries.length, 'entries')
 		} catch (e) {
-			console.warn('[i18n] Failed to load translations:', e)
+			console.warn('[db-worker] Failed to load i18n:', e)
 		}
 	},
-
-	getLocale(): string {
-		return getAtom('locale').get() ?? 'en'
+	async getTranslation(key: string): Promise<string | null> {
+		const entry = await db.i18n.get(key)
+		return entry?.value ?? null
 	},
-	setLocale(locale: string) {
-		getAtom('locale').set(locale)
-	},
-
-	getTranslation(lang: string, ns: string, key: string): string | undefined {
-		return getMap('i18n-cache').get()[`${lang}:${ns}:${key}`]
-	},
-	setTranslation(lang: string, ns: string, key: string, value: string) {
-		getMap('i18n-cache').setKey(`${lang}:${ns}:${key}`, value)
-	},
-
-	// Clear everything
-	clearAll() {
-		for (const atom of atomStore.values()) atom.set(undefined)
-		for (const map of mapStore.values()) map.set({})
-		localStorage.clear()
-		db.settings.clear()
+	async getTranslations(keys: string[]): Promise<Record<string, string>> {
+		const result: Record<string, string> = {}
+		for (const key of keys) {
+			const entry = await db.i18n.get(key)
+			if (entry) result[key] = entry.value
+		}
+		return result
 	}
 }
 

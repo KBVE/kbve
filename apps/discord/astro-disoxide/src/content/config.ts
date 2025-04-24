@@ -20,7 +20,8 @@ export const sidebarSchema = z.object({
   servers: z.string(),
   logs: z.string(),
   settings: z.string(),
-  logout: z.string()
+  logout: z.string(),
+  welcome: z.string(),
 });
 
 const sidebar = defineCollection({ schema: sidebarSchema });

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { panelManager } from 'src/layout/scripts/nanostores'; 
-	import { dispatchCommand } from 'src/layout/scripts/client';
+	//import { dispatchCommand } from 'src/layout/scripts/client';
 	import type { DiscordServer } from 'src/env';
 
 	let currentSlideIndex = 0;
@@ -10,57 +10,57 @@
 
 	let container: HTMLDivElement;
 
-	async function fetchServerData() {
-		let seeded = false;
+	// async function fetchServerData() {
+	// 	let seeded = false;
 
-		while (!seeded) {
-			try {
-				console.log(
-					'[Carousel] Fetching meta:db_seeded with correct shape...',
-				);
+	// 	while (!seeded) {
+	// 		try {
+	// 			console.log(
+	// 				'[Carousel] Fetching meta:db_seeded with correct shape...',
+	// 			);
 
-				seeded = await dispatchCommand('db_get', {
-					store: 'meta',
-					key: 'db_seeded',
-				});
-				console.log('[Carousel] DB seeded:', seeded);
-			} catch (e) {
-				console.warn('[Carousel] Waiting for DB seed to complete...');
-			}
+	// 			seeded = await dispatchCommand('db_get', {
+	// 				store: 'meta',
+	// 				key: 'db_seeded',
+	// 			});
+	// 			console.log('[Carousel] DB seeded:', seeded);
+	// 		} catch (e) {
+	// 			console.warn('[Carousel] Waiting for DB seed to complete...');
+	// 		}
 
-			if (!seeded) {
-				await new Promise((resolve) => setTimeout(resolve, 2000));
-			}
-		}
+	// 		if (!seeded) {
+	// 			await new Promise((resolve) => setTimeout(resolve, 2000));
+	// 		}
+	// 	}
 
-		const dbServers: DiscordServer[] = await dispatchCommand('db_list', {
-			store: 'jsonservers',
-		});
+	// 	const dbServers: DiscordServer[] = await dispatchCommand('db_list', {
+	// 		store: 'jsonservers',
+	// 	});
 
-		const validServers = dbServers.filter(
-			(s) => typeof s.server_id === 'string' && s.server_id.trim() !== '',
-		);
-		serverIds = validServers.map((s) => s.server_id);
+	// 	const validServers = dbServers.filter(
+	// 		(s) => typeof s.server_id === 'string' && s.server_id.trim() !== '',
+	// 	);
+	// 	serverIds = validServers.map((s) => s.server_id);
 
-		for (const id of serverIds) {
-			const html: string | null = await dispatchCommand('db_get', {
-				store: 'htmlservers',
-				key: id,
-			});
-			if (html) {
-				renderedCards[id] = html;
-			}
-		}
+	// 	for (const id of serverIds) {
+	// 		const html: string | null = await dispatchCommand('db_get', {
+	// 			store: 'htmlservers',
+	// 			key: id,
+	// 		});
+	// 		if (html) {
+	// 			renderedCards[id] = html;
+	// 		}
+	// 	}
 
-		const skeleton = document.getElementById('astro-skeleton');
-		if (skeleton) {
-			skeleton.classList.add('opacity-0');
-			setTimeout(() => skeleton.remove(), 600);
-		}
-	}
+	// 	const skeleton = document.getElementById('astro-skeleton');
+	// 	if (skeleton) {
+	// 		skeleton.classList.add('opacity-0');
+	// 		setTimeout(() => skeleton.remove(), 600);
+	// 	}
+	// }
 
 	onMount(() => {
-		fetchServerData();
+		//fetchServerData();
 	});
 
 	function goTo(index: number) {
