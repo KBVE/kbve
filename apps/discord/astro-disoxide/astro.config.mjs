@@ -149,16 +149,73 @@ export default defineConfig({
 		svelte(),
 
 		AstroPWA({
-			workbox: { 
-				//navigateFallback: '/404' 
+			base: '/',
+			scope: '/',
+			registerType: 'autoUpdate',
+			includeAssets: ['favicon.svg'],
+			manifest: {
+				name: 'Discord SH',
+				short_name: 'DSH',
+				theme_color: '#ffffff',
+				icons: [
+					{
+						src: 'pwa-192x192.png',
+						sizes: '192x192',
+						type: 'image/png',
+					},
+					{
+						src: 'pwa-512x512.png',
+						sizes: '512x512',
+						type: 'image/png',
+					},
+					{
+						src: 'pwa-512x512.png',
+						sizes: '512x512',
+						type: 'image/png',
+						purpose: 'any maskable',
+					},
+				],
+			},
+			workbox: {
+				cleanupOutdatedCaches: true,
+				inlineWorkboxRuntime: true,
+				// globPatterns: ['**/*.{css,js,html,svg,png,ico,txt}'],
+				navigateFallback: '/',
+				navigationPreload: true,
+				runtimeCaching: [
+					{
+						urlPattern: ({ request }) => request.mode === 'navigate',
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'pages',
+							networkTimeoutSeconds: 3,
+							expiration: {
+								maxEntries: 20,
+								maxAgeSeconds: 60 * 60 * 24,
+							},
+						},
+					},
+					{
+						urlPattern: ({ request }) =>
+							['script', 'style', 'font', 'image'].includes(request.destination),
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'static-assets',
+							expiration: {
+								maxEntries: 100,
+								maxAgeSeconds: 60 * 60 * 24 * 30,
+							},
+						},
+					},
+				],
 			},
 			experimental: {
 				directoryAndTrailingSlashHandler: true,
-			  },
+			},
 			devOptions: {
 				enabled: true
 				/* other options */
-			  }
+			}
 
 		}),
 
@@ -191,7 +248,7 @@ export default defineConfig({
 				".xml",
 				".txt",
 				".json"
-			  ]
+			]
 		}),
 
 		// tailwind({
