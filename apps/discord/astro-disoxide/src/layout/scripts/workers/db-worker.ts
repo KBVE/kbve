@@ -10,15 +10,6 @@ declare const self: SharedWorkerGlobalScope
 // --- Nanostores Layer ---
 const atomStore = new Map<string, ReturnType<typeof persistentAtom<string | undefined>>>()
 const mapStore = new Map<string, ReturnType<typeof persistentMap<Record<string, any>>>>()
-const locale = persistentAtom<string>('locale', 'en')
-const i18nCache = persistentMap<Record<string, string>>(
-	'i18n-cache',
-	{},
-	{
-		encode: JSON.stringify,
-		decode: JSON.parse,
-	}
-)
 
 function getAtom(key: string) {
 	if (!atomStore.has(key)) {
@@ -29,7 +20,13 @@ function getAtom(key: string) {
 
 function getMap(key: string) {
 	if (!mapStore.has(key)) {
-		mapStore.set(key, persistentMap<Record<string, any>>(key))
+		mapStore.set(
+			key,
+			persistentMap<Record<string, any>>(key, {}, {
+				encode: JSON.stringify,
+				decode: JSON.parse
+			})
+		)
 	}
 	return mapStore.get(key)!
 }
@@ -37,7 +34,6 @@ function getMap(key: string) {
 // --- Dexie Layer ---
 class AppDexie extends Dexie {
 	settings!: Table<{ id: string; value: any }, string>
-
 	constructor() {
 		super('AppStorage')
 		this.version(1).stores({
@@ -104,6 +100,33 @@ const storageAPI = {
 	},
 	async dbClear() {
 		await db.settings.clear()
+	},
+
+	// i18n helpers (now using getMap)
+	async loadI18nFromJSON(path = '/i18n/db.json') {
+		try {
+			const res = await fetch(path)
+			const data: Record<string, string> = await res.json()
+			for (const [key, value] of Object.entries(data)) {
+				getMap('i18n-cache').setKey(key, value)
+			}
+		} catch (e) {
+			console.warn('[i18n] Failed to load translations:', e)
+		}
+	},
+
+	getLocale(): string {
+		return getAtom('locale').get() ?? 'en'
+	},
+	setLocale(locale: string) {
+		getAtom('locale').set(locale)
+	},
+
+	getTranslation(lang: string, ns: string, key: string): string | undefined {
+		return getMap('i18n-cache').get()[`${lang}:${ns}:${key}`]
+	},
+	setTranslation(lang: string, ns: string, key: string, value: string) {
+		getMap('i18n-cache').setKey(`${lang}:${ns}:${key}`, value)
 	},
 
 	// Clear everything
