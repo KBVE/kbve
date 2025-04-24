@@ -3,7 +3,6 @@
 
 import { pwaInfo } from 'virtual:pwa-info';
 
-
 // import Panel from 'src/layout/ui/Panel.astro';
 import SveltePanels from './svelte/panel/SveltePanels.astro';
 
@@ -20,7 +19,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 import 'src/styles/global.css';
 import { ClientRouter } from 'astro:transitions';
-
 ---
 
 <!doctype html>
@@ -46,20 +44,18 @@ import { ClientRouter } from 'astro:transitions';
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
 		<script src="/src/pwa.ts"></script>
-		{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />} 
+		<script
+			is:inline
+			type="module"
+			src="/src/layout/scripts/workers/main.ts">
+		</script>
+		{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 
 		<ClientRouter fallback="swap" />
 	</head>
 	<body
-		x-data="astro"
-		x-bind="refreshOnPageLoad"
-		x-transition.opacity
 		role="document"
-		class="h-full bg-[#28243d] bg-[url('/assets/media/bg/pattern.svg')] text-gray-100 relative perspective-[2000px] perspective-distant"
-		x-bind:class="{ 
-			'': $store.panelManager.open 
-		}"
-		>
+		class="h-full bg-[#28243d] bg-[url('/assets/media/bg/pattern.svg')] text-gray-100 relative perspective-[2000px] perspective-distant">
 		<!-- <Sidebar /> -->
 		<!-- <Panel /> -->
 		<!-- <Panel panelId="top" />
@@ -69,7 +65,7 @@ import { ClientRouter } from 'astro:transitions';
 		<SveltePanels />
 
 		<!-- Glowing Progress Bar -->
-		<div
+		<!-- <div
 			x-data="{ show: false, dimmed: false }"
 			x-init="
 				show = true;
@@ -83,22 +79,10 @@ import { ClientRouter } from 'astro:transitions';
 			id="loading"
 			class="fixed top-0 left-0 h-1 w-full z-[99999] transition-all duration-700 ease-in-out opacity-100 flex items-center justify-end pr-2 overflow-visible">
 			
-		</div>
+		</div> -->
 
 		<div
-			x-show="sidebarOpen"
-			x-transition.opacity
-			class="fixed inset-0 bg-zinc-800/50 z-40"
-			@click="toggleSidebar()">
-		</div>
-	
-		<div
-			:class="sidebarOpen ? 'md:ml-64 ml-16' : 'ml-16'"
-			x-bind:class="{ 
-				'rotate-x-51 rotate-z-43 transform-3d scale-[0.55] bg-[#28243d]/80': $store.panelManager.open 
-			}"
 			class="bg-[#28243d] relative z-10 flex flex-col min-h-screen transition-all duration-500 ease-in-out will-change-transform origin-center">
-			
 			<slot role="main" />
 		</div>
 	</body>

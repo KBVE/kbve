@@ -179,9 +179,16 @@ export default defineConfig({
 			workbox: {
 				cleanupOutdatedCaches: true,
 				inlineWorkboxRuntime: true,
-				// globPatterns: ['**/*.{css,js,html,svg,png,ico,txt}'],
+				globPatterns: ['**/*.{css,js,svg,png,ico,txt,lottie}'],
 				navigateFallback: '/',
 				navigationPreload: true,
+				navigateFallbackDenylist: [
+					/^\/sw\.js$/,
+					/^\/workbox-[a-z0-9\-]+\.js$/,
+					/^\/ws$/,
+					/^\/api\/.*/,
+				  ],
+						  
 				runtimeCaching: [
 					{
 						urlPattern: ({ request }) => request.mode === 'navigate',
@@ -196,6 +203,18 @@ export default defineConfig({
 						},
 					},
 					{
+						urlPattern: /\/api\/.*/,
+						handler: 'NetworkFirst',
+						options: {
+						  cacheName: 'api-json',
+						  networkTimeoutSeconds: 1,
+						  expiration: {
+							maxEntries: 5,
+							maxAgeSeconds: 60 * 5,
+						  },
+						},
+					  },
+					{
 						urlPattern: ({ request }) =>
 							['script', 'style', 'font', 'image'].includes(request.destination),
 						handler: 'CacheFirst',
@@ -207,6 +226,7 @@ export default defineConfig({
 							},
 						},
 					},
+					
 				],
 			},
 			experimental: {

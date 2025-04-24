@@ -210,6 +210,7 @@
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
 		"cmdk": "1.0.0",
+		"comlink": "^4.4.2",
 		"cross-fetch": "^4.0.0",
 		"date-fns": "^4.1.0",
 		"dexie": "^4.0.9",
