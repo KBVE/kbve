@@ -17,12 +17,12 @@ export async function initializeWorkerDatabase(
 		defaults = {
 			welcome: 'Welcome to the app!',
 		},
-	}: InitWorkerOptions,
+	}: InitWorkerOptions
 ) {
 	console.log('[init-worker] Initializing database...')
 
 	try {
-		await worker.putBatchKVFromJSON('i18n', i18nPath)
+		await worker.loadI18nFromJSON(i18nPath)
 		console.log(`[init-worker] i18n loaded from ${i18nPath}`)
 
 		await worker.dbSet('locale', locale)

@@ -1,40 +1,12 @@
 <script lang="ts">
 	import { panelManager } from 'src/layout/scripts/nanostores';
 	import { onMount } from 'svelte';
+	import { i18n } from 'src/layout/scripts/workers/main';
 
-	let sidebarTranslations: Record<string, string> = {};
 
-	let sidebar = {
-		get: (key: string) => sidebarTranslations[key] ?? `[${key}]`,
-	};
+	onMount(() => {	});
 
-	onMount(() => {
-		async function loadSidebarTranslations() {
-			const storage = window._runInStorage;
-			if (!storage) return;
 
-			const lang = (await storage.getAtom('locale')) ?? 'en';
-
-			// TODO: optimize this via hardcode keys or store a namespace map
-			const keys = [
-				'title',
-				'dashboard',
-				'servers',
-				'logs',
-				'settings',
-				'logout',
-			];
-			for (const key of keys) {
-				const val = await storage.getTranslation(lang, 'sidebar', key);
-				sidebarTranslations[key] = val ?? `[${key}]`;
-			}
-		}
-
-		loadSidebarTranslations();
-	});
-	//const sidebar = t('sidebar');
-
-	// Icon typing — infer from Icon component
 	type IconName =
 		| 'starlight'
 		| 'laptop'
@@ -114,7 +86,7 @@
 				</span>
 
 				<!-- Label -->
-				<span class="relative z-10">{sidebar.get(label)}</span>
+				<span class="relative z-10">{i18n.get(`en:sidebar:${label}`)}</span>
 			</a>
 		{/each}
 	</nav>
@@ -130,7 +102,7 @@
 				class={`${navLinkClass} text-sm text-gray-400 hover:text-purple-300`}>
 				<!-- <Icon name={icon} /> -->
 				{@html safeIcon(icon)}
-				{sidebar.get(label)}
+				{i18n.get(`en:sidebar:${label}`)}
 			</a>
 		{/each}
 	</div>
