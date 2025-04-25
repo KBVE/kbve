@@ -32,7 +32,7 @@ export async function initializeWorkerDatabase(
 		}
 
 		await worker.setVersion(version)
-
+		void worker.loadServersFromJSON(); // await worker.loadServersFromJSON();
 		console.log(`[init-worker] DB initialized to version ${version}`)
 	} catch (err) {
 		console.error('[init-worker] Initialization failed:', err)
