@@ -1,10 +1,10 @@
 import { z, defineCollection } from 'astro:content';
 
 const baseSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  date: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+	title: z.string(),
+	description: z.string().optional(),
+	date: z.string().optional(),
+	tags: z.array(z.string()).optional(),
 });
 
 const guides = defineCollection({ schema: baseSchema });
@@ -14,12 +14,12 @@ const blog = defineCollection({ schema: baseSchema });
 
 // * i18n
 export const sidebarSchema = z.object({
-  dashboard: z.string(),
-  servers: z.string(),
-  logs: z.string(),
-  settings: z.string(),
-  logout: z.string(),
-  welcome: z.string(),
+	dashboard: z.string(),
+	servers: z.string(),
+	logs: z.string(),
+	settings: z.string(),
+	logout: z.string(),
+	welcome: z.string(),
 });
 
 const sidebar = defineCollection({ schema: sidebarSchema });
@@ -39,18 +39,17 @@ export const DiscordServerSchema = z.object({
 	video: z.string().nullable().optional(),
 	categories: z.number(),
 	updated_at: z.string(),
-})
+});
 
-export type DiscordServer = z.infer<typeof DiscordServerSchema>
+export type DiscordServer = z.infer<typeof DiscordServerSchema>;
 
 export const DiscordTagSchema = z.object({
 	tag_id: z.string(),
 	name: z.string(),
 	status: z.number(),
-})
+});
 
-export type DiscordTag = z.infer<typeof DiscordTagSchema>
-
+export type DiscordTag = z.infer<typeof DiscordTagSchema>;
 
 export const ProfileSchema = z.object({
 	profile_id: z.string(),
@@ -60,26 +59,24 @@ export const ProfileSchema = z.object({
 	bio: z.string().optional(),
 	joined_at: z.string(),
 	status: z.number(),
-})
+});
 
-export type Profile = z.infer<typeof ProfileSchema>
+export type Profile = z.infer<typeof ProfileSchema>;
 
-
-const discord = defineCollection({ schema: DiscordServerSchema })
-const tags = defineCollection( { schema: DiscordTagSchema})
-const profiles = defineCollection({ schema: ProfileSchema})
+const discord = defineCollection({ schema: DiscordServerSchema });
+const tags = defineCollection({ schema: DiscordTagSchema });
+const profiles = defineCollection({ schema: ProfileSchema });
 
 export const collections = {
-  guides,
-  applications,
-  memes,
-  blog,
-//	SideBar i18n
-  sidebar,
+	guides,
+	applications,
+	memes,
+	blog,
+	//	SideBar i18n
+	sidebar,
 
-// Discord Static AOT
-discord,
-tags,
-profiles
-
+	// Discord Static AOT
+	discord,
+	tags,
+	profiles,
 };
