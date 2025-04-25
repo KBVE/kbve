@@ -26,6 +26,7 @@ pub fn static_router() -> Router<SharedState> {
         .nest_service("/sitegraph", ServeDir::new("dist/sitegraph").not_found_service(get(custom_404)))
         .nest_service("/assets", ServeDir::new("dist/assets").not_found_service(get(custom_404)))
         .nest_service("/images", ServeDir::new("dist/images").not_found_service(get(custom_404)))
+        .nest_service("/i18n", ServeDir::new("dist/i18n").not_found_service(get(custom_404)))
         .route_service("/sw.js", ServeFile::new("dist/sw.js"))
         .route_service("/ads.txt", ServeFile::new("dist/ads.txt"))
         .route_service("/content-assets.mjs", ServeFile::new("dist/content-assets.mjs"))
@@ -38,6 +39,8 @@ pub fn static_router() -> Router<SharedState> {
         .route_service("/robots.txt", ServeFile::new("dist/robots.txt"))
         .route_service("/favicon.ico", ServeFile::new("dist/favicon.ico"))
         .route_service("/index.html", ServeFile::new("dist/index.html"))
+        .route_service("/404.html", ServeFile::new("dist/404.html"))
+
         .fallback_service(ServeDir::new("dist").precompressed_gzip().not_found_service(get(custom_404)))
         .layer(cache_layer)
 }

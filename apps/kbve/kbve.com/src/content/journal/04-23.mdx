@@ -26,6 +26,58 @@ tags:
 	Next round of askama updates will be around getting that perfect 100 lighthouse score, gives us a solid area to aim for and then we can drop a decent chunk of the alpine.
 	As for the supabase loading, we can wait a bit on it since there is still some work that we need to do with getting the quad panels to be operational.
 
+- 	03:05PM
+
+	Okay, making some progress with the sidebar and handling the bigger issue, which is the i18n.
+	The plan would be to load all the different keys for each language and then build an astro collection holding the translations.
+	If it works out fine, I might make it into a library and add it back into the kbve website for our collections.
+	The loading of the i18n keys, values and basically the whole database should be done via the shared worker but we want to make sure that it will not be an issue.
+	I think there might be a couple ways we can address this, but I also need to make sure that we update the axum with the new folder for i18n.
+	Under the assets.rs file, a quick edit to include the ServeDir for `i18n`, and that should be fine on the rust-side of things.
+	
+```rust
+
+	.nest_service("/i18n", ServeDir::new("dist/i18n").not_found_service(get(custom_404)))
+
+```
+
+	That should make sure the next docker image build serves the json files from that folder without any issues.
+
+### Astro Toast
+
+-	05:45PM
+
+	The toast can be added in two ways, we could create our worker and then delegate the toast tasks to it.
+	However, I am thinking that we move into an event based system that then modularizes each of the scripts into their own workers.
+	The event system and message system would move amoung the shared worker, client and N-workers, using events to trigger the deployment.
+	I can already tell that I will have to rewrite this all again in the future, but for now this is part of the learning system.
+
+-	05:49PM
+
+	After making the basic toast module, aka toast.ts, I am going then adjust the client.ts to handle it.
+	We want both a subscription based way of triggering the toast and also a custom event system!
+	This should give us the ability to handle both live events and events triggered from the main thread.
+
+-	06:56PM
+
+	After looking through all the code and building it out, I decided that it be best to just throw it all out and start fresh again.
+	I am thinking that it would make sense to structure it around a notification system that sits within the idb.
+	The toasts will just act as a UX medium for the user to see the title and the core message, while the idb holds the full notification.
+	This means we can extend it out to include the redis watch and anything from the supabase end points as well.
+
+### Astro Notifications
+
+-	07:00PM
+
+	The notification system should be simple enough so that we can loop back to finishing the SW / i18n reloading.
+
+### MusicJams
+
+-	03:04PM
+
+	The song is Swimming by Goth Babe Point Mugu, I need to remember to add that into the music bot!
+	A quick side note for that plug from Zs youtube music stream.
+
 ## 2024
 
 **Journal**

@@ -38,10 +38,10 @@ export default function RegisterAlpineEntrypoints(Alpine: Alpine) {
 		};
 	});
 
-	RegisterAlpineMetricsComponents(Alpine);
-	RegisterAlpineCarousel(Alpine);
-	RegisterAlpineLiveServerCards(Alpine);
-	RegisterAlpinePanelManager(Alpine);
+	RegisterAlpineMetricsComponents(Alpine); // TODO: Notifications then move the Metrics over.
+	RegisterAlpineCarousel(Alpine); // ! Deprecated -> Moved to Svelte
+	RegisterAlpineLiveServerCards(Alpine); // ! Deprecated -> Moved to Svelte
+	RegisterAlpinePanelManager(Alpine); // ? Svelte Panel in Progress.
 	RegisterAlpineLottiePanel(Alpine);
 	return Alpine;
 }

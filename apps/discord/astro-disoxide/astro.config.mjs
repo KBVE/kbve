@@ -23,6 +23,11 @@ import compressor from "astro-compressor";
 import { shield } from '@kindspells/astro-shield'
 
 
+// Workers - 04-23-2025
+
+import AstroPWA from '@vite-pwa/astro'
+
+
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://discord.sh/',
@@ -138,10 +143,101 @@ export default defineConfig({
 		// react({
 		// 	include: ['**/react/*'],
 		// }),
-		alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
+		//alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
 		//partytown(),
 		worker(),
 		svelte(),
+
+		AstroPWA({
+			base: '/',
+			scope: '/',
+			registerType: 'autoUpdate',
+			includeAssets: ['favicon.svg'],
+			manifest: {
+				name: 'Discord SH',
+				short_name: 'DSH',
+				theme_color: '#ffffff',
+				icons: [
+					{
+						src: 'pwa-192x192.png',
+						sizes: '192x192',
+						type: 'image/png',
+					},
+					{
+						src: 'pwa-512x512.png',
+						sizes: '512x512',
+						type: 'image/png',
+					},
+					{
+						src: 'pwa-512x512.png',
+						sizes: '512x512',
+						type: 'image/png',
+						purpose: 'any maskable',
+					},
+				],
+			},
+			workbox: {
+				cleanupOutdatedCaches: true,
+				inlineWorkboxRuntime: true,
+				globPatterns: ['**/*.{css,js,svg,png,ico,txt,lottie}'],
+				navigateFallback: '/',
+				navigationPreload: true,
+				navigateFallbackDenylist: [
+					/^\/sw\.js$/,
+					/^\/workbox-[a-z0-9\-]+\.js$/,
+					/^\/ws$/,
+					/^\/api\/.*/,
+				  ],
+						  
+				runtimeCaching: [
+					{
+						urlPattern: ({ request }) => request.mode === 'navigate',
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'pages',
+							networkTimeoutSeconds: 3,
+							expiration: {
+								maxEntries: 20,
+								maxAgeSeconds: 60 * 60 * 24,
+							},
+						},
+					},
+					{
+						urlPattern: /\/api\/.*/,
+						handler: 'NetworkFirst',
+						options: {
+						  cacheName: 'api-json',
+						  networkTimeoutSeconds: 1,
+						  expiration: {
+							maxEntries: 5,
+							maxAgeSeconds: 60 * 5,
+						  },
+						},
+					  },
+					{
+						urlPattern: ({ request }) =>
+							['script', 'style', 'font', 'image'].includes(request.destination),
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'static-assets',
+							expiration: {
+								maxEntries: 100,
+								maxAgeSeconds: 60 * 60 * 24 * 30,
+							},
+						},
+					},
+					
+				],
+			},
+			experimental: {
+				directoryAndTrailingSlashHandler: true,
+			},
+			devOptions: {
+				enabled: true
+				/* other options */
+			}
+
+		}),
 
 		(await import("@playform/compress")).default({
 			CSS: true,
@@ -172,7 +268,7 @@ export default defineConfig({
 				".xml",
 				".txt",
 				".json"
-			  ]
+			]
 		}),
 
 		// tailwind({

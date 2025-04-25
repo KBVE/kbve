@@ -1,8 +1,12 @@
 <script lang="ts">
-	// import { Icon } from '@astrojs/starlight/components';
 	import { panelManager } from 'src/layout/scripts/nanostores';
+	import { onMount } from 'svelte';
+	import { i18n } from 'src/layout/scripts/workers/main';
 
-	// Icon typing — infer from Icon component
+
+	onMount(() => {	});
+
+
 	type IconName =
 		| 'starlight'
 		| 'laptop'
@@ -17,15 +21,19 @@
 		icon: IconName;
 	};
 
-	const navRoutes: NavRoute[] = [
-		{ href: '/', label: 'Dashboard', icon: 'starlight' },
-		{ href: '/servers', label: 'Servers', icon: 'laptop' },
-		{ href: '/logs', label: 'Logs', icon: 'open-book' },
-		{ href: '/settings', label: 'Settings', icon: 'setting' },
-	];
+	const navRoutes = [
+		{ href: '/', label: 'dashboard', icon: 'starlight' },
+		{ href: '/servers', label: 'servers', icon: 'laptop' },
+		{ href: '/logs', label: 'logs', icon: 'open-book' },
+		{ href: '/settings', label: 'settings', icon: 'setting' },
+	] as const satisfies readonly {
+		href: string;
+		label: keyof any;
+		icon: string;
+	}[];
 
 	const footerRoutes: NavRoute[] = [
-		{ href: '/logout', label: 'Logout', icon: 'logout' },
+		{ href: '/logout', label: 'logout', icon: 'logout' },
 	];
 
 	const navLinkClass =
@@ -51,9 +59,12 @@
 		<h1 class="text-lg font-bold">DiscordSH</h1>
 		<button
 			class="text-purple-400 hover:text-white"
-			on:click={() => panelManager.get().closePanel('left')}
+			on:click={() => {
+				console.log('Closing sidebar');
+				panelManager.get().closePanel('right');
+			}}
 			aria-label="Close sidebar">
-			<!-- <Icon name="close" /> -->
+			X
 		</button>
 	</div>
 
@@ -66,7 +77,7 @@
 					class="pointer-events-none absolute inset-0 w-full h-full bg-white opacity-5 rotate-12 transform translate-x-full transition-transform duration-1000 ease-in-out group-hover:-translate-x-full"
 					aria-hidden="true">
 				</span>
-						
+
 				<!-- Icon -->
 				<span
 					class="text-lg text-purple-400 relative z-10"
@@ -75,12 +86,12 @@
 				</span>
 
 				<!-- Label -->
-				<span class="relative z-10">{label}</span>
+				<span class="relative z-10">{i18n.get(`en:sidebar:${label}`)}</span>
 			</a>
 		{/each}
 	</nav>
 
-	<hr class="h-px my-8 bg-gray-200 border-0 dark:bg-purple-400">
+	<hr class="h-px my-8 bg-gray-200 border-0 dark:bg-purple-400" />
 
 	<!-- Footer -->
 	<div class="mt-auto pt-6 border-t border-gray-700">
@@ -91,7 +102,7 @@
 				class={`${navLinkClass} text-sm text-gray-400 hover:text-purple-300`}>
 				<!-- <Icon name={icon} /> -->
 				{@html safeIcon(icon)}
-				{label}
+				{i18n.get(`en:sidebar:${label}`)}
 			</a>
 		{/each}
 	</div>
