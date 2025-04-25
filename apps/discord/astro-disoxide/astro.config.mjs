@@ -180,7 +180,7 @@ export default defineConfig({
 				cleanupOutdatedCaches: true,
 				inlineWorkboxRuntime: true,
 				globPatterns: ['**/*.{html,css,js,svg,png,ico,txt,lottie}'],
-				navigateFallback: '/',
+				navigateFallback: null,
 				navigationPreload: true,
 				navigateFallbackDenylist: [
 					/^\/sw\.js$/,

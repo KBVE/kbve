@@ -10,7 +10,6 @@ export const inlineStyleHashes = /** @type {string[]} */ ([
 ])
 
 export const extScriptHashes = /** @type {string[]} */ ([
-	'sha256-7qFKpKqySNyjFyQ8z6RNfE0IK/QVOtYSY8y7mrJfHqQ=',
 	'sha256-9zGbsTDSn6NRbRoEs6Apg+KMfnPiCCl/0CsaUrU0eUs=',
 	'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs=',
 	'sha256-BTt4jgJ3gBItm4Q8BuwOE7tX5JeFicWs7iKyUUI+QP0=',
@@ -18,6 +17,7 @@ export const extScriptHashes = /** @type {string[]} */ ([
 	'sha256-F4oNl42EaJeGSs32iWTOaMb7Aijt3WDq1cO4BzI6T18=',
 	'sha256-Gy1qIRMORiRx/rda488dXfW+E7FgrcchB33j9gu9bCI=',
 	'sha256-IgeFRZCo//pknkZ56edtAlQ2MYMJIrvMbZelKGX1Ms8=',
+	'sha256-MUMMgfrcY/PbEocuLAd61xrdltiDdEfKhHkEChDKZ+U=',
 	'sha256-NEgkk5cmd1DrkcazrURgIpMrIWrMe7m1I9pdBbu8mgY=',
 	'sha256-PpDi09xfrwqXU9TQuklBQlezY6190X50QF6YFSQmTCw=',
 	'sha256-QnZIQmNGi0hFIvssZRMp8l5IdRK3vI/lxV+27hUhnhY=',
@@ -27,7 +27,6 @@ export const extScriptHashes = /** @type {string[]} */ ([
 	'sha256-SgMae+Md1RKW70TuDWHBXsVDJZcD62FTcFIC29y4G4Q=',
 	'sha256-SmWCc0v5Sy2VtHsEPPM/+jpD3UqIBOFcZnAb/rZ2ZI0=',
 	'sha256-UESxb1IQyunztQzU/EZcnJDPjyVCpDuKjJmapV916Ns=',
-	'sha256-Z8Dalni0FE34/Ywj2iJjl42SL+/RFaJ2WGF4pFvMiXc=',
 	'sha256-cOSMg0DyaFFPHjlmBwNTD797wGESqEPyorojnrrpoe4=',
 	'sha256-gI2DQFOxLIhwbTXNTeTeudDByJ4vtjGUWVIWghY1Smk=',
 	'sha256-maofC7NuyOOBCeMDK+A1GyzA96pdxa5T8OLkon4uHmE=',
@@ -40,6 +39,7 @@ export const extScriptHashes = /** @type {string[]} */ ([
 	'sha256-vgmsIgaRwWKj4LBfnlo5Lz0VWJzgpjnUcUeh4S9yaGA=',
 	'sha256-yUC3tQaUj3QQNX54euHSi5WRJmjc7u2fgRWJ+kAVkMs=',
 	'sha256-z82tzqOhPwaLmF3UTcZBS5PhU2vo5PGbKYhYM32mooQ=',
+	'sha256-zmzXAYon8eqwq+DpHf9cqneFQef/FUliLwqY+uT1fM0=',
 ])
 
 export const extStyleHashes = /** @type {string[]} */ ([
@@ -150,13 +150,13 @@ export const perResourceSriHashes = {
 		'/_astro/svelte.DfJf5_3d.js': 'sha256-gI2DQFOxLIhwbTXNTeTeudDByJ4vtjGUWVIWghY1Smk=',
 		'/_astro/workbox-window.B9K5rw8f.js': 'sha256-tk+a4zsfcDDOFQAxPnCwxapnIDY8lAVVM3VbuHF7X1A=',
 		'/content-assets.mjs': 'sha256-rSSC/w0y4B+hAdq0t53VHY2vW/H1OrPihHpSTjJUaSE=',
-		'/content-modules.mjs': 'sha256-7qFKpKqySNyjFyQ8z6RNfE0IK/QVOtYSY8y7mrJfHqQ=',
+		'/content-modules.mjs': 'sha256-zmzXAYon8eqwq+DpHf9cqneFQef/FUliLwqY+uT1fM0=',
 		'/pagefind/pagefind-highlight.js': 'sha256-PpDi09xfrwqXU9TQuklBQlezY6190X50QF6YFSQmTCw=',
 		'/pagefind/pagefind-modular-ui.js': 'sha256-QooAcVruO/B459lvZlH3BB7wptxj/NFU48Q9c61XiMo=',
 		'/pagefind/pagefind-ui.js': 'sha256-IgeFRZCo//pknkZ56edtAlQ2MYMJIrvMbZelKGX1Ms8=',
 		'/pagefind/pagefind.js': 'sha256-yUC3tQaUj3QQNX54euHSi5WRJmjc7u2fgRWJ+kAVkMs=',
 		'/registerSW.js': 'sha256-CxdPP18Ez0SEporALEkE+IXWB/r6zv0mcYaP9Pm7qqo=',
-		'/sw.js': 'sha256-Z8Dalni0FE34/Ywj2iJjl42SL+/RFaJ2WGF4pFvMiXc=',
+		'/sw.js': 'sha256-MUMMgfrcY/PbEocuLAd61xrdltiDdEfKhHkEChDKZ+U=',
 	}),
 	styles: /** @type {Record<string,string>} */ ({
 		'/_astro/@astrojs.BQ8wLryL.css': 'sha256-tB+oR8vuDiQ7LbuckpJFPFBUbvDqeFP6PViPf+HIRC4=',
