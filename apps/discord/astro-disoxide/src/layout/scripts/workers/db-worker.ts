@@ -35,6 +35,17 @@ function delay(ms: number) {
 	return new Promise((res) => setTimeout(res, ms));
 }
 
+function renderHtmlForServer(server: DiscordServer): string {
+	return `
+		<div class="flex flex-col gap-2 p-2">
+			<img src="${server.logo}" alt="${server.name}" class="w-12 h-12 rounded-full" />
+			<h3 class="text-lg font-bold">${server.name}</h3>
+			<p class="text-sm opacity-70">${server.summary}</p>
+			<a href="${server.invite}" class="text-purple-400 underline text-xs">Join Join Join</a>
+		</div>
+	`.trim();
+}
+
 // --- Comlink-Safe API ---
 const storageAPI = {
 	// I18n
@@ -64,6 +75,37 @@ const storageAPI = {
 	async getAllI18nKeys(): Promise<string[]> {
 		const all = await db.i18n.toCollection().primaryKeys();
 		return all as string[];
+	},
+
+	async loadServersFromJSON(path = '/data/servers.json') {
+		const res = await fetch(path);
+		const data = await res.json();
+	
+		// The JSON should be a Record<string, DiscordServer>
+		const servers: DiscordServer[] = Object.values(data);
+		await storageAPI.putServers(servers);
+		await storageAPI.syncHtmlFromServers();
+	},
+
+	// HTML PreRender
+	async syncHtmlFromServers() {
+		const allServers = await db.servers.toArray();
+		const existingHtmlKeys = await db.htmlservers.toCollection().primaryKeys();
+		const missing: { key: string; value: string }[] = [];
+	
+		for (const server of allServers) {
+			if (!existingHtmlKeys.includes(server.server_id)) {
+				const html = renderHtmlForServer(server);
+				missing.push({ key: server.server_id, value: html });
+			}
+		}
+	
+		if (missing.length > 0) {
+			await db.htmlservers.bulkPut(missing);
+			console.info(`[syncHtmlFromServers] Generated ${missing.length} HTML cards.`);
+		} else {
+			console.info('[syncHtmlFromServers] All servers already have HTML cards.');
+		}
 	},
 
 	// Settings

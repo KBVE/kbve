@@ -251,9 +251,9 @@ export default defineConfig({
 			SVG: true,
 		}),
 
-		shield({
-			sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
-		}),
+		// shield({
+		// 	sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
+		// }),
 
 		compressor({
 			gzip: true,
