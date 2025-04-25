@@ -51,6 +51,7 @@ export const DiscordTagSchema = z.object({
 
 export type DiscordTag = z.infer<typeof DiscordTagSchema>
 
+
 export const ProfileSchema = z.object({
 	profile_id: z.string(),
 	user_id: z.string(),
@@ -64,11 +65,21 @@ export const ProfileSchema = z.object({
 export type Profile = z.infer<typeof ProfileSchema>
 
 
+const discord = defineCollection({ schema: DiscordServerSchema })
+const tags = defineCollection( { schema: DiscordTagSchema})
+const profiles = defineCollection({ schema: ProfileSchema})
+
 export const collections = {
   guides,
   applications,
   memes,
   blog,
+//	SideBar i18n
   sidebar,
+
+// Discord Static AOT
+discord,
+tags,
+profiles
 
 };
