@@ -11,11 +11,13 @@ use std::borrow::Cow;
 pub struct AstroTemplate<'a> {
     content: &'a str,
     path: &'a str,
+    title: &'a str,
+    description: &'a str,
 }
 
 impl<'a> AstroTemplate<'a> {
-    pub fn new(content: &'a str, path: &'a str) -> Self {
-        Self { content, path }
+    pub fn new(content: &'a str, path: &'a str, title: &'a str, description: &'a str) -> Self {
+        Self { content, path, title, description}
     }
 }
 
@@ -62,7 +64,7 @@ fn render_template<T: Template>(template: T) -> Result<Html<String>, StatusCode>
 
 
 pub async fn home_handler(state: axum::extract::State<SharedState>) -> Result<Html<String>, StatusCode> {
-    let template = AstroTemplate::new("Hello from Astro + Rust!", "/askama");
+    let template = AstroTemplate::new("Hello from Astro + Rust!", "/askama", "Discord.sh Askama", "Discord.sh Page for Askama");
     template
         .render()
         .map(Html)
@@ -74,7 +76,18 @@ pub async fn catch_all_handler(
     Path(path): Path<String>,
 ) -> impl IntoResponse {
     let content = get_content(&state, &path).await;
-    let template = AstroTemplate::new(&content, &path);
+    let title: Cow<str> = if path.is_empty() {
+        Cow::Borrowed("Discord.SH")
+    } else {
+        Cow::Owned(format!("Discord.SH {}", path))
+    };
+    
+    let description: Cow<str> = if path.is_empty() {
+        Cow::Borrowed("Discord.SH Page About")
+    } else {
+        Cow::Owned(format!("Discord.SH Page About {}", path))
+    };
+    let template = AstroTemplate::new(&content, &path, &title, &description);
     render_template(template)
 }
 

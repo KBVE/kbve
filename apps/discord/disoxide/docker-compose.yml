@@ -1,7 +1,7 @@
 services:
 
     disoxide:
-        image: kbve/disoxide:1.2
+        image: kbve/disoxide:1.4
         restart: unless-stopped
         ports:
             - '3000:3000'
