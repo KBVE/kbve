@@ -179,8 +179,8 @@ export default defineConfig({
 			workbox: {
 				cleanupOutdatedCaches: true,
 				inlineWorkboxRuntime: true,
-				globPatterns: ['**/*.{css,js,svg,png,ico,txt,lottie}'],
-				navigateFallback: '/',
+				globPatterns: ['**/*.{html,css,js,svg,png,ico,txt,lottie}'],
+				navigateFallback: null,
 				navigationPreload: true,
 				navigateFallbackDenylist: [
 					/^\/sw\.js$/,
@@ -251,9 +251,9 @@ export default defineConfig({
 			SVG: true,
 		}),
 
-		// shield({
-		// 	sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
-		// }),
+		shield({
+			sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
+		}),
 
 		compressor({
 			gzip: true,
