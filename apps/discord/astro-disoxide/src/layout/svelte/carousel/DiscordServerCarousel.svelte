@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { panelManager } from 'src/layout/scripts/nanostores';
-	//import { dispatchCommand } from 'src/layout/scripts/client';
 	import type {
 		DiscordServer,
 		DiscordTag,
 		Profile,
 	} from 'src/content/config';
+
 	// import { wrap, proxy } from 'comlink';
+	let isReady = $state(false);
 
 	function renderHtmlForServer(server: DiscordServer): string {
 		return `
@@ -65,14 +66,21 @@
 	let container: HTMLDivElement;
 
 	async function fetchServerData() {
-		const api = window.kbve?.api;
-		if (!api) return;
+		let api;
+		while (!api) {
+			api = window.kbve?.api;
+			if (!api) {
+				console.warn('[Carousel] Waiting for window.kbve.api...');
+				await new Promise((res) => setTimeout(res, 250));
+			}
+		}
 
 		let seeded = false;
 		while (!seeded) {
 			try {
 				seeded = await api.checkSeeded();
 				if (!seeded) {
+					console.info('[Carousel] Seeding mock servers...');
 					await seedMockServers();
 				}
 			} catch (err) {
@@ -85,6 +93,7 @@
 		const validServers = servers.filter(
 			(s) => typeof s.server_id === 'string' && s.server_id.trim() !== '',
 		);
+
 		serverIds = validServers.map((s) => s.server_id);
 
 		for (const s of validServers) {
@@ -97,6 +106,8 @@
 			skeleton.classList.add('opacity-0');
 			setTimeout(() => skeleton.remove(), 600);
 		}
+
+		isReady = true;
 	}
 
 	onMount(() => {
@@ -144,79 +155,84 @@
 	}
 </script>
 
-<div class="relative overflow-visible w-full">
-	<div
-		bind:this={container}
-		class="flex gap-4 overflow-x-auto overflow-y-visible scroll-smooth snap-x snap-mandatory pb-4">
-		{#each serverIds as serverId (serverId)}
-			<div
-				role="button"
-				tabindex="0"
-				aria-label="Open server panel"
-				class="snap-start shrink-0 w-[85%] sm:w-[48%] lg:w-[32%] transition-transform duration-300 relative z-[10] min-h-[320px]"
-				on:click={() => openPanelFromSvelte(serverId)}
-				on:keydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						e.preventDefault();
-						openPanelFromSvelte(serverId);
-					}
-				}}>
-				{#if renderedCards[serverId]}
-					<!-- Pre-rendered HTML card -->
-					<div class="card-tile">
-						{@html renderedCards[serverId]}
-					</div>
-				{:else}
-					<!-- Skeleton fallback -->
-					<div
-						class="card-tile animate-pulse bg-[#2b2740] rounded-lg shadow-md h-[320px]">
-						<div class="h-12 w-12 bg-gray-700 rounded-full mb-2">
+{#if isReady}
+	<div class="relative overflow-visible w-full">
+		<div
+			bind:this={container}
+			class="flex gap-4 overflow-x-auto overflow-y-visible scroll-smooth snap-x snap-mandatory pb-4">
+			{#each serverIds as serverId (serverId)}
+				<div
+					role="button"
+					tabindex="0"
+					aria-label="Open server panel"
+					class="snap-start shrink-0 w-[85%] sm:w-[48%] lg:w-[32%] transition-transform duration-300 relative z-[10] min-h-[320px]"
+					onclick={() => openPanelFromSvelte(serverId)}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault();
+							openPanelFromSvelte(serverId);
+						}
+					}}>
+					{#if renderedCards[serverId]}
+						<!-- Pre-rendered HTML card -->
+						<div class="card-tile">
+							{@html renderedCards[serverId]}
 						</div>
-						<div class="h-4 w-2/3 bg-gray-700 rounded mb-1"></div>
-						<div class="h-3 w-1/2 bg-gray-700 rounded mb-2"></div>
-						<div class="h-24 w-full bg-gray-800 rounded"></div>
-					</div>
-				{/if}
-			</div>
-		{/each}
+					{:else}
+						<!-- Skeleton fallback -->
+						<div
+							class="card-tile animate-pulse bg-[#2b2740] rounded-lg shadow-md h-[320px]">
+							<div
+								class="h-12 w-12 bg-gray-700 rounded-full mb-2">
+							</div>
+							<div class="h-4 w-2/3 bg-gray-700 rounded mb-1">
+							</div>
+							<div class="h-3 w-1/2 bg-gray-700 rounded mb-2">
+							</div>
+							<div class="h-24 w-full bg-gray-800 rounded"></div>
+						</div>
+					{/if}
+				</div>
+			{/each}
+		</div>
+
+		<!-- Arrows -->
+		<button
+			type="button"
+			class="absolute left-2 top-1/2 z-10 -translate-y-1/2 bg-purple-600/30 hover:bg-purple-600/50 text-white p-2 rounded-full"
+			onclick={previous}
+			aria-label="Previous">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke-width="3"
+				stroke="currentColor"
+				class="w-5 h-5">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M15.75 19.5 8.25 12l7.5-7.5" />
+			</svg>
+		</button>
+
+		<button
+			type="button"
+			class="absolute right-2 top-1/2 z-10 -translate-y-1/2 bg-purple-600/30 hover:bg-purple-600/50 text-white p-2 rounded-full"
+			onclick={next}
+			aria-label="Next">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke-width="3"
+				stroke="currentColor"
+				class="w-5 h-5">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+			</svg>
+		</button>
 	</div>
-
-	<!-- Arrows -->
-	<button
-		type="button"
-		class="absolute left-2 top-1/2 z-10 -translate-y-1/2 bg-purple-600/30 hover:bg-purple-600/50 text-white p-2 rounded-full"
-		on:click={previous}
-		aria-label="Previous">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke-width="3"
-			stroke="currentColor"
-			class="w-5 h-5">
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				d="M15.75 19.5 8.25 12l7.5-7.5" />
-		</svg>
-	</button>
-
-	<button
-		type="button"
-		class="absolute right-2 top-1/2 z-10 -translate-y-1/2 bg-purple-600/30 hover:bg-purple-600/50 text-white p-2 rounded-full"
-		on:click={next}
-		aria-label="Next">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke-width="3"
-			stroke="currentColor"
-			class="w-5 h-5">
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-		</svg>
-	</button>
-</div>
+{/if}
