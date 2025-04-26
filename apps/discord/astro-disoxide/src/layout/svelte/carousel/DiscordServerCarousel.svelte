@@ -142,15 +142,12 @@
 
 		goTo(newIndex);
 	}
-
 	function openPanelFromSvelte(serverId: string) {
 		const html = renderedCards[serverId];
 
-		panelManager.get().openPanel('right', {
-			name: `Server: ${serverId}`,
-			description: 'Pre-rendered server from carousel',
-			server_id: serverId,
-			html,
+		window.kbve?.uiux?.openPanel('right', {
+			rawHtml: html,
+			needsCanvas: false,
 		});
 	}
 </script>
