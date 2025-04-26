@@ -33,6 +33,10 @@
       "Unwatch",
       "alpinejs",
       "partytown",
-      "flexbuffers"
+      "flexbuffers",
+      "uiux",
+      "webview",
+      "webview2",
+      "Comlink",
     ]
 }

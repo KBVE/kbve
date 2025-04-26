@@ -4,7 +4,63 @@ import { persistentMap } from '@nanostores/persistent';
 import type { LocalStorageAPI } from './db-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 
-const EXPECTED_DB_VERSION = '1.0.1';
+const EXPECTED_DB_VERSION = '1.0.2';
+
+//	* UIUX
+
+const uiuxState = persistentMap<{
+	panelManager: Record<'top' | 'right' | 'bottom' | 'left', boolean>;
+	themeManager: { theme: 'light' | 'dark' | 'auto' };
+	toastManager: Record<string, any>;
+}>(
+	'uiux-state',
+	{
+		panelManager: { top: false, right: false, bottom: false, left: false },
+		themeManager: { theme: 'auto' },
+		toastManager: {},
+	},
+	{
+		encode: JSON.stringify,
+		decode: JSON.parse,
+	},
+);
+
+export const uiux = {
+	state: uiuxState,
+
+	openPanel(id: 'top' | 'right' | 'bottom' | 'left') {
+		const panels = { ...uiuxState.get().panelManager, [id]: true };
+		uiuxState.setKey('panelManager', panels);
+	},
+
+	closePanel(id: 'top' | 'right' | 'bottom' | 'left') {
+		const panels = { ...uiuxState.get().panelManager, [id]: false };
+		uiuxState.setKey('panelManager', panels);
+	},
+
+	togglePanel(id: 'top' | 'right' | 'bottom' | 'left') {
+		const panels = { ...uiuxState.get().panelManager, [id]: !uiuxState.get().panelManager[id] };
+		uiuxState.setKey('panelManager', panels);
+	},
+
+	setTheme(theme: 'light' | 'dark' | 'auto') {
+		uiuxState.setKey('themeManager', { theme });
+	},
+
+	addToast(id: string, data: any) {
+		const toasts = { ...uiuxState.get().toastManager, [id]: data };
+		uiuxState.setKey('toastManager', toasts);
+	},
+
+	removeToast(id: string) {
+		const toasts = { ...uiuxState.get().toastManager };
+		delete toasts[id];
+		uiuxState.setKey('toastManager', toasts);
+	},
+};
+
+
+//	* i18n
 
 const i18nStore = persistentMap<Record<string, string>>(
 	'i18n-cache',
@@ -117,7 +173,7 @@ export async function main() {
 		i18n.api = api;
 		i18n.ready = i18n.hydrateLocale('en');
 
-		window.kbve = { api, i18n };
+		window.kbve = { api, i18n, uiux };
 		console.log('[KBVE] Global API ready');
 	} else {
 		console.log('[KBVE] Already initialized');

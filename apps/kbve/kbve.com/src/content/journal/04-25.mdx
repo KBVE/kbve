@@ -31,6 +31,15 @@ tags:
     With that latest image, update the helm templates and then finally minor bump the following pre-release.
     This is just quick notes on maybe a `rancher` command that we could add into the kbve.sh to handle this for us.
 
+### Astro KBVE UXUI
+
+-   06:42PM
+
+    Another shot at figuring out unique ways to handle the user interface and user experience!
+    I am going to try and keep the internal core as close to vanilla javascript, this way if I need to use it in React or Rust in the future, it wont be an issue.
+    The plan is to expand the `window.kbve` with a state called `uiux` which will hold a nested nanostores map.
+    
+
 ## 2024
 
 **API**
