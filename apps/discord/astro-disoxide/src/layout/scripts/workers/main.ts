@@ -5,8 +5,6 @@ import type { LocalStorageAPI } from './db-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
 
-
-
 const EXPECTED_DB_VERSION = '1.0.2';
 
 //	* Interface
@@ -21,16 +19,19 @@ export interface PanelPayload {
 	};
 }
 
-
 //	* UIUX
 
 const uiuxState = persistentMap<{
-	panelManager: Record<'top' | 'right' | 'bottom' | 'left', {
-		open: boolean;
-		payload?: PanelPayload;
-	}>;
+	panelManager: Record<
+		'top' | 'right' | 'bottom' | 'left',
+		{
+			open: boolean;
+			payload?: PanelPayload;
+		}
+	>;
 	themeManager: { theme: 'light' | 'dark' | 'auto' };
 	toastManager: Record<string, any>;
+	scrollY: number;
 }>(
 	'uiux-state',
 	{
@@ -39,8 +40,10 @@ const uiuxState = persistentMap<{
 			right: { open: false },
 			bottom: { open: false },
 			left: { open: false },
-		},		themeManager: { theme: 'auto' },
+		},
+		themeManager: { theme: 'auto' },
 		toastManager: {},
+		scrollY: 0,
 	},
 	{
 		encode: JSON.stringify,
@@ -49,9 +52,8 @@ const uiuxState = persistentMap<{
 );
 
 const canvasWorker = wrap<CanvasWorkerAPI>(
-	new Worker(new URL('./canvas-worker', import.meta.url), { type: 'module' })
+	new Worker(new URL('./canvas-worker', import.meta.url), { type: 'module' }),
 );
-
 
 export const uiux = {
 	state: uiuxState,
@@ -61,19 +63,22 @@ export const uiux = {
 		panels[id] = { open: true, payload };
 		uiuxState.setKey('panelManager', panels);
 	},
-	
+
 	closePanel(id: 'top' | 'right' | 'bottom' | 'left') {
 		const panels = { ...uiuxState.get().panelManager };
 		panels[id] = { open: false, payload: undefined };
 		uiuxState.setKey('panelManager', panels);
 	},
-	
-	togglePanel(id: 'top' | 'right' | 'bottom' | 'left', payload?: PanelPayload) {
+
+	togglePanel(
+		id: 'top' | 'right' | 'bottom' | 'left',
+		payload?: PanelPayload,
+	) {
 		const panels = { ...uiuxState.get().panelManager };
 		const isOpen = panels[id]?.open ?? false;
 		panels[id] = { open: !isOpen, payload: !isOpen ? payload : undefined };
 		uiuxState.setKey('panelManager', panels);
-	},	
+	},
 
 	setTheme(theme: 'light' | 'dark' | 'auto') {
 		uiuxState.setKey('themeManager', { theme });
@@ -93,7 +98,7 @@ export const uiux = {
 	async dispatchCanvasRequest(
 		panelId: 'top' | 'right' | 'bottom' | 'left',
 		canvasEl: HTMLCanvasElement,
-		mode: 'static' | 'animated' | 'dynamic' = 'animated'
+		mode: 'static' | 'animated' | 'dynamic' = 'animated',
 	) {
 		const offscreen = canvasEl.transferControlToOffscreen();
 		await this.worker.bindCanvas(panelId, offscreen, mode);
@@ -102,15 +107,16 @@ export const uiux = {
 	closeAllPanels() {
 		const panels = { ...uiuxState.get().panelManager };
 		console.log('error panel is closing');
-	
-		for (const id of Object.keys(panels) as Array<'top' | 'right' | 'bottom' | 'left'>) {
+
+		for (const id of Object.keys(panels) as Array<
+			'top' | 'right' | 'bottom' | 'left'
+		>) {
 			panels[id] = { open: false, payload: undefined };
 		}
-	
+
 		uiuxState.setKey('panelManager', panels);
 	},
 };
-
 
 //	* i18n
 
@@ -215,7 +221,10 @@ export async function main() {
 		if (navigator.serviceWorker?.controller) {
 			initSWComlink();
 		} else {
-			navigator.serviceWorker?.addEventListener('controllerchange', initSWComlink);
+			navigator.serviceWorker?.addEventListener(
+				'controllerchange',
+				initSWComlink,
+			);
 		}
 	}
 

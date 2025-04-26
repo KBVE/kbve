@@ -4,7 +4,8 @@
 
 <header
 	id="site-header"
-	class="sticky top-0 z-[1000] flex items-center gap-4 overflow-x-auto px-4 py-2 bg-gray-900 shadow-md transition-all duration-300">
+	class="sticky top-0 z-[1000] flex items-center gap-4 overflow-x-auto px-4 py-2 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 shadow-md transition-all duration-300 hover:opacity-100 opacity-[0.75]"
+	aria-label="Main Navigation">
 	<!-- Menu Button -->
 	<button
 		id="menu-button"
@@ -27,10 +28,24 @@
 	</button>
 
 	<!-- Regular Nav Links -->
+
+	<a
+		href="/"
+		class="flex items-center gap-2 text-white hover:text-purple-400 transition-colors duration-200"
+		aria-label="Logo"
+		data-astro-prefetch>
+		<img
+			src="/assets/media/logo/discordsh_logo.webp"
+			alt="KBVE Logo"
+			class="object-contain w-24 rounded-full"
+		/>
+	</a>
+
 	<a
 		href="/"
 		class="flex flex-col items-center justify-center p-2 text-white hover:text-purple-400 transition-colors duration-200"
-		aria-label="Home">
+		aria-label="Home"
+		data-astro-prefetch>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="24"
@@ -52,7 +67,8 @@
 	<a
 		href="/servers"
 		class="flex flex-col items-center justify-center p-2 text-white hover:text-purple-400 transition-colors duration-200"
-		aria-label="Servers">
+		aria-label="Servers"
+		data-astro-prefetch>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="24"
@@ -75,29 +91,3 @@
 
 	<!-- Add more nav items here -->
 </header>
-
-<script is:inline>
-	if (typeof window !== 'undefined') {
-		const header = document.getElementById('site-header');
-		let isScrolled = false;
-
-		function updateHeaderOpacity() {
-			if (!header) return;
-			window.scrollY > 10
-				? ((isScrolled = true), header.classList.add('opacity-80'))
-				: ((isScrolled = false), header.classList.remove('opacity-80'));
-		}
-
-		window.addEventListener('scroll', updateHeaderOpacity);
-
-		header?.addEventListener('mouseenter', () =>
-			header.classList.remove('opacity-80')
-		);
-		header?.addEventListener(
-			'mouseleave',
-			() => isScrolled && header.classList.add('opacity-80')
-		);
-
-		updateHeaderOpacity();
-	}
-</script>

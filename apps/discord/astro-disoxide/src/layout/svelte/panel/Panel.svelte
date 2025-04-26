@@ -7,10 +7,32 @@
 	export let panelId: PanelId;
 
 	let panel: any = null;
+	let scrollY = 0;
+
 
 	onMount(() => {
 		initializePanel();
 	});
+
+
+// 	function updateBodyScrollLock() {
+// 	const panels = (window.kbve?.uiux?.state.get().panelManager ?? {}) as Record<string, { open: boolean }>;
+// 	const isAnyPanelOpen = Object.values(panels).some((p) => p?.open);
+
+// 	if (isAnyPanelOpen) {
+// 		scrollY = window.scrollY;
+// 		document.body.style.position = 'fixed';
+// 		document.body.style.top = `-${scrollY}px`;
+// 		document.body.style.width = '100%'; 
+// 		document.body.classList.add('overflow-hidden'); 
+// 	} else {
+// 		document.body.style.position = '';
+// 		document.body.style.top = '';
+// 		document.body.style.width = '';
+// 		document.body.classList.remove('overflow-hidden'); 
+// 		window.scrollTo(0, scrollY);
+// 	}
+// }
 
 	async function initializePanel() {
 		let tries = 0;
@@ -27,6 +49,7 @@
 
 		const unsub = window.kbve?.uiux?.state.subscribe((value) => {
 			panel = value.panelManager[panelId];
+			//updateBodyScrollLock();
 		});
 
 		if (panel?.payload?.needsCanvas) {
