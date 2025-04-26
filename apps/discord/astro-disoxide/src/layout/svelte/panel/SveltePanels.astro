@@ -8,7 +8,7 @@ type PanelId = typeof PANEL_IDS[number];
 ---
 {PANEL_IDS.map((id) => (
   <Panel client:only="svelte" panelId={id}>
-    {id === 'right' && <Sidebar client:only="svelte" />}
+    {id === 'left' && <Sidebar client:only="svelte" />}
     {id === 'bottom' && <Toast client:only="svelte" />}
   </Panel>
 ))}

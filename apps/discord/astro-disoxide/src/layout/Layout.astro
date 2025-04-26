@@ -5,6 +5,7 @@ import { pwaInfo } from 'virtual:pwa-info';
 
 // import Panel from 'src/layout/ui/Panel.astro';
 import SveltePanels from './svelte/panel/SveltePanels.astro';
+import Header from './Header.astro';
 
 export interface Props {
 	title: string;
@@ -45,18 +46,16 @@ import { ClientRouter } from 'astro:transitions';
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
 		<script src="/src/pwa.ts"></script>
 		<script src="/src/layout/scripts/workers/main.ts"></script>
-	
+
 		<script is:inline>
-			document.addEventListener("astro:before-preparation", () => {
+			document.addEventListener('astro:before-preparation', () => {
 				//document.querySelector("#loading").classList.add("show");
 			});
-			document.addEventListener("astro:after-swap", () => {
+			document.addEventListener('astro:after-swap', () => {
 				window.kbve?.uiux?.closeAllPanels();
 				//document.querySelector("#loading").classList.remove("show");
 			});
 		</script>
-		
-		
 
 		{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 
@@ -65,12 +64,6 @@ import { ClientRouter } from 'astro:transitions';
 	<body
 		role="document"
 		class="h-full bg-[#28243d] bg-[url('/assets/media/bg/pattern.svg')] text-gray-100 relative perspective-[2000px] perspective-distant">
-		<!-- <Sidebar /> -->
-		<!-- <Panel /> -->
-		<!-- <Panel panelId="top" />
-		<Panel panelId="right" />
-		<Panel panelId="bottom" />
-		<Panel panelId="left" /> -->
 		<SveltePanels />
 
 		<!-- Glowing Progress Bar -->
@@ -90,9 +83,37 @@ import { ClientRouter } from 'astro:transitions';
 			
 		</div> -->
 
+		<Header />
 		<div
-			class="bg-[#28243d] relative z-10 flex flex-col min-h-screen transition-all duration-500 ease-in-out will-change-transform origin-center">
+			id="main-content"
+			class="bg-[#28243d] relative z-10 flex flex-col min-h-screen transition-all duration-500 ease-in-out will-change-transform origin-center transform-3d">
 			<slot role="main" />
 		</div>
+		<script is:inline>		
+			if (typeof window !== 'undefined') {
+				function updateMainPerspective() {
+					const mainContent = document.getElementById('main-content');
+					if (!mainContent) return;
+
+					const panels = window.kbve?.uiux?.state.get().panelManager ?? {};
+
+					Object.values(panels).some(p => p?.open)
+						? mainContent.classList.add('scale-95', 'rotate-x-51', 'rotate-z-43', 'blur-sm')
+						: mainContent.classList.remove('scale-95', 'rotate-x-51', 'rotate-z-43', 'blur-sm');
+				}
+
+				async function setupPerspectiveWatcher() {
+					while (!window.kbve?.uiux?.state)
+						await new Promise((r) => setTimeout(r, 50));
+
+					window.kbve.uiux.state.subscribe(updateMainPerspective);
+					updateMainPerspective();
+				}
+		
+				setupPerspectiveWatcher();
+			}
+		</script>
+		
+		
 	</body>
 </html>

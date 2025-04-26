@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import type { PanelId } from 'src/env';
+	import { cubicInOut } from 'svelte/easing';
 
 	export let panelId: PanelId;
 
@@ -62,7 +63,8 @@
 		transition:fly={{
 			x: panelId === 'right' ? 500 : panelId === 'left' ? -500 : 0,
 			y: panelId === 'bottom' ? 500 : panelId === 'top' ? -500 : 0,
-			duration: 300,
+			duration: 400,
+			easing: cubicInOut,
 		}}
 		style="will-change: transform">
 		<div
