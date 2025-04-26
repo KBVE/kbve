@@ -1,5 +1,10 @@
 import { expose } from 'comlink';
 
+export interface CanvasWorkerAPI {
+	bindCanvas(panelId: string, canvas: OffscreenCanvas, mode?: CanvasDrawMode): Promise<void>;
+	unbindCanvas(panelId: string): Promise<void>;
+}
+
 interface CanvasBinding {
 	ctx: OffscreenCanvasRenderingContext2D;
 	canvas: OffscreenCanvas;
@@ -8,7 +13,7 @@ interface CanvasBinding {
 	animationFrame?: number;
 }
 
-type CanvasDrawMode = 'static' | 'animated' | 'dynamic';
+export type CanvasDrawMode = 'static' | 'animated' | 'dynamic';
 
 const CanvasManager = {
 	bindings: new Map<string, CanvasBinding>(),

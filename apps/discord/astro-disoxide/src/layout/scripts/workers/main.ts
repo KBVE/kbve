@@ -3,6 +3,7 @@ import type { Remote } from 'comlink';
 import { persistentMap } from '@nanostores/persistent';
 import type { LocalStorageAPI } from './db-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
+import type { CanvasWorkerAPI } from './canvas-worker';
 
 const EXPECTED_DB_VERSION = '1.0.2';
 
@@ -25,9 +26,13 @@ const uiuxState = persistentMap<{
 	},
 );
 
+const canvasWorker = wrap<CanvasWorkerAPI>(
+	new Worker(new URL('./canvas-worker', import.meta.url), { type: 'module' })
+);
+
 export const uiux = {
 	state: uiuxState,
-
+	worker: canvasWorker,
 	openPanel(id: 'top' | 'right' | 'bottom' | 'left') {
 		const panels = { ...uiuxState.get().panelManager, [id]: true };
 		uiuxState.setKey('panelManager', panels);
@@ -56,6 +61,15 @@ export const uiux = {
 		const toasts = { ...uiuxState.get().toastManager };
 		delete toasts[id];
 		uiuxState.setKey('toastManager', toasts);
+	},
+
+	async dispatchCanvasRequest(
+		panelId: 'top' | 'right' | 'bottom' | 'left',
+		canvasEl: HTMLCanvasElement,
+		mode: 'static' | 'animated' | 'dynamic' = 'animated'
+	) {
+		const offscreen = canvasEl.transferControlToOffscreen();
+		await this.worker.bindCanvas(panelId, offscreen, mode);
 	},
 };
 
@@ -167,7 +181,7 @@ export async function main() {
 		}
 	}
 
-	if (!window.kbve?.api || !window.kbve?.i18n) {
+	if (!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux) {
 		const api = await initStorageComlink();
 
 		i18n.api = api;
