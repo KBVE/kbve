@@ -5,19 +5,41 @@ import type { LocalStorageAPI } from './db-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
 
+
+
 const EXPECTED_DB_VERSION = '1.0.2';
+
+//	* Interface
+
+export interface PanelPayload {
+	rawHtml?: string;
+	needsCanvas?: boolean;
+	canvasOptions?: {
+		width: number;
+		height: number;
+		mode?: 'static' | 'animated' | 'dynamic';
+	};
+}
+
 
 //	* UIUX
 
 const uiuxState = persistentMap<{
-	panelManager: Record<'top' | 'right' | 'bottom' | 'left', boolean>;
+	panelManager: Record<'top' | 'right' | 'bottom' | 'left', {
+		open: boolean;
+		payload?: PanelPayload;
+	}>;
 	themeManager: { theme: 'light' | 'dark' | 'auto' };
 	toastManager: Record<string, any>;
 }>(
 	'uiux-state',
 	{
-		panelManager: { top: false, right: false, bottom: false, left: false },
-		themeManager: { theme: 'auto' },
+		panelManager: {
+			top: { open: false },
+			right: { open: false },
+			bottom: { open: false },
+			left: { open: false },
+		},		themeManager: { theme: 'auto' },
 		toastManager: {},
 	},
 	{
@@ -30,23 +52,28 @@ const canvasWorker = wrap<CanvasWorkerAPI>(
 	new Worker(new URL('./canvas-worker', import.meta.url), { type: 'module' })
 );
 
+
 export const uiux = {
 	state: uiuxState,
 	worker: canvasWorker,
-	openPanel(id: 'top' | 'right' | 'bottom' | 'left') {
-		const panels = { ...uiuxState.get().panelManager, [id]: true };
+	openPanel(id: 'top' | 'right' | 'bottom' | 'left', payload?: PanelPayload) {
+		const panels = { ...uiuxState.get().panelManager };
+		panels[id] = { open: true, payload };
 		uiuxState.setKey('panelManager', panels);
 	},
-
+	
 	closePanel(id: 'top' | 'right' | 'bottom' | 'left') {
-		const panels = { ...uiuxState.get().panelManager, [id]: false };
+		const panels = { ...uiuxState.get().panelManager };
+		panels[id] = { open: false, payload: undefined };
 		uiuxState.setKey('panelManager', panels);
 	},
-
-	togglePanel(id: 'top' | 'right' | 'bottom' | 'left') {
-		const panels = { ...uiuxState.get().panelManager, [id]: !uiuxState.get().panelManager[id] };
+	
+	togglePanel(id: 'top' | 'right' | 'bottom' | 'left', payload?: PanelPayload) {
+		const panels = { ...uiuxState.get().panelManager };
+		const isOpen = panels[id]?.open ?? false;
+		panels[id] = { open: !isOpen, payload: !isOpen ? payload : undefined };
 		uiuxState.setKey('panelManager', panels);
-	},
+	},	
 
 	setTheme(theme: 'light' | 'dark' | 'auto') {
 		uiuxState.setKey('themeManager', { theme });
