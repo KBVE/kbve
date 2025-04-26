@@ -28,7 +28,6 @@
 			panel = value.panelManager[panelId];
 		});
 
-		// Attempt to bind the canvas if needed
 		if (panel?.payload?.needsCanvas) {
 			const canvasEl = document.getElementById(
 				`panel-canvas-${panelId}`,
@@ -43,22 +42,23 @@
 			}
 		}
 
-		return () => unsub?.(); // Clean up subscription
+		return () => unsub?.();
 	}
 </script>
 
 {#if panel?.open}
 	<div
-		class={`fixed z-[9999] w-full sm:max-w-lg h-full bg-gray-900 text-white shadow-xl transform
-		${
-			panelId === 'top'
-				? 'top-0 left-0'
-				: panelId === 'bottom'
-					? 'bottom-0 left-0'
-					: panelId === 'left'
-						? 'top-0 left-0'
-						: 'top-0 right-0'
-		}`}
+		class={`fixed z-[9999] bg-gray-900 text-white shadow-xl transform
+	${
+		panelId === 'top'
+			? 'top-0 left-0 right-0 h-1/2'
+			: panelId === 'bottom'
+				? 'bottom-0 left-0 right-0 h-1/2'
+				: panelId === 'left'
+					? 'top-0 bottom-0 left-0 w-full sm:w-1/2'
+					: 'top-0 bottom-0 right-0 w-full sm:w-1/2'
+	}
+`}
 		transition:fly={{
 			x: panelId === 'right' ? 500 : panelId === 'left' ? -500 : 0,
 			y: panelId === 'bottom' ? 500 : panelId === 'top' ? -500 : 0,

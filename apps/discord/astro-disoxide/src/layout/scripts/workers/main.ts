@@ -98,6 +98,17 @@ export const uiux = {
 		const offscreen = canvasEl.transferControlToOffscreen();
 		await this.worker.bindCanvas(panelId, offscreen, mode);
 	},
+
+	closeAllPanels() {
+		const panels = { ...uiuxState.get().panelManager };
+		console.log('error panel is closing');
+	
+		for (const id of Object.keys(panels) as Array<'top' | 'right' | 'bottom' | 'left'>) {
+			panels[id] = { open: false, payload: undefined };
+		}
+	
+		uiuxState.setKey('panelManager', panels);
+	},
 };
 
 
@@ -222,7 +233,3 @@ export async function main() {
 }
 
 main();
-
-if (typeof window !== 'undefined') {
-	window.addEventListener('astro:after-swap', main);
-}
