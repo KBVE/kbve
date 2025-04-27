@@ -19,7 +19,21 @@ tags:
 
     Time to update the protos to include the ability to XADD and XREAD aka Streaming!
     Since we have the fred crate, the streaming code is already in place and we just need to wire it up.
-    
+    The goal will be to shift all the binary over to another protobuf called RedisBinary or RedisStream, then just handle it like that.
+    This means any binary that comes into the websocket would be treated as stream data and we can move the non-binary to the JSON commands.
+    This should give us the best of both worlds without running too deep into issues.
+    There would be room for improvements, we could also introduce a CapnProto later on too.
+    Okay let me update the `redis.proto` within the Jedi package to include the Redis Binary stream!
+    Afterwards we can update the redis wrapper to include the new stream data.
+
+### Unity Buffers
+
+-   02:52PM
+
+    We are currently building it around using json but once we get the basic debugging out of the way, we will just stick with binary.
+    The goal might be to just serialize the NPC Manager and send it over the wire but that might not work either.
+    Damn, multiplayer can become a pain to do the first round, I am thinking that it might be too much data that is moving back and fourth, ugh.
+    I am getting a headache just thinking about it, gahhh.
 
 ## 2024
 
