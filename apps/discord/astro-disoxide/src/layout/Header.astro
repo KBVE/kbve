@@ -1,0 +1,93 @@
+---
+// Header
+---
+
+<header
+	id="site-header"
+	class="sticky top-0 z-[1000] flex items-center gap-4 overflow-x-auto px-4 py-2 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 shadow-md transition-all duration-300 hover:opacity-100 opacity-[0.75]"
+	aria-label="Main Navigation">
+	<!-- Menu Button -->
+	<button
+		id="menu-button"
+		class="flex flex-col items-center justify-center p-2 text-white hover:text-purple-400 transition-colors duration-200"
+		aria-label="Menu"
+		onclick="window.kbve?.uiux?.openPanel('left')">
+		<svg
+			class="w-6 h-6 mb-1"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24">
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M4 6h16M4 12h16M4 18h16">
+			</path>
+		</svg>
+		<span class="text-xs">Menu</span>
+	</button>
+
+	<!-- Regular Nav Links -->
+
+	<a
+		href="/"
+		class="flex items-center gap-2 text-white hover:text-purple-400 transition-colors duration-200"
+		aria-label="Logo"
+		data-astro-prefetch>
+		<img
+			src="/assets/media/logo/discordsh_logo.webp"
+			alt="KBVE Logo"
+			class="object-contain w-24 rounded-full"
+		/>
+	</a>
+
+	<a
+		href="/"
+		class="flex flex-col items-center justify-center p-2 text-white hover:text-purple-400 transition-colors duration-200"
+		aria-label="Home"
+		data-astro-prefetch>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class="lucide lucide-house-icon lucide-house">
+			<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path
+				d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z">
+			</path>
+		</svg>
+		<span class="text-xs">Home</span>
+	</a>
+
+	<a
+		href="/servers"
+		class="flex flex-col items-center justify-center p-2 text-white hover:text-purple-400 transition-colors duration-200"
+		aria-label="Servers"
+		data-astro-prefetch>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class="lucide lucide-router-icon lucide-router">
+			<rect width="20" height="8" x="2" y="14" rx="2"></rect><path
+				d="M6.01 18H6">
+			</path><path d="M10.01 18H10"></path><path d="M15 10v4"></path><path
+				d="M17.84 7.17a4 4 0 0 0-5.66 0">
+			</path><path d="M20.66 4.34a8 8 0 0 0-11.31 0"></path>
+		</svg>
+		<span class="text-xs">Servers</span>
+	</a>
+
+	<!-- Add more nav items here -->
+</header>

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { panelManager } from 'src/layout/scripts/nanostores';
 	import { onMount } from 'svelte';
 	import { i18n } from 'src/layout/scripts/workers/main';
 
@@ -59,9 +58,10 @@
 		<h1 class="text-lg font-bold">DiscordSH</h1>
 		<button
 			class="text-purple-400 hover:text-white"
-			on:click={() => {
+			onclick={() => {
 				console.log('Closing sidebar');
-				panelManager.get().closePanel('right');
+				window.kbve?.uiux?.closePanel('left');
+
 			}}
 			aria-label="Close sidebar">
 			X
