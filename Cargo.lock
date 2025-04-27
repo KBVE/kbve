@@ -2969,6 +2969,7 @@ dependencies = [
  "chrono",
  "flexbuffers",
  "futures-util",
+ "http 1.1.0",
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
@@ -3442,7 +3443,7 @@ dependencies = [
  "eframe",
  "egui",
  "ehttp",
- "holy 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "holy",
  "image",
  "log",
  "serde",
@@ -4637,18 +4638,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "holy"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "878583bc1917e27b90bfb82a4b492d781393c3e4e00858886edf9b1287226086"
-dependencies = [
- "crossbeam",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "home"
 version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5480,7 +5469,7 @@ name = "kilobase"
 version = "15.1.10"
 dependencies = [
  "base62",
- "jedi 0.1.14",
+ "jedi 0.2.0",
  "pgrx",
  "pgrx-tests",
  "redis",
@@ -7922,7 +7911,7 @@ version = "0.1.1"
 dependencies = [
  "axum 0.6.20",
  "diesel",
- "jedi 0.1.14",
+ "jedi 0.2.0",
  "kbve",
  "r2d2",
  "serde",

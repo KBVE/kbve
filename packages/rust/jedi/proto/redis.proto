@@ -103,7 +103,7 @@ message RedisStream {
 
 message XAddPayload {
   bytes stream = 1;
-  map<bytes, bytes> fields = 2;
+  repeated Field fields = 2;
   optional bytes id = 3;
 }
 
@@ -129,5 +129,10 @@ message StreamMessages {
 
 message StreamEntry {
   bytes id = 1;
-  map<bytes, bytes> fields = 2;
+  repeated Field fields = 2;
+}
+
+message Field {
+  bytes key = 1;
+  bytes value = 2;
 }
