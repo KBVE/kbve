@@ -6,7 +6,6 @@ use tower::BoxError;
 use bb8::ErrorSink;
 use fred::error::Error as RedisError;
 
-
 #[derive(Debug, Error)]
 pub enum JediError {
   #[error("Request timed out")]
@@ -30,6 +29,8 @@ pub enum JediError {
   #[error("Database error: {0}")] Database(Cow<'static, str>),
 
   #[error("gRPC error: {0}")] Grpc(String),
+
+  #[error("Redirect to stream parsing")] RedirectToStream(Vec<u8>, Option<[u8; 16]>),
 }
 
 #[derive(Serialize, Debug)]
@@ -40,7 +41,6 @@ pub struct ErrorResponse {
 
 #[derive(Clone, Debug)]
 pub struct JediErrorSink;
-
 
 impl IntoResponse for JediError {
   fn into_response(self) -> Response {
@@ -58,7 +58,10 @@ impl IntoResponse for JediError {
       JediError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
       JediError::Grpc(_) => StatusCode::BAD_GATEWAY,
       JediError::Parse(_) => StatusCode::BAD_REQUEST,
-
+      JediError::RedirectToStream(_, _) => {
+        tracing::error!("BUG: RedirectToStream leaked into HTTP! This should never happen.");
+        StatusCode::INTERNAL_SERVER_ERROR
+      }
     };
 
     let body = Json(ErrorResponse {
@@ -93,6 +96,9 @@ impl From<JediError> for tonic::Status {
       JediError::Database(_) => tonic::Status::unavailable(err.to_string()),
       JediError::Grpc(_) => tonic::Status::unknown(err.to_string()),
       JediError::Parse(_) => tonic::Status::internal(err.to_string()),
+      JediError::RedirectToStream(_, _) => {
+        tonic::Status::internal("BUG: RedirectToStream should not reach gRPC".to_string())
+      }
     }
   }
 }
@@ -120,19 +126,19 @@ impl From<BoxError> for JediError {
 }
 
 impl<T: std::fmt::Display> From<bb8::RunError<T>> for JediError {
-    fn from(err: bb8::RunError<T>) -> Self {
-        match &err {
-            bb8::RunError::TimedOut => tracing::warn!("bb8 pool timeout"),
-            bb8::RunError::User(e) => tracing::error!("bb8 user error: {}", e),
-        }
-
-        match err {
-            bb8::RunError::TimedOut => JediError::Timeout,
-            bb8::RunError::User(inner) => {
-                JediError::Database(Cow::Owned(format!("bb8 pool error: {}", inner)))
-            }
-        }
+  fn from(err: bb8::RunError<T>) -> Self {
+    match &err {
+      bb8::RunError::TimedOut => tracing::warn!("bb8 pool timeout"),
+      bb8::RunError::User(e) => tracing::error!("bb8 user error: {}", e),
     }
+
+    match err {
+      bb8::RunError::TimedOut => JediError::Timeout,
+      bb8::RunError::User(inner) => {
+        JediError::Database(Cow::Owned(format!("bb8 pool error: {}", inner)))
+      }
+    }
+  }
 }
 
 impl From<serde_json::Error> for JediError {
@@ -154,13 +160,13 @@ impl From<RedisError> for JediError {
 }
 
 impl<E: std::fmt::Display + Send + Sync + 'static> ErrorSink<E> for JediErrorSink {
-    fn sink(&self, error: E) {
-        let err = JediError::Database(Cow::Owned(format!("bb8 async error: {}", error)));
-        tracing::error!("bb8 error sink captured: {}", err);
-        // TODO: push to metrics, Sentry, etc.
-    }
+  fn sink(&self, error: E) {
+    let err = JediError::Database(Cow::Owned(format!("bb8 async error: {}", error)));
+    tracing::error!("bb8 error sink captured: {}", err);
+    // TODO: push to metrics, Sentry, etc.
+  }
 
-    fn boxed_clone(&self) -> Box<dyn ErrorSink<E>> {
-        Box::new(self.clone())
-    }
+  fn boxed_clone(&self) -> Box<dyn ErrorSink<E>> {
+    Box::new(self.clone())
+  }
 }

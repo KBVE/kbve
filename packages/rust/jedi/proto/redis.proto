@@ -90,3 +90,49 @@ message Pong {
 message ErrorMessage {
   string error = 1;
 }
+
+// Stream
+
+message RedisStream {
+  oneof payload {
+    XAddPayload xadd = 1;
+    XReadPayload xread = 2;
+    XReadResponse xread_response = 3;
+  }
+}
+
+message XAddPayload {
+  bytes stream = 1;
+  repeated Field fields = 2;
+  optional bytes id = 3;
+}
+
+message XReadPayload {
+  repeated StreamReadRequest streams = 1;
+  optional uint64 count = 2;
+  optional uint64 block = 3;
+}
+
+message StreamReadRequest {
+  bytes stream = 1;
+  bytes id = 2;
+}
+
+message XReadResponse {
+  repeated StreamMessages streams = 1;
+}
+
+message StreamMessages {
+  bytes stream = 1;
+  repeated StreamEntry entries = 2;
+}
+
+message StreamEntry {
+  bytes id = 1;
+  repeated Field fields = 2;
+}
+
+message Field {
+  bytes key = 1;
+  bytes value = 2;
+}
