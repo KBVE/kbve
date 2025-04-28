@@ -45,6 +45,16 @@ use crate::proto::redis::{
 use crate::watchmaster::{ WatchEvent, WatchManager };
 
 use crate::entity::serde_arc_str;
+use flexbuffers::{FlexBufferType, Reader};
+
+
+
+
+#[derive(Debug)]
+pub enum Either<L, R> {
+  Left(L),
+  Right(R),
+}
 
 #[derive(Debug)]
 pub enum IncomingWsFormat {
@@ -569,7 +579,6 @@ fn parse_pubsub_message(msg: &RedisMessage) -> Option<RedisEventEnvelope> {
   })
 }
 
-
 //  ** Redis Handler
 
 pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
@@ -663,7 +672,6 @@ async fn publish_update(pool: &fred::clients::Pool, key: &str, update: RedisKeyU
     }
   }
 }
-
 
 pub fn spawn_pubsub_listener_task(
   mut rx: UnboundedReceiver<RedisEventEnvelope>,
@@ -787,9 +795,58 @@ pub fn create_ws_update_if_watched(
   }
 }
 
-// * Parse Websockets
+// // * Parse Websockets
+// pub fn parse_incoming_ws_binary(
+//   data: &[u8],
+//   connection_id: Option<[u8; 16]>,
+// ) -> Result<Either<RedisStreamRequestContext, RedisWsRequestContext>, JediError> {
+//   let reader = flexbuffers::Reader::get_root(data)
+//       .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
+//   let map = reader.as_map();
 
+//   // Check if we are dealing with a RedisStream based on known keys
+//   if map.iter_keys().any(|key| key == "xadd" || key == "xread" || key == "xread_response") {
+//     let mut stream = RedisStream::default();
 
+//     if {
+//       let r = map.idx("xadd");
+//       !r.flexbuffer_type().is_null()
+//     } {
+//       let payload = crate::proto::redis::XAddPayload::deserialize(map.idx("xadd"))
+//           .map_err(|e| JediError::Parse(format!("xadd payload parse error: {e}")))?;
+//       stream.payload = Some(crate::proto::redis::redis_stream::Payload::Xadd(payload));
+//     } else if {
+//       let r = map.idx("xread");
+//       !r.flexbuffer_type().is_null()
+//     } {
+//       let payload = crate::proto::redis::XReadPayload::deserialize(map.idx("xread"))
+//           .map_err(|e| JediError::Parse(format!("xread payload parse error: {e}")))?;
+//       stream.payload = Some(crate::proto::redis::redis_stream::Payload::Xread(payload));
+//     } else if {
+//       let r = map.idx("xread_response");
+//       !r.flexbuffer_type().is_null()
+//     } {
+//       let payload = crate::proto::redis::XReadResponse::deserialize(map.idx("xread_response"))
+//           .map_err(|e| JediError::Parse(format!("xread_response payload parse error: {e}")))?;
+//       stream.payload = Some(crate::proto::redis::redis_stream::Payload::XreadResponse(payload));
+//     }
+
+//     return Ok(Either::Left(RedisStreamRequestContext {
+//       stream,
+//       raw: Some(data.to_vec()), // optional: you could wrap in Arc if you want to avoid cloning multiple times later
+//       connection_id,
+//     }));
+//   }
+
+//   // If it's not a RedisStream, parse as a RedisEnvelope
+//   let envelope = parse_redis_envelope_from_flex(&map)?;
+
+//   Ok(Either::Right(RedisWsRequestContext {
+//     envelope,
+//     raw: Some(IncomingWsFormat::Binary(data.to_vec())),
+//     connection_id,
+//   }))
+// }
 
 pub fn parse_incoming_ws_data(
   input: IncomingWsFormat,

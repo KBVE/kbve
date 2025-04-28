@@ -38,5 +38,9 @@
       "webview",
       "webview2",
       "Comlink",
+      "xread",
+      "xadd",
+      "xdel",
+      "flexbuffer",
     ]
 }
