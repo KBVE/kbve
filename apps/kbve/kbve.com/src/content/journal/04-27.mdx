@@ -26,6 +26,15 @@ tags:
     Okay let me update the `redis.proto` within the Jedi package to include the Redis Binary stream!
     Afterwards we can update the redis wrapper to include the new stream data.
 
+-   04:14PM
+
+    After generating the new redis xdata streaming protos and adding them into the jedi crate, I am going to write them up on the rust side.
+    The initial plan is to keep the basic redis commands within JSON, as stated earlier and I am just recapping my memory but we will process the binary first and in a different loop.
+    New protos get converted to rust code using `./kbve.sh -nx jedi:proto` and afterwards we will import them to the `redis_wrapper.rs`.
+    Now the fun begins with the functions!
+    
+
+
 ### Unity Buffers
 
 -   02:52PM

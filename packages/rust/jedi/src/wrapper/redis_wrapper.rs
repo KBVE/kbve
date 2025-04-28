@@ -30,6 +30,18 @@ use crate::proto::redis::{
   RedisKeyUpdate,
   redis_key_update::State,
 };
+
+use crate::proto::redis::{
+  RedisStream,
+  redis_stream,
+  XAddPayload,
+  XReadPayload,
+  XReadResponse,
+  StreamEntry,
+  StreamMessages,
+  Field,
+};
+
 use crate::watchmaster::{ WatchEvent, WatchManager };
 
 use crate::entity::serde_arc_str;
@@ -44,6 +56,13 @@ pub enum IncomingWsFormat {
 pub struct RedisWsRequestContext {
   pub envelope: RedisEnvelope,
   pub raw: Option<IncomingWsFormat>,
+  pub connection_id: Option<[u8; 16]>,
+}
+
+#[derive(Debug)]
+pub struct RedisStreamRequestContext {
+  pub stream: RedisStream,
+  pub raw: Option<Vec<u8>>,
   pub connection_id: Option<[u8; 16]>,
 }
 
@@ -769,6 +788,8 @@ pub fn create_ws_update_if_watched(
 }
 
 // * Parse Websockets
+
+
 
 pub fn parse_incoming_ws_data(
   input: IncomingWsFormat,
