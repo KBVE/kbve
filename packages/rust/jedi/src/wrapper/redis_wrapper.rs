@@ -47,6 +47,12 @@ use crate::watchmaster::{ WatchEvent, WatchManager };
 use crate::entity::serde_arc_str;
 
 #[derive(Debug)]
+pub enum Either<L, R> {
+  Left(L),
+  Right(R),
+}
+
+#[derive(Debug)]
 pub enum IncomingWsFormat {
   JsonText(String),
   Binary(Vec<u8>),
