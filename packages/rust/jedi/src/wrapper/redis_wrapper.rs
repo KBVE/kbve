@@ -5,7 +5,13 @@ use axum::extract::ws::Message;
 use chrono::Utc;
 use serde::{ Deserialize, Serialize };
 use tokio::sync::{ oneshot, broadcast::Sender as BroadcastSender };
+use tokio::time::Duration;
+
+use fred::interfaces::StreamsInterface;
+use fred::types::streams::{XReadValue};
 use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
+use fred::types::streams::{ MultipleOrderedPairs, XID, XCap };
+
 use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver, UnboundedSender };
 use futures_util::{ StreamExt, SinkExt, pin_mut };
 use dashmap::DashSet;
@@ -48,16 +54,30 @@ use crate::watchmaster::{ WatchEvent, WatchManager };
 use crate::entity::flex::RedisStreamData;
 
 use crate::entity::serde_arc_str;
-use flexbuffers::{FlexBufferType, Reader};
-
-
-
+use flexbuffers::{ FlexBufferType, Reader };
 
 #[derive(Debug)]
 pub enum Either<L, R> {
   Left(L),
   Right(R),
 }
+
+/// TODO: ZeroCopy WebSocket Format
+/// ! START]
+#[derive(Debug)]
+pub enum ZeroCopyWsFormat<'a> {
+  JsonText(String),
+  Binary(Arc<Cow<'a, [u8]>>),
+}
+
+#[derive(Debug)]
+pub struct ZeroCopyWsRequestContext<'a> {
+  pub envelope: RedisEnvelope,
+  pub raw: Option<ZeroCopyWsFormat<'a>>,
+  pub connection_id: Option<[u8; 16]>,
+}
+
+/// ! [END]
 
 #[derive(Debug)]
 pub enum IncomingWsFormat {
@@ -801,29 +821,34 @@ pub fn create_ws_update_if_watched(
 // * Parse Websockets
 pub fn parse_incoming_ws_binary(
   data: &[u8],
-  connection_id: Option<[u8; 16]>,
+  connection_id: Option<[u8; 16]>
 ) -> Result<Either<RedisStreamRequestContext, RedisWsRequestContext>, JediError> {
-  let reader = flexbuffers::Reader::get_root(data)
-      .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
+  let reader = flexbuffers::Reader
+    ::get_root(data)
+    .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
   let map = reader.as_map();
 
   if let Ok(stream_data) = RedisStreamData::from_flex(&map) {
-      let stream = RedisStream::from(stream_data);
+    let stream = RedisStream::from(stream_data);
 
-      return Ok(Either::Left(RedisStreamRequestContext {
-          stream,
-          raw: Some(Bytes::copy_from_slice(data)),
-          connection_id,
-      }));
+    return Ok(
+      Either::Left(RedisStreamRequestContext {
+        stream,
+        raw: Some(Bytes::copy_from_slice(data)),
+        connection_id,
+      })
+    );
   }
 
   let envelope = parse_redis_envelope_from_flex(&map)?;
 
-  Ok(Either::Right(RedisWsRequestContext {
+  Ok(
+    Either::Right(RedisWsRequestContext {
       envelope,
       raw: Some(IncomingWsFormat::Binary(Bytes::copy_from_slice(data))),
       connection_id,
-  }))
+    })
+  )
 }
 
 pub fn parse_incoming_ws_data(
@@ -1057,3 +1082,139 @@ pub fn redis_ws_error_msg<S: ToString>(msg: S) -> String {
     .as_json_string()
     .unwrap_or_else(|| "{\"type\":\"error\",\"payload\":{\"error\":\"unknown\"}}".into())
 }
+
+/// TODO: Redis Streams
+
+// Parse a stream name from bytes
+
+pub fn parse_stream_name(name: &[u8]) -> Result<&str, JediError> {
+  std::str::from_utf8(name).map_err(|_| JediError::Parse("Invalid UTF-8 in stream name".into()))
+}
+
+// Parse fields into Vec<(Vec<u8>, Vec<u8>)>
+pub fn parse_field_pairs(fields: Vec<Field>) -> Vec<(Vec<u8>, Vec<u8>)> {
+  fields
+    .into_iter()
+    .map(|field| (field.key, field.value))
+    .collect()
+}
+
+// XADD helper
+pub async fn redis_xadd(
+  pool: &fred::clients::Pool,
+  payload: XAddPayload
+) -> Result<RedisResponse, JediError> {
+  let key = parse_stream_name(&payload.stream)?;
+  let id = payload.id
+    .map(|id| String::from_utf8_lossy(&id).to_string())
+    .unwrap_or_else(|| "*".to_string());
+
+  let fields: Vec<(&[u8], &[u8])> = payload.fields
+    .iter()
+    .map(|field| (field.key.as_slice(), field.value.as_slice()))
+    .collect();
+
+  pool.xadd::<(), _, _, _, _>(key, false, None::<()>, id, fields).await.map_err(JediError::from)?;
+
+  Ok(RedisResponse {
+    status: "OK".into(),
+    value: "xadd".into(),
+  })
+}
+
+// XREAD helper
+pub async fn redis_xread(
+  pool: &fred::clients::Pool,
+  payload: XReadPayload
+) -> Result<RedisResponse, JediError> {
+  // Extract stream names and last-seen IDs
+  let (keys, ids): (Vec<&str>, Vec<&str>) = payload.streams.iter()
+    .filter_map(|s| {
+      let key = std::str::from_utf8(&s.stream).ok()?;
+      let id = std::str::from_utf8(&s.id).ok()?;
+      Some((key, id))
+    })
+    .unzip();
+
+  // Call xread with explicit response type
+  let result = pool
+    .xread::<fred::types::streams::XReadResponse<String, String, String, Vec<u8>>, _, _>(
+      payload.count.map(|c| c as u64),
+      payload.block.map(|b| b as u64),
+      keys,
+      ids,
+    )
+    .await
+    .map_err(JediError::from)?;
+
+  // TODO: You can serialize this into Flexbuffers or raw binary if needed.
+  // For now we serialize as JSON (just to finish the pipeline).
+  let json = serde_json::to_string(&result)
+    .map_err(|e| JediError::Parse(format!("Failed to serialize XREAD result: {e}")))?;
+
+  Ok(RedisResponse {
+    status: "OK".into(),
+    value: json,
+  })
+}
+
+// impl RedisStreamRequestContext {
+//   pub async fn process(self, pool: &fred::clients::Pool) -> Result<RedisResponse, JediError> {
+//     match self.stream.payload {
+//       Some(redis_stream::Payload::Xadd(xadd)) => {
+//         let key = std::str::from_utf8(&xadd.stream)
+//           .map_err(|_| JediError::Parse("Invalid UTF-8 in stream name".into()))?;
+
+//         let mut fields: Vec<(Vec<u8>, Vec<u8>)> = vec![];
+//         for field in xadd.fields {
+//           fields.push((field.key, field.value));
+//         }
+
+//         let id = xadd.id.map(|id| String::from_utf8_lossy(&id).to_string());
+
+//         pool.xadd::<_, _, _>(key, id.as_deref(), fields)
+//           .await
+//           .map_err(JediError::from)?;
+
+//         Ok(RedisResponse {
+//           status: "OK".into(),
+//           value: "xadd".into(),
+//         })
+//       }
+
+//       Some(redis_stream::Payload::Xread(xread)) => {
+//         let streams: Vec<(&str, &str)> = xread.streams.iter()
+//           .filter_map(|stream| {
+//             let name = std::str::from_utf8(&stream.stream).ok()?;
+//             let id = std::str::from_utf8(&stream.id).ok()?;
+//             Some((name, id))
+//           })
+//           .collect();
+
+//         let opts = fred::types::XReadOptions {
+//           count: xread.count.map(|c| c as usize),
+//           block: xread.block.map(|b| std::time::Duration::from_millis(b)),
+//           ..Default::default()
+//         };
+
+//         let result = pool.xread::<_, _>(streams, Some(opts))
+//           .await
+//           .map_err(JediError::from)?;
+
+//         let json = serde_json::to_string(&result)
+//           .map_err(|e| JediError::Parse(format!("Failed to serialize XREAD result: {e}")))?;
+
+//         Ok(RedisResponse {
+//           status: "OK".into(),
+//           value: json,
+//         })
+//       }
+
+//       Some(redis_stream::Payload::XreadResponse(_)) => {
+//         Err(JediError::BadRequest("XReadResponse not supported for direct execution".into()))
+//       }
+
+//       None => Err(JediError::BadRequest("Missing payload in RedisStream".into()))
+//     }
+//   }
+// }
