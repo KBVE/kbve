@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::borrow::Cow;
-
+use bytes::Bytes;
 use axum::extract::ws::Message;
 use chrono::Utc;
 use serde::{ Deserialize, Serialize };
@@ -60,22 +60,22 @@ pub enum Either<L, R> {
 }
 
 #[derive(Debug)]
-pub enum IncomingWsFormat<'a> {
+pub enum IncomingWsFormat {
   JsonText(String),
-  Binary(Cow<'a, Arc<Vec<u8>>>),
+  Binary(Bytes),
 }
 
 #[derive(Debug)]
-pub struct RedisWsRequestContext<'a> {
+pub struct RedisWsRequestContext {
   pub envelope: RedisEnvelope,
-  pub raw: Option<IncomingWsFormat<'a>>,
+  pub raw: Option<IncomingWsFormat>,
   pub connection_id: Option<[u8; 16]>,
 }
 
 #[derive(Debug)]
-pub struct RedisStreamRequestContext<'a> {
+pub struct RedisStreamRequestContext {
   pub stream: RedisStream,
-  pub raw: Option<Arc<Cow<'a, [u8]>>>,
+  pub raw: Option<Bytes>,
   pub connection_id: Option<[u8; 16]>,
 }
 
@@ -799,20 +799,20 @@ pub fn create_ws_update_if_watched(
 }
 
 // * Parse Websockets
-pub fn parse_incoming_ws_binary<'a>(
-  data: &'a [u8],
+pub fn parse_incoming_ws_binary(
+  data: &[u8],
   connection_id: Option<[u8; 16]>,
-) -> Result<Either<RedisStreamRequestContext<'a>, RedisWsRequestContext<'a>>, JediError> {
+) -> Result<Either<RedisStreamRequestContext, RedisWsRequestContext>, JediError> {
   let reader = flexbuffers::Reader::get_root(data)
       .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
   let map = reader.as_map();
 
-  if let Ok(stream_data) = RedisStreamData::from_flex(map) {
+  if let Ok(stream_data) = RedisStreamData::from_flex(&map) {
       let stream = RedisStream::from(stream_data);
 
       return Ok(Either::Left(RedisStreamRequestContext {
           stream,
-          raw: Some(Arc::new(Cow::Borrowed(data))),
+          raw: Some(Bytes::copy_from_slice(data)),
           connection_id,
       }));
   }
@@ -821,7 +821,7 @@ pub fn parse_incoming_ws_binary<'a>(
 
   Ok(Either::Right(RedisWsRequestContext {
       envelope,
-      raw: Some(IncomingWsFormat::Binary(Arc::new(Cow::Borrowed(data)))),
+      raw: Some(IncomingWsFormat::Binary(Bytes::copy_from_slice(data))),
       connection_id,
   }))
 }
