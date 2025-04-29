@@ -1,4 +1,6 @@
 use std::sync::Arc;
+use std::borrow::Cow;
+use bytes::Bytes;
 use axum::extract::ws::Message;
 use chrono::Utc;
 use serde::{ Deserialize, Serialize };
@@ -43,6 +45,7 @@ use crate::proto::redis::{
 };
 
 use crate::watchmaster::{ WatchEvent, WatchManager };
+use crate::entity::flex::RedisStreamData;
 
 use crate::entity::serde_arc_str;
 use flexbuffers::{FlexBufferType, Reader};
@@ -59,7 +62,7 @@ pub enum Either<L, R> {
 #[derive(Debug)]
 pub enum IncomingWsFormat {
   JsonText(String),
-  Binary(Vec<u8>),
+  Binary(Bytes),
 }
 
 #[derive(Debug)]
@@ -72,7 +75,7 @@ pub struct RedisWsRequestContext {
 #[derive(Debug)]
 pub struct RedisStreamRequestContext {
   pub stream: RedisStream,
-  pub raw: Option<Vec<u8>>,
+  pub raw: Option<Bytes>,
   pub connection_id: Option<[u8; 16]>,
 }
 
@@ -795,58 +798,33 @@ pub fn create_ws_update_if_watched(
   }
 }
 
-// // * Parse Websockets
-// pub fn parse_incoming_ws_binary(
-//   data: &[u8],
-//   connection_id: Option<[u8; 16]>,
-// ) -> Result<Either<RedisStreamRequestContext, RedisWsRequestContext>, JediError> {
-//   let reader = flexbuffers::Reader::get_root(data)
-//       .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
-//   let map = reader.as_map();
+// * Parse Websockets
+pub fn parse_incoming_ws_binary(
+  data: &[u8],
+  connection_id: Option<[u8; 16]>,
+) -> Result<Either<RedisStreamRequestContext, RedisWsRequestContext>, JediError> {
+  let reader = flexbuffers::Reader::get_root(data)
+      .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
+  let map = reader.as_map();
 
-//   // Check if we are dealing with a RedisStream based on known keys
-//   if map.iter_keys().any(|key| key == "xadd" || key == "xread" || key == "xread_response") {
-//     let mut stream = RedisStream::default();
+  if let Ok(stream_data) = RedisStreamData::from_flex(&map) {
+      let stream = RedisStream::from(stream_data);
 
-//     if {
-//       let r = map.idx("xadd");
-//       !r.flexbuffer_type().is_null()
-//     } {
-//       let payload = crate::proto::redis::XAddPayload::deserialize(map.idx("xadd"))
-//           .map_err(|e| JediError::Parse(format!("xadd payload parse error: {e}")))?;
-//       stream.payload = Some(crate::proto::redis::redis_stream::Payload::Xadd(payload));
-//     } else if {
-//       let r = map.idx("xread");
-//       !r.flexbuffer_type().is_null()
-//     } {
-//       let payload = crate::proto::redis::XReadPayload::deserialize(map.idx("xread"))
-//           .map_err(|e| JediError::Parse(format!("xread payload parse error: {e}")))?;
-//       stream.payload = Some(crate::proto::redis::redis_stream::Payload::Xread(payload));
-//     } else if {
-//       let r = map.idx("xread_response");
-//       !r.flexbuffer_type().is_null()
-//     } {
-//       let payload = crate::proto::redis::XReadResponse::deserialize(map.idx("xread_response"))
-//           .map_err(|e| JediError::Parse(format!("xread_response payload parse error: {e}")))?;
-//       stream.payload = Some(crate::proto::redis::redis_stream::Payload::XreadResponse(payload));
-//     }
+      return Ok(Either::Left(RedisStreamRequestContext {
+          stream,
+          raw: Some(Bytes::copy_from_slice(data)),
+          connection_id,
+      }));
+  }
 
-//     return Ok(Either::Left(RedisStreamRequestContext {
-//       stream,
-//       raw: Some(data.to_vec()), // optional: you could wrap in Arc if you want to avoid cloning multiple times later
-//       connection_id,
-//     }));
-//   }
+  let envelope = parse_redis_envelope_from_flex(&map)?;
 
-//   // If it's not a RedisStream, parse as a RedisEnvelope
-//   let envelope = parse_redis_envelope_from_flex(&map)?;
-
-//   Ok(Either::Right(RedisWsRequestContext {
-//     envelope,
-//     raw: Some(IncomingWsFormat::Binary(data.to_vec())),
-//     connection_id,
-//   }))
-// }
+  Ok(Either::Right(RedisWsRequestContext {
+      envelope,
+      raw: Some(IncomingWsFormat::Binary(Bytes::copy_from_slice(data))),
+      connection_id,
+  }))
+}
 
 pub fn parse_incoming_ws_data(
   input: IncomingWsFormat,
