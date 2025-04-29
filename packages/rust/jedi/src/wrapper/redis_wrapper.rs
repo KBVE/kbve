@@ -1,4 +1,6 @@
 use std::sync::Arc;
+use std::borrow::Cow;
+use bytes::Bytes;
 use axum::extract::ws::Message;
 use chrono::Utc;
 use serde::{ Deserialize, Serialize };
@@ -43,13 +45,24 @@ use crate::proto::redis::{
 };
 
 use crate::watchmaster::{ WatchEvent, WatchManager };
+use crate::entity::flex::RedisStreamData;
 
 use crate::entity::serde_arc_str;
+use flexbuffers::{FlexBufferType, Reader};
+
+
+
+
+#[derive(Debug)]
+pub enum Either<L, R> {
+  Left(L),
+  Right(R),
+}
 
 #[derive(Debug)]
 pub enum IncomingWsFormat {
   JsonText(String),
-  Binary(Vec<u8>),
+  Binary(Bytes),
 }
 
 #[derive(Debug)]
@@ -62,7 +75,7 @@ pub struct RedisWsRequestContext {
 #[derive(Debug)]
 pub struct RedisStreamRequestContext {
   pub stream: RedisStream,
-  pub raw: Option<Vec<u8>>,
+  pub raw: Option<Bytes>,
   pub connection_id: Option<[u8; 16]>,
 }
 
@@ -569,7 +582,6 @@ fn parse_pubsub_message(msg: &RedisMessage) -> Option<RedisEventEnvelope> {
   })
 }
 
-
 //  ** Redis Handler
 
 pub async fn spawn_redis_worker(pool: Pool, mut rx: Receiver<RedisEnvelope>) {
@@ -663,7 +675,6 @@ async fn publish_update(pool: &fred::clients::Pool, key: &str, update: RedisKeyU
     }
   }
 }
-
 
 pub fn spawn_pubsub_listener_task(
   mut rx: UnboundedReceiver<RedisEventEnvelope>,
@@ -788,8 +799,32 @@ pub fn create_ws_update_if_watched(
 }
 
 // * Parse Websockets
+pub fn parse_incoming_ws_binary(
+  data: &[u8],
+  connection_id: Option<[u8; 16]>,
+) -> Result<Either<RedisStreamRequestContext, RedisWsRequestContext>, JediError> {
+  let reader = flexbuffers::Reader::get_root(data)
+      .map_err(|e| JediError::Parse(format!("flexbuffers parse error: {e}")))?;
+  let map = reader.as_map();
 
+  if let Ok(stream_data) = RedisStreamData::from_flex(&map) {
+      let stream = RedisStream::from(stream_data);
 
+      return Ok(Either::Left(RedisStreamRequestContext {
+          stream,
+          raw: Some(Bytes::copy_from_slice(data)),
+          connection_id,
+      }));
+  }
+
+  let envelope = parse_redis_envelope_from_flex(&map)?;
+
+  Ok(Either::Right(RedisWsRequestContext {
+      envelope,
+      raw: Some(IncomingWsFormat::Binary(Bytes::copy_from_slice(data))),
+      connection_id,
+  }))
+}
 
 pub fn parse_incoming_ws_data(
   input: IncomingWsFormat,
