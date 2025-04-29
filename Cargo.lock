@@ -5244,6 +5244,7 @@ dependencies = [
  "bb8",
  "bb8-postgres",
  "bitflags 2.9.0",
+ "bytes",
  "chrono",
  "crossbeam",
  "dashmap 6.1.0",

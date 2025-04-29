@@ -73,7 +73,7 @@ pub struct FieldData<'a> {
 
 
 impl<'a> RedisStreamData<'a> {
-    pub fn from_flex(map: MapReader<&'a [u8]>) -> Result<Self, JediError> {
+    pub fn from_flex(map: &MapReader<&'a [u8]>) -> Result<Self, JediError> {
         if !map.idx("xadd").flexbuffer_type().is_null() {
             let payload = XAddData::from_flex(map.idx("xadd").get_map()?)?;
             Ok(Self { payload: RedisStreamPayload::XAdd(payload) })

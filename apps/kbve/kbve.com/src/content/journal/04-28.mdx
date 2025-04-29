@@ -38,7 +38,15 @@ tags:
 
     Updating the websockets again to use flexbuffers for the redis streaming.
     The plan is to create a `flex.rs` module that would hold all the flexbuffer related structs and then bridge them to the proto files.
+    Afterwards, we can go ahead and build the functionalities for the flexbuffer streaming within redis.
 
+
+### CowArc
+
+-   08:48PM
+
+    Rewriting the code again but this time I want to focus on a CowArc style, where we wrap the binary in both a cow and an arc.
+    Should be good enough for what we want to build!
 
 ## 2024
 
