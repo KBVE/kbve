@@ -55,6 +55,8 @@ use crate::entity::flex::RedisStreamData;
 
 use crate::entity::serde_arc_str;
 use flexbuffers::{ FlexBufferType, Reader };
+use flexbuffers::FlexbufferSerializer;
+
 
 #[derive(Debug)]
 pub enum Either<L, R> {
@@ -1099,6 +1101,14 @@ pub fn parse_field_pairs(fields: Vec<Field>) -> Vec<(Vec<u8>, Vec<u8>)> {
     .collect()
 }
 
+// Serialize XRead Payload to Flex
+pub fn serialize_xread_response_to_flex<T: Serialize>(response: &T) -> Result<Vec<u8>, JediError> {
+  let mut serializer = FlexbufferSerializer::new();
+  response.serialize(&mut serializer)
+      .map_err(|e| JediError::Parse(format!("Failed to serialize to flexbuffers: {e}")))?;
+  Ok(serializer.take_buffer())
+}
+
 // XADD helper
 pub async fn redis_xadd(
   pool: &fred::clients::Pool,
@@ -1157,6 +1167,27 @@ pub async fn redis_xread(
     value: json,
   })
 }
+
+impl RedisStreamRequestContext {
+  pub async fn process(self, pool: &fred::clients::Pool) -> Result<RedisResponse, JediError> {
+    match self.stream.payload {
+      Some(redis_stream::Payload::Xadd(xadd)) => {
+        redis_xadd(pool, xadd).await
+      }
+
+      Some(redis_stream::Payload::Xread(xread)) => {
+        redis_xread(pool, xread).await
+      }
+
+      Some(redis_stream::Payload::XreadResponse(_)) => {
+        Err(JediError::BadRequest("XReadResponse is not valid for direct execution".into()))
+      }
+
+      None => Err(JediError::BadRequest("Missing stream payload".into())),
+    }
+  }
+}
+
 
 // impl RedisStreamRequestContext {
 //   pub async fn process(self, pool: &fred::clients::Pool) -> Result<RedisResponse, JediError> {
