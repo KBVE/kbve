@@ -45,13 +45,15 @@ fn main() {
     .type_attribute("redis.ErrorMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
 
     // Redis Stream Types
-    //.type_attribute("redis.RedisStream", "#[derive(serde::Serialize, serde::Deserialize)]")
-    // .type_attribute("redis.XAddPayload", "#[derive(serde::Serialize, serde::Deserialize)]")
-    // .type_attribute("redis.XReadPayload", "#[derive(serde::Serialize, serde::Deserialize)]")
-    // .type_attribute("redis.XReadResponse", "#[derive(serde::Serialize, serde::Deserialize)]")
-    // .type_attribute("redis.StreamEntry", "#[derive(serde::Serialize, serde::Deserialize)]")
-    // .type_attribute("redis.StreamMessages", "#[derive(serde::Serialize, serde::Deserialize)]")
-    // .type_attribute("redis.Field", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.RedisStream", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.RedisStream.payload", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.XAddPayload", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.XReadPayload", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.XReadResponse", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.StreamReadRequest", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.StreamMessages", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.StreamEntry", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("redis.Field", "#[derive(serde::Serialize, serde::Deserialize)]")
 
     // Groq
     .type_attribute("groq.GroqMessage", "#[derive(serde::Serialize, serde::Deserialize)]")

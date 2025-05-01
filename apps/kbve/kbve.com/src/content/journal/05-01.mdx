@@ -22,6 +22,13 @@ tags:
 	After we get that going, we can work on the client side workers to connect and handle the binary data.
 	If we get both of those wired, we can do the Unity client next.
 
+### Proto Enums
+
+-	04:08PM
+
+	The biggest issue with the proto files is that we can not get them to generate the right rust code with serde because of the enums.
+	Two options that we can do, one would be to wrap them in a custom structure or try to find a way to include the serde attributes without breaking the generated proto.
+	
 
 ## 2024
 
