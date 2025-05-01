@@ -81,6 +81,14 @@ pub struct ZeroCopyWsRequestContext<'a> {
 
 /// ! [END]
 
+/// ENUM for Redis Stream
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "format", content = "data")]
+pub enum RedisWsOutput {
+  Json(String),
+  Binary(Vec<u8>),
+}
+
 #[derive(Debug)]
 pub enum IncomingWsFormat {
   JsonText(String),

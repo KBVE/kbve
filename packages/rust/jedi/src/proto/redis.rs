@@ -161,6 +161,7 @@ pub struct ErrorMessage {
     #[prost(string, tag = "1")]
     pub error: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RedisStream {
     #[prost(oneof = "redis_stream::Payload", tags = "1, 2, 3")]
@@ -168,6 +169,7 @@ pub struct RedisStream {
 }
 /// Nested message and enum types in `RedisStream`.
 pub mod redis_stream {
+    #[derive(serde::Serialize, serde::Deserialize)]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Payload {
         #[prost(message, tag = "1")]
@@ -178,6 +180,7 @@ pub mod redis_stream {
         XreadResponse(super::XReadResponse),
     }
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct XAddPayload {
     #[prost(bytes = "vec", tag = "1")]
@@ -187,6 +190,7 @@ pub struct XAddPayload {
     #[prost(bytes = "vec", optional, tag = "3")]
     pub id: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct XReadPayload {
     #[prost(message, repeated, tag = "1")]
@@ -196,6 +200,7 @@ pub struct XReadPayload {
     #[prost(uint64, optional, tag = "3")]
     pub block: ::core::option::Option<u64>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StreamReadRequest {
     #[prost(bytes = "vec", tag = "1")]
@@ -203,11 +208,13 @@ pub struct StreamReadRequest {
     #[prost(bytes = "vec", tag = "2")]
     pub id: ::prost::alloc::vec::Vec<u8>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct XReadResponse {
     #[prost(message, repeated, tag = "1")]
     pub streams: ::prost::alloc::vec::Vec<StreamMessages>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StreamMessages {
     #[prost(bytes = "vec", tag = "1")]
@@ -215,6 +222,7 @@ pub struct StreamMessages {
     #[prost(message, repeated, tag = "2")]
     pub entries: ::prost::alloc::vec::Vec<StreamEntry>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StreamEntry {
     #[prost(bytes = "vec", tag = "1")]
@@ -222,6 +230,7 @@ pub struct StreamEntry {
     #[prost(message, repeated, tag = "2")]
     pub fields: ::prost::alloc::vec::Vec<Field>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Field {
     #[prost(bytes = "vec", tag = "1")]

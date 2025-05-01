@@ -10,7 +10,8 @@ use crate::proto::redis::{
 };
 use flexbuffers::{Reader, MapReader, VectorReader, FlexBufferType};
 use crate::error::JediError;
-
+use bytes::Bytes;
+use flexbuffers::FlexbufferSerializer;
 
 /// This module defines structures and functions to parse and represent Redis Stream data.
 /// TODO: Add the RSDocs Test Casing for this module.
@@ -70,9 +71,11 @@ pub struct FieldData<'a> {
     pub value: &'a str,
 }
 
-
-
 impl<'a> RedisStreamData<'a> {
+    pub fn serialize(&self) -> Result<Bytes, JediError> {
+        serialize_to_flex_bytes(&RedisStream::from(self))
+    }
+
     pub fn from_flex(map: &MapReader<&'a [u8]>) -> Result<Self, JediError> {
         if !map.idx("xadd").flexbuffer_type().is_null() {
             let payload = XAddData::from_flex(map.idx("xadd").get_map()?)?;
@@ -271,4 +274,19 @@ impl<'a> From<&RedisStreamData<'a>> for RedisStream {
             }),
         }
     }
+}
+
+/// Function to serialize a value to Flexbuffer bytes
+
+pub fn serialize_to_flex_bytes<T: serde::Serialize>(value: &T) -> Result<Bytes, JediError> {
+    let mut serializer = FlexbufferSerializer::new();
+    value.serialize(&mut serializer)
+        .map_err(|e| JediError::Parse(format!("Flexbuffer serialization failed: {e}")))?;
+    Ok(Bytes::from(serializer.take_buffer()))
+}
+
+pub fn deserialize_from_flex_bytes<'a, T: serde::de::Deserialize<'a>>(bytes: &'a [u8]) -> Result<T, JediError> {
+    let reader = flexbuffers::Reader::get_root(bytes)
+        .map_err(|e| JediError::Parse(format!("Flexbuffer root parse failed: {e}")))?;
+    T::deserialize(reader).map_err(|e| JediError::Parse(format!("Flexbuffer deserialization failed: {e}")))
 }
