@@ -28,7 +28,14 @@ tags:
 
 	The biggest issue with the proto files is that we can not get them to generate the right rust code with serde because of the enums.
 	Two options that we can do, one would be to wrap them in a custom structure or try to find a way to include the serde attributes without breaking the generated proto.
-	
+	Updating the build.rs within the Jedi crate again and it seems we were able to get the protos to generate the correct serde code!
+	Now we need to update the flex.rs with additional utility and helper functions to handle the binary / json serde data.
+
+-	04:54PM
+
+	Okay! Figured out the problem, it seems that our Field struct is already built to handle binary data, `u8` but we are doing `str` in our `FieldData`.
+	Lets go ahead and rewrite the `FieldData` to be a `Vec<u8>` and then we can convert it to a string when we need to.
+	Updated the FieldData to use `Bytes` instead , with the goal of keeping that protobuf wire format while still supporting the flexbuffer.
 
 ## 2024
 

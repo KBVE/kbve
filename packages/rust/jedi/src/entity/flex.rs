@@ -12,6 +12,7 @@ use flexbuffers::{Reader, MapReader, VectorReader, FlexBufferType};
 use crate::error::JediError;
 use bytes::Bytes;
 use flexbuffers::FlexbufferSerializer;
+use serde::{Serialize, Deserialize};
 
 /// This module defines structures and functions to parse and represent Redis Stream data.
 /// TODO: Add the RSDocs Test Casing for this module.
@@ -31,7 +32,7 @@ pub enum RedisStreamPayload<'a> {
 #[derive(Debug)]
 pub struct XAddData<'a> {
     pub stream: &'a str,
-    pub fields: Vec<FieldData<'a>>,
+    pub fields: Vec<FieldData>,
     pub id: Option<&'a str>,
 }
 
@@ -62,13 +63,13 @@ pub struct StreamMessagesData<'a> {
 #[derive(Debug)]
 pub struct StreamEntryData<'a> {
     pub id: &'a str,
-    pub fields: Vec<FieldData<'a>>,
+    pub fields: Vec<FieldData>,
 }
 
 #[derive(Debug)]
-pub struct FieldData<'a> {
-    pub key: &'a str,
-    pub value: &'a str,
+pub struct FieldData {
+    pub key: Bytes,
+    pub value: Bytes,
 }
 
 impl<'a> RedisStreamData<'a> {
@@ -124,15 +125,33 @@ impl<'a> XReadResponseData<'a> {
     }
 }
 
-
-fn parse_fields<'a>(vec: VectorReader<&'a [u8]>) -> Vec<FieldData<'a>> {
+fn parse_fields(vec: VectorReader<&[u8]>) -> Vec<FieldData> {
     vec.iter()
-        .filter_map(|r| {
-            let m = r.get_map().ok()?;
-            Some(FieldData {
-                key: m.idx("key").get_str().ok()?,
-                value: m.idx("value").get_str().ok()?,
-            })
+        .filter_map(|reader| {
+            let map = match reader.get_map() {
+                Ok(map) => map,
+                Err(_) => return None,
+            };
+
+            let key_reader = map.idx("key");
+            let val_reader = map.idx("value");
+
+            let key = match key_reader.get_vector() {
+                Ok(vec_reader) => {
+                    let bytes: Vec<u8> = vec_reader.iter().map(|r| r.as_u8()).collect();
+                    Bytes::from(bytes)
+                }
+                Err(_) => return None,
+            };
+            let value = match val_reader.get_vector() {
+                Ok(vec_reader) => {
+                    let bytes: Vec<u8> = vec_reader.iter().map(|r| r.as_u8()).collect();
+                    Bytes::from(bytes)
+                }
+                Err(_) => return None,
+            };
+
+            Some(FieldData { key, value })
         })
         .collect()
 }
@@ -180,8 +199,8 @@ impl<'a> From<XAddData<'a>> for XAddPayload {
             stream: data.stream.as_bytes().to_vec(),
             fields: data.fields.into_iter()
                 .map(|f| Field {
-                    key: f.key.as_bytes().to_vec(),
-                    value: f.value.as_bytes().to_vec(),
+                    key: f.key.to_vec(),
+                    value: f.value.to_vec(),
                 })
                 .collect(),
             id: data.id.map(|id| id.as_bytes().to_vec()),
@@ -227,8 +246,8 @@ impl<'a> From<XReadResponseData<'a>> for XReadResponse {
                             id: e.id.as_bytes().to_vec(),
                             fields: e.fields.into_iter()
                                 .map(|f| Field {
-                                    key: f.key.as_bytes().to_vec(),
-                                    value: f.value.as_bytes().to_vec(),
+                                    key: f.key.to_vec(),
+                                    value: f.value.to_vec(),
                                 })
                                 .collect(),
                         })
@@ -246,8 +265,8 @@ impl<'a> From<&RedisStreamData<'a>> for RedisStream {
                 RedisStreamPayload::XAdd(inner) => ProtoPayload::Xadd(XAddPayload {
                     stream: inner.stream.as_bytes().to_vec(),
                     fields: inner.fields.iter().map(|f| Field {
-                        key: f.key.as_bytes().to_vec(),
-                        value: f.value.as_bytes().to_vec(),
+                        key: f.key.to_vec(),
+                        value: f.value.to_vec(),
                     }).collect(),
                     id: inner.id.map(|id| id.as_bytes().to_vec()),
                 }),
@@ -265,8 +284,8 @@ impl<'a> From<&RedisStreamData<'a>> for RedisStream {
                         entries: s.entries.iter().map(|e| StreamEntry {
                             id: e.id.as_bytes().to_vec(),
                             fields: e.fields.iter().map(|f| Field {
-                                key: f.key.as_bytes().to_vec(),
-                                value: f.value.as_bytes().to_vec(),
+                                key: f.key.to_vec(),
+                                value: f.value.to_vec(),
                             }).collect(),
                         }).collect(),
                     }).collect(),
