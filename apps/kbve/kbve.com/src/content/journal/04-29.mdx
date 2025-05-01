@@ -34,6 +34,9 @@ tags:
     
     Updating the redis_wrapper.rs to include a bunch of additional helper functions and utility calls, eventually rewriting them in the future into a chainable object?
     Part of this exercise is to treat it like a set of light weights, where we keep lifting and placing it down, slowly adding more weight as we get better.
+    The issue that I am seeing right now is that we are trying to have both the JSON and Binary within the same websocket.
+    That connection could either return valid JSON or Binary.
+
 
 ## 2024
 
