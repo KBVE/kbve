@@ -227,16 +227,22 @@ pub fn parse_fields<'a>(vec: VectorReader<&'a [u8]>) -> Vec<FieldData<'a>> {
 
 #[inline]
 fn extract_bytescow<'a>(reader: Reader<&'a [u8]>) -> Option<BytesCow<'a>> {
-    if let Ok(blob) = reader.get_blob() {
-        return Some(BytesCow::Borrowed(blob.0));
-    }
+	if let Ok(blob) = reader.get_blob() {
+		return Some(BytesCow::Borrowed(blob.0));
+	}
 
-    if let Ok(vec_reader) = reader.get_vector() {
-        let bytes = Bytes::copy_from_slice(&vec_reader.iter().map(|r| r.as_u8()).collect::<Vec<u8>>());
-        return Some(BytesCow::Owned(bytes));
-    }
+	if let Ok(vec_reader) = reader.get_vector() {
+		let bytes = Bytes::copy_from_slice(
+			&vec_reader.iter().map(|r| r.as_u8()).collect::<Vec<u8>>()
+		);
+		return Some(BytesCow::Owned(bytes));
+	}
 
-    None
+	if let Ok(string) = reader.get_str() {
+		return Some(BytesCow::Owned(Bytes::copy_from_slice(string.as_bytes())));
+	}
+
+	None
 }
 
 
