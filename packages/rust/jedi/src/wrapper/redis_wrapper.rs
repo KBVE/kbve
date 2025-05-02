@@ -10,7 +10,8 @@ use tokio::time::Duration;
 use fred::interfaces::StreamsInterface;
 use fred::types::streams::{XReadValue};
 use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
-use fred::types::streams::{ MultipleOrderedPairs, XID, XCap };
+use fred::types::{ Key, Value};
+use fred::types::streams::{MultipleOrderedPairs, XID, XCap };
 use fred::types::streams::XReadResponse as FredXRead;
 
 
@@ -1107,6 +1108,8 @@ pub fn serialize_xread_response_to_flex<T: Serialize>(response: &T) -> Result<Ve
 }
 
 // XADD helper
+
+
 pub async fn redis_xadd(
   pool: &fred::clients::Pool,
   payload: XAddPayload,
@@ -1119,16 +1122,20 @@ pub async fn redis_xadd(
     .map(|id| String::from_utf8_lossy(id).to_string())
     .unwrap_or_else(|| "*".to_string());
 
-  let pairs: Vec<(&[u8], &[u8])> = payload
+  let kv_pairs: Vec<(Key, Value)> = payload
     .fields
     .iter()
-    .map(|f| (f.key.as_slice(), f.value.as_slice()))
+    .map(|f| {
+      let k: Key = String::from_utf8_lossy(&f.key).as_ref().into();
+      let v: Value = (&f.value[..]).into();
+      (k, v)
+    })
     .collect();
 
   let client = pool.next().clone();
 
   let redis_id: String = client
-    .xadd::<_, _, _, _, _>(key, false, None::<()>, &id_hint, pairs)
+    .xadd(key, false, None::<()>, &id_hint, kv_pairs)
     .await
     .map_err(JediError::from)?;
 
@@ -1142,7 +1149,6 @@ pub async fn redis_xadd(
 }
 
 // xread Helper
-
 
 pub async fn redis_xread(
   pool: &fred::clients::Pool,
