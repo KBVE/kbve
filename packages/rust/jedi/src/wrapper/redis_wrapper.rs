@@ -58,7 +58,7 @@ use crate::entity::flex::RedisStreamData;
 use crate::entity::serde_arc_str;
 use flexbuffers::{ FlexBufferType, Reader };
 use flexbuffers::FlexbufferSerializer;
-
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Either<L, R> {
@@ -1119,7 +1119,7 @@ pub async fn redis_xadd(
     .map(|id| String::from_utf8_lossy(id).to_string())
     .unwrap_or_else(|| "*".to_string());
 
-  let fields: Vec<(&[u8], &[u8])> = payload
+  let pairs: Vec<(&[u8], &[u8])> = payload
     .fields
     .iter()
     .map(|f| (f.key.as_slice(), f.value.as_slice()))
@@ -1127,11 +1127,10 @@ pub async fn redis_xadd(
 
   let client = pool.next().clone();
 
-
   let redis_id: String = client
-  .xadd::<String, _, _, _, _>(key, false, None::<()>, &id_hint, fields)
-  .await
-  .map_err(JediError::from)?;
+    .xadd::<_, _, _, _, _>(key, false, None::<()>, &id_hint, pairs)
+    .await
+    .map_err(JediError::from)?;
 
   Ok(RedisStream {
     payload: Some(redis_stream::Payload::Xadd(XAddPayload {
@@ -1141,6 +1140,8 @@ pub async fn redis_xadd(
     })),
   })
 }
+
+// xread Helper
 
 
 pub async fn redis_xread(
@@ -1155,8 +1156,8 @@ pub async fn redis_xread(
     })
     .unzip();
 
-  let result: FredXRead<String, String, String, Vec<u8>> = pool
-    .xread(payload.count, payload.block, keys, ids)
+  let result: HashMap<String, Vec<(String, HashMap<String, Vec<u8>>)>> = pool
+    .xread_map(payload.count, payload.block, keys, ids)
     .await
     .map_err(JediError::from)?;
 
@@ -1167,9 +1168,9 @@ pub async fn redis_xread(
         stream: stream.into_bytes(),
         entries: entries
           .into_iter()
-          .map(|(id, field_map)| StreamEntry {
+          .map(|(id, fields)| StreamEntry {
             id: id.into_bytes(),
-            fields: field_map
+            fields: fields
               .into_iter()
               .map(|(k, v)| Field {
                 key: k.into_bytes(),

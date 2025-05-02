@@ -1,0 +1,42 @@
+---
+import Layout from 'src/layout/Layout.astro';
+---
+
+<Layout title="Websockets" description="WebSocket Testing">
+  <div class="p-4 space-y-4">
+    <h1 class="text-xl font-bold">WebSocket Stream Tester</h1>
+
+    <div class="space-x-2">
+      <button id="sendXadd" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Send XADD (Flexbuffer)
+      </button>
+      <button id="sendXread" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Send XREAD (Flexbuffer)
+      </button>
+    </div>
+
+    <pre id="log" class="bg-gray-700 rounded p-2 text-sm whitespace-pre-wrap h-64 overflow-y-auto"></pre>
+  </div>
+
+  <script type="module">
+    import { startRedisWebSocketClient } from '/src/lib/websocket.ts';
+
+    const log = (msg) => {
+      const logEl = document.getElementById('log');
+      logEl.textContent += `\n${msg}`;
+      logEl.scrollTop = logEl.scrollHeight;
+    };
+
+    const wsClient = startRedisWebSocketClient('ws://localhost:3000/ws', log);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('sendXadd')?.addEventListener('click', () => {
+        wsClient.sendXadd('mystream', { foo: 'bar', ping: 'pong' });
+      });
+
+      document.getElementById('sendXread')?.addEventListener('click', () => {
+        wsClient.sendXread([{ stream: 'mystream', id: '0' }], 10);
+      });
+    });
+  </script>
+</Layout>
