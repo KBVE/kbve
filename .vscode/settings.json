@@ -42,5 +42,6 @@
       "xadd",
       "xdel",
       "flexbuffer",
+      "serde",
     ]
 }
