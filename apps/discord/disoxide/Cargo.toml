@@ -60,7 +60,7 @@ chrono = { version = "0.4", features = ["serde"] }
 askama = "0.13.0"
 flexbuffers = "25.2.10"
 #jedi = { git = "https://github.com/KBVE/kbve.git", branch = "dev", package = "jedi" }
-jedi = { git = "https://github.com/KBVE/kbve.git", rev = "29e4af575cca08f1672ea19d1536b1a1e88bbd0a", package = "jedi"}
+jedi = { git = "https://github.com/KBVE/kbve.git", rev = "6ede2b34ec1cdffc8b66788d18442338811bb757", package = "jedi"}
 #jedi = { path = "../../../packages/rust/jedi" }
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
