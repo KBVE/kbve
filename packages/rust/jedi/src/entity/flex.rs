@@ -334,8 +334,8 @@ impl<'a> From<&RedisStreamData<'a>> for RedisStream {
                 RedisStreamPayload::XAdd(inner) => ProtoPayload::Xadd(XAddPayload {
                     stream: inner.stream.as_bytes().to_vec(),
                     fields: inner.fields.iter().map(|f| Field {
-                        key: f.key.to_bytes().to_vec(),
-                        value: f.value.to_bytes().to_vec(),
+                        key: f.key.to_vec(),
+                        value: f.value.to_vec(),
                     }).collect(),
                     id: inner.id.map(|id| id.as_bytes().to_vec()),
                 }),
@@ -353,8 +353,8 @@ impl<'a> From<&RedisStreamData<'a>> for RedisStream {
                         entries: s.entries.iter().map(|e| StreamEntry {
                             id: e.id.as_bytes().to_vec(),
                             fields: e.fields.iter().map(|f| Field {
-                                key: f.key.to_bytes().to_vec(),
-                                value: f.value.to_bytes().to_vec(),
+                                key: f.key.to_vec(),
+                                value: f.value.to_vec(),
                             }).collect(),
                         }).collect(),
                     }).collect(),
