@@ -1,16 +1,20 @@
-import { builder } from 'src/util/flexbuilder';
-import { toReference } from 'src/util/flexbuilder';
+import { builder, toReference } from 'src/util/flexbuilder';
 
 export function inspectFlex(buffer: Uint8Array): void {
-	const obj = toReference(
-		new Uint8Array(buffer).buffer as ArrayBuffer,
-	).toObject();
-	console.log('FlexObject:', JSON.stringify(obj, null, 2));
+	try {
+		const obj = toReference(buffer.buffer as ArrayBuffer).toObject();
+		console.log('[FlexObject]', obj);
+	} catch (err) {
+		console.error('[FlexObject Error]', err);
+	}
 }
 
 type FieldMap = Record<string, string>;
 type StreamRequest = { stream: string; id: string };
 
+/**
+ * Build a Flexbuffer payload for XADD.
+ */
 export function buildXaddPayload(
 	stream: string,
 	fields: Record<string, string>,
@@ -42,12 +46,13 @@ export function buildXaddPayload(
 	b.end(); // root
 
 	const buf = b.finish();
-	inspectFlex(buf); // 👈 debug output to console
+	inspectFlex(buf);
 	return buf;
 }
 
-
-
+/**
+ * Build a Flexbuffer payload for XREAD.
+ */
 export function buildXreadPayload(
 	streams: StreamRequest[],
 	count?: number,
@@ -69,6 +74,9 @@ export function buildXreadPayload(
 	return buf;
 }
 
+/**
+ * Start the Redis WebSocket client.
+ */
 export function startRedisWebSocketClient(
 	wsUrl: string,
 	logFn: (msg: string) => void,
@@ -77,16 +85,25 @@ export function startRedisWebSocketClient(
 	ws.binaryType = 'arraybuffer';
 
 	ws.onopen = () => logFn('[WebSocket] Connected v0.21');
+
 	ws.onmessage = (event) => {
 		if (event.data instanceof ArrayBuffer) {
-			const bytes = new Uint8Array(event.data);
-			logFn(
-				`[WebSocket] Binary (${bytes.length} bytes): ${Array.from(bytes).join(', ')}`,
-			);
+			const buffer = new Uint8Array(event.data);
+			logFn(`[WebSocket] Binary (${buffer.length} bytes)`);
+
+			try {
+				const decoded = toReference(buffer.buffer).toObject();
+				console.log('[FlexObject]', decoded);
+				logFn('[Decoded Flex]:\n' + JSON.stringify(decoded, null, 2));
+			} catch (err) {
+				console.error('[FlexObject Error]', err);
+				logFn('⚠️ Could not decode Flexbuffer');
+			}
 		} else {
 			logFn('[WebSocket] Text: ' + event.data);
 		}
 	};
+
 	ws.onclose = () => logFn('[WebSocket] Disconnected');
 	ws.onerror = () => logFn('[WebSocket] Error');
 
