@@ -107,6 +107,8 @@ pub enum BytesCow<'a> {
 }
 
 impl<'a> BytesCow<'a> {
+
+    #[inline]
     pub fn to_bytes(&self) -> Bytes {
         match self {
             BytesCow::Borrowed(slice) => Bytes::copy_from_slice(slice),
@@ -114,6 +116,7 @@ impl<'a> BytesCow<'a> {
         }
     }
 
+    #[inline]
     pub fn as_slice(&self) -> &[u8] {
         match self {
             BytesCow::Borrowed(slice) => slice,
@@ -121,10 +124,12 @@ impl<'a> BytesCow<'a> {
         }
     }
 
+    #[inline]
     pub fn into_static(self) -> BytesCow<'static> {
         BytesCow::Owned(self.to_bytes()) 
     }
 
+    #[inline]
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
             BytesCow::Borrowed(slice) => slice.to_vec(),
