@@ -213,8 +213,8 @@ pub fn parse_fields<'a>(vec: VectorReader<&'a [u8]>) -> Vec<FieldData<'a>> {
                 Ok(blob) => BytesCow::Borrowed(blob.0),
                 Err(_) => match key_reader.get_vector() {
                     Ok(vec_reader) => {
-                        let bytes: Vec<u8> = vec_reader.iter().map(|r| r.as_u8()).collect();
-                        BytesCow::Owned(Bytes::from(bytes))
+                        let bytes = Bytes::copy_from_slice(&vec_reader.iter().map(|r| r.as_u8()).collect::<Vec<u8>>());
+                        BytesCow::Owned(bytes)
                     }
                     Err(_) => return None,
                 },
@@ -224,8 +224,8 @@ pub fn parse_fields<'a>(vec: VectorReader<&'a [u8]>) -> Vec<FieldData<'a>> {
                 Ok(blob) => BytesCow::Borrowed(blob.0),
                 Err(_) => match val_reader.get_vector() {
                     Ok(vec_reader) => {
-                        let bytes: Vec<u8> = vec_reader.iter().map(|r| r.as_u8()).collect();
-                        BytesCow::Owned(Bytes::from(bytes))
+                        let bytes = Bytes::copy_from_slice(&vec_reader.iter().map(|r| r.as_u8()).collect::<Vec<u8>>());
+                        BytesCow::Owned(bytes)
                     }
                     Err(_) => return None,
                 },
@@ -235,7 +235,6 @@ pub fn parse_fields<'a>(vec: VectorReader<&'a [u8]>) -> Vec<FieldData<'a>> {
         })
         .collect()
 }
-
 
 fn parse_stream_read_requests<'a>(vec: VectorReader<&'a [u8]>) -> Vec<StreamReadRequestData<'a>> {
     vec.iter()
