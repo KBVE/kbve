@@ -11,6 +11,8 @@ use fred::interfaces::StreamsInterface;
 use fred::types::streams::{XReadValue};
 use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
 use fred::types::streams::{ MultipleOrderedPairs, XID, XCap };
+use fred::types::streams::XReadResponse as FredXRead;
+
 
 use tokio::sync::mpsc::{ Receiver, unbounded_channel, UnboundedReceiver, UnboundedSender };
 use futures_util::{ StreamExt, SinkExt, pin_mut };
@@ -64,30 +66,17 @@ pub enum Either<L, R> {
   Right(R),
 }
 
-/// TODO: ZeroCopy WebSocket Format
-/// ! START]
-#[derive(Debug)]
-pub enum ZeroCopyWsFormat<'a> {
-  JsonText(String),
-  Binary(Arc<Cow<'a, [u8]>>),
-}
-
-#[derive(Debug)]
-pub struct ZeroCopyWsRequestContext<'a> {
-  pub envelope: RedisEnvelope,
-  pub raw: Option<ZeroCopyWsFormat<'a>>,
-  pub connection_id: Option<[u8; 16]>,
-}
-
-/// ! [END]
 
 /// ENUM for Redis Stream
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "format", content = "data")]
-pub enum RedisWsOutput {
+pub enum RedisWsOutput<T> {
   Json(String),
-  Binary(Vec<u8>),
+  Binary(T),
 }
+
+pub type RedisWsOutputBytes = RedisWsOutput<Bytes>;
+
 
 #[derive(Debug)]
 pub enum IncomingWsFormat {
@@ -1120,32 +1109,44 @@ pub fn serialize_xread_response_to_flex<T: Serialize>(response: &T) -> Result<Ve
 // XADD helper
 pub async fn redis_xadd(
   pool: &fred::clients::Pool,
-  payload: XAddPayload
-) -> Result<RedisResponse, JediError> {
+  payload: XAddPayload,
+) -> Result<RedisStream, JediError> {
   let key = parse_stream_name(&payload.stream)?;
-  let id = payload.id
-    .map(|id| String::from_utf8_lossy(&id).to_string())
+
+  let id_hint = payload
+    .id
+    .as_ref()
+    .map(|id| String::from_utf8_lossy(id).to_string())
     .unwrap_or_else(|| "*".to_string());
 
-  let fields: Vec<(&[u8], &[u8])> = payload.fields
+  let fields: Vec<(&[u8], &[u8])> = payload
+    .fields
     .iter()
-    .map(|field| (field.key.as_slice(), field.value.as_slice()))
+    .map(|f| (f.key.as_slice(), f.value.as_slice()))
     .collect();
 
-  pool.xadd::<(), _, _, _, _>(key, false, None::<()>, id, fields).await.map_err(JediError::from)?;
+  let client = pool.next().clone();
 
-  Ok(RedisResponse {
-    status: "OK".into(),
-    value: "xadd".into(),
+
+  let redis_id: String = client
+  .xadd::<String, _, _, _, _>(key, false, None::<()>, &id_hint, fields)
+  .await
+  .map_err(JediError::from)?;
+
+  Ok(RedisStream {
+    payload: Some(redis_stream::Payload::Xadd(XAddPayload {
+      stream: payload.stream,
+      fields: payload.fields,
+      id: Some(redis_id.into_bytes()),
+    })),
   })
 }
 
-// XREAD helper
+
 pub async fn redis_xread(
   pool: &fred::clients::Pool,
-  payload: XReadPayload
-) -> Result<RedisResponse, JediError> {
-  // Extract stream names and last-seen IDs
+  payload: XReadPayload,
+) -> Result<RedisStream, JediError> {
   let (keys, ids): (Vec<&str>, Vec<&str>) = payload.streams.iter()
     .filter_map(|s| {
       let key = std::str::from_utf8(&s.stream).ok()?;
@@ -1154,30 +1155,40 @@ pub async fn redis_xread(
     })
     .unzip();
 
-  // Call xread with explicit response type
-  let result = pool
-    .xread::<fred::types::streams::XReadResponse<String, String, String, Vec<u8>>, _, _>(
-      payload.count.map(|c| c as u64),
-      payload.block.map(|b| b as u64),
-      keys,
-      ids,
-    )
+  let result: FredXRead<String, String, String, Vec<u8>> = pool
+    .xread(payload.count, payload.block, keys, ids)
     .await
     .map_err(JediError::from)?;
 
-  // TODO: You can serialize this into Flexbuffers or raw binary if needed.
-  // For now we serialize as JSON (just to finish the pipeline).
-  let json = serde_json::to_string(&result)
-    .map_err(|e| JediError::Parse(format!("Failed to serialize XREAD result: {e}")))?;
+  let proto_response = XReadResponse {
+    streams: result
+      .into_iter()
+      .map(|(stream, entries)| StreamMessages {
+        stream: stream.into_bytes(),
+        entries: entries
+          .into_iter()
+          .map(|(id, field_map)| StreamEntry {
+            id: id.into_bytes(),
+            fields: field_map
+              .into_iter()
+              .map(|(k, v)| Field {
+                key: k.into_bytes(),
+                value: v,
+              })
+              .collect(),
+          })
+          .collect(),
+      })
+      .collect(),
+  };
 
-  Ok(RedisResponse {
-    status: "OK".into(),
-    value: json,
+  Ok(RedisStream {
+    payload: Some(redis_stream::Payload::XreadResponse(proto_response)),
   })
 }
 
 impl RedisStreamRequestContext {
-  pub async fn process(self, pool: &fred::clients::Pool) -> Result<RedisResponse, JediError> {
+  pub async fn process(self, pool: &fred::clients::Pool) -> Result<RedisStream, JediError> {
     match self.stream.payload {
       Some(redis_stream::Payload::Xadd(xadd)) => {
         redis_xadd(pool, xadd).await
