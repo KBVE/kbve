@@ -228,6 +228,7 @@
 		"expo-status-bar": "2.0.1",
 		"expo-system-ui": "^4.0.8",
 		"express": "4.21.2",
+		"flatbuffers": "^25.2.10",
 		"framer-motion": "^11.11.11",
 		"grid-engine": "^2.45.5",
 		"gsap": "^3.12.5",

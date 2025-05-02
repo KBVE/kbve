@@ -1,0 +1,65 @@
+---
+import Layout from 'src/layout/Layout.astro';
+---
+
+<Layout title="Websockets" description="Websocket Testing">
+  <div class="p-4">
+    <h1 class="text-xl font-bold mb-2">WebSocket Stream Tester</h1>
+    <button id="sendFlex" class="bg-blue-600 text-white px-4 py-2 rounded">
+      Send XADD (Flexbuffer)
+    </button>
+    <pre id="log" class="mt-4 p-2 bg-gray-100 rounded text-sm whitespace-pre-wrap"></pre>
+  </div>
+
+  <script type="module">
+     import * as flatbuffers from 'https://cdn.jsdelivr.net/npm/flatbuffers@25.2.10/+esm';
+
+    const { flexbuffers } = flatbuffers;
+
+    const log = (msg) => {
+      document.getElementById('log').textContent += `\n${msg}`;
+    };
+
+    const ws = new WebSocket('ws://localhost:3000/ws'); // Replace with your actual WebSocket endpoint
+    ws.binaryType = 'arraybuffer';
+
+    ws.onopen = () => log('[WebSocket] Connected');
+    ws.onmessage = (event) => {
+      if (event.data instanceof ArrayBuffer) {
+        const view = new Uint8Array(event.data);
+        log('[WebSocket] Binary response: ' + [...view].join(', '));
+      } else {
+        log('[WebSocket] Text: ' + event.data);
+      }
+    };
+    ws.onclose = () => log('[WebSocket] Disconnected');
+    ws.onerror = (e) => log('[WebSocket] Error: ' + e.message);
+
+    document.getElementById('sendFlex').addEventListener('click', () => {
+      const builder = new flexbuffers.Builder();
+
+      builder.map(); // root
+        builder.string('xadd');
+        builder.map();
+          builder.string('stream');
+          builder.string('mystream');
+          builder.string('id');
+          builder.string('*');
+          builder.string('fields');
+          builder.vector();
+            builder.map();
+              builder.string('key');
+              builder.string('foo');
+              builder.string('value');
+              builder.string('bar');
+            builder.endMap();
+          builder.endVector();
+        builder.endMap();
+      builder.endMap(); // root
+
+      const buffer = builder.finish();
+      ws.send(buffer);
+      log('[Client] Sent XADD command via FlexBuffers');
+    });
+  </script>
+</Layout>
