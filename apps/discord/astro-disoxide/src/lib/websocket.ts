@@ -1,44 +1,38 @@
+// src/lib/websocket.ts
 import { builder } from 'src/util/flexbuilder';
+import { toReference } from 'src/util/flexbuilder';
 
-function addField(b: ReturnType<typeof builder>, key: string, value: string) {
-  b.startMap();
-    b.addKey('key');
-    b.add(key);
-    b.addKey('value');
-    b.add(value);
-  b.end();
+export function inspectFlex(buffer: Uint8Array): void {
+    const obj = toReference(new Uint8Array(buffer).buffer as ArrayBuffer).toObject();
+    console.log('FlexObject:', JSON.stringify(obj, null, 2));
 }
+
+type FieldMap = Record<string, string>;
+type StreamRequest = { stream: string; id: string };
 
 export function buildXaddPayload(
-  stream: string,
-  fields: Record<string, string>,
-  id: string = '*'
-): Uint8Array {
-  const b = builder();
-
-  b.startMap();
-    b.addKey('xadd');
+    stream: string,
+    fields: FieldMap,
+    id: string = '*'
+  ): Uint8Array {
+    const b = builder();
+  
     b.startMap();
-      b.addKey('stream');
-      b.add(stream);
-
-      b.addKey('id');
-      b.add(id);
-
-      b.addKey('fields');
-      b.startVector();
-        for (const [key, value] of Object.entries(fields)) {
-          addField(b, key, value);
-        }
-      b.end();
+      b.addKey('xadd');
+      b.add({
+        stream,
+        id,
+        fields: Object.entries(fields).map(([k, v]) => ({ key: k, value: v })),
+      });
     b.end();
-  b.end();
-
-  return b.finish();
-}
+  
+    const buf = b.finish();
+    inspectFlex(buf);
+    return buf;
+  }
 
 export function buildXreadPayload(
-  streams: { stream: string, id: string }[],
+  streams: StreamRequest[],
   count?: number,
   block?: number
 ): Uint8Array {
@@ -46,34 +40,16 @@ export function buildXreadPayload(
 
   b.startMap();
     b.addKey('xread');
-    b.startMap();
-
-      b.addKey('streams');
-      b.startVector();
-        for (const { stream, id } of streams) {
-          b.startMap();
-            b.addKey('stream');
-            b.add(stream);
-            b.addKey('id');
-            b.add(id);
-          b.end();
-        }
-      b.end();
-
-      if (count !== undefined) {
-        b.addKey('count');
-        b.add(count);
-      }
-
-      if (block !== undefined) {
-        b.addKey('block');
-        b.add(block);
-      }
-
-    b.end();
+    b.add({
+      streams,
+      ...(count !== undefined && { count }),
+      ...(block !== undefined && { block })
+    });
   b.end();
 
-  return b.finish();
+  const buf = b.finish();
+  inspectFlex(buf);
+  return buf;
 }
 
 export function startRedisWebSocketClient(
@@ -83,8 +59,7 @@ export function startRedisWebSocketClient(
   const ws = new WebSocket(wsUrl);
   ws.binaryType = 'arraybuffer';
 
-  ws.onopen = () => logFn('[WebSocket] Connected');
-
+  ws.onopen = () => logFn('[WebSocket] Connected v0.2');
   ws.onmessage = (event) => {
     if (event.data instanceof ArrayBuffer) {
       const bytes = new Uint8Array(event.data);
@@ -93,21 +68,16 @@ export function startRedisWebSocketClient(
       logFn('[WebSocket] Text: ' + event.data);
     }
   };
-
   ws.onclose = () => logFn('[WebSocket] Disconnected');
-  ws.onerror = (e) => logFn('[WebSocket] Error');
+  ws.onerror = () => logFn('[WebSocket] Error');
 
   return {
-    sendXadd: (stream: string, fields: Record<string, string>, id?: string) => {
+    sendXadd: (stream: string, fields: FieldMap, id = '*') => {
       const payload = buildXaddPayload(stream, fields, id);
       ws.send(payload);
       logFn(`[Client] Sent XADD to '${stream}'`);
     },
-    sendXread: (
-      streams: { stream: string, id: string }[],
-      count?: number,
-      block?: number
-    ) => {
+    sendXread: (streams: StreamRequest[], count?: number, block?: number) => {
       const payload = buildXreadPayload(streams, count, block);
       ws.send(payload);
       logFn(`[Client] Sent XREAD for ${streams.map(s => s.stream).join(', ')}`);
