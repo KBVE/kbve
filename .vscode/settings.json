@@ -43,5 +43,6 @@
       "xdel",
       "flexbuffer",
       "serde",
+      "bytescow"
     ]
 }
