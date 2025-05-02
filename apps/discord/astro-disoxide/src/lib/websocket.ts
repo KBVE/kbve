@@ -18,8 +18,6 @@ export function buildXaddPayload(
 ): Uint8Array {
 	const b = builder();
 
-	const flatFields = Object.entries(fields).flatMap(([k, v]) => [k, v]);
-
 	b.startMap();
 	b.addKey('xadd');
 	b.startMap();
@@ -28,12 +26,27 @@ export function buildXaddPayload(
 	b.addKey('id');
 	b.add(id);
 	b.addKey('fields');
-	b.add(flatFields);
-	b.end();
-	b.end();
+	b.startVector();
 
-	return b.finish();
+	for (const [key, value] of Object.entries(fields)) {
+		b.startMap();
+		b.addKey('key');
+		b.add(key);
+		b.addKey('value');
+		b.add(value);
+		b.end();
+	}
+
+	b.end(); // fields vector
+	b.end(); // xadd map
+	b.end(); // root
+
+	const buf = b.finish();
+	inspectFlex(buf); // 👈 debug output to console
+	return buf;
 }
+
+
 
 export function buildXreadPayload(
 	streams: StreamRequest[],
@@ -63,7 +76,7 @@ export function startRedisWebSocketClient(
 	const ws = new WebSocket(wsUrl);
 	ws.binaryType = 'arraybuffer';
 
-	ws.onopen = () => logFn('[WebSocket] Connected v0.2');
+	ws.onopen = () => logFn('[WebSocket] Connected v0.21');
 	ws.onmessage = (event) => {
 		if (event.data instanceof ArrayBuffer) {
 			const bytes = new Uint8Array(event.data);
