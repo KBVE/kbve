@@ -61,6 +61,7 @@ fn main() {
     .type_attribute("groq.GroqChoice", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("groq.GroqUsage", "#[derive(serde::Serialize, serde::Deserialize)]")
 
+    .bytes([".jedi"])
     // Jedi
     .type_attribute("jedi.MessageKind", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("jedi.PayloadFormat", "#[derive(serde::Serialize, serde::Deserialize)]")
