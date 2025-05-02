@@ -239,43 +239,6 @@ fn extract_bytescow<'a>(reader: Reader<&'a [u8]>) -> Option<BytesCow<'a>> {
     None
 }
 
-// pub fn parse_fields<'a>(vec: VectorReader<&'a [u8]>) -> Vec<FieldData<'a>> {
-//     vec.iter()
-//         .filter_map(|reader| {
-//             let map = match reader.get_map() {
-//                 Ok(map) => map,
-//                 Err(_) => return None,
-//             };
-
-//             let key_reader = map.idx("key");
-//             let val_reader = map.idx("value");
-
-//             let key = match key_reader.get_blob() {
-//                 Ok(blob) => BytesCow::Borrowed(blob.0),
-//                 Err(_) => match key_reader.get_vector() {
-//                     Ok(vec_reader) => {
-//                         let bytes = Bytes::copy_from_slice(&vec_reader.iter().map(|r| r.as_u8()).collect::<Vec<u8>>());
-//                         BytesCow::Owned(bytes)
-//                     }
-//                     Err(_) => return None,
-//                 },
-//             };
-
-//             let value = match val_reader.get_blob() {
-//                 Ok(blob) => BytesCow::Borrowed(blob.0),
-//                 Err(_) => match val_reader.get_vector() {
-//                     Ok(vec_reader) => {
-//                         let bytes = Bytes::copy_from_slice(&vec_reader.iter().map(|r| r.as_u8()).collect::<Vec<u8>>());
-//                         BytesCow::Owned(bytes)
-//                     }
-//                     Err(_) => return None,
-//                 },
-//             };
-
-//             Some(FieldData { key, value })
-//         })
-//         .collect()
-// }
 
 fn parse_stream_read_requests<'a>(vec: VectorReader<&'a [u8]>) -> Vec<StreamReadRequestData<'a>> {
     vec.iter()
