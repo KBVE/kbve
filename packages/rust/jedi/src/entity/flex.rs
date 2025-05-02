@@ -38,6 +38,18 @@ pub struct XAddData<'a> {
 }
 
 impl<'a> XAddData<'a> {
+    /// Converts XAddData to Redis XADD command arguments with owned Bytes.
+    /// - stream: Stream key as Bytes.
+    /// - id: Message ID as Option<Bytes> (None for "*").
+    /// - fields: Vec of (key, value) pairs as (Bytes, Bytes).
+    pub fn to_xadd_args_bytes(&self) -> (Bytes, Option<Bytes>, Vec<(Bytes, Bytes)>) {
+        let stream = Bytes::copy_from_slice(self.stream.as_bytes());
+        let id = self.id.map(|id| Bytes::copy_from_slice(id.as_bytes()));
+        let fields = self.fields.iter()
+            .map(|f| (f.key.to_bytes(), f.value.to_bytes()))
+            .collect();
+        (stream, id, fields)
+    }
     /// Converts XAddData to Redis XADD command arguments: (stream, id, fields).
     /// - stream: Stream key as &[u8].
     /// - id: Message ID as Option<&[u8]> ("*" if None).
