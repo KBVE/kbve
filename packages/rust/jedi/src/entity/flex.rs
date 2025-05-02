@@ -112,6 +112,13 @@ impl<'a> BytesCow<'a> {
     pub fn into_static(self) -> BytesCow<'static> {
         BytesCow::Owned(self.to_bytes()) 
     }
+
+    pub fn to_vec(&self) -> Vec<u8> {
+        match self {
+            BytesCow::Borrowed(slice) => slice.to_vec(),
+            BytesCow::Owned(bytes) => bytes.to_vec(),
+        }
+    }
 }
 
 impl<'a> From<Bytes> for BytesCow<'a> {
@@ -261,8 +268,8 @@ impl<'a> From<XAddData<'a>> for XAddPayload {
             stream: data.stream.as_bytes().to_vec(),
             fields: data.fields.into_iter()
                 .map(|f| Field {
-                    key: f.key.to_bytes().to_vec(),
-                    value: f.value.to_bytes().to_vec(),
+                    key: f.key.to_vec(),
+                    value: f.value.to_vec(),
                 })
                 .collect(),
             id: data.id.map(|id| id.as_bytes().to_vec()),
@@ -308,8 +315,8 @@ impl<'a> From<XReadResponseData<'a>> for XReadResponse {
                             id: e.id.as_bytes().to_vec(),
                             fields: e.fields.into_iter()
                                 .map(|f| Field {
-                                    key: f.key.to_bytes().to_vec(),
-                                    value: f.value.to_bytes().to_vec(),
+                                    key: f.key.to_vec(),
+                                    value: f.value.to_vec(),
                                 })
                                 .collect(),
                         })
