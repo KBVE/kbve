@@ -61,10 +61,13 @@ fn main() {
     .type_attribute("groq.GroqChoice", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("groq.GroqUsage", "#[derive(serde::Serialize, serde::Deserialize)]")
 
+    .bytes([".jedi"])
     // Jedi
     .type_attribute("jedi.MessageKind", "#[derive(serde::Serialize, serde::Deserialize)]")
-    .type_attribute("jedi.FlagEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("jedi.PayloadFormat", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("jedi.JediEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("jedi.FlexEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute("jedi.FlagEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("jedi.RawEnvelope", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("jedi.JediMessage", "#[derive(serde::Serialize, serde::Deserialize)]")
     .type_attribute("jedi.JediMessage.envelope", "#[derive(serde::Serialize, serde::Deserialize)]")

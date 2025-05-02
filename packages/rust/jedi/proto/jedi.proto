@@ -2,6 +2,14 @@ syntax = "proto3";
 
 package jedi;
 
+enum PayloadFormat {
+    PAYLOAD_UNKNOWN = 0;
+    JSON = 1;
+    FLEX = 2;
+    PROTOBUF = 3;
+    FLATBUFFER = 4;
+}
+
 enum MessageKind {
     UNKNOWN         = 0;
     KEY_UPDATE      = 1;
@@ -14,6 +22,14 @@ enum MessageKind {
     HEARTBEAT       = 256;
     CONFIG_UPDATE   = 512;
 }
+
+message JediEnvelope {
+    int32 version = 1;
+    MessageKind kind = 2;
+    PayloadFormat format = 3;
+    bytes payload = 4;
+}
+
 
 message FlagEnvelope {
     int32 flag = 1;
@@ -32,8 +48,9 @@ message RawEnvelope {
 
 message JediMessage {
     oneof envelope {
-        FlexEnvelope flex = 1;
-        RawEnvelope raw = 2;
-        FlagEnvelope flag = 3;
+        JediEnvelope hybrid = 1;
+        FlexEnvelope flex = 2;
+        RawEnvelope raw = 3;
+        FlagEnvelope flag = 4;
     }
 }
