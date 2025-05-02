@@ -64,22 +64,6 @@ pub enum Either<L, R> {
   Right(R),
 }
 
-/// TODO: ZeroCopy WebSocket Format
-/// ! START]
-#[derive(Debug)]
-pub enum ZeroCopyWsFormat<'a> {
-  JsonText(String),
-  Binary(Arc<Cow<'a, [u8]>>),
-}
-
-#[derive(Debug)]
-pub struct ZeroCopyWsRequestContext<'a> {
-  pub envelope: RedisEnvelope,
-  pub raw: Option<ZeroCopyWsFormat<'a>>,
-  pub connection_id: Option<[u8; 16]>,
-}
-
-/// ! [END]
 
 /// ENUM for Redis Stream
 #[derive(Debug, Serialize, Deserialize)]
