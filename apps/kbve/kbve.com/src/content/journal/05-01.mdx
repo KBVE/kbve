@@ -37,6 +37,43 @@ tags:
 	Lets go ahead and rewrite the `FieldData` to be a `Vec<u8>` and then we can convert it to a string when we need to.
 	Updated the FieldData to use `Bytes` instead , with the goal of keeping that protobuf wire format while still supporting the flexbuffer.
 
+### ZeroCopy Removal
+
+-	10:53PM
+
+	Removing some of the older zerocopy code from the redis_wrapper.
+	Here is the code below that we removed, I will keep it here as a reference for the future.
+	I might take a shot at this again in a couple months.
+
+```rust
+/// TODO: ZeroCopy WebSocket Format
+/// ! START]
+#[derive(Debug)]
+pub enum ZeroCopyWsFormat<'a> {
+  JsonText(String),
+  Binary(Arc<Cow<'a, [u8]>>),
+}
+
+#[derive(Debug)]
+pub struct ZeroCopyWsRequestContext<'a> {
+  pub envelope: RedisEnvelope,
+  pub raw: Option<ZeroCopyWsFormat<'a>>,
+  pub connection_id: Option<[u8; 16]>,
+}
+
+/// ! [END]
+/// 
+```
+
+### Redis Wrapper
+
+-	10:55PM
+
+	Updating the redis wrapper to use the changes from the flex module.
+	I did not get a chance to add XTRIM and a couple other x-data commands because I think it would make sense to get the generic linking out of the way first.
+	Once we can confirm that nested streams are working aka x-data through websockets, then we can loop back around and add the batch and trim commands.
+	XGroup is a bit tricky because we will have to link the connection_id to the group, so that there is no weird crosstalk among the groups and the conncetion_ids.
+
 ## 2024
 
 **Rust**
