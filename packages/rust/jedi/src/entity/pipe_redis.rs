@@ -28,6 +28,8 @@ macro_rules! match_redis_handlers {
             handle_redis_set($env, $ctx).await
         } else if MessageKind::del($kind) {
             handle_redis_del($env, $ctx).await
+        } else if MessageKind::xadd($kind) {
+            handle_redis_xadd($env, $ctx).await
         } else {
             Err(JediError::Internal("Unsupported Redis operation".into()))
         }
@@ -63,6 +65,14 @@ struct RedisResult {
   key: Arc<str>,
   #[serde(with = "serde_arc_str::option")]
   value: Option<Arc<str>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct XReadInput {
+  #[serde(with = "serde_arc_str::map_arc_to_arc")]
+  streams: HashMap<Arc<str>, Arc<str>>,
+  count: Option<u64>,
+  block: Option<u64>,
 }
 
 pub async fn pipe_redis(env: JediEnvelope, ctx: &TempleState) -> Result<JediEnvelope, JediError> {
@@ -121,3 +131,36 @@ async fn handle_redis_del(
   client.del::<u64, _>(key.key.as_ref()).await?;
   Ok(env.clone())
 }
+
+async fn handle_redis_xadd(
+    env: &JediEnvelope,
+    ctx: &TempleState,
+  ) -> Result<JediEnvelope, JediError> {
+    let input = try_unwrap_payload::<XAddInput>(env)?;
+    let client = ctx.redis_pool.next().clone();
+  
+    let fields: Vec<(&[u8], &[u8])> = input
+      .fields
+      .iter()
+      .map(|(k, v)| (k.as_ref().as_bytes(), v.as_bytes()))
+      .collect();
+  
+    let id_hint = input
+      .id
+      .as_deref()
+      .map(|s| s.as_ref())
+      .unwrap_or("*");
+  
+    let result = client
+      .xadd::<Bytes, _, _, _, _>(
+        input.stream.as_ref(),
+        false, 
+        None::<()>, 
+        id_hint,
+        fields,
+      )
+      .await?;
+  
+    Ok(wrap_hybrid(MessageKind::Add, PayloadFormat::Flex, &result))
+  }
+
