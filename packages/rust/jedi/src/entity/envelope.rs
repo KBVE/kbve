@@ -71,8 +71,7 @@ pub fn wrap_flex<T: Serialize>(kind: MessageKind, value: &T) -> FlexEnvelope {
 /// assert_eq!(original, decoded);
 /// ```
 pub fn unwrap_flex<T: for<'de> Deserialize<'de>>(envelope: &FlexEnvelope) -> T {
-  let reader = flexbuffers::Reader::get_root(&*envelope.payload)
-    .expect("Invalid Flexbuffers root");
+  let reader = flexbuffers::Reader::get_root(&*envelope.payload).expect("Invalid Flexbuffers root");
   T::deserialize(reader).expect("Flexbuffers deserialization failed")
 }
 
@@ -325,15 +324,18 @@ impl From<RawEnvelope> for JediMessage {
 pub fn wrap_hybrid<T: Serialize>(
   kind: MessageKind,
   format: PayloadFormat,
-  value: &T,
+  value: &T
 ) -> JediEnvelope {
-  let vec = match format {
-    PayloadFormat::Json => serde_json::to_vec(value)
-      .map_err(|e| JediError::Internal(format!("JSON serialization error: {}", e).into())),
-    PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
-    _ => Err(JediError::Internal("Unsupported format".into())),
-  }
-  .expect("Serialization failed");
+  let vec = (
+    match format {
+      PayloadFormat::Json =>
+        serde_json
+          ::to_vec(value)
+          .map_err(|e| JediError::Internal(format!("JSON serialization error: {}", e).into())),
+      PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
+      _ => Err(JediError::Internal("Unsupported format".into())),
+    }
+  ).expect("Serialization failed");
 
   JediEnvelope {
     version: 1,
