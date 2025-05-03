@@ -46,6 +46,19 @@ tags:
     Updating the `JediEnvelope` to include the new enum bitmask operations for the intents and services.
     I also added a couple reserved states so that it can be expanded out in the future.
 
+```
+JediEnvelope
+  └── pipe()
+        └── process()
+              └── emit()
+                    └── publish()
+```
+
+    That is the current structure that we will be going for when dealing with the JediEnvelope.
+    The modular design should allow us to easily add new services and features without breaking the existing code.
+    Hmm, okay, I think we now have a solid plan for the v0.2 release of the jedi crate.
+
+
 ## 2024
 
 **API**
