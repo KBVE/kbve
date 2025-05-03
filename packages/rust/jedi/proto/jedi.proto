@@ -57,6 +57,7 @@ message JediEnvelope {
     MessageKind kind = 2;
     PayloadFormat format = 3;
     bytes payload = 4;
+    bytes metadata = 5;
 }
 
 
