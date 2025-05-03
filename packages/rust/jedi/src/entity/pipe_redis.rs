@@ -5,11 +5,17 @@ use crate::entity::envelope::{ try_unwrap_flex, wrap_flex };
 use crate::state::temple::TempleState;
 use bytes::Bytes;
 use fred::prelude::*;
+use fred::types::streams::{
+    MultipleOrderedPairs,
+    XID,
+    XCap,
+    XReadResponse as FredXRead,
+  };
 use serde::{ Deserialize, Serialize };
 use std::collections::HashMap;
 use std::sync::Arc;
 use serde_json::Value;
-use crate::entity::{ pipe::Pipe, flex::*, bitwise::*, serde_arc_str };
+use crate::entity::{ pipe::Pipe, flex::*, bitwise::*, serde_arc_str, serde_bytes_map };
 
 use super::envelope::{ try_unwrap_payload, wrap_hybrid };
 
@@ -69,13 +75,22 @@ struct RedisResult {
   value: Option<Arc<str>>,
 }
 
+// #[derive(Debug, Deserialize)]
+// struct XReadInput {
+//   #[serde(with = "serde_arc_str::map_arc_to_arc")]
+//   streams: HashMap<Arc<str>, Arc<str>>,
+//   count: Option<u64>,
+//   block: Option<u64>,
+// }
+
 #[derive(Debug, Deserialize)]
-struct XReadInput {
-  #[serde(with = "serde_arc_str::map_arc_to_arc")]
-  streams: HashMap<Arc<str>, Arc<str>>,
-  count: Option<u64>,
-  block: Option<u64>,
+pub struct XReadInput {
+    #[serde(with = "serde_bytes_map")]
+    pub streams: HashMap<Bytes, Bytes>,
+    pub count: Option<u64>,
+    pub block: Option<u64>,
 }
+
 
 pub async fn pipe_redis(env: JediEnvelope, ctx: &TempleState) -> Result<JediEnvelope, JediError> {
   env.pipe_async(|e| async move {
@@ -173,25 +188,21 @@ async fn handle_redis_xadd(
     let input = try_unwrap_payload::<XReadInput>(env)?;
     let client = ctx.redis_pool.next().clone();
   
-    let mut keys = Vec::with_capacity(input.streams.len());
-    let mut ids = Vec::with_capacity(input.streams.len());
+    let (keys, ids): (Vec<Bytes>, Vec<Bytes>) = input
+      .streams
+      .into_iter()
+      .map(|(k, v)| (Bytes::from(k.as_ref()), Bytes::from(v.as_ref())))
+      .unzip();
   
-    for (k, v) in input.streams.iter() {
-      keys.push(k.as_ref());
-      ids.push(v.as_ref());
-    }
-  
-    let result = client
-      .xread::<Bytes, _, _>(
-        Some(input.count.unwrap_or(10)), 
-        input.block,                 
+    let result: FredXRead<Bytes, Bytes, Bytes, Bytes> = client
+      .xread_map(
+        Some(input.count.unwrap_or(10)),
+        input.block,
         keys,
         ids,
       )
       .await?;
   
-    let bytes: Bytes = serialize_to_flex_bytes(&result)?;
-  
+    let bytes = serialize_to_flex_bytes(&result)?;
     Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes))
   }
-  
