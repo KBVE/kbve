@@ -2,18 +2,63 @@ syntax = "proto3";
 
 package jedi;
 
-enum MessageKind {
-    UNKNOWN         = 0;
-    KEY_UPDATE      = 1;
-    ACTION          = 2;
-    MESSAGE         = 4;
-    DEBUG           = 8;
-    ERROR           = 16;
-    INFO            = 32;
-    AUTH            = 64;
-    HEARTBEAT       = 256;
-    CONFIG_UPDATE   = 512;
+enum PayloadFormat {
+    PAYLOAD_UNKNOWN = 0;
+    JSON = 1;
+    FLEX = 2;
+    PROTOBUF = 3;
+    FLATBUFFER = 4;
 }
+
+enum MessageKind {
+    // ───── Verbs (Bits 0–7)
+    UNKNOWN         = 0;
+    ADD             = 1;
+    READ            = 2;
+    GET             = 4;
+    SET             = 8;
+    DEL             = 16;
+    STREAM          = 32;
+    GROUP           = 64;
+    LIST            = 128;
+
+    // ───── Intent / Message Metadata (Bits 8–15)
+    ACTION          = 256;
+    MESSAGE         = 512;
+    INFO            = 1024;
+    DEBUG           = 2048;
+    ERROR           = 4096;
+    AUTH            = 8192;
+    HEARTBEAT       = 16384;
+
+    // ───── System Targets / Routing (Bits 16–23)
+    CONFIG_UPDATE   = 32768;
+    REDIS           = 65536;
+    SUPABASE        = 131072;
+    FILESYSTEM      = 262144;
+    WEBSOCKET       = 524288;
+    HTTP_API        = 1048576;
+    LOCAL_CACHE     = 2097152;
+    AI              = 4194304;
+
+    // ───── Reserved / Future Use (Bits 24–31)
+    EXTERNAL        = 8388608;
+    RESERVED_25     = 16777216;
+    RESERVED_26     = 33554432;
+    RESERVED_27     = 67108864;
+    RESERVED_28     = 134217728;
+    RESERVED_29     = 268435456;
+    RESERVED_30     = 536870912;
+    RESERVED_31     = 1073741824;
+}
+
+message JediEnvelope {
+    int32 version = 1;
+    MessageKind kind = 2;
+    PayloadFormat format = 3;
+    bytes payload = 4;
+}
+
 
 message FlagEnvelope {
     int32 flag = 1;
@@ -32,8 +77,9 @@ message RawEnvelope {
 
 message JediMessage {
     oneof envelope {
-        FlexEnvelope flex = 1;
-        RawEnvelope raw = 2;
-        FlagEnvelope flag = 3;
+        JediEnvelope hybrid = 1;
+        FlexEnvelope flex = 2;
+        RawEnvelope raw = 3;
+        FlagEnvelope flag = 4;
     }
 }

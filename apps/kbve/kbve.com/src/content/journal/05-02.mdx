@@ -1,7 +1,7 @@
 ---
 title: 'May: 02'
 category: Daily
-date: 2024-05-02 12:00:00
+date: 2025-05-02 12:00:00
 client: Self
 unsplash: 1679848148238-5ebc18399015
 img: https://images.unsplash.com/photo-1679848148238-5ebc18399015?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -23,6 +23,28 @@ tags:
 -   [X] Get AstroJS -> Flutter SAPI Working.
 
 ---
+
+## 2025
+
+### WeBinaryBytes
+
+-   01:11PM
+
+    Got the binary websockets operational but I am thinking that it might be time to refactor it all again!
+    We can loop back around and see if there are changes to the core functionality that we want to make.
+    Maybe a better format for the data that is coming in and out of the Jedi crate.
+
+-   01:33PM
+
+    Updating the `Jedi` proto to include all the additional fields and preparing the hybrid binary/json format with both proto and fbs.
+    I should include support for captain proto as well but that will be for a later time.
+
+### JediEnvelope
+
+-   04:35PM
+
+    Updating the `JediEnvelope` to include the new enum bitmask operations for the intents and services.
+    I also added a couple reserved states so that it can be expanded out in the future.
 
 ## 2024
 

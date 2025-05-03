@@ -6,10 +6,13 @@ use crate::proto::jedi::{
   MessageKind,
   JediMessage,
   jedi_message,
+  JediEnvelope,
+  PayloadFormat,
 };
 use crate::entity::hash::HashPayload;
 use crate::error::JediError;
 use serde::{ Serialize, Deserialize };
+use bytes::Bytes;
 
 /// Wraps a serializable Rust value into a `FlexEnvelope` using Flexbuffers encoding.
 ///
@@ -37,7 +40,7 @@ use serde::{ Serialize, Deserialize };
 /// assert!(!envelope.payload.is_empty());
 /// ```
 pub fn wrap_flex<T: Serialize>(kind: MessageKind, value: &T) -> FlexEnvelope {
-  let payload = HashPayload::from(value).into_vec();
+  let payload = Bytes::from(HashPayload::from(value).into_vec());
   FlexEnvelope {
     kind: kind as i32,
     payload,
@@ -68,7 +71,8 @@ pub fn wrap_flex<T: Serialize>(kind: MessageKind, value: &T) -> FlexEnvelope {
 /// assert_eq!(original, decoded);
 /// ```
 pub fn unwrap_flex<T: for<'de> Deserialize<'de>>(envelope: &FlexEnvelope) -> T {
-  (HashPayload { bytes: envelope.payload.clone() }).decode()
+  let reader = flexbuffers::Reader::get_root(&*envelope.payload).expect("Invalid Flexbuffers root");
+  T::deserialize(reader).expect("Flexbuffers deserialization failed")
 }
 
 /// Attempts to decode a `FlexEnvelope` payload into a typed value.
@@ -185,7 +189,7 @@ impl<T: Serialize> ToFlexEnvelope for T {
 /// assert!(!env.payload.is_empty());
 /// ```
 pub fn wrap_flag<T: Serialize>(flag: i32, value: &T) -> FlagEnvelope {
-  let payload = HashPayload::from(value).into_vec();
+  let payload = Bytes::from(HashPayload::from(value).into_vec());
   FlagEnvelope { flag, payload }
 }
 
@@ -236,11 +240,9 @@ pub fn try_unwrap_flag<T: for<'de> Deserialize<'de>>(
 /// assert!(!env.payload.is_empty());
 /// ```
 pub fn wrap_raw<T: Serialize>(key: &[u8], value: &T) -> RawEnvelope {
-  let payload = HashPayload::from(value).into_vec();
-  RawEnvelope {
-    key: key.to_vec(),
-    payload,
-  }
+  let payload = Bytes::from(HashPayload::from(value).into_vec());
+  let key = Bytes::from(key.to_vec());
+  RawEnvelope { key, payload }
 }
 
 /// Attempts to decode a `RawEnvelope` payload into a typed value.
@@ -314,5 +316,43 @@ impl From<RawEnvelope> for JediMessage {
     JediMessage {
       envelope: Some(jedi_message::Envelope::Raw(env)),
     }
+  }
+}
+
+// * Hybrid Envelopes
+
+pub fn wrap_hybrid<T: Serialize>(
+  kind: MessageKind,
+  format: PayloadFormat,
+  value: &T
+) -> JediEnvelope {
+  let vec = (
+    match format {
+      PayloadFormat::Json =>
+        serde_json
+          ::to_vec(value)
+          .map_err(|e| JediError::Internal(format!("JSON serialization error: {}", e).into())),
+      PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
+      _ => Err(JediError::Internal("Unsupported format".into())),
+    }
+  ).expect("Serialization failed");
+
+  JediEnvelope {
+    version: 1,
+    kind: kind as i32,
+    format: format as i32,
+    payload: Bytes::from(vec),
+  }
+}
+
+pub fn from_hybrid(env: JediEnvelope) -> JediMessage {
+  JediMessage {
+    envelope: Some(jedi_message::Envelope::Hybrid(env)),
+  }
+}
+
+impl From<JediEnvelope> for JediMessage {
+  fn from(env: JediEnvelope) -> Self {
+    from_hybrid(env)
   }
 }
