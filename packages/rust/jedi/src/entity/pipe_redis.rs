@@ -30,6 +30,8 @@ macro_rules! match_redis_handlers {
             handle_redis_del($env, $ctx).await
         } else if MessageKind::xadd($kind) {
             handle_redis_xadd($env, $ctx).await
+        } else if MessageKind::xread($kind) {
+            handle_redis_xread($env, $ctx).await
         } else {
             Err(JediError::Internal("Unsupported Redis operation".into()))
         }
@@ -164,3 +166,32 @@ async fn handle_redis_xadd(
     Ok(wrap_hybrid(MessageKind::Add, PayloadFormat::Flex, &result))
   }
 
+  async fn handle_redis_xread(
+    env: &JediEnvelope,
+    ctx: &TempleState,
+  ) -> Result<JediEnvelope, JediError> {
+    let input = try_unwrap_payload::<XReadInput>(env)?;
+    let client = ctx.redis_pool.next().clone();
+  
+    let mut keys = Vec::with_capacity(input.streams.len());
+    let mut ids = Vec::with_capacity(input.streams.len());
+  
+    for (k, v) in input.streams.iter() {
+      keys.push(k.as_ref());
+      ids.push(v.as_ref());
+    }
+  
+    let result = client
+      .xread::<Bytes, _, _>(
+        Some(input.count.unwrap_or(10)), 
+        input.block,                 
+        keys,
+        ids,
+      )
+      .await?;
+  
+    let bytes: Bytes = serialize_to_flex_bytes(&result)?;
+  
+    Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes))
+  }
+  
