@@ -13,6 +13,9 @@ use crate::entity::hash::HashPayload;
 use crate::error::JediError;
 use serde::{ Serialize, Deserialize };
 use bytes::Bytes;
+use async_trait::async_trait;
+use crate::state::temple::TempleState;
+use std::convert::TryFrom;
 
 /// Wraps a serializable Rust value into a `FlexEnvelope` using Flexbuffers encoding.
 ///
@@ -354,5 +357,85 @@ pub fn from_hybrid(env: JediEnvelope) -> JediMessage {
 impl From<JediEnvelope> for JediMessage {
   fn from(env: JediEnvelope) -> Self {
     from_hybrid(env)
+  }
+}
+
+/// Core Functions
+
+#[async_trait]
+pub trait EnvelopePipeline {
+  async fn process(self, ctx: &TempleState) -> Result<Self, JediError> where Self: Sized;
+
+  fn emit(self) -> Result<JediEnvelope, JediError>;
+
+  fn publish(&self, ctx: &TempleState) -> Result<(), JediError>;
+}
+
+#[async_trait]
+impl EnvelopePipeline for JediEnvelope {
+  async fn process(self, ctx: &TempleState) -> Result<Self, JediError> {
+    let format = PayloadFormat::try_from(self.format).map_err(|_|
+      JediError::Internal("Invalid PayloadFormat".into())
+    )?;
+
+    match format {
+      PayloadFormat::Flex => {
+        let kind = MessageKind::try_from(self.kind).map_err(|_|
+          JediError::Internal("Invalid MessageKind".into())
+        )?;
+
+        let kind_val = kind as i32;
+
+        if
+          MessageKind::has_flags(kind_val, &[MessageKind::Redis, MessageKind::Get]) ||
+          MessageKind::has_flags(kind_val, &[MessageKind::Redis, MessageKind::Set]) ||
+          MessageKind::has_flags(kind_val, &[MessageKind::Redis, MessageKind::Del])
+        {
+          // let cmd = try_unwrap_flex::<RedisCommand>(&self)?;
+          //  let result = ctx.send_redis(RedisEnvelope::from(cmd)).await?;
+          //  tracing::debug!(?result, "Redis command processed");
+          
+          //return Ok(self);
+        }
+
+        Err(JediError::Internal("Unsupported Redis MessageKind".into()))
+      }
+      _ => Err(JediError::Internal("Unsupported PayloadFormat".into())),
+    }
+  }
+
+  fn emit(self) -> Result<JediEnvelope, JediError> {
+    Ok(self)
+  }
+
+  fn publish(&self, _ctx: &TempleState) -> Result<(), JediError> {
+    Ok(())
+  }
+}
+
+// * New Helper Methods
+
+pub fn try_unwrap_payload<T>(env: &JediEnvelope) -> Result<T, JediError>
+  where T: for<'de> Deserialize<'de>
+{
+  let format = PayloadFormat::try_from(env.format).map_err(|_|
+    JediError::Internal("Invalid PayloadFormat".into())
+  )?;
+
+  match format {
+    PayloadFormat::Flex => {
+      let reader = flexbuffers::Reader
+        ::get_root(&*env.payload)
+        .map_err(|e| JediError::Internal(format!("Flexbuffer root error: {e}").into()))?;
+      T::deserialize(reader).map_err(|e|
+        JediError::Internal(format!("Flexbuffer decode error: {e}").into())
+      )
+    }
+    PayloadFormat::Json => {
+      serde_json
+        ::from_slice(&env.payload)
+        .map_err(|e| JediError::Internal(format!("JSON decode error: {e}").into()))
+    }
+    _ => Err(JediError::Internal("Unsupported PayloadFormat".into())),
   }
 }

@@ -4,6 +4,7 @@ use flexbuffers::FlexbufferSerializer;
 use crate::error::JediError;
 use std::future::Future;
 
+
 pub enum OutputFormat {
   Binary,
   Json,
@@ -57,6 +58,7 @@ pub trait Pipe: Sized + Send {
       Fut: Future<Output = Result<OkType, E>> + Send;
 
 }
+
 
 #[async_trait]
 impl<T: Serialize + Send + Sync + 'static> Pipe for T {
