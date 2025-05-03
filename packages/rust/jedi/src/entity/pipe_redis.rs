@@ -75,21 +75,21 @@ struct RedisResult {
   value: Option<Arc<str>>,
 }
 
-// #[derive(Debug, Deserialize)]
-// struct XReadInput {
-//   #[serde(with = "serde_arc_str::map_arc_to_arc")]
-//   streams: HashMap<Arc<str>, Arc<str>>,
-//   count: Option<u64>,
-//   block: Option<u64>,
-// }
-
 #[derive(Debug, Deserialize)]
-pub struct XReadInput {
-    #[serde(with = "serde_bytes_map")]
-    pub streams: HashMap<Bytes, Bytes>,
-    pub count: Option<u64>,
-    pub block: Option<u64>,
+struct XReadInput {
+  #[serde(with = "serde_arc_str::map_arc_to_arc")]
+  streams: HashMap<Arc<str>, Arc<str>>,
+  count: Option<u64>,
+  block: Option<u64>,
 }
+
+// #[derive(Debug, Deserialize)]
+// pub struct XReadInput {
+//     #[serde(with = "serde_bytes_map")]
+//     pub streams: HashMap<Bytes, Bytes>,
+//     pub count: Option<u64>,
+//     pub block: Option<u64>,
+// }
 
 
 pub async fn pipe_redis(env: JediEnvelope, ctx: &TempleState) -> Result<JediEnvelope, JediError> {
@@ -188,11 +188,10 @@ async fn handle_redis_xadd(
     let input = try_unwrap_payload::<XReadInput>(env)?;
     let client = ctx.redis_pool.next().clone();
   
-    let (keys, ids): (Vec<Bytes>, Vec<Bytes>) = input
-      .streams
-      .into_iter()
-      .map(|(k, v)| (Bytes::from(k.as_ref()), Bytes::from(v.as_ref())))
-      .unzip();
+    let (keys, ids): (Vec<&str>, Vec<&str>) = input
+    .streams.iter()
+    .map(|(k, v)| (k.as_ref(), v.as_ref()))
+    .unzip();
   
     let result: FredXRead<Bytes, Bytes, Bytes, Bytes> = client
       .xread_map(
