@@ -8,6 +8,7 @@ pub mod serde_arc_str;
 pub mod pipe;
 pub mod flex;
 pub mod bitwise;
+pub mod pipe_redis;
 
 pub use regex::*;
 pub use ai::*;
