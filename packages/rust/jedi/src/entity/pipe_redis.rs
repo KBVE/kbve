@@ -124,7 +124,7 @@ async fn handle_redis_get(
   let key = try_unwrap_payload::<KeyValueInput>(env)?;
   let client = ctx.redis_pool.next().clone();
   let value: bytes::Bytes = extract_redis_bytes(client.get(key.key.as_ref()).await?)?;
-  Ok(wrap_hybrid(MessageKind::Get, PayloadFormat::Flex, &value))
+  Ok(wrap_hybrid(MessageKind::Get, PayloadFormat::Flex, &value, Some(env.metadata.clone())))
 }
 
 async fn handle_redis_set(
@@ -178,7 +178,7 @@ async fn handle_redis_xadd(
       )
       .await?;
   
-    Ok(wrap_hybrid(MessageKind::Add, PayloadFormat::Flex, &result))
+    Ok(wrap_hybrid(MessageKind::Add, PayloadFormat::Flex, &result, Some(env.metadata.clone())))
   }
 
   async fn handle_redis_xread(
@@ -203,5 +203,5 @@ async fn handle_redis_xadd(
       .await?;
   
     let bytes = serialize_to_flex_bytes(&result)?;
-    Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes))
+    Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes, Some(env.metadata.clone())))
   }

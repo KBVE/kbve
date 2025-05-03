@@ -327,7 +327,9 @@ impl From<RawEnvelope> for JediMessage {
 pub fn wrap_hybrid<T: Serialize>(
   kind: MessageKind,
   format: PayloadFormat,
-  value: &T
+  value: &T,
+  metadata: Option<Bytes>,
+
 ) -> JediEnvelope {
   let vec = (
     match format {
@@ -345,6 +347,8 @@ pub fn wrap_hybrid<T: Serialize>(
     kind: kind as i32,
     format: format as i32,
     payload: Bytes::from(vec),
+    metadata: metadata.unwrap_or_else(Bytes::new),
+
   }
 }
 
@@ -361,6 +365,18 @@ impl From<JediEnvelope> for JediMessage {
 }
 
 /// Core Functions
+
+impl JediEnvelope { 
+  pub fn with_metadata(mut self, meta: Bytes) -> Self {
+    self.metadata = meta;
+    self
+  }
+
+  pub fn metadata_or_empty(&self) -> Bytes {
+    self.metadata.clone()
+  }
+}
+
 
 #[async_trait]
 pub trait EnvelopePipeline {
