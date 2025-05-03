@@ -31,6 +31,19 @@ macro_rules! define_flag_checks {
     };
 }
 
+macro_rules! define_multi_flag_checks {
+    ($( ($fn_name:ident, [ $( $variant:ident ),+ ]) ),*) => {
+        impl MessageKind {
+            $(
+                #[inline(always)]
+                pub fn $fn_name(kind: i32) -> bool {
+                    MessageKind::has_flags(kind, &[ $( MessageKind::$variant ),+ ])
+                }
+            )*
+        }
+    };
+}
+
 define_flag_checks!(
     (add, Add),
     (read, Read),
@@ -63,4 +76,9 @@ define_flag_checks!(
     (reserved29, Reserved29),
     (reserved30, Reserved30),
     (reserved31, Reserved31)
+);
+
+define_multi_flag_checks!(
+    (xadd, [Redis, Stream, Add]),
+    (xread, [Redis, Stream, Read])
 );

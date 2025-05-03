@@ -5,11 +5,17 @@ use crate::entity::envelope::{ try_unwrap_flex, wrap_flex };
 use crate::state::temple::TempleState;
 use bytes::Bytes;
 use fred::prelude::*;
+use fred::types::streams::{
+    MultipleOrderedPairs,
+    XID,
+    XCap,
+    XReadResponse as FredXRead,
+  };
 use serde::{ Deserialize, Serialize };
 use std::collections::HashMap;
 use std::sync::Arc;
 use serde_json::Value;
-use crate::entity::{ pipe::Pipe, flex::*, bitwise::*, serde_arc_str };
+use crate::entity::{ pipe::Pipe, flex::*, bitwise::*, serde_arc_str, serde_bytes_map };
 
 use super::envelope::{ try_unwrap_payload, wrap_hybrid };
 
@@ -28,6 +34,10 @@ macro_rules! match_redis_handlers {
             handle_redis_set($env, $ctx).await
         } else if MessageKind::del($kind) {
             handle_redis_del($env, $ctx).await
+        } else if MessageKind::xadd($kind) {
+            handle_redis_xadd($env, $ctx).await
+        } else if MessageKind::xread($kind) {
+            handle_redis_xread($env, $ctx).await
         } else {
             Err(JediError::Internal("Unsupported Redis operation".into()))
         }
@@ -65,6 +75,23 @@ struct RedisResult {
   value: Option<Arc<str>>,
 }
 
+#[derive(Debug, Deserialize)]
+struct XReadInput {
+  #[serde(with = "serde_arc_str::map_arc_to_arc")]
+  streams: HashMap<Arc<str>, Arc<str>>,
+  count: Option<u64>,
+  block: Option<u64>,
+}
+
+// #[derive(Debug, Deserialize)]
+// pub struct XReadInput {
+//     #[serde(with = "serde_bytes_map")]
+//     pub streams: HashMap<Bytes, Bytes>,
+//     pub count: Option<u64>,
+//     pub block: Option<u64>,
+// }
+
+
 pub async fn pipe_redis(env: JediEnvelope, ctx: &TempleState) -> Result<JediEnvelope, JediError> {
   env.pipe_async(|e| async move {
     let format = PayloadFormat::try_from(e.format).map_err(|_|
@@ -88,8 +115,6 @@ pub async fn handle_redis_flex(
   )?;
 
   match_redis_handlers!(kind.into(), &env, ctx)
-
-  //Err(JediError::Internal("No matching Redis op for kind".into()))
 }
 
 async fn handle_redis_get(
@@ -123,3 +148,60 @@ async fn handle_redis_del(
   client.del::<u64, _>(key.key.as_ref()).await?;
   Ok(env.clone())
 }
+
+async fn handle_redis_xadd(
+    env: &JediEnvelope,
+    ctx: &TempleState,
+  ) -> Result<JediEnvelope, JediError> {
+    let input = try_unwrap_payload::<XAddInput>(env)?;
+    let client = ctx.redis_pool.next().clone();
+  
+    let fields: Vec<(&[u8], &[u8])> = input
+      .fields
+      .iter()
+      .map(|(k, v)| (k.as_ref().as_bytes(), v.as_bytes()))
+      .collect();
+  
+    let id_hint = input
+      .id
+      .as_deref()
+      .map(|s| s.as_ref())
+      .unwrap_or("*");
+  
+    let result = client
+      .xadd::<Bytes, _, _, _, _>(
+        input.stream.as_ref(),
+        false, 
+        None::<()>, 
+        id_hint,
+        fields,
+      )
+      .await?;
+  
+    Ok(wrap_hybrid(MessageKind::Add, PayloadFormat::Flex, &result))
+  }
+
+  async fn handle_redis_xread(
+    env: &JediEnvelope,
+    ctx: &TempleState,
+  ) -> Result<JediEnvelope, JediError> {
+    let input = try_unwrap_payload::<XReadInput>(env)?;
+    let client = ctx.redis_pool.next().clone();
+  
+    let (keys, ids): (Vec<&str>, Vec<&str>) = input
+    .streams.iter()
+    .map(|(k, v)| (k.as_ref(), v.as_ref()))
+    .unzip();
+  
+    let result: FredXRead<Bytes, Bytes, Bytes, Bytes> = client
+      .xread_map(
+        Some(input.count.unwrap_or(10)),
+        input.block,
+        keys,
+        ids,
+      )
+      .await?;
+  
+    let bytes = serialize_to_flex_bytes(&result)?;
+    Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes))
+  }

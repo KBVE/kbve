@@ -85,3 +85,33 @@ pub mod map_keys {
       deserializer.deserialize_map(ArcMapVisitor)
   }
 }
+
+pub mod map_arc_to_arc {
+  use super::*;
+  use serde::de::MapAccess;
+  use serde::ser::SerializeMap;
+  use serde::{Deserializer, Serializer};
+  use std::collections::HashMap;
+
+  pub fn serialize<S>(map: &HashMap<Arc<str>, Arc<str>>, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut ser_map = serializer.serialize_map(Some(map.len()))?;
+    for (k, v) in map {
+      ser_map.serialize_entry(&**k, &**v)?;
+    }
+    ser_map.end()
+  }
+
+  pub fn deserialize<'de, D>(deserializer: D) -> Result<HashMap<Arc<str>, Arc<str>>, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    let raw: HashMap<&str, &str> = HashMap::deserialize(deserializer)?;
+    Ok(raw
+      .into_iter()
+      .map(|(k, v)| (Arc::from(k), Arc::from(v)))
+      .collect())
+  }
+}
