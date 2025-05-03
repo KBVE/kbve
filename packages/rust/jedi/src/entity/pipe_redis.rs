@@ -88,8 +88,6 @@ pub async fn handle_redis_flex(
   )?;
 
   match_redis_handlers!(kind.into(), &env, ctx)
-
-  //Err(JediError::Internal("No matching Redis op for kind".into()))
 }
 
 async fn handle_redis_get(
