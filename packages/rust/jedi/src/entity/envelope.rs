@@ -13,6 +13,9 @@ use crate::entity::hash::HashPayload;
 use crate::error::JediError;
 use serde::{ Serialize, Deserialize };
 use bytes::Bytes;
+use async_trait::async_trait;
+use crate::state::temple::TempleState;
+
 
 /// Wraps a serializable Rust value into a `FlexEnvelope` using Flexbuffers encoding.
 ///
@@ -320,6 +323,17 @@ impl From<RawEnvelope> for JediMessage {
 }
 
 // * Hybrid Envelopes
+
+#[async_trait]
+pub trait EnvelopePipeline {
+    async fn process(self, ctx: &TempleState) -> Result<Self, JediError>
+    where
+        Self: Sized;
+
+    fn emit(self) -> Result<JediEnvelope, JediError>;
+
+    fn publish(&self, ctx: &TempleState) -> Result<(), JediError>;
+}
 
 pub fn wrap_hybrid<T: Serialize>(
   kind: MessageKind,
