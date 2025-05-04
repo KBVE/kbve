@@ -88,8 +88,8 @@ namespace KBVE.MMExtensions.Ai
       handleWeapon.ForceWeaponAimControl = true;
       handleWeapon.ForcedWeaponAimControl = WeaponAim.AimControls.Script;
       handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
-      SetupDecisionsAndActionsHealer();
-      SetupDecisions();
+      SetupDecisionsHealer();
+      SetupDecisionsAttacker();
       SetupActions();
       base.Awake();
     }
@@ -114,7 +114,7 @@ namespace KBVE.MMExtensions.Ai
       else
       {
         Debug.Log("Weapon Change Attack");
-        SetupAllyStates();
+        SetupAllyAttackerStates();
         foreach (AIState state in States)
         {
           state.SetBrain(this);
@@ -123,7 +123,7 @@ namespace KBVE.MMExtensions.Ai
       }
     }
 
-    protected virtual void SetupDecisions()
+    protected virtual void SetupDecisionsAttacker()
     {
       detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 100f, false);
       detectEnemyDecision = CreateDetectTarget2DDecision(ENEMY_LAYER_INT, 20f);
@@ -148,7 +148,7 @@ namespace KBVE.MMExtensions.Ai
       aIActionShoot.AimAtTarget = true;
     }
 
-    protected virtual void SetupAllyStates()
+    protected virtual void SetupAllyAttackerStates()
     {
       States = new List<AIState>
       {
@@ -280,7 +280,7 @@ namespace KBVE.MMExtensions.Ai
 
     private AIDecisionDistanceToTarget distanceToTarget9fDecision;
 
-    protected virtual void SetupDecisionsAndActionsHealer()
+    protected virtual void SetupDecisionsHealer()
     {
       detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 100f, false);
       distanceToTarget9fDecision = CreateDistanceToTarget2DDecision(
