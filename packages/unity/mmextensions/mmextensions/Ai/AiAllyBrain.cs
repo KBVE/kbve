@@ -8,6 +8,7 @@ using Pathfinding;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
+using KBVE.MMExtensions.Weapons;
 
 namespace KBVE.MMExtensions.Ai
 {
@@ -19,11 +20,15 @@ namespace KBVE.MMExtensions.Ai
     public Weapon initialWeapon;
     private AIDecisionDetectTargetRadius2D detectPlayerDecision;
     private AIDecisionDetectTargetRadius2D detectEnemyDecision;
-    private AIDecisionDistanceToTarget distanceToTargetDecision;
-    private AIDecisionDistanceToTarget distanceToTargetFarDecision;
+    private AIDecisionDistanceToTarget distanceToTarget2fDecision;
+    private AIDecisionDistanceToTarget distanceToTarget4fDecision;
     private AIDecisionTargetIsAlive targetIsAliveDecision;
     private AIDecisionTimeInState timeInStateDecision;
     private CharacterHandleWeapon handleWeapon;
+    private AIActionDoNothing actionDoNothing;
+    private AiActionPathfinderToTarget2D actionPathfinder;
+    private AIActionMoveTowardsTarget2D actionMoveTowardTarget;
+    private AIActionShoot2D aIActionShoot;
 
     //  AllyPlayers - [START]
     private Dictionary<string, Character> AllyPlayers { get; set; } =
@@ -82,25 +87,65 @@ namespace KBVE.MMExtensions.Ai
       handleWeapon.InitialWeapon = initialWeapon;
       handleWeapon.ForceWeaponAimControl = true;
       handleWeapon.ForcedWeaponAimControl = WeaponAim.AimControls.Script;
-      SetupDecisionsAndActions();
-      SetupAllyStates();
+      handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
+      SetupDecisionsAndActionsHealer();
+      SetupDecisions();
+      SetupActions();
       base.Awake();
     }
 
-    protected virtual void SetupDecisionsAndActions()
+    protected void OnDestroy()
+    {
+      handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
+    }
+
+    protected virtual void handleWeapon_OnWeaponChange()
+    {
+      if(handleWeapon.CurrentWeapon.GetComponent<HealWeapon>() != null)
+      {
+        Debug.Log("Weapon Change Heal");
+        SetupAllyHealerStates();
+        foreach (AIState state in States)
+        {
+          state.SetBrain(this);
+        }
+        ResetBrain();
+      }
+      else
+      {
+        Debug.Log("Weapon Change Attack");
+        SetupAllyStates();
+        foreach (AIState state in States)
+        {
+          state.SetBrain(this);
+        }
+        ResetBrain();
+      }
+    }
+
+    protected virtual void SetupDecisions()
     {
       detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 100f, false);
       detectEnemyDecision = CreateDetectTarget2DDecision(ENEMY_LAYER_INT, 20f);
-      distanceToTargetDecision = CreateDistanceToTarget2DDecision(
-        2f,
-        AIDecisionDistanceToTarget.ComparisonModes.LowerThan
-      );
-      distanceToTargetFarDecision = CreateDistanceToTarget2DDecision(
-        4f,
-        AIDecisionDistanceToTarget.ComparisonModes.LowerThan
-      );
+      distanceToTarget2fDecision = CreateDistanceToTarget2DDecision(
+          2f,
+          AIDecisionDistanceToTarget.ComparisonModes.LowerThan
+          );
+      distanceToTarget4fDecision = CreateDistanceToTarget2DDecision(
+          4f,
+          AIDecisionDistanceToTarget.ComparisonModes.LowerThan
+          );
       targetIsAliveDecision = CreateTargetIsAliveDecision();
       timeInStateDecision = CreateTimeInStateDecision(2f, 2f);
+    }
+
+    protected virtual void SetupActions()
+    {
+      actionDoNothing = gameObject.MMGetOrAddComponent<AIActionDoNothing>();
+      actionPathfinder = gameObject.MMGetOrAddComponent<AiActionPathfinderToTarget2D>();
+      actionMoveTowardTarget = gameObject.MMGetOrAddComponent<AIActionMoveTowardsTarget2D>();
+      aIActionShoot = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
+      aIActionShoot.AimAtTarget = true;
     }
 
     protected virtual void SetupAllyStates()
@@ -121,7 +166,7 @@ namespace KBVE.MMExtensions.Ai
 
       idleState.Actions = new AIActionsList()
       {
-        gameObject.MMGetOrAddComponent<AIActionDoNothing>()
+        actionDoNothing
       };
 
       idleState.Transitions = new AITransitionsList
@@ -139,13 +184,13 @@ namespace KBVE.MMExtensions.Ai
 
       followState.Actions = new AIActionsList()
       {
-        gameObject.MMGetOrAddComponent<AiActionPathfinderToTarget2D>()
+        actionPathfinder
       };
 
       followState.Transitions = new AITransitionsList
       {
         new AITransition() { Decision = detectEnemyDecision, TrueState = "ChaseEnemy" },
-        new AITransition() { Decision = distanceToTargetFarDecision, TrueState = "Idle" }
+        new AITransition() { Decision = distanceToTarget4fDecision, TrueState = "Idle" }
       };
 
       return followState;
@@ -158,13 +203,13 @@ namespace KBVE.MMExtensions.Ai
 
       chaseEnemyState.Actions = new AIActionsList()
       {
-        gameObject.MMGetOrAddComponent<AIActionMoveTowardsTarget2D>()
+        actionMoveTowardTarget
       };
 
       chaseEnemyState.Transitions = new AITransitionsList
       {
         new AITransition() { Decision = detectEnemyDecision, FalseState = "Idle" },
-        new AITransition() { Decision = distanceToTargetDecision, TrueState = "Attack" },
+        new AITransition() { Decision = distanceToTarget2fDecision, TrueState = "Attack" },
         new AITransition() { Decision = targetIsAliveDecision, FalseState = "Idle" }
       };
 
@@ -176,24 +221,22 @@ namespace KBVE.MMExtensions.Ai
       AIState attackState = new AIState();
       attackState.StateName = "Attack";
 
-      AIActionShoot2D aIActionShoot2D = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
-      aIActionShoot2D.AimAtTarget = true;
-      attackState.Actions = new AIActionsList() { aIActionShoot2D };
+      attackState.Actions = new AIActionsList() { aIActionShoot };
 
       attackState.Transitions = new AITransitionsList
       {
         new AITransition() { Decision = detectEnemyDecision, FalseState = "Idle" },
-        new AITransition() { Decision = distanceToTargetDecision, FalseState = "ChaseEnemy" },
+        new AITransition() { Decision = distanceToTarget2fDecision, FalseState = "ChaseEnemy" },
         new AITransition() { Decision = timeInStateDecision, TrueState = "ChaseEnemy" }
       };
       return attackState;
     }
 
     private AIDecisionDetectTargetRadius2D CreateDetectTarget2DDecision(
-      int targetLayerInt,
-      float radius,
-      bool obstacleDetection = true
-    )
+        int targetLayerInt,
+        float radius,
+        bool obstacleDetection = true
+        )
     {
       AIDecisionDetectTargetRadius2D detectTargetDecision =
         gameObject.AddComponent<AIDecisionDetectTargetRadius2D>();
@@ -205,9 +248,9 @@ namespace KBVE.MMExtensions.Ai
     }
 
     private AIDecisionDistanceToTarget CreateDistanceToTarget2DDecision(
-      float distance,
-      AIDecisionDistanceToTarget.ComparisonModes comparisonMode
-    )
+        float distance,
+        AIDecisionDistanceToTarget.ComparisonModes comparisonMode
+        )
     {
       AIDecisionDistanceToTarget detectDistanceToTarget =
         gameObject.AddComponent<AIDecisionDistanceToTarget>();
@@ -235,7 +278,59 @@ namespace KBVE.MMExtensions.Ai
       return new PhysicsMaterial2D() { friction = 0 };
     }
 
-    // var AllyPlayer = null; So an empty hashmap (dictionary) of all "ally players"
-    // funnction -^ set the AllyPlayer via its ID.
+    private AIDecisionDistanceToTarget distanceToTarget9fDecision;
+
+    protected virtual void SetupDecisionsAndActionsHealer()
+    {
+      detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 100f, false);
+      distanceToTarget9fDecision = CreateDistanceToTarget2DDecision(
+          9f,
+          AIDecisionDistanceToTarget.ComparisonModes.LowerThan
+          );
+    }
+
+    protected virtual void SetupAllyHealerStates()
+    {
+      States = new List<AIState>
+      {
+        CreateIdleState(),
+        CreateFollowPlayerHealState(),
+        CreateHealState()
+      };
+    }
+
+    private AIState CreateFollowPlayerHealState()
+    {
+      AIState followState = new AIState();
+      followState.StateName = "Follow";
+
+      followState.Actions = new AIActionsList()
+      {
+        actionPathfinder
+      };
+
+      followState.Transitions = new AITransitionsList
+      {
+        new AITransition() { Decision = distanceToTarget9fDecision, TrueState = "Heal" }
+      };
+
+      return followState;
+    }
+
+    private AIState CreateHealState()
+    {
+      AIState healState = new AIState();
+      healState.StateName = "Heal";
+
+      AIActionShoot2D aIActionShoot2D = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
+      aIActionShoot2D.AimAtTarget = true;
+      healState.Actions = new AIActionsList() { aIActionShoot2D };
+
+      healState.Transitions = new AITransitionsList
+      {
+        new AITransition() { Decision = distanceToTarget9fDecision, FalseState = "Idle" }
+      };
+      return healState;
+    }
   }
 }
