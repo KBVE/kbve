@@ -10,6 +10,8 @@ pub struct JediEnvelope {
     pub format: i32,
     #[prost(bytes = "bytes", tag = "4")]
     pub payload: ::prost::bytes::Bytes,
+    #[prost(bytes = "bytes", tag = "5")]
+    pub metadata: ::prost::bytes::Bytes,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
