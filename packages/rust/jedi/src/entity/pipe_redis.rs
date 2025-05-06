@@ -205,3 +205,23 @@ async fn handle_redis_xadd_flex(
     let bytes = serialize_to_flex_bytes(&result)?;
     Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes, Some(env.metadata.clone())))
   }
+
+
+//  * JSON Arm
+
+async fn handle_redis_get_json(
+  env: &JediEnvelope,
+  ctx: &TempleState,
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let client = ctx.redis_pool.next().clone();
+
+  let value_bytes = client.get(input.key.as_ref()).await?;
+  let bytes = extract_redis_bytes(value_bytes)?;
+  let value = Some(Arc::from(String::from_utf8_lossy(&bytes).into_owned()));
+  let result = RedisResult {
+    key: input.key,
+    value,
+  };
+  Ok(wrap_hybrid(MessageKind::Get, PayloadFormat::Json, &result, Some(env.metadata.clone())))
+}
