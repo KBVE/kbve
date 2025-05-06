@@ -246,3 +246,15 @@ async fn handle_redis_set_json(
 
   Ok(env.clone())
 }
+
+async fn handle_redis_del_json(
+  env: &JediEnvelope,
+  ctx: &TempleState,
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let client = ctx.redis_pool.next().clone();
+
+  client.del::<u64, _>(input.key.as_ref()).await?;
+
+  Ok(env.clone())
+}
