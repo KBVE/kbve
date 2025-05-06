@@ -225,3 +225,24 @@ async fn handle_redis_get_json(
   };
   Ok(wrap_hybrid(MessageKind::Get, PayloadFormat::Json, &result, Some(env.metadata.clone())))
 }
+
+async fn handle_redis_set_json(
+  env: &JediEnvelope,
+  ctx: &TempleState,
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let client = ctx.redis_pool.next().clone();
+
+  let value = input
+    .value
+    .as_ref()
+    .ok_or_else(|| JediError::Internal("Missing value for Redis SET".into()))?;
+
+  let expiration = input.ttl.map(|ttl| Expiration::EX(ttl as i64));
+
+  client
+    .set::<(), _, _>(input.key.as_ref(), value.as_ref(), expiration, None, false)
+    .await?;
+
+  Ok(env.clone())
+}
