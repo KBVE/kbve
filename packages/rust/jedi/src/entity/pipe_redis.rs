@@ -25,19 +25,19 @@ fn extract_redis_bytes(value: fred::types::Value) -> Result<bytes::Bytes, JediEr
   value.into_bytes().ok_or_else(|| JediError::Internal("Expected Redis Bytes but got None".into()))
 }
 
-macro_rules! match_redis_handlers {
+macro_rules! match_redis_handlers_flex {
   ($kind:expr, $env:expr, $ctx:expr) => {
     {
         if MessageKind::get($kind) {
-            handle_redis_get($env, $ctx).await
+            handle_redis_get_flex($env, $ctx).await
         } else if MessageKind::set($kind) {
-            handle_redis_set($env, $ctx).await
+            handle_redis_set_flex($env, $ctx).await
         } else if MessageKind::del($kind) {
-            handle_redis_del($env, $ctx).await
+            handle_redis_del_flex($env, $ctx).await
         } else if MessageKind::xadd($kind) {
-            handle_redis_xadd($env, $ctx).await
+            handle_redis_xadd_flex($env, $ctx).await
         } else if MessageKind::xread($kind) {
-            handle_redis_xread($env, $ctx).await
+            handle_redis_xread_flex($env, $ctx).await
         } else {
             Err(JediError::Internal("Unsupported Redis operation".into()))
         }
@@ -114,10 +114,10 @@ pub async fn handle_redis_flex(
     JediError::Internal("Invalid MessageKind".into())
   )?;
 
-  match_redis_handlers!(kind.into(), &env, ctx)
+  match_redis_handlers_flex!(kind.into(), &env, ctx)
 }
 
-async fn handle_redis_get(
+async fn handle_redis_get_flex(
   env: &JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
@@ -127,7 +127,7 @@ async fn handle_redis_get(
   Ok(wrap_hybrid(MessageKind::Get, PayloadFormat::Flex, &value, Some(env.metadata.clone())))
 }
 
-async fn handle_redis_set(
+async fn handle_redis_set_flex(
   env: &JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
@@ -139,7 +139,7 @@ async fn handle_redis_set(
   Ok(env.clone())
 }
 
-async fn handle_redis_del(
+async fn handle_redis_del_flex(
   env: &JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
@@ -149,7 +149,7 @@ async fn handle_redis_del(
   Ok(env.clone())
 }
 
-async fn handle_redis_xadd(
+async fn handle_redis_xadd_flex(
     env: &JediEnvelope,
     ctx: &TempleState,
   ) -> Result<JediEnvelope, JediError> {
@@ -181,7 +181,7 @@ async fn handle_redis_xadd(
     Ok(wrap_hybrid(MessageKind::Add, PayloadFormat::Flex, &result, Some(env.metadata.clone())))
   }
 
-  async fn handle_redis_xread(
+  async fn handle_redis_xread_flex(
     env: &JediEnvelope,
     ctx: &TempleState,
   ) -> Result<JediEnvelope, JediError> {
