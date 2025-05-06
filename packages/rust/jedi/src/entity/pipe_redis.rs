@@ -25,19 +25,19 @@ fn extract_redis_bytes(value: fred::types::Value) -> Result<bytes::Bytes, JediEr
   value.into_bytes().ok_or_else(|| JediError::Internal("Expected Redis Bytes but got None".into()))
 }
 
-macro_rules! match_redis_handlers {
+macro_rules! match_redis_handlers_flex {
   ($kind:expr, $env:expr, $ctx:expr) => {
     {
         if MessageKind::get($kind) {
-            handle_redis_get($env, $ctx).await
+            handle_redis_get_flex($env, $ctx).await
         } else if MessageKind::set($kind) {
-            handle_redis_set($env, $ctx).await
+            handle_redis_set_flex($env, $ctx).await
         } else if MessageKind::del($kind) {
-            handle_redis_del($env, $ctx).await
+            handle_redis_del_flex($env, $ctx).await
         } else if MessageKind::xadd($kind) {
-            handle_redis_xadd($env, $ctx).await
+            handle_redis_xadd_flex($env, $ctx).await
         } else if MessageKind::xread($kind) {
-            handle_redis_xread($env, $ctx).await
+            handle_redis_xread_flex($env, $ctx).await
         } else {
             Err(JediError::Internal("Unsupported Redis operation".into()))
         }
@@ -114,10 +114,10 @@ pub async fn handle_redis_flex(
     JediError::Internal("Invalid MessageKind".into())
   )?;
 
-  match_redis_handlers!(kind.into(), &env, ctx)
+  match_redis_handlers_flex!(kind.into(), &env, ctx)
 }
 
-async fn handle_redis_get(
+async fn handle_redis_get_flex(
   env: &JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
@@ -127,7 +127,7 @@ async fn handle_redis_get(
   Ok(wrap_hybrid(MessageKind::Get, PayloadFormat::Flex, &value, Some(env.metadata.clone())))
 }
 
-async fn handle_redis_set(
+async fn handle_redis_set_flex(
   env: &JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
@@ -139,7 +139,7 @@ async fn handle_redis_set(
   Ok(env.clone())
 }
 
-async fn handle_redis_del(
+async fn handle_redis_del_flex(
   env: &JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
@@ -149,7 +149,7 @@ async fn handle_redis_del(
   Ok(env.clone())
 }
 
-async fn handle_redis_xadd(
+async fn handle_redis_xadd_flex(
     env: &JediEnvelope,
     ctx: &TempleState,
   ) -> Result<JediEnvelope, JediError> {
@@ -181,7 +181,7 @@ async fn handle_redis_xadd(
     Ok(wrap_hybrid(MessageKind::Add, PayloadFormat::Flex, &result, Some(env.metadata.clone())))
   }
 
-  async fn handle_redis_xread(
+  async fn handle_redis_xread_flex(
     env: &JediEnvelope,
     ctx: &TempleState,
   ) -> Result<JediEnvelope, JediError> {
@@ -205,3 +205,56 @@ async fn handle_redis_xadd(
     let bytes = serialize_to_flex_bytes(&result)?;
     Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes, Some(env.metadata.clone())))
   }
+
+
+//  * JSON Arm
+
+async fn handle_redis_get_json(
+  env: &JediEnvelope,
+  ctx: &TempleState,
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let client = ctx.redis_pool.next().clone();
+
+  let value_bytes = client.get(input.key.as_ref()).await?;
+  let bytes = extract_redis_bytes(value_bytes)?;
+  let value = Some(Arc::from(String::from_utf8_lossy(&bytes).into_owned()));
+  let result = RedisResult {
+    key: input.key,
+    value,
+  };
+  Ok(wrap_hybrid(MessageKind::Get, PayloadFormat::Json, &result, Some(env.metadata.clone())))
+}
+
+async fn handle_redis_set_json(
+  env: &JediEnvelope,
+  ctx: &TempleState,
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let client = ctx.redis_pool.next().clone();
+
+  let value = input
+    .value
+    .as_ref()
+    .ok_or_else(|| JediError::Internal("Missing value for Redis SET".into()))?;
+
+  let expiration = input.ttl.map(|ttl| Expiration::EX(ttl as i64));
+
+  client
+    .set::<(), _, _>(input.key.as_ref(), value.as_ref(), expiration, None, false)
+    .await?;
+
+  Ok(env.clone())
+}
+
+async fn handle_redis_del_json(
+  env: &JediEnvelope,
+  ctx: &TempleState,
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let client = ctx.redis_pool.next().clone();
+
+  client.del::<u64, _>(input.key.as_ref()).await?;
+
+  Ok(env.clone())
+}
