@@ -80,5 +80,7 @@ define_flag_checks!(
 
 define_multi_flag_checks!(
     (xadd, [Redis, Stream, Add]),
-    (xread, [Redis, Stream, Read])
+    (xread, [Redis, Stream, Read]),
+    (watch, [Redis, Heartbeat, Read, Stream]),
+    (unwatch,  [Redis, Heartbeat, Del, Stream])
 );
