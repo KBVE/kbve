@@ -389,45 +389,27 @@ pub trait EnvelopePipeline {
 
 #[async_trait]
 impl EnvelopePipeline for JediEnvelope {
+ 
   async fn process(self, ctx: &TempleState) -> Result<Self, JediError> {
-    let format = PayloadFormat::try_from(self.format).map_err(|_|
-      JediError::Internal("Invalid PayloadFormat".into())
-    )?;
+    let kind = MessageKind::try_from(self.kind)
+      .map_err(|_| JediError::Internal("Invalid MessageKind".into()))?;
 
-    match format {
-      PayloadFormat::Flex => {
-        let kind = MessageKind::try_from(self.kind).map_err(|_|
-          JediError::Internal("Invalid MessageKind".into())
-        )?;
-
-        let kind_val = kind as i32;
-
-        if
-          MessageKind::has_flags(kind_val, &[MessageKind::Redis, MessageKind::Get]) ||
-          MessageKind::has_flags(kind_val, &[MessageKind::Redis, MessageKind::Set]) ||
-          MessageKind::has_flags(kind_val, &[MessageKind::Redis, MessageKind::Del])
-        {
-          // let cmd = try_unwrap_flex::<RedisCommand>(&self)?;
-          //  let result = ctx.send_redis(RedisEnvelope::from(cmd)).await?;
-          //  tracing::debug!(?result, "Redis command processed");
-          
-          //return Ok(self);
-        }
-
-        Err(JediError::Internal("Unsupported Redis MessageKind".into()))
+      if (kind as i32) & (MessageKind::Redis as i32) != 0 {
+        return super::pipe_redis::pipe_redis(self, ctx).await;
       }
-      _ => Err(JediError::Internal("Unsupported PayloadFormat".into())),
+
+      Err(JediError::Internal("Unsupported MessageKind for EnvelopePipeline".into()))
+    }
+
+
+    fn emit(self) -> Result<JediEnvelope, JediError> {
+      Ok(self)
+    }
+
+    fn publish(&self, _ctx: &TempleState) -> Result<(), JediError> {
+      Ok(())
     }
   }
-
-  fn emit(self) -> Result<JediEnvelope, JediError> {
-    Ok(self)
-  }
-
-  fn publish(&self, _ctx: &TempleState) -> Result<(), JediError> {
-    Ok(())
-  }
-}
 
 // * New Helper Methods
 
