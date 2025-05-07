@@ -5,6 +5,9 @@ use chrono::{ DateTime, Utc };
 use std::fmt;
 use std::str::FromStr;
 use serde::{ Serialize, Deserialize };
+use bytes::Bytes;
+use serde_json::Value;
+
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -162,4 +165,28 @@ impl From<RawConnId> for [u8; 16] {
   fn from(id: RawConnId) -> Self {
     id.0
   }
+}
+
+
+// * Extraction
+
+pub fn extract_connection_id_bytes(metadata: &Bytes) -> Option<[u8; 16]> {
+  if metadata.len() == 16 {
+    let mut id = [0u8; 16];
+    id.copy_from_slice(&metadata[..]);
+    Some(id)
+  } else {
+    None
+  }
+}
+
+pub fn extract_connection_id_json(metadata: &Bytes) -> Option<[u8; 16]> {
+  if let Ok(v) = serde_json::from_slice::<Value>(metadata) {
+    if let Some(s) = v.get("connection_id")?.as_str() {
+      if let Ok(ulid) = ulid::Ulid::from_str(s) {
+        return Some(ulid.to_bytes());
+      }
+    }
+  }
+  None
 }

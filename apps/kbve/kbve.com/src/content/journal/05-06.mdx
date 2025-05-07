@@ -29,6 +29,13 @@ tags:
     I was thinking of unifying the functions but that might be an issue because of the zero-copy and the different data structures, that it might be wise to just split them.
     We can re-use the binary functions in the future but for now this should be fast enough for what we want to do.
 
+-   07:10PM
+
+    After creating the JSON and Flexbuffers for the 5 basic commands, we now have to link them together with the envelope.
+    This should be easy because we would only have to update the `process` function under the Envelope trait for Jedi specific envelope.
+    Under the process function, a quick and modular pipe would resolve that issue.
+
+
 ### Pipe WatchMaster
 
 -   02:25AM
@@ -36,6 +43,27 @@ tags:
     I was up all night trying to figure out the best way to handle the rewrite of the WatchMaster and maybe even the TempleState.
     The TempleState already keeps track of the Redis Pool and the active connections via the WatchMaster.
     Furthermore, the TempleState is our AppState for Axum too but we already wrapped it inside of an Arc entity.
+
+
+-   07:26PM
+
+    Updating the `Watch` and `Unwatch` commands to use the bitflags, for that I need the right flag combinations!
+    I am thinking that we will use these ints to represent the combined state:
+
+```rust
+
+define_multi_flag_checks!(
+    (xadd, [Redis, Stream, Add]),
+    (xread, [Redis, Stream, Read]),
+    (watch, [Redis, Heartbeat, Read, Stream]),
+    (unwatch,  [Redis, Heartbeat, Del, Stream])
+);
+
+```
+
+    This should make it easier to handle the `watch` and `unwatch`.
+    I might have to be careful on how I go about to handle this because I ran into an annoying issue in the past where it would double watch and there is a bit of leak here.
+    The management of the keys that we are watching has to be handled from both the redis side and also the rust side.
     
 ### India Strikes
 

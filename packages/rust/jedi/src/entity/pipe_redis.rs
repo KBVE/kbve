@@ -1,6 +1,5 @@
-use crate::proto::jedi::MessageKind;
 use crate::error::JediError;
-use crate::proto::jedi::{ MessageKind as Mk, JediEnvelope, PayloadFormat };
+use crate::proto::jedi::{MessageKind, JediEnvelope, PayloadFormat };
 use crate::entity::envelope::{ try_unwrap_flex, wrap_flex };
 use crate::state::temple::TempleState;
 use bytes::Bytes;
@@ -12,7 +11,6 @@ use std::sync::Arc;
 use std::borrow::Cow;
 use serde_json::Value;
 use crate::entity::{ pipe::Pipe, flex::*, bitwise::*, serde_arc_str, serde_bytes_map };
-
 
 use super::envelope::{ try_unwrap_payload, wrap_hybrid };
 
@@ -42,6 +40,14 @@ macro_rules! match_redis_handlers_flex {
             handle_redis_xadd_flex($env, $ctx).await
         } else if MessageKind::xread($kind) {
             handle_redis_xread_flex($env, $ctx).await
+        } else if MessageKind::watch($kind) {
+          handle_redis_watch_flex($env, $ctx).await
+        } else if MessageKind::unwatch($kind) {
+          handle_redis_unwatch_flex($env, $ctx).await
+        } else if MessageKind::publish($kind) {
+          handle_redis_pub_flex($env, $ctx).await
+        } else if MessageKind::subscribe($kind) {
+          handle_redis_sub_flex($env, $ctx).await
         } else {
             Err(JediError::Internal("Unsupported Redis operation".into()))
         }
@@ -62,6 +68,14 @@ macro_rules! match_redis_handlers_json {
             handle_redis_xadd_json($env, $ctx).await
         } else if MessageKind::xread($kind) {
             handle_redis_xread_json($env, $ctx).await
+          } else if MessageKind::watch($kind) {
+            handle_redis_watch_json($env, $ctx).await
+          } else if MessageKind::unwatch($kind) {
+            handle_redis_unwatch_json($env, $ctx).await
+          } else if MessageKind::publish($kind) {
+            handle_redis_pub_json($env, $ctx).await
+          } else if MessageKind::subscribe($kind) {
+            handle_redis_sub_json($env, $ctx).await
         } else {
             Err(JediError::Internal("Unsupported Redis operation".into()))
         }
@@ -108,7 +122,6 @@ struct XReadInput {
 
 // * JSON Specific Structs
 
-
 #[derive(Debug, Serialize)]
 struct StreamEntry<'a> {
   id: Cow<'a, str>,
@@ -120,8 +133,6 @@ struct StreamMessages<'a> {
   stream: Cow<'a, str>,
   entries: Vec<StreamEntry<'a>>,
 }
-
-
 
 pub async fn pipe_redis(env: JediEnvelope, ctx: &TempleState) -> Result<JediEnvelope, JediError> {
   env.pipe_async(|e| async move {
@@ -231,14 +242,73 @@ async fn handle_redis_xread_flex(
   Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes, Some(env.metadata.clone())))
 }
 
+async fn handle_redis_watch_flex(
+  env: &JediEnvelope,
+  ctx: &TempleState
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let key = input.key;
+  let metadata = env.metadata_or_empty();
+
+  let connection_id = crate::entity::ulid
+    ::extract_connection_id_bytes(&metadata)
+    .ok_or_else(|| JediError::BadRequest("Missing connection ID in metadata".into()))?;
+
+  if ctx.watch_manager.is_watching(&connection_id, &*key) {
+    return Err(JediError::BadRequest("Already watching this key".into()));
+  }
+
+  ctx.watch_manager.watch(connection_id, key.clone())?;
+  Ok(env.clone())
+}
+
+async fn handle_redis_unwatch_flex(
+  env: &JediEnvelope,
+  ctx: &TempleState
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let key = input.key;
+  let metadata = env.metadata_or_empty();
+
+  let conn_id = crate::entity::ulid
+    ::extract_connection_id_bytes(&metadata)
+    .ok_or_else(|| JediError::BadRequest("Missing connection ID in metadata".into()))?;
+
+  ctx.watch_manager.unwatch(&conn_id, key)?;
+  Ok(env.clone())
+}
+
+async fn handle_redis_pub_flex(
+  env: &JediEnvelope,
+  ctx: &TempleState
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let key = input.key;
+  let value = input.value.ok_or_else(|| JediError::BadRequest("Missing value for PUB".into()))?;
+
+  let client = ctx.redis_pool.next().clone();
+  let channel = format!("key:{}", key);
+
+  client.publish::<i64, _, _>(&channel, value.as_ref()).await?;
+  Ok(env.clone())
+}
+
+async fn handle_redis_sub_flex(
+  env: &JediEnvelope,
+  _ctx: &TempleState
+) -> Result<JediEnvelope, JediError> {
+  Ok(env.clone())
+}
+
 //  * JSON Arm
 
 pub async fn handle_redis_json(
   env: JediEnvelope,
-  ctx: &TempleState,
+  ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
-  let kind = MessageKind::try_from(env.kind)
-    .map_err(|_| JediError::Internal("Invalid MessageKind".into()))?;
+  let kind = MessageKind::try_from(env.kind).map_err(|_|
+    JediError::Internal("Invalid MessageKind".into())
+  )?;
 
   match_redis_handlers_json!(kind.into(), &env, ctx)
 }
@@ -320,20 +390,22 @@ async fn handle_redis_xadd_json(
 
 async fn handle_redis_xread_json(
   env: &JediEnvelope,
-  ctx: &TempleState,
+  ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
   let input = try_unwrap_payload::<XReadInput>(env)?;
   let client = ctx.redis_pool.next().clone();
 
-  let (keys, ids): (Vec<&str>, Vec<&str>) = input
-    .streams
+  let (keys, ids): (Vec<&str>, Vec<&str>) = input.streams
     .iter()
     .map(|(k, v)| (k.as_ref(), v.as_ref()))
     .unzip();
 
-  let result: FredXRead<Bytes, Bytes, Bytes, Bytes> = client
-    .xread_map(Some(input.count.unwrap_or(10)), input.block, keys, ids)
-    .await?;
+  let result: FredXRead<Bytes, Bytes, Bytes, Bytes> = client.xread_map(
+    Some(input.count.unwrap_or(10)),
+    input.block,
+    keys,
+    ids
+  ).await?;
 
   let response: Vec<StreamMessages> = result
     .iter()
@@ -356,10 +428,167 @@ async fn handle_redis_xread_json(
     })
     .collect();
 
-  Ok(wrap_hybrid(
-    MessageKind::Read,
-    PayloadFormat::Json,
-    &response,
-    Some(env.metadata.clone()),
-  ))
+  Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Json, &response, Some(env.metadata.clone())))
+}
+
+async fn handle_redis_watch_json(
+  env: &JediEnvelope,
+  ctx: &TempleState
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let key = input.key;
+  let metadata = env.metadata_or_empty();
+
+  let conn_id = crate::entity::ulid
+    ::extract_connection_id_json(&metadata)
+    .ok_or_else(|| JediError::BadRequest("Missing connection ID in metadata".into()))?;
+
+  if ctx.watch_manager.is_watching(&conn_id, &*key) {
+    return Err(JediError::BadRequest("Already watching this key".into()));
+  }
+
+  ctx.watch_manager.watch(conn_id, key.clone())?;
+  Ok(env.clone())
+}
+
+async fn handle_redis_unwatch_json(
+  env: &JediEnvelope,
+  ctx: &TempleState
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let key = input.key;
+  let metadata = env.metadata_or_empty();
+
+  let conn_id = crate::entity::ulid
+    ::extract_connection_id_json(&metadata)
+    .ok_or_else(|| JediError::BadRequest("Missing connection ID in metadata".into()))?;
+
+  ctx.watch_manager.unwatch(&conn_id, key)?;
+  Ok(env.clone())
+}
+
+async fn handle_redis_pub_json(
+  env: &JediEnvelope,
+  ctx: &TempleState
+) -> Result<JediEnvelope, JediError> {
+  let input = try_unwrap_payload::<KeyValueInput>(env)?;
+  let key = input.key;
+  let value = input.value.ok_or_else(|| JediError::BadRequest("Missing value for PUB".into()))?;
+
+  let client = ctx.redis_pool.next().clone();
+  let channel = format!("key:{}", key);
+
+  client.publish::<i64, _, _>(&channel, value.as_ref()).await?;
+  Ok(env.clone())
+}
+
+async fn handle_redis_sub_json(
+  env: &JediEnvelope,
+  _ctx: &TempleState
+) -> Result<JediEnvelope, JediError> {
+  // SUB is managed by pubsub listener + WatchManager, so just return OK
+  Ok(env.clone())
+}
+
+mod faucet_redis {
+  use super::*;
+  use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
+  use bytes::Bytes;
+  use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
+  use tokio::sync::{ mpsc::UnboundedReceiver, broadcast::Sender as BroadcastSender };
+  use tokio::task::JoinHandle;
+
+  pub async fn create_pubsub_connection_fred(
+    config: Config
+  ) -> Result<(SubscriberClient, UnboundedReceiver<JediEnvelope>), JediError> {
+    let subscriber = Builder::from_config(config)
+      .build_subscriber_client()
+      .map_err(|e| JediError::Internal(format!("Failed to build subscriber: {e}").into()))?;
+
+    subscriber
+      .init().await
+      .map_err(|e| { JediError::Internal(format!("Failed to init subscriber: {e}").into()) })?;
+
+    let _ = subscriber.manage_subscriptions();
+
+    let mut redis_rx = subscriber.message_rx();
+    let (app_tx, app_rx) = tokio::sync::mpsc::unbounded_channel();
+
+    tokio::spawn(async move {
+      while let Ok(msg) = redis_rx.recv().await {
+        if let Some(env) = parse_pubsub_message_to_envelope(&msg) {
+          let _ = app_tx.send(env);
+        }
+      }
+    });
+
+    Ok((subscriber, app_rx))
+  }
+
+  fn parse_pubsub_message_to_envelope(msg: &RedisMessage) -> Option<JediEnvelope> {
+    let channel = format!("{}", msg.channel);
+    let payload: String = msg.value.clone().convert().ok()?;
+    let key = channel.strip_prefix("key:")?.to_owned();
+
+    let env = wrap_hybrid(
+      MessageKind::ConfigUpdate,
+      PayloadFormat::Json,
+      &serde_json::json!({
+        "key": key,
+        "value": payload,
+        "timestamp": chrono::Utc::now().timestamp_millis(),
+      }),
+      None
+    );
+
+    Some(env)
+  }
+
+  pub fn spawn_pubsub_listener_task(
+    mut rx: UnboundedReceiver<JediEnvelope>,
+    event_tx: BroadcastSender<JediEnvelope>
+  ) -> JoinHandle<()> {
+    tokio::spawn(async move {
+      while let Some(env) = rx.recv().await {
+        let kind = MessageKind::try_from(env.kind).unwrap_or_default();
+        let key_info = format!("{:?}", kind);
+
+        tracing::debug!("[Redis] PubSub event received: kind={}", key_info);
+
+        if let Err(e) = event_tx.send(env.clone()) {
+          tracing::warn!("[Redis] Failed to broadcast pubsub event: {}", e);
+        }
+      }
+
+      tracing::warn!("[Redis] PubSub listener exited");
+    })
+  }
+
+  pub fn spawn_watch_event_listener(
+    mut rx: UnboundedReceiver<JediEnvelope>,
+    client: SubscriberClient
+  ) -> JoinHandle<()> {
+    tokio::spawn(async move {
+      while let Some(event) = rx.recv().await {
+        let action = match event {
+          WatchEvent::Watch(key) => {
+            let channel = format!("key:{}", key);
+            tracing::info!("[Redis] Subscribing to {channel}");
+            client.subscribe(channel).await
+          }
+          WatchEvent::Unwatch(key) => {
+            let channel = format!("key:{}", key);
+            tracing::info!("[Redis] Unsubscribing from {channel}");
+            client.unsubscribe(channel).await
+          }
+        };
+
+        if let Err(e) = action {
+          tracing::warn!("[Redis] WatchEvent failed: {}", e);
+        }
+      }
+
+      tracing::warn!("[Redis] WatchEvent listener exiting");
+    })
+  }
 }
