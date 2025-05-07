@@ -1,5 +1,5 @@
 use crate::error::JediError;
-use crate::proto::jedi::{MessageKind, JediEnvelope, PayloadFormat };
+use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
 use crate::entity::envelope::{ try_unwrap_flex, wrap_flex };
 use crate::state::temple::TempleState;
 use bytes::Bytes;
@@ -566,15 +566,15 @@ mod faucet_redis {
 
   pub fn spawn_watch_event_listener(
     mut rx: UnboundedReceiver<JediEnvelope>,
-    client: SubscriberClient,
+    client: SubscriberClient
   ) -> JoinHandle<()> {
     tokio::spawn(async move {
       while let Some(env) = rx.recv().await {
         let kind = MessageKind::try_from(env.kind).unwrap_or_default();
-  
+
         if MessageKind::watch(kind.into()) || MessageKind::unwatch(kind.into()) {
           let payload = try_unwrap_payload::<KeyValueInput>(&env);
-  
+
           let key = match payload {
             Ok(kv) => kv.key,
             Err(e) => {
@@ -582,7 +582,7 @@ mod faucet_redis {
               continue;
             }
           };
-  
+
           let channel = format!("key:{}", key);
           let result = if MessageKind::watch(kind.into()) {
             tracing::info!("[Redis] Subscribing to {}", channel);
@@ -591,7 +591,7 @@ mod faucet_redis {
             tracing::info!("[Redis] Unsubscribing from {}", channel);
             client.unsubscribe(channel).await
           };
-  
+
           if let Err(e) = result {
             tracing::warn!("[Redis] Failed to process watch/unwatch: {}", e);
           }
@@ -599,10 +599,8 @@ mod faucet_redis {
           tracing::debug!("[Redis] Ignored non-watch envelope in watch listener: kind={:?}", kind);
         }
       }
-  
+
       tracing::warn!("[Redis] WatchEvent listener exiting");
     })
   }
-  
-  
 }
