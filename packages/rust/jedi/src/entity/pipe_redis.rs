@@ -492,6 +492,7 @@ async fn handle_redis_sub_json(
 
 mod faucet_redis {
   use super::*;
+  use crate::envelope::{EnvelopePipeline, EnvelopeWorkItem};
   use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
   use bytes::Bytes;
   use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
@@ -603,4 +604,27 @@ mod faucet_redis {
       tracing::warn!("[Redis] WatchEvent listener exiting");
     })
   }
+
+
+pub fn spawn_redis_worker(
+  ctx: TempleState,
+  mut rx: tokio::sync::mpsc::Receiver<EnvelopeWorkItem>,
+) -> JoinHandle<()> {
+  tokio::spawn(async move {
+    tracing::info!("[RedisWorker] Spawned");
+
+    while let Some(EnvelopeWorkItem { envelope, response_tx }) = rx.recv().await {
+      let result = envelope.process(&ctx).await;
+
+      if let Some(tx) = response_tx {
+        let _ = tx.send(match result {
+          Ok(env) => env,
+          Err(e) => JediEnvelope::error("RedisWorker", &e.to_string()),
+        });
+      }
+    }
+
+    tracing::warn!("[RedisWorker] Redis worker exiting");
+  })
+}
 }
