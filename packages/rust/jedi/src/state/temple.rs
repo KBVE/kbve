@@ -53,7 +53,6 @@ impl TempleState {
     let watch_manager = WatchManager::new(watch_event_tx);
 
     let (conn, push_rx) = create_pubsub_connection_fred(config.clone()).await?;
-
     let watch_listener_task = spawn_watch_event_listener(watch_event_rx, conn.clone());
     let pubsub_task = spawn_pubsub_listener_task(push_rx, event_tx.clone());
 
