@@ -17,6 +17,7 @@ use async_trait::async_trait;
 use crate::state::temple::TempleState;
 use std::convert::TryFrom;
 use tokio::sync::oneshot;
+use std::borrow::Cow;
 
 /// Wraps a serializable Rust value into a `FlexEnvelope` using Flexbuffers encoding.
 ///
@@ -324,32 +325,30 @@ impl From<RawEnvelope> for JediMessage {
 }
 
 // * Hybrid Envelopes
-
-pub fn wrap_hybrid<T: Serialize>(
-  kind: MessageKind,
+pub fn wrap_hybrid<T, K>(
+  kind: K,
   format: PayloadFormat,
   value: &T,
   metadata: Option<Bytes>,
-
-) -> JediEnvelope {
-  let vec = (
-    match format {
-      PayloadFormat::Json =>
-        serde_json
-          ::to_vec(value)
-          .map_err(|e| JediError::Internal(format!("JSON serialization error: {}", e).into())),
-      PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
-      _ => Err(JediError::Internal("Unsupported format".into())),
-    }
-  ).expect("Serialization failed");
+) -> JediEnvelope
+where
+  T: Serialize,
+  K: Into<i32>,
+{
+  let vec = match format {
+    PayloadFormat::Json =>
+      serde_json::to_vec(value)
+      .map_err(|e| JediError::Internal(Cow::Owned(format!("JSON serialization error: {}", e)))),
+    PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
+    _ => Err(JediError::Internal("Unsupported format".into())),
+  }.expect("Serialization failed");
 
   JediEnvelope {
     version: 1,
-    kind: kind as i32,
+    kind: kind.into(),
     format: format as i32,
     payload: Bytes::from(vec),
     metadata: metadata.unwrap_or_else(Bytes::new),
-
   }
 }
 

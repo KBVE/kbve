@@ -95,13 +95,13 @@ struct XAddInput {
   fields: HashMap<Arc<str>, String>,
 }
 
-#[derive(Debug, Deserialize)]
-struct KeyValueInput {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyValueInput {
   #[serde(with = "serde_arc_str")]
-  key: Arc<str>,
+  pub key: Arc<str>,
   #[serde(with = "serde_arc_str::option")]
-  value: Option<Arc<str>>,
-  ttl: Option<usize>,
+  pub value: Option<Arc<str>>,
+  pub ttl: Option<usize>,
 }
 
 #[derive(Debug, Serialize)]
@@ -490,9 +490,9 @@ async fn handle_redis_sub_json(
   Ok(env.clone())
 }
 
-mod faucet_redis {
+pub mod faucet_redis {
   use super::*;
-  use crate::envelope::{EnvelopePipeline, EnvelopeWorkItem};
+  use crate::envelope::{ EnvelopePipeline, EnvelopeWorkItem };
   use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
   use bytes::Bytes;
   use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
@@ -605,26 +605,25 @@ mod faucet_redis {
     })
   }
 
+  pub fn spawn_redis_worker(
+    ctx: Arc<TempleState>,
+    mut rx: tokio::sync::mpsc::Receiver<EnvelopeWorkItem>
+  ) -> JoinHandle<()> {
+    tokio::spawn(async move {
+      tracing::info!("[RedisWorker] Spawned");
 
-pub fn spawn_redis_worker(
-  ctx: TempleState,
-  mut rx: tokio::sync::mpsc::Receiver<EnvelopeWorkItem>,
-) -> JoinHandle<()> {
-  tokio::spawn(async move {
-    tracing::info!("[RedisWorker] Spawned");
+      while let Some(EnvelopeWorkItem { envelope, response_tx }) = rx.recv().await {
+        let result = envelope.process(&ctx).await;
 
-    while let Some(EnvelopeWorkItem { envelope, response_tx }) = rx.recv().await {
-      let result = envelope.process(&ctx).await;
-
-      if let Some(tx) = response_tx {
-        let _ = tx.send(match result {
-          Ok(env) => env,
-          Err(e) => JediEnvelope::error("RedisWorker", &e.to_string()),
-        });
+        if let Some(tx) = response_tx {
+          let _ = tx.send(match result {
+            Ok(env) => env,
+            Err(e) => JediEnvelope::error("RedisWorker", &e.to_string()),
+          });
+        }
       }
-    }
 
-    tracing::warn!("[RedisWorker] Redis worker exiting");
-  })
-}
+      tracing::warn!("[RedisWorker] Redis worker exiting");
+    })
+  }
 }
