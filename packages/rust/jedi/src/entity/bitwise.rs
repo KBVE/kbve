@@ -1,4 +1,7 @@
 use crate::proto::jedi::{MessageKind, PayloadFormat};
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+
 
 impl MessageKind {
     #[inline(always)]
@@ -32,7 +35,12 @@ macro_rules! define_flag_checks {
 }
 
 macro_rules! define_multi_flag_checks {
-    ($( ($fn_name:ident, [ $( $variant:ident ),+ ]) ),*) => {
+    (
+        $(
+            ($fn_name:ident, $const_name:ident, [ $( $variant:ident ),+ ])
+        ),*
+        $(,)?
+    ) => {
         impl MessageKind {
             $(
                 #[inline(always)]
@@ -40,7 +48,20 @@ macro_rules! define_multi_flag_checks {
                     MessageKind::has_flags(kind, &[ $( MessageKind::$variant ),+ ])
                 }
             )*
+
+            $(
+                pub const $const_name: i32 = 0 $(| MessageKind::$variant as i32)+;
+            )*
         }
+
+        pub static MESSAGE_KIND_MULTI_MAP: Lazy<HashMap<i32, &'static [MessageKind]>> = Lazy::new(|| {
+            let mut map = HashMap::new();
+            $(
+                const $const_name: &[MessageKind] = &[ $( MessageKind::$variant ),+ ];
+                map.insert(MessageKind::$const_name, $const_name);
+            )*
+            map
+        });
     };
 }
 
@@ -79,10 +100,10 @@ define_flag_checks!(
 );
 
 define_multi_flag_checks!(
-    (xadd, [Redis, Stream, Add]),
-    (xread, [Redis, Stream, Read]),
-    (watch, [Redis, Heartbeat, Read, Info]),
-    (unwatch,  [Redis, Heartbeat, Del, Info]),
-    (publish,  [Redis, Message, Action]),
-    (subscribe,[Redis, Message, Read])
+    (xadd,      XADD,      [Redis, Stream, Add]),
+    (xread,     XREAD,     [Redis, Stream, Read]),
+    (watch,     WATCH,     [Redis, Heartbeat, Read, Info]),
+    (unwatch,   UNWATCH,   [Redis, Heartbeat, Del, Info]),
+    (publish,   PUBLISH,   [Redis, Message, Action]),
+    (subscribe, SUBSCRIBE, [Redis, Message, Read]),
 );

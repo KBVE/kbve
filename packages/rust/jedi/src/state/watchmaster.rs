@@ -1,45 +1,65 @@
 use dashmap::DashSet;
-use papaya::{ HashMap, Guard };
+use papaya::HashMap;
 use std::sync::Arc;
-use tokio::sync::mpsc::{ Sender, Receiver };
+use tokio::sync::mpsc::UnboundedSender;
 
-use crate::error::JediError;
+use crate::{
+  error::JediError,
+  proto::jedi::{ JediEnvelope, MessageKind, PayloadFormat },
+  entity::envelope::wrap_hybrid,
+  entity::pipe_redis::KeyValueInput,
+};
 
 pub type ConnId = [u8; 16];
 
 pub type WatchedKeys = Arc<DashSet<Arc<str>>>;
 pub type WatchedConns = Arc<DashSet<ConnId>>;
 
-#[derive(Debug)]
-pub enum WatchEvent {
-  Watch(Arc<str>),
-  Unwatch(Arc<str>),
-}
 
 pub struct WatchManager {
   pub key_to_conns: Arc<HashMap<Arc<str>, WatchedConns>>,
   pub conn_to_keys: Arc<HashMap<ConnId, WatchedKeys>>,
-  pub event_tx: Sender<WatchEvent>,
+  pub event_tx: UnboundedSender<JediEnvelope>,
+  pub format: PayloadFormat,
+
 }
 
+const WATCH_KIND: i32 = MessageKind::Redis as i32
+  | MessageKind::Heartbeat as i32
+  | MessageKind::Read as i32
+  | MessageKind::Info as i32;
+
+const UNWATCH_KIND: i32 = MessageKind::Redis as i32
+  | MessageKind::Heartbeat as i32
+  | MessageKind::Del as i32
+  | MessageKind::Info as i32;
+
 impl WatchManager {
-  pub fn new(event_tx: Sender<WatchEvent>) -> Self {
+  pub fn new(event_tx: UnboundedSender<JediEnvelope>, format: PayloadFormat) -> Self {
     Self {
       key_to_conns: Arc::new(HashMap::default()),
       conn_to_keys: Arc::new(HashMap::default()),
       event_tx,
+      format,
+    }
+  }
+
+   fn emit_watch_event(&self, key: &Arc<str>, kind: i32) {
+    let payload = KeyValueInput {
+      key: Arc::clone(key),
+      value: None,
+      ttl: None,
+    };
+
+    let envelope = wrap_hybrid(kind, self.format, &payload, None);
+
+    if let Err(e) = self.event_tx.send(envelope) {
+      tracing::warn!("[WatchManager] Failed to send watch event: {}", e);
     }
   }
 
   pub fn watch<K: Into<Arc<str>>>(&self, conn_id: ConnId, key: K) -> Result<(), JediError> {
-
     let key = key.into();
-    
-    tracing::debug!(
-      "[WatchManager] conn_id {:?} watching key {:?}",
-      conn_id,
-      key
-    );
 
     let key_guard = self.key_to_conns.guard();
     let conns = self.key_to_conns
@@ -52,7 +72,7 @@ impl WatchManager {
       });
 
     if !conns.insert(conn_id) {
-      return Err(JediError::Internal(format!("Already watching key: {}", key).into()));
+      return Err(JediError::BadRequest("Already watching this key".into()));
     }
 
     let conn_guard = self.conn_to_keys.guard();
@@ -68,7 +88,8 @@ impl WatchManager {
     keys.insert(Arc::clone(&key));
 
     if conns.len() == 1 {
-      let _ = self.event_tx.try_send(WatchEvent::Watch(Arc::clone(&key)));
+      self.emit_watch_event(&key, WATCH_KIND);
+
     }
 
     Ok(())
@@ -85,11 +106,7 @@ impl WatchManager {
       .unwrap_or(false);
 
     if !is_watching {
-      return Err(
-        JediError::Internal(
-          format!("Key `{}` is not being watched by this connection", key_arc).into()
-        )
-      );
+      return Err(JediError::BadRequest("This key is not watched by the connection".into()));
     }
 
     if let Some(conns) = self.key_to_conns.get(&key_arc, &key_guard) {
@@ -97,7 +114,14 @@ impl WatchManager {
       if conns.is_empty() {
         self.key_to_conns.remove(&key_arc, &key_guard);
         last = true;
-        let _ = self.event_tx.try_send(WatchEvent::Unwatch(Arc::clone(&key_arc)));
+
+        let envelope = wrap_hybrid(
+          MessageKind::UNWATCH,
+          PayloadFormat::Json,
+          &serde_json::json!({ "key": key_arc }),
+          None,
+        );
+        let _ = self.event_tx.send(envelope);
       }
     }
 
@@ -112,39 +136,27 @@ impl WatchManager {
     Ok(last)
   }
 
-
   pub fn remove_connection(&self, conn_id: &ConnId) -> Vec<Arc<str>> {
     let removed_keys: Vec<Arc<str>> = {
       let conn_guard = self.conn_to_keys.guard();
       self.conn_to_keys
         .get(conn_id, &conn_guard)
-        .map(|set|
-          set
-            .iter()
-            .map(|k| Arc::clone(k.key()))
-            .collect()
-        )
+        .map(|set| set.iter().map(|k| Arc::clone(k.key())).collect())
         .unwrap_or_default()
     };
-  
+
     removed_keys
       .into_iter()
       .filter_map(|key| match self.unwatch(conn_id, Arc::clone(&key)) {
-        Ok(true) => Some(key),  
+        Ok(true) => Some(key),
         Ok(false) => None,
-        Err(err) => {
-          tracing::warn!(
-            "[Temple] Failed to unwatch key={} for conn={:?}: {}",
-            key,
-            conn_id,
-            err
-          );
+        Err(e) => {
+          tracing::warn!("[WatchManager] Failed to unwatch: key={key}, conn={:?}, err={e}", conn_id);
           None
         }
       })
       .collect()
   }
-
   
 
   pub fn is_watching<K: Into<Arc<str>>>(&self, conn_id: &ConnId, key: K) -> bool {
