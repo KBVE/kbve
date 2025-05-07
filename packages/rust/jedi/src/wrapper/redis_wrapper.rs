@@ -53,7 +53,7 @@ use crate::proto::redis::{
   Field,
 };
 
-use crate::watchmaster::{ WatchEvent, WatchManager };
+use crate::watchmaster::{WatchManager };
 use crate::entity::flex::RedisStreamData;
 
 use crate::entity::serde_arc_str;
@@ -696,67 +696,6 @@ async fn publish_update(pool: &fred::clients::Pool, key: &str, update: RedisKeyU
   }
 }
 
-pub fn spawn_pubsub_listener_task(
-  mut rx: UnboundedReceiver<RedisEventEnvelope>,
-  event_tx: BroadcastSender<RedisEventEnvelope>
-) -> JoinHandle<()> {
-  tracing::info!("[Temple] Spawning Redis PubSub listener task");
-
-  tokio::spawn(async move {
-    while let Some(envelope) = rx.recv().await {
-      tracing::debug!(
-        "[Temple] Received Redis pubsub envelope: channel={}, event={:?}",
-        envelope.channel,
-        envelope.event
-      );
-
-      match event_tx.send(envelope.clone()) {
-        Ok(count) => {
-          tracing::debug!("Event sent to {} WebSocket(s) on channel: {}", count, envelope.channel);
-        }
-        Err(e) => {
-          tracing::warn!("Failed to send RedisEventEnvelope: {}", e);
-        }
-      }
-    }
-
-    tracing::warn!("[Temple] PubSub listener has exited.");
-  })
-}
-
-pub fn spawn_watch_event_listener(
-  mut rx: Receiver<WatchEvent>,
-  client: SubscriberClient
-) -> JoinHandle<()> {
-  tracing::info!("[Temple] Spawning Redis WatchEvent listener task");
-
-  tokio::spawn(async move {
-    while let Some(event) = rx.recv().await {
-      match event {
-        WatchEvent::Watch(key) => {
-          let channel = format!("key:{}", key);
-          tracing::info!("[Temple] Subscribing to Redis channel: {}", channel);
-
-          if let Err(e) = client.subscribe(channel.clone()).await {
-            tracing::error!("[Temple] Failed to subscribe to {channel}: {}", e);
-          }
-        }
-
-        WatchEvent::Unwatch(key) => {
-          let channel = format!("key:{}", key);
-          tracing::info!("[Temple] Unsubscribing from Redis channel: {}", channel);
-
-          if let Err(e) = client.unsubscribe(channel.clone()).await {
-            tracing::error!("[Temple] Failed to unsubscribe from {channel}: {}", e);
-          }
-        }
-      }
-    }
-
-    tracing::warn!("[Temple] Redis WatchEvent listener exiting");
-  })
-}
-// * WatchMaster END
 
 pub fn redis_key_update_value<K, V>(key: K, value: V) -> RedisKeyUpdate
   where K: AsRef<str>, V: AsRef<str>

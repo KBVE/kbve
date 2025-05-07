@@ -39,7 +39,7 @@ impl TempleState {
 
       let (envelope_tx, envelope_rx) = tokio::sync::mpsc::channel(128);
       let (event_tx, _event_rx) = broadcast::channel::<JediEnvelope>(128);
-      let (watch_event_tx, watch_event_rx) = tokio::sync::mpsc::channel(256);
+      let (watch_event_tx, watch_event_rx) = tokio::sync::mpsc::unbounded_channel();
       let watch_manager = WatchManager::new(watch_event_tx);
   
       let (conn, push_rx) = create_pubsub_connection_fred(config.clone()).await?;
