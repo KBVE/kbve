@@ -566,29 +566,43 @@ mod faucet_redis {
 
   pub fn spawn_watch_event_listener(
     mut rx: UnboundedReceiver<JediEnvelope>,
-    client: SubscriberClient
+    client: SubscriberClient,
   ) -> JoinHandle<()> {
     tokio::spawn(async move {
-      while let Some(event) = rx.recv().await {
-        let action = match event {
-          WatchEvent::Watch(key) => {
-            let channel = format!("key:{}", key);
-            tracing::info!("[Redis] Subscribing to {channel}");
+      while let Some(env) = rx.recv().await {
+        let kind = MessageKind::try_from(env.kind).unwrap_or_default();
+  
+        if MessageKind::watch(kind.into()) || MessageKind::unwatch(kind.into()) {
+          let payload = try_unwrap_payload::<KeyValueInput>(&env);
+  
+          let key = match payload {
+            Ok(kv) => kv.key,
+            Err(e) => {
+              tracing::warn!("[Redis] Failed to parse watch/unwatch payload: {}", e);
+              continue;
+            }
+          };
+  
+          let channel = format!("key:{}", key);
+          let result = if MessageKind::watch(kind.into()) {
+            tracing::info!("[Redis] Subscribing to {}", channel);
             client.subscribe(channel).await
-          }
-          WatchEvent::Unwatch(key) => {
-            let channel = format!("key:{}", key);
-            tracing::info!("[Redis] Unsubscribing from {channel}");
+          } else {
+            tracing::info!("[Redis] Unsubscribing from {}", channel);
             client.unsubscribe(channel).await
+          };
+  
+          if let Err(e) = result {
+            tracing::warn!("[Redis] Failed to process watch/unwatch: {}", e);
           }
-        };
-
-        if let Err(e) = action {
-          tracing::warn!("[Redis] WatchEvent failed: {}", e);
+        } else {
+          tracing::debug!("[Redis] Ignored non-watch envelope in watch listener: kind={:?}", kind);
         }
       }
-
+  
       tracing::warn!("[Redis] WatchEvent listener exiting");
     })
   }
+  
+  
 }
