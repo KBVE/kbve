@@ -258,7 +258,7 @@ async fn handle_redis_watch_flex(
     return Err(JediError::BadRequest("Already watching this key".into()));
   }
 
-  ctx.watch_manager.watch(connection_id, key.clone())?;
+  ctx.watch_manager.watch(connection_id, key.clone(), PayloadFormat::Flex)?;
   Ok(env.clone())
 }
 
@@ -274,7 +274,7 @@ async fn handle_redis_unwatch_flex(
     ::extract_connection_id_bytes(&metadata)
     .ok_or_else(|| JediError::BadRequest("Missing connection ID in metadata".into()))?;
 
-  ctx.watch_manager.unwatch(&conn_id, key)?;
+  ctx.watch_manager.unwatch(&conn_id, key, PayloadFormat::Flex)?;
   Ok(env.clone())
 }
 
@@ -447,7 +447,7 @@ async fn handle_redis_watch_json(
     return Err(JediError::BadRequest("Already watching this key".into()));
   }
 
-  ctx.watch_manager.watch(conn_id, key.clone())?;
+  ctx.watch_manager.watch(conn_id, key.clone(), PayloadFormat::Json)?;
   Ok(env.clone())
 }
 
@@ -463,7 +463,7 @@ async fn handle_redis_unwatch_json(
     ::extract_connection_id_json(&metadata)
     .ok_or_else(|| JediError::BadRequest("Missing connection ID in metadata".into()))?;
 
-  ctx.watch_manager.unwatch(&conn_id, key)?;
+  ctx.watch_manager.unwatch(&conn_id, key, PayloadFormat::Json)?;
   Ok(env.clone())
 }
 
