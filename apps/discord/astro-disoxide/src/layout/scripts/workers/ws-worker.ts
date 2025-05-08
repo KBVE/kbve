@@ -8,6 +8,11 @@ interface SharedWorkerGlobalScope extends Worker {
 }
 declare const self: SharedWorkerGlobalScope;
 
+
+type FieldMap = Record<string, string>;
+type StreamRequest = { stream: string; id: string };
+
+
 let dbApi: Remote<LocalStorageAPI> | null = null;
 let ws: WebSocket | null = null;
 let onMessageCallback: ((data: any) => void) | null = null;
@@ -22,6 +27,10 @@ async function connectDbWorker() {
 	dbApi = wrap<LocalStorageAPI>(dbWorker.port);
 	await dbApi.getVersion();
 }
+
+// --- Flexbuffer Builders ---
+
+
 
 
 // --- WebSocket API ---
