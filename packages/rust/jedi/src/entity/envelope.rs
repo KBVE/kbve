@@ -16,6 +16,8 @@ use bytes::Bytes;
 use async_trait::async_trait;
 use crate::state::temple::TempleState;
 use std::convert::TryFrom;
+use tokio::sync::oneshot;
+use std::borrow::Cow;
 
 /// Wraps a serializable Rust value into a `FlexEnvelope` using Flexbuffers encoding.
 ///
@@ -323,32 +325,30 @@ impl From<RawEnvelope> for JediMessage {
 }
 
 // * Hybrid Envelopes
-
-pub fn wrap_hybrid<T: Serialize>(
-  kind: MessageKind,
+pub fn wrap_hybrid<T, K>(
+  kind: K,
   format: PayloadFormat,
   value: &T,
   metadata: Option<Bytes>,
-
-) -> JediEnvelope {
-  let vec = (
-    match format {
-      PayloadFormat::Json =>
-        serde_json
-          ::to_vec(value)
-          .map_err(|e| JediError::Internal(format!("JSON serialization error: {}", e).into())),
-      PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
-      _ => Err(JediError::Internal("Unsupported format".into())),
-    }
-  ).expect("Serialization failed");
+) -> JediEnvelope
+where
+  T: Serialize,
+  K: Into<i32>,
+{
+  let vec = match format {
+    PayloadFormat::Json =>
+      serde_json::to_vec(value)
+      .map_err(|e| JediError::Internal(Cow::Owned(format!("JSON serialization error: {}", e)))),
+    PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
+    _ => Err(JediError::Internal("Unsupported format".into())),
+  }.expect("Serialization failed");
 
   JediEnvelope {
     version: 1,
-    kind: kind as i32,
+    kind: kind.into(),
     format: format as i32,
     payload: Bytes::from(vec),
     metadata: metadata.unwrap_or_else(Bytes::new),
-
   }
 }
 
@@ -374,6 +374,35 @@ impl JediEnvelope {
 
   pub fn metadata_or_empty(&self) -> Bytes {
     self.metadata.clone()
+  }
+
+  pub fn error(source: &str, message: &str) -> Self {
+    let err_obj = serde_json::json!({
+      "error": message,
+      "source": source,
+    });
+
+    // Default to Flex with MessageKind::Error, keep metadata empty
+    wrap_hybrid(
+      MessageKind::Error,
+      PayloadFormat::Flex,
+      &err_obj,
+      None
+    )
+  }
+
+  pub fn error_with_meta(source: &str, message: &str, metadata: Bytes, format: PayloadFormat) -> Self {
+    let err_obj = serde_json::json!({
+      "error": message,
+      "source": source,
+    });
+
+    wrap_hybrid(
+      MessageKind::Error,
+      format,
+      &err_obj,
+      Some(metadata)
+    )
   }
 }
 
@@ -435,5 +464,50 @@ pub fn try_unwrap_payload<T>(env: &JediEnvelope) -> Result<T, JediError>
         .map_err(|e| JediError::Internal(format!("JSON decode error: {e}").into()))
     }
     _ => Err(JediError::Internal("Unsupported PayloadFormat".into())),
+  }
+}
+
+// * Envelope Work Item
+
+#[derive(Debug)]
+pub struct EnvelopeWorkItem {
+  pub envelope: JediEnvelope,
+  pub response_tx: Option<oneshot::Sender<JediEnvelope>>,
+}
+
+
+impl EnvelopeWorkItem {
+  pub async fn handle(self, ctx: &TempleState) {
+    let format = PayloadFormat::try_from(self.envelope.format).unwrap_or(PayloadFormat::Flex);
+    let metadata = self.envelope.metadata_or_empty();
+  
+    let result = self.envelope.process(ctx).await;
+  
+    if let Some(tx) = self.response_tx {
+      let _ = tx.send(match result {
+        Ok(env) => env,
+        Err(e) => JediEnvelope::error_with_meta("EnvelopeWorker", &e.to_string(), metadata, format),
+      });
+    }
+  }
+
+  pub fn with_response(
+    envelope: JediEnvelope
+  ) -> (Self, oneshot::Receiver<JediEnvelope>) {
+    let (tx, rx) = oneshot::channel();
+    (
+      EnvelopeWorkItem {
+        envelope,
+        response_tx: Some(tx),
+      },
+      rx,
+    )
+  }
+
+  pub fn fire_and_forget(envelope: JediEnvelope) -> Self {
+    EnvelopeWorkItem {
+      envelope,
+      response_tx: None,
+    }
   }
 }

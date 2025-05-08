@@ -2,18 +2,28 @@ use axum::{
     extract::{State, Json},
     response::IntoResponse,
 };
-
-
 use axum::Router;
 use axum::routing::post;
 
 use jedi::{wrapper::{redis_key_update_from_get, RedisEnvelope}};
+use jedi::entity::envelope::wrap_hybrid;
+use jedi::proto::jedi::{MessageKind, PayloadFormat, JediEnvelope};
+
 use std::sync::Arc;
+
+use bytes::Bytes;
+
 use crate::entity::state::{SharedState};
 
 use jedi::proto::redis::{SetCommand as RedisSetPayload, GetCommand as RedisGetPayload, RedisResponse, RedisKeyUpdate};
 
-
+fn wrap_redis_json_command_with_meta<T: serde::Serialize>(
+    kind: i32,
+    payload: &T,
+    metadata: Option<Bytes>,
+) -> JediEnvelope {
+    wrap_hybrid(kind, PayloadFormat::Json, payload, metadata)
+}
 
 pub async fn redis_set(
     State(state): State<SharedState>,

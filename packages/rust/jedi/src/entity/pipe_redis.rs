@@ -1,5 +1,5 @@
 use crate::error::JediError;
-use crate::proto::jedi::{MessageKind, JediEnvelope, PayloadFormat };
+use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
 use crate::entity::envelope::{ try_unwrap_flex, wrap_flex };
 use crate::state::temple::TempleState;
 use bytes::Bytes;
@@ -95,13 +95,13 @@ struct XAddInput {
   fields: HashMap<Arc<str>, String>,
 }
 
-#[derive(Debug, Deserialize)]
-struct KeyValueInput {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyValueInput {
   #[serde(with = "serde_arc_str")]
-  key: Arc<str>,
+  pub key: Arc<str>,
   #[serde(with = "serde_arc_str::option")]
-  value: Option<Arc<str>>,
-  ttl: Option<usize>,
+  pub value: Option<Arc<str>>,
+  pub ttl: Option<usize>,
 }
 
 #[derive(Debug, Serialize)]
@@ -258,7 +258,7 @@ async fn handle_redis_watch_flex(
     return Err(JediError::BadRequest("Already watching this key".into()));
   }
 
-  ctx.watch_manager.watch(connection_id, key.clone())?;
+  ctx.watch_manager.watch(connection_id, key.clone(), PayloadFormat::Flex)?;
   Ok(env.clone())
 }
 
@@ -274,7 +274,7 @@ async fn handle_redis_unwatch_flex(
     ::extract_connection_id_bytes(&metadata)
     .ok_or_else(|| JediError::BadRequest("Missing connection ID in metadata".into()))?;
 
-  ctx.watch_manager.unwatch(&conn_id, key)?;
+  ctx.watch_manager.unwatch(&conn_id, key, PayloadFormat::Flex)?;
   Ok(env.clone())
 }
 
@@ -447,7 +447,7 @@ async fn handle_redis_watch_json(
     return Err(JediError::BadRequest("Already watching this key".into()));
   }
 
-  ctx.watch_manager.watch(conn_id, key.clone())?;
+  ctx.watch_manager.watch(conn_id, key.clone(), PayloadFormat::Json)?;
   Ok(env.clone())
 }
 
@@ -463,7 +463,7 @@ async fn handle_redis_unwatch_json(
     ::extract_connection_id_json(&metadata)
     .ok_or_else(|| JediError::BadRequest("Missing connection ID in metadata".into()))?;
 
-  ctx.watch_manager.unwatch(&conn_id, key)?;
+  ctx.watch_manager.unwatch(&conn_id, key, PayloadFormat::Json)?;
   Ok(env.clone())
 }
 
@@ -490,8 +490,9 @@ async fn handle_redis_sub_json(
   Ok(env.clone())
 }
 
-mod faucet_redis {
+pub mod faucet_redis {
   use super::*;
+  use crate::envelope::{ EnvelopePipeline, EnvelopeWorkItem };
   use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
   use bytes::Bytes;
   use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
@@ -569,26 +570,60 @@ mod faucet_redis {
     client: SubscriberClient
   ) -> JoinHandle<()> {
     tokio::spawn(async move {
-      while let Some(event) = rx.recv().await {
-        let action = match event {
-          WatchEvent::Watch(key) => {
-            let channel = format!("key:{}", key);
-            tracing::info!("[Redis] Subscribing to {channel}");
-            client.subscribe(channel).await
-          }
-          WatchEvent::Unwatch(key) => {
-            let channel = format!("key:{}", key);
-            tracing::info!("[Redis] Unsubscribing from {channel}");
-            client.unsubscribe(channel).await
-          }
-        };
+      while let Some(env) = rx.recv().await {
+        let kind = MessageKind::try_from(env.kind).unwrap_or_default();
 
-        if let Err(e) = action {
-          tracing::warn!("[Redis] WatchEvent failed: {}", e);
+        if MessageKind::watch(kind.into()) || MessageKind::unwatch(kind.into()) {
+          let payload = try_unwrap_payload::<KeyValueInput>(&env);
+
+          let key = match payload {
+            Ok(kv) => kv.key,
+            Err(e) => {
+              tracing::warn!("[Redis] Failed to parse watch/unwatch payload: {}", e);
+              continue;
+            }
+          };
+
+          let channel = format!("key:{}", key);
+          let result = if MessageKind::watch(kind.into()) {
+            tracing::info!("[Redis] Subscribing to {}", channel);
+            client.subscribe(channel).await
+          } else {
+            tracing::info!("[Redis] Unsubscribing from {}", channel);
+            client.unsubscribe(channel).await
+          };
+
+          if let Err(e) = result {
+            tracing::warn!("[Redis] Failed to process watch/unwatch: {}", e);
+          }
+        } else {
+          tracing::debug!("[Redis] Ignored non-watch envelope in watch listener: kind={:?}", kind);
         }
       }
 
       tracing::warn!("[Redis] WatchEvent listener exiting");
+    })
+  }
+
+  pub fn spawn_redis_worker(
+    ctx: Arc<TempleState>,
+    mut rx: tokio::sync::mpsc::Receiver<EnvelopeWorkItem>
+  ) -> JoinHandle<()> {
+    tokio::spawn(async move {
+      tracing::info!("[RedisWorker] Spawned");
+
+      while let Some(EnvelopeWorkItem { envelope, response_tx }) = rx.recv().await {
+        let result = envelope.process(&ctx).await;
+
+        if let Some(tx) = response_tx {
+          let _ = tx.send(match result {
+            Ok(env) => env,
+            Err(e) => JediEnvelope::error("RedisWorker", &e.to_string()),
+          });
+        }
+      }
+
+      tracing::warn!("[RedisWorker] Redis worker exiting");
     })
   }
 }
