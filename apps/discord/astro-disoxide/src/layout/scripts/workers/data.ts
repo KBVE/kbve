@@ -125,7 +125,42 @@ export function hasKind(kind: number, flag: number): boolean {
 }
 
 
-//
+//	Redis Helpers
+
+export function wrapRedisSet(key: string, value: string): Uint8Array {
+	return wrapEnvelope(
+		{ set: { key, value } },
+		MessageKind.SET | MessageKind.REDIS,
+		PayloadFormat.FLEX
+	);
+}
+
+export function wrapRedisGet(key: string): Uint8Array {
+	return wrapEnvelope(
+		{ get: { key } },
+		MessageKind.GET | MessageKind.REDIS,
+		PayloadFormat.FLEX
+	);
+}
+
+export function wrapRedisDel(key: string): Uint8Array {
+	return wrapEnvelope(
+		{ del: { key } },
+		MessageKind.DEL | MessageKind.REDIS,
+		PayloadFormat.FLEX
+	);
+}
+
+export function parseRedisPayload<T = unknown>(envelopeBytes: Uint8Array): {
+	envelope: JediEnvelopeFlex;
+	payload: T;
+} {
+	const result = unwrapEnvelope<T>(envelopeBytes);
+	if (!hasKind(result.envelope.kind, MessageKind.REDIS)) {
+		throw new Error('[Redis] Not a Redis envelope');
+	}
+	return result;
+}
 
 export const scopeData = {
 	wrapEnvelope,
@@ -135,6 +170,12 @@ export const scopeData = {
 	unwrapFlexToJson,
 	inspectFlex,
 	hasKind,
+    redis: {
+		wrapRedisSet,
+		wrapRedisGet,
+		wrapRedisDel,
+		parseRedisPayload,
+	}
 };
 
 export type FlexDataAPI = typeof scopeData;
