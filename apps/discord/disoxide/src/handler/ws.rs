@@ -12,16 +12,17 @@ use tokio::sync::{ oneshot, Mutex };
 // use tokio::sync::broadcast;
 use crate::entity::state::{ AppGlobalState, SharedState };
 use tokio::sync::mpsc::{ channel, Sender };
-use jedi::wrapper::{
-  add_watch_key, build_redis_envelope_from_ws, extract_watch_command_key, parse_incoming_ws_data, parse_ws_command, redis_key_update_from_command, redis_ws_error_msg, redis_ws_update_msg, send_ws_error, Either, RedisWsRequestContext
-};
 
-use jedi::proto::redis::{
-  RedisKeyUpdate,
-  RedisWsMessage,
-  RedisEventObject,
-  redis_event_object::Object,
-};
+// use jedi::wrapper::{
+//   add_watch_key, build_redis_envelope_from_ws, extract_watch_command_key, parse_incoming_ws_data, parse_ws_command, redis_key_update_from_command, redis_ws_error_msg, redis_ws_update_msg, send_ws_error, Either, RedisWsRequestContext
+// };
+
+// use jedi::proto::redis::{
+//   RedisKeyUpdate,
+//   RedisWsMessage,
+//   RedisEventObject,
+//   redis_event_object::Object,
+// };
 
 use jedi::entity::ulid::ConnectionId;
 use jedi::watchmaster::WatchManager;
@@ -40,7 +41,7 @@ async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
   let conn_id_bytes = conn_id.as_bytes();
 
   let (socket_tx, mut socket_rx) = socket.split();
-  let (ws_tx, mut ws_rx): (Sender<Message>, _) = channel(64); // You can adjust the buffer size
+  let (ws_tx, mut ws_rx): (Sender<Message>, _) = channel(64);
 
   let mut redis_rx = state.temple.subscribe_events();
   let state_recv = Arc::clone(&state);
