@@ -1,6 +1,7 @@
 import { expose } from 'comlink';
 import Dexie, { type Table } from 'dexie';
 import type { DiscordServer, DiscordTag, Profile } from 'src/content/config';
+import { toReference } from './flexbuilder';
 
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
@@ -15,10 +16,11 @@ class AppDexie extends Dexie {
 	servers!: Table<DiscordServer, string>;
 	tags!: Table<DiscordTag, string>;
 	profiles!: Table<Profile, string>;
+	ws_messages!: Table<{ key: string; message: any }, string>;
 
 	constructor() {
 		super('AppStorage');
-		this.version(2).stores({
+		this.version(3).stores({
 			settings: '&id',
 			meta: '&key',
 			i18n: '&key',
@@ -26,6 +28,7 @@ class AppDexie extends Dexie {
 			servers: '&server_id',
 			tags: '&tag_id',
 			profiles: '&profile_id',
+			ws_messages: '&key',
 		});
 	}
 }
@@ -48,6 +51,26 @@ function renderHtmlForServer(server: DiscordServer): string {
 
 // --- Comlink-Safe API ---
 const storageAPI = {
+
+	// WebSocket
+
+	async storeWsMessage(key: string, buffer: ArrayBuffer) {
+		const decoded = toReference(buffer).toObject();
+		await db.ws_messages.put({ key, message: decoded });
+	},
+
+	async getWsMessage(key: string) {
+		return (await db.ws_messages.get(key))?.message ?? null;
+	},
+	
+	async getAllWsMessages(): Promise<{ key: string; message: any }[]> {
+	return await db.ws_messages.toArray();
+	},
+	
+	async clearWsMessages() {
+		await db.ws_messages.clear();
+	},
+
 	// I18n
 	async getTranslation(key: string) {
 		return (await db.i18n.get(key))?.value ?? null;
