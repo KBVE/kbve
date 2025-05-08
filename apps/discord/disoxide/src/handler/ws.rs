@@ -7,7 +7,7 @@ use axum::{
 };
 use futures_util::{ StreamExt, SinkExt };
 use std::{ sync::Arc, ops::ControlFlow };
-use tokio::sync::{ oneshot, Mutex };
+use tokio::{pin, sync::{ oneshot, Mutex }};
 
 // use tokio::sync::broadcast;
 use crate::entity::state::{ AppGlobalState, SharedState };
@@ -77,7 +77,10 @@ pub async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
               Ok(mut env) => {
                 // Inject connection ID into metadata
                 env = env.with_metadata(Bytes::copy_from_slice(&conn_id_bytes));
-
+              
+                let meta = env.metadata_or_empty();
+                let format = PayloadFormat::try_from(env.format).unwrap_or(PayloadFormat::Flex);
+              
                 match env.process(&state.temple).await {
                   Ok(out_env) => {
                     if let Ok(response_msg) = out_env.to_ws_message() {
@@ -85,7 +88,7 @@ pub async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
                     }
                   }
                   Err(e) => {
-                    let err_env = JediEnvelope::error_with_meta("WebSocket", &e.to_string(), env.metadata_or_empty(), env.format.try_into().unwrap_or_default());
+                    let err_env = JediEnvelope::error_with_meta("WebSocket", &e.to_string(), meta, format);
                     if let Ok(err_msg) = err_env.to_ws_message() {
                       let _ = ws_tx.send(err_msg).await;
                     }
@@ -115,21 +118,25 @@ pub async fn handle_websocket(socket: WebSocket, state: Arc<AppGlobalState>) {
     }
   });
 
+  pin!(redis_task);
+  pin!(send_task);
+  pin!(recv_task);
   // Drive all tasks
   tokio::select! {
-    _ = redis_task => {
+    _ = &mut redis_task => {
       send_task.abort();
       recv_task.abort();
     }
-    _ = send_task => {
+    _ = &mut send_task => {
       redis_task.abort();
       recv_task.abort();
     }
-    _ = recv_task => {
+    _ = &mut recv_task => {
       redis_task.abort();
       send_task.abort();
     }
   }
+  
 
   tracing::info!("[WebSocket] Closed: {}", conn_id.as_str());
 }

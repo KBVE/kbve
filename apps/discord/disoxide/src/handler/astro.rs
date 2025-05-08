@@ -2,9 +2,12 @@ use askama::Template;
 use axum::{http::StatusCode, response::{Html, IntoResponse}};
 use crate::entity::state::SharedState;
 use axum::extract::Path;
-use jedi::wrapper::RedisEnvelope;
+use jedi::{envelope::EnvelopePipeline, wrapper::RedisEnvelope};
 use std::borrow::Cow;
-
+use jedi::{
+    proto::jedi::{MessageKind, PayloadFormat},
+    entity::envelope::{wrap_hybrid, try_unwrap_payload},
+  };
 
 #[derive(Template)]
 #[template(path = "../dist/askama/index.html")]
@@ -47,13 +50,26 @@ async fn get_content(state: &SharedState, path: &str) -> String {
         return "(400) Invalid path".to_string();
     };
 
-    let envelope = RedisEnvelope::get(key);
-    match envelope.process(&state.temple.redis_pool).await {
-        Ok(response) if !response.value.is_empty() => response.value,
-        _ => format!("(404) No content found for '{}'", path),
+    let payload = serde_json::json!({ "key": key });
+    let kind = MessageKind::Redis as i32 | MessageKind::Get as i32;
+    let envelope = wrap_hybrid(kind, PayloadFormat::Json, &payload, None);
+
+    match envelope.process(&state.temple).await {
+        Ok(env) => {
+            #[derive(serde::Deserialize)]
+            struct RedisResult {
+                key: String,
+                value: Option<String>,
+            }
+
+            match try_unwrap_payload::<RedisResult>(&env) {
+                Ok(data) => data.value.unwrap_or_else(|| "(404) Key found, but value is empty".into()),
+                Err(_) => "(500) Failed to decode Redis response".into(),
+            }
+        }
+        Err(_) => format!("(404) No content found for '{}'", path),
     }
 }
-
 
 fn render_template<T: Template>(template: T) -> Result<Html<String>, StatusCode> {
     template
