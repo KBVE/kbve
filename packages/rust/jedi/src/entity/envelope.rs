@@ -11,13 +11,18 @@ use crate::proto::jedi::{
 };
 use crate::entity::hash::HashPayload;
 use crate::error::JediError;
+use crate::watchmaster::{ ConnId, WatchManager };
 use serde::{ Serialize, Deserialize };
 use bytes::Bytes;
 use async_trait::async_trait;
 use crate::state::temple::TempleState;
 use std::convert::TryFrom;
+use std::sync::Arc;
 use tokio::sync::oneshot;
+use axum::extract::ws::{ Message, Utf8Bytes };
 use std::borrow::Cow;
+
+use super::pipe_redis::KeyValueInput;
 
 /// Wraps a serializable Rust value into a `FlexEnvelope` using Flexbuffers encoding.
 ///
@@ -329,19 +334,21 @@ pub fn wrap_hybrid<T, K>(
   kind: K,
   format: PayloadFormat,
   value: &T,
-  metadata: Option<Bytes>,
-) -> JediEnvelope
-where
-  T: Serialize,
-  K: Into<i32>,
+  metadata: Option<Bytes>
+)
+  -> JediEnvelope
+  where T: Serialize, K: Into<i32>
 {
-  let vec = match format {
-    PayloadFormat::Json =>
-      serde_json::to_vec(value)
-      .map_err(|e| JediError::Internal(Cow::Owned(format!("JSON serialization error: {}", e)))),
-    PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
-    _ => Err(JediError::Internal("Unsupported format".into())),
-  }.expect("Serialization failed");
+  let vec = (
+    match format {
+      PayloadFormat::Json =>
+        serde_json
+          ::to_vec(value)
+          .map_err(|e| JediError::Internal(Cow::Owned(format!("JSON serialization error: {}", e)))),
+      PayloadFormat::Flex => Ok(HashPayload::from(value).into_vec()),
+      _ => Err(JediError::Internal("Unsupported format".into())),
+    }
+  ).expect("Serialization failed");
 
   JediEnvelope {
     version: 1,
@@ -366,7 +373,7 @@ impl From<JediEnvelope> for JediMessage {
 
 /// Core Functions
 
-impl JediEnvelope { 
+impl JediEnvelope {
   pub fn with_metadata(mut self, meta: Bytes) -> Self {
     self.metadata = meta;
     self
@@ -383,29 +390,92 @@ impl JediEnvelope {
     });
 
     // Default to Flex with MessageKind::Error, keep metadata empty
-    wrap_hybrid(
-      MessageKind::Error,
-      PayloadFormat::Flex,
-      &err_obj,
-      None
-    )
+    wrap_hybrid(MessageKind::Error, PayloadFormat::Flex, &err_obj, None)
   }
 
-  pub fn error_with_meta(source: &str, message: &str, metadata: Bytes, format: PayloadFormat) -> Self {
+  pub fn error_with_meta(
+    source: &str,
+    message: &str,
+    metadata: Bytes,
+    format: PayloadFormat
+  ) -> Self {
     let err_obj = serde_json::json!({
       "error": message,
       "source": source,
     });
 
-    wrap_hybrid(
-      MessageKind::Error,
-      format,
-      &err_obj,
-      Some(metadata)
-    )
+    wrap_hybrid(MessageKind::Error, format, &err_obj, Some(metadata))
+  }
+
+  pub fn to_ws_message(&self) -> Result<Message, JediError> {
+    let format = PayloadFormat::try_from(self.format).map_err(|_|
+      JediError::Internal("Invalid PayloadFormat".into())
+    )?;
+
+    match format {
+      PayloadFormat::Flex => Ok(Message::Binary(self.payload.clone().into())),
+      PayloadFormat::Json => {
+        let text = std::str
+          ::from_utf8(&self.payload)
+          .map_err(|_| JediError::Internal("Invalid UTF-8 payload".into()))?;
+        Ok(Message::Text(Utf8Bytes::from(text)))
+      }
+      _ => Err(JediError::Internal("Unsupported WebSocket format".into())),
+    }
+  }
+
+  pub fn from_ws_message(msg: &Message) -> Result<Self, JediError> {
+    let (payload, format) = match msg {
+      Message::Text(text) => (Bytes::copy_from_slice(text.as_bytes()), PayloadFormat::Json),
+      Message::Binary(bin) => (Bytes::copy_from_slice(bin), PayloadFormat::Flex),
+      _ => {
+        return Err(JediError::BadRequest("Unsupported WebSocket message type".into()));
+      }
+    };
+
+    let env = match format {
+      PayloadFormat::Json => {
+        serde_json
+          ::from_slice(&payload)
+          .map_err(|e| JediError::Internal(format!("Failed to parse JSON envelope: {e}").into()))?
+      }
+      PayloadFormat::Flex => {
+        let reader = flexbuffers::Reader
+          ::get_root(&*payload)
+          .map_err(|e| JediError::Internal(format!("Flexbuffer root error: {e}").into()))?;
+        JediEnvelope::deserialize(reader).map_err(|e|
+          JediError::Internal(format!("Flexbuffer decode error: {e}").into())
+        )?
+      }
+      _ => {
+        return Err(JediError::Internal("Unsupported format".into()));
+      }
+    };
+
+    Ok(env)
+  }
+
+  pub fn extract_key_if_watched(
+    &self,
+    watch_manager: &WatchManager,
+    conn_id: &ConnId
+  ) -> Result<Option<Arc<str>>, JediError> {
+    let kind = MessageKind::try_from(self.kind).map_err(|_|
+      JediError::Internal("Invalid MessageKind".into())
+    )?;
+
+    if !MessageKind::redis(kind.into()) {
+      return Ok(None);
+    }
+
+    let payload = try_unwrap_payload::<KeyValueInput>(self)?;
+    if watch_manager.is_watching(conn_id, &*payload.key) {
+      Ok(Some(payload.key))
+    } else {
+      Ok(None)
+    }
   }
 }
-
 
 #[async_trait]
 pub trait EnvelopePipeline {
@@ -418,27 +488,26 @@ pub trait EnvelopePipeline {
 
 #[async_trait]
 impl EnvelopePipeline for JediEnvelope {
- 
   async fn process(self, ctx: &TempleState) -> Result<Self, JediError> {
-    let kind = MessageKind::try_from(self.kind)
-      .map_err(|_| JediError::Internal("Invalid MessageKind".into()))?;
+    let kind = MessageKind::try_from(self.kind).map_err(|_|
+      JediError::Internal("Invalid MessageKind".into())
+    )?;
 
-      if (kind as i32) & (MessageKind::Redis as i32) != 0 {
-        return super::pipe_redis::pipe_redis(self, ctx).await;
-      }
-
-      Err(JediError::Internal("Unsupported MessageKind for EnvelopePipeline".into()))
+    if ((kind as i32) & (MessageKind::Redis as i32)) != 0 {
+      return super::pipe_redis::pipe_redis(self, ctx).await;
     }
 
-
-    fn emit(self) -> Result<JediEnvelope, JediError> {
-      Ok(self)
-    }
-
-    fn publish(&self, _ctx: &TempleState) -> Result<(), JediError> {
-      Ok(())
-    }
+    Err(JediError::Internal("Unsupported MessageKind for EnvelopePipeline".into()))
   }
+
+  fn emit(self) -> Result<JediEnvelope, JediError> {
+    Ok(self)
+  }
+
+  fn publish(&self, _ctx: &TempleState) -> Result<(), JediError> {
+    Ok(())
+  }
+}
 
 // * New Helper Methods
 
@@ -475,14 +544,13 @@ pub struct EnvelopeWorkItem {
   pub response_tx: Option<oneshot::Sender<JediEnvelope>>,
 }
 
-
 impl EnvelopeWorkItem {
   pub async fn handle(self, ctx: &TempleState) {
     let format = PayloadFormat::try_from(self.envelope.format).unwrap_or(PayloadFormat::Flex);
     let metadata = self.envelope.metadata_or_empty();
-  
+
     let result = self.envelope.process(ctx).await;
-  
+
     if let Some(tx) = self.response_tx {
       let _ = tx.send(match result {
         Ok(env) => env,
@@ -491,9 +559,7 @@ impl EnvelopeWorkItem {
     }
   }
 
-  pub fn with_response(
-    envelope: JediEnvelope
-  ) -> (Self, oneshot::Receiver<JediEnvelope>) {
+  pub fn with_response(envelope: JediEnvelope) -> (Self, oneshot::Receiver<JediEnvelope>) {
     let (tx, rx) = oneshot::channel();
     (
       EnvelopeWorkItem {
