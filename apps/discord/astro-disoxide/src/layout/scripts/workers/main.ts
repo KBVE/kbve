@@ -5,8 +5,9 @@ import type { LocalStorageAPI } from './db-worker';
 import type { WSInstance } from './ws-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
+import { scopeData } from './data';
 
-const EXPECTED_DB_VERSION = '1.0.2';
+const EXPECTED_DB_VERSION = '1.0.3';
 
 //  * WebSocket
 async function initWsComlink(): Promise<Remote<WSInstance>> {
@@ -242,11 +243,11 @@ export async function main() {
 	if (!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux) {
 		const api = await initStorageComlink();
 		const ws = await initWsComlink();
-		
+		const data = scopeData;
 		i18n.api = api;
 		i18n.ready = i18n.hydrateLocale('en');
 
-		window.kbve = { api, i18n, uiux, ws };
+		window.kbve = { api, i18n, uiux, ws, data};
 		console.log('[KBVE] Global API ready');
 	} else {
 		console.log('[KBVE] Already initialized');
