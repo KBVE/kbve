@@ -16,6 +16,7 @@ use bytes::Bytes;
 use async_trait::async_trait;
 use crate::state::temple::TempleState;
 use std::convert::TryFrom;
+use std::sync::Arc;
 use tokio::sync::oneshot;
 use axum::extract::ws::{ Message, Utf8Bytes };
 use std::borrow::Cow;
@@ -442,6 +443,19 @@ impl JediEnvelope {
     };
   
     Ok(env)
+  }
+
+  pub fn extract_key_if_watched(&self) -> Option<Arc<str>> {
+    if let Ok(kind) = PayloadFormat::try_from(self.format)
+      .and_then(|_| MessageKind::try_from(self.kind))
+    {
+      if MessageKind::redis(kind.into()) {
+        if let Ok(payload) = try_unwrap_payload::<crate::entity::pipe_redis::KeyValueInput>(self) {
+          return Some(payload.key);
+        }
+      }
+    }
+    None
   }
 }
 
