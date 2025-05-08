@@ -2,10 +2,21 @@ import { wrap } from 'comlink';
 import type { Remote } from 'comlink';
 import { persistentMap } from '@nanostores/persistent';
 import type { LocalStorageAPI } from './db-worker';
+import type { WSInstance } from './ws-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
 
 const EXPECTED_DB_VERSION = '1.0.2';
+
+//  * WebSocket
+async function initWsComlink(): Promise<Remote<WSInstance>> {
+	const worker = new SharedWorker(new URL('./ws-worker', import.meta.url), {
+		type: 'module',
+	});
+	worker.port.start();
+	return wrap<WSInstance>(worker.port);
+}
+
 
 //	* Interface
 
@@ -230,11 +241,12 @@ export async function main() {
 
 	if (!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux) {
 		const api = await initStorageComlink();
-
+		const ws = await initWsComlink();
+		
 		i18n.api = api;
 		i18n.ready = i18n.hydrateLocale('en');
 
-		window.kbve = { api, i18n, uiux };
+		window.kbve = { api, i18n, uiux, ws };
 		console.log('[KBVE] Global API ready');
 	} else {
 		console.log('[KBVE] Already initialized');
