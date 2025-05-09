@@ -51,6 +51,7 @@ export enum MessageKind {
 	AI              = 1 << 22,
 }
 
+// ! GENERIC BROKEN 
 export function wrapEnvelope<T>(
 	payload: T,
 	kind: number,
@@ -76,6 +77,37 @@ export function wrapEnvelope<T>(
 	b.addKey('format'); b.add(format);
 	b.addKey('payload'); b.add(serializedPayload);
 	b.addKey('metadata'); b.add(metadata ?? new Uint8Array());
+	b.end();
+
+	return b.finish();
+}
+
+export function wrapEnvelopeRedisGETFlex(key: string): Uint8Array {
+	const payloadBuilder = builder();
+	payloadBuilder.startMap();
+	payloadBuilder.addKey('get');
+	payloadBuilder.startMap();
+	payloadBuilder.addKey('key');
+	payloadBuilder.add(key);
+	payloadBuilder.end();
+	payloadBuilder.end();
+
+	const payloadBytes = payloadBuilder.finish();
+
+	const b = builder();
+	b.startMap();
+	b.addKey('version');
+	b.add(1);
+	b.addKey('kind');
+	b.add(MessageKind.GET | MessageKind.REDIS);
+	b.addKey('format');
+	b.add(PayloadFormat.FLEX);
+
+	b.addKey('payload');
+	b.add(new Uint8Array(payloadBytes)); 
+
+	b.addKey('metadata');
+	b.add(new Uint8Array());
 	b.end();
 
 	return b.finish();
@@ -136,11 +168,7 @@ export function wrapRedisSet(key: string, value: string): Uint8Array {
 }
 
 export function wrapRedisGet(key: string): Uint8Array {
-	return wrapEnvelope(
-		{ get: { key } },
-		MessageKind.GET | MessageKind.REDIS,
-		PayloadFormat.FLEX
-	);
+	return wrapEnvelopeRedisGETFlex(key);
 }
 
 export function wrapRedisDel(key: string): Uint8Array {
