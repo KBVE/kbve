@@ -252,22 +252,59 @@ async fn handle_redis_xread_flex(
   env: &JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
-  let input = try_unwrap_payload::<XReadStreamInput>(env)?;
+
+  let input = try_unwrap_payload::<XReadStreamInput>(env).map_err(|e| {
+    tracing::error!("Deserialization error: {:?}", e);
+    JediError::Parse(e.to_string())
+})?;
+
+
+  let (keys, ids): (Vec<&str>, Vec<&str>) = input
+        .streams
+        .iter()
+        .filter_map(|s| {
+            if s.stream.is_empty() || s.id.is_empty() {
+              tracing::warn!("Invalid stream or id: stream={}, id={}", s.stream, s.id);
+                return None;
+            }
+            if !s.id.chars().all(|c| c.is_ascii_digit() || c == '-' || c == '$') {
+              tracing::warn!("Invalid id format: {}", s.id);
+                return None;
+            }
+            Some((s.stream.as_ref(), s.id.as_ref()))
+        })
+        .unzip();
+
+  if keys.is_empty() {
+          tracing::error!("No valid streams provided"); // [DEBUG] REMOVING
+          return Err(JediError::Internal("No valid streams provided".into()));
+      }
+
+  tracing::debug!(
+    "XREAD inputs: keys={:?}, ids={:?}, count={:?}, block={:?}",
+    keys,
+    ids,
+    input.count,
+    input.block
+  ); // [DEBUG] REMOVING
+
   let client = ctx.redis_pool.next().clone();
 
-  let (keys, ids): (Vec<&str>, Vec<&str>) = input.streams
-    .iter()
-    .map(|s| (s.stream.as_ref(), s.id.as_ref()))
-    .unzip();
+  let raw_result = client
+  .xread_map(Some(input.count.unwrap_or(10)), input.block, keys, ids)
+  .await;
 
-  let result: HashMap<String, Vec<(String, HashMap<String, Vec<u8>>)>> = client.xread_map(
-    Some(input.count.unwrap_or(10)),
-    input.block,
-    keys,
-    ids
-  ).await?;
+  tracing::debug!("Raw XREAD result: {:?}", raw_result);
+
+  let result: HashMap<String, Vec<(String, HashMap<String, Vec<u8>>)>> = raw_result
+        .map_err(|e| {
+            tracing::error!("XREAD error: {:?}", e);
+            JediError::Database(format!("Redis error: {}", e).into())
+        })
+        .unwrap_or(HashMap::new());
 
   let bytes = serialize_to_flex_bytes(&result)?;
+
   Ok(wrap_hybrid(
     MessageKind::Read as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32,
     PayloadFormat::Flex,
