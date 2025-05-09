@@ -153,7 +153,7 @@ pub async fn handle_redis_flex(
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
   let kind = MessageKind::try_from(env.kind).map_err(|_|
-    JediError::Internal("Invalid MessageKind".into())
+    JediError::Internal("Invalid MessageKind via Handle Redis Flex".into())
   )?;
 
   match_redis_handlers_flex!(kind.into(), &env, ctx)
@@ -307,7 +307,7 @@ pub async fn handle_redis_json(
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
   let kind = MessageKind::try_from(env.kind).map_err(|_|
-    JediError::Internal("Invalid MessageKind".into())
+    JediError::Internal("Invalid MessageKind via Handle Redis JSON".into())
   )?;
 
   match_redis_handlers_json!(kind.into(), &env, ctx)

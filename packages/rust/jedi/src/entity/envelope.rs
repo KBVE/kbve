@@ -461,7 +461,7 @@ impl JediEnvelope {
     conn_id: &ConnId
   ) -> Result<Option<Arc<str>>, JediError> {
     let kind = MessageKind::try_from(self.kind).map_err(|_|
-      JediError::Internal("Invalid MessageKind".into())
+      JediError::Internal("Invalid MessageKind via Extract Key".into())
     )?;
 
     if !MessageKind::redis(kind.into()) {
@@ -490,7 +490,7 @@ pub trait EnvelopePipeline {
 impl EnvelopePipeline for JediEnvelope {
   async fn process(self, ctx: &TempleState) -> Result<Self, JediError> {
     let kind = MessageKind::try_from(self.kind).map_err(|_|
-      JediError::Internal("Invalid MessageKind".into())
+      JediError::Internal("Invalid MessageKind via EnvelopePipeline".into())
     )?;
 
     if ((kind as i32) & (MessageKind::Redis as i32)) != 0 {
