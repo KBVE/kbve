@@ -51,64 +51,48 @@ export enum MessageKind {
 	AI              = 1 << 22,
 }
 
-// ! GENERIC BROKEN 
-export function wrapEnvelope<T>(
+function buildFlexPayload<T extends Record<string, any>>(payload: T): Uint8Array {
+	const b = builder();
+	b.startMap();
+
+	for (const [key, value] of Object.entries(payload)) {
+		b.addKey(key);
+		b.add(value);
+	}
+
+	b.end();
+	return b.finish();
+}
+
+export function wrapEnvelope<T extends Record<string, any>>(
 	payload: T,
 	kind: number,
 	format: PayloadFormat,
 	metadata?: Uint8Array,
 	version = 1,
 ): Uint8Array {
-	const b = builder();
 	let serializedPayload: Uint8Array;
+
 	if (format === PayloadFormat.FLEX) {
-		const inner = builder();
-		inner.add(payload);
-		serializedPayload = inner.finish();
+		serializedPayload = buildFlexPayload(payload);
 	} else if (format === PayloadFormat.JSON) {
 		serializedPayload = new TextEncoder().encode(JSON.stringify(payload));
 	} else {
 		throw new Error('Unsupported format for wrapEnvelope');
 	}
 
+	const b = builder();
 	b.startMap();
-	b.addKey('version'); b.add(version);
-	b.addKey('kind'); b.add(kind);
-	b.addKey('format'); b.add(format);
-	b.addKey('payload'); b.add(serializedPayload);
+	b.addKey('version');  b.add(version);
+	b.addKey('kind');     b.add(kind);
+	b.addKey('format');   b.add(format);
+	b.addKey('payload');  b.add(serializedPayload);
 	b.addKey('metadata'); b.add(metadata ?? new Uint8Array());
 	b.end();
 
 	return b.finish();
 }
 
-export function wrapEnvelopeRedisGETFlex(key: string): Uint8Array {
-	const payloadBuilder = builder();
-	payloadBuilder.startMap();
-	payloadBuilder.addKey('key');
-	payloadBuilder.add(key);
-	payloadBuilder.addKey('value'); // required by backend struct
-	payloadBuilder.add('');
-	payloadBuilder.end();
-
-	const payloadBytes = payloadBuilder.finish();
-
-	const b = builder();
-	b.startMap();
-	b.addKey('version');
-	b.add(1);
-	b.addKey('kind');
-	b.add(MessageKind.GET | MessageKind.REDIS);
-	b.addKey('format');
-	b.add(PayloadFormat.FLEX);
-	b.addKey('payload');
-	b.add(payloadBytes); // don't wrap in new Uint8Array again
-	b.addKey('metadata');
-	b.add(new Uint8Array());
-	b.end();
-
-	return b.finish();
-}
 
 export function unwrapEnvelope<T = unknown>(
 	buffer: Uint8Array
@@ -158,19 +142,23 @@ export function hasKind(kind: number, flag: number): boolean {
 
 export function wrapRedisSet(key: string, value: string): Uint8Array {
 	return wrapEnvelope(
-		{ set: { key, value } },
+		{ key, value },
 		MessageKind.SET | MessageKind.REDIS,
 		PayloadFormat.FLEX
 	);
 }
 
 export function wrapRedisGet(key: string): Uint8Array {
-	return wrapEnvelopeRedisGETFlex(key);
+	return wrapEnvelope(
+		{ key },
+		MessageKind.GET | MessageKind.REDIS,
+		PayloadFormat.FLEX
+	);
 }
 
 export function wrapRedisDel(key: string): Uint8Array {
 	return wrapEnvelope(
-		{ del: { key } },
+		{ key },
 		MessageKind.DEL | MessageKind.REDIS,
 		PayloadFormat.FLEX
 	);
