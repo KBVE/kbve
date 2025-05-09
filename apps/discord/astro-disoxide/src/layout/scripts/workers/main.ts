@@ -1,12 +1,13 @@
-import { wrap } from 'comlink';
+import { wrap, transfer, proxy } from 'comlink';
 import type { Remote } from 'comlink';
 import { persistentMap } from '@nanostores/persistent';
 import type { LocalStorageAPI } from './db-worker';
 import type { WSInstance } from './ws-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
+import { scopeData } from './data';
 
-const EXPECTED_DB_VERSION = '1.0.2';
+const EXPECTED_DB_VERSION = '1.0.3';
 
 //  * WebSocket
 async function initWsComlink(): Promise<Remote<WSInstance>> {
@@ -225,6 +226,25 @@ async function initStorageComlink(): Promise<Remote<LocalStorageAPI>> {
 
 let initialized = false;
 
+// * Bridge
+
+export function bridgeWsToDb(
+	ws: Remote<WSInstance>,
+	db: Remote<LocalStorageAPI>
+) {
+	// ws.onDbPost(proxy(async (decoded) => {
+	// 	const key = `ws:${Date.now()}`;
+	// 	await db.storeWsMessage(key, decoded);
+	// }));
+	ws.onDbPost(
+		proxy(async (buf: ArrayBuffer) => {
+			const key = `ws:${Date.now()}`;
+			await db.storeWsMessage(key, buf);
+		})
+	);
+
+}
+
 export async function main() {
 	if (!initialized) {
 		initialized = true;
@@ -242,11 +262,13 @@ export async function main() {
 	if (!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux) {
 		const api = await initStorageComlink();
 		const ws = await initWsComlink();
-		
+
+		bridgeWsToDb(ws, api);
+		const data = scopeData;
 		i18n.api = api;
 		i18n.ready = i18n.hydrateLocale('en');
 
-		window.kbve = { api, i18n, uiux, ws };
+		window.kbve = { api, i18n, uiux, ws, data};
 		console.log('[KBVE] Global API ready');
 	} else {
 		console.log('[KBVE] Already initialized');

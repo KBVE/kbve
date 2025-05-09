@@ -8,21 +8,22 @@ interface SharedWorkerGlobalScope extends Worker {
 }
 declare const self: SharedWorkerGlobalScope;
 
-let dbApi: Remote<LocalStorageAPI> | null = null;
+
 let ws: WebSocket | null = null;
 let onMessageCallback: ((data: any) => void) | null = null;
 
+let onDbPostCallback: ((data: any) => void) | null = null;
 
-async function connectDbWorker() {
-    if (dbApi) return;
-	const dbWorker = new SharedWorker(new URL('./db-worker', import.meta.url), {
-		type: 'module',
-	});
-	dbWorker.port.start();
-	dbApi = wrap<LocalStorageAPI>(dbWorker.port);
-	await dbApi.getVersion();
+function onDbPost(callback: (data: any) => void) {
+	onDbPostCallback = callback;
 }
 
+function shouldStoreMessage(msg: any): boolean {
+	if (msg?.xadd) return true;
+	if (msg?.get) return true;
+	if (msg?.set) return true;
+	return false;
+}
 
 // --- WebSocket API ---
 const wsInstanceAPI = {
@@ -34,15 +35,17 @@ const wsInstanceAPI = {
 
 		ws.onopen = () => console.log('[WS] Connected:', url);
 
-		ws.onmessage = async (e) => {
-			const bytes = new Uint8Array(e.data);
-			const decoded = toReference(bytes.buffer).toObject();
-
-			await connectDbWorker();
-			await dbApi?.dbSet(`ws:${Date.now()}`, decoded);
-
-			if (onMessageCallback) onMessageCallback(decoded);
-		};
+        ws.onmessage = (e) => {
+            try {
+                console.log('[WS] Received binary message');
+                if (onDbPostCallback && e.data instanceof ArrayBuffer) {
+                    onDbPostCallback(e.data); 
+                }
+            } catch (err) {
+                console.error('[WS] Failed to forward message', err);
+            }
+        };
+ 
 
 		ws.onerror = (e) => console.error('[WS] Error:', e);
 		ws.onclose = () => {
@@ -67,6 +70,11 @@ const wsInstanceAPI = {
 	onMessage(callback: (data: any) => void) {
 		onMessageCallback = callback;
 	},
+
+    onDbPost(callback: (data: any) => void) {
+		onDbPostCallback = callback;
+	},
+
 };
 
 export type WSInstance = typeof wsInstanceAPI;
