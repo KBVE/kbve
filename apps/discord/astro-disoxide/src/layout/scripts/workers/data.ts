@@ -85,11 +85,10 @@ export function wrapEnvelope<T>(
 export function wrapEnvelopeRedisGETFlex(key: string): Uint8Array {
 	const payloadBuilder = builder();
 	payloadBuilder.startMap();
-	payloadBuilder.addKey('get');
-	payloadBuilder.startMap();
 	payloadBuilder.addKey('key');
 	payloadBuilder.add(key);
-	payloadBuilder.end();
+	payloadBuilder.addKey('value'); // required by backend struct
+	payloadBuilder.add('');
 	payloadBuilder.end();
 
 	const payloadBytes = payloadBuilder.finish();
@@ -102,10 +101,8 @@ export function wrapEnvelopeRedisGETFlex(key: string): Uint8Array {
 	b.add(MessageKind.GET | MessageKind.REDIS);
 	b.addKey('format');
 	b.add(PayloadFormat.FLEX);
-
 	b.addKey('payload');
-	b.add(new Uint8Array(payloadBytes)); 
-
+	b.add(payloadBytes); // don't wrap in new Uint8Array again
 	b.addKey('metadata');
 	b.add(new Uint8Array());
 	b.end();

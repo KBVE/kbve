@@ -99,7 +99,7 @@ struct XAddInput {
 pub struct KeyValueInput {
   #[serde(with = "serde_arc_str")]
   pub key: Arc<str>,
-  #[serde(with = "serde_arc_str::option")]
+  #[serde(default, with = "serde_arc_str::option")]
   pub value: Option<Arc<str>>,
   pub ttl: Option<usize>,
 }
