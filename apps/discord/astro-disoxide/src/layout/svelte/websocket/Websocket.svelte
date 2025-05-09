@@ -58,26 +58,28 @@
 		}
 
 		let ws;
-        while (!ws) {
-            try {
-                await kbve().ws.connect(getWsUrl());
-                ws = kbve().ws;
-            } catch {
-                console.warn('[Svelte] [WebsocketClient] Retrying websocket connection...');
-                await new Promise((res) => setTimeout(res, 250));
-            }
-        }
+		while (!ws) {
+			try {
+				await kbve().ws.connect(getWsUrl());
+				ws = kbve().ws;
+			} catch {
+				console.warn(
+					'[Svelte] [WebsocketClient] Retrying websocket connection...',
+				);
+				await new Promise((res) => setTimeout(res, 250));
+			}
+		}
 
-        ws.onMessage(
-            proxy((msg: any) => {
-                try {
-                    userCommands = [...userCommands, '↩️ Redis responded'];
-                    loadStoredMessages();
-                } catch (err) {
-                    console.warn('[WS] Message listener error:', err);
-                }
-            })
-        );
+		ws.onMessage(
+			proxy((msg: any) => {
+				try {
+					userCommands = [...userCommands, '↩️ Redis responded'];
+					loadStoredMessages();
+				} catch (err) {
+					console.warn('[WS] Message listener error:', err);
+				}
+			}),
+		);
 
 		loadStoredMessages();
 
@@ -164,9 +166,9 @@
 	});
 </script>
 
-<div class="min-h-screen bg-gray-900 text-white p-8 flex flex-col items-center">
+<div class="min-h-screen text-white flex flex-col items-center">
 	<div
-		class="bg-purple-800 text-white rounded-xl shadow-lg p-6 w-full max-w-lg space-y-4">
+		class="bg-purple-800/[.15] text-white rounded-xl shadow-lg p-6 w-full space-y-4">
 		<h2 class="text-2xl font-bold mb-4">Redis WebSocket Test</h2>
 
 		<input
@@ -197,11 +199,11 @@
 			</button>
 		</div>
 
-        <pre
-        class="bg-gray-800 text-purple-300 p-4 rounded-md overflow-x-auto whitespace-pre-wrap break-words text-sm font-mono">
-        {#each userCommands as cmd}
-        → {cmd}
-        {/each}
+		<pre
+			class="bg-gray-800 text-purple-300 p-4 rounded-md overflow-x-auto whitespace-pre-wrap break-words text-sm font-mono">
+        	{#each userCommands as cmd}
+				→ {cmd}
+			{/each}
         </pre>
 
 		<!-- Message History -->
@@ -211,10 +213,13 @@
 
 			<table
 				class="w-full text-sm text-left text-purple-200 table-auto border-separate border-spacing-y-2">
+				<caption class="caption-top">
+					Lastest Entries via DB Worker.
+				</caption>
 				<thead class="text-xs uppercase text-purple-400">
 					<tr class="bg-purple-700 text-white">
 						<th class="p-2 rounded-l">Time</th>
-						<th class="p-2">Key</th>
+						<th class="p-2 hidden md:block">Key</th>
 						<th class="p-2">Summary</th>
 						<th class="p-2 rounded-r text-right">Actions</th>
 					</tr>
@@ -226,11 +231,11 @@
 							<td class="p-2 text-xs font-mono">
 								{parseTimestamp(m.key)}
 							</td>
-							<td class="p-2 text-xs font-mono text-purple-400">
+							<td class="p-2 text-xs font-mono text-purple-400 hidden md:block">
 								{m.key}
 							</td>
 							<td
-								class="p-2 truncate max-w-[300px] text-purple-300">
+								class="p-2 truncate max-w-[100px] md:max-w-[300px] text-purple-300">
 								{JSON.stringify(m.message).slice(
 									0,
 									120,
