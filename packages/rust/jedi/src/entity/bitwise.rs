@@ -4,6 +4,14 @@ use std::collections::HashMap;
 
 
 impl MessageKind {
+
+    pub fn try_from_valid(kind: i32) -> bool {
+        if Self::try_from(kind).is_ok() {
+            return true;
+        }
+        MESSAGE_KIND_MULTI_MAP.contains_key(&kind)
+    }
+
     #[inline(always)]
     pub fn has_flag(kind: i32, flag: MessageKind) -> bool {
         (kind & flag as i32) != 0
