@@ -1,4 +1,27 @@
 ---
 import Websocket from './Websocket.svelte';
 ---
-<Websocket client:only="svelte" />
+
+<div
+	class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 overflow-visible min-h-screen relative">
+	<!-- Skeleton Placeholder Layer -->
+	<div
+		id="astro-skeleton"
+		class="absolute inset-0 flex flex-col space-y-4 z-20 bg-[#312d4b] px-2 pt-4 animate-pulse transition-opacity duration-500">
+		<!-- Input Skeletons -->
+		<div class="h-10 bg-[#2b2740] rounded w-full"></div>
+		<div class="h-10 bg-[#2b2740] rounded w-full"></div>
+
+		<!-- Button Row Skeleton -->
+		<div class="flex gap-2">
+			<div class="w-1/3 h-10 bg-[#2b2740] rounded"></div>
+			<div class="w-1/3 h-10 bg-[#2b2740] rounded"></div>
+			<div class="w-1/3 h-10 bg-[#2b2740] rounded"></div>
+		</div>
+
+		<!-- Response Preview Skeleton -->
+		<div class="h-32 bg-[#2b2740] rounded w-full"></div>
+	</div>
+
+	<Websocket client:only="svelte" />
+</div>

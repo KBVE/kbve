@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { proxy } from 'comlink';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+
+	// States
+	let key = $state('');
+	let value = $state('');
+	let response = $state('');
+	let userCommands = $state<string[]>([]);
+
 
 	// Debounce
 	function debounce<T extends (...args: any[]) => void>(
@@ -15,16 +22,53 @@
 	}
 
 	// Ready State
-	function readyCheck() {
+	async function readyCheck() {
+
+        // (init)
+
+        let api;
+
+        while(!api)
+        {
+            api = window.kbve?.api
+            if (!api) {
+				console.warn('[Svelte] [WebsocketClient] Waiting for window.kbve.api...');
+				await new Promise((res) => setTimeout(res, 250));
+			} 
+        }
+
+        let con;
+        while(!con)
+        {
+            con = kbve().ws.connect(getWsUrl());
+            if (!con) {
+                console.warn('[Svelte] [WebsocketClient] Waiting for websocket connection...');
+				await new Promise((res) => setTimeout(res, 250));
+            }
+        }
+
+	    const skeleton = document.getElementById('astro-skeleton');
+        if (skeleton) {
+                    skeleton.classList.add('opacity-0');
+                    setTimeout(() => skeleton.remove(), 600);
+        }
+	}
+
+   
+
+	// Reset State
+	function reset() {
 		try {
-			const k = window.kbve;
-			if (k?.ws && k?.data?.redis && con) {
-				ready = true;
-				skeleton = false;
+			const api = kbve();
+			if (api.ws) {
+				api.ws.close();
 			}
-		} catch {
-			// Still warming up
+		} catch (err) {
+			console.warn('[KBVE] Reset failed:', err);
 		}
+
+		userCommands = [];
+		response = '... Closing connection ...';
 	}
 
 	const kbve = (() => {
@@ -41,29 +85,10 @@
 		};
 	})();
 
-	let key = $state('');
-	let value = $state('');
-	let response = $state('');
-	let userCommands = $state<string[]>([]);
-	let con = $state(false);
-	let dom = $state(false);
-	let ready = $state(false);
-	let skeleton = $state(true);
-
 	function getWsUrl() {
 		return ['localhost', '127.0.0.1'].includes(location.hostname)
 			? 'ws://localhost:3000/ws'
 			: `wss://${location.host}/ws`;
-	}
-
-	async function ensureConnection() {
-		if (con) return;
-		try {
-			await kbve().ws.connect(getWsUrl());
-			con = true;
-		} catch (err) {
-			console.warn('[Svelte]=>[WS] Connection failed:', err);
-		}
 	}
 
 	const redisCommandMap = {
@@ -99,8 +124,11 @@
 	}
 
 	onMount(() => {
-		debounce(ensureConnection, 500)();
-        debounce(readyCheck, 300)();
+        readyCheck();
+	});
+
+	onDestroy(() => {
+		reset();
 	});
 </script>
 
