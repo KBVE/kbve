@@ -112,6 +112,8 @@ struct RedisResult {
   value: Option<Arc<str>>,
 }
 
+// ! XReadInput -> XReadStreamInput * Following the next step.
+
 #[derive(Debug, Deserialize)]
 struct XReadInput {
   #[serde(with = "serde_arc_str::map_arc_to_arc")]
@@ -122,6 +124,25 @@ struct XReadInput {
   block: Option<u64>,
 }
 
+// * Stream Structs
+
+#[derive(Debug, Deserialize)]
+pub struct StreamKeySelector {
+  #[serde(with = "serde_arc_str")]
+  pub stream: Arc<str>,
+  #[serde(with = "serde_arc_str")]
+  pub id: Arc<str>,
+}
+
+
+#[derive(Debug, Deserialize)]
+struct XReadStreamInput {
+  streams: Vec<StreamKeySelector>,
+  #[serde(default)]
+  count: Option<u64>,
+  #[serde(default)]
+  block: Option<u64>,
+}
 
 // * JSON Specific Structs
 
@@ -231,15 +252,15 @@ async fn handle_redis_xread_flex(
   env: &JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
-  let input = try_unwrap_payload::<XReadInput>(env)?;
+  let input = try_unwrap_payload::<XReadStreamInput>(env)?;
   let client = ctx.redis_pool.next().clone();
 
   let (keys, ids): (Vec<&str>, Vec<&str>) = input.streams
     .iter()
-    .map(|(k, v)| (k.as_ref(), v.as_ref()))
+    .map(|s| (s.stream.as_ref(), s.id.as_ref()))
     .unzip();
 
-  let result: FredXRead<String, String, String, Vec<u8>> = client.xread_map(
+  let result: HashMap<String, Vec<(String, HashMap<String, Vec<u8>>)>> = client.xread_map(
     Some(input.count.unwrap_or(10)),
     input.block,
     keys,
