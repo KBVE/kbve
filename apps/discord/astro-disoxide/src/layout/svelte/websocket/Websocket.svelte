@@ -10,6 +10,15 @@
 	let messages = $state<{ key: string; message: any }[]>([]);
 	let inspected = $state<Record<string, boolean>>({});
 
+	// Redis States
+	let stream = $state('');
+	let id = $state('*'); // Optional, usually "*" for XADD
+	let fields = $state<Record<string, string>>({}); // Example: { username: "h0lybyte", message: "hello" }
+
+	let streams = $state<{ stream: string; id: string }[]>([]); // Used for XREAD
+	let count = $state<number | undefined>(undefined);
+	let block = $state<number | undefined>(undefined);
+
 	// Table Helpers
 	function toggleInspect(key: string) {
 		inspected = { ...inspected, [key]: !inspected[key] };
@@ -140,6 +149,16 @@
 			label: 'DEL',
 			build: () => kbve().data.redis.wrapRedisDel(key),
 			log: () => `[DEL] ${key}`,
+		},
+		xadd: {
+			label: 'XADD',
+			build: () => kbve().data.redis.wrapRedisXAdd(stream, fields, id),
+			log: () => `[XADD] ${stream} ${id ?? '*'} ${JSON.stringify(fields)}`,
+		},
+		xread: {
+			label: 'XREAD',
+			build: () => kbve().data.redis.wrapRedisXRead(streams, count, block),
+			log: () => `[XREAD] ${streams.map(s => s.stream).join(', ')} count=${count ?? '-'} block=${block ?? '-'}`,
 		},
 	} as const;
 
