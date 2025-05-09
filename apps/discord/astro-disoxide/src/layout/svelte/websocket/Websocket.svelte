@@ -7,7 +7,16 @@
 	let value = $state('');
 	let response = $state('');
 	let userCommands = $state<string[]>([]);
+    let messages = $state<{ key: string; message: Uint8Array }[]>([]);
 
+    
+
+    async function loadStoredMessages() {
+        const api = window.kbve?.api;
+        if (!api) return;
+        const raw = await api.getAllWsMessages();
+        messages = raw.filter((m) => m?.key && m?.message instanceof Uint8Array);
+    }
 
 	// Debounce
 	function debounce<T extends (...args: any[]) => void>(
@@ -169,5 +178,43 @@
 			class="bg-gray-800 text-purple-300 p-4 rounded-md overflow-x-auto whitespace-pre-wrap break-words">
 {response}
 		</pre>
+
+
+        <!-- Message History -->
+
+        <div class="mt-6 w-full max-w-4xl">
+            <h3 class="text-lg font-semibold mb-2">📜 Message History</h3>
+            <table class="w-full text-left border-collapse text-sm bg-gray-800 rounded-md overflow-hidden">
+                <thead class="bg-purple-700 text-white">
+                    <tr>
+                        <th class="p-2">Key</th>
+                        <th class="p-2">Action</th>
+                        <th class="p-2">Inspect</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#each messages as m}
+                        <tr class="even:bg-gray-700 odd:bg-gray-900 hover:bg-purple-600/30">
+                            <td class="p-2 font-mono text-purple-300 truncate">{m.key}</td>
+                            <td class="p-2 text-purple-200">
+                                <button
+                                    class="text-xs px-2 py-1 rounded bg-purple-500 hover:bg-purple-600"
+                                    onclick={() => (response = `[Payload] ${m.key}`)}>
+                                    View
+                                </button>
+                            </td>
+                            <td class="p-2 text-purple-200">
+                                <button
+                                    class="text-xs px-2 py-1 rounded bg-purple-400 hover:bg-purple-500"
+                                    onclick={() => window.kbve?.data.inspectFlex(m.message)}>
+                                    Inspect
+                                </button>
+                            </td>
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
+        </div>
+
 	</div>
 </div>
