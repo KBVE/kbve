@@ -175,6 +175,54 @@ export function parseRedisPayload<T = unknown>(envelopeBytes: Uint8Array): {
 	return result;
 }
 
+export function wrapRedisXAdd(
+	stream: string,
+	fields: Record<string, string>,
+	id = '*',
+): Uint8Array {
+	const b = builder();
+
+	b.startMap();
+	b.addKey('stream'); b.add(stream);
+	b.addKey('id');     b.add(id);
+	b.addKey('fields');
+	b.startVector();
+
+	for (const [key, value] of Object.entries(fields)) {
+		b.startMap();
+		b.addKey('key'); b.add(key);
+		b.addKey('value'); b.add(value);
+		b.end();
+	}
+
+	b.end();
+	b.end(); 
+
+	return wrapEnvelope(
+		{ xadd: toReference(b.finish().buffer as ArrayBuffer).toObject() },
+		MessageKind.ADD | MessageKind.STREAM | MessageKind.REDIS,
+		PayloadFormat.FLEX,
+	);
+}
+
+export function wrapRedisXRead(
+	streams: { stream: string; id: string }[],
+	count?: number,
+	block?: number,
+): Uint8Array {
+	const payload: any = {
+		streams,
+	};
+	if (typeof count === 'number') payload.count = count;
+	if (typeof block === 'number') payload.block = block;
+
+	return wrapEnvelope(
+		{ xread: payload },
+		MessageKind.READ | MessageKind.STREAM | MessageKind.REDIS,
+		PayloadFormat.FLEX,
+	);
+}
+
 export const scopeData = {
 	wrapEnvelope,
 	unwrapEnvelope,
@@ -187,6 +235,8 @@ export const scopeData = {
 		wrapRedisSet,
 		wrapRedisGet,
 		wrapRedisDel,
+		wrapRedisXAdd,
+		wrapRedisXRead,
 		parseRedisPayload,
 	}
 };

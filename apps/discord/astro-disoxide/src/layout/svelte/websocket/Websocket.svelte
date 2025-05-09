@@ -10,6 +10,19 @@
 	let messages = $state<{ key: string; message: any }[]>([]);
 	let inspected = $state<Record<string, boolean>>({});
 
+	// Redis States
+	let stream = $state('');
+	let id = $state('*'); // Optional, usually "*" for XADD
+//	let fields = $state<Record<string, string>>({}); // Example: { username: "h0lybyte", message: "hello" }
+	let fields = $state<Record<string, string>>({
+	username: 'h0lybyte',
+	message: 'Hello there!',
+});
+	let streams = $state<{ stream: string; id: string }[]>([]); // Used for XREAD
+	let count = $state<number | undefined>(undefined);
+	let block = $state<number | undefined>(undefined);
+	let fieldKeyInput = $state('');
+
 	// Table Helpers
 	function toggleInspect(key: string) {
 		inspected = { ...inspected, [key]: !inspected[key] };
@@ -26,7 +39,9 @@
 		const api = window.kbve?.api;
 		if (!api) return;
 		const raw = await api.getAllWsMessages();
-		messages = raw.filter((m) => m?.key && typeof m.message === 'object');
+		messages = raw
+			.filter((m) => m?.key && typeof m.message === 'object')
+			.slice(0, 10);
 	}
 
 	// Debounce
@@ -141,6 +156,19 @@
 			build: () => kbve().data.redis.wrapRedisDel(key),
 			log: () => `[DEL] ${key}`,
 		},
+		xadd: {
+			label: 'XADD',
+			build: () => kbve().data.redis.wrapRedisXAdd(stream, fields, id),
+			log: () =>
+				`[XADD] ${stream} ${id ?? '*'} ${JSON.stringify(fields)}`,
+		},
+		xread: {
+			label: 'XREAD',
+			build: () =>
+				kbve().data.redis.wrapRedisXRead(streams, count, block),
+			log: () =>
+				`[XREAD] ${streams.map((s) => s.stream).join(', ')} count=${count ?? '-'} block=${block ?? '-'}`,
+		},
 	} as const;
 
 	type RedisCommandType = keyof typeof redisCommandMap;
@@ -164,6 +192,30 @@
 	onDestroy(() => {
 		reset();
 	});
+
+	// * Stream Code
+	function updateFieldValue(key: string, newValue: string) {
+	fields = { ...fields, [key]: newValue };
+	}
+
+	function removeField(key: string) {
+		const copy = { ...fields };
+		delete copy[key];
+		fields = copy;
+	}
+
+	function addFieldKey(key: string) {
+		if (!key) return;
+		fields = { ...fields, [key]: '' };
+	}
+
+	function handleFieldKeyEnter() {
+		if (fieldKeyInput) {
+			addFieldKey(fieldKeyInput);
+			fieldKeyInput = '';
+		}
+	}
+
 </script>
 
 <div class="min-h-screen text-white flex flex-col items-center">
@@ -208,7 +260,7 @@
 
 		<!-- Message History -->
 
-		<div class="mt-6 w-full max-w-4xl">
+		<div class="mt-6 w-full">
 			<h3 class="text-lg font-semibold mb-2">📜 Message History</h3>
 
 			<table
@@ -231,7 +283,8 @@
 							<td class="p-2 text-xs font-mono">
 								{parseTimestamp(m.key)}
 							</td>
-							<td class="p-2 text-xs font-mono text-purple-400 hidden md:block">
+							<td
+								class="p-2 text-xs font-mono text-purple-400 hidden md:block">
 								{m.key}
 							</td>
 							<td
@@ -239,7 +292,8 @@
 								{JSON.stringify(m.message).slice(
 									0,
 									120,
-								)}{m.message &&
+								)}
+								{m.message &&
 								JSON.stringify(m.message).length > 120
 									? '…'
 									: ''}
@@ -268,5 +322,67 @@
 				</tbody>
 			</table>
 		</div>
+
+		<!-- Stream Chat Example -->
+
+		<div class="mt-6 w-full">
+			<h3 class="text-lg font-semibold mb-2">💬 Redis Stream Chat</h3>
+
+			<div class="space-y-2">
+				<input
+					class="w-full rounded-md p-2 bg-gray-100 text-black"
+					placeholder="Stream name"
+					bind:value={stream} />
+				<input
+					class="w-full rounded-md p-2 bg-gray-100 text-black"
+					placeholder="ID (optional, default *)"
+					bind:value={id} />
+				<input
+					class="w-full rounded-md p-2 bg-gray-100 text-black"
+					placeholder="Field key"
+					bind:value={fieldKeyInput}
+					onkeydown={(e) => {
+						if (e.key === 'Enter') handleFieldKeyEnter();
+					}} />
+				
+				{#each Object.entries(fields) as [key, val] (key)}
+					<div class="flex items-center gap-2">
+						<span class="text-purple-300 font-mono">{key}</span>
+						<input
+							class="flex-1 rounded-md p-1 bg-gray-200 text-black"
+							placeholder="Value"
+							bind:value={fields[key]} />
+						<button
+							onclick={() => removeField(key)}
+							class="text-xs text-red-500">
+							✕
+						</button>
+					</div>
+				{/each}
+
+				<button
+					class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md disabled:opacity-25 disabled:hover:bg-purple-600 disabled:cursor-not-allowed"
+					onclick={() => redis('xadd')}
+					disabled={!stream}>
+					Send XADD
+				</button>
+			</div>
+
+			<h3 class="text-lg font-semibold mt-6">🔁 Redis Stream Reader (XREAD)</h3>
+
+			<div class="space-y-2">
+				
+
+			<button
+				class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md disabled:opacity-25 disabled:hover:bg-purple-600 disabled:cursor-not-allowed"
+				onclick={() => redis('xread')}
+				disabled={!stream}>
+				Run XREAD
+			</button>
+			</div>
+			
+		</div>
+
+		<!-- Stream End -->
 	</div>
 </div>
