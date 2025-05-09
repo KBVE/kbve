@@ -164,10 +164,14 @@
 		},
 		xread: {
 			label: 'XREAD',
-			build: () =>
-				kbve().data.redis.wrapRedisXRead(streams, count, block),
-			log: () =>
-				`[XREAD] ${streams.map((s) => s.stream).join(', ')} count=${count ?? '-'} block=${block ?? '-'}`,
+			build: () => {
+				const s = prepareXReadStreams();
+				return kbve().data.redis.wrapRedisXRead(s, count, block);
+			},
+			log: () => {
+				const s = prepareXReadStreams();
+				return `[XREAD] ${s.map((x) => x.stream).join(', ')} count=${count ?? '-'} block=${block ?? '-'}`;
+			},
 		},
 	} as const;
 
@@ -214,6 +218,11 @@
 			addFieldKey(fieldKeyInput);
 			fieldKeyInput = '';
 		}
+	}
+
+	function prepareXReadStreams() {
+		if (!stream) return [];
+		return [{ stream, id: '$' }];
 	}
 
 </script>

@@ -180,26 +180,8 @@ export function wrapRedisXAdd(
 	fields: Record<string, string>,
 	id = '*',
 ): Uint8Array {
-	const b = builder();
-
-	b.startMap();
-	b.addKey('stream'); b.add(stream);
-	b.addKey('id');     b.add(id);
-	b.addKey('fields');
-	b.startVector();
-
-	for (const [key, value] of Object.entries(fields)) {
-		b.startMap();
-		b.addKey('key'); b.add(key);
-		b.addKey('value'); b.add(value);
-		b.end();
-	}
-
-	b.end();
-	b.end(); 
-
 	return wrapEnvelope(
-		{ xadd: toReference(b.finish().buffer as ArrayBuffer).toObject() },
+		{ stream, id, fields },
 		MessageKind.ADD | MessageKind.STREAM | MessageKind.REDIS,
 		PayloadFormat.FLEX,
 	);
@@ -210,18 +192,45 @@ export function wrapRedisXRead(
 	count?: number,
 	block?: number,
 ): Uint8Array {
-	const payload: any = {
-		streams,
-	};
-	if (typeof count === 'number') payload.count = count;
-	if (typeof block === 'number') payload.block = block;
+	const streamMap: Record<string, string> = {};
+	for (const { stream, id } of streams) {
+		streamMap[stream] = id;
+	}
 
-	return wrapEnvelope(
-		{ xread: payload },
-		MessageKind.READ | MessageKind.STREAM | MessageKind.REDIS,
-		PayloadFormat.FLEX,
-	);
+	const inner = builder();
+	inner.startMap();
+
+	inner.addKey('streams');
+	inner.startMap();
+	for (const [stream, id] of Object.entries(streamMap)) {
+		inner.addKey(stream);
+		inner.add(id);
+	}
+	inner.end();
+
+	if (count !== undefined) {
+		inner.addKey('count'); inner.add(count);
+	}
+	if (block !== undefined) {
+		inner.addKey('block'); inner.add(block);
+	}
+
+	inner.end();
+	const serializedPayload = inner.finish();
+
+	const b = builder();
+	b.startMap();
+	b.addKey('version');  b.add(1);
+	b.addKey('kind');     b.add(MessageKind.READ | MessageKind.STREAM | MessageKind.REDIS);
+	b.addKey('format');   b.add(PayloadFormat.FLEX);
+	b.addKey('payload');  b.add(serializedPayload); 
+	b.addKey('metadata'); b.add(new Uint8Array());
+	b.end();
+
+	return b.finish();
 }
+
+
 
 export const scopeData = {
 	wrapEnvelope,
