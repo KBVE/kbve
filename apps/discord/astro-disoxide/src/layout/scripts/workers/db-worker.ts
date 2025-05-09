@@ -64,7 +64,12 @@ const storageAPI = {
 	},
 	
 	async getAllWsMessages(): Promise<{ key: string; message: any }[]> {
-	return await db.ws_messages.toArray();
+		const raw = await db.ws_messages.toArray();
+		return raw.sort((a, b) => {
+			const at = Number(a.key.split(':')[1]);
+			const bt = Number(b.key.split(':')[1]);
+			return bt - at;
+		});
 	},
 	
 	async clearWsMessages() {

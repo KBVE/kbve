@@ -4,6 +4,14 @@ use std::collections::HashMap;
 
 
 impl MessageKind {
+
+    pub fn try_from_valid(kind: i32) -> bool {
+        if Self::try_from(kind).is_ok() {
+            return true;
+        }
+        MESSAGE_KIND_MULTI_MAP.contains_key(&kind)
+    }
+
     #[inline(always)]
     pub fn has_flag(kind: i32, flag: MessageKind) -> bool {
         (kind & flag as i32) != 0
@@ -100,6 +108,9 @@ define_flag_checks!(
 );
 
 define_multi_flag_checks!(
+    (rget,      RGET,      [Redis, Get]),
+    (rset,      RSET,      [Redis, Set]),
+    (rdel,      RDEL,      [Redis, Del]),
     (xadd,      XADD,      [Redis, Stream, Add]),
     (xread,     XREAD,     [Redis, Stream, Read]),
     (watch,     WATCH,     [Redis, Heartbeat, Read, Info]),

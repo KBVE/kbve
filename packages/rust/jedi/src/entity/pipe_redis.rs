@@ -99,7 +99,7 @@ struct XAddInput {
 pub struct KeyValueInput {
   #[serde(with = "serde_arc_str")]
   pub key: Arc<str>,
-  #[serde(with = "serde_arc_str::option")]
+  #[serde(default, with = "serde_arc_str::option")]
   pub value: Option<Arc<str>>,
   pub ttl: Option<usize>,
 }
@@ -152,9 +152,14 @@ pub async fn handle_redis_flex(
   env: JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
-  let kind = MessageKind::try_from(env.kind).map_err(|_|
-    JediError::Internal("Invalid MessageKind".into())
-  )?;
+
+  let kind = env.kind;
+
+  if !MessageKind::try_from_valid(kind) {
+    tracing::warn!("Unhandled or invalid MessageKind in Redis Flex handler: {}", kind);
+  }
+
+  // * We could fail it out if the bitmap does not contain "redis" but it should have been handled before it got here.
 
   match_redis_handlers_flex!(kind.into(), &env, ctx)
 }
@@ -306,9 +311,11 @@ pub async fn handle_redis_json(
   env: JediEnvelope,
   ctx: &TempleState
 ) -> Result<JediEnvelope, JediError> {
-  let kind = MessageKind::try_from(env.kind).map_err(|_|
-    JediError::Internal("Invalid MessageKind".into())
-  )?;
+
+  let kind = env.kind;
+  if !MessageKind::try_from_valid(kind) {
+    tracing::warn!("Unhandled or invalid MessageKind in Redis JSON handler: {}", kind);
+  }
 
   match_redis_handlers_json!(kind.into(), &env, ctx)
 }
@@ -545,25 +552,29 @@ pub mod faucet_redis {
     Some(env)
   }
 
+
   pub fn spawn_pubsub_listener_task(
     mut rx: UnboundedReceiver<JediEnvelope>,
-    event_tx: BroadcastSender<JediEnvelope>
-  ) -> JoinHandle<()> {
+    event_tx: BroadcastSender<JediEnvelope>,
+) -> JoinHandle<()> {
     tokio::spawn(async move {
-      while let Some(env) = rx.recv().await {
-        let kind = MessageKind::try_from(env.kind).unwrap_or_default();
-        let key_info = format!("{:?}", kind);
+        while let Some(env) = rx.recv().await {
+            let kind = env.kind;
+            if MessageKind::try_from_valid(kind) {
+                tracing::debug!("[Redis] PubSub event received: kind={} (valid)", kind);
+            } else {
+                tracing::warn!("[Redis] PubSub event received: kind={} (invalid)", kind);
+            }
 
-        tracing::debug!("[Redis] PubSub event received: kind={}", key_info);
-
-        if let Err(e) = event_tx.send(env.clone()) {
-          tracing::warn!("[Redis] Failed to broadcast pubsub event: {}", e);
+            if let Err(e) = event_tx.send(env.clone()) {
+                tracing::warn!("[Redis] Failed to broadcast pubsub event: {}", e);
+            }
         }
-      }
 
-      tracing::warn!("[Redis] PubSub listener exited");
+        tracing::warn!("[Redis] PubSub listener exited");
     })
-  }
+}
+
 
   pub fn spawn_watch_event_listener(
     mut rx: UnboundedReceiver<JediEnvelope>,
@@ -571,9 +582,15 @@ pub mod faucet_redis {
   ) -> JoinHandle<()> {
     tokio::spawn(async move {
       while let Some(env) = rx.recv().await {
-        let kind = MessageKind::try_from(env.kind).unwrap_or_default();
+        
+        let kind = env.kind;
 
-        if MessageKind::watch(kind.into()) || MessageKind::unwatch(kind.into()) {
+        if !MessageKind::try_from_valid(kind) {
+            tracing::warn!("[Redis] Received invalid MessageKind: {}", kind);
+            continue;
+        }
+
+        if MessageKind::watch(kind) || MessageKind::unwatch(kind) {
           let payload = try_unwrap_payload::<KeyValueInput>(&env);
 
           let key = match payload {
