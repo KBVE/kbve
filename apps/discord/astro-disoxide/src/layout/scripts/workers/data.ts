@@ -201,11 +201,13 @@ export function wrapRedisXRead(
 	inner.startMap();
 
 	inner.addKey('streams');
-	inner.startMap();
-	for (const [stream, id] of Object.entries(streamMap)) {
-		inner.addKey(stream);
-		inner.add(id);
-	}
+	inner.startVector(); 
+	for (const { stream, id } of streams) {
+		inner.startMap();
+		inner.addKey('stream'); inner.add(stream);
+		inner.addKey('id');     inner.add(id);
+		inner.end();
+	  }
 	inner.end();
 
 	if (count !== undefined) {
