@@ -460,11 +460,11 @@ impl JediEnvelope {
     watch_manager: &WatchManager,
     conn_id: &ConnId
   ) -> Result<Option<Arc<str>>, JediError> {
-    let kind = MessageKind::try_from(self.kind).map_err(|_|
-      JediError::Internal("Invalid MessageKind via Extract Key".into())
-    )?;
+    if !MessageKind::try_from_valid(self.kind) {
+      return Err(JediError::Internal("Invalid MessageKind via Extract Key".into()));
+    }
 
-    if !MessageKind::redis(kind.into()) {
+    if !MessageKind::redis(self.kind) {
       return Ok(None);
     }
 
@@ -489,11 +489,15 @@ pub trait EnvelopePipeline {
 #[async_trait]
 impl EnvelopePipeline for JediEnvelope {
   async fn process(self, ctx: &TempleState) -> Result<Self, JediError> {
-    let kind = MessageKind::try_from(self.kind).map_err(|_|
-      JediError::Internal("Invalid MessageKind via EnvelopePipeline".into())
-    )?;
+    // let kind = MessageKind::try_from(self.kind).map_err(|_|
+    //   JediError::Internal("Invalid MessageKind via EnvelopePipeline".into())
+    // )?;
 
-    if ((kind as i32) & (MessageKind::Redis as i32)) != 0 {
+    if !MessageKind::try_from_valid(self.kind) {
+      tracing::warn!("Unknown or unsupported MessageKind received via EnvelopePipeline: {}", self.kind);
+    }
+
+    if MessageKind::redis(self.kind) {
       return super::pipe_redis::pipe_redis(self, ctx).await;
     }
 
