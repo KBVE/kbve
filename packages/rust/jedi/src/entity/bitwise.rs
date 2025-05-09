@@ -100,6 +100,9 @@ define_flag_checks!(
 );
 
 define_multi_flag_checks!(
+    (rget,      RGET,      [Redis, Get]),
+    (rset,      RSET,      [Redis, Set]),
+    (rdel,      RDEL,      [Redis, Del]),
     (xadd,      XADD,      [Redis, Stream, Add]),
     (xread,     XREAD,     [Redis, Stream, Read]),
     (watch,     WATCH,     [Redis, Heartbeat, Read, Info]),
