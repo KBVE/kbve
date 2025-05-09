@@ -87,8 +87,8 @@ export function wrapEnvelopeRedisGETFlex(key: string): Uint8Array {
 	payloadBuilder.startMap();
 	payloadBuilder.addKey('key');
 	payloadBuilder.add(key);
-	payloadBuilder.addKey('value'); // required by backend struct
-	payloadBuilder.add('');
+	// payloadBuilder.addKey('value'); // required by backend struct
+	// payloadBuilder.add('');
 	payloadBuilder.end();
 
 	const payloadBytes = payloadBuilder.finish();
