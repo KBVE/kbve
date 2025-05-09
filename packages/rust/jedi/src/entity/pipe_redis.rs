@@ -122,6 +122,7 @@ struct XReadInput {
   block: Option<u64>,
 }
 
+
 // * JSON Specific Structs
 
 #[derive(Debug, Serialize)]
@@ -238,15 +239,15 @@ async fn handle_redis_xread_flex(
     .map(|(k, v)| (k.as_ref(), v.as_ref()))
     .unzip();
 
-  let result: FredXRead<Bytes, Bytes, Bytes, Bytes> = client.xread_map(
-    Some(input.count.unwrap_or(10)),
-    input.block,
-    keys,
-    ids
-  ).await?;
+  let result: FredXRead<String, String, String, String> = client.xread_map(
+      Some(input.count.unwrap_or(10)),
+      input.block,
+      keys,
+      ids
+    ).await?;
 
   let bytes = serialize_to_flex_bytes(&result)?;
-  Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Flex, &bytes, Some(env.metadata.clone())))
+  Ok(wrap_hybrid(MessageKind::Read as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32, PayloadFormat::Flex, &bytes, Some(env.metadata.clone())))
 }
 
 async fn handle_redis_watch_flex(
@@ -394,7 +395,7 @@ async fn handle_redis_xadd_json(
     fields
   ).await?;
 
-  Ok(wrap_hybrid(MessageKind::Add, PayloadFormat::Json, &result, Some(env.metadata.clone())))
+  Ok(wrap_hybrid(MessageKind::Add as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32, PayloadFormat::Json, &result, Some(env.metadata.clone())))
 }
 
 async fn handle_redis_xread_json(
@@ -409,35 +410,31 @@ async fn handle_redis_xread_json(
     .map(|(k, v)| (k.as_ref(), v.as_ref()))
     .unzip();
 
-  let result: FredXRead<Bytes, Bytes, Bytes, Bytes> = client.xread_map(
-    Some(input.count.unwrap_or(10)),
-    input.block,
-    keys,
-    ids
-  ).await?;
+  let result: FredXRead<String, String, String, String> = client.xread_map(
+      Some(input.count.unwrap_or(10)),
+      input.block,
+      keys,
+      ids
+    ).await?;
 
   let response: Vec<StreamMessages> = result
-    .iter()
+    .into_iter()
     .map(|(stream, entries)| StreamMessages {
-      stream: to_utf8_cow(stream),
+      stream: Cow::Owned(stream),
       entries: entries
-        .iter()
-        .map(|(id, fields)| {
-          let fields_map: HashMap<_, _> = fields
-            .iter()
-            .map(|(k, v)| (to_utf8_cow(k), to_utf8_cow(v)))
-            .collect();
-
-          StreamEntry {
-            id: to_utf8_cow(id),
-            fields: fields_map,
-          }
+        .into_iter()
+        .map(|(id, fields)| StreamEntry {
+          id: Cow::Owned(id),
+          fields: fields
+            .into_iter()
+            .map(|(k, v)| (Cow::Owned(k), Cow::Owned(v)))
+            .collect(),
         })
         .collect(),
     })
     .collect();
 
-  Ok(wrap_hybrid(MessageKind::Read, PayloadFormat::Json, &response, Some(env.metadata.clone())))
+  Ok(wrap_hybrid(MessageKind::Read as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32, PayloadFormat::Json, &response, Some(env.metadata.clone())))
 }
 
 async fn handle_redis_watch_json(
