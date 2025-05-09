@@ -35,7 +35,7 @@
 		const api = window.kbve?.api;
 		if (!api) return;
 		const raw = await api.getAllWsMessages();
-		messages = raw.filter((m) => m?.key && typeof m.message === 'object');
+		messages = raw.filter((m) => m?.key && typeof m.message === 'object').slice(0, 10);
 	}
 
 	// Debounce
@@ -227,7 +227,7 @@
 
 		<!-- Message History -->
 
-		<div class="mt-6 w-full max-w-4xl">
+		<div class="mt-6 w-full">
 			<h3 class="text-lg font-semibold mb-2">📜 Message History</h3>
 
 			<table
@@ -287,5 +287,12 @@
 				</tbody>
 			</table>
 		</div>
+
+		<!-- Stream Chat Example -->
+
+		<div class="mt-6 w-full">
+
+		</div>
+
 	</div>
 </div>
