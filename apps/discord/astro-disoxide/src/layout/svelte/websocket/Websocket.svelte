@@ -7,16 +7,27 @@
 	let value = $state('');
 	let response = $state('');
 	let userCommands = $state<string[]>([]);
-    let messages = $state<{ key: string; message: Uint8Array }[]>([]);
+	let messages = $state<{ key: string; message: any }[]>([]);
+	let inspected = $state<Record<string, boolean>>({});
 
-    
+	// Table Helpers
+	function toggleInspect(key: string) {
+		inspected = { ...inspected, [key]: !inspected[key] };
+	}
 
-    async function loadStoredMessages() {
-        const api = window.kbve?.api;
-        if (!api) return;
-        const raw = await api.getAllWsMessages();
-        messages = raw.filter((m) => m?.key && m?.message instanceof Uint8Array);
-    }
+	function parseTimestamp(key: string): string {
+		const [, ts] = key.split(':');
+		const date = new Date(Number(ts));
+		if (isNaN(date.getTime())) return 'Invalid Date';
+		return date.toLocaleString();
+	}
+
+	async function loadStoredMessages() {
+		const api = window.kbve?.api;
+		if (!api) return;
+		const raw = await api.getAllWsMessages();
+		messages = raw.filter((m) => m?.key && typeof m.message === 'object');
+	}
 
 	// Debounce
 	function debounce<T extends (...args: any[]) => void>(
@@ -32,38 +43,50 @@
 
 	// Ready State
 	async function readyCheck() {
+		// (init)
 
-        // (init)
+		let api;
 
-        let api;
-
-        while(!api)
-        {
-            api = window.kbve?.api
-            if (!api) {
-				console.warn('[Svelte] [WebsocketClient] Waiting for window.kbve.api...');
+		while (!api) {
+			api = window.kbve?.api;
+			if (!api) {
+				console.warn(
+					'[Svelte] [WebsocketClient] Waiting for window.kbve.api...',
+				);
 				await new Promise((res) => setTimeout(res, 250));
-			} 
-        }
+			}
+		}
 
-        let con;
-        while(!con)
-        {
-            con = kbve().ws.connect(getWsUrl());
-            if (!con) {
-                console.warn('[Svelte] [WebsocketClient] Waiting for websocket connection...');
-				await new Promise((res) => setTimeout(res, 250));
+		let ws;
+        while (!ws) {
+            try {
+                await kbve().ws.connect(getWsUrl());
+                ws = kbve().ws;
+            } catch {
+                console.warn('[Svelte] [WebsocketClient] Retrying websocket connection...');
+                await new Promise((res) => setTimeout(res, 250));
             }
         }
 
-	    const skeleton = document.getElementById('astro-skeleton');
-        if (skeleton) {
-                    skeleton.classList.add('opacity-0');
-                    setTimeout(() => skeleton.remove(), 600);
-        }
-	}
+        ws.onMessage(
+            proxy((msg: any) => {
+                try {
+                    userCommands = [...userCommands, '↩️ Redis responded'];
+                    loadStoredMessages();
+                } catch (err) {
+                    console.warn('[WS] Message listener error:', err);
+                }
+            })
+        );
 
-   
+		loadStoredMessages();
+
+		const skeleton = document.getElementById('astro-skeleton');
+		if (skeleton) {
+			skeleton.classList.add('opacity-0');
+			setTimeout(() => skeleton.remove(), 600);
+		}
+	}
 
 	// Reset State
 	function reset() {
@@ -133,7 +156,7 @@
 	}
 
 	onMount(() => {
-        readyCheck();
+		readyCheck();
 	});
 
 	onDestroy(() => {
@@ -174,47 +197,71 @@
 			</button>
 		</div>
 
-		<pre
-			class="bg-gray-800 text-purple-300 p-4 rounded-md overflow-x-auto whitespace-pre-wrap break-words">
-{response}
-		</pre>
+        <pre
+        class="bg-gray-800 text-purple-300 p-4 rounded-md overflow-x-auto whitespace-pre-wrap break-words text-sm font-mono">
+        {#each userCommands as cmd}
+        → {cmd}
+        {/each}
+        </pre>
 
+		<!-- Message History -->
 
-        <!-- Message History -->
+		<div class="mt-6 w-full max-w-4xl">
+			<h3 class="text-lg font-semibold mb-2">📜 Message History</h3>
 
-        <div class="mt-6 w-full max-w-4xl">
-            <h3 class="text-lg font-semibold mb-2">📜 Message History</h3>
-            <table class="w-full text-left border-collapse text-sm bg-gray-800 rounded-md overflow-hidden">
-                <thead class="bg-purple-700 text-white">
-                    <tr>
-                        <th class="p-2">Key</th>
-                        <th class="p-2">Action</th>
-                        <th class="p-2">Inspect</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {#each messages as m}
-                        <tr class="even:bg-gray-700 odd:bg-gray-900 hover:bg-purple-600/30">
-                            <td class="p-2 font-mono text-purple-300 truncate">{m.key}</td>
-                            <td class="p-2 text-purple-200">
-                                <button
-                                    class="text-xs px-2 py-1 rounded bg-purple-500 hover:bg-purple-600"
-                                    onclick={() => (response = `[Payload] ${m.key}`)}>
-                                    View
-                                </button>
-                            </td>
-                            <td class="p-2 text-purple-200">
-                                <button
-                                    class="text-xs px-2 py-1 rounded bg-purple-400 hover:bg-purple-500"
-                                    onclick={() => window.kbve?.data.inspectFlex(m.message)}>
-                                    Inspect
-                                </button>
-                            </td>
-                        </tr>
-                    {/each}
-                </tbody>
-            </table>
-        </div>
-
+			<table
+				class="w-full text-sm text-left text-purple-200 table-auto border-separate border-spacing-y-2">
+				<thead class="text-xs uppercase text-purple-400">
+					<tr class="bg-purple-700 text-white">
+						<th class="p-2 rounded-l">Time</th>
+						<th class="p-2">Key</th>
+						<th class="p-2">Summary</th>
+						<th class="p-2 rounded-r text-right">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each messages as m (m.key)}
+						<tr
+							class="bg-gray-800 rounded shadow-sm hover:bg-gray-700 transition-all duration-200">
+							<td class="p-2 text-xs font-mono">
+								{parseTimestamp(m.key)}
+							</td>
+							<td class="p-2 text-xs font-mono text-purple-400">
+								{m.key}
+							</td>
+							<td
+								class="p-2 truncate max-w-[300px] text-purple-300">
+								{JSON.stringify(m.message).slice(
+									0,
+									120,
+								)}{m.message &&
+								JSON.stringify(m.message).length > 120
+									? '…'
+									: ''}
+							</td>
+							<td class="p-2 text-right">
+								<button
+									class="text-xs px-2 py-1 rounded bg-purple-400 hover:bg-purple-500"
+									onclick={() => toggleInspect(m.key)}>
+									{inspected[m.key] ? 'Hide' : 'Inspect'}
+								</button>
+							</td>
+						</tr>
+						{#if inspected[m.key]}
+							<tr>
+								<td
+									colspan="4"
+									class="p-2 bg-gray-900 rounded-b">
+									<pre
+										class="text-xs text-purple-300 whitespace-pre-wrap break-words">
+{JSON.stringify(m.message, null, 2)}
+						</pre>
+								</td>
+							</tr>
+						{/if}
+					{/each}
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>
