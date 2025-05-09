@@ -175,6 +175,63 @@ export function parseRedisPayload<T = unknown>(envelopeBytes: Uint8Array): {
 	return result;
 }
 
+export function wrapRedisXAdd(
+	stream: string,
+	fields: Record<string, string>,
+	id = '*',
+): Uint8Array {
+	return wrapEnvelope(
+		{ stream, id, fields },
+		MessageKind.ADD | MessageKind.STREAM | MessageKind.REDIS,
+		PayloadFormat.FLEX,
+	);
+}
+
+export function wrapRedisXRead(
+	streams: { stream: string; id: string }[],
+	count?: number,
+	block?: number,
+): Uint8Array {
+	const streamMap: Record<string, string> = {};
+	for (const { stream, id } of streams) {
+		streamMap[stream] = id;
+	}
+
+	const inner = builder();
+	inner.startMap();
+
+	inner.addKey('streams');
+	inner.startMap();
+	for (const [stream, id] of Object.entries(streamMap)) {
+		inner.addKey(stream);
+		inner.add(id);
+	}
+	inner.end();
+
+	if (count !== undefined) {
+		inner.addKey('count'); inner.add(count);
+	}
+	if (block !== undefined) {
+		inner.addKey('block'); inner.add(block);
+	}
+
+	inner.end();
+	const serializedPayload = inner.finish();
+
+	const b = builder();
+	b.startMap();
+	b.addKey('version');  b.add(1);
+	b.addKey('kind');     b.add(MessageKind.READ | MessageKind.STREAM | MessageKind.REDIS);
+	b.addKey('format');   b.add(PayloadFormat.FLEX);
+	b.addKey('payload');  b.add(serializedPayload); 
+	b.addKey('metadata'); b.add(new Uint8Array());
+	b.end();
+
+	return b.finish();
+}
+
+
+
 export const scopeData = {
 	wrapEnvelope,
 	unwrapEnvelope,
@@ -187,6 +244,8 @@ export const scopeData = {
 		wrapRedisSet,
 		wrapRedisGet,
 		wrapRedisDel,
+		wrapRedisXAdd,
+		wrapRedisXRead,
 		parseRedisPayload,
 	}
 };
