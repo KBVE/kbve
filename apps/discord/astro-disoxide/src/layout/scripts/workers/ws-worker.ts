@@ -38,9 +38,37 @@ const wsInstanceAPI = {
         ws.onmessage = (e) => {
             try {
                 console.log('[WS] Received binary message');
-                if (onDbPostCallback && e.data instanceof ArrayBuffer) {
-                    onDbPostCallback(e.data); 
-                }
+
+				const data = e.data;
+				console.log('[WS] e.data type:', typeof data);
+				console.log('[WS] e.data instanceof:', {
+					ArrayBuffer: data instanceof ArrayBuffer,
+					Uint8Array: data instanceof Uint8Array,
+					Blob: data instanceof Blob,
+					String: typeof data === 'string',
+				});
+
+				if (typeof e.data === 'string') {
+					try {
+						const json = JSON.parse(e.data);
+						console.log('[WS] Received JSON string:', json);
+						onDbPostCallback?.(json);
+						onMessageCallback?.(json);
+					} catch {
+						console.warn('[WS] Received non-JSON string:', e.data);
+					}
+					return;
+				}
+				
+				if (e.data instanceof ArrayBuffer) {
+					if (onDbPostCallback) {
+						onDbPostCallback(e.data); 
+					}
+		
+					if (onMessageCallback) {
+						onMessageCallback(e.data);
+					}
+				}
             } catch (err) {
                 console.error('[WS] Failed to forward message', err);
             }
