@@ -2977,7 +2977,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
- "jedi 0.2.0 (git+https://github.com/KBVE/kbve.git?rev=7ca55c92a164acd098bc999cee45e6fc199c18eb)",
+ "jedi 0.2.0 (git+https://github.com/KBVE/kbve.git?rev=8a674c93b81ba932ccbaffba5bb2b2856e4f8252)",
  "papaya 0.2.1",
  "prost",
  "prost-build",
@@ -5285,7 +5285,7 @@ dependencies = [
 [[package]]
 name = "jedi"
 version = "0.2.0"
-source = "git+https://github.com/KBVE/kbve.git?rev=7ca55c92a164acd098bc999cee45e6fc199c18eb#7ca55c92a164acd098bc999cee45e6fc199c18eb"
+source = "git+https://github.com/KBVE/kbve.git?rev=8a674c93b81ba932ccbaffba5bb2b2856e4f8252#8a674c93b81ba932ccbaffba5bb2b2856e4f8252"
 dependencies = [
  "ammonia 4.0.0",
  "async-trait",
