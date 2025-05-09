@@ -38,9 +38,15 @@ const wsInstanceAPI = {
         ws.onmessage = (e) => {
             try {
                 console.log('[WS] Received binary message');
-                if (onDbPostCallback && e.data instanceof ArrayBuffer) {
-                    onDbPostCallback(e.data); 
-                }
+				if (e.data instanceof ArrayBuffer) {
+					if (onDbPostCallback) {
+						onDbPostCallback(e.data); 
+					}
+		
+					if (onMessageCallback) {
+						onMessageCallback(e.data);
+					}
+				}
             } catch (err) {
                 console.error('[WS] Failed to forward message', err);
             }
