@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MoreMountains.Tools;
 using MoreMountains.TopDownEngine;
+using MoreMountains.InventoryEngine;
 using Pathfinding;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -12,7 +13,7 @@ using KBVE.MMExtensions.Weapons;
 
 namespace KBVE.MMExtensions.Ai
 {
-  public class AiAllyBrain : AIBrain
+  public class AiAllyBrain : AIBrain, MMEventListener<PickableItemEvent>
   {
     private const int PLAYER_LAYER_INT = 10;
     private const int ENEMY_LAYER_INT = 13;
@@ -92,6 +93,16 @@ namespace KBVE.MMExtensions.Ai
       SetupDecisionsAttacker();
       SetupActions();
       base.Awake();
+    }
+
+    protected void OnEnable()
+    {
+      this.MMEventStartListening<PickableItemEvent>();
+    }
+
+    protected void OnDisable()
+    {
+      this.MMEventStopListening<PickableItemEvent>();
     }
 
     protected void OnDestroy()
@@ -331,6 +342,16 @@ namespace KBVE.MMExtensions.Ai
         new AITransition() { Decision = distanceToTarget9fDecision, FalseState = "Idle" }
       };
       return healState;
+    }
+
+    public void OnMMEvent(PickableItemEvent eventData)
+    {
+      ItemPicker itemPicker = eventData.PickedItem.GetComponent<ItemPicker>();
+      AiAllyBrain aiAllyBrain = eventData.Picker.GetComponent<AiAllyBrain>();
+      if(itemPicker?.Item is InventoryWeapon weaponItem)
+      {
+        aiAllyBrain?.GetComponent<CharacterHandleWeapon>().ChangeWeapon(weaponItem.EquippableWeapon, weaponItem.EquippableWeapon.name);
+      }
     }
   }
 }
