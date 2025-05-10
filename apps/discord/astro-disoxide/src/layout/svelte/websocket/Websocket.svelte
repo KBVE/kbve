@@ -17,7 +17,7 @@
 	let fields = $state<Record<string, string>>({
 	username: 'h0lybyte',
 	message: 'Hello there!',
-});
+		});
 	let streams = $state<{ stream: string; id: string }[]>([]); // Used for XREAD
 	let count = $state<number | undefined>(undefined);
 	let block = $state<number | undefined>(undefined);
@@ -90,6 +90,8 @@
 				try {
 					userCommands = [...userCommands, '↩️ Redis responded'];
 					loadStoredMessages();
+					//console.log(msg);
+					console.log(kbve().data.unwrapEnvelope(msg));
 				} catch (err) {
 					console.warn('[WS] Message listener error:', err);
 				}
@@ -185,6 +187,8 @@
 		}
 
 		const envelope = cmd.build();
+		//kbve().data.inspectFlex(envelope);
+
 		await kbve().ws.send(envelope);
 		userCommands = [...userCommands, cmd.log()];
 	}
@@ -222,7 +226,7 @@
 
 	function prepareXReadStreams() {
 		if (!stream) return [];
-		return [{ stream, id: '$' }];
+		return [{ stream, id: '0' }];
 	}
 
 </script>
@@ -275,7 +279,7 @@
 			<table
 				class="w-full text-sm text-left text-purple-200 table-auto border-separate border-spacing-y-2">
 				<caption class="caption-top">
-					Lastest Entries via DB Worker.
+					Latest Entries via DB Worker.
 				</caption>
 				<thead class="text-xs uppercase text-purple-400">
 					<tr class="bg-purple-700 text-white">

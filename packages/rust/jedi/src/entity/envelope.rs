@@ -22,6 +22,7 @@ use tokio::sync::oneshot;
 use axum::extract::ws::{ Message, Utf8Bytes };
 use std::borrow::Cow;
 
+use super::flex::serialize_to_flex_bytes;
 use super::pipe_redis::KeyValueInput;
 
 /// Wraps a serializable Rust value into a `FlexEnvelope` using Flexbuffers encoding.
@@ -408,21 +409,24 @@ impl JediEnvelope {
   }
 
   pub fn to_ws_message(&self) -> Result<Message, JediError> {
-    let format = PayloadFormat::try_from(self.format).map_err(|_|
+    let format = PayloadFormat::try_from(self.format).map_err(|_| {
       JediError::Internal("Invalid PayloadFormat".into())
-    )?;
+    })?;
 
     match format {
-      PayloadFormat::Flex => Ok(Message::Binary(self.payload.clone().into())),
       PayloadFormat::Json => {
-        let text = std::str
-          ::from_utf8(&self.payload)
-          .map_err(|_| JediError::Internal("Invalid UTF-8 payload".into()))?;
-        Ok(Message::Text(Utf8Bytes::from(text)))
+        let json = serde_json::to_string(self)
+          .map_err(|e| JediError::Internal(format!("JSON serialization error: {}", e).into()))?;
+        Ok(Message::Text(Utf8Bytes::from(json)))
+      }
+      PayloadFormat::Flex => {
+        let bytes = serialize_to_flex_bytes(self)?;
+        Ok(Message::Binary(bytes))
       }
       _ => Err(JediError::Internal("Unsupported WebSocket format".into())),
     }
   }
+
 
   pub fn from_ws_message(msg: &Message) -> Result<Self, JediError> {
     let (payload, format) = match msg {

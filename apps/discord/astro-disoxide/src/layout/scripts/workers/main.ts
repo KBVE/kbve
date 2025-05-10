@@ -6,6 +6,7 @@ import type { WSInstance } from './ws-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
 import { scopeData } from './data';
+import { dispatchAsync } from './tools';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
@@ -227,23 +228,21 @@ async function initStorageComlink(): Promise<Remote<LocalStorageAPI>> {
 let initialized = false;
 
 // * Bridge
-
 export function bridgeWsToDb(
 	ws: Remote<WSInstance>,
 	db: Remote<LocalStorageAPI>
 ) {
-	// ws.onDbPost(proxy(async (decoded) => {
-	// 	const key = `ws:${Date.now()}`;
-	// 	await db.storeWsMessage(key, decoded);
-	// }));
-	ws.onDbPost(
-		proxy(async (buf: ArrayBuffer) => {
+	const handler = proxy(async (buf: ArrayBuffer) => {
+		dispatchAsync(() => {
 			const key = `ws:${Date.now()}`;
-			await db.storeWsMessage(key, buf);
+			void db.storeWsMessage(key, buf);
 		})
-	);
+	});
 
+	ws.onMessage(transfer(handler, [0])); 
 }
+
+//	*	MAIN
 
 export async function main() {
 	if (!initialized) {

@@ -19,6 +19,21 @@ export interface JediEnvelopeFlex {
 	metadata?: Uint8Array;
 }
 
+export const MultiMessageKind = {
+	RGET:     MessageKind.REDIS | MessageKind.GET,
+	RSET:     MessageKind.REDIS | MessageKind.SET,
+	RDEL:     MessageKind.REDIS | MessageKind.DEL,
+	XADD:     MessageKind.REDIS | MessageKind.STREAM | MessageKind.ADD,
+	XREAD:    MessageKind.REDIS | MessageKind.STREAM | MessageKind.READ,
+	WATCH:    MessageKind.REDIS | MessageKind.HEARTBEAT | MessageKind.READ | MessageKind.INFO,
+	UNWATCH:  MessageKind.REDIS | MessageKind.HEARTBEAT | MessageKind.DEL | MessageKind.INFO,
+	PUBLISH:  MessageKind.REDIS | MessageKind.MESSAGE | MessageKind.ACTION,
+	SUBSCRIBE: MessageKind.REDIS | MessageKind.MESSAGE | MessageKind.READ,
+} as const;
+
+export type MultiMessageKindKey = keyof typeof MultiMessageKind;
+
+
 export enum MessageKind {
 	// Verbs (Bits 0–7)
 	UNKNOWN         = 0,
@@ -93,11 +108,22 @@ export function wrapEnvelope<T extends Record<string, any>>(
 	return b.finish();
 }
 
-
 export function unwrapEnvelope<T = unknown>(
-	buffer: Uint8Array
+	buffer: Uint8Array | ArrayBuffer
 ): { envelope: JediEnvelopeFlex; payload: T } {
-    const root = toReference(buffer.buffer as ArrayBuffer).toObject() as JediEnvelopeFlex;
+	const view = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+
+	const root = toReference(view.buffer as ArrayBuffer).toObject() as Record<string, any>;
+
+	if (
+		typeof root.version !== 'number' ||
+		typeof root.kind !== 'number' ||
+		typeof root.format !== 'number' ||
+		!root.payload
+	) {
+		console.error('[unwrapEnvelope] Bad root:', root);
+		throw new Error('[unwrapEnvelope] Invalid envelope structure');
+	}
 
 	const envelope: JediEnvelopeFlex = {
 		version: root.version,
@@ -125,9 +151,11 @@ export function unwrapFlexToJson(buffer: Uint8Array) {
 	return toReference(buffer.buffer as ArrayBuffer).toObject();
 }
 
-export function inspectFlex(buffer: Uint8Array): void {
+export function inspectFlex(buffer: Uint8Array | ArrayBuffer): void {
 	try {
-		console.log('[FlexObject]', unwrapFlexToJson(buffer));
+		const view = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+		const obj = unwrapFlexToJson(view);
+		console.log('[FlexObject]', JSON.stringify(obj, null, 2));
 	} catch (err) {
 		console.error('[Flex Decode Error]', err);
 	}
@@ -192,20 +220,18 @@ export function wrapRedisXRead(
 	count?: number,
 	block?: number,
 ): Uint8Array {
-	const streamMap: Record<string, string> = {};
-	for (const { stream, id } of streams) {
-		streamMap[stream] = id;
-	}
 
 	const inner = builder();
 	inner.startMap();
 
 	inner.addKey('streams');
-	inner.startMap();
-	for (const [stream, id] of Object.entries(streamMap)) {
-		inner.addKey(stream);
-		inner.add(id);
-	}
+	inner.startVector(); 
+	for (const { stream, id } of streams) {
+		inner.startMap();
+		inner.addKey('stream'); inner.add(stream);
+		inner.addKey('id');     inner.add(id);
+		inner.end();
+	  }
 	inner.end();
 
 	if (count !== undefined) {
