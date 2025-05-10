@@ -48,11 +48,39 @@ export function bridgeWsToDb(
 }
 
 ```
+
     This could be further optimized by not having the await and moving it all into a fire and forgot style.
     We are already transferring the ArrayBuffer from the websocket worker to the database worker, so this micro optimization would be to make that bridge as fast as possible.
     Ideally, we would want a way for the websocket shared worker to talk directly to the db worker but shared workers can not talk to each other.
     Thus having the main thread act as a "master" would be the solution for now.
-    
+
+### Bitwise Ops
+
+-   03:55PM
+
+    Going to update the `data.ts` to include the bitwise multi-flag operations.
+    I was hoping that we could have this done via protos but that will have to be for another future rewrite.
+    This is the codeblock that I will place for the multi-flags.
+
+```javascript
+
+export const MultiMessageKind = {
+	RGET:     MessageKind.REDIS | MessageKind.GET,
+	RSET:     MessageKind.REDIS | MessageKind.SET,
+	RDEL:     MessageKind.REDIS | MessageKind.DEL,
+	XADD:     MessageKind.REDIS | MessageKind.STREAM | MessageKind.ADD,
+	XREAD:    MessageKind.REDIS | MessageKind.STREAM | MessageKind.READ,
+	WATCH:    MessageKind.REDIS | MessageKind.HEARTBEAT | MessageKind.READ | MessageKind.INFO,
+	UNWATCH:  MessageKind.REDIS | MessageKind.HEARTBEAT | MessageKind.DEL | MessageKind.INFO,
+	PUBLISH:  MessageKind.REDIS | MessageKind.MESSAGE | MessageKind.ACTION,
+	SUBSCRIBE: MessageKind.REDIS | MessageKind.MESSAGE | MessageKind.READ,
+} as const;
+
+```
+
+    Initially, this would be just in the `.d.ts` files but I plan to move the whole shared worker eco-system out and into the laser npm package.
+    This means in the future , we can have a single bundled javascript file that would hold all our shared workers and packaged into a `window.kbve` that we can use in any framework.
+
 
 
 ## 2024
