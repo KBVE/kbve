@@ -19,6 +19,21 @@ export interface JediEnvelopeFlex {
 	metadata?: Uint8Array;
 }
 
+export const MultiMessageKind = {
+	RGET:     MessageKind.REDIS | MessageKind.GET,
+	RSET:     MessageKind.REDIS | MessageKind.SET,
+	RDEL:     MessageKind.REDIS | MessageKind.DEL,
+	XADD:     MessageKind.REDIS | MessageKind.STREAM | MessageKind.ADD,
+	XREAD:    MessageKind.REDIS | MessageKind.STREAM | MessageKind.READ,
+	WATCH:    MessageKind.REDIS | MessageKind.HEARTBEAT | MessageKind.READ | MessageKind.INFO,
+	UNWATCH:  MessageKind.REDIS | MessageKind.HEARTBEAT | MessageKind.DEL | MessageKind.INFO,
+	PUBLISH:  MessageKind.REDIS | MessageKind.MESSAGE | MessageKind.ACTION,
+	SUBSCRIBE: MessageKind.REDIS | MessageKind.MESSAGE | MessageKind.READ,
+} as const;
+
+export type MultiMessageKindKey = keyof typeof MultiMessageKind;
+
+
 export enum MessageKind {
 	// Verbs (Bits 0–7)
 	UNKNOWN         = 0,

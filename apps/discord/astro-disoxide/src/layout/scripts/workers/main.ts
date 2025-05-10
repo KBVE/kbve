@@ -6,6 +6,7 @@ import type { WSInstance } from './ws-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
 import { scopeData } from './data';
+import { dispatchAsync } from './tools';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
@@ -232,12 +233,16 @@ export function bridgeWsToDb(
 	db: Remote<LocalStorageAPI>
 ) {
 	const handler = proxy(async (buf: ArrayBuffer) => {
-		const key = `ws:${Date.now()}`;
-		await db.storeWsMessage(key, buf);
+		dispatchAsync(() => {
+			const key = `ws:${Date.now()}`;
+			void db.storeWsMessage(key, buf);
+		})
 	});
 
 	ws.onMessage(transfer(handler, [0])); 
 }
+
+//	*	MAIN
 
 export async function main() {
 	if (!initialized) {

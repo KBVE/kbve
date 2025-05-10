@@ -1,7 +1,7 @@
 ---
 title: 'May: 10'
 category: Daily
-date: 2024-05-10 12:00:00
+date: 2025-05-10 12:00:00
 client: Self
 unsplash: 1682553064442-272b63b5a541
 img: https://images.unsplash.com/photo-1682553064442-272b63b5a541?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -10,6 +10,78 @@ description: |
 tags:
     - daily
 ---
+
+## 2025
+
+### Steam Community Marketplace
+
+-   03:13PM
+
+    Did a bit more research and it seems that there is a 10% developer fee that comes with item transactions.
+    I think it be a better move to implement some "Soulbound" items in our game that then get traded via the steam community marketplace?
+    The goal here would be to avoid having to deal with micro transactions directly in-game, kinda having a bit of an exclusive market.
+    As I think more about it, hmm, one could argue that it be the OSRS Party hat system, where we have limited one time drops?
+    
+
+### Local Redis Streams
+
+-   03:18PM
+
+    As the websockets get messages, we need to store them locally in the clients database and this would be a basic long poll.
+    Before I get a chance to build that out, I see some micro optimizations that I can do within the main thread to help move things along.
+    My goal would be to a `tools.ts` that holds a bunch of minor utility functions to make things easier in the long run.
+    Here is the current bridge:
+
+```javascript
+
+// * Bridge
+export function bridgeWsToDb(
+	ws: Remote<WSInstance>,
+	db: Remote<LocalStorageAPI>
+) {
+	const handler = proxy(async (buf: ArrayBuffer) => {
+		const key = `ws:${Date.now()}`;
+		await db.storeWsMessage(key, buf);
+	});
+
+	ws.onMessage(transfer(handler, [0])); 
+}
+
+```
+
+    This could be further optimized by not having the await and moving it all into a fire and forgot style.
+    We are already transferring the ArrayBuffer from the websocket worker to the database worker, so this micro optimization would be to make that bridge as fast as possible.
+    Ideally, we would want a way for the websocket shared worker to talk directly to the db worker but shared workers can not talk to each other.
+    Thus having the main thread act as a "master" would be the solution for now.
+
+### Bitwise Ops
+
+-   03:55PM
+
+    Going to update the `data.ts` to include the bitwise multi-flag operations.
+    I was hoping that we could have this done via protos but that will have to be for another future rewrite.
+    This is the codeblock that I will place for the multi-flags.
+
+```javascript
+
+export const MultiMessageKind = {
+	RGET:     MessageKind.REDIS | MessageKind.GET,
+	RSET:     MessageKind.REDIS | MessageKind.SET,
+	RDEL:     MessageKind.REDIS | MessageKind.DEL,
+	XADD:     MessageKind.REDIS | MessageKind.STREAM | MessageKind.ADD,
+	XREAD:    MessageKind.REDIS | MessageKind.STREAM | MessageKind.READ,
+	WATCH:    MessageKind.REDIS | MessageKind.HEARTBEAT | MessageKind.READ | MessageKind.INFO,
+	UNWATCH:  MessageKind.REDIS | MessageKind.HEARTBEAT | MessageKind.DEL | MessageKind.INFO,
+	PUBLISH:  MessageKind.REDIS | MessageKind.MESSAGE | MessageKind.ACTION,
+	SUBSCRIBE: MessageKind.REDIS | MessageKind.MESSAGE | MessageKind.READ,
+} as const;
+
+```
+
+    Initially, this would be just in the `.d.ts` files but I plan to move the whole shared worker eco-system out and into the laser npm package.
+    This means in the future , we can have a single bundled javascript file that would hold all our shared workers and packaged into a `window.kbve` that we can use in any framework.
+
+
 
 ## 2024
 
