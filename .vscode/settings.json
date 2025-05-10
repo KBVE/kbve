@@ -42,7 +42,12 @@
       "xadd",
       "xdel",
       "flexbuffer",
+      "flexbuilder",
       "serde",
-      "bytescow"
+      "bytescow",
+      "rget",
+      "rset",
+      "rdel",
+      "FLATBUFFER",
     ]
 }
