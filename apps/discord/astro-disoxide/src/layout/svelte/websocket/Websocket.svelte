@@ -17,7 +17,7 @@
 	let fields = $state<Record<string, string>>({
 	username: 'h0lybyte',
 	message: 'Hello there!',
-});
+		});
 	let streams = $state<{ stream: string; id: string }[]>([]); // Used for XREAD
 	let count = $state<number | undefined>(undefined);
 	let block = $state<number | undefined>(undefined);
@@ -86,10 +86,12 @@
 		}
 
 		ws.onMessage(
-			proxy((msg: any) => {
+			proxy((msg: ArrayBuffer) => {
 				try {
 					userCommands = [...userCommands, '↩️ Redis responded'];
 					loadStoredMessages();
+					//console.log(msg);
+					kbve().data.unwrapEnvelope(msg);
 				} catch (err) {
 					console.warn('[WS] Message listener error:', err);
 				}
@@ -185,7 +187,7 @@
 		}
 
 		const envelope = cmd.build();
-		kbve().data.inspectFlex(envelope);
+		//kbve().data.inspectFlex(envelope);
 
 		await kbve().ws.send(envelope);
 		userCommands = [...userCommands, cmd.log()];
