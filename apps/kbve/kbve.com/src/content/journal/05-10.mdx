@@ -23,6 +23,38 @@ tags:
     As I think more about it, hmm, one could argue that it be the OSRS Party hat system, where we have limited one time drops?
     
 
+### Local Redis Streams
+
+-   03:18PM
+
+    As the websockets get messages, we need to store them locally in the clients database and this would be a basic long poll.
+    Before I get a chance to build that out, I see some micro optimizations that I can do within the main thread to help move things along.
+    My goal would be to a `tools.ts` that holds a bunch of minor utility functions to make things easier in the long run.
+    Here is the current bridge:
+
+```javascript
+
+// * Bridge
+export function bridgeWsToDb(
+	ws: Remote<WSInstance>,
+	db: Remote<LocalStorageAPI>
+) {
+	const handler = proxy(async (buf: ArrayBuffer) => {
+		const key = `ws:${Date.now()}`;
+		await db.storeWsMessage(key, buf);
+	});
+
+	ws.onMessage(transfer(handler, [0])); 
+}
+
+```
+    This could be further optimized by not having the await and moving it all into a fire and forgot style.
+    We are already transferring the ArrayBuffer from the websocket worker to the database worker, so this micro optimization would be to make that bridge as fast as possible.
+    Ideally, we would want a way for the websocket shared worker to talk directly to the db worker but shared workers can not talk to each other.
+    Thus having the main thread act as a "master" would be the solution for now.
+    
+
+
 ## 2024
 
 **TailWindCSS**
