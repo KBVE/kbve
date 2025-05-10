@@ -8,6 +8,7 @@
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
       "MoreMountains.Feedbacks",
+      "MoreMountains.InventoryEngine",
       "VContainer",
       "Kbve.Kilonet",
       "Unity.Addressables",
