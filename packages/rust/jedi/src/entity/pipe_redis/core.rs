@@ -1,4 +1,6 @@
 use crate::error::JediError;
+use crate::pipe_redis::redis_types::XReadStreamInput;
+use crate::pipe_redis::{Field, RedisStream};
 use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
 use crate::entity::envelope::{ try_unwrap_flex, wrap_flex };
 use crate::state::temple::TempleState;
@@ -12,20 +14,12 @@ use std::borrow::Cow;
 use serde_json::Value;
 use crate::entity::{ pipe::Pipe, flex::*, bitwise::*, serde_arc_str, serde_bytes_map };
 
-use super::envelope::{ try_unwrap_payload, wrap_hybrid };
+use crate::entity::envelope::{ try_unwrap_payload, wrap_hybrid };
 
-// * Pipe Redis Utils
+use super::extract_redis_bytes;
+use super::redis_types::{KeyValueInput, RedisResult, StreamEntry, StreamMessages, XAddInput};
 
-fn extract_redis_bytes(value: fred::types::Value) -> Result<bytes::Bytes, JediError> {
-  value.into_bytes().ok_or_else(|| JediError::Internal("Expected Redis Bytes but got None".into()))
-}
 
-fn to_utf8_cow<'a>(bytes: &'a [u8]) -> Cow<'a, str> {
-  match std::str::from_utf8(bytes) {
-    Ok(s) => Cow::Borrowed(s),
-    Err(_) => Cow::Owned(String::from_utf8_lossy(bytes).into_owned()),
-  }
-}
 
 macro_rules! match_redis_handlers_flex {
   ($kind:expr, $env:expr, $ctx:expr) => {
@@ -83,80 +77,6 @@ macro_rules! match_redis_handlers_json {
   };
 }
 
-// * Throwaway Structs
-
-#[derive(Debug, Deserialize)]
-struct XAddInput {
-  #[serde(with = "serde_arc_str")]
-  stream: Arc<str>,
-  #[serde(default, with = "serde_arc_str::option")]
-  id: Option<Arc<str>>,
-  #[serde(with = "serde_arc_str::map_keys")]
-  fields: HashMap<Arc<str>, String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyValueInput {
-  #[serde(with = "serde_arc_str")]
-  pub key: Arc<str>,
-  #[serde(default, with = "serde_arc_str::option")]
-  pub value: Option<Arc<str>>,
-  pub ttl: Option<usize>,
-}
-
-#[derive(Debug, Serialize)]
-struct RedisResult {
-  #[serde(with = "serde_arc_str")]
-  key: Arc<str>,
-  #[serde(with = "serde_arc_str::option")]
-  value: Option<Arc<str>>,
-}
-
-// ! XReadInput -> XReadStreamInput * Following the next step.
-
-#[derive(Debug, Deserialize)]
-struct XReadInput {
-  #[serde(with = "serde_arc_str::map_arc_to_arc")]
-  streams: HashMap<Arc<str>, Arc<str>>,
-  #[serde(default)]
-  count: Option<u64>,
-  #[serde(default)]
-  block: Option<u64>,
-}
-
-// * Stream Structs
-
-#[derive(Debug, Deserialize)]
-pub struct StreamKeySelector {
-  #[serde(with = "serde_arc_str")]
-  pub stream: Arc<str>,
-  #[serde(with = "serde_arc_str")]
-  pub id: Arc<str>,
-}
-
-
-#[derive(Debug, Deserialize)]
-struct XReadStreamInput {
-  streams: Vec<StreamKeySelector>,
-  #[serde(default)]
-  count: Option<u64>,
-  #[serde(default)]
-  block: Option<u64>,
-}
-
-// * JSON Specific Structs
-
-#[derive(Debug, Serialize)]
-struct StreamEntry<'a> {
-  id: Cow<'a, str>,
-  fields: HashMap<Cow<'a, str>, Cow<'a, str>>,
-}
-
-#[derive(Debug, Serialize)]
-struct StreamMessages<'a> {
-  stream: Cow<'a, str>,
-  entries: Vec<StreamEntry<'a>>,
-}
 
 pub async fn pipe_redis(env: JediEnvelope, ctx: &TempleState) -> Result<JediEnvelope, JediError> {
   env.pipe_async(|e| async move {
@@ -248,69 +168,85 @@ async fn handle_redis_xadd_flex(
   Ok(wrap_hybrid(MessageKind::Add as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32, PayloadFormat::Flex, &result, Some(env.metadata.clone())))
 }
 
-async fn handle_redis_xread_flex(
-  env: &JediEnvelope,
-  ctx: &TempleState
+pub async fn handle_redis_xread_flex(
+    env: &JediEnvelope,
+    ctx: &TempleState,
 ) -> Result<JediEnvelope, JediError> {
+    let input = try_unwrap_payload::<XReadStreamInput>(env)
+        .map_err(|e| {
+            tracing::error!("Deserialization error: {:?}", e);
+            JediError::Parse(e.to_string())
+        })?;
 
-  let input = try_unwrap_payload::<XReadStreamInput>(env).map_err(|e| {
-    tracing::error!("Deserialization error: {:?}", e);
-    JediError::Parse(e.to_string())
-})?;
-
-
-  let (keys, ids): (Vec<&str>, Vec<&str>) = input
+    let (keys, ids): (Vec<&str>, Vec<&str>) = input
         .streams
         .iter()
         .filter_map(|s| {
             if s.stream.is_empty() || s.id.is_empty() {
-              tracing::warn!("Invalid stream or id: stream={}, id={}", s.stream, s.id);
+                tracing::warn!("Invalid stream or id: stream={}, id={}", s.stream, s.id);
                 return None;
             }
             if !s.id.chars().all(|c| c.is_ascii_digit() || c == '-' || c == '$') {
-              tracing::warn!("Invalid id format: {}", s.id);
+                tracing::warn!("Invalid id format: {}", s.id);
                 return None;
             }
             Some((s.stream.as_ref(), s.id.as_ref()))
         })
         .unzip();
 
-  if keys.is_empty() {
-          tracing::error!("No valid streams provided"); // [DEBUG] REMOVING
-          return Err(JediError::Internal("No valid streams provided".into()));
-      }
+    if keys.is_empty() {
+        tracing::error!("No valid streams provided");
+        return Err(JediError::Internal("No valid streams provided".into()));
+    }
 
-  tracing::debug!(
-    "XREAD inputs: keys={:?}, ids={:?}, count={:?}, block={:?}",
-    keys,
-    ids,
-    input.count,
-    input.block
-  ); // [DEBUG] REMOVING
+    tracing::debug!(
+        "XREAD inputs: keys={:?}, ids={:?}, count={:?}, block={:?}",
+        keys,
+        ids,
+        input.count,
+        input.block
+    );
 
-  let client = ctx.redis_pool.next().clone();
-
-  let raw_result = client
-  .xread_map(Some(input.count.unwrap_or(10)), input.block, keys, ids)
-  .await;
-
-  tracing::debug!("Raw XREAD result: {:?}", raw_result);
-
-  let result: HashMap<String, Vec<(String, HashMap<String, Vec<u8>>)>> = raw_result
+    let client = ctx.redis_pool.next().clone();
+    let raw_result: HashMap<String, Vec<(String, HashMap<String, Vec<u8>>)>> =
+    client
+        .xread_map(Some(input.count.unwrap_or(10)), input.block, keys, ids)
+        .await
         .map_err(|e| {
             tracing::error!("XREAD error: {:?}", e);
             JediError::Database(format!("Redis error: {}", e).into())
-        })
-        .unwrap_or(HashMap::new());
+        })?;
 
-  let bytes = serialize_to_flex_bytes(&result)?;
+    let redis_stream = RedisStream {
+            streams: raw_result
+                .into_iter()
+                .map(|(stream_name, entries)| StreamMessages {
+                    stream: stream_name,
+                    entries: entries
+                        .into_iter()
+                        .map(|(id, fields)| StreamEntry {
+                            id,
+                            fields: fields
+                                .into_iter()
+                                .map(|(k, v)| Field {
+                                    key: k,
+                                    value: v,
+                                })
+                                .collect(),
+                        })
+                        .collect(),
+                })
+                .collect(),
+        };
 
-  Ok(wrap_hybrid(
-    MessageKind::Read as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32,
-    PayloadFormat::Flex,
-    &bytes,
-    Some(env.metadata.clone())
-  ))
+    let bytes = crate::entity::flex::serialize_to_flex_bytes(&redis_stream)?;
+
+    Ok(wrap_hybrid(
+        MessageKind::Read as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32,
+        PayloadFormat::Flex,
+        &bytes,
+        Some(env.metadata.clone()),
+    ))
 }
 
 async fn handle_redis_watch_flex(
@@ -461,52 +397,64 @@ async fn handle_redis_xadd_json(
   Ok(wrap_hybrid(MessageKind::Add as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32, PayloadFormat::Json, &result, Some(env.metadata.clone())))
 }
 
-async fn handle_redis_xread_json(
-  env: &JediEnvelope,
-  ctx: &TempleState
+
+pub async fn handle_redis_xread_json(
+    env: &JediEnvelope,
+    ctx: &TempleState,
 ) -> Result<JediEnvelope, JediError> {
-  let input = try_unwrap_payload::<XReadInput>(env)?;
-  let client = ctx.redis_pool.next().clone();
+    let input = try_unwrap_payload::<XReadStreamInput>(env)?;
+    let client = ctx.redis_pool.next().clone();
 
-  let (keys, ids): (Vec<&str>, Vec<&str>) = input.streams
-    .iter()
-    .map(|(k, v)| (k.as_ref(), v.as_ref()))
-    .unzip();
+    let (keys, ids): (Vec<String>, Vec<String>) = input
+        .streams
+        .iter()
+        .map(|s| (s.stream.to_string(), s.id.to_string()))
+        .unzip();
 
-  let result: FredXRead<String, String, String, Vec<u8>> = client.xread_map(
-    Some(input.count.unwrap_or(10)),
-    input.block,
-    keys,
-    ids
-  ).await?;
+    let raw_result: HashMap<String, Vec<(String, HashMap<String, Vec<u8>>)>> = client
+        .xread_map(Some(input.count.unwrap_or(10)), input.block, keys, ids)
+        .await
+        .map_err(|e| {
+            tracing::error!("XREAD error: {:?}", e);
+            JediError::Database(format!("Redis error: {}", e).into())
+        })?;
 
-  let response: Vec<StreamMessages> = result
-    .into_iter()
-    .map(|(stream, entries)| StreamMessages {
-      stream: Cow::Owned(stream),
-      entries: entries
+    let response: Vec<serde_json::Value> = raw_result
         .into_iter()
-        .map(|(id, fields)| {
-          let fields_map = fields
-            .into_iter()
-            .map(|(k, v)| (Cow::Owned(k), Cow::Owned(String::from_utf8_lossy(&v).into_owned())))
-            .collect();
+        .map(|(stream, entries)| {
+            let entries_json: Vec<serde_json::Value> = entries
+                .into_iter()
+                .map(|(id, fields)| {
+                    let fields_json: Vec<serde_json::Value> = fields
+                        .into_iter()
+                        .map(|(k, v)| {
+                            serde_json::json!({
+                                "key": k,
+                                "value": String::from_utf8_lossy(&v).into_owned()
+                            })
+                        })
+                        .collect();
 
-          StreamEntry {
-            id: Cow::Owned(id),
-            fields: fields_map,
-          }
+                    serde_json::json!({
+                        "id": id,
+                        "fields": fields_json
+                    })
+                })
+                .collect();
+
+            serde_json::json!({
+                "stream": stream,
+                "entries": entries_json
+            })
         })
-        .collect(),
-    })
-    .collect();
+        .collect();
 
-  Ok(wrap_hybrid(
-    MessageKind::Read as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32,
-    PayloadFormat::Json,
-    &response,
-    Some(env.metadata.clone())
-  ))
+    Ok(wrap_hybrid(
+        MessageKind::Read as i32 | MessageKind::Redis as i32 | MessageKind::Stream as i32,
+        PayloadFormat::Json,
+        &response,
+        Some(env.metadata.clone()),
+    ))
 }
 
 async fn handle_redis_watch_json(
@@ -568,150 +516,3 @@ async fn handle_redis_sub_json(
   Ok(env.clone())
 }
 
-pub mod faucet_redis {
-  use super::*;
-  use crate::envelope::{ EnvelopePipeline, EnvelopeWorkItem };
-  use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
-  use bytes::Bytes;
-  use fred::{ prelude::*, types::Message as RedisMessage, clients::SubscriberClient };
-  use tokio::sync::{ mpsc::UnboundedReceiver, broadcast::Sender as BroadcastSender };
-  use tokio::task::JoinHandle;
-
-  pub async fn create_pubsub_connection_fred(
-    config: Config
-  ) -> Result<(SubscriberClient, UnboundedReceiver<JediEnvelope>), JediError> {
-    let subscriber = Builder::from_config(config)
-      .build_subscriber_client()
-      .map_err(|e| JediError::Internal(format!("Failed to build subscriber: {e}").into()))?;
-
-    subscriber
-      .init().await
-      .map_err(|e| { JediError::Internal(format!("Failed to init subscriber: {e}").into()) })?;
-
-    let _ = subscriber.manage_subscriptions();
-
-    let mut redis_rx = subscriber.message_rx();
-    let (app_tx, app_rx) = tokio::sync::mpsc::unbounded_channel();
-
-    tokio::spawn(async move {
-      while let Ok(msg) = redis_rx.recv().await {
-        if let Some(env) = parse_pubsub_message_to_envelope(&msg) {
-          let _ = app_tx.send(env);
-        }
-      }
-    });
-
-    Ok((subscriber, app_rx))
-  }
-
-  fn parse_pubsub_message_to_envelope(msg: &RedisMessage) -> Option<JediEnvelope> {
-    let channel = format!("{}", msg.channel);
-    let payload: String = msg.value.clone().convert().ok()?;
-    let key = channel.strip_prefix("key:")?.to_owned();
-
-    let env = wrap_hybrid(
-      MessageKind::ConfigUpdate,
-      PayloadFormat::Json,
-      &serde_json::json!({
-        "key": key,
-        "value": payload,
-        "timestamp": chrono::Utc::now().timestamp_millis(),
-      }),
-      None
-    );
-
-    Some(env)
-  }
-
-
-  pub fn spawn_pubsub_listener_task(
-    mut rx: UnboundedReceiver<JediEnvelope>,
-    event_tx: BroadcastSender<JediEnvelope>,
-) -> JoinHandle<()> {
-    tokio::spawn(async move {
-        while let Some(env) = rx.recv().await {
-            let kind = env.kind;
-            if MessageKind::try_from_valid(kind) {
-                tracing::debug!("[Redis] PubSub event received: kind={} (valid)", kind);
-            } else {
-                tracing::warn!("[Redis] PubSub event received: kind={} (invalid)", kind);
-            }
-
-            if let Err(e) = event_tx.send(env.clone()) {
-                tracing::warn!("[Redis] Failed to broadcast pubsub event: {}", e);
-            }
-        }
-
-        tracing::warn!("[Redis] PubSub listener exited");
-    })
-}
-
-
-  pub fn spawn_watch_event_listener(
-    mut rx: UnboundedReceiver<JediEnvelope>,
-    client: SubscriberClient
-  ) -> JoinHandle<()> {
-    tokio::spawn(async move {
-      while let Some(env) = rx.recv().await {
-        
-        let kind = env.kind;
-
-        if !MessageKind::try_from_valid(kind) {
-            tracing::warn!("[Redis] Received invalid MessageKind: {}", kind);
-            continue;
-        }
-
-        if MessageKind::watch(kind) || MessageKind::unwatch(kind) {
-          let payload = try_unwrap_payload::<KeyValueInput>(&env);
-
-          let key = match payload {
-            Ok(kv) => kv.key,
-            Err(e) => {
-              tracing::warn!("[Redis] Failed to parse watch/unwatch payload: {}", e);
-              continue;
-            }
-          };
-
-          let channel = format!("key:{}", key);
-          let result = if MessageKind::watch(kind.into()) {
-            tracing::info!("[Redis] Subscribing to {}", channel);
-            client.subscribe(channel).await
-          } else {
-            tracing::info!("[Redis] Unsubscribing from {}", channel);
-            client.unsubscribe(channel).await
-          };
-
-          if let Err(e) = result {
-            tracing::warn!("[Redis] Failed to process watch/unwatch: {}", e);
-          }
-        } else {
-          tracing::debug!("[Redis] Ignored non-watch envelope in watch listener: kind={:?}", kind);
-        }
-      }
-
-      tracing::warn!("[Redis] WatchEvent listener exiting");
-    })
-  }
-
-  pub fn spawn_redis_worker(
-    ctx: Arc<TempleState>,
-    mut rx: tokio::sync::mpsc::Receiver<EnvelopeWorkItem>
-  ) -> JoinHandle<()> {
-    tokio::spawn(async move {
-      tracing::info!("[RedisWorker] Spawned");
-
-      while let Some(EnvelopeWorkItem { envelope, response_tx }) = rx.recv().await {
-        let result = envelope.process(&ctx).await;
-
-        if let Some(tx) = response_tx {
-          let _ = tx.send(match result {
-            Ok(env) => env,
-            Err(e) => JediEnvelope::error("RedisWorker", &e.to_string()),
-          });
-        }
-      }
-
-      tracing::warn!("[RedisWorker] Redis worker exiting");
-    })
-  }
-}
