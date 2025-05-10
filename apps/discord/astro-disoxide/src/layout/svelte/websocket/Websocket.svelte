@@ -185,6 +185,8 @@
 		}
 
 		const envelope = cmd.build();
+		kbve().data.inspectFlex(envelope);
+
 		await kbve().ws.send(envelope);
 		userCommands = [...userCommands, cmd.log()];
 	}
@@ -222,7 +224,7 @@
 
 	function prepareXReadStreams() {
 		if (!stream) return [];
-		return [{ stream, id: '$' }];
+		return [{ stream, id: '0' }];
 	}
 
 </script>
@@ -275,7 +277,7 @@
 			<table
 				class="w-full text-sm text-left text-purple-200 table-auto border-separate border-spacing-y-2">
 				<caption class="caption-top">
-					Lastest Entries via DB Worker.
+					Latest Entries via DB Worker.
 				</caption>
 				<thead class="text-xs uppercase text-purple-400">
 					<tr class="bg-purple-700 text-white">

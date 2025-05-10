@@ -5,6 +5,8 @@ use crate::proto::jedi::{ MessageKind, JediEnvelope, PayloadFormat };
 use crate::entity::envelope::{ try_unwrap_flex, wrap_flex };
 use crate::state::temple::TempleState;
 use bytes::Bytes;
+use bytes_utils::Str;
+
 use fred::prelude::*;
 use fred::types::streams::{ MultipleOrderedPairs, XID, XCap, XReadResponse as FredXRead };
 use serde::{ Deserialize, Serialize };
@@ -178,21 +180,20 @@ pub async fn handle_redis_xread_flex(
             JediError::Parse(e.to_string())
         })?;
 
-    let (keys, ids): (Vec<&str>, Vec<&str>) = input
+    let (keys, ids): (Vec<Str>, Vec<Str>) = input
         .streams
         .iter()
         .filter_map(|s| {
             if s.stream.is_empty() || s.id.is_empty() {
-                tracing::warn!("Invalid stream or id: stream={}, id={}", s.stream, s.id);
                 return None;
             }
             if !s.id.chars().all(|c| c.is_ascii_digit() || c == '-' || c == '$') {
-                tracing::warn!("Invalid id format: {}", s.id);
                 return None;
             }
-            Some((s.stream.as_ref(), s.id.as_ref()))
+            Some((Str::from(s.stream.as_ref()), Str::from(s.id.as_ref())))
         })
         .unzip();
+    
 
     if keys.is_empty() {
         tracing::error!("No valid streams provided");
@@ -208,7 +209,7 @@ pub async fn handle_redis_xread_flex(
     );
 
     let client = ctx.redis_pool.next().clone();
-    let raw_result: HashMap<String, Vec<(String, HashMap<String, Vec<u8>>)>> =
+    let raw_result: fred::types::streams::XReadResponse<Str, Str, Str, Str> =
     client
         .xread_map(Some(input.count.unwrap_or(10)), input.block, keys, ids)
         .await
@@ -218,26 +219,26 @@ pub async fn handle_redis_xread_flex(
         })?;
 
     let redis_stream = RedisStream {
-            streams: raw_result
-                .into_iter()
-                .map(|(stream_name, entries)| StreamMessages {
-                    stream: stream_name,
-                    entries: entries
-                        .into_iter()
-                        .map(|(id, fields)| StreamEntry {
-                            id,
-                            fields: fields
-                                .into_iter()
-                                .map(|(k, v)| Field {
-                                    key: k,
-                                    value: v,
-                                })
-                                .collect(),
-                        })
-                        .collect(),
-                })
-                .collect(),
-        };
+          streams: raw_result
+              .into_iter()
+              .map(|(stream_name, entries)| StreamMessages {
+                  stream: stream_name.to_string(),
+                  entries: entries
+                      .into_iter()
+                      .map(|(id, fields)| StreamEntry {
+                          id: id.to_string(),
+                          fields: fields
+                              .into_iter()
+                              .map(|(k, v)| Field {
+                                  key: k.to_string(),
+                                  value: v.as_bytes().to_vec(),
+                              })
+                              .collect(),
+                      })
+                      .collect(),
+              })
+              .collect(),
+      };
 
     let bytes = crate::entity::flex::serialize_to_flex_bytes(&redis_stream)?;
 
