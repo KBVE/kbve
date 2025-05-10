@@ -12,12 +12,6 @@ declare const self: SharedWorkerGlobalScope;
 let ws: WebSocket | null = null;
 let onMessageCallback: ((data: any) => void) | null = null;
 
-let onDbPostCallback: ((data: any) => void) | null = null;
-
-function onDbPost(callback: (data: any) => void) {
-	onDbPostCallback = callback;
-}
-
 function shouldStoreMessage(msg: any): boolean {
 	if (msg?.xadd) return true;
 	if (msg?.get) return true;
@@ -38,36 +32,9 @@ const wsInstanceAPI = {
         ws.onmessage = (e) => {
             try {
                 console.log('[WS] Received binary message');
-
-				const data = e.data;
-				console.log('[WS] e.data type:', typeof data);
-				console.log('[WS] e.data instanceof:', {
-					ArrayBuffer: data instanceof ArrayBuffer,
-					Uint8Array: data instanceof Uint8Array,
-					Blob: data instanceof Blob,
-					String: typeof data === 'string',
-				});
-
-				if (typeof e.data === 'string') {
-					try {
-						const json = JSON.parse(e.data);
-						console.log('[WS] Received JSON string:', json);
-						onDbPostCallback?.(json);
-						onMessageCallback?.(json);
-					} catch {
-						console.warn('[WS] Received non-JSON string:', e.data);
-					}
-					return;
-				}
 				
 				if (e.data instanceof ArrayBuffer) {
-					if (onDbPostCallback) {
-						onDbPostCallback(e.data); 
-					}
-		
-					if (onMessageCallback) {
-						onMessageCallback(e.data);
-					}
+					onMessageCallback?.(e.data);   
 				}
             } catch (err) {
                 console.error('[WS] Failed to forward message', err);
@@ -99,9 +66,6 @@ const wsInstanceAPI = {
 		onMessageCallback = callback;
 	},
 
-    onDbPost(callback: (data: any) => void) {
-		onDbPostCallback = callback;
-	},
 
 };
 
@@ -112,3 +76,4 @@ self.onconnect = (event: MessageEvent) => {
 	port.start();
 	expose(wsInstanceAPI, port);
 };
+

@@ -227,22 +227,16 @@ async function initStorageComlink(): Promise<Remote<LocalStorageAPI>> {
 let initialized = false;
 
 // * Bridge
-
 export function bridgeWsToDb(
 	ws: Remote<WSInstance>,
 	db: Remote<LocalStorageAPI>
 ) {
-	// ws.onDbPost(proxy(async (decoded) => {
-	// 	const key = `ws:${Date.now()}`;
-	// 	await db.storeWsMessage(key, decoded);
-	// }));
-	ws.onDbPost(
-		proxy(async (buf: ArrayBuffer) => {
-			const key = `ws:${Date.now()}`;
-			await db.storeWsMessage(key, buf);
-		})
-	);
+	const handler = proxy(async (buf: ArrayBuffer) => {
+		const key = `ws:${Date.now()}`;
+		await db.storeWsMessage(key, buf);
+	});
 
+	ws.onMessage(transfer(handler, [0])); 
 }
 
 export async function main() {

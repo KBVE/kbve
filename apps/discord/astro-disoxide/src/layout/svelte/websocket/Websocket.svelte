@@ -86,12 +86,12 @@
 		}
 
 		ws.onMessage(
-			proxy((msg: ArrayBuffer) => {
+			proxy((msg: any) => {
 				try {
 					userCommands = [...userCommands, '↩️ Redis responded'];
 					loadStoredMessages();
 					//console.log(msg);
-					kbve().data.unwrapEnvelope(msg);
+					console.log(kbve().data.unwrapEnvelope(msg));
 				} catch (err) {
 					console.warn('[WS] Message listener error:', err);
 				}
