@@ -192,10 +192,6 @@ export function wrapRedisXRead(
 	count?: number,
 	block?: number,
 ): Uint8Array {
-	const streamMap: Record<string, string> = {};
-	for (const { stream, id } of streams) {
-		streamMap[stream] = id;
-	}
 
 	const inner = builder();
 	inner.startMap();
