@@ -69,8 +69,8 @@ jobs:
 
             #   @[CACHE]->[END]
 
-            - name: Install pnpm dependencies
-              run: pnpm install
+            # - name: Install pnpm dependencies
+            #   run: pnpm install
 
             #   @[NX] -> [REPORT] -> [START]
 
@@ -154,6 +154,45 @@ jobs:
     #               } | .include |= map(select(.condition == "true")) | if (.include | length) == 0 then null else . end')
 
     #               echo "matrix=$(echo "$MATRIX" | jq -c)" >> "$GITHUB_OUTPUT"
+
+
+    ## Astro
+
+    generate_astro_matrix:
+      needs: ['deploy', 'alter', 'globals']
+      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+      with:
+        items: |
+            [
+                {
+                  "name": "kbve.com",
+                  "node_version": "22",
+                  "pnpm_version": "10",
+                  "build_command": "pnpm build",
+                  "source_path": "dist/apps/kbve.com/",
+                  "destination_repo": "KBVE/kbve.com",
+                  "destination_folder": "/docs",
+                  "destination_branch": "dev",
+                }
+            ]
+    build_astro:
+      name: Build Astro Projects
+      needs: ['generate_astro_matrix']
+      if: ${{ needs.generate_astro_matrix.outputs.matrix != 'null' }}
+      strategy:
+        matrix: ${{ fromJson(needs.generate_astro_matrix.outputs.matrix) }}
+      uses: KBVE/kbve/.github/workflows/utils-astro-deployment.yml@main
+      with:
+        node_version: ${{ matrix.node_version }}
+        pnpm_version: ${{ matrix.pnpm_version }}
+        build_command: ${{ matrix.build_command }}
+        source_path: ${{ matrix.source_path }}
+        destination_repo: ${{ matrix.destination_repo }}
+        destination_folder: ${{ matrix.destination_folder }}
+        destination_branch: ${{ matrix.destination_branch }}
+       
+      secrets:
+        GITHUB_PAT: ${{ secrets.GH_PAGES_PAT }}  
 
     generate_unity_matrix:
       needs: ['deploy', 'alter', 'globals']
