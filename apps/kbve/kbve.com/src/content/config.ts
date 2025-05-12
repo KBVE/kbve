@@ -1,6 +1,6 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
-import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
+//import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
 
 
 //*     [Map Schema]
@@ -368,24 +368,24 @@ export const collections = {
   comic: comic,
   docs: defineCollection({
     schema: docsSchema({
-      extend: pageSiteGraphSchema.merge(z.object({
-        unsplash: z.string().optional(),
-        tags: z.array(z.string()).optional(),
-        'yt-tracks': z.array(z.string()).optional(),
-        'yt-sets': z.array(z.string()).optional(),
-        prompts: z.array(PromptSchema).optional(),
-        'prompt-index': z.string().optional(),
-        stats: z.array(statSchema).optional(),
-        img: z.string().optional(),
-        lottie: z.string().optional(),
-        button: z.string().optional(),
-        itemdb: z.array(IObjectSchema).optional(),
-        npcdb: z.array(NPCDataSchema).optional(),
-        sprite: z.array(SpriteSchema).optional(),
-        avatar: z.array(AvatarSchema).optional(),
-        dialogue: z.array(DialogueObjectSchema).optional(),
-        mapdb: z.array(IMapDataSchema).optional(),
-      })),
+      // extend: pageSiteGraphSchema.merge(z.object({
+      //   unsplash: z.string().optional(),
+      //   tags: z.array(z.string()).optional(),
+      //   'yt-tracks': z.array(z.string()).optional(),
+      //   'yt-sets': z.array(z.string()).optional(),
+      //   prompts: z.array(PromptSchema).optional(),
+      //   'prompt-index': z.string().optional(),
+      //   stats: z.array(statSchema).optional(),
+      //   img: z.string().optional(),
+      //   lottie: z.string().optional(),
+      //   button: z.string().optional(),
+      //   itemdb: z.array(IObjectSchema).optional(),
+      //   npcdb: z.array(NPCDataSchema).optional(),
+      //   sprite: z.array(SpriteSchema).optional(),
+      //   avatar: z.array(AvatarSchema).optional(),
+      //   dialogue: z.array(DialogueObjectSchema).optional(),
+      //   mapdb: z.array(IMapDataSchema).optional(),
+      // })),
     }),
   }),
   products: productsCollection,

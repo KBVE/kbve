@@ -1,10 +1,11 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import svelte from '@astrojs/svelte';
+import svelte, {vitePreprocess} from '@astrojs/svelte';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
 import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
+import mdx from '@astrojs/mdx';
 
 //import starlightSiteGraph from 'starlight-site-graph';
 
@@ -207,42 +208,42 @@ export default defineConfig({
 				},
 			},
 		}),
-
+		mdx(),
 		react(),
 		svelte(),
 		//partytown(),
 
-		(await import("@playform/compress")).default({
-			CSS: true,
-			HTML: {
-				"html-minifier-terser": {
-					removeAttributeQuotes: false,
-				},
-			},
-			Image: false,
-			JavaScript: true,
-			SVG: true,
-		}),
+		// (await import("@playform/compress")).default({
+		// 	CSS: true,
+		// 	HTML: {
+		// 		"html-minifier-terser": {
+		// 			removeAttributeQuotes: false,
+		// 		},
+		// 	},
+		// 	Image: false,
+		// 	JavaScript: true,
+		// 	SVG: true,
+		// }),
 
-		shield({
-			sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
-		}),
+		// shield({
+		// 	sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
+		// }),
 
-		compressor({
-			gzip: true,
-			brotli: false,
-			fileExtensions: [
-				".html",
-				".js",
-				".css",
-				".mjs",
-				".cjs",
-				".svg",
-				".xml",
-				".txt",
-				".json"
-			]
-		}),
+		// compressor({
+		// 	gzip: true,
+		// 	brotli: false,
+		// 	fileExtensions: [
+		// 		".html",
+		// 		".js",
+		// 		".css",
+		// 		".mjs",
+		// 		".cjs",
+		// 		".svg",
+		// 		".xml",
+		// 		".txt",
+		// 		".json"
+		// 	]
+		// }),
 
 	],
 
