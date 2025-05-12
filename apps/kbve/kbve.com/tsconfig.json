@@ -8,7 +8,7 @@
     "types": ["astro/client", "react", "react-dom", "svelte"],
     "jsxImportSource": "react",
     // JSX
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     // Enable top-level await, and other modern ESM features
     "target": "ESNext",
     "module": "ESNext",
@@ -55,7 +55,11 @@
       }
    
   },
+<<<<<<< Updated upstream
   "include": ["src", ".astro/types.d.ts",  "**/*", "**/*.svelte"]
 
+=======
+ "include": [".astro/types.d.ts", "**/*"],
+>>>>>>> Stashed changes
 
 }
