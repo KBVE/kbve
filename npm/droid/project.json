@@ -1,0 +1,19 @@
+{
+	"name": "droid",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "npm/droid/src",
+	"projectType": "library",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "@nx/js:tsc",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/npm/droid",
+				"main": "npm/droid/src/index.ts",
+				"tsConfig": "npm/droid/tsconfig.lib.json",
+				"assets": ["npm/droid/*.md"]
+			}
+		}
+	}
+}

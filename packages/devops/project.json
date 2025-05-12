@@ -1,35 +1,4 @@
 {
-<<<<<<< Updated upstream
-	"name": "devops",
-	"$schema": "../../node_modules/nx/schemas/project-schema.json",
-	"sourceRoot": "packages/devops/src",
-	"projectType": "library",
-	"release": {
-		"version": {
-			"currentVersionResolver": "disk",
-			"preserveLocalDependencyProtocols": false,
-			"manifestRootsToUpdate": ["packages/devops"]
-		}
-	},
-	"tags": [],
-	"targets": {
-		"build": {
-			"executor": "@nx/js:tsc",
-			"outputs": ["{options.outputPath}"],
-			"options": {
-				"outputPath": "dist/packages/devops",
-				"main": "packages/devops/src/index.ts",
-				"tsConfig": "packages/devops/tsconfig.lib.json",
-				"assets": ["packages/devops/*.md"]
-			}
-		},
-		"nx-release-publish": {
-			"options": {
-				"packageRoot": "dist/packages/devops"
-			}
-		}
-	}
-=======
   "name": "devops",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/devops/src",
@@ -65,5 +34,4 @@
       }
     }
   }
->>>>>>> Stashed changes
 }
