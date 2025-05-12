@@ -1,0 +1,15 @@
+{
+    "name": "@kbve/astropad",
+    "version": "0.1.0",
+    "type": "module",
+    "private": true,
+    "svelte": "./src/index.ts",
+    "exports": {
+      ".": {
+        "svelte": "./src/index.ts"
+      }
+    },
+    "dependencies": {},
+    "devDependencies": {}
+
+}

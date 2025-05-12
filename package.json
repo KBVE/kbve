@@ -273,6 +273,7 @@
 		"shiki": "^1.22.0",
 		"sonner": "^1.7.0",
 		"styled-components": "5.3.6",
+		"svelte-preprocess": "^6.0.3",
 		"tailwind-merge": "^2.5.4",
 		"tailwindcss-animate": "^1.0.7",
 		"tamagui": "^1.125.19",

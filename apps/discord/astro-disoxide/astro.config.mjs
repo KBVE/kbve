@@ -18,13 +18,11 @@ import { defineConfig as defineViteConfig } from 'vite';
 import { resolve } from 'path';
 
 // Compression Optimizations - 04-22-2025
-
 import compressor from "astro-compressor";
 import { shield } from '@kindspells/astro-shield'
 
 
 // Workers - 04-23-2025
-
 import AstroPWA from '@vite-pwa/astro'
 
 

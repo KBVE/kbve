@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import svelte from '@astrojs/svelte';
+import svelte, { vitePreprocess } from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
@@ -24,7 +24,7 @@ export default defineConfig({
 	image: {
 		domains: ['images.unsplash.com'],
 	},
-	outDir: '../../../dist/apps/kbve.com',
+	outDir: '../../../dist/apps/kbve/kbve.com',
 	prefetch: true,
 	i18n: {
 		defaultLocale: 'en',
@@ -50,7 +50,7 @@ export default defineConfig({
 			],
 			title: 'KBVE Docs',
 			editLink: {
-				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
+				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve/kbve.com',
 			},
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
 			expressiveCode: true, // Disabled Expressive Code
