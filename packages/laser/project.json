@@ -5,10 +5,9 @@
 	"projectType": "library",
 	"release": {
 		"version": {
-			"generatorOptions": {
-				"packageRoot": "packages/laser",
-				"currentVersionResolver": "disk"
-			}
+			"currentVersionResolver": "disk",
+			"preserveLocalDependencyProtocols": false,
+			"manifestRootsToUpdate": ["packages/laser"]
 		}
 	},
 	"tags": [],

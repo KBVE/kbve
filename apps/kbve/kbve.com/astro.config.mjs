@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
 
-import starlightSiteGraph from 'starlight-site-graph';
+//import starlightSiteGraph from 'starlight-site-graph';
 
 import { defineConfig as defineViteConfig } from 'vite';
 
@@ -21,7 +21,7 @@ export default defineConfig({
 	image: {
 		domains: ['images.unsplash.com'],
 	},
-	outDir: '../../../dist/apps/kbve.com',
+	outDir: './dist/astro-kbve',
 	prefetch: true,
 	i18n: {
 		defaultLocale: 'en',
@@ -34,11 +34,11 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			plugins: [
-				starlightSiteGraph({
-				graphConfig: {
-			 		renderArrows: true,
-			 	},
-				}),
+				// starlightSiteGraph({
+				// graphConfig: {
+			 	// 	renderArrows: true,
+			 	// },
+				// }),
 			],
 			title: 'KBVE Docs',
 			editLink: {
@@ -212,37 +212,37 @@ export default defineConfig({
 		svelte(),
 		//partytown(),
 
-		// (await import("@playform/compress")).default({
-		// 	CSS: true,
-		// 	HTML: {
-		// 		"html-minifier-terser": {
-		// 			removeAttributeQuotes: false,
-		// 		},
-		// 	},
-		// 	Image: false,
-		// 	JavaScript: true,
-		// 	SVG: true,
-		// }),
+		(await import("@playform/compress")).default({
+			CSS: true,
+			HTML: {
+				"html-minifier-terser": {
+					removeAttributeQuotes: false,
+				},
+			},
+			Image: false,
+			JavaScript: true,
+			SVG: true,
+		}),
 
-		// shield({
-		// 	sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
-		// }),
+		shield({
+			sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
+		}),
 
-		// compressor({
-		// 	gzip: true,
-		// 	brotli: false,
-		// 	fileExtensions: [
-		// 		".html",
-		// 		".js",
-		// 		".css",
-		// 		".mjs",
-		// 		".cjs",
-		// 		".svg",
-		// 		".xml",
-		// 		".txt",
-		// 		".json"
-		// 	]
-		// }),
+		compressor({
+			gzip: true,
+			brotli: false,
+			fileExtensions: [
+				".html",
+				".js",
+				".css",
+				".mjs",
+				".cjs",
+				".svg",
+				".xml",
+				".txt",
+				".json"
+			]
+		}),
 
 	],
 
