@@ -19,13 +19,13 @@ export default {
 
 	//? Shiki Configuration
 
-	shikiConfig: {
-		// https://github.com/shikijs/shiki/blob/main/docs/themes.md
-		theme: 'dracula',
-		// https://github.com/shikijs/shiki/blob/main/docs/languages.md
-		langs: [],
-		wrap: true,
-	},
+	// shikiConfig: {
+	// 	// https://github.com/shikijs/shiki/blob/main/docs/themes.md
+	// 	theme: 'dracula',
+	// 	// https://github.com/shikijs/shiki/blob/main/docs/languages.md
+	// 	langs: [],
+	// 	wrap: true,
+	// },
 
 	//? External Plugins -> True
 	extendPlugins: true,

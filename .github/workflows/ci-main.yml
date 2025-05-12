@@ -165,7 +165,7 @@ jobs:
         items: |
             [
                 {
-                  "name": "kbve.com",
+                  "name": "astro_kbve",
                   "node_version": "22",
                   "pnpm_version": "10",
                   "build_command": "kbve.com:build",
