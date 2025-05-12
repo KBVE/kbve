@@ -6,14 +6,21 @@
 	"tags": [],
 	"targets": {
 		"build": {
-			"executor": "@nx/js:tsc",
+			"executor": "@nx/vite:build",
 			"outputs": ["{options.outputPath}"],
 			"options": {
 				"outputPath": "dist/packages/npm/droid",
 				"main": "packages/npm/droid/src/index.ts",
 				"tsConfig": "packages/npm/droid/tsconfig.lib.json",
+				"configFile": "packages/npm/droid/vite.config.ts",
 				"assets": ["packages/npm/droid/*.md"]
 			}
-		}
+		},
+		 "serve": {
+			"executor": "@nx/vite:dev-server",
+			"options": {
+				"configFile": "packages/npm/droid/vite.config.ts"
+			}
+    }
 	}
 }
