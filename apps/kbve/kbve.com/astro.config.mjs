@@ -1,29 +1,20 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import svelte, { vitePreprocess } from '@astrojs/svelte';
-import partytown from '@astrojs/partytown';
+import svelte from '@astrojs/svelte';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
-
-//import tailwind from '@astrojs/tailwind';
-import mdx from '@astrojs/mdx';
 import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
 
-import { fileURLToPath } from 'node:url';
-import markdownConfig from './markdown.config';
 import starlightSiteGraph from 'starlight-site-graph';
 
 import { defineConfig as defineViteConfig } from 'vite';
-// import topLevelAwait from 'vite-plugin-top-level-await';
 
-// Compression Optimizations - 05-11-2025
 import { resolve } from 'path';
 import compressor from "astro-compressor";
 import { shield } from '@kindspells/astro-shield'
 
 
-// https://astro.build/config
 export default defineConfig({
 	site: 'https://kbve.com/',
 	output: 'static',
@@ -35,16 +26,11 @@ export default defineConfig({
 	i18n: {
 		defaultLocale: 'en',
 		locales: ['en'],
-		// fallback: {
-		// 	fr: 'en',
-		// },
 		routing: {
 			prefixDefaultLocale: false,
 		},
 	},
-	// experimental: {
-	// 	contentCollectionCache: true,
-	// },
+
 	integrations: [
 		starlight({
 			plugins: [
@@ -59,21 +45,9 @@ export default defineConfig({
 				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve/kbve.com',
 			},
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
-			expressiveCode: true, // Disabled Expressive Code
+			expressiveCode: true, 
 			defaultLocale: 'root',
-			// locales: {
-			// 	root: {
-			// 		label: 'English',
-			// 		lang: 'en',
-			// 	},
-			// 	// de: { label: 'Deutsch', lang: 'de' },
-			// 	// es: { label: 'Español', lang: 'es' },
-			// 	// fa: { label: 'Persian', lang: 'fa', dir: 'rtl' },
-			// 	// fr: { label: 'Français', lang: 'fr' },
-			// 	// ja: { label: '日本語', lang: 'ja' },
-			// 	// 'zh-cn': { label: '简体中文', lang: 'zh-CN' },
-			// },
-			// https://starlight.astro.build/guides/sidebar/
+
 			sidebar: [
 				{
 					label: 'Quick Start Guides',
@@ -230,7 +204,6 @@ export default defineConfig({
 				defaultLocale: 'en',
 				locales: {
 					en: 'en',
-					// fr: 'fr',
 				},
 			},
 		}),
@@ -239,51 +212,44 @@ export default defineConfig({
 		svelte(),
 		//partytown(),
 
-		(await import("@playform/compress")).default({
-			CSS: true,
-			HTML: {
-				"html-minifier-terser": {
-					removeAttributeQuotes: false,
-				},
-			},
-			Image: false,
-			JavaScript: true,
-			SVG: true,
-		}),
-
-		shield({
-			sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
-		}),
-
-		compressor({
-			gzip: true,
-			brotli: false,
-			fileExtensions: [
-				".html",
-				".js",
-				".css",
-				".mjs",
-				".cjs",
-				".svg",
-				".xml",
-				".txt",
-				".json"
-			]
-		}),
-		// tailwind({
-		// 	configFile: fileURLToPath(
-		// 		new URL('./tailwind.config.cjs', import.meta.url),
-		// 	),
+		// (await import("@playform/compress")).default({
+		// 	CSS: true,
+		// 	HTML: {
+		// 		"html-minifier-terser": {
+		// 			removeAttributeQuotes: false,
+		// 		},
+		// 	},
+		// 	Image: false,
+		// 	JavaScript: true,
+		// 	SVG: true,
 		// }),
-		// mdx({
-		// 	...markdownConfig,
-		// 	//extendPlugins: "astroDefaults"
+
+		// shield({
+		// 	sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
 		// }),
+
+		// compressor({
+		// 	gzip: true,
+		// 	brotli: false,
+		// 	fileExtensions: [
+		// 		".html",
+		// 		".js",
+		// 		".css",
+		// 		".mjs",
+		// 		".cjs",
+		// 		".svg",
+		// 		".xml",
+		// 		".txt",
+		// 		".json"
+		// 	]
+		// }),
+
 	],
-	// markdown: markdownConfig,
+
 	markdown: {
 		rehypePlugins: [[rehypeMermaid, { strategy: 'img-svg', dark: true }]],
 	},
+
 	vite: defineViteConfig({
 		ssr: {
 			noExternal: ['path-to-regexp'],
@@ -295,7 +261,6 @@ export default defineConfig({
 		},
 		build: {
 			rollupOptions: {
-				// maxConcurrency: 2,
 				output: {
 					manualChunks: (id) => {
 						if (id.includes('node_modules')) {
@@ -328,12 +293,6 @@ export default defineConfig({
 		vite: {
 			plugins: [tailwindcss()],
 		  },
-		// Apply the top-level await plugin to our vite.config.js
-		// plugins: [
-		// 	topLevelAwait({
-		// 		promiseExportName: '__tla',
-		// 		promiseImportName: (i) => `__tla_${i}`,
-		// 	}),
-		// ],
+
 	}),
 });
