@@ -1,11 +1,11 @@
 {
   // "extends": "../../../tsconfig.base.json", - removing nx extension of base
-  "extends": ["astro/tsconfigs/strict"],
+  "extends": ["../../../tsconfig.base.json", "astro/tsconfigs/strict"],
   "compilerOptions": {
     // Base URL - 11-05-2024
     "baseUrl": ".",
     // 02-13-2025
-    "types": ["astro/client", "react", "react-dom"],
+    "types": ["astro/client", "react", "react-dom", "svelte"],
     "jsxImportSource": "react",
     // JSX
     "jsx": "preserve",
@@ -55,7 +55,7 @@
       }
    
   },
-  "include": ["src", ".astro/types.d.ts",  "**/*"]
+  "include": ["src", ".astro/types.d.ts",  "**/*", "**/*.svelte"]
 
 
 }

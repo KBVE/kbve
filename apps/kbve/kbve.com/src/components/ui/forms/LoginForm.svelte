@@ -10,7 +10,7 @@
 	import type { UILoginState } from '@kbve/laser';
 
 
-	let hcaptcha: any;
+	let hcaptcha;
 
 	const dispatch = createEventDispatcher();
 
@@ -20,7 +20,7 @@
 		if (mounted && loaded && widgetID && hcaptcha) hcaptcha.reset(widgetID);
 	};
 
-	export const execute = (options: any) => {
+	export function execute(option) {
 		if (mounted && loaded && widgetID && hcaptcha)
 			return hcaptcha.execute(widgetID, options); // Executes captcha with given options if conditions are met.
 	};
