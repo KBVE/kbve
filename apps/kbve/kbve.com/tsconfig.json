@@ -1,6 +1,6 @@
 {
   // "extends": "../../../tsconfig.base.json", - removing nx extension of base
-  "extends": "astro/tsconfigs/strict",
+  "extends": ["astro/tsconfigs/strict", "@tsconfig/svelte/tsconfig.json"],
   "compilerOptions": {
     // Base URL - 11-05-2024
     "baseUrl": ".",
@@ -20,6 +20,8 @@
     "resolveJsonModule": true,
     // Enable stricter transpilation for better output
     "isolatedModules": true,
+    // Enable verbatiim module syntax
+    "verbatimModuleSyntax": true,
     // Astro directly run TypeScript code, no transpilation needed
     "noEmit": true,
     // Report an error when importing a file using a casing different from the casing on disk
