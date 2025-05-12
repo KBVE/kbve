@@ -12,7 +12,7 @@ import starlight from '@astrojs/starlight';
 
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
-//import starlightSiteGraph from 'starlight-site-graph';
+import starlightSiteGraph from 'starlight-site-graph';
 
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
@@ -48,11 +48,11 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			plugins: [
-				// starlightSiteGraph({
-				// 	graphConfig: {
-				// 		renderArrows: true,
-				// 	},
-				// }),
+				starlightSiteGraph({
+				graphConfig: {
+			 		renderArrows: true,
+			 	},
+				}),
 			],
 			title: 'KBVE Docs',
 			editLink: {
