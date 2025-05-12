@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import svelte from '@astrojs/svelte';
+import svelte, { vitePreprocess } from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
@@ -16,6 +16,12 @@ import markdownConfig from './markdown.config';
 
 import { defineConfig as defineViteConfig } from 'vite';
 // import topLevelAwait from 'vite-plugin-top-level-await';
+
+// Compression Optimizations - 05-11-2025
+import { resolve } from 'path';
+import compressor from "astro-compressor";
+import { shield } from '@kindspells/astro-shield'
+
 
 // https://astro.build/config
 export default defineConfig({
@@ -50,7 +56,7 @@ export default defineConfig({
 			],
 			title: 'KBVE Docs',
 			editLink: {
-				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve.com',
+				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/kbve/kbve.com',
 			},
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
 			expressiveCode: true, // Disabled Expressive Code
@@ -231,7 +237,39 @@ export default defineConfig({
 
 		react(),
 		svelte(),
-		partytown(),
+		//partytown(),
+
+		(await import("@playform/compress")).default({
+			CSS: true,
+			HTML: {
+				"html-minifier-terser": {
+					removeAttributeQuotes: false,
+				},
+			},
+			Image: false,
+			JavaScript: true,
+			SVG: true,
+		}),
+
+		shield({
+			sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
+		}),
+
+		compressor({
+			gzip: true,
+			brotli: false,
+			fileExtensions: [
+				".html",
+				".js",
+				".css",
+				".mjs",
+				".cjs",
+				".svg",
+				".xml",
+				".txt",
+				".json"
+			]
+		}),
 		// tailwind({
 		// 	configFile: fileURLToPath(
 		// 		new URL('./tailwind.config.cjs', import.meta.url),
@@ -252,7 +290,7 @@ export default defineConfig({
 		},
 		server: {
 			watch: {
-				ignored: ['**/*'],
+				ignored: ['!**/node_modules/**'],
 			},
 		},
 		build: {

@@ -38,7 +38,7 @@
 			return hcaptcha.execute(widgetID, options); // Executes captcha with given options if conditions are met.
 	};
 
-	export const handleRegister = async () => {
+	async function handleRegister() {
 		loading = true;
 
 		// Create the action ID and handle errors
@@ -101,7 +101,7 @@
 	 * Helper function to retrieve and display error messages based on actionId.
 	 * @param actionId - The action ID to look up errors for.
 	 */
-	const displayErrorFromAction = async (actionId: string) => {
+	 async function displayErrorFromAction(actionId: string) {
 		const errorMessage = await kilobase.getErrorByActionId(actionId);
 		if (errorMessage) {
 			uiRegiserState.svelte_internal_message = errorMessage;
