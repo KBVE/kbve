@@ -1,44 +1,31 @@
-<script lang="ts" context="module">
-	declare global {
-		interface Window {
-			sitekey: string; // 'sitekey' is a string property for storing the hCaptcha site key.
-			hcaptchaOnLoad: Function; // 'hcaptchaOnLoad' is a function that gets called when hCaptcha loads.
-			onSuccess: Function; // 'onSuccess' is a function that gets called on successful captcha resolution.
-			onError: Function; // 'onError' is a function that gets called when there's an error in captcha processing.
-			onClose: Function; // 'onClose' is a function that gets called when the captcha is closed.
-			onExpired: Function; // 'onExpired' is a function that gets called when the captcha expires.
-			hcaptcha: any; // 'hcaptcha' is a property to hold the hCaptcha instance or related data.
-		}
-	}
-
-	declare var hcaptcha: any; // Declaring a global variable 'hcaptcha'. This is used to interact with the hCaptcha API.
-</script>
-
 <script lang="ts">
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import {
 		CaptchaTheme,
 		kilobase,
 		removeLoader,
-		type UILoginState,
 		// ClientSideRegex,
 		KiloBaseState,
 	} from '@kbve/laser';
+	import type { UILoginState } from '@kbve/laser';
+
+
+	let hcaptcha: any;
 
 	const dispatch = createEventDispatcher();
 
 	export const reset = () => {
 		loading = false;
 		_uiLoginState.successful_message = '';
-		if (mounted && loaded && widgetID) hcaptcha.reset(widgetID);
+		if (mounted && loaded && widgetID && hcaptcha) hcaptcha.reset(widgetID);
 	};
 
 	export const execute = (options: any) => {
-		if (mounted && loaded && widgetID)
+		if (mounted && loaded && widgetID && hcaptcha)
 			return hcaptcha.execute(widgetID, options); // Executes captcha with given options if conditions are met.
 	};
 
-	export const handleLogin = async () => {
+	export async function handleLogin() {
 		loading = true;
 
 		// Create the action ID and handle errors
@@ -97,7 +84,7 @@
 	 * Helper function to retrieve and display error messages based on actionId.
 	 * @param actionId - The action ID to look up errors for.
 	 */
-	const displayErrorFromAction = async (actionId: string) => {
+	async function displayErrorFromAction(actionId: string) {
 		const errorMessage = await kilobase.getErrorByActionId(actionId);
 		if (errorMessage) {
 			_uiLoginState.error_message = errorMessage;
@@ -165,6 +152,10 @@
 	const ringClasses = 'ring-zinc-500 dark:ring-zinc-200';
 
 	onMount(() => {
+
+		if (typeof window !== 'undefined') {
+			hcaptcha = window.hcaptcha;
+		}
 		const loader = removeLoader({
 			elementIdOrName: 'skeleton_login_loader',
 			duration: 500,
@@ -227,7 +218,7 @@
 		if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
 	});
 	$: if (mounted && loaded) {
-		widgetID = hcaptcha.render(`h-captcha-${id}`, {
+		widgetID = hcaptcha?.render(`h-captcha-${id}`, {
 			// Rendering the captcha widget.
 			sitekey,
 			hl, // Setting the language.

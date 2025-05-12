@@ -1,7 +1,5 @@
 name: "Reusable: Astro Deploy"
 
-##  ! Removing this workflow.
-
 on:
   workflow_call:
     inputs:
@@ -77,7 +75,7 @@ jobs:
 
       - name: Build Project
         shell: bash
-        run: ${{ inputs.build_command }}
+        run: ./kbve.sh -nx ${{ inputs.build_command }}
 
       - name: Deploy to ${{ inputs.destination_repo }}
         uses: dobbelina/copy_file_to_another_repo_action@main
