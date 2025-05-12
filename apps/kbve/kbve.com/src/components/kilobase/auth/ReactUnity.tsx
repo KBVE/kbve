@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef, ChangeEvent, FormEvent } from 'react';
-import { kilobase, eventEmitterInstance, ClientSideRegex, KiloBaseState } from '@kbve/laser';
+import React, { useEffect, useState, useRef, type ChangeEvent, type FormEvent } from 'react';
+import { kilobase, KiloBaseState } from '@kbve/laser';
 
 interface FormData {
 	email: string;
