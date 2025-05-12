@@ -4,6 +4,7 @@ import type { Remote } from 'comlink';
 import type { LocalStorageAPI } from './lib/workers/db-worker';
 import type { WSInstance } from './lib/workers/ws-worker';
 import { FlexDataAPI } from './lib/workers/data';
+import type { ModManager } from './types/modules';
 
 export interface KBVEGlobal {
 	api: Remote<LocalStorageAPI>;
@@ -11,6 +12,7 @@ export interface KBVEGlobal {
 	uiux: typeof UiUxInstance;
 	ws: Remote<WSInstance>;
 	data: FlexDataAPI;
+	mod: ModManager;
 	[key: string]: unknown;
 }
 

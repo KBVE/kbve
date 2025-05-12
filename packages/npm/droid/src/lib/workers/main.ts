@@ -5,6 +5,7 @@ import type { LocalStorageAPI } from './db-worker';
 import type { WSInstance } from './ws-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
+import { initModManager } from '../mod/mod-manager'; 
 import { scopeData } from './data';
 import { dispatchAsync } from './tools';
 
@@ -266,6 +267,7 @@ export async function main() {
 	if (needsInit) {
 		const api = await initStorageComlink();
 		const ws = await initWsComlink();
+		const mod = await initModManager();
 
 		bridgeWsToDb(ws, api);
 
@@ -281,6 +283,7 @@ export async function main() {
 			uiux,
 			ws,
 			data,
+			mod,
 		};
 
 		await i18n.ready;

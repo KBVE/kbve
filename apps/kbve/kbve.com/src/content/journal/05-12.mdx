@@ -32,6 +32,14 @@ tags:
     I will try to build this out without causing too many issues down the road.
     On a side note, I do hate having to write tests but it is what it is.
 
+-   06:39PM
+
+    Adding the module support for the droids library will make it easier to then load the supabase and phaser as workers.
+    This means that in the future, we can setup a pretty fast and isolated worker system that gives us a vast amount of flexibility.
+    There is a down side, since there is no free lunch, which is that there will be a slight delay between loading the modules and the actual events.
+    One way to handle this would be to run our own internal event engine that then would make things even more modular and easier to work with?
+    Let me think this through before I go any further, I might loop back to the KBVE rewrite.
+
 ## 2024
 
 **Happy Mothers Day**
