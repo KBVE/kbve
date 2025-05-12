@@ -217,19 +217,19 @@
 		}
 		if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
 	});
-	$: if (mounted && loaded) {
-		widgetID = hcaptcha?.render(`h-captcha-${id}`, {
-			// Rendering the captcha widget.
-			sitekey,
-			hl, // Setting the language.
-			theme,
-			callback: 'onSuccess',
-			'error-callback': 'onError',
-			'close-callback': 'onClose',
-			'expired-callback': 'onExpired',
-			size,
-		});
-	}
+	// $: if (mounted && loaded) {
+	// 	widgetID = hcaptcha?.render(`h-captcha-${id}`, {
+	// 		// Rendering the captcha widget.
+	// 		sitekey,
+	// 		hl, // Setting the language.
+	// 		theme,
+	// 		callback: 'onSuccess',
+	// 		'error-callback': 'onError',
+	// 		'close-callback': 'onClose',
+	// 		'expired-callback': 'onExpired',
+	// 		size,
+	// 	});
+	// }
 </script>
 
 <svelte:head>

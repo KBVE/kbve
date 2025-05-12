@@ -9,7 +9,7 @@ import alpine from '@astrojs/alpinejs';
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
 
-// import starlightSiteGraph from 'starlight-site-graph';
+import starlightSiteGraph from 'starlight-site-graph';
 
 import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
@@ -41,11 +41,19 @@ export default defineConfig({
     integrations: [
         starlight({
             plugins: [
+<<<<<<< Updated upstream
                 // starlightSiteGraph({
                 // 	graphConfig: {
                 // 		renderArrows: true,
                 // 	},
                 // }),
+=======
+                starlightSiteGraph({
+                	graphConfig: {
+                		renderArrows: true,
+                	},
+                }),
+>>>>>>> Stashed changes
             ],
             title: 'KBVE Docs',
             editLink: {
@@ -82,11 +90,19 @@ export default defineConfig({
             customCss: ['./src/styles/starlight.css'],
             favicon: '/favicon.ico',
             components: {
+<<<<<<< Updated upstream
                 // SiteTitle: './src/components/ui/starlight/SiteTitle.astro',
                 // Head: './src/components/ui/starlight/Head.astro',
                 // Footer: './src/components/ui/starlight/Footer.astro',
                 // TableOfContents:
                 // 	'./src/components/ui/starlight/TableOfContents.astro',
+=======
+                SiteTitle: './src/layouts/starlight/SiteTitle.astro',
+                Head: './src/layouts/starlight/Head.astro',
+                Footer: './src/layouts/starlight/Footer.astro',
+                TableOfContents:
+                	'./src/layouts/starlight/TableOfContents.astro',
+>>>>>>> Stashed changes
             },
             head: [
                 {
