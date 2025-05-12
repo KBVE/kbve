@@ -18,7 +18,7 @@
 			"@kbve/astro-ve": ["packages/astro-ve/index.ts"],
 			"@kbve/astropad": ["packages/astropad/index.ts"],
 			"@kbve/devops": ["packages/devops/src/index.ts"],
-			"@kbve/droid": ["npm/droid/src/index.ts"],
+			"@kbve/droid": ["packages/npm/droid/src/index.ts"],
 			"@kbve/expo-bbq": ["packages/expo-bbq/src/index.ts"],
 			"@kbve/khashvault": ["packages/khashvault/src/index.ts"],
 			"@kbve/laser": ["packages/laser/src/index.ts"],
