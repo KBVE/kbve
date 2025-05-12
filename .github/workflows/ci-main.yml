@@ -172,9 +172,10 @@ jobs:
                   "source_path": "dist/apps/kbve/kbve.com/",
                   "destination_repo": "KBVE/kbve.com",
                   "destination_folder": "/docs",
-                  "destination_branch": "dev",
+                  "destination_branch": "dev"
                 }
             ]
+
     build_astro:
       name: Build Astro Projects
       needs: ['generate_astro_matrix']
