@@ -24,7 +24,7 @@ export default defineConfig({
 	image: {
 		domains: ['images.unsplash.com'],
 	},
-	outDir: '../../../dist/apps/kbve/kbve.com',
+	outDir: '../../../dist/apps/kbve.com',
 	prefetch: true,
 	i18n: {
 		defaultLocale: 'en',
@@ -252,7 +252,7 @@ export default defineConfig({
 		},
 		server: {
 			watch: {
-				ignored: ['**/*'],
+				ignored: ['!**/node_modules/**'],
 			},
 		},
 		build: {

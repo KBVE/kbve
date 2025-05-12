@@ -57,7 +57,7 @@ export default defineConfig({
 				// 	},
 				// }),
 			],
-			title: 'KBVE Docs',
+			title: 'Disoxide Docs',
 			editLink: {
 				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/discord/astro-disoxide',
 			},
