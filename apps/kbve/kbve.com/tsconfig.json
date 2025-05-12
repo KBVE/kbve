@@ -21,7 +21,7 @@
     // Enable stricter transpilation for better output
     "isolatedModules": true,
     // Enable verbatiim module syntax
-    "verbatimModuleSyntax": true,
+   // "verbatimModuleSyntax": true,
     // Astro directly run TypeScript code, no transpilation needed
     "noEmit": true,
     // Report an error when importing a file using a casing different from the casing on disk
@@ -55,5 +55,5 @@
       }
    
   },
-  "include": ["src", "src/global.d.ts", ".astro/types.d.ts", "**/*.astro",  "**/*",   "**/*.svelte",  "env.d.ts", "src/**/*.svelte"]
+  "include": ["src", "src/global.d.ts", ".astro/types.d.ts", "**/*.astro", "src/pages/**/*.astro", "**/*",   "**/*.svelte",  "env.d.ts", "src/**/*.svelte"]
 }
