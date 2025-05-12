@@ -6,7 +6,7 @@
     "baseUrl": ".",
     // 02-13-2025
     "types": ["astro/client", "react", "react-dom", "svelte"],
-    "jsxImportSource": "react",
+    "jsxImportSource": "astro",
     // JSX
     "jsx": "preserve",
     // Enable top-level await, and other modern ESM features
@@ -55,5 +55,5 @@
       }
    
   },
-  "include": ["src", "src/global.d.ts", ".astro/types.d.ts",  "**/*",   "**/*.svelte",  "env.d.ts", "src/**/*.svelte"]
+  "include": ["src", "src/global.d.ts", ".astro/types.d.ts", "**/*.astro",  "**/*",   "**/*.svelte",  "env.d.ts", "src/**/*.svelte"]
 }
