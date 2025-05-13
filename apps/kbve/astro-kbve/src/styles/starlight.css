@@ -1,36 +1,42 @@
 /* Dark mode colors. */
 :root {
-    --backdrop-color: #272727cc;
-    --sl-color-accent: #ff801f;
-    --sl-color-accent-high: #ffa057;
-    --sl-color-accent-low: #562800;
-    --sl-color-black: #181818;
-    --sl-color-gray-1: #eee;
-    --sl-color-gray-2: #c2c2c2;
-    --sl-color-gray-3: #8b8b8b;
-    --sl-color-gray-4: #585858;
-    --sl-color-gray-5: #383838;
-    --sl-color-gray-6: #272727;
-    --sl-color-white: #fff;
-    --list-marker-color: #fb923c;
+  --backdrop-color: #272727cc;
+
+  --sl-color-accent: #06b6d4;        /* cyan-500 */
+  --sl-color-accent-high: #06b6d4;   /* cyan-500 */
+  --sl-color-accent-low: #083344;    /* cyan-900 */
+
+  --sl-color-black: #181818;
+  --sl-color-gray-1: #eee;
+  --sl-color-gray-2: #c2c2c2;
+  --sl-color-gray-3: #8b8b8b;
+  --sl-color-gray-4: #585858;
+  --sl-color-gray-5: #383838;
+  --sl-color-gray-6: #272727;
+  --sl-color-white: #fff;
+
+  --list-marker-color: #06b6d4;      /* Matches cyan accent */
 }
 
 /* Light mode colors. */
 :root[data-theme="light"] {
-    --backdrop-color: #f6f6f699;
-    --sl-color-accent: #b73d00;
-    --sl-color-accent-high: #562800;
-    --sl-color-accent-low: #ffa057;
-    --sl-color-black: #fff;
-    --sl-color-gray-1: #272727;
-    --sl-color-gray-2: #383838;
-    --sl-color-gray-3: #585858;
-    --sl-color-gray-4: #8b8b8b;
-    --sl-color-gray-5: #c2c2c2;
-    --sl-color-gray-6: #eee;
-    --sl-color-gray-7: #f6f6f6;
-    --sl-color-white: #181818;
-    --list-marker-color: #fb923c;
+  --backdrop-color: #f6f6f699;
+
+  --sl-color-accent: #06b6d4;
+  --sl-color-accent-high: #06b6d4;
+  --sl-color-accent-low: #083344;
+
+  --sl-color-black: #fff;
+  --sl-color-gray-1: #272727;
+  --sl-color-gray-2: #383838;
+  --sl-color-gray-3: #585858;
+  --sl-color-gray-4: #8b8b8b;
+  --sl-color-gray-5: #c2c2c2;
+  --sl-color-gray-6: #eee;
+  --sl-color-gray-7: #f6f6f6;
+  --sl-color-white: #181818;
+
+  --list-marker-color: #06b6d4;
 }
 
 header {
@@ -52,17 +58,18 @@ article.card {
 }
 
 .starlight-aside--tip {
-    background: linear-gradient(45deg, #ff512f, #f09819);
-    border: none;
-    border-radius: 0.5rem;
-    color: #66350c;
+  background: linear-gradient(45deg, #0ea5e9, #06b6d4); /* sky-500 to cyan-500 */
+  border: none;
+  border-radius: 0.5rem;
+  color: #d1faff; /* light cyan text */
 }
 
+
 .starlight-aside--note {
-    background: linear-gradient(45deg, #00b4db, #2193b0);
-    border: none;
-    border-radius: 0.5rem;
-    color: #004558;
+  background: linear-gradient(45deg, #0f172a, #1e293b); /* slate-900 to slate-800 */
+  border: none;
+  border-radius: 0.5rem;
+  color: #93c5fd; /* blue-300 for softer contrast */
 }
 
 .starlight-aside__icon {
@@ -70,11 +77,11 @@ article.card {
 }
 
 .starlight-aside--tip .starlight-aside__title {
-    color: #ffe0c2;
+  color: #ecfeff; /* cyan-50 */
 }
 
 .starlight-aside--note .starlight-aside__title {
-    color: #bbf3fef7;
+  color: #c7d2fe; /* indigo-100 */
 }
 
 .sl-markdown-content ul:not(:where(.not-content *)) {

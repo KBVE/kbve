@@ -49,5 +49,7 @@
       "rset",
       "rdel",
       "FLATBUFFER",
+      "clsx",
+      "bento",
     ]
 }
