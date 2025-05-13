@@ -1,12 +1,13 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import svelte from '@astrojs/svelte';
+import svelte, {vitePreprocess} from '@astrojs/svelte';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
 import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
+import mdx from '@astrojs/mdx';
 
-import starlightSiteGraph from 'starlight-site-graph';
+//import starlightSiteGraph from 'starlight-site-graph';
 
 import { defineConfig as defineViteConfig } from 'vite';
 
@@ -21,7 +22,7 @@ export default defineConfig({
 	image: {
 		domains: ['images.unsplash.com'],
 	},
-	outDir: '../../../dist/apps/kbve.com',
+	outDir: './dist/astro-kbve',
 	prefetch: true,
 	i18n: {
 		defaultLocale: 'en',
@@ -34,11 +35,11 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			plugins: [
-				starlightSiteGraph({
-				graphConfig: {
-			 		renderArrows: true,
-			 	},
-				}),
+				// starlightSiteGraph({
+				// graphConfig: {
+			 	// 	renderArrows: true,
+			 	// },
+				// }),
 			],
 			title: 'KBVE Docs',
 			editLink: {
@@ -207,7 +208,7 @@ export default defineConfig({
 				},
 			},
 		}),
-
+		mdx(),
 		react(),
 		svelte(),
 		//partytown(),

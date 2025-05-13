@@ -1,0 +1,23 @@
+{
+	"name": "@kbve/droid",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./droid.cjs.js",
+	"module": "./droid.es.js",
+	"types": "./index.d.ts",
+	"exports": {
+		".": {
+			"import": "./droid.es.js",
+			"require": "./droid.cjs.js"
+		}
+	},
+	"files": [
+		"droid.*.js",
+		"index.d.ts",
+		"*.md"
+	],
+	"dependencies": {
+		"tslib": "^2.3.0"
+	}
+}

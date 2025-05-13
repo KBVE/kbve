@@ -169,7 +169,7 @@ jobs:
                   "node_version": "22",
                   "pnpm_version": "10",
                   "build_command": "kbve.com:build",
-                  "source_path": "dist/apps/kbve/kbve.com/",
+                  "source_path": "dist/apps/astro-kbve/",
                   "destination_repo": "KBVE/kbve.com",
                   "destination_folder": "/docs",
                   "destination_branch": "dev"

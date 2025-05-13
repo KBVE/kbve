@@ -1,35 +1,3 @@
-<script lang="ts" context="module">
-	// Summary:
-	// This Svelte script block is written in TypeScript and is scoped as a module.
-	// It extends the global Window interface with properties related to hCaptcha functionality.
-	// The script also declares a variable 'hcaptcha' and exports an enum 'CaptchaTheme'
-	// with possible theme values for the captcha.
-
-	// Extending the global Window interface to include custom properties and functions
-	// related to hCaptcha, a popular CAPTCHA service.
-	declare global {
-		interface Window {
-			sitekey: string; // 'sitekey' is a string property for storing the hCaptcha site key.
-			hcaptchaOnLoad: Function; // 'hcaptchaOnLoad' is a function that gets called when hCaptcha loads.
-			onSuccess: Function; // 'onSuccess' is a function that gets called on successful captcha resolution.
-			onError: Function; // 'onError' is a function that gets called when there's an error in captcha processing.
-			onClose: Function; // 'onClose' is a function that gets called when the captcha is closed.
-			onExpired: Function; // 'onExpired' is a function that gets called when the captcha expires.
-			hcaptcha: any; // 'hcaptcha' is a property to hold the hCaptcha instance or related data.
-		}
-	}
-
-	// Declaring a global variable 'hcaptcha'. This is used to interact with the hCaptcha API.
-	declare var hcaptcha: any;
-
-	// Exporting an enum 'CaptchaTheme' with two themes - DARK and LIGHT.
-	// These are used to set the visual theme of the captcha widget.
-	export enum CaptchaTheme {
-		DARK = 'dark', // Represents the dark theme.
-		LIGHT = 'light', // Represents the light theme.
-	}
-</script>
-
 <script lang="ts">
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 	import {
@@ -248,19 +216,19 @@
 		}
 	};
 
-	$: if (mounted && loaded) {
-		widgetID = hcaptcha.render(`h-captcha-${id}`, {
-			// Rendering the captcha widget.
-			sitekey,
-			hl, // Setting the language.
-			theme,
-			callback: 'onSuccess',
-			'error-callback': 'onError',
-			'close-callback': 'onClose',
-			'expired-callback': 'onExpired',
-			size,
-		});
-	}
+	// $: if (mounted && loaded) {
+	// 	widgetID = hcaptcha.render(`h-captcha-${id}`, {
+	// 		// Rendering the captcha widget.
+	// 		sitekey,
+	// 		hl, // Setting the language.
+	// 		theme,
+	// 		callback: 'onSuccess',
+	// 		'error-callback': 'onError',
+	// 		'close-callback': 'onClose',
+	// 		'expired-callback': 'onExpired',
+	// 		size,
+	// 	});
+	// }
 </script>
 
 <svelte:head>

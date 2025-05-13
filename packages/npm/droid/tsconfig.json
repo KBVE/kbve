@@ -1,0 +1,27 @@
+{
+	"extends": "../../../tsconfig.base.json",
+	"compilerOptions": {
+		"declaration": true,
+    	"declarationMap": true,
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"target": "esnext",
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"importHelpers": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noPropertyAccessFromIndexSignature": true
+	},
+	"files": [],
+	"include": ["src", "src/types.d.ts"],
+	"references": [
+		{
+			"path": "./tsconfig.lib.json"
+		},
+		{
+			"path": "./tsconfig.spec.json"
+		}
+	]
+}

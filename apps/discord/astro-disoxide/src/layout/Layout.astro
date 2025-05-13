@@ -45,7 +45,8 @@ import { ClientRouter } from 'astro:transitions';
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
 		<script src="/src/pwa.ts"></script>
-		<script src="/src/layout/scripts/workers/main.ts"></script>
+		<script src="/src/client/droid.ts"></script>
+
 
 		<script is:inline>
 			document.addEventListener('astro:before-preparation', () => {

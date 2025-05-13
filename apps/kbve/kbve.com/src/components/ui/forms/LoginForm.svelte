@@ -10,7 +10,7 @@
 	import type { UILoginState } from '@kbve/laser';
 
 
-	let hcaptcha: any;
+	let hcaptcha;
 
 	const dispatch = createEventDispatcher();
 
@@ -20,7 +20,7 @@
 		if (mounted && loaded && widgetID && hcaptcha) hcaptcha.reset(widgetID);
 	};
 
-	export const execute = (options: any) => {
+	export function execute(option) {
 		if (mounted && loaded && widgetID && hcaptcha)
 			return hcaptcha.execute(widgetID, options); // Executes captcha with given options if conditions are met.
 	};
@@ -217,19 +217,19 @@
 		}
 		if (loaded) hcaptcha = null; // Nullify 'hcaptcha' if it was loaded, to prevent memory leaks.
 	});
-	$: if (mounted && loaded) {
-		widgetID = hcaptcha?.render(`h-captcha-${id}`, {
-			// Rendering the captcha widget.
-			sitekey,
-			hl, // Setting the language.
-			theme,
-			callback: 'onSuccess',
-			'error-callback': 'onError',
-			'close-callback': 'onClose',
-			'expired-callback': 'onExpired',
-			size,
-		});
-	}
+	// $: if (mounted && loaded) {
+	// 	widgetID = hcaptcha?.render(`h-captcha-${id}`, {
+	// 		// Rendering the captcha widget.
+	// 		sitekey,
+	// 		hl, // Setting the language.
+	// 		theme,
+	// 		callback: 'onSuccess',
+	// 		'error-callback': 'onError',
+	// 		'close-callback': 'onClose',
+	// 		'expired-callback': 'onExpired',
+	// 		size,
+	// 	});
+	// }
 </script>
 
 <svelte:head>
