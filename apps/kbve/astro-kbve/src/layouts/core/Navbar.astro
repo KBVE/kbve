@@ -1,0 +1,282 @@
+---
+import BrandLogo from 'src/layouts/core/BrandLogo.astro';
+---
+
+<header
+	class="sticky inset-x-0 top-4 z-50 flex w-full flex-wrap text-sm md:flex-nowrap md:justify-start">
+	<nav
+		class="relative mx-2 w-full rounded-[36px] border border-yellow-100/40 bg-yellow-50/60 px-4 py-3 backdrop-blur-md dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:backdrop-blur-md md:flex md:items-center md:justify-between md:px-6 md:py-0 lg:px-8 xl:mx-auto"
+		aria-label="Global">
+		<div class="flex items-center w-full">
+			<!-- Brand logo -->
+			<a
+				href="/"
+				aria-label="Brand"
+				data-astro-prefetch
+				class="group relative flex-none rounded-lg outline-none ring-zinc-500 focus-visible:ring dark:ring-zinc-200 dark:focus:outline-none transition duration-300 hover:scale-105 hover:drop-shadow-[0_0_8px_rgba(192,132,252,0.4)]">
+				<BrandLogo
+					class="h-auto w-24 transition-transform transition duration-500 hover:brightness-125 hover:contrast-125"
+				/>
+				<span
+					class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-cyan-400 group-hover:animate-ping">
+				</span>
+			</a>
+
+			<div class="w-px h-10 bg-neutral-300 dark:bg-white/20 mx-4"></div>
+
+			<!-- Mobile Menu -->
+			<div class="flex flex-row mx-auto" id="nav-menu">
+				<!-- Docs -->
+				<a
+					href="#menu"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
+					aria-label="Menu">
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Menu
+					</span>
+
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
+						<path d="M4 12h16"></path><path d="M4 18h16">
+						</path><path d="M4 6h16"></path>
+					</svg>
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Menu
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
+				</a>
+
+				<a
+					href="#dashboard"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
+					aria-label="Docs"
+					data-astro-prefetch>
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Dashboard
+					</span>
+
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
+						<rect width="7" height="9" x="3" y="3" rx="1">
+						</rect><rect width="7" height="5" x="14" y="3" rx="1">
+						</rect><rect width="7" height="9" x="14" y="12" rx="1">
+						</rect><rect width="7" height="5" x="3" y="16" rx="1">
+						</rect>
+					</svg>
+
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Dash
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
+				</a>
+				<a
+					href="/docs"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
+					aria-label="Docs"
+					data-astro-prefetch>
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Register
+					</span>
+
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
+						<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4">
+						</path><path d="M14 13.12c0 2.38 0 6.38-1 8.88">
+						</path><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02">
+						</path><path d="M2 12a10 10 0 0 1 18-6"></path><path
+							d="M2 16h.01">
+						</path><path d="M21.8 16c.2-2 .131-5.354 0-6">
+						</path><path
+							d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2">
+						</path><path d="M8.65 22c.21-.66.45-1.32.57-2">
+						</path><path d="M9 6.8a6 6 0 0 1 9 5.2v2"></path>
+					</svg>
+
+					
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Auth
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
+				</a>
+			</div>
+
+			<!-- Regular Menu -->
+			<div class="hidden md:flex md:flex-row ml-auto" id="side-menu">
+				<!-- Docs -->
+				<a
+					href="/docs"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
+					aria-label="Docs"
+					data-astro-prefetch>
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Documentation
+					</span>
+
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
+						<path d="M2 6h4"></path><path d="M2 10h4"></path><path
+							d="M2 14h4">
+						</path><path d="M2 18h4"></path><rect
+							width="16"
+							height="20"
+							x="4"
+							y="2"
+							rx="2">
+						</rect><path d="M9.5 8h5"></path><path d="M9.5 12H16">
+						</path><path d="M9.5 16H14"></path>
+					</svg>
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Docs
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
+				</a>
+				<!-- Docs -->
+				<a
+					href="/docs"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
+					aria-label="Docs"
+					data-astro-prefetch>
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Arcade
+					</span>
+
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
+						<line x1="6" x2="10" y1="11" y2="11"></line><line
+							x1="8"
+							x2="8"
+							y1="9"
+							y2="13">
+						</line><line x1="15" x2="15.01" y1="12" y2="12">
+						</line><line x1="18" x2="18.01" y1="10" y2="10">
+						</line><path
+							d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z">
+						</path>
+					</svg>
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Games
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
+				</a>
+				<!-- Docs -->
+				<a
+					href="/docs"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
+					aria-label="Docs"
+					data-astro-prefetch>
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Documentation
+					</span>
+
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
+						<path d="M2 6h4"></path><path d="M2 10h4"></path><path
+							d="M2 14h4">
+						</path><path d="M2 18h4"></path><rect
+							width="16"
+							height="20"
+							x="4"
+							y="2"
+							rx="2">
+						</rect><path d="M9.5 8h5"></path><path d="M9.5 12H16">
+						</path><path d="M9.5 16H14"></path>
+					</svg>
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Docs
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
+				</a>
+			</div>
+		</div>
+	</nav>
+</header>
