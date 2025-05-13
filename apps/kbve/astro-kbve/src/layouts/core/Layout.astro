@@ -1,3 +1,33 @@
 ---
+import Meta from 'src/layouts/core/Meta.astro';
+
+import { SITE } from '../site';
+import '../styles/global.css';
+
+// Setting expected props
+const {
+  title = SITE.title,
+  meta,
+  structuredData,
+  lang = 'en',
+  Nav = true,
+  Footer = true,
+} = Astro.props;
+
+// Interface to type-check the properties
+interface Props {
+  title?: string;
+  meta?: string;
+  structuredData?: object;
+  lang?: string;
+  Nav?: boolean;
+  Footer?: boolean;
+}
 
 ---
+
+<html lang={lang} class="scrollbar-hide lenis lenis-smooth scroll-pt-16">
+  <head>
+
+  </head>
+</html>
