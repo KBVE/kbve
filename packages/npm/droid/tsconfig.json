@@ -1,7 +1,11 @@
 {
 	"extends": "../../../tsconfig.base.json",
 	"compilerOptions": {
-		"module": "commonjs",
+		"declaration": true,
+    	"declarationMap": true,
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"target": "esnext",
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
 		"importHelpers": true,
@@ -11,7 +15,7 @@
 		"noPropertyAccessFromIndexSignature": true
 	},
 	"files": [],
-	"include": [],
+	"include": ["src", "src/types.d.ts"],
 	"references": [
 		{
 			"path": "./tsconfig.lib.json"

@@ -8,13 +8,15 @@
 			"vite/client",
 			"node",
 			"vitest"
-		]
+		],
+		"composite": true
 	},
 	"include": [
 		"vite.config.ts",
 		"vite.config.mts",
 		"vitest.config.ts",
 		"vitest.config.mts",
+		"src/**/*.ts", 
 		"src/**/*.test.ts",
 		"src/**/*.spec.ts",
 		"src/**/*.test.tsx",
