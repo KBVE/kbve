@@ -1,4 +1,7 @@
-<!-- Static Content (always present) -->
+---
+import PanelCloseButton from './PanelCloseButton.astro';
+
+---
 <div
 	class="panel-static border-b border-white/10 px-4 py-3 text-neutral-600 dark:text-neutral-300">
 	<div class="flex items-center justify-between mb-4">
@@ -6,25 +9,7 @@
 			class="text-sm font-semibold uppercase tracking-wide text-neutral-700 dark:text-cyan-400">
 			Sidebar
 		</p>
-		<button
-			onclick="window.kbve?.uiux?.closePanel?.('left')"
-			class="text-red-500 hover:text-red-400 transition text-xl font-bold hover:scale-[1.1]"
-			aria-label="Close panel">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				class="lucide lucide-circle-x-icon lucide-circle-x">
-				<circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6">
-				</path><path d="m9 9 6 6"></path>
-			</svg>
-		</button>
+		<PanelCloseButton side="left" />
 	</div>
 
 	<!-- Docs Link -->

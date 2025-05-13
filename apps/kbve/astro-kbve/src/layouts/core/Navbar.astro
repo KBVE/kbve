@@ -26,7 +26,7 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 
 			<!-- Mobile Menu -->
 			<div class="flex flex-row mx-auto" id="nav-menu">
-				<!-- Docs -->
+				<!-- Menu -->
 				<button
 					type="button"
   					onclick="window.kbve.uiux.openPanel('left', { rawHtml: '<strong>Welcome to the Menu :D</strong>' })"
@@ -62,10 +62,11 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 					</span>
 				</button>
 
-				<a
-					href="#dashboard"
+				<button
+					type="button"
+  					onclick="window.kbve.uiux.openPanel('top', { rawHtml: '<strong>Welcome to the Dash :D</strong>' })"
 					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
-					aria-label="Docs"
+					aria-label="Dashboard"
 					data-astro-prefetch>
 					<!-- Tooltip -->
 					<span
@@ -99,9 +100,10 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
 						</span>
 					</span>
-				</a>
-				<a
-					href="/docs"
+				</button>
+				<button
+					type="button"
+					onclick="window.kbve.uiux.openPanel('right', { rawHtml: '<strong>Welcome to the Auth :D</strong>' })"
 					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
 					aria-label="Docs"
 					data-astro-prefetch>
@@ -142,7 +144,7 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
 						</span>
 					</span>
-				</a>
+				</button>
 			</div>
 
 			<!-- Regular Menu -->

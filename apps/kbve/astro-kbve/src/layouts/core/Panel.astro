@@ -1,19 +1,25 @@
 ---
 import StaticLeft from "./panels/StaticLeft.astro"
+import StaticTop from "./panels/StaticTop.astro"
+import StaticRight from "./panels/StaticRight.astro"
+import StaticBottom from "./panels/StaticBottom.astro"
 ---
 
 <div id="panels-root" class="pointer-events-none">
 	<div
 		id="panel-top"
 		class="panel fixed inset-x-0 top-0 h-64 translate-y-[-100%]">
+        <StaticTop />
 	</div>
 	<div
 		id="panel-right"
 		class="panel fixed inset-y-0 right-0 w-64 translate-x-[100%]">
+        <StaticRight />
 	</div>
 	<div
 		id="panel-bottom"
 		class="panel fixed inset-x-0 bottom-0 h-64 translate-y-[100%]">
+        <StaticBottom />
 	</div>
 	<div
 		id="panel-left"
@@ -160,6 +166,18 @@ import StaticLeft from "./panels/StaticLeft.astro"
 			updatePanels(state.get());
 			state.subscribe(updatePanels);
 			console.log('[Panels] Reactive binding initialized');
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const panels = window.kbve?.uiux?.state?.get()?.panelManager ?? {};
+                    const openSide = Object.entries(panels).find(([_, val]) => val.open);
+                    if (openSide) {
+                    window.kbve?.uiux?.closePanel?.(openSide[0]);
+                    }
+                }
+            });
+
 		});
+
+        
 	});
 </script>
