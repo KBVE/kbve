@@ -13,24 +13,16 @@
     const sides = ['top', 'right', 'bottom', 'left'];
     const panels = Object.fromEntries(sides.map(side => [side, document.getElementById(`panel-${side}`)]));
 
-    const transitionClasses = 'transition-transform duration-300 ease-in-out pointer-events-auto bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md shadow-lg z-[100] overflow-auto border border-white/10';
+    const transitionClasses = ['transition-transform', 'duration-300', 'ease-in-out', 'pointer-events-auto', 'bg-white/90', 'dark:bg-neutral-900/90', 'backdrop-blur-md', 'shadow-lg', 'z-[100]', 'overflow-auto', 'border', 'border-white/10'];
 
     function getTransformClass(side, hide) {
-      if (side === 'left') return hide ? 'translate-x-[-100%]' : 'translate-x-0';
-      if (side === 'right') return hide ? 'translate-x-[100%]' : 'translate-x-0';
-      if (side === 'top') return hide ? 'translate-y-[-100%]' : 'translate-y-0';
-      if (side === 'bottom') return hide ? 'translate-y-[100%]' : 'translate-y-0';
-    }
-
-    function clearTransformClasses(panel) {
-      panel.classList.remove(
-        'translate-x-[-100%]',
-        'translate-x-[100%]',
-        'translate-x-0',
-        'translate-y-[-100%]',
-        'translate-y-[100%]',
-        'translate-y-0'
-      );
+      const map = {
+        left:   ['translate-x-[-100%]', 'translate-x-0'],
+        right:  ['translate-x-[100%]', 'translate-x-0'],
+        top:    ['translate-y-[-100%]', 'translate-y-0'],
+        bottom: ['translate-y-[100%]', 'translate-y-0']
+      };
+      return map[side][hide ? 0 : 1];
     }
 
     function updatePanels(state) {
@@ -39,15 +31,23 @@
         const panel = panels[side];
         if (!panel || !panelState) continue;
 
-        panel.className = `panel fixed ${transitionClasses}`;
-        if (side === 'left') panel.classList.add('inset-y-0', 'left-0', 'w-64');
-        if (side === 'right') panel.classList.add('inset-y-0', 'right-0', 'w-64');
-        if (side === 'top') panel.classList.add('inset-x-0', 'top-0', 'h-64');
-        if (side === 'bottom') panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
+        // Ensure consistent static classes
+        panel.classList.add('panel', 'fixed', ...transitionClasses);
 
-        clearTransformClasses(panel);
+        // Layout position (non-destructive)
+        if (side === 'left')    panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
+        if (side === 'right')   panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
+        if (side === 'top')     panel.classList.add('inset-x-0', 'top-0', 'h-64');
+        if (side === 'bottom')  panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
+
+        // Manage transform visibility
+        panel.classList.remove(
+          'translate-x-[-100%]', 'translate-x-[100%]', 'translate-x-0',
+          'translate-y-[-100%]', 'translate-y-[100%]', 'translate-y-0'
+        );
         panel.classList.add(getTransformClass(side, !panelState.open));
 
+        // Setup content region
         let content = panel.querySelector('.panel-content');
         if (!content) {
           content = document.createElement('div');
@@ -55,11 +55,16 @@
           panel.appendChild(content);
         }
 
-        if (panelState.payload?.rawHtml) {
-          content.innerHTML = panelState.payload.rawHtml;
+        // Only update content if it changed
+        const incomingHtml = panelState.payload?.rawHtml ?? '';
+        const currentHtml = content.getAttribute('data-html') ?? '';
+        if (incomingHtml !== currentHtml) {
+          content.innerHTML = incomingHtml;
+          content.setAttribute('data-html', incomingHtml);
         }
 
-        if (!panel.querySelector('.panel-header')) {
+        // Insert header once
+        if (!panel.hasAttribute('data-header-initialized')) {
           const header = document.createElement('div');
           header.className = 'panel-header flex justify-between items-center p-4 border-b border-white/10 font-bold text-neutral-700 dark:text-white';
           header.innerHTML = `
@@ -67,17 +72,28 @@
             <button onclick="window.kbve?.uiux?.closePanel?.('${side}')" class="text-red-500 hover:text-red-400 text-lg">&times;</button>
           `;
           panel.insertBefore(header, content);
+          panel.setAttribute('data-header-initialized', 'true');
         }
       }
     }
 
     function waitForKbve(callback) {
-      const interval = setInterval(() => {
-        if (window.kbve?.uiux?.state?.subscribe) {
-          clearInterval(interval);
-          callback(window.kbve.uiux.state);
-        }
-      }, 100);
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          if (window.kbve?.uiux?.state?.subscribe) {
+            callback(window.kbve.uiux.state);
+          } else {
+            setTimeout(() => waitForKbve(callback), 50);
+          }
+        });
+      } else {
+        const interval = setInterval(() => {
+          if (window.kbve?.uiux?.state?.subscribe) {
+            clearInterval(interval);
+            callback(window.kbve.uiux.state);
+          }
+        }, 100);
+      }
     }
 
     waitForKbve((state) => {
