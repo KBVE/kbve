@@ -1,62 +1,89 @@
 ---
-
+// src/components/Panels.astro
 ---
-
-<!-- Left Panel -->
-<div id="panel-left" class="fixed left-0 top-0 z-50 h-full w-64 translate-x-[-100%] transition-transform duration-300 ease-in-out bg-white/90 dark:bg-neutral-900/90 shadow-lg backdrop-blur-lg border-r border-yellow-200/20">
-	<div class="flex items-center justify-between p-4 border-b border-yellow-100/10">
-		<h2 class="text-lg font-bold text-neutral-700 dark:text-white">Left Panel</h2>
-		<button
-			type="button"
-			class="text-neutral-500 hover:text-red-500 transition"
-			onclick="window.kbve?.uiux?.closePanel?.('left')">
-			&times;
-		</button>
-	</div>
-	<div class="p-4 text-neutral-800 dark:text-neutral-200">
-		<p>This is your left sidebar panel content.</p>
-	</div>
+<div id="panels-root" class="pointer-events-none">
+  <div id="panel-top" class="panel fixed inset-x-0 top-0 h-64 translate-y-[-100%]"></div>
+  <div id="panel-right" class="panel fixed inset-y-0 right-0 w-64 translate-x-[100%]"></div>
+  <div id="panel-bottom" class="panel fixed inset-x-0 bottom-0 h-64 translate-y-[100%]"></div>
+  <div id="panel-left" class="panel fixed inset-y-0 left-0 w-64 translate-x-[-100%]"></div>
 </div>
 
-
 <script is:inline>
-	(() => {
-		const getPanel = (side) => document.getElementById(`panel-${side}`);
+  document.addEventListener('DOMContentLoaded', () => {
+    const sides = ['top', 'right', 'bottom', 'left'];
+    const panels = Object.fromEntries(sides.map(side => [side, document.getElementById(`panel-${side}`)]));
 
-		const openPanel = (side) => {
-			const panel = getPanel(side);
-			if (!panel) return;
+    const transitionClasses = 'transition-transform duration-300 ease-in-out pointer-events-auto bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md shadow-lg z-[100] overflow-auto border border-white/10';
 
-			const transform = {
-				left: 'translateX(0%)',
-				right: 'translateX(0%)',
-				top: 'translateY(0%)',
-				bottom: 'translateY(0%)'
-			}[side];
+    function getTransformClass(side, hide) {
+      if (side === 'left') return hide ? 'translate-x-[-100%]' : 'translate-x-0';
+      if (side === 'right') return hide ? 'translate-x-[100%]' : 'translate-x-0';
+      if (side === 'top') return hide ? 'translate-y-[-100%]' : 'translate-y-0';
+      if (side === 'bottom') return hide ? 'translate-y-[100%]' : 'translate-y-0';
+    }
 
-			panel.style.setProperty('transform', transform);
-		};
+    function clearTransformClasses(panel) {
+      panel.classList.remove(
+        'translate-x-[-100%]',
+        'translate-x-[100%]',
+        'translate-x-0',
+        'translate-y-[-100%]',
+        'translate-y-[100%]',
+        'translate-y-0'
+      );
+    }
 
-		const closePanel = (side) => {
-			const panel = getPanel(side);
-			if (!panel) return;
+    function updatePanels(state) {
+      for (const side of sides) {
+        const panelState = state.panelManager?.[side];
+        const panel = panels[side];
+        if (!panel || !panelState) continue;
 
-			const transform = {
-				left: 'translateX(-100%)',
-				right: 'translateX(100%)',
-				top: 'translateY(-100%)',
-				bottom: 'translateY(100%)'
-			}[side];
+        panel.className = `panel fixed ${transitionClasses}`;
+        if (side === 'left') panel.classList.add('inset-y-0', 'left-0', 'w-64');
+        if (side === 'right') panel.classList.add('inset-y-0', 'right-0', 'w-64');
+        if (side === 'top') panel.classList.add('inset-x-0', 'top-0', 'h-64');
+        if (side === 'bottom') panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
 
-			panel.style.setProperty('transform', transform);
-		};
+        clearTransformClasses(panel);
+        panel.classList.add(getTransformClass(side, !panelState.open));
 
-		// Register once with global kbve.uiux
-		window.kbve = window.kbve || {};
-		window.kbve.uiux = {
-			...(window.kbve.uiux || {}),
-			openPanel,
-			closePanel
-		};
-	})();
+        let content = panel.querySelector('.panel-content');
+        if (!content) {
+          content = document.createElement('div');
+          content.className = 'panel-content p-4 text-neutral-800 dark:text-neutral-200';
+          panel.appendChild(content);
+        }
+
+        if (panelState.payload?.rawHtml) {
+          content.innerHTML = panelState.payload.rawHtml;
+        }
+
+        if (!panel.querySelector('.panel-header')) {
+          const header = document.createElement('div');
+          header.className = 'panel-header flex justify-between items-center p-4 border-b border-white/10 font-bold text-neutral-700 dark:text-white';
+          header.innerHTML = `
+            <span class="uppercase text-sm tracking-wide">${side} Panel</span>
+            <button onclick="window.kbve?.uiux?.closePanel?.('${side}')" class="text-red-500 hover:text-red-400 text-lg">&times;</button>
+          `;
+          panel.insertBefore(header, content);
+        }
+      }
+    }
+
+    function waitForKbve(callback) {
+      const interval = setInterval(() => {
+        if (window.kbve?.uiux?.state?.subscribe) {
+          clearInterval(interval);
+          callback(window.kbve.uiux.state);
+        }
+      }, 100);
+    }
+
+    waitForKbve((state) => {
+      updatePanels(state.get());
+      state.subscribe(updatePanels);
+      console.log('[Panels] Reactive binding initialized');
+    });
+  });
 </script>

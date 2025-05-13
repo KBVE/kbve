@@ -27,8 +27,9 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 			<!-- Mobile Menu -->
 			<div class="flex flex-row mx-auto" id="nav-menu">
 				<!-- Docs -->
-				<a
-					href="#menu"
+				<button
+					type="button"
+  					onclick="window.kbve.uiux.openPanel('left', { rawHtml: '<strong>Loaded from button</strong>' })"
 					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
 					aria-label="Menu">
 					<!-- Tooltip -->
@@ -59,7 +60,7 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
 						</span>
 					</span>
-				</a>
+				</button>
 
 				<a
 					href="#dashboard"
@@ -133,7 +134,6 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 						</path><path d="M9 6.8a6 6 0 0 1 9 5.2v2"></path>
 					</svg>
 
-					
 					<!-- Label -->
 					<span
 						class="relative text-xs font-medium group-hover:text-purple-400 transition">
