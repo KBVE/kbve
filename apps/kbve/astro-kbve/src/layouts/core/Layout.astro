@@ -1,5 +1,6 @@
 ---
 import Meta from 'src/layouts/core/Meta.astro';
+import Navbar from 'src/layouts/core/Navbar.astro';
 
 import { SITE } from '../site';
 import '../../styles/global.css';
@@ -59,6 +60,9 @@ interface Props {
 
 	<body
 		class="bg-neutral-200 selection:bg-cyan-400 selection:text-neutral-700 dark:bg-stone-950">
+		<div class="px-4 sm:px-6 lg:px-8 pt-2">
+		<Navbar />
+		</div>
         <main id="main-slot">
             <slot />
         </main>

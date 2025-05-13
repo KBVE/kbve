@@ -1,0 +1,120 @@
+---
+import BrandLogo from 'src/layouts/core/BrandLogo.astro';
+---
+
+<header
+	class="sticky inset-x-0 top-4 z-50 flex w-full flex-wrap text-sm md:flex-nowrap md:justify-start">
+	<nav
+		class="relative mx-2 w-full rounded-[36px] border border-yellow-100/40 bg-yellow-50/60 px-4 py-3 backdrop-blur-md dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:backdrop-blur-md md:flex md:items-center md:justify-between md:px-6 md:py-0 lg:px-8 xl:mx-auto"
+		aria-label="Global">
+		<div class="flex items-center w-full">
+			<!-- Brand logo -->
+			<a
+				class="flex-none rounded-lg text-xl font-bold outline-none ring-zinc-500 focus-visible:ring dark:ring-zinc-200 dark:focus:outline-none"
+				href="/"
+				aria-label="Brand"
+				data-astro-prefetch>
+				<BrandLogo class="h-auto w-24" />
+			</a>
+
+			<div class="w-px h-10 bg-neutral-300 dark:bg-white/20 mx-4"></div>
+
+            <!-- Mobile Menu -->
+
+
+            <!-- Regular Menu -->
+            <div class="hidden md:flex md:flex-row ml-auto" id="nav-menu">
+				<!-- Docs -->
+				<a
+					href="/docs"
+					class="flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-200"
+					aria-label="Docs"
+					data-astro-prefetch>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide lucide-notebook-text-icon lucide-notebook-text">
+						<path d="M2 6h4"></path><path d="M2 10h4"></path><path
+							d="M2 14h4">
+						</path><path d="M2 18h4"></path><rect
+							width="16"
+							height="20"
+							x="4"
+							y="2"
+							rx="2">
+						</rect><path d="M9.5 8h5"></path><path d="M9.5 12H16">
+						</path><path d="M9.5 16H14"></path>
+					</svg>
+					<span class="text-xs">Docs</span>
+				</a>
+				<!-- Docs -->
+				<a
+					href="/docs"
+					class="flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-200"
+					aria-label="Docs"
+					data-astro-prefetch>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide lucide-notebook-text-icon lucide-notebook-text">
+						<path d="M2 6h4"></path><path d="M2 10h4"></path><path
+							d="M2 14h4">
+						</path><path d="M2 18h4"></path><rect
+							width="16"
+							height="20"
+							x="4"
+							y="2"
+							rx="2">
+						</rect><path d="M9.5 8h5"></path><path d="M9.5 12H16">
+						</path><path d="M9.5 16H14"></path>
+					</svg>
+					<span class="text-xs">Docs</span>
+				</a>
+				<!-- Docs -->
+				<a
+					href="/docs"
+					class="flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-200"
+					aria-label="Docs"
+					data-astro-prefetch>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="lucide lucide-notebook-text-icon lucide-notebook-text">
+						<path d="M2 6h4"></path><path d="M2 10h4"></path><path
+							d="M2 14h4">
+						</path><path d="M2 18h4"></path><rect
+							width="16"
+							height="20"
+							x="4"
+							y="2"
+							rx="2">
+						</rect><path d="M9.5 8h5"></path><path d="M9.5 12H16">
+						</path><path d="M9.5 16H14"></path>
+					</svg>
+					<span class="text-xs">Docs</span>
+				</a>
+			</div>
+		</div>
+	</nav>
+</header>
