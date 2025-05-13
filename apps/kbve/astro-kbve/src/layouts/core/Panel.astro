@@ -37,30 +37,32 @@ import StaticBottom from "./panels/StaticBottom.astro"
 			sides.map((side) => [side, document.getElementById(`panel-${side}`)])
 		);
 
-		const transitionClasses = [
-			'transition-transform',
-			'duration-300',
-			'ease-in-out',
-			'pointer-events-auto',
-			'bg-white/90',
-			'dark:bg-neutral-900/90',
-			'backdrop-blur-md',
-			'shadow-lg',
-			'z-[100]',
-			'overflow-auto',
-			'border',
-			'border-white/10',
-		];
+	    const transitionClasses = Object.freeze([
+            'transition-transform',
+            'duration-300',
+            'ease-in-out',
+            'pointer-events-auto',
+            'bg-white/90',
+            'dark:bg-neutral-900/90',
+            'backdrop-blur-md',
+            'shadow-lg',
+            'z-[100]',
+            'overflow-auto',
+            'border',
+            'border-white/10',
+        ]);
+
+        const transformMap = Object.freeze({
+            left: Object.freeze(['translate-x-[-100%]', 'translate-x-0']),
+            right: Object.freeze(['translate-x-[100%]', 'translate-x-0']),
+            top: Object.freeze(['translate-y-[-100%]', 'translate-y-0']),
+            bottom: Object.freeze(['translate-y-[100%]', 'translate-y-0']),
+        });
+
 
 		function getTransformClass(side, hide) {
-			const map = {
-				left: ['translate-x-[-100%]', 'translate-x-0'],
-				right: ['translate-x-[100%]', 'translate-x-0'],
-				top: ['translate-y-[-100%]', 'translate-y-0'],
-				bottom: ['translate-y-[100%]', 'translate-y-0'],
-			};
-			return map[side][hide ? 0 : 1];
-		}
+            return transformMap[side][hide ? 0 : 1];
+        }
 
 		function updatePanels(state) {
 			for (const side of sides) {
@@ -68,8 +70,11 @@ import StaticBottom from "./panels/StaticBottom.astro"
 				const panel = panels[side];
 				if (!panel || !panelState) continue;
 
-				panel.classList.add('panel', 'fixed', ...transitionClasses);
-
+                if (!panel.hasAttribute('data-panel-initialized')) {
+                    panel.classList.add('panel', 'fixed', ...transitionClasses);
+                    panel.setAttribute('data-panel-initialized', 'true');
+                }
+                
 				if (side === 'left') panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
 				if (side === 'right') panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
 				if (side === 'top') panel.classList.add('inset-x-0', 'top-0', 'h-64');
@@ -147,8 +152,6 @@ import StaticBottom from "./panels/StaticBottom.astro"
 		});
 	}
 
-	// 🚀 Call once on page load
 	document.addEventListener('DOMContentLoaded', setupPanels);
-	// 🚀 Call again after view transition / SPA routing
 	document.addEventListener('astro:page-load', setupPanels);
 </script>
