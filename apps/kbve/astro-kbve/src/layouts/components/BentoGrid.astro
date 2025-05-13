@@ -1,0 +1,154 @@
+---
+interface GridItem {
+  title: string;
+  subtitle?: string;
+  span: string;
+  primaryColor: string;
+  secondaryColor: string;
+  icon?: string;
+  onclick?: string;
+}
+
+const items: GridItem[] = [
+  {
+    title: 'Analytics',
+    subtitle: 'Realtime insights',
+    span: 'col-span-2 row-span-2',
+    primaryColor: 'purple-600',
+    secondaryColor: 'indigo-800',
+    icon: '📊',
+    onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Analytics', rawHtml: '<p>More details</p>' })`
+  },
+  {
+    title: 'Servers',
+    subtitle: 'Active clusters',
+    span: 'col-span-2 row-span-1',
+    primaryColor: 'teal-500',
+    secondaryColor: 'cyan-600',
+    icon: '🖥️'
+  },
+  {
+    title: 'Logs',
+    subtitle: 'System events',
+    span: 'col-span-2 row-span-1',
+    primaryColor: 'rose-500',
+    secondaryColor: 'pink-600',
+    icon: '📁'
+  },
+  {
+    title: 'Deploy',
+    subtitle: 'Last push: 2h ago',
+    span: 'col-span-1 row-span-1',
+    primaryColor: 'amber-400',
+    secondaryColor: 'yellow-500',
+    icon: '🚀'
+  },
+  {
+    title: 'Alerts',
+    subtitle: '2 critical',
+    span: 'col-span-1 row-span-1',
+    primaryColor: 'red-600',
+    secondaryColor: 'orange-500',
+    icon: '⚠️'
+  }
+];
+
+function renderItem(item: GridItem, i: number): string {
+  const gradient = `bg-gradient-to-br from-${item.primaryColor} to-${item.secondaryColor}`;
+  const shadow = `drop-shadow-${item.primaryColor}/40 drop-shadow-xl`;
+  const hoverShadow = `hover:drop-shadow-${item.secondaryColor}/60 drop-shadow-2xl`;
+
+  return `
+    <div class="bento-item bento-reflection relative overflow-hidden rounded-2xl shadow-2xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group ${item.span} ${gradient} ${shadow} ${hoverShadow} animate-fade-in" ${item.onclick ? `onclick="${item.onclick}"` : ''}>
+      <div class="bento-glow absolute inset-0 z-0 transition"></div>
+      <div class="noise-overlay"></div>
+      <div class="absolute inset-0 bg-black/10 backdrop-blur-sm group-hover:bg-black/20 transition z-0"></div>
+      <span class="absolute inset-y-0 right-0 w-16 transform translate-x-20 bg-white/20 opacity-20 rotate-12 transition-transform duration-1000 ease-out group-hover:-translate-x-64 pointer-events-none"></span>
+      <div class="relative z-10 p-4 h-full flex flex-col justify-between">
+        <div class="flex items-center gap-3">
+          <div class="text-2xl sm:text-3xl bg-white/20 rounded-full p-2 backdrop-blur-sm shadow text-white">${item.icon}</div>
+          <h3 class="text-lg sm:text-xl font-bold text-white">${item.title}</h3>
+        </div>
+        ${item.subtitle ? `<p class="text-sm text-white/80 group-hover:text-white mt-3 leading-snug">${item.subtitle}</p>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+const html = `
+  <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px]" bento-grid>
+    ${items.map(renderItem).join('\n')}
+  </div>
+`;
+---
+
+<style is:global>
+  .bento-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, white 5%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  .bento-item:hover .bento-glow::before {
+    opacity: 0.05;
+  }
+
+  .noise-overlay {
+    background-image: url('/assets/images/bg/noise.png');
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+  }
+
+  .bento-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 1;
+  }
+
+  .bento-item:hover::after {
+    opacity: 0.15;
+  }
+
+  .bento-reflection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 120%;
+    height: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    transform: rotate(-5deg);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s ease forwards;
+  }
+</style>
+
+<Fragment set:html={html} />
