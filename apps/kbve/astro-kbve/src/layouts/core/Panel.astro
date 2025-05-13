@@ -74,7 +74,7 @@ import StaticBottom from "./panels/StaticBottom.astro"
                     panel.classList.add('panel', 'fixed', ...transitionClasses);
                     panel.setAttribute('data-panel-initialized', 'true');
                 }
-                
+
 				if (side === 'left') panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
 				if (side === 'right') panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
 				if (side === 'top') panel.classList.add('inset-x-0', 'top-0', 'h-64');

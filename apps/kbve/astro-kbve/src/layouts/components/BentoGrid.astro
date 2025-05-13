@@ -3,9 +3,11 @@ interface GridItem {
   title: string;
   subtitle?: string;
   span: string;
-  color: string;
+  primaryColor: string;
+  secondaryColor: string;
   icon?: string;
   onclick?: string;
+  class?: string;
 }
 
 const items: GridItem[] = [
@@ -13,39 +15,69 @@ const items: GridItem[] = [
     title: 'Analytics',
     subtitle: 'Realtime insights',
     span: 'col-span-2 row-span-2',
-    color: 'bg-gradient-to-br from-purple-600 via-indigo-600 to-indigo-800',
+    primaryColor: 'purple-600',
+    secondaryColor: 'indigo-800',
     icon: '📊',
+    class: 'bg-gradient-to-br from-purple-600 to-indigo-800 drop-shadow-purple-600/40',
     onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Analytics', rawHtml: '<p>More details</p>' })`
   },
   {
     title: 'Servers',
     subtitle: 'Active clusters',
     span: 'col-span-2 row-span-1',
-    color: 'bg-gradient-to-br from-teal-500 to-cyan-600',
-    icon: '🖥️'
+    primaryColor: 'teal-500',
+    secondaryColor: 'cyan-600',
+    icon: '🖥️',
+    class: 'bg-gradient-to-br from-teal-500 to-cyan-600 drop-shadow-teal-500/40'
   },
   {
     title: 'Logs',
     subtitle: 'System events',
     span: 'col-span-2 row-span-1',
-    color: 'bg-gradient-to-br from-rose-500 to-pink-600',
-    icon: '📁'
+    primaryColor: 'rose-500',
+    secondaryColor: 'pink-600',
+    icon: '📁',
+    class: 'bg-gradient-to-br from-rose-500 to-pink-600 drop-shadow-rose-500/40'
   },
   {
     title: 'Deploy',
     subtitle: 'Last push: 2h ago',
     span: 'col-span-1 row-span-1',
-    color: 'bg-gradient-to-br from-amber-400 to-yellow-500',
-    icon: '🚀'
+    primaryColor: 'amber-400',
+    secondaryColor: 'yellow-500',
+    icon: '🚀',
+    class: 'bg-gradient-to-br from-amber-400 to-yellow-500 drop-shadow-amber-400/40'
   },
   {
     title: 'Alerts',
     subtitle: '2 critical',
     span: 'col-span-1 row-span-1',
-    color: 'bg-gradient-to-br from-red-600 to-orange-500',
-    icon: '⚠️'
+    primaryColor: 'red-600',
+    secondaryColor: 'orange-500',
+    icon: '⚠️',
+    class: 'bg-gradient-to-br from-red-600 to-orange-500 drop-shadow-red-600/40'
   }
 ];
+
+const html = `
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px]">
+  ${items.map((item, i) => `
+    <div class="bento-item bento-reflection relative overflow-hidden rounded-2xl shadow-2xl  hover:scale-[1.01] transition-all duration-300 cursor-pointer group ${item.span} ${item.class} animate-fade-in" style="animation-delay: ${i * 80}ms;" ${item.onclick ? `onclick="${item.onclick}"` : ''}>
+      <div class="bento-glow absolute inset-0 z-0 transition"></div>
+      <div class="noise-overlay"></div>
+      <div class="absolute inset-0 bg-black/10 backdrop-blur-sm group-hover:bg-black/20 transition z-0"></div>
+      <span class="absolute inset-y-0 right-0 w-16 transform translate-x-20 bg-white/20 opacity-20 rotate-12 transition-transform duration-1000 ease-out group-hover:-translate-x-96 pointer-events-none"></span>
+      <div class="relative z-10 p-4 h-full flex flex-col justify-between">
+        <div class="flex items-center gap-3">
+          <div class="text-2xl sm:text-3xl bg-white/20 rounded-full p-2 backdrop-blur-sm shadow text-white">${item.icon}</div>
+          <h3 class="text-lg sm:text-xl font-bold text-white">${item.title}</h3>
+        </div>
+        ${item.subtitle ? `<p class="text-sm text-white/80 group-hover:text-white mt-3 leading-snug">${item.subtitle}</p>` : ''}
+      </div>
+    </div>
+  `).join('')}
+</div>
+`;
 ---
 
 <style is:global>
@@ -117,61 +149,6 @@ const items: GridItem[] = [
   }
 </style>
 
-<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px]">
-  {items.map((item, i) => (
-    <div
-      class={`bento-item bento-reflection relative overflow-hidden rounded-2xl shadow-2xl transform-gpu transition-all duration-300 cursor-pointer group ${item.span} ${item.color} animate-fade-in`}
-      style={`animation-delay: ${i * 80}ms`}
-      onclick={item.onclick}
-    >
-      <div class="bento-glow absolute inset-0 z-0 transition" />
-      <div class="noise-overlay"></div>
-      <div class="absolute inset-0 bg-black/10 backdrop-blur-sm group-hover:bg-black/20 transition z-0" />
-
-      <div class="relative z-10 p-4 h-full flex flex-col justify-between">
-        <div class="flex items-center gap-3">
-          <div class="text-2xl sm:text-3xl bg-white/20 rounded-full p-2 backdrop-blur-sm shadow text-white">
-            {item.icon}
-          </div>
-          <h3 class="text-lg sm:text-xl font-bold text-white">{item.title}</h3>
-        </div>
-
-        {item.subtitle && (
-          <p class="text-sm text-white/80 group-hover:text-white mt-3 leading-snug">
-            {item.subtitle}
-          </p>
-        )}
-      </div>
-    </div>
-  ))}
+<div class="perspective-distant">
+<Fragment set:html={html} />
 </div>
-
-<script is:inline>
-	function bindBentoTilt() {
-		const items = document.querySelectorAll('.bento-item');
-
-		const handlePointerMove = (e) => {
-			items.forEach((el) => {
-				const rect = el.getBoundingClientRect();
-				const x = ((e.clientX - rect.left) / rect.width - 0.5) * 10;
-				const y = ((e.clientY - rect.top) / rect.height - 0.5) * -10;
-				el.style.transform = `perspective(800px) rotateX(${y}deg) rotateY(${x}deg) scale(1.015)`;
-			});
-		};
-
-		const handlePointerLeave = () => {
-			items.forEach((el) => {
-				el.style.transform = '';
-			});
-		};
-
-		document.addEventListener('pointermove', handlePointerMove);
-		document.addEventListener('pointerleave', handlePointerLeave);
-
-		// Optional: store to remove later if needed
-		window.__bentoTilt = { handlePointerMove, handlePointerLeave };
-	}
-
-	document.addEventListener('DOMContentLoaded', bindBentoTilt);
-	document.addEventListener('astro:page-load', bindBentoTilt);
-</script>

@@ -33,6 +33,39 @@ interface Props {
 		<Meta meta={meta} structuredData={structuredData} />
 		<ClientRouter />
 		<Panel />
+
+		<style is:global>
+			.scrollbar-hide::-webkit-scrollbar {
+				display: none;
+			}
+
+			.scrollbar-hide {
+				-ms-overflow-style: none;
+				scrollbar-width: none;
+			}
+
+			html.lenis,
+			html.lenis body {
+				height: auto;
+			}
+
+			.lenis.lenis-smooth {
+				scroll-behavior: auto !important;
+			}
+
+			.lenis.lenis-smooth [data-lenis-prevent] {
+				overscroll-behavior: contain;
+			}
+
+			.lenis.lenis-stopped {
+				overflow: hidden;
+			}
+
+			.lenis.lenis-scrolling iframe {
+				pointer-events: none;
+			}
+
+		</style>
 		<script src="/src/layouts/client/droid.ts"></script>
 		<script is:inline>
 			function applyDarkModePreference() {
