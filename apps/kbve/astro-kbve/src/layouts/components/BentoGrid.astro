@@ -1,0 +1,103 @@
+---
+interface GridItem {
+  title: string;
+  subtitle?: string;
+  span: string;
+  color: string;
+  icon?: string;
+  onclick?: string;
+}
+
+const items: GridItem[] = [
+  {
+    title: 'Analytics',
+    subtitle: 'Realtime insights',
+    span: 'col-span-2 row-span-2',
+    color: 'bg-gradient-to-br from-purple-600 via-indigo-600 to-indigo-800',
+    icon: '📊',
+    onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Analytics', rawHtml: '<p>More details</p>' })`
+  },
+  {
+    title: 'Servers',
+    subtitle: 'Active clusters',
+    span: 'col-span-2 row-span-1',
+    color: 'bg-gradient-to-br from-teal-500 to-cyan-600',
+    icon: '🖥️'
+  },
+  {
+    title: 'Logs',
+    subtitle: 'System events',
+    span: 'col-span-2 row-span-1',
+    color: 'bg-gradient-to-br from-rose-500 to-pink-600',
+    icon: '📁'
+  },
+  {
+    title: 'Deploy',
+    subtitle: 'Last push: 2h ago',
+    span: 'col-span-1 row-span-1',
+    color: 'bg-gradient-to-br from-amber-400 to-yellow-500',
+    icon: '🚀'
+  },
+  {
+    title: 'Alerts',
+    subtitle: '2 critical',
+    span: 'col-span-1 row-span-1',
+    color: 'bg-gradient-to-br from-red-600 to-orange-500',
+    icon: '⚠️'
+  }
+];
+---
+
+<style is:global>
+  .bento-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, white 5%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  .bento-item:hover .bento-glow::before {
+    opacity: 0.05;
+  }
+
+  .noise-overlay {
+    background-image: url('/assets/images/bg/noise.png'); 
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+  }
+</style>
+
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px]">
+  {items.map((item, i) => (
+    <div
+      class={`bento-item relative overflow-hidden rounded-2xl shadow-2xl transform-gpu transition-all duration-300 cursor-pointer group ${item.span} ${item.color}`}
+      onclick={item.onclick}
+    >
+      <div class="bento-glow absolute inset-0 z-0 transition" />
+      <div class="noise-overlay"></div>
+      <div class="absolute inset-0 bg-black/10 backdrop-blur-sm group-hover:bg-black/20 transition z-0" />
+
+      <div class="relative z-10 p-4 h-full flex flex-col justify-between">
+        <div class="flex items-center gap-3">
+          <div class="text-2xl sm:text-3xl bg-white/20 rounded-full p-2 backdrop-blur-sm shadow text-white">
+            {item.icon}
+          </div>
+          <h3 class="text-lg sm:text-xl font-bold text-white">{item.title}</h3>
+        </div>
+
+        {item.subtitle && (
+          <p class="text-sm text-white/80 group-hover:text-white mt-3 leading-snug">
+            {item.subtitle}
+          </p>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
