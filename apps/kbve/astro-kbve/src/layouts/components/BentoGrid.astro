@@ -53,13 +53,24 @@ const items: GridItem[] = [
   }
 ];
 
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
 function renderItem(item: GridItem, i: number): string {
   const gradient = `bg-gradient-to-br from-${item.primaryColor} to-${item.secondaryColor}`;
   const shadow = `drop-shadow-${item.primaryColor}/40 drop-shadow-xl`;
   const hoverShadow = `hover:drop-shadow-${item.secondaryColor}/60 drop-shadow-2xl`;
 
+  const mergedClasses = twMerge(clsx(
+    'bento-item bento-reflection relative overflow-hidden rounded-2xl shadow-2xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group animate-fade-in',
+    item.span,
+    gradient,
+    shadow,
+    hoverShadow
+  ));
+
   return `
-    <div class="bento-item bento-reflection relative overflow-hidden rounded-2xl shadow-2xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group ${item.span} ${gradient} ${shadow} ${hoverShadow} animate-fade-in" ${item.onclick ? `onclick="${item.onclick}"` : ''}>
+    <div class="${mergedClasses}" ${item.onclick ? `onclick="${item.onclick}"` : ''}>
       <div class="bento-glow absolute inset-0 z-0 transition"></div>
       <div class="noise-overlay"></div>
       <div class="absolute inset-0 bg-black/10 backdrop-blur-sm group-hover:bg-black/20 transition z-0"></div>
