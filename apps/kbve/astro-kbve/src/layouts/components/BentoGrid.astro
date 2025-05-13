@@ -65,19 +65,63 @@ const items: GridItem[] = [
   }
 
   .noise-overlay {
-    background-image: url('/assets/images/bg/noise.png'); 
+    background-image: url('/assets/images/bg/noise.png');
     opacity: 0.03;
     mix-blend-mode: overlay;
     pointer-events: none;
     position: absolute;
     inset: 0;
   }
+
+  .bento-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 1;
+  }
+
+  .bento-item:hover::after {
+    opacity: 0.15;
+  }
+
+  .bento-reflection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 120%;
+    height: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    transform: rotate(-5deg);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s ease forwards;
+  }
 </style>
 
 <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px]">
   {items.map((item, i) => (
     <div
-      class={`bento-item relative overflow-hidden rounded-2xl shadow-2xl transform-gpu transition-all duration-300 cursor-pointer group ${item.span} ${item.color}`}
+      class={`bento-item bento-reflection relative overflow-hidden rounded-2xl shadow-2xl transform-gpu transition-all duration-300 cursor-pointer group ${item.span} ${item.color} animate-fade-in`}
+      style={`animation-delay: ${i * 80}ms`}
       onclick={item.onclick}
     >
       <div class="bento-glow absolute inset-0 z-0 transition" />
@@ -101,3 +145,33 @@ const items: GridItem[] = [
     </div>
   ))}
 </div>
+
+<script is:inline>
+	function bindBentoTilt() {
+		const items = document.querySelectorAll('.bento-item');
+
+		const handlePointerMove = (e) => {
+			items.forEach((el) => {
+				const rect = el.getBoundingClientRect();
+				const x = ((e.clientX - rect.left) / rect.width - 0.5) * 10;
+				const y = ((e.clientY - rect.top) / rect.height - 0.5) * -10;
+				el.style.transform = `perspective(800px) rotateX(${y}deg) rotateY(${x}deg) scale(1.015)`;
+			});
+		};
+
+		const handlePointerLeave = () => {
+			items.forEach((el) => {
+				el.style.transform = '';
+			});
+		};
+
+		document.addEventListener('pointermove', handlePointerMove);
+		document.addEventListener('pointerleave', handlePointerLeave);
+
+		// Optional: store to remove later if needed
+		window.__bentoTilt = { handlePointerMove, handlePointerLeave };
+	}
+
+	document.addEventListener('DOMContentLoaded', bindBentoTilt);
+	document.addEventListener('astro:page-load', bindBentoTilt);
+</script>
