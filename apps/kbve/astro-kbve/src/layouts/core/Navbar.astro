@@ -10,26 +10,33 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 		<div class="flex items-center w-full">
 			<!-- Brand logo -->
 			<a
-				class="flex-none rounded-lg text-xl font-bold outline-none ring-zinc-500 focus-visible:ring dark:ring-zinc-200 dark:focus:outline-none"
 				href="/"
 				aria-label="Brand"
-				data-astro-prefetch>
-				<BrandLogo class="h-auto w-24" />
+				data-astro-prefetch
+				class="flex-none rounded-lg outline-none ring-zinc-500 focus-visible:ring dark:ring-zinc-200 dark:focus:outline-none transition duration-300 hover:scale-105 hover:drop-shadow-[0_0_8px_rgba(192,132,252,0.4)]">
+				<BrandLogo
+					class="h-auto w-24 transition-transform duration-300"
+				/>
 			</a>
 
 			<div class="w-px h-10 bg-neutral-300 dark:bg-white/20 mx-4"></div>
 
-            <!-- Mobile Menu -->
+			<!-- Mobile Menu -->
 
-
-            <!-- Regular Menu -->
-            <div class="hidden md:flex md:flex-row ml-auto" id="nav-menu">
+			<!-- Regular Menu -->
+			<div class="hidden md:flex md:flex-row ml-auto" id="nav-menu">
 				<!-- Docs -->
 				<a
 					href="/docs"
-					class="flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-200"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
 					aria-label="Docs"
 					data-astro-prefetch>
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Documentation
+					</span>
+
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="24"
@@ -40,7 +47,7 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						class="lucide lucide-notebook-text-icon lucide-notebook-text">
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
 						<path d="M2 6h4"></path><path d="M2 10h4"></path><path
 							d="M2 14h4">
 						</path><path d="M2 18h4"></path><rect
@@ -52,14 +59,27 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 						</rect><path d="M9.5 8h5"></path><path d="M9.5 12H16">
 						</path><path d="M9.5 16H14"></path>
 					</svg>
-					<span class="text-xs">Docs</span>
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Docs
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
 				</a>
 				<!-- Docs -->
 				<a
 					href="/docs"
-					class="flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-200"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
 					aria-label="Docs"
 					data-astro-prefetch>
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Arcade
+					</span>
+
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="24"
@@ -70,26 +90,39 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						class="lucide lucide-notebook-text-icon lucide-notebook-text">
-						<path d="M2 6h4"></path><path d="M2 10h4"></path><path
-							d="M2 14h4">
-						</path><path d="M2 18h4"></path><rect
-							width="16"
-							height="20"
-							x="4"
-							y="2"
-							rx="2">
-						</rect><path d="M9.5 8h5"></path><path d="M9.5 12H16">
-						</path><path d="M9.5 16H14"></path>
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
+						<line x1="6" x2="10" y1="11" y2="11"></line><line
+							x1="8"
+							x2="8"
+							y1="9"
+							y2="13">
+						</line><line x1="15" x2="15.01" y1="12" y2="12">
+						</line><line x1="18" x2="18.01" y1="10" y2="10">
+						</line><path
+							d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z">
+						</path>
 					</svg>
-					<span class="text-xs">Docs</span>
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Games
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
 				</a>
 				<!-- Docs -->
 				<a
 					href="/docs"
-					class="flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-200"
+					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
 					aria-label="Docs"
 					data-astro-prefetch>
+					<!-- Tooltip -->
+					<span
+						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+						Documentation
+					</span>
+
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="24"
@@ -100,7 +133,7 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						class="lucide lucide-notebook-text-icon lucide-notebook-text">
+						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
 						<path d="M2 6h4"></path><path d="M2 10h4"></path><path
 							d="M2 14h4">
 						</path><path d="M2 18h4"></path><rect
@@ -112,7 +145,14 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 						</rect><path d="M9.5 8h5"></path><path d="M9.5 12H16">
 						</path><path d="M9.5 16H14"></path>
 					</svg>
-					<span class="text-xs">Docs</span>
+					<!-- Label -->
+					<span
+						class="relative text-xs font-medium group-hover:text-purple-400 transition">
+						Docs
+						<span
+							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
+						</span>
+					</span>
 				</a>
 			</div>
 		</div>
