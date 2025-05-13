@@ -1,0 +1,58 @@
+---
+import PanelCloseButton from './PanelCloseButton.astro';
+
+---
+<div
+	class="panel-static border-b border-white/10 px-4 py-3 text-neutral-600 dark:text-neutral-300">
+	<div class="flex items-center justify-between mb-4">
+		<p
+			class="text-sm font-semibold uppercase tracking-wide text-neutral-700 dark:text-cyan-400">
+			Sidebar
+		</p>
+		<PanelCloseButton side="left" />
+	</div>
+
+	<!-- Docs Link -->
+	<a
+		href="/docs"
+		class="group relative flex items-center space-x-2 p-2 rounded-md hover:bg-purple-50 dark:hover:bg-neutral-800 transition-colors"
+		aria-label="Docs"
+		data-astro-prefetch>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="20"
+			height="20"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class="lucide transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-1 group-hover:text-purple-500">
+			<path d="M2 6h4"></path>
+			<path d="M2 10h4"></path>
+			<path d="M2 14h4"></path>
+			<path d="M2 18h4"></path>
+			<rect width="16" height="20" x="4" y="2" rx="2"></rect>
+			<path d="M9.5 8h5"></path>
+			<path d="M9.5 12H16"></path>
+			<path d="M9.5 16H14"></path>
+		</svg>
+
+		<div class="flex flex-col">
+			<span
+				class="text-xs font-medium text-cyan-500 group-hover:text-purple-500 transition">
+				Docs
+			</span>
+			<span
+				class="h-0.5 w-0 bg-purple-500 transition-all duration-300 group-hover:w-full">
+			</span>
+		</div>
+
+		<!-- Tooltip -->
+		<span
+			class="absolute -bottom-8 left-1/2 -translate-x-1/2 scale-0 rounded bg-stone-700 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+			Documentation
+		</span>
+	</a>
+</div>
