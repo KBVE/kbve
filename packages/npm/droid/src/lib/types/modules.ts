@@ -28,3 +28,9 @@ export interface ModManager {
 	list: () => ModMeta[];
 	reload: (id: string) => Promise<ModHandle>;
 }
+
+export interface SupabaseModAPI extends BaseModAPI {
+	configure(url: string, key: string): Promise<void>;
+	queryTestTable(): Promise<{ data: any; error: any }>;
+	insertTest(payload: Record<string, any>): Promise<{ data: any; error: any }>;
+}

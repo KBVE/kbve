@@ -18,6 +18,7 @@ describe('droid', () => {
 			expect(window.kbve?.uiux).toBeDefined();
 			expect(window.kbve?.ws).toBeDefined();
 			expect(window.kbve?.data).toBeDefined();
+			expect(window.kbve?.mod).toBeDefined();
 
 		},
 		10_000,
