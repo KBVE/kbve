@@ -160,7 +160,7 @@ jobs:
             py_fudster:
                 - 'apps/fudster/fudster/**'
             astro_kbve:
-                - 'apps/kbve/kbve.com/**'
+                - 'apps/kbve/astro-kbve/**'
             astro_herbmail:
                 - 'apps/herbmail/README.md'
             astro_rareicon:
