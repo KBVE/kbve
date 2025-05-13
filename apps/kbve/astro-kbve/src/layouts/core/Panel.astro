@@ -1,0 +1,62 @@
+---
+
+---
+
+<!-- Left Panel -->
+<div id="panel-left" class="fixed left-0 top-0 z-50 h-full w-64 translate-x-[-100%] transition-transform duration-300 ease-in-out bg-white/90 dark:bg-neutral-900/90 shadow-lg backdrop-blur-lg border-r border-yellow-200/20">
+	<div class="flex items-center justify-between p-4 border-b border-yellow-100/10">
+		<h2 class="text-lg font-bold text-neutral-700 dark:text-white">Left Panel</h2>
+		<button
+			type="button"
+			class="text-neutral-500 hover:text-red-500 transition"
+			onclick="window.kbve?.uiux?.closePanel?.('left')">
+			&times;
+		</button>
+	</div>
+	<div class="p-4 text-neutral-800 dark:text-neutral-200">
+		<p>This is your left sidebar panel content.</p>
+	</div>
+</div>
+
+
+<script is:inline>
+	(() => {
+		const getPanel = (side) => document.getElementById(`panel-${side}`);
+
+		const openPanel = (side) => {
+			const panel = getPanel(side);
+			if (!panel) return;
+
+			const transform = {
+				left: 'translateX(0%)',
+				right: 'translateX(0%)',
+				top: 'translateY(0%)',
+				bottom: 'translateY(0%)'
+			}[side];
+
+			panel.style.setProperty('transform', transform);
+		};
+
+		const closePanel = (side) => {
+			const panel = getPanel(side);
+			if (!panel) return;
+
+			const transform = {
+				left: 'translateX(-100%)',
+				right: 'translateX(100%)',
+				top: 'translateY(-100%)',
+				bottom: 'translateY(100%)'
+			}[side];
+
+			panel.style.setProperty('transform', transform);
+		};
+
+		// Register once with global kbve.uiux
+		window.kbve = window.kbve || {};
+		window.kbve.uiux = {
+			...(window.kbve.uiux || {}),
+			openPanel,
+			closePanel
+		};
+	})();
+</script>
