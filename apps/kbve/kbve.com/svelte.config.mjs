@@ -1,7 +1,8 @@
-import {sveltePreprocess} from 'svelte-preprocess';
+import { vitePreprocess } from '@astrojs/svelte';
+//import { sveltePreprocess } from 'svelte-preprocess';
+
 
 export default {
-  preprocess: sveltePreprocess({
-    typescript: true,
-  }),
-};
+	extensions: ['.svelte'],
+	preprocess: [vitePreprocess({ script: true })]
+}
