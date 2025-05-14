@@ -7,7 +7,7 @@ import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
 import { initModManager } from '../mod/mod-manager'; 
 import { scopeData } from './data';
-import { dispatchAsync } from './tools';
+import { dispatchAsync, renderVNode} from './tools';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
@@ -130,6 +130,15 @@ export const uiux = {
 
 		uiuxState.setKey('panelManager', panels);
 	},
+
+	emitFromWorker(msg: any) {
+	if (msg.type === 'injectVNode' && msg.vnode) {
+		dispatchAsync(() => {
+			const el = renderVNode(msg.vnode);
+			document.getElementById('bento-grid')?.appendChild(el);
+		});
+	}
+}
 };
 
 //	* i18n
@@ -268,6 +277,14 @@ export async function main() {
 		const api = await initStorageComlink();
 		const ws = await initWsComlink();
 		const mod = await initModManager();
+
+		for (const handle of Object.values(mod.registry)) {
+			if (typeof handle.instance.init === 'function') {
+				await handle.instance.init({
+					emitFromWorker: uiux.emitFromWorker
+				});
+			}
+		}
 
 		bridgeWsToDb(ws, api);
 
