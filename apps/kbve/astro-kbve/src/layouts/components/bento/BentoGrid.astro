@@ -2,10 +2,12 @@
 interface GridItem {
   title: string;
   subtitle?: string;
+  description?: string;
   span: string;
   primaryColor: string;
   secondaryColor: string;
   icon?: string;
+  backgroundImage?: string;
   onclick?: string;
 }
 
@@ -13,84 +15,68 @@ const items: GridItem[] = [
   {
     title: 'Analytics',
     subtitle: 'Realtime insights',
-    span: 'col-span-2 row-span-2',
+    description: 'Track performance metrics and live usage trends.',
+    span: 'col-span-3 row-span-3',
     primaryColor: 'purple-600',
     secondaryColor: 'indigo-800',
     icon: '📊',
+    backgroundImage: 'https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?q=80&w=600&auto=format&fit=crop&ixlib=rb-4.1.0',
     onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Analytics', rawHtml: '<p>More details</p>' })`
   },
   {
     title: 'Servers',
     subtitle: 'Active clusters',
+    description: 'Monitor all connected server nodes and their status.',
     span: 'col-span-2 row-span-1',
     primaryColor: 'teal-500',
     secondaryColor: 'cyan-600',
-    icon: '🖥️'
+    icon: '🖥️',
+    backgroundImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.1.0'
   },
   {
     title: 'Logs',
     subtitle: 'System events',
+    description: 'View recent backend logs and infrastructure events.',
     span: 'col-span-2 row-span-1',
     primaryColor: 'rose-500',
     secondaryColor: 'pink-600',
-    icon: '📁'
+    icon: '📁',
+    backgroundImage: '/assets/images/bg/logs.jpg'
   },
   {
     title: 'Deploy',
     subtitle: 'Last push: 2h ago',
+    description: 'Manage build deployments and CI/CD workflows.',
     span: 'col-span-1 row-span-1',
     primaryColor: 'amber-400',
     secondaryColor: 'yellow-500',
-    icon: '🚀'
+    icon: '🚀',
+    backgroundImage: '/assets/images/bg/deploy.jpg'
   },
   {
     title: 'Alerts',
     subtitle: '2 critical',
+    description: 'Review critical error reports and live alert states.',
     span: 'col-span-1 row-span-1',
     primaryColor: 'red-600',
     secondaryColor: 'orange-500',
-    icon: '⚠️'
+    icon: '⚠️',
+    backgroundImage: '/assets/images/bg/alerts.jpg'
+  },
+  {
+    title: 'Alerts',
+    subtitle: '2 critical',
+    description: 'System redundancy warnings and fallback triggers.',
+    span: 'col-span-1 row-span-1',
+    primaryColor: 'red-600',
+    secondaryColor: 'orange-500',
+    icon: '⚠️',
+    backgroundImage: '/assets/images/bg/alerts-alt.jpg'
   }
 ];
 
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import BentoTile from './BentoTile.astro';
 
-function renderItem(item: GridItem, i: number): string {
-  const gradient = `bg-gradient-to-br from-${item.primaryColor} to-${item.secondaryColor}`;
-  const shadow = `drop-shadow-${item.primaryColor}/40 drop-shadow-xl`;
-  const hoverShadow = `hover:drop-shadow-${item.secondaryColor}/60 drop-shadow-2xl`;
-
-  const mergedClasses = twMerge(clsx(
-    'bento-item bento-reflection relative overflow-hidden rounded-2xl shadow-2xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group animate-fade-in',
-    item.span,
-    gradient,
-    shadow,
-    hoverShadow
-  ));
-
-  return `
-    <div class="${mergedClasses}" ${item.onclick ? `onclick="${item.onclick}"` : ''}>
-      <div class="bento-glow absolute inset-0 z-0 transition"></div>
-      <div class="noise-overlay"></div>
-      <div class="absolute inset-0 bg-black/10 backdrop-blur-sm group-hover:bg-black/20 transition z-0"></div>
-      <span class="absolute inset-y-0 right-0 w-16 transform translate-x-20 bg-white/20 opacity-20 rotate-12 transition-transform duration-1000 ease-out group-hover:-translate-x-64 pointer-events-none"></span>
-      <div class="relative z-10 p-4 h-full flex flex-col justify-between">
-        <div class="flex items-center gap-3">
-          <div class="text-2xl sm:text-3xl bg-white/20 rounded-full p-2 backdrop-blur-sm shadow text-white">${item.icon}</div>
-          <h3 class="text-lg sm:text-xl font-bold text-white">${item.title}</h3>
-        </div>
-        ${item.subtitle ? `<p class="text-sm text-white/80 group-hover:text-white mt-3 leading-snug">${item.subtitle}</p>` : ''}
-      </div>
-    </div>
-  `;
-}
-
-const html = `
-  <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px]" bento-grid>
-    ${items.map(renderItem).join('\n')}
-  </div>
-`;
 ---
 
 <style is:global>
@@ -146,6 +132,15 @@ const html = `
     z-index: 2;
   }
 
+  .bento-bg-image {
+    opacity: 0.45;
+    filter: brightness(1.1) contrast(1.1);
+    pointer-events: none;
+    border-radius: inherit;
+    transition: transform 0.3s ease;
+    will-change: transform;
+  }
+
   @keyframes fade-in {
     from {
       opacity: 0;
@@ -162,4 +157,9 @@ const html = `
   }
 </style>
 
-<Fragment set:html={html} />
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px] grid-flow-dense" bento-grid>
+  {items.map((item) => (
+    <BentoTile {...item} />
+  ))}
+  <slot />
+</div>
