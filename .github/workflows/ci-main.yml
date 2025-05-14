@@ -194,7 +194,7 @@ jobs:
         destination_branch: ${{ matrix.destination_branch }}
        
       secrets:
-        GITHUB_PAT: ${{ secrets.GH_PAGES_PAT }}  
+        GITHUB_PAT: ${{ secrets.UNITY_PAT }}  
 
     generate_unity_matrix:
       needs: ['deploy', 'alter', 'globals']
