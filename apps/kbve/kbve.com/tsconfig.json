@@ -55,11 +55,7 @@
       }
    
   },
-<<<<<<< Updated upstream
-  "include": ["src", ".astro/types.d.ts",  "**/*", "**/*.svelte"]
+  "include": ["src", ".astro/types.d.ts",  "**/*.astro", "**/*.svelte"]
 
-=======
- "include": [".astro/types.d.ts", "**/*"],
->>>>>>> Stashed changes
 
 }
