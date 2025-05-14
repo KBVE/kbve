@@ -6,21 +6,29 @@ import BentoTile from 'src/layouts/components/bento/BentoTile.astro';
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
 }
+
+
+const tiles = [
+	{
+		title: 'Join Our Tech & Gaming Community!',
+		subtitle: 'Our Discord is active and fun!',
+		description: 'From cloud-native development to competitive gaming, we\'re here to help you level up! Whether you\'re containerizing apps or climbing ranked, our community\'s got your back.',
+		span: 'col-span-3 row-span-1',
+		primaryColor: 'emerald-500',
+		secondaryColor: 'cyan-600',
+		href: withBaseUrl('/discord', Astro.url),
+		target: '_self',
+		icon: '🎮'
+	},
+] as const;
+
 const discordUrl = withBaseUrl('/discord', Astro.url);
 ---
 
 <Layout title="KBVE KiloByte Virtual Enterprise">
 	<BentoGrid>
-		<BentoTile
-			title="Join Our Tech & Gaming Community!"
-			subtitle="Our Discord is active and fun!"
-			description="From cloud-native development to competitive gaming, we're here to help you level up! Whether you're containerizing apps or climbing ranked, our community's got your back."
-			span="col-span-3 row-span-1"
-			primaryColor="emerald-500"
-			secondaryColor="cyan-600"
-			href={discordUrl}
-			target="_self"
-			icon="🎮"
-		/>
+		{tiles.map(tile => (
+			<BentoTile {...tile} />
+		))}
 	</BentoGrid>
 </Layout>
