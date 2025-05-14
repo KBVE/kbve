@@ -166,9 +166,10 @@ jobs:
             [
                 {
                   "name": "astro_kbve",
+                  "condition": "${{ needs.alter.outputs.astro_kbve == 'true' }}",
                   "node_version": "22",
                   "pnpm_version": "10",
-                  "build_command": "kbve.com:build",
+                  "build_command": "astro-kbve:build",
                   "source_path": "dist/apps/astro-kbve/",
                   "destination_repo": "KBVE/kbve.com",
                   "destination_folder": "/docs",
