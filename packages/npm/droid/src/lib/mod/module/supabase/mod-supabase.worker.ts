@@ -25,6 +25,7 @@ const mod = {
 	async loadSupabaseClient() {
 		try {
 			const supabaseModule = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+			console.log('[mod-supabase] Supabase module loaded');
 			return supabaseModule.createClient;
 		} catch (err) {
 			console.error('[mod-supabase] Failed to load Supabase:', err);
