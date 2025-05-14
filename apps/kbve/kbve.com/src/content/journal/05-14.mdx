@@ -30,7 +30,28 @@ tags:
     It ends perfectly into the Rogue One and that is exactly what I wanted, now would be a great time to rewatch it and maybe the legacy star wars too.
     Ahh, a bit excited because its been so long since I seen any of the OG movies and this would be the perfect time to watch it again.
 
+### Bento Droid
 
+-   03:20AM
+
+    The Bento grid module will operate like this:
+
+```
+   Worker Thread (mod-bento.worker.ts)
+        |
+        |  ──> BentoTile → emits → { type: 'injectTile', tile }
+        |
+        ↓
+   Main Thread (uiux.emitFromWorker)
+        |
+        ├─> injectBentoTile(tile)
+        └─> injectBentoCanvasTile(id, options)
+
+```
+
+    This means we need to update the uiux to include a bridge or an emit-style helper function to transfer over objects that get created by the workers.
+    There are three ways we can do this, but for now I am going to try and maybe proxy + transfer the objects.
+    If that fails then we could manually do a post message but that would be outside of the comlink communication and we do not want that.
 
 ## 2024
 
