@@ -34,3 +34,12 @@ export interface SupabaseModAPI extends BaseModAPI {
 	queryTestTable(): Promise<{ data: any; error: any }>;
 	insertTest(payload: Record<string, any>): Promise<{ data: any; error: any }>;
 }
+
+export type VirtualNode = {
+	tag: string;
+	id?: string;
+	class?: string;
+	attrs?: Record<string, string>;
+	style?: Partial<CSSStyleDeclaration>;
+	children?: (string | VirtualNode)[];
+};
