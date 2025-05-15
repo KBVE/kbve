@@ -66,6 +66,11 @@ export default defineConfig({
                     autogenerate: { directory: 'application' },
                 },
                 {
+                    label: 'Project',
+                    collapsed: true,
+                    autogenerate: { directory: 'project' },
+                },
+                {
                     label: 'Memes',
                     autogenerate: { directory: 'memes' },
                 },
@@ -74,6 +79,12 @@ export default defineConfig({
                     collapsed: true,
                     autogenerate: { directory: 'gaming' },
                 },
+                {
+                    label: 'Theory',
+                    collapsed: true,
+                    autogenerate: { directory: 'theory' },
+                },
+
                 {
                     label: 'Blog',
                     autogenerate: { directory: 'blog' },
