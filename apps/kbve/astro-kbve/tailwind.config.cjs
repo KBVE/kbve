@@ -65,7 +65,13 @@ module.exports = buildConfig(__dirname, {
 		'hover:drop-shadow-pink-600/60',
 		'hover:drop-shadow-yellow-500/60',
 		'hover:drop-shadow-orange-500/60',
-		'hover:rotate-x-10', 'hover:rotate-z-45'
+		'hover:rotate-x-10', 'hover:rotate-z-45',
+
+		// For the new Bento tile (Community CTA)
+		'from-emerald-500',
+		'to-cyan-600',
+		'drop-shadow-emerald-500/40',
+		'hover:drop-shadow-cyan-600/60',
 
 	],
 	theme: {

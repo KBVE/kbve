@@ -1,6 +1,6 @@
 {
   // "extends": "../../../tsconfig.base.json", - removing nx extension of base
-  "extends": ["../../../tsconfig.base.json", "astro/tsconfigs/strict"],
+  "extends": ["../../../tsconfig.base.json", "astro/tsconfigs/strict", "@tsconfig/svelte/tsconfig.json"],
   "compilerOptions": {
     // Base URL - 11-05-2024
     "baseUrl": ".",
