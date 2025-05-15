@@ -1,0 +1,105 @@
+---
+title: "August: 12th"
+category: Daily
+date: 2024-08-12 12:00:00
+client: Self
+unsplash: 1689850969146-43cd8e188bbf
+img: https://images.unsplash.com/photo-1689850969146-43cd8e188bbf?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 12th. MapDB.
+tags:
+  - daily
+---
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Rust Async**
+During the test casing for the memory usage, we were able to solve a decent amount of the bugs and get better performance!
+Yet, we still need to go back around and look at how we are handling the async code && functions, furthermore there is the whole issue with the delay with planetscale.
+I trying to figure out what would be the best way to lower the speed that it would take for establishing a connection to the remote database but also we should offload some of the resources to a cache-style service.
+
+**Bounds**
+The next update to the `mapdatabase.ts` will be the `getBounds` function, which would look something like this:
+
+```ts
+async getBounds(tilemapKey: string): Promise<Bounds | undefined> {
+  const mapData = await this.maps.get(tilemapKey);
+  return mapData?.bounds;
+}
+```
+
+Afterwards, we will update the bounds of the map and then move towards loading up the NPCs, and to do that, we will need a function to help us pull the NPC data from the map database.
+
+```ts
+
+async getNpcsForTilesetKey(
+    tilesetKey: string,
+  ): Promise<INPCObjectGPS[] | undefined> {}
+
+```
+
+It seems that putting the full function into this document, causes MDX to bug out xD.
+Anyhow, moving forward, after grabbing the NPC details and their position on the map, we can then load the NPCs.
+There are two options that we could use, one is having the NPCDatabase aka the `npcdatabase.ts` load the NPCs or we could try to use the Scene itself to handle the loading, hmm.
+The next issue we are having is that it is taking a bit too long to load the player into the game and load up the NPCs, maybe we need to see if there might be a better way to load them into the game?
+
+**Player**
+Within the player controller, we could also add a function setup the player controller and the player sprite?
+I was thinking that it could be its own library but for this situation, it might make more sense to continue using the playercontroller, eventually this class will evolve into the whole player class.
+One of the things that I wanted to avoid was building out too many files, trying to keep it isolated but also easier to understand without having to jump all around amoung different classes and files.
+Next we need to update the camera to help with the async loading, I am thinking that we could setup a couple effects / event systems to help with the camera panning.
+This means we would have to build a future library class known as `camerahandler` and have it perform some calculations on our behalf.
+
+```ts
+    const playerSprite = this.add.sprite(0, 0, 'player');
+    playerSprite.scale = 1.5;
+
+    const playerBounds = playerSprite.getBounds();
+
+    const targetX = playerBounds.centerX + (playerSprite.width * 3);
+    const targetY = playerBounds.centerY + (playerSprite.height * 3);
+
+    this.cameras.main.pan(targetX, targetY, 1000, 'Power2');
+
+    this.cameras.main.once('camerapancomplete', () => {
+      this.cameras.main.startFollow(playerSprite, true);
+      this.cameras.main.setFollowOffset(
+        -playerSprite.width,
+        -playerSprite.height,
+      );
+    });
+
+```
+
+For now, we will keep this simple function and move forward with the next part of the code base that needs to be updated.
+
+**Kill Tony**
+Oh I am excited for todays kill tony and still have to watch the NYC series.
+
+**Worker**
+The next library that we will be adding to the monorepo will be for a dedicated worker library that all our javascript applications, websites and all, will be using for handling data, storage and communication.
+
+<Adsense />
+
+
+## 2023
+- 12:31am - I spent most of the day setting up and understanding the core concepts of Supabase! The holy trinity is almost ready to be pushed out to the masses, I suppose the next step will be to test case a couple different instances, including the mobile platform. 
+- 1:27am - Played a quick match as Shaco support before he gets that long awaited nerf. Okay we know that the session does not preflight, thus we might not need the cache at the general `getProfile`, I suppose we could rename that function to `getUser` and rename `pullProfile` to the `getProfile`. I was under the impression that the session would query against the Supabase but it does not and utilizes the JWT to get the information, which is what we want it to do anyway. 
+- 7:56am - Going through some of the current active tickets and trying to tackle a couple minor problems here and there. I want to reduce the amount of tickets that we have active from the `40` to a mid `20` range by the end of this month!
+- 8:49am - I think I need some early morning caffeine pumped into my blood flow! Before I head over to get some much needed cafe, I am going to take a look at the structure of mdx -> astro, with the hopes of just making it even more stupid simple. Basically going to migrate all of the website into its own internal content style structure and then have it all render through the contents folder? Maybe not all of the content but at least some of the main structures. This might seem a bit too much of a hassle but I think it might be worth it in the long run because then I could isolate each of the components within their own documentation too. All of this is to prepare for the i18n, which will be another beast in its own realm. 
+- 11:14pm - I believe I might have to create a general flow chart or guide on the tri-force approach to the API! There are a couple areas where I am running into issues, including the general authentication flow, but there might be a couple ways around it that we could implement, but we would have to be very careful upon how we approach it. 
+- 12:19pm - Finished double checking the backup system and general updates! It seems that one of the instances failed to update but that might have been because it needed to update twice? Maybe after running updates, I should have it double check and make sure that no additional updates are required, but it was a bit strange. It could have been also that the VM was not restarted in a while? Hmm, I placed the information as a note under the vault warden but in the future I want to make sure that it does not happen again... actually I am pretty sure it will happen again.
+- 12:21pm - I am typing these notes currently as, err my brain is processing them, so think of these notes as a form of my mind. I am streaming my mind via my heads onto this digital screen, it is for the matrix. Okay so I am thinking that as I am about to deploy this Tri-force API, I would need to make sure that never finish updating the theme on KBVE, as with any crazy person. The new , errr, new new theme would be hmm uhh, Ghost! Yeah I think going with a shadow money wizard gang style theme would be perfect. I suppose I could call the theme Mage instead of Ghost.
+- 1:34pm - Time to figure out my first new character for the Gate 3, I am definitely going to go Rogue and most likely have to make a shaco-style character. This would be a great side tool in the future, one that would help people make DnD character names or even a collection of DnD style tools, this was mention before by a couple other people too! These tools should definitely be on my list of things that we must have on KBVE!
+- 11:00pm - Wrapping up the whole Gate 3 session, I definitely enjoyed and it was exactly like the meme session that I wanted to play.
+
+## Quote
+
+> All our dreams can come true, if we have the courage to pursue them.
+> — <cite>Walt Disney</cite>
+
+---
+
+## Tasks
+
+- [ ]

@@ -1,0 +1,88 @@
+---
+title: "July: 23"
+category: Daily
+date: 2024-07-23 12:00:00
+client: Self
+unsplash: 1505236732171-72a5b19c4981
+img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: July 23rd. Renewals
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Renewals**
+A bunch of domains were about to expire, had to do a mass renewal, ugh.
+The costs for some of the domains are getting a bit too high and the rate of production for these projects seem to be a bit too slow.
+
+**Llama**
+Groq updated their models to support the new meta llama 3.1 models! 
+I will be excited to try them out later this week, I am also getting impressed with the improvements, including a larger context window and better reasoning.
+We will not have to do much on our end and just switch the model names to reference the ones that we want to use.
+I do wonder if there will be different rate limits with these models compared to the older ones but I think it will be reasonable enough for what we are doing.
+
+- Llama 3.1 405B (Preview)
+- Model ID: `llama-3.1-405b-reasoning`
+- Developer: [Meta](https://kbve.com/stock/meta/)
+- Context Window: 131,072 tokens
+
+- Llama 3.1 70B (Preview)
+- Model ID: `llama-3.1-70b-versatile`
+- Developer: [Meta](https://kbve.com/stock/meta/)
+- Context Window: 131,072 tokens
+
+- Llama 3.1 8B (Preview)
+- Model ID: llama-3.1-8b-instant
+- Developer: Meta
+- Context Window: 131,072 tokens
+
+The average tokens that I am getting for higher end model is about 100 tokens per second, but I will have to do more testing to get a full understanding.
+
+**Register**
+We will be adding three new components into the astropad, the first will be the register form, then there will be the login and finally the onboarding component.
+Once we get these rolled into the library, we will then focus on the emailing and the general account settings for the different services that we will be offering.
+I been postponing the email server because I know it will be a pain to get into production without running into a bunch of bugs and problems.
+
+
+**YT**
+The Youtube Zod for the next musicroom component needs to be added in this week before we can prepare the initial dev cycle for the music room application.
+I am getting a bit backlogged from work and the new devs that we were going to hire at KBVE are a bit behind in understanding the next couple updates, ugh.
+
+**TreeShaking**
+Okay I made a minor mistake when it comes with using Laser package, in some situations, we might not want to import the whole library because it will make tree shaking a bit more rough.
+Granted in our usage, we will be using all of Laser and each function that it provides, thus it might not be too much of an issue but in the case of the smaller aspects of this application, we will have to be careful.
+I was also thinking that we could isolate some parts of the game into their own pages, maybe making it easier to bundle and abstract some of the features away from the main game loop.
+
+```ts
+
+// Instead of this
+import * as Laser from "@kbve/laser";
+
+// Do this
+import { specificFunction1, specificFunction2 } from "@kbve/laser";
+```
+
+We will circle back around to this on another date.
+
+
+<Adsense />
+
+## 2023
+- 9:00am - I need a haircut but I also need hair! The density of my hairline is getting rough, I am looking at losing it all within the next couple years, womp womp. Maybe that gym grind needs to really pump up, should I do the duel daily flow? 
+- 10:39am - Looking over the sweep ai and mapping out what I should be doing this Sunday Funday. Okay mapped out what I needed and going to quickly grab some coffee and get my day started. 
+- 11:58am - Going to take a look at [issue 183](https://github.com/KBVE/kbve.com/issues/183) and see if I can make any quick edits. I think throwing up a couple quick UX/UI elements would be the best course of action for the time being.
+- 3:16pm - Going through the CI/CD and I am looking at adding a couple tools and rebuilding the pipeline to be a bit more friendly to bots. I am currently looking at how to add codesee maps into the patchs as well as sweep.ai into the mixture. These tools can help a lot down the line, when we get a bit more creative and flexible with our pipeline. The current area that I am looking into would be the rebase of the existing branches. 
+
+## Quote
+
+> If it turns out that there is a God, I don't think that he's evil. But the worst that you can say about him is that basically he's an underachiever.
+> — <cite>Woody Allen</cite>
+
+---
+
+## Tasks
+
+- [ ]

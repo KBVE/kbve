@@ -1,0 +1,381 @@
+---
+title: 'August: 31st'
+category: Daily
+date: 2024-08-31 12:00:00
+client: Self
+unsplash: 1690736159167-b00621eba9f6
+img: https://images.unsplash.com/photo-1690736159167-b00621eba9f6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 31st. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Firenze**
+The last couple hours of florence!
+The river is amazing to look at during the sunrise but that red sunset was wild.
+Also the hot air balloons that are cool to look at floating around the sky.
+
+**NiceHash**
+
+Before the end of the year, double check the nice hash session and see what changes can be made.
+We are only making a couple dollars a day from nicehash, which need to be automatically sold off and invested into reits.
+The graphical mining market is very much dead and we are really close to reaching the general end of crypto mining.
+Our best bet right now would be to consolidate the capital and focus on a new blue ocean.
+
+**Airplane**s
+
+The whole programming while flying is not an easy skill to master but a combination of saving constantly and rotating to paper is very helpful.
+Sometimes, its a bit tough to collect all your thoughts while your mind is floating and zoning in and out of space.
+The sky is so bright, there is just an abundance of different light.
+
+**Vintage**
+
+The idea of being able to find vintage clothes through image process and color matching does make sense.
+However the cost bases to run those operations at scale and the general returns would be terrible.
+Unless you could get the consumer to buy into a more premium market, yet with fast fashion eatting up the lower end of the market, hmm.
+There could be a new market where its just focused on extreme durability and long lasting, you are no longer selling just a jacket, you are selling the story of the jacket.
+From where the jacket is being created, by whom it was created by, their life and their art work goes into your hands, hmm it could work.
+This goes into the whole limited edition sets of work and unique trends that I am seeing in the techie clothing industry so far. 
+Focus on a limited collection and maintain the hobby and unique collaberation amoung the various artists, designers, merchants and consumers.
+If the margin can be kept at around 1500 basis points but with some extremely rare items thrown into the mix, we could easily reach around 2 million in just sales volumne and a healthy margin of 400,000 usd.
+That would take some time to plan out but the core plan could be done within a couple months.
+
+**Worker**
+
+While flying in the air and lack of internet does make it a bit tough to finish up the worker library.
+I did end up getting the readme updated and the package json, but I would still have to finish the ci-cd pipeline for the release of the package.
+
+**Internet**
+
+I am debating if it would be worth paying the 30 and getting the internet, but it just seems a bit overkill for now.
+However, it would have been dope it tmobile just started to offer roaming on the airplane, like giving all the tmobile flyers a bulk amount of data when they renew.
+Just like how airliners have a miles program, it is really a shame that tmobile does not push a datas program before any one else gets onboard!
+I think cornering the market on the data points would be great, giving people bonus points for being a commited tmobile member.
+Actually, thank god for net neutrality or we would have seen some wild monoploies from, like a "Free Netflix In Flight" and ... well actually that could be a good case against net neutrality.
+
+
+**Items**
+
+When we plan around releasing new tiems, I think that it be fine if we focus on adding new items and adjusting the item values. 
+However, we should do our best to limit the removal items, as we should find more creative ways of using each of items within our eco-system.
+We eventually want to grow our own internal in-game economics but that will also require a vast amount of thinking and planning.
+Nothing makes it more fun than having to play the federal reserve simulator.
+
+Here is an example of the frontmatter of the magic nemo:
+
+
+```yaml
+
+    - id: "01J269PK47V1DWX2S1251DEASD"
+      name: "Magic Nemo"
+      type: "food"
+      category: "consumable"
+      description: "A magical fish that will fuel your wizard powers. You are now a harry wizard, becarful of pots."
+      img: "/assets/items/food/fish/magic_nemo.png"
+      bonuses:
+        health: 10
+        mana: 100
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Heals 10 health and 100 mp, but be warn, there are dangerous to be had."
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 500
+      cooldown: 120
+      credits: |
+        Magic nemo asset was made by Roku6 - https://roku6.itch.io/pixelfishes    
+
+```
+
+
+The item goes by the ulid of `01J269PK47V1DWX2S1251DEASD` aka the `Magic Nemo`, however the item should include another ulid as a reference for any action or effects.
+This then goes back to structuring the itemdb and making it easier to process in the future, also adaptable enough to shift the requirements without breaking the whole game.
+I am going to keep working on this part of the code base until I get it nearly perfect, but even then I know that will not happen.
+
+We will have to come back around again in the future and update the itemdb again because we have to account for item equipment , durability and rarity abit more.
+
+**Atlantic Blue Marlin**
+
+```yaml
+    - id: "-generate-new-one"
+      name: "Atlantic Blue Marlin"
+      type: "food"
+      category: "consumable"
+      description: "A marlin from the East Blue Sea, once home to the greatest chefs of the old era. A fish that should be shared with everyone, even those in need."
+      img: "/assets/items/food/fish/atlantic_blue_marlin.png"
+      bonuses:
+        health: 100
+        mana: 100
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Heals 100hp and 100 mp, for you and another 50 hp and 50mp for everyone around you!ß"
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 500
+      cooldown: 120
+      credits: |
+        The blue marlin asset was made by Roku6 - https://roku6.itch.io/pixelfishes    
+```
+
+This fish will have a special mana effect that will happen when eaten, which will give everyone near the person that eats it a bonus amount of mana.
+I am thinking that these could be carried by a mage / support in the future to provide mana for everyone in the party.
+
+
+**Dora**
+
+```yaml
+    - id: "-generate-new-one"
+      name: "Dora"
+      type: "food"
+      category: "consumable"
+      description: "A fish that might cause confusion."
+      img: "/assets/items/food/fish/dora.png"
+      bonuses:
+        health: 10
+        mana: 100
+      durability: 1
+      weight: 1
+      consumable: true
+      effects: "Heals 10 health and 100 mp, but be warn, there are dangerous to be had."
+      stackable: false
+      rarity: "common"
+      levelRequirement: 0
+      price: 500
+      cooldown: 120
+      credits: |
+        The dora fish asset was made by Roku6 - https://roku6.itch.io/pixelfishes    
+```
+
+There were a couple more fish that will be added into the game this month of September!
+We want to make sure that we can have these two get added into the game without having any hicups.
+
+
+**Fish Stats**
+
+The initial stats will be off when we add them into the game but that should be fine because we can use that is part of the rolling patch concept.
+Introduce the item into the game with the base stats and then nerf / rework as we test it out.
+
+**Coffee**
+
+Coming back from Italy again got me all caffinated to the max OR that is what I thought would happen.
+It seems to me that I need a decent amount of expressos and cappos to even remotely feel the energy level from my morning cafe combo.
+
+**Japan**
+
+I was talking it over with some friends and a trip to Japan is overrated and would be so much fun!
+The plan would be to go from NJ to California, stay in LA for a weeken or two, just to get the vibes into the flow, then take plane ride directly to tokyo.
+Maybe I can be super clutch and get it done this year?
+I really should improve my camera skills and be able to capture these moments.
+
+**CICD**
+
+Quickly update the core of the hq plan deployment and the deployment of the cityvote.
+Both of these will be the same application and website, since they are expo related and will share the same core codebase, we can publish them together.
+My goal would be to have a decent amount of code sync among these projects, allowing us to deploy them all and launch them at once.
+If we can throw 5-10 apps onto the board and see which one would stick around?
+I think if we can get cityvote up and running before the electon season then it could be poised from the traffic boost related to that drama.
+Since we will be launching the worker package as well, I will include that in there for now:
+
+```yaml
+
+  alter:
+    needs: ['globals']
+    runs-on: ubuntu-latest
+    name: File Alterations
+    if: github.repository == 'kbve/kbve'
+    outputs:
+      worker: ${{ steps.delta.outputs.worker_any_changed }}
+      expo-hqplan: ${{ steps.delta.outputs.expo-hqplan }}
+      expo-cityvote:  ${{ steps.delta.outputs.expo-cityvote }}
+
+```
+
+Next define the regex for changes.
+
+```yaml
+
+      - name: File Changes
+        id: delta
+        uses: tj-actions/changed-files@v39
+        with:
+          files_yaml: |
+            herbmail:
+                - 'apps/herbmail.com/**'
+            kbve:
+                - 'apps/kbve.com/**'
+            rareicon:
+                - 'apps/rareicon.com/**'
+            discordsh:
+                - 'apps/discord.sh/**'
+            atlas:
+                - 'apps/atlas/kbve_atlas/**'
+            worker:
+                - 'packages/worker/package.json'
+            expo-hqplan:
+                - 'apps/expo-hqplan/src/**'
+            expo-cityvote:
+                - 'apps/expo-cityvote/src/**'
+```
+
+I wonder if we could migrate the alter operations to our npm package but I feel like that might be too much inner loop / god repo complex.
+We want to isolate some of the projects and concepts or we will never get anything done.
+
+
+These are the three checks that we want to implement before we start to build out their cicd pipeline, we want to have these ready right now so that we can easily plug them into our pipeline and see what it is able to produce.
+
+The run on sentences are mainly because I am shifting my thought process and the plane is just not making it easier.
+Maybe I will drink something nice and cold to snap me back into the flow.
+
+
+**Expo Actions**
+
+```yaml
+
+
+  expo-hqplan-web-build-and-deploy:
+    needs: ['alter', 'globals']
+    name: HQPlan.com Web Deployment
+    runs-on: ubuntu-latest
+    if: needs.alter.outputs.expo-hqplan == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
+      # Not too sure if we will need the react-native-cli globally? I need to double check this.
+      - name: Install react-native-cli globally
+        run: pnpm add -g react-native-cli
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # Not sure if we need watchman but is fine.
+      - name: Setup Watchman (if applicable)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y watchman
+          watchman --version
+
+      - name: NX Command
+        shell: bash
+        continue-on-error: true
+        run: |
+          pnpm nx run expo-hqplan:export --verbose
+
+      - name: NX Command - 2
+        shell: bash
+        continue-on-error: true
+        run: |
+          pnpm nx run expo-hqplan:export --verbose
+
+      - name: HQPlan Build
+        uses: ./.github/actions/kbve-shell
+        with:
+          flag: '-nx expo-hqplan:export'
+          create_pull_request: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      # We should migrate the .nojekyll creation into the build process, as well as the CNAME.
+      - name: Create .nojekyll file
+        run: |
+          mkdir -p dist/apps/expo-hqplan/
+          touch dist/apps/expo-hqplan/.nojekyll
+
+      - name: Create CNAME file
+        run: |
+          mkdir -p dist/apps/expo-hqplan/
+          echo "hqplan.com" > dist/apps/expo-hqplan/CNAME
+
+      - name: HQPlan.com -> Deployment
+        uses: dobbelina/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
+        with:
+          source_file: 'dist/apps/expo-hqplan/'
+          destination_repo: 'kbve/hqplan.com'
+          destination_folder: '/docs'
+          destination_branch: 'main'
+          destination_branch_create: 'patch-kbve-hqplan-deploy-${{ needs.globals.outputs.sha256head }}'
+          user_email: '5599058+h0lybyte@users.noreply.github.com'
+          user_name: 'h0lybyte'
+          commit_message: ${{ github.event.head_commit.message }}
+          rsync_option: '-avrh --delete'
+
+```
+
+I am going to take this part of the lc agents and see if I can turn it something more meaningful for we are trying to build.
+We could just trim down the steps and focus on getting a future action called `expo-hqplan-web-build` that will handle everything we need for deploying our changes directly to the main repo.
+Fixed up the command to export the hqplan generic website, but we will not know exactly how it will perform until we get more of the codebase up and running.
+Tonight I am going to focus on the supabase deployment and then will switch back around to the hq plan. 
+
+
+**UnityWorker**
+
+While I am going through the `cicd` pipeline, we can take a look back at the unity flow we were using ... oh the sleep juju is hitting hard.
+and once unity 6 comes around and we get this worker published, we could look at integrating the unity wasm into the minion thread.
+Actually, I believe that be an interesting way to get that dual level of multi-connection that some game companies are after for mobile first video games.
+However we will have some issues when trying to get the game load from cdns, so we will have to be extremely careful on how we handle it.
+
+The way that we were calling the unity wasm was through the react unity webgl library, but there might be another way to do it with unity 6 exports.
+Unity should have resolved it by now but the worry that they have not yet is always a possibility.
+
+**SD&ME**
+
+Both of those projects will continue to be on hold until we can get the backend up and running with around 100 memebers?
+The frontend would have to be 3-5 projects as well, so that when we go ahead and add more projects, they all have their place in the eco-system.
+Getting it moving faster and faster will be our key, we should have a whole podcast in the future where we just work on the monorepo.
+The newer guys that come into the podcast, the objective is to help them get into the full devops flow and maybe even look into it as bizops?
+We push the BizOps to the max and have it pump out profit generating websites? 
+I am going to focus on a couple core ones but the skills and this corebase would make it easier for anyone to do it.
+The part where this will help us a lot will be in the i18n aspect of the build process, since we will have to look through a bunch of different languages.
+
+**References**
+I am starting to become a reference floor, I am just using them in almost everything!
+Proof of concepts, complex tasks, everything could just be a reference to another reference, one cell to another.
+Two more hours left in this flight and I am doing everything that I can to keep the flow going before I eventually go home and passout.
+
+**Landed**
+Back in the chemical state and I already miss the vibes of Italy.
+
+**PNPM**
+The global `pnpm` has to be updated to v9.9.0 but I want to make sure that there are no breaking changes with that upgrade.
+
+
+<Adsense />
+
+## 2023
+
+- 8:00am - I been a bit behind this week at work so I should start to redo my schedule of actions and maybe block more time for work. I am also a bit behind on some of Amazon's newer cloud tech, they keep releasing new stacks and its a bit over kill at this point.
+
+- 4:00pm - Getting EFS / Elastic File Search to work outside of the Amazon VPC is definitely better now than what it was like in 2016. But know I am looking into the RDS structure once more and it makes more sense that this might just be over engineered. I might just step back and look at a different approach to handling the file system. 
+
+- 7:15pm - Our team did amazing for the Ai Agent hackathon! I am glad that we placed 3rd and I am really excited to see where we go from here, as this might open so many interesting doors that I am not yet ready to expect. On one hand, I do not want to over run myself with any form of ego, but I really think we have an amazing group of developers and the pressure that hackathons bring has a nice touch of anti-procrastination forced into it. Sometimes the competition brings a different level of human nature into the mixture, it creates a sort of excitement and the publicity that comes with it is also a great cherry on top.
+
+## Quote
+
+> When a thing is done, it's done. Don't look back. Look forward to your next objective.
+> — <cite>George Marshall</cite>
+
+---
+
+## Tasks
+
+- [ ]

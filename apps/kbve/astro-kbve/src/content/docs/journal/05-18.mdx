@@ -1,0 +1,125 @@
+---
+title: 'May: 18'
+category: Daily
+date: 2024-05-18 12:00:00
+client: Self
+unsplash: 1715997894621-e8eebc4e9278
+img: https://images.unsplash.com/photo-1715997894621-e8eebc4e9278?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 18th - The Daily Journal. More Adventures
+tags:
+    - daily
+---
+
+## 2024
+
+**Proxy**
+
+Going to try and proxy the websocketify today, with this being a past battle that I have had, its basically going back to an unsolved problem.
+
+Lets go ahead and add the `websocketify` proxy into the Python package using this command:
+
+```shell
+./kbve.sh -nx atlas:add --name websockify
+```
+
+This will help us with setting up the websockify proxy within our FastAPI.
+
+Before adding the new python script, we will remove the older chatroom example from the main.py, I will keep that code here for a reference in the future.
+
+```python
+
+@app.websocket("/chatroom")
+async def chatroom_ws(websocket: WebSocket):
+    await websocket.accept()
+    await broadcast.send_messages(websocket, "chatroom")
+
+```
+
+then followed by migrating out this part of the code block. 
+
+We will update the `novnc_client.py` with a new double instance of the websocket proxy.
+
+Inside of the `main.py`, we want to make sure that the `novnc_client` can also listen start the websocket proxy between the vnc instance on port 5900.
+
+
+**Resume**
+
+The resume project was something that I started a while back, I am going to revisit it again and maybe this time it will be a bit easier since I picked up some additional skills with javascript.
+I believe the hardest part will be figuring out how we want to save the resume data and offering a PDF render from the javascript information.
+
+The Resume App has been outlined and the libraries that I want to use are prepared, now it is just a moment of assembly and making sure everything works out.
+There are times that I think it is best to go deep into a MVP / prototype but we did this earlier in early 2023, but I am more confident that we can get a near production ready tool out into the public.
+
+One of the biggest objectives of the resume builder would be to automatically submit the resume on my behalf.
+
+**Browser**
+
+Going to add a browser into the `atlas` docker image!
+What an adventure with setting up Chrome , the lack of native arm support was a pain to deal with too.
+
+
+## 2023
+
+- 9:00am - Mornings are still an emotional adrift with an aura of haziness, damn I hate jet lag. However it has been getting better, I might have to sleep earlier than 12am, so I believe that its my brain just saying I am getting too old.  I added a new habit of asking `Bard` how I felt about it and seeing what it tells me!
+
+  > Bard : **Jet Lag and the Aging Brain**
+  > 
+  > I hate jet lag. It makes me feel like I'm in a constant state of fog. I can't seem to focus, I'm always tired, and I'm just generally irritable. I've been dealing with jet lag for a few weeks now, and I'm starting to think that it's not just the time change that's making me feel this way. I think it's also my brain.
+  > 
+  > As we age, our brains naturally slow down. This can make it more difficult to focus and concentrate, and it can also make us more susceptible to sleep disturbances. Jet lag can exacerbate these problems, making it even harder to get a good night's sleep and wake up feeling refreshed.
+  > 
+  > In addition to the cognitive effects of jet lag, it can also have a negative impact on our mood. When we're sleep-deprived, we're more likely to experience irritability, anxiety, and depression. These symptoms can be even more pronounced in older adults, who are already more likely to experience mood disorders.
+  > 
+  > If you're struggling with jet lag, there are a few things you can do to ease the symptoms. First, try to adjust your sleep schedule gradually. This means going to bed and waking up a little bit earlier each day until you're back on your regular schedule. You can also try using light therapy to help regulate your circadian rhythm. Light therapy involves exposing yourself to bright light in the morning and avoiding bright light in the evening.
+  > 
+  > If you're still having trouble sleeping, there are a few over-the-counter medications that can help. Melatonin is a hormone that helps regulate sleep, and it's available in most drugstores. You can also try taking a warm bath or shower before bed, as this can help relax your muscles and make it easier to fall asleep.
+  > 
+  > If you're experiencing severe jet lag or mood disturbances, it's important to talk to your doctor. They may be able to prescribe medication or recommend other treatment options.
+  > Jet lag is a common problem, but it doesn't have to ruin your vacation or business trip. By following these tips, you can minimize the symptoms and get back to feeling your best as soon as possible.
+
+- 11:00am - Good to see $SPY go back up towards the $415+ mark, this means I can sell off at least 100 shares that were assigned to me. I been just rolling them daily to collect the premium that comes with those shares. I wonder what bard might have to say about this too?
+
+  > Bard: -   "Patience and Risk Management"
+  > 
+  > The stock market had been on a downward trend for months, and I was starting to get worried. I had been assigned 100 shares of $SPY, and I was hoping to sell them off before the price went any lower.
+  > 
+  > One day, I checked the stock market and saw that $SPY was starting to go back up. I was relieved, and I decided to sell my shares. I was able to sell them for a profit, and I was glad that I had waited.
+  > 
+  > I had been rolling my options contracts daily to collect the premium, and I was happy with the results. I had made a good amount of money, and I was able to reduce my risk.
+  > 
+  > I was curious about what Bard would have to say about my situation. I asked him, "What do you think about my decision to sell my $SPY shares?"
+  > 
+  > Bard said, "I think you made the right decision. The market was on a downward trend, and you were able to sell your shares for a profit. You also reduced your risk by rolling your options contracts daily."
+  > 
+  > I was glad to hear Bard's approval. I felt confident that I had made the right decision.
+  > 
+  > I continued to trade options, and I was able to make a good amount of money. I was grateful for Bard's advice, and I was glad that I had asked him for his opinion.
+  > 
+  > Here are some additional thoughts from Bard:
+  > 
+  > 	- it is important to be patient when trading options. The market can be volatile, and it is important to wait for the right opportunity to sell your shares.
+  > 
+  > 	-  It is also important to manage your risk. By rolling your options contracts daily, you can reduce your risk and increase your chances of making a profit.
+  > 	
+  > 	  -   Finally, it is important to do your research before you trade options. There is a lot of information available online, and it is important to learn as much as you can before you start trading.
+
+- 12:15pm - Time to start the quest of setting up Ryujinx and Yuzu to see if I can get my hands on a playable version of Zelda: Tears of the Kingdom! I am super excited to see all the dope mods that will be coming out for the game! I will start with Ryujinx first because its on `choco` already and it makes it so much easier to setup and install. I will try and write out a guide, with the help of Bard and Bing? They tend to make things a bit easier, I suppose. Lets ask Bard for help! Yay!
+  I will create the notes as ryujinx.mdx under applications. [KBVE Ryujinx docs](https://kbve.com/application/ryujinx/)
+
+- 4:30pm - Going to the local mall with the mom duke, hopefully she finds something worth wild to buy. I am going there to see how bad inflation gets and to take a nice walk around. 
+
+- 7:30pm - Holy mushrooms, the mall looks so dead and vacant! Everything is overpriced or really expensive, like the meals are insanely over priced. My normal Starbucks coffee was also way over priced and the amount of calories that I consumed, I understand what it feels like to be an American again. 
+
+- 7:45pm - Time to break down the tasks and see what I should aim to finish up today? I am thinking it might be great to finish up the React-based API project that I was eyeing for a while to wrap up. Oh I got Zelda, Tears of the Kingdom up and running! It looks great on the laptop, but sadly I do not have a mapped out controller to play the game right now.
+
+## Quote
+
+> When the world is so complicated, the simple gift of friendship is within all of our hands.
+> — <cite>Maria Shriver</cite>
+
+---
+
+## Tasks
+
+- [x] Setup Legend of Zelda: Tears of the Kingdom.
