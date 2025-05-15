@@ -75,6 +75,7 @@ export default defineConfig({
                 },
                 {
                     label: 'Journal',
+                    collapsed: true,
                     autogenerate: { directory: 'journal' },
                 },
             ],
