@@ -35,15 +35,15 @@ export default defineConfig({
             prefixDefaultLocale: false,
         },
     },
-    // experimental: {
-    // 	contentCollectionCache: true,
-    // },
     integrations: [
         starlight({
             plugins: [
                 starlightSiteGraph({
                 	graphConfig: {
                 		renderArrows: true,
+                        "depth": 8,
+                        "minZoom": 0.05,
+                        "maxZoom": 4,
                 	},
                 }),
             ],

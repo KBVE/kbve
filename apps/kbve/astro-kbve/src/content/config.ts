@@ -35,6 +35,7 @@ const IObjectSchema = z.object({
 export const collections = {
 	docs: defineCollection({
 		schema: docsSchema({
+			extend: pageSiteGraphSchema
 			// itemdb: z.array(IObjectSchema).optional(),
 		}),
 	}),
