@@ -1,0 +1,64 @@
+---
+title: "July: 25"
+category: Daily
+date: 2024-07-25 12:00:00
+client: Self
+unsplash: 1505236732171-72a5b19c4981
+img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: July 25th. Lot.
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**Swarm**
+Played a quick couple rounds of the Swarm gamemode and I found it to be a bit interesting!
+
+**CT Production Error**
+There seems to be an issue when running the cryptothrone at the production level, the website is returning a couple errors and causing the game to not load.
+I was under the impression that since the dev cycle did not have any errors and same with the build, we should be good to go with the production but something went wrong!
+The best option would be to go back and trace through the changes and see if we might have made any mistakes?
+I am thinking that it might be a race condition, such that it is calling the `NPCHandler` before the `Phaser` is ready?
+
+The error we are having right now is:
+
+```
+[astro-island] Error hydrating /_astro/App.DxAk5t4Z.js ReferenceError: Phaser is not defined
+```
+
+The plan now will be to change the hydration layout, I am thinking that we place a state around the gamewindow and make sure that everything is loaded before hand?
+
+Ended up spending a whole night trying to debug it, which turns out to be a couple issues with the current astro version and the different repo structure.
+Currently parts of the repo on this WSL are running on an updated astro and the actual astro that was being executed was an older one.
+For now, I am going to downgrade the astro to the older version and during the next couple weeks, update to the latest Astro.
+
+**Island**
+The plan is to make parts of the game have multiplayer, a bit of an island hydration but only if the player is able to connect to the server.
+This means that certain buildings will have two instances, an offline default instance and an online instance if the server is up and running.
+There are still major changes that we would have to do to get this to work without any issues but I will handle those on a later date.
+
+
+<Adsense />
+
+## 2023
+- 6:00am - The birds are starting to become a pain, not only are they taking a bit of an excessive dump on my car, they seem to be multiplying a bit faster around our home. I noticed nests near the shed, by our tress, we are slowly becoming a pit stop for the birdbros. 
+- 8:00am - Automatic deployment of [Portainer](https://kbve.com/application/portainer/) will come in three stages, the first will be the command and control center, the second will be for the docker swarm deployments and the third will be for all edge nodes. The current setup is through ansible and terraform but I wanted to migrate towards utilizing Github actions to execute the commands. Part of the reason was to build custom and future tools that I could bring into eco-systems, which could help with auto-scaling, security and general automation. 
+- 11:00am - Going to roll some more option contracts, it seems that I no longer have any SPY within my inventory, which is a shame because getting back into the puts seem a bit too expensive for the casual return. I will wait for my TSLA/AAPL/GOOG to calm down and approach SPY again mid-August. Cash balance is around $68,000 but our position in $O has been increasing rapidly, we should approach $2000 monthly dividends by late 2024. 
+- 12:00pm - Getting ready to take my mom to the dentist, she is about to get a root canal on her 13th or 14th tooth. I am sure she will be fine but I am a bit upset that she did not get dental work done when she was in India! Granted she has dental insurance but she should have taken advantage of the fact that getting teeth work done in India would be cheaper and better, oh well. 
+- 2:05pm - Building out the pipeline with additional bots, including CodeSee, so that I can get visual images within the pull request. These images represent the file changes and their relationship through SVGs. I believe a future product could be in the works to help further aid in this area, including one that could summarize the changes into a brief statement? Like a GPT Agent aka a bot that would read through the code changes and present a couple paragraphs describing what those changes have done.
+- 4:00pm - Market has closed with some wiggle room before tomorrow's fed meeting. I am really hoping that they pause interest rates with a decent pause until late Q4 of 2023! If they do increase the rate, I am hoping that it is a steady 25bps instead of a 50bps.
+- 6:00pm - I started to clean up mini-Charles aka Charlie's work area and should note down the updates that I would need for it. I could add more information into the issue ticket and then migrate that information over to the documentation of Charlies? I suppose we would have to talk more about this later down the line. 
+
+## Quote
+
+> May all beings have happy minds.
+> — <cite>The Buddha</cite>
+
+---
+
+## Tasks
+
+- [ ]
