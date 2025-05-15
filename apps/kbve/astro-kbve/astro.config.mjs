@@ -43,7 +43,7 @@ export default defineConfig({
                 		renderArrows: true,
                         "depth": 8,
                         "minZoom": 0.05,
-                        "maxZoom": 4,
+                       
                 	},
                 }),
             ],
@@ -70,6 +70,11 @@ export default defineConfig({
                     autogenerate: { directory: 'memes' },
                 },
                 {
+                    label: 'Gaming',
+                    collapsed: true,
+                    autogenerate: { directory: 'gaming' },
+                },
+                {
                     label: 'Blog',
                     autogenerate: { directory: 'blog' },
                 },
@@ -77,6 +82,11 @@ export default defineConfig({
                     label: 'Journal',
                     collapsed: true,
                     autogenerate: { directory: 'journal' },
+                },
+                 {
+                    label: 'Legal',
+                    collapsed: true,
+                    autogenerate: { directory: 'legal' },
                 },
             ],
             social: [
