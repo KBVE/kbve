@@ -1,0 +1,63 @@
+---
+title: 'August: 23rd'
+category: Daily
+date: 2024-08-23 12:00:00
+client: Self
+unsplash: 1692317785860-2ec5796434f2
+img: https://images.unsplash.com/photo-1692317785860-2ec5796434f2?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 23rd. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Wedding**
+
+Today is the end of the most important aspect of our trip to Italy!
+My cuzin getting married inside the heart of Tuscanny is super dope and definitely romantic.
+This trip is making me think twice about my life goals, makes me do that double check swing.
+
+
+**Expo**
+
+In between the events, I am taking a small breather and doing some general test casing.
+Expo always feels like a pain to setup and build on, but I need to get an application up and running before the end of the month.
+We want to make sure that there is a fully functional application for us to manage in the fall of this year.
+Hold up, Nx can automatically update the code for my expo applications to the latest version that I would need?
+This is actually super useful, saves me a bunch of headaches and indirectly a bunch of time as well.
+
+In the future we could extend the shell script to create a new branch off the dev, run the update and then make a pull request with that update?
+I suppose in that situation, we could also have it run a bunch of tests and handle some of the dev cycles for us as well?
+
+For future reference, the command is:
+
+```shell
+pnpm nx install expo-cityvote --check
+```
+
+But I am thinking we could extend it out into:
+
+```shell
+./kbve.sh -autodate
+```
+
+This could then be done via github actions too, that would be an interesting avenue to take?
+We are getting a step closer to self learning and self building code!
+
+**Build Failure**
+While going through the latest journal entry, I forgot that certain original markdown might cause issues.
+In this case, it was looking for a `notBetween` function , uh basically I have to becareful with mdx, because I could inject random javascript code without thinking it through.
+
+
+
+
+## 2023
+
+- 8:10am - I believe I got the general flow of the docker container! Yay!
+
+- 6:51pm - Going to sync the notes in between the sessions. Okay, now I need to add github actions to the `NodePy`. so that it can build the images without having any major issues. As for the key storage, I am thinking that it would be an AES style encryption, so that there would not be any major issues. 
+
+- 7:40pm - I added the docker image creation test casing, under the workflow. Going to add the Clarifai Python and then maybe cargo too.

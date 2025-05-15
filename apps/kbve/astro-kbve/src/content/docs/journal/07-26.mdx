@@ -1,0 +1,252 @@
+---
+title: "July: 26"
+category: Daily
+date: 2024-07-26 12:00:00
+client: Self
+unsplash: 1505236732171-72a5b19c4981
+img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: July 26th. DevOps.
+tags:
+  - daily
+---
+
+import { Adsense } from '@kbve/astropad';
+
+## 2024
+
+**DevOps**
+
+The plan for today is to work on the DevOps library, it is due for some changes.
+The major patch that we want to add into the library would be the docker container management.
+We will start by adding the `exec` library into the core of the `github.ts` as an import.
+
+```ts
+import { exec } from 'child_process';
+```
+
+I am thinking to avoid any `fs` / FileSystem management for the logs and have them be placed directly into the issue ticket that spawns the docker container.
+In the future, I might also set it up so that it will then connect to a hybrid cluster / cloud, maybe even spin up a tiny vcluster to help us with that.
+
+Okay, next would be the core functions, these are the base functions right now:
+
+
+```ts
+
+export async function _$gha_runDockerContainer(github: any, context: any, port: number, name: string, image: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const command = `docker run -d -p ${port}:${port} --name ${name} ${image}`;
+    
+    exec(command, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error running Docker container:', error);
+        await _$gha_createIssueComment(github, context, `Error running Docker container: ${error.message}`);
+        reject(error);
+      } else {
+        console.log('Docker container started successfully:', stdout);
+        await _$gha_createIssueComment(github, context, `Docker container started successfully: ${stdout}`);
+        resolve();
+      }
+    });
+  });
+}
+
+export async function _$gha_stopDockerContainer(github: any, context: any, name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const stopCommand = `docker stop ${name}`;
+    const removeCommand = `docker rm ${name}`;
+
+    exec(stopCommand, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error stopping Docker container:', error);
+        await _$gha_createIssueComment(github, context, `Error stopping Docker container: ${error.message}`);
+        reject(error);
+      } else {
+        console.log('Docker container stopped successfully:', stdout);
+        await _$gha_createIssueComment(github, context, `Docker container stopped successfully: ${stdout}`);
+
+        exec(removeCommand, async (error, stdout, stderr) => {
+          if (error) {
+            console.error('Error removing Docker container:', error);
+            await _$gha_createIssueComment(github, context, `Error removing Docker container: ${error.message}`);
+            reject(error);
+          } else {
+            console.log('Docker container removed successfully:', stdout);
+            await _$gha_createIssueComment(github, context, `Docker container removed successfully: ${stdout}`);
+            resolve();
+          }
+        });
+      }
+    });
+  });
+}
+
+```
+
+However, we want to work around them a bit! We need to make sure that port, name and image are being sanitized before we execute the commands.
+For the port, we can easily do a quick range check and make sure that the ports avoid any of the default range, this should be easy, maybe limit it to the `2500` and `50000` range?
+As for the name and image, we can perform a quick regex check to make sure the name will be a valid container name and the image being in a valid docker format.
+
+We also want the ability to issue commands to the container via the issue ticket, with the final goal for this patch to visit a website and take a screenshot for us.
+This will give us a solid production level testing right in our issue tickets!
+
+An additional function for checking new comments:
+
+```ts
+
+export async function _$gha_checkForNewComments(
+  github: any,
+  context: any,
+  lastChecked: Date
+): Promise<void> {
+  try {
+    const { repo, owner } = context.repo;
+    const issue_number = context.issue.number;
+
+    const { data: comments } = await github.rest.issues.listComments({
+      owner,
+      repo,
+      issue_number,
+      since: lastChecked.toISOString(),
+    });
+
+    for (const comment of comments) {
+      const runCommandMatch = comment.body.match(/run docker (.+)/);
+      if (runCommandMatch) {
+        const [port, name, image] = runCommandMatch[1].split(' ');
+        await _$gha_runDockerContainer(parseInt(port), name, image);
+      }
+
+      const stopCommandMatch = comment.body.match(/stop docker (.+)/);
+      if (stopCommandMatch) {
+        const name = stopCommandMatch[1];
+        await _$gha_stopDockerContainer(name);
+      }
+    }
+  } catch (error) {
+    console.error('Error checking for new comments:', error);
+    throw error;
+  }
+}
+
+```
+
+I will include this in our notes for now. We still need a couple more functions to get this patch ready for a release.
+
+**Sanitization**
+To help with making sure that the inputs are a bit cleaner, we will create a couple helper functions within our `sanitization.ts`.
+I am thinking that we can add about three simple functions that we can call to help us with securing the functions a bit.
+Granted this will not stop all vector attacks but it would make sense to at least make sure everything flows without bugs or errors.
+For example, what if a user places a port 90000? Well here is our function to make sure the ports will not be an issue.
+
+```ts
+
+/**
+ * Sanitizes the port number ensuring it is a valid number within the valid range (1-65535).
+ * @param port - The port number to sanitize.
+ * @returns Sanitized port number or throws an error if the port is invalid.
+ */
+export function sanitizePort(port: string): number {
+  const portNumber = parseInt(port, 10);
+  
+  if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
+    throw new Error('Invalid port number. Port must be a number between 1 and 65535.');
+  }
+  
+  return portNumber;
+}
+
+```
+
+Next question that I had was what if the pass through a port like 22?
+Well in this case, lets go ahead and update the function to account for those ports.
+
+```ts
+/**
+ * Sanitizes the port number ensuring it is a valid number within the valid range (1-65535) 
+ * and not one of the restricted ports.
+ * @param port - The port number to sanitize.
+ * @param additionalRestrictedPorts - An optional array of additional restricted ports.
+ * @returns Sanitized port number or throws an error if the port is invalid.
+ */
+export function sanitizePort(port: string, additionalRestrictedPorts: number[] = []): number {
+  const portNumber = parseInt(port, 10);
+  const defaultRestrictedPorts = [443, 80, 22];
+  const restrictedPorts = [...defaultRestrictedPorts, ...additionalRestrictedPorts];
+
+  if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
+    throw new Error('Invalid port number. Port must be a number between 1 and 65535.');
+  }
+
+  if (restrictedPorts.includes(portNumber)) {
+    throw new Error(`Port ${portNumber} is restricted and cannot be used.`);
+  }
+
+  return portNumber;
+}
+```
+
+This should give us a solid function to sanitize the ports!
+Since we will be adding this function into the library, we also want to include the tests for it:
+
+```ts
+
+describe('sanitizePort', () => {
+  it('should return a valid port number', () => {
+    const port = '8080';
+    const result = sanitizePort(port);
+    expect(result).toEqual(8080);
+  });
+
+  it('should throw an error for a non-numeric port', () => {
+    const port = 'abc';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for a port number less than 1', () => {
+    const port = '0';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for a port number greater than 65535', () => {
+    const port = '70000';
+    expect(() => sanitizePort(port)).toThrow('Invalid port number. Port must be a number between 1 and 65535.');
+  });
+
+  it('should throw an error for restricted ports', () => {
+    const port = '443';
+    expect(() => sanitizePort(port)).toThrow('Port 443 is restricted and cannot be used.');
+  });
+
+  it('should throw an error for additional restricted ports', () => {
+    const port = '3000';
+    expect(() => sanitizePort(port, [3000])).toThrow('Port 3000 is restricted and cannot be used.');
+  });
+});
+
+```
+
+With these tests added, we can go ahead and run the test casing with this command:
+
+```bash
+./kbve.sh -nx devops:test
+```
+
+Everything looks passing, lets move on with adding the next sanitization functions.
+
+<Adsense />
+
+## 2023
+- 7:00am - I believe it is time that I setup a new morning ritual, including one that involves a bit more time being spent outside of the home but in a way that would benefit me? I noticed that Unsplash has a limit of 10 image submissions a week, so maybe I should start to build out a collection of images to take and prepare for submissions. My aim should be just to get at least one image out there a week, going towards 10 a week seems a bit much. 
+- 8:20am - Okay I need to write this out as a journal entry first, then I will make it into an issue ticket and finally migrate it over to the rareicon documentation? We take an AI generate image / concept and then add our own artistic touches to it, we could paint our own version of it or use photoshop over the image. Afterwards we would render or display the image inside a digital frame and then using my sony alpha, we take a photo of that digital display somewhere in the real world? It would be a bit of augmented reality and I think it could create some really stunning and visually pleasing photo images. I feel like that is was similar to the Opsz concept that I still need to get out there, damn these backlogs are becoming a pain.
+- 11:50am - I believe we have a solid plan for the day! I am going to pickup @andsam and we are about to have a solid kbve session, it will start off with a visit to my 2nd favorite deli, Mr. Subs! I am just craving their 14c, which is a turkey, cheese and capicola cold sub with bacon inside a fresh gutted loaf of little Italy. Honestly my only concern is that they will run out of fresh bread but if they do, I have a backup plan because right next to the deli is a ramen shop, which happens to also make some of the best ramen in NJ! So there is always a win when visiting that area. After we get our meal, we shall visit the home and then take a look at the current physical state of all the hardware. This will include the charlies, drones and other robots for the time being! Wrapping up the deli and robot lab adventure will be some quick caffeine infusion and finally a visit to el Portal. 
+
+## Quote
+
+> We do not quit playing because we grow old, we grow old because we quit playing.
+> — <cite>Oliver Wendell Holmes Jr.</cite>
+
+---
+
+## Tasks
+
+- [ ] - Robo Foodie Day.

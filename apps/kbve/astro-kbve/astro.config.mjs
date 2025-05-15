@@ -73,6 +73,10 @@ export default defineConfig({
                     label: 'Blog',
                     autogenerate: { directory: 'blog' },
                 },
+                {
+                    label: 'Journal',
+                    autogenerate: { directory: 'journal' },
+                },
             ],
             social: [
                 { icon: 'github', label: 'GitHub', href: 'https://github.com/kbve/kbve' },
@@ -153,6 +157,7 @@ export default defineConfig({
                 ],
             },
             workbox: {
+                maximumFileSizeToCacheInBytes: 9000000,
                 cleanupOutdatedCaches: true,
                 inlineWorkboxRuntime: true,
                 globPatterns: ['**/*.{html,css,js,svg,png,ico,txt,lottie}'],

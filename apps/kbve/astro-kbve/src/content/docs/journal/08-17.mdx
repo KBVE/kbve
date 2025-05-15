@@ -1,0 +1,76 @@
+---
+title: 'August: 17th'
+category: Daily
+date: 2024-08-17 12:00:00
+client: Self
+unsplash: 1690320276492-08823be529d1
+img: https://images.unsplash.com/photo-1690320276492-08823be529d1?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: August 17th. Tasks.
+tags:
+  - daily
+tasks:
+  - id: 'task-0817-01'
+    title: 'Update Flight Requirements List'
+    description: 'Update a standard documentation for flight requirements.'
+    dueDate: 2024-08-17T15:00:00Z
+    completed: false
+    priority: 3
+    tags:
+      - config
+      - update
+    assignee: 'Self'
+  
+---
+
+import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2024
+
+**Monkey Pox**
+Just as we are preparing to go to Italy, there has been a rise in monkey pox cases and it would make sense to be a bit more prepared for it.
+I think I will bring gloves and a bit of extra protection to make sure that we are safe during our travels.
+
+**Flight**
+Making a unique document with all the travel information and a smart checklist would be useful.
+I will add it into another part of this site, maybe extend this out to a future travel collection?
+I am still thinking if it would be worth expanding it out into its own folder or series of information, I guess I can write a bit and see the traffic stats over the course of the year.
+Speaking of random parts of the website, I should continue to update the recipe section and add more unique styles!
+While I am in Italy, I think it would make sense to go on a couple quests to find more interesting foods xD.
+
+**DryCleaners**
+Preparing everything with the dry cleaners was a bit of a pain because they did not have experience with cleaning and preparing indian outfits.
+I had to plan around this issue and find a cleaner that was way too far from my house that could handle all eight outfits.
+
+**Worker**
+The next library that we want to release would be the worker library, which will take the place of `khashvault` and `db`.
+We will be moving all the indexeddb actions into this library, but also extend it out to do websockets, sse and a couple more advance techniques.
+The worker library will be deployed using this command: 
+
+```shell 
+pnpm nx g @nx/js:lib worker --importPath="@kbve/worker" --publishable=true
+```
+
+I was thinking maybe calling the library orc or ork for short? A bit of play on words for an Orc and Worker but I think we can move forward without it.
+
+**Warcraft**
+A great way to end a Saturday!
+I might not be able to get my warrior up to lvl 60 before we have to go to another nation but I will gladly get it to lvl 85 once I get back.
+A part of me can not wait for us to get really up there on the levels.
+
+
+
+
+
+## 2023
+- 5:45am - I had to get up early to fix up some of the issues with my roof's sun window? I am not too sure what they are called but there is a leak and honestly, the moment there is a roof leak, you know its going to be a problem down the line.
+
+- 10:11pm - I will have to come back and update today's journal entry after the hackathon because it seems to be causing Astro to crash a bit.
+
+## Quote
+
+> It requires wisdom to understand wisdom: the music is nothing if the audience is deaf.
+> — <cite>Walter Lippmann</cite>
+
+---
+
+<Tasks tasks={frontmatter.tasks}  />
