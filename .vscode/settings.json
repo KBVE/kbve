@@ -51,5 +51,6 @@
       "FLATBUFFER",
       "clsx",
       "bento",
+      "vnode",
     ]
 }
