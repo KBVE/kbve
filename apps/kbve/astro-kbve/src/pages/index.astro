@@ -51,7 +51,6 @@ const glassTiles = [
 
 <script is:inline>
 	async function injectBentoTileFromFooter() {
-		// ✅ Wait until kbve and mod registry are ready
 		while (
 			!window.kbve?.mod ||
 			Object.keys(window.kbve.mod.registry).length === 0
@@ -84,7 +83,7 @@ const glassTiles = [
 				span: 'md:col-span-6 md:row-span-6',
 				className:
 					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50',
-				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+				onclick: `window.kbve?.uiux?.openPanel?.('bottom', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
 			});
 		} else {
 			console.warn('[Footer] Bento mod loaded, but run() not available');
