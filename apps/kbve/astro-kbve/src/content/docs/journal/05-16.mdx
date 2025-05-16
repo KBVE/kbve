@@ -1,7 +1,7 @@
 ---
 title: 'May: 16'
 category: Daily
-date: 2024-05-16 12:00:00
+date: 2025-05-16 12:00:00
 client: Self
 unsplash: 1715647252838-a92275b3234d
 img: https://images.unsplash.com/photo-1715647252838-a92275b3234d?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -10,6 +10,18 @@ description: |
 tags:
     - daily
 ---
+
+## 2025
+
+### Droid Event System
+
+-   05:19PM
+
+    Now that I got the base of the mutli-worker system setup, the next part would be to setup an event system that the whole library would follow and utilize.
+    Instead of placing the event calls and functions everywhere in the code, I think it be wise to create a simple event master singleton that would basically be in charge of handling and processing the events.
+    This will live on the main thread and proxy any requests that need to be done.
+    For me to do this, I suppose I need to setup a `types/event.d.ts` that would hold all the events information that we plan to use.
+    
 
 ## 2024
 
