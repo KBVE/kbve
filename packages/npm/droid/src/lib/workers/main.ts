@@ -11,6 +11,22 @@ import { dispatchAsync, renderVNode} from './tools';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
+//	* DeepProxy
+
+function deepProxy<T>(obj: T): T {
+	if (typeof obj === 'function') return proxy(obj) as T;
+
+	if (obj && typeof obj === 'object') {
+		const result: any = Array.isArray(obj) ? [] : {};
+		for (const key in obj) {
+			result[key] = deepProxy(obj[key]);
+		}
+		return result;
+	}
+
+	return obj;
+}
+
 //  * WebSocket
 async function initWsComlink(): Promise<Remote<WSInstance>> {
 	const worker = new SharedWorker(new URL('./ws-worker', import.meta.url), {
@@ -293,6 +309,17 @@ export async function main() {
 		i18n.ready = i18n.hydrateLocale('en');
 
 		// Merge with existing global kbve object
+		// window.kbve = {
+		// 	...(window.kbve || {}),
+		// 	api,
+		// 	i18n,
+		// 	uiux,
+		// 	ws,
+		// 	data,
+		// 	mod,
+		// };
+
+		
 		window.kbve = {
 			...(window.kbve || {}),
 			api,
@@ -302,6 +329,10 @@ export async function main() {
 			data,
 			mod,
 		};
+		
+
+		
+		window.kbve = deepProxy(window.kbve); 
 
 		await i18n.ready;
 
