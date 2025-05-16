@@ -46,6 +46,7 @@ export const BentoTileSchema = z.object({
 
   meta: z.record(z.any()).optional(),
   dataset: z.record(z.string()).optional(),
+  className: z.string().optional(),
 }).refine(
   (data) => !data.href || (data.href && data.target),
   { message: 'target is required when href is provided', path: ['target'] }
