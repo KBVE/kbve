@@ -10,7 +10,6 @@ function withBaseUrl(path: string, base: URL | string): string {
 
 const discordUrl = withBaseUrl('/discord', Astro.url);
 
-
 const tiles = [
 	{
 		title: 'Join Our Tech & Gaming Community!',
@@ -27,19 +26,19 @@ const tiles = [
 ] as const;
 
 const glassTiles = [
-	{ 
-			title: "📦 KBVE Modules",
-			subtitle: "Open Docs",
-			description: "Explore our full stack of modular open source packages built for speed and scale.",
-			href: discordUrl,
-			target: '_self',
-			span: "col-span-2 row-span-2",
-			primaryColor: 'zinc-500',
-			secondaryColor: 'stone-900',
-			onclick: `window.kbve?.uiux?.openPanel?.('bottom', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+	{
+		title: '📦 KBVE Modules',
+		subtitle: 'Open Docs',
+		description:
+			'Explore our full stack of modular open source packages built for speed and scale.',
+		href: discordUrl,
+		target: '_self',
+		span: 'col-span-2 row-span-2',
+		primaryColor: 'zinc-500',
+		secondaryColor: 'stone-900',
+		onclick: `window.kbve?.uiux?.openPanel?.('bottom', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
 	},
 ] as const;
-
 ---
 
 <Layout title="KBVE KiloByte Virtual Enterprise">
@@ -47,19 +46,18 @@ const glassTiles = [
 		{tiles.map((tile) => <BentoTile {...tile} />)}
 
 		{glassTiles.map((glassTile) => <GlassBentoTile {...glassTile} />)}
-	
 	</BentoGrid>
 </Layout>
 
 <script is:inline>
 	async function injectBentoTileFromFooter() {
-		while (
-			!window.kbve?.mod ||
-			Object.keys(window.kbve.mod.registry).length === 0
-		) {
-			console.log('[Injection]: Mod Not Found');
-			await new Promise((r) => setTimeout(r, 100));
-		}
+		// while (
+		// 	!window.kbve?.mod ||
+		// 	Object.keys(window.kbve.mod.registry).length === 0
+		// ) {
+		// 	console.log('[Injection]: Mod Not Found');
+		// 	await new Promise((r) => setTimeout(r, 100));
+		// }
 
 		const modId = Object.keys(window.kbve?.mod?.registry || {}).find((id) =>
 			id.startsWith('bento@')
@@ -146,5 +144,7 @@ const glassTiles = [
 		}
 	}
 
-	document.addEventListener('astro:page-load', injectBentoTileFromFooter);
+	///document.addEventListener('astro:page-load', injectBentoTileFromFooter);
+	window.addEventListener('kbve:droid-bento-ready', injectBentoTileFromFooter);
+
 </script>

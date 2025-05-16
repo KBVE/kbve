@@ -333,6 +333,27 @@ export async function main() {
 
 		await i18n.ready;
 
+
+		window.kbve.droidReady = true;
+
+		window.kbve.waitForDroidReady = () =>
+			Promise.resolve();
+
+		const readyEvent = new CustomEvent('kbve:droid-ready', {
+			detail: {
+				timestamp: Date.now(),
+			},
+		});
+		window.dispatchEvent(readyEvent);
+
+		document.addEventListener('astro:page-load', () => {
+			if (window.kbve?.droidReady) {
+				window.dispatchEvent(readyEvent);
+				console.debug('[KBVE] Re-dispatched droid-ready after astro:page-load');
+			}
+		});
+
+
 		console.log('[KBVE] Global API ready');
 	} else {
 		console.log('[KBVE] Already initialized');
