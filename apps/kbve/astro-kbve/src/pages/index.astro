@@ -2,10 +2,14 @@
 import Layout from 'src/layouts/core/Layout.astro';
 import BentoGrid from 'src/layouts/components/bento/BentoGrid.astro';
 import BentoTile from 'src/layouts/components/bento/BentoTile.astro';
+import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
 }
+
+const discordUrl = withBaseUrl('/discord', Astro.url);
+
 
 const tiles = [
 	{
@@ -22,12 +26,28 @@ const tiles = [
 	},
 ] as const;
 
-const discordUrl = withBaseUrl('/discord', Astro.url);
+const glassTiles = [
+	{ 
+			title: "📦 KBVE Modules",
+			subtitle: "Open Docs",
+			description: "Explore our full stack of modular open source packages built for speed and scale.",
+			href: discordUrl,
+			target: '_self',
+			span: "col-span-2 row-span-2",
+			primaryColor: 'zinc-500',
+			secondaryColor: 'stone-900',
+			onclick: `window.kbve?.uiux?.openPanel?.('bottom', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+	},
+] as const;
+
 ---
 
 <Layout title="KBVE KiloByte Virtual Enterprise">
 	<BentoGrid>
 		{tiles.map((tile) => <BentoTile {...tile} />)}
+
+		{glassTiles.map((glassTile) => <GlassBentoTile {...glassTile} />)}
+	
 	</BentoGrid>
 </Layout>
 
