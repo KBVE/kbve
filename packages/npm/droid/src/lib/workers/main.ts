@@ -9,7 +9,7 @@ import { getModManager } from '../mod/mod-manager';
 import { scopeData } from './data';
 import { dispatchAsync, renderVNode } from './tools';
 import type { PanelPayload, PanelId } from '../types/panel-types';
-
+import { DroidEvents } from './events'; 
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
@@ -38,8 +38,7 @@ async function initWsComlink(): Promise<Remote<WSInstance>> {
 	return wrap<WSInstance>(worker.port);
 }
 
-//	* Interface
-
+//	* Interface -> Moved to the panels.ts
 
 //	* UIUX
 
@@ -296,6 +295,7 @@ export async function main() {
 		const api = await initStorageComlink();
 		const ws = await initWsComlink();
 		const mod = await getModManager();
+		const events = DroidEvents;
 
 		for (const handle of Object.values(mod.registry)) {
 			if (typeof handle.instance.init === 'function') {
@@ -303,6 +303,11 @@ export async function main() {
 					emitFromWorker: uiux.emitFromWorker,
 				});
 			}
+			console.log('[Event] -> Fire Mod Ready');
+			events.emit('droid-mod-ready', {
+				meta: handle.meta,
+				timestamp: Date.now(),
+			});
 		}
 
 		bridgeWsToDb(ws, api);
@@ -319,32 +324,23 @@ export async function main() {
 			ws,
 			data,
 			mod,
+			events,
 		};
 
 		//window.kbve = deepProxy(window.kbve);
 
 		await i18n.ready;
 
-
-		window.kbve.droidReady = true;
-
-		window.kbve.waitForDroidReady = () =>
-			Promise.resolve();
-
-		const readyEvent = new CustomEvent('kbve:droid-ready', {
-			detail: {
-				timestamp: Date.now(),
-			},
+		window.kbve.events.emit('droid-ready', {
+			timestamp: Date.now(),
 		});
-		window.dispatchEvent(readyEvent);
-
+		
 		document.addEventListener('astro:page-load', () => {
-			if (window.kbve?.droidReady) {
-				window.dispatchEvent(readyEvent);
-				console.debug('[KBVE] Re-dispatched droid-ready after astro:page-load');
-			}
+			console.debug('[KBVE] Re-dispatched droid-ready after astro:page-load');
+			window.kbve?.events.emit('droid-ready', {
+				timestamp: Date.now(),
+			});
 		});
-
 
 		console.log('[KBVE] Global API ready');
 	} else {
