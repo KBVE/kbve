@@ -153,12 +153,13 @@ import BentoTile from './BentoTile.astro';
   }
 </style>
 
-<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px] grid-flow-dense" id="bento-grid" bento-grid>
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px] grid-flow-dense transition" id="bento-grid" bento-grid>
   <slot name="before" />
   {items.map((item) => (
     <BentoTile {...item} />
   ))}
+  <div id="bento-grid-inject" class="contents"></div>
   <slot />
   <slot name="after" />
-
+  
 </div>

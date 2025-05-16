@@ -5,9 +5,9 @@ import type { LocalStorageAPI } from './db-worker';
 import type { WSInstance } from './ws-worker';
 import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
-import { initModManager } from '../mod/mod-manager'; 
+import { getModManager } from '../mod/mod-manager';
 import { scopeData } from './data';
-import { dispatchAsync, renderVNode} from './tools';
+import { dispatchAsync, renderVNode } from './tools';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
@@ -35,7 +35,6 @@ async function initWsComlink(): Promise<Remote<WSInstance>> {
 	worker.port.start();
 	return wrap<WSInstance>(worker.port);
 }
-
 
 //	* Interface
 
@@ -148,13 +147,27 @@ export const uiux = {
 	},
 
 	emitFromWorker(msg: any) {
-	if (msg.type === 'injectVNode' && msg.vnode) {
-		dispatchAsync(() => {
-			const el = renderVNode(msg.vnode);
-			document.getElementById('bento-grid')?.appendChild(el);
-		});
-	}
-}
+		if (msg.type === 'injectVNode' && msg.vnode) {
+			dispatchAsync(() => {
+				const target = document.getElementById('bento-grid-inject');
+				if (!target) {
+					console.warn(
+						'[KBVE] No injection target found: #bento-grid-inject',
+					);
+					return;
+				}
+
+				const el = renderVNode(msg.vnode);
+				el.classList.add('animate-fade-in');
+				if (msg.vnode.id) {
+					const existing = document.getElementById(msg.vnode.id);
+					if (existing) existing.remove();
+				}
+
+				target.appendChild(el);
+			});
+		}
+	},
 };
 
 //	* i18n
@@ -256,16 +269,16 @@ let initialized = false;
 // * Bridge
 export function bridgeWsToDb(
 	ws: Remote<WSInstance>,
-	db: Remote<LocalStorageAPI>
+	db: Remote<LocalStorageAPI>,
 ) {
 	const handler = proxy(async (buf: ArrayBuffer) => {
 		dispatchAsync(() => {
 			const key = `ws:${Date.now()}`;
 			void db.storeWsMessage(key, buf);
-		})
+		});
 	});
 
-	ws.onMessage(transfer(handler, [0])); 
+	ws.onMessage(transfer(handler, [0]));
 }
 
 //	*	MAIN
@@ -285,19 +298,17 @@ export async function main() {
 	}
 
 	const needsInit =
-		!window.kbve?.api ||
-		!window.kbve?.i18n ||
-		!window.kbve?.uiux;
+		!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux;
 
 	if (needsInit) {
 		const api = await initStorageComlink();
 		const ws = await initWsComlink();
-		const mod = await initModManager();
+		const mod = await getModManager();
 
 		for (const handle of Object.values(mod.registry)) {
 			if (typeof handle.instance.init === 'function') {
 				await handle.instance.init({
-					emitFromWorker: uiux.emitFromWorker
+					emitFromWorker: uiux.emitFromWorker,
 				});
 			}
 		}
@@ -319,7 +330,6 @@ export async function main() {
 		// 	mod,
 		// };
 
-		
 		window.kbve = {
 			...(window.kbve || {}),
 			api,
@@ -329,10 +339,8 @@ export async function main() {
 			data,
 			mod,
 		};
-		
 
-		
-		window.kbve = deepProxy(window.kbve); 
+		window.kbve = deepProxy(window.kbve);
 
 		await i18n.ready;
 
@@ -341,4 +349,3 @@ export async function main() {
 		console.log('[KBVE] Already initialized');
 	}
 }
-
