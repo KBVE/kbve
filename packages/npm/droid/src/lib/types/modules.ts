@@ -38,8 +38,9 @@ export interface SupabaseModAPI extends BaseModAPI {
 export type VirtualNode = {
 	tag: string;
 	id?: string;
+	key?: string;
 	class?: string;
-	attrs?: Record<string, string>;
+	attrs?: Record<string, any>;
 	style?: Partial<CSSStyleDeclaration>;
 	children?: (string | VirtualNode)[];
 };

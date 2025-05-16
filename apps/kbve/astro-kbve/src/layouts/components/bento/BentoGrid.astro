@@ -16,7 +16,7 @@ const items: GridItem[] = [
     title: 'Analytics',
     subtitle: 'Realtime insights',
     description: 'Track performance metrics and live usage trends.',
-    span: 'col-span-3 row-span-3',
+    span: 'sm:col-span-3 sm:row-span-3',
     primaryColor: 'purple-600',
     secondaryColor: 'indigo-800',
     icon: '📊',
@@ -27,7 +27,7 @@ const items: GridItem[] = [
     title: 'Servers',
     subtitle: 'Active clusters',
     description: 'Monitor all connected server nodes and their status.',
-    span: 'col-span-2 row-span-1',
+    span: 'col-span-2 row-span-2',
     primaryColor: 'teal-500',
     secondaryColor: 'cyan-600',
     icon: '🖥️',
@@ -37,7 +37,7 @@ const items: GridItem[] = [
     title: 'Logs',
     subtitle: 'System events',
     description: 'View recent backend logs and infrastructure events.',
-    span: 'col-span-2 row-span-1',
+    span: 'col-span-2 row-span-2',
     primaryColor: 'rose-500',
     secondaryColor: 'pink-600',
     icon: '📁',
@@ -46,7 +46,7 @@ const items: GridItem[] = [
     title: 'Deploy',
     subtitle: 'Last push: 2h ago',
     description: 'Manage build deployments and CI/CD workflows.',
-    span: 'col-span-1 row-span-1',
+    span: 'col-span-2 row-span-2',
     primaryColor: 'amber-400',
     secondaryColor: 'yellow-500',
     icon: '🚀',
@@ -153,12 +153,17 @@ import BentoTile from './BentoTile.astro';
   }
 </style>
 
-<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 p-4 auto-rows-[140px] grid-flow-dense" bento-grid>
+
+<div
+  id="bento-grid"
+  bento-grid
+  class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4 sm:auto-rows-[160px] auto-rows-auto grid-flow-dense transition"
+>
   <slot name="before" />
   {items.map((item) => (
     <BentoTile {...item} />
   ))}
   <slot />
   <slot name="after" />
-
+  <div id="bento-grid-inject" class="col-span-full contents sm:contents"></div>
 </div>

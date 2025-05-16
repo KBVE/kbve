@@ -1,9 +1,13 @@
-import { wrap } from 'comlink';
+import { wrap, proxy  } from 'comlink';
 import type { Remote } from 'comlink';
 import type { ModManager, ModHandle, ModMeta, BaseModAPI } from '../types/modules';
 import type { KBVEGlobal } from '../../types'; 
 
-export async function initModManager(): Promise<ModManager> {
+let _modManager: ModManager | null = null;
+
+export async function getModManager(): Promise<ModManager> {
+	if (_modManager) return _modManager;
+
 	const registry: Record<string, ModHandle> = {};
 
 	async function load(url: string): Promise<ModHandle> {
@@ -12,13 +16,11 @@ export async function initModManager(): Promise<ModManager> {
 
 		const meta: ModMeta = await instance.getMeta?.() ?? {
 			name: 'unknown',
-			version: '0.0.1'
+			version: '0.0.1',
 		};
 
 		const id = `${meta.name}@${meta.version}`;
-		if (typeof instance.init === 'function') {
-			await instance.init(window.kbve as KBVEGlobal);
-		}
+		console.log(`[mod-manager] ${id} is loaded.`);
 
 		const handle: ModHandle = { id, worker, instance, meta, url };
 		registry[id] = handle;
@@ -26,9 +28,8 @@ export async function initModManager(): Promise<ModManager> {
 	}
 
 	function unload(id: string) {
-		const mod = registry[id];
-		if (mod) {
-			mod.worker.terminate();
+		if (registry[id]) {
+			registry[id].worker.terminate();
 			delete registry[id];
 		}
 	}
@@ -44,11 +45,13 @@ export async function initModManager(): Promise<ModManager> {
 		return load(mod.url);
 	}
 
-	return {
+	_modManager = {
 		registry,
 		load,
 		unload,
 		list,
 		reload,
 	};
+
+	return _modManager;
 }

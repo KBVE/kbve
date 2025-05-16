@@ -14,8 +14,22 @@ export function renderVNode(vnode: VirtualNode): HTMLElement {
 	if (vnode.class) el.className = vnode.class;
 
 	if (vnode.attrs) {
-		for (const [k, v] of Object.entries(vnode.attrs)) {
-			el.setAttribute(k, v);
+		for (const [key, value] of Object.entries(vnode.attrs)) {
+			if (typeof value === 'function' && key.startsWith('on')) {
+				el.addEventListener(key.slice(2).toLowerCase(), value);
+			} else if (key === 'style' && typeof value === 'object') {
+				Object.assign(el.style, value);
+			} else if (key === 'dataset' && typeof value === 'object') {
+				for (const [dkey, dval] of Object.entries(value)) {
+					el.dataset[dkey] = String(dval);
+				}
+			} else {
+				try {
+					el.setAttribute(key, String(value));
+				} catch {
+					//
+				}
+			}
 		}
 	}
 
@@ -23,11 +37,22 @@ export function renderVNode(vnode: VirtualNode): HTMLElement {
 		Object.assign(el.style, vnode.style);
 	}
 
+	// if (vnode.children) {
+	// 	for (const child of vnode.children) {
+	// 		el.appendChild(
+	// 			typeof child === 'string'
+	// 				? document.createTextNode(child)
+	// 				: renderVNode(child),
+	// 		);
+	// 	}
+	// }
+
 	if (vnode.children) {
 		for (const child of vnode.children) {
-			el.appendChild(
-				typeof child === 'string' ? document.createTextNode(child) : renderVNode(child)
-			);
+			const node = typeof child === 'string'
+				? document.createTextNode(child)
+				: renderVNode(child);
+			el.appendChild(node);
 		}
 	}
 

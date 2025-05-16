@@ -48,6 +48,11 @@ module.exports = buildConfig(__dirname, {
 		'-translate-x-64',
 		'backdrop-blur-sm',
 
+		// [Additioanl Bento Statics] @GPT
+
+		'col-span-1', 'col-span-2', 'col-span-3', 'col-span-4',
+		'row-span-1', 'row-span-2', 'row-span-3', 'row-span-4',
+
 		// [Additional Static Safes] @h0lybyte
 		'bg-gradient-to-br',
 		'from-purple-600', 'to-indigo-800',
