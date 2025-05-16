@@ -33,7 +33,7 @@ const discordUrl = withBaseUrl('/discord', Astro.url);
 	</BentoGrid>
 </Layout>
 
-<!-- 
+
 <script is:inline>
 	async function injectBentoTileFromFooter() {
 
@@ -57,8 +57,8 @@ const discordUrl = withBaseUrl('/discord', Astro.url);
 			icon: '🔗',
 			subtitle: 'From outside the ecosystem',
 			description: 'This tile was triggered via vanilla JS.',
-			primaryColor: 'cyan-500',
-			secondaryColor: 'blue-600',
+			primaryColor: 'teal-500',
+			secondaryColor: 'cyan-600',
 			variant: 'default',
 			span: 'col-span-2 row-span-1',
 		});
@@ -68,8 +68,8 @@ const discordUrl = withBaseUrl('/discord', Astro.url);
 }
 
 // Initial load
-document.addEventListener('DOMContentLoaded', injectBentoTileFromFooter);
+// document.addEventListener('DOMContentLoaded', injectBentoTileFromFooter);
 // View transition (Astro)
-document.addEventListener('astro:page-load', injectBentoTileFromFooter);
+//document.addEventListener('astro:page-load', injectBentoTileFromFooter);
 
-</script> -->
+</script>
