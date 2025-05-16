@@ -2,74 +2,149 @@
 import Layout from 'src/layouts/core/Layout.astro';
 import BentoGrid from 'src/layouts/components/bento/BentoGrid.astro';
 import BentoTile from 'src/layouts/components/bento/BentoTile.astro';
+import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
 }
+
+const discordUrl = withBaseUrl('/discord', Astro.url);
 
 
 const tiles = [
 	{
 		title: 'Join Our Tech & Gaming Community!',
 		subtitle: 'Our Discord is active and fun!',
-		description: 'From cloud-native development to competitive gaming, we\'re here to help you level up! Whether you\'re containerizing apps or climbing ranked, our community\'s got your back.',
+		description:
+			"From cloud-native development to competitive gaming, we're here to help you level up! Whether you're containerizing apps or climbing ranked, our community's got your back.",
 		span: 'col-span-3 row-span-1',
 		primaryColor: 'emerald-500',
 		secondaryColor: 'cyan-600',
 		href: withBaseUrl('/discord', Astro.url),
 		target: '_self',
-		icon: '🎮'
+		icon: '🎮',
 	},
 ] as const;
 
-const discordUrl = withBaseUrl('/discord', Astro.url);
+const glassTiles = [
+	{ 
+			title: "📦 KBVE Modules",
+			subtitle: "Open Docs",
+			description: "Explore our full stack of modular open source packages built for speed and scale.",
+			href: discordUrl,
+			target: '_self',
+			span: "col-span-2 row-span-2",
+			primaryColor: 'zinc-500',
+			secondaryColor: 'stone-900',
+			onclick: `window.kbve?.uiux?.openPanel?.('bottom', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+	},
+] as const;
+
 ---
 
 <Layout title="KBVE KiloByte Virtual Enterprise">
 	<BentoGrid>
-		{tiles.map(tile => (
-			<BentoTile {...tile} />
-		))}
+		{tiles.map((tile) => <BentoTile {...tile} />)}
+
+		{glassTiles.map((glassTile) => <GlassBentoTile {...glassTile} />)}
+	
 	</BentoGrid>
 </Layout>
 
-
 <script is:inline>
 	async function injectBentoTileFromFooter() {
+		while (
+			!window.kbve?.mod ||
+			Object.keys(window.kbve.mod.registry).length === 0
+		) {
+			console.log('[Injection]: Mod Not Found');
+			await new Promise((r) => setTimeout(r, 100));
+		}
 
-	while (!window.kbve?.mod || Object.keys(window.kbve.mod.registry).length === 0) {
-		console.log('[Injection]: Mod Not Found')
-		await new Promise((r) => setTimeout(r, 100));
+		const modId = Object.keys(window.kbve?.mod?.registry || {}).find((id) =>
+			id.startsWith('bento@')
+		);
+
+		if (!modId) {
+			console.warn('[Footer] Bento mod not found');
+			return;
+		}
+
+		const bento = window.kbve.mod.registry[modId];
+
+		if (bento?.instance?.run) {
+			bento.instance.run({
+				title: 'Vanilla Triggered',
+				icon: '🔗',
+				subtitle: 'From outside the ecosystem',
+				description: 'This tile was triggered via vanilla JS.',
+				primaryColor: 'teal-500',
+				secondaryColor: 'cyan-600',
+				variant: 'default',
+				span: 'md:col-span-6 md:row-span-6',
+				className:
+					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50',
+				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+			});
+			bento.instance.run({
+				title: 'Vanilla Triggered',
+				icon: '🔗',
+				subtitle: 'From outside the ecosystem',
+				description: 'This tile was triggered via vanilla JS.',
+				primaryColor: 'teal-500',
+				secondaryColor: 'cyan-600',
+				variant: 'default',
+				span: 'md:col-span-3 md:row-span-3',
+				className:
+					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50',
+				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+			});
+
+			bento.instance.run({
+				title: 'Vanilla Triggered',
+				icon: '🔗',
+				subtitle: 'From outside the ecosystem',
+				description: 'This tile was triggered via vanilla JS.',
+				primaryColor: 'zinc-500',
+				secondaryColor: 'stone-900',
+				variant: 'default',
+				span: 'md:col-span-1 md:row-span-1',
+				className:
+					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50 text-neutral-300',
+				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+			});
+
+			bento.instance.run({
+				title: 'Vanilla Triggered',
+				icon: '🔗',
+				subtitle: 'From outside the ecosystem',
+				description: 'This tile was triggered via vanilla JS.',
+				primaryColor: 'zinc-500',
+				secondaryColor: 'stone-900',
+				variant: 'default',
+				span: 'md:col-span-1 md:row-span-1',
+				className:
+					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50 text-neutral-300',
+				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+			});
+
+			bento.instance.run({
+				title: 'Vanilla Triggered',
+				icon: '🔗',
+				subtitle: 'From outside the ecosystem',
+				description: 'This tile was triggered via vanilla JS.',
+				primaryColor: 'zinc-500',
+				secondaryColor: 'stone-900',
+				variant: 'default',
+				span: 'md:col-span-1 md:row-span-1',
+				className:
+					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50 text-neutral-300 hover:from-cyan-500 hover:border hover:scale-[1.03] ease-in-out duration-300',
+				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+			});
+		} else {
+			console.warn('[Footer] Bento mod loaded, but run() not available');
+		}
 	}
 
-	const modId = Object.keys(window.kbve?.mod?.registry || {}).find(id => id.startsWith('bento@'));
-
-	if (!modId) {
-		console.warn('[Footer] Bento mod not found');
-		return;
-	}
-
-	const bento = window.kbve.mod.registry[modId];
-
-	if (bento?.instance?.run) {
-		bento.instance.run({
-			title: '✅ Vanilla Triggered',
-			icon: '🔗',
-			subtitle: 'From outside the ecosystem',
-			description: 'This tile was triggered via vanilla JS.',
-			primaryColor: 'teal-500',
-			secondaryColor: 'cyan-600',
-			variant: 'default',
-			span: 'col-span-2 row-span-1',
-		});
-	} else {
-		console.warn('[Footer] Bento mod loaded, but run() not available');
-	}
-}
-
-// Initial load
-// document.addEventListener('DOMContentLoaded', injectBentoTileFromFooter);
-// View transition (Astro)
-//document.addEventListener('astro:page-load', injectBentoTileFromFooter);
-
+	document.addEventListener('astro:page-load', injectBentoTileFromFooter);
 </script>
