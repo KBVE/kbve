@@ -26,3 +26,6 @@ export const DroidEventSchemas = {
 export type DroidEventMap = {
 	[K in keyof typeof DroidEventSchemas]: z.infer<(typeof DroidEventSchemas)[K]>;
 };
+
+export type EventKey = keyof DroidEventMap;
+export type EventHandler<K extends EventKey> = (payload: DroidEventMap[K]) => void;
