@@ -13,6 +13,10 @@ export interface KBVEGlobal {
 	ws: Remote<WSInstance>;
 	data: FlexDataAPI;
 	mod: ModManager;
+
+	// Helper Flags @GPT
+	droidReady?: boolean;
+	waitForDroidReady?: () => Promise<void>;
 	[key: string]: unknown;
 }
 
