@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PanelIdSchema } from './panel-types';
 
 export const ModMetaSchema = z.object({
 	name: z.string(),
@@ -11,7 +12,7 @@ export const DroidModReadySchema = z.object({
 });
 
 export const PanelEventSchema = z.object({
-	id: z.enum(['top', 'right', 'bottom', 'left']),
+	id: PanelIdSchema,
 	payload: z.any().optional(),
 });
 

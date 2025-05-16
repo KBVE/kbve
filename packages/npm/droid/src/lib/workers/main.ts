@@ -8,6 +8,8 @@ import type { CanvasWorkerAPI } from './canvas-worker';
 import { getModManager } from '../mod/mod-manager';
 import { scopeData } from './data';
 import { dispatchAsync, renderVNode } from './tools';
+import type { PanelPayload, PanelId } from '../types/panel-types';
+
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
@@ -38,21 +40,11 @@ async function initWsComlink(): Promise<Remote<WSInstance>> {
 
 //	* Interface
 
-export interface PanelPayload {
-	rawHtml?: string;
-	needsCanvas?: boolean;
-	canvasOptions?: {
-		width: number;
-		height: number;
-		mode?: 'static' | 'animated' | 'dynamic';
-	};
-}
 
 //	* UIUX
 
 const uiuxState = persistentMap<{
-	panelManager: Record<
-		'top' | 'right' | 'bottom' | 'left',
+	panelManager: Record<PanelId,
 		{
 			open: boolean;
 			payload?: PanelPayload;
@@ -87,20 +79,20 @@ const canvasWorker = wrap<CanvasWorkerAPI>(
 export const uiux = {
 	state: uiuxState,
 	worker: canvasWorker,
-	openPanel(id: 'top' | 'right' | 'bottom' | 'left', payload?: PanelPayload) {
+	openPanel(id: PanelId, payload?: PanelPayload) {
 		const panels = { ...uiuxState.get().panelManager };
 		panels[id] = { open: true, payload };
 		uiuxState.setKey('panelManager', panels);
 	},
 
-	closePanel(id: 'top' | 'right' | 'bottom' | 'left') {
+	closePanel(id: PanelId) {
 		const panels = { ...uiuxState.get().panelManager };
 		panels[id] = { open: false, payload: undefined };
 		uiuxState.setKey('panelManager', panels);
 	},
 
 	togglePanel(
-		id: 'top' | 'right' | 'bottom' | 'left',
+		id: PanelId,
 		payload?: PanelPayload,
 	) {
 		const panels = { ...uiuxState.get().panelManager };
@@ -125,7 +117,7 @@ export const uiux = {
 	},
 
 	async dispatchCanvasRequest(
-		panelId: 'top' | 'right' | 'bottom' | 'left',
+		panelId: PanelId,
 		canvasEl: HTMLCanvasElement,
 		mode: 'static' | 'animated' | 'dynamic' = 'animated',
 	) {
@@ -138,7 +130,7 @@ export const uiux = {
 		console.log('error panel is closing');
 
 		for (const id of Object.keys(panels) as Array<
-			'top' | 'right' | 'bottom' | 'left'
+			PanelId
 		>) {
 			panels[id] = { open: false, payload: undefined };
 		}
