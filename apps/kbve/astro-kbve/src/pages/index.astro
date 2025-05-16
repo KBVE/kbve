@@ -51,7 +51,16 @@ const glassTiles = [
 
 <script is:inline>
 	async function injectBentoTileFromFooter() {
-		const modId = Object.keys(window.kbve?.mod?.registry || {}).find((id) =>
+		// ✅ Wait until kbve and mod registry are ready
+		while (
+			!window.kbve?.mod ||
+			Object.keys(window.kbve.mod.registry).length === 0
+		) {
+			console.log('[Injection]: Mod Not Found');
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
+
+		const modId = Object.keys(window.kbve.mod.registry).find((id) =>
 			id.startsWith('bento@')
 		);
 
@@ -63,6 +72,7 @@ const glassTiles = [
 		const bento = window.kbve.mod.registry[modId];
 
 		if (bento?.instance?.run) {
+			console.log('[Footer] Injecting Bento Tile');
 			bento.instance.run({
 				title: 'Vanilla Triggered',
 				icon: '🔗',
@@ -81,19 +91,6 @@ const glassTiles = [
 		}
 	}
 
-	function bentoReadyWait() {
-		console.log('[Event] Waiting for Bento');
-		if (!window.kbve?.events) return;
-
-		window.kbve.events.on('droid-mod-ready', ({ meta }) => {
-			if (meta?.name === 'bento') {
-				injectBentoTileFromFooter();
-			}
-		});
-	}
-
-	bentoReadyWait();
-
-	document.addEventListener('astro:page-load', bentoReadyWait);
+	document.addEventListener('astro:page-load', injectBentoTileFromFooter);
+	injectBentoTileFromFooter();
 </script>
-
