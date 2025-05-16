@@ -319,17 +319,6 @@ export async function main() {
 		i18n.api = api;
 		i18n.ready = i18n.hydrateLocale('en');
 
-		// Merge with existing global kbve object
-		// window.kbve = {
-		// 	...(window.kbve || {}),
-		// 	api,
-		// 	i18n,
-		// 	uiux,
-		// 	ws,
-		// 	data,
-		// 	mod,
-		// };
-
 		window.kbve = {
 			...(window.kbve || {}),
 			api,
@@ -340,7 +329,7 @@ export async function main() {
 			mod,
 		};
 
-		window.kbve = deepProxy(window.kbve);
+		//window.kbve = deepProxy(window.kbve);
 
 		await i18n.ready;
 

@@ -9,7 +9,7 @@ export const BENTO_BADGE_TYPES = ['default', 'success', 'warning', 'error'] as c
 
 // Regex validators
 const tailwindColorRegex = /^[a-z]+-(100|200|300|400|500|600|700|800|900)$/;
-const spanRegex = /^(col-span-\d+|row-span-\d+|col-span-\d+\s+row-span-\d+)$/;
+const spanRegex = /^(?:(?:[a-z]+:)?(col|row)-span-\d+\s*)+$/;
 const ulidRegex = /^01[0-9A-HJKMNP-TV-Z]{24}$/;
 
 // Schema
