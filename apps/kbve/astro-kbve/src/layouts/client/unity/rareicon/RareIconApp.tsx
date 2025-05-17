@@ -7,6 +7,7 @@ export default function UnityPlayer() {
     dataUrl: 'https://unity.rareicon.com/Build/WebGL.data',
     frameworkUrl: 'https://unity.rareicon.com/Build/WebGL.framework.js',
     codeUrl: 'https://unity.rareicon.com/Build/WebGL.wasm',
+    streamingAssetsUrl: 'https://unity.rareicon.com/StreamingAssets'
   });
 
   return (
