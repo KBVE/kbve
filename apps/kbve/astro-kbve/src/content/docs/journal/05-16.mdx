@@ -28,6 +28,26 @@ tags:
     After adding the basic DroidEventBus and the event types, the next move would be to attach it to the `window.kbve.events`.
     This would make it easier to access and reference outside of the droid eco-system.
     Since we will be doing that, let me update the globals for the library to hold that additional system.
+    Damn, there is a race condition that I just can not really resolve with the tools that I have right now, the way that astro page load fires and the way that the workers are loaded, ugh.
+    I am going to revert to a simple while loop execution and move on because its just not worth it.
+
+### KBVE Website Migration
+
+-   08:43PM
+
+    One way that we could handle the migration would be just to take the older website code and slap it back into the new site?
+    We can keep it there and make sure that the production line is back to normal, granted some of the older modules will still be broken but the site will actually update.
+    I am still thinking about the best ways to handle this and I did not want to have some of the older boilerplate but having to rebuild it all will be a pain.
+
+### RareIcon AstroKBVE
+
+-   08:40PM
+
+    Adding a playable RareIcon demo to the KBVE website.
+    This is my 3rd attempt at trying to build a solid integration between the React eco-system and the Unity webgl game, hopefully it goes a bit better than last time.
+    Majority of this code will be take out and re-used on the rareicon website but that will be for the future.
+    For this, I need to install the `react-unity-webgl` package and then setup an `App.jsx` for loading the webgl game and preparing for its execution.
+    There is a slight downside, majority of the arcade is still broken and I need to get that resolved.
 
 ## 2024
 
