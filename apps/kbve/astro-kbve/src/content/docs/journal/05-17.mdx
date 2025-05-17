@@ -24,7 +24,7 @@ tags:
 
 -   03:50PM
 
-    The panel still looks a bit dicy and maybe we can get that itemdb implementation  out of the way?
+    The panel still looks a bit dicey and maybe we can get that ItemDB implementation  out of the way?
     I suppose since each item would have its own ULID aka 16 byte reference id, we can use that for this.
     When adding the item into the game, it should have the ULID as a reference, which should then be in the payload.
     So when placing the item, instead of sending the prefab name, we would send the ULID, which would then get processed by a web worker + indexdb.
@@ -35,6 +35,39 @@ tags:
     Actually it be an `Array` with the `index` being the slot that is being used in the `inventory`? 
     Hmm, the actual data structure that we use wont be too important because we can easily swap around it.
     That means we need to keep a local image on the Astro side as a reference.
+
+-   04:28PM
+
+    ItemDB - The concept could be tough to maintain in the long term. We can even reduce some of the informal stats as well.
+    `[*] => [[Structure], [Defensive], [Crafting]]`, this is the enum style that we could introduce!
+    The item schema could be stored inside of the `ItemDB` and then we just import it into the `Astro Config` for the collections.
+    I wonder if there might be two ways to handle the `ID` which could be through a `BigInt` and `ULID`?
+    The `BigInt` would be just the rolling IDs for internal indexing, then we can keep the `ULID` for searching quickly?!
+    This is the `ItemCategoryFlags` that we can utilize for the base operations of the enum.
+```js
+
+export enum ItemCategoryFlags {
+    None = 0,
+    Weapon = 1 << 0,
+    Armor = 1 << 1,
+    Tool = 1 << 2,
+    Food = 1 << 3,
+    Drink = 1 << 4,
+    Potion = 1 << 5,
+    Material = 1 << 6,
+    Resource = 1 << 7,
+    Skilling = 1 << 8,
+    Combat = 1 << 9,
+    Structure = 1 << 10,
+    Magic = 1 << 11,
+    Quest = 1 << 12,
+    Utility = 1 << 13,
+    Soul = 0x80000000,
+}
+
+```
+    
+
 
 ## 2024
 
@@ -47,7 +80,7 @@ Spent the whole day trying to figure out what the issue was with the display and
 However I believe we also had some issues with wayland on ubuntu! 
 
 Yet after countless hours and league matches, we were able to make a breakthrough.
-Now there are still a decentg amtounf of steps required before we can move forward, including the migration of the websocketify into the FastAPI.
+Now there are still a decent amount of steps required before we can move forward, including the migration of the websocketify into the FastAPI.
 
 **League**
 
