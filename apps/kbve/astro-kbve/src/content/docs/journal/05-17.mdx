@@ -22,7 +22,19 @@ tags:
     Since we did not get a chance to finish the kbve site, but its okay, it should be ready by next week.
     As for the pre-meeting preparing, I just need to make sure that the local webgl build finished without any issues.
 
+-   03:50PM
 
+    The panel still looks a bit dicy and maybe we can get that itemdb implementation  out of the way?
+    I suppose since each item would have its own ULID aka 16 byte reference id, we can use that for this.
+    When adding the item into the game, it should have the ULID as a reference, which should then be in the payload.
+    So when placing the item, instead of sending the prefab name, we would send the ULID, which would then get processed by a web worker + indexdb.
+    This means we can keep the scope of data transfer small and make it easier to abstract away some of the issues.
+    Unity sends the event of `Item->Use()` with the `ULID` of the item.
+    The React component then gets this `ItemEvent` and it uses the `ULID` to represent the item that was being used.
+    By having this one-to-one relationship, we can then make the inventory easier too, by sending a `Map` of the `ULID`?
+    Actually it be an `Array` with the `index` being the slot that is being used in the `inventory`? 
+    Hmm, the actual data structure that we use wont be too important because we can easily swap around it.
+    That means we need to keep a local image on the Astro side as a reference.
 
 ## 2024
 
