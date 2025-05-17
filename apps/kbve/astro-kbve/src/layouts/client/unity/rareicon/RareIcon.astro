@@ -1,3 +1,19 @@
 ---
-
+import UnityPlayer from "./RareIconApp"
 ---
+<style>
+    .rare-icon-container {
+      max-width: 100%;
+      padding: 1rem;
+    }
+  
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+  </style>
+
+<div class="rare-icon-container">
+    <h3>🎮 RareIcon Unity Embed</h3>
+      <UnityPlayer client:only="react" />
+  </div>
