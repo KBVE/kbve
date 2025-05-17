@@ -1,6 +1,0 @@
-defaultNamespace: disoxide
-helm:
-    chart: ./machine
-    releaseName: disoxide-release
-    valuesFiles:
-        - machine/values.yaml
