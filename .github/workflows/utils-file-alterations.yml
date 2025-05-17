@@ -154,7 +154,7 @@ jobs:
             disoxide:
                 - 'apps/discord/disoxide/README.md'
             rareicon_unity:
-                - 'apps/kbve/kbve.com/src/content/docs/project/rareicon.mdx'
+                - 'apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx'
             py_atlas:
                 - 'apps/atlas/kbve_atlas/**'
             py_fudster:
