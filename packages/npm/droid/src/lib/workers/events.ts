@@ -22,7 +22,7 @@ class DroidEventBus {
 
 	emit<K extends EventKey>(event: K, payload: DroidEventMap[K]) {
 		const schema = DroidEventSchemas[event];
-		if (schema && schema !== z.undefined()) {
+		if (schema) {
 			try {
 				schema.parse(payload);
 			} catch (err) {
