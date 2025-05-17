@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import svelte, { vitePreprocess } from '@astrojs/svelte';
+import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
 import mdx from '@astrojs/mdx';
@@ -40,9 +41,21 @@ export default defineConfig({
             plugins: [
                 starlightSiteGraph({
                 	graphConfig: {
-                		renderArrows: true,
-                        "depth": 8,
+                         "actions": [
+                            "fullscreen",
+                            "depth",
+                            "reset-zoom",
+                            "render-arrows",
+                            "render-external",
+                            "render-unresolved",
+                            "settings"
+                        ],
+                		renderArrows: false,
+                        "depth": 2,
+                        "depthDirection": "both",
                         "minZoom": 0.05,
+                        "enableZoom": true,
+                        "enablePan": true,
                        
                 	},
                 }),
@@ -113,6 +126,7 @@ export default defineConfig({
                 Footer: './src/layouts/starlight/Footer.astro',
                 TableOfContents:
                 	'./src/layouts/starlight/TableOfContents.astro',
+                PageSidebar: './src/layouts/starlight/PageSidebar.astro',
             },
             head: [
                 {
@@ -148,6 +162,7 @@ export default defineConfig({
         //alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
         //partytown(),
         worker(),
+        react(),
         svelte(),
 
         AstroPWA({

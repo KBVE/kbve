@@ -1,7 +1,7 @@
 ---
 title: 'May: 16'
 category: Daily
-date: 2024-05-16 12:00:00
+date: 2025-05-16 12:00:00
 client: Self
 unsplash: 1715647252838-a92275b3234d
 img: https://images.unsplash.com/photo-1715647252838-a92275b3234d?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -10,6 +10,61 @@ description: |
 tags:
     - daily
 ---
+
+## 2025
+
+### Droid Event System
+
+-   05:19PM
+
+    Now that I got the base of the mutli-worker system setup, the next part would be to setup an event system that the whole library would follow and utilize.
+    Instead of placing the event calls and functions everywhere in the code, I think it be wise to create a simple event master singleton that would basically be in charge of handling and processing the events.
+    This will live on the main thread and proxy any requests that need to be done.
+    For me to do this, I suppose I need to setup a `types/event.d.ts` that would hold all the events information that we plan to use.
+    
+
+-   05:51PM
+
+    After adding the basic DroidEventBus and the event types, the next move would be to attach it to the `window.kbve.events`.
+    This would make it easier to access and reference outside of the droid eco-system.
+    Since we will be doing that, let me update the globals for the library to hold that additional system.
+    Damn, there is a race condition that I just can not really resolve with the tools that I have right now, the way that astro page load fires and the way that the workers are loaded, ugh.
+    I am going to revert to a simple while loop execution and move on because its just not worth it.
+
+### KBVE Website Migration
+
+-   08:43PM
+
+    One way that we could handle the migration would be just to take the older website code and slap it back into the new site?
+    We can keep it there and make sure that the production line is back to normal, granted some of the older modules will still be broken but the site will actually update.
+    I am still thinking about the best ways to handle this and I did not want to have some of the older boilerplate but having to rebuild it all will be a pain.
+
+### RareIcon AstroKBVE
+
+-   08:40PM
+
+    Adding a playable RareIcon demo to the KBVE website.
+    This is my 3rd attempt at trying to build a solid integration between the React eco-system and the Unity webgl game, hopefully it goes a bit better than last time.
+    Majority of this code will be take out and re-used on the rareicon website but that will be for the future.
+    For this, I need to install the `react-unity-webgl` package and then setup an `App.jsx` for loading the webgl game and preparing for its execution.
+    There is a slight downside, majority of the arcade is still broken and I need to get that resolved.
+
+-    08:57PM
+
+    The multi threaded build was disabled, so I am going to loop back around and update that!
+    Making it a bit easier to migrate to worker usage via the react unity library.
+    There are a couple more downsides to doing this, the game might not work on itch, so we might have to account for that in the future.
+    Yet I want to try and get the game build and operational for the react unity bridge side of things.
+
+### Rancher Memory Usage
+
+-   11:11PM
+
+    There seems to be an issue with the memory and cpu usage within the rancher setup. 
+    My educated guess is that there are some hleath checks that are failing and causing a weird ripple and bubble effect, so I will have to switch back over and see what the issue is based upon that.
+    I noticed that the health check for the discordsh is wrong, so that needs to be updated too.
+    Furthermore, the health checks for the supabase need to be updated too, so that means I will have to set aside some time to just go through each instance and see what the problem might be.
+
 
 ## 2024
 

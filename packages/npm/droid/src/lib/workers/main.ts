@@ -8,6 +8,8 @@ import type { CanvasWorkerAPI } from './canvas-worker';
 import { getModManager } from '../mod/mod-manager';
 import { scopeData } from './data';
 import { dispatchAsync, renderVNode } from './tools';
+import type { PanelPayload, PanelId } from '../types/panel-types';
+import { DroidEvents } from './events'; 
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
@@ -36,23 +38,12 @@ async function initWsComlink(): Promise<Remote<WSInstance>> {
 	return wrap<WSInstance>(worker.port);
 }
 
-//	* Interface
-
-export interface PanelPayload {
-	rawHtml?: string;
-	needsCanvas?: boolean;
-	canvasOptions?: {
-		width: number;
-		height: number;
-		mode?: 'static' | 'animated' | 'dynamic';
-	};
-}
+//	* Interface -> Moved to the panels.ts
 
 //	* UIUX
 
 const uiuxState = persistentMap<{
-	panelManager: Record<
-		'top' | 'right' | 'bottom' | 'left',
+	panelManager: Record<PanelId,
 		{
 			open: boolean;
 			payload?: PanelPayload;
@@ -87,20 +78,20 @@ const canvasWorker = wrap<CanvasWorkerAPI>(
 export const uiux = {
 	state: uiuxState,
 	worker: canvasWorker,
-	openPanel(id: 'top' | 'right' | 'bottom' | 'left', payload?: PanelPayload) {
+	openPanel(id: PanelId, payload?: PanelPayload) {
 		const panels = { ...uiuxState.get().panelManager };
 		panels[id] = { open: true, payload };
 		uiuxState.setKey('panelManager', panels);
 	},
 
-	closePanel(id: 'top' | 'right' | 'bottom' | 'left') {
+	closePanel(id: PanelId) {
 		const panels = { ...uiuxState.get().panelManager };
 		panels[id] = { open: false, payload: undefined };
 		uiuxState.setKey('panelManager', panels);
 	},
 
 	togglePanel(
-		id: 'top' | 'right' | 'bottom' | 'left',
+		id: PanelId,
 		payload?: PanelPayload,
 	) {
 		const panels = { ...uiuxState.get().panelManager };
@@ -125,7 +116,7 @@ export const uiux = {
 	},
 
 	async dispatchCanvasRequest(
-		panelId: 'top' | 'right' | 'bottom' | 'left',
+		panelId: PanelId,
 		canvasEl: HTMLCanvasElement,
 		mode: 'static' | 'animated' | 'dynamic' = 'animated',
 	) {
@@ -138,7 +129,7 @@ export const uiux = {
 		console.log('error panel is closing');
 
 		for (const id of Object.keys(panels) as Array<
-			'top' | 'right' | 'bottom' | 'left'
+			PanelId
 		>) {
 			panels[id] = { open: false, payload: undefined };
 		}
@@ -304,6 +295,7 @@ export async function main() {
 		const api = await initStorageComlink();
 		const ws = await initWsComlink();
 		const mod = await getModManager();
+		const events = DroidEvents;
 
 		for (const handle of Object.values(mod.registry)) {
 			if (typeof handle.instance.init === 'function') {
@@ -311,6 +303,11 @@ export async function main() {
 					emitFromWorker: uiux.emitFromWorker,
 				});
 			}
+			console.log('[Event] -> Fire Mod Ready');
+			events.emit('droid-mod-ready', {
+				meta: handle.meta,
+				timestamp: Date.now(),
+			});
 		}
 
 		bridgeWsToDb(ws, api);
@@ -327,11 +324,23 @@ export async function main() {
 			ws,
 			data,
 			mod,
+			events,
 		};
 
 		//window.kbve = deepProxy(window.kbve);
 
 		await i18n.ready;
+
+		window.kbve.events.emit('droid-ready', {
+			timestamp: Date.now(),
+		});
+		
+		document.addEventListener('astro:page-load', () => {
+			console.debug('[KBVE] Re-dispatched droid-ready after astro:page-load');
+			window.kbve?.events.emit('droid-ready', {
+				timestamp: Date.now(),
+			});
+		});
 
 		console.log('[KBVE] Global API ready');
 	} else {

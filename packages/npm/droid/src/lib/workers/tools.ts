@@ -20,8 +20,8 @@ export function renderVNode(vnode: VirtualNode): HTMLElement {
 			} else if (key === 'style' && typeof value === 'object') {
 				Object.assign(el.style, value);
 			} else if (key === 'dataset' && typeof value === 'object') {
-				for (const [dkey, dval] of Object.entries(value)) {
-					el.dataset[dkey] = String(dval);
+				for (const [data_key, data_value] of Object.entries(value)) {
+					el.dataset[data_key] = String(data_value);
 				}
 			} else {
 				try {

@@ -22,8 +22,8 @@ module.exports = buildConfig(__dirname, {
 
 		
 		// Gradient colors @GPT
-		{ pattern: /from-(purple|teal|rose|amber|red)-[0-9]+/ },
-		{ pattern: /to-(indigo|cyan|pink|yellow|orange)-[0-9]+/ },
+		{ pattern: /from-(purple|teal|rose|amber|red|stone|zinc)-[0-9]+/ },
+		{ pattern: /to-(indigo|cyan|pink|yellow|orange|stone|zinc)-[0-9]+/ },
 
 		// Drop shadows @GPT
 		{ pattern: /drop-shadow-(purple|teal|rose|amber|red)-[0-9]+\/[0-9]+/ },
@@ -55,6 +55,7 @@ module.exports = buildConfig(__dirname, {
 
 		// [Additional Static Safes] @h0lybyte
 		'bg-gradient-to-br',
+		'from-zinc-500', 'to-stone-900',
 		'from-purple-600', 'to-indigo-800',
 		'from-teal-500', 'to-cyan-600',
 		'from-rose-500', 'to-pink-600',

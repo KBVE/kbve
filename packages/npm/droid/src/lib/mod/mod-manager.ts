@@ -22,6 +22,21 @@ export async function getModManager(): Promise<ModManager> {
 		const id = `${meta.name}@${meta.version}`;
 		console.log(`[mod-manager] ${id} is loaded.`);
 
+		// const modEventName = `kbve:droid-${meta.name}-ready`;
+		// const event = new CustomEvent(modEventName, {
+		// 	detail: {
+		// 		meta,
+		// 		timestamp: Date.now(),
+		// 	},
+		// });
+		// window.dispatchEvent(event);
+
+		// const camelName = meta.name.replace(/[-_](\w)/g, (_, c) => c.toUpperCase());
+		// if (!window.kbve) {
+		// 	window.kbve = {} as KBVEGlobal;
+		// }
+		// window.kbve[`droid${camelName[0].toUpperCase()}${camelName.slice(1)}Ready`] = true;
+
 		const handle: ModHandle = { id, worker, instance, meta, url };
 		registry[id] = handle;
 		return handle;
