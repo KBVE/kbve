@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import svelte, { vitePreprocess } from '@astrojs/svelte';
+import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
 import mdx from '@astrojs/mdx';
@@ -161,6 +162,7 @@ export default defineConfig({
         //alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
         //partytown(),
         worker(),
+        react(),
         svelte(),
 
         AstroPWA({

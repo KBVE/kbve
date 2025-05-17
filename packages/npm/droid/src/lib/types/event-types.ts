@@ -16,8 +16,12 @@ export const PanelEventSchema = z.object({
 	payload: z.any().optional(),
 });
 
+export const DroidReadySchema = z.object({
+	timestamp: z.number(),
+});
+
 export const DroidEventSchemas = {
-	'droid-ready': z.undefined(), 
+	'droid-ready': DroidReadySchema, 
 	'droid-mod-ready': DroidModReadySchema,
 	'panel-open': PanelEventSchema,
 	'panel-close': PanelEventSchema,
@@ -26,3 +30,6 @@ export const DroidEventSchemas = {
 export type DroidEventMap = {
 	[K in keyof typeof DroidEventSchemas]: z.infer<(typeof DroidEventSchemas)[K]>;
 };
+
+export type EventKey = keyof DroidEventMap;
+export type EventHandler<K extends EventKey> = (payload: DroidEventMap[K]) => void;

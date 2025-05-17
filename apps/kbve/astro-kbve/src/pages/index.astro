@@ -51,15 +51,15 @@ const glassTiles = [
 
 <script is:inline>
 	async function injectBentoTileFromFooter() {
-		// while (
-		// 	!window.kbve?.mod ||
-		// 	Object.keys(window.kbve.mod.registry).length === 0
-		// ) {
-		// 	console.log('[Injection]: Mod Not Found');
-		// 	await new Promise((r) => setTimeout(r, 100));
-		// }
+		while (
+			!window.kbve?.mod ||
+			Object.keys(window.kbve.mod.registry).length === 0
+		) {
+			console.log('[Injection]: Mod Not Found');
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
 
-		const modId = Object.keys(window.kbve?.mod?.registry || {}).find((id) =>
+		const modId = Object.keys(window.kbve.mod.registry).find((id) =>
 			id.startsWith('bento@')
 		);
 
@@ -71,6 +71,7 @@ const glassTiles = [
 		const bento = window.kbve.mod.registry[modId];
 
 		if (bento?.instance?.run) {
+			console.log('[Footer] Injecting Bento Tile');
 			bento.instance.run({
 				title: 'Vanilla Triggered',
 				icon: '🔗',
@@ -82,69 +83,12 @@ const glassTiles = [
 				span: 'md:col-span-6 md:row-span-6',
 				className:
 					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50',
-				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
-			});
-			bento.instance.run({
-				title: 'Vanilla Triggered',
-				icon: '🔗',
-				subtitle: 'From outside the ecosystem',
-				description: 'This tile was triggered via vanilla JS.',
-				primaryColor: 'teal-500',
-				secondaryColor: 'cyan-600',
-				variant: 'default',
-				span: 'md:col-span-3 md:row-span-3',
-				className:
-					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50',
-				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
-			});
-
-			bento.instance.run({
-				title: 'Vanilla Triggered',
-				icon: '🔗',
-				subtitle: 'From outside the ecosystem',
-				description: 'This tile was triggered via vanilla JS.',
-				primaryColor: 'zinc-500',
-				secondaryColor: 'stone-900',
-				variant: 'default',
-				span: 'md:col-span-1 md:row-span-1',
-				className:
-					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50 text-neutral-300',
-				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
-			});
-
-			bento.instance.run({
-				title: 'Vanilla Triggered',
-				icon: '🔗',
-				subtitle: 'From outside the ecosystem',
-				description: 'This tile was triggered via vanilla JS.',
-				primaryColor: 'zinc-500',
-				secondaryColor: 'stone-900',
-				variant: 'default',
-				span: 'md:col-span-1 md:row-span-1',
-				className:
-					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50 text-neutral-300',
-				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
-			});
-
-			bento.instance.run({
-				title: 'Vanilla Triggered',
-				icon: '🔗',
-				subtitle: 'From outside the ecosystem',
-				description: 'This tile was triggered via vanilla JS.',
-				primaryColor: 'zinc-500',
-				secondaryColor: 'stone-900',
-				variant: 'default',
-				span: 'md:col-span-1 md:row-span-1',
-				className:
-					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50 text-neutral-300 hover:from-cyan-500 hover:border hover:scale-[1.03] ease-in-out duration-300',
-				onclick: `window.kbve?.uiux?.openPanel?.('right', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
+				onclick: `window.kbve?.uiux?.openPanel?.('bottom', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
 			});
 		} else {
 			console.warn('[Footer] Bento mod loaded, but run() not available');
 		}
 	}
 
-	///document.addEventListener('astro:page-load', injectBentoTileFromFooter);
-	window.addEventListener('kbve:droid-bento-ready', injectBentoTileFromFooter);
-
+	document.addEventListener('astro:page-load', injectBentoTileFromFooter);
 </script>

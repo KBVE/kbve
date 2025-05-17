@@ -266,6 +266,7 @@
 		"react-native-webview": "^13.12.5",
 		"react-resizable-panels": "^2.1.6",
 		"react-spring": "^9.7.4",
+		"react-unity-webgl": "^9.8.0",
 		"recharts": "^2.13.3",
 		"reflect-metadata": "^0.1.14",
 		"rehype-mermaid": "^3.0.0",
