@@ -1,7 +1,16 @@
 /** @jsxImportSource react */
 import { Unity, useUnityContext } from 'react-unity-webgl';
+import { useEffect } from 'react';
+// import { useStore } from '@nanostores/react';
+//import { $deployable } from './store';
+import { registerUnityBridge, unregisterUnityBridge } from './bridge';
+
 
 export default function UnityPlayer() {
+
+  //const deployable = useStore($deployable);
+
+  
   const { unityProvider, loadingProgression, isLoaded } = useUnityContext({
     loaderUrl: 'https://unity.rareicon.com/Build/WebGL.loader.js',
     dataUrl: 'https://unity.rareicon.com/Build/WebGL.data',
@@ -9,6 +18,11 @@ export default function UnityPlayer() {
     codeUrl: 'https://unity.rareicon.com/Build/WebGL.wasm',
     streamingAssetsUrl: 'https://unity.rareicon.com/StreamingAssets'
   });
+
+  useEffect(() => {
+    registerUnityBridge();
+    return unregisterUnityBridge;
+  }, []);
 
   return (
     <>
