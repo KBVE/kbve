@@ -95,10 +95,16 @@ namespace KBVE.MMExtensions.Ai
       base.Awake();
     }
 
-    protected void OnEnable()
+    // protected void OnEnable()
+    // {
+    //   this.MMEventStartListening<PickableItemEvent>();
+    // }
+    protected override void OnEnable()
     {
-      this.MMEventStartListening<PickableItemEvent>();
+        base.OnEnable();
+        this.MMEventStartListening<PickableItemEvent>();
     }
+    
 
     protected void OnDisable()
     {
