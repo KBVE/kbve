@@ -1,0 +1,67 @@
+---
+import HeroInteractive from './HeroInteractive';
+---
+
+<section
+	class="relative bg-gradient-to-b from-zinc-900 to-zinc-800 text-white py-24 px-6 sm:px-12 overflow-hidden"
+	aria-label="Hero section: Introduction to KBVE">
+	<div
+		class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+		<!-- [Astro] LEFT COLUMN: Text Content -->
+		<header
+			class="space-y-6 text-center md:text-left"
+			aria-labelledby="hero-title">
+			<h1
+				id="hero-title"
+				class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
+				Welcome to <span class="text-cyan-500">KBVE</span>
+			</h1>
+			<p
+				class="text-lg sm:text-xl text-zinc-300 max-w-xl mx-auto md:mx-0"
+				aria-label="KBVE description">
+				From cloud-native development to competitive gaming, we're here
+				to help you level up! Whether you're containerizing apps or
+				climbing ranked, our community's got your back.
+			</p>
+		</header>
+
+		<div
+			class="flex justify-center md:justify-end relative"
+			id="hero-interactive-wrapper">
+			<!-- [Astro] Spinner shown by default -->
+			<div
+				id="hero-spinner"
+				class="absolute inset-0 flex items-center justify-center">
+				<svg
+					class="h-8 w-8 animate-spin text-cyan-400"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					role="status"
+					aria-label="Loading">
+					<circle
+						class="opacity-25"
+						cx="12"
+						cy="12"
+						r="10"
+						stroke="currentColor"
+						stroke-width="4">
+					</circle>
+					<path
+						class="opacity-75"
+						fill="currentColor"
+						d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+					</path>
+				</svg>
+			</div>
+
+			<!-- React Component -->
+			<HeroInteractive client:only="react" />
+		</div>
+	</div>
+</section>
+
+<div
+	class="relative bg-gradient-to-b from-zinc-800 via-zinc-900 to-stone-950 h-16 w-full"
+	aria-hidden="true">
+</div>
