@@ -11,6 +11,8 @@ namespace KBVE.MMExtensions.Editor.Tilemap
         {
             base.OnInspectorGUI();
 
+            EditorGUILayout.Space();
+
             var baker = (TilemapOccupancyBaker)target;
 
             EditorGUILayout.Space();
@@ -18,6 +20,12 @@ namespace KBVE.MMExtensions.Editor.Tilemap
             {
                 baker.Bake();
             }
+
+            EditorGUILayout.Space(12);
+            EditorSupport.DrawSupportButtons();
+
+            EditorGUILayout.Space();
+            EditorGithubIssues.DrawUnityIssues();
         }
     }
 }
