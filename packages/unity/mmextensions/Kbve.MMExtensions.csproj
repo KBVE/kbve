@@ -74,6 +74,10 @@
   </Reference>
 </ItemGroup>
 
+<ItemGroup>
+  <Compile Include="$(MMTopDownPath)\**\*.cs" Condition="'$(OS)' == 'Windows_NT'" />
+  <Compile Include="$(MMTopDownPath)/**/*.cs" Condition="'$(OS)' != 'Windows_NT'" />
+</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />

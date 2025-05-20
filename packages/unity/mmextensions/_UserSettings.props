@@ -29,4 +29,16 @@
     <!-- Exclude your dev package -->
     <KbvePackageExclude>$(UnityProjectRoot)/Library/PackageCache/$(KbvePackageId)/**/*.cs</KbvePackageExclude>
   </PropertyGroup>
+
+  <!-- More Mountains -->
+
+    <PropertyGroup>
+        <MMTopDownPath>$(UnityProjectRoot)\Assets\TopDownEngine</MMTopDownPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+        <MMTopDownPath>$(UnityProjectRoot)/Assets/TopDownEngine</MMTopDownPath>
+    </PropertyGroup>
+
+
 </Project>
