@@ -92,5 +92,36 @@ namespace KBVE.MMExtensions.Editor
         {
             return EditorPrefs.GetString(LogoTimestampKey, "never");
         }
+
+
+         /// <summary>
+        /// Draws standardized KBVE help buttons for Discord and GitHub support.
+        /// </summary>
+        public static void DrawSupportButtons()
+        {
+            Texture2D logo = LoadKbveLogo();
+
+            GUILayout.BeginVertical("box");
+            GUILayout.Label("Need Help?", EditorStyles.boldLabel);
+
+            DrawHelpButton(logo, "Ask Fudster", "https://kbve.com/discord/");
+            GUILayout.Space(4);
+            DrawHelpButton(logo, "Report an Error", "https://github.com/KBVE/kbve/issues/new?template=unity_report.md");
+
+            GUILayout.EndVertical();
+        }
+
+        private static void DrawHelpButton(Texture2D logo, string label, string url)
+        {
+            GUILayout.BeginHorizontal();
+
+            if (logo != null)
+                GUILayout.Label(logo, GUILayout.Width(24), GUILayout.Height(24));
+
+            if (GUILayout.Button(label, GUILayout.Height(24)))
+                Application.OpenURL(url);
+
+            GUILayout.EndHorizontal();
+        }
     }
 }
