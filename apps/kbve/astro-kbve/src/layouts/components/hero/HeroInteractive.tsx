@@ -1,32 +1,33 @@
 /** @jsxImportSource react */
-import { useEffect, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, SoftShadows, Environment } from '@react-three/drei';
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+
 
 export default function HeroInteractive(): JSX.Element {
-  const [revealed, setRevealed] = useState(false);
+	const [revealed, setRevealed] = useState(false);
 
-  useEffect(() => {
-    // Hide skeleton spinner once React is mounted
-    const spinner = document.getElementById('hero-spinner');
-    if (spinner) {
-      spinner.remove();
-    }
+	useEffect(() => {
+		const spinner = document.getElementById('hero-spinner');
+		if (spinner) {
+			spinner.remove();
+		}
 
-    const timeout = setTimeout(() => setRevealed(true), 500);
-    return () => clearTimeout(timeout);
-  }, []);
+		const timeout = setTimeout(() => setRevealed(true), 500);
+		return () => clearTimeout(timeout);
+	}, []);
 
-  return (
-    <div
-      className="transition-opacity duration-700 ease-out"
-      style={{ opacity: revealed ? 1 : 0 }}
-    >
-      <button
-        className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg animate-bounce"
-        onClick={() => alert("Let's build something awesome!")}
-        aria-label="Join KBVE"
-      >
-        Join the Journey 🚀
-      </button>
-    </div>
-  );
+	return (
+		<div
+			className="transition-opacity duration-700 ease-out"
+			style={{ opacity: revealed ? 1 : 0 }}>
+			<button
+				className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg animate-bounce"
+				onClick={() => alert("Let's build something awesome!")}
+				aria-label="Join KBVE">
+				Join the Journey 🚀
+			</button>
+		</div>
+	);
 }
