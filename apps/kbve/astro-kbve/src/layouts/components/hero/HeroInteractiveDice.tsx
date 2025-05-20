@@ -1,38 +1,52 @@
 /** @jsxImportSource react */
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
-import { useRef, useState, useEffect } from 'react';
-import * as THREE from 'three';
-import { useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
+import * as THREE from 'three';
+import { useRef, useState, useEffect } from 'react';
 
 type Vec3 = [number, number, number];
 
-const faceRotations: Record<number, THREE.Euler> = {
-	1: new THREE.Euler(0, 0, 0), // 1 up
-	2: new THREE.Euler(Math.PI, 0, 0), // 2 up
-	3: new THREE.Euler(Math.PI / 2, 0, 0), // 3 up
-	4: new THREE.Euler(-Math.PI / 2, 0, 0), // 4 up
-	5: new THREE.Euler(0, 0, -Math.PI / 2), // 5 up
-	6: new THREE.Euler(0, 0, Math.PI / 2), // 6 up
+type DiceFace = {
+	value: number;
+	texture: string;
+	rotation: THREE.Euler;
 };
 
-const faceTextures = [
-	'/assets/items/set/dice/dice3.png', // right
-	'/assets/items/set/dice/dice4.png', // left
-	'/assets/items/set/dice/dice1.png', // top (✅ 1-up)
-	'/assets/items/set/dice/dice6.png', // bottom
-	'/assets/items/set/dice/dice2.png', // front
-	'/assets/items/set/dice/dice5.png', // back
-];
+const diceFaceMap: Record<number, DiceFace> = {
+	1: {
+		value: 1,
+		texture: '/assets/items/set/dice/dice1.png',
+		rotation: new THREE.Euler(Math.PI / 2, 0, 0), // top → front
+	},
+	2: {
+		value: 2,
+		texture: '/assets/items/set/dice/dice2.png',
+		rotation: new THREE.Euler(0, 0, 0), // front stays front
+	},
+	3: {
+		value: 3,
+		texture: '/assets/items/set/dice/dice3.png',
+		rotation: new THREE.Euler(0, Math.PI, 0), // back → front
+	},
+	4: {
+		value: 4,
+		texture: '/assets/items/set/dice/dice4.png',
+		rotation: new THREE.Euler(0, -Math.PI / 2, 0), // right → front
+	},
+	5: {
+		value: 5,
+		texture: '/assets/items/set/dice/dice5.png',
+		rotation: new THREE.Euler(0, Math.PI / 2, 0), // left → front
+	},
+	6: {
+		value: 6,
+		texture: '/assets/items/set/dice/dice6.png',
+		rotation: new THREE.Euler(-Math.PI / 2, 0, 0), // bottom → front
+	},
+};
 
-function getRandomRotation(): THREE.Euler {
-	return new THREE.Euler(
-		Math.PI * 2 * Math.random(),
-		Math.PI * 2 * Math.random(),
-		Math.PI * 2 * Math.random(),
-	);
-}
+const materialFaceOrder = [3, 4, 1, 6, 2, 5]; // right, left, top, bottom, front, back → face numbers
 
 function Die({
 	position,
@@ -45,44 +59,73 @@ function Die({
 }) {
 	const mesh = useRef<THREE.Mesh>(null);
 	const [faceValue, setFaceValue] = useState(1);
-	const targetRotation = useRef(faceRotations[1]);
-	const textures = useLoader(TextureLoader, faceTextures);
+	const targetRotation = useRef(diceFaceMap[1].rotation);
+	const textures = useLoader(
+		TextureLoader,
+		Object.values(diceFaceMap).map((face) => face.texture),
+	);
+
+	const rotationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [rolling, setRolling] = useState(false);
+	const spinStartTime = useRef(0);
+
+	// useEffect(() => {
+	// 	const value = Math.floor(Math.random() * 6) + 1;
+	// 	const face = diceFaceMap[value];
+	// 	setFaceValue(value);
+	// 	targetRotation.current = face.rotation;
+	// 	onRolled?.(value);
+	// }, [rollTrigger]);
 
 	useEffect(() => {
+		setRolling(true);
+		spinStartTime.current = performance.now();
+
 		const value = Math.floor(Math.random() * 6) + 1;
+		const face = diceFaceMap[value];
 		setFaceValue(value);
-		targetRotation.current = faceRotations[value];
-		onRolled?.(value);
+
+		if (rotationTimer.current) clearTimeout(rotationTimer.current);
+		rotationTimer.current = setTimeout(() => {
+			targetRotation.current = face.rotation;
+			setRolling(false);
+			onRolled?.(value);
+		}, 750);
 	}, [rollTrigger]);
 
 	useFrame(() => {
-		if (mesh.current) {
+		if (!mesh.current) return;
+
+		if (rolling) {
+			mesh.current.rotation.x += 0.3;
+			mesh.current.rotation.y += 0.35;
+			mesh.current.rotation.z += 0.2;
+		} else {
 			mesh.current.rotation.x = THREE.MathUtils.lerp(
 				mesh.current.rotation.x,
 				targetRotation.current.x,
-				0.1,
+				0.2,
 			);
 			mesh.current.rotation.y = THREE.MathUtils.lerp(
 				mesh.current.rotation.y,
 				targetRotation.current.y,
-				0.1,
+				0.2,
 			);
 			mesh.current.rotation.z = THREE.MathUtils.lerp(
 				mesh.current.rotation.z,
 				targetRotation.current.z,
-				0.1,
+				0.2,
 			);
 		}
 	});
-
 	return (
 		<mesh ref={mesh} position={position} castShadow>
 			<boxGeometry args={[1, 1, 1]} />
-			{textures.map((tex, i) => (
+			{materialFaceOrder.map((faceNum, i) => (
 				<meshStandardMaterial
 					key={i}
 					attach={`material-${i}`}
-					map={tex}
+					map={textures[faceNum - 1]}
 				/>
 			))}
 		</mesh>
@@ -99,7 +142,7 @@ function DiceScene({
 	const resultRef = useRef<number[]>([1, 1, 1, 1]);
 
 	useEffect(() => {
-		resultRef.current = [1, 1, 1, 1]; // reset
+		resultRef.current = [1, 1, 1, 1];
 	}, [rollTrigger]);
 
 	const handleRoll = (index: number) => (val: number) => {
@@ -142,6 +185,7 @@ function DiceScene({
 				<planeGeometry args={[20, 20]} />
 				<shadowMaterial transparent opacity={0.2} />
 			</mesh>
+
 			<OrbitControls enableZoom={false} />
 			<Environment preset="city" />
 		</>
@@ -180,14 +224,14 @@ export default function HeroInteractive(): JSX.Element {
 					/>
 				</Canvas>
 			</div>
-			<div className="mt-6 flex justify-center">
+			<div className="mt-6 flex flex-row items-center">
 				<button
 					onClick={handleRoll}
 					className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
 					aria-label="Roll the dice">
 					Roll the Dice 🎲
 				</button>
-				<div className="mt-4 text-center text-zinc-200 text-lg">
+				<div className="mt-4 text-zinc-200 text-lg">
 					{diceResults.length > 0 && (
 						<p>
 							You rolled:{' '}
