@@ -6,14 +6,22 @@ namespace KBVE.MMExtensions.Map
     public class TilemapOccupancyData : ScriptableObject
     {
         public Vector2Int size;
-        public bool[]? data;
-        public bool Get(int x, int y) => data != null && y * size.x + x < data.Length && data[y * size.x + x];
-        public void Set(int x, int y, bool value)
+        public bool[] data;
+
+        public bool Get(int x, int y)
         {
-            if (data != null && y * size.x + x < data.Length)
-                data[y * size.x + x] = value;
+            if (data == null || x < 0 || y < 0 || x >= size.x || y >= size.y)
+                return false;
+
+            return data[y * size.x + x];
         }
 
+        public void Set(int x, int y, bool value)
+        {
+            if (data == null || x < 0 || y < 0 || x >= size.x || y >= size.y)
+                return;
+
+            data[y * size.x + x] = value;
+        }
     }
 }
-    

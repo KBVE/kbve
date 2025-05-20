@@ -15,8 +15,11 @@ namespace KBVE.MMExtensions.Map
     {
         public Tilemap targetTilemap;
         public Vector3Int size = new Vector3Int(10, 10, 1);
+        public Vector3Int originOffset = Vector3Int.zero;
+        public Color gizmoColor = new Color(1f, 0f, 0f, 0.5f);
         public TilemapOccupancyData outputData;
 
+        [ContextMenu("Bake Tile Occupancy")]
         public void Bake()
         {
             if (targetTilemap == null)
@@ -30,17 +33,24 @@ namespace KBVE.MMExtensions.Map
             {
                 string sceneName = gameObject.scene.name;
                 string objectName = gameObject.name;
-                string fileName = $"{sceneName}_{objectName}_occupancy.asset";
-
                 string folderPath = "Assets/Data/OccupancyMaps";
+
+                if (!AssetDatabase.IsValidFolder("Assets/Data"))
+                    AssetDatabase.CreateFolder("Assets", "Data");
                 if (!AssetDatabase.IsValidFolder(folderPath))
+                    AssetDatabase.CreateFolder("Assets/Data", "OccupancyMaps");
+
+                string fileName = $"{sceneName}_{objectName}_occupancy.asset";
+                string fullPath = Path.Combine(folderPath, fileName);
+
+\               if (File.Exists(fullPath))
                 {
-                    Directory.CreateDirectory(folderPath);
-                    AssetDatabase.Refresh();
+                    string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                    fileName = $"{sceneName}_{objectName}_occupancy_{timestamp}.asset";
+                    fullPath = Path.Combine(folderPath, fileName);
                 }
 
                 outputData = ScriptableObject.CreateInstance<TilemapOccupancyData>();
-                string fullPath = Path.Combine(folderPath, fileName);
                 AssetDatabase.CreateAsset(outputData, fullPath);
                 AssetDatabase.SaveAssets();
 
@@ -52,7 +62,9 @@ namespace KBVE.MMExtensions.Map
             outputData.data = new bool[size.x * size.y];
 
             BoundsInt bounds = new BoundsInt(
-                targetTilemap.origin.x, targetTilemap.origin.y, 0,
+                targetTilemap.origin.x + originOffset.x,
+                targetTilemap.origin.y + originOffset.y,
+                0,
                 size.x, size.y, 1
             );
 
@@ -75,11 +87,28 @@ namespace KBVE.MMExtensions.Map
         }
 
 #if UNITY_EDITOR
+        [ContextMenu("Log Occupancy Grid")]
+        public void LogOccupancy()
+        {
+            if (outputData == null || outputData.data == null) return;
+
+            Debug.Log($"[TilemapOccupancyBaker] Occupancy Grid for {gameObject.name}:");
+            for (int y = outputData.size.y - 1; y >= 0; y--)
+            {
+                string row = "";
+                for (int x = 0; x < outputData.size.x; x++)
+                {
+                    row += outputData.Get(x, y) ? "■" : "·";
+                }
+                Debug.Log(row);
+            }
+        }
+
         private void OnDrawGizmosSelected()
         {
             if (outputData == null || outputData.data == null || targetTilemap == null) return;
 
-            Gizmos.color = Color.red;
+            Gizmos.color = gizmoColor;
             Vector3 cellSize = targetTilemap.cellSize;
 
             for (int x = 0; x < outputData.size.x; x++)
@@ -88,7 +117,11 @@ namespace KBVE.MMExtensions.Map
                 {
                     if (outputData.Get(x, y))
                     {
-                        Vector3Int cell = new Vector3Int(targetTilemap.origin.x + x, targetTilemap.origin.y + y, 0);
+                        Vector3Int cell = new Vector3Int(
+                            targetTilemap.origin.x + originOffset.x + x,
+                            targetTilemap.origin.y + originOffset.y + y,
+                            0
+                        );
                         Vector3 world = targetTilemap.CellToWorld(cell) + cellSize / 2;
                         Gizmos.DrawWireCube(world, cellSize * 0.9f);
                     }
