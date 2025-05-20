@@ -115,8 +115,13 @@ namespace KBVE.MMExtensions.Editor
         {
             GUILayout.BeginHorizontal();
 
-            if (logo != null)
-                GUILayout.Label(logo, GUILayout.Width(24), GUILayout.Height(24));
+           if (logo != null)
+            {
+                float scale = 1.0f;
+                float logoWidth = logo.width * scale;
+                float logoHeight = logo.height * scale;
+                GUILayout.Label(logo, GUILayout.Width(logoWidth), GUILayout.Height(logoHeight));
+            }
 
             if (GUILayout.Button(label, GUILayout.Height(24)))
                 Application.OpenURL(url);
