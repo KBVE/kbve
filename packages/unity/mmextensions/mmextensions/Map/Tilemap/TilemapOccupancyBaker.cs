@@ -43,7 +43,7 @@ namespace KBVE.MMExtensions.Map
                 string fileName = $"{sceneName}_{objectName}_occupancy.asset";
                 string fullPath = Path.Combine(folderPath, fileName);
 
-\               if (File.Exists(fullPath))
+               if (File.Exists(fullPath))
                 {
                     string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
                     fileName = $"{sceneName}_{objectName}_occupancy_{timestamp}.asset";
