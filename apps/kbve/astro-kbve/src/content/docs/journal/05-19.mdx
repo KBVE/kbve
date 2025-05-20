@@ -24,6 +24,40 @@ tags:
 -   07:33AM
 
     To be safe, I am going to trigger a build for the vcontainer and see if there might be any issues on the webgl build.
+    Damn I just made a mistake, forgot to include the scene, ugh, I will run another build again later today.
+
+-   09:18AM
+
+    The next update should focus on making sure the newly generated room gets linked with the seed room.
+    While the current script that generates the room seems to overlap the first prefab with the seed room, which can be an easy fix.
+    The anchor needs to follow the exit but also we might have to look at another way of building the said rooms.
+    One of the errors that I did recently notice was that the RareIcon Crawler was not placed under the grid, which could have caused issues with the generation.
+
+-   10:52AM
+
+    Looping back around we can make some minor changes again to the logic that we are using for the VContainer lifetimes.
+    We should run an `IStartable` that will scan specific tilemaps, to build a basic history of the tiles that are going to be placed.
+    Omg, I am way too slow, I just realized that I could just bake the data that is in the scene!
+    This could make things easier in the long term, ideally allowing us to make sure that the generated maps do not affect our home base.
+
+### Unity TileMap Baking
+
+-   11:29AM
+
+    For baking the tilemap, we will have three files to help with the flow and management!
+    Since we are still in the experimental stage, I will keep this all inside of the `Assets/Dungeon` for the time being, atleast until we got something really operational.
+
+### MMExtension Migration of Map v1
+
+-   09:19PM
+
+    Moving the basic script that holds our map generator and item deployment into the MMExtensions, this way we can keep things in sync!
+    I fixed the csproj file to reference the Unity and the modules that we are using, hopefully this will make it easier to manage the extension without having to open Unity itself.
+
+-   09:47PM
+
+    All the files are migrated and now we can look through any issues that we might have!
+    After loading and updating the script based off what we have, then we can move forward with the bake migration.
 
 ## 2024
 

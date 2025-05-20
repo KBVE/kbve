@@ -5,6 +5,7 @@
       "UniTask",
       "Cysharp.Threading.Tasks",
       "Unity.Collections",
+      "Unity.ResourceManager",
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
       "MoreMountains.Feedbacks",
