@@ -1,0 +1,32 @@
+<Project>
+  <!-- Shared defaults -->
+  <PropertyGroup>
+    <UnityVersion>6000.0.25f1</UnityVersion>
+    <UnityRootWindows>C:\Program Files\Unity\Hub\Editor</UnityRootWindows>
+    <UnityRootMac>/Applications/Unity/Hub/Editor</UnityRootMac>
+
+    <!-- Your local dev package ID to exclude from globbing -->
+    <KbvePackageId>com.kbve.mmextensions</KbvePackageId>
+  </PropertyGroup>
+
+  <!-- Platform-specific paths -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <UnityProjectRoot>C:\Users\kbvec\RareIcon\rareicon</UnityProjectRoot>
+    
+    <!-- Glob all package Runtime files -->
+    <PackageRuntimeGlob>$(UnityProjectRoot)\Library\PackageCache\**\Runtime\**\*.cs</PackageRuntimeGlob>
+    
+    <!-- Exclude your dev package -->
+    <KbvePackageExclude>$(UnityProjectRoot)\Library\PackageCache\$(KbvePackageId)\**\*.cs</KbvePackageExclude>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <UnityProjectRoot>/Users/kbvec/RareIcon/rareicon</UnityProjectRoot>
+
+    <!-- Glob all package Runtime files -->
+    <PackageRuntimeGlob>$(UnityProjectRoot)/Library/PackageCache/**/Runtime/**/*.cs</PackageRuntimeGlob>
+
+    <!-- Exclude your dev package -->
+    <KbvePackageExclude>$(UnityProjectRoot)/Library/PackageCache/$(KbvePackageId)/**/*.cs</KbvePackageExclude>
+  </PropertyGroup>
+</Project>

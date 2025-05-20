@@ -11,6 +11,45 @@
     <OutputType>Library</OutputType>
   </PropertyGroup>
 
+  <Import Project="UserSettings.props" Condition="Exists('UserSettings.props')" />
+
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="UnityEngine">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.CoreModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEditor">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEditor\UnityEditor.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="UnityEngine">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.CoreModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.CoreModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEditor">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEditor/UnityEditor.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+  <!-- PackageCache Runtime source globbing (excluding this project) -->
+  <ItemGroup>
+    <Compile Include="$(PackageRuntimeGlob)" Exclude="$(KbvePackageExclude)" />
+  </ItemGroup>
+
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
