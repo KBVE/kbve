@@ -44,10 +44,35 @@
   </Reference>
 </ItemGroup>
 
+
   <!-- PackageCache Runtime source globbing (excluding this project) -->
   <ItemGroup>
     <Compile Include="$(PackageRuntimeGlob)" Exclude="$(KbvePackageExclude)" />
   </ItemGroup>
+
+  <!-- Tile / Grid -->
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="UnityEngine.TilemapModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.TilemapModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.GridModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.GridModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="UnityEngine.TilemapModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.TilemapModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.GridModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.GridModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
 
 
   <ItemGroup>
