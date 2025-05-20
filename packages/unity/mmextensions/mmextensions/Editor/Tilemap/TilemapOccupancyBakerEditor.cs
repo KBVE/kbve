@@ -23,6 +23,9 @@ namespace KBVE.MMExtensions.Editor.Tilemap
 
             EditorGUILayout.Space(12);
             EditorSupport.DrawSupportButtons();
+
+            EditorGUILayout.Space();
+            EditorGithubIssues.DrawUnityIssues();
         }
     }
 }
