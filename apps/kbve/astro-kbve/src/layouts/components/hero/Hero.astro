@@ -1,44 +1,56 @@
 ---
 //import HeroInteractive from './HeroInteractive';
 import HeroInteractive from './HeroInteractiveDice';
+import HeroSVG from './HeroSVG.astro';
 ---
 
-<section
-	class="relative bg-gradient-to-b from-zinc-900 to-zinc-800 text-white py-24 px-6 sm:px-12 overflow-hidden"
-	aria-label="Hero section: Introduction to KBVE">
-	<div
-		class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-		<!-- [Astro] LEFT COLUMN: Text Content -->
-		<header
-			class="space-y-6 text-center md:text-left"
-			aria-labelledby="hero-title">
-			<h1
-				id="hero-title"
-				class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-				Welcome to <span class="text-cyan-500">KBVE</span>
-			</h1>
-			<p
-				class="text-lg sm:text-xl text-zinc-300 max-w-xl mx-auto md:mx-0"
-				aria-label="KBVE description">
-				From cloud-native development to competitive gaming, we're here
-				to help you level up! Whether you're containerizing apps or
-				climbing ranked, our community's got your back.
-			</p>
-			<div class="space-y-2 text-zinc-900">
-				<script
-					is:inline
-					src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo"
-					data-astro-rerun
-					defer
-				></script>
-				<div class="gcse-searchbox" data-autoCompleteMaxCompletions="5"></div>
-			</div>
-		</header>
 
+<section
+	class="relative text-white py-24 px-6 sm:px-12 "
+	aria-label="Hero section: Introduction to KBVE">
+	<!-- Background SVG -->
+			<div class="absolute -inset-x-12 -inset-y-16 transform opacity-20 pointer-events-none"
+					aria-hidden="true">
+				<HeroSVG />
+			</div>
+	<div
+		class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center z-10">
+
+		<!-- LEFT COLUMN: Text Content with Background SVG -->
+		<div class="relative z-0 bg-gradient-to-b from-stone-950/70 to-zinc-800/70 p-6 rounded-2xl">
+			<!-- Foreground Content -->
+			<header
+				class="relative space-y-6 text-center md:text-left z-10"
+				aria-labelledby="hero-title">
+				<h1
+					id="hero-title"
+					class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
+					Welcome to <span class="text-cyan-500">KBVE</span>
+				</h1>
+				<p
+					class="text-lg sm:text-xl text-zinc-300 max-w-xl mx-auto md:mx-0"
+					aria-label="KBVE description">
+					From cloud-native development to competitive gaming, we're here
+					to help you level up! Whether you're containerizing apps or
+					climbing ranked, our community's got your back.
+				</p>
+				<div class="space-y-2 text-zinc-900">
+					<script
+						is:inline
+						src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo"
+						data-astro-rerun
+						defer
+					></script>
+					<div class="gcse-searchbox" data-autoCompleteMaxCompletions="5"></div>
+				</div>
+			</header>
+		</div>
+
+		<!-- RIGHT COLUMN: HeroInteractive -->
 		<div
-			class="flex justify-center md:justify-end relative h-[300px] sm:h-[400px] md:h-[500px]"
+			class="flex justify-center md:justify-end relative h-[300px] sm:h-[400px] md:h-[500px] mb-4 bg-gradient-to-b from-stone-950/70 to-zinc-800/70 p-6 rounded-2xl"
 			id="hero-interactive-wrapper">
-			<!-- [Astro] Spinner shown by default -->
+			<!-- Spinner shown by default -->
 			<div
 				id="hero-spinner"
 				class="absolute inset-0 flex items-center justify-center">
@@ -67,17 +79,19 @@ import HeroInteractive from './HeroInteractiveDice';
 
 			<!-- React Component -->
 			<HeroInteractive client:only="react" />
+			
 		</div>
 	</div>
 </section>
 
+<!-- Bottom Gradient Strip -->
 <div
-	class="relative bg-gradient-to-b from-zinc-800 via-zinc-900 to-[#0e0d0d] h-16 w-full"
+	class="relative opacity-[0.01] bg-gradient-to-b from-zinc-800/50 via-zinc-900/50 to-[#0e0d0d]/50 h-16 w-full"
 	aria-hidden="true">
 </div>
 
-<div class="relative mx-auto bg-gradient-to-b from-[#0e0d0d] to-stone-950" aria-label="Search Results From Google">
+<!-- Google Search Results -->
+<div class="relative mx-auto bg-gradient-to-b from-[#0e0d0d]/50 to-stone-950/50" aria-label="Search Results From Google">
 	<div class="gcse-searchresults"></div>
 </div>
 <script src="./heroSearch.ts"></script>
-

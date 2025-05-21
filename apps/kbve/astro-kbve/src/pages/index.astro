@@ -6,6 +6,7 @@ import Hero from 'src/layouts/components/hero/Hero.astro';
 import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
 
 import TiltDeck from 'src/layouts/components/deck/tilt/TiltDeck.astro';
+import ClientSection from 'src/layouts/components/section/clientsection/ClientsSection.astro';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
@@ -45,10 +46,14 @@ const glassTiles = [
 ---
 
 <Layout title="KBVE KiloByte Virtual Enterprise">
-
 	<Hero />
 
 	<TiltDeck />
+
+	<ClientSection
+		title="KBVE Community: Where Code Meets Gaming"
+		subTitle="Join fellow developers and gamers in a space where cloud-native solutions meet competitive gaming excellence"
+	/>
 
 	<BentoGrid>
 		{tiles.map((tile) => <BentoTile {...tile} />)}

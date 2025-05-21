@@ -7,21 +7,25 @@ interface Props {
 	title: string;
 	subTitle?: string;
 }
+
+import EclipseSVG from './EclipseSVG.astro';
 ---
 
 <section
-	class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-10 2xl:max-w-full">
+	class="relative isolate z-0 mx-auto max-w-[85rem] px-4 py-6 sm:px-6 lg:px-8 lg:py-8 2xl:max-w-full">
 	<!-- Title and description -->
-	<div>
-		<div
-			class="mx-auto mb-6 w-full space-y-1 text-center sm:w-1/2 lg:w-1/3">
+	<div
+		class="mx-auto mb-8 w-full space-y-2 text-center sm:w-3/4 md:w-2/3 lg:w-1/2">
+		<EclipseSVG />
+		<div class="relative z-10 mx-auto">
 			<h2
-				class="text-balance text-2xl font-bold leading-tight text-neutral-800 dark:text-neutral-200 sm:text-3xl">
+				class="text-balance text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight tracking-tight bg-gradient-to-br from-cyan-400 to-purple-500 bg-clip-text text-transparent drop-shadow-sm transition-all duration-300">
 				{title}
 			</h2>
+
 			{
 				subTitle && (
-					<p class="text-pretty leading-tight text-neutral-600 dark:text-neutral-400">
+					<p class="text-pretty mt-2 text-base sm:text-lg text-neutral-500 dark:text-neutral-400 tracking-wide leading-relaxed max-w-prose mx-auto">
 						{subTitle}
 					</p>
 				)
@@ -38,7 +42,7 @@ interface Props {
 			aria-label="Read more about Javascript applications">
 			<svg
 				class="mx-auto h-auto w-12 py-3 sm:mx-0 lg:w-16 lg:py-5 hover:scale-110 ease-in-out duration-500"
-				style="fill:#6B7280;fill-opacity:1;fill-rule:nonzero;stroke:none"
+				style="fill:#00FFFF;fill-opacity:1;fill-rule:nonzero;stroke:none"
 				version="1.1"
 				xmlns="http://www.w3.org/2000/svg"
 				xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -68,7 +72,7 @@ interface Props {
 			aria-label="Read more about Rust applications">
 			<svg
 				class="mx-auto h-auto w-12 py-3 sm:mx-0 lg:w-16 lg:py-5 hover:scale-110 ease-in-out duration-500"
-				style="fill:#6B7280;fill-opacity:1;fill-rule:nonzero;stroke:none"
+				style="fill:#00FFFF;fill-opacity:1;fill-rule:nonzero;stroke:none"
 				viewBox="0 0 24 24"
 				role="img"
 				xmlns="http://www.w3.org/2000/svg">
@@ -88,7 +92,7 @@ interface Props {
 		<a href="/application/docker/" aria-label="Read more about Docker">
 			<svg
 				class="mx-auto h-auto w-12 py-3 sm:mx-0 lg:w-16 lg:py-5 hover:scale-110 ease-in-out duration-500"
-				style="fill:#6B7280;fill-opacity:1;fill-rule:nonzero;stroke:none"
+				style="fill:#00FFFF;fill-opacity:1;fill-rule:nonzero;stroke:none"
 				viewBox="0 0 48 48"
 				xmlns="http://www.w3.org/2000/svg"
 				fill="#000000"
@@ -162,7 +166,7 @@ interface Props {
 		<a href="/application/python/" aria-label="Read more about Python">
 			<svg
 				class="mx-auto h-auto w-12 py-3 sm:mx-0 lg:w-16 lg:py-5 hover:scale-110 ease-in-out duration-500"
-				style="fill:#6B7280;fill-opacity:1;fill-rule:nonzero;stroke:none"
+				style="fill:#00FFFF;fill-opacity:1;fill-rule:nonzero;stroke:none"
 				version="1.1"
 				xmlns="http://www.w3.org/2000/svg"
 				xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -188,7 +192,7 @@ interface Props {
 		<a href="/application/ml/" aria-label="Read more about ML/AI">
 			<svg
 				class="mx-auto h-auto w-12 py-3 sm:mx-0 lg:w-16 lg:py-5 hover:scale-110 ease-in-out duration-500"
-				style="fill:#6B7280;fill-opacity:1;fill-rule:nonzero;stroke:none"
+				style="fill:#00FFFF;fill-opacity:1;fill-rule:nonzero;stroke:none"
 				viewBox="0 0 32 32"
 				id="icon"
 				xmlns="http://www.w3.org/2000/svg">
