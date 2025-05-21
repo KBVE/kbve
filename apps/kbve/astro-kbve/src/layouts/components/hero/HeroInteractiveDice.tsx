@@ -12,6 +12,8 @@ import {
 	initHeroDice,
 } from './heroDiceStore';
 
+// TODO: Migrate to the shared worker.
+
 const texturePaths = [
 	'/assets/items/set/dice/dice1.png',
 	'/assets/items/set/dice/dice2.png',
@@ -103,7 +105,7 @@ export default function HeroInteractive(): JSX.Element {
 	const state = useStore($heroDiceState);
 
 	useEffect(() => {
-		initHeroDice(); // default init: 4 dice with value 1
+		initHeroDice();
 		const spinner = document.getElementById('hero-spinner');
 		if (spinner) spinner.remove();
 	}, []);
@@ -134,26 +136,59 @@ export default function HeroInteractive(): JSX.Element {
 				</Canvas>
 			</div>
 			<div className="mt-6 flex flex-row space-x-3 items-center">
-				<button
-					onClick={roll}
-					className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50"
-					aria-label="Roll the dice"
-					disabled={state.rolling}>
-					Roll the Dice 🎲
-				</button>
-				<div className="mt-4 text-zinc-200 text-lg">
-					<p>
-						Total roll:{' '}
-						<span className="font-bold text-white">
-							{state.values.reduce((sum, val) => sum + val, 0)}
-						</span>
-					</p>
-					<p>
-						You rolled:{' '}
-						<span className="font-bold text-white">
-							{state.values.join(', ')}
-						</span>
-					</p>
+				<div className="mt-4 text-zinc-200 text-lg text-center min-h-[3rem]">
+					<button
+						onClick={roll}
+						className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-50"
+						aria-label="Roll the dice"
+						disabled={state.rolling}>
+						Roll the Dice 🎲
+					</button>
+				</div>
+
+				<div className="mt-4 text-zinc-200 text-lg text-center min-h-[3rem]">
+					{state.rolling ? (
+						<div className="flex items-center justify-center gap-2">
+							<svg
+								className="animate-spin h-5 w-5 text-cyan-500"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24">
+								<circle
+									className="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									strokeWidth="4"
+								/>
+								<path
+									className="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+								/>
+							</svg>
+							<span className="text-white">Rolling dice...</span>
+						</div>
+					) : (
+						<>
+							<p>
+								Total roll:{' '}
+								<span className="font-bold text-white">
+									{state.values.reduce(
+										(sum, val) => sum + val,
+										0,
+									)}
+								</span>
+							</p>
+							<p>
+								You rolled:{' '}
+								<span className="font-bold text-white">
+									{state.values.join(', ')}
+								</span>
+							</p>
+						</>
+					)}
 				</div>
 			</div>
 		</div>
