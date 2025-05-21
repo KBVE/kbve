@@ -23,58 +23,74 @@ export default function MapApp() {
 	const textRef = useRef<HTMLDivElement>(null);
 	const bgContainerRef = useRef<HTMLDivElement>(null);
 
+	const animateStage = (stage: Stage) => {
+		const tl = gsap.timeline();
+
+		// Animate paths like original
+		const paths = shapeRefs.current.flat();
+		paths.forEach((p, i) => {
+			const length = p.getTotalLength();
+			gsap.set(p, {
+				drawSVG: i % 2 === 0 ? '75% 100%' : '25% 0%',
+				strokeDasharray: length
+			});
+		});
+
+		tl.to(paths, {
+			drawSVG: '0% 100%',
+			duration: 1.4,
+			stagger: 0.05,
+			ease: 'power3.inOut'
+		});
+
+		// Animate text position
+		if (textRef.current) {
+			tl.to(textRef.current, {
+				y: stage === 'map' ? -50 : 0,
+				opacity: 1,
+				duration: 0.8,
+				ease: 'power2.out'
+			}, '<');
+		}
+
+		// Animate background
+		const container = bgContainerRef.current;
+		if (container) {
+			const img = document.createElement('img');
+			img.src = BG_IMAGES[stage];
+			img.className = 'absolute inset-0 w-full h-full object-cover';
+			img.style.opacity = '0';
+			container.appendChild(img);
+
+			tl.to(img, {
+				opacity: 0.1,
+				scale: 1,
+				rotate: 0,
+				duration: 1.5,
+				ease: 'power4.out',
+				transformOrigin: 'center',
+				onComplete: () => {
+					Array.from(container.children).forEach((child, idx, arr) => {
+						if (idx < arr.length - 1) container.removeChild(child);
+					});
+				}
+			}, '<');
+		}
+	};
+
 	const transitionToNextStage = () => {
-		const nextIndex = (stageIndex + 1) % STAGES.length;
-		setStageIndex(nextIndex);
-		animateStageTransition(STAGES[nextIndex]);
+		const next = (stageIndex + 1) % STAGES.length;
+		setStageIndex(next);
+		animateStage(STAGES[next]);
 	};
 
 	useEffect(() => {
-		animateStageTransition(stage);
+		animateStage(stage);
 	}, []);
-
-	const animateStageTransition = (nextStage: Stage) => {
-		const container = bgContainerRef.current;
-		if (!container) return;
-
-		const newImage = document.createElement('img');
-		newImage.src = BG_IMAGES[nextStage];
-		newImage.className = 'absolute inset-0 w-full h-full object-cover';
-		newImage.style.opacity = '0';
-		container.appendChild(newImage);
-
-		gsap.to(newImage, {
-			opacity: 0.1,
-			scale: 1,
-			rotate: 0,
-			duration: 1.5,
-			transformOrigin: 'center',
-			ease: 'power4.out',
-			onComplete: () => {
-				Array.from(container.children).forEach((child, idx, arr) => {
-					if (idx < arr.length - 1) container.removeChild(child);
-				});
-			}
-		});
-	};
 
 	useGSAP(() => {
-		const paths = shapeRefs.current.flat();
-		paths.forEach((path) => {
-			const length = path.getTotalLength();
-			gsap.set(path, {
-				drawSVG: '0% 0%',
-				strokeDasharray: length,
-				strokeDashoffset: length
-			});
-			gsap.to(path, {
-				drawSVG: '100%',
-				duration: 2,
-				ease: 'power2.out',
-				stagger: 0.1
-			});
-		});
-	}, []);
+		animateStage(stage);
+	}, [stage]);
 
 	return (
 		<div className="relative bg-black text-white overflow-hidden">
@@ -92,7 +108,7 @@ export default function MapApp() {
 					viewBox="0 0 1054.9 703.6"
 					xmlns="http://www.w3.org/2000/svg">
 					{[0, 1, 2, 3].map((groupIdx) => (
-						<g key={`g${groupIdx}`} id={`g${groupIdx + 1}`}> 
+						<g key={`g${groupIdx}`} id={`g${groupIdx + 1}`}>
 							<path
 								ref={(el) => el && shapeRefs.current[groupIdx].push(el)}
 								d="M100 100 C200 50, 300 150, 400 100"
