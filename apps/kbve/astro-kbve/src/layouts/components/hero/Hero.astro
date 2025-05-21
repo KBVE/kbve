@@ -1,7 +1,6 @@
 ---
 //import HeroInteractive from './HeroInteractive';
 import HeroInteractive from './HeroInteractiveDice';
-
 ---
 
 <section
@@ -26,14 +25,18 @@ import HeroInteractive from './HeroInteractiveDice';
 				climbing ranked, our community's got your back.
 			</p>
 			<div class="space-y-2 text-zinc-900">
-				<script is:inline src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo"  data-astro-rerun defer>
-				</script>
-				<div class="gcse-searchbox"></div>
+				<script
+					is:inline
+					src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo"
+					data-astro-rerun
+					defer
+				></script>
+				<div class="gcse-searchbox" data-autoCompleteMaxCompletions="5"></div>
 			</div>
 		</header>
 
 		<div
-			class="flex justify-center md:justify-end relative  h-[300px] sm:h-[400px] md:h-[500px]"
+			class="flex justify-center md:justify-end relative h-[300px] sm:h-[400px] md:h-[500px]"
 			id="hero-interactive-wrapper">
 			<!-- [Astro] Spinner shown by default -->
 			<div
@@ -73,8 +76,7 @@ import HeroInteractive from './HeroInteractiveDice';
 	aria-hidden="true">
 </div>
 
-<div
-	class="relative mx-auto"
-	aria-label="Search Results From Google">
+<div class="relative mx-auto bg-gray-800" aria-label="Search Results From Google">
 	<div class="gcse-searchresults"></div>
 </div>
+<script src="./heroSearch.ts"></script>
