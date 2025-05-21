@@ -285,8 +285,8 @@ importers:
         specifier: ^2.45.5
         version: 2.47.1(phaser@3.88.2)
       gsap:
-        specifier: ^3.12.5
-        version: 3.12.7
+        specifier: ^3.13.0
+        version: 3.13.0
       html-react-parser:
         specifier: ^5.1.18
         version: 5.2.3(@types/react@18.3.18)(react@18.3.1)
@@ -10663,8 +10663,8 @@ packages:
     resolution: {integrity: sha512-M/YrklvVXMtuuj9kb42PxeouZhs7Ul+R4e/31XwrankUcKL8cQQP50Q9q+KEHGyHQaPt6VtKKsxMgLaKbCxeww==}
     hasBin: true
 
-  gsap@3.12.7:
-    resolution: {integrity: sha512-V4GsyVamhmKefvcAKaoy0h6si0xX7ogwBoBSs2CTJwt7luW0oZzC0LhdkyuKV8PJAXr7Yaj8pMjCKD4GJ+eEMg==}
+  gsap@3.13.0:
+    resolution: {integrity: sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw==}
 
   gunzip-maybe@1.4.2:
     resolution: {integrity: sha512-4haO1M4mLO91PW57BMsDFf75UmwoRX0GkdD+Faw+Lr+r/OZrOCS0pIBwOL1xCKQqnQzbNFGgK2V2CpBUPeFNTw==}
@@ -31170,7 +31170,7 @@ snapshots:
       google-protobuf: 3.15.8
       handlebars: 4.7.7
 
-  gsap@3.12.7: {}
+  gsap@3.13.0: {}
 
   gunzip-maybe@1.4.2:
     dependencies:
