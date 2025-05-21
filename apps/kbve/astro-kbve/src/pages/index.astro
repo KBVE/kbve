@@ -5,6 +5,10 @@ import BentoTile from 'src/layouts/components/bento/BentoTile.astro';
 import Hero from 'src/layouts/components/hero/Hero.astro';
 import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
 
+import TiltDeck from 'src/layouts/components/deck/tilt/TiltDeck.astro';
+import ClientSection from 'src/layouts/components/section/clientsection/ClientsSection.astro';
+import MiniMap from 'src/layouts/components/league-minimap/MiniMap.astro';
+
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
 }
@@ -43,8 +47,16 @@ const glassTiles = [
 ---
 
 <Layout title="KBVE KiloByte Virtual Enterprise">
-
 	<Hero />
+
+	<MiniMap />
+	<TiltDeck />
+
+	<ClientSection
+		title="KBVE Community: Where Code Meets Gaming"
+		subTitle="Join fellow developers and gamers in a space where cloud-native solutions meet competitive gaming excellence"
+	/>
+
 	<BentoGrid>
 		{tiles.map((tile) => <BentoTile {...tile} />)}
 
@@ -83,7 +95,7 @@ const glassTiles = [
 				primaryColor: 'teal-500',
 				secondaryColor: 'cyan-600',
 				variant: 'default',
-				span: 'md:col-span-6 md:row-span-6',
+				span: 'md:col-span-1 md:row-span-1',
 				className:
 					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50',
 				onclick: `window.kbve?.uiux?.openPanel?.('bottom', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
