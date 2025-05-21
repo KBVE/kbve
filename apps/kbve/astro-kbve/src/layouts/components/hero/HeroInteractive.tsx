@@ -10,9 +10,7 @@ export default function HeroInteractive(): JSX.Element {
 
 	useEffect(() => {
 		const spinner = document.getElementById('hero-spinner');
-		if (spinner) {
-			spinner.remove();
-		}
+		if (spinner) spinner.style.display = 'none'; 
 
 		const timeout = setTimeout(() => setRevealed(true), 500);
 		return () => clearTimeout(timeout);
