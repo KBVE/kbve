@@ -50,6 +50,8 @@ const glassTiles = [
 
 		{glassTiles.map((glassTile) => <GlassBentoTile {...glassTile} />)}
 	</BentoGrid>
+	
+
 </Layout>
 
 <script is:inline>
@@ -83,7 +85,7 @@ const glassTiles = [
 				primaryColor: 'teal-500',
 				secondaryColor: 'cyan-600',
 				variant: 'default',
-				span: 'md:col-span-6 md:row-span-6',
+				span: 'md:col-span-1 md:row-span-1',
 				className:
 					'hover:drop-shadow-pink-600/60 drop-shadow-rose-500/50',
 				onclick: `window.kbve?.uiux?.openPanel?.('bottom', { title: 'Vanilla Triggered', rawHtml: '<p>This is a test</p>' })`,
