@@ -5,7 +5,7 @@ import BentoTile from 'src/layouts/components/bento/BentoTile.astro';
 import Hero from 'src/layouts/components/hero/Hero.astro';
 import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
 
-import OceanCard from 'src/layouts/components/card/tilt/OceanCard';
+import OceanDeck from 'src/layouts/components/card/tilt/OceanDeck';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
@@ -52,7 +52,7 @@ const glassTiles = [
 
 		{glassTiles.map((glassTile) => <GlassBentoTile {...glassTile} />)}
 	</BentoGrid>
-	<OceanCard />
+	<OceanDeck />
 
 </Layout>
 

@@ -1,9 +1,6 @@
 /** @jsxImportSource react */
 'use client';
 
-// components/OceanCard.tsx
-'use client'
-
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useRef } from 'react'
