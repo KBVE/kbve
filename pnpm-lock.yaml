@@ -26,6 +26,9 @@ importers:
       '@expo/metro-runtime':
         specifier: 4.0.1
         version: 4.0.1(react-native@0.76.7(@babel/core@7.26.10)(@babel/preset-env@7.25.9(@babel/core@7.26.10))(@react-native-community/cli-server-api@18.0.0)(@types/react@18.3.18)(encoding@0.1.13)(react@18.3.1))
+      '@gsap/react':
+        specifier: ^2.1.2
+        version: 2.1.2(gsap@3.13.0)(react@18.3.1)
       '@hcaptcha/react-hcaptcha':
         specifier: ^1.11.0
         version: 1.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2498,6 +2501,12 @@ packages:
   '@fortawesome/fontawesome-free@6.7.2':
     resolution: {integrity: sha512-JUOtgFW6k9u4Y+xeIaEiLr3+cjoUPiAuLXoyKOJSia6Duzb7pq+A76P9ZdPDoAoxHdHzq6gE9/jKBGXlZT8FbA==}
     engines: {node: '>=6'}
+
+  '@gsap/react@2.1.2':
+    resolution: {integrity: sha512-JqliybO1837UcgH2hVOM4VO+38APk3ECNrsuSM4MuXp+rbf+/2IG2K1YJiqfTcXQHH7XlA0m3ykniFYstfq0Iw==}
+    peerDependencies:
+      gsap: ^3.12.5
+      react: '>=17'
 
   '@hapi/hoek@9.3.0':
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
@@ -20013,6 +20022,11 @@ snapshots:
   '@floating-ui/utils@0.2.9': {}
 
   '@fortawesome/fontawesome-free@6.7.2': {}
+
+  '@gsap/react@2.1.2(gsap@3.13.0)(react@18.3.1)':
+    dependencies:
+      gsap: 3.13.0
+      react: 18.3.1
 
   '@hapi/hoek@9.3.0': {}
 

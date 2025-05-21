@@ -146,6 +146,7 @@
 		"@dotlottie/react-player": "^1.6.19",
 		"@expo/metro-config": "0.19.11",
 		"@expo/metro-runtime": "4.0.1",
+		"@gsap/react": "^2.1.2",
 		"@hcaptcha/react-hcaptcha": "^1.11.0",
 		"@hcaptcha/react-native-hcaptcha": "^1.7.2",
 		"@hookform/resolvers": "^3.9.1",
