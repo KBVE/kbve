@@ -4,46 +4,74 @@ import HeroInteractive from './HeroInteractiveDice';
 import HeroSVG from './HeroSVG.astro';
 ---
 
-
 <section
-	class="relative text-white py-24 px-6 sm:px-12 "
+	class="relative text-white py-24 px-6 sm:px-12"
 	aria-label="Hero section: Introduction to KBVE">
 	<!-- Background SVG -->
-			<div class="absolute -inset-x-12 -inset-y-16 transform opacity-20 pointer-events-none"
-					aria-hidden="true">
-				<HeroSVG />
-			</div>
+	<div
+		class="absolute -inset-x-12 -inset-y-16 transform opacity-20 pointer-events-none"
+		aria-hidden="true">
+		<HeroSVG />
+	</div>
 	<div
 		class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center z-10">
-
-		<!-- LEFT COLUMN: Text Content with Background SVG -->
-		<div class="relative z-0 bg-gradient-to-b from-stone-950/70 to-zinc-800/70 p-6 rounded-2xl">
+		<!-- LEFT COLUMN: Text Content with Background SVG and Glassmorphic Card -->
+		<div
+			class="relative z-0 p-6 rounded-3xl bg-white/5 backdrop-blur-md shadow-[inset_0_0_0.5px_0_rgba(255,255,255,0.2),0_20px_40px_rgba(0,0,0,0.4)] ring-1 ring-white/10 hover:shadow-[inset_0_0_1px_0_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300">
 			<!-- Foreground Content -->
 			<header
 				class="relative space-y-6 text-center md:text-left z-10"
 				aria-labelledby="hero-title">
 				<h1
 					id="hero-title"
-					class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-					Welcome to <span class="text-cyan-500">KBVE</span>
+					class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]">
+					Welcome to <span class="text-cyan-400">KBVE</span>
 				</h1>
 				<p
-					class="text-lg sm:text-xl text-zinc-300 max-w-xl mx-auto md:mx-0"
-					aria-label="KBVE description">
-					From cloud-native development to competitive gaming, we're here
-					to help you level up! Whether you're containerizing apps or
-					climbing ranked, our community's got your back.
+					class="text-lg sm:text-xl text-zinc-300 max-w-xl mx-auto md:mx-0">
+					From cloud-native development to competitive gaming, we're
+					here to help you level up! Whether you're containerizing
+					apps or climbing ranked, our community's got your back.
 				</p>
+
+				<!-- Google CSE Searchbox -->
 				<div class="space-y-2 text-zinc-900">
 					<script
 						is:inline
 						src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo"
 						data-astro-rerun
-						defer
-					></script>
-					<div class="gcse-searchbox" data-autoCompleteMaxCompletions="5"></div>
+						defer>
+					</script>
+					<div
+						class="rounded-xl overflow-hidden ring-1 ring-white/20 bg-white/10 backdrop-blur-sm p-2 transition duration-300 hover:shadow-lg h-[50px]">
+						<div class="gcse-searchbox"></div>
+					</div>
 				</div>
 			</header>
+
+			<!-- Optional Background SVG Decoration -->
+			<div class="absolute inset-0 z-[-1] opacity-20">
+				<svg
+					class="absolute -top-12 -left-12 w-[300px] h-[300px] text-cyan-400/20 rotate-[30deg]"
+					viewBox="0 0 100 100"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg">
+					<circle
+						cx="50"
+						cy="50"
+						r="45"
+						stroke="currentColor"
+						stroke-width="2">
+					</circle>
+					<circle
+						cx="50"
+						cy="50"
+						r="35"
+						stroke="currentColor"
+						stroke-width="1.5">
+					</circle>
+				</svg>
+			</div>
 		</div>
 
 		<!-- RIGHT COLUMN: HeroInteractive -->
@@ -79,7 +107,6 @@ import HeroSVG from './HeroSVG.astro';
 
 			<!-- React Component -->
 			<HeroInteractive client:only="react" />
-			
 		</div>
 	</div>
 </section>
@@ -91,7 +118,9 @@ import HeroSVG from './HeroSVG.astro';
 </div>
 
 <!-- Google Search Results -->
-<div class="relative mx-auto bg-gradient-to-b from-[#0e0d0d]/50 to-stone-950/50" aria-label="Search Results From Google">
+<div
+	class="relative mx-auto bg-gradient-to-b from-[#0e0d0d]/50 to-stone-950/50"
+	aria-label="Search Results From Google">
 	<div class="gcse-searchresults"></div>
 </div>
 <script src="./heroSearch.ts"></script>
