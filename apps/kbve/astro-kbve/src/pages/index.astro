@@ -5,7 +5,7 @@ import BentoTile from 'src/layouts/components/bento/BentoTile.astro';
 import Hero from 'src/layouts/components/hero/Hero.astro';
 import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
 
-import OceanDeck from 'src/layouts/components/card/tilt/OceanDeck';
+import TiltDeck from 'src/layouts/components/deck/tilt/TiltDeck.astro';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
@@ -47,13 +47,14 @@ const glassTiles = [
 <Layout title="KBVE KiloByte Virtual Enterprise">
 
 	<Hero />
+
+	<TiltDeck />
+
 	<BentoGrid>
 		{tiles.map((tile) => <BentoTile {...tile} />)}
 
 		{glassTiles.map((glassTile) => <GlassBentoTile {...glassTile} />)}
 	</BentoGrid>
-	<OceanDeck />
-
 </Layout>
 
 <script is:inline>
