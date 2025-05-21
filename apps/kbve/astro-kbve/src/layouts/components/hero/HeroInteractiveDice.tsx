@@ -158,6 +158,9 @@ export default function HeroInteractive(): JSX.Element {
 						<OrbitControls enableZoom={false} />
 					</Canvas>
 				)}
+				{!visible && (
+					<div>!</div>
+				)}
 			</div>
 			<div className="mt-6 flex flex-row space-x-3 items-center z-40">
 				<div className="mt-4 text-zinc-200 text-lg text-center min-h-[3rem]">

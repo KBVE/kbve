@@ -1,0 +1,24 @@
+---
+import MapApp from './MapApp';
+---
+
+<style>
+  svg path[data-animate] {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: draw-fallback 2s ease forwards;
+  }
+
+  @keyframes draw-fallback {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+</style>
+
+<section class="relative w-full bg-gradient-to-b from-zinc-900 to-zinc-800 py-24 px-6 sm:px-12 overflow-hidden">
+  <div class="max-w-7xl mx-auto">
+    <MapApp client:only="react" />
+    <div id="mapapp"></div>
+  </div>
+</section>
