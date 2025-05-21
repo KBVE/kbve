@@ -5,7 +5,7 @@ import HeroSVG from './HeroSVG.astro';
 ---
 
 <section
-	class="relative text-white py-24 px-6 sm:px-12"
+	class="relative text-white py-6 px-6 sm:px-12"
 	aria-label="Hero section: Introduction to KBVE">
 	<!-- Background SVG -->
 	<div
@@ -50,9 +50,9 @@ import HeroSVG from './HeroSVG.astro';
 			</header>
 
 			<!-- Optional Background SVG Decoration -->
-			<div class="absolute inset-0 z-[-1] opacity-20">
+			<div class="absolute inset-0 z-[-1] opacity-[.7]">
 				<svg
-					class="absolute -top-12 -left-12 w-[300px] h-[300px] text-cyan-400/20 rotate-[30deg]"
+					class="absolute -top-12 -left-12 w-[300px] h-[300px] text-cyan-400/20 rotate-[30deg] animate-pulse transform"
 					viewBox="0 0 100 100"
 					fill="none"
 					xmlns="http://www.w3.org/2000/svg">
@@ -75,38 +75,79 @@ import HeroSVG from './HeroSVG.astro';
 		</div>
 
 		<!-- RIGHT COLUMN: HeroInteractive -->
-		<div
-			class="flex justify-center md:justify-end relative h-[300px] sm:h-[400px] md:h-[500px] mb-4 bg-gradient-to-b from-stone-950/70 to-zinc-800/70 p-6 rounded-2xl"
-			id="hero-interactive-wrapper">
-			<!-- Spinner shown by default -->
+		<div class="relative group mb-4">
+			<!-- Gradient Border Ring (appears on hover only) -->
 			<div
-				id="hero-spinner"
-				class="absolute inset-0 flex items-center justify-center">
-				<svg
-					class="h-8 w-8 animate-spin text-cyan-400"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					role="status"
-					aria-label="Loading">
-					<circle
-						class="opacity-25"
-						cx="12"
-						cy="12"
-						r="10"
-						stroke="currentColor"
-						stroke-width="4">
-					</circle>
-					<path
-						class="opacity-75"
-						fill="currentColor"
-						d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-					</path>
-				</svg>
+				class="absolute inset-0 rounded-[1.75rem] z-0 pointer-events-none opacity-0 group-hover:opacity-[.5] transition-opacity duration-500
+		bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-600 p-[2px]">
+				<div class="w-full h-full rounded-[1.5rem] bg-transparent">
+				</div>
 			</div>
 
-			<!-- React Component -->
-			<HeroInteractive client:only="react" />
+			<!-- Main Glassmorphic Content -->
+			<div
+				id="hero-interactive-wrapper"
+				class="relative flex justify-center md:justify-end h-[400px] sm:h-[500px] md:h-[600px] p-6 rounded-3xl bg-white/5 backdrop-blur-md overflow-hidden
+		shadow-[inset_0_0_0.5px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4)]
+		hover:shadow-[inset_0_0_1px_rgba(255,255,255,0.2),0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300 z-10">
+				<!-- Spinner -->
+				<div
+					id="hero-spinner"
+					class="absolute inset-0 flex items-center justify-center z-10">
+					<svg
+						class="h-10 w-10 animate-spin text-cyan-400"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						role="status"
+						aria-label="Loading">
+						<circle
+							class="opacity-25"
+							cx="12"
+							cy="12"
+							r="10"
+							stroke="currentColor"
+							stroke-width="4">
+						</circle>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+						</path>
+					</svg>
+				</div>
+
+				<!-- Dice / 3D Component -->
+				<HeroInteractive client:only="react" />
+
+				<!-- Optional ambient SVG decoration -->
+				<div
+					class="absolute -top-16 -right-16 w-[250px] h-[250px] text-cyan-400/20 z-0 pointer-events-none">
+					<svg viewBox="0 0 100 100" fill="none">
+						<circle
+							cx="50"
+							cy="50"
+							r="45"
+							stroke="currentColor"
+							stroke-width="2">
+						</circle>
+						<circle
+							cx="50"
+							cy="50"
+							r="35"
+							stroke="currentColor"
+							stroke-width="1.5">
+						</circle>
+						<circle
+							cx="50"
+							cy="50"
+							r="25"
+							stroke="currentColor"
+							stroke-width="1">
+						</circle>
+					</svg>
+				</div>
+			</div>
 		</div>
 	</div>
 </section>

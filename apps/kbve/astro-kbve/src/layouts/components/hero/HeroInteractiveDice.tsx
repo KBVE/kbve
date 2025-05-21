@@ -146,7 +146,7 @@ export default function HeroInteractive(): JSX.Element {
 
 	return (
 		<div className="transition-opacity duration-700 ease-out w-full h-auto opacity-100">
-			<div className="rounded-xl overflow-hidden shadow-xl w-full h-[300px] sm:h-[400px] md:h-[500px]">
+			<div className="rounded-xl overflow-hidden shadow-xl w-full h-[250px] sm:h-[300px] md:h-[400px]">
 				{visible && (
 					<Canvas
 						shadows
@@ -159,7 +159,7 @@ export default function HeroInteractive(): JSX.Element {
 					</Canvas>
 				)}
 			</div>
-			<div className="mt-6 flex flex-row space-x-3 items-center">
+			<div className="mt-6 flex flex-row space-x-3 items-center z-40">
 				<div className="mt-4 text-zinc-200 text-lg text-center min-h-[3rem]">
 					<button
 						onClick={roll}
