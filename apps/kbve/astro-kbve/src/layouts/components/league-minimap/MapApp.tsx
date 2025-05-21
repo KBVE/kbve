@@ -1,209 +1,102 @@
 /** @jsxImportSource react */
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
+import DrawSVGPlugin from 'gsap/DrawSVGPlugin';
+import { useGSAP } from '@gsap/react';
 
-const BG_IMAGES = [
-	'https://images.unsplash.com/photo-1547700055-b61cacebece9?q=80&w=3540&auto=format&fit=crop&',
-	'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=3540&auto=format&fit=crop&',
-];
+gsap.registerPlugin(DrawSVGPlugin, useGSAP);
+
+const STAGES = ['read', 'map', 'home'] as const;
+type Stage = (typeof STAGES)[number];
+
+const BG_IMAGES: Record<Stage, string> = {
+	read: 'https://images.unsplash.com/photo-1547700055-b61cacebece9?q=80&w=3540&auto=format&fit=crop&',
+	map: 'https://images.unsplash.com/photo-1576173992415-e0ca34dc0a8a?q=80&w=3540&auto=format&fit=crop&',
+	home: 'https://images.unsplash.com/photo-1693712001391-6aaab1f53d29?q=80&w=3540&auto=format&fit=crop&'
+};
 
 export default function MapApp() {
-	const [screen, setScreen] = useState(0);
-	const [stage, setStage] = useState<'read' | 'map' | 'home'>('read');
+	const [stageIndex, setStageIndex] = useState(0);
+	const stage = STAGES[stageIndex];
 
 	const shapeRefs = useRef<SVGPathElement[][]>([[], [], [], []]);
 	const textRef = useRef<HTMLDivElement>(null);
-	const buttonRef = useRef<HTMLButtonElement>(null);
-	const bgRef = useRef<HTMLImageElement | null>(null);
 	const bgContainerRef = useRef<HTMLDivElement>(null);
 
-	// Initial stroke draw animation
-	useLayoutEffect(() => {
-		shapeRefs.current = [[], [], [], []]; // reset
-
-		const allPaths = shapeRefs.current.flat();
-		allPaths.forEach((path) => {
-			const length = path.getTotalLength();
-			path.style.strokeDasharray = `${length}`;
-			path.style.strokeDashoffset = `${length}`;
-			gsap.to(path, {
-				strokeDashoffset: 0,
-				duration: 1.5,
-				ease: 'power2.out',
-			});
-		});
-
-		// Inject first background
-		const initialImage = createBackgroundImage(BG_IMAGES[0]);
-		bgRef.current = initialImage;
-		bgContainerRef.current?.appendChild(initialImage);
-	}, []);
-
-	const toggleShape = () => {
-		const next = (screen + 1) % 3;
-		setScreen(next);
-		if (next === 1) runFireAnimation();
-		if (next === 2) runMapAnimation();
-		if (next === 0) resetAnimation();
+	const transitionToNextStage = () => {
+		const nextIndex = (stageIndex + 1) % STAGES.length;
+		setStageIndex(nextIndex);
+		animateStageTransition(STAGES[nextIndex]);
 	};
 
-	const transitionBackground = (src: string) => {
+	useEffect(() => {
+		animateStageTransition(stage);
+	}, []);
+
+	const animateStageTransition = (nextStage: Stage) => {
 		const container = bgContainerRef.current;
 		if (!container) return;
 
-		const oldImage = bgRef.current;
-		const newImage = createBackgroundImage(src);
-
+		const newImage = document.createElement('img');
+		newImage.src = BG_IMAGES[nextStage];
+		newImage.className = 'absolute inset-0 w-full h-full object-cover';
+		newImage.style.opacity = '0';
 		container.appendChild(newImage);
 
-		gsap.set(newImage, {
-			opacity: 0,
-			scale: 0.9,
-			rotate: -12,
-		});
-
-		// Animate old out
-		if (oldImage) {
-			gsap.to(oldImage, {
-				opacity: 0,
-				scale: 1.1,
-				rotate: 12,
-				duration: 1.2,
-				ease: 'power3.in',
-				onComplete: () => {
-					if (container.contains(oldImage)) {
-						container.removeChild(oldImage);
-					}
-				},
-			});
-		}
-
-		// Animate new in
 		gsap.to(newImage, {
 			opacity: 0.1,
 			scale: 1,
 			rotate: 0,
-			duration: 1.2,
-			ease: 'power3.out',
-		});
-	};
-
-	const createBackgroundImage = (src: string): HTMLImageElement => {
-		const img = new Image();
-		img.src = src;
-		img.style.position = 'absolute';
-		img.style.top = '0';
-		img.style.left = '0';
-		img.style.width = '100%';
-		img.style.height = '100%';
-		img.style.objectFit = 'cover';
-		img.style.opacity = '0.1';
-		img.style.pointerEvents = 'none';
-		img.style.zIndex = '0';
-		return img;
-	};
-
-	const runFireAnimation = () => {
-		setStage('map');
-		transitionBackground(BG_IMAGES[1]);
-
-		if (textRef.current) {
-			gsap.to(textRef.current, {
-				y: -40,
-				opacity: 1,
-				duration: 1,
-				ease: 'power2.out',
-			});
-		}
-
-		shapeRefs.current.flat().forEach((path, i) => {
-			const length = path.getTotalLength();
-			gsap.fromTo(
-				path,
-				{ strokeDashoffset: length },
-				{
-					strokeDashoffset: 0,
-					duration: 1,
-					delay: i * 0.05,
-					ease: 'sine.out',
-				}
-			);
-		});
-	};
-
-	const runMapAnimation = () => {
-		setStage('home');
-		transitionBackground(BG_IMAGES[0]);
-
-		if (textRef.current) {
-			gsap.to(textRef.current, {
-				x: 30,
-				y: 50,
-				duration: 1,
-				ease: 'back.out(1.7'),
-			});
-		}
-
-		gsap.to(shapeRefs.current.flat(), {
-			scale: 1.5,
-			opacity: 0.75,
-			duration: 1,
+			duration: 1.5,
 			transformOrigin: 'center',
-			ease: 'power2.out',
+			ease: 'power4.out',
+			onComplete: () => {
+				Array.from(container.children).forEach((child, idx, arr) => {
+					if (idx < arr.length - 1) container.removeChild(child);
+				});
+			}
 		});
 	};
 
-	const resetAnimation = () => {
-		setStage('read');
-		transitionBackground(BG_IMAGES[0]);
-
-		if (textRef.current) {
-			gsap.to(textRef.current, {
-				x: 0,
-				y: 0,
-				opacity: 1,
-				duration: 0.5,
-				ease: 'power1.inOut',
+	useGSAP(() => {
+		const paths = shapeRefs.current.flat();
+		paths.forEach((path) => {
+			const length = path.getTotalLength();
+			gsap.set(path, {
+				drawSVG: '0% 0%',
+				strokeDasharray: length,
+				strokeDashoffset: length
 			});
-		}
-
-		gsap.to(shapeRefs.current.flat(), {
-			scale: 1,
-			opacity: 1,
-			duration: 0.5,
-			ease: 'sine.inOut',
+			gsap.to(path, {
+				drawSVG: '100%',
+				duration: 2,
+				ease: 'power2.out',
+				stagger: 0.1
+			});
 		});
-	};
+	}, []);
 
 	return (
-		<div className="relative text-white overflow-hidden">
-			{/* Background image container */}
-			<div
-				ref={bgContainerRef}
-				className="absolute inset-0 z-0"
-				style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
-			/>
+		<div className="relative bg-black text-white overflow-hidden">
+			<div ref={bgContainerRef} className="absolute inset-0 z-0">
+				<img
+					src={BG_IMAGES[stage]}
+					className="absolute inset-0 w-full h-full object-cover opacity-10"
+					alt="Background"
+				/>
+			</div>
 
-			{/* Foreground content */}
-			<div className="relative z-10 p-6">
+			<div className="relative z-10 p-8 max-w-6xl mx-auto">
 				<svg
 					className="w-full max-w-4xl mx-auto"
 					viewBox="0 0 1054.9 703.6"
 					xmlns="http://www.w3.org/2000/svg">
 					{[0, 1, 2, 3].map((groupIdx) => (
-						<g key={`g${groupIdx}`} id={`g${groupIdx + 1}`}>
+						<g key={`g${groupIdx}`} id={`g${groupIdx + 1}`}> 
 							<path
-								key={`path-${groupIdx}`}
-								ref={(el) =>
-									el &&
-									shapeRefs.current[groupIdx].push(el)
-								}
+								ref={(el) => el && shapeRefs.current[groupIdx].push(el)}
 								d="M100 100 C200 50, 300 150, 400 100"
-								stroke={
-									groupIdx % 2 === 0
-										? '#06b6d4'
-										: '#a855f7'
-								}
+								stroke={groupIdx % 2 === 0 ? '#06b6d4' : '#a855f7'}
 								fill="none"
 								strokeWidth="5"
 							/>
@@ -211,41 +104,23 @@ export default function MapApp() {
 					))}
 				</svg>
 
-				<div
-					ref={textRef}
-					className="mt-8 text-center space-y-4 transition-transform duration-300">
-					<h1 className="text-3xl font-bold">Welcome to KBVE</h1>
-					<p className="text-zinc-300">
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-						Vivamus lacinia odio vitae vestibulum.
+				<div ref={textRef} className="mt-8 text-center space-y-4">
+					<h1 className="text-4xl font-bold">Welcome to KBVE</h1>
+					<p className="text-zinc-300 max-w-xl mx-auto">
+						Explore our interactive map or read more about our vision.
 					</p>
 				</div>
 
 				<div className="mt-6 text-center">
 					<button
-						ref={buttonRef}
-						onClick={toggleShape}
-						className="px-6 py-2 rounded-lg border-2 border-cyan-500 text-white hover:bg-cyan-500 transition-all">
-						<span
-							className={`read ${
-								stage === 'read' ? 'inline-block' : 'hidden'
-							}`}>
-							Read More &gt;
-						</span>
-						<span
-							className={`share ${
-								stage === 'map' ? 'inline-block' : 'hidden'
-							}`}>
-							See Map
-						</span>
-						<span
-							className={`home ${
-								stage === 'home' ? 'inline-block' : 'hidden'
-							}`}>
-							Return Home
-						</span>
+						onClick={transitionToNextStage}
+						className="px-6 py-3 rounded-lg border-2 border-cyan-500 text-white hover:bg-cyan-500 transition-all">
+						{stage === 'read' && 'Read More >'}
+						{stage === 'map' && 'See Map'}
+						{stage === 'home' && 'Return Home'}
 					</button>
 				</div>
 			</div>
 		</div>
 	);
+}
