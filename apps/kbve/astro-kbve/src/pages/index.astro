@@ -12,6 +12,8 @@ import ClientSection from 'src/layouts/components/section/clientsection/ClientsS
 import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
 import QuadGlassPanel from 'src/layouts/components/panel/QuadGlassPanel.astro';
 
+import SimpleGlassImagePanel from 'src/layouts/components/panel/SimpleGlassImagePanel.astro';
+
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
 }
@@ -64,6 +66,7 @@ const glassTiles = [
 		subTitle="Join fellow developers and gamers in a space where cloud-native solutions meet competitive gaming excellence"
 	/>
 
+	<SimpleGlassImagePanel />
 
 	<BentoGrid>
 		{tiles.map((tile) => <BentoTile {...tile} />)}
