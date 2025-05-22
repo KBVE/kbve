@@ -2,7 +2,7 @@
 const imageOptions = [
 	{
 		id: 'cloud',
-		title: 'Cloud Native',
+		title: 'Cloud-Native Development',
 		description: 'Build scalable, containerized apps for the modern web.',
 		image: 'https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=1000&q=80',
 	},
@@ -73,46 +73,49 @@ const defaultImage = imageOptions[0].image;
 	</div>
 
 	<script is:inline define:vars={{ imageOptions }}>
+	document.addEventListener("astro:page-load", () => {
 		const root = document.getElementById('simple-glass-panel');
 		const display = document.getElementById('image-display');
 		const messageBox = document.getElementById('image-message');
+		if (!root || !display || !messageBox) return;
+
 		const triggers = root.querySelectorAll('[data-image-id]');
 
 		const optionsMap = Object.fromEntries(
 			imageOptions.map((opt) => [opt.id, opt.image])
 		);
+
 		const messagesMap = {
-			cloud: 'Deploying your stack to the stratosphere...',
-			gaming: 'Victory favors the prepared and the bold.',
-			creative: 'Imagination meets execution — now rendering.',
+			cloud: 'Master containerization and modern architecture with our community. Get hands-on experience with Docker, Kubernetes, and cutting-edge cloud technologies while learning from fellow developers...',
+			gaming: 'Join our active gaming community across League of Legends, Counter Strike, Overwatch, and World of Warcraft. Form teams, share strategies, and climb the ranks together...',
+			creative: 'Imagination meets execution — now rendering. From debugging your first container to achieving your next gaming milestone, our community is here to help. Share knowledge, celebrate victories, and grow together...',
 		};
 
 		// Typewriter-style fade-in function
 		function showMessage(message) {
-            messageBox.innerHTML = '';
-            const words = message.trim().split(' ');
+			messageBox.innerHTML = '';
+			const words = message.trim().split(' ');
 
-            const totalDuration = 2000; // total time to reveal full message
-            const minDelay = 50;
-            const maxDelay = 300;
+			const totalDuration = 5000;
+			const minDelay = 50;
+			const maxDelay = 300;
+			const delay = Math.min(Math.max(totalDuration / words.length, minDelay), maxDelay);
 
-            const delay = Math.min(Math.max(totalDuration / words.length, minDelay), maxDelay);
+			words.forEach((word, index) => {
+				const span = document.createElement('span');
+				span.textContent = word + ' ';
+				span.style.opacity = '0';
+				span.style.transition = 'opacity 0.4s ease';
+				span.style.display = 'inline-block';
+				span.style.whiteSpace = 'pre';
 
-            words.forEach((word, index) => {
-                const span = document.createElement('span');
-                span.textContent = word + ' ';
-                span.style.opacity = '0';
-                span.style.transition = 'opacity 0.4s ease';
-                span.style.display = 'inline-block';
-                span.style.whiteSpace = 'pre';
+				messageBox.appendChild(span);
 
-                messageBox.appendChild(span);
-
-                setTimeout(() => {
-                    span.style.opacity = '1';
-                }, delay * index);
-            });
-        }
+				setTimeout(() => {
+					span.style.opacity = '1';
+				}, delay * index);
+			});
+		}
 
 		triggers.forEach((el) => {
 			el.addEventListener('click', () => {
@@ -120,14 +123,13 @@ const defaultImage = imageOptions[0].image;
 				const url = optionsMap[id];
 
 				display.style.backgroundImage = `url('${url}')`;
-				triggers.forEach((div) =>
-					div.setAttribute('data-active', 'false')
-				);
+				triggers.forEach((div) => div.setAttribute('data-active', 'false'));
 				el.setAttribute('data-active', 'true');
 
-				// Trigger message animation
 				showMessage(messagesMap[id] || '');
 			});
 		});
-	</script>
+	});
+</script>
+
 </section>
