@@ -1,13 +1,14 @@
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import type { Stage } from './stageStore';
+import type { Stage } from './stageTypes';
 
 gsap.registerPlugin(DrawSVGPlugin);
 
 const BG_IMAGES: Record<Stage, string> = {
 	read: 'https://images.unsplash.com/photo-1547700055-b61cacebece9?q=80&w=3540&auto=format&fit=crop&',
 	map: 'https://images.unsplash.com/photo-1576173992415-e0ca34dc0a8a?q=80&w=3540&auto=format&fit=crop&',
-	home: 'https://images.unsplash.com/photo-1693712001391-6aaab1f53d29?q=80&w=3540&auto=format&fit=crop&'
+	home: 'https://images.unsplash.com/photo-1693712001391-6aaab1f53d29?q=80&w=3540&auto=format&fit=crop&', 
+	about: 'https://images.unsplash.com/photo-1660232784887-a5dc140fb0b9?q=80&w=3540&auto=format&fit=crop&',
 };
 
 export type AnimatorContext = {
@@ -21,6 +22,7 @@ export function createStageTimeline(stage: Stage, ctx: AnimatorContext): gsap.co
 		case 'read': return animateRead(ctx);
 		case 'map': return animateMap(ctx);
 		case 'home': return animateHome(ctx);
+		case 'about': return animateHome(ctx);
 	}
 }
 

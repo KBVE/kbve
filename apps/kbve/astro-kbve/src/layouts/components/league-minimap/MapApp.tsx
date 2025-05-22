@@ -7,7 +7,7 @@ import { useGSAP } from '@gsap/react';
 // NanoStores
 import { useStore } from '@nanostores/react';
 import { $stage, nextStage } from './stageStore';
-import type { Stage } from './stageStore';
+import type { Stage } from './stageTypes';
 
 // MapFactory
 import { createStageTimeline, getBackgroundImageForStage } from './MapAnimatorFactory';
@@ -16,7 +16,7 @@ import { createStageTimeline, getBackgroundImageForStage } from './MapAnimatorFa
 import { MapAnimator } from './MapAnimator';
 
 // Shapes
-import { ShapePaths } from './shapes';
+import { ShapePaths } from './Shapes';
 
 
 gsap.registerPlugin(DrawSVGPlugin); //gsap.registerPlugin(DrawSVGPlugin, useGSAP);
