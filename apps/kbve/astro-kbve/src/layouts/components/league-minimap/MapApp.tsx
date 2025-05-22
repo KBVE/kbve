@@ -6,8 +6,8 @@ import { useGSAP } from '@gsap/react';
 
 // NanoStores
 import { useStore } from '@nanostores/react';
-import { $stage, nextStage, stageDefinitions } from './stageStore';
-import type { Stage } from './stageTypes';
+import { $stage, nextStage, stageDefinitions } from './StageStore';
+import type { Stage } from './StageTypes';
 
 // MapAnimator
 import { MapAnimator } from './MapAnimator';
@@ -15,7 +15,7 @@ import { MapAnimator } from './MapAnimator';
 // Shapes
 import { ShapePaths } from './Shapes';
 
-gsap.registerPlugin(DrawSVGPlugin); //gsap.registerPlugin(DrawSVGPlugin, useGSAP);
+gsap.registerPlugin(DrawSVGPlugin, useGSAP);
 
 type ShapeRefs = Record<'g1' | 'g2' | 'g3' | 'g4', SVGPathElement[]>;
 
@@ -81,7 +81,7 @@ export default function MapApp() {
 			<div ref={bgContainerRef} className="absolute inset-0 z-0">
 				<img
 					src={stageDefinitions[stage].bg}
-					className="absolute inset-0 w-full h-full object-cover opacity-[0.8]"
+					className="absolute inset-0 w-full h-full object-cover bg-opacity-75"
 					alt="Background"
 				/>
 			</div>

@@ -1,4 +1,4 @@
-import type { Stage } from './stageTypes';
+import type { Stage } from './StageTypes';
 import type { AnimatorContext } from './MapAnimatorFactory';
 import { createStageTimeline } from './MapAnimatorFactory';
 

@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import type { Stage } from './stageTypes';
-import { stageDefinitions } from './stageStore';
+import type { Stage } from './StageTypes';
+import { stageDefinitions } from './StageStore';
 
 gsap.registerPlugin(DrawSVGPlugin);
 
