@@ -54,6 +54,7 @@ module.exports = buildConfig(__dirname, {
 		'row-span-1', 'row-span-2', 'row-span-3', 'row-span-4',
 
 		// [Additional Static Safes] @h0lybyte
+		'bg-cyan-300/20',
 		'bg-gradient-to-br',
 		'from-zinc-500', 'to-stone-900',
 		'from-purple-600', 'to-indigo-800',
