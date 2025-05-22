@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 import { atom } from 'nanostores';
-import { STAGES } from './stageTypes';
-import type { Stage, StageDefinitions, StageDefinition } from './stageTypes';
+import { STAGES } from './StageTypes';
+import type { Stage, StageDefinitions, StageDefinition } from './StageTypes';
 import { Shapes } from './Shapes';
 
 
