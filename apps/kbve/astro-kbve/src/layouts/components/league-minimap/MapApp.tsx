@@ -15,12 +15,22 @@ import { createStageTimeline, getBackgroundImageForStage } from './MapAnimatorFa
 // MapAnimator
 import { MapAnimator } from './MapAnimator';
 
-gsap.registerPlugin(DrawSVGPlugin);
-//gsap.registerPlugin(DrawSVGPlugin, useGSAP);
+// Shapes
+import { ShapePaths } from './shapes';
+
+
+gsap.registerPlugin(DrawSVGPlugin); //gsap.registerPlugin(DrawSVGPlugin, useGSAP);
 
 
 type ShapeRefs = Record<'g1' | 'g2' | 'g3' | 'g4', SVGPathElement[]>;
 
+
+const groupToLetterMap: Record<'g1' | 'g2' | 'g3' | 'g4', string> = {
+	g1: 'K',
+	g2: 'K',
+	g3: 'K',
+	g4: 'K',
+  };
 
 export default function MapApp() {
 	const stage = useStore($stage);
@@ -52,7 +62,6 @@ export default function MapApp() {
 			bgContainerEl: bgContainerRef.current
 		});
 	
-		animatorRef.current.animate(stage); 
 	}, []);
 
 	useEffect(() => { // Phase 2 CLEAR refs on stage change (before SVG collects new ones)
@@ -61,7 +70,12 @@ export default function MapApp() {
 
 	useGSAP(() => {
 		if (!animatorRef.current) return;
-			animatorRef.current.animate(stage); // Phase 3 RE-ANIMATE when stage changes
+	
+		const allPathsExist = Object.values(shapeRefs.current).every(group => group.length > 0);
+			if (!allPathsExist) return;
+
+		animatorRef.current.animate(stage); // Phase 3 RE-ANIMATE when stage changes
+
 	}, [stage]);
 
 	return (
@@ -75,21 +89,26 @@ export default function MapApp() {
 			</div>
 
 			<div className="relative z-10 p-8 max-w-6xl mx-auto">
-				<svg
-					className="w-full max-w-4xl mx-auto"
-					viewBox="0 0 1054.9 703.6"
-					xmlns="http://www.w3.org/2000/svg">
-					{(['g1', 'g2', 'g3', 'g4'] as const).map((groupId, idx) => (
-						<g key={groupId} id={groupId}>
-							<path
-								ref={(el) => el && shapeRefs.current[groupId].push(el)}
-								d="M100 100 C200 50, 300 150, 400 100"
-								stroke={idx % 2 === 0 ? '#06b6d4' : '#a855f7'}
-								fill="none"
-								strokeWidth="5"
-							/>
-						</g>
-					))}
+			<svg
+				className="w-full max-w-4xl mx-auto"
+				viewBox="0 0 1054.9 703.6"
+				xmlns="http://www.w3.org/2000/svg"
+				>
+				{(['g1', 'g2', 'g3', 'g4'] as const).map((groupId, idx) => {
+					const letter = groupToLetterMap[groupId];
+					const PathComponent = ShapePaths[letter];
+
+					return (
+					<g key={groupId} id={groupId}>
+						<PathComponent
+ref={(el: SVGPathElement) => el && shapeRefs.current[groupId].push(el)}
+stroke={idx % 2 === 0 ? '#06b6d4' : '#a855f7'}
+						fill="none"
+						strokeWidth={5}
+						/>
+					</g>
+					);
+				})}
 				</svg>
 
 				<div ref={textRef} className="mt-8 text-center space-y-4">
