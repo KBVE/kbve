@@ -7,7 +7,7 @@ import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
 
 import TiltDeck from 'src/layouts/components/deck/tilt/TiltDeck.astro';
 import ClientSection from 'src/layouts/components/section/clientsection/ClientsSection.astro';
-import MiniMap from 'src/layouts/components/league-minimap/MiniMap.astro';
+//import MiniMap from 'src/layouts/components/league-minimap/MiniMap.astro';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
@@ -49,7 +49,6 @@ const glassTiles = [
 <Layout title="KBVE KiloByte Virtual Enterprise">
 	<Hero />
 
-	<MiniMap />
 	<TiltDeck />
 
 	<ClientSection
