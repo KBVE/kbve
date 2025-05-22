@@ -3,30 +3,90 @@
 import HeroInteractive from './HeroInteractiveDice';
 import HeroSVG from './HeroSVG.astro';
 ---
-
+	<div
+		class="absolute -inset-x-1 -inset-y-16 transform opacity-20 overflow-visible pointer-events-none"
+		aria-hidden="true">
+		<HeroSVG />
+	</div>
 <section
 	class="relative text-white py-6 px-6 sm:px-12"
 	aria-label="Hero section: Introduction to KBVE">
 	<!-- Background SVG -->
-	<div
-		class="absolute -inset-x-12 -inset-y-16 transform opacity-20 pointer-events-none"
-		aria-hidden="true">
-		<HeroSVG />
-	</div>
+
 	<div
 		class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center z-10">
 		<!-- LEFT COLUMN: Text Content with Background SVG and Glassmorphic Card -->
 		<div
 			class="relative z-0 p-6 rounded-3xl bg-white/5 backdrop-blur-md shadow-[inset_0_0_0.5px_0_rgba(255,255,255,0.2),0_20px_40px_rgba(0,0,0,0.4)] ring-1 ring-white/10 hover:shadow-[inset_0_0_1px_0_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300">
+			
+			<!-- Inner Block -->
+		<div
+			class="absolute inset-[14px] rounded-[1.375rem] pointer-events-none z-10
+             border border-[rgba(34,211,238,0.1)]
+             shadow-[inset_0.5px_0.5px_1.5px_rgba(186,230,253,0.6),inset_-1px_-1px_1px_rgba(21,94,117,0.5),inset_3px_3px_6px_rgba(0,0,0,0.25)]
+             translate-z-[30px] transform-style-3d p-3">
+		</div>
 			<!-- Foreground Content -->
 			<header
 				class="relative space-y-6 text-center md:text-left z-10"
 				aria-labelledby="hero-title">
+				
 				<h1
 					id="hero-title"
 					class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]">
-					Welcome to <span class="text-cyan-400">KBVE</span>
+					Welcome to <span class="text-cyan-400">KBVE!</span>
 				</h1>
+				<!-- Rotating Tagline -->
+				<span
+					id="kbve-tagline"
+					class="block text-lg sm:text-xl font-semibold text-cyan-300">
+					KiloByte Virtual
+					<span
+						id="kbve-word"
+						class="inline-block transition-opacity duration-500 ease-in-out opacity-100">
+						Enterprise
+					</span>
+				</span>
+
+				<script is:inline>
+					document.addEventListener('astro:page-load', () => {
+						const rotatingWords = [
+							'Enterprise',
+							'Energy',
+							'Entertainment',
+							'Engine',
+							'Exchange',
+							'Exploration',
+						];
+						const display = document.getElementById('kbve-word');
+
+						if (!display) return;
+
+						let index = 0;
+						let isTransitioning = false;
+
+						function rotateWord() {
+							if (isTransitioning) return;
+							isTransitioning = true;
+
+							display.classList.add('opacity-0');
+
+							setTimeout(() => {
+								index = (index + 1) % rotatingWords.length;
+								display.textContent = rotatingWords[index];
+
+								void display.offsetWidth;
+
+								display.classList.remove('opacity-0');
+								display.classList.add('opacity-100');
+
+								isTransitioning = false;
+							}, 400);
+						}
+
+						setInterval(rotateWord, 3000);
+					});
+				</script>
 				<p
 					class="text-lg sm:text-xl text-zinc-300 max-w-xl mx-auto md:mx-0">
 					From cloud-native development to competitive gaming, we're
@@ -153,15 +213,24 @@ import HeroSVG from './HeroSVG.astro';
 </section>
 
 <!-- Bottom Gradient Strip -->
-<div
+<!-- <div
 	class="relative opacity-[0.01] bg-gradient-to-b from-zinc-800/50 via-zinc-900/50 to-[#0e0d0d]/50 h-16 w-full"
 	aria-hidden="true">
-</div>
+</div> -->
 
 <!-- Google Search Results -->
 <div
 	class="relative mx-auto bg-gradient-to-b from-[#0e0d0d]/50 to-stone-950/50"
 	aria-label="Search Results From Google">
+	<!-- Inner Block -->
+		<div
+			class="absolute inset-[5px] rounded-[1.375rem] pointer-events-none z-10
+             border border-[rgba(34,211,238,0.1)]
+             shadow-[inset_0.5px_0.5px_1.5px_rgba(186,230,253,0.6),inset_-1px_-1px_1px_rgba(21,94,117,0.5),inset_3px_3px_6px_rgba(0,0,0,0.25)]
+             translate-z-[30px] transform-style-3d">
+		</div>
+
 	<div class="gcse-searchresults"></div>
+	
+	<script src="./heroSearch.ts"></script>
 </div>
-<script src="./heroSearch.ts"></script>

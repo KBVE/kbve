@@ -12,8 +12,16 @@ export const DeployableMessageSchema = z.object({
 });
 export type DeployableMessage = z.infer<typeof DeployableMessageSchema>;
 
+export const BackgroundShiftMessageSchema = z.object({
+  type: z.literal('background-shift'),
+  key: z.string(),
+});
+export type BackgroundShiftMessage = z.infer<typeof BackgroundShiftMessageSchema>;
+
+
 // Discriminated union to allow more message types later
 export const UnityBridgeSchema = z.discriminatedUnion('type', [
   DeployableMessageSchema,
+  BackgroundShiftMessageSchema,
 ]);
 export type UnityBridgeMessage = z.infer<typeof UnityBridgeSchema>;

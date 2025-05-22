@@ -3,11 +3,16 @@ import Layout from 'src/layouts/core/Layout.astro';
 import BentoGrid from 'src/layouts/components/bento/BentoGrid.astro';
 import BentoTile from 'src/layouts/components/bento/BentoTile.astro';
 import Hero from 'src/layouts/components/hero/Hero.astro';
-import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
+import NeoGlassBentoTile from 'src/layouts/components/bento/NeoGlassBentoTile.astro';
 
 import TiltDeck from 'src/layouts/components/deck/tilt/TiltDeck.astro';
 import ClientSection from 'src/layouts/components/section/clientsection/ClientsSection.astro';
-import MiniMap from 'src/layouts/components/league-minimap/MiniMap.astro';
+//import MiniMap from 'src/layouts/components/league-minimap/MiniMap.astro';
+// import OceanPanel from 'src/layouts/components/panel/OceanPanel.astro';
+import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
+import QuadGlassPanel from 'src/layouts/components/panel/QuadGlassPanel.astro';
+
+import SimpleGlassImagePanel from 'src/layouts/components/panel/SimpleGlassImagePanel.astro';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
@@ -49,18 +54,24 @@ const glassTiles = [
 <Layout title="KBVE KiloByte Virtual Enterprise">
 	<Hero />
 
-	<MiniMap />
+	<NeoGlassPanel />
+	<!-- <OceanPanel /> -->
 	<TiltDeck />
 
+
+	<QuadGlassPanel />
+	
 	<ClientSection
 		title="KBVE Community: Where Code Meets Gaming"
 		subTitle="Join fellow developers and gamers in a space where cloud-native solutions meet competitive gaming excellence"
 	/>
 
+	<SimpleGlassImagePanel />
+
 	<BentoGrid>
 		{tiles.map((tile) => <BentoTile {...tile} />)}
 
-		{glassTiles.map((glassTile) => <GlassBentoTile {...glassTile} />)}
+		{glassTiles.map((glassTile) => <NeoGlassBentoTile {...glassTile} />)}
 	</BentoGrid>
 </Layout>
 
