@@ -29,56 +29,38 @@ export function getNextStage(stage: Stage): Stage {
 
 
 export const stageDefinitions: StageDefinitions = {
-	read: {
-		bg: 'https://images.unsplash.com/photo-1547700055-b61cacebece9?q=80&w=3540&auto=format&fit=crop&',
-		shape: 'K',
-		content: (
-			<>
-				<h1 className="text-4xl font-bold">Welcome to KBVE</h1>
-				<p className="text-zinc-300 max-w-xl mx-auto">
-					Explore our interactive map or read more about our vision.
-				</p>
-			</>
-		),
-		buttonText: 'Read More >',
-	},
-	map: {
-		bg: 'https://images.unsplash.com/photo-1576173992415-e0ca34dc0a8a?q=80&w=3540&auto=format&fit=crop&',
-		shape: 'K',
-		content: (
-			<>
-				<h1 className="text-4xl font-bold">Explore the Map</h1>
-				<p className="text-zinc-300 max-w-xl mx-auto">
-					Interactive map of the League and its zones.
-				</p>
-			</>
-		),
-		buttonText: 'See Map',
-	},
-	home: {
-		bg: 'https://images.unsplash.com/photo-1693712001391-6aaab1f53d29?q=80&w=3540&auto=format&fit=crop&',
-		shape: 'K',
-		content: (
-			<>
-				<h1 className="text-4xl font-bold">Back Home</h1>
-				<p className="text-zinc-300 max-w-xl mx-auto">
-					This is your central hub for everything KBVE.
-				</p>
-			</>
-		),
-		buttonText: 'Return Home',
-	},
-	about: {
-		bg: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?q=80&w=3540&auto=format&fit=crop&',
-		shape: 'K',
-		content: (
-			<>
-				<h1 className="text-4xl font-bold">About KBVE</h1>
-				<p className="text-zinc-300 max-w-xl mx-auto">
-					Learn more about our mission, tech, and goals.
-				</p>
-			</>
-		),
-		buttonText: 'Learn More',
-	}
+  read: {
+    bg: 'https://images.unsplash.com/photo-1547700055-b61cacebece9?q=80&w=3540&auto=format&fit=crop&',
+    shape: 'K',
+    title: 'Welcome to KBVE',
+    subtitle: 'Explore our interactive map or read more about our vision.',
+    buttonText: 'Read More >',
+    badge: 'Intro',
+    features: ['Vision Overview', 'Mission Statement'],
+  },
+  map: {
+    bg: 'https://images.unsplash.com/photo-1576173992415-e0ca34dc0a8a?q=80&w=3540&auto=format&fit=crop&',
+    shape: 'K',
+    title: 'Explore the Map',
+    subtitle: 'Interactive zones and regions of the League.',
+    buttonText: 'See Map',
+    badge: 'Map View',
+    features: ['Dynamic Zones', 'Zoom + Pan', 'Points of Interest'],
+  },
+  home: {
+    bg: 'https://images.unsplash.com/photo-1693712001391-6aaab1f53d29?q=80&w=3540&auto=format&fit=crop&',
+    shape: 'K',
+    title: 'Return Home',
+    subtitle: 'Your central hub for everything KBVE.',
+    buttonText: 'Return Home',
+    badge: 'Main Hub',
+  },
+  about: {
+    bg: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?q=80&w=3540&auto=format&fit=crop&',
+    shape: 'K',
+    title: 'About KBVE',
+    subtitle: 'Learn more about our mission, tech, and future.',
+    buttonText: 'Learn More',
+    badge: 'About Us',
+  }
 };
