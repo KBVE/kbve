@@ -4,120 +4,111 @@ import gsap from 'gsap';
 import DrawSVGPlugin from 'gsap/DrawSVGPlugin';
 import { useGSAP } from '@gsap/react';
 
-gsap.registerPlugin(DrawSVGPlugin, useGSAP);
+// NanoStores
+import { useStore } from '@nanostores/react';
+import { $stage, nextStage } from './stageStore';
+import type { Stage } from './stageStore';
 
-const STAGES = ['read', 'map', 'home'] as const;
-type Stage = (typeof STAGES)[number];
+// MapFactory
+import { createStageTimeline, getBackgroundImageForStage } from './MapAnimatorFactory';
 
-const BG_IMAGES: Record<Stage, string> = {
-	read: 'https://images.unsplash.com/photo-1547700055-b61cacebece9?q=80&w=3540&auto=format&fit=crop&',
-	map: 'https://images.unsplash.com/photo-1576173992415-e0ca34dc0a8a?q=80&w=3540&auto=format&fit=crop&',
-	home: 'https://images.unsplash.com/photo-1693712001391-6aaab1f53d29?q=80&w=3540&auto=format&fit=crop&'
-};
+// MapAnimator
+import { MapAnimator } from './MapAnimator';
+
+// Shapes
+import { ShapePaths } from './shapes';
+
+
+gsap.registerPlugin(DrawSVGPlugin); //gsap.registerPlugin(DrawSVGPlugin, useGSAP);
+
+
+type ShapeRefs = Record<'g1' | 'g2' | 'g3' | 'g4', SVGPathElement[]>;
+
+
+const groupToLetterMap: Record<'g1' | 'g2' | 'g3' | 'g4', string> = {
+	g1: 'K',
+	g2: 'K',
+	g3: 'K',
+	g4: 'K',
+  };
 
 export default function MapApp() {
-	const [stageIndex, setStageIndex] = useState(0);
-	const stage = STAGES[stageIndex];
-
-	const shapeRefs = useRef<SVGPathElement[][]>([[], [], [], []]);
+	const stage = useStore($stage);
+	const shapeRefs = useRef<ShapeRefs>({
+		g1: [],
+		g2: [],
+		g3: [],
+		g4: []
+	});
 	const textRef = useRef<HTMLDivElement>(null);
 	const bgContainerRef = useRef<HTMLDivElement>(null);
+	const animatorRef = useRef<MapAnimator | null>(null);
 
-	const animateStage = (stage: Stage) => {
-		const tl = gsap.timeline();
-
-		// Animate paths like original
-		const paths = shapeRefs.current.flat();
-		paths.forEach((p, i) => {
-			const length = p.getTotalLength();
-			gsap.set(p, {
-				drawSVG: i % 2 === 0 ? '75% 100%' : '25% 0%',
-				strokeDasharray: length
-			});
-		});
-
-		tl.to(paths, {
-			drawSVG: '0% 100%',
-			duration: 1.4,
-			stagger: 0.05,
-			ease: 'power3.inOut'
-		});
-
-		// Animate text position
-		if (textRef.current) {
-			tl.to(textRef.current, {
-				y: stage === 'map' ? -50 : 0,
-				opacity: 1,
-				duration: 0.8,
-				ease: 'power2.out'
-			}, '<');
-		}
-
-		// Animate background
-		const container = bgContainerRef.current;
-		if (container) {
-			const img = document.createElement('img');
-			img.src = BG_IMAGES[stage];
-			img.className = 'absolute inset-0 w-full h-full object-cover';
-			img.style.opacity = '0';
-			container.appendChild(img);
-
-			tl.to(img, {
-				opacity: 0.1,
-				scale: 1,
-				rotate: 0,
-				duration: 1.5,
-				ease: 'power4.out',
-				transformOrigin: 'center',
-				onComplete: () => {
-					Array.from(container.children).forEach((child, idx, arr) => {
-						if (idx < arr.length - 1) container.removeChild(child);
-					});
-				}
-			}, '<');
-		}
+	const clearShapeRefs = () => {
+		Object.values(shapeRefs.current).forEach(group => group.length = 0);
 	};
 
+	
 	const transitionToNextStage = () => {
-		const next = (stageIndex + 1) % STAGES.length;
-		setStageIndex(next);
-		animateStage(STAGES[next]);
+		nextStage();
 	};
 
-	useEffect(() => {
-		animateStage(stage);
+	useEffect(() => { // Phase 0 + 1 - INIT MapAnimator on mount
+		if (!textRef.current || !bgContainerRef.current) return;
+	
+		animatorRef.current = new MapAnimator({
+			shapeRefs: shapeRefs.current,
+			textEl: textRef.current,
+			bgContainerEl: bgContainerRef.current
+		});
+	
 	}, []);
 
+	useEffect(() => { // Phase 2 CLEAR refs on stage change (before SVG collects new ones)
+		clearShapeRefs();
+	}, [stage]);
+
 	useGSAP(() => {
-		animateStage(stage);
+		if (!animatorRef.current) return;
+	
+		const allPathsExist = Object.values(shapeRefs.current).every(group => group.length > 0);
+			if (!allPathsExist) return;
+
+		animatorRef.current.animate(stage); // Phase 3 RE-ANIMATE when stage changes
+
 	}, [stage]);
 
 	return (
 		<div className="relative bg-black text-white overflow-hidden">
 			<div ref={bgContainerRef} className="absolute inset-0 z-0">
 				<img
-					src={BG_IMAGES[stage]}
+					src={getBackgroundImageForStage(stage)}
 					className="absolute inset-0 w-full h-full object-cover opacity-10"
 					alt="Background"
 				/>
 			</div>
 
 			<div className="relative z-10 p-8 max-w-6xl mx-auto">
-				<svg
-					className="w-full max-w-4xl mx-auto"
-					viewBox="0 0 1054.9 703.6"
-					xmlns="http://www.w3.org/2000/svg">
-					{[0, 1, 2, 3].map((groupIdx) => (
-						<g key={`g${groupIdx}`} id={`g${groupIdx + 1}`}>
-							<path
-								ref={(el) => el && shapeRefs.current[groupIdx].push(el)}
-								d="M100 100 C200 50, 300 150, 400 100"
-								stroke={groupIdx % 2 === 0 ? '#06b6d4' : '#a855f7'}
-								fill="none"
-								strokeWidth="5"
-							/>
-						</g>
-					))}
+			<svg
+				className="w-full max-w-4xl mx-auto"
+				viewBox="0 0 1054.9 703.6"
+				xmlns="http://www.w3.org/2000/svg"
+				>
+				{(['g1', 'g2', 'g3', 'g4'] as const).map((groupId, idx) => {
+					const letter = groupToLetterMap[groupId];
+					const PathComponent = ShapePaths[letter];
+
+					return (
+					<g key={groupId} id={groupId}>
+						<PathComponent
+ref={(el: SVGPathElement) => el && shapeRefs.current[groupId].push(el)}
+stroke={idx % 2 === 0 ? '#06b6d4' : '#a855f7'}
+						fill="none"
+						strokeWidth={5}
+						/>
+					</g>
+					);
+				})}
 				</svg>
 
 				<div ref={textRef} className="mt-8 text-center space-y-4">
