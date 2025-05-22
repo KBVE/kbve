@@ -1,14 +1,10 @@
 import gsap from 'gsap';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import type { Stage } from './stageStore';
+import type { Stage } from './stageTypes';
+import { stageDefinitions } from './stageStore';
 
 gsap.registerPlugin(DrawSVGPlugin);
 
-const BG_IMAGES: Record<Stage, string> = {
-	read: 'https://images.unsplash.com/photo-1547700055-b61cacebece9?q=80&w=3540&auto=format&fit=crop&',
-	map: 'https://images.unsplash.com/photo-1576173992415-e0ca34dc0a8a?q=80&w=3540&auto=format&fit=crop&',
-	home: 'https://images.unsplash.com/photo-1693712001391-6aaab1f53d29?q=80&w=3540&auto=format&fit=crop&'
-};
 
 export type AnimatorContext = {
 	shapeRefs: Record<'g1' | 'g2' | 'g3' | 'g4', SVGPathElement[]>;
@@ -21,6 +17,7 @@ export function createStageTimeline(stage: Stage, ctx: AnimatorContext): gsap.co
 		case 'read': return animateRead(ctx);
 		case 'map': return animateMap(ctx);
 		case 'home': return animateHome(ctx);
+		case 'about': return animateHome(ctx);
 	}
 }
 
@@ -147,7 +144,7 @@ function animateHome({ shapeRefs, textEl, bgContainerEl }: AnimatorContext) {
 
 function createBGImage(stage: Stage, container: HTMLDivElement): HTMLImageElement {
 	const img = document.createElement('img');
-	img.src = BG_IMAGES[stage];
+	img.src = stageDefinitions[stage].bg;
 	img.className = 'absolute inset-0 w-full h-full object-cover';
 	img.style.opacity = '0';
 	container.appendChild(img);
@@ -159,7 +156,3 @@ function cleanBGChildren(container: HTMLDivElement) {
 	children.slice(0, -1).forEach((el) => el.remove());
 }
 
-
-export function getBackgroundImageForStage(stage: Stage): string {
-	return BG_IMAGES[stage];
-}
