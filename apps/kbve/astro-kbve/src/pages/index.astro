@@ -10,7 +10,7 @@ import ClientSection from 'src/layouts/components/section/clientsection/ClientsS
 //import MiniMap from 'src/layouts/components/league-minimap/MiniMap.astro';
 // import OceanPanel from 'src/layouts/components/panel/OceanPanel.astro';
 import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
-
+import QuadGlassPanel from 'src/layouts/components/panel/QuadGlassPanel.astro';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
@@ -56,10 +56,14 @@ const glassTiles = [
 	<!-- <OceanPanel /> -->
 	<TiltDeck />
 
+
+	<QuadGlassPanel />
+	
 	<ClientSection
 		title="KBVE Community: Where Code Meets Gaming"
 		subTitle="Join fellow developers and gamers in a space where cloud-native solutions meet competitive gaming excellence"
 	/>
+
 
 	<BentoGrid>
 		{tiles.map((tile) => <BentoTile {...tile} />)}

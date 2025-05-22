@@ -1,15 +1,9 @@
 ---
 const {
-	title = 'Ocean Tier Access',
+	title = 'Tech & Gaming Excellence with KBVE',
 	subtitle = 'Flow with serene access and deep-blue level features.',
-	badge = 'Deep Sea Tier',
-	features = [
-		'Hydro-Elastic Storage',
-		'Tidal Support System',
-		'Abyssal Stream (4K)',
-		'Aqua Analytics Flow',
-		'Liquid Preview Modes',
-	],
+	description = "Whether you're diving into containerization, mastering Node.js, pushing for Diamond in League, or raiding in WoW, our community is here to support your journey. Share knowledge, form teams, and achieve your goals together.",
+	badge = 'Memes',
 	buttonText = 'Dive In',
 	buttonHref = '#',
 } = Astro.props;
@@ -17,7 +11,17 @@ const {
 
 <section class="px-6 py-12 sm:px-8 lg:px-12">
 	<div
-		class="mx-auto max-w-7xl relative flex flex-col md:flex-row rounded-3xl bg-white/5 backdrop-blur-md ring-1 ring-white/10 shadow-[inset_0_0_0.5px_rgba(255,255,255,0.2),0_20px_40px_rgba(0,0,0,0.4)] hover:shadow-[inset_0_0_1px_rgba(255,255,255,0.3),0_30px_60px_rgba(0,0,0,0.5)] transition-all duration-300 overflow-hidden">
+		class="mx-auto max-w-7xl relative flex flex-col md:flex-row rounded-3xl bg-white/5 backdrop-blur-md ring-1 ring-white/10
+    shadow-[inset_0_0_0.5px_rgba(255,255,255,0.15),inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_rgba(0,0,0,0.4)]
+    hover:shadow-[inset_0_0_1px_rgba(255,255,255,0.2),inset_0_2px_1px_rgba(255,255,255,0.1),0_30px_60px_rgba(0,0,0,0.5)]
+    transition-all duration-300 overflow-hidden ring-offset-1 ring-offset-white/5">
+		<!-- Inner Block -->
+		<div
+			class="absolute inset-[14px] rounded-[1.375rem] pointer-events-none z-10
+             border border-[rgba(34,211,238,0.1)]
+             shadow-[inset_0.5px_0.5px_1.5px_rgba(186,230,253,0.6),inset_-1px_-1px_1px_rgba(21,94,117,0.5),inset_3px_3px_6px_rgba(0,0,0,0.25)]
+             translate-z-[30px] transform-style-3d">
+		</div>
 		<!-- Left Content Block -->
 		<div class="p-8 flex-1 space-y-5">
 			<!-- Badge -->
@@ -37,31 +41,11 @@ const {
 			<h2 class="text-3xl sm:text-4xl font-bold text-white">{title}</h2>
 			<p class="text-base text-zinc-300">{subtitle}</p>
 
-			<!-- Features -->
-			<ul class="mt-4 space-y-2 text-sm text-cyan-100">
-				{
-					features.map((feature: unknown, i: any) => (
-						<li class="flex items-center gap-2">
-							<svg
-								class="w-4 h-4 text-cyan-300 hover:animate-spin"
-								viewBox="0 0 24 24"
-								fill="none"
-								role="img"
-								aria-label="Feature icon">
-								<circle
-									cx="12"
-									cy="12"
-									r="8"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-dasharray="10 5"
-								/>
-							</svg>
-							<span class="leading-tight">{feature}</span>
-						</li>
-					))
-				}
-			</ul>
+			<!-- Description Block -->
+			<div
+				class="mt-6 border-t border-white/10 pt-6 text-base leading-relaxed text-zinc-300">
+				{description}
+			</div>
 
 			<!-- Button -->
 			<a
@@ -78,8 +62,7 @@ const {
 			class="hidden md:block w-1/3 relative rounded-r-3xl overflow-hidden border-l border-white/10 backdrop-blur-xl"
 			style={`background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1050&q=80'); background-size: cover; background-position: center;`}>
 			<!-- Overlay Blur + Tint -->
-			<div class="absolute inset-0 bg-cyan-900/30 z-0">
-			</div>
+			<div class="absolute inset-0 bg-cyan-900/30 z-0"></div>
 
 			<!-- Ambient SVG Decoration -->
 			<svg
