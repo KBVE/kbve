@@ -3,7 +3,7 @@ import Layout from 'src/layouts/core/Layout.astro';
 import BentoGrid from 'src/layouts/components/bento/BentoGrid.astro';
 import BentoTile from 'src/layouts/components/bento/BentoTile.astro';
 import Hero from 'src/layouts/components/hero/Hero.astro';
-import GlassBentoTile from 'src/layouts/components/bento/GlassBentoTile.astro';
+import NeoGlassBentoTile from 'src/layouts/components/bento/NeoGlassBentoTile.astro';
 
 import TiltDeck from 'src/layouts/components/deck/tilt/TiltDeck.astro';
 import ClientSection from 'src/layouts/components/section/clientsection/ClientsSection.astro';
@@ -71,7 +71,7 @@ const glassTiles = [
 	<BentoGrid>
 		{tiles.map((tile) => <BentoTile {...tile} />)}
 
-		{glassTiles.map((glassTile) => <GlassBentoTile {...glassTile} />)}
+		{glassTiles.map((glassTile) => <NeoGlassBentoTile {...glassTile} />)}
 	</BentoGrid>
 </Layout>
 
