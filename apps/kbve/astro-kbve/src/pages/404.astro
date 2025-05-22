@@ -32,8 +32,52 @@ const btnTitle: string = 'Go Back';
 					class="mb-4 text-pretty text-lg text-neutral-600 dark:text-neutral-400">
 					{content}
 				</p>
+
+                <canvas id="404-canvas" width="300" height="300" class="mx-auto my-auto mb-6"></canvas>
+                <script is:inline type="module">
+                    import { DotLottieWorker } from 'https://cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/+esm';
+            
+                    function initLottie() {
+                            const canvas = document.getElementById('404-canvas');
+                            if (!canvas || canvas.dataset.lottieInit === 'true') return;
+
+                            canvas.dataset.lottieInit = 'true';
+
+                            new DotLottieWorker({
+                                canvas: canvas,
+                                src: 'https://kbve.com/assets/lottie/robot.lottie',
+                                autoplay: true,
+                                loop: true,
+                            });
+                    }
+
+                        
+                    document.addEventListener('astro:page-load', () => {
+                        let attempts = 0;
+                        const maxAttempts = 20;
+                        const delay = 200;
+
+                        const tryInit = () => {
+                            const canvas = document.getElementById('404-canvas');
+                            if (canvas) {
+                                initLottie();
+                            } else if (attempts++ < maxAttempts) {
+                                requestAnimationFrame(() => {
+                                    setTimeout(tryInit, delay);
+                                });
+                            } else {
+                                console.warn('[Lottie] Failed to initialize after max attempts.');
+                            }
+                        };
+
+                        tryInit();
+
+                    });
+                </script>
+
+
 				<!--Display a button that navigates user back to the previous page-->
-                
+
 			</div>
         </div>
     </section>
