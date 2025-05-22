@@ -6,8 +6,8 @@ import { useGSAP } from '@gsap/react';
 
 // NanoStores
 import { useStore } from '@nanostores/react';
-import { $stage, nextStage, stageDefinitions } from './StageStore';
-import type { Stage } from './StageTypes';
+import { $stage, nextStage, stageDefinitions } from './utils/StageStore';
+import type { Stage } from './utils/StageTypes';
 
 // MapAnimator
 import { MapAnimator } from './MapAnimator';
