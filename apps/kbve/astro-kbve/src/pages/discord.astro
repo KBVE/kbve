@@ -1,0 +1,271 @@
+---
+import Layout from 'src/layouts/core/Layout.astro';
+
+const pageTitle: string = `Discord | KBVE`;
+const pageDescription: string = `Join our Discord | KBVE.com Community`;
+
+export interface Props {
+	backgroundImage?: string;
+	title?: string;
+	subtitle?: string;
+	elevation?: string;
+	buttonText?: string;
+	onClick?: string;
+}
+
+const {
+	backgroundImage = 'https://images.unsplash.com/photo-1636487658623-eb8f5ae60770?q=80&w=2072&auto=format&fit=crop&',
+	title = 'KBVE Discord',
+	subtitle = 'Come Join',
+	elevation = '4,478 m',
+	buttonText = 'Join Now',
+	onClick = '#',
+} = Astro.props;
+---
+
+<Layout
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://kbve.com/discord',
+		url: 'https://kbve.com/discord',
+		name: `${pageTitle}`,
+		description: `{${pageDescription}}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: 'Kilo Byte Virtual Engine',
+			description:
+				'Elevate your efficiency with KBVE, Kilobyte Virtual Engine! Discover cutting-edge software and automation solutions designed to streamline and enhance your projects. Let’s innovate together!',
+		},
+		inLanguage: 'en-US',
+	}}>
+	<div class="p-4 space-y-24"></div>
+
+	<section class="mx-auto my-auto">
+		<div
+			class="card-container relative block w-full max-w-[380px] aspect-[9/15.5] max-h-[90vh] rounded-[1.75rem] overflow-hidden bg-cover bg-center shadow-[0_0_0_2px_rgba(103,232,249,0.4),_0_0_25px_8px_rgba(192,132,252,0.2)] hover:shadow-[0_0_0_3px_rgba(103,232,249,0.6),_0_0_35px_12px_rgba(192,132,252,0.35)] transition-[transform,box-shadow,background-size] duration-[600ms,400ms,1500ms] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-grab will-change-[transform,box-shadow,background-size]"
+			style={`background-image: url('${backgroundImage}')`}
+			data-tilt
+			data-tilt-max="10"
+			data-tilt-speed="500"
+			data-tilt-perspective="1800"
+			data-tilt-glare
+			data-tilt-max-glare="0.1"
+			data-tilt-scale="1.03"
+			data-tilt-reset="true">
+			<div
+				class="absolute inset-[14px] rounded-[1.375rem] pointer-events-none z-10 border border-[rgba(147,197,253,0.1)] shadow-[inset_0.5px_0.5px_1.5px_rgba(147,197,253,0.5),inset_-1px_-1px_1px_rgba(192,132,252,0.4),inset_3px_3px_6px_rgba(0,0,0,0.25)]"
+				data-tilt-transform-element>
+			</div>
+			<div
+				class="content-area p-4 sm:p-5 lg:p-7"
+				data-tilt-transform-element>
+				<div class="gradient-overlay"></div>
+
+				<div class="elevation-badge" data-tilt-transform-element>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="currentColor"
+						class="w-4 h-4">
+						<path d="M12 2L6.5 12h11L12 2zm5.5 11l-5.5 9-5.5-9h11z">
+						</path>
+					</svg>
+					{elevation}
+				</div>
+
+				<div class="text-block" data-tilt-transform-element>
+					<div class="flex" data-tilt-transform-element>
+						<iframe
+							src="https://discord.com/widget?id=342732838598082562&theme=dark"
+							width="100%"
+							height={500}
+							allowtransparency="true"
+							sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+							title="Discord Iframe"
+							data-tilt-transform-element>
+						</iframe>
+					</div>
+					<h1
+						class="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-bold mb-2">
+						<svg
+							class="mountain-icon"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor">
+							<path
+								d="M14.344 6.219l-2.344-3.219-2.344 3.219-4.656 7.781h14l-4.656-7.781z">
+							</path>
+						</svg>
+						{title}
+					</h1>
+					<p class="text-sm sm:text-base lg:text-lg font-light">
+						{subtitle}
+					</p>
+				</div>
+
+				<a
+					href={onClick}
+					class="tour-button"
+					data-tilt-transform-element>
+					{buttonText}
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round">
+						<path d="M12 5l7 7-7 7"></path>
+						<path d="M5 12h14"></path>
+					</svg>
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- [Javascript] -->
+
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js">
+	</script>
+	<script is:inline>
+		document.addEventListener('astro:page-load', () => {
+			VanillaTilt.init(document.querySelectorAll('[data-tilt]'), {});
+		});
+	</script>
+
+	<!-- [CSS] -->
+
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+		.card-container:hover {
+			box-shadow:
+				0 0 0 3px rgba(103, 232, 249, 0.6),
+				0 0 35px 12px rgba(192, 132, 252, 0.35);
+		}
+
+		.content-area {
+			position: absolute;
+			inset: 14px;
+			border-radius: 1.375rem;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-end;
+			z-index: 5;
+			transform: translateZ(60px);
+		}
+		.gradient-overlay {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 75%;
+			background: linear-gradient(
+				to top,
+				rgba(10, 10, 10, 0.9) 0%,
+				rgba(10, 10, 10, 0.65) 50%,
+				transparent 100%
+			);
+			pointer-events: none;
+			z-index: 15;
+			transform: translateZ(5px);
+		}
+		.elevation-badge {
+			position: absolute;
+			top: 1rem;
+			right: 1rem;
+			background: rgba(103, 232, 249, 0.85);
+			border-radius: 9999px;
+			padding: 0.5rem 1rem;
+			color: #1e293b;
+			font-size: 0.75rem;
+			font-weight: 600;
+			letter-spacing: 0.025em;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+			transform: translateZ(70px);
+			border: 1px solid rgba(255, 255, 255, 0.3);
+			z-index: 25;
+		}
+		.text-block {
+			position: relative;
+			z-index: 20;
+			color: #f8fafc;
+			text-align: center;
+			text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+			transform: translateZ(25px);
+		}
+		.text-block h1 {
+			letter-spacing: 0.025em;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5rem;
+		}
+		.text-block p {
+			color: #cbd5e1;
+		}
+		.mountain-icon {
+			width: 1.5em;
+			height: 1.5em;
+			fill: currentColor;
+			opacity: 0.8;
+			vertical-align: middle;
+			margin-bottom: -0.1em;
+		}
+		.tour-button {
+			position: relative;
+			z-index: 20;
+			background: linear-gradient(145deg, #67e8f9, #c084fc);
+			color: #1e293b;
+			font-weight: 600;
+			padding: 0.75rem 1.75rem;
+			border-radius: 9999px;
+			text-align: center;
+			width: auto;
+			min-width: 190px;
+			max-width: 85%;
+			margin-left: auto;
+			margin-right: auto;
+			transition: all 0.3s ease;
+			border: none;
+			box-shadow:
+				inset 2px 2px 4px rgba(103, 232, 249, 0.5),
+				inset -2px -2px 4px rgba(192, 132, 252, 0.3),
+				0 1px 2px rgba(0, 0, 0, 0.1);
+			transform: translateZ(40px);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.75rem;
+			letter-spacing: 0.025em;
+			margin-top: 1rem;
+		}
+		.tour-button:hover {
+			background: linear-gradient(145deg, #a5f3fc, #e9d5ff);
+			box-shadow:
+				inset 2px 2px 5px rgba(103, 232, 249, 0.5),
+				inset -2px -2px 5px rgba(192, 132, 252, 0.3),
+				0 2px 4px rgba(0, 0, 0, 0.15);
+			transform: translateZ(40px) translateY(-2px);
+		}
+		.tour-button:active {
+			background: linear-gradient(145deg, #67e8f9, #c084fc);
+			box-shadow:
+				inset -2px -2px 4px rgba(103, 232, 249, 0.6),
+				inset 2px 2px 4px rgba(192, 132, 252, 0.4),
+				0 0 0 rgba(0, 0, 0, 0);
+			transform: translateZ(40px) translateY(0px);
+		}
+	</style>
+</Layout>
