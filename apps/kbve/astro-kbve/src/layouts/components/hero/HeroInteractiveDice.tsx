@@ -1,5 +1,6 @@
 /** @jsxImportSource react */
 import React, { useLayoutEffect } from 'react';
+import type { JSX } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { TextureLoader, Mesh, MeshStandardMaterial, Euler, Color } from 'three';
