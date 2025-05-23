@@ -1,4 +1,5 @@
 /** @jsxImportSource react */
+import React, { useLayoutEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { TextureLoader, Mesh, MeshStandardMaterial, Euler, Color } from 'three';
@@ -104,6 +105,7 @@ function Dice({ values, rolling }: { values: number[]; rolling: boolean }) {
 export default function HeroInteractive(): JSX.Element {
 	const state = useStore($heroDiceState);
 	const [visible, setVisible] = useState(true);
+
 
 	useEffect(() => {
 		initHeroDice();
