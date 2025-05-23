@@ -6,9 +6,9 @@
     "baseUrl": ".",
     // 02-13-2025
     "types": ["astro/client", "react", "react-dom", "svelte"],
-    "jsxImportSource": "astro",
+    "jsxImportSource": "react",
     // JSX
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     // Enable top-level await, and other modern ESM features
     "target": "ESNext",
     "module": "ESNext",
