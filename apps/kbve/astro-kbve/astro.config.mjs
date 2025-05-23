@@ -327,18 +327,7 @@ export default defineConfig({
         },
         resolve: {
             alias: {
-                'three/examples/jsm/controls/DragControls.js':
-                    'three/examples/jsm/controls/DragControls.js',
-                'three/examples/jsm/controls/OrbitControls.js':
-                    'three/examples/jsm/controls/OrbitControls.js',
-                'three/examples/jsm/controls/TrackballControls.js':
-                    'three/examples/jsm/controls/TrackballControls.js',
-                'three/examples/jsm/controls/FlyControls.js':
-                    'three/examples/jsm/controls/FlyControls.js',
-                'three/examples/jsm/postprocessing/EffectComposer.js':
-                    'three/examples/jsm/postprocessing/EffectComposer.js',
-                'three/examples/jsm/postprocessing/RenderPass.js':
-                    'three/examples/jsm/postprocessing/RenderPass.js',
+               
             },
         },
         vite: {
