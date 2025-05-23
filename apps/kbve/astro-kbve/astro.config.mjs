@@ -165,129 +165,129 @@ export default defineConfig({
         react(),
         svelte(),
 
-        AstroPWA({
-            base: '/',
-            scope: '/',
-            registerType: 'autoUpdate',
-            includeAssets: ['favicon.svg'],
-            manifest: {
-                name: 'KBVE.com',
-                short_name: 'KBVE',
-                theme_color: '#ffffff',
-                icons: [
-                    {
-                        src: 'pwa-192x192.png',
-                        sizes: '192x192',
-                        type: 'image/png',
-                    },
-                    {
-                        src: 'pwa-512x512.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                    },
-                    {
-                        src: 'pwa-512x512.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                        purpose: 'any maskable',
-                    },
-                ],
-            },
-            workbox: {
-                maximumFileSizeToCacheInBytes: 9000000,
-                cleanupOutdatedCaches: true,
-                inlineWorkboxRuntime: true,
-                globPatterns: ['**/*.{html,css,js,svg,png,ico,txt,lottie}'],
-                navigateFallback: null,
-                navigationPreload: true,
-                navigateFallbackDenylist: [
-                    /^\/sw\.js$/,
-                    /^\/workbox-[a-z0-9\-]+\.js$/,
-                    /^\/ws$/,
-                    /^\/api\/.*/,
-                  ],
+        // AstroPWA({
+        //     base: '/',
+        //     scope: '/',
+        //     registerType: 'autoUpdate',
+        //     includeAssets: ['favicon.svg'],
+        //     manifest: {
+        //         name: 'KBVE.com',
+        //         short_name: 'KBVE',
+        //         theme_color: '#ffffff',
+        //         icons: [
+        //             {
+        //                 src: 'pwa-192x192.png',
+        //                 sizes: '192x192',
+        //                 type: 'image/png',
+        //             },
+        //             {
+        //                 src: 'pwa-512x512.png',
+        //                 sizes: '512x512',
+        //                 type: 'image/png',
+        //             },
+        //             {
+        //                 src: 'pwa-512x512.png',
+        //                 sizes: '512x512',
+        //                 type: 'image/png',
+        //                 purpose: 'any maskable',
+        //             },
+        //         ],
+        //     },
+        //     workbox: {
+        //         maximumFileSizeToCacheInBytes: 9000000,
+        //         cleanupOutdatedCaches: true,
+        //         inlineWorkboxRuntime: true,
+        //         globPatterns: ['**/*.{html,css,js,svg,png,ico,txt,lottie}'],
+        //         navigateFallback: null,
+        //         navigationPreload: true,
+        //         navigateFallbackDenylist: [
+        //             /^\/sw\.js$/,
+        //             /^\/workbox-[a-z0-9\-]+\.js$/,
+        //             /^\/ws$/,
+        //             /^\/api\/.*/,
+        //           ],
                           
-                runtimeCaching: [
-                    {
-                        urlPattern: ({ request }) => request.mode === 'navigate',
-                        handler: 'NetworkFirst',
-                        options: {
-                            cacheName: 'pages',
-                            networkTimeoutSeconds: 3,
-                            expiration: {
-                                maxEntries: 20,
-                                maxAgeSeconds: 60 * 60 * 24,
-                            },
-                        },
-                    },
-                    {
-                        urlPattern: /\/api\/.*/,
-                        handler: 'NetworkFirst',
-                        options: {
-                          cacheName: 'api-json',
-                          networkTimeoutSeconds: 1,
-                          expiration: {
-                            maxEntries: 5,
-                            maxAgeSeconds: 60 * 5,
-                          },
-                        },
-                      },
-                    {
-                        urlPattern: ({ request }) =>
-                            ['script', 'style', 'font', 'image'].includes(request.destination),
-                        handler: 'CacheFirst',
-                        options: {
-                            cacheName: 'static-assets',
-                            expiration: {
-                                maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 * 24 * 30,
-                            },
-                        },
-                    },
+        //         runtimeCaching: [
+        //             {
+        //                 urlPattern: ({ request }) => request.mode === 'navigate',
+        //                 handler: 'NetworkFirst',
+        //                 options: {
+        //                     cacheName: 'pages',
+        //                     networkTimeoutSeconds: 3,
+        //                     expiration: {
+        //                         maxEntries: 20,
+        //                         maxAgeSeconds: 60 * 60 * 24,
+        //                     },
+        //                 },
+        //             },
+        //             {
+        //                 urlPattern: /\/api\/.*/,
+        //                 handler: 'NetworkFirst',
+        //                 options: {
+        //                   cacheName: 'api-json',
+        //                   networkTimeoutSeconds: 1,
+        //                   expiration: {
+        //                     maxEntries: 5,
+        //                     maxAgeSeconds: 60 * 5,
+        //                   },
+        //                 },
+        //               },
+        //             {
+        //                 urlPattern: ({ request }) =>
+        //                     ['script', 'style', 'font', 'image'].includes(request.destination),
+        //                 handler: 'CacheFirst',
+        //                 options: {
+        //                     cacheName: 'static-assets',
+        //                     expiration: {
+        //                         maxEntries: 100,
+        //                         maxAgeSeconds: 60 * 60 * 24 * 30,
+        //                     },
+        //                 },
+        //             },
                     
-                ],
-            },
-            experimental: {
-                directoryAndTrailingSlashHandler: true,
-            },
-            devOptions: {
-                enabled: true
-                /* other options */
-            }
+        //         ],
+        //     },
+        //     experimental: {
+        //         directoryAndTrailingSlashHandler: true,
+        //     },
+        //     devOptions: {
+        //         enabled: true
+        //         /* other options */
+        //     }
 
-        }),
+        // }),
 
-        (await import("@playform/compress")).default({
-            CSS: true,
-            HTML: {
-                "html-minifier-terser": {
-                    removeAttributeQuotes: false,
-                },
-            },
-            Image: false,
-            JavaScript: true,
-            SVG: true,
-        }),
+        // (await import("@playform/compress")).default({
+        //     CSS: true,
+        //     HTML: {
+        //         "html-minifier-terser": {
+        //             removeAttributeQuotes: false,
+        //         },
+        //     },
+        //     Image: false,
+        //     JavaScript: true,
+        //     SVG: true,
+        // }),
 
         // shield({
         //     sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
         // }),
 
-        compressor({
-            gzip: true,
-            brotli: false,
-            fileExtensions: [
-                ".html",
-                ".js",
-                ".css",
-                ".mjs",
-                ".cjs",
-                ".svg",
-                ".xml",
-                ".txt",
-                ".json"
-            ]
-        }),
+        // compressor({
+        //     gzip: true,
+        //     brotli: false,
+        //     fileExtensions: [
+        //         ".html",
+        //         ".js",
+        //         ".css",
+        //         ".mjs",
+        //         ".cjs",
+        //         ".svg",
+        //         ".xml",
+        //         ".txt",
+        //         ".json"
+        //     ]
+        // }),
 
         // mdx({
         // 	...markdownConfig,
