@@ -1,4 +1,4 @@
-// stores/heroDiceStore.ts
+/** @jsxImportSource react */
 import { atom } from 'nanostores';
 
 // --- Types ---
