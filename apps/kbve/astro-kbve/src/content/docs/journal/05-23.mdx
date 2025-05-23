@@ -11,6 +11,29 @@ tags:
     - daily
 ---
 
+## 2025
+
+### Astro KBVE Build Preview
+
+-   04:40AM
+
+    Adding a quick build preview command because it would make more sense for us to do it that way since we are not getting errors.
+    The classic works in `dev` but breaks in `production`, I suppose we can use astro tests to figure that out as well but that will be after this bug.
+
+### Dice Fiber Problem
+
+-   04:51PM
+
+    The biggest issue that is breaking the kbve website right now is the react fiber!
+    I am thinking its just an issue with how Astro and React are handling the client side code and its becoming a pain point.
+    I decided to drop my rating for Astro to `8.7/10`, and its slowly reaching that B tier, which is a shame.
+
+-   05:06PM
+
+    Maybe we nest the dice into another component using a reference point and calling the fiber directly.
+    I am not too sure if this is because of react `19.1` or if something in our library is missing, hmm.
+    This is a bug that might just not be worth it for now, so I will just leave it as an endless spin for now.
+
 ## 2024
 
 **SCAR**

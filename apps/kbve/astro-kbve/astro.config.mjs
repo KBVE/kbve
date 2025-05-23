@@ -306,7 +306,7 @@ export default defineConfig({
 
     vite: defineViteConfig({
         ssr: {
-            noExternal: ['path-to-regexp'],
+            noExternal: ['path-to-regexp', '@react-three/fiber', 'three', 'its-fine', '@react-three/drei'],
         },
         server: {
             watch: {
