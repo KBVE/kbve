@@ -34,6 +34,7 @@ interface Props {
 	lang={lang}
 	class="scrollbar-hide lenis lenis-smooth scroll-pt-16 mx-auto">
 	<head>
+		<title>{title}</title>
 		<script src="/src/pwa.ts"></script>
 		<script src="/src/layouts/client/droid.ts"></script>
 		<Meta meta={meta} structuredData={structuredData} />
@@ -95,9 +96,7 @@ interface Props {
 
 		<!-- Lenis Library -->
 		<script
-			src="
-		https://cdn.jsdelivr.net/npm/lenis@1.3.3/dist/lenis.min.js
-		">
+			src="https://cdn.jsdelivr.net/npm/lenis@1.3.3/dist/lenis.min.js">
 		</script>
 		<link
 			href="
