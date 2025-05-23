@@ -276,21 +276,21 @@ export default defineConfig({
         //     sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
         // }),
 
-        compressor({
-            gzip: true,
-            brotli: false,
-            fileExtensions: [
-                ".html",
-                ".js",
-                ".css",
-                ".mjs",
-                ".cjs",
-                ".svg",
-                ".xml",
-                ".txt",
-                ".json"
-            ]
-        }),
+        // compressor({
+        //     gzip: true,
+        //     brotli: false,
+        //     fileExtensions: [
+        //         ".html",
+        //         ".js",
+        //         ".css",
+        //         ".mjs",
+        //         ".cjs",
+        //         ".svg",
+        //         ".xml",
+        //         ".txt",
+        //         ".json"
+        //     ]
+        // }),
 
         // mdx({
         // 	...markdownConfig,
