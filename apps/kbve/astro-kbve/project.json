@@ -25,6 +25,17 @@
           "parallel": false
         }
       },
+      "preview": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/kbve/astro-kbve",
+          "commands": [
+            "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build",
+            "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro preview"
+          ],
+          "parallel": false
+        }
+      },
       "buildx": {
         "executor": "@nxtensions/astro:build",
         "options": {}
@@ -33,7 +44,7 @@
         "executor": "@nxtensions/astro:dev",
         "options": {}
       },
-      "preview": {
+      "previewx": {
         "dependsOn": [
           {
             "target": "build",
