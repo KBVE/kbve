@@ -162,7 +162,9 @@ export default defineConfig({
         //alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
         //partytown(),
         worker(),
-        react(),
+        react({
+      experimentalReactChildren: true,
+    }),
         svelte(),
 
         AstroPWA({
