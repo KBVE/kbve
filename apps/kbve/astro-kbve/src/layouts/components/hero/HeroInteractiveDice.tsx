@@ -1,5 +1,4 @@
 /** @jsxImportSource react */
-import React, { useLayoutEffect } from 'react';
 import type { JSX } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -107,34 +106,33 @@ export default function HeroInteractive(): JSX.Element {
 	const state = useStore($heroDiceState);
 	const [visible, setVisible] = useState(true);
 
-
 	useEffect(() => {
 		initHeroDice();
 		const spinner = document.getElementById('hero-spinner');
 		if (spinner) spinner.style.display = 'none';
 
-		const handleVisibility = () => {
-			const isVisible = document.visibilityState === 'visible';
-			setVisible(isVisible);
+		// const handleVisibility = () => {
+		// 	const isVisible = document.visibilityState === 'visible';
+		// 	setVisible(isVisible);
 
-			if (spinner) {
-				spinner.style.display = isVisible ? 'block' : 'none';
-			}
+		// 	if (spinner) {
+		// 		spinner.style.display = isVisible ? 'block' : 'none';
+		// 	}
 
-			if (!isVisible) {
-				setHeroDiceRolling(false);
-			}
-            console.log(`[Visible] ${isVisible}`);
-		};
-		document.addEventListener('visibilitychange', handleVisibility);
-		return () =>
-			document.removeEventListener('visibilitychange', handleVisibility);
+		// 	if (!isVisible) {
+		// 		setHeroDiceRolling(false);
+		// 	}
+		// 	console.log(`[Visible] ${isVisible}`);
+		// };
+		// document.addEventListener('visibilitychange', handleVisibility);
+		// return () =>
+		// 	document.removeEventListener('visibilitychange', handleVisibility);
 	}, []);
 
 	const roll = () => {
 		setHeroDiceRolling(true);
-        const spinner = document.getElementById('hero-spinner');
-        if (spinner) spinner.style.display = 'block';
+		const spinner = document.getElementById('hero-spinner');
+		if (spinner) spinner.style.display = 'block';
 		setTimeout(() => {
 			const newValues = Array.from(
 				{ length: 4 },
@@ -142,15 +140,14 @@ export default function HeroInteractive(): JSX.Element {
 			);
 			setHeroDiceValues(newValues);
 			setHeroDiceRolling(false);
-              if (spinner) spinner.style.display = 'none';
+			if (spinner) spinner.style.display = 'none';
 		}, 1500);
-
 	};
 
 	return (
 		<div className="transition-opacity duration-700 ease-out w-full h-auto opacity-100">
 			<div className="rounded-xl overflow-hidden shadow-xl w-full h-[250px] sm:h-[300px] md:h-[400px]">
-				{visible && (
+				<div className={visible ? 'block' : 'hidden'}>
 					<Canvas
 						shadows
 						camera={{ position: [0, 0, 8], fov: 65 }}
@@ -160,10 +157,7 @@ export default function HeroInteractive(): JSX.Element {
 						<Dice values={state.values} rolling={state.rolling} />
 						<OrbitControls enableZoom={false} />
 					</Canvas>
-				)}
-				{!visible && (
-					<div>!</div>
-				)}
+				</div>
 			</div>
 			<div className="mt-6 flex flex-row space-x-3 items-center z-40">
 				<div className="mt-4 text-zinc-200 text-lg text-center min-h-[3rem]">
