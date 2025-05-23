@@ -164,6 +164,7 @@ export default defineConfig({
         worker(),
         react({
       experimentalReactChildren: true,
+      experimentalDisableStreaming: true,
     }),
         svelte(),
 
