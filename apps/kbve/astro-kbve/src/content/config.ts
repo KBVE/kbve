@@ -1,6 +1,7 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
+import { glob } from "astro/loaders";
 
 export enum ItemCategoryFlags {
 	None = 0,
@@ -84,6 +85,11 @@ export function validateItemUniqueness(items: typeof IObjectSchema['_type'][]) {
 	}
 }
 
+const itemdb = defineCollection({
+  loader: glob({ pattern: "**/*.mdx", base: "./src/content/docs/itemdb" }),
+  schema: IObjectSchema
+});
+
 
 export const collections = {
 	docs: defineCollection({
@@ -94,4 +100,5 @@ export const collections = {
 		
 		}),
 	}),
+	itemdb: itemdb,
 };
