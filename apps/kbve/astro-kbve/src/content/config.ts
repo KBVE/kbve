@@ -26,6 +26,9 @@ export enum ItemCategoryFlags {
 	Soul = 0x40000000,
 }
 
+export type CategoryName = keyof typeof ItemCategoryFlags;
+
+
 const MAX_ITEM_CATEGORY = Object.values(ItemCategoryFlags).reduce(
 	(acc, val) => typeof val === 'number' ? acc | val : acc,
 	0
@@ -63,6 +66,15 @@ const IObjectSchema = z.object({
 	craftingMaterials: z.array(z.string()).optional(),
 	credits: z.string().optional(),
 });
+
+export function getCategoryValue(names: CategoryName[]): number {
+	let value = 0;
+	for (const name of names) {
+		value |= ItemCategoryFlags[name];
+	}
+	return value;
+}
+
 
 export function validateItemUniqueness(items: typeof IObjectSchema['_type'][]) {
 	const seenIds = new Set<string>();
