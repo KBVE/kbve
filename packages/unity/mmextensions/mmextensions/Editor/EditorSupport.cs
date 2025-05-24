@@ -94,7 +94,7 @@ namespace KBVE.MMExtensions.Editor
         }
 
 
-         /// <summary>
+        /// <summary>
         /// Draws standardized KBVE help buttons for Discord and GitHub support.
         /// </summary>
         public static void DrawSupportButtons()
@@ -115,7 +115,7 @@ namespace KBVE.MMExtensions.Editor
         {
             GUILayout.BeginHorizontal();
 
-           if (logo != null)
+            if (logo != null)
             {
                 float scale = 1.0f;
                 float logoWidth = logo.width * scale;
@@ -128,5 +128,30 @@ namespace KBVE.MMExtensions.Editor
 
             GUILayout.EndHorizontal();
         }
+
+
+        /// <summary>
+        /// Ensures a relative Unity asset path exists by creating missing folders. Returns the sanitized path with forward slashes.
+        /// </summary>
+        /// <param name="assetPath">Relative path (e.g., "Assets/Dungeon/Data/OccupancyMaps")</param>
+        /// <returns>Normalized Unity path using forward slashes</returns>
+        public static string EnsureUnityAssetPath(string assetPath)
+        {
+            string[] parts = assetPath.Split('/');
+            string current = parts[0];
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = $"{current}/{parts[i]}";
+                if (!AssetDatabase.IsValidFolder(next))
+                {
+                    AssetDatabase.CreateFolder(current, parts[i]);
+                }
+                current = next;
+            }
+
+            return assetPath.Replace("\\", "/");
+        }
+
     }
 }
