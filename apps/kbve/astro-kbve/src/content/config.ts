@@ -22,8 +22,13 @@ export enum ItemCategoryFlags {
 	Legendary = 0x00008000,
 	Vehicle = 0x00010000,
 	Pet = 0x00020000,
-	Soul = 0x80000000,
+	Soul = 0x40000000,
 }
+
+const MAX_ITEM_CATEGORY = Object.values(ItemCategoryFlags).reduce(
+	(acc, val) => typeof val === 'number' ? acc | val : acc,
+	0
+);
 
 
 const IBonusSchema = z.object({
@@ -37,7 +42,7 @@ const IObjectSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	type: z.string(),
-	category: z.string().optional(),
+	category: z.number().int().nonnegative().max(MAX_ITEM_CATEGORY).optional(),
 	description: z.string().optional(),
 	img: z.string().optional(),
 	bonuses: IBonusSchema.optional(),
