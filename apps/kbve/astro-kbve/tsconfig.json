@@ -13,7 +13,7 @@
     "target": "ESNext",
     "module": "ESNext",
     // Enable node-style module resolution, for things like npm package imports
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     // Import
     "allowImportingTsExtensions": true,
     // Enable JSON imports

@@ -54,5 +54,7 @@
       "vnode",
       "gsap",
       "itemdb",
+      "stackable",
+      "nanostores",
     ]
 }

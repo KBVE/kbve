@@ -1,0 +1,33 @@
+---
+import Layout from 'src/layouts/core/Layout.astro';
+
+import {SITE} from 'src/layouts/site';
+
+const pageURL: string = 'https://kbve.com/services/';
+const pageTitle: string = `Services | ${SITE.title}`;
+const pageDescription: string =
+	'Combining expert knowledge with your vision, KBVE offers exceptional service and comprehensive solutions in software and application development, from initial consultation to project completion.';
+
+---
+
+<Layout
+
+title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': `${pageURL}`,
+		url: `${pageURL}`,
+		name: `${pageTitle}`,
+		description: `${pageDescription}`,
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: `${SITE.title}`,
+			description: `${SITE.description}`,
+		},
+		inLanguage: 'en-US',
+	}}>
+  
+
+  </Layout>

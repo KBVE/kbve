@@ -98,6 +98,12 @@ export default defineConfig({
                     autogenerate: { directory: 'theory' },
                 },
 
+                  {
+                    label: 'ItemDB',
+                    collapsed: true,
+                    autogenerate: { directory: 'itemdb' },
+                },
+
                 {
                     label: 'Blog',
                     autogenerate: { directory: 'blog' },
@@ -112,6 +118,7 @@ export default defineConfig({
                     collapsed: true,
                     autogenerate: { directory: 'legal' },
                 },
+
             ],
             social: [
                 { icon: 'github', label: 'GitHub', href: 'https://github.com/kbve/kbve' },
