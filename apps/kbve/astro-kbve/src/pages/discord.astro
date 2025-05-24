@@ -212,10 +212,8 @@ import DiscordSVG from 'src/layouts/components/panel/DiscordSVG.astro';
          border border-[rgba(34,211,238,0.1)]
          shadow-[inset_0.5px_0.5px_1.5px_rgba(186,230,253,0.6),inset_-1px_-1px_1px_rgba(21,94,117,0.5),inset_3px_3px_6px_rgba(0,0,0,0.25)]
          translate-z-[30px] transform-style-3d">
-         
 			</div>
 
-            
 			<!-- Left Block: Lottie Canvas -->
 			<div
 				class="w-full md:w-1/2 flex items-center justify-center p-6 bg-white/5 backdrop-blur-lg border-r border-white/10">
@@ -225,7 +223,7 @@ import DiscordSVG from 'src/layouts/components/panel/DiscordSVG.astro';
 					height="300"
 					class="w-full max-w-[300px] aspect-square">
 				</canvas>
-                <Fragment set:html={svg} />
+				<Fragment set:html={svg} />
 			</div>
 
 			<!-- Right Block: Panel Content -->
@@ -266,7 +264,6 @@ import DiscordSVG from 'src/layouts/components/panel/DiscordSVG.astro';
 			</div>
 		</div>
 
-		<!-- Lottie Loader Script -->
 		<script is:inline type="module">
 			import { DotLottieWorker } from 'https://cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/+esm';
 
@@ -277,7 +274,7 @@ import DiscordSVG from 'src/layouts/components/panel/DiscordSVG.astro';
 				canvas.dataset.lottieInit = 'true';
 
 				new DotLottieWorker({
-					canvas: canvas,
+					canvas,
 					src: 'https://kbve.com/assets/lottie/holydance.lottie',
 					autoplay: true,
 					loop: true,
@@ -285,26 +282,18 @@ import DiscordSVG from 'src/layouts/components/panel/DiscordSVG.astro';
 			}
 
 			document.addEventListener('astro:page-load', () => {
-				let attempts = 0;
-				const maxAttempts = 200;
-				const delay = 200;
-
-				const tryInit = () => {
+				const observer = new MutationObserver(() => {
 					const canvas = document.getElementById('discord-canvas');
 					if (canvas) {
+						observer.disconnect();
 						initLottie();
-					} else if (attempts++ < maxAttempts) {
-						requestAnimationFrame(() => {
-							setTimeout(tryInit, delay);
-						});
-					} else {
-						console.warn(
-							'[Lottie] Failed to initialize after max attempts.'
-						);
 					}
-				};
+				});
 
-				tryInit();
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true,
+				});
 			});
 		</script>
 	</section>

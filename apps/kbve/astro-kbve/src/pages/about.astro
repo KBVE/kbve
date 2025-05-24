@@ -1,0 +1,88 @@
+---
+import Layout from 'src/layouts/core/Layout.astro';
+
+const pageTitle: string = `About | KBVE`;
+const title: string = `About KBVE`;
+const subTitle: string = `What is KBVE About?`;
+
+const AboutUsOption1: string =
+	'KBVE is at the forefront of the Technology and Gaming industry, dedicated to crafting cutting-edge software and immersive video games that redefine user experiences. Our passion for innovation drives us to deliver exceptional digital adventures and solutions.';
+const AboutUsOption2: string = `At KBVE, we merge technology with creativity, developing state-of-the-art software and captivating video games designed to engage and inspire. Our commitment to excellence shines through every product, pushing the boundaries of what's possible in tech and gaming.`;
+---
+
+<Layout
+	title={pageTitle}
+	structuredData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		'@id': 'https://kbve.com/about/',
+		url: 'https://kbve.com/about/',
+		name: `${pageTitle}`,
+		description:
+			'Explore our software and automation solutions! Contact us to discuss your project and let us help you create the perfect automated tools and provide expert software support.',
+		isPartOf: {
+			'@type': 'WebSite',
+			url: 'https://kbve.com',
+			name: 'Kilo Byte Virtual Engine',
+			description:
+				'Elevate your efficiency with KBVE, Kilobyte Virtual Engine! Discover cutting-edge software and automation solutions designed to streamline and enhance your projects. Let’s innovate together!',
+		},
+		inLanguage: 'en-US',
+	}}>
+	<section class="px-6 py-12 sm:px-8 lg:px-12">
+		<div
+			class="mx-auto max-w-7xl relative flex flex-col md:flex-row rounded-3xl bg-white/5 backdrop-blur-md ring-1 ring-white/10
+    shadow-[inset_0_0_0.5px_rgba(255,255,255,0.15),inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_rgba(0,0,0,0.4)]
+    hover:shadow-[inset_0_0_1px_rgba(255,255,255,0.2),inset_0_2px_1px_rgba(255,255,255,0.1),0_30px_60px_rgba(0,0,0,0.5)]
+    transition-all duration-300 overflow-hidden ring-offset-1 ring-offset-white/5 hover:ring-4">
+			<!-- Left Content -->
+			<div class="p-8 flex-1 space-y-6">
+				<div
+					class="inline-flex items-center gap-2 text-xs font-semibold bg-cyan-500/90 text-neutral-300 px-3 py-1 rounded-full shadow border border-white/30">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="w-4 h-4"
+						fill="currentColor"
+						viewBox="0 0 24 24">
+						<circle cx="12" cy="12" r="10"></circle>
+					</svg>
+					Learn More
+				</div>
+
+				<h2 class="text-3xl sm:text-4xl font-bold text-white">
+					About KBVE
+				</h2>
+				<p class="text-base text-zinc-300">
+					KBVE (KiloByte Virtual Engine) is a platform and community
+					pushing the edge of automation, interactive media, and
+					decentralized tools.
+				</p>
+
+				<div
+					class="mt-6 border-t border-white/10 pt-6 text-base leading-relaxed text-zinc-300">
+					Join us as we build open-source projects, AI tools, and
+					immersive web experiences. We're an async-first community,
+					exploring tech, art, and automation.
+				</div>
+
+				<a
+					href="/contact"
+					class="inline-block mt-6 bg-gradient-to-br from-purple-400 to-purple-500 text-white font-semibold py-2 px-6 rounded-full shadow-md text-sm tracking-wide
+          hover:from-purple-300 hover:to-purple-400 hover:-translate-y-1
+          active:from-purple-500 active:to-purple-600 active:translate-y-0 transition-all duration-200 ease-in-out">
+					Contact Us
+				</a>
+			</div>
+
+			<!-- Optional Right Panel: could embed a Lottie or SVG -->
+			<div
+				class="hidden md:block w-1/2 relative rounded-r-3xl overflow-hidden border-l border-white/10 backdrop-blur-xl">
+				<div class="absolute inset-0 bg-purple-900/30 z-0"></div>
+				<div
+					class="relative z-10 flex items-center justify-center h-full text-purple-300 text-xl p-10">
+					Transforming Ideas into Interactive Realities.
+				</div>
+			</div>
+		</div>
+	</section>
+</Layout>
