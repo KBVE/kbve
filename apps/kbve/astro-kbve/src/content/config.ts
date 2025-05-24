@@ -34,6 +34,10 @@ const MAX_ITEM_CATEGORY = Object.values(ItemCategoryFlags).reduce(
 	0
 );
 
+const IScriptBindingSchema = z.object({
+	guid: z.string().uuid(),
+	vars: z.record(z.union([z.string(), z.number(), z.boolean()])).optional()
+});
 
 const IBonusSchema = z.object({
 	armor: z.number().optional(),
@@ -65,6 +69,7 @@ const IObjectSchema = z.object({
 	action: z.string().optional(),
 	craftingMaterials: z.array(z.string()).optional(),
 	credits: z.string().optional(),
+	scripts: z.array(IScriptBindingSchema).optional(),
 });
 
 export function getCategoryValue(names: CategoryName[]): number {
