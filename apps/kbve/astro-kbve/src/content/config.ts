@@ -61,11 +61,14 @@ const IObjectSchema = z.object({
 	credits: z.string().optional(),
 });
 
+
 export const collections = {
 	docs: defineCollection({
 		schema: docsSchema({
-			extend: pageSiteGraphSchema
-			// itemdb: z.array(IObjectSchema).optional(),
+			extend: pageSiteGraphSchema.merge(z.object({
+				itemdb: z.array(IObjectSchema).optional(),
+			})),
+		
 		}),
 	}),
 };
