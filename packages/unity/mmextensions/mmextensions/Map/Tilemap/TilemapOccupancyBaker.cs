@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 
 #if UNITY_EDITOR
+using KBVE.MMExtensions.Editor;
 using UnityEditor;
 #endif
 
