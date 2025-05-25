@@ -10,21 +10,25 @@ function formatKey(key: string): string {
 	return key
 		.replace(/_/g, ' ')
 		.replace(/([a-z])([A-Z])/g, '$1 $2')
-		.replace(/\b\w/g, char => char.toUpperCase());
+		.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 ---
 
 <section class="px-6 py-6 sm:px-8 lg:px-12">
 	<div class="max-w-3xl mx-auto">
 		<div
-			class="rounded-2xl backdrop-blur-md p-6 shadow-[inset_0_0_0.5px_rgba(255,255,255,0.15)] border border-white/10 hover:shadow-cyan-500/20 transition duration-300 space-y-3">
+			class="rounded-2xl p-6 border transition duration-300 space-y-3
+			backdrop-blur-md bg-white/5 dark:bg-white/10
+			border-white/10 dark:border-white/10
+			shadow-[inset_0_0_0.5px_rgba(255,255,255,0.1)]
+			hover:shadow-cyan-400/30 dark:hover:shadow-cyan-300/30">
 			<div class="flex items-center gap-3">
 				{
 					item.img && (
 						<img
 							src={item.img}
 							alt={item.name}
-							class="w-24 h-24 rounded-lg object-contain"
+							class="w-12 h-12 rounded-lg object-contain"
 						/>
 					)
 				}
@@ -53,7 +57,7 @@ function formatKey(key: string): string {
 					)
 				}
 				{
-					item.cooldown  && (
+					item.cooldown && (
 						<li>
 							<strong>Cooldown:</strong> {item.cooldown} seconds.
 						</li>
@@ -85,19 +89,22 @@ function formatKey(key: string): string {
 
 			{
 				item.bonuses && (
-					<hr class="my-4 border-white/10" />
-					<div class="text-sm text-cyan-300 mt-3">
-						<strong>Bonuses:</strong>
-						<ul class="list-disc list-inside ml-3">
-							{Object.entries(item.bonuses).map(
-								([key, value]) => (
-									<li>
-										<strong>{formatKey(key)}</strong>: {value}
-									</li>
-								)
-							)}
-						</ul>
-					</div>
+					<>
+						<hr class="my-4 border-white/10" />
+						<div class="text-sm text-cyan-300 mt-3">
+							<strong>Bonuses:</strong>
+							<ul class="list-disc list-inside ml-3">
+								{Object.entries(item.bonuses).map(
+									([key, value]) => (
+										<li>
+											<strong>{formatKey(key)}</strong>:{' '}
+											{value}
+										</li>
+									)
+								)}
+							</ul>
+						</div>
+					</>
 				)
 			}
 
@@ -107,7 +114,12 @@ function formatKey(key: string): string {
 						<div class="flex items-center gap-2 text-white text-base font-medium">
 							<span class="text-cyan-400">💰</span>
 							<span>Price:</span>
-							<span class="ml-auto text-cyan-200 font-semibold">{item.price} <span class="text-xs text-zinc-400">$KHash</span></span>
+							<span class="ml-auto text-cyan-200 font-semibold">
+								{item.price}{' '}
+								<span class="text-xs text-zinc-400">
+									$KHash
+								</span>
+							</span>
 						</div>
 					</div>
 				)
