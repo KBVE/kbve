@@ -10,7 +10,8 @@
     "Unity.EditorCoroutines.Editor",
     "MoreMountains.InventoryEngine",
     "MoreMountains.Tools",
-    "MoreMountains.Feedbacks"
+    "MoreMountains.Feedbacks",
+    "UnityEngine.Physics2DModule"
   ],
   "includePlatforms": ["Editor"],
   "excludePlatforms": [],

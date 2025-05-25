@@ -46,7 +46,7 @@ const IBonusSchema = z.object({
 	mana: z.number().optional(),
 });
 
-const IObjectSchema = z.object({
+export const IObjectSchema = z.object({
 	id: z.string(),
 	key: z.number().int().nonnegative(),
 	ref: z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/, 'Invalid ULID'),
