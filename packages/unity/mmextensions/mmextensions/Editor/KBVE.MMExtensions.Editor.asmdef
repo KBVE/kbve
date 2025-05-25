@@ -6,7 +6,8 @@
     "UnityEditor",
     "UnityEngine",
     "UnityEngine.TilemapModule",
-    "Unity.Addressables"
+    "Unity.Addressables",
+    "Unity.EditorCoroutines.Editor"
   ],
   "includePlatforms": ["Editor"],
   "excludePlatforms": [],
