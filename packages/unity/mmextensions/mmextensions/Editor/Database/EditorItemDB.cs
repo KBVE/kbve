@@ -112,7 +112,7 @@ namespace KBVE.MMExtensions.Database
                 invItem = ScriptableObject.CreateInstance<InventoryItem>();
                 AssetDatabase.CreateAsset(invItem, assetPath);
             }
-            
+
             invItem.ItemClass = ItemClasses.Neutral;
             invItem.ItemID = item.id;
             invItem.ItemName = item.id;
@@ -153,7 +153,7 @@ namespace KBVE.MMExtensions.Database
                 renderer.sortingLayerName = "Default";
             }
             renderer.sortingOrder = entry.sortingOrder;
-            
+
 
             var picker = go.AddComponent<ItemPicker>();
             picker.Item = item;
