@@ -74,6 +74,8 @@ export const IObjectSchema = z.object({
 	craftingMaterials: z.array(z.string()).optional(),
 	credits: z.string().optional(),
 	scripts: z.array(IScriptBindingSchema).optional(),
+	steamMarketUrl: z.string().optional(),
+	exchangeUrl: z.string().optional(),
 });
 
 export function getCategoryValue(names: CategoryName[]): number {
