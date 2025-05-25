@@ -6,7 +6,11 @@
     "UnityEditor",
     "UnityEngine",
     "UnityEngine.TilemapModule",
-    "Unity.Addressables"
+    "Unity.Addressables",
+    "Unity.EditorCoroutines.Editor",
+    "MoreMountains.InventoryEngine",
+    "MoreMountains.Tools",
+    "MoreMountains.Feedbacks"
   ],
   "includePlatforms": ["Editor"],
   "excludePlatforms": [],
