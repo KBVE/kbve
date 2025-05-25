@@ -44,6 +44,7 @@ const IBonusSchema = z.object({
 	intelligence: z.number().optional(),
 	health: z.number().optional(),
 	mana: z.number().optional(),
+	energy: z.number().optional(),
 });
 
 export const IObjectSchema = z.object({
