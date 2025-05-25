@@ -82,14 +82,14 @@ namespace KBVE.MMExtensions.Database
                 // Create or update InventoryItem asset
                 var invItem = CreateOrUpdateInventoryItem(item, sprite);
 
-                // Create DropPrefab
-                var dropPrefab = CreateItemPrefab(item.name + "_Drop", sprite, invItem, false);
+                // Process Prefabs
+                var dropPrefab = CreateItemPrefab(item.name + "_Drop", sprite, invItem, item, false);
 
                 // Create DeployablePrefab if it's deployable
                 GameObject deployPrefab = null;
                 if ((item.category & 0x00000400) != 0) // Ref: Structure flag
                 {
-                    deployPrefab = CreateItemPrefab(item.name + "_Deploy", sprite, invItem, true);
+                    deployPrefab = CreateItemPrefab(item.name + "_Deploy", sprite, invItem, item, true);
                 }
 
                 // Assign prefabs
@@ -125,7 +125,7 @@ namespace KBVE.MMExtensions.Database
             invItem.ConsumeQuantity = 1;
             invItem.Equippable = (item.category & 0x00000001) != 0; // Weapon
             //invItem.Stackable = item.stackable;
-            invItem.MaximumStack = item.stackable ? 9999 : 1;
+            invItem.MaximumStack = item.stackable ? 99 : 1;
             //invItem.Price = item.price;
             invItem.TargetInventoryName = "KoalaMainInventory";
             invItem.Droppable = true;
@@ -134,11 +134,15 @@ namespace KBVE.MMExtensions.Database
             return invItem;
         }
 
-        private static GameObject CreateItemPrefab(string name, Sprite sprite, InventoryItem item, bool isDeployable)
+        private static GameObject CreateItemPrefab(string name, Sprite sprite, InventoryItem item, ItemEntry entry, bool isDeployable)
         {
             GameObject go = new GameObject(name);
             var renderer = go.AddComponent<SpriteRenderer>();
             renderer.sprite = sprite;
+
+            renderer.sortingLayerName = string.IsNullOrEmpty(entry.sortingLayer) ? "Default" : entry.sortingLayer;
+            renderer.sortingOrder = entry.sortingOrder;
+            
 
             var picker = go.AddComponent<ItemPicker>();
             picker.Item = item;
@@ -186,6 +190,8 @@ namespace KBVE.MMExtensions.Database
             public string credits;
             public string slug;
             public List<ScriptEntry> scripts;
+            public string sortingLayer = "Default";
+            public int sortingOrder = 0;
         }
 
         [System.Serializable]
