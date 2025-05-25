@@ -83,13 +83,13 @@ namespace KBVE.MMExtensions.Database
                 var invItem = CreateOrUpdateInventoryItem(item, sprite);
 
                 // Create DropPrefab
-                var dropPrefab = CreateItemPrefab(item.name + "_Drop", sprite, invItem.ItemID, false);
+                var dropPrefab = CreateItemPrefab(item.name + "_Drop", sprite, invItem, false);
 
                 // Create DeployablePrefab if it's deployable
                 GameObject deployPrefab = null;
-                if ((item.category & 0x00000400) != 0) // Example: Structure flag
+                if ((item.category & 0x00000400) != 0) // Ref: Structure flag
                 {
-                    deployPrefab = CreateItemPrefab(item.name + "_Deploy", sprite, invItem.ItemID, true);
+                    deployPrefab = CreateItemPrefab(item.name + "_Deploy", sprite, invItem, true);
                 }
 
                 // Assign prefabs
@@ -114,7 +114,8 @@ namespace KBVE.MMExtensions.Database
             }
 
             invItem.ItemID = item.id;
-            invItem.ItemName = item.name;
+            invItem.ItemName = item.id;
+            invItem.name = item.id;
             invItem.ShortDescription = item.description;
             invItem.Description = item.effects;
             invItem.Icon = icon;
@@ -122,28 +123,30 @@ namespace KBVE.MMExtensions.Database
             invItem.Usable = item.consumable || item.action == "consume";
             invItem.ConsumeQuantity = 1;
             invItem.Equippable = (item.category & 0x00000001) != 0; // Weapon
-            invItem.Stackable = item.stackable;
-            invItem.MaximumStack = item.stackable ? 99 : 1;
-            invItem.Price = item.price;
-            invItem.TargetInventoryName = "MainInventory";
+            //invItem.Stackable = item.stackable;
+            invItem.MaximumStack = item.stackable ? 9999 : 1;
+            //invItem.Price = item.price;
+            invItem.TargetInventoryName = "KoalaMainInventory";
             invItem.Droppable = true;
+            invItem.UseDefaultSoundsIfNull = true;
 
             return invItem;
         }
 
-        private static GameObject CreateItemPrefab(string name, Sprite sprite, string itemID, bool isDeployable)
+        private static GameObject CreateItemPrefab(string name, Sprite sprite, InventoryItem item, bool isDeployable)
         {
             GameObject go = new GameObject(name);
             var renderer = go.AddComponent<SpriteRenderer>();
             renderer.sprite = sprite;
 
             var picker = go.AddComponent<ItemPicker>();
-            picker.ItemID = itemID;
+            picker.Item = item;
             picker.Quantity = 1;
 
-            string prefabPath = $"{PrefabFolder}{name}.prefab";
+            string prefabPath = $"Assets/Dungeon/Data/Items/Prefabs/{name}.prefab";
             PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
             GameObject.DestroyImmediate(go);
+
             return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
         }
 
