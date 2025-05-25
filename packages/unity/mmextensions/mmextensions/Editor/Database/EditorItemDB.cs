@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using MoreMountains.InventoryEngine;
 using MoreMountains.Tools;
 using MoreMountains.Feedbacks;
+using MoreMountains.TopDownEngine;
 
 namespace KBVE.MMExtensions.Database
 {
@@ -157,7 +158,7 @@ namespace KBVE.MMExtensions.Database
             var collider = go.AddComponent<BoxCollider2D>();
             collider.isTrigger = true;
 
-            var pickable = go.AddComponent<MoreMountains.TopDownEngine.PickableItem>();
+            var pickable = go.AddComponent<PickableItem>();
             pickable.DisableObjectOnPick = true;
             pickable.RequireCharacterComponent = true;
             pickable.RequirePlayerType = true;

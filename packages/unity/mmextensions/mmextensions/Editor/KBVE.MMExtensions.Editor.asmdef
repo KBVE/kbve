@@ -11,6 +11,7 @@
     "MoreMountains.InventoryEngine",
     "MoreMountains.Tools",
     "MoreMountains.Feedbacks",
+    "MoreMountains.TopDownEngine",
     "UnityEngine.Physics2DModule"
   ],
   "includePlatforms": ["Editor"],
