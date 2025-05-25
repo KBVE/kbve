@@ -108,22 +108,52 @@ function formatKey(key: string): string {
 				)
 			}
 
-			{
-				item.price !== undefined && (
-					<div class="mt-6 pt-4 border-t border-white/10">
-						<div class="flex items-center gap-2 text-white text-base font-medium">
-							<span class="text-cyan-400">💰</span>
-							<span>Price:</span>
-							<span class="ml-auto text-cyan-200 font-semibold">
-								{item.price}{' '}
-								<span class="text-xs text-zinc-400">
-									$KHash
-								</span>
-							</span>
-						</div>
-					</div>
-				)
-			}
+{
+	item.price !== undefined && (
+		<div class="mt-6 pt-4 border-t border-white/10">
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+				<div class="flex items-center gap-2 text-base font-medium">
+					<span class="text-cyan-400">💰</span>
+					<span class="text-cyan-600 dark:text-cyan-400">Price:</span>
+					<span class="text-cyan-600 dark:text-cyan-200 font-semibold">
+						{item.price}{' '}
+						<span class="text-xs text-zinc-400">$KHash</span>
+					</span>
+				</div>
+
+				<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm">
+					{item.steamMarketUrl ? (
+						<a
+							href={item.steamMarketUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition"
+						>
+							🛒 Steam Market
+						</a>
+					) : (
+						<span class="text-zinc-500 italic">Not on Steam Market</span>
+					)}
+
+					{item.exchangeUrl ? (
+						<a
+							href={item.exchangeUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium bg-green-500/10 text-green-300 hover:bg-green-500/20 transition"
+						>
+							🔁 Buy on Exchange
+						</a>
+					) : (
+						<span class="text-zinc-500 light:text-zinc-700 italic">Not on Exchange</span>
+					)}
+				</div>
+			</div>
+		</div>
+	)
+}
+
+
 		</div>
 	</div>
 </section>
