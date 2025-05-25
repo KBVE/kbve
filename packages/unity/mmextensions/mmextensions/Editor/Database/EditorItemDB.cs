@@ -140,7 +140,18 @@ namespace KBVE.MMExtensions.Database
             var renderer = go.AddComponent<SpriteRenderer>();
             renderer.sprite = sprite;
 
-            renderer.sortingLayerName = string.IsNullOrEmpty(entry.sortingLayer) ? "Default" : entry.sortingLayer;
+            // renderer.sortingLayerName = string.IsNullOrEmpty(entry.sortingLayer) ? "Default" : entry.sortingLayer;
+            // renderer.sortingOrder = entry.sortingOrder;
+
+            if (SortingLayerExists(entry.sortingLayer))
+            {
+                renderer.sortingLayerName = entry.sortingLayer;
+            }
+            else
+            {
+                Debug.LogWarning($"Sorting layer '{entry.sortingLayer}' not found. Defaulting to 'Default'.");
+                renderer.sortingLayerName = "Default";
+            }
             renderer.sortingOrder = entry.sortingOrder;
             
 
@@ -153,6 +164,14 @@ namespace KBVE.MMExtensions.Database
             GameObject.DestroyImmediate(go);
 
             return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        }
+
+        private static bool SortingLayerExists(string name)
+        {
+            foreach (var layer in SortingLayer.layers)
+                if (layer.name == name)
+                    return true;
+            return false;
         }
 
         // === JSON Structures ===
