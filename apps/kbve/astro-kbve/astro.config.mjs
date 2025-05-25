@@ -46,14 +46,14 @@ export default defineConfig({
                             "depth",
                             "reset-zoom",
                             "render-arrows",
-                            "render-external",
-                            "render-unresolved",
                             "settings"
                         ],
-                		renderArrows: false,
-                        "depth": 2,
+                        "renderLabels": true,
+                		"renderArrows": true,
+                        "depth": 3,
                         "depthDirection": "both",
                         "minZoom": 0.05,
+                        "maxZoom": 4,
                         "enableZoom": true,
                         "enablePan": true,
                        

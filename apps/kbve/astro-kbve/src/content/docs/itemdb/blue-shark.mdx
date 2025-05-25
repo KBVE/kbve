@@ -15,7 +15,7 @@ consumable: true
 stackable: false
 rarity: 'Common'
 weight: 10
-effects: 'Heals 25 health and increases mana by 5 for 10 minutes.'
+effects: 'Heals 50 health and increases mana by 25 for 10 minutes.'
 price: 500
 durability: 1
 equipped: false
@@ -31,8 +31,8 @@ bonuses:
 scripts:
     - guid: 'dd238a91353c4a1991cf275041730ab0'
       vars:
-          health: 25
-          mana: 5
+          health: 50
+          mana: 25
           duration: 600
           tickRate: 5
 ---
@@ -61,7 +61,7 @@ The **Blue Shark** is a powerful consumable fish, known for both its restorative
 
 ## Usage
 
-- Restores **25 health** and boosts **mana by 5** for **10 minutes**
+- Restores **{frontmatter.bonuses.health} health** and boosts **mana by {frontmatter.bonuses.mana}** for **10 minutes**
 - Cannot be stacked
 - Useful in mana-intensive encounters or boss fights
 
@@ -76,3 +76,9 @@ Though edible as-is, the Blue Shark might be processed into advanced dishes at h
 ## Lore
 
 > "Fierce in the ocean, yet calming in the stomach — the Blue Shark brings both strength and serenity."
+
+---
+
+## DevLog
+
+-   05/25/2025 - TODO - Add a chance of mercury poison if eaten without cooking.

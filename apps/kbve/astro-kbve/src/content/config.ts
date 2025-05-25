@@ -44,6 +44,7 @@ const IBonusSchema = z.object({
 	intelligence: z.number().optional(),
 	health: z.number().optional(),
 	mana: z.number().optional(),
+	energy: z.number().optional(),
 });
 
 export const IObjectSchema = z.object({
@@ -73,6 +74,8 @@ export const IObjectSchema = z.object({
 	craftingMaterials: z.array(z.string()).optional(),
 	credits: z.string().optional(),
 	scripts: z.array(IScriptBindingSchema).optional(),
+	steamMarketUrl: z.string().optional(),
+	exchangeUrl: z.string().optional(),
 });
 
 export function getCategoryValue(names: CategoryName[]): number {
