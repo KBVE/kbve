@@ -74,8 +74,9 @@ namespace KBVE.MMExtensions.Database
 
                 // Create prefab
                 GameObject go = new GameObject(item.name);
-                var data = go.AddComponent<ItemData>();
-                data.Apply(item);
+                var definition = CreateOrUpdateItemDefinition(item, sprite);
+                var refComp = go.AddComponent<ItemRef>();
+                refComp.definition = definition;
 
                 var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(localImagePath);
                 var renderer = go.AddComponent<SpriteRenderer>();
@@ -127,6 +128,48 @@ namespace KBVE.MMExtensions.Database
                 }
             }
         }
+
+
+        private static ItemDefinition CreateOrUpdateItemDefinition(ItemEntry item, Sprite sprite)
+        {
+            string defPath = $"Assets/Dungeon/Data/Items/Definitions/{item.id}.asset";
+            ItemDefinition def = AssetDatabase.LoadAssetAtPath<ItemDefinition>(defPath);
+
+            if (def == null)
+            {
+                def = ScriptableObject.CreateInstance<ItemDefinition>();
+                AssetDatabase.CreateAsset(def, defPath);
+            }
+
+            def.id = item.id;
+            def.key = item.key;
+            def.refId = item.@ref;
+            def.name = item.name;
+            def.type = item.type;
+            def.category = item.category;
+            def.description = item.description;
+            def.icon = sprite;
+            def.pixelDensity = item.pixelDensity;
+            def.durability = item.durability;
+            def.weight = item.weight;
+            def.equipped = item.equipped;
+            def.consumable = item.consumable;
+            def.effects = item.effects;
+            def.stackable = item.stackable;
+            def.rarity = item.rarity;
+            def.levelRequirement = item.levelRequirement;
+            def.price = item.price;
+            def.cooldown = item.cooldown;
+            def.action = item.action;
+            def.credits = item.credits;
+            def.slug = item.slug;
+
+            EditorUtility.SetDirty(def);
+            AssetDatabase.SaveAssets();
+
+            return def;
+        }
+
 
         // === JSON Structures ===
 
