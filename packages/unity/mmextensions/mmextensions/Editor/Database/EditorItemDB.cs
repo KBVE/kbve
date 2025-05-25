@@ -154,6 +154,13 @@ namespace KBVE.MMExtensions.Database
             }
             renderer.sortingOrder = entry.sortingOrder;
 
+            var collider = go.AddComponent<BoxCollider2D>();
+            collider.isTrigger = true;
+
+            var pickable = go.AddComponent<MoreMountains.TopDownEngine.PickableItem>();
+            pickable.DisableObjectOnPick = true;
+            pickable.RequireCharacterComponent = true;
+            pickable.RequirePlayerType = true;
 
             var picker = go.AddComponent<ItemPicker>();
             picker.Item = item;
