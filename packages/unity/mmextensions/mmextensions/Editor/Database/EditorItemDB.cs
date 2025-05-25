@@ -112,7 +112,8 @@ namespace KBVE.MMExtensions.Database
                 invItem = ScriptableObject.CreateInstance<InventoryItem>();
                 AssetDatabase.CreateAsset(invItem, assetPath);
             }
-
+            
+            invItem.ItemClass = ItemClasses.Neutral;
             invItem.ItemID = item.id;
             invItem.ItemName = item.id;
             invItem.name = item.id;
