@@ -56,6 +56,8 @@ const IObjectSchema = z.object({
 	description: z.string().optional(),
 	img: z.string().optional(),
 	pixelDensity: z.number().int().min(8).max(512),
+	sortingLayer: z.string().optional().default('Default'),
+	sortingOrder: z.number().int().optional().default(0),
 	bonuses: IBonusSchema.optional(),
 	durability: z.number().optional(), 
 	weight: z.number().optional(),
