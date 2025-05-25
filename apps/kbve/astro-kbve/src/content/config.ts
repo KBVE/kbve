@@ -35,7 +35,7 @@ const MAX_ITEM_CATEGORY = Object.values(ItemCategoryFlags).reduce(
 );
 
 const IScriptBindingSchema = z.object({
-	guid: z.string().uuid(),
+	guid: z.string().regex(/^[a-f0-9]{32}$/),
 	vars: z.record(z.union([z.string(), z.number(), z.boolean()])).optional()
 });
 
@@ -55,6 +55,7 @@ const IObjectSchema = z.object({
 	category: z.number().int().nonnegative().max(MAX_ITEM_CATEGORY).optional(),
 	description: z.string().optional(),
 	img: z.string().optional(),
+	pixelDensity: z.number().int().min(8).max(512),
 	bonuses: IBonusSchema.optional(),
 	durability: z.number().optional(), 
 	weight: z.number().optional(),
