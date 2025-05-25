@@ -74,7 +74,7 @@ namespace KBVE.MMExtensions.Database
                 importer.mipmapEnabled = false;
                 importer.alphaIsTransparency = true;
                 importer.spritePivot = new Vector2(0.5f, 0.5f);
-                importer.spriteMeshType = SpriteMeshType.FullRect;
+                //importer.spriteMeshType = SpriteMeshType.FullRect;
                 importer.SaveAndReimport();
 
                 var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(localImagePath);
