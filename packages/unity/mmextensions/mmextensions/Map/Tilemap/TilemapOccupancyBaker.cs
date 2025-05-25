@@ -43,36 +43,6 @@ namespace KBVE.MMExtensions.Map
                 return;
             }
 
-#if UNITY_EDITOR
-            if (outputData == null)
-            {
-                string sceneName = gameObject.scene.name;
-                string objectName = gameObject.name;
-                string folderPath = "Assets/Data/OccupancyMaps";
-
-                if (!AssetDatabase.IsValidFolder("Assets/Data"))
-                    AssetDatabase.CreateFolder("Assets", "Data");
-                if (!AssetDatabase.IsValidFolder(folderPath))
-                    AssetDatabase.CreateFolder("Assets/Data", "OccupancyMaps");
-
-                string fileName = $"{sceneName}_{objectName}_occupancy.asset";
-                string fullPath = Path.Combine(folderPath, fileName);
-
-                if (File.Exists(fullPath))
-                {
-                    string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                    fileName = $"{sceneName}_{objectName}_occupancy_{timestamp}.asset";
-                    fullPath = Path.Combine(folderPath, fileName);
-                }
-
-                outputData = ScriptableObject.CreateInstance<TilemapOccupancyData>();
-                AssetDatabase.CreateAsset(outputData, fullPath);
-                AssetDatabase.SaveAssets();
-
-                Debug.Log($"[TilemapOccupancyBaker] Created new asset: {fullPath}");
-            }
-#endif
-
             BoundsInt bounds = new(Vector3Int.zero, size); // fallback
 
             foreach (var tilemap in tilemaps)
