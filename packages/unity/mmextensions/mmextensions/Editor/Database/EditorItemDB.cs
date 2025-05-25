@@ -5,6 +5,9 @@ using Unity.EditorCoroutines.Editor;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using MoreMountains.InventoryEngine;
+using MoreMountains.Tools;
+using MoreMountains.Feedbacks;
 
 namespace KBVE.MMExtensions.Database
 {
@@ -14,6 +17,7 @@ namespace KBVE.MMExtensions.Database
         private const string BaseImageUrl = "https://kbve.com";
         private const string SpriteFolder = "Assets/Dungeon/Data/Items/Sprites/";
         private const string PrefabFolder = "Assets/Dungeon/Data/Items/Prefabs/";
+        private const string ItemAssetFolder = "Assets/Dungeon/Data/Items/Definitions/";
 
         [MenuItem("KBVE/Database/Sync ItemDB")]
         public static void SyncItemDatabase()
@@ -36,6 +40,7 @@ namespace KBVE.MMExtensions.Database
 
             Directory.CreateDirectory(SpriteFolder);
             Directory.CreateDirectory(PrefabFolder);
+            Directory.CreateDirectory(ItemAssetFolder);
 
             foreach (var item in wrapper.items)
             {
@@ -43,7 +48,7 @@ namespace KBVE.MMExtensions.Database
                 string imageName = Path.GetFileName(item.img);
                 string localImagePath = Path.Combine(SpriteFolder, imageName);
 
-                // Download image
+                // Download sprite
                 using (UnityWebRequest texRequest = UnityWebRequestTexture.GetTexture(imageUrl))
                 {
                     yield return texRequest.SendWebRequest();
@@ -61,115 +66,86 @@ namespace KBVE.MMExtensions.Database
 
                 AssetDatabase.ImportAsset(localImagePath, ImportAssetOptions.ForceUpdate);
 
-                // Import settings
+                // Sprite import settings
                 TextureImporter importer = (TextureImporter)TextureImporter.GetAtPath(localImagePath);
                 importer.textureType = TextureImporterType.Sprite;
-                importer.spritePixelsPerUnit = item.pixelDensity > 0 ? item.pixelDensity : 16;
                 importer.spriteImportMode = SpriteImportMode.Single;
+                importer.spritePixelsPerUnit = item.pixelDensity > 0 ? item.pixelDensity : 16;
                 importer.mipmapEnabled = false;
                 importer.alphaIsTransparency = true;
                 importer.spritePivot = new Vector2(0.5f, 0.5f);
                 importer.spriteMeshType = SpriteMeshType.FullRect;
                 importer.SaveAndReimport();
 
-                // Create prefab
-                GameObject go = new GameObject(item.name);
-                var definition = CreateOrUpdateItemDefinition(item, sprite);
-                var refComp = go.AddComponent<ItemRef>();
-                refComp.definition = definition;
-
                 var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(localImagePath);
-                var renderer = go.AddComponent<SpriteRenderer>();
-                renderer.sprite = sprite;
 
-                if (item.scripts != null)
+                // Create or update InventoryItem asset
+                var invItem = CreateOrUpdateInventoryItem(item, sprite);
+
+                // Create DropPrefab
+                var dropPrefab = CreateItemPrefab(item.name + "_Drop", sprite, invItem.ItemID, false);
+
+                // Create DeployablePrefab if it's deployable
+                GameObject deployPrefab = null;
+                if ((item.category & 0x00000400) != 0) // Example: Structure flag
                 {
-                    foreach (var script in item.scripts)
-                    {
-                        string scriptPath = AssetDatabase.GUIDToAssetPath(script.guid);
-                        var monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath);
-                        var type = monoScript?.GetClass();
-                        if (type != null)
-                        {
-                            var comp = go.AddComponent(type);
-                            ApplyScriptVariables(comp, script.vars);
-                        }
-                    }
+                    deployPrefab = CreateItemPrefab(item.name + "_Deploy", sprite, invItem.ItemID, true);
                 }
 
-                string prefabPath = Path.Combine(PrefabFolder, item.name + ".prefab");
-                PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
-                GameObject.DestroyImmediate(go);
+                // Assign prefabs
+                invItem.Prefab = dropPrefab;
+                EditorUtility.SetDirty(invItem);
             }
 
+            AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("ItemDB sync complete.");
         }
 
-        private static void ApplyScriptVariables(Component comp, Dictionary<string, object> vars)
+        private static InventoryItem CreateOrUpdateInventoryItem(ItemEntry item, Sprite icon)
         {
-            if (comp == null || vars == null) return;
+            string assetPath = $"{ItemAssetFolder}{item.id}.asset";
+            InventoryItem invItem = AssetDatabase.LoadAssetAtPath<InventoryItem>(assetPath);
 
-            var type = comp.GetType();
-            foreach (var kvp in vars)
+            if (invItem == null)
             {
-                var field = type.GetField(kvp.Key);
-                if (field != null)
-                {
-                    try
-                    {
-                        object converted = System.Convert.ChangeType(kvp.Value, field.FieldType);
-                        field.SetValue(comp, converted);
-                    }
-                    catch
-                    {
-                        Debug.LogWarning($"Failed to apply var '{kvp.Key}' on {type.Name}");
-                    }
-                }
-            }
-        }
-
-
-        private static ItemDefinition CreateOrUpdateItemDefinition(ItemEntry item, Sprite sprite)
-        {
-            string defPath = $"Assets/Dungeon/Data/Items/Definitions/{item.id}.asset";
-            ItemDefinition def = AssetDatabase.LoadAssetAtPath<ItemDefinition>(defPath);
-
-            if (def == null)
-            {
-                def = ScriptableObject.CreateInstance<ItemDefinition>();
-                AssetDatabase.CreateAsset(def, defPath);
+                invItem = ScriptableObject.CreateInstance<InventoryItem>();
+                AssetDatabase.CreateAsset(invItem, assetPath);
             }
 
-            def.id = item.id;
-            def.key = item.key;
-            def.refId = item.@ref;
-            def.name = item.name;
-            def.type = item.type;
-            def.category = item.category;
-            def.description = item.description;
-            def.icon = sprite;
-            def.pixelDensity = item.pixelDensity;
-            def.durability = item.durability;
-            def.weight = item.weight;
-            def.equipped = item.equipped;
-            def.consumable = item.consumable;
-            def.effects = item.effects;
-            def.stackable = item.stackable;
-            def.rarity = item.rarity;
-            def.levelRequirement = item.levelRequirement;
-            def.price = item.price;
-            def.cooldown = item.cooldown;
-            def.action = item.action;
-            def.credits = item.credits;
-            def.slug = item.slug;
+            invItem.ItemID = item.id;
+            invItem.ItemName = item.name;
+            invItem.ShortDescription = item.description;
+            invItem.Description = item.effects;
+            invItem.Icon = icon;
+            invItem.Consumable = item.consumable;
+            invItem.Usable = item.consumable || item.action == "consume";
+            invItem.ConsumeQuantity = 1;
+            invItem.Equippable = (item.category & 0x00000001) != 0; // Weapon
+            invItem.Stackable = item.stackable;
+            invItem.MaximumStack = item.stackable ? 99 : 1;
+            invItem.Price = item.price;
+            invItem.TargetInventoryName = "MainInventory";
+            invItem.Droppable = true;
 
-            EditorUtility.SetDirty(def);
-            AssetDatabase.SaveAssets();
-
-            return def;
+            return invItem;
         }
 
+        private static GameObject CreateItemPrefab(string name, Sprite sprite, string itemID, bool isDeployable)
+        {
+            GameObject go = new GameObject(name);
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprite;
+
+            var picker = go.AddComponent<ItemPicker>();
+            picker.ItemID = itemID;
+            picker.Quantity = 1;
+
+            string prefabPath = $"{PrefabFolder}{name}.prefab";
+            PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+            GameObject.DestroyImmediate(go);
+            return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        }
 
         // === JSON Structures ===
 
@@ -190,7 +166,6 @@ namespace KBVE.MMExtensions.Database
             public int category;
             public string description;
             public string img;
-
             public int pixelDensity;
             public Bonuses bonuses;
             public float durability;
