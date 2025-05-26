@@ -1,10 +1,10 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-using KBVE.MMExtension.Orchestrator.Interfaces;
-using KBVE.MMExtension.Orchestrator.Core;
+using KBVE.MMExtensions.Orchestrator.Interfaces;
+using KBVE.MMExtensions.Orchestrator.Core;
 
-namespace KBVE.MMExtension.Orchestrator
+namespace KBVE.MMExtensions.Orchestrator
 {
     public class OrchestratorLifetimeScope : LifetimeScope
     {
