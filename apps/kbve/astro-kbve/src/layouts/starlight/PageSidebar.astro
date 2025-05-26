@@ -2,7 +2,13 @@
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
 
 import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
+// import RareIconSVG from 'src/layouts/ads/rareicon/RareIconSVG.astro';
+import RareIconWishList from 'src/layouts/ads/rareicon/RareIconWishList.astro';
+
 ---
+<div class="mx-auto p-3">
+<RareIconWishList />
+</div>
 
 <PageGraph class="right-sidebar-panel graph-panel">
 	<h2 slot="title">Das {Astro.locals.t('starlight-site-graph.graph')}</h2>
@@ -26,3 +32,5 @@ import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
 		}
 	});
 </script>
+
+
