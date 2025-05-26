@@ -1,7 +1,7 @@
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace KBVE.MMExtension.Orchestrator.Interfaces
+namespace KBVE.MMExtensions.Orchestrator.Interfaces
 {
     public interface IAddressablePrefabLoader
     {
