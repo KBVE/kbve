@@ -21,6 +21,28 @@ tags:
     With each prefab that gets deployed, we might have to adjust how we go about the actual deployment too.
     I am thinking that we might use a vcontainer setup, similar to how we are deploying the prefabs.
 
+### Starlight Graph
+
+-   02:09AM
+
+    The graph seems to fail on view transition, so maybe we can find a way to reset it.
+    Here is the snip that I used to for reloading the plugin.
+
+```js
+
+document.addEventListener('astro:page-load', () => {
+    const graph = document.querySelector('graph-component');
+    if (graph?.setup && typeof graph.setup === 'function') {
+      console.log('[STARLIGHT] Re-running graph setup');
+      graph.cleanup?.();
+      graph.setup();
+    }
+  });
+
+```
+
+    This should run the graph after each view transition.
+
 ## 2024
 
 **MTG**
