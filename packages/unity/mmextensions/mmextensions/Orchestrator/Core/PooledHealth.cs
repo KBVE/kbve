@@ -1,6 +1,8 @@
 using UnityEngine;
 using MoreMountains.TopDownEngine;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
+using KBVE.MMExtensions.Orchestrator.Core;
+
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
@@ -12,6 +14,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         private string _poolKey;
         private IPrefabOrchestrator _orchestrator;
 
+        [SerializeField]
+        private PoolableType _type = PoolableType.None;
+
         /// <summary>
         /// Called by PrefabOrchestrator after spawning the object
         /// </summary>
@@ -19,6 +24,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         {
             _poolKey = poolKey;
             _orchestrator = orchestrator;
+           ResetHealthOnEnable = true; // Reset health if needed
+
         }
 
         public override void Kill()
@@ -34,5 +41,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 UnityEngine.Object.Destroy(gameObject); // fallback
             }
         }
+
     }
 }
