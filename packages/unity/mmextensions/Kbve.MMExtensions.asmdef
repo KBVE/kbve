@@ -6,6 +6,7 @@
       "Cysharp.Threading.Tasks",
       "Unity.Collections",
       "Unity.ResourceManager",
+      "UnityEngine.Physics2DModule",
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
       "MoreMountains.Feedbacks",
