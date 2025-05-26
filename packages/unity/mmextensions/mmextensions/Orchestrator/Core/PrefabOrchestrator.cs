@@ -46,7 +46,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             }
             else
             {
-                Object.Destroy(instance); // fallback
+                UnityEngine.Object.Destroy(instance); // fallback
             }
         }
     }
