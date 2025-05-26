@@ -8,6 +8,7 @@
     "UnityEngine.TilemapModule",
     "Unity.Addressables",
     "Unity.EditorCoroutines.Editor",
+    "Unity.Addressables.Editor",
     "MoreMountains.InventoryEngine",
     "MoreMountains.Tools",
     "MoreMountains.Feedbacks",

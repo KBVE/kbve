@@ -9,6 +9,7 @@ using MoreMountains.InventoryEngine;
 using MoreMountains.Tools;
 using MoreMountains.Feedbacks;
 using MoreMountains.TopDownEngine;
+using KBVE.MMExtensions.Database;
 
 namespace KBVE.MMExtensions.Database
 {
@@ -84,13 +85,13 @@ namespace KBVE.MMExtensions.Database
                 var invItem = CreateOrUpdateInventoryItem(item, sprite);
 
                 // Process Prefabs
-                var dropPrefab = CreateItemPrefab(item.name + "_Drop", sprite, invItem, item, false);
+                var dropPrefab = CreateItemPrefab(item.id + "_Drop", sprite, invItem, item, false);
 
                 // Create DeployablePrefab if it's deployable
                 GameObject deployPrefab = null;
                 if ((item.category & 0x00000400) != 0) // Ref: Structure flag
                 {
-                    deployPrefab = CreateItemPrefab(item.name + "_Deploy", sprite, invItem, item, true);
+                    deployPrefab = CreateItemPrefab(item.id + "_Deploy", sprite, invItem, item, true);
                 }
 
                 // Assign prefabs
@@ -171,6 +172,7 @@ namespace KBVE.MMExtensions.Database
             PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
             GameObject.DestroyImmediate(go);
 
+            AddressableUtility.MakeAddressable(prefabPath, name, "Items");
             return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
         }
 

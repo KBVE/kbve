@@ -4,6 +4,6 @@ namespace KBVE.MMExtensions.Orchestrator.Interfaces
 {
     public interface IPoolableTag
     {
-        PoolableType Type { get; }
+        PoolableType Type { get; set; }
     }
 }

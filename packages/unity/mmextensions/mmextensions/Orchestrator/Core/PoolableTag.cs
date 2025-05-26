@@ -8,6 +8,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         [SerializeField]
         private PoolableType type = PoolableType.None;
 
-        public PoolableType Type => type;
+        public PoolableType Type
+        {
+            get => type;
+            set => type = value;
+        }
     }
 }
