@@ -1,7 +1,7 @@
 ---
 title: 'May: 26'
 category: Daily
-date: 2024-05-26 12:00:00
+date: 2025-05-26 12:00:00
 client: Self
 unsplash: 1684336177286-f215831afc17
 img: https://images.unsplash.com/photo-1684336177286-f215831afc17?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -10,6 +10,47 @@ description: |
 tags:
     - daily
 ---
+
+## 2025
+
+### Unity Custom Item Script
+
+-   01:23AM
+
+    The custom item deployment script is almost ready and afterwards we can work on the custom item effects.
+    With each prefab that gets deployed, we might have to adjust how we go about the actual deployment too.
+    I am thinking that we might use a vcontainer setup, similar to how we are deploying the prefabs.
+
+### Starlight Graph
+
+-   02:09AM
+
+    The graph seems to fail on view transition, so maybe we can find a way to reset it.
+    Here is the snip that I used to for reloading the plugin.
+
+```js
+
+document.addEventListener('astro:page-load', () => {
+    const graph = document.querySelector('graph-component');
+    if (graph?.setup && typeof graph.setup === 'function') {
+      console.log('[STARLIGHT] Re-running graph setup');
+      graph.cleanup?.();
+      graph.setup();
+    }
+  });
+
+```
+
+    This should run the graph after each view transition.
+
+### WishList RareIcon
+
+-   03:08AM
+
+    Sweet, just made a dope wishlist button for rareicon, which will be op.
+    For marketing reasons, I should also start building out the markdown codes to quickly add around in discords.
+    I should also start preparing the main website for game too, ugh, so many things that I need to do before the game is even ready.
+    Collecting wishlists will be rough but I think I will be able to get it out of the way, I can see us reaching around 1000 wihtin a month but past 10k is going to be rough.
 
 ## 2024
 
