@@ -50,7 +50,7 @@
     <Compile Include="$(PackageRuntimeGlob)" Exclude="$(KbvePackageExclude)" />
   </ItemGroup>
 
-  <!-- Tile / Grid -->
+  <!-- Tile / Grid / Physics2D -->
 
 <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
   <Reference Include="UnityEngine.TilemapModule">
@@ -61,6 +61,21 @@
     <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.GridModule.dll</HintPath>
     <Private>false</Private>
   </Reference>
+
+  <Reference Include="UnityEngine.Physics2DModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.Physics2DModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+
+  <Reference Include="UnityEngine.PhysicsModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+
+  <Reference Include="UnityEngine.InputLegacyModule">
+  <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.InputLegacyModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
 </ItemGroup>
 
 <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
@@ -72,6 +87,19 @@
     <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.GridModule.dll</HintPath>
     <Private>false</Private>
   </Reference>
+  <Reference Include="UnityEngine.Physics2DModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.Physics2DModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.PhysicsModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.PhysicsModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+
+  <Reference Include="UnityEngine.InputLegacyModule">
+  <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.InputLegacyModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
 </ItemGroup>
 
 <ItemGroup>
@@ -85,6 +113,11 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
     <PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+  </ItemGroup>
+
+  <!-- Kilonet -->
+  <ItemGroup>
+    <ProjectReference Include="..\kilonet\Kbve.Kilonet.csproj" />
   </ItemGroup>
 
 </Project>
