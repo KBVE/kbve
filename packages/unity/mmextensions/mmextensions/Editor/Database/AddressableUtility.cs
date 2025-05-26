@@ -19,7 +19,14 @@ namespace KBVE.MMExtensions.Database
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null) return;
 
-            var group = settings.FindGroup(groupName) ?? settings.DefaultGroup;
+            var group = settings.FindGroup(groupName);
+            
+            if (group == null)
+            {
+                group = settings.CreateGroup(groupName, false, false, false, null,
+                    new[] { typeof(UnityEditor.AddressableAssets.Settings.GroupSchemas.BundledAssetGroupSchema) });
+            }
+
             var entry = settings.FindAssetEntry(guid);
 
             if (entry == null)
