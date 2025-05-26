@@ -23,7 +23,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
         private GameObject CreateInstance()
         {
-            var instance = Object.Instantiate(_prefab, _parent);
+            var instance = UnityEngine.Object.Instantiate(_prefab, _parent);
             instance.SetActive(false);
             return instance;
         }
