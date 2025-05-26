@@ -71,6 +71,11 @@
     <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
     <Private>false</Private>
   </Reference>
+
+  <Reference Include="UnityEngine.InputLegacyModule">
+  <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.InputLegacyModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
 </ItemGroup>
 
 <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
@@ -90,6 +95,11 @@
     <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.PhysicsModule.dll</HintPath>
     <Private>false</Private>
   </Reference>
+
+  <Reference Include="UnityEngine.InputLegacyModule">
+  <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.InputLegacyModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
 </ItemGroup>
 
 <ItemGroup>
