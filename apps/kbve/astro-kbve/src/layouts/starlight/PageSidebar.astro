@@ -15,3 +15,18 @@ import { PageGraph, PageBacklinks } from "starlight-site-graph/components";
 <PageBacklinks class="right-sidebar-panel backlinks-panel">
   <h2 slot="title">{Astro.locals.t('starlight-site-graph.backlinks')}</h2>
 </PageBacklinks>
+
+
+<script is:inline type="module">
+
+  document.addEventListener('astro:page-load', () => {
+    const graph = document.querySelector('graph-component');
+    if (graph?.setup && typeof graph.setup === 'function') {
+      console.log('[STARLIGHT] Re-running graph setup');
+      graph.cleanup?.();
+      graph.setup();
+    }
+  });
+
+
+</script>
