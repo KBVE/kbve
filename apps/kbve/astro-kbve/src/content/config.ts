@@ -28,6 +28,32 @@ export enum ItemCategoryFlags {
 
 export type CategoryName = keyof typeof ItemCategoryFlags;
 
+export const ICraftingSchema = z.object({
+  ingredients: z.array(z.union([
+    z.string(),
+    z.object({
+      name: z.string().optional(),
+      ref: z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/),
+      amount: z.number().int().positive().optional(),
+    })
+  ])).optional(),
+  tools: z.array(z.union([
+    z.string(),
+    z.object({
+      name: z.string().optional(),
+      ref: z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/),
+    })
+  ])).optional()
+});
+
+export const IDeployableSchema = z.object({
+	size: z.tuple([z.number().int().min(1), z.number().int().min(1)]).default([1, 1]), // [width, height]
+	pivot: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]).optional().default([0.5, 0.5]),
+	overridePrefab: z.string().optional(),
+	scripts: z.array(z.string()).optional(),
+	scaleMultiplier: z.number().positive().optional().default(1), // visual multiplier
+	gridSnap: z.boolean().optional().default(true),
+});
 
 const MAX_ITEM_CATEGORY = Object.values(ItemCategoryFlags).reduce(
 	(acc, val) => typeof val === 'number' ? acc | val : acc,
@@ -72,7 +98,8 @@ export const IObjectSchema = z.object({
 	price: z.number().optional(),
 	cooldown: z.number().optional(),
 	action: z.string().optional(),
-	craftingMaterials: z.array(z.string()).optional(),
+	craftingMaterials: ICraftingSchema.optional(),
+	deployable: IDeployableSchema.optional(),
 	credits: z.string().optional(),
 	scripts: z.array(IScriptBindingSchema).optional(),
 	steamMarketUrl: z.string().optional(),
