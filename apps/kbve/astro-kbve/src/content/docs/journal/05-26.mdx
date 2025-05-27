@@ -52,6 +52,53 @@ document.addEventListener('astro:page-load', () => {
     I should also start preparing the main website for game too, ugh, so many things that I need to do before the game is even ready.
     Collecting wishlists will be rough but I think I will be able to get it out of the way, I can see us reaching around 1000 wihtin a month but past 10k is going to be rough.
 
+
+### ItemDB
+
+-   05:05PM
+
+    Without having github being down and slowly me to a crawl, I was able to get a couple more of the concepts out of the way.
+    The assets now get stored into the addressables, which will make it easier to call and deploy them.
+    We still have to do the pool integration and making sure that they can be added and consumed without any draw backs.
+    For this, I will have to build the right "stats" component, maybe even extend the more mountains to include the stats and bonuses, hmm.
+    There are a couple ways that we could go about this, but I believe damage reduction would be the most important.
+    The balance of power creep is always going to be a pain moving forward.
+
+-   06:23PM
+
+    Now we need to figure out the best way to link the stats from an item and the character, hmm.
+    We should make it so that items could also be used by NPCs but that will be for a later time, as for now, we can just focus on the characters.
+
+### MM ExtendedHealth v0
+
+-   06:31PM
+    Taking the `MoreMountains.TopDownEngine.Health` component and then extending it out as a "HealthExtended", which will then hold the full scope of stats.
+    This means we can easily apply those stats to different structures, NPCs, players, ect.. without having to reinvent the whole wheel.
+    The stats will be stored under a `StatsData` which will include the mana, energy, stamina and any additional stats.
+    As for effects, I believe we could also store them into this component, since it will already be running through a tick base system.
+
+-   10:33PM
+
+    The next update to the system will look like this below but before I can really break it down, I should focus on creating the first couple files.
+    These will be scoped to the specific areas that I want to resolve.
+
+```mermaid
+
+graph TD
+  A[Prefab Spawned via VContainer] --> B[CharacterHealthExtended]
+  B --> C[Injected with TickSystem]
+  C --> D[Registers ITickable with TickSystem]
+  E[TickSystem as Singleton] --> F[Runs Tick Loop Every Frame]
+  F --> G[Calls ITickable.Tick with deltaTime]
+  G --> H[CharacterHealthExtended.Tick]
+  H --> I[Regenerates Stats with mana, stamina, energy]
+
+```
+
+    
+
+
+
 ## 2024
 
 **MTG**

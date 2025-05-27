@@ -2,14 +2,14 @@ using UnityEngine;
 using MoreMountains.TopDownEngine;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
-
+using KBVE.MMExtensions.Orchestrator.Health;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
     /// <summary>
     /// Extends MoreMountains' Health to support pooling via PrefabOrchestrator
     /// </summary>
-    public class PooledHealth : Health
+    public class PooledHealth : ExtendedHealth
     {
         private string _poolKey;
         private IPrefabOrchestrator _orchestrator;
