@@ -25,6 +25,9 @@ namespace KBVE.MMExtensions.Orchestrator
             // Service bindings
             builder.Register<IAddressablePrefabLoader, AddressablePrefabLoader>(Lifetime.Singleton);
             builder.Register<IPrefabOrchestrator, PrefabOrchestrator>(Lifetime.Singleton);
+            builder.Register<TickSystem>(Lifetime.Singleton)
+            .AsSelf()
+            .AsImplementedInterfaces();
         }
     }
 }

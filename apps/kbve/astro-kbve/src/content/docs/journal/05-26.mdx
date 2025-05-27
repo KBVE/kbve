@@ -77,6 +77,28 @@ document.addEventListener('astro:page-load', () => {
     The stats will be stored under a `StatsData` which will include the mana, energy, stamina and any additional stats.
     As for effects, I believe we could also store them into this component, since it will already be running through a tick base system.
 
+-   10:33PM
+
+    The next update to the system will look like this below but before I can really break it down, I should focus on creating the first couple files.
+    These will be scoped to the specific areas that I want to resolve.
+
+```mermaid
+
+graph TD
+  A[Prefab Spawned via VContainer] --> B[CharacterHealthExtended]
+  B --> C[Injected with TickSystem]
+  C --> D[Registers ITickable with TickSystem]
+  E[TickSystem as Singleton] --> F[Runs Tick Loop Every Frame]
+  F --> G[Calls ITickable.Tick with deltaTime]
+  G --> H[CharacterHealthExtended.Tick]
+  H --> I[Regenerates Stats with mana, stamina, energy]
+
+```
+
+    
+
+
+
 ## 2024
 
 **MTG**
