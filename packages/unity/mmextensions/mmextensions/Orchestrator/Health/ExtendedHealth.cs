@@ -23,20 +23,30 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// </summary>
         public StatFlags CurrentFlags = StatFlags.None;
 
-        [Inject] private TickSystem _tickSystem;
+        private TickSystem _tickSystem;
 
         protected override void Start()
         {
-            base.Start(); 
+            base.Start();
             Stats["mana"] = new StatData(50, 100, 3f);
             Stats["stamina"] = new StatData(100, 100, 5f);
 
-            _tickSystem.Register(this);
+            _tickSystem ??= TickLocator.Instance;
+
+            if (_tickSystem != null)
+            {
+                _tickSystem.Register(this);
+            }
+            else
+            {
+                Debug.LogWarning("[ExtendedHealth] TickSystem not found — regeneration disabled.");
+            }
+
         }
 
         private void OnDestroy()
         {
-            _tickSystem.Unregister(this);
+            _tickSystem?.Unregister(this);
         }
 
         /// <summary>
@@ -65,9 +75,9 @@ namespace KBVE.MMExtensions.Orchestrator.Health
 
             return stat switch
             {
-                "mana"    => !CurrentFlags.HasFlag(StatFlags.Silenced),
+                "mana" => !CurrentFlags.HasFlag(StatFlags.Silenced),
                 "stamina" => !CurrentFlags.HasFlag(StatFlags.Exhausted),
-                _         => true
+                _ => true
             };
         }
 
@@ -98,6 +108,12 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         public float GetStatValue(string stat)
         {
             return Stats.TryGetValue(stat, out var data) ? data.Current : 0f;
+        }
+        
+        [VContainer.Inject]
+        public void InjectTickSystem(TickSystem system)
+        {
+            _tickSystem = system;
         }
     }
 }
