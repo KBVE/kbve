@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VContainer;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
@@ -17,26 +18,39 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// Dictionary of stat entries (e.g., "mana", "stamina", etc.)
         /// </summary>
         public Dictionary<string, StatData> Stats = new();
+        private string[] _cachedKeys = new string[0];
 
         /// <summary>
         /// Bitmask flags representing the entity's current stat states.
         /// </summary>
         public StatFlags CurrentFlags = StatFlags.None;
 
-        [Inject] private TickSystem _tickSystem;
+        private TickSystem _tickSystem;
 
         protected override void Start()
         {
-            base.Start(); 
-            Stats["mana"] = new StatData(50, 100, 3f);
-            Stats["stamina"] = new StatData(100, 100, 5f);
+            base.Start();
+        
+            AddStat("mana", new StatData(50, 100, 3f));
+            AddStat("stamina", new StatData(100, 100, 5f));
+            
 
-            _tickSystem.Register(this);
+            _tickSystem ??= TickLocator.Instance;
+
+            if (_tickSystem != null)
+            {
+                _tickSystem.Register(this);
+            }
+            else
+            {
+                Debug.LogWarning("[ExtendedHealth] TickSystem not found — regeneration disabled.");
+            }
+
         }
 
         private void OnDestroy()
         {
-            _tickSystem.Unregister(this);
+            _tickSystem?.Unregister(this);
         }
 
         /// <summary>
@@ -46,15 +60,39 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         {
             if (CurrentHealth <= 0) return;
 
-            foreach (var key in Stats.Keys)
+            foreach (var key in _cachedKeys)
             {
                 if (!CanRegenStat(key)) continue;
 
-                var stat = Stats[key];
-                stat.Regen(deltaTime);
-                Stats[key] = stat;
+                if (Stats.TryGetValue(key, out var stat))
+                {
+                    stat.Regen(deltaTime);
+                    Stats[key] = stat; // safe
+                }
             }
         }
+
+
+        /// <summary>Adds or updates a stat entry and refreshes the cached key list.</summary>
+        public void AddStat(string stat, StatData data)
+        {
+            Stats[stat] = data;
+            RefreshCachedKeys();
+        }
+
+        /// <summary>Removes a stat entry and refreshes the cached key list.</summary>
+        public void RemoveStat(string stat)
+        {
+            if (Stats.Remove(stat))
+                RefreshCachedKeys();
+        }
+
+        /// <summary>Refreshes the stat key cache used for tick-safe iteration.</summary>
+        public void RefreshCachedKeys()
+        {
+            _cachedKeys = Stats.Keys.ToArray();
+        }
+        
 
         /// <summary>
         /// Returns whether a given stat can currently regenerate.
@@ -65,9 +103,9 @@ namespace KBVE.MMExtensions.Orchestrator.Health
 
             return stat switch
             {
-                "mana"    => !CurrentFlags.HasFlag(StatFlags.Silenced),
+                "mana" => !CurrentFlags.HasFlag(StatFlags.Silenced),
                 "stamina" => !CurrentFlags.HasFlag(StatFlags.Exhausted),
-                _         => true
+                _ => true
             };
         }
 
@@ -98,6 +136,12 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         public float GetStatValue(string stat)
         {
             return Stats.TryGetValue(stat, out var data) ? data.Current : 0f;
+        }
+        
+        [VContainer.Inject]
+        public void InjectTickSystem(TickSystem system)
+        {
+            _tickSystem = system;
         }
     }
 }
