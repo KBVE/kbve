@@ -28,6 +28,18 @@ namespace KBVE.MMExtensions.Orchestrator
             builder.Register<TickSystem>(Lifetime.Singleton)
             .AsSelf()
             .AsImplementedInterfaces();
+
+            builder.RegisterBuildCallback(container =>
+            {
+                var tickSystem = container.Resolve<TickSystem>();
+                TickLocator.Initialize(tickSystem);
+
+                if (TickLocator.Instance == null)
+                {
+                    Debug.LogError("TickSystem failed to initialize.");
+                }
+            });
+
         }
     }
 }
