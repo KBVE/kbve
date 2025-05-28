@@ -18,7 +18,7 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// Dictionary of stat entries (e.g., "mana", "stamina", etc.)
         /// </summary>
         public Dictionary<string, StatData> Stats = new();
-        private string[] _cachedKeys;
+        private string[] _cachedKeys = new string[0];
 
         /// <summary>
         /// Bitmask flags representing the entity's current stat states.
@@ -30,9 +30,10 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         protected override void Start()
         {
             base.Start();
-            Stats["mana"] = new StatData(50, 100, 3f);
-            Stats["stamina"] = new StatData(100, 100, 5f);
-            _cachedKeys = Stats.Keys.ToArray();
+        
+            AddStat("mana", new StatData(50, 100, 3f));
+            AddStat("stamina", new StatData(100, 100, 5f));
+            
 
             _tickSystem ??= TickLocator.Instance;
 
@@ -66,10 +67,32 @@ namespace KBVE.MMExtensions.Orchestrator.Health
                 if (Stats.TryGetValue(key, out var stat))
                 {
                     stat.Regen(deltaTime);
-                    Stats[key] = stat; // safe, since we're not modifying the keys
+                    Stats[key] = stat; // safe
                 }
             }
         }
+
+
+        /// <summary>Adds or updates a stat entry and refreshes the cached key list.</summary>
+        public void AddStat(string stat, StatData data)
+        {
+            Stats[stat] = data;
+            RefreshCachedKeys();
+        }
+
+        /// <summary>Removes a stat entry and refreshes the cached key list.</summary>
+        public void RemoveStat(string stat)
+        {
+            if (Stats.Remove(stat))
+                RefreshCachedKeys();
+        }
+
+        /// <summary>Refreshes the stat key cache used for tick-safe iteration.</summary>
+        public void RefreshCachedKeys()
+        {
+            _cachedKeys = Stats.Keys.ToArray();
+        }
+        
 
         /// <summary>
         /// Returns whether a given stat can currently regenerate.
