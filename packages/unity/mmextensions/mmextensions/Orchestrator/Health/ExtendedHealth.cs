@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VContainer;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
@@ -17,6 +18,7 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// Dictionary of stat entries (e.g., "mana", "stamina", etc.)
         /// </summary>
         public Dictionary<string, StatData> Stats = new();
+        private string[] _cachedKeys;
 
         /// <summary>
         /// Bitmask flags representing the entity's current stat states.
@@ -30,6 +32,7 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             base.Start();
             Stats["mana"] = new StatData(50, 100, 3f);
             Stats["stamina"] = new StatData(100, 100, 5f);
+            _cachedKeys = Stats.Keys.ToArray();
 
             _tickSystem ??= TickLocator.Instance;
 
@@ -56,13 +59,15 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         {
             if (CurrentHealth <= 0) return;
 
-            foreach (var key in Stats.Keys)
+            foreach (var key in _cachedKeys)
             {
                 if (!CanRegenStat(key)) continue;
 
-                var stat = Stats[key];
-                stat.Regen(deltaTime);
-                Stats[key] = stat;
+                if (Stats.TryGetValue(key, out var stat))
+                {
+                    stat.Regen(deltaTime);
+                    Stats[key] = stat; // safe, since we're not modifying the keys
+                }
             }
         }
 
