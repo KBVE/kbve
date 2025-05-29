@@ -29,6 +29,25 @@ tags:
     Thus after we adjust for the inventory item part of the prefab but also integrate it into a `uiux` component?
     So after finishing up this basic option, we can switch over to that uiux module to help with displaying the stats and dialogue.
 
+-   06:13PM
+
+    Next update will be for the `ICharacterRegistry` interface that we will then use to help build a singleton that holds the references to the characters.
+    Since we have that reference to the characters, it will make it easier to quickly grab them.
+
+```c#
+
+public interface ICharacterRegistry
+{
+    void Register(string playerID, Character character);
+    void Unregister(string playerID);
+    Character GetCharacter(string playerID);
+}
+
+```
+    Placing it under the namespace `KBVE.MMExtensions.Orchestrator.Interfaces`, so that it be easier to reference.
+    Now we can build out the next part, which will be the the actual CharacterData singleton.
+    Our goal for that singleton will be to find each character quickly at the global level.
+
 
 ## 2024
 
