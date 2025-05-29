@@ -3,6 +3,8 @@ using VContainer;
 using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
+using KBVE.MMExtensions.Orchestrator.Common;
+
 
 namespace KBVE.MMExtensions.Orchestrator
 {
@@ -23,11 +25,17 @@ namespace KBVE.MMExtensions.Orchestrator
             builder.RegisterComponent(bootstrapper);
 
             // Service bindings
+            builder.Register<ICharacterRegistry, OrchestratorCharacterData>(Lifetime.Singleton);
             builder.Register<IAddressablePrefabLoader, AddressablePrefabLoader>(Lifetime.Singleton);
             builder.Register<IPrefabOrchestrator, PrefabOrchestrator>(Lifetime.Singleton);
             builder.Register<TickSystem>(Lifetime.Singleton)
             .AsSelf()
             .AsImplementedInterfaces();
+
+            builder.RegisterComponentOnNewGameObject<CharacterEventRegistrar>(
+                Lifetime.Singleton,
+                "CharacterEventRegistrar"
+            );
 
             builder.RegisterBuildCallback(container =>
             {
