@@ -34,10 +34,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                     break;
 
                 case TopDownEngineEventTypes.LevelStart:
+                    Debug.LogWarning("[CharacterEventRegister]: Level Start Test Debug Message");
                     // TODO: Scan all the characters.
                     break;
 
                 case TopDownEngineEventTypes.CharacterSwap:
+                    Debug.LogWarning("[CharacterEventRegister]: Character Swap Test Debug Message");
+                    Debug.LogWarning("[CharacterEventRegister]: New Character: " + evt.OriginCharacter.name);
                     // TODO: Swap the UI for Avatar, Health and Stats.
                     break;
                 default:
