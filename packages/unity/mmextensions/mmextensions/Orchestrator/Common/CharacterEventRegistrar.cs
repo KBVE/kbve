@@ -25,11 +25,29 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             MMEventManager.AddListener<TopDownEngineEvent>(this);
         }
 
-          public void OnMMEvent(TopDownEngineEvent evt)
+        public void OnMMEvent(TopDownEngineEvent evt)
         {
-            if (evt.EventType != TopDownEngineEventTypes.SpawnComplete)
-                return;
+             switch (evt.EventType)
+            {
+                case TopDownEngineEventTypes.SpawnComplete:
+                    HandleSpawnComplete(evt);
+                    break;
 
+                case TopDownEngineEventTypes.LevelStart:
+                    // TODO: Scan all the characters.
+                    break;
+
+                case TopDownEngineEventTypes.CharacterSwap:
+                    // TODO: Swap the UI for Avatar, Health and Stats.
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
+        private void HandleSpawnComplete(TopDownEngineEvent evt)
+        {
             var character = evt.OriginCharacter;
             if (character == null)
             {
@@ -37,7 +55,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 return;
             }
 
-            // var possible_handle = character.GetComponent<CharacterHandle>();
             var swap = character.GetComponent<CharacterSwap>();
             string playerID;
 
@@ -53,11 +70,11 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
             Debug.Log($"[CharacterEventRegistrar] SpawnComplete received. Character: {character.name} (PlayerID: {playerID})");
 
-            // Register the character (multiple allowed per PlayerID)
+            // Register the character (even if multiple for same PlayerID)
             _registry.Register(playerID, character);
             Debug.Log($"[CharacterEventRegistrar] Registered Character '{character.name}' to PlayerID '{playerID}'");
 
-            // Register Inventory if not already present
+            // Only register inventory if not already present
             if (!_registry.TryGetInventory(playerID, out _))
             {
                 var inventory = FindInventoryByPlayerID(playerID);
@@ -72,6 +89,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 }
             }
         }
+
 
         private Inventory FindInventoryByPlayerID(string playerID)
         {
