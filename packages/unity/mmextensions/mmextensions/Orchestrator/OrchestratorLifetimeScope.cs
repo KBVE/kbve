@@ -30,10 +30,7 @@ namespace KBVE.MMExtensions.Orchestrator
             .AsSelf()
             .AsImplementedInterfaces();
 
-            builder.RegisterComponentOnNewGameObject<CharacterEventRegistrar>(
-                Lifetime.Singleton,
-                "CharacterEventRegistrar"
-            );
+            builder.RegisterEntryPoint<CharacterEventRegistrar>();
 
             builder.RegisterBuildCallback(container =>
             {
