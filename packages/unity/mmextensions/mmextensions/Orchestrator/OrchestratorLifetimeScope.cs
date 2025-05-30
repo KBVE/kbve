@@ -23,11 +23,14 @@ namespace KBVE.MMExtensions.Orchestrator
             builder.RegisterComponent(bootstrapper);
 
             // Service bindings
+            builder.Register<ICharacterRegistry, OrchestratorCharacterData>(Lifetime.Singleton);
             builder.Register<IAddressablePrefabLoader, AddressablePrefabLoader>(Lifetime.Singleton);
             builder.Register<IPrefabOrchestrator, PrefabOrchestrator>(Lifetime.Singleton);
             builder.Register<TickSystem>(Lifetime.Singleton)
             .AsSelf()
             .AsImplementedInterfaces();
+
+            builder.RegisterEntryPoint<CharacterEventRegistrar>();
 
             builder.RegisterBuildCallback(container =>
             {
