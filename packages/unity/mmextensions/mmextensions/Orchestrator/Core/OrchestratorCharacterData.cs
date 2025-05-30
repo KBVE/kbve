@@ -26,5 +26,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         {
             return _characterMap.TryGetValue(playerID, out var character) ? character : null;
         }
+
+        public bool IsRegistered(string playerID)
+        {
+            return _characterMap.ContainsKey(playerID);
+        }
     }
 }

@@ -26,5 +26,10 @@ namespace KBVE.MMExtensions.Orchestrator.Interfaces
         /// <param name="playerID">The unique identifier for the player.</param>
         /// <returns>The Character if found; otherwise, null.</returns>
         Character GetCharacter(string playerID);
+
+        /// <summary>
+        /// Checks whether a Character is registered for the given player ID.
+        /// </summary>
+        bool IsRegistered(string playerID);
     }
 }
