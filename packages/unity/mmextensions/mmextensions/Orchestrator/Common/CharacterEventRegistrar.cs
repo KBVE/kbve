@@ -5,7 +5,7 @@ using MoreMountains.TopDownEngine;
 using MoreMountains.InventoryEngine;
 using VContainer;
 
-namespace KBVE.MMExtensions.Orchestrator.Common
+namespace KBVE.MMExtensions.Orchestrator.Core
 {
     public class CharacterEventRegistrar : MonoBehaviour, MMEventListener<TopDownEngineEvent>
     {
