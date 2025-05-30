@@ -4,12 +4,15 @@ using MoreMountains.TopDownEngine;
 using MoreMountains.InventoryEngine;
 using VContainer;
 using VContainer.Unity;
+using UnityEngine;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
-    public class CharacterEventRegistrar : IStartable, MMEventListener<TopDownEngineEvent>
+    public class CharacterEventRegistrar : IStartable,
+                                           MMEventListener<TopDownEngineEvent>
     {
         private readonly ICharacterRegistry _registry;
+        private const string PlayerID = "Player1";
 
         [Inject]
         public CharacterEventRegistrar(ICharacterRegistry registry)
@@ -24,22 +27,45 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
         public void OnMMEvent(TopDownEngineEvent evt)
         {
-            if (evt.EventType == TopDownEngineEventTypes.SpawnComplete)
+            if (evt.EventType != TopDownEngineEventTypes.SpawnComplete)
+                return;
+
+            var character = evt.OriginCharacter;
+            if (character == null)
             {
-                var character = evt.OriginCharacter;
-                if (character == null) return;
-
-                var inventory = character.GetComponentInChildren<Inventory>();
-                if (inventory == null || string.IsNullOrWhiteSpace(inventory.PlayerID))
-                {
-                    UnityEngine.Debug.LogWarning("[CharacterEventRegistrar] Character missing Inventory or PlayerID.");
-                    return;
-                }
-
-                _registry.Register(inventory.PlayerID, character);
-
-                UnityEngine.Debug.Log($"[CharacterEventRegistrar] Registered character {character.name} for PlayerID: {inventory.PlayerID}");
+                Debug.LogWarning("[CharacterEventRegistrar] SpawnComplete event had null character.");
+                return;
             }
+
+            Debug.Log($"[CharacterEventRegistrar] SpawnComplete received. Character: {character.name}");
+
+            if (!_registry.IsRegistered(PlayerID))
+            {
+                _registry.Register(PlayerID, character);
+                Debug.Log($"[CharacterEventRegistrar] Registered Character '{character.name}' to PlayerID '{PlayerID}'");
+            }
+
+            // Inventory lookup (global search)
+            var inventory = FindInventoryByPlayerID(PlayerID);
+            if (inventory != null)
+            {
+                _registry.RegisterInventory(PlayerID, inventory);
+                Debug.Log($"[CharacterEventRegistrar] Registered Inventory for PlayerID: {PlayerID}");
+            }
+            else
+            {
+                Debug.LogWarning($"[CharacterEventRegistrar] No Inventory found for PlayerID: {PlayerID}");
+            }
+        }
+
+        private Inventory FindInventoryByPlayerID(string playerID)
+        {
+            foreach (var inv in UnityEngine.Object.FindObjectsByType<Inventory>(FindObjectsSortMode.None))
+            {
+                if (inv != null && inv.PlayerID == playerID)
+                    return inv;
+            }
+            return null;
         }
     }
 }
