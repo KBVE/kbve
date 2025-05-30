@@ -5,10 +5,11 @@ using MoreMountains.InventoryEngine;
 using VContainer;
 using VContainer.Unity;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
-    public class CharacterEventRegistrar : IStartable,
+    public class CharacterEventRegistrar : IAsyncStartable,
                                            MMEventListener<TopDownEngineEvent>
     {
         private readonly ICharacterRegistry _registry;
@@ -20,34 +21,34 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             _registry = registry;
         }
 
-        public void Start()
+
+        public async UniTask StartAsync(CancellationToken cancellation)
         {
             MMEventManager.AddListener<TopDownEngineEvent>(this);
+
+            await UniTask.NextFrame(cancellation); // Delay one frame to allow scene objects to initialize
+            await ScanAndRegisterAllCharacters(cancellation);  // Optional: scan characters already active
         }
 
         public void OnMMEvent(TopDownEngineEvent evt)
         {
-             switch (evt.EventType)
+            switch (evt.EventType)
             {
                 case TopDownEngineEventTypes.SpawnComplete:
                     HandleSpawnComplete(evt);
                     break;
 
                 case TopDownEngineEventTypes.LevelStart:
-                    Debug.LogWarning("[CharacterEventRegister]: Level Start Test Debug Message");
-                    // TODO: Scan all the characters.
+                    ScanAndRegisterAllCharacters(CancellationToken.None).Forget(); // Since MMEvnts are not async, fire+forget.
+
+                    Debug.Log("[CharacterEventRegistrar] Level Start Triggered");
                     break;
 
                 case TopDownEngineEventTypes.CharacterSwap:
-                    Debug.LogWarning("[CharacterEventRegister]: Character Swap Test Debug Message");
-                    Debug.LogWarning("[CharacterEventRegister]: New Character: " + evt.OriginCharacter.name);
-                    // TODO: Swap the UI for Avatar, Health and Stats.
-                    break;
-                default:
+                    Debug.Log("[CharacterEventRegistrar] Character Swap Detected");
                     break;
             }
         }
-
 
         private void HandleSpawnComplete(TopDownEngineEvent evt)
         {
@@ -93,6 +94,34 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             }
         }
 
+        private async UniTask ScanAndRegisterAllCharacters(CancellationToken cancellation)
+        {
+            var characters = UnityEngine.Object.FindObjectsByType<Character>(FindObjectsSortMode.None);
+            foreach (var character in characters)
+            {
+                
+                // TODO: Optimization -> If character is already registered -> then move into the next loop? BUT what if the character dies and comes back? 
+                cancellation.ThrowIfCancellationRequested();
+
+                var swap = character.GetComponent<CharacterSwap>();
+                string playerID = swap?.PlayerID ?? "Player1";
+
+                _registry.Register(playerID, character);
+                Debug.Log($"[CharacterEventRegistrar] Auto-Registered Character '{character.name}' ({playerID})");
+
+                if (!_registry.TryGetInventory(playerID, out _))
+                {
+                    var inventory = FindInventoryByPlayerID(playerID);
+                    if (inventory != null)
+                    {
+                        _registry.RegisterInventory(playerID, inventory);
+                        Debug.Log($"[CharacterEventRegistrar] Auto-Registered Inventory for PlayerID: {playerID}");
+                    }
+                }
+            }
+
+            await UniTask.Yield(); 
+        }
 
         private Inventory FindInventoryByPlayerID(string playerID)
         {

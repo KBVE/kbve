@@ -9,6 +9,8 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <OutputType>Library</OutputType>
+    <DefineConstants>VCONTAINER_UNITASK_INTEGRATION</DefineConstants>
+
   </PropertyGroup>
 
   <Import Project="UserSettings.props" Condition="Exists('UserSettings.props')" />
@@ -119,5 +121,6 @@
   <ItemGroup>
     <ProjectReference Include="..\kilonet\Kbve.Kilonet.csproj" />
   </ItemGroup>
+
 
 </Project>
