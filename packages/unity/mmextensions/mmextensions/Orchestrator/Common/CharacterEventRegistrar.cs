@@ -1,24 +1,25 @@
-using UnityEngine;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using MoreMountains.Tools;
 using MoreMountains.TopDownEngine;
 using MoreMountains.InventoryEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
-    public class CharacterEventRegistrar : MonoBehaviour, MMEventListener<TopDownEngineEvent>
+    public class CharacterEventRegistrar : IStartable, MMEventListener<TopDownEngineEvent>
     {
-        [Inject] private ICharacterRegistry _registry;
+        private readonly ICharacterRegistry _registry;
 
-        private void OnEnable()
+        [Inject]
+        public CharacterEventRegistrar(ICharacterRegistry registry)
         {
-            this.MMEventStartListening<TopDownEngineEvent>();
+            _registry = registry;
         }
 
-        private void OnDisable()
+        public void Start()
         {
-            this.MMEventStopListening<TopDownEngineEvent>();
+            MMEventManager.AddListener<TopDownEngineEvent>(this);
         }
 
         public void OnMMEvent(TopDownEngineEvent evt)
@@ -31,14 +32,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 var inventory = character.GetComponentInChildren<Inventory>();
                 if (inventory == null || string.IsNullOrWhiteSpace(inventory.PlayerID))
                 {
-                    Debug.LogWarning("[CharacterEventRegistrar] Character missing Inventory or PlayerID.");
+                    UnityEngine.Debug.LogWarning("[CharacterEventRegistrar] Character missing Inventory or PlayerID.");
                     return;
                 }
 
                 _registry.Register(inventory.PlayerID, character);
-                // inventory.SetOwner(character.gameObject);
 
-                Debug.Log($"[CharacterEventRegistrar] Registered character {character.name} for PlayerID: {inventory.PlayerID}");
+                UnityEngine.Debug.Log($"[CharacterEventRegistrar] Registered character {character.name} for PlayerID: {inventory.PlayerID}");
             }
         }
     }
