@@ -4,8 +4,8 @@ using MoreMountains.TopDownEngine;
 using MoreMountains.InventoryEngine;
 using VContainer;
 using VContainer.Unity;
-using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
@@ -14,6 +14,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                                            MMEventListener<MMInventoryEvent>
     {
         private readonly ICharacterRegistry _registry;
+        private readonly Dictionary<string, Character> _pendingCharacters = new();
         private readonly HashSet<string> _inventoryLoaded = new();
 
         [Inject]
@@ -32,7 +33,25 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         {
             if (evt.EventType == TopDownEngineEventTypes.SpawnComplete)
             {
-                HandleCharacterSpawn(evt.OriginCharacter).Forget();
+                var character = evt.OriginCharacter;
+                if (character == null)
+                {
+                    Debug.LogWarning("[CharacterEventRegistrar] SpawnComplete event had null character.");
+                    return;
+                }
+
+                Debug.Log($"[CharacterEventRegistrar] SpawnComplete event received. Character: {character.name}");
+
+                var playerID = FindMatchingPlayerID(character);
+                if (!string.IsNullOrWhiteSpace(playerID))
+                {
+                    _pendingCharacters[playerID] = character;
+                    Debug.Log($"[CharacterEventRegistrar] Matched Character '{character.name}' to PlayerID '{playerID}'");
+                }
+                else
+                {
+                    Debug.LogWarning($"[CharacterEventRegistrar] Could not find matching Inventory for Character '{character.name}'");
+                }
             }
         }
 
@@ -41,50 +60,73 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             if (evt.InventoryEventType != MMInventoryEventType.InventoryLoaded || string.IsNullOrWhiteSpace(evt.PlayerID))
                 return;
 
+            Debug.Log($"[CharacterEventRegistrar] InventoryLoaded received for PlayerID: {evt.PlayerID}");
+
             _inventoryLoaded.Add(evt.PlayerID);
 
-            if (_registry.GetCharacter(evt.PlayerID) is { } character)
+            if (_pendingCharacters.TryGetValue(evt.PlayerID, out var character))
             {
-                var inventory = character.GetComponent<Inventory>() 
-                             ?? character.GetComponentInChildren<Inventory>() 
-                             ?? character.GetComponentInParent<Inventory>();
-
-                if (inventory != null)
+                FinalizeRegistration(evt.PlayerID, character);
+                _pendingCharacters.Remove(evt.PlayerID);
+            }
+            else
+            {
+                var inv = FindInventoryByPlayerID(evt.PlayerID);
+                if (inv != null)
                 {
-                    _registry.RegisterInventory(evt.PlayerID, inventory);
-                    UnityEngine.Debug.Log($"[CharacterEventRegistrar] Registered inventory for PlayerID: {evt.PlayerID}");
+                    Debug.Log($"[CharacterEventRegistrar] Registering inventory-only (no character yet) for PlayerID: {evt.PlayerID}");
+                    _registry.RegisterInventory(evt.PlayerID, inv);
                 }
             }
         }
 
-        private async UniTaskVoid HandleCharacterSpawn(Character character)
+        private void FinalizeRegistration(string playerID, Character character)
         {
-            if (character == null) return;
-
-            await UniTask.NextFrame();
-
-            var inventory = character.GetComponent<Inventory>() 
-                         ?? character.GetComponentInChildren<Inventory>() 
-                         ?? character.GetComponentInParent<Inventory>();
-
-            if (inventory == null || string.IsNullOrWhiteSpace(inventory.PlayerID))
+            if (!_registry.IsRegistered(playerID))
             {
-                UnityEngine.Debug.LogWarning("[CharacterEventRegistrar] Character missing Inventory or PlayerID.");
-                return;
+                _registry.Register(playerID, character);
+                Debug.Log($"[CharacterEventRegistrar] Registered character {character.name} for PlayerID: {playerID}");
             }
 
-            if (!_registry.IsRegistered(inventory.PlayerID))
+            var inventory = FindInventoryByPlayerID(playerID);
+            if (inventory != null)
             {
-                _registry.Register(inventory.PlayerID, character);
-                UnityEngine.Debug.Log($"[CharacterEventRegistrar] Registered character {character.name} for PlayerID: {inventory.PlayerID}");
+                _registry.RegisterInventory(playerID, inventory);
+                Debug.Log($"[CharacterEventRegistrar] Registered inventory for PlayerID: {playerID}");
+            }
+            else
+            {
+                Debug.LogWarning($"[CharacterEventRegistrar] Inventory not found for PlayerID: {playerID}");
+            }
+        }
+
+        private Inventory FindInventoryByPlayerID(string playerID)
+        {
+            foreach (var inv in UnityEngine.Object.FindObjectsByType<Inventory>(FindObjectsSortMode.None))
+            {
+                if (inv != null && inv.PlayerID == playerID)
+                    return inv;
             }
 
-            // If MMInventoryEvent.InventoryLoaded was received earlier, register inventory now
-            if (_inventoryLoaded.Contains(inventory.PlayerID))
+            return null;
+        }
+
+        private string FindMatchingPlayerID(Character character)
+        {
+            foreach (var inv in UnityEngine.Object.FindObjectsByType<Inventory>(FindObjectsSortMode.None))
             {
-                _registry.RegisterInventory(inventory.PlayerID, inventory);
-                UnityEngine.Debug.Log($"[CharacterEventRegistrar] Registered inventory for PlayerID: {inventory.PlayerID} (deferred)");
+                if (inv == null || string.IsNullOrWhiteSpace(inv.PlayerID)) continue;
+
+                // Heuristic match based on character and inventory naming conventions
+                if (inv.name.ToLower().Contains(character.name.ToLower()) ||
+                    character.name.ToLower().Contains(inv.name.ToLower()) ||
+                    inv.PlayerID.ToLower().Contains("player")) // default fallback match
+                {
+                    return inv.PlayerID;
+                }
             }
+
+            return null;
         }
     }
 }
