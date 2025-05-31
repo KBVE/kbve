@@ -3,10 +3,10 @@ using TMPro;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using VContainer;
 using VContainer.Unity;
-using System.Threading;
 
 namespace KBVE.MMExtensions.Orchestrator.Core.UI
 {
@@ -21,10 +21,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private readonly Dictionary<ToastType, Color> _toastColors = new()
         {
-            { ToastType.Info, new Color(0.2f, 0.6f, 1f) },
+            { ToastType.Info,    new Color(0.2f, 0.6f, 1f) },
             { ToastType.Success, new Color(0.2f, 0.8f, 0.4f) },
             { ToastType.Warning, new Color(1f, 0.6f, 0.2f) },
-            { ToastType.Error, new Color(1f, 0.2f, 0.2f) }
+            { ToastType.Error,   new Color(1f, 0.2f, 0.2f) }
         };
 
         private class ToastRequest
@@ -36,7 +36,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
-            await UniTask.NextFrame(cancellation); // Ensure Unity objects exist
+            await UniTask.NextFrame(cancellation); // Let Unity settle before grabbing references
 
             var canvas = GameObject.Find("Canvas");
             if (canvas == null)
@@ -45,30 +45,14 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 return;
             }
 
-
-            Transform panelTransform = canvas.transform.Find("ToastPanel");
-
-            if (panelTransform == null)
+            var panel = FindChildByName(canvas, "ToastPanel");
+            if (panel == null)
             {
-                foreach (Transform child in canvas.GetComponentsInChildren<Transform>(true))
-                {
-                    if (child.name == "ToastPanel")
-                    {
-                        panelTransform = child;
-                        break;
-                    }
-                }
-
-                if (panelTransform == null)
-                {
-                    Debug.LogError("[ToastService] ToastPanel not found in Canvas hierarchy.");
-                    return;
-                }
+                Debug.LogError("[ToastService] ToastPanel not found in Canvas hierarchy.");
+                return;
             }
-            var panel = panelTransform.gameObject;
 
-
-            _toastText = panel.GetComponentInChildren<TextMeshProUGUI>(true); // Safely get or add required components
+            _toastText = panel.GetComponentInChildren<TextMeshProUGUI>(true);
             if (_toastText == null)
             {
                 Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
@@ -79,15 +63,15 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             if (_toastBackground == null)
             {
                 _toastBackground = panel.AddComponent<Image>();
-                _toastBackground.color = Color.black; // fallback color
-                Debug.LogWarning("[ToastService] Image component was missing on ToastPanel — added fallback.");
+                _toastBackground.color = Color.black;
+                Debug.LogWarning("[ToastService] Image component missing on ToastPanel. Added default black background.");
             }
 
             _toastGroup = panel.GetComponent<CanvasGroup>();
             if (_toastGroup == null)
             {
                 _toastGroup = panel.AddComponent<CanvasGroup>();
-                Debug.LogWarning("[ToastService] CanvasGroup was missing on ToastPanel — added fallback.");
+                Debug.LogWarning("[ToastService] CanvasGroup missing on ToastPanel. Added fallback.");
             }
 
             _toastGroup.alpha = 0f;
@@ -120,7 +104,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _toastQueue.Clear();
             _isShowing = false;
             if (_toastGroup != null)
+            {
                 _toastGroup.alpha = 0f;
+            }
         }
 
         private async UniTaskVoid ProcessQueueAsync()
@@ -138,14 +124,38 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private async UniTask ShowSingleToastAsync(string message, ToastType type, float duration)
         {
-            if (_toastGroup == null) return;
+            if (_toastGroup == null || _toastText == null || _toastBackground == null)
+                return;
 
             _toastText.text = message;
-            _toastBackground.color = _toastColors.TryGetValue(type, out var color) ? color : _toastColors[ToastType.Info];
+            _toastBackground.color = _toastColors.TryGetValue(type, out var color)
+                ? color
+                : _toastColors[ToastType.Info];
             _toastGroup.alpha = 1f;
 
             await UniTask.Delay(System.TimeSpan.FromSeconds(duration));
             _toastGroup.alpha = 0f;
+        }
+
+        /// <summary>
+        /// Finds a child GameObject by name within a given parent, including inactive ones.
+        /// </summary>
+        private GameObject FindChildByName(GameObject parent, string name)
+        {
+            if (parent == null || string.IsNullOrWhiteSpace(name))
+                return null;
+
+            Transform direct = parent.transform.Find(name);
+            if (direct != null)
+                return direct.gameObject;
+
+            foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name == name)
+                    return child.gameObject;
+            }
+
+            return null;
         }
     }
 }
