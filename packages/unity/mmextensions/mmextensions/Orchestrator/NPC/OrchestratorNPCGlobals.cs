@@ -33,8 +33,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                     npcPools[label] = new Queue<GameObject>();
 
                 var handle = Addressables.LoadAssetAsync<GameObject>(label);
-                // await handle.ToUniTask(cancellation); - TODO: Handle Cancels
-                await handle.Task;
+                await handle.ToUniTask(cancellationToken: cancellation);
 
                 if (handle.Status != AsyncOperationStatus.Succeeded)
                 {
