@@ -4,6 +4,7 @@ using MoreMountains.TopDownEngine;
 using KBVE.MMExtensions.Orchestrator.Health;
 using KBVE.MMExtensions.Orchestrator;
 using KBVE.Kilonet.Networks;
+using Cysharp.Threading.Tasks;
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -12,10 +13,24 @@ using System.Runtime.InteropServices;
 
 namespace KBVE.MMExtensions.Items
 {
+
+    [System.Serializable]
+    public class StatBonuses
+    {
+        public float health;
+        public float cookingSpeed;
+        public float foodQuality;
+        public bool recipeDiscovery;
+        public Dictionary<string, float> extra = new();         // Future-proofing: supports other dynamic stats (not yet typed)
+
+    }
+
     [CreateAssetMenu(fileName = "OrchestratorInventoryItem", menuName = "KBVE/Inventory/Orchestrator", order = 70)]
     public class OrchestratorInventoryItem : InventoryItem
     {
         [Header("Stat Modification")]
+        public StatBonuses Bonuses = new();
+
         public bool AffectHealth;
         public float HealthAmount;
 
@@ -109,24 +124,86 @@ namespace KBVE.MMExtensions.Items
 
             }
 
-            if (AffectStat && !string.IsNullOrEmpty(StatName))
+            _ = UniTask.Run(async () =>
             {
-                extendedHealth.ModifyStat(StatName, StatAmount);
-                if (StatAmount <= 0)
-                {
-                    Operator.Toast.EnqueueToast($"{StatName} modified by {StatAmount} from {ItemName}.", Orchestrator.Core.ToastType.Warning, 2.5f);
-                }
-                else
-                {
-                    Operator.Toast.EnqueueToast($"{StatName} modified by {StatAmount} from {ItemName}.", Orchestrator.Core.ToastType.Info, 2.5f);
+                try { await ApplyBonusesAsync(character); }
+                catch (Exception ex) { Debug.LogError($"[Bonus] Error applying bonuses: {ex.Message}"); }
+            });
 
-                }
+            // if (AffectStat && !string.IsNullOrEmpty(StatName))
+            // {
+            //     extendedHealth.ModifyStat(StatName, StatAmount);
+            //     if (StatAmount <= 0)
+            //     {
+            //         Operator.Toast.EnqueueToast($"{StatName} modified by {StatAmount} from {ItemName}.", Orchestrator.Core.ToastType.Warning, 2.5f);
+            //     }
+            //     else
+            //     {
+            //         Operator.Toast.EnqueueToast($"{StatName} modified by {StatAmount} from {ItemName}.", Orchestrator.Core.ToastType.Info, 2.5f);
 
-            }
+            //     }
+
+            // }
+
+
             Operator.Toast.EnqueueToast($"Just used {ItemName}.", Orchestrator.Core.ToastType.Success, 2.5f);
             NotifyUnityBridge(ItemID);
             return true;
         }
+
+
+        public async UniTask<bool> ApplyBonusesAsync(Character character)
+        {
+            if (character == null)
+            {
+                Debug.LogWarning("[OrchestratorItem] Cannot apply bonuses: Character is null.");
+                return false;
+            }
+
+            var extendedHealth = character.GetComponent<ExtendedHealth>();
+            if (extendedHealth == null)
+            {
+                Debug.LogWarning("[OrchestratorItem] ExtendedHealth not found.");
+                return false;
+            }
+
+            if (Bonuses.cookingSpeed != 0)
+            {
+                extendedHealth.ModifyStat("cookingSpeed", Bonuses.cookingSpeed);
+                await UniTask.Yield();
+            }
+
+            if (Bonuses.foodQuality != 0)
+            {
+                extendedHealth.ModifyStat("foodQuality", Bonuses.foodQuality);
+                await UniTask.Yield();
+            }
+
+            if (Bonuses.recipeDiscovery)
+            {
+                extendedHealth.ModifyStat("recipeDiscovery", 1f);
+                await UniTask.Yield();
+            }
+
+            if (Bonuses.extra != null)
+            {
+                foreach (var kv in Bonuses.extra)
+                {
+                    if (kv.Value is float f)
+                    {
+                        extendedHealth.ModifyStat(kv.Key, f);
+                    }
+                    else if (float.TryParse(kv.Value.ToString(), out float parsed))
+                    {
+                        extendedHealth.ModifyStat(kv.Key, parsed);
+                    }
+                    await UniTask.Yield();
+                }
+            }
+
+            return true;
+        }
+
 
         private void NotifyUnityBridge(string target)
         {

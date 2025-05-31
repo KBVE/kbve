@@ -13,7 +13,8 @@
     "MoreMountains.Tools",
     "MoreMountains.Feedbacks",
     "MoreMountains.TopDownEngine",
-    "UnityEngine.Physics2DModule"
+    "UnityEngine.Physics2DModule",
+    "Newtonsoft.Json"
   ],
   "includePlatforms": ["Editor"],
   "excludePlatforms": [],
