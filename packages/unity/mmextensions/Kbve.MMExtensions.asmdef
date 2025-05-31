@@ -17,7 +17,8 @@
       "AstarPathfindingProject",
       "Pathfinding",
       "PackageTools",
-      "Drawing"
+      "Drawing",
+      "Unity.TextMeshPro"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
