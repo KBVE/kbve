@@ -3,6 +3,7 @@ using VContainer;
 using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
+using KBVE.MMExtensions.Orchestrator.Core.UI;
 
 namespace KBVE.MMExtensions.Orchestrator
 {
@@ -31,6 +32,10 @@ namespace KBVE.MMExtensions.Orchestrator
             .AsImplementedInterfaces();
 
             builder.RegisterEntryPoint<CharacterEventRegistrar>();
+
+            // [With Toast]
+            builder.RegisterComponentInHierarchy<ToastService>().AsSelf().AsImplementedInterfaces();
+
 
             // [With Operator]
             builder.RegisterBuildCallback(container =>
