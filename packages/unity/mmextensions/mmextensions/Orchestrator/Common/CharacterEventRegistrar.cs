@@ -6,6 +6,7 @@ using VContainer;
 using VContainer.Unity;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System.Threading;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
@@ -97,18 +98,32 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         private async UniTask ScanAndRegisterAllCharacters(CancellationToken cancellation)
         {
             var characters = UnityEngine.Object.FindObjectsByType<Character>(FindObjectsSortMode.None);
+
             foreach (var character in characters)
             {
-                
-                // TODO: Optimization -> If character is already registered -> then move into the next loop? BUT what if the character dies and comes back? 
                 cancellation.ThrowIfCancellationRequested();
 
                 var swap = character.GetComponent<CharacterSwap>();
-                string playerID = swap?.PlayerID ?? "Player1";
+                if (swap == null || string.IsNullOrWhiteSpace(swap.PlayerID))
+                {
+                    Debug.Log($"[CharacterEventRegistrar] Skipping non-player character '{character.name}'");
+                    continue;
+                }
+
+                var playerID = swap.PlayerID;
+
+                // Only register if this character is not already in the registry
+                if (_registry.TryGetCharacters(playerID, out var existingList) &&
+                    existingList.Contains(character))
+                {
+                    Debug.Log($"[CharacterEventRegistrar] Character '{character.name}' already registered under PlayerID '{playerID}' — skipping.");
+                    continue;
+                }
 
                 _registry.Register(playerID, character);
-                Debug.Log($"[CharacterEventRegistrar] Auto-Registered Character '{character.name}' ({playerID})");
+                Debug.Log($"[CharacterEventRegistrar] Auto-Registered Character '{character.name}' (PlayerID: {playerID})");
 
+                // Only register inventory if not already present
                 if (!_registry.TryGetInventory(playerID, out _))
                 {
                     var inventory = FindInventoryByPlayerID(playerID);
@@ -120,9 +135,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 }
             }
 
-            await UniTask.Yield(); 
+            await UniTask.Yield();
         }
-
+        
         private Inventory FindInventoryByPlayerID(string playerID)
         {
             foreach (var inv in UnityEngine.Object.FindObjectsByType<Inventory>(FindObjectsSortMode.None))
