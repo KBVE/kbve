@@ -7,6 +7,7 @@
       "Unity.Collections",
       "Unity.ResourceManager",
       "UnityEngine.Physics2DModule",
+      "UnityEngine.UIModule",
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
       "MoreMountains.Feedbacks",
@@ -17,7 +18,8 @@
       "AstarPathfindingProject",
       "Pathfinding",
       "PackageTools",
-      "Drawing"
+      "Drawing",
+      "Unity.TextMeshPro"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
