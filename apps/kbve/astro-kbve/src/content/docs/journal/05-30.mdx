@@ -18,7 +18,7 @@ tags:
 -   02:35AM
 
     Taking a quick break from the CharacterData orchestration and decided on the next item!
-    For id 31, we will do the classic, fried fish tacoes!
+    For id 31, we will do the classic, fried fish tacos!
     Going to push that up now, but damn, I should look into hiring a person to just help me with the itemdb.
 
 -  02:40AM
@@ -35,17 +35,29 @@ tags:
 
 -   03:59AM
 
-    Item 37 , swiss cheese and item 38 will be cheedar cheese.
+    Item 37 , swiss cheese and item 38 will be cheddar cheese.
     Actually we should throw in pepper jack too for now, hmm that means we will need tomatoes and a pasta sauce too?
     Damn, all of this cooking is going to be wild, easily get to 100 items from just the cooking alone.
 
 ### Character Registrar
 
--  02:53AM
+-   02:53AM
 
     While building the next couple items, it would make sense to focus on the unity side again.
     I did not like the fact that we had to hardcode the character event register but its okay for now.
 
+-   04:15PM
+
+    Okay so the registrar loads the first origin character, but it needs to loop through all the other characters that would be added.
+    There are three issues that I am trying to address, the first is that we are hardcoding the search for `PlayerID1` , which we don't want to do.
+    Second issue is that multiple playerIDs can exist, so it loops back to the first issue as well.
+    Finally the third issue is that there are multiple characters per playerID, the goal for the Registrar is to place all that of data into a complete map.
+    Eventually we can move this into a rust-based ffi papaya map, moving away from this C# dictionary approach but that will come with other concerns and issues that we do not want to deal with.
+
+-   05:31PM
+
+    In a situation where an additional character loads in or a friend joins a lobby, we need to handle that event and make sure there is no de-sync.
+    Thus, we need to include an additional helper.
 
 
 ## 2024
