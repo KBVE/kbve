@@ -90,6 +90,20 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             return inventory != null;
         }
 
+        public bool TryGetCharacters(string playerID, out List<Character> characters)
+{
+            if (_characterMap.TryGetValue(playerID, out var list))
+            {
+                characters = list;
+                return true;
+            }
+
+            characters = null;
+            return false;
+        }
+
+
+
         public void SetPrimaryCharacter(string playerID, Character character)
         {
             if (HasCharacter(playerID, character))

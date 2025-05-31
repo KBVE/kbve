@@ -17,11 +17,15 @@ namespace KBVE.MMExtensions.Orchestrator.Interfaces
         Inventory GetInventory(string playerID);
         IEnumerable<Character> GetAllCharacters(string playerID);
 
+
+
         bool IsRegistered(string playerID);
         bool HasCharacter(string playerID, Character character);
 
         bool TryGetPrimaryCharacter(string playerID, out Character character);
         bool TryGetInventory(string playerID, out Inventory inventory);
+
+        bool TryGetCharacters(string playerID, out List<Character> characters);
 
         void SetPrimaryCharacter(string playerID, Character character);
 
