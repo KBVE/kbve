@@ -84,6 +84,11 @@
   <Private>false</Private>
 </Reference>
 
+<Reference Include="UnityEngine.AnimationModule">
+  <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.AnimationModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+
 </ItemGroup>
 
 <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
@@ -111,6 +116,11 @@
 
 <Reference Include="UnityEngine.UIModule">
   <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.UIModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+
+<Reference Include="UnityEngine.AnimationModule">
+  <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.AnimationModule.dll</HintPath>
   <Private>false</Private>
 </Reference>
 
