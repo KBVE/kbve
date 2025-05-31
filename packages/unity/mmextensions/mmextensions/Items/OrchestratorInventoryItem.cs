@@ -103,13 +103,25 @@ namespace KBVE.MMExtensions.Items
             if (AffectHealth && HealthAmount > 0)
             {
                 extendedHealth.Heal(HealthAmount, character.gameObject);
+                Operator.Toast.EnqueueToast($"+{HealthAmount} from {ItemName}.", Orchestrator.Core.ToastType.Success, 2.5f);
+
             }
 
             if (AffectStat && !string.IsNullOrEmpty(StatName))
             {
                 extendedHealth.ModifyStat(StatName, StatAmount);
+                if (StatAmount <= 0)
+                {
+                    Operator.Toast.EnqueueToast($"{StatName} modified by {StatAmount} from {ItemName}.", Orchestrator.Core.ToastType.Warning, 2.5f);
+                }
+                else
+                {
+                    Operator.Toast.EnqueueToast($"{StatName} modified by {StatAmount} from {ItemName}.", Orchestrator.Core.ToastType.Info, 2.5f);
+
+                }
+
             }
-            Operator.Toast.EnqueueToast($"Just used {ItemName}", Orchestrator.Core.ToastType.Success, 2.5f);
+            Operator.Toast.EnqueueToast($"Just used {ItemName}.", Orchestrator.Core.ToastType.Success, 2.5f);
             NotifyUnityBridge(ItemID);
             return true;
         }
