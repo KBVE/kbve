@@ -3,11 +3,14 @@ using TMPro;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
+using VContainer;
+using VContainer.Unity;
 
 namespace KBVE.MMExtensions.Orchestrator.Core.UI
 {
-    public class ToastService : MonoBehaviour, IToastService
+    public class ToastService : MonoBehaviour, IToastService, IAsyncStartable
     {
         private readonly Queue<ToastRequest> _toastQueue = new();
         private bool _isShowing;
@@ -18,10 +21,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private readonly Dictionary<ToastType, Color> _toastColors = new()
         {
-            { ToastType.Info, new Color(0.2f, 0.6f, 1f) },
+            { ToastType.Info,    new Color(0.2f, 0.6f, 1f) },
             { ToastType.Success, new Color(0.2f, 0.8f, 0.4f) },
             { ToastType.Warning, new Color(1f, 0.6f, 0.2f) },
-            { ToastType.Error, new Color(1f, 0.2f, 0.2f) }
+            { ToastType.Error,   new Color(1f, 0.2f, 0.2f) }
         };
 
         private class ToastRequest
@@ -31,65 +34,62 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             public float Duration;
         }
 
-        public void Initialize()
+        public async UniTask StartAsync(CancellationToken cancellation)
         {
-            try
+            await UniTask.NextFrame(cancellation); // Let Unity settle before grabbing references
+
+            var canvas = GameObject.Find("Canvas");
+            if (canvas == null)
             {
-                var canvas = GameObject.Find("Canvas");
-                if (canvas == null)
-                {
-                    Debug.LogError("[ToastService] Canvas not found in the scene.");
-                    return;
-                }
-
-                var panel = canvas.transform.Find("ToastPanel");
-                if (panel == null)
-                {
-                    Debug.LogError("[ToastService] ToastPanel not found as a child of Canvas.");
-                    return;
-                }
-
-                _toastText = panel.GetComponentInChildren<TextMeshProUGUI>();
-                if (_toastText == null)
-                {
-                    Debug.LogWarning("[ToastService] TextMeshProUGUI not found in ToastPanel children. Toasts may not display text.");
-                }
-
-                _toastBackground = panel.GetComponent<Image>();
-                if (_toastBackground == null)
-                {
-                    Debug.LogWarning("[ToastService] No Image found on ToastPanel. Background color will not be shown.");
-                }
-
-                _toastGroup = panel.GetComponent<CanvasGroup>();
-                if (_toastGroup == null)
-                {
-                    _toastGroup = panel.gameObject.AddComponent<CanvasGroup>();
-                    Debug.Log("[ToastService] CanvasGroup was missing and has been added to ToastPanel.");
-                }
-
-                _toastGroup.alpha = 0f;
+                Debug.LogError("[ToastService] Canvas not found. ToastService cannot initialize.");
+                return;
             }
-            catch (System.Exception ex)
+
+            var panel = FindChildByName(canvas, "ToastPanel");
+            if (panel == null)
             {
-                Debug.LogError($"[ToastService] Initialization failed: {ex.Message}");
+                Debug.LogError("[ToastService] ToastPanel not found in Canvas hierarchy.");
+                return;
             }
+
+            _toastText = panel.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (_toastText == null)
+            {
+                Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
+                return;
+            }
+
+            _toastBackground = panel.GetComponent<Image>();
+            if (_toastBackground == null)
+            {
+                _toastBackground = panel.AddComponent<Image>();
+                _toastBackground.color = Color.black;
+                Debug.LogWarning("[ToastService] Image component missing on ToastPanel. Added default black background.");
+            }
+
+            _toastGroup = panel.GetComponent<CanvasGroup>();
+            if (_toastGroup == null)
+            {
+                _toastGroup = panel.AddComponent<CanvasGroup>();
+                Debug.LogWarning("[ToastService] CanvasGroup missing on ToastPanel. Added fallback.");
+            }
+
+            _toastGroup.alpha = 0f;
+
+            Debug.Log("[ToastService] Initialized successfully.");
         }
-
 
         public void ShowToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
         {
             _toastQueue.Clear();
             _toastQueue.Enqueue(new ToastRequest { Message = message, Type = type, Duration = duration });
-            if (!_isShowing)
-                ProcessQueueAsync().Forget();
+            if (!_isShowing) ProcessQueueAsync().Forget();
         }
 
         public void EnqueueToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
         {
             _toastQueue.Enqueue(new ToastRequest { Message = message, Type = type, Duration = duration });
-            if (!_isShowing)
-                ProcessQueueAsync().Forget();
+            if (!_isShowing) ProcessQueueAsync().Forget();
         }
 
         public void ShowImmediateToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
@@ -103,7 +103,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         {
             _toastQueue.Clear();
             _isShowing = false;
-            _toastGroup.alpha = 0f;
+            if (_toastGroup != null)
+            {
+                _toastGroup.alpha = 0f;
+            }
         }
 
         private async UniTaskVoid ProcessQueueAsync()
@@ -121,14 +124,38 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private async UniTask ShowSingleToastAsync(string message, ToastType type, float duration)
         {
-            if (_toastGroup == null) return;
+            if (_toastGroup == null || _toastText == null || _toastBackground == null)
+                return;
 
             _toastText.text = message;
-            _toastBackground.color = _toastColors.TryGetValue(type, out var color) ? color : _toastColors[ToastType.Info];
+            _toastBackground.color = _toastColors.TryGetValue(type, out var color)
+                ? color
+                : _toastColors[ToastType.Info];
             _toastGroup.alpha = 1f;
 
             await UniTask.Delay(System.TimeSpan.FromSeconds(duration));
             _toastGroup.alpha = 0f;
+        }
+
+        /// <summary>
+        /// Finds a child GameObject by name within a given parent, including inactive ones.
+        /// </summary>
+        private GameObject FindChildByName(GameObject parent, string name)
+        {
+            if (parent == null || string.IsNullOrWhiteSpace(name))
+                return null;
+
+            Transform direct = parent.transform.Find(name);
+            if (direct != null)
+                return direct.gameObject;
+
+            foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name == name)
+                    return child.gameObject;
+            }
+
+            return null;
         }
     }
 }
