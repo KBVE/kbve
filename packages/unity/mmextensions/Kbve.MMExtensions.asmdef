@@ -19,7 +19,8 @@
       "Pathfinding",
       "PackageTools",
       "Drawing",
-      "Unity.TextMeshPro"
+      "Unity.TextMeshPro",
+      "Newtonsoft.Json"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
