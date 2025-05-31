@@ -10,6 +10,7 @@ using MoreMountains.Tools;
 using MoreMountains.Feedbacks;
 using MoreMountains.TopDownEngine;
 using KBVE.MMExtensions.Database;
+using KBVE.MMExtensions.Items;
 
 namespace KBVE.MMExtensions.Database
 {
@@ -104,14 +105,51 @@ namespace KBVE.MMExtensions.Database
             Debug.Log("ItemDB sync complete.");
         }
 
-        private static InventoryItem CreateOrUpdateInventoryItem(ItemEntry item, Sprite icon)
+        // private static InventoryItem CreateOrUpdateInventoryItem(ItemEntry item, Sprite icon)
+        // {
+        //     string assetPath = $"{ItemAssetFolder}{item.id}.asset";
+        //     InventoryItem invItem = AssetDatabase.LoadAssetAtPath<InventoryItem>(assetPath);
+
+        //     if (invItem == null)
+        //     {
+        //         invItem = ScriptableObject.CreateInstance<InventoryItem>();
+        //         AssetDatabase.CreateAsset(invItem, assetPath);
+        //     }
+
+        //     invItem.ItemClass = ItemClasses.Neutral;
+        //     invItem.ItemID = item.id;
+        //     invItem.ItemName = item.id;
+        //     invItem.name = item.id;
+        //     invItem.ShortDescription = item.description;
+        //     invItem.Description = item.effects;
+        //     invItem.Icon = icon;
+        //     invItem.Consumable = item.consumable;
+        //     invItem.Usable = item.consumable || item.action == "consume";
+        //     invItem.ConsumeQuantity = 1;
+        //     invItem.Equippable = (item.category & 0x00000001) != 0; // Weapon
+        //     //invItem.Stackable = item.stackable;
+        //     invItem.MaximumStack = item.stackable ? 99 : 1;
+        //     //invItem.Price = item.price;
+        //     invItem.TargetInventoryName = "KoalaMainInventory";
+        //     invItem.Droppable = true;
+        //     invItem.UseDefaultSoundsIfNull = true;
+
+        //     return invItem;
+        // }
+
+        private static OrchestratorInventoryItem CreateOrUpdateInventoryItem(ItemEntry item, Sprite icon)
         {
             string assetPath = $"{ItemAssetFolder}{item.id}.asset";
-            InventoryItem invItem = AssetDatabase.LoadAssetAtPath<InventoryItem>(assetPath);
+            OrchestratorInventoryItem invItem = AssetDatabase.LoadAssetAtPath<OrchestratorInventoryItem>(assetPath);
 
             if (invItem == null)
             {
-                invItem = ScriptableObject.CreateInstance<InventoryItem>();
+                if (File.Exists(assetPath))
+                {
+                    AssetDatabase.DeleteAsset(assetPath);
+                }
+
+                invItem = ScriptableObject.CreateInstance<OrchestratorInventoryItem>();
                 AssetDatabase.CreateAsset(invItem, assetPath);
             }
 
@@ -126,17 +164,22 @@ namespace KBVE.MMExtensions.Database
             invItem.Usable = item.consumable || item.action == "consume";
             invItem.ConsumeQuantity = 1;
             invItem.Equippable = (item.category & 0x00000001) != 0; // Weapon
-            //invItem.Stackable = item.stackable;
             invItem.MaximumStack = item.stackable ? 99 : 1;
-            //invItem.Price = item.price;
             invItem.TargetInventoryName = "KoalaMainInventory";
             invItem.Droppable = true;
             invItem.UseDefaultSoundsIfNull = true;
 
+            // Optionally: Set orchestrator-specific stat logic from item.bonuses or item.scripts
+            if (item.bonuses != null)
+            {
+                invItem.AffectHealth = item.bonuses.health > 0;
+                invItem.HealthAmount = item.bonuses.health;
+            }
+
             return invItem;
         }
 
-        private static GameObject CreateItemPrefab(string name, Sprite sprite, InventoryItem item, ItemEntry entry, bool isDeployable)
+        private static GameObject CreateItemPrefab(string name, Sprite sprite, OrchestratorInventoryItem item, ItemEntry entry, bool isDeployable)
         {
             GameObject go = new GameObject(name);
             var renderer = go.AddComponent<SpriteRenderer>();
