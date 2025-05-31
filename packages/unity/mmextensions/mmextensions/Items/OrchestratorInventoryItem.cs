@@ -28,6 +28,18 @@ namespace KBVE.MMExtensions.Items
         private static extern void unityBridge(string json);
 #endif
 
+        public override bool Pick(string playerID)
+        {
+            Operator.Toast.EnqueueToast($"Picked up {ItemName}", Orchestrator.Core.ToastType.Info, 2.5f);
+            return base.Pick(playerID);
+        }
+
+        public override bool Equip(string playerID)
+        {
+            Operator.Toast.EnqueueToast($"Can not equip {ItemName}", Orchestrator.Core.ToastType.Warning, 2.5f);
+            return false;
+        }
+
         public override bool Use(string playerID)
         {
             // Character character = TargetInventory(playerID).Owner.GetComponentInParent<Character>();
@@ -97,7 +109,7 @@ namespace KBVE.MMExtensions.Items
             {
                 extendedHealth.ModifyStat(StatName, StatAmount);
             }
-            Operator.Toast.EnqueueToast($"[Just used] {ItemID} ", Orchestrator.Core.ToastType.Success, 2.5f);
+            Operator.Toast.EnqueueToast($"Just used {ItemName}", Orchestrator.Core.ToastType.Success, 2.5f);
             NotifyUnityBridge(ItemID);
             return true;
         }

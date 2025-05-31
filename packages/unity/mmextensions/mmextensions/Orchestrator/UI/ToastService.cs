@@ -27,6 +27,11 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             { ToastType.Error,   new Color(1f, 0.2f, 0.2f) }
         };
 
+        [SerializeField] private float fadeDuration = 0.2f;
+        [SerializeField] private float scaleUp = 1.1f;
+        [SerializeField] private float scaleDown = 1f;
+        [SerializeField] private float scaleDuration = 0.1f;
+
         private class ToastRequest
         {
             public string Message;
@@ -52,7 +57,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 return;
             }
 
-            _toastText = panel.GetComponentInChildren<TextMeshProUGUI>(true);
+            _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
             if (_toastText == null)
             {
                 Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
@@ -131,16 +136,60 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _toastBackground.color = _toastColors.TryGetValue(type, out var color)
                 ? color
                 : _toastColors[ToastType.Info];
-            _toastGroup.alpha = 1f;
+
+            var rect = _toastText.GetComponent<RectTransform>();
+
+            rect.localScale = Vector3.one * scaleDown;             // Reset scale and alpha
+            _toastGroup.alpha = 0f;
+
+            await AnimateScale(rect, scaleDown, scaleUp, scaleDuration);
+            await FadeCanvasGroup(_toastGroup, 1f, fadeDuration);
+            await AnimateScale(rect, scaleUp, 1f, scaleDuration); // settle to 1f
 
             await UniTask.Delay(System.TimeSpan.FromSeconds(duration));
-            _toastGroup.alpha = 0f;
+
+            await FadeCanvasGroup(_toastGroup, 0f, fadeDuration);
+        }
+
+
+
+        private static async UniTask FadeCanvasGroup(CanvasGroup group, float targetAlpha, float duration)
+        {
+            if (group == null) return;
+
+            float startAlpha = group.alpha;
+            float time = 0f;
+
+            while (time < duration)
+            {
+                group.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / duration);
+                time += Time.deltaTime;
+                await UniTask.Yield();
+            }
+
+            group.alpha = targetAlpha;
+        }
+
+        private static async UniTask AnimateScale(RectTransform rectTransform, float from, float to, float duration)
+        {
+            if (rectTransform == null) return;
+
+            float time = 0f;
+            while (time < duration)
+            {
+                float scale = Mathf.Lerp(from, to, time / duration);
+                rectTransform.localScale = new Vector3(scale, scale, 1f);
+                time += Time.deltaTime;
+                await UniTask.Yield();
+            }
+
+            rectTransform.localScale = new Vector3(to, to, 1f);
         }
 
         /// <summary>
         /// Finds a child GameObject by name within a given parent, including inactive ones.
         /// </summary>
-        private GameObject FindChildByName(GameObject parent, string name)
+        private static GameObject FindChildByName(GameObject parent, string name)
         {
             if (parent == null || string.IsNullOrWhiteSpace(name))
                 return null;
@@ -156,6 +205,40 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             }
 
             return null;
+        }
+
+        private static T FindChildComponentByName<T>(GameObject parent, string childName, bool includeInactive = true) where T : Component
+        {
+            if (parent == null)
+            {
+                Debug.LogError($"[ToastService] Parent GameObject is null.");
+                return null;
+            }
+
+            Transform childTransform = null;
+
+            foreach (Transform child in parent.GetComponentsInChildren<Transform>(includeInactive))
+            {
+                if (child.name == childName)
+                {
+                    childTransform = child;
+                    break;
+                }
+            }
+
+            if (childTransform == null)
+            {
+                Debug.LogError($"[ToastService] Could not find child GameObject named '{childName}' under '{parent.name}'.");
+                return null;
+            }
+
+            var component = childTransform.GetComponent<T>();
+            if (component == null)
+            {
+                Debug.LogError($"[ToastService] Found '{childName}', but it has no component of type '{typeof(T).Name}'.");
+            }
+
+            return component;
         }
     }
 }
