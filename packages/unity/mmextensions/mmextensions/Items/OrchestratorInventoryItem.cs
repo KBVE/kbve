@@ -2,7 +2,9 @@ using UnityEngine;
 using MoreMountains.InventoryEngine;
 using MoreMountains.TopDownEngine;
 using KBVE.MMExtensions.Orchestrator.Health;
+using KBVE.MMExtensions.Orchestrator;
 using KBVE.Kilonet.Networks;
+
 
 #if UNITY_WEBGL && !UNITY_EDITOR
 using System.Runtime.InteropServices;
@@ -28,7 +30,54 @@ namespace KBVE.MMExtensions.Items
 
         public override bool Use(string playerID)
         {
-            Character character = TargetInventory(playerID).Owner.GetComponentInParent<Character>();
+            // Character character = TargetInventory(playerID).Owner.GetComponentInParent<Character>();
+            // Operator
+            Character character = null;
+
+            try
+            {
+                if (Operator.Registry != null)
+                {
+                    character = Operator.Registry.GetCharacter(playerID);
+
+                    if (character == null)
+                    {
+                        Debug.LogWarning($"[OrchestratorItem] Operator.Registry returned null for PlayerID '{playerID}'. Attempting fallback...");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[OrchestratorItem] Operator.Registry is not initialized. Attempting fallback...");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[OrchestratorItem] Exception during GetCharacter: {ex.Message}");
+            }
+
+            if (character == null) // Fallback if character is still null
+
+            {
+                try
+                {
+                    var inventory = TargetInventory(playerID);
+                    if (inventory != null && inventory.Owner != null)
+                    {
+                        character = inventory.Owner.GetComponentInParent<Character>();
+                        if (character != null)
+                        {
+                            Debug.Log($"[OrchestratorItem] Fallback character resolved from inventory: {character.name}");
+                        }
+                    }
+                }
+                catch (System.Exception fallbackEx)
+                {
+                    Debug.LogError($"[OrchestratorItem] Fallback character resolution failed: {fallbackEx.Message}");
+                    return false;
+                }
+            }
+
+
             if (character == null || !IsUsable)
                 return false;
 
