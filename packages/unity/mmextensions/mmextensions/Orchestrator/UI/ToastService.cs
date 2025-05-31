@@ -52,7 +52,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 return;
             }
 
-            _toastText = panel.GetComponentInChildren<TextMeshProUGUI>(true);
+            _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
             if (_toastText == null)
             {
                 Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
@@ -140,7 +140,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         /// <summary>
         /// Finds a child GameObject by name within a given parent, including inactive ones.
         /// </summary>
-        private GameObject FindChildByName(GameObject parent, string name)
+        private static GameObject FindChildByName(GameObject parent, string name)
         {
             if (parent == null || string.IsNullOrWhiteSpace(name))
                 return null;
@@ -156,6 +156,40 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             }
 
             return null;
+        }
+
+        private static T FindChildComponentByName<T>(GameObject parent, string childName, bool includeInactive = true) where T : Component
+        {
+            if (parent == null)
+            {
+                Debug.LogError($"[ToastService] Parent GameObject is null.");
+                return null;
+            }
+
+            Transform childTransform = null;
+
+            foreach (Transform child in parent.GetComponentsInChildren<Transform>(includeInactive))
+            {
+                if (child.name == childName)
+                {
+                    childTransform = child;
+                    break;
+                }
+            }
+
+            if (childTransform == null)
+            {
+                Debug.LogError($"[ToastService] Could not find child GameObject named '{childName}' under '{parent.name}'.");
+                return null;
+            }
+
+            var component = childTransform.GetComponent<T>();
+            if (component == null)
+            {
+                Debug.LogError($"[ToastService] Found '{childName}', but it has no component of type '{typeof(T).Name}'.");
+            }
+
+            return component;
         }
     }
 }
