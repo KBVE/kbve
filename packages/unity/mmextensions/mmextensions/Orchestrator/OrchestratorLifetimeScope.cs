@@ -32,16 +32,32 @@ namespace KBVE.MMExtensions.Orchestrator
 
             builder.RegisterEntryPoint<CharacterEventRegistrar>();
 
+            // [With Operator]
             builder.RegisterBuildCallback(container =>
             {
-                var tickSystem = container.Resolve<TickSystem>();
-                TickLocator.Initialize(tickSystem);
+                // Initialize the static Operator class with service references
+                Operator.Init(container);
+
+                // Still support the TickLocator if needed
+                TickLocator.Initialize(Operator.Ticker);
 
                 if (TickLocator.Instance == null)
                 {
                     Debug.LogError("TickSystem failed to initialize.");
                 }
             });
+
+            // [Without Operator]
+            // builder.RegisterBuildCallback(container =>
+            // {
+            //     var tickSystem = container.Resolve<TickSystem>();
+            //     TickLocator.Initialize(tickSystem);
+
+            //     if (TickLocator.Instance == null)
+            //     {
+            //         Debug.LogError("TickSystem failed to initialize.");
+            //     }
+            // });
 
         }
     }
