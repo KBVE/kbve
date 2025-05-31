@@ -91,8 +91,10 @@ namespace KBVE.MMExtensions.Items
 
 
             if (character == null || !IsUsable)
+            {
+                Operator.Toast.EnqueueToast($"Unable to use {ItemName}.", Orchestrator.Core.ToastType.Error, 2.5f);
                 return false;
-
+            }
             var extendedHealth = character.GetComponent<ExtendedHealth>();
             if (extendedHealth == null)
             {
