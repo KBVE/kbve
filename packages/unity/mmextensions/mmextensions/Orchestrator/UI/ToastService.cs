@@ -33,31 +33,49 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public void Initialize()
         {
-            var canvas = GameObject.Find("Canvas");
-            if (canvas == null)
+            try
             {
-                Debug.LogError("[ToastService] Canvas not found.");
-                return;
-            }
+                var canvas = GameObject.Find("Canvas");
+                if (canvas == null)
+                {
+                    Debug.LogError("[ToastService] Canvas not found in the scene.");
+                    return;
+                }
 
-            var panel = canvas.transform.Find("ToastPanel");
-            if (panel == null)
+                var panel = canvas.transform.Find("ToastPanel");
+                if (panel == null)
+                {
+                    Debug.LogError("[ToastService] ToastPanel not found as a child of Canvas.");
+                    return;
+                }
+
+                _toastText = panel.GetComponentInChildren<TextMeshProUGUI>();
+                if (_toastText == null)
+                {
+                    Debug.LogWarning("[ToastService] TextMeshProUGUI not found in ToastPanel children. Toasts may not display text.");
+                }
+
+                _toastBackground = panel.GetComponent<Image>();
+                if (_toastBackground == null)
+                {
+                    Debug.LogWarning("[ToastService] No Image found on ToastPanel. Background color will not be shown.");
+                }
+
+                _toastGroup = panel.GetComponent<CanvasGroup>();
+                if (_toastGroup == null)
+                {
+                    _toastGroup = panel.gameObject.AddComponent<CanvasGroup>();
+                    Debug.Log("[ToastService] CanvasGroup was missing and has been added to ToastPanel.");
+                }
+
+                _toastGroup.alpha = 0f;
+            }
+            catch (System.Exception ex)
             {
-                Debug.LogError("[ToastService] ToastPanel not found under Canvas.");
-                return;
+                Debug.LogError($"[ToastService] Initialization failed: {ex.Message}");
             }
-
-            _toastText = panel.GetComponentInChildren<TextMeshProUGUI>();
-            _toastBackground = panel.GetComponent<Image>();
-            _toastGroup = panel.GetComponent<CanvasGroup>();
-
-            if (_toastGroup == null)
-            {
-                _toastGroup = panel.gameObject.AddComponent<CanvasGroup>();
-            }
-
-            _toastGroup.alpha = 0f;
         }
+
 
         public void ShowToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
         {

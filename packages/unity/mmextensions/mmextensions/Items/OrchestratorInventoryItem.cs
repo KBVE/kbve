@@ -97,8 +97,8 @@ namespace KBVE.MMExtensions.Items
             {
                 extendedHealth.ModifyStat(StatName, StatAmount);
             }
-
-            NotifyUnityBridge(character.name);
+            Operator.Toast.EnqueueToast($"[Just used] {ItemID} ", Orchestrator.Core.ToastType.Success, 2.5f);
+            NotifyUnityBridge(ItemID);
             return true;
         }
 
