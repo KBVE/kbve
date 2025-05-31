@@ -11,6 +11,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         private readonly Dictionary<string, List<Character>> _characterMap = new();
         private readonly Dictionary<string, Character> _primaryCharacterMap = new();
         private readonly Dictionary<string, Inventory> _inventoryMap = new();
+        private readonly Dictionary<string, OrchestratorCharacterState> _stateMap = new();
 
         public void Register(string playerID, Character character)
         {
@@ -51,9 +52,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
         public Character GetCharacter(string playerID)
         {
-            return _primaryCharacterMap.TryGetValue(playerID, out var character) && character != null
-                ? character
-                : null;
+            if (string.IsNullOrEmpty(playerID))
+                return null;
+
+            if (_primaryCharacterMap.TryGetValue(playerID, out var character) && character != null)
+                return character;
+
+            return null;
         }
 
         public IEnumerable<Character> GetAllCharacters(string playerID)
@@ -78,6 +83,16 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             return _characterMap.TryGetValue(playerID, out var list) && list.Contains(character);
         }
 
+        public OrchestratorCharacterState GetState(string playerID)
+        {
+            if (!_stateMap.TryGetValue(playerID, out var state))
+            {
+                state = new OrchestratorCharacterState();
+                _stateMap[playerID] = state;
+            }
+            return state;
+        }
+
         public bool TryGetPrimaryCharacter(string playerID, out Character character)
         {
             character = GetCharacter(playerID);
@@ -91,7 +106,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         }
 
         public bool TryGetCharacters(string playerID, out List<Character> characters)
-{
+        {
             if (_characterMap.TryGetValue(playerID, out var list))
             {
                 characters = list;
