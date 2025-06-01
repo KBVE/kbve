@@ -43,7 +43,7 @@ namespace KBVE.MMExtensions.Orchestrator
 
             // [With Toast]
             // Fails at RunTime builder.RegisterComponentInHierarchy<ToastService>().AsSelf().AsImplementedInterfaces();
-            builder.RegisterComponent(toastService).As<IToastService>().AsSelf().AsImplementedInterfaces();
+            builder.RegisterComponent(toastService).As<IToastService>().AsSelf();
 
 
             // === NPC Orchestrator === ! Can Break at Register the shared NPCDefinitionDatabase (manually assigned in scene or loaded)
