@@ -57,25 +57,51 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             var panel = await WaitForChild(canvas, "ToastPanel", 30, 0.1f);
             if (panel == null)
             {
-                Debug.LogError("[ToastService] ToastPanel not found in Canvas hierarchy after retries.");
-                return;
-            }
+                Debug.LogWarning("[ToastService] ToastPanel not found after retries. Creating fallback panel dynamically.");
 
-            _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
-            if (_toastText == null)
+                panel = new GameObject("ToastPanel");
+                panel.transform.SetParent(canvas.transform, false);
+
+                var rectTransform = panel.AddComponent<RectTransform>();
+                rectTransform.anchorMin = new Vector2(0.5f, 0.1f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.1f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                rectTransform.sizeDelta = new Vector2(600, 80);
+                rectTransform.anchoredPosition = Vector2.zero;
+
+                _toastText = panel.AddComponent<TextMeshProUGUI>();
+                _toastText.alignment = TextAlignmentOptions.Center;
+                _toastText.fontSize = 36;
+                _toastText.color = Color.white;
+                _toastText.text = "";
+
+                _toastBackground = panel.AddComponent<Image>();
+                _toastBackground.color = Color.black;
+
+                _toastGroup = panel.AddComponent<CanvasGroup>();
+                _toastGroup.alpha = 0f;
+
+                Debug.LogWarning("[ToastService] Fallback ToastPanel created successfully.");
+            }
+            else
             {
-                Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
-                return;
+                _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
+                if (_toastText == null)
+                {
+                    Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
+                    return;
+                }
+
+                _toastBackground = panel.GetComponent<Image>() ?? panel.AddComponent<Image>();
+                _toastBackground.color = Color.black;
+
+                _toastGroup = panel.GetComponent<CanvasGroup>() ?? panel.AddComponent<CanvasGroup>();
+                _toastGroup.alpha = 0f;
             }
-
-            _toastBackground = panel.GetComponent<Image>() ?? panel.AddComponent<Image>();
-            _toastBackground.color = Color.black;
-
-            _toastGroup = panel.GetComponent<CanvasGroup>() ?? panel.AddComponent<CanvasGroup>();
-            _toastGroup.alpha = 0f;
 
             Debug.Log("[ToastService] Initialized successfully.");
         }
+
 
         public void ShowToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
         {
