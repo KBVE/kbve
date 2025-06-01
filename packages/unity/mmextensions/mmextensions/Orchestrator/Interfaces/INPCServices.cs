@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
+
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
@@ -23,5 +25,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core
     public interface INPCDefinitionDatabase
     {
         NPCDefinition GetDefinitionByLabel(string label);
+        List<string> GetAllLabels();
     }
 }
