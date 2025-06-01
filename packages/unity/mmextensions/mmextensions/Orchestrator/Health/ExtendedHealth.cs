@@ -9,6 +9,7 @@ using MMHealth = MoreMountains.TopDownEngine.Health;
 
 namespace KBVE.MMExtensions.Orchestrator.Health
 {
+
     /// <summary>
     /// Extends MoreMountains' Health to support additional regenerating stats like mana, stamina, etc.
     /// </summary>
@@ -17,8 +18,8 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// <summary>
         /// Dictionary of stat entries (e.g., "mana", "stamina", etc.)
         /// </summary>
-        public Dictionary<string, StatData> Stats = new();
-        private string[] _cachedKeys = new string[0];
+        public Dictionary<StatType, StatData> Stats = new();
+        private StatType[] _cachedKeys = Array.Empty<StatType>();
 
         /// <summary>
         /// Bitmask flags representing the entity's current stat states.
@@ -31,8 +32,8 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         {
             base.Start();
         
-            AddStat("mana", new StatData(50, 100, 3f));
-            AddStat("stamina", new StatData(100, 100, 5f));
+            AddStat(StatType.Mana, new StatData(50, 100, 3f));
+            AddStat(StatType.Stamina, new StatData(100, 100, 5f));
             
 
             _tickSystem ??= TickLocator.Instance;
@@ -67,21 +68,20 @@ namespace KBVE.MMExtensions.Orchestrator.Health
                 if (Stats.TryGetValue(key, out var stat))
                 {
                     stat.Regen(deltaTime);
-                    Stats[key] = stat; // safe
+                    Stats[key] = stat; // re-assign to ensure struct is stored correctly
                 }
             }
         }
 
 
         /// <summary>Adds or updates a stat entry and refreshes the cached key list.</summary>
-        public void AddStat(string stat, StatData data)
+        public void AddStat(StatType stat, StatData data)
         {
             Stats[stat] = data;
             RefreshCachedKeys();
         }
-
         /// <summary>Removes a stat entry and refreshes the cached key list.</summary>
-        public void RemoveStat(string stat)
+        public void RemoveStat(StatType stat)
         {
             if (Stats.Remove(stat))
                 RefreshCachedKeys();
@@ -97,14 +97,14 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// <summary>
         /// Returns whether a given stat can currently regenerate.
         /// </summary>
-        public bool CanRegenStat(string stat)
+        public bool CanRegenStat(StatType stat)
         {
             if (CurrentFlags.HasFlag(StatFlags.Frozen)) return false;
 
             return stat switch
             {
-                "mana" => !CurrentFlags.HasFlag(StatFlags.Silenced),
-                "stamina" => !CurrentFlags.HasFlag(StatFlags.Exhausted),
+                StatType.Mana => !CurrentFlags.HasFlag(StatFlags.Silenced),
+                StatType.Stamina => !CurrentFlags.HasFlag(StatFlags.Exhausted),
                 _ => true
             };
         }
@@ -112,13 +112,12 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// <summary>
         /// Adds or subtracts from a stat.
         /// </summary>
-        public void ModifyStat(string stat, float amount)
+        public void ModifyStat(StatType stat, float amount)
         {
             if (!Stats.TryGetValue(stat, out var data)) return;
             data.Modify(amount);
             Stats[stat] = data;
         }
-
         /// <summary>
         /// Sets or removes stat flags.
         /// </summary>
@@ -133,10 +132,11 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// <summary>
         /// Returns the current value of a stat.
         /// </summary>
-        public float GetStatValue(string stat)
+        public float GetStatValue(StatType stat)
         {
             return Stats.TryGetValue(stat, out var data) ? data.Current : 0f;
         }
+
         
         [VContainer.Inject]
         public void InjectTickSystem(TickSystem system)

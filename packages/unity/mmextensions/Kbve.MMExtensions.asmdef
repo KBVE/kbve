@@ -3,10 +3,12 @@
   "rootNamespace": "KBVE.MMExtensions",
   "references": [
       "UniTask",
+      "UniTask.Addressables",
       "Cysharp.Threading.Tasks",
       "Unity.Collections",
       "Unity.ResourceManager",
       "UnityEngine.Physics2DModule",
+      "UnityEngine.UIModule",
       "MoreMountains.Tools",
       "MoreMountains.TopDownEngine",
       "MoreMountains.Feedbacks",
@@ -17,7 +19,9 @@
       "AstarPathfindingProject",
       "Pathfinding",
       "PackageTools",
-      "Drawing"
+      "Drawing",
+      "Unity.TextMeshPro",
+      "Newtonsoft.Json"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
