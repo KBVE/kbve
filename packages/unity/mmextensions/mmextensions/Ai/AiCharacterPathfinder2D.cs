@@ -195,10 +195,8 @@ namespace KBVE.MMExtensions.Ai
           while (NextWaypointIndex < Waypoints.Length)
           {
             var distance = (Waypoints[NextWaypointIndex] - transform.position).magnitude;
-            Debug.Log("distanceToWaypoint=" + distance);
             if (distance < DistanceToWaypointThreshold)
             {
-              Debug.Log("distanceToWaypoint changed=" + distance);
               NextWaypointIndex++;
             }
             else
