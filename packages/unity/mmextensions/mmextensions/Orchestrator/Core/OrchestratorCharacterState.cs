@@ -8,7 +8,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
     public class ActiveConsumable
     {
-        public required string ItemID;
+        public string ItemID;
         public StatModifier Modifier;
         public float Duration;
         public float StartTime;

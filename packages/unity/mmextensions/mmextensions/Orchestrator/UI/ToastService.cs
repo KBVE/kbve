@@ -7,6 +7,8 @@ using System.Threading;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using VContainer;
 using VContainer.Unity;
+using static UnityEngine.Object;
+
 
 namespace KBVE.MMExtensions.Orchestrator.Core.UI
 {
@@ -39,53 +41,77 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             public float Duration;
         }
 
+        public bool IsInitialized => _toastText != null && _toastGroup != null && _toastBackground != null;
+
         public async UniTask StartAsync(CancellationToken cancellation)
         {
-            await UniTask.NextFrame(cancellation); // Let Unity settle before grabbing references
+            await UniTask.NextFrame(cancellation);
 
-            var canvas = GameObject.Find("Canvas");
+            var canvas = GameObject.Find("Canvas") ?? FindFirstObjectByType<Canvas>()?.gameObject;
             if (canvas == null)
             {
                 Debug.LogError("[ToastService] Canvas not found. ToastService cannot initialize.");
                 return;
             }
 
-            var panel = FindChildByName(canvas, "ToastPanel");
+            var panel = await WaitForChild(canvas, "ToastPanel", 30, 0.1f);
             if (panel == null)
             {
-                Debug.LogError("[ToastService] ToastPanel not found in Canvas hierarchy.");
-                return;
-            }
+                Debug.LogWarning("[ToastService] ToastPanel not found after retries. Creating fallback panel dynamically.");
 
-            _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
-            if (_toastText == null)
-            {
-                Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
-                return;
-            }
+                panel = new GameObject("ToastPanel");
+                panel.transform.SetParent(canvas.transform, false);
 
-            _toastBackground = panel.GetComponent<Image>();
-            if (_toastBackground == null)
-            {
+                var rectTransform = panel.AddComponent<RectTransform>();
+                rectTransform.anchorMin = new Vector2(0.5f, 0.1f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.1f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                rectTransform.sizeDelta = new Vector2(600, 80);
+                rectTransform.anchoredPosition = Vector2.zero;
+
+                _toastText = panel.AddComponent<TextMeshProUGUI>();
+                _toastText.alignment = TextAlignmentOptions.Center;
+                _toastText.fontSize = 36;
+                _toastText.color = Color.white;
+                _toastText.text = "";
+
                 _toastBackground = panel.AddComponent<Image>();
                 _toastBackground.color = Color.black;
-                Debug.LogWarning("[ToastService] Image component missing on ToastPanel. Added default black background.");
-            }
 
-            _toastGroup = panel.GetComponent<CanvasGroup>();
-            if (_toastGroup == null)
-            {
                 _toastGroup = panel.AddComponent<CanvasGroup>();
-                Debug.LogWarning("[ToastService] CanvasGroup missing on ToastPanel. Added fallback.");
-            }
+                _toastGroup.alpha = 0f;
 
-            _toastGroup.alpha = 0f;
+                Debug.LogWarning("[ToastService] Fallback ToastPanel created successfully.");
+            }
+            else
+            {
+                _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
+                if (_toastText == null)
+                {
+                    Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
+                    return;
+                }
+
+                _toastBackground = panel.GetComponent<Image>() ?? panel.AddComponent<Image>();
+                _toastBackground.color = Color.black;
+
+                _toastGroup = panel.GetComponent<CanvasGroup>() ?? panel.AddComponent<CanvasGroup>();
+                _toastGroup.alpha = 0f;
+            }
 
             Debug.Log("[ToastService] Initialized successfully.");
         }
 
+
         public void ShowToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
         {
+            if (!IsInitialized)
+            {
+                Debug.LogWarning("[ToastService] Tried to show toast before initialization.");
+                return;
+            }
+
+
             _toastQueue.Clear();
             _toastQueue.Enqueue(new ToastRequest { Message = message, Type = type, Duration = duration });
             if (!_isShowing) ProcessQueueAsync().Forget();
@@ -184,6 +210,18 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             }
 
             rectTransform.localScale = new Vector3(to, to, 1f);
+        }
+
+        private async UniTask<GameObject> WaitForChild(GameObject parent, string name, int maxRetries = 30, float retryDelay = 0.1f)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                var child = FindChildByName(parent, name);
+                if (child != null)
+                    return child;
+                await UniTask.Delay(System.TimeSpan.FromSeconds(retryDelay));
+            }
+            return null;
         }
 
         /// <summary>

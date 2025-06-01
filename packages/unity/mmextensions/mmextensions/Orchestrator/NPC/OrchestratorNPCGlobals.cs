@@ -13,13 +13,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 {
     public class OrchestratorNPCGlobals : IAsyncStartable
     {
-        private readonly List<string> npcLabels;
+        private readonly INPCDefinitionDatabase npcDatabase;
         private readonly Dictionary<string, Queue<GameObject>> npcPools = new();
         private readonly NPCGlobalController controller;
 
-        public OrchestratorNPCGlobals(List<string> npcLabels, NPCGlobalController controller)
+        public OrchestratorNPCGlobals(INPCDefinitionDatabase npcDatabase, NPCGlobalController controller)
         {
-            this.npcLabels = npcLabels;
+            this.npcDatabase = npcDatabase;
             this.controller = controller;
         }
 
@@ -27,23 +27,41 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         {
             await UniTask.NextFrame(cancellation); // Optional delay to let scene objects init
 
-            foreach (var label in npcLabels)
+            var labels = npcDatabase.GetAllLabels();
+
+            if (labels == null || labels.Count == 0)
+            {
+                Debug.LogWarning("[OrchestratorNPCGlobals] No NPC labels found in database.");
+                return;
+            }
+
+
+                        foreach (var label in labels)
             {
                 if (!npcPools.ContainsKey(label))
                     npcPools[label] = new Queue<GameObject>();
 
-                var handle = Addressables.LoadAssetAsync<GameObject>(label);
-                await handle.ToUniTask(cancellationToken: cancellation);
+                var def = npcDatabase.GetDefinitionByLabel(label);
+                GameObject prefab = def?.prefab;
 
-                if (handle.Status != AsyncOperationStatus.Succeeded)
+                // Fallback to Addressables if prefab is not assigned
+                if (prefab == null)
                 {
-                    Debug.LogError($"[OrchestratorNPCGlobals] Failed to load prefab for label '{label}' during initialization.");
-                    continue;
+                    var handle = Addressables.LoadAssetAsync<GameObject>(label);
+                    await handle.ToUniTask(cancellationToken: cancellation);
+
+                    if (handle.Status != AsyncOperationStatus.Succeeded)
+                    {
+                        Debug.LogError($"[NPCGlobals] Failed to load prefab for label '{label}' via Addressables.");
+                        continue;
+                    }
+
+                    prefab = handle.Result;
                 }
 
-                if (handle.Result is not GameObject prefab)
+                if (prefab == null)
                 {
-                    Debug.LogError($"[OrchestratorNPCGlobals] Addressable label '{label}' did not return a valid GameObject prefab.");
+                    Debug.LogError($"[NPCGlobals] No prefab found or loaded for label: {label}");
                     continue;
                 }
 
@@ -54,7 +72,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                     npcPools[label].Enqueue(obj);
                 }
 
-                Debug.Log($"[OrchestratorNPCGlobals] Initialized pool for '{label}' with 5 instances.");
+                Debug.Log($"[NPCGlobals] Initialized pool for '{label}' with {npcPools[label].Count} instances.");
             }
         }
 
@@ -91,19 +109,26 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             if (!npcPools.ContainsKey(label))
                 npcPools[label] = new Queue<GameObject>();
 
-            // Load the prefab only once
-            var handle = Addressables.LoadAssetAsync<GameObject>(label);
-            await handle.ToUniTask();
+            var def = npcDatabase.GetDefinitionByLabel(label);
+            GameObject prefab = def?.prefab;
 
-            if (handle.Status != AsyncOperationStatus.Succeeded)
+            if (prefab == null)
             {
-                Debug.LogError($"[Globals] Failed to load prefab for label '{label}' during pool prewarm.");
-                return;
+                var handle = Addressables.LoadAssetAsync<GameObject>(label);
+                await handle.ToUniTask();
+
+                if (handle.Status != AsyncOperationStatus.Succeeded)
+                {
+                    Debug.LogError($"[Globals] Failed to load prefab for label '{label}' during pool prewarm.");
+                    return;
+                }
+
+                prefab = handle.Result;
             }
 
-            if (handle.Result is not GameObject prefab)
+            if (prefab == null)
             {
-                Debug.LogError($"[Globals] Addressable label '{label}' did not return a GameObject prefab.");
+                Debug.LogError($"[Globals] Prefab not found for label '{label}' during pool prewarm.");
                 return;
             }
 
@@ -114,7 +139,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 npcPools[label].Enqueue(obj);
             }
 
-            Debug.Log($"[Globals] Prewarmed pool for label '{label}' with {count} instances.");
+            Debug.Log($"[Globals] Prewarmed pool for '{label}' with {count} instances.");
         }
 
 

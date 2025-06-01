@@ -4,6 +4,7 @@ using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
 using KBVE.MMExtensions.Orchestrator.Core.UI;
+using System.Linq;
 
 namespace KBVE.MMExtensions.Orchestrator
 {
@@ -18,7 +19,7 @@ namespace KBVE.MMExtensions.Orchestrator
 
         [Header("Injectables")]
         [SerializeField]
-        private MonoBehaviour bootstrapper;
+        private OrchestratorBootstrapper bootstrapper;
 
 
        
@@ -26,7 +27,8 @@ namespace KBVE.MMExtensions.Orchestrator
         {
             // Serialized scene references
             builder.RegisterComponent(poolRoot);
-            builder.RegisterComponent(bootstrapper);
+            builder.RegisterComponent(bootstrapper).As<IAsyncStartable>();
+            builder.RegisterInstance(bootstrapper.NPCLabels.ToList());
 
             // Service bindings
             builder.Register<ICharacterRegistry, OrchestratorCharacterData>(Lifetime.Singleton);
@@ -49,10 +51,10 @@ namespace KBVE.MMExtensions.Orchestrator
             }
             else
             {
-                builder.RegisterInstance<INPCDefinitionDatabase>(npcDefinitionDatabase);
+                builder.RegisterInstance<INPCDefinitionDatabase>(npcDefinitionDatabase).AsSelf();
             }
 
-            builder.Register<NPCGlobalController>(Lifetime.Singleton).As<INPCGlobalController>();
+            builder.Register<NPCGlobalController>(Lifetime.Singleton).As<INPCGlobalController>().AsSelf();;
 
             builder.Register<OrchestratorNPCGlobals>(Lifetime.Singleton)
                 .As<IAsyncStartable>();
@@ -63,10 +65,7 @@ namespace KBVE.MMExtensions.Orchestrator
             // [With Operator]
             builder.RegisterBuildCallback(container =>
             {
-                // Initialize the static Operator class with service references
                 Operator.Init(container);
-
-                // Still support the TickLocator if needed
                 TickLocator.Initialize(Operator.Ticker);
 
                 if (TickLocator.Instance == null)
@@ -75,17 +74,6 @@ namespace KBVE.MMExtensions.Orchestrator
                 }
             });
 
-            // [Without Operator]
-            // builder.RegisterBuildCallback(container =>
-            // {
-            //     var tickSystem = container.Resolve<TickSystem>();
-            //     TickLocator.Initialize(tickSystem);
-
-            //     if (TickLocator.Instance == null)
-            //     {
-            //         Debug.LogError("TickSystem failed to initialize.");
-            //     }
-            // });
 
         }
     }
