@@ -7,6 +7,8 @@ using System.Threading;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using VContainer;
 using VContainer.Unity;
+using static UnityEngine.Object;
+
 
 namespace KBVE.MMExtensions.Orchestrator.Core.UI
 {
@@ -41,19 +43,19 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
-            await UniTask.NextFrame(cancellation); // Let Unity settle before grabbing references
-
-            var canvas = GameObject.Find("Canvas");
+            await UniTask.NextFrame(cancellation);
+            
+            var canvas = GameObject.Find("Canvas") ?? FindFirstObjectByType<Canvas>()?.gameObject;
             if (canvas == null)
             {
                 Debug.LogError("[ToastService] Canvas not found. ToastService cannot initialize.");
                 return;
             }
 
-            var panel = FindChildByName(canvas, "ToastPanel");
+            var panel = await WaitForChild(canvas, "ToastPanel", 30, 0.1f);
             if (panel == null)
             {
-                Debug.LogError("[ToastService] ToastPanel not found in Canvas hierarchy.");
+                Debug.LogError("[ToastService] ToastPanel not found in Canvas hierarchy after retries.");
                 return;
             }
 
@@ -64,21 +66,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 return;
             }
 
-            _toastBackground = panel.GetComponent<Image>();
-            if (_toastBackground == null)
-            {
-                _toastBackground = panel.AddComponent<Image>();
-                _toastBackground.color = Color.black;
-                Debug.LogWarning("[ToastService] Image component missing on ToastPanel. Added default black background.");
-            }
+            _toastBackground = panel.GetComponent<Image>() ?? panel.AddComponent<Image>();
+            _toastBackground.color = Color.black;
 
-            _toastGroup = panel.GetComponent<CanvasGroup>();
-            if (_toastGroup == null)
-            {
-                _toastGroup = panel.AddComponent<CanvasGroup>();
-                Debug.LogWarning("[ToastService] CanvasGroup missing on ToastPanel. Added fallback.");
-            }
-
+            _toastGroup = panel.GetComponent<CanvasGroup>() ?? panel.AddComponent<CanvasGroup>();
             _toastGroup.alpha = 0f;
 
             Debug.Log("[ToastService] Initialized successfully.");
@@ -184,6 +175,18 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             }
 
             rectTransform.localScale = new Vector3(to, to, 1f);
+        }
+
+        private async UniTask<GameObject> WaitForChild(GameObject parent, string name, int maxRetries = 30, float retryDelay = 0.1f)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                var child = FindChildByName(parent, name);
+                if (child != null)
+                    return child;
+                await UniTask.Delay(System.TimeSpan.FromSeconds(retryDelay));
+            }
+            return null;
         }
 
         /// <summary>
