@@ -41,10 +41,12 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             public float Duration;
         }
 
+        public bool IsInitialized => _toastText != null && _toastGroup != null && _toastBackground != null;
+
         public async UniTask StartAsync(CancellationToken cancellation)
         {
             await UniTask.NextFrame(cancellation);
-            
+
             var canvas = GameObject.Find("Canvas") ?? FindFirstObjectByType<Canvas>()?.gameObject;
             if (canvas == null)
             {
@@ -77,6 +79,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public void ShowToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
         {
+            if (!IsInitialized)
+            {
+                Debug.LogWarning("[ToastService] Tried to show toast before initialization.");
+                return;
+            }
+
+
             _toastQueue.Clear();
             _toastQueue.Enqueue(new ToastRequest { Message = message, Type = type, Duration = duration });
             if (!_isShowing) ProcessQueueAsync().Forget();
