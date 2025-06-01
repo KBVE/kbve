@@ -21,7 +21,6 @@ namespace KBVE.MMExtensions.Items
         public float cookingSpeed;
         public float foodQuality;
         public bool recipeDiscovery;
-        public Dictionary<string, float> extra = new();         // Future-proofing: supports other dynamic stats (not yet typed)
 
     }
 
@@ -124,27 +123,11 @@ namespace KBVE.MMExtensions.Items
 
             }
 
-            _ = UniTask.Run(async () =>
+            UniTask.Void(async () =>
             {
-                try { await ApplyBonusesAsync(character); }
+              try { _ = await ApplyBonusesAsync(character); }
                 catch (Exception ex) { Debug.LogError($"[Bonus] Error applying bonuses: {ex.Message}"); }
             });
-
-            // if (AffectStat && !string.IsNullOrEmpty(StatName))
-            // {
-            //     extendedHealth.ModifyStat(StatName, StatAmount);
-            //     if (StatAmount <= 0)
-            //     {
-            //         Operator.Toast.EnqueueToast($"{StatName} modified by {StatAmount} from {ItemName}.", Orchestrator.Core.ToastType.Warning, 2.5f);
-            //     }
-            //     else
-            //     {
-            //         Operator.Toast.EnqueueToast($"{StatName} modified by {StatAmount} from {ItemName}.", Orchestrator.Core.ToastType.Info, 2.5f);
-
-            //     }
-
-            // }
-
 
             Operator.Toast.EnqueueToast($"Just used {ItemName}.", Orchestrator.Core.ToastType.Success, 2.5f);
             NotifyUnityBridge(ItemID);
@@ -167,39 +150,39 @@ namespace KBVE.MMExtensions.Items
                 return false;
             }
 
-            if (Bonuses.cookingSpeed != 0)
-            {
-                extendedHealth.ModifyStat("cookingSpeed", Bonuses.cookingSpeed);
-                await UniTask.Yield();
-            }
+            // if (Bonuses.cookingSpeed != 0)
+            // {
+            //     extendedHealth.ModifyStat("cookingSpeed", Bonuses.cookingSpeed);
+            //     await UniTask.Yield();
+            // }
 
-            if (Bonuses.foodQuality != 0)
-            {
-                extendedHealth.ModifyStat("foodQuality", Bonuses.foodQuality);
-                await UniTask.Yield();
-            }
+            // if (Bonuses.foodQuality != 0)
+            // {
+            //     extendedHealth.ModifyStat("foodQuality", Bonuses.foodQuality);
+            //     await UniTask.Yield();
+            // }
 
-            if (Bonuses.recipeDiscovery)
-            {
-                extendedHealth.ModifyStat("recipeDiscovery", 1f);
-                await UniTask.Yield();
-            }
+            // if (Bonuses.recipeDiscovery)
+            // {
+            //     extendedHealth.ModifyStat("recipeDiscovery", 1f);
+            //     await UniTask.Yield();
+            // }
 
-            if (Bonuses.extra != null)
-            {
-                foreach (var kv in Bonuses.extra)
-                {
-                    if (kv.Value is float f)
-                    {
-                        extendedHealth.ModifyStat(kv.Key, f);
-                    }
-                    else if (float.TryParse(kv.Value.ToString(), out float parsed))
-                    {
-                        extendedHealth.ModifyStat(kv.Key, parsed);
-                    }
-                    await UniTask.Yield();
-                }
-            }
+            // if (Bonuses.extra != null)
+            // {
+            //     foreach (var kv in Bonuses.extra)
+            //     {
+            //         if (kv.Value is float f)
+            //         {
+            //             extendedHealth.ModifyStat(kv.Key, f);
+            //         }
+            //         else if (float.TryParse(kv.Value.ToString(), out float parsed))
+            //         {
+            //             extendedHealth.ModifyStat(kv.Key, parsed);
+            //         }
+            //         await UniTask.Yield();
+            //     }
+            // }
 
             return true;
         }
