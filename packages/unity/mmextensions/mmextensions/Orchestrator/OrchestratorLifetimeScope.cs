@@ -13,10 +13,15 @@ namespace KBVE.MMExtensions.Orchestrator
         [SerializeField]
         private Transform poolRoot;
 
+        [SerializeField]
+        private NPCDefinitionDatabase npcDefinitionDatabase;
+
         [Header("Injectables")]
         [SerializeField]
         private MonoBehaviour bootstrapper;
 
+
+       
         protected override void Configure(IContainerBuilder builder)
         {
             // Serialized scene references
@@ -36,6 +41,24 @@ namespace KBVE.MMExtensions.Orchestrator
             // [With Toast]
             builder.RegisterComponentInHierarchy<ToastService>().AsSelf().AsImplementedInterfaces();
 
+
+            // === NPC Orchestrator === ! Can Break at Register the shared NPCDefinitionDatabase (manually assigned in scene or loaded)
+            if (npcDefinitionDatabase == null)
+            {
+                Debug.LogError("[OrchestratorLifetimeScope] NPCDefinitionDatabase is not assigned in the Inspector.");
+            }
+            else
+            {
+                builder.RegisterInstance<INPCDefinitionDatabase>(npcDefinitionDatabase);
+            }
+
+            builder.Register<NPCGlobalController>(Lifetime.Singleton).As<INPCGlobalController>();
+
+            builder.Register<OrchestratorNPCGlobals>(Lifetime.Singleton)
+                .As<IAsyncStartable>();
+
+            builder.Register<NPCFactory>(Lifetime.Singleton)
+                .As<INPCFactory>();
 
             // [With Operator]
             builder.RegisterBuildCallback(container =>

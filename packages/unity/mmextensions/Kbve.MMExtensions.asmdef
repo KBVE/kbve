@@ -3,6 +3,7 @@
   "rootNamespace": "KBVE.MMExtensions",
   "references": [
       "UniTask",
+      "UniTask.Addressables",
       "Cysharp.Threading.Tasks",
       "Unity.Collections",
       "Unity.ResourceManager",

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
-    public class NPCGlobalController
+    public class NPCGlobalController: INPCGlobalController
     {
         private readonly Dictionary<string, List<GameObject>> activeNPCMap = new();
         private readonly NPCDefinitionDatabase npcDefinitionDatabase;
