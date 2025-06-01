@@ -18,7 +18,7 @@ namespace KBVE.MMExtensions.Orchestrator
 
         [Header("Injectables")]
         [SerializeField]
-        private MonoBehaviour bootstrapper;
+        private OrchestratorBootstrapper bootstrapper;
 
 
        
@@ -26,7 +26,8 @@ namespace KBVE.MMExtensions.Orchestrator
         {
             // Serialized scene references
             builder.RegisterComponent(poolRoot);
-            builder.RegisterComponent(bootstrapper);
+            builder.RegisterComponent(bootstrapper).As<IAsyncStartable>();
+            builder.RegisterInstance(bootstrapper.NPCLabels.ToList());
 
             // Service bindings
             builder.Register<ICharacterRegistry, OrchestratorCharacterData>(Lifetime.Singleton);
