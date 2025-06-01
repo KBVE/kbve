@@ -58,49 +58,23 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             if (panel == null)
             {
                 Debug.LogWarning("[ToastService] ToastPanel not found after retries. Creating fallback panel dynamically.");
-
-                panel = new GameObject("ToastPanel");
-                panel.transform.SetParent(canvas.transform, false);
-
-                var rectTransform = panel.AddComponent<RectTransform>();
-                rectTransform.anchorMin = new Vector2(0.5f, 0.1f);
-                rectTransform.anchorMax = new Vector2(0.5f, 0.1f);
-                rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                rectTransform.sizeDelta = new Vector2(600, 80);
-                rectTransform.anchoredPosition = Vector2.zero;
-
-                _toastText = panel.AddComponent<TextMeshProUGUI>();
-                _toastText.alignment = TextAlignmentOptions.Center;
-                _toastText.fontSize = 36;
-                _toastText.color = Color.white;
-                _toastText.text = "";
-
-                _toastBackground = panel.AddComponent<Image>();
-                _toastBackground.color = Color.black;
-
-                _toastGroup = panel.AddComponent<CanvasGroup>();
-                _toastGroup.alpha = 0f;
-
-                Debug.LogWarning("[ToastService] Fallback ToastPanel created successfully.");
+                panel = CreateFallbackToastPanel(canvas);
             }
-            else
+
+            _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
+            _toastBackground = panel.GetComponent<Image>() ?? panel.AddComponent<Image>();
+            _toastGroup = panel.GetComponent<CanvasGroup>() ?? panel.AddComponent<CanvasGroup>();
+            _toastGroup.alpha = 0f;
+
+            if (!IsInitialized)
             {
-                _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
-                if (_toastText == null)
-                {
-                    Debug.LogError("[ToastService] No TextMeshProUGUI found under ToastPanel.");
-                    return;
-                }
-
-                _toastBackground = panel.GetComponent<Image>() ?? panel.AddComponent<Image>();
-                _toastBackground.color = Color.black;
-
-                _toastGroup = panel.GetComponent<CanvasGroup>() ?? panel.AddComponent<CanvasGroup>();
-                _toastGroup.alpha = 0f;
+                Debug.LogError("[ToastService] Initialization failed. One or more required components are missing.");
+                return;
             }
 
             Debug.Log("[ToastService] Initialized successfully.");
         }
+
 
 
         public void ShowToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
@@ -277,6 +251,40 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             }
 
             return component;
+        }
+
+
+        private GameObject CreateFallbackToastPanel(GameObject canvas)
+        {
+            var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
+            panel.transform.SetParent(canvas.transform, false);
+
+            var rectTransform = panel.GetComponent<RectTransform>();
+            rectTransform.anchorMin = new Vector2(0.5f, 0.1f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.1f);
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            rectTransform.sizeDelta = new Vector2(600, 80);
+            rectTransform.anchoredPosition = Vector2.zero;
+
+            var textGO = new GameObject("ToastText", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textGO.transform.SetParent(panel.transform, false);
+
+            var textRect = textGO.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            var text = textGO.GetComponent<TextMeshProUGUI>();
+            text.alignment = TextAlignmentOptions.Center;
+            text.fontSize = 36;
+            text.color = Color.white;
+            text.text = "";
+
+            panel.GetComponent<Image>().color = Color.black;
+            panel.GetComponent<CanvasGroup>().alpha = 0f;
+
+            return panel;
         }
     }
 }
