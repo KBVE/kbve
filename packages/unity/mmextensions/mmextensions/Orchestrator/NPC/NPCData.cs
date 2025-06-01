@@ -96,5 +96,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
             return _cache.TryGetValue(label, out var def) ? def : null;
         }
+
+        public List<string> GetAllLabels()
+        {
+            if (_cache == null || _cache.Count == 0)
+                OnEnable();
+
+            return _cache.Keys.ToList(); // requires using System.Linq
+        }
     }
 }
