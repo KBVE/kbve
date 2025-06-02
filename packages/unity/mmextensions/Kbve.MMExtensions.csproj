@@ -139,6 +139,13 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT' Or '$(OS)' == 'Unix'">
+  <Reference Include="Heathen.Steamworks">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Heathen.Steamworks.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
   <!-- Kilonet -->
   <ItemGroup>
     <ProjectReference Include="..\kilonet\Kbve.Kilonet.csproj" />
