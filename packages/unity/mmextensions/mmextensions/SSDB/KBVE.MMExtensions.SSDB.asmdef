@@ -7,13 +7,25 @@
     "Unity.Addressables",    
     "KBVE.MMExtensions",
     "Heathen.Steamworks",
+    "Heathen.SteamworksIntegration.API",
     "VContainer",
     "MoreMountains.Feedbacks",
     "MoreMountains.TopDownEngine",
     "UnityEngine.Physics2DModule",
-    "Newtonsoft.Json"
+    "Newtonsoft.Json",
+    "UniTask",
+    "UniTask.Addressables",
+    "Cysharp.Threading.Tasks"
   ],
-  "includePlatforms": [],
+  "includePlatforms": [
+        "Editor",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WindowsStandalone32",
+        "WindowsStandalone64",
+        "WindowsStandalone32Server",
+        "WindowsStandalone64Server"
+    ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,
