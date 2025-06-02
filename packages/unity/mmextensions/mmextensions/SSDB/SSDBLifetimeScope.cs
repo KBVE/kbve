@@ -3,7 +3,9 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using KBVE.MMExtensions.SSDB;
 using KBVE.MMExtensions.SSDB.Steam;
+
 namespace KBVE.MMExtensions.SSDB
 {
     /// <summary>
@@ -19,7 +21,9 @@ namespace KBVE.MMExtensions.SSDB
         {
             if (autoStart)
             {
-                builder.RegisterEntryPoint<SteamworksService>(Lifetime.Singleton);
+                builder.Register<SteamworksService>(Lifetime.Singleton)
+                .As<ISteamworksService>()
+                .As<IAsyncStartable>();
             }
         }
     }

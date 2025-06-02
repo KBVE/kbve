@@ -7,10 +7,11 @@ using Heathen.SteamworksIntegration.API;
 using System.Threading;
 using VContainer;
 using VContainer.Unity;
+using KBVE.MMExtensions.SSDB;
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
-    public class SteamworksService : IAsyncStartable
+    public class SteamworksService : IAsyncStartable, ISteamworksService
     {
         private const int AppId = 2238370;
         private bool _initialized;
@@ -19,21 +20,42 @@ namespace KBVE.MMExtensions.SSDB.Steam
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
-            Debug.Log("[SteamworksService] Initializing Steam...");
 
-            App.Client.Initialize(2238370);
-
-            await UniTask.WaitUntil(() => App.Initialized, cancellationToken: cancellationToken);
-
-            if (App.Initialized)
+            if (_initialized || App.Initialized)
             {
-                _initialized = true;
-                Debug.Log($"[SteamworksService] Logged in as: {UserData.Me.Name}");
+                Debug.Log("[SteamworksService] Already initialized.");
+                return;
             }
-            else
+
+            try
             {
-                Debug.LogWarning("[SteamworksService] Steam initialization failed.");
+                await UniTask.DelayFrame(1, cancellationToken: cancellationToken);
+
+                Debug.Log("[SteamworksService] Initializing Steam...");
+
+                App.Client.Initialize(2238370);
+
+                await UniTask.WaitUntil(() => App.Initialized, cancellationToken: cancellationToken);
+
+                if (App.Initialized)
+                {
+                    _initialized = true;
+                    Debug.Log($"[SteamworksService] Logged in as: {UserData.Me.Name}");
+                }
+                else
+                {
+                    Debug.LogWarning("[SteamworksService] Steam initialization failed.");
+                }
             }
+            catch (OperationCanceledException)
+            {
+                Debug.LogWarning("[SteamworksService] Initialization was canceled.");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[SteamworksService] Unexpected error during Steam initialization: {ex}");
+            }
+
         }
     }
 }
