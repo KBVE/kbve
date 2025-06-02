@@ -12,7 +12,10 @@ namespace KBVE.MMExtensions.SSDB.Steam
 {
     public class SteamworksService : IAsyncStartable
     {
+        private const int AppId = 2238370;
         private bool _initialized;
+        public bool Initialized => _initialized;
+        public UserData? LocalUser => _initialized ? UserData.Me : (UserData?)null;
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
