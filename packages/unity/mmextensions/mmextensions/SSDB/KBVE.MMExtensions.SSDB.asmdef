@@ -15,7 +15,8 @@
     "Newtonsoft.Json",
     "UniTask",
     "UniTask.Addressables",
-    "Cysharp.Threading.Tasks"
+    "Cysharp.Threading.Tasks",
+    "Steamworks.NET"
   ],
   "includePlatforms": [
         "Editor",
