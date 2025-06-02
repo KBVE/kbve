@@ -139,9 +139,33 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(OS)' == 'Windows_NT' Or '$(OS)' == 'Unix'">
-  <Reference Include="Heathen.Steamworks">
-    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Heathen.Steamworks.dll</HintPath>
+  <!-- Heathen - Windows -->
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <Reference Include="Heathen.Steamworks">
+      <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Heathen.Steamworks.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Heathen - macOS/Linux -->
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+    <Reference Include="Heathen.Steamworks">
+      <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Heathen.Steamworks.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Steamworks -->
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\com.rlabrecque.steamworks.net.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="com.rlabrecque.steamworks.net">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/com.rlabrecque.steamworks.net.dll</HintPath>
     <Private>false</Private>
   </Reference>
 </ItemGroup>
