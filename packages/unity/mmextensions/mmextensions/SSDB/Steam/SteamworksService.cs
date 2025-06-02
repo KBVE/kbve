@@ -18,7 +18,7 @@ namespace KBVE.MMExtensions.SSDB.Steam
         {
             Debug.Log("[SteamworksService] Initializing Steam...");
 
-            App.Client.Initialize(2238370); // Replace with your App ID
+            App.Client.Initialize(2238370);
 
             await UniTask.WaitUntil(() => App.Initialized, cancellationToken: cancellationToken);
 
