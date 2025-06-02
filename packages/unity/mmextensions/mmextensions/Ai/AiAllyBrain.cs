@@ -120,7 +120,7 @@ namespace KBVE.MMExtensions.Ai
     {
       if(handleWeapon.CurrentWeapon.GetComponent<HealWeapon>() != null)
       {
-        Debug.Log("Weapon Change Heal");
+        // Debug.Log("Weapon Change Heal");
         SetupAllyHealerStates();
         foreach (AIState state in States)
         {
@@ -130,7 +130,7 @@ namespace KBVE.MMExtensions.Ai
       }
       else
       {
-        Debug.Log("Weapon Change Attack");
+        // Debug.Log("Weapon Change Attack");
         SetupAllyAttackerStates();
         foreach (AIState state in States)
         {

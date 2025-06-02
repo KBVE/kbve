@@ -21,7 +21,8 @@ namespace KBVE.MMExtensions.Orchestrator
         [SerializeField]
         private OrchestratorBootstrapper bootstrapper;
 
-
+        [Header("UI Services")]
+        [SerializeField] private ToastService toastService;
        
         protected override void Configure(IContainerBuilder builder)
         {
@@ -41,8 +42,9 @@ namespace KBVE.MMExtensions.Orchestrator
             builder.RegisterEntryPoint<CharacterEventRegistrar>();
 
             // [With Toast]
-            builder.RegisterComponentInHierarchy<ToastService>().AsSelf().AsImplementedInterfaces();
-
+            // Fails at RunTime builder.RegisterComponentInHierarchy<ToastService>().AsSelf().AsImplementedInterfaces();
+            // builder.RegisterComponent(toastService).As<ToastService>().AsSelf();
+            builder.RegisterComponent(toastService).AsSelf().AsImplementedInterfaces();
 
             // === NPC Orchestrator === ! Can Break at Register the shared NPCDefinitionDatabase (manually assigned in scene or loaded)
             if (npcDefinitionDatabase == null)
