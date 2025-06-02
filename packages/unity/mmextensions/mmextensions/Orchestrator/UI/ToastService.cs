@@ -8,6 +8,7 @@ using KBVE.MMExtensions.Orchestrator.Interfaces;
 using VContainer;
 using VContainer.Unity;
 using static UnityEngine.Object;
+using UnityEngine.SceneManagement;
 
 
 namespace KBVE.MMExtensions.Orchestrator.Core.UI
@@ -47,7 +48,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         {
             await UniTask.NextFrame(cancellation);
 
-            var canvas = GameObject.Find("Canvas") ?? FindFirstObjectByType<Canvas>()?.gameObject;
+            //var canvas = GameObject.Find("Canvas") ?? FindFirstObjectByType<Canvas>()?.gameObject;
+            var canvas = FindSceneLocalCanvas();
             if (canvas == null)
             {
                 Debug.LogError("[ToastService] Canvas not found. ToastService cannot initialize.");
@@ -285,6 +287,19 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             panel.GetComponent<CanvasGroup>().alpha = 0f;
 
             return panel;
+        }
+
+        private GameObject FindSceneLocalCanvas()
+        {
+            var activeScene = SceneManager.GetActiveScene();
+            foreach (var root in activeScene.GetRootGameObjects())
+            {
+                var canvas = root.GetComponentInChildren<Canvas>(true);
+                if (canvas != null) return canvas.gameObject;
+            }
+
+            Debug.LogWarning("[ToastService] No canvas found in active scene.");
+            return null;
         }
     }
 }
