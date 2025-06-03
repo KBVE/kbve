@@ -8,6 +8,6 @@ namespace KBVE.MMExtensions.SSDB
     {
         ReactiveProperty<bool> Initialized { get; }
         ReactiveProperty<UserData?> LocalUser { get; }
-        ISteamWorker Worker { get; }
+        SteamWorker Worker { get; } 
     }
 }
