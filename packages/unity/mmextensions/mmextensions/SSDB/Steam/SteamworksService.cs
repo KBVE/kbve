@@ -16,16 +16,19 @@ namespace KBVE.MMExtensions.SSDB.Steam
 {
     public class SteamworksService : IAsyncStartable, ISteamworksService
     {
-        public SteamWorker Worker { get; }
+        private readonly Lazy<ISteamWorker> _lazyWorker;
+
+        public ISteamWorker Worker => _lazyWorker.Value;
+
 
         private const int AppId = 2238370;
 
         public ReactiveProperty<bool> Initialized { get; } = new(false);
         public ReactiveProperty<UserData?> LocalUser { get; } = new(null);
 
-        public SteamworksService(SteamWorker worker)
+        public SteamworksService(Lazy<ISteamWorker> lazyWorker)
         {
-            Worker = worker;
+            _lazyWorker = lazyWorker;
         }
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
