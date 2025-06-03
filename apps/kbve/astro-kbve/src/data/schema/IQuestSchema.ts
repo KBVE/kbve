@@ -1,6 +1,5 @@
 import { z } from 'astro:content';
-import { ULID, GUID } from 'src/data/schema/IUtility';
-import { QuestObjectiveTypeEnum, QuestCategoryEnum  } from 'src/data/schema/SchemaTypes';
+import { QuestObjectiveTypeEnum, QuestCategoryEnum,  ULID, GUID  } from 'src/data/types';
 
 export const IQuestObjectiveSchema = z.object({
 	description: z.string(),
