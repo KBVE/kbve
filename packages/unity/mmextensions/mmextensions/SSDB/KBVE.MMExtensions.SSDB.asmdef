@@ -16,7 +16,7 @@
     "UniTask",
     "UniTask.Addressables",
     "Cysharp.Threading.Tasks",
-    "Steamworks",
+    "Steamworks.NET",
     "ObservableCollections",
     "R3"
   ],
