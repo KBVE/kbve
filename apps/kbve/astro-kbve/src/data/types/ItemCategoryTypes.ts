@@ -21,6 +21,7 @@ export enum ItemCategoryFlags {
 	Soul = 0x40000000,
 }
 
+export type CategoryName = keyof typeof ItemCategoryFlags;
 
 
 //
