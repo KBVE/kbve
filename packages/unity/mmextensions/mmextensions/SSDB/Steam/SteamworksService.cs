@@ -1,60 +1,72 @@
 #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
 
-using UnityEngine;
-using Cysharp.Threading.Tasks;
-using Heathen.SteamworksIntegration;
-using Heathen.SteamworksIntegration.API;
-using System.Threading;
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-using KBVE.MMExtensions.SSDB;
 using R3;
 using ObservableCollections;
+using Heathen.SteamworksIntegration;
+using Heathen.SteamworksIntegration.API;
+using PlayerLoopTiming = Cysharp.Threading.Tasks.PlayerLoopTiming;
+using SteamAchievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
+using FriendsAPI = Heathen.SteamworksIntegration.API.Friends.Client;
+using Steamworks;
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
-    public class SteamworksService : IAsyncStartable, ISteamworksService
+    public class SteamworksService : IAsyncStartable, ISteamworksService, IDisposable
     {
-        private readonly Lazy<SteamWorker> _lazyWorker;
-
-        public SteamWorker Worker => _lazyWorker.Value;
-
-
         private const int AppId = 2238370;
+        private readonly CompositeDisposable _disposables = new();
 
         public ReactiveProperty<bool> Initialized { get; } = new(false);
         public ReactiveProperty<UserData?> LocalUser { get; } = new(null);
 
-        public SteamworksService(Lazy<SteamWorker> lazyWorker)
-        {
-            _lazyWorker = lazyWorker;
-        }
+        public ReactiveProperty<bool> AchievementsReady { get; } = new(false);
+        public ReactiveProperty<bool> FriendsReady { get; } = new(false);
+        public ReactiveProperty<bool> IsReadySignal { get; } = new(false);
+        public bool IsReady => Initialized.Value && AchievementsReady.Value && FriendsReady.Value;
+
+        public ReactiveProperty<string> PlayerName { get; } = new(string.Empty);
+        public ReactiveProperty<ulong> SteamId { get; } = new(0);
+
+        public ObservableList<UserData> Friends { get; } = new();
+        public ObservableList<AchievementInfo> Achievements { get; } = new();
+
+        private readonly Subject<AchievementInfo> _achievementStream = new();
+        public IObservable<AchievementInfo> AchievementStream => (IObservable<AchievementInfo>)_achievementStream;
+
+        private readonly Subject<UserData> _friendStream = new();
+        public IObservable<UserData> FriendStream => (IObservable<UserData>)_friendStream;
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
             try
             {
-                if (App.Initialized)
+                if (!App.Initialized)
                 {
-                    Initialized.Value = true;
-                    LocalUser.Value = UserData.Me;
-                    await Worker.InitializeAsync(cancellationToken);
-                    return;
+                    Debug.Log("[SteamworksService] Initializing Steam...");
+                    App.Client.Initialize(AppId);
+                    await UniTask.WaitUntil(() => App.Initialized, cancellationToken: cancellationToken);
                 }
-
-                Debug.Log("[SteamworksService] Initializing Steam...");
-
-                App.Client.Initialize(AppId);
-
-                await UniTask.WaitUntil(() => App.Initialized, cancellationToken: cancellationToken);
 
                 Initialized.Value = true;
                 LocalUser.Value = UserData.Me;
 
                 Debug.Log($"[SteamworksService] Logged in as {UserData.Me.Name}");
 
-                await Worker.InitializeAsync(cancellationToken);
+                PlayerName.Value = UserData.Me.Name;
+                SteamId.Value = UserData.Me.FriendId;
+
+                await UniTask.WhenAll(
+                    InitializeAchievementsAsync(cancellationToken),
+                    InitializeFriendsAsync(cancellationToken)
+                );
+
+                IsReadySignal.Value = IsReady;
             }
             catch (OperationCanceledException)
             {
@@ -66,6 +78,81 @@ namespace KBVE.MMExtensions.SSDB.Steam
             }
         }
 
+        private async UniTask InitializeAchievementsAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                Achievements.Clear();
+
+                foreach (var achievement in SteamSettings.Achievements)
+                {
+                    if (SteamAchievements.GetAchievement(achievement.ApiName, out var achieved, out var unlockTime))
+                    {
+                        var data = new AchievementInfo
+                        {
+                            ApiName = achievement.ApiName,
+                            DisplayName = achievement.Name,
+                            IsAchieved = achieved,
+                            UnlockTime = unlockTime
+                        };
+
+                        Achievements.Add(data);
+                        _achievementStream.OnNext(data);
+                    }
+                }
+
+                Debug.Log($"[SteamworksService] Loaded {Achievements.Count} achievements.");
+                AchievementsReady.Value = true;
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.LogWarning("[SteamworksService] Achievement loading was canceled.");
+                AchievementsReady.Value = false;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SteamworksService] Failed to initialize achievements: {ex.Message}");
+                AchievementsReady.Value = false;
+            }
+        }
+
+        private async UniTask InitializeFriendsAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+
+                Friends.Clear();
+                var friendsList = FriendsAPI.GetFriends(EFriendFlags.k_EFriendFlagImmediate);
+
+                foreach (var friend in friendsList)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    Friends.Add(friend);
+                    _friendStream.OnNext(friend);
+                }
+
+                FriendsReady.Value = true;
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.LogWarning("[SteamworksService] Friend loading was canceled.");
+                FriendsReady.Value = false;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SteamworksService] Failed to initialize friends: {ex.Message}");
+                FriendsReady.Value = false;
+            }
+        }
+
+        public void Dispose()
+        {
+            _disposables.Dispose();
+            _achievementStream.Dispose();
+            _friendStream.Dispose();
+        }
     }
 }
 
