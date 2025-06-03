@@ -28,16 +28,13 @@ namespace KBVE.MMExtensions.SSDB
         {
             if (autoStart)
             {
-                builder.Register<SteamWorker>(Lifetime.Singleton)
+
+                builder.Register<SteamworksService>(Lifetime.Singleton)
                 .AsSelf()
-                .As<ISteamWorker>()
+                .As<ISteamworksService>()
                 .As<IAsyncStartable>()
                 .As<IDisposable>();
 
-
-                builder.Register<SteamworksService>(Lifetime.Singleton)
-                .As<ISteamworksService>()
-                .As<IAsyncStartable>();
             }
 
 
