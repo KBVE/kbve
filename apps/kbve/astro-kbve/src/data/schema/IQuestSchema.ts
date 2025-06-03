@@ -1,6 +1,6 @@
 import { z } from 'astro:content';
 import { ULID, GUID } from 'src/data/schema/IUtility';
-import { QuestObjectiveTypeEnum } from 'src/data/schema/SchemaTypes';
+import { QuestObjectiveTypeEnum, QuestCategoryEnum  } from 'src/data/schema/SchemaTypes';
 
 export const IQuestObjectiveSchema = z.object({
 	description: z.string(),
@@ -29,6 +29,12 @@ export const IQuestSchema = z.object({
     title: z.string(),
     description: z.string().optional(),
     icon: z.string().optional(),
-
-    
+    category: QuestCategoryEnum.default('main'),
+    hidden: z.boolean().default(false),
+	repeatable: z.boolean().default(false),
+	levelRequirement: z.number().int().nonnegative().optional(),
+	objectives: z.array(IQuestObjectiveSchema).nonempty(),
+	rewards: IQuestRewardSchema.optional(),
+	triggers: z.array(z.string()).optional(),
+    nextQuestId: ULID.optional()
 });
