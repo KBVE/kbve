@@ -11,6 +11,7 @@ using Heathen.SteamworksIntegration.API;
 using PlayerLoopTiming = Cysharp.Threading.Tasks.PlayerLoopTiming;
 using SteamAchievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
 using FriendsAPI = Heathen.SteamworksIntegration.API.Friends.Client;
+using Steamworks;
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
