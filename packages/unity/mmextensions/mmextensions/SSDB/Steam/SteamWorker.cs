@@ -10,7 +10,6 @@ using Heathen.SteamworksIntegration;
 using Heathen.SteamworksIntegration.API;
 using PlayerLoopTiming = Cysharp.Threading.Tasks.PlayerLoopTiming;
 using SteamAchievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
-using SteamFriends = Heathen.SteamworksIntegration.API.Friends.Client;
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
@@ -120,7 +119,9 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 await UniTask.Yield(PlayerLoopTiming.Update);
 
                 Friends.Clear();
-                var friendsList = SteamFriends.GetFriends(Steamworks.EFriendFlags.k_EFriendFlagImmediate);
+                //var friendsList = SteamFriends.GetFriends(Steamworks.EFriendFlags.k_EFriendFlagImmediate);
+
+                var friendsList = UserData.MyFriends;
 
                 foreach (var friend in friendsList)
                 {
