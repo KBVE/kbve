@@ -16,9 +16,9 @@ namespace KBVE.MMExtensions.SSDB.Steam
 {
     public class SteamworksService : IAsyncStartable, ISteamworksService
     {
-        private readonly Lazy<ISteamWorker> _lazyWorker;
+        private readonly Lazy<SteamWorker> _lazyWorker;
 
-        public ISteamWorker Worker => _lazyWorker.Value;
+        public SteamWorker Worker => _lazyWorker.Value;
 
 
         private const int AppId = 2238370;
@@ -26,7 +26,7 @@ namespace KBVE.MMExtensions.SSDB.Steam
         public ReactiveProperty<bool> Initialized { get; } = new(false);
         public ReactiveProperty<UserData?> LocalUser { get; } = new(null);
 
-        public SteamworksService(Lazy<ISteamWorker> lazyWorker)
+        public SteamworksService(Lazy<SteamWorker> lazyWorker)
         {
             _lazyWorker = lazyWorker;
         }
