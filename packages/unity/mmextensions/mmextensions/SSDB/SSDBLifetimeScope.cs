@@ -17,6 +17,12 @@ namespace KBVE.MMExtensions.SSDB
         [SerializeField]
         private bool autoStart = true;
 
+        protected override void Awake()
+        {
+            base.Awake();
+            DontDestroyOnLoad(this.gameObject);
+        }
+
         protected override void Configure(IContainerBuilder builder)
         {
             if (autoStart)
