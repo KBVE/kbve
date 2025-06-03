@@ -5,6 +5,7 @@ using VContainer;
 using VContainer.Unity;
 using KBVE.MMExtensions.SSDB;
 using KBVE.MMExtensions.SSDB.Steam;
+using System;
 
 namespace KBVE.MMExtensions.SSDB
 {
@@ -27,10 +28,16 @@ namespace KBVE.MMExtensions.SSDB
         {
             if (autoStart)
             {
+
                 builder.Register<SteamworksService>(Lifetime.Singleton)
+                .AsSelf()
                 .As<ISteamworksService>()
-                .As<IAsyncStartable>();
+                .As<IAsyncStartable>()
+                .As<IDisposable>();
+
             }
+
+
         }
     }
 }
