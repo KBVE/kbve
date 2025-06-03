@@ -85,8 +85,23 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
                 Achievements.Clear();
 
-                foreach (var achievement in SteamSettings.Achievements)
+                var achievementsList = SteamSettings.Achievements;
+
+                if (achievementsList == null || achievementsList.Count == 0)
                 {
+                    Debug.LogWarning("[SteamworksService] No achievements found in SteamSettings.");
+                    AchievementsReady.Value = true;
+                    return;
+                }
+
+                foreach (var achievement in achievementsList)
+                {
+                    if (achievement == null || string.IsNullOrWhiteSpace(achievement.ApiName))
+                    {
+                        Debug.LogWarning("[SteamworksService] Skipping null or malformed achievement entry.");
+                        continue;
+                    }
+
                     if (SteamAchievements.GetAchievement(achievement.ApiName, out var achieved, out var unlockTime))
                     {
                         var data = new AchievementInfo
@@ -99,6 +114,10 @@ namespace KBVE.MMExtensions.SSDB.Steam
 
                         Achievements.Add(data);
                         _achievementStream.OnNext(data);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[SteamworksService] Achievement not found in Steam: {achievement.ApiName}");
                     }
                 }
 
@@ -116,6 +135,7 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 AchievementsReady.Value = false;
             }
         }
+
 
         private async UniTask InitializeFriendsAsync(CancellationToken cancellationToken)
         {
