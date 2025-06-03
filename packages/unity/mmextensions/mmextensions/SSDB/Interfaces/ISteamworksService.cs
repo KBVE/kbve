@@ -1,11 +1,13 @@
 namespace KBVE.MMExtensions.SSDB
 {
     using Heathen.SteamworksIntegration;
-    using Heathen.SteamworksIntegration.API;
+    using KBVE.MMExtensions.SSDB.Steam;
+    using R3;
 
     public interface ISteamworksService
     {
-        bool Initialized { get; }
-        UserData? LocalUser { get; }
+        ReactiveProperty<bool> Initialized { get; }
+        ReactiveProperty<UserData?> LocalUser { get; }
+        SteamWorker Worker { get; }
     }
 }
