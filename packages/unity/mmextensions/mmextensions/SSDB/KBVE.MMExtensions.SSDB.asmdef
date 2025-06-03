@@ -1,0 +1,43 @@
+{
+  "name": "Kbve.MMExtensions.SSDB",
+  "rootNamespace": "KBVE.MMExtensions.SSDB",
+  "references": [
+    "Kbve.MMExtensions",
+    "UnityEngine",
+    "Unity.Addressables",    
+    "KBVE.MMExtensions",
+    "Heathen.Steamworks",
+    "Heathen.SteamworksIntegration.API",
+    "VContainer",
+    "MoreMountains.Feedbacks",
+    "MoreMountains.TopDownEngine",
+    "UnityEngine.Physics2DModule",
+    "Newtonsoft.Json",
+    "UniTask",
+    "UniTask.Addressables",
+    "Cysharp.Threading.Tasks",
+    "Steamworks.NET"
+  ],
+  "includePlatforms": [
+        "Editor",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WindowsStandalone32",
+        "WindowsStandalone64",
+        "WindowsStandalone32Server",
+        "WindowsStandalone64Server"
+    ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [
+    "UNITY_2021_3_OR_NEWER",
+    "!UNITY_WEBGL",
+    "!UNITY_IOS",
+    "!UNITY_ANDROID"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
