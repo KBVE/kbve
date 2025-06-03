@@ -9,55 +9,60 @@ using System;
 using VContainer;
 using VContainer.Unity;
 using KBVE.MMExtensions.SSDB;
+using R3;
+using ObservableCollections;
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
     public class SteamworksService : IAsyncStartable, ISteamworksService
     {
+        public SteamWorker Worker { get; }
+
         private const int AppId = 2238370;
-        private bool _initialized;
-        public bool Initialized => _initialized;
-        public UserData? LocalUser => _initialized ? UserData.Me : (UserData?)null;
+
+        public ReactiveProperty<bool> Initialized { get; } = new(false);
+        public ReactiveProperty<UserData?> LocalUser { get; } = new(null);
+
+        public SteamworksService(SteamWorker worker)
+        {
+            Worker = worker;
+        }
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
-
-            if (_initialized || App.Initialized)
-            {
-                Debug.Log("[SteamworksService] Already initialized.");
-                return;
-            }
-
             try
             {
-                await UniTask.DelayFrame(1, cancellationToken: cancellationToken);
+                if (App.Initialized)
+                {
+                    Initialized.Value = true;
+                    LocalUser.Value = UserData.Me;
+                    await Worker.InitializeAsync(cancellationToken);
+                    return;
+                }
 
                 Debug.Log("[SteamworksService] Initializing Steam...");
 
-                App.Client.Initialize(2238370);
+                App.Client.Initialize(AppId);
 
                 await UniTask.WaitUntil(() => App.Initialized, cancellationToken: cancellationToken);
 
-                if (App.Initialized)
-                {
-                    _initialized = true;
-                    Debug.Log($"[SteamworksService] Logged in as: {UserData.Me.Name}");
-                }
-                else
-                {
-                    Debug.LogWarning("[SteamworksService] Steam initialization failed.");
-                }
+                Initialized.Value = true;
+                LocalUser.Value = UserData.Me;
+
+                Debug.Log($"[SteamworksService] Logged in as {UserData.Me.Name}");
+
+                await Worker.InitializeAsync(cancellationToken);
             }
             catch (OperationCanceledException)
             {
                 Debug.LogWarning("[SteamworksService] Initialization was canceled.");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogError($"[SteamworksService] Unexpected error during Steam initialization: {ex}");
             }
-
         }
+
     }
 }
 
