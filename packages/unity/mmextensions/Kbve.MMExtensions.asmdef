@@ -21,7 +21,9 @@
       "PackageTools",
       "Drawing",
       "Unity.TextMeshPro",
-      "Newtonsoft.Json"
+      "Newtonsoft.Json",
+      "ObservableCollections",
+      "R3"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

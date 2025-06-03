@@ -16,7 +16,9 @@
     "UniTask",
     "UniTask.Addressables",
     "Cysharp.Threading.Tasks",
-    "Steamworks.NET"
+    "Steamworks.NET",
+    "ObservableCollections",
+    "R3"
   ],
   "includePlatforms": [
         "Editor",
