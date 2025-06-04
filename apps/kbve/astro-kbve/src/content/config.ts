@@ -6,24 +6,7 @@ import { glob } from "astro/loaders";
 import type { CategoryName } from 'src/data/types';
 import { ItemCategoryFlags } from 'src/data/types';
 
-
-export const ICraftingSchema = z.object({
-  ingredients: z.array(z.union([
-    z.string(),
-    z.object({
-      name: z.string().optional(),
-      ref: z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/),
-      amount: z.number().int().positive().optional(),
-    })
-  ])).optional(),
-  tools: z.array(z.union([
-    z.string(),
-    z.object({
-      name: z.string().optional(),
-      ref: z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/),
-    })
-  ])).optional()
-});
+import { ICraftingSchema } from 'src/data/schema';
 
 export const IDeployableSchema = z.object({
 	size: z.tuple([z.number().int().min(1), z.number().int().min(1)]).default([1, 1]), // [width, height]

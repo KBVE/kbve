@@ -64,3 +64,10 @@ export function hasCategory(
 ): boolean {
 	return (mask & ItemCategoryFlags[category]) !== 0;
 }
+
+export function getMaxItemCategory(): number {
+	return Object.values(ItemCategoryFlags).reduce(
+		(acc, val) => (typeof val === 'number' ? acc | val : acc),
+		0,
+	);
+}
