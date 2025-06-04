@@ -3,48 +3,10 @@ import { docsSchema } from '@astrojs/starlight/schema';
 import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
 import { glob } from "astro/loaders";
 
-export enum ItemCategoryFlags {
-	None = 0,
-	Weapon = 0x00000001,
-	Armor = 0x00000002,
-	Tool = 0x00000004,
-	Food = 0x00000008,
-	Drink = 0x00000010,
-	Potion = 0x00000020,
-	Material = 0x00000040,
-	Resource = 0x00000080,
-	Skilling = 0x00000100,
-	Combat = 0x00000200,
-	Structure = 0x00000400,
-	Magic = 0x00000800,
-	Quest = 0x00001000,
-	Utility = 0x00002000,
-	Depletable = 0x00004000,
-	Legendary = 0x00008000,
-	Vehicle = 0x00010000,
-	Pet = 0x00020000,
-	Soul = 0x40000000,
-}
+import type { CategoryName } from 'src/data/types';
+import { ItemCategoryFlags } from 'src/data/types';
 
-export type CategoryName = keyof typeof ItemCategoryFlags;
-
-export const ICraftingSchema = z.object({
-  ingredients: z.array(z.union([
-    z.string(),
-    z.object({
-      name: z.string().optional(),
-      ref: z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/),
-      amount: z.number().int().positive().optional(),
-    })
-  ])).optional(),
-  tools: z.array(z.union([
-    z.string(),
-    z.object({
-      name: z.string().optional(),
-      ref: z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/),
-    })
-  ])).optional()
-});
+import { ICraftingSchema } from 'src/data/schema';
 
 export const IDeployableSchema = z.object({
 	size: z.tuple([z.number().int().min(1), z.number().int().min(1)]).default([1, 1]), // [width, height]
