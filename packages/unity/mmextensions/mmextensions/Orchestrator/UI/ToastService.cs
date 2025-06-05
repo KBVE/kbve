@@ -2,25 +2,34 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using VContainer;
 using VContainer.Unity;
 using static UnityEngine.Object;
+using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
-
+using R3;
+using ObservableCollections;
 
 namespace KBVE.MMExtensions.Orchestrator.Core.UI
 {
-    public class ToastService : MonoBehaviour, IToastService, IAsyncStartable
+    public class ToastService : MonoBehaviour, IToastService, IAsyncStartable, IDisposable
     {
-        private readonly Queue<ToastRequest> _toastQueue = new();
+        //private readonly Queue<ToastRequest> _toastQueue = new();
+        public ObservableList<ToastRequest> ToastQueue { get; } = new ObservableList<ToastRequest>();
+        private IDisposable _toastSubscription;
+
         private bool _isShowing;
 
         private TextMeshProUGUI _toastText;
         private Image _toastBackground;
+        private RawImage _toastBackgroundImage;
+
         private CanvasGroup _toastGroup;
+
 
         private readonly Dictionary<ToastType, Color> _toastColors = new()
         {
@@ -35,12 +44,14 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         [SerializeField] private float scaleDown = 1f;
         [SerializeField] private float scaleDuration = 0.1f;
 
-        private class ToastRequest
+        public struct ToastRequest
         {
             public string Message;
             public ToastType Type;
             public float Duration;
+            public string BackgroundAddressableKey;
         }
+
 
         public bool IsInitialized => _toastText != null && _toastGroup != null && _toastBackground != null;
 
@@ -48,123 +59,127 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         {
             await UniTask.NextFrame(cancellation);
 
-            //var canvas = GameObject.Find("Canvas") ?? FindFirstObjectByType<Canvas>()?.gameObject;
-            var canvas = FindSceneLocalCanvas();
-            if (canvas == null)
-            {
-                Debug.LogError("[ToastService] Canvas not found. ToastService cannot initialize.");
-                return;
-            }
+            var canvas = CreateGlobalCanvasIfMissing();
+            var panel = CreateToastPanel(canvas);
 
-            var panel = await WaitForChild(canvas, "ToastPanel", 30, 0.1f);
-            if (panel == null)
-            {
-                Debug.LogWarning("[ToastService] ToastPanel not found after retries. Creating fallback panel dynamically.");
-                panel = CreateFallbackToastPanel(canvas);
-            }
+            _toastText = panel.transform.Find("ToastText")?.GetComponent<TextMeshProUGUI>();
+            _toastBackground = panel.GetComponent<Image>();
+            _toastGroup = panel.GetComponent<CanvasGroup>();
+            _toastBackgroundImage = panel.GetComponent<RawImage>();
 
-            _toastText = FindChildComponentByName<TextMeshProUGUI>(panel, "ToastText", true);
-            _toastBackground = panel.GetComponent<Image>() ?? panel.AddComponent<Image>();
-            _toastGroup = panel.GetComponent<CanvasGroup>() ?? panel.AddComponent<CanvasGroup>();
             _toastGroup.alpha = 0f;
 
             if (!IsInitialized)
             {
-                Debug.LogError("[ToastService] Initialization failed. One or more required components are missing.");
+                Debug.LogError("[ToastService] Initialization failed.");
                 return;
             }
 
-            Debug.Log("[ToastService] Initialized successfully.");
+            _toastSubscription = ToastQueue.ObserveAdd(cancellationToken: cancellation)
+                .Subscribe(_ =>
+                {
+                    if (!_isShowing)
+                        ProcessQueueAsync().Forget();
+                });
+
+            Debug.Log("[ToastService] Initialized.");
         }
 
-
-
-        public void ShowToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
+        public void Show(string message, ToastType type = ToastType.Info, float duration = 2.5f, string backgroundKey = null)
         {
-            if (!IsInitialized)
+            ToastQueue.Add(new ToastRequest
             {
-                Debug.LogWarning("[ToastService] Tried to show toast before initialization.");
-                return;
-            }
-
-
-            _toastQueue.Clear();
-            _toastQueue.Enqueue(new ToastRequest { Message = message, Type = type, Duration = duration });
-            if (!_isShowing) ProcessQueueAsync().Forget();
-        }
-
-        public void EnqueueToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
-        {
-            _toastQueue.Enqueue(new ToastRequest { Message = message, Type = type, Duration = duration });
-            if (!_isShowing) ProcessQueueAsync().Forget();
-        }
-
-        public void ShowImmediateToast(string message, ToastType type = ToastType.Info, float duration = 2.5f)
-        {
-            _toastQueue.Clear();
-            _toastQueue.Enqueue(new ToastRequest { Message = message, Type = type, Duration = duration });
-            ProcessQueueAsync().Forget();
+                Message = message,
+                Type = type,
+                Duration = duration,
+                BackgroundAddressableKey = backgroundKey
+            });
         }
 
         public void ClearAllToasts()
         {
-            _toastQueue.Clear();
+            ToastQueue.Clear();
             _isShowing = false;
-            if (_toastGroup != null)
-            {
-                _toastGroup.alpha = 0f;
-            }
+            _toastGroup.alpha = 0f;
         }
 
         private async UniTaskVoid ProcessQueueAsync()
         {
             _isShowing = true;
 
-            while (_toastQueue.Count > 0)
+            while (ToastQueue.Count > 0)
             {
-                var toast = _toastQueue.Dequeue();
-                await ShowSingleToastAsync(toast.Message, toast.Type, toast.Duration);
+                var toast = ToastQueue[0];
+                ToastQueue.RemoveAt(0);
+                await ShowSingleToastAsync(toast);
             }
 
             _isShowing = false;
         }
 
-        private async UniTask ShowSingleToastAsync(string message, ToastType type, float duration)
+        private async UniTask ShowSingleToastAsync(ToastRequest toast)
         {
-            if (_toastGroup == null || _toastText == null || _toastBackground == null)
-                return;
+            if (!IsInitialized) return;
 
-            _toastText.text = message;
-            _toastBackground.color = _toastColors.TryGetValue(type, out var color)
+            _toastText.text = toast.Message;
+            _toastBackground.color = _toastColors.TryGetValue(toast.Type, out var color)
                 ? color
                 : _toastColors[ToastType.Info];
 
-            var rect = _toastText.GetComponent<RectTransform>();
+            await LoadBackgroundImage(toast.BackgroundAddressableKey);
 
-            rect.localScale = Vector3.one * scaleDown;             // Reset scale and alpha
+            var rect = _toastText.GetComponent<RectTransform>();
+            rect.localScale = Vector3.one * scaleDown;
             _toastGroup.alpha = 0f;
 
-            await AnimateScale(rect, scaleDown, scaleUp, scaleDuration);
+            var startPos = rect.anchoredPosition;
+            startPos.y -= 150f;
+            rect.anchoredPosition = startPos;
+
+            await AnimateSlideAndScale(rect, startPos, Vector2.zero, scaleDown, scaleUp, scaleDuration);
             await FadeCanvasGroup(_toastGroup, 1f, fadeDuration);
-            await AnimateScale(rect, scaleUp, 1f, scaleDuration); // settle to 1f
+            await AnimateScale(rect, scaleUp, 1f, scaleDuration);
 
-            await UniTask.Delay(System.TimeSpan.FromSeconds(duration));
-
+            await UniTask.Delay(System.TimeSpan.FromSeconds(toast.Duration));
             await FadeCanvasGroup(_toastGroup, 0f, fadeDuration);
+
+            if (_toastBackgroundImage != null)
+            {
+                _toastBackgroundImage.texture = null;
+                _toastBackgroundImage.enabled = false;
+            }
         }
 
+        private async UniTask LoadBackgroundImage(string addressableKey)
+        {
+#if UNITY_ADDRESSABLES
+            if (string.IsNullOrWhiteSpace(addressableKey) || _toastBackgroundImage == null)
+                return;
 
+            try
+            {
+                var handle = Addressables.LoadAssetAsync<Texture2D>(addressableKey);
+                var texture = await handle.ToUniTask();
+
+                _toastBackgroundImage.texture = texture;
+                _toastBackgroundImage.enabled = true;
+            }
+            catch
+            {
+                Debug.LogWarning($"[ToastService] Failed to load background '{addressableKey}'.");
+                _toastBackgroundImage.enabled = false;
+            }
+#endif
+        }
 
         private static async UniTask FadeCanvasGroup(CanvasGroup group, float targetAlpha, float duration)
         {
-            if (group == null) return;
-
-            float startAlpha = group.alpha;
+            float start = group.alpha;
             float time = 0f;
 
             while (time < duration)
             {
-                group.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / duration);
+                group.alpha = Mathf.Lerp(start, targetAlpha, time / duration);
                 time += Time.deltaTime;
                 await UniTask.Yield();
             }
@@ -172,11 +187,29 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             group.alpha = targetAlpha;
         }
 
+        private static async UniTask AnimateSlideAndScale(RectTransform rectTransform, Vector2 fromPos, Vector2 toPos, float fromScale, float toScale, float duration)
+        {
+            float time = 0f;
+
+            while (time < duration)
+            {
+                float t = time / duration;
+                rectTransform.anchoredPosition = Vector2.Lerp(fromPos, toPos, t);
+                float scale = Mathf.Lerp(fromScale, toScale, t);
+                rectTransform.localScale = new Vector3(scale, scale, 1f);
+
+                time += Time.deltaTime;
+                await UniTask.Yield();
+            }
+
+            rectTransform.anchoredPosition = toPos;
+            rectTransform.localScale = new Vector3(toScale, toScale, 1f);
+        }
+
         private static async UniTask AnimateScale(RectTransform rectTransform, float from, float to, float duration)
         {
-            if (rectTransform == null) return;
-
             float time = 0f;
+
             while (time < duration)
             {
                 float scale = Mathf.Lerp(from, to, time / duration);
@@ -188,85 +221,34 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             rectTransform.localScale = new Vector3(to, to, 1f);
         }
 
-        private async UniTask<GameObject> WaitForChild(GameObject parent, string name, int maxRetries = 30, float retryDelay = 0.1f)
+        private GameObject CreateGlobalCanvasIfMissing()
         {
-            for (int i = 0; i < maxRetries; i++)
-            {
-                var child = FindChildByName(parent, name);
-                if (child != null)
-                    return child;
-                await UniTask.Delay(System.TimeSpan.FromSeconds(retryDelay));
-            }
-            return null;
+            var existing = FindFirstObjectByType<Canvas>();
+            if (existing != null) return existing.gameObject;
+
+            var go = new GameObject("GlobalUICanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            var canvas = go.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 1000;
+
+            var scaler = go.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+
+            DontDestroyOnLoad(go);
+            return go;
         }
 
-        /// <summary>
-        /// Finds a child GameObject by name within a given parent, including inactive ones.
-        /// </summary>
-        private static GameObject FindChildByName(GameObject parent, string name)
+        private GameObject CreateToastPanel(GameObject canvas)
         {
-            if (parent == null || string.IsNullOrWhiteSpace(name))
-                return null;
-
-            Transform direct = parent.transform.Find(name);
-            if (direct != null)
-                return direct.gameObject;
-
-            foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
-            {
-                if (child.name == name)
-                    return child.gameObject;
-            }
-
-            return null;
-        }
-
-        private static T FindChildComponentByName<T>(GameObject parent, string childName, bool includeInactive = true) where T : Component
-        {
-            if (parent == null)
-            {
-                Debug.LogError($"[ToastService] Parent GameObject is null.");
-                return null;
-            }
-
-            Transform childTransform = null;
-
-            foreach (Transform child in parent.GetComponentsInChildren<Transform>(includeInactive))
-            {
-                if (child.name == childName)
-                {
-                    childTransform = child;
-                    break;
-                }
-            }
-
-            if (childTransform == null)
-            {
-                Debug.LogError($"[ToastService] Could not find child GameObject named '{childName}' under '{parent.name}'.");
-                return null;
-            }
-
-            var component = childTransform.GetComponent<T>();
-            if (component == null)
-            {
-                Debug.LogError($"[ToastService] Found '{childName}', but it has no component of type '{typeof(T).Name}'.");
-            }
-
-            return component;
-        }
-
-
-        private GameObject CreateFallbackToastPanel(GameObject canvas)
-        {
-            var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
+            var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(RawImage));
             panel.transform.SetParent(canvas.transform, false);
 
-            var rectTransform = panel.GetComponent<RectTransform>();
-            rectTransform.anchorMin = new Vector2(0.5f, 0.1f);
-            rectTransform.anchorMax = new Vector2(0.5f, 0.1f);
-            rectTransform.pivot = new Vector2(0.5f, 0.5f);
-            rectTransform.sizeDelta = new Vector2(600, 80);
-            rectTransform.anchoredPosition = Vector2.zero;
+            var rect = panel.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.1f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(600, 80);
+            rect.anchoredPosition = Vector2.zero;
 
             var textGO = new GameObject("ToastText", typeof(RectTransform), typeof(TextMeshProUGUI));
             textGO.transform.SetParent(panel.transform, false);
@@ -274,32 +256,36 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             var textRect = textGO.GetComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
+            textRect.offsetMin = textRect.offsetMax = Vector2.zero;
 
             var text = textGO.GetComponent<TextMeshProUGUI>();
             text.alignment = TextAlignmentOptions.Center;
             text.fontSize = 36;
             text.color = Color.white;
-            text.text = "";
+            text.enableAutoSizing = true;
+            text.enableWordWrapping = false;
+            text.outlineWidth = 0.2f;
+            text.outlineColor = new Color(0f, 0f, 0f, 0.9f);
 
-            panel.GetComponent<Image>().color = Color.black;
-            panel.GetComponent<CanvasGroup>().alpha = 0f;
+            var image = panel.GetComponent<Image>();
+            image.color = Color.black;
+
+            var group = panel.GetComponent<CanvasGroup>();
+            group.alpha = 0f;
 
             return panel;
         }
 
-        private GameObject FindSceneLocalCanvas()
-        {
-            var activeScene = SceneManager.GetActiveScene();
-            foreach (var root in activeScene.GetRootGameObjects())
-            {
-                var canvas = root.GetComponentInChildren<Canvas>(true);
-                if (canvas != null) return canvas.gameObject;
-            }
 
-            Debug.LogWarning("[ToastService] No canvas found in active scene.");
-            return null;
+        private void OnDestroy()
+        {
+            _toastSubscription?.Dispose();
+        }
+
+        public void Dispose()
+        {
+            _toastSubscription?.Dispose();
+            _toastSubscription = null;
         }
     }
 }
