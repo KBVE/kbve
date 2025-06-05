@@ -201,6 +201,21 @@
   </Reference>
 </ItemGroup>
 
+<!-- Bridge OC~R3 -->
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="ObservableCollections.R3">
+    <HintPath>$(UnityProjectRoot)\Assets\Packages\ObservableCollections.R3.3.3.3\lib\netstandard2.1\ObservableCollections.R3.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="ObservableCollections.R3">
+    <HintPath>$(UnityProjectRoot)/Assets/Packages/ObservableCollections.R3.3.3.3/lib/netstandard2.1/ObservableCollections.R3.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
 
   <!-- Kilonet -->
   <ItemGroup>

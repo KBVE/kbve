@@ -45,13 +45,13 @@ namespace KBVE.MMExtensions.Items
 
         public override bool Pick(string playerID)
         {
-            Operator.Toast.EnqueueToast($"Picked up {ItemName}", Orchestrator.Core.ToastType.Info, 2.5f);
+            Operator.Toast.Show($"Picked up {ItemName}", Orchestrator.Core.ToastType.Info, 2.5f);
             return base.Pick(playerID);
         }
 
         public override bool Equip(string playerID)
         {
-            Operator.Toast.EnqueueToast($"Can not equip {ItemName}", Orchestrator.Core.ToastType.Warning, 2.5f);
+            Operator.Toast.Show($"Can not equip {ItemName}", Orchestrator.Core.ToastType.Warning, 2.5f);
             return false;
         }
 
@@ -107,7 +107,7 @@ namespace KBVE.MMExtensions.Items
 
             if (character == null || !IsUsable)
             {
-                Operator.Toast.EnqueueToast($"Unable to use {ItemName}.", Orchestrator.Core.ToastType.Error, 2.5f);
+                Operator.Toast.Show($"Unable to use {ItemName}.", Orchestrator.Core.ToastType.Error, 2.5f);
                 return false;
             }
             var extendedHealth = character.GetComponent<ExtendedHealth>();
@@ -120,7 +120,7 @@ namespace KBVE.MMExtensions.Items
             if (AffectHealth && HealthAmount > 0)
             {
                 extendedHealth.Heal(HealthAmount, character.gameObject);
-                Operator.Toast.EnqueueToast($"+{HealthAmount} from {ItemName}.", Orchestrator.Core.ToastType.Success, 2.5f);
+                Operator.Toast.Show($"+{HealthAmount} from {ItemName}.", Orchestrator.Core.ToastType.Success, 2.5f);
 
             }
 
@@ -130,7 +130,7 @@ namespace KBVE.MMExtensions.Items
                 catch (Exception ex) { Debug.LogError($"[Bonus] Error applying bonuses: {ex.Message}"); }
             });
 
-            Operator.Toast.EnqueueToast($"Just used {ItemName}.", Orchestrator.Core.ToastType.Success, 2.5f);
+            Operator.Toast.Show($"Just used {ItemName}.", Orchestrator.Core.ToastType.Success, 2.5f);
             NotifyUnityBridge(ItemID);
             return true;
         }
