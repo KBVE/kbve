@@ -2,9 +2,10 @@ import { getCollection } from 'astro:content';
 
 import { validateItemUniqueness } from 'src/content/config';
 
-
 export const GET = async () => {
-	const itemEntries = await getCollection('itemdb');
+	const itemEntries = (await getCollection('itemdb')).filter(
+		(entry) => !entry.id.endsWith('index.mdx') && entry.data.key !== 0,
+	);
 
 	const key: Record<string, number> = {};
 	const items: any[] = [];

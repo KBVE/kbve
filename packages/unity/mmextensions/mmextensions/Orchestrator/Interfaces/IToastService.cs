@@ -3,23 +3,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core
     public interface IToastService
     {
         /// <summary>
-        /// Show a toast message with the specified type and duration.
-        /// May interrupt or replace currently visible toast.
+        /// Queue a toast with message, type, duration, and optional background.
+        /// Replaces current toast if no other is showing.
         /// </summary>
-        void ShowToast(string message, ToastType type = ToastType.Info, float duration = 2.5f);
+        void Show(string message, ToastType type = ToastType.Info, float duration = 2.5f, string backgroundKey = null);
 
         /// <summary>
-        /// Immediately display a toast, replacing any active one.
-        /// </summary>
-        void ShowImmediateToast(string message, ToastType type = ToastType.Info, float duration = 2.5f);
-
-        /// <summary>
-        /// Queue a toast to be shown after current one finishes.
-        /// </summary>
-        void EnqueueToast(string message, ToastType type = ToastType.Info, float duration = 2.5f);
-
-        /// <summary>
-        /// Clears all visible and queued toasts.
+        /// Clear current and all pending toasts.
         /// </summary>
         void ClearAllToasts();
     }

@@ -40,8 +40,8 @@ export default defineConfig({
         starlight({
             plugins: [
                 starlightSiteGraph({
-                	graphConfig: {
-                         "actions": [
+                    graphConfig: {
+                        "actions": [
                             "fullscreen",
                             "depth",
                             "reset-zoom",
@@ -49,15 +49,15 @@ export default defineConfig({
                             "settings"
                         ],
                         "renderLabels": true,
-                		"renderArrows": true,
+                        "renderArrows": true,
                         "depth": 3,
                         "depthDirection": "both",
                         "minZoom": 0.05,
                         "maxZoom": 4,
                         "enableZoom": true,
                         "enablePan": true,
-                       
-                	},
+
+                    },
                 }),
             ],
             title: 'KBVE Docs',
@@ -67,7 +67,7 @@ export default defineConfig({
             tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
             expressiveCode: true,
             defaultLocale: 'root',
-           
+
             sidebar: [
                 {
                     label: 'Guides',
@@ -93,15 +93,26 @@ export default defineConfig({
                     autogenerate: { directory: 'gaming' },
                 },
                 {
+                    label: 'Arcade',
+                    collapsed: true,
+                    autogenerate: { directory: 'arcade' },
+                },
+                {
                     label: 'Theory',
                     collapsed: true,
                     autogenerate: { directory: 'theory' },
                 },
 
-                  {
+                {
                     label: 'ItemDB',
                     collapsed: true,
                     autogenerate: { directory: 'itemdb' },
+                },
+
+                {
+                    label: 'QuestDB',
+                    collapsed: true,
+                    autogenerate: { directory: 'questdb' },
                 },
 
                 {
@@ -113,7 +124,7 @@ export default defineConfig({
                     collapsed: true,
                     autogenerate: { directory: 'journal' },
                 },
-                 {
+                {
                     label: 'Legal',
                     collapsed: true,
                     autogenerate: { directory: 'legal' },
@@ -132,7 +143,7 @@ export default defineConfig({
                 Head: './src/layouts/starlight/Head.astro',
                 Footer: './src/layouts/starlight/Footer.astro',
                 TableOfContents:
-                	'./src/layouts/starlight/TableOfContents.astro',
+                    './src/layouts/starlight/TableOfContents.astro',
                 PageSidebar: './src/layouts/starlight/PageSidebar.astro',
             },
             head: [
@@ -170,9 +181,9 @@ export default defineConfig({
         //partytown(),
         worker(),
         react({
-      experimentalReactChildren: true,
-      experimentalDisableStreaming: true,
-    }),
+            experimentalReactChildren: true,
+            experimentalDisableStreaming: true,
+        }),
         svelte(),
 
         AstroPWA({
@@ -215,8 +226,8 @@ export default defineConfig({
                     /^\/workbox-[a-z0-9\-]+\.js$/,
                     /^\/ws$/,
                     /^\/api\/.*/,
-                  ],
-                          
+                ],
+
                 runtimeCaching: [
                     {
                         urlPattern: ({ request }) => request.mode === 'navigate',
@@ -234,14 +245,14 @@ export default defineConfig({
                         urlPattern: /\/api\/.*/,
                         handler: 'NetworkFirst',
                         options: {
-                          cacheName: 'api-json',
-                          networkTimeoutSeconds: 1,
-                          expiration: {
-                            maxEntries: 5,
-                            maxAgeSeconds: 60 * 5,
-                          },
+                            cacheName: 'api-json',
+                            networkTimeoutSeconds: 1,
+                            expiration: {
+                                maxEntries: 5,
+                                maxAgeSeconds: 60 * 5,
+                            },
                         },
-                      },
+                    },
                     {
                         urlPattern: ({ request }) =>
                             ['script', 'style', 'font', 'image'].includes(request.destination),
@@ -254,7 +265,7 @@ export default defineConfig({
                             },
                         },
                     },
-                    
+
                 ],
             },
             experimental: {
@@ -337,7 +348,7 @@ export default defineConfig({
         },
         resolve: {
             alias: {
-               
+
             },
         },
         vite: {
