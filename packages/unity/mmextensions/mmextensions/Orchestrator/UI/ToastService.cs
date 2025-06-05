@@ -29,6 +29,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         private RawImage _toastBackgroundImage;
 
         private CanvasGroup _toastGroup;
+        private RectTransform _panelRect;
 
 
         private readonly Dictionary<ToastType, Color> _toastColors = new()
@@ -61,6 +62,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
             var canvas = CreateGlobalCanvasIfMissing();
             var panel = CreateToastPanel(canvas);
+            _panelRect = panel.GetComponent<RectTransform>();
 
             _toastText = panel.transform.Find("ToastText")?.GetComponent<TextMeshProUGUI>();
             _toastBackground = panel.GetComponent<Image>();
@@ -125,6 +127,16 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _toastBackground.color = _toastColors.TryGetValue(toast.Type, out var color)
                 ? color
                 : _toastColors[ToastType.Info];
+
+            _toastText.ForceMeshUpdate();
+            var preferred = _toastText.GetPreferredValues(toast.Message, Screen.width * 0.9f, Mathf.Infinity);
+            var width = Mathf.Clamp(preferred.x + 40f, 200f, Screen.width * 0.9f);
+            var height = Mathf.Clamp(preferred.y + 20f, 60f, Screen.height * 0.3f);
+            if (_panelRect != null)
+            {
+                _panelRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+                _panelRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            }
 
             await LoadBackgroundImage(toast.BackgroundAddressableKey);
 
@@ -234,6 +246,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             var scaler = go.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0.5f;
 
             DontDestroyOnLoad(go);
             return go;
@@ -263,7 +277,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             text.fontSize = 36;
             text.color = Color.white;
             text.enableAutoSizing = true;
-            text.enableWordWrapping = false;
+            text.enableWordWrapping = true;
             text.outlineWidth = 0.2f;
             text.outlineColor = new Color(0f, 0f, 0f, 0.9f);
 
