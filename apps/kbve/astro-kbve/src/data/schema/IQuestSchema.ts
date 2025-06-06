@@ -1,6 +1,18 @@
 import { z } from 'astro:content';
 import { QuestObjectiveTypeEnum, QuestCategoryEnum,  ULID, GUID  } from 'src/data/types';
 
+export const IAchievementMetaSchema = z.object({
+	apiName: z.string(),
+	name: z.string().optional(),
+	description: z.string().optional(),
+	iconAchieved: z.string().optional(),
+	iconUnachieved: z.string().optional(),
+	globalPercent: z.number().min(0).max(100).optional(),
+	hidden: z.boolean().optional().default(false),
+	minValue: z.number().optional(),
+	maxValue: z.number().optional(),
+});
+
 export const IQuestObjectiveSchema = z.object({
 	description: z.string(),
 	type:   QuestObjectiveTypeEnum.default('custom'),
@@ -18,13 +30,14 @@ export const IQuestRewardSchema = z.object({
 		)
 		.optional(),
 	bonuses: z.record(z.string(), z.number()).optional(),
-	steamAchievement: z.string().optional(),
+	steamAchievement: IAchievementMetaSchema.optional(),
 	currency: z.number().optional(),
 });
 
 export const IQuestSchema = z.object({
     id: ULID,
     guid: GUID,
+	drafted: z.boolean().optional().default(false),
     title: z.string(),
     description: z.string().optional(),
     icon: z.string().optional(),
@@ -36,4 +49,4 @@ export const IQuestSchema = z.object({
 	rewards: IQuestRewardSchema.optional(),
 	triggers: z.array(z.string()).optional(),
     nextQuestId: ULID.optional().nullable(),
-});
+}).passthrough();

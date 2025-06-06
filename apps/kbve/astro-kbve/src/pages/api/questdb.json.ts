@@ -2,8 +2,8 @@ import { getCollection } from 'astro:content';
 
 export const GET = async () => {
   const questEntries = (await getCollection('questdb')).filter(
-    (entry) => !entry.id.endsWith('index.mdx')
-  );
+  (entry) => !(entry.data as any).drafted
+);
 
   const key: Record<string, number> = {};
   const quests: any[] = [];
