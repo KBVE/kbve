@@ -1,6 +1,7 @@
 ---
 id: "01JX25PM4NR1QEMDFPVCJCNQ89"
 guid: "d1f519a163d54f88af1230e03a8c1f1c"
+drafted: false
 title: "Assemble the Auto Cooker 9000"
 description: "A prototype of the Auto Cooker 9000 has surfaced. Retrieve it and unlock its culinary secrets."
 icon: "auto-cooker-icon"
@@ -21,7 +22,16 @@ rewards:
   bonuses:
     cookingSpeed: 5
     recipeDiscovery: 10
-  steamAchievement: "ACH_AUTO_COOKER_TEST"
+  steamAchievement:
+    apiName: "ACH_AUTO_COOKER_TEST"
+    name: "Auto Cooker 9000"
+    description: "Retrieve the legendary Auto Cooker."
+    iconAchieved: "/icons/achievements/auto-cooker-achieved.png"
+    iconUnachieved: "/icons/achievements/auto-cooker-unachieved.png"
+    globalPercent: 3.7
+    hidden: false
+    minValue: 0
+    maxValue: 1
   currency: 500
 triggers:
   - "player:level:1"
