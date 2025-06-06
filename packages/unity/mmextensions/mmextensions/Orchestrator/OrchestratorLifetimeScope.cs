@@ -49,10 +49,12 @@ namespace KBVE.MMExtensions.Orchestrator
 
             builder.RegisterEntryPoint<CharacterEventRegistrar>();
 
-            // [With Toast]
-            // Fails at RunTime builder.RegisterComponentInHierarchy<ToastService>().AsSelf().AsImplementedInterfaces();
-            // builder.RegisterComponent(toastService).As<ToastService>().AsSelf();
-            builder.RegisterComponent(toastService).AsSelf().AsImplementedInterfaces().As<IDisposable>();
+            builder.RegisterComponentOnNewGameObject<ToastService>(Lifetime.Singleton, "ToastService")
+                .DontDestroyOnLoad()
+                .AsSelf()
+                .AsImplementedInterfaces()
+                .As<IDisposable>()
+                .As<IAsyncStartable>();
 
             // === NPC Orchestrator === ! Can Break at Register the shared NPCDefinitionDatabase (manually assigned in scene or loaded)
             if (npcDefinitionDatabase == null)
