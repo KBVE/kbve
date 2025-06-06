@@ -35,5 +35,5 @@ export const IQuestSchema = z.object({
 	objectives: z.array(IQuestObjectiveSchema).nonempty(),
 	rewards: IQuestRewardSchema.optional(),
 	triggers: z.array(z.string()).optional(),
-    nextQuestId: ULID.optional()
+    nextQuestId: ULID.optional().nullable(),
 });
