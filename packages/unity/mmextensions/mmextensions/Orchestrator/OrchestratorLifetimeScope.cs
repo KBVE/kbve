@@ -5,6 +5,7 @@ using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
 using KBVE.MMExtensions.Orchestrator.Core.UI;
 using System.Linq;
+using System;
 
 namespace KBVE.MMExtensions.Orchestrator
 {
@@ -23,6 +24,13 @@ namespace KBVE.MMExtensions.Orchestrator
 
         [Header("UI Services")]
         [SerializeField] private ToastService toastService;
+        
+        protected override void Awake()
+        {
+            base.Awake();
+            DontDestroyOnLoad(this.gameObject);
+        }
+
        
         protected override void Configure(IContainerBuilder builder)
         {
@@ -44,7 +52,7 @@ namespace KBVE.MMExtensions.Orchestrator
             // [With Toast]
             // Fails at RunTime builder.RegisterComponentInHierarchy<ToastService>().AsSelf().AsImplementedInterfaces();
             // builder.RegisterComponent(toastService).As<ToastService>().AsSelf();
-            builder.RegisterComponent(toastService).AsSelf().AsImplementedInterfaces();
+            builder.RegisterComponent(toastService).AsSelf().AsImplementedInterfaces().As<IDisposable>();
 
             // === NPC Orchestrator === ! Can Break at Register the shared NPCDefinitionDatabase (manually assigned in scene or loaded)
             if (npcDefinitionDatabase == null)
@@ -56,7 +64,7 @@ namespace KBVE.MMExtensions.Orchestrator
                 builder.RegisterInstance<INPCDefinitionDatabase>(npcDefinitionDatabase).AsSelf();
             }
 
-            builder.Register<NPCGlobalController>(Lifetime.Singleton).As<INPCGlobalController>().AsSelf();;
+            builder.Register<NPCGlobalController>(Lifetime.Singleton).As<INPCGlobalController>().AsSelf(); ;
 
             builder.Register<OrchestratorNPCGlobals>(Lifetime.Singleton)
                 .As<IAsyncStartable>();
