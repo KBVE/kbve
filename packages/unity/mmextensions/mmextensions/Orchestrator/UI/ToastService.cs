@@ -20,10 +20,11 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
     {
         //private readonly Queue<ToastRequest> _toastQueue = new();
         public ObservableList<ToastRequest> ToastQueue { get; } = new ObservableList<ToastRequest>();
+
+        private IGlobalCanvas _globalCanvas;
+
         private IDisposable _toastSubscription;
-
         private bool _isShowing;
-
         private TextMeshProUGUI _toastText;
         private Image _toastBackground;
         private RawImage _toastBackgroundImage;
@@ -31,6 +32,11 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         private CanvasGroup _toastGroup;
         private RectTransform _panelRect;
 
+        [Inject]
+        public void Construct(IGlobalCanvas globalCanvas)
+        {
+            _globalCanvas = globalCanvas;
+        }
 
         private readonly Dictionary<ToastType, Color> _toastColors = new()
         {
@@ -60,10 +66,23 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         {
             await UniTask.NextFrame(cancellation);
 
-            var canvas = CreateGlobalCanvasIfMissing();
-            var panel = CreateToastPanel(canvas);
-            _panelRect = panel.GetComponent<RectTransform>();
+            if (_globalCanvas == null)
+            {
+                Debug.LogError("[ToastService] GlobalCanvas reference not injected.");
+                return;
+            }
 
+            await UniTask.WaitUntil(() => _globalCanvas != null && _globalCanvas.Canvas != null, cancellationToken: cancellation);
+            
+            if (_globalCanvas is GlobalCanvasService canvasService)
+            {
+                await UniTask.WaitUntil(() => canvasService.IsReady.Value, cancellationToken: cancellation);
+            }
+
+            var panel = CreateToastPanel();
+            panel = _globalCanvas.SpawnPanel(panel, UICanvasLayer.Toast);
+            _panelRect = panel.GetComponent<RectTransform>();
+            
             _toastText = panel.transform.Find("ToastText")?.GetComponent<TextMeshProUGUI>();
             _toastBackground = panel.GetComponent<Image>();
             _toastGroup = panel.GetComponent<CanvasGroup>();
@@ -102,7 +121,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         {
             ToastQueue.Clear();
             _isShowing = false;
-            _toastGroup.alpha = 0f;
+            if (_toastGroup != null)
+                _toastGroup.alpha = 0f;
         }
 
         private async UniTaskVoid ProcessQueueAsync()
@@ -233,27 +253,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             rectTransform.localScale = new Vector3(to, to, 1f);
         }
 
-        private GameObject CreateGlobalCanvasIfMissing()
-        {
-            var go = new GameObject("GlobalUICanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            var canvas = go.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 1000;
-
-            var scaler = go.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 0.5f;
-
-            DontDestroyOnLoad(go);
-            return go;
-        }
-
-        private GameObject CreateToastPanel(GameObject canvas)
+       
+        private GameObject CreateToastPanel()
         {
             var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(RawImage));
-            panel.transform.SetParent(canvas.transform, false);
 
             var rect = panel.GetComponent<RectTransform>();
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.1f);
