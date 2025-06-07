@@ -15,6 +15,9 @@ using SteamAchievements = Heathen.SteamworksIntegration.API.StatsAndAchievements
 using FriendsAPI = Heathen.SteamworksIntegration.API.Friends.Client;
 using Steamworks;
 
+// Operator
+using KBVE.MMExtensions.Orchestrator;
+
 namespace KBVE.MMExtensions.SSDB.Steam
 {
     public class SteamworksService : IAsyncStartable, ISteamworksService, IDisposable
@@ -53,9 +56,13 @@ namespace KBVE.MMExtensions.SSDB.Steam
                     await UniTask.WaitUntil(() => App.Initialized, cancellationToken: cancellationToken);
                 }
 
+                await Operator.Ready;
+                Operator.Toast?.Show("Steam initialized", Orchestrator.Core.ToastType.Info, 2.5f);
+
                 Initialized.Value = true;
                 LocalUser.Value = UserData.Me;
 
+                Operator.Toast?.Show($"Welcome  {UserData.Me.Name}", Orchestrator.Core.ToastType.Success, 2.5f);
                 Debug.Log($"[SteamworksService] Logged in as {UserData.Me.Name}");
 
                 PlayerName.Value = UserData.Me.Name;
