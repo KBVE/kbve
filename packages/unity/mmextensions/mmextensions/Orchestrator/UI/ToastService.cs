@@ -160,15 +160,20 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
             await LoadBackgroundImage(toast.BackgroundAddressableKey);
 
-            var rect = _toastText.GetComponent<RectTransform>();
+            //var rect = _toastText.GetComponent<RectTransform>();
+            var rect = _panelRect ?? _toastText.GetComponent<RectTransform>();
             rect.localScale = Vector3.one * scaleDown;
             _toastGroup.alpha = 0f;
 
-            var startPos = rect.anchoredPosition;
-            startPos.y -= 150f;
+            // var startPos = rect.anchoredPosition;
+            // startPos.y -= 150f;
+           
+            var targetPos = rect.anchoredPosition;
+            var startPos = targetPos + new Vector2(0f, -150f);
             rect.anchoredPosition = startPos;
 
-            await AnimateSlideAndScale(rect, startPos, Vector2.zero, scaleDown, scaleUp, scaleDuration);
+            await AnimateSlideAndScale(rect, startPos, targetPos, scaleDown, scaleUp, scaleDuration);
+            //await AnimateSlideAndScale(rect, startPos, Vector2.zero, scaleDown, scaleUp, scaleDuration);
             await FadeCanvasGroup(_toastGroup, 1f, fadeDuration);
             await AnimateScale(rect, scaleUp, 1f, scaleDuration);
 
