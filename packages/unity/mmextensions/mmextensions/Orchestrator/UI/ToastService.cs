@@ -235,9 +235,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private GameObject CreateGlobalCanvasIfMissing()
         {
-            var existing = FindFirstObjectByType<Canvas>();
-            if (existing != null) return existing.gameObject;
-
             var go = new GameObject("GlobalUICanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             var canvas = go.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;

@@ -21,9 +21,6 @@ namespace KBVE.MMExtensions.Orchestrator
         [Header("Injectables")]
         [SerializeField]
         private OrchestratorBootstrapper bootstrapper;
-
-        [Header("UI Services")]
-        [SerializeField] private ToastService toastService;
         
         protected override void Awake()
         {
