@@ -73,7 +73,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             }
 
             await UniTask.WaitUntil(() => _globalCanvas != null && _globalCanvas.Canvas != null, cancellationToken: cancellation);
-            
+
             if (_globalCanvas is GlobalCanvasService canvasService)
             {
                 await UniTask.WaitUntil(() => canvasService.IsReady.Value, cancellationToken: cancellation);
@@ -82,7 +82,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             var panel = CreateToastPanel();
             panel = _globalCanvas.SpawnPanel(panel, UICanvasLayer.Toast);
             _panelRect = panel.GetComponent<RectTransform>();
-            
+
             _toastText = panel.transform.Find("ToastText")?.GetComponent<TextMeshProUGUI>();
             _toastBackground = panel.GetComponent<Image>();
             _toastGroup = panel.GetComponent<CanvasGroup>();
@@ -253,16 +253,17 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             rectTransform.localScale = new Vector3(to, to, 1f);
         }
 
-       
+
         private GameObject CreateToastPanel()
         {
             var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(RawImage));
 
             var rect = panel.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.1f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = new Vector2(600, 80);
-            rect.anchoredPosition = Vector2.zero;
+            rect.anchorMin = new Vector2(1f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(1f, 0f);
+            rect.sizeDelta = new Vector2(600f, 80f);
+            rect.anchoredPosition = new Vector2(-40f, 40f);
 
             var textGO = new GameObject("ToastText", typeof(RectTransform), typeof(TextMeshProUGUI));
             textGO.transform.SetParent(panel.transform, false);
@@ -277,7 +278,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             text.fontSize = 36;
             text.color = Color.white;
             text.enableAutoSizing = true;
-            text.enableWordWrapping = true;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            //text.enableWordWrapping = true;
             text.outlineWidth = 0.2f;
             text.outlineColor = new Color(0f, 0f, 0f, 0.9f);
 
