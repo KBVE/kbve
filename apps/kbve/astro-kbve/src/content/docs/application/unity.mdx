@@ -48,6 +48,10 @@ import { Giscus, Adsense } from '@kbve/astropad';
 
 There are several products that Unity offers ontop of their game engine, including DevOps, Advertising and Hosting services.
 
+<Aside>
+Many Unity services require a separate subscription. Review the official pricing page before committing to them.
+</Aside>
+
 ---
 
 ## Header
@@ -83,6 +87,10 @@ You can also save your scene by pressing `Ctrl+S`.
 
 When switching between the scenes or loading multiple scenes, we recommend utilizing the asynchronous scene loader through a custom management script.
 This will allow you to load complex levels while not impacting performance too greatly.
+
+<Aside>
+Use async loading to keep your frame rate stable when streaming large scenes. Test on target hardware to avoid performance spikes.
+</Aside>
 
 ---
 
@@ -231,6 +239,10 @@ The setup has a couple `prerequisites` that you will need to ensure before going
 -   Android
 -   -   Android API level 19 or higher.
 -   -   KBVE Recommends 23 or higher, if you are using cryptography.
+
+<Aside>
+Ensure each platform-specific requirement is installed before running the Firebase setup; missing tools can cause build failures later.
+</Aside>
 
 ---
 
