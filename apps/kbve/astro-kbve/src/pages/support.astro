@@ -1,7 +1,9 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
+import { SITE } from 'src/layouts/site';
 
 const pageTitle: string = `Support | KBVE`;
+const tagline: string = SITE.tagline;
 
 const supportOptions = [
   {
@@ -32,10 +34,30 @@ const supportOptions = [
 ---
 
 <Layout title={pageTitle}>
+  <section class="relative px-6 py-16 sm:px-8 lg:px-12">
+    <div class="mx-auto max-w-7xl grid md:grid-cols-2 gap-8 items-center">
+      <div class="space-y-6 text-center md:text-left">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white">Need Assistance?</h1>
+        <p class="text-lg text-zinc-300">{tagline}</p>
+        <a
+          href="/contact"
+          class="inline-block bg-gradient-to-br from-cyan-400 to-purple-500 text-neutral-800 font-semibold py-2 px-6 rounded-full shadow hover:from-cyan-300 hover:to-purple-400 transition-all">
+          Contact Us
+        </a>
+      </div>
+      <div class="relative hidden md:block">
+        <img
+          src="https://images.unsplash.com/photo-1542284530-c2eaee96fc98?q=80&w=1000&auto=format&fit=crop"
+          alt="Support"
+          class="rounded-3xl ring-1 ring-white/10 shadow-lg object-cover w-full h-72 md:h-96" />
+      </div>
+    </div>
+  </section>
+
   <section class="px-6 py-12 sm:px-8 lg:px-12">
     <div class="mx-auto max-w-7xl space-y-12">
       <div class="text-center space-y-3">
-        <h1 class="text-4xl sm:text-5xl font-bold text-white">Support</h1>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white">Support Options</h2>
         <p class="text-lg text-zinc-300">Need help with KBVE products or services? We're here for you.</p>
       </div>
 
@@ -53,6 +75,18 @@ const supportOptions = [
           </a>
         ))}
       </div>
+    </div>
+  </section>
+
+  <section class="px-6 py-12 sm:px-8 lg:px-12">
+    <div class="mx-auto max-w-7xl space-y-8">
+      <h2 class="text-3xl font-bold text-white text-center">FAQs</h2>
+      <ul class="space-y-4 text-zinc-300 list-disc list-inside">
+        <li><strong>What is the purpose of the Privacy Policy?</strong> The Privacy Policy explains how we handle your personal data.</li>
+        <li><strong>How can I manage cookies on your site?</strong> Our Cookie Policy provides details on cookie management.</li>
+        <li><strong>What does the EULA cover?</strong> The End-User License Agreement outlines the terms under which you may use our software.</li>
+        <li><strong>Where can I find the Terms of Service?</strong> The Terms of Service detail the guidelines for using our services.</li>
+      </ul>
     </div>
   </section>
 </Layout>
