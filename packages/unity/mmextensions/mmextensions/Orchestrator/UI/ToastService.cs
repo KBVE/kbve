@@ -261,9 +261,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             var rect = panel.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(1f, 0f);
             rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(1f, 0.5f); //rect.pivot = new Vector2(1f, 0f);
             rect.sizeDelta = new Vector2(600f, 80f);
-            rect.anchoredPosition = new Vector2(-40f, 40f);
+            rect.anchoredPosition = new Vector2(-40f, 100f);
 
             var textGO = new GameObject("ToastText", typeof(RectTransform), typeof(TextMeshProUGUI));
             textGO.transform.SetParent(panel.transform, false);
