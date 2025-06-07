@@ -46,6 +46,14 @@ namespace KBVE.MMExtensions.Orchestrator
 
             builder.RegisterEntryPoint<CharacterEventRegistrar>();
 
+            //  Canvas
+            builder.RegisterComponentOnNewGameObject<GlobalCanvasService>(Lifetime.Singleton, "GlobalCanvas")
+                .DontDestroyOnLoad()
+                .AsSelf()
+                .AsImplementedInterfaces()
+                .As<IAsyncStartable>()
+                .As<IDisposable>();
+
             builder.RegisterComponentOnNewGameObject<ToastService>(Lifetime.Singleton, "ToastService")
                 .DontDestroyOnLoad()
                 .AsSelf()
