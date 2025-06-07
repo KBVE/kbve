@@ -21,6 +21,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         //private readonly Queue<ToastRequest> _toastQueue = new();
         public ObservableList<ToastRequest> ToastQueue { get; } = new ObservableList<ToastRequest>();
 
+        private const string DefaultBackgroundKey = "toast_background";
+
         private IGlobalCanvas _globalCanvas;
 
         private IDisposable _toastSubscription;
@@ -113,7 +115,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 Message = message,
                 Type = type,
                 Duration = duration,
-                BackgroundAddressableKey = backgroundKey
+                BackgroundAddressableKey = string.IsNullOrWhiteSpace(backgroundKey)
+            ? DefaultBackgroundKey
+            : backgroundKey
             });
         }
 
@@ -163,7 +167,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             var rect = _panelRect ?? _toastText.GetComponent<RectTransform>();
             rect.localScale = Vector3.one * scaleDown;
             _toastGroup.alpha = 0f;
-           
+
             var targetPos = rect.anchoredPosition;
             var startPos = targetPos + new Vector2(0f, -150f);
             rect.anchoredPosition = startPos;
@@ -202,6 +206,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 _toastBackgroundImage.enabled = false;
             }
 #endif
+            await UniTask.Yield();
         }
 
         private static async UniTask FadeCanvasGroup(CanvasGroup group, float targetAlpha, float duration)
@@ -261,7 +266,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             var rect = panel.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(1f, 0f);
             rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot     = new Vector2(1f, 0.5f);
+            rect.pivot = new Vector2(1f, 0.5f);
             rect.sizeDelta = new Vector2(600f, 80f);
 
             float xOffset = Mathf.Min(Screen.width * 0.05f, 120f);
