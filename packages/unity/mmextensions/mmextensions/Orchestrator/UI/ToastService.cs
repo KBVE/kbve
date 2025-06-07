@@ -29,7 +29,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         private bool _isShowing;
         private TextMeshProUGUI _toastText;
         private Image _toastBackground;
-        private RawImage _toastBackgroundImage;
 
         private CanvasGroup _toastGroup;
         private RectTransform _panelRect;
@@ -88,8 +87,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _toastText = panel.transform.Find("ToastText")?.GetComponent<TextMeshProUGUI>();
             _toastBackground = panel.GetComponent<Image>();
             _toastGroup = panel.GetComponent<CanvasGroup>();
-            _toastBackgroundImage = panel.GetComponent<RawImage>();
-
             _toastGroup.alpha = 0f;
 
             if (!IsInitialized)
@@ -179,33 +176,29 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             await UniTask.Delay(System.TimeSpan.FromSeconds(toast.Duration));
             await FadeCanvasGroup(_toastGroup, 0f, fadeDuration);
 
-            if (_toastBackgroundImage != null)
-            {
-                _toastBackgroundImage.texture = null;
-                _toastBackgroundImage.enabled = false;
-            }
+           
         }
 
         private async UniTask LoadBackgroundImage(string addressableKey)
         {
-#if UNITY_ADDRESSABLES
-            if (string.IsNullOrWhiteSpace(addressableKey) || _toastBackgroundImage == null)
+            if (string.IsNullOrWhiteSpace(addressableKey) || _toastBackground == null)
                 return;
 
             try
             {
-                var handle = Addressables.LoadAssetAsync<Texture2D>(addressableKey);
-                var texture = await handle.ToUniTask();
+                var handle = Addressables.LoadAssetAsync<Sprite>(addressableKey);
+                await handle.ToUniTask();
+                var sprite = handle.Result;
 
-                _toastBackgroundImage.texture = texture;
-                _toastBackgroundImage.enabled = true;
+                _toastBackground.sprite = sprite;
+                _toastBackground.enabled = sprite != null;
             }
             catch
             {
                 Debug.LogWarning($"[ToastService] Failed to load background '{addressableKey}'.");
-                _toastBackgroundImage.enabled = false;
+                    _toastBackground.sprite = null;
+                    _toastBackground.enabled = false;
             }
-#endif
             await UniTask.Yield();
         }
 
@@ -261,7 +254,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private GameObject CreateToastPanel()
         {
-            var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(RawImage));
+            var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
 
             var rect = panel.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(1f, 0f);
