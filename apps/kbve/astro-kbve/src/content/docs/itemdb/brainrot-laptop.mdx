@@ -41,7 +41,6 @@ import ItemDBPanel from 'src/layouts/starlight/frontmatter/itemdb/ItemDBPanel.as
 import VisualNovelPanel from 'src/layouts/components/vn/VisualNovelPanel.astro';
 import {
     Aside,
-    Callout,
     Steps,
     Card,
     CardGrid,
@@ -54,7 +53,7 @@ import {
 The **Brainrot Laptop** wheezes to life with a chorus of dying fans and glitchy pixels.
 When connected, it bombards you with 2000-era pop-ups and suspicious toolbars.
 
-<Callout type="warning">Use at your own risk—its malware is practically vintage.</Callout>
+<Aside type="caution">Use at your own risk—its malware is practically vintage.</Aside>
 
 <ItemDBPanel data={frontmatter} />
 
@@ -79,16 +78,20 @@ This relic is best handled with thick gloves and a disposable network.
   </Card>
 </CardGrid>
 
-<Code lang="bash">
-# quick cleanup command
+## Quick Cleanup Command
+
+
+```bash
+
 sudo brainrot --purge-cache
-</Code>
+
+```
 
 <VisualNovelPanel
   sideImage="/assets/images/brand/rareicon/keyboard_warfare.webp"
   defaultId="01HTXYZBRN001"
   onChoice="trackChoice"
-  options=[
+  options={[
     {
       id: '01HTXYZBRN001',
       title: 'Startup Shriek',
@@ -114,7 +117,7 @@ sudo brainrot --purge-cache
       image: '/images/scene_shutdown.jpg',
       message: 'For a moment, the world feels quieter.'
     }
-  ]
+  ]}
 />
 
 ---
