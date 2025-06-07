@@ -51,6 +51,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         [SerializeField] private float scaleUp = 1.1f;
         [SerializeField] private float scaleDown = 1f;
         [SerializeField] private float scaleDuration = 0.1f;
+        [SerializeField] private float mobileScaleMultiplier = 0.85f;
 
         public struct ToastRequest
         {
@@ -150,9 +151,21 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 : _toastColors[ToastType.Info];
 
             _toastText.ForceMeshUpdate();
-            var preferred = _toastText.GetPreferredValues(toast.Message, Screen.width * 0.9f, Mathf.Infinity);
-            var width = Mathf.Clamp(preferred.x + 40f, 200f, Screen.width * 0.9f);
-            var height = Mathf.Clamp(preferred.y + 20f, 60f, Screen.height * 0.3f);
+            var canvas = _globalCanvas?.Canvas;
+            float scale = canvas != null ? canvas.scaleFactor : 1f;
+            float canvasWidth = canvas != null ? canvas.pixelRect.width / scale : Screen.width;
+            float canvasHeight = canvas != null ? canvas.pixelRect.height / scale : Screen.height;
+
+            float maxWidth = canvasWidth * 0.9f;
+            var preferred = _toastText.GetPreferredValues(toast.Message, maxWidth, Mathf.Infinity);
+            var width = Mathf.Clamp(preferred.x + 40f, 200f, maxWidth);
+            var height = Mathf.Clamp(preferred.y + 20f, 60f, canvasHeight * 0.3f);
+
+            if (Application.isMobilePlatform)
+            {
+                width *= mobileScaleMultiplier;
+                height *= mobileScaleMultiplier;
+            }
             if (_panelRect != null)
             {
                 _panelRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
@@ -262,8 +275,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             rect.pivot = new Vector2(1f, 0.5f);
             rect.sizeDelta = new Vector2(600f, 80f);
 
-            float xOffset = Mathf.Min(Screen.width * 0.05f, 120f);
-            float yOffset = Mathf.Min(Screen.height * 0.1f, 160f);
+            var canvas = _globalCanvas?.Canvas;
+            float scale = canvas != null ? canvas.scaleFactor : 1f;
+            float canvasWidth = canvas != null ? canvas.pixelRect.width / scale : Screen.width;
+            float canvasHeight = canvas != null ? canvas.pixelRect.height / scale : Screen.height;
+
+            float xOffset = Mathf.Min(canvasWidth * 0.05f, 120f);
+            float yOffset = Mathf.Min(canvasHeight * 0.1f, 160f);
             rect.anchoredPosition = new Vector2(-xOffset, yOffset);
 
             var textGO = new GameObject("ToastText", typeof(RectTransform), typeof(TextMeshProUGUI));
