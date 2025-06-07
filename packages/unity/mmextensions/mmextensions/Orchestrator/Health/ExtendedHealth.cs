@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
 using MMHealth = MoreMountains.TopDownEngine.Health;

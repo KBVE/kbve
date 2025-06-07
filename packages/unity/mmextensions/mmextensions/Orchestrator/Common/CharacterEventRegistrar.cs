@@ -7,6 +7,8 @@ using VContainer.Unity;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using KBVE.MMExtensions.Orchestrator.Core.UI;
+using KBVE.MMExtensions.Orchestrator.Health;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
@@ -14,12 +16,15 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                                            MMEventListener<TopDownEngineEvent>
     {
         private readonly ICharacterRegistry _registry;
+        private readonly IHUDService _hudService;
+
         // private const string PlayerID = "Player1"; - Removing the hardcoded ref to player1.
 
         [Inject]
-        public CharacterEventRegistrar(ICharacterRegistry registry)
+        public CharacterEventRegistrar(ICharacterRegistry registry, IHUDService hudService)
         {
             _registry = registry;
+            _hudService = hudService;
         }
 
 
@@ -46,6 +51,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                     break;
 
                 case TopDownEngineEventTypes.CharacterSwap:
+                    var swapped = evt.OriginCharacter;
+                    if (swapped != null)
+                    {
+                        var health = swapped.GetComponent<ExtendedHealth>();
+                        if (health != null)
+                            _hudService.SetActiveStatsAsync(health.Stats).Forget();
+                    }
                     Debug.Log("[CharacterEventRegistrar] Character Swap Detected");
                     break;
             }
@@ -78,7 +90,16 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             // Register the character (even if multiple for same PlayerID)
             _registry.Register(playerID, character);
             Debug.Log($"[CharacterEventRegistrar] Registered Character '{character.name}' to PlayerID '{playerID}'");
-
+            var extendedHealth = character.GetComponent<ExtendedHealth>();
+            if (extendedHealth != null)
+            {
+                _hudService.SetActiveStatsAsync(extendedHealth.Stats).Forget();
+                Debug.Log($"[CharacterEventRegistrar] HUD stats set for PlayerID '{playerID}'");
+            }
+            else
+            {
+                Debug.LogWarning($"[CharacterEventRegistrar] No ExtendedHealth component found on '{character.name}' — HUD will not show stats.");
+            }
             // Only register inventory if not already present
             if (!_registry.TryGetInventory(playerID, out _))
             {
@@ -137,7 +158,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
             await UniTask.Yield();
         }
-        
+
         private Inventory FindInventoryByPlayerID(string playerID)
         {
             foreach (var inv in UnityEngine.Object.FindObjectsByType<Inventory>(FindObjectsSortMode.None))

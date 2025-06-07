@@ -64,9 +64,17 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
             foreach (UICanvasLayer layer in Enum.GetValues(typeof(UICanvasLayer)))
             {
-                var layerGO = new GameObject(layer.ToString() + "Layer");
+                var layerGO = new GameObject(layer.ToString() + "Layer", typeof(RectTransform));
                 layerGO.transform.SetParent(_canvasGO.transform, false);
-                _layerRoots[layer] = layerGO.transform;
+
+                var rect = layerGO.GetComponent<RectTransform>();
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+                rect.pivot = new Vector2(0.5f, 0.5f);
+
+                _layerRoots[layer] = rect;
             }
 
             IsReady.Value = true;

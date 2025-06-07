@@ -21,13 +21,14 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         //private readonly Queue<ToastRequest> _toastQueue = new();
         public ObservableList<ToastRequest> ToastQueue { get; } = new ObservableList<ToastRequest>();
 
+        private const string DefaultBackgroundKey = "toast_background";
+
         private IGlobalCanvas _globalCanvas;
 
         private IDisposable _toastSubscription;
         private bool _isShowing;
         private TextMeshProUGUI _toastText;
         private Image _toastBackground;
-        private RawImage _toastBackgroundImage;
 
         private CanvasGroup _toastGroup;
         private RectTransform _panelRect;
@@ -86,8 +87,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _toastText = panel.transform.Find("ToastText")?.GetComponent<TextMeshProUGUI>();
             _toastBackground = panel.GetComponent<Image>();
             _toastGroup = panel.GetComponent<CanvasGroup>();
-            _toastBackgroundImage = panel.GetComponent<RawImage>();
-
             _toastGroup.alpha = 0f;
 
             if (!IsInitialized)
@@ -113,7 +112,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 Message = message,
                 Type = type,
                 Duration = duration,
-                BackgroundAddressableKey = backgroundKey
+                BackgroundAddressableKey = string.IsNullOrWhiteSpace(backgroundKey)
+            ? DefaultBackgroundKey
+            : backgroundKey
             });
         }
 
@@ -160,48 +161,45 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
             await LoadBackgroundImage(toast.BackgroundAddressableKey);
 
-            var rect = _toastText.GetComponent<RectTransform>();
+            var rect = _panelRect ?? _toastText.GetComponent<RectTransform>();
             rect.localScale = Vector3.one * scaleDown;
             _toastGroup.alpha = 0f;
 
-            var startPos = rect.anchoredPosition;
-            startPos.y -= 150f;
+            var targetPos = rect.anchoredPosition;
+            var startPos = targetPos + new Vector2(0f, -150f);
             rect.anchoredPosition = startPos;
 
-            await AnimateSlideAndScale(rect, startPos, Vector2.zero, scaleDown, scaleUp, scaleDuration);
+            await AnimateSlideAndScale(rect, startPos, targetPos, scaleDown, scaleUp, scaleDuration);
             await FadeCanvasGroup(_toastGroup, 1f, fadeDuration);
             await AnimateScale(rect, scaleUp, 1f, scaleDuration);
 
             await UniTask.Delay(System.TimeSpan.FromSeconds(toast.Duration));
             await FadeCanvasGroup(_toastGroup, 0f, fadeDuration);
 
-            if (_toastBackgroundImage != null)
-            {
-                _toastBackgroundImage.texture = null;
-                _toastBackgroundImage.enabled = false;
-            }
+           
         }
 
         private async UniTask LoadBackgroundImage(string addressableKey)
         {
-#if UNITY_ADDRESSABLES
-            if (string.IsNullOrWhiteSpace(addressableKey) || _toastBackgroundImage == null)
+            if (string.IsNullOrWhiteSpace(addressableKey) || _toastBackground == null)
                 return;
 
             try
             {
-                var handle = Addressables.LoadAssetAsync<Texture2D>(addressableKey);
-                var texture = await handle.ToUniTask();
+                var handle = Addressables.LoadAssetAsync<Sprite>(addressableKey);
+                await handle.ToUniTask();
+                var sprite = handle.Result;
 
-                _toastBackgroundImage.texture = texture;
-                _toastBackgroundImage.enabled = true;
+                _toastBackground.sprite = sprite;
+                _toastBackground.enabled = sprite != null;
             }
             catch
             {
                 Debug.LogWarning($"[ToastService] Failed to load background '{addressableKey}'.");
-                _toastBackgroundImage.enabled = false;
+                    _toastBackground.sprite = null;
+                    _toastBackground.enabled = false;
             }
-#endif
+            await UniTask.Yield();
         }
 
         private static async UniTask FadeCanvasGroup(CanvasGroup group, float targetAlpha, float duration)
@@ -256,14 +254,17 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private GameObject CreateToastPanel()
         {
-            var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(RawImage));
+            var panel = new GameObject("ToastPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
 
             var rect = panel.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(1f, 0f);
             rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(1f, 0.5f);
             rect.sizeDelta = new Vector2(600f, 80f);
-            rect.anchoredPosition = new Vector2(-40f, 40f);
+
+            float xOffset = Mathf.Min(Screen.width * 0.05f, 120f);
+            float yOffset = Mathf.Min(Screen.height * 0.1f, 160f);
+            rect.anchoredPosition = new Vector2(-xOffset, yOffset);
 
             var textGO = new GameObject("ToastText", typeof(RectTransform), typeof(TextMeshProUGUI));
             textGO.transform.SetParent(panel.transform, false);
