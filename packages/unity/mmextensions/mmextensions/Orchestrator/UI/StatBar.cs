@@ -5,15 +5,22 @@ using R3;
 using KBVE.MMExtensions.Orchestrator.Health;
 using System;
 
+
 namespace KBVE.MMExtensions.Orchestrator.Core.UI
 {
     public class StatBar : MonoBehaviour, IDisposable
     {
-        [SerializeField] private Image _fill;
-        [SerializeField] private TextMeshProUGUI _label;
+        private Image _fill;
+        private TextMeshProUGUI _label;
 
         private StatType _type;
         private IDisposable _sub;
+
+        public void SetUIReferences(Image fill, TextMeshProUGUI label)
+        {
+            _fill = fill;
+            _label = label;
+        }
 
         public void Bind(StatObservable stat)
         {

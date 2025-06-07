@@ -167,11 +167,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             textRT.offsetMin = textRT.offsetMax = Vector2.zero;
 
             var bar = go.GetComponent<StatBar>();
-            bar.GetType().GetField("_fill", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(bar, fillImage);
-            bar.GetType().GetField("_label", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(bar, text);
-
+            bar.SetUIReferences(fillImage, text);
             bar.Bind(stat);
 
             go.transform.SetParent(parent, false);
