@@ -61,6 +61,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             ReactiveStats.Clear();
             _lookup.Clear();
 
+            int barIndex = 0;
+
             foreach (var (type, data) in statMap)
             {
                 var view = new StatObservable { Type = type };
@@ -71,14 +73,17 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
                 if (!_barPool.TryGetValue(type, out var bar))
                 {
-                    bar = CreateStatBar(view, _panelRect);
+                    bar = CreateStatBar(view, _panelRect, barIndex);
                     _barPool[type] = bar;
                 }
                 else
                 {
                     bar.gameObject.SetActive(true);
                     bar.Bind(view);
+                    SetBarPosition(bar, barIndex);
                 }
+
+                barIndex++;
             }
 
             foreach (var kvp in _barPool)
@@ -109,37 +114,38 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 bar.gameObject.SetActive(false);
         }
 
-            private GameObject CreateHUDPanel()
-            {
-                var panel = new GameObject("HUDPanel", typeof(RectTransform), typeof(CanvasGroup), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+        private GameObject CreateHUDPanel()
+        {
+            var panel = new GameObject("HUDPanel", typeof(RectTransform), typeof(CanvasGroup));
 
-                var rect = panel.GetComponent<RectTransform>();
-                rect.anchorMin = new Vector2(0.5f, 1f);
-                rect.anchorMax = new Vector2(0.5f, 1f);
-                rect.pivot = new Vector2(0.5f, 1f);
-                rect.anchoredPosition = new Vector2(0f, -50f);
-                rect.sizeDelta = new Vector2(600f, 0f); 
+            var rect = panel.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 1f);
+            rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -50f);
+            rect.sizeDelta = new Vector2(600f, 300f);
 
-                var layout = panel.GetComponent<VerticalLayoutGroup>();
-                layout.childAlignment = TextAnchor.UpperCenter;
-                layout.spacing = 10f;
-                layout.padding = new RectOffset(10, 10, 10, 10);
+            return panel;
+        }
+        
+        private void SetBarPosition(Component bar, int index)
+        {
+            var rt = bar.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(0f, -(index * 30f));
+        }
 
-                var fitter = panel.GetComponent<ContentSizeFitter>();
-                fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-                fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-
-                return panel;
-            }
-
-        private StatBar CreateStatBar(StatObservable stat, Transform parent)
+        private StatBar CreateStatBar(StatObservable stat, Transform parent, int index)
         {
             var go = new GameObject($"{stat.Type}Bar", typeof(RectTransform), typeof(StatBar));
             var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(200, 24);
+            rt.sizeDelta = new Vector2(260, 24);
             rt.anchorMin = new Vector2(0.5f, 1f);
             rt.anchorMax = new Vector2(0.5f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
+            go.transform.SetParent(parent, false);
+            var bar = go.GetComponent<StatBar>();
+
+            SetBarPosition(bar, index);
 
             // Background
             var background = new GameObject("Background", typeof(Image));
@@ -176,7 +182,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             textRT.anchorMax = Vector2.one;
             textRT.offsetMin = textRT.offsetMax = Vector2.zero;
 
-            var bar = go.GetComponent<StatBar>();
+            //var bar = go.GetComponent<StatBar>();
             bar.SetUIReferences(fillImage, text);
             bar.Bind(stat);
 
