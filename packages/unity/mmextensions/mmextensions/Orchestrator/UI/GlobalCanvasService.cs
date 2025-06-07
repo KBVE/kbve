@@ -26,12 +26,27 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public ReactiveProperty<bool> IsReady { get; } = new(false);
 
+        private void Awake()
+        {
+            _canvasGO = this.gameObject;
+
+            if (!_canvasGO.TryGetComponent(out Canvas canvas))
+                canvas = _canvasGO.AddComponent<Canvas>();
+            Canvas = canvas;
+
+            if (!_canvasGO.TryGetComponent(out CanvasScaler scaler))
+                scaler = _canvasGO.AddComponent<CanvasScaler>();
+
+            if (!_canvasGO.TryGetComponent(out GraphicRaycaster raycaster))
+                raycaster = _canvasGO.AddComponent<GraphicRaycaster>();
+        }
+
         public async UniTask StartAsync(CancellationToken cancellation)
         {
             await UniTask.NextFrame(cancellation);
 
             _canvasGO = this.gameObject;
-            _canvasGO.name = "GlobalUICanvas";
+            // _canvasGO.name = "GlobalUICanvas";
 
             Canvas = _canvasGO.GetComponent<Canvas>() ?? _canvasGO.AddComponent<Canvas>();
             var scaler = _canvasGO.GetComponent<CanvasScaler>() ?? _canvasGO.AddComponent<CanvasScaler>();
