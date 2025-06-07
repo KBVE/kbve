@@ -61,6 +61,13 @@ namespace KBVE.MMExtensions.Orchestrator
                 .As<IDisposable>()
                 .As<IAsyncStartable>();
 
+            builder.RegisterComponentOnNewGameObject<HUDService>(Lifetime.Singleton, "HUDService")
+                .DontDestroyOnLoad()
+                .AsSelf()
+                .AsImplementedInterfaces()
+                .As<IAsyncStartable>()
+                .As<IDisposable>();
+
             // === NPC Orchestrator === ! Can Break at Register the shared NPCDefinitionDatabase (manually assigned in scene or loaded)
             if (npcDefinitionDatabase == null)
             {

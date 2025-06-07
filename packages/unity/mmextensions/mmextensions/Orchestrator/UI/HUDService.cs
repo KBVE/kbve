@@ -46,7 +46,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _panelRect = _panelGO.GetComponent<RectTransform>();
 
             DontDestroyOnLoad(_panelGO);
-            DontDestroyOnLoad(this.gameObject);
 
             Debug.Log("[HUDService] Initialized.");
         }
