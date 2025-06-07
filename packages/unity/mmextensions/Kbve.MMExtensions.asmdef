@@ -5,6 +5,7 @@
       "UniTask",
       "UniTask.Addressables",
       "Cysharp.Threading.Tasks",
+      "UnityEngine.UI",
       "Unity.Collections",
       "Unity.ResourceManager",
       "UnityEngine.Physics2DModule",

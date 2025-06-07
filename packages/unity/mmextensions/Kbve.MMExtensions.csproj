@@ -217,6 +217,22 @@
   </Reference>
 </ItemGroup>
 
+<!-- Unity GUI -->
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="UnityEngine.UI">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\UnityExtensions\Unity\GUISystem\UnityEngine.UI.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="UnityEngine.UI">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
   <!-- Kilonet -->
   <ItemGroup>
     <ProjectReference Include="..\kilonet\Kbve.Kilonet.csproj" />
