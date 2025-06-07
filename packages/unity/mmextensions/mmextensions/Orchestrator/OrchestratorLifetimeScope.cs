@@ -5,6 +5,7 @@ using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
 using KBVE.MMExtensions.Orchestrator.Core.UI;
 using System.Linq;
+using System;
 
 namespace KBVE.MMExtensions.Orchestrator
 {
@@ -20,9 +21,13 @@ namespace KBVE.MMExtensions.Orchestrator
         [Header("Injectables")]
         [SerializeField]
         private OrchestratorBootstrapper bootstrapper;
+        
+        protected override void Awake()
+        {
+            base.Awake();
+            DontDestroyOnLoad(this.gameObject);
+        }
 
-        [Header("UI Services")]
-        [SerializeField] private ToastService toastService;
        
         protected override void Configure(IContainerBuilder builder)
         {
@@ -41,10 +46,20 @@ namespace KBVE.MMExtensions.Orchestrator
 
             builder.RegisterEntryPoint<CharacterEventRegistrar>();
 
-            // [With Toast]
-            // Fails at RunTime builder.RegisterComponentInHierarchy<ToastService>().AsSelf().AsImplementedInterfaces();
-            // builder.RegisterComponent(toastService).As<ToastService>().AsSelf();
-            builder.RegisterComponent(toastService).AsSelf().AsImplementedInterfaces();
+            //  Canvas
+            builder.RegisterComponentOnNewGameObject<GlobalCanvasService>(Lifetime.Singleton, "GlobalCanvas")
+                .DontDestroyOnLoad()
+                .AsSelf()
+                .AsImplementedInterfaces()
+                .As<IAsyncStartable>()
+                .As<IDisposable>();
+
+            builder.RegisterComponentOnNewGameObject<ToastService>(Lifetime.Singleton, "ToastService")
+                .DontDestroyOnLoad()
+                .AsSelf()
+                .AsImplementedInterfaces()
+                .As<IDisposable>()
+                .As<IAsyncStartable>();
 
             // === NPC Orchestrator === ! Can Break at Register the shared NPCDefinitionDatabase (manually assigned in scene or loaded)
             if (npcDefinitionDatabase == null)
@@ -56,7 +71,7 @@ namespace KBVE.MMExtensions.Orchestrator
                 builder.RegisterInstance<INPCDefinitionDatabase>(npcDefinitionDatabase).AsSelf();
             }
 
-            builder.Register<NPCGlobalController>(Lifetime.Singleton).As<INPCGlobalController>().AsSelf();;
+            builder.Register<NPCGlobalController>(Lifetime.Singleton).As<INPCGlobalController>().AsSelf(); ;
 
             builder.Register<OrchestratorNPCGlobals>(Lifetime.Singleton)
                 .As<IAsyncStartable>();

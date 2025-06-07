@@ -1,15 +1,23 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
-import { glob } from "astro/loaders";
+import { glob } from 'astro/loaders';
 
 import type { CategoryName } from 'src/data/types';
-import { ItemCategoryFlags , getCategoryValue} from 'src/data/types';
+import { ItemCategoryFlags, getCategoryValue } from 'src/data/types';
 
-import { ICraftingSchema, IDeployableSchema, IScriptBindingSchema, IBonusSchema, IObjectSchema} from 'src/data/schema';
+import {
+	ICraftingSchema,
+	IDeployableSchema,
+	IScriptBindingSchema,
+	IBonusSchema,
+	IObjectSchema,
+	IQuestSchema,
+} from 'src/data/schema';
 
-
-export function validateItemUniqueness(items: typeof IObjectSchema['_type'][]) {
+export function validateItemUniqueness(
+	items: (typeof IObjectSchema)['_type'][],
+) {
 	const seenIds = new Set<string>();
 	const seenKeys = new Set<number>();
 	const seenRefs = new Set<string>();
@@ -31,19 +39,26 @@ export function validateItemUniqueness(items: typeof IObjectSchema['_type'][]) {
 }
 
 const itemdb = defineCollection({
-  loader: glob({ pattern: "**/*.mdx", base: "./src/content/docs/itemdb" }),
-  schema: IObjectSchema
+	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/itemdb' }),
+	schema: IObjectSchema,
 });
 
+const questdb = defineCollection({
+	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/questdb' }),
+	schema: IQuestSchema,
+});
 
 export const collections = {
 	docs: defineCollection({
 		schema: docsSchema({
-			extend: pageSiteGraphSchema.merge(z.object({
-				itemdb: z.array(IObjectSchema).optional(),
-			})),
-		
+			extend: pageSiteGraphSchema.merge(
+				z.object({
+					itemdb: z.array(IObjectSchema).optional(),
+					questdb: z.array(IQuestSchema).optional(),
+				}),
+			),
 		}),
 	}),
 	itemdb: itemdb,
+	questdb: questdb,
 };
