@@ -30,8 +30,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _sub?.Dispose();
             _sub = stat.Current
                 .CombineLatest(stat.Max, (cur, max) => cur / Mathf.Max(max, 1f))
-                .Subscribe(val => _fill.fillAmount = val)
-                .AddTo(this);
+                .Subscribe(val => _fill.fillAmount = val);
         }
 
         public void Dispose()
