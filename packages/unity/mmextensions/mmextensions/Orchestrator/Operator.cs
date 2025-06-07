@@ -1,7 +1,7 @@
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
 using KBVE.MMExtensions.Orchestrator.Core.UI;
-
+using Cysharp.Threading.Tasks;
 using VContainer;
 
 namespace KBVE.MMExtensions.Orchestrator
@@ -17,6 +17,8 @@ namespace KBVE.MMExtensions.Orchestrator
 
         public static IToastService Toast { get; internal set; }
 
+        private static readonly UniTaskCompletionSource _readyTcs = new();
+        public static UniTask Ready => _readyTcs.Task;
 
         /// <summary>
         /// Initializes service references from VContainer.
@@ -28,6 +30,8 @@ namespace KBVE.MMExtensions.Orchestrator
             Prefab = container.Resolve<IPrefabOrchestrator>();
             Ticker = container.Resolve<TickSystem>();
             Toast = container.Resolve<IToastService>();
+            
+             _readyTcs.TrySetResult();
 
         }
     }
