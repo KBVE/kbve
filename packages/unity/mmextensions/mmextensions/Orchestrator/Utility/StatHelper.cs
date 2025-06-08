@@ -8,7 +8,6 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         public static readonly HashSet<StatType> RegeneratingStats = new()
         {
             StatType.Mana,
-            StatType.Stamina,
             StatType.Energy
         };
 
