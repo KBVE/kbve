@@ -137,29 +137,29 @@ namespace KBVE.MMExtensions.Database
             AddressableUtility.MakeAddressable(assetPath, quest.id, "Quests");
         }
 
-        private static void CreateMMAchievementAsset(QuestEntry quest)
-        {
-            string assetPath = $"{AchievementAssetFolder}{quest.id}_MM.asset";
-            MMAchievement mmAchievement = AssetDatabase.LoadAssetAtPath<MMAchievement>(assetPath);
+        // private static void CreateMMAchievementAsset(QuestEntry quest)
+        // {
+        //     string assetPath = $"{AchievementAssetFolder}{quest.id}_MM.asset";
+        //     MMAchievement mmAchievement = AssetDatabase.LoadAssetAtPath<MMAchievement>(assetPath);
 
-            if (mmAchievement == null)
-            {
-                mmAchievement = ScriptableObject.CreateInstance<MMAchievement>();
-                AssetDatabase.CreateAsset(mmAchievement, assetPath);
-            }
+        //     if (mmAchievement == null)
+        //     {
+        //         mmAchievement = ScriptableObject.CreateInstance<MMAchievement>();
+        //         AssetDatabase.CreateAsset(mmAchievement, assetPath);
+        //     }
 
-            mmAchievement.AchievementID = quest.id;
-            mmAchievement.Title = quest.title;
-            mmAchievement.Description = quest.description;
-            mmAchievement.Unlocked = false;
-            EditorUtility.SetDirty(mmAchievement);
-        }
+        //     mmAchievement.AchievementID = quest.id;
+        //     mmAchievement.Title = quest.title;
+        //     mmAchievement.Description = quest.description;
+        //     mmAchievement.Unlocked = false;
+        //     EditorUtility.SetDirty(mmAchievement);
+        // }
 
 
-        public List<MMQuest> LoadedQuests;
+        public static List<MMQuest> LoadedQuests;
 
         //loads the list of scriptableobjects of type MMQuest from the disk into the moremountains system
-        static void LoadCustomAchievements()
+        public static void LoadCustomAchievements()
         {
             // Load all MMQuest assets from Assets/MMAchievements/
             string[] guids = AssetDatabase.FindAssets("t:MMQuest", new[] { AchievementAssetFolder });
@@ -172,9 +172,8 @@ namespace KBVE.MMExtensions.Database
                 MMQuest quest = AssetDatabase.LoadAssetAtPath<MMQuest>(path);
                 if (quest != null)
                 {
-                    achievements.Add(Object.Instantiate(quest.MMAchievement));
-
-                    LoadedQuests.Add(quest);
+                    achievements.Add(quest.ToMMAchievement());
+                    LoadedQuests.Add(GameObject.Instantiate(quest));
                     //achievements.Add(Object.Instantiate(quest)); // clone to avoid modifying asset directly
                 }
             }
