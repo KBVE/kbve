@@ -233,6 +233,23 @@
   </Reference>
 </ItemGroup>
 
+  <!-- Unity Audio -->
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="UnityEngine.AudioModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.AudioModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="UnityEngine.AudioModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.AudioModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+
+
   <!-- Kilonet -->
   <ItemGroup>
     <ProjectReference Include="..\kilonet\Kbve.Kilonet.csproj" />
