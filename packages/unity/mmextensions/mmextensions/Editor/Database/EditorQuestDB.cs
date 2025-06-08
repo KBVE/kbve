@@ -20,10 +20,9 @@ namespace KBVE.MMExtensions.Database
     public class EditorQuestDB : EditorWindow
     {
         private const string ApiUrl = "https://kbve.com/api/questdb.json";
-
         private const string AchievementAssetFolder = "Assets/Dungeon/Data/QuestDB/";
 
-        private const string BaseImageUrl = "https://kbve.com";
+        private const string BaseImageUrl = "https://kbve.com/assets";
         private const string SpriteFolder = "Assets/Dungeon/Data/QuestDB/Sprites/";
         private const string PrefabFolder = "Assets/Dungeon/Data/QuestDB/Prefabs/";
         private const string AchievementDefinitionsFolder = "Assets/Dungeon/Data/QuestDB/Definitions/";
@@ -64,6 +63,48 @@ namespace KBVE.MMExtensions.Database
         }
 
         // === Helper Methods ===
+
+        private static IEnumerator CreateQuestSprite(string iconPath, string iconName)
+        {
+            string imageUrl = BaseImageUrl + iconPath;
+            string localImagePath = Path.Combine(SpriteFolder, iconName);
+
+            // Download the image
+            using (UnityWebRequest texRequest = UnityWebRequestTexture.GetTexture(imageUrl))
+            {
+                yield return texRequest.SendWebRequest();
+
+                if (texRequest.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogWarning($"Quest icon download failed: {imageUrl}");
+                    yield break;
+                }
+
+                var texture = DownloadHandlerTexture.GetContent(texRequest);
+                File.WriteAllBytes(localImagePath, texture.EncodeToPNG());
+                Debug.Log($"Saved quest icon: {localImagePath}");
+            }
+
+            AssetDatabase.ImportAsset(localImagePath, ImportAssetOptions.ForceUpdate);
+
+            // Configure the texture importer
+            TextureImporter importer = (TextureImporter)TextureImporter.GetAtPath(localImagePath);
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.spritePixelsPerUnit = 16; // Adjust if you want different density
+            importer.mipmapEnabled = false;
+            importer.alphaIsTransparency = true;
+            importer.spritePivot = new Vector2(0.5f, 0.5f);
+            importer.SaveAndReimport();
+
+            // Optionally return the sprite if needed
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(localImagePath);
+            if (sprite == null)
+            {
+                Debug.LogWarning($"Failed to import sprite at path: {localImagePath}");
+            }
+        }
+
         // private static void CreateSteamAchievementAsset(QuestEntry quest)
         // {
         //     string assetPath = $"{AchievementAssetFolder}{quest.id}_Steam.asset";
