@@ -3,17 +3,6 @@ using UnityEngine;
 namespace KBVE.MMExtensions.Orchestrator.Health
 {
 
-    public enum StatType
-    {
-        Health,
-        Mana,
-        Stamina,
-        Energy,
-        Strength,
-        Intelligence,
-        Armor,
-    }
-
 
     /// <summary>
     /// Represents a single stat (e.g., mana, stamina, energy) with support for clamped modification and regeneration.
