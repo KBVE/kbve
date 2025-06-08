@@ -1,5 +1,10 @@
+using System;
 using System.Collections.Generic;
 using KBVE.MMExtensions.Orchestrator.Health;
+using UnityEngine;
+using Cysharp.Threading.Tasks;
+using UnityEngine.AddressableAssets;
+
 
 namespace KBVE.MMExtensions.Orchestrator.Health
 {
@@ -10,6 +15,14 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             StatType.Mana,
             StatType.Energy
         };
+
+        public static async UniTask<Sprite> LoadStatIconAsync(StatType stat)
+        {
+            var path = GetIconPath(stat);
+            var handle = Addressables.LoadAssetAsync<Sprite>(path);
+            await handle.ToUniTask();
+            return handle.Result;
+        }
 
         public static string GetLabel(StatType stat) => stat switch
         {

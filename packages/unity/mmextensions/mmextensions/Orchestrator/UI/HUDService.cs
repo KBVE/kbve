@@ -21,6 +21,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private readonly Dictionary<StatType, StatObservable> _lookup = new();
         private readonly Dictionary<StatType, StatBar> _barPool = new();
+        private readonly Dictionary<StatType, StatDisplay> _displayPool = new();
+
 
         private RectTransform _panelRect;
         private GameObject _panelGO;
