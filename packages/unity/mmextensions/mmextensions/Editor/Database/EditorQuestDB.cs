@@ -54,8 +54,8 @@ namespace KBVE.MMExtensions.Database
 
             foreach (var quest in wrapper.quests)
             {
-                CreateSteamAchievementAsset(quest);
-                CreateMMAchievementAsset(quest);
+                // CreateSteamAchievementAsset(quest);
+                CreateMMQuestAsset(quest);
             }
 
             AssetDatabase.SaveAssets();
@@ -64,25 +64,25 @@ namespace KBVE.MMExtensions.Database
         }
 
         // === Helper Methods ===
-        private static void CreateSteamAchievementAsset(QuestEntry quest)
-        {
-            string assetPath = $"{AchievementAssetFolder}{quest.id}_Steam.asset";
-            Achievement steamAchievement = AssetDatabase.LoadAssetAtPath<Achievement>(assetPath);
+        // private static void CreateSteamAchievementAsset(QuestEntry quest)
+        // {
+        //     string assetPath = $"{AchievementAssetFolder}{quest.id}_Steam.asset";
+        //     Achievement steamAchievement = AssetDatabase.LoadAssetAtPath<Achievement>(assetPath);
 
-            if (steamAchievement == null)
-            {
-                steamAchievement = ScriptableObject.CreateInstance<Achievement>();
-                AssetDatabase.CreateAsset(steamAchievement, assetPath);
-            }
+        //     if (steamAchievement == null)
+        //     {
+        //         steamAchievement = ScriptableObject.CreateInstance<Achievement>();
+        //         AssetDatabase.CreateAsset(steamAchievement, assetPath);
+        //     }
 
-            steamAchievement.name = quest.title;
-            steamAchievement.Id = quest.id;
-            steamAchievement.Name = quest.title;
-            steamAchievement.Description = quest.description;
-            steamAchievement.Hidden = false;
+        //     steamAchievement.name = quest.title;
+        //     steamAchievement.Id = quest.id;
+        //     steamAchievement.Name = quest.title;
+        //     steamAchievement.Description = quest.description;
+        //     steamAchievement.Hidden = false;
 
-            EditorUtility.SetDirty(steamAchievement);
-        }
+        //     EditorUtility.SetDirty(steamAchievement);
+        // }
 
         private static void CreateMMQuestAsset(QuestEntry quest)
         {
@@ -172,9 +172,9 @@ namespace KBVE.MMExtensions.Database
                 MMQuest quest = AssetDatabase.LoadAssetAtPath<MMQuest>(path);
                 if (quest != null)
                 {
-                    achievements.Add(Object.Instquest.MMAchievement);
+                    achievements.Add(Object.Instantiate(quest.MMAchievement));
 
-LoadedQuests.Add(quest)
+                    LoadedQuests.Add(quest);
                     //achievements.Add(Object.Instantiate(quest)); // clone to avoid modifying asset directly
                 }
             }
@@ -194,6 +194,5 @@ LoadedQuests.Add(quest)
             MMAchievementManager.LoadSavedAchievements();
         }
 
-        static void FindSteamA
     }
 }
