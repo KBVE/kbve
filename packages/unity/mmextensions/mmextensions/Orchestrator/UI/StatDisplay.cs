@@ -18,6 +18,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         private IDisposable _sub;
 
         private CancellationTokenSource _iconCts;
+        private CancellationTokenSource _pulseCts;
+
+
+        private bool _isLow;
+        private float _pulseSpeed = 2f;
+        private float _alphaMin = 0.4f;
+        private float _alphaMax = 1f;
 
 
         public void SetUIReferences(Image icon, TextMeshProUGUI label)
@@ -30,12 +37,28 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         {
             _type = stat.Type;
             _label.text = FormatText(_type, stat.Current.Value);
+            _icon.color = StatHelper.GetStatColor(_type);
 
             _sub?.Dispose();
             _sub = stat.Current
-                .Subscribe(cur =>
+                .CombineLatest(stat.Max, (cur, max) => new { cur, max })
+                .Subscribe(data =>
                 {
-                    _label.text = FormatText(_type, cur);
+                    _label.text = FormatText(_type, data.cur);
+
+                    float percent = data.cur / Mathf.Max(data.max, 1f);
+                    bool isNowLow = percent <= 0.25f;
+
+                    if (isNowLow && !_isLow)
+                    {
+                        _isLow = true;
+                        StartPulse();
+                    }
+                    else if (!isNowLow && _isLow)
+                    {
+                        _isLow = false;
+                        StopPulse();
+                    }
                 });
 
             LoadIconAsync(_type).Forget();
@@ -66,8 +89,48 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             return $"{StatHelper.GetLabel(type)}: {value:F0}";
         }
 
+        private void StartPulse()
+        {
+            _pulseCts?.Cancel();
+            _pulseCts = new CancellationTokenSource();
+            var token = _pulseCts.Token;
+
+            UniTask.Void(async () =>
+            {
+                try
+                {
+                    while (_isLow && _icon != null && !token.IsCancellationRequested)
+                    {
+                        float t = Mathf.PingPong(Time.time * _pulseSpeed, 1f);
+                        float alpha = Mathf.Lerp(_alphaMin, _alphaMax, t);
+                        var color = _icon.color;
+                        color.a = alpha;
+                        _icon.color = color;
+                        await UniTask.NextFrame(token);
+                    }
+                }
+                catch (OperationCanceledException) { }
+            });
+        }
+
+        private void StopPulse()
+        {
+            _pulseCts?.Cancel();
+            _pulseCts?.Dispose();
+            _pulseCts = null;
+
+            if (_icon != null)
+            {
+                var color = _icon.color;
+                color.a = 1f;
+                _icon.color = color;
+            }
+        }
         public void Dispose()
         {
+            _pulseCts?.Cancel();
+            _pulseCts?.Dispose();
+            _pulseCts = null;
             _sub?.Dispose();
             _sub = null;
             _iconCts?.Cancel();
