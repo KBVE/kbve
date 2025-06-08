@@ -16,10 +16,18 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             StatType.Energy
         };
 
+        // public static async UniTask<Sprite> LoadStatIconAsync(StatType stat)
+        // {
+        //     var path = GetIconPath(stat);
+        //     var handle = Addressables.LoadAssetAsync<Sprite>(path);
+        //     await handle.ToUniTask();
+        //     return handle.Result;
+        // }
+
         public static async UniTask<Sprite> LoadStatIconAsync(StatType stat)
         {
-            var path = GetIconPath(stat);
-            var handle = Addressables.LoadAssetAsync<Sprite>(path);
+            string key = GetIconAddressKey(stat);
+            var handle = Addressables.LoadAssetAsync<Sprite>(key);
             await handle.ToUniTask();
             return handle.Result;
         }
@@ -45,6 +53,17 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             StatType.Strength => "Icons/Stats/strength",
             StatType.Armor => "Icons/Stats/armor",
             _ => "Icons/Stats/default"
+        };
+
+        public static string GetIconAddressKey(StatType stat) => stat switch
+        {
+            StatType.Health => "stat_icon_health",
+            StatType.Mana => "stat_icon_mana",
+            StatType.Stamina => "stat_icon_stamina",
+            StatType.Intelligence => "stat_icon_intelligence",
+            StatType.Strength => "stat_icon_strength",
+            StatType.Armor => "stat_icon_armor",
+            _ => "stat_icon_default"
         };
 
         public static bool IsRegenerating(StatType stat) => RegeneratingStats.Contains(stat);

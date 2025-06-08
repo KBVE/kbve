@@ -73,22 +73,41 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 ReactiveStats.Add(view);
                 _lookup[type] = view;
 
-                if (!_barPool.TryGetValue(type, out var bar))
+                if (StatHelper.IsRegenerating(type))
                 {
-                    bar = CreateStatBar(view, _panelRect, barIndex);
-                    _barPool[type] = bar;
-                }
-                else
-                {
+                    if (!_barPool.TryGetValue(type, out var bar))
+                    {
+                        bar = CreateStatBar(view, _panelRect, barIndex);
+                        _barPool[type] = bar;
+                    }
+
                     bar.gameObject.SetActive(true);
                     bar.Bind(view);
                     SetBarPosition(bar, barIndex);
+                }
+                else
+                {
+                    if (!_displayPool.TryGetValue(type, out var display))
+                    {
+                        display = CreateStatDisplay(view, _panelRect, barIndex);
+                        _displayPool[type] = display;
+                    }
+
+                    display.gameObject.SetActive(true);
+                    display.Bind(view);
+                    SetBarPosition(display, barIndex);
                 }
 
                 barIndex++;
             }
 
             foreach (var kvp in _barPool)
+            {
+                if (!_lookup.ContainsKey(kvp.Key))
+                    kvp.Value.gameObject.SetActive(false);
+            }
+
+            foreach (var kvp in _displayPool)
             {
                 if (!_lookup.ContainsKey(kvp.Key))
                     kvp.Value.gameObject.SetActive(false);
@@ -129,7 +148,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
             return panel;
         }
-        
+
         private void SetBarPosition(Component bar, int index)
         {
             var rt = bar.GetComponent<RectTransform>();
@@ -191,6 +210,48 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             go.transform.SetParent(parent, false);
             return bar;
         }
+
+        private StatDisplay CreateStatDisplay(StatObservable stat, Transform parent, int index)
+        {
+            var go = new GameObject($"{stat.Type}Display", typeof(RectTransform), typeof(StatDisplay));
+            var rt = go.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(260, 24);
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            go.transform.SetParent(parent, false);
+            SetBarPosition(go.GetComponent<RectTransform>(), index);
+
+            // Icon
+            var iconGO = new GameObject("Icon", typeof(Image));
+            iconGO.transform.SetParent(go.transform, false);
+            var icon = iconGO.GetComponent<Image>();
+            var iconRT = iconGO.GetComponent<RectTransform>();
+            iconRT.anchorMin = new Vector2(0f, 0f);
+            iconRT.anchorMax = new Vector2(0f, 1f);
+            iconRT.sizeDelta = new Vector2(24f, 24f);
+            iconRT.anchoredPosition = new Vector2(5f, 0f);
+
+            // Label
+            var labelGO = new GameObject("Label", typeof(TextMeshProUGUI));
+            labelGO.transform.SetParent(go.transform, false);
+            var label = labelGO.GetComponent<TextMeshProUGUI>();
+            label.alignment = TextAlignmentOptions.Left;
+            label.fontSize = 16;
+            label.text = stat.Type.ToString();
+            var labelRT = labelGO.GetComponent<RectTransform>();
+            labelRT.anchorMin = new Vector2(0f, 0f);
+            labelRT.anchorMax = new Vector2(1f, 1f);
+            labelRT.offsetMin = new Vector2(30f, 0f);
+            labelRT.offsetMax = new Vector2(0f, 0f);
+
+            var display = go.GetComponent<StatDisplay>();
+            display.SetUIReferences(icon, label);
+            display.Bind(stat);
+
+            return display;
+        }
+
 
         public void Dispose()
         {
