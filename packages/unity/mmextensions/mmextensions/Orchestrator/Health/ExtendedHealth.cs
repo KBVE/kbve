@@ -7,6 +7,7 @@ using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
 using MMHealth = MoreMountains.TopDownEngine.Health;
+using MoreMountains.TopDownEngine;
 
 
 namespace KBVE.MMExtensions.Orchestrator.Health
@@ -141,6 +142,21 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         {
             return Stats.TryGetValue(stat, out var data) ? data.Current : 0f;
         }
+
+        /// <summary>
+        /// Formulate the Damage with Armor
+        /// </summary>
+        public override float ComputeDamageOutput(float damage, List<TypedDamage> typedDamages = null, bool damageApplied = false)
+        {
+            if (Invulnerable || ImmuneToDamage)
+                return 0;
+
+            var armor = Stats.TryGetValue(StatType.Armor, out var data) ? data.Current : 0f;
+
+            float reducedDamage = Mathf.Max(0f, damage - armor);
+            return base.ComputeDamageOutput(reducedDamage, typedDamages, damageApplied);
+        }
+        
 
         
         [VContainer.Inject]
