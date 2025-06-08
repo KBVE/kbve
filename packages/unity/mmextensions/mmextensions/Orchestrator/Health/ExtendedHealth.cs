@@ -35,8 +35,11 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             base.Start();
         
             AddStat(StatType.Mana, new StatData(50, 100, 3f));
-            AddStat(StatType.Stamina, new StatData(100, 100, 5f));
-            
+            AddStat(StatType.Energy, new StatData(100, 100, 5f));
+            AddStat(StatType.Intelligence, new StatData(10, 10, 0f));
+            AddStat(StatType.Stamina, new StatData(10, 10, 0f));
+            AddStat(StatType.Armor, new StatData(5, 5, 0f));
+            AddStat(StatType.Strength, new StatData(10, 10, 0f));
 
             _tickSystem ??= TickLocator.Instance;
 
