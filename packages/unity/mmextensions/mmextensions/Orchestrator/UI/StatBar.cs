@@ -26,6 +26,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         {
             _type = stat.Type;
             _label.text = stat.Type.ToString();
+            _fill.color = StatHelper.GetStatColor(_type);
+
 
             _sub?.Dispose();
             _sub = stat.Current

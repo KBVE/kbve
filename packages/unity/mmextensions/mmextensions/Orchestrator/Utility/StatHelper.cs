@@ -49,6 +49,7 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             StatType.Health => "Icons/Stats/health",
             StatType.Mana => "Icons/Stats/mana",
             StatType.Stamina => "Icons/Stats/stamina",
+            StatType.Energy => "Icons/Stats/energy",
             StatType.Intelligence => "Icons/Stats/intelligence",
             StatType.Strength => "Icons/Stats/strength",
             StatType.Armor => "Icons/Stats/armor",
@@ -60,11 +61,25 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             StatType.Health => "stat_icon_health",
             StatType.Mana => "stat_icon_mana",
             StatType.Stamina => "stat_icon_stamina",
+            StatType.Energy => "stat_icon_energy",
             StatType.Intelligence => "stat_icon_intelligence",
             StatType.Strength => "stat_icon_strength",
             StatType.Armor => "stat_icon_armor",
             _ => "stat_icon_default"
         };
+
+        public static Color GetStatColor(StatType stat) => stat switch
+        {
+            StatType.Health => new Color(1f, 0.2f, 0.2f),     // Red
+            StatType.Mana => new Color(0.3f, 0.5f, 1f),       // Blue
+            StatType.Stamina => new Color(0.3f, 1f, 0.3f),    // Green
+            StatType.Energy => new Color(1f, 0.9f, 0.2f),     // Yellow
+            StatType.Intelligence => new Color(0.6f, 0.4f, 1f), // Purple
+            StatType.Strength => new Color(1f, 0.5f, 0.1f),   // Orange
+            StatType.Armor => new Color(0.7f, 0.7f, 0.7f),    // Grey
+            _ => Color.white
+        };
+
 
         public static bool IsRegenerating(StatType stat) => RegeneratingStats.Contains(stat);
     }
