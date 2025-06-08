@@ -21,6 +21,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         private readonly Dictionary<StatType, StatObservable> _lookup = new();
         private readonly Dictionary<StatType, StatBar> _barPool = new();
+        private readonly Dictionary<StatType, StatDisplay> _displayPool = new();
+
 
         private RectTransform _panelRect;
         private GameObject _panelGO;
@@ -61,6 +63,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             ReactiveStats.Clear();
             _lookup.Clear();
 
+            int barIndex = 0;
+
             foreach (var (type, data) in statMap)
             {
                 var view = new StatObservable { Type = type };
@@ -69,19 +73,41 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 ReactiveStats.Add(view);
                 _lookup[type] = view;
 
-                if (!_barPool.TryGetValue(type, out var bar))
+                if (StatHelper.IsRegenerating(type))
                 {
-                    bar = CreateStatBar(view, _panelRect);
-                    _barPool[type] = bar;
+                    if (!_barPool.TryGetValue(type, out var bar))
+                    {
+                        bar = CreateStatBar(view, _panelRect, barIndex);
+                        _barPool[type] = bar;
+                    }
+
+                    bar.gameObject.SetActive(true);
+                    bar.Bind(view);
+                    SetBarPosition(bar, barIndex);
                 }
                 else
                 {
-                    bar.gameObject.SetActive(true);
-                    bar.Bind(view);
+                    if (!_displayPool.TryGetValue(type, out var display))
+                    {
+                        display = CreateStatDisplay(view, _panelRect, barIndex);
+                        _displayPool[type] = display;
+                    }
+
+                    display.gameObject.SetActive(true);
+                    display.Bind(view);
+                    SetBarPosition(display, barIndex);
                 }
+
+                barIndex++;
             }
 
             foreach (var kvp in _barPool)
+            {
+                if (!_lookup.ContainsKey(kvp.Key))
+                    kvp.Value.gameObject.SetActive(false);
+            }
+
+            foreach (var kvp in _displayPool)
             {
                 if (!_lookup.ContainsKey(kvp.Key))
                     kvp.Value.gameObject.SetActive(false);
@@ -109,37 +135,38 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 bar.gameObject.SetActive(false);
         }
 
-            private GameObject CreateHUDPanel()
-            {
-                var panel = new GameObject("HUDPanel", typeof(RectTransform), typeof(CanvasGroup), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+        private GameObject CreateHUDPanel()
+        {
+            var panel = new GameObject("HUDPanel", typeof(RectTransform), typeof(CanvasGroup));
 
-                var rect = panel.GetComponent<RectTransform>();
-                rect.anchorMin = new Vector2(0.5f, 1f);
-                rect.anchorMax = new Vector2(0.5f, 1f);
-                rect.pivot = new Vector2(0.5f, 1f);
-                rect.anchoredPosition = new Vector2(0f, -50f);
-                rect.sizeDelta = new Vector2(600f, 0f); 
+            var rect = panel.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 1f);
+            rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -50f);
+            rect.sizeDelta = new Vector2(600f, 300f);
 
-                var layout = panel.GetComponent<VerticalLayoutGroup>();
-                layout.childAlignment = TextAnchor.UpperCenter;
-                layout.spacing = 10f;
-                layout.padding = new RectOffset(10, 10, 10, 10);
+            return panel;
+        }
 
-                var fitter = panel.GetComponent<ContentSizeFitter>();
-                fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-                fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        private void SetBarPosition(Component bar, int index)
+        {
+            var rt = bar.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(0f, -(index * 30f));
+        }
 
-                return panel;
-            }
-
-        private StatBar CreateStatBar(StatObservable stat, Transform parent)
+        private StatBar CreateStatBar(StatObservable stat, Transform parent, int index)
         {
             var go = new GameObject($"{stat.Type}Bar", typeof(RectTransform), typeof(StatBar));
             var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(200, 24);
+            rt.sizeDelta = new Vector2(260, 24);
             rt.anchorMin = new Vector2(0.5f, 1f);
             rt.anchorMax = new Vector2(0.5f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
+            go.transform.SetParent(parent, false);
+            var bar = go.GetComponent<StatBar>();
+
+            SetBarPosition(bar, index);
 
             // Background
             var background = new GameObject("Background", typeof(Image));
@@ -176,13 +203,55 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             textRT.anchorMax = Vector2.one;
             textRT.offsetMin = textRT.offsetMax = Vector2.zero;
 
-            var bar = go.GetComponent<StatBar>();
+            //var bar = go.GetComponent<StatBar>();
             bar.SetUIReferences(fillImage, text);
             bar.Bind(stat);
 
             go.transform.SetParent(parent, false);
             return bar;
         }
+
+        private StatDisplay CreateStatDisplay(StatObservable stat, Transform parent, int index)
+        {
+            var go = new GameObject($"{stat.Type}Display", typeof(RectTransform), typeof(StatDisplay));
+            var rt = go.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(260, 24);
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            go.transform.SetParent(parent, false);
+            SetBarPosition(go.GetComponent<RectTransform>(), index);
+
+            // Icon
+            var iconGO = new GameObject("Icon", typeof(Image));
+            iconGO.transform.SetParent(go.transform, false);
+            var icon = iconGO.GetComponent<Image>();
+            var iconRT = iconGO.GetComponent<RectTransform>();
+            iconRT.anchorMin = new Vector2(0f, 0f);
+            iconRT.anchorMax = new Vector2(0f, 1f);
+            iconRT.sizeDelta = new Vector2(24f, 24f);
+            iconRT.anchoredPosition = new Vector2(5f, 0f);
+
+            // Label
+            var labelGO = new GameObject("Label", typeof(TextMeshProUGUI));
+            labelGO.transform.SetParent(go.transform, false);
+            var label = labelGO.GetComponent<TextMeshProUGUI>();
+            label.alignment = TextAlignmentOptions.Left;
+            label.fontSize = 16;
+            label.text = stat.Type.ToString();
+            var labelRT = labelGO.GetComponent<RectTransform>();
+            labelRT.anchorMin = new Vector2(0f, 0f);
+            labelRT.anchorMax = new Vector2(1f, 1f);
+            labelRT.offsetMin = new Vector2(30f, 0f);
+            labelRT.offsetMax = new Vector2(0f, 0f);
+
+            var display = go.GetComponent<StatDisplay>();
+            display.SetUIReferences(icon, label);
+            display.Bind(stat);
+
+            return display;
+        }
+
 
         public void Dispose()
         {

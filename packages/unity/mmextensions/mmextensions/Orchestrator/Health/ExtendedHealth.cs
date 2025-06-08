@@ -7,6 +7,7 @@ using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
 using MMHealth = MoreMountains.TopDownEngine.Health;
+using MoreMountains.TopDownEngine;
 
 
 namespace KBVE.MMExtensions.Orchestrator.Health
@@ -35,8 +36,11 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             base.Start();
         
             AddStat(StatType.Mana, new StatData(50, 100, 3f));
-            AddStat(StatType.Stamina, new StatData(100, 100, 5f));
-            
+            AddStat(StatType.Energy, new StatData(100, 100, 5f));
+            AddStat(StatType.Intelligence, new StatData(10, 10, 0f));
+            AddStat(StatType.Stamina, new StatData(10, 10, 0f));
+            AddStat(StatType.Armor, new StatData(5, 5, 0f));
+            AddStat(StatType.Strength, new StatData(10, 10, 0f));
 
             _tickSystem ??= TickLocator.Instance;
 
@@ -138,6 +142,21 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         {
             return Stats.TryGetValue(stat, out var data) ? data.Current : 0f;
         }
+
+        /// <summary>
+        /// Formulate the Damage with Armor
+        /// </summary>
+        public override float ComputeDamageOutput(float damage, List<TypedDamage> typedDamages = null, bool damageApplied = false)
+        {
+            if (Invulnerable || ImmuneToDamage)
+                return 0;
+
+            var armor = Stats.TryGetValue(StatType.Armor, out var data) ? data.Current : 0f;
+
+            float reducedDamage = Mathf.Max(0f, damage - armor);
+            return base.ComputeDamageOutput(reducedDamage, typedDamages, damageApplied);
+        }
+        
 
         
         [VContainer.Inject]
