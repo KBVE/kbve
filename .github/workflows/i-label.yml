@@ -6,6 +6,21 @@ on:
 
 jobs:
 
+    #   [AI]
+    assign_ai:
+        name: "AI Label Automation"
+        if: github.event.label.name == 'codex'
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: ./.github/actions/gql-project-migration
+                with:
+                    token: ${{ secrets.KBVE_PAT }}
+                    key: "Status"
+                    value: "AI"
+                    idref: ${{ github.event.issue.node_id }}
+   
+
     #   [Theory]
     assign_concepts:
         name: "Enhancement Label Automation"
