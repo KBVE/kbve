@@ -21,6 +21,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         public ObservableList<GameObject> ToastPanels { get; } = new();
         public ObservableList<GameObject> ModalPanels { get; } = new();
         public ObservableList<GameObject> TooltipPanels { get; } = new();
+        public ObservableList<GameObject> HUDPanels { get; } = new();
+
         private GameObject _canvasGO;
         private readonly Dictionary<UICanvasLayer, Transform> _layerRoots = new();
 
@@ -111,6 +113,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                     break;
                 case UICanvasLayer.Tooltip:
                     TooltipPanels.Add(go);
+                    break;
+                case UICanvasLayer.HUD:
+                    HUDPanels.Add(go);
                     break;
                 default:
                     Debug.LogWarning($"[GlobalCanvasService] SpawnPanel: Unhandled layer '{layer}'. Not added to any list.");
