@@ -11,14 +11,16 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         {
             if (amount <= 0 || health == null) return;
 
-            health.Damage(
-                -amount,
-                instigator ?? health.gameObject,
-                0f,
-                0f,
-                Vector3.zero,
-                null
-            );
+            // health.Damage(
+            //     -amount,
+            //     instigator ?? health.gameObject,
+            //     0f,
+            //     0f,
+            //     Vector3.zero,
+            //     null
+            // );
+            health.ReceiveHealth(amount, instigator ?? health.gameObject);
+
         }
     }
 }
