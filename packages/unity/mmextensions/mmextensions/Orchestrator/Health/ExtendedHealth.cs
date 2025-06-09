@@ -66,7 +66,7 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         public void RebuildStatsFromPresets()
         {
             Stats.Clear();
-
+            AddStat(StatType.Health, new StatData(50, 100, 1f));
             AddStat(StatType.Mana, new StatData(50, 100, 3f));
             AddStat(StatType.Energy, new StatData(100, 100, 5f));
             AddStat(StatType.Intelligence, new StatData(10, 10, 0f));
