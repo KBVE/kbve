@@ -22,7 +22,7 @@ namespace KBVE.MMExtensions.Database
         private const string ApiUrl = "https://kbve.com/api/questdb.json";
         private const string AchievementAssetFolder = "Assets/Dungeon/Data/QuestDB/";
 
-        private const string BaseImageUrl = "https://kbve.com/assets";
+        private const string BaseImageUrl = "https://kbve.com";
         private const string SpriteFolder = "Assets/Dungeon/Data/QuestDB/Sprites/";
         private const string PrefabFolder = "Assets/Dungeon/Data/QuestDB/Prefabs/";
         private const string AchievementDefinitionsFolder = "Assets/Dungeon/Data/QuestDB/Definitions/";
@@ -53,6 +53,13 @@ namespace KBVE.MMExtensions.Database
 
             foreach (var quest in wrapper.quests)
             {
+
+                if (!string.IsNullOrEmpty(quest.rewards?.steamAchievement?.iconAchieved))
+                {
+                    // Download and import the sprite first
+                    yield return CreateQuestSprite(quest.rewards.steamAchievement.iconAchieved);
+                }
+
                 // CreateSteamAchievementAsset(quest);
                 CreateMMQuestAsset(quest);
             }
@@ -64,12 +71,14 @@ namespace KBVE.MMExtensions.Database
 
         // === Helper Methods ===
 
-        private static IEnumerator CreateQuestSprite(string iconPath, string iconName)
+        private static IEnumerator CreateQuestSprite(string iconAchievedPath)
         {
-            string imageUrl = BaseImageUrl + iconPath;
-            string localImagePath = Path.Combine(SpriteFolder, iconName);
+            string imageName = Path.GetFileName(iconAchievedPath);
+            string addressableKey = Path.GetFileNameWithoutExtension(iconAchievedPath);
+            string imageUrl = BaseImageUrl + iconAchievedPath;
+            string localImagePath = Path.Combine(SpriteFolder, imageName);
 
-            // Download the image
+
             using (UnityWebRequest texRequest = UnityWebRequestTexture.GetTexture(imageUrl))
             {
                 yield return texRequest.SendWebRequest();
@@ -87,22 +96,16 @@ namespace KBVE.MMExtensions.Database
 
             AssetDatabase.ImportAsset(localImagePath, ImportAssetOptions.ForceUpdate);
 
-            // Configure the texture importer
             TextureImporter importer = (TextureImporter)TextureImporter.GetAtPath(localImagePath);
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
-            importer.spritePixelsPerUnit = 16; // Adjust if you want different density
+            importer.spritePixelsPerUnit = 256;
             importer.mipmapEnabled = false;
             importer.alphaIsTransparency = true;
             importer.spritePivot = new Vector2(0.5f, 0.5f);
             importer.SaveAndReimport();
 
-            // Optionally return the sprite if needed
-            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(localImagePath);
-            if (sprite == null)
-            {
-                Debug.LogWarning($"Failed to import sprite at path: {localImagePath}");
-            }
+            AddressableUtility.MakeAddressable(localImagePath, addressableKey, "QuestIcons");
         }
 
         // private static void CreateSteamAchievementAsset(QuestEntry quest)
@@ -136,7 +139,7 @@ namespace KBVE.MMExtensions.Database
                 AssetDatabase.CreateAsset(mmQuest, assetPath);
             }
 
-             // === MMAchievement-like fields
+            // === MMAchievement-like fields
             mmQuest.AchievementID = quest.id;
             mmQuest.Title = quest.title;
             mmQuest.Description = quest.description;

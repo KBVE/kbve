@@ -6,89 +6,91 @@ using VContainer;
 using VContainer.Unity;
 using R3;
 using ObservableCollections;
-using Heathen.SteamworksIntegration;
-using Heathen.SteamworksIntegration.API;
-using PlayerLoopTiming = Cysharp.Threading.Tasks.PlayerLoopTiming;
-using SteamAchievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
-using FriendsAPI = Heathen.SteamworksIntegration.API.Friends.Client;
-using Steamworks;
+using MoreMountains.Tools;
+using KBVE.MMExtensions.Quests;
+using KBVE.MMExtensions.Database;
+using Achievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
+using System.Linq;
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
-    //need to call this method from somewhere: inside the place it's unlocked in moremountains
-    //or add listener to moremountains unlock w/ observer
-
-    public class SteamAchievements : IAsyncStartable, IDisposable {
-
-
-        private CancellationTokenSource _cts;
+    public class SteamAchievements : MonoBehaviour, IAsyncStartable, IDisposable, MMEventListener<MMAchievementUnlockedEvent>
+    {
         private readonly CompositeDisposable _disposables = new();
-
         private SteamworksService _steamworksService;
-
 
         [Inject]
         public void Construct(SteamworksService steamworksService)
         {
             _steamworksService = steamworksService;
         }
-
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
+            try
+            {
+                await UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: cancellationToken);
 
-            
-            await UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: cancellationToken);
-
+                MMEventManager.AddListener<MMAchievementUnlockedEvent>(this);
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log("[SteamAchievements] StartAsync was canceled.");
+            }
         }
-        
+
         public void OnMMEvent(MMAchievementUnlockedEvent eventType)
-    {
-        if(!_SteamVersion || !_initialized)
         {
-            return;
+            if (eventType.Achievement == null || string.IsNullOrEmpty(eventType.Achievement.AchievementID))
+            {
+                Debug.LogError("[MMEvents] Invalid AchievementID.");
+                return;
+            }
+
+            //get the quest from the saved achievements repository using the MMAchievement id
+            MMQuest questFound = EditorQuestDB.LoadedQuests.FirstOrDefault(a => a.AchievementID != null
+                && a.AchievementID == eventType.Achievement.AchievementID);
+
+            if (questFound == null)
+            {
+                Debug.LogError("[Steam Achievement Failed] MMQuest not found in loaded quests list");
+                return;
+            }
+
+            UnlockOnSteam(questFound);
         }
-        
-        if (string.IsNullOrEmpty(eventType.Achievement.AchievementID))
-        {
-            Debug.LogWarning("[MMEvents] Invalid AchievementID.");
-            return;
-        }
-
-        MMQuest questFound = EditorQuestDB.LoadedQuests.FirstOrDefault(a => a.mmAchievement != null 
-            && a.mmAchievement.AchievementID == eventType.Achievement.AchievementID);
-
-            //if
-        //get quest from quest repository saved
-
-        Debug.Log("SetAchievement called " + eventType.Achievement.AchievementID);
-        Achievements.SetAchievement(eventType.Achievement.AchievementID);//"ACH_AUTO_COOKER_TEST");        
-
-
-        bool achieved = false;
-        DateTime achieveTime;
-
-        Achievements.GetAchievement(eventType.Achievement.AchievementID, out achieved, out achieveTime);
-        //Achievements.GetAchievement(eventType.Achievement.AchievementID, out achieved);
-
-        Debug.Log("Achievement activated? " + achieved);
-        Debug.Log("Achievement activated called " + achieveTime.ToString("MM/DD/YYYY"));
-
-        // AchievementData myAch = eventType.Achievement.AchievementID;
-
-        // var achState = myAch.GetAchievementAndUnlockTime(user);
-
-    }
 
         //call to steam to unlock achievement
-        public static async void UnlockOnSteam(MMQuest completedQuest)
+        public static void UnlockOnSteam(MMQuest completedQuest)
         {
-        
+            if (completedQuest == null || completedQuest.SteamAchievement == null)
+            {
+                Debug.LogError("[UnlockOnSteam Failed] MMQuest does not have a valid quest and/or SteamAchievement");
+                return;
+            }
+
+            Debug.Log("SetAchievement called " + completedQuest.SteamAchievement.apiName);
+
+            Achievements.SetAchievement(completedQuest.SteamAchievement.apiName);//"ACH_AUTO_COOKER_TEST");        
+
+            bool achieved = false;
+            DateTime achieveTime;
+
+            Achievements.GetAchievement(completedQuest.SteamAchievement.apiName, out achieved, out achieveTime);
+            //Achievements.GetAchievement(eventType.Achievement.AchievementID, out achieved);
+
+            Debug.Log("Achievement activated? " + achieved);
+            Debug.Log("Achievement activated called " + achieveTime.ToString("MM/DD/YYYY"));
+
+            // AchievementData myAch = eventType.Achievement.AchievementID;
+            // var achState = myAch.GetAchievementAndUnlockTime(user);
+
+            //Store stats to Steam to update the user on Steam's server manually now
+            Steamworks.SteamUserStats.StoreStats();
         }
 
         public void Dispose()
         {
-            _cts?.Cancel();
-            _cts?.Dispose();
+            MMEventManager.RemoveListener<MMAchievementUnlockedEvent>(this);
             _disposables.Dispose();
         }
     }
