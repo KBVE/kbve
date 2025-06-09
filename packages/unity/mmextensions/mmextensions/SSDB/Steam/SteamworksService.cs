@@ -10,8 +10,9 @@ using R3;
 using ObservableCollections;
 using Heathen.SteamworksIntegration;
 using Heathen.SteamworksIntegration.API;
+using KBVE.MMExtensions.Orchestrator.Core;
 using PlayerLoopTiming = Cysharp.Threading.Tasks.PlayerLoopTiming;
-using SteamAchievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
+using SteamworksAchievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
 using FriendsAPI = Heathen.SteamworksIntegration.API.Friends.Client;
 using Steamworks;
 
@@ -56,7 +57,8 @@ namespace KBVE.MMExtensions.SSDB.Steam
                     await UniTask.WaitUntil(() => App.Initialized, cancellationToken: cancellationToken);
                 }
 
-                await Operator.Ready;
+                await Operator.R(); //await Operator.Ready;
+
                 Operator.Toast?.Show("Steam initialized", Orchestrator.Core.ToastType.Info, 2.5f);
 
                 Initialized.Value = true;
@@ -69,7 +71,8 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 SteamId.Value = UserData.Me.FriendId;
 
                 await UniTask.WhenAll(
-                    InitializeAchievementsAsync(cancellationToken),
+                    //InitializeAchievementsAsync(cancellationToken),
+                    SyncAchievementsFromQuest(cancellationToken),
                     InitializeFriendsAsync(cancellationToken)
                 );
 
@@ -85,63 +88,104 @@ namespace KBVE.MMExtensions.SSDB.Steam
             }
         }
 
-        private async UniTask InitializeAchievementsAsync(CancellationToken cancellationToken)
+        private async UniTask SyncAchievementsFromQuest(CancellationToken cancellationToken)
         {
             try
             {
-                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                await Operator.Quest.QuestsReady.WaitUntilTrue(cancellationToken);
                 Achievements.Clear();
 
-                var achievementsList = SteamSettings.Achievements;
-
-                if (achievementsList == null || achievementsList.Count == 0)
+                foreach (var quest in Operator.Quest.LoadedQuests)
                 {
-                    Debug.LogWarning("[SteamworksService] No achievements found in SteamSettings.");
-                    AchievementsReady.Value = true;
-                    return;
-                }
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                foreach (var achievement in achievementsList)
-                {
-                    if (achievement == null || string.IsNullOrWhiteSpace(achievement.ApiName))
-                    {
-                        Debug.LogWarning("[SteamworksService] Skipping null or malformed achievement entry.");
+                    var steam = quest.SteamAchievement;
+                    if (steam == null || string.IsNullOrWhiteSpace(steam.apiName))
                         continue;
-                    }
 
-                    if (SteamAchievements.GetAchievement(achievement.ApiName, out var achieved, out var unlockTime))
+                    if (SteamworksAchievements.GetAchievement(steam.apiName, out var achieved, out var unlockTime))
                     {
-                        var data = new AchievementInfo
+                        var info = new AchievementInfo
                         {
-                            ApiName = achievement.ApiName,
-                            DisplayName = achievement.Name,
+                            ApiName = steam.apiName,
+                            DisplayName = quest.Title,
                             IsAchieved = achieved,
                             UnlockTime = unlockTime
                         };
 
-                        Achievements.Add(data);
-                        _achievementStream.OnNext(data);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[SteamworksService] Achievement not found in Steam: {achievement.ApiName}");
+                        Achievements.Add(info);
+                        _achievementStream.OnNext(info);
                     }
                 }
 
-                Debug.Log($"[SteamworksService] Loaded {Achievements.Count} achievements.");
+                Debug.Log($"[SteamworksService] Synced {Achievements.Count} achievements from QuestDB.");
                 AchievementsReady.Value = true;
-            }
-            catch (OperationCanceledException)
-            {
-                Debug.LogWarning("[SteamworksService] Achievement loading was canceled.");
-                AchievementsReady.Value = false;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[SteamworksService] Failed to initialize achievements: {ex.Message}");
+                Debug.LogError($"[SteamworksService] Failed syncing achievements from quests: {ex.Message}");
                 AchievementsReady.Value = false;
             }
         }
+
+
+        // private async UniTask InitializeAchievementsAsync(CancellationToken cancellationToken)
+        // {
+        //     try
+        //     {
+        //         await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+        //         Achievements.Clear();
+
+        //         var achievementsList = SteamSettings.Achievements;
+
+        //         if (achievementsList == null || achievementsList.Count == 0)
+        //         {
+        //             Debug.LogWarning("[SteamworksService] No achievements found in SteamSettings.");
+        //             AchievementsReady.Value = true;
+        //             return;
+        //         }
+
+        //         foreach (var achievement in achievementsList)
+        //         {
+        //             if (achievement == null || string.IsNullOrWhiteSpace(achievement.ApiName))
+        //             {
+        //                 Debug.LogWarning("[SteamworksService] Skipping null or malformed achievement entry.");
+        //                 continue;
+        //             }
+
+        //             if (SteamAchievements.GetAchievement(achievement.ApiName, out var achieved, out var unlockTime))
+        //             {
+        //                 var data = new AchievementInfo
+        //                 {
+        //                     ApiName = achievement.ApiName,
+        //                     DisplayName = achievement.Name,
+        //                     IsAchieved = achieved,
+        //                     UnlockTime = unlockTime
+        //                 };
+
+        //                 Achievements.Add(data);
+        //                 _achievementStream.OnNext(data);
+        //             }
+        //             else
+        //             {
+        //                 Debug.LogWarning($"[SteamworksService] Achievement not found in Steam: {achievement.ApiName}");
+        //             }
+        //         }
+
+        //         Debug.Log($"[SteamworksService] Loaded {Achievements.Count} achievements.");
+        //         AchievementsReady.Value = true;
+        //     }
+        //     catch (OperationCanceledException)
+        //     {
+        //         Debug.LogWarning("[SteamworksService] Achievement loading was canceled.");
+        //         AchievementsReady.Value = false;
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Debug.LogError($"[SteamworksService] Failed to initialize achievements: {ex.Message}");
+        //         AchievementsReady.Value = false;
+        //     }
+        // }
 
 
         private async UniTask InitializeFriendsAsync(CancellationToken cancellationToken)
