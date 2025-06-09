@@ -19,13 +19,26 @@ namespace KBVE.MMExtensions.Database
 {
     public class EditorQuestDB : EditorWindow
     {
+        // === Remote & API Configuration ===
         private const string ApiUrl = "https://kbve.com/api/questdb.json";
-        private const string AchievementAssetFolder = "Assets/Dungeon/Data/QuestDB/";
         private const string BaseImageUrl = "https://kbve.com";
-        private const string SpriteFolder = "Assets/Dungeon/Data/QuestDB/Sprites/";
-        private const string PrefabFolder = "Assets/Dungeon/Data/QuestDB/Prefabs/";
-        private const string AchievementDefinitionsFolder = "Assets/Dungeon/Data/QuestDB/Definitions/";
-        private const string QuestDBAssetPath = "Assets/Dungeon/Data/QuestDB/Definitions/QuestDB.asset";
+
+        // Base folder for all quest data
+        private const string BaseQuestDataFolder = "Assets/Dungeon/Data/QuestDB/";
+
+        // Subfolders
+        private const string AchievementAssetFolder = BaseQuestDataFolder;
+        private const string SpriteFolder = BaseQuestDataFolder + "Sprites/";
+        private const string PrefabFolder = BaseQuestDataFolder + "Prefabs/";
+        private const string AchievementDefinitionsFolder = BaseQuestDataFolder + "Definitions/";
+
+        // Specific asset paths
+        private const string QuestDBAssetPath = AchievementDefinitionsFolder + "QuestDB.asset";
+        private const string AchievementListAssetPath = AchievementDefinitionsFolder + "MMAchievementList.asset";
+        private const string AddressableGroup_Quests = "Quests";
+        private const string AddressableGroup_Icons = "QuestIcons";
+        private const string AddressableGroup_Database = "QuestDatabase";
+
 
         [MenuItem("KBVE/Database/Sync QuestDB")]
         public static void SyncQuestDatabase()
@@ -207,7 +220,7 @@ namespace KBVE.MMExtensions.Database
 
         private static void ClearOldQuestAssets()
         {
-            string[] existingFiles = Directory.GetFiles(AchievementDefinitionsFolder, "*_MMQuest.asset");
+            string[] existingFiles = Directory.GetFiles(AchievementDefinitionsFolder, "*.asset");
 
             foreach (var file in existingFiles)
             {
@@ -220,6 +233,23 @@ namespace KBVE.MMExtensions.Database
                 AssetDatabase.DeleteAsset(unityPath);
             }
         }
+
+        private static void CreateOrUpdateMMAchievementList(List<MMQuest> quests)
+        {
+            var achievementList = ScriptableObject.CreateInstance<MMAchievementList>();
+            achievementList.AchievementsListID = "QuestAchievements";
+            achievementList.Achievements = quests.ConvertAll(q => q.ToMMAchievement());
+
+            if (File.Exists(AchievementListAssetPath))
+            {
+                AssetDatabase.DeleteAsset(AchievementListAssetPath);
+            }
+
+            AssetDatabase.CreateAsset(achievementList, AchievementListAssetPath);
+            EditorUtility.SetDirty(achievementList);
+            AddressableUtility.MakeAddressable(AchievementListAssetPath, "MMAchievementList", AddressableGroup_Database);
+        }
+
 
 
     }
