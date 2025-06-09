@@ -22,13 +22,6 @@ namespace KBVE.MMExtensions.SSDB.Steam
     public class SteamAchievements : MonoBehaviour, IAsyncStartable, IDisposable, MMEventListener<MMAchievementUnlockedEvent>
     {
         private const string AchievementAssetFolder = "Assets/Dungeon/Data/QuestDB/";
-
-        private const string BaseImageUrl = "https://kbve.com";
-        private const string SpriteFolder = "Assets/Dungeon/Data/QuestDB/Sprites/";
-        private const string PrefabFolder = "Assets/Dungeon/Data/QuestDB/Prefabs/";
-        private const string AchievementDefinitionsFolder = "Assets/Dungeon/Data/QuestDB/Definitions/";
-        private const string QuestDBAssetPath = "Assets/Dungeon/Data/QuestDB/Definitions/QuestDB.asset";
-        
         private readonly CompositeDisposable _disposables = new();
         private SteamworksService _steamworksService;
 
