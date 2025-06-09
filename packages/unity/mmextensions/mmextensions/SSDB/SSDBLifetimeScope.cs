@@ -35,6 +35,12 @@ namespace KBVE.MMExtensions.SSDB
                 .As<IAsyncStartable>()
                 .As<IDisposable>();
 
+                builder.RegisterComponentOnNewGameObject<SteamAchievements>(Lifetime.Singleton, "SteamAchievements")
+                .DontDestroyOnLoad()
+                .AsSelf()
+                .As<IAsyncStartable>()
+                .As<IDisposable>();
+
             }
 
 

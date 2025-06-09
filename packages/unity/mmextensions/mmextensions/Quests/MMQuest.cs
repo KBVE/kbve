@@ -35,7 +35,7 @@ namespace KBVE.MMExtensions.Quests
 
         [Header("Steam Achievement Link")]
         public SteamAchievementData SteamAchievement = new();
-    
+
 
         // === MMAchievement Forwarded Properties ===
         public string AchievementID { get => _achievement.AchievementID; set => _achievement.AchievementID = value; }
@@ -58,7 +58,7 @@ namespace KBVE.MMExtensions.Quests
         public void AddProgress(int value) => _achievement.AddProgress(value);
         public MMAchievement Copy() => _achievement.Copy();
         public void EvaluateProgress() => _achievement.GetType().GetMethod("EvaluateProgress", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.Invoke(_achievement, null);
-   
+
         public MMAchievement ToMMAchievement()
         {
             return new MMAchievement
@@ -77,5 +77,24 @@ namespace KBVE.MMExtensions.Quests
                 ProgressCurrent = this.ProgressCurrent
             };
         }
+
+        public void CopyFromMMAchievement(MMAchievement source)
+        {
+            if (source == null) return;
+
+            this.AchievementID = source.AchievementID;
+            this.Title = source.Title;
+            this.Description = source.Description;
+            this.UnlockedStatus = source.UnlockedStatus;
+            this.HiddenAchievement = source.HiddenAchievement;
+            this.AchievementType = source.AchievementType;
+            this.ProgressTarget = source.ProgressTarget;
+            this.ProgressCurrent = source.ProgressCurrent;
+            this.Points = source.Points;
+            this.LockedImage = source.LockedImage;
+            this.UnlockedImage = source.UnlockedImage;
+            this.UnlockedSound = source.UnlockedSound;
+        }
+
     }
 }

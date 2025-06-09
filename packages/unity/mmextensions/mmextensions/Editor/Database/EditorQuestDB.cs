@@ -19,13 +19,26 @@ namespace KBVE.MMExtensions.Database
 {
     public class EditorQuestDB : EditorWindow
     {
+        // === Remote & API Configuration ===
         private const string ApiUrl = "https://kbve.com/api/questdb.json";
-        private const string AchievementAssetFolder = "Assets/Dungeon/Data/QuestDB/";
+        private const string BaseImageUrl = "https://kbve.com";
 
-        private const string BaseImageUrl = "https://kbve.com/assets";
-        private const string SpriteFolder = "Assets/Dungeon/Data/QuestDB/Sprites/";
-        private const string PrefabFolder = "Assets/Dungeon/Data/QuestDB/Prefabs/";
-        private const string AchievementDefinitionsFolder = "Assets/Dungeon/Data/QuestDB/Definitions/";
+        // Base folder for all quest data
+        private const string BaseQuestDataFolder = "Assets/Dungeon/Data/QuestDB/";
+
+        // Subfolders
+        private const string AchievementAssetFolder = BaseQuestDataFolder;
+        private const string SpriteFolder = BaseQuestDataFolder + "Sprites/";
+        private const string PrefabFolder = BaseQuestDataFolder + "Prefabs/";
+        private const string AchievementDefinitionsFolder = BaseQuestDataFolder + "Definitions/";
+
+        // Specific asset paths
+        private const string QuestDBAssetPath = AchievementDefinitionsFolder + "QuestDB.asset";
+        private const string AchievementListAssetPath = AchievementDefinitionsFolder + "MMAchievementList.asset";
+        private const string AddressableGroup_Quests = "Quests";
+        private const string AddressableGroup_Icons = "QuestIcons";
+        private const string AddressableGroup_Database = "QuestDatabase";
+
 
         [MenuItem("KBVE/Database/Sync QuestDB")]
         public static void SyncQuestDatabase()
@@ -35,6 +48,8 @@ namespace KBVE.MMExtensions.Database
 
         private static IEnumerator FetchAndGenerate()
         {
+
+            ClearOldQuestAssets();
             using UnityWebRequest request = UnityWebRequest.Get(ApiUrl);
             yield return request.SendWebRequest();
 
@@ -51,25 +66,64 @@ namespace KBVE.MMExtensions.Database
             Directory.CreateDirectory(PrefabFolder);
             Directory.CreateDirectory(AchievementDefinitionsFolder);
 
-            foreach (var quest in wrapper.quests)
+            var createdQuests = new List<MMQuest>();
+            int total = wrapper.quests.Count;
+            try
             {
-                // CreateSteamAchievementAsset(quest);
-                CreateMMQuestAsset(quest);
+                for (int i = 0; i < total; i++)
+                {
+
+                    var quest = wrapper.quests[i];
+
+                    EditorUtility.DisplayProgressBar(
+                        "Syncing QuestDB",
+                        $"Processing quest {quest.title} ({i + 1}/{total})",
+                        (float)i / total
+                    );
+
+                    if (!string.IsNullOrEmpty(quest.rewards?.steamAchievement?.iconAchieved))
+                    {
+                        yield return CreateQuestSprite(quest.rewards.steamAchievement.iconAchieved);
+                    }
+                    try
+                    {
+                        CreateMMQuestAsset(quest);
+
+                        string assetPath = $"{AchievementDefinitionsFolder}{quest.id}_MMQuest.asset";
+                        var mmQuest = AssetDatabase.LoadAssetAtPath<MMQuest>(assetPath);
+                        if (mmQuest != null)
+                        {
+                            createdQuests.Add(mmQuest);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"[Quest Sync Error] Failed to process quest '{quest.title}' ({quest.id}): {ex.Message}");
+                    }
+                }
             }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+
+            createdQuests.Sort((a, b) => string.Compare(a.Title, b.Title, System.StringComparison.OrdinalIgnoreCase));
+            CreateOrUpdateQuestDB(createdQuests);
+            CreateOrUpdateMMAchievementList(createdQuests);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("QuestDB sync complete.");
+            Debug.Log($"QuestDB sync complete. {createdQuests.Count} quests created and added to QuestDB.");
         }
 
-        // === Helper Methods ===
-
-        private static IEnumerator CreateQuestSprite(string iconPath, string iconName)
+        private static IEnumerator CreateQuestSprite(string iconAchievedPath)
         {
-            string imageUrl = BaseImageUrl + iconPath;
-            string localImagePath = Path.Combine(SpriteFolder, iconName);
+            string imageName = Path.GetFileName(iconAchievedPath);
+            string addressableKey = Path.GetFileNameWithoutExtension(iconAchievedPath);
+            string imageUrl = BaseImageUrl + iconAchievedPath;
+            string localImagePath = Path.Combine(SpriteFolder, imageName);
 
-            // Download the image
+
             using (UnityWebRequest texRequest = UnityWebRequestTexture.GetTexture(imageUrl))
             {
                 yield return texRequest.SendWebRequest();
@@ -87,43 +141,18 @@ namespace KBVE.MMExtensions.Database
 
             AssetDatabase.ImportAsset(localImagePath, ImportAssetOptions.ForceUpdate);
 
-            // Configure the texture importer
             TextureImporter importer = (TextureImporter)TextureImporter.GetAtPath(localImagePath);
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
-            importer.spritePixelsPerUnit = 16; // Adjust if you want different density
+            importer.spritePixelsPerUnit = 256;
             importer.mipmapEnabled = false;
             importer.alphaIsTransparency = true;
             importer.spritePivot = new Vector2(0.5f, 0.5f);
             importer.SaveAndReimport();
 
-            // Optionally return the sprite if needed
-            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(localImagePath);
-            if (sprite == null)
-            {
-                Debug.LogWarning($"Failed to import sprite at path: {localImagePath}");
-            }
+            AddressableUtility.MakeAddressable(localImagePath, addressableKey, "QuestIcons");
         }
 
-        // private static void CreateSteamAchievementAsset(QuestEntry quest)
-        // {
-        //     string assetPath = $"{AchievementAssetFolder}{quest.id}_Steam.asset";
-        //     Achievement steamAchievement = AssetDatabase.LoadAssetAtPath<Achievement>(assetPath);
-
-        //     if (steamAchievement == null)
-        //     {
-        //         steamAchievement = ScriptableObject.CreateInstance<Achievement>();
-        //         AssetDatabase.CreateAsset(steamAchievement, assetPath);
-        //     }
-
-        //     steamAchievement.name = quest.title;
-        //     steamAchievement.Id = quest.id;
-        //     steamAchievement.Name = quest.title;
-        //     steamAchievement.Description = quest.description;
-        //     steamAchievement.Hidden = false;
-
-        //     EditorUtility.SetDirty(steamAchievement);
-        // }
 
         private static void CreateMMQuestAsset(QuestEntry quest)
         {
@@ -135,22 +164,19 @@ namespace KBVE.MMExtensions.Database
                 mmQuest = ScriptableObject.CreateInstance<MMQuest>();
                 AssetDatabase.CreateAsset(mmQuest, assetPath);
             }
-
-             // === MMAchievement-like fields
             mmQuest.AchievementID = quest.id;
             mmQuest.Title = quest.title;
             mmQuest.Description = quest.description;
             mmQuest.UnlockedStatus = false;
             mmQuest.HiddenAchievement = quest.hidden;
-            mmQuest.AchievementType = AchievementTypes.Simple; // or Progress if applicable
+            mmQuest.AchievementType = AchievementTypes.Simple;
             mmQuest.ProgressTarget = quest.rewards?.steamAchievement?.maxValue > 1 ? (int)quest.rewards.steamAchievement.maxValue : 1;
             mmQuest.ProgressCurrent = 0;
-            mmQuest.Points = 100; // arbitrary or future field?
+            mmQuest.Points = 100;
             mmQuest.LockedImage = null;
             mmQuest.UnlockedImage = null;
             mmQuest.UnlockedSound = null;
 
-            // === Quest-specific metadata
             mmQuest.Guid = quest.guid;
             mmQuest.Slug = quest.slug;
             mmQuest.IconName = quest.icon;
@@ -160,12 +186,10 @@ namespace KBVE.MMExtensions.Database
             mmQuest.Repeatable = quest.repeatable;
             mmQuest.LevelRequirement = quest.levelRequirement;
 
-            // === Quest structure
             mmQuest.Objectives = quest.objectives ?? new();
             mmQuest.Triggers = quest.triggers ?? new();
             mmQuest.NextQuestId = quest.nextQuestId;
 
-            // === Rewards
             if (quest.rewards != null)
             {
                 mmQuest.ItemRewards = quest.rewards.items ?? new();
@@ -178,61 +202,56 @@ namespace KBVE.MMExtensions.Database
             AddressableUtility.MakeAddressable(assetPath, quest.id, "Quests");
         }
 
-        // private static void CreateMMAchievementAsset(QuestEntry quest)
-        // {
-        //     string assetPath = $"{AchievementAssetFolder}{quest.id}_MM.asset";
-        //     MMAchievement mmAchievement = AssetDatabase.LoadAssetAtPath<MMAchievement>(assetPath);
 
-        //     if (mmAchievement == null)
-        //     {
-        //         mmAchievement = ScriptableObject.CreateInstance<MMAchievement>();
-        //         AssetDatabase.CreateAsset(mmAchievement, assetPath);
-        //     }
-
-        //     mmAchievement.AchievementID = quest.id;
-        //     mmAchievement.Title = quest.title;
-        //     mmAchievement.Description = quest.description;
-        //     mmAchievement.Unlocked = false;
-        //     EditorUtility.SetDirty(mmAchievement);
-        // }
-
-
-        public static List<MMQuest> LoadedQuests;
-
-        //loads the list of scriptableobjects of type MMQuest from the disk into the moremountains system
-        public static void LoadCustomAchievements()
+        private static void CreateOrUpdateQuestDB(List<MMQuest> quests)
         {
-            // Load all MMQuest assets from Assets/MMAchievements/
-            string[] guids = AssetDatabase.FindAssets("t:MMQuest", new[] { AchievementAssetFolder });
-            List<MMAchievement> achievements = new List<MMAchievement>();
-
-            LoadedQuests = new List<MMQuest>();
-            foreach (string guid in guids)
+            QuestDB questDB = AssetDatabase.LoadAssetAtPath<QuestDB>(QuestDBAssetPath);
+            if (questDB == null)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                MMQuest quest = AssetDatabase.LoadAssetAtPath<MMQuest>(path);
-                if (quest != null)
-                {
-                    achievements.Add(quest.ToMMAchievement());
-                    LoadedQuests.Add(GameObject.Instantiate(quest));
-                    //achievements.Add(Object.Instantiate(quest)); // clone to avoid modifying asset directly
-                }
+                questDB = ScriptableObject.CreateInstance<QuestDB>();
+                AssetDatabase.CreateAsset(questDB, QuestDBAssetPath);
             }
 
-            // Create MMAchievementList in memory
-            MMAchievementList list = ScriptableObject.CreateInstance<MMAchievementList>();
-            list.AchievementsListID = "CustomStartupAchievements";
-            list.Achievements = achievements;
+            questDB.AllQuests = quests;
+            EditorUtility.SetDirty(questDB);
 
-            MMAchievementManager.LoadAchievementList(list);
-            // Inject into MMAchievementManager
-            // typeof(MMAchievementManager)
-            //     .GetField("_achievementList", BindingFlags.NonPublic | BindingFlags.Static)
-            //     ?.SetValue(null, list);
-
-            // Load progress from disk (optional) (saved progress on disk towards achievements?)
-            MMAchievementManager.LoadSavedAchievements();
+            AddressableUtility.MakeAddressable(QuestDBAssetPath, "QuestDB", "QuestDatabase");
         }
+
+
+        private static void ClearOldQuestAssets()
+        {
+            string[] existingFiles = Directory.GetFiles(AchievementDefinitionsFolder, "*.asset");
+
+            foreach (var file in existingFiles)
+            {
+                string unityPath = file.Replace("\\", "/"); // Normalize slashes
+                if (unityPath.StartsWith(Application.dataPath))
+                {
+                    unityPath = "Assets" + unityPath.Substring(Application.dataPath.Length);
+                }
+
+                AssetDatabase.DeleteAsset(unityPath);
+            }
+        }
+
+        private static void CreateOrUpdateMMAchievementList(List<MMQuest> quests)
+        {
+            var achievementList = ScriptableObject.CreateInstance<MMAchievementList>();
+            achievementList.AchievementsListID = "QuestAchievements";
+            achievementList.Achievements = quests.ConvertAll(q => q.ToMMAchievement());
+
+            if (File.Exists(AchievementListAssetPath))
+            {
+                AssetDatabase.DeleteAsset(AchievementListAssetPath);
+            }
+
+            AssetDatabase.CreateAsset(achievementList, AchievementListAssetPath);
+            EditorUtility.SetDirty(achievementList);
+            AddressableUtility.MakeAddressable(AchievementListAssetPath, "MMAchievementList", AddressableGroup_Database);
+        }
+
+
 
     }
 }
