@@ -11,6 +11,7 @@
     "VContainer",
     "MoreMountains.Feedbacks",
     "MoreMountains.TopDownEngine",
+    "MoreMountains.Tools",
     "UnityEngine.Physics2DModule",
     "Newtonsoft.Json",
     "UniTask",
