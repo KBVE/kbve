@@ -67,13 +67,20 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         {
             Stats.Clear();
 
+            AddStat(StatType.Mana, new StatData(50, 100, 3f));
+            AddStat(StatType.Energy, new StatData(100, 100, 5f));
+            AddStat(StatType.Intelligence, new StatData(10, 10, 0f));
+            AddStat(StatType.Stamina, new StatData(10, 10, 0f));
+            AddStat(StatType.Armor, new StatData(5, 5, 0f));
+            AddStat(StatType.Strength, new StatData(10, 10, 0f));
+
             foreach (var preset in _presetStats)
             {
                 float baseVal = preset.baseValue > 0 ? preset.baseValue : StatHelper.GetDefaultBase(preset.type);
                 float maxVal = preset.maxValue > 0 ? preset.maxValue : StatHelper.GetDefaultMax(preset.type);
                 float regenVal = preset.regenRate >= 0 ? preset.regenRate : StatHelper.GetDefaultRegen(preset.type);
 
-                AddStat(preset.type, new StatData(baseVal, maxVal, regenVal));
+                ApplyPresetStat(preset.type, baseVal, maxVal, regenVal);
             }
         }
 
@@ -142,10 +149,57 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         /// </summary>
         public void ModifyStat(StatType stat, float amount)
         {
-            if (!Stats.TryGetValue(stat, out var data)) return;
+            if (!Stats.TryGetValue(stat, out var data))
+            {
+                Debug.LogWarning($"[ExtendedHealth] Attempted to modify stat '{stat}' which doesn't exist.");
+                return;
+            }
+
             data.Modify(amount);
             Stats[stat] = data;
+
+            if (!_cachedKeys.Contains(stat))
+                RefreshCachedKeys();
         }
+
+        public void OverwriteStat(StatType stat, StatData newData)
+        {
+            Stats[stat] = newData;
+
+            if (!_cachedKeys.Contains(stat))
+                RefreshCachedKeys();
+        }
+
+        public void EnsureStat(StatType stat, StatData fallback)
+        {
+            if (!Stats.ContainsKey(stat))
+            {
+                Stats[stat] = fallback;
+                RefreshCachedKeys();
+            }
+        }
+
+        public void ApplyPresetStat(StatType stat, float baseBonus, float maxBonus, float regenBonus)
+        {
+            if (!Stats.TryGetValue(stat, out var data))
+            {
+                Debug.LogWarning($"[ExtendedHealth] Attempted to extend stat '{stat}' which doesn't exist.");
+                return;
+            }
+
+            data.Base += baseBonus;
+            data.Max += maxBonus;
+            data.RegenRate += regenBonus;
+
+            data.Clamp(); // Clamp current to new max
+
+
+            Stats[stat] = data;
+
+            if (!_cachedKeys.Contains(stat))
+                RefreshCachedKeys();
+        }
+
         /// <summary>
         /// Sets or removes stat flags.
         /// </summary>

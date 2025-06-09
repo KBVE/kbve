@@ -51,14 +51,40 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                     break;
 
                 case TopDownEngineEventTypes.CharacterSwap:
-                    var swapped = evt.OriginCharacter;
-                    if (swapped != null)
                     {
-                        var health = swapped.GetComponent<ExtendedHealth>();
+                        string playerId = evt.OriginCharacter?.PlayerID;
+
+                        Character activeCharacter = null;
+
+                        foreach (var player in LevelManager.Instance.Players)
+                        {
+                            if (player != null && player.PlayerID == playerId)
+                            {
+                                activeCharacter = player;
+                                break;
+                            }
+                        }
+
+                        if (activeCharacter == null)
+                        {
+                            Debug.LogWarning($"[CharacterEventRegistrar] Could not find new active character for PlayerID '{playerId}' after swap.");
+                            break;
+                        }
+
+                        var health = activeCharacter.GetComponent<ExtendedHealth>();
                         if (health != null)
+                        {
                             _hudService.SetActiveStatsAsync(health.Stats).Forget();
+                            Debug.Log($"[CharacterEventRegistrar] HUD updated for swapped-in character: {activeCharacter.name}");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[CharacterEventRegistrar] Active character '{activeCharacter.name}' has no ExtendedHealth.");
+                        }
+
+                        break;
                     }
-                    Debug.Log("[CharacterEventRegistrar] Character Swap Detected");
+                default:
                     break;
             }
         }
