@@ -15,6 +15,8 @@ using KBVE.MMExtensions.Quests;
 using Achievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using KBVE.MMExtensions.Orchestrator;
+using KBVE.MMExtensions.Orchestrator.Core;
 
 
 namespace KBVE.MMExtensions.SSDB.Steam
@@ -24,15 +26,12 @@ namespace KBVE.MMExtensions.SSDB.Steam
         private CancellationTokenSource _cts;
         private readonly CompositeDisposable _disposables = new();
         private SteamworksService _steamworksService;
-        public ObservableList<MMQuest> LoadedQuests { get; } = new();
-        public ReactiveProperty<bool> QuestsReady { get; } = new(false);
 
         [Inject]
         public void Construct(SteamworksService steamworksService)
         {
             _steamworksService = steamworksService;
         }
-
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
             _cts = new CancellationTokenSource();
@@ -40,9 +39,10 @@ namespace KBVE.MMExtensions.SSDB.Steam
 
             try
             {
-                await UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: linkedToken);
-
-                await LoadQuestAchievements(linkedToken);
+                await UniTask.WhenAll(
+                    UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: linkedToken),
+                    Operator.Quest.QuestsReady.WaitUntilTrue(linkedToken)
+                );
 
                 MMEventManager.AddListener<MMAchievementUnlockedEvent>(this);
             }
@@ -51,33 +51,8 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 Debug.LogWarning("[SteamAchievements] Initialization canceled.");
             }
         }
-        private async UniTask LoadQuestAchievements(CancellationToken cancellationToken)
-        {
-            var handle = Addressables.LoadAssetAsync<MMAchievementList>("MMAchievementList");
-            await handle.ToUniTask(cancellationToken: cancellationToken);
 
-            if (handle.Status != AsyncOperationStatus.Succeeded)
-            {
-                Debug.LogError("[SteamAchievements] Failed to load MMAchievementList from Addressables.");
-                return;
-            }
-
-            var list = handle.Result;
-
-            LoadedQuests.Clear();
-            foreach (var mm in list.Achievements)
-            {
-                var quest = ScriptableObject.CreateInstance<MMQuest>();
-                quest.CopyFromMMAchievement(mm);
-                LoadedQuests.Add(quest);
-            }
-
-            MMAchievementManager.LoadAchievementList(list);
-            MMAchievementManager.LoadSavedAchievements();
-
-            QuestsReady.Value = true;
-        }
-
+       
         public void OnMMEvent(MMAchievementUnlockedEvent eventType)
         {
             var achievement = eventType.Achievement;
@@ -88,7 +63,7 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 return;
             }
 
-            var questFound = LoadedQuests.FirstOrDefault(q => string.Equals(q.AchievementID, achievement.AchievementID, StringComparison.Ordinal));
+            var questFound = Operator.Quest.GetQuestByAchievementId(achievement.AchievementID);
 
             if (questFound == null)
             {

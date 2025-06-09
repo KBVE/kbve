@@ -6,6 +6,7 @@ using KBVE.MMExtensions.Orchestrator.Core;
 using KBVE.MMExtensions.Orchestrator.Core.UI;
 using System.Linq;
 using System;
+using KBVE.MMExtensions.Orchestrator.Core.Quests;
 
 namespace KBVE.MMExtensions.Orchestrator
 {
@@ -43,6 +44,10 @@ namespace KBVE.MMExtensions.Orchestrator
             builder.Register<TickSystem>(Lifetime.Singleton)
             .AsSelf()
             .AsImplementedInterfaces();
+
+            builder.Register<OrchestratorQuestService>(Lifetime.Singleton)
+            .As<IAsyncStartable>()
+            .AsSelf();   
 
             builder.RegisterEntryPoint<CharacterEventRegistrar>();
 

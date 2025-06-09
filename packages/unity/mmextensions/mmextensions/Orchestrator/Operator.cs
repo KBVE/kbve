@@ -3,6 +3,10 @@ using KBVE.MMExtensions.Orchestrator.Core;
 using KBVE.MMExtensions.Orchestrator.Core.UI;
 using Cysharp.Threading.Tasks;
 using VContainer;
+using KBVE.MMExtensions.Orchestrator.Core.Quests;
+using R3;
+using System;
+using System.Threading;
 
 namespace KBVE.MMExtensions.Orchestrator
 {
@@ -18,6 +22,9 @@ namespace KBVE.MMExtensions.Orchestrator
         public static IToastService Toast { get; internal set; }
 
         private static readonly UniTaskCompletionSource _readyTcs = new();
+
+        public static OrchestratorQuestService Quest { get; internal set; }
+
         public static UniTask Ready => _readyTcs.Task;
 
         /// <summary>
@@ -30,9 +37,18 @@ namespace KBVE.MMExtensions.Orchestrator
             Prefab = container.Resolve<IPrefabOrchestrator>();
             Ticker = container.Resolve<TickSystem>();
             Toast = container.Resolve<IToastService>();
-            
-             _readyTcs.TrySetResult();
+            Quest = container.Resolve<OrchestratorQuestService>();
+
+            _readyTcs.TrySetResult();
 
         }
+
+        public static async UniTask WaitForFullReady()
+        {
+            await Ready;
+            await Quest.QuestsReady.WaitUntilTrue();
+        }
+        public static UniTask R() => WaitForFullReady();
+
     }
 }
