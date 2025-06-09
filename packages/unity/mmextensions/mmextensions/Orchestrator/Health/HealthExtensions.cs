@@ -3,6 +3,8 @@ using MoreMountains.TopDownEngine;
 using System.Collections.Generic;
 using MMHealth = MoreMountains.TopDownEngine.Health;
 
+// TODO: Merge this heal back into the extended health.
+
 namespace KBVE.MMExtensions.Orchestrator.Health
 {
     public static class HealthExtensions
