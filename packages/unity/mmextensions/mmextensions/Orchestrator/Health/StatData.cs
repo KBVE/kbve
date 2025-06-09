@@ -49,7 +49,13 @@ namespace KBVE.MMExtensions.Orchestrator.Health
 
         public float EffectiveMax => Max + BonusFlat + (Max * BonusPercent);
 
-
+        /// <summary>
+        /// Ensures Current is clamped between 0 and EffectiveMax.
+        /// </summary>
+        public void Clamp()
+        {
+            Current = Mathf.Clamp(Current, 0f, EffectiveMax);
+        }
 
         /// <summary>
         /// Regenerates the stat based on delta time and RegenRate.
