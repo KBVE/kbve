@@ -21,11 +21,11 @@ namespace KBVE.MMExtensions.Database
     {
         private const string ApiUrl = "https://kbve.com/api/questdb.json";
         private const string AchievementAssetFolder = "Assets/Dungeon/Data/QuestDB/";
-
         private const string BaseImageUrl = "https://kbve.com";
         private const string SpriteFolder = "Assets/Dungeon/Data/QuestDB/Sprites/";
         private const string PrefabFolder = "Assets/Dungeon/Data/QuestDB/Prefabs/";
         private const string AchievementDefinitionsFolder = "Assets/Dungeon/Data/QuestDB/Definitions/";
+        private const string QuestDBAssetPath = "Assets/Dungeon/Data/QuestDB/Definitions/QuestDB.asset";
 
         [MenuItem("KBVE/Database/Sync QuestDB")]
         public static void SyncQuestDatabase()
@@ -151,6 +151,25 @@ namespace KBVE.MMExtensions.Database
             EditorUtility.SetDirty(mmQuest);
             AddressableUtility.MakeAddressable(assetPath, quest.id, "Quests");
         }
+
+
+        private static void CreateOrUpdateQuestDB(List<MMQuest> quests)
+        {
+            QuestDB questDB = AssetDatabase.LoadAssetAtPath<QuestDB>(QuestDBAssetPath);
+            if (questDB == null)
+            {
+                questDB = ScriptableObject.CreateInstance<QuestDB>();
+                AssetDatabase.CreateAsset(questDB, QuestDBAssetPath);
+            }
+
+            questDB.AllQuests = quests;
+            EditorUtility.SetDirty(questDB);
+
+            AddressableUtility.MakeAddressable(QuestDBAssetPath, "QuestDB", "QuestDatabase");
+        }
+
+
+        //  QuestDB -> Older Functions -> Below.
 
 
         public static List<MMQuest> LoadedQuests;
