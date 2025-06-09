@@ -56,11 +56,8 @@ namespace KBVE.MMExtensions.Database
 
                 if (!string.IsNullOrEmpty(quest.rewards?.steamAchievement?.iconAchieved))
                 {
-                    // Download and import the sprite first
                     yield return CreateQuestSprite(quest.rewards.steamAchievement.iconAchieved);
                 }
-
-                // CreateSteamAchievementAsset(quest);
                 CreateMMQuestAsset(quest);
             }
 
@@ -68,8 +65,6 @@ namespace KBVE.MMExtensions.Database
             AssetDatabase.Refresh();
             Debug.Log("QuestDB sync complete.");
         }
-
-        // === Helper Methods ===
 
         private static IEnumerator CreateQuestSprite(string iconAchievedPath)
         {
@@ -108,25 +103,6 @@ namespace KBVE.MMExtensions.Database
             AddressableUtility.MakeAddressable(localImagePath, addressableKey, "QuestIcons");
         }
 
-        // private static void CreateSteamAchievementAsset(QuestEntry quest)
-        // {
-        //     string assetPath = $"{AchievementAssetFolder}{quest.id}_Steam.asset";
-        //     Achievement steamAchievement = AssetDatabase.LoadAssetAtPath<Achievement>(assetPath);
-
-        //     if (steamAchievement == null)
-        //     {
-        //         steamAchievement = ScriptableObject.CreateInstance<Achievement>();
-        //         AssetDatabase.CreateAsset(steamAchievement, assetPath);
-        //     }
-
-        //     steamAchievement.name = quest.title;
-        //     steamAchievement.Id = quest.id;
-        //     steamAchievement.Name = quest.title;
-        //     steamAchievement.Description = quest.description;
-        //     steamAchievement.Hidden = false;
-
-        //     EditorUtility.SetDirty(steamAchievement);
-        // }
 
         private static void CreateMMQuestAsset(QuestEntry quest)
         {
@@ -138,22 +114,19 @@ namespace KBVE.MMExtensions.Database
                 mmQuest = ScriptableObject.CreateInstance<MMQuest>();
                 AssetDatabase.CreateAsset(mmQuest, assetPath);
             }
-
-            // === MMAchievement-like fields
             mmQuest.AchievementID = quest.id;
             mmQuest.Title = quest.title;
             mmQuest.Description = quest.description;
             mmQuest.UnlockedStatus = false;
             mmQuest.HiddenAchievement = quest.hidden;
-            mmQuest.AchievementType = AchievementTypes.Simple; // or Progress if applicable
+            mmQuest.AchievementType = AchievementTypes.Simple;
             mmQuest.ProgressTarget = quest.rewards?.steamAchievement?.maxValue > 1 ? (int)quest.rewards.steamAchievement.maxValue : 1;
             mmQuest.ProgressCurrent = 0;
-            mmQuest.Points = 100; // arbitrary or future field?
+            mmQuest.Points = 100;
             mmQuest.LockedImage = null;
             mmQuest.UnlockedImage = null;
             mmQuest.UnlockedSound = null;
 
-            // === Quest-specific metadata
             mmQuest.Guid = quest.guid;
             mmQuest.Slug = quest.slug;
             mmQuest.IconName = quest.icon;
@@ -163,12 +136,10 @@ namespace KBVE.MMExtensions.Database
             mmQuest.Repeatable = quest.repeatable;
             mmQuest.LevelRequirement = quest.levelRequirement;
 
-            // === Quest structure
             mmQuest.Objectives = quest.objectives ?? new();
             mmQuest.Triggers = quest.triggers ?? new();
             mmQuest.NextQuestId = quest.nextQuestId;
 
-            // === Rewards
             if (quest.rewards != null)
             {
                 mmQuest.ItemRewards = quest.rewards.items ?? new();
@@ -180,24 +151,6 @@ namespace KBVE.MMExtensions.Database
             EditorUtility.SetDirty(mmQuest);
             AddressableUtility.MakeAddressable(assetPath, quest.id, "Quests");
         }
-
-        // private static void CreateMMAchievementAsset(QuestEntry quest)
-        // {
-        //     string assetPath = $"{AchievementAssetFolder}{quest.id}_MM.asset";
-        //     MMAchievement mmAchievement = AssetDatabase.LoadAssetAtPath<MMAchievement>(assetPath);
-
-        //     if (mmAchievement == null)
-        //     {
-        //         mmAchievement = ScriptableObject.CreateInstance<MMAchievement>();
-        //         AssetDatabase.CreateAsset(mmAchievement, assetPath);
-        //     }
-
-        //     mmAchievement.AchievementID = quest.id;
-        //     mmAchievement.Title = quest.title;
-        //     mmAchievement.Description = quest.description;
-        //     mmAchievement.Unlocked = false;
-        //     EditorUtility.SetDirty(mmAchievement);
-        // }
 
 
         public static List<MMQuest> LoadedQuests;
