@@ -39,10 +39,10 @@ namespace KBVE.MMExtensions.SSDB
                 .DontDestroyOnLoad()
                 .AsSelf()
                 .As<IAsyncStartable>()
-                .As<IDisposable>()
-                .UnderTransform(() => {
-                    return parent
-                });
+                .As<IDisposable>();
+                // .UnderTransform(() => {
+                //     return parent
+                // });
 
             }
 
