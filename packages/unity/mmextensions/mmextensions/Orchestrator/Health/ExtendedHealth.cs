@@ -31,16 +31,25 @@ namespace KBVE.MMExtensions.Orchestrator.Health
 
         private TickSystem _tickSystem;
 
+        [Serializable]
+        public struct StatPreset
+        {
+            public StatType type;
+            public float baseValue;
+            public float maxValue;
+            public float regenRate;
+        }
+
+        [Header("Preset Stats (Base + Regen)")]
+        [SerializeField]
+        private List<StatPreset> _presetStats = new();
+        public List<StatPreset> PresetStats => _presetStats;
+
         protected override void Start()
         {
             base.Start();
-        
-            AddStat(StatType.Mana, new StatData(50, 100, 3f));
-            AddStat(StatType.Energy, new StatData(100, 100, 5f));
-            AddStat(StatType.Intelligence, new StatData(10, 10, 0f));
-            AddStat(StatType.Stamina, new StatData(10, 10, 0f));
-            AddStat(StatType.Armor, new StatData(5, 5, 0f));
-            AddStat(StatType.Strength, new StatData(10, 10, 0f));
+
+            RebuildStatsFromPresets();
 
             _tickSystem ??= TickLocator.Instance;
 
@@ -53,6 +62,19 @@ namespace KBVE.MMExtensions.Orchestrator.Health
                 Debug.LogWarning("[ExtendedHealth] TickSystem not found — regeneration disabled.");
             }
 
+        }
+        public void RebuildStatsFromPresets()
+        {
+            Stats.Clear();
+
+            foreach (var preset in _presetStats)
+            {
+                float baseVal = preset.baseValue > 0 ? preset.baseValue : StatHelper.GetDefaultBase(preset.type);
+                float maxVal = preset.maxValue > 0 ? preset.maxValue : StatHelper.GetDefaultMax(preset.type);
+                float regenVal = preset.regenRate >= 0 ? preset.regenRate : StatHelper.GetDefaultRegen(preset.type);
+
+                AddStat(preset.type, new StatData(baseVal, maxVal, regenVal));
+            }
         }
 
         private void OnDestroy()
@@ -98,7 +120,7 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         {
             _cachedKeys = Stats.Keys.ToArray();
         }
-        
+
 
         /// <summary>
         /// Returns whether a given stat can currently regenerate.
@@ -156,9 +178,9 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             float reducedDamage = Mathf.Max(0f, damage - armor);
             return base.ComputeDamageOutput(reducedDamage, typedDamages, damageApplied);
         }
-        
 
-        
+
+
         [VContainer.Inject]
         public void InjectTickSystem(TickSystem system)
         {
