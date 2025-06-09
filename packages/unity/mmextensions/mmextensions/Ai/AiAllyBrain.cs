@@ -101,10 +101,10 @@ namespace KBVE.MMExtensions.Ai
     // }
     protected override void OnEnable()
     {
-        base.OnEnable();
-        this.MMEventStartListening<PickableItemEvent>();
+      base.OnEnable();
+      this.MMEventStartListening<PickableItemEvent>();
     }
-    
+
 
     protected void OnDisable()
     {
@@ -113,31 +113,59 @@ namespace KBVE.MMExtensions.Ai
 
     protected void OnDestroy()
     {
-      handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
+      if (handleWeapon != null)
+      {
+        handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
+      }
     }
+
+    // protected virtual void handleWeapon_OnWeaponChange()
+    // {
+    //   if(handleWeapon.CurrentWeapon.GetComponent<HealWeapon>() != null)
+    //   {
+    //     // Debug.Log("Weapon Change Heal");
+    //     SetupAllyHealerStates();
+    //     foreach (AIState state in States)
+    //     {
+    //       state.SetBrain(this);
+    //     }
+    //     ResetBrain();
+    //   }
+    //   else
+    //   {
+    //     // Debug.Log("Weapon Change Attack");
+    //     SetupAllyAttackerStates();
+    //     foreach (AIState state in States)
+    //     {
+    //       state.SetBrain(this);
+    //     }
+    //     ResetBrain();
+    //   }
+    // }
 
     protected virtual void handleWeapon_OnWeaponChange()
     {
-      if(handleWeapon.CurrentWeapon.GetComponent<HealWeapon>() != null)
+      var weapon = handleWeapon.CurrentWeapon;
+
+      if (weapon != null && weapon.GetComponent<HealWeapon>() != null)
       {
-        // Debug.Log("Weapon Change Heal");
         SetupAllyHealerStates();
-        foreach (AIState state in States)
-        {
-          state.SetBrain(this);
-        }
-        ResetBrain();
       }
       else
       {
-        // Debug.Log("Weapon Change Attack");
         SetupAllyAttackerStates();
+      }
+
+      if (States != null)
+      {
         foreach (AIState state in States)
         {
-          state.SetBrain(this);
+          if (state != null)
+            state.SetBrain(this);
         }
-        ResetBrain();
       }
+
+      ResetBrain();
     }
 
     protected virtual void SetupDecisionsAttacker()
@@ -354,7 +382,7 @@ namespace KBVE.MMExtensions.Ai
     {
       ItemPicker itemPicker = eventData.PickedItem.GetComponent<ItemPicker>();
       AiAllyBrain aiAllyBrain = eventData.Picker.GetComponent<AiAllyBrain>();
-      if(itemPicker?.Item is InventoryWeapon weaponItem)
+      if (itemPicker?.Item is InventoryWeapon weaponItem)
       {
         aiAllyBrain?.GetComponent<CharacterHandleWeapon>().ChangeWeapon(weaponItem.EquippableWeapon, weaponItem.EquippableWeapon.name);
       }

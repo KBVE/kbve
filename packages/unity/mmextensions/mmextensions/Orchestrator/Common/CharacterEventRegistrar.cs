@@ -54,20 +54,15 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                     {
                         string playerId = evt.OriginCharacter?.PlayerID;
 
-                        Character activeCharacter = null;
-
-                        foreach (var player in LevelManager.Instance.Players)
+                        if (string.IsNullOrEmpty(playerId))
                         {
-                            if (player != null && player.PlayerID == playerId)
-                            {
-                                activeCharacter = player;
-                                break;
-                            }
+                            Debug.LogWarning("[CharacterEventRegistrar] Swap event missing PlayerID.");
+                            break;
                         }
 
-                        if (activeCharacter == null)
+                        if (!_registry.TryGetPrimaryCharacter(playerId, out var activeCharacter) || activeCharacter == null)
                         {
-                            Debug.LogWarning($"[CharacterEventRegistrar] Could not find new active character for PlayerID '{playerId}' after swap.");
+                            Debug.LogWarning($"[CharacterEventRegistrar] No active character found for PlayerID '{playerId}' in registry.");
                             break;
                         }
 
