@@ -109,6 +109,7 @@ namespace KBVE.MMExtensions.Database
 
             createdQuests.Sort((a, b) => string.Compare(a.Title, b.Title, System.StringComparison.OrdinalIgnoreCase));
             CreateOrUpdateQuestDB(createdQuests);
+            CreateOrUpdateMMAchievementList(createdQuests);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
