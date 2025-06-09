@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+//using Cysharp.Threading.Tasks.Addressables;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -12,129 +13,119 @@ using MoreMountains.TopDownEngine;
 using MoreMountains.Feedbacks;
 using KBVE.MMExtensions.Quests;
 using Achievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
-// TODO: Notes
-//JD NOTE: does not reference scriptableObject list (loaded with scriptableobjects present in repo)
-//JD NOTE: untested achievement events
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
-    public class SteamAchievements : MonoBehaviour, IAsyncStartable, IDisposable, MMEventListener<MMAchievementUnlockedEvent>
+    public class SteamAchievements : MonoBehaviour, MMEventListener<MMAchievementUnlockedEvent>, IAsyncStartable, IDisposable
     {
-        private const string AchievementAssetFolder = "Assets/Dungeon/Data/QuestDB/";
+        private CancellationTokenSource _cts;
         private readonly CompositeDisposable _disposables = new();
         private SteamworksService _steamworksService;
+        public ObservableList<MMQuest> LoadedQuests { get; } = new();
+        public ReactiveProperty<bool> QuestsReady { get; } = new(false);
 
         [Inject]
         public void Construct(SteamworksService steamworksService)
         {
             _steamworksService = steamworksService;
         }
+
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
+            _cts = new CancellationTokenSource();
+            var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken).Token;
+
             try
             {
-                InitializeAchievementsList();
-                await UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: cancellationToken);
+                await UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: linkedToken);
+
+                await LoadQuestAchievements(linkedToken);
+
                 MMEventManager.AddListener<MMAchievementUnlockedEvent>(this);
             }
             catch (OperationCanceledException)
             {
-            // MMQuest questFound = EditorQuestDB.LoadedQuests.FirstOrDefault(a => a.AchievementID != null
-            //     && a.AchievementID == eventType.Achievement.AchievementID);
+                Debug.LogWarning("[SteamAchievements] Initialization canceled.");
+            }
+        }
+        private async UniTask LoadQuestAchievements(CancellationToken cancellationToken)
+        {
+            var handle = Addressables.LoadAssetAsync<MMAchievementList>("MMAchievementList");
+            await handle.ToUniTask(cancellationToken: cancellationToken);
 
-            // if (questFound == null)
-            // {
-            //     Debug.LogError("[Steam Achievement Failed] MMQuest not found in loaded quests list");
-            //     return;
-            // }
-
-            // UnlockOnSteam(questFound);
-            // Load all MMQuest assets from Assets/MMAchievements/
-            string[] guids = AssetDatabase.FindAssets("t:MMQuest", new[] { AchievementAssetFolder });
-            List<MMAchievement> achievements = new List<MMAchievement>();
-
-            LoadedQuests = new List<MMQuest>();
-            foreach (string guid in guids)
+            if (handle.Status != AsyncOperationStatus.Succeeded)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                MMQuest quest = AssetDatabase.LoadAssetAtPath<MMQuest>(path);
-                if (quest != null)
-                {
-                    achievements.Add(quest.ToMMAchievement());
-                    LoadedQuests.Add(GameObject.Instantiate(quest));
-                    //achievements.Add(Object.Instantiate(quest)); // clone to avoid modifying asset directly
-                }
+                Debug.LogError("[SteamAchievements] Failed to load MMAchievementList from Addressables.");
+                return;
             }
 
-            // Create MMAchievementList in memory
-            MMAchievementList list = ScriptableObject.CreateInstance<MMAchievementList>();
-            list.AchievementsListID = "CustomStartupAchievements";
-            list.Achievements = achievements;
+            var list = handle.Result;
+
+            LoadedQuests.Clear();
+            foreach (var mm in list.Achievements)
+            {
+                var quest = ScriptableObject.CreateInstance<MMQuest>();
+                quest.CopyFromMMAchievement(mm);
+                LoadedQuests.Add(quest);
+            }
 
             MMAchievementManager.LoadAchievementList(list);
-            // Inject into MMAchievementManager
-            // typeof(MMAchievementManager)
-            //     .GetField("_achievementList", BindingFlags.NonPublic | BindingFlags.Static)
-            //     ?.SetValue(null, list);
-
-            // Load progress from disk (optional) (saved progress on disk towards achievements?)
             MMAchievementManager.LoadSavedAchievements();
-        }
+
+            QuestsReady.Value = true;
         }
 
         public void OnMMEvent(MMAchievementUnlockedEvent eventType)
         {
-            if (eventType.Achievement == null || string.IsNullOrEmpty(eventType.Achievement.AchievementID))
+            var achievement = eventType.Achievement;
+
+            if (achievement == null || string.IsNullOrWhiteSpace(achievement.AchievementID))
             {
-                Debug.LogError("[MMEvents] Invalid AchievementID.");
+                Debug.LogError("[SteamAchievements] Received MMAchievementUnlockedEvent with invalid data.");
                 return;
             }
 
-            //get the quest from the saved achievements repository using the MMAchievement id
-            MMQuest questFound = EditorQuestDB.LoadedQuests.FirstOrDefault(a => a.AchievementID != null
-                && a.AchievementID == eventType.Achievement.AchievementID);
+            var questFound = LoadedQuests.FirstOrDefault(q => string.Equals(q.AchievementID, achievement.AchievementID, StringComparison.Ordinal));
 
             if (questFound == null)
             {
-                Debug.LogError("[Steam Achievement Failed] MMQuest not found in loaded quests list");
+                Debug.LogWarning($"[SteamAchievements] No MMQuest found for AchievementID '{achievement.AchievementID}'.");
                 return;
             }
-
-            UnlockOnSteam(questFound);
+            UnlockOnSteam(questFound).Forget();
         }
 
-        //call to steam to unlock achievement
-        public static void UnlockOnSteam(MMQuest completedQuest)
+        public static async UniTask UnlockOnSteam(MMQuest completedQuest)
         {
-            if (completedQuest == null || completedQuest.SteamAchievement == null)
+            if (completedQuest == null || completedQuest.SteamAchievement == null || string.IsNullOrEmpty(completedQuest.SteamAchievement.apiName))
             {
-                Debug.LogError("[UnlockOnSteam Failed] MMQuest does not have a valid quest and/or SteamAchievement");
+                Debug.LogError("[UnlockOnSteam] Invalid MMQuest or SteamAchievement data.");
                 return;
             }
 
-            Debug.Log("SetAchievement called " + completedQuest.SteamAchievement.apiName);
+            var apiName = completedQuest.SteamAchievement.apiName;
+            Debug.Log($"[SteamAchievements] Unlocking {apiName}...");
 
-            Achievements.SetAchievement(completedQuest.SteamAchievement.apiName);//"ACH_AUTO_COOKER_TEST");        
+            Achievements.SetAchievement(apiName);
+
+            await UniTask.NextFrame(); // Let Steam register
 
             bool achieved = false;
-            DateTime achieveTime;
+            DateTime achievedTime;
+            Achievements.GetAchievement(apiName, out achieved, out achievedTime);
 
-            Achievements.GetAchievement(completedQuest.SteamAchievement.apiName, out achieved, out achieveTime);
-            //Achievements.GetAchievement(eventType.Achievement.AchievementID, out achieved);
+            Debug.Log($"[SteamAchievements] Unlocked: {achieved} @ {achievedTime:MM/dd/yyyy}");
 
-            Debug.Log("Achievement activated? " + achieved);
-            Debug.Log("Achievement activated called " + achieveTime.ToString("MM/DD/YYYY"));
-
-            // AchievementData myAch = eventType.Achievement.AchievementID;
-            // var achState = myAch.GetAchievementAndUnlockTime(user);
-
-            //Store stats to Steam to update the user on Steam's server manually now
             Steamworks.SteamUserStats.StoreStats();
         }
-
         public void Dispose()
         {
+
+            _cts?.Cancel();
+            _cts?.Dispose();
             MMEventManager.RemoveListener<MMAchievementUnlockedEvent>(this);
             _disposables.Dispose();
         }
