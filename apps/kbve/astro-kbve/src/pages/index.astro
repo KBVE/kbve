@@ -13,6 +13,7 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
 import QuadGlassPanel from 'src/layouts/components/panel/QuadGlassPanel.astro';
 
 import SimpleGlassImagePanel from 'src/layouts/components/panel/SimpleGlassImagePanel.astro';
+import { Adsense } from '@kbve/astropad';
 
 function withBaseUrl(path: string, base: URL | string): string {
 	return new URL(path, base).toString();
@@ -111,9 +112,11 @@ const glassTiles = [
 
 	<SimpleGlassImagePanel />
 
-	<BentoGrid>
-		{tiles.map((tile) => <BentoTile {...tile} />)}
+        <BentoGrid>
+                {tiles.map((tile) => <BentoTile {...tile} />)}
 
-		{glassTiles.map((glassTile) => <NeoGlassBentoTile {...glassTile} />)}
-	</BentoGrid>
+                {glassTiles.map((glassTile) => <NeoGlassBentoTile {...glassTile} />)}
+        </BentoGrid>
+
+        <Adsense />
 </Layout>
