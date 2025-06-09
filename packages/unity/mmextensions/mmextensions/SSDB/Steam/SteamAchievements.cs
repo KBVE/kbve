@@ -21,6 +21,9 @@ namespace KBVE.MMExtensions.SSDB.Steam
 {
     public class SteamAchievements : MonoBehaviour, IAsyncStartable, IDisposable, MMEventListener<MMAchievementUnlockedEvent>
     {
+
+        private CancellationTokenSource _cts;
+
         private const string AchievementAssetFolder = "Assets/Dungeon/Data/QuestDB/";
         private readonly CompositeDisposable _disposables = new();
         private SteamworksService _steamworksService;
@@ -135,6 +138,9 @@ namespace KBVE.MMExtensions.SSDB.Steam
 
         public void Dispose()
         {
+            
+            _cts?.Cancel();
+            _cts?.Dispose();
             MMEventManager.RemoveListener<MMAchievementUnlockedEvent>(this);
             _disposables.Dispose();
         }
