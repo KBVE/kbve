@@ -144,6 +144,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 case UICanvasLayer.Tooltip:
                     TooltipPanels.Remove(panel);
                     break;
+                case UICanvasLayer.HUD:
+                    HUDPanels.Remove(panel);
+                    break;
                 default:
                     Debug.LogWarning($"[GlobalCanvasService] RemovePanel: Unhandled layer '{layer}'. Could not remove panel.");
                     break;
