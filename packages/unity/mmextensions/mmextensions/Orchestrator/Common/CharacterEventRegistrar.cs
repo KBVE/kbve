@@ -18,15 +18,12 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         private readonly ICharacterRegistry _registry;
         private readonly IHUDService _hudService;
 
-        // private const string PlayerID = "Player1"; - Removing the hardcoded ref to player1.
-
         [Inject]
         public CharacterEventRegistrar(ICharacterRegistry registry, IHUDService hudService)
         {
             _registry = registry;
             _hudService = hudService;
         }
-
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
@@ -52,8 +49,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
                 case TopDownEngineEventTypes.CharacterSwap:
                     {
-                        string playerId = evt.OriginCharacter?.PlayerID;
-
+                        var playerId = evt.OriginCharacter?.PlayerID;
                         Character activeCharacter = null;
 
                         if (!string.IsNullOrEmpty(playerId))
@@ -61,30 +57,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                             _registry.TryGetPrimaryCharacter(playerId, out activeCharacter);
                         }
 
-                        // Fallback if registry failed or playerId was missing
-                        if (activeCharacter == null && LevelManager.HasInstance && LevelManager.Instance.Players.Count > 0)
-                        {
-                            activeCharacter = LevelManager.Instance.Players[0];
-                            Debug.LogWarning("[CharacterEventRegistrar] Falling back to LevelManager.Instance.Players[0] as active character.");
-                        }
-
-                        if (activeCharacter == null)
-                        {
-                            Debug.LogWarning($"[CharacterEventRegistrar] No active character found for swap event.");
-                            break;
-                        }
-
-                        var health = activeCharacter.GetComponent<ExtendedHealth>();
-                        if (health != null)
-                        {
-                            _hudService.SetActiveStatsAsync(health.Stats).Forget();
-                            Debug.Log($"[CharacterEventRegistrar] HUD updated for swapped-in character: {activeCharacter.name}");
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"[CharacterEventRegistrar] Active character '{activeCharacter.name}' has no ExtendedHealth.");
-                        }
-
+                        SetHUDStatsForActiveCharacter(activeCharacter).Forget();
                         break;
                     }
                 default:
@@ -199,33 +172,35 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         }
 
         // * Helper Methods
+        private async UniTask SetHUDStatsForActiveCharacter(Character overrideCharacter = null, CancellationToken cancellation = default)
+        {
+            await UniTask.Yield();
 
-        private async UniTask SetHUDStatsForActiveCharacter(CancellationToken cancellation = default)
-{
-    await UniTask.Yield();
-    if (!LevelManager.HasInstance || LevelManager.Instance.Players.Count == 0)
-    {
-        Debug.LogWarning("[CharacterEventRegistrar] No active player available for HUD update.");
-        return;
-    }
+            var character = overrideCharacter;
 
-    var activeCharacter = LevelManager.Instance.Players[0];
-    if (activeCharacter == null)
-    {
-        Debug.LogWarning("[CharacterEventRegistrar] LevelManager returned a null player object.");
-        return;
-    }
+            if (character == null && LevelManager.HasInstance && LevelManager.Instance.Players.Count > 0)
+            {
+                character = LevelManager.Instance.Players[0];
+                Debug.LogWarning("[CharacterEventRegistrar] Falling back to LevelManager.Instance.Players[0] as active character.");
+            }
 
-    var health = activeCharacter.GetComponent<ExtendedHealth>();
-    if (health != null)
-    {
-        await _hudService.SetActiveStatsAsync(health.Stats).AttachExternalCancellation(cancellation);
-        Debug.Log($"[CharacterEventRegistrar] HUD updated for active character: {activeCharacter.name}");
-    }
-    else
-    {
-        Debug.LogWarning($"[CharacterEventRegistrar] Active character '{activeCharacter.name}' has no ExtendedHealth.");
-    }
-}
+            if (character == null)
+            {
+                Debug.LogWarning("[CharacterEventRegistrar] No character found for HUD update.");
+                return;
+            }
+
+            var health = character.GetComponent<ExtendedHealth>();
+            if (health != null)
+            {
+                await _hudService.SetActiveStatsAsync(health.Stats).AttachExternalCancellation(cancellation);
+                Debug.Log($"[CharacterEventRegistrar] HUD updated for character: {character.name}");
+            }
+            else
+            {
+                Debug.LogWarning($"[CharacterEventRegistrar] Character '{character.name}' has no ExtendedHealth.");
+            }
+        }
+
     }
 }
