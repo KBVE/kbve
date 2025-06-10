@@ -340,7 +340,14 @@ export async function main() {
 			window.kbve?.events.emit('droid-ready', {
 				timestamp: Date.now(),
 			});
-		});
+		});	
+
+		// document.addEventListener('astro:page-load', () => {
+		// 	console.debug('[KBVE] Re-dispatched droid-ready after DomContentLoaded');
+		// 	window.kbve?.events.emit('droid-ready', {
+		// 		timestamp: Date.now(),
+		// 	});
+		// });	
 
 		console.log('[KBVE] Global API ready');
 	} else {

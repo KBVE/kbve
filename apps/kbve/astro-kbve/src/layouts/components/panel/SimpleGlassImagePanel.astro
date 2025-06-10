@@ -73,7 +73,8 @@ const defaultImage = imageOptions[0].image;
 	</div>
 
 	<script is:inline define:vars={{ imageOptions }}>
-	document.addEventListener("astro:page-load", () => {
+	//document.addEventListener("astro:page-load", () => {
+	document.addEventListener("DOMContentLoaded", () => {
 		const root = document.getElementById('simple-glass-panel');
 		const display = document.getElementById('image-display');
 		const messageBox = document.getElementById('image-message');

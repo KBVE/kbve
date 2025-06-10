@@ -52,7 +52,8 @@ const initial = optionMap[defaultId] ?? options[0];
 	</div>
 
 	<script is:inline define:vars={{ options, defaultId, onChoice }}>
-	document.addEventListener("astro:page-load", () => {
+	
+		document.addEventListener("DOMContentLoaded", () => {
 		const imageBox = document.getElementById('vn-image');
 		const messageBox = document.getElementById('vn-message');
 		const choiceBox = document.getElementById('vn-choices');

@@ -52,8 +52,8 @@ const btnTitle: string = 'Go Back';
                             });
                     }
 
-                        
-                    document.addEventListener('astro:page-load', () => {
+                    document.addEventListener("DOMContentLoaded", () => {
+//                    document.addEventListener('astro:page-load', () => {
                         let attempts = 0;
                         const maxAttempts = 200;
                         const delay = 200;
