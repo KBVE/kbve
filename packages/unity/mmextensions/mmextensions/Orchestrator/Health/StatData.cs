@@ -22,6 +22,16 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         public float BonusPercent;
         public float Current;
 
+        public StatData(float current, float max, float regenRate)
+        {
+            Base = current;
+            Max = max;
+            RegenRate = regenRate;
+            BonusFlat = 0f;
+            BonusPercent = 0f;
+            Current = current;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float EffectiveMax() => Max + BonusFlat + (Max * BonusPercent);
 
@@ -64,6 +74,8 @@ namespace KBVE.MMExtensions.Orchestrator.Health
 
         public bool IsFull => math.abs(Current - EffectiveMax()) < 1e-5f;
         public bool IsEmpty => math.abs(Current) < 1e-5f;
+
+        
     }
 
     /// <summary>
