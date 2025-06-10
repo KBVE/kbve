@@ -8,6 +8,8 @@
       "UnityEngine.UI",
       "Unity.Collections",
       "Unity.ResourceManager",
+      "Unity.Mathematics",
+      "Unity.Burst",
       "UnityEngine.Physics2DModule",
       "UnityEngine.UIModule",
       "MoreMountains.Tools",

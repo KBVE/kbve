@@ -249,6 +249,30 @@
 </ItemGroup>
 
 
+<!-- Unity.Mathematics + Burst (Windows) -->
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="Unity.Mathematics">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Unity.Burst">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Unity.Burst.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<!-- Unity.Mathematics + Burst (macOS/Linux) -->
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="Unity.Mathematics">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Unity.Burst">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Unity.Burst.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
 
   <!-- Kilonet -->
   <ItemGroup>
