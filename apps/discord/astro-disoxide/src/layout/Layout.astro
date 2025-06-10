@@ -56,6 +56,9 @@ import { ClientRouter } from 'astro:transitions';
 				window.kbve?.uiux?.closeAllPanels();
 				//document.querySelector("#loading").classList.remove("show");
 			});
+			// document.addEventListener("DOMContentLoaded", () => {
+			// 						window.kbve?.uiux?.closeAllPanels();
+			// });
 		</script>
 
 		{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
