@@ -157,7 +157,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 LevelManager.HasInstance &&
                 LevelManager.Instance.Players.Count > 0 &&
                 LevelManager.Instance.Players[0] != null &&
-                LevelManager.Instance.Players[0].GetComponent<ExtendedHealth>() != null,
+                LevelManager.Instance.Players[0].GetComponent<ExtendedHealth>() != null
         
             );
 
