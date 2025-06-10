@@ -10,19 +10,7 @@ namespace KBVE.MMExtensions.Orchestrator.Health
 {
     public static class StatHelper
     {
-        public static readonly HashSet<StatType> RegeneratingStats = new()
-        {
-            StatType.Mana,
-            StatType.Energy
-        };
 
-        // public static async UniTask<Sprite> LoadStatIconAsync(StatType stat)
-        // {
-        //     var path = GetIconPath(stat);
-        //     var handle = Addressables.LoadAssetAsync<Sprite>(path);
-        //     await handle.ToUniTask();
-        //     return handle.Result;
-        // }
 
         public static async UniTask<Sprite> LoadStatIconAsync(StatType stat)
         {
@@ -68,20 +56,8 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             _ => "stat_icon_default"
         };
 
-        public static Color GetStatColor(StatType stat) => stat switch
-        {
-            StatType.Health => new Color(1f, 0.2f, 0.2f),     // Red
-            StatType.Mana => new Color(0.3f, 0.5f, 1f),       // Blue
-            StatType.Stamina => new Color(0.3f, 1f, 0.3f),    // Green
-            StatType.Energy => new Color(1f, 0.9f, 0.2f),     // Yellow
-            StatType.Intelligence => new Color(0.6f, 0.4f, 1f), // Purple
-            StatType.Strength => new Color(1f, 0.5f, 0.1f),   // Orange
-            StatType.Armor => new Color(0.7f, 0.7f, 0.7f),    // Grey
-            _ => Color.white
-        };
-
-
-        public static bool IsRegenerating(StatType stat) => RegeneratingStats.Contains(stat);
+        public static Color GetStatColor(StatType stat) => stat.GetColor();
+        public static bool IsRegenerating(StatType stat) => stat.IsRegenerable();
 
         // Default Stats
 
