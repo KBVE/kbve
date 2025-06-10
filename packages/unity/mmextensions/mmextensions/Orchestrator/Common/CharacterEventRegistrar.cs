@@ -30,6 +30,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             MMEventManager.AddListener<TopDownEngineEvent>(this);
             await UniTask.NextFrame(cancellation); // Delay one frame to allow scene objects to initialize
             await ScanAndRegisterAllCharacters(cancellation);  // Optional: scan characters already active
+            await Operator.R();
+            SetHUDStatsForActiveCharacter(cancellation: cancellation).Forget();
         }
 
         public void OnMMEvent(TopDownEngineEvent evt)
