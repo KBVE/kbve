@@ -1,17 +1,20 @@
 ---
 import StarlightHead from "@astrojs/starlight/components/Head.astro";
-import {
-  default as VtbotStarlight,
-  type Props,
-} from "astro-vtbot/components/starlight/Base.astro";
+// import {
+//   default as VtbotStarlight,
+//   type Props,
+// } from "astro-vtbot/components/starlight/Base.astro";
 
 // https://docs.astro.build/en/guides/view-transitions/#fallback-control
 Astro.props.viewTransitionsFallback = "animate";
 ---
 
-<VtbotStarlight {...Astro.props}>
+<!-- <VtbotStarlight {...Astro.props}>
   <StarlightHead {...Astro.props} />
-</VtbotStarlight>
+</VtbotStarlight> -->
+
+  <StarlightHead {...Astro.props} />
+
 
 <style is:global>
   /* Slow down Chrome's default animation */
