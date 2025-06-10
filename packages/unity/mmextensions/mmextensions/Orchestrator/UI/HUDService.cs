@@ -19,6 +19,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
     {
         public ObservableList<StatObservable> ReactiveStats { get; } = new();
 
+        public GameObject HUDPanel => _panelGO;
         private readonly Dictionary<StatType, StatObservable> _lookup = new();
         private readonly Dictionary<StatType, StatBar> _barPool = new();
         private readonly Dictionary<StatType, StatDisplay> _displayPool = new();
@@ -47,8 +48,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _panelGO = _globalCanvas.SpawnPanel(_panelGO, UICanvasLayer.HUD);
             _panelRect = _panelGO.GetComponent<RectTransform>();
 
-            DontDestroyOnLoad(_panelGO);
-
+            //DontDestroyOnLoad(_panelGO);
             Debug.Log("[HUDService] Initialized.");
         }
 

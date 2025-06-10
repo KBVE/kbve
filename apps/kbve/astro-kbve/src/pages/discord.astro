@@ -281,7 +281,8 @@ import DiscordSVG from 'src/layouts/components/panel/DiscordSVG.astro';
 				});
 			}
 
-			document.addEventListener('astro:page-load', () => {
+			document.addEventListener("DOMContentLoaded", () => {
+			//document.addEventListener('astro:page-load', () => {
 				const observer = new MutationObserver(() => {
 					const canvas = document.getElementById('discord-canvas');
 					if (canvas) {

@@ -92,7 +92,10 @@
 		});
 	}
 
-	document.addEventListener('astro:page-load', () => {
+	document.addEventListener("DOMContentLoaded", () => {
+		setTextAnimation(0.1, 2.8, 2, 'linear', '#000000', true);
+	});
+	document.addEventListener("astro:page-load", () => {
 		setTextAnimation(0.1, 2.8, 2, 'linear', '#000000', true);
 	});
 </script>
