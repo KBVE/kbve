@@ -36,11 +36,12 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public void Bind(StatObservable stat)
         {
+            Dispose();
+
             _type = stat.Type;
             _label.text = FormatText(_type, stat.Current.Value);
             _icon.color = StatHelper.GetStatColor(_type);
 
-            _sub?.Dispose();
             _sub = stat.Current
                 .CombineLatest(stat.Max, (cur, max) => new { cur, max })
                 .Subscribe(data =>
@@ -129,14 +130,17 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         }
         public void Dispose()
         {
-            _pulseCts?.Cancel();
-            _pulseCts?.Dispose();
-            _pulseCts = null;
             _sub?.Dispose();
             _sub = null;
+            
             _iconCts?.Cancel();
             _iconCts?.Dispose();
             _iconCts = null;
+
+            _pulseCts?.Cancel();
+            _pulseCts?.Dispose();
+            _pulseCts = null;
+      
         }
 
         private void OnDestroy()
