@@ -31,6 +31,13 @@ import {
     Currently the stats are not as reactive as I would have liked.
     So I am going to restructure them to hold a couple reactive properties.
 
+-   10:12PM
+
+    Okay moving forward, we went in a weird loop of going from the struct for stats being raw to all reactive back to raw.
+    Turns out that we will have to keep two allocations for the stats, the actual value and a soft current value that has a bit of a delayed frame reference.
+    hard value is the actual source of truth, similar to a true armor but a soft value would be one that gets displayed to the user.
+    This will help soften shifts in the regeneration and not the UI go through a crazy loop of shifting up and down during the damanage phase, furthermore gives us a buffer room for actions and if the user opts to cancel.
+
 ## 2024
 
 **Cafe**

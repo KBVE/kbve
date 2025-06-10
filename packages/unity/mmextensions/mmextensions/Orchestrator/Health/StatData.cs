@@ -1,6 +1,6 @@
 using UnityEngine;
 using Unity.Mathematics;
-using R3;
+//using R3;
 using ObservableCollections;
 using System;
 using System.Collections.Generic;
@@ -78,29 +78,29 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         
     }
 
-    /// <summary>
-    /// Reactive wrapper for UI binding and state observation.
-    /// Not burst-safe. Should be used for local/client display only.
-    /// </summary>
-    public class StatDataReactive
-    {
-        public ReactiveProperty<float> Current { get; } = new();
+    // /// <summary>
+    // /// Reactive wrapper for UI binding and state observation.
+    // /// Not burst-safe. Should be used for local/client display only.
+    // /// </summary>
+    // public class StatDataReactive
+    // {
+    //     public ReactiveProperty<float> Current { get; } = new();
 
-        public StatDataReactive(float initial)
-        {
-            Current.Value = initial;
-        }
+    //     public StatDataReactive(float initial)
+    //     {
+    //         Current.Value = initial;
+    //     }
 
-        public void UpdateFromRaw(in StatData raw)
-        {
-            Current.Value = raw.Current;
-        }
+    //     public void UpdateFromRaw(in StatData raw)
+    //     {
+    //         Current.Value = raw.Current;
+    //     }
 
-        public void ApplyToRaw(ref StatData raw)
-        {
-            raw.Current = math.clamp(Current.Value, 0f, raw.EffectiveMax());
-        }
-    }
+    //     public void ApplyToRaw(ref StatData raw)
+    //     {
+    //         raw.Current = math.clamp(Current.Value, 0f, raw.EffectiveMax());
+    //     }
+    // }
 
     /// <summary>
     /// Describes a flat/percentage modifier to apply to a named stat.
@@ -122,26 +122,26 @@ namespace KBVE.MMExtensions.Orchestrator.Health
     /// <summary>
     /// Extension helpers for conversion.
     /// </summary>
-    public static class StatDataConverter
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static StatDataReactive ToReactive(this in StatData raw)
-        {
-            return new StatDataReactive(raw.Current);
-        }
+    // public static class StatDataConverter
+    // {
+    //     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //     public static StatDataReactive ToReactive(this in StatData raw)
+    //     {
+    //         return new StatDataReactive(raw.Current);
+    //     }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static StatData ToRaw(this StatDataReactive reactive, float baseValue, float max, float regenRate)
-        {
-            return new StatData
-            {
-                Base = baseValue,
-                Max = max,
-                RegenRate = regenRate,
-                BonusFlat = 0f,
-                BonusPercent = 0f,
-                Current = reactive.Current.Value
-            };
-        }
-    }
+    //     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //     public static StatData ToRaw(this StatDataReactive reactive, float baseValue, float max, float regenRate)
+    //     {
+    //         return new StatData
+    //         {
+    //             Base = baseValue,
+    //             Max = max,
+    //             RegenRate = regenRate,
+    //             BonusFlat = 0f,
+    //             BonusPercent = 0f,
+    //             Current = reactive.Current.Value
+    //         };
+    //     }
+    // }
 }
