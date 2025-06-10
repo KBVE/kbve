@@ -30,8 +30,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             MMEventManager.AddListener<TopDownEngineEvent>(this);
             await UniTask.NextFrame(cancellation); // Delay one frame to allow scene objects to initialize
             await ScanAndRegisterAllCharacters(cancellation);  // Optional: scan characters already active
-            await Operator.R();
-            SetHUDStatsForActiveCharacter(cancellation: cancellation).Forget();
         }
 
         public void OnMMEvent(TopDownEngineEvent evt)
@@ -44,6 +42,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
                 case TopDownEngineEventTypes.LevelStart:
                     ScanAndRegisterAllCharacters(CancellationToken.None).Forget(); // Since MMEvnts are not async, fire+forget.
+                    DelayHUDUpdate().Forget();
                     break;
 
                 case TopDownEngineEventTypes.CharacterSwap:
@@ -148,6 +147,33 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         }
 
         // * Helper Methods
+
+        private async UniTaskVoid DelayHUDUpdate()
+        {
+            await UniTask.DelayFrame(2);
+            await Operator.R();
+            await UniTask.WaitUntil(() =>
+                _hudService != null &&
+                LevelManager.HasInstance &&
+                LevelManager.Instance.Players.Count > 0 &&
+                LevelManager.Instance.Players[0] != null &&
+                LevelManager.Instance.Players[0].GetComponent<ExtendedHealth>() != null,
+        
+            );
+
+            var character = LevelManager.Instance.Players[0];
+            var health = character.GetComponent<ExtendedHealth>();
+
+            if (_hudService == null || health == null)
+            {
+                Debug.LogWarning("[CharacterEventRegistrar] HUDService or ExtendedHealth not ready — skipping HUD update.");
+                return;
+            }
+
+            await _hudService.SetActiveStatsAsync(health.Stats);
+            Debug.Log($"[CharacterEventRegistrar] Delayed HUD update applied for character: {character.name}");
+        }
+
         private async UniTask SetHUDStatsForActiveCharacter(Character overrideCharacter = null, CancellationToken cancellation = default)
         {
             await UniTask.Yield();
