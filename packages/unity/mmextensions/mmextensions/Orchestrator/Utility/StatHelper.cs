@@ -82,5 +82,27 @@ namespace KBVE.MMExtensions.Orchestrator.Health
 
 
         public static bool IsRegenerating(StatType stat) => RegeneratingStats.Contains(stat);
+
+        // Default Stats
+
+        public static float GetDefaultBase(StatType stat) => stat switch
+        {
+            StatType.Mana => 50f,
+            StatType.Energy => 100f,
+            StatType.Intelligence => 10f,
+            StatType.Stamina => 10f,
+            StatType.Armor => 5f,
+            StatType.Strength => 10f,
+            _ => 10f
+        };
+
+        public static float GetDefaultMax(StatType stat) => GetDefaultBase(stat);
+
+        public static float GetDefaultRegen(StatType stat) => IsRegenerating(stat) ? stat switch
+        {
+            StatType.Mana => 3f,
+            StatType.Energy => 5f,
+            _ => 0f
+        } : 0f;
     }
 }

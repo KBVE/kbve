@@ -69,6 +69,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             {
                 var view = new StatObservable { Type = type };
                 view.UpdateFrom(data);
+                view.Bind(() => statMap[type]);
 
                 ReactiveStats.Add(view);
                 _lookup[type] = view;
