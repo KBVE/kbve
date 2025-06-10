@@ -1,116 +1,95 @@
 using UnityEngine;
+using Unity.Mathematics;
+using R3;
+using ObservableCollections;
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace KBVE.MMExtensions.Orchestrator.Health
 {
-
-
-    /// <summary>
-    /// Represents a single stat (e.g., mana, stamina, energy) with support for clamped modification and regeneration.
+       /// <summary>
+    /// Burst-compatible and network-safe representation of a stat.
+    /// No references. Pure math logic.
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public struct StatData
     {
-        /// <summary>
-        /// The base value of the stat.
-        /// </summary> 
         public float Base;
-
-        /// <summary>
-        /// The current value of the stat.
-        /// </summary>
-        public float Current;
-
-        /// <summary>
-        /// The maximum value the stat can reach.
-        /// </summary>
         public float Max;
-
-        /// <summary>
-        /// How much the stat regenerates per second.
-        /// </summary>
         public float RegenRate;
-
         public float BonusFlat;
         public float BonusPercent;
+        public float Current;
 
-        /// <summary>
-        /// Initializes a new stat.
-        /// </summary>
-        public StatData(float current, float max, float regenRate)
-        {
-            Base = current;
-            Current = current;
-            Max = max;
-            RegenRate = regenRate;
-            BonusFlat = 0f;
-            BonusPercent = 0f;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float EffectiveMax() => Max + BonusFlat + (Max * BonusPercent);
 
-
-        public float EffectiveMax => Max + BonusFlat + (Max * BonusPercent);
-
-        /// <summary>
-        /// Ensures Current is clamped between 0 and EffectiveMax.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clamp()
         {
-            Current = Mathf.Clamp(Current, 0f, EffectiveMax);
+            Current = math.clamp(Current, 0f, EffectiveMax());
         }
 
-        /// <summary>
-        /// Regenerates the stat based on delta time and RegenRate.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Regen(float deltaTime)
         {
-            float effectiveMax = EffectiveMax;
-            Current = Mathf.Min(Current + RegenRate * deltaTime, effectiveMax);
+            Current = math.min(Current + RegenRate * deltaTime, EffectiveMax());
         }
 
-        /// <summary>
-        /// Modifies the stat by a value, clamped between 0 and Max.
-        /// Negative values reduce, positive increase.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Modify(float amount)
         {
-            float effectiveMax = EffectiveMax;
-            Current = Mathf.Clamp(Current + amount, 0f, effectiveMax);
+            Current = math.clamp(Current + amount, 0f, EffectiveMax());
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ApplyBonus(float flat, float percent)
-            {
-                BonusFlat += flat;
-                BonusPercent += percent;
-                Current = Mathf.Clamp(Current, 0f, EffectiveMax);
-            }
+        {
+            BonusFlat += flat;
+            BonusPercent += percent;
+            Clamp();
+        }
 
-            public void RemoveBonus(float flat, float percent)
-            {
-                BonusFlat -= flat;
-                BonusPercent -= percent;
-                Current = Mathf.Clamp(Current, 0f, EffectiveMax);
-            }
-            
-        /// <summary>
-        /// Fully depletes the stat (Current = 0).
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveBonus(float flat, float percent)
+        {
+            BonusFlat -= flat;
+            BonusPercent -= percent;
+            Clamp();
+        }
+
         public void Deplete() => Current = 0f;
+        public void Restore() => Current = EffectiveMax();
 
-        /// <summary>
-        /// Fully restores the stat (Current = Max).
-        /// </summary>
-        public void Restore() => Current = EffectiveMax;
-
-        /// <summary>
-        /// Returns whether the stat is at its maximum.
-        /// </summary>
-        public bool IsFull => Mathf.Approximately(Current, EffectiveMax);
-
-        /// <summary>
-        /// Returns whether the stat is depleted.
-        /// </summary>
-        public bool IsEmpty => Mathf.Approximately(Current, 0f);
+        public bool IsFull => math.abs(Current - EffectiveMax()) < 1e-5f;
+        public bool IsEmpty => math.abs(Current) < 1e-5f;
     }
-    
+
+    /// <summary>
+    /// Reactive wrapper for UI binding and state observation.
+    /// Not burst-safe. Should be used for local/client display only.
+    /// </summary>
+    public class StatDataReactive
+    {
+        public ReactiveProperty<float> Current { get; } = new();
+
+        public StatDataReactive(float initial)
+        {
+            Current.Value = initial;
+        }
+
+        public void UpdateFromRaw(in StatData raw)
+        {
+            Current.Value = raw.Current;
+        }
+
+        public void ApplyToRaw(ref StatData raw)
+        {
+            raw.Current = math.clamp(Current.Value, 0f, raw.EffectiveMax());
+        }
+    }
+
     /// <summary>
     /// Describes a flat/percentage modifier to apply to a named stat.
     /// </summary>
@@ -125,6 +104,32 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             Stat = stat;
             Flat = flat;
             Percent = percent;
+        }
+    }
+
+    /// <summary>
+    /// Extension helpers for conversion.
+    /// </summary>
+    public static class StatDataConverter
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static StatDataReactive ToReactive(this in StatData raw)
+        {
+            return new StatDataReactive(raw.Current);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static StatData ToRaw(this StatDataReactive reactive, float baseValue, float max, float regenRate)
+        {
+            return new StatData
+            {
+                Base = baseValue,
+                Max = max,
+                RegenRate = regenRate,
+                BonusFlat = 0f,
+                BonusPercent = 0f,
+                Current = reactive.Current.Value
+            };
         }
     }
 }

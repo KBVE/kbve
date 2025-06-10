@@ -12,7 +12,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
     {
         private Image _fill;
         private TextMeshProUGUI _label;
-
         private StatType _type;
         private IDisposable _sub;
 
@@ -24,6 +23,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public void Bind(StatObservable stat)
         {
+            Dispose();
+
             _type = stat.Type;
             _label.text = stat.Type.ToString();
             _fill.color = StatHelper.GetStatColor(_type);
@@ -31,8 +32,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
             _sub?.Dispose();
             _sub = stat.Current
-                .CombineLatest(stat.Max, (cur, max) => cur / Mathf.Max(max, 1f))
-                .Subscribe(val => _fill.fillAmount = val);
+                    .CombineLatest(stat.Max, (cur, max) =>
+                        {
+                            float percent = (max <= 0f) ? 0f : cur / max;
+                            _label.text = $"{_type}: {Mathf.FloorToInt(cur)} / {Mathf.FloorToInt(max)}";
+                            return Mathf.Clamp01(percent);
+                        })
+                    .Subscribe(val => _fill.fillAmount = val);
         }
 
         public void Dispose()
