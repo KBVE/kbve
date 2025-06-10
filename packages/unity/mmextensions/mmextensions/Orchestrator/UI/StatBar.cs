@@ -13,7 +13,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
         private Image _fill;
         private TextMeshProUGUI _label;
         private StatType _type;
-        private IDisposable _sub;
+        private IDisposable _subscription;
 
         public void SetUIReferences(Image fill, TextMeshProUGUI label)
         {
@@ -29,9 +29,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _label.text = stat.Type.ToString();
             _fill.color = StatHelper.GetStatColor(_type);
 
-
-            _sub?.Dispose();
-            _sub = stat.Current
+            _subscription = stat.Current
                     .CombineLatest(stat.Max, (cur, max) =>
                         {
                             float percent = (max <= 0f) ? 0f : cur / max;
@@ -43,8 +41,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public void Dispose()
         {
-            _sub?.Dispose();
-            _sub = null;
+            _subscription?.Dispose();
+            _subscription = null;
         }
 
         private void OnDestroy()
