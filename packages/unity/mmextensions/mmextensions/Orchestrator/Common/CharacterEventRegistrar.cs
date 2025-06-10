@@ -197,5 +197,35 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             }
             return null;
         }
+
+        // * Helper Methods
+
+        private async UniTask SetHUDStatsForActiveCharacter(CancellationToken cancellation = default)
+{
+    await UniTask.Yield();
+    if (!LevelManager.HasInstance || LevelManager.Instance.Players.Count == 0)
+    {
+        Debug.LogWarning("[CharacterEventRegistrar] No active player available for HUD update.");
+        return;
+    }
+
+    var activeCharacter = LevelManager.Instance.Players[0];
+    if (activeCharacter == null)
+    {
+        Debug.LogWarning("[CharacterEventRegistrar] LevelManager returned a null player object.");
+        return;
+    }
+
+    var health = activeCharacter.GetComponent<ExtendedHealth>();
+    if (health != null)
+    {
+        await _hudService.SetActiveStatsAsync(health.Stats).AttachExternalCancellation(cancellation);
+        Debug.Log($"[CharacterEventRegistrar] HUD updated for active character: {activeCharacter.name}");
+    }
+    else
+    {
+        Debug.LogWarning($"[CharacterEventRegistrar] Active character '{activeCharacter.name}' has no ExtendedHealth.");
+    }
+}
     }
 }
