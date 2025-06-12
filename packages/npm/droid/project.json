@@ -3,6 +3,15 @@
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "packages/npm/droid/src",
 	"projectType": "library",
+	"release": {
+		"version": {
+		"currentVersionResolver": "disk",
+		"preserveLocalDependencyProtocols": false,
+		"manifestRootsToUpdate": [
+			"packages/npm/droid"
+		]
+		}
+  	},
 	"tags": [],
 	"targets": {
 		"build": {
@@ -21,6 +30,11 @@
 			"options": {
 				"configFile": "packages/npm/droid/vite.config.ts"
 			}
-    }
+    },
+		    "nx-release-publish": {
+				"options": {
+					"packageRoot": "dist/packages/npm/droid"
+				}
+    		}
 	}
 }
