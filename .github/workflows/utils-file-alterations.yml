@@ -57,6 +57,10 @@ on:
       rareicon_unity:
         description: "Rareicon Unity changed"
         value: ${{ jobs.alter.outputs.rareicon_unity }}
+      # ? NPM
+      droid:
+        description: "Droid Package changed"
+        value: ${{ jobs.alter.outputs.droid }}
       # TODO:
       discordsh_website:
         description: "Discord.sh changed"
@@ -115,6 +119,7 @@ jobs:
       astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
       astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
       rareicon_unity: ${{ steps.delta.outputs.rareicon_unity_any_changed }}
+      droid: ${{ steps.delta.outputs.droid_any_changed }}
       discordsh: ${{ steps.delta.outputs.discordsh_any_changed}}
       proxy: ${{ steps.delta.outputs.proxy_any_changed }}
       saber: ${{ steps.delta.outputs.saber_any_changed }}
@@ -155,6 +160,8 @@ jobs:
                 - 'apps/discord/disoxide/README.md'
             rareicon_unity:
                 - 'apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx'
+            droid:
+                - 'packages/npm/droid/README.md'
             py_atlas:
                 - 'apps/atlas/kbve_atlas/**'
             py_fudster:
