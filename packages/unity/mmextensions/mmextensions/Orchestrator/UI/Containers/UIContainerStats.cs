@@ -36,8 +36,17 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _cts = new CancellationTokenSource();
             var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellation).Token;
             await UniTask.WaitUntil(() => _globalCanvas?.Canvas != null
-            && _hudService?.HUDPanel != null, cancellationToken: cancellation);
+            && _hudService?.HUDPanel != null, cancellationToken: linkedToken);
             await Operator.R();
+
+            _panel1 = new GameObject("StatBarsPanel", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            _panel1.transform.SetParent(_hudService.HUDPanel.transform, false);
+            ConfigurePanelLayout(_panel1.GetComponent<VerticalLayoutGroup>());
+
+            _panel2 = new GameObject("StatAttributesPanel", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            _panel2.transform.SetParent(_hudService.HUDPanel.transform, false);
+            ConfigurePanelLayout(_panel2.GetComponent<VerticalLayoutGroup>());
+
 
             _isUIVisible.Subscribe(isVisible =>
             {
@@ -45,7 +54,27 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 _panel2.SetActive(isVisible);
             }).AddTo(_subscription);
 
-            await UniTask.Yield(linkedToken);
+            //await UniTask.Yield(linkedToken);
+        }
+
+        private void ConfigurePanelLayout(VerticalLayoutGroup layout)
+        {
+            layout.spacing = 6f;
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlHeight = true;
+            layout.childControlWidth = true;
+            layout.childForceExpandHeight = false;
+            layout.childForceExpandWidth = false;
+
+            var fitter = layout.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            var rect = layout.GetComponent<RectTransform>();
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.anchoredPosition = Vector2.zero;
         }
 
         public void Dispose()
