@@ -156,8 +156,34 @@ jobs:
     #               echo "matrix=$(echo "$MATRIX" | jq -c)" >> "$GITHUB_OUTPUT"
 
 
-    ## Astro
+    ## NPM
+    generate_npm_matrix:
+      needs: ['deploy', 'alter', 'globals']
+      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+      with:
+        items: |
+            [
+                {
+                  "name": "droid",
+                  "condition": "${{ needs.alter.outputs.droid == 'true' }}",
+                  "project": "droid"
+                }
+            ]
 
+    publish_npm:
+      name: Publish NPM
+      needs: ['generate_npm_matrix']
+      if: ${{ needs.generate_npm_matrix.outputs.matrix != 'null' }}
+      strategy:
+        matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
+      uses: KBVE/kbve/.github/workflows/utils-npm-publish.yml@main
+      with:
+        project: ${{ matrix.project }}
+      secrets:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+
+    ## Astro
     generate_astro_matrix:
       needs: ['deploy', 'alter', 'globals']
       uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
