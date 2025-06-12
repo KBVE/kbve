@@ -1,0 +1,76 @@
+name: Utils NPM Publish
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  publish:
+    name: Publish ${{ inputs.project }} NPM Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout the monorepo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Get pnpm Store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install pnpm dependencies
+        run: pnpm install
+
+      - name: Install npm
+        run: npm install --legacy-peer-deps
+
+      - name: Print Environment Info
+        run: npx nx report
+
+    #   - name: Build KBVE ${{ inputs.project }} NPM Package
+    #     uses: ./.github/actions/kbve-shell
+    #     with:
+    #       flag: "-nx ${{ inputs.project }}:build"
+    #       create_pull_request: false
+    #       github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build KBVE ${{ inputs.project }} NPM Package
+        shell: bash
+        run: ./kbve.sh -nx ${{ inputs.project }}:build
+
+      - name: Publish NPM Package
+        run: npx nx release publish --projects=${{ inputs.project }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
