@@ -300,7 +300,9 @@ export function bridgeWsToDb(
 //	*	MAIN
 export async function main(opts?: { workerURLs?: Record<string, string> }) {
 
+	
 	console.log('[DROID]: Main<T>');
+
 	if (!initialized) {
 		initialized = true;
 
@@ -314,6 +316,8 @@ export async function main(opts?: { workerURLs?: Record<string, string> }) {
 			);
 		}
 	}
+
+	console.log('[DROID] Main<T> => Worker URLs', opts?.workerURLs);
 
 	const needsInit =
 		!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux;
