@@ -35,6 +35,20 @@
 				"options": {
 					"packageRoot": "dist/packages/npm/droid"
 				}
-    		}
+    		},
+			"publish": {
+				"executor": "nx:run-commands",
+				"options": {
+					"commands": [
+						"nx build droid --emptyOutDir=true",
+						"cp packages/npm/droid/package.json dist/packages/npm/droid/package.json",
+						"cp -R packages/npm/droid/src dist/packages/npm/droid/src",
+						"cp packages/npm/droid/README.md dist/packages/npm/droid/README.md",
+						"cp packages/npm/droid/LICENSE dist/packages/npm/droid/LICENSE",
+						"nx nx-release-publish droid"
+					],
+					"parallel": false
+				}
+			}
 	}
 }
