@@ -4,7 +4,6 @@ import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 import path from 'path';
 import copy from 'rollup-plugin-copy';
 
-
 export default defineConfig(() => ({
 	root: __dirname,
 	cacheDir: '../../../node_modules/.vite/npm/droid',
@@ -14,19 +13,35 @@ export default defineConfig(() => ({
 		lib: {
 			entry: path.resolve(__dirname, 'src/index.ts'),
 			name: 'droid',
-			fileName: (format) => `droid.${format}.js`,
+			fileName: (format) => `droid.js`,
 			formats: ['es', 'cjs'],
 		},
 		outDir: '../../../dist/packages/npm/droid',
 		target: 'esnext',
 		rollupOptions: {
+			// input: {
+			// 	main: path.resolve(__dirname, 'src/main.ts'),
+			// 	canvasWorker: path.resolve(
+			// 		__dirname,
+			// 		'src/workers/canvas-worker.ts',
+			// 	),
+			// 	aiWorker: path.resolve(__dirname, 'src/workers/ai-worker.ts'),
+			// },
+			output: {
+				entryFileNames: (chunkInfo) => {
+					if (chunkInfo.name?.includes('Worker')) {
+						return '[name].js';
+					}
+					return 'droid.js';
+				},
+			},
 			external: [], // externalize dependencies - 'comlink', '@nanostores/persistent'
 			plugins: [],
 		},
 	},
 
 	worker: {
-	plugins: () => [nxViteTsPaths()],
+		plugins: () => [nxViteTsPaths()],
 	},
 
 	test: {
