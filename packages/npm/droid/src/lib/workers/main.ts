@@ -13,8 +13,17 @@ import { DroidEvents } from './events';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
-//	* DeepProxy
+// 	* Resolve Workers
+function resolveWorkerURL(name: string, fallback?: string): string {
+	try {
+		return new URL(`./${name}`, import.meta.url).toString(); // Works for local builds with bundlers like Vite
+	} catch {
+		
+		return fallback ?? `/${name}`; // Works when hosted from CDN or outside build context
+	}
+}
 
+//	* DeepProxy
 function deepProxy<T>(obj: T): T {
 	if (typeof obj === 'function') return proxy(obj) as T;
 
@@ -30,10 +39,17 @@ function deepProxy<T>(obj: T): T {
 }
 
 //  * WebSocket
-async function initWsComlink(): Promise<Remote<WSInstance>> {
-	const worker = new SharedWorker(new URL('./ws-worker', import.meta.url), {
-		type: 'module',
-	});
+// async function initWsComlink(): Promise<Remote<WSInstance>> {
+// 	const worker = new SharedWorker(new URL('./ws-worker', import.meta.url), {
+// 		type: 'module',
+// 	});
+// 	worker.port.start();
+// 	return wrap<WSInstance>(worker.port);
+// }
+
+async function initWsComlink(workerURL?: string): Promise<Remote<WSInstance>> {
+	const url = workerURL ?? resolveWorkerURL('ws-worker.js');
+	const worker = new SharedWorker(url, { type: 'module' });
 	worker.port.start();
 	return wrap<WSInstance>(worker.port);
 }
@@ -273,7 +289,7 @@ export function bridgeWsToDb(
 }
 
 //	*	MAIN
-export async function main() {
+export async function main(opts?: { workerURLs?: Record<string, string> }) {
 	if (!initialized) {
 		initialized = true;
 
@@ -293,7 +309,7 @@ export async function main() {
 
 	if (needsInit) {
 		const api = await initStorageComlink();
-		const ws = await initWsComlink();
+		const ws = await initWsComlink(opts?.workerURLs?.['wsWorker']);
 		const mod = await getModManager();
 		const events = DroidEvents;
 

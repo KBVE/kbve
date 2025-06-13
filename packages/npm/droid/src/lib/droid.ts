@@ -1,5 +1,5 @@
-export async function droid(opts?: { canvas?: boolean }): Promise<{ initialized: boolean }> {
+export async function droid(opts?: { workerURLs?: Record<string, string> }): Promise<{ initialized: boolean }> {
 	const { main } = await import('./workers/main');
-	await main();
+	await main({ workerURLs: opts?.workerURLs });
 	return { initialized: true };
 }
