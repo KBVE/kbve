@@ -1,1 +1,976 @@
-"use strict";Object.defineProperty(exports,Symbol.toStringTag,{value:"Module"});const I=require("../comlink-Cq1Ctlxh.cjs"),f=require("../reference-D8AMi3aj.cjs"),w=require("../index-C0ZJ2_6x.cjs");let B=Symbol("clean"),k=[],M=(e,t)=>{let i=[],s={get(){return s.lc||s.listen(()=>{})(),s.value},l:0,lc:0,listen(n,o){return s.lc=i.push(n,o||s.l)/2,()=>{let r=i.indexOf(n);~r&&(i.splice(r,2),--s.lc||s.off())}},notify(n){let o=!k.length;for(let r=0;r<i.length;r+=2)k.push(i[r],i[r+1],s.value,n);if(o){for(let r=0;r<k.length;r+=4){let d;for(let h=r+1;!d&&(h+=4)<k.length;)k[h]<k[r+1]&&(d=k.push(k[r],k[r+1],k[r+2],k[r+3]));d||k[r](k[r+2],k[r+3])}k.length=0}},off(){},set(n){s.value!==n&&(s.value=n,s.notify())},subscribe(n,o){let r=s.listen(n,o);return n(s.value),r},value:e};return process.env.NODE_ENV!=="production"&&(s[B]=()=>{i=[],s.lc=0,s.off()}),s};const X=5,v=6,A=10;let $=(e,t,i,s)=>(e.events=e.events||{},e.events[i+A]||(e.events[i+A]=s(n=>{e.events[i].reduceRight((o,r)=>(r(o),o),{shared:{},...n})})),e.events[i]=e.events[i]||[],e.events[i].push(t),()=>{let n=e.events[i],o=n.indexOf(t);n.splice(o,1),n.length||(delete e.events[i],e.events[i+A](),delete e.events[i+A])}),q=1e3,Q=(e,t)=>$(e,s=>{let n=t(s);n&&e.events[v].push(n)},X,s=>{let n=e.listen;e.listen=(...r)=>(!e.lc&&!e.active&&(e.active=!0,s()),n(...r));let o=e.off;if(e.events[v]=[],e.off=()=>{o(),setTimeout(()=>{if(e.active&&!e.lc){e.active=!1;for(let r of e.events[v])r();e.events[v]=[]}},q)},process.env.NODE_ENV!=="production"){let r=e[B];e[B]=()=>{for(let d of e.events[v])d();e.events[v]=[],e.active=!1,r()}}return()=>{e.listen=n,e.off=o}}),Z=(e={})=>{let t=M(e);return t.setKey=function(i,s){typeof s>"u"?i in t.value&&(t.value={...t.value},delete t.value[i],t.notify(i)):t.value[i]!==s&&(t.value={...t.value,[i]:s},t.notify(i))},t},P=e=>e,L={},b={addEventListener(){},removeEventListener(){}};function tt(){try{return typeof localStorage<"u"}catch{return!1}}tt()&&(L=localStorage);let et={addEventListener(e,t,i){window.addEventListener("storage",t),window.addEventListener("pageshow",i)},removeEventListener(e,t,i){window.removeEventListener("storage",t),window.removeEventListener("pageshow",i)}};typeof window<"u"&&(b=et);function H(e,t={},i={}){let s=i.encode||P,n=i.decode||P,o=Z(),r=o.setKey;o.setKey=(a,l)=>{typeof l>"u"?(i.listen!==!1&&b.perKey&&b.removeEventListener(e+a,h,u),delete L[e+a]):(i.listen!==!1&&b.perKey&&!(a in o.value)&&b.addEventListener(e+a,h,u),L[e+a]=s(l)),r(a,l)};let d=o.set;o.set=function(a){for(let l in a)o.setKey(l,a[l]);for(let l in o.value)l in a||o.setKey(l)};function h(a){a.key?a.key.startsWith(e)&&(a.newValue===null?r(a.key.slice(e.length),void 0):r(a.key.slice(e.length),n(a.newValue))):d({})}function u(){let a={...t};for(let l in L)l.startsWith(e)&&(a[l.slice(e.length)]=n(L[l]));o.set(a)}return Q(o,()=>{if(u(),i.listen!==!1)return b.addEventListener(e,h,u),()=>{b.removeEventListener(e,h,u);for(let a in o.value)b.removeEventListener(e+a,h,u)}}),o}async function it(e,{version:t,i18nPath:i="https://discord.sh/i18n/db.json",locale:s="en",defaults:n={welcome:"Welcome to the app!"}}){console.log("[init-worker] Initializing database...");try{await e.loadI18nFromJSON(i),console.log(`[init-worker] i18n loaded from ${i}`),await e.dbSet("locale",s);for(const[o,r]of Object.entries(n))await e.dbSet(o,r);await e.setVersion(t),e.loadServersFromJSON(),console.log(`[init-worker] DB initialized to version ${t}`)}catch(o){console.error("[init-worker] Initialization failed:",o)}}let W=null;async function st(e){if(W)return W;const t={};async function i(r){const d=e?.(r)??r,h=new Worker(d,{type:"module"}),u=I.wrap(h),a=await u.getMeta?.()??{name:"unknown",version:"0.0.1"},l=`${a.name}@${a.version}`;console.log(`[mod-manager] ${l} is loaded.`);const c={id:l,worker:h,instance:u,meta:a,url:r};return t[l]=c,c}function s(r){t[r]&&(t[r].worker.terminate(),delete t[r])}function n(){return Object.values(t).map(r=>r.meta)}async function o(r){const d=t[r];if(!d)throw new Error(`Mod "${r}" not found`);return s(r),i(d.url)}return W={registry:t,load:i,unload:s,list:n,reload:o},W}var E=(e=>(e[e.PAYLOAD_UNKNOWN=0]="PAYLOAD_UNKNOWN",e[e.JSON=1]="JSON",e[e.FLEX=2]="FLEX",e[e.PROTOBUF=3]="PROTOBUF",e[e.FLATBUFFER=4]="FLATBUFFER",e))(E||{}),g=(e=>(e[e.UNKNOWN=0]="UNKNOWN",e[e.ADD=1]="ADD",e[e.READ=2]="READ",e[e.GET=4]="GET",e[e.SET=8]="SET",e[e.DEL=16]="DEL",e[e.STREAM=32]="STREAM",e[e.GROUP=64]="GROUP",e[e.LIST=128]="LIST",e[e.ACTION=256]="ACTION",e[e.MESSAGE=512]="MESSAGE",e[e.INFO=1024]="INFO",e[e.DEBUG=2048]="DEBUG",e[e.ERROR=4096]="ERROR",e[e.AUTH=8192]="AUTH",e[e.HEARTBEAT=16384]="HEARTBEAT",e[e.CONFIG_UPDATE=32768]="CONFIG_UPDATE",e[e.REDIS=65536]="REDIS",e[e.SUPABASE=131072]="SUPABASE",e[e.FILESYSTEM=262144]="FILESYSTEM",e[e.WEBSOCKET=524288]="WEBSOCKET",e[e.HTTP_API=1048576]="HTTP_API",e[e.LOCAL_CACHE=2097152]="LOCAL_CACHE",e[e.AI=4194304]="AI",e))(g||{});class T{constructor(t,i,s,n=null,o=0){this.builder=t,this.type=i,this.width=s,this.value=n,this.offset=o}elementWidth(t,i){if(f.isInline(this.type))return this.width;for(let s=0;s<4;s++){const n=1<<s,r=t+f.paddingSize(t,n)+i*n-this.offset,d=f.uwidth(r);if(1<<d===n)return d}throw`Element is unknown. Size: ${t} at index: ${i}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`}writeToBuffer(t){const i=this.builder.computeOffset(t);if(this.type===f.ValueType.FLOAT)this.width===f.BitWidth.WIDTH32?this.builder.view.setFloat32(this.builder.offset,this.value,!0):this.builder.view.setFloat64(this.builder.offset,this.value,!0);else if(this.type===f.ValueType.INT){const s=f.fromByteWidth(t);this.builder.pushInt(this.value,s)}else if(this.type===f.ValueType.UINT){const s=f.fromByteWidth(t);this.builder.pushUInt(this.value,s)}else if(this.type===f.ValueType.NULL)this.builder.pushInt(0,this.width);else if(this.type===f.ValueType.BOOL)this.builder.pushInt(this.value?1:0,this.width);else throw`Unexpected type: ${this.type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;this.offset=i}storedWidth(t=f.BitWidth.WIDTH8){return f.isInline(this.type)?Math.max(t,this.width):this.width}storedPackedType(t=f.BitWidth.WIDTH8){return f.packedType(this.type,this.storedWidth(t))}isOffset(){return!f.isInline(this.type)}}class nt{constructor(t=2048,i=!0,s=!0,n=!0){this.dedupStrings=i,this.dedupKeys=s,this.dedupKeyVectors=n,this.stack=[],this.stackPointers=[],this.offset=0,this.finished=!1,this.stringLookup={},this.keyLookup={},this.keyVectorLookup={},this.indirectIntLookup={},this.indirectUIntLookup={},this.indirectFloatLookup={},this.buffer=new ArrayBuffer(t>0?t:2048),this.view=new DataView(this.buffer)}align(t){const i=f.toByteWidth(t);return this.offset+=f.paddingSize(this.offset,i),i}computeOffset(t){const i=this.offset+t;let s=this.buffer.byteLength;const n=s;for(;s<i;)s<<=1;if(n<s){const o=this.buffer;this.buffer=new ArrayBuffer(s),this.view=new DataView(this.buffer),new Uint8Array(this.buffer).set(new Uint8Array(o),0)}return i}pushInt(t,i){if(i===f.BitWidth.WIDTH8)this.view.setInt8(this.offset,t);else if(i===f.BitWidth.WIDTH16)this.view.setInt16(this.offset,t,!0);else if(i===f.BitWidth.WIDTH32)this.view.setInt32(this.offset,t,!0);else if(i===f.BitWidth.WIDTH64)this.view.setBigInt64(this.offset,BigInt(t),!0);else throw`Unexpected width: ${i} for value: ${t}`}pushUInt(t,i){if(i===f.BitWidth.WIDTH8)this.view.setUint8(this.offset,t);else if(i===f.BitWidth.WIDTH16)this.view.setUint16(this.offset,t,!0);else if(i===f.BitWidth.WIDTH32)this.view.setUint32(this.offset,t,!0);else if(i===f.BitWidth.WIDTH64)this.view.setBigUint64(this.offset,BigInt(t),!0);else throw`Unexpected width: ${i} for value: ${t}`}writeInt(t,i){const s=this.computeOffset(i);this.pushInt(t,f.fromByteWidth(i)),this.offset=s}writeUInt(t,i){const s=this.computeOffset(i);this.pushUInt(t,f.fromByteWidth(i)),this.offset=s}writeBlob(t){const i=t.byteLength,s=f.uwidth(i),n=this.align(s);this.writeUInt(i,n);const o=this.offset,r=this.computeOffset(i);new Uint8Array(this.buffer).set(new Uint8Array(t),o),this.stack.push(this.offsetStackValue(o,f.ValueType.BLOB,s)),this.offset=r}writeString(t){if(this.dedupStrings&&Object.prototype.hasOwnProperty.call(this.stringLookup,t)){this.stack.push(this.stringLookup[t]);return}const i=f.toUTF8Array(t),s=i.length,n=f.uwidth(s),o=this.align(n);this.writeUInt(s,o);const r=this.offset,d=this.computeOffset(s+1);new Uint8Array(this.buffer).set(i,r);const h=this.offsetStackValue(r,f.ValueType.STRING,n);this.stack.push(h),this.dedupStrings&&(this.stringLookup[t]=h),this.offset=d}writeKey(t){if(this.dedupKeys&&Object.prototype.hasOwnProperty.call(this.keyLookup,t)){this.stack.push(this.keyLookup[t]);return}const i=f.toUTF8Array(t),s=i.length,n=this.computeOffset(s+1);new Uint8Array(this.buffer).set(i,this.offset);const o=this.offsetStackValue(this.offset,f.ValueType.KEY,f.BitWidth.WIDTH8);this.stack.push(o),this.dedupKeys&&(this.keyLookup[t]=o),this.offset=n}writeStackValue(t,i){const s=this.computeOffset(i);if(t.isOffset()){const n=this.offset-t.offset;if(i===8||BigInt(n)<BigInt(1)<<BigInt(i*8))this.writeUInt(n,i);else throw`Unexpected size ${i}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`}else t.writeToBuffer(i);this.offset=s}integrityCheckOnValueAddition(){if(this.finished)throw"Adding values after finish is prohibited";if(this.stackPointers.length!==0&&this.stackPointers[this.stackPointers.length-1].isVector===!1&&this.stack[this.stack.length-1].type!==f.ValueType.KEY)throw"Adding value to a map before adding a key is prohibited"}integrityCheckOnKeyAddition(){if(this.finished)throw"Adding values after finish is prohibited";if(this.stackPointers.length===0||this.stackPointers[this.stackPointers.length-1].isVector)throw"Adding key before starting a map is prohibited"}startVector(){this.stackPointers.push({stackPosition:this.stack.length,isVector:!0})}startMap(t=!1){this.stackPointers.push({stackPosition:this.stack.length,isVector:!1,presorted:t})}endVector(t){const i=this.stack.length-t.stackPosition,s=this.createVector(t.stackPosition,i,1);this.stack.splice(t.stackPosition,i),this.stack.push(s)}endMap(t){t.presorted||this.sort(t);let i="";for(let r=t.stackPosition;r<this.stack.length;r+=2)i+=`,${this.stack[r].offset}`;const s=this.stack.length-t.stackPosition>>1;this.dedupKeyVectors&&!Object.prototype.hasOwnProperty.call(this.keyVectorLookup,i)&&(this.keyVectorLookup[i]=this.createVector(t.stackPosition,s,2));const n=this.dedupKeyVectors?this.keyVectorLookup[i]:this.createVector(t.stackPosition,s,2),o=this.createVector(t.stackPosition+1,s,2,n);this.stack.splice(t.stackPosition,s<<1),this.stack.push(o)}sort(t){const i=this.view,s=this.stack;function n(a,l){if(a.type!==f.ValueType.KEY||l.type!==f.ValueType.KEY)throw`Stack values are not keys ${a} | ${l}. Check if you combined [addKey] with add... method calls properly.`;let c,p,y=0;do{if(c=i.getUint8(a.offset+y),p=i.getUint8(l.offset+y),p<c)return!0;if(c<p)return!1;y+=1}while(c!==0&&p!==0);return!1}function o(a,l,c){if(l===c)return;const p=a[l],y=a[l+1];a[l]=a[c],a[l+1]=a[c+1],a[c]=p,a[c+1]=y}function r(){for(let a=t.stackPosition;a<s.length;a+=2){let l=a;for(let c=a+2;c<s.length;c+=2)n(s[l],s[c])&&(l=c);l!==a&&o(s,l,a)}}function d(a,l){if(a.type!==f.ValueType.KEY||l.type!==f.ValueType.KEY)throw`Stack values are not keys ${a} | ${l}. Check if you combined [addKey] with add... method calls properly.`;if(a.offset===l.offset)return!1;let c,p,y=0;do{if(c=i.getUint8(a.offset+y),p=i.getUint8(l.offset+y),c<p)return!0;if(p<c)return!1;y+=1}while(c!==0&&p!==0);return!1}function h(a,l){if(a<l){const c=a+(l-a>>2)*2,p=s[c];let y=a,O=l;do{for(;d(s[y],p);)y+=2;for(;d(p,s[O]);)O-=2;y<=O&&(o(s,y,O),y+=2,O-=2)}while(y<=O);h(a,O),h(y,l)}}let u=!0;for(let a=t.stackPosition;a<this.stack.length-2;a+=2)if(n(this.stack[a],this.stack[a+2])){u=!1;break}u||(this.stack.length-t.stackPosition>40?h(t.stackPosition,this.stack.length-2):r())}end(){if(this.stackPointers.length<1)return;const t=this.stackPointers.pop();t.isVector?this.endVector(t):this.endMap(t)}createVector(t,i,s,n=null){let o=f.uwidth(i),r=1;if(n!==null){const c=n.elementWidth(this.offset,0);c>o&&(o=c),r+=2}let d=f.ValueType.KEY,h=n===null;for(let c=t;c<this.stack.length;c+=s){const p=this.stack[c].elementWidth(this.offset,c+r);p>o&&(o=p),c===t?(d=this.stack[c].type,h=h&&f.isTypedVectorElement(d)):d!==this.stack[c].type&&(h=!1)}const u=this.align(o),a=h&&f.isNumber(d)&&i>=2&&i<=4;n!==null&&(this.writeStackValue(n,u),this.writeUInt(1<<n.width,u)),a||this.writeUInt(i,u);const l=this.offset;for(let c=t;c<this.stack.length;c+=s)this.writeStackValue(this.stack[c],u);if(!h)for(let c=t;c<this.stack.length;c+=s)this.writeUInt(this.stack[c].storedPackedType(),1);if(n!==null)return this.offsetStackValue(l,f.ValueType.MAP,o);if(h){const c=f.toTypedVector(d,a?i:0);return this.offsetStackValue(l,c,o)}return this.offsetStackValue(l,f.ValueType.VECTOR,o)}nullStackValue(){return new T(this,f.ValueType.NULL,f.BitWidth.WIDTH8)}boolStackValue(t){return new T(this,f.ValueType.BOOL,f.BitWidth.WIDTH8,t)}intStackValue(t){return new T(this,f.ValueType.INT,f.iwidth(t),t)}uintStackValue(t){return new T(this,f.ValueType.UINT,f.uwidth(t),t)}floatStackValue(t){return new T(this,f.ValueType.FLOAT,f.fwidth(t),t)}offsetStackValue(t,i,s){return new T(this,i,s,null,t)}finishBuffer(){if(this.stack.length!==1)throw`Stack has to be exactly 1, but it is ${this.stack.length}. You have to end all started vectors and maps before calling [finish]`;const t=this.stack[0],i=this.align(t.elementWidth(this.offset,0));this.writeStackValue(t,i),this.writeUInt(t.storedPackedType(),1),this.writeUInt(i,1),this.finished=!0}add(t){if(this.integrityCheckOnValueAddition(),typeof t>"u")throw"You need to provide a value";if(t===null)this.stack.push(this.nullStackValue());else if(typeof t=="boolean")this.stack.push(this.boolStackValue(t));else if(typeof t=="bigint")this.stack.push(this.intStackValue(t));else if(typeof t=="number")Number.isInteger(t)?this.stack.push(this.intStackValue(t)):this.stack.push(this.floatStackValue(t));else if(ArrayBuffer.isView(t))this.writeBlob(t.buffer);else if(typeof t=="string"||t instanceof String)this.writeString(t);else if(Array.isArray(t)){this.startVector();for(let i=0;i<t.length;i++)this.add(t[i]);this.end()}else if(typeof t=="object"){const i=Object.getOwnPropertyNames(t).sort();this.startMap(!0);for(let s=0;s<i.length;s++){const n=i[s];this.addKey(n),this.add(t[n])}this.end()}else throw`Unexpected value input ${t}`}finish(){this.finished||this.finishBuffer();const t=this.buffer.slice(0,this.offset);return new Uint8Array(t)}isFinished(){return this.finished}addKey(t){this.integrityCheckOnKeyAddition(),this.writeKey(t)}addInt(t,i=!1,s=!1){if(this.integrityCheckOnValueAddition(),!i){this.stack.push(this.intStackValue(t));return}if(s&&Object.prototype.hasOwnProperty.call(this.indirectIntLookup,t)){this.stack.push(this.indirectIntLookup[t]);return}const n=this.intStackValue(t),o=this.align(n.width),r=this.computeOffset(o),d=this.offset;n.writeToBuffer(o);const h=this.offsetStackValue(d,f.ValueType.INDIRECT_INT,n.width);this.stack.push(h),this.offset=r,s&&(this.indirectIntLookup[t]=h)}addUInt(t,i=!1,s=!1){if(this.integrityCheckOnValueAddition(),!i){this.stack.push(this.uintStackValue(t));return}if(s&&Object.prototype.hasOwnProperty.call(this.indirectUIntLookup,t)){this.stack.push(this.indirectUIntLookup[t]);return}const n=this.uintStackValue(t),o=this.align(n.width),r=this.computeOffset(o),d=this.offset;n.writeToBuffer(o);const h=this.offsetStackValue(d,f.ValueType.INDIRECT_UINT,n.width);this.stack.push(h),this.offset=r,s&&(this.indirectUIntLookup[t]=h)}addFloat(t,i=!1,s=!1){if(this.integrityCheckOnValueAddition(),!i){this.stack.push(this.floatStackValue(t));return}if(s&&Object.prototype.hasOwnProperty.call(this.indirectFloatLookup,t)){this.stack.push(this.indirectFloatLookup[t]);return}const n=this.floatStackValue(t),o=this.align(n.width),r=this.computeOffset(o),d=this.offset;n.writeToBuffer(o);const h=this.offsetStackValue(d,f.ValueType.INDIRECT_FLOAT,n.width);this.stack.push(h),this.offset=r,s&&(this.indirectFloatLookup[t]=h)}}function D(){return new nt}function ot(e){const t=D();t.startMap();for(const[i,s]of Object.entries(e))t.addKey(i),t.add(s);return t.end(),t.finish()}function U(e,t,i,s,n=1){let o;if(i===E.FLEX)o=ot(e);else if(i===E.JSON)o=new TextEncoder().encode(JSON.stringify(e));else throw new Error("Unsupported format for wrapEnvelope");const r=D();return r.startMap(),r.addKey("version"),r.add(n),r.addKey("kind"),r.add(t),r.addKey("format"),r.add(i),r.addKey("payload"),r.add(o),r.addKey("metadata"),r.add(s??new Uint8Array),r.end(),r.finish()}function _(e){const t=e instanceof Uint8Array?e:new Uint8Array(e),i=f.toReference(t.buffer).toObject();if(typeof i.version!="number"||typeof i.kind!="number"||typeof i.format!="number"||!i.payload)throw console.error("[unwrapEnvelope] Bad root:",i),new Error("[unwrapEnvelope] Invalid envelope structure");const s={version:i.version,kind:i.kind,format:i.format,payload:new Uint8Array(i.payload),metadata:i.metadata?new Uint8Array(i.metadata):void 0};let n;if(s.format===E.FLEX)n=f.toReference(s.payload.buffer).toObject();else if(s.format===E.JSON)n=JSON.parse(new TextDecoder().decode(s.payload));else throw new Error(`[unwrapEnvelope] Unsupported format: ${s.format}`);return{envelope:s,payload:n}}function x(e){return f.toReference(e.buffer).toObject()}function rt(e){try{const t=e instanceof Uint8Array?e:new Uint8Array(e),i=x(t);console.log("[FlexObject]",JSON.stringify(i,null,2))}catch(t){console.error("[Flex Decode Error]",t)}}function K(e,t){return(e&t)===t}function at(e,t){return U({key:e,value:t},g.SET|g.REDIS,E.FLEX)}function ft(e){return U({key:e},g.GET|g.REDIS,E.FLEX)}function lt(e){return U({key:e},g.DEL|g.REDIS,E.FLEX)}function ct(e){const t=_(e);if(!K(t.envelope.kind,g.REDIS))throw new Error("[Redis] Not a Redis envelope");return t}function ht(e,t,i="*"){return U({stream:e,id:i,fields:t},g.ADD|g.STREAM|g.REDIS,E.FLEX)}function dt(e,t,i){const s=D();s.startMap(),s.addKey("streams"),s.startVector();for(const{stream:r,id:d}of e)s.startMap(),s.addKey("stream"),s.add(r),s.addKey("id"),s.add(d),s.end();s.end(),t!==void 0&&(s.addKey("count"),s.add(t)),i!==void 0&&(s.addKey("block"),s.add(i)),s.end();const n=s.finish(),o=D();return o.startMap(),o.addKey("version"),o.add(1),o.addKey("kind"),o.add(g.READ|g.STREAM|g.REDIS),o.addKey("format"),o.add(E.FLEX),o.addKey("payload"),o.add(n),o.addKey("metadata"),o.add(new Uint8Array),o.end(),o.finish()}const ut={wrapEnvelope:U,unwrapEnvelope:_,MessageKind:g,PayloadFormat:E,unwrapFlexToJson:x,inspectFlex:rt,hasKind:K,redis:{wrapRedisSet:at,wrapRedisGet:ft,wrapRedisDel:lt,wrapRedisXAdd:ht,wrapRedisXRead:dt,parseRedisPayload:ct}};function Y(e){typeof queueMicrotask=="function"?queueMicrotask(e):setTimeout(e,0)}function G(e){const t=document.createElement(e.tag);if(e.class&&(t.className=e.class),e.attrs)for(const[i,s]of Object.entries(e.attrs))if(typeof s=="function"&&i.startsWith("on"))t.addEventListener(i.slice(2).toLowerCase(),s);else if(i==="style"&&typeof s=="object")Object.assign(t.style,s);else if(i==="dataset"&&typeof s=="object")for(const[n,o]of Object.entries(s))t.dataset[n]=String(o);else try{t.setAttribute(i,String(s))}catch{}if(e.style&&Object.assign(t.style,e.style),e.children)for(const i of e.children){const s=typeof i=="string"?document.createTextNode(i):G(i);t.appendChild(s)}return t}const pt=w.z.enum(["top","right","bottom","left"]),yt=w.z.object({width:w.z.number(),height:w.z.number(),mode:w.z.enum(["static","animated","dynamic"]).optional()});w.z.object({rawHtml:w.z.string().optional(),needsCanvas:w.z.boolean().optional(),canvasOptions:yt.optional()});const wt=w.z.object({name:w.z.string(),version:w.z.string().optional()}),kt=w.z.object({meta:wt.optional(),timestamp:w.z.number()}),C=w.z.object({id:pt,payload:w.z.any().optional()}),gt=w.z.object({timestamp:w.z.number()}),mt={"droid-ready":gt,"droid-mod-ready":kt,"panel-open":C,"panel-close":C};class Et{listeners=new Map;on(t,i){let s=this.listeners.get(t);s||(s=new Set,this.listeners.set(t,s)),s.add(i)}off(t,i){this.listeners.get(t)?.delete(i)}emit(t,i){const s=mt[t];if(s)try{s.parse(i)}catch(n){console.error(`[DroidEventBus] Invalid payload for ${t}:`,n);return}window.dispatchEvent(new CustomEvent(t,{detail:i}));for(const n of this.listeners.get(t)??[])n(i)}wait(t){return new Promise(i=>{const s=n=>{this.off(t,s),i(n)};this.on(t,s)})}}const bt=new Et,F="1.0.3";function R(e,t){if(!e)throw new Error("[resolveWorkerURL] Worker name must be defined");if(typeof window<"u"){const i=window.kbveWorkerURLs;if(i?.[e])return i[e]}return t??`/workers/${e}`}async function Ot(e){const t=e??R("ws-worker.js"),i=new SharedWorker(t,{type:"module"});return i.port.start(),I.wrap(i.port)}const m=H("uiux-state",{panelManager:{top:{open:!1},right:{open:!1},bottom:{open:!1},left:{open:!1}},themeManager:{theme:"auto"},toastManager:{},scrollY:0},{encode:JSON.stringify,decode:JSON.parse});async function vt(e){const t=e??R("canvas-worker.js"),i=new Worker(t,{type:"module"});return I.wrap(i)}const N={state:m,openPanel(e,t){const i={...m.get().panelManager};i[e]={open:!0,payload:t},m.setKey("panelManager",i)},closePanel(e){const t={...m.get().panelManager};t[e]={open:!1,payload:void 0},m.setKey("panelManager",t)},togglePanel(e,t){const i={...m.get().panelManager},s=i[e]?.open??!1;i[e]={open:!s,payload:s?void 0:t},m.setKey("panelManager",i)},setTheme(e){m.setKey("themeManager",{theme:e})},addToast(e,t){const i={...m.get().toastManager,[e]:t};m.setKey("toastManager",i)},removeToast(e){const t={...m.get().toastManager};delete t[e],m.setKey("toastManager",t)},async dispatchCanvasRequest(e,t,i="animated"){const s=t.transferControlToOffscreen();await window.kbve?.uiux?.worker?.bindCanvas(e,s,i)},closeAllPanels(){const e={...m.get().panelManager};console.log("error panel is closing");for(const t of Object.keys(e))e[t]={open:!1,payload:void 0};m.setKey("panelManager",e)},emitFromWorker(e){e.type==="injectVNode"&&e.vnode&&Y(()=>{const t=document.getElementById("bento-grid-inject");if(!t){console.warn("[KBVE] No injection target found: #bento-grid-inject");return}const i=G(e.vnode);if(i.classList.add("animate-fade-in"),e.vnode.id){const s=document.getElementById(e.vnode.id);s&&s.remove()}t.appendChild(i)})}},S=H("i18n-cache",{},{encode:JSON.stringify,decode:JSON.parse}),V={store:S,api:null,ready:Promise.resolve(),get(e){return S.get()[e]??`[${e}]`},async getAsync(e){const t=S.get()[e];if(t!==void 0)return t;if(!this.api)return`[${e}]`;const i=await this.api.getTranslation(e);return i!==null?(S.setKey(e,i),i):`[${e}]`},set(e,t){S.setKey(e,t)},async hydrate(e,t){this.api=e;for(const i of t){const s=await e.getTranslation(i);s!==null&&S.setKey(i,s)}},async hydrateLocale(e="en"){if(!this.api)return;const i=(await this.api.getAllI18nKeys()).filter(n=>n.startsWith(`${e}:`)),s=await this.api.getTranslations(i);for(const[n,o]of Object.entries(s))console.log(`[i18n.setKey] ${n} = ${o}`),this.store.setKey(n,o)}};function j(){if(!navigator.serviceWorker?.controller)return;const e=new MessageChannel;navigator.serviceWorker.controller.postMessage(e.port2,[e.port2]),e.port1.start()}async function Tt(e){const t=e??R("db-worker.js"),i=new SharedWorker(t,{type:"module"});i.port.start();const s=I.wrap(i.port);return await s.getVersion()!==F&&await it(s,{version:F,i18nPath:"https://discord.sh/i18n/db.json",locale:"en",defaults:{welcome:"Welcome!",theme:"dark"}}),s}let z=!1;function J(e,t){const i=I.proxy(async s=>{Y(()=>{const n=`ws:${Date.now()}`;t.storeWsMessage(n,s)})});e.onMessage(I.transfer(i,[0]))}async function St(e){if(console.log("[DROID]: Main<T>"),z||(z=!0,navigator.serviceWorker?.controller?j():navigator.serviceWorker?.addEventListener("controllerchange",j)),console.log("[DROID] Main<T> => Worker URLs",e?.workerURLs),!window.kbve?.api||!window.kbve?.i18n||!window.kbve?.uiux)try{const i=await vt(typeof e?.workerURLs?.canvasWorker=="string"?e.workerURLs.canvasWorker:void 0),s=await Tt(typeof e?.workerURLs?.dbWorker=="string"?e.workerURLs.dbWorker:void 0),n=await Ot(typeof e?.workerURLs?.wsWorker=="string"?e.workerURLs.wsWorker:void 0),o=await st(h=>e?.workerURLs?.[h]??h),r=bt;for(const h of Object.values(o.registry))typeof h.instance.init=="function"&&await h.instance.init({emitFromWorker:N.emitFromWorker}),console.log("[Event] -> Fire Mod Ready"),r.emit("droid-mod-ready",{meta:h.meta,timestamp:Date.now()});J(n,s);const d=ut;V.api=s,V.ready=V.hydrateLocale("en"),window.kbve={...window.kbve||{},api:s,i18n:V,uiux:{...N,worker:i},ws:n,data:d,mod:o,events:r},await V.ready,window.kbve.events.emit("droid-ready",{timestamp:Date.now()}),document.addEventListener("astro:page-load",()=>{console.debug("[KBVE] Re-dispatched droid-ready after astro:page-load"),window.kbve?.events.emit("droid-ready",{timestamp:Date.now()})}),console.log("[KBVE] Global API ready")}catch(i){throw console.error("[DROID] Initialization error:",i),i}else console.log("[KBVE] Already initialized")}exports.bridgeWsToDb=J;exports.i18n=V;exports.main=St;exports.resolveWorkerURL=R;exports.uiux=N;
+import { wrap as B, proxy as tt, transfer as et } from "comlink";
+import { i as P, u as U, V as d, B as E, f as W, p as it, a as M, t as st, b as H, c as nt, d as ot, e as rt, g as at, h as ft, j as C } from "../reference-Dk_1njEH.js";
+import { z as y } from "../index-CsrTWP6J.js";
+let F = Symbol("clean"), k = [], ct = (e, t) => {
+  let i = [], s = {
+    get() {
+      return s.lc || s.listen(() => {
+      })(), s.value;
+    },
+    l: 0,
+    lc: 0,
+    listen(n, o) {
+      return s.lc = i.push(n, o || s.l) / 2, () => {
+        let r = i.indexOf(n);
+        ~r && (i.splice(r, 2), --s.lc || s.off());
+      };
+    },
+    notify(n) {
+      let o = !k.length;
+      for (let r = 0; r < i.length; r += 2)
+        k.push(
+          i[r],
+          i[r + 1],
+          s.value,
+          n
+        );
+      if (o) {
+        for (let r = 0; r < k.length; r += 4) {
+          let h;
+          for (let l = r + 1; !h && (l += 4) < k.length; )
+            k[l] < k[r + 1] && (h = k.push(
+              k[r],
+              k[r + 1],
+              k[r + 2],
+              k[r + 3]
+            ));
+          h || k[r](k[r + 2], k[r + 3]);
+        }
+        k.length = 0;
+      }
+    },
+    off() {
+    },
+    /* It will be called on last listener unsubscribing.
+       We will redefine it in onMount and onStop. */
+    set(n) {
+      s.value !== n && (s.value = n, s.notify());
+    },
+    subscribe(n, o) {
+      let r = s.listen(n, o);
+      return n(s.value), r;
+    },
+    value: e
+  };
+  return process.env.NODE_ENV !== "production" && (s[F] = () => {
+    i = [], s.lc = 0, s.off();
+  }), s;
+};
+const lt = 5, S = 6, D = 10;
+let ht = (e, t, i, s) => (e.events = e.events || {}, e.events[i + D] || (e.events[i + D] = s((n) => {
+  e.events[i].reduceRight((o, r) => (r(o), o), {
+    shared: {},
+    ...n
+  });
+})), e.events[i] = e.events[i] || [], e.events[i].push(t), () => {
+  let n = e.events[i], o = n.indexOf(t);
+  n.splice(o, 1), n.length || (delete e.events[i], e.events[i + D](), delete e.events[i + D]);
+}), dt = 1e3, ut = (e, t) => ht(e, (s) => {
+  let n = t(s);
+  n && e.events[S].push(n);
+}, lt, (s) => {
+  let n = e.listen;
+  e.listen = (...r) => (!e.lc && !e.active && (e.active = !0, s()), n(...r));
+  let o = e.off;
+  if (e.events[S] = [], e.off = () => {
+    o(), setTimeout(() => {
+      if (e.active && !e.lc) {
+        e.active = !1;
+        for (let r of e.events[S]) r();
+        e.events[S] = [];
+      }
+    }, dt);
+  }, process.env.NODE_ENV !== "production") {
+    let r = e[F];
+    e[F] = () => {
+      for (let h of e.events[S]) h();
+      e.events[S] = [], e.active = !1, r();
+    };
+  }
+  return () => {
+    e.listen = n, e.off = o;
+  };
+}), pt = (e = {}) => {
+  let t = ct(e);
+  return t.setKey = function(i, s) {
+    typeof s > "u" ? i in t.value && (t.value = { ...t.value }, delete t.value[i], t.notify(i)) : t.value[i] !== s && (t.value = {
+      ...t.value,
+      [i]: s
+    }, t.notify(i));
+  }, t;
+}, _ = (e) => e, A = {}, b = { addEventListener() {
+}, removeEventListener() {
+} };
+function wt() {
+  try {
+    return typeof localStorage < "u";
+  } catch {
+    return !1;
+  }
+}
+wt() && (A = localStorage);
+let yt = {
+  addEventListener(e, t, i) {
+    window.addEventListener("storage", t), window.addEventListener("pageshow", i);
+  },
+  removeEventListener(e, t, i) {
+    window.removeEventListener("storage", t), window.removeEventListener("pageshow", i);
+  }
+};
+typeof window < "u" && (b = yt);
+function z(e, t = {}, i = {}) {
+  let s = i.encode || _, n = i.decode || _, o = pt(), r = o.setKey;
+  o.setKey = (a, f) => {
+    typeof f > "u" ? (i.listen !== !1 && b.perKey && b.removeEventListener(e + a, l, u), delete A[e + a]) : (i.listen !== !1 && b.perKey && !(a in o.value) && b.addEventListener(e + a, l, u), A[e + a] = s(f)), r(a, f);
+  };
+  let h = o.set;
+  o.set = function(a) {
+    for (let f in a)
+      o.setKey(f, a[f]);
+    for (let f in o.value)
+      f in a || o.setKey(f);
+  };
+  function l(a) {
+    a.key ? a.key.startsWith(e) && (a.newValue === null ? r(a.key.slice(e.length), void 0) : r(a.key.slice(e.length), n(a.newValue))) : h({});
+  }
+  function u() {
+    let a = { ...t };
+    for (let f in A)
+      f.startsWith(e) && (a[f.slice(e.length)] = n(A[f]));
+    o.set(a);
+  }
+  return ut(o, () => {
+    if (u(), i.listen !== !1)
+      return b.addEventListener(e, l, u), () => {
+        b.removeEventListener(e, l, u);
+        for (let a in o.value)
+          b.removeEventListener(e + a, l, u);
+      };
+  }), o;
+}
+async function kt(e, {
+  version: t,
+  i18nPath: i = "https://discord.sh/i18n/db.json",
+  locale: s = "en",
+  defaults: n = {
+    welcome: "Welcome to the app!"
+  }
+}) {
+  console.log("[init-worker] Initializing database...");
+  try {
+    await e.loadI18nFromJSON(i), console.log(`[init-worker] i18n loaded from ${i}`), await e.dbSet("locale", s);
+    for (const [o, r] of Object.entries(n))
+      await e.dbSet(o, r);
+    await e.setVersion(t), e.loadServersFromJSON(), console.log(`[init-worker] DB initialized to version ${t}`);
+  } catch (o) {
+    console.error("[init-worker] Initialization failed:", o);
+  }
+}
+let R = null;
+async function gt(e) {
+  if (R) return R;
+  const t = {};
+  async function i(r) {
+    const h = e?.(r) ?? r, l = new Worker(h, { type: "module" }), u = B(l), a = await u.getMeta?.() ?? {
+      name: "unknown",
+      version: "0.0.1"
+    }, f = `${a.name}@${a.version}`;
+    console.log(`[mod-manager] ${f} is loaded.`);
+    const c = { id: f, worker: l, instance: u, meta: a, url: r };
+    return t[f] = c, c;
+  }
+  function s(r) {
+    t[r] && (t[r].worker.terminate(), delete t[r]);
+  }
+  function n() {
+    return Object.values(t).map((r) => r.meta);
+  }
+  async function o(r) {
+    const h = t[r];
+    if (!h) throw new Error(`Mod "${r}" not found`);
+    return s(r), i(h.url);
+  }
+  return R = {
+    registry: t,
+    load: i,
+    unload: s,
+    list: n,
+    reload: o
+  }, R;
+}
+var O = /* @__PURE__ */ ((e) => (e[e.PAYLOAD_UNKNOWN = 0] = "PAYLOAD_UNKNOWN", e[e.JSON = 1] = "JSON", e[e.FLEX = 2] = "FLEX", e[e.PROTOBUF = 3] = "PROTOBUF", e[e.FLATBUFFER = 4] = "FLATBUFFER", e))(O || {}), g = /* @__PURE__ */ ((e) => (e[e.UNKNOWN = 0] = "UNKNOWN", e[e.ADD = 1] = "ADD", e[e.READ = 2] = "READ", e[e.GET = 4] = "GET", e[e.SET = 8] = "SET", e[e.DEL = 16] = "DEL", e[e.STREAM = 32] = "STREAM", e[e.GROUP = 64] = "GROUP", e[e.LIST = 128] = "LIST", e[e.ACTION = 256] = "ACTION", e[e.MESSAGE = 512] = "MESSAGE", e[e.INFO = 1024] = "INFO", e[e.DEBUG = 2048] = "DEBUG", e[e.ERROR = 4096] = "ERROR", e[e.AUTH = 8192] = "AUTH", e[e.HEARTBEAT = 16384] = "HEARTBEAT", e[e.CONFIG_UPDATE = 32768] = "CONFIG_UPDATE", e[e.REDIS = 65536] = "REDIS", e[e.SUPABASE = 131072] = "SUPABASE", e[e.FILESYSTEM = 262144] = "FILESYSTEM", e[e.WEBSOCKET = 524288] = "WEBSOCKET", e[e.HTTP_API = 1048576] = "HTTP_API", e[e.LOCAL_CACHE = 2097152] = "LOCAL_CACHE", e[e.AI = 4194304] = "AI", e))(g || {});
+class T {
+  constructor(t, i, s, n = null, o = 0) {
+    this.builder = t, this.type = i, this.width = s, this.value = n, this.offset = o;
+  }
+  elementWidth(t, i) {
+    if (P(this.type)) return this.width;
+    for (let s = 0; s < 4; s++) {
+      const n = 1 << s, r = t + M(t, n) + i * n - this.offset, h = U(r);
+      if (1 << h === n)
+        return h;
+    }
+    throw `Element is unknown. Size: ${t} at index: ${i}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
+  }
+  writeToBuffer(t) {
+    const i = this.builder.computeOffset(t);
+    if (this.type === d.FLOAT)
+      this.width === E.WIDTH32 ? this.builder.view.setFloat32(this.builder.offset, this.value, !0) : this.builder.view.setFloat64(this.builder.offset, this.value, !0);
+    else if (this.type === d.INT) {
+      const s = W(t);
+      this.builder.pushInt(this.value, s);
+    } else if (this.type === d.UINT) {
+      const s = W(t);
+      this.builder.pushUInt(this.value, s);
+    } else if (this.type === d.NULL)
+      this.builder.pushInt(0, this.width);
+    else if (this.type === d.BOOL)
+      this.builder.pushInt(this.value ? 1 : 0, this.width);
+    else
+      throw `Unexpected type: ${this.type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
+    this.offset = i;
+  }
+  storedWidth(t = E.WIDTH8) {
+    return P(this.type) ? Math.max(t, this.width) : this.width;
+  }
+  storedPackedType(t = E.WIDTH8) {
+    return it(this.type, this.storedWidth(t));
+  }
+  isOffset() {
+    return !P(this.type);
+  }
+}
+class mt {
+  constructor(t = 2048, i = !0, s = !0, n = !0) {
+    this.dedupStrings = i, this.dedupKeys = s, this.dedupKeyVectors = n, this.stack = [], this.stackPointers = [], this.offset = 0, this.finished = !1, this.stringLookup = {}, this.keyLookup = {}, this.keyVectorLookup = {}, this.indirectIntLookup = {}, this.indirectUIntLookup = {}, this.indirectFloatLookup = {}, this.buffer = new ArrayBuffer(t > 0 ? t : 2048), this.view = new DataView(this.buffer);
+  }
+  align(t) {
+    const i = st(t);
+    return this.offset += M(this.offset, i), i;
+  }
+  computeOffset(t) {
+    const i = this.offset + t;
+    let s = this.buffer.byteLength;
+    const n = s;
+    for (; s < i; )
+      s <<= 1;
+    if (n < s) {
+      const o = this.buffer;
+      this.buffer = new ArrayBuffer(s), this.view = new DataView(this.buffer), new Uint8Array(this.buffer).set(new Uint8Array(o), 0);
+    }
+    return i;
+  }
+  pushInt(t, i) {
+    if (i === E.WIDTH8)
+      this.view.setInt8(this.offset, t);
+    else if (i === E.WIDTH16)
+      this.view.setInt16(this.offset, t, !0);
+    else if (i === E.WIDTH32)
+      this.view.setInt32(this.offset, t, !0);
+    else if (i === E.WIDTH64)
+      this.view.setBigInt64(this.offset, BigInt(t), !0);
+    else
+      throw `Unexpected width: ${i} for value: ${t}`;
+  }
+  pushUInt(t, i) {
+    if (i === E.WIDTH8)
+      this.view.setUint8(this.offset, t);
+    else if (i === E.WIDTH16)
+      this.view.setUint16(this.offset, t, !0);
+    else if (i === E.WIDTH32)
+      this.view.setUint32(this.offset, t, !0);
+    else if (i === E.WIDTH64)
+      this.view.setBigUint64(this.offset, BigInt(t), !0);
+    else
+      throw `Unexpected width: ${i} for value: ${t}`;
+  }
+  writeInt(t, i) {
+    const s = this.computeOffset(i);
+    this.pushInt(t, W(i)), this.offset = s;
+  }
+  writeUInt(t, i) {
+    const s = this.computeOffset(i);
+    this.pushUInt(t, W(i)), this.offset = s;
+  }
+  writeBlob(t) {
+    const i = t.byteLength, s = U(i), n = this.align(s);
+    this.writeUInt(i, n);
+    const o = this.offset, r = this.computeOffset(i);
+    new Uint8Array(this.buffer).set(new Uint8Array(t), o), this.stack.push(this.offsetStackValue(o, d.BLOB, s)), this.offset = r;
+  }
+  writeString(t) {
+    if (this.dedupStrings && Object.prototype.hasOwnProperty.call(this.stringLookup, t)) {
+      this.stack.push(this.stringLookup[t]);
+      return;
+    }
+    const i = H(t), s = i.length, n = U(s), o = this.align(n);
+    this.writeUInt(s, o);
+    const r = this.offset, h = this.computeOffset(s + 1);
+    new Uint8Array(this.buffer).set(i, r);
+    const l = this.offsetStackValue(r, d.STRING, n);
+    this.stack.push(l), this.dedupStrings && (this.stringLookup[t] = l), this.offset = h;
+  }
+  writeKey(t) {
+    if (this.dedupKeys && Object.prototype.hasOwnProperty.call(this.keyLookup, t)) {
+      this.stack.push(this.keyLookup[t]);
+      return;
+    }
+    const i = H(t), s = i.length, n = this.computeOffset(s + 1);
+    new Uint8Array(this.buffer).set(i, this.offset);
+    const o = this.offsetStackValue(this.offset, d.KEY, E.WIDTH8);
+    this.stack.push(o), this.dedupKeys && (this.keyLookup[t] = o), this.offset = n;
+  }
+  writeStackValue(t, i) {
+    const s = this.computeOffset(i);
+    if (t.isOffset()) {
+      const n = this.offset - t.offset;
+      if (i === 8 || BigInt(n) < BigInt(1) << BigInt(i * 8))
+        this.writeUInt(n, i);
+      else
+        throw `Unexpected size ${i}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
+    } else
+      t.writeToBuffer(i);
+    this.offset = s;
+  }
+  integrityCheckOnValueAddition() {
+    if (this.finished)
+      throw "Adding values after finish is prohibited";
+    if (this.stackPointers.length !== 0 && this.stackPointers[this.stackPointers.length - 1].isVector === !1 && this.stack[this.stack.length - 1].type !== d.KEY)
+      throw "Adding value to a map before adding a key is prohibited";
+  }
+  integrityCheckOnKeyAddition() {
+    if (this.finished)
+      throw "Adding values after finish is prohibited";
+    if (this.stackPointers.length === 0 || this.stackPointers[this.stackPointers.length - 1].isVector)
+      throw "Adding key before starting a map is prohibited";
+  }
+  startVector() {
+    this.stackPointers.push({ stackPosition: this.stack.length, isVector: !0 });
+  }
+  startMap(t = !1) {
+    this.stackPointers.push({ stackPosition: this.stack.length, isVector: !1, presorted: t });
+  }
+  endVector(t) {
+    const i = this.stack.length - t.stackPosition, s = this.createVector(t.stackPosition, i, 1);
+    this.stack.splice(t.stackPosition, i), this.stack.push(s);
+  }
+  endMap(t) {
+    t.presorted || this.sort(t);
+    let i = "";
+    for (let r = t.stackPosition; r < this.stack.length; r += 2)
+      i += `,${this.stack[r].offset}`;
+    const s = this.stack.length - t.stackPosition >> 1;
+    this.dedupKeyVectors && !Object.prototype.hasOwnProperty.call(this.keyVectorLookup, i) && (this.keyVectorLookup[i] = this.createVector(t.stackPosition, s, 2));
+    const n = this.dedupKeyVectors ? this.keyVectorLookup[i] : this.createVector(t.stackPosition, s, 2), o = this.createVector(t.stackPosition + 1, s, 2, n);
+    this.stack.splice(t.stackPosition, s << 1), this.stack.push(o);
+  }
+  sort(t) {
+    const i = this.view, s = this.stack;
+    function n(a, f) {
+      if (a.type !== d.KEY || f.type !== d.KEY)
+        throw `Stack values are not keys ${a} | ${f}. Check if you combined [addKey] with add... method calls properly.`;
+      let c, p, w = 0;
+      do {
+        if (c = i.getUint8(a.offset + w), p = i.getUint8(f.offset + w), p < c) return !0;
+        if (c < p) return !1;
+        w += 1;
+      } while (c !== 0 && p !== 0);
+      return !1;
+    }
+    function o(a, f, c) {
+      if (f === c) return;
+      const p = a[f], w = a[f + 1];
+      a[f] = a[c], a[f + 1] = a[c + 1], a[c] = p, a[c + 1] = w;
+    }
+    function r() {
+      for (let a = t.stackPosition; a < s.length; a += 2) {
+        let f = a;
+        for (let c = a + 2; c < s.length; c += 2)
+          n(s[f], s[c]) && (f = c);
+        f !== a && o(s, f, a);
+      }
+    }
+    function h(a, f) {
+      if (a.type !== d.KEY || f.type !== d.KEY)
+        throw `Stack values are not keys ${a} | ${f}. Check if you combined [addKey] with add... method calls properly.`;
+      if (a.offset === f.offset)
+        return !1;
+      let c, p, w = 0;
+      do {
+        if (c = i.getUint8(a.offset + w), p = i.getUint8(f.offset + w), c < p) return !0;
+        if (p < c) return !1;
+        w += 1;
+      } while (c !== 0 && p !== 0);
+      return !1;
+    }
+    function l(a, f) {
+      if (a < f) {
+        const c = a + (f - a >> 2) * 2, p = s[c];
+        let w = a, v = f;
+        do {
+          for (; h(s[w], p); )
+            w += 2;
+          for (; h(p, s[v]); )
+            v -= 2;
+          w <= v && (o(s, w, v), w += 2, v -= 2);
+        } while (w <= v);
+        l(a, v), l(w, f);
+      }
+    }
+    let u = !0;
+    for (let a = t.stackPosition; a < this.stack.length - 2; a += 2)
+      if (n(this.stack[a], this.stack[a + 2])) {
+        u = !1;
+        break;
+      }
+    u || (this.stack.length - t.stackPosition > 40 ? l(t.stackPosition, this.stack.length - 2) : r());
+  }
+  end() {
+    if (this.stackPointers.length < 1) return;
+    const t = this.stackPointers.pop();
+    t.isVector ? this.endVector(t) : this.endMap(t);
+  }
+  createVector(t, i, s, n = null) {
+    let o = U(i), r = 1;
+    if (n !== null) {
+      const c = n.elementWidth(this.offset, 0);
+      c > o && (o = c), r += 2;
+    }
+    let h = d.KEY, l = n === null;
+    for (let c = t; c < this.stack.length; c += s) {
+      const p = this.stack[c].elementWidth(this.offset, c + r);
+      p > o && (o = p), c === t ? (h = this.stack[c].type, l = l && nt(h)) : h !== this.stack[c].type && (l = !1);
+    }
+    const u = this.align(o), a = l && ot(h) && i >= 2 && i <= 4;
+    n !== null && (this.writeStackValue(n, u), this.writeUInt(1 << n.width, u)), a || this.writeUInt(i, u);
+    const f = this.offset;
+    for (let c = t; c < this.stack.length; c += s)
+      this.writeStackValue(this.stack[c], u);
+    if (!l)
+      for (let c = t; c < this.stack.length; c += s)
+        this.writeUInt(this.stack[c].storedPackedType(), 1);
+    if (n !== null)
+      return this.offsetStackValue(f, d.MAP, o);
+    if (l) {
+      const c = rt(h, a ? i : 0);
+      return this.offsetStackValue(f, c, o);
+    }
+    return this.offsetStackValue(f, d.VECTOR, o);
+  }
+  nullStackValue() {
+    return new T(this, d.NULL, E.WIDTH8);
+  }
+  boolStackValue(t) {
+    return new T(this, d.BOOL, E.WIDTH8, t);
+  }
+  intStackValue(t) {
+    return new T(this, d.INT, at(t), t);
+  }
+  uintStackValue(t) {
+    return new T(this, d.UINT, U(t), t);
+  }
+  floatStackValue(t) {
+    return new T(this, d.FLOAT, ft(t), t);
+  }
+  offsetStackValue(t, i, s) {
+    return new T(this, i, s, null, t);
+  }
+  finishBuffer() {
+    if (this.stack.length !== 1)
+      throw `Stack has to be exactly 1, but it is ${this.stack.length}. You have to end all started vectors and maps before calling [finish]`;
+    const t = this.stack[0], i = this.align(t.elementWidth(this.offset, 0));
+    this.writeStackValue(t, i), this.writeUInt(t.storedPackedType(), 1), this.writeUInt(i, 1), this.finished = !0;
+  }
+  add(t) {
+    if (this.integrityCheckOnValueAddition(), typeof t > "u")
+      throw "You need to provide a value";
+    if (t === null)
+      this.stack.push(this.nullStackValue());
+    else if (typeof t == "boolean")
+      this.stack.push(this.boolStackValue(t));
+    else if (typeof t == "bigint")
+      this.stack.push(this.intStackValue(t));
+    else if (typeof t == "number")
+      Number.isInteger(t) ? this.stack.push(this.intStackValue(t)) : this.stack.push(this.floatStackValue(t));
+    else if (ArrayBuffer.isView(t))
+      this.writeBlob(t.buffer);
+    else if (typeof t == "string" || t instanceof String)
+      this.writeString(t);
+    else if (Array.isArray(t)) {
+      this.startVector();
+      for (let i = 0; i < t.length; i++)
+        this.add(t[i]);
+      this.end();
+    } else if (typeof t == "object") {
+      const i = Object.getOwnPropertyNames(t).sort();
+      this.startMap(!0);
+      for (let s = 0; s < i.length; s++) {
+        const n = i[s];
+        this.addKey(n), this.add(t[n]);
+      }
+      this.end();
+    } else
+      throw `Unexpected value input ${t}`;
+  }
+  finish() {
+    this.finished || this.finishBuffer();
+    const t = this.buffer.slice(0, this.offset);
+    return new Uint8Array(t);
+  }
+  isFinished() {
+    return this.finished;
+  }
+  addKey(t) {
+    this.integrityCheckOnKeyAddition(), this.writeKey(t);
+  }
+  addInt(t, i = !1, s = !1) {
+    if (this.integrityCheckOnValueAddition(), !i) {
+      this.stack.push(this.intStackValue(t));
+      return;
+    }
+    if (s && Object.prototype.hasOwnProperty.call(this.indirectIntLookup, t)) {
+      this.stack.push(this.indirectIntLookup[t]);
+      return;
+    }
+    const n = this.intStackValue(t), o = this.align(n.width), r = this.computeOffset(o), h = this.offset;
+    n.writeToBuffer(o);
+    const l = this.offsetStackValue(h, d.INDIRECT_INT, n.width);
+    this.stack.push(l), this.offset = r, s && (this.indirectIntLookup[t] = l);
+  }
+  addUInt(t, i = !1, s = !1) {
+    if (this.integrityCheckOnValueAddition(), !i) {
+      this.stack.push(this.uintStackValue(t));
+      return;
+    }
+    if (s && Object.prototype.hasOwnProperty.call(this.indirectUIntLookup, t)) {
+      this.stack.push(this.indirectUIntLookup[t]);
+      return;
+    }
+    const n = this.uintStackValue(t), o = this.align(n.width), r = this.computeOffset(o), h = this.offset;
+    n.writeToBuffer(o);
+    const l = this.offsetStackValue(h, d.INDIRECT_UINT, n.width);
+    this.stack.push(l), this.offset = r, s && (this.indirectUIntLookup[t] = l);
+  }
+  addFloat(t, i = !1, s = !1) {
+    if (this.integrityCheckOnValueAddition(), !i) {
+      this.stack.push(this.floatStackValue(t));
+      return;
+    }
+    if (s && Object.prototype.hasOwnProperty.call(this.indirectFloatLookup, t)) {
+      this.stack.push(this.indirectFloatLookup[t]);
+      return;
+    }
+    const n = this.floatStackValue(t), o = this.align(n.width), r = this.computeOffset(o), h = this.offset;
+    n.writeToBuffer(o);
+    const l = this.offsetStackValue(h, d.INDIRECT_FLOAT, n.width);
+    this.stack.push(l), this.offset = r, s && (this.indirectFloatLookup[t] = l);
+  }
+}
+function N() {
+  return new mt();
+}
+function Et(e) {
+  const t = N();
+  t.startMap();
+  for (const [i, s] of Object.entries(e))
+    t.addKey(i), t.add(s);
+  return t.end(), t.finish();
+}
+function V(e, t, i, s, n = 1) {
+  let o;
+  if (i === O.FLEX)
+    o = Et(e);
+  else if (i === O.JSON)
+    o = new TextEncoder().encode(JSON.stringify(e));
+  else
+    throw new Error("Unsupported format for wrapEnvelope");
+  const r = N();
+  return r.startMap(), r.addKey("version"), r.add(n), r.addKey("kind"), r.add(t), r.addKey("format"), r.add(i), r.addKey("payload"), r.add(o), r.addKey("metadata"), r.add(s ?? new Uint8Array()), r.end(), r.finish();
+}
+function X(e) {
+  const t = e instanceof Uint8Array ? e : new Uint8Array(e), i = C(t.buffer).toObject();
+  if (typeof i.version != "number" || typeof i.kind != "number" || typeof i.format != "number" || !i.payload)
+    throw console.error("[unwrapEnvelope] Bad root:", i), new Error("[unwrapEnvelope] Invalid envelope structure");
+  const s = {
+    version: i.version,
+    kind: i.kind,
+    format: i.format,
+    payload: new Uint8Array(i.payload),
+    metadata: i.metadata ? new Uint8Array(i.metadata) : void 0
+  };
+  let n;
+  if (s.format === O.FLEX)
+    n = C(s.payload.buffer).toObject();
+  else if (s.format === O.JSON)
+    n = JSON.parse(new TextDecoder().decode(s.payload));
+  else
+    throw new Error(`[unwrapEnvelope] Unsupported format: ${s.format}`);
+  return { envelope: s, payload: n };
+}
+function $(e) {
+  return C(e.buffer).toObject();
+}
+function Ot(e) {
+  try {
+    const t = e instanceof Uint8Array ? e : new Uint8Array(e), i = $(t);
+    console.log("[FlexObject]", JSON.stringify(i, null, 2));
+  } catch (t) {
+    console.error("[Flex Decode Error]", t);
+  }
+}
+function q(e, t) {
+  return (e & t) === t;
+}
+function bt(e, t) {
+  return V(
+    { key: e, value: t },
+    g.SET | g.REDIS,
+    O.FLEX
+  );
+}
+function vt(e) {
+  return V(
+    { key: e },
+    g.GET | g.REDIS,
+    O.FLEX
+  );
+}
+function St(e) {
+  return V(
+    { key: e },
+    g.DEL | g.REDIS,
+    O.FLEX
+  );
+}
+function Tt(e) {
+  const t = X(e);
+  if (!q(t.envelope.kind, g.REDIS))
+    throw new Error("[Redis] Not a Redis envelope");
+  return t;
+}
+function It(e, t, i = "*") {
+  return V(
+    { stream: e, id: i, fields: t },
+    g.ADD | g.STREAM | g.REDIS,
+    O.FLEX
+  );
+}
+function Lt(e, t, i) {
+  const s = N();
+  s.startMap(), s.addKey("streams"), s.startVector();
+  for (const { stream: r, id: h } of e)
+    s.startMap(), s.addKey("stream"), s.add(r), s.addKey("id"), s.add(h), s.end();
+  s.end(), t !== void 0 && (s.addKey("count"), s.add(t)), i !== void 0 && (s.addKey("block"), s.add(i)), s.end();
+  const n = s.finish(), o = N();
+  return o.startMap(), o.addKey("version"), o.add(1), o.addKey("kind"), o.add(g.READ | g.STREAM | g.REDIS), o.addKey("format"), o.add(O.FLEX), o.addKey("payload"), o.add(n), o.addKey("metadata"), o.add(new Uint8Array()), o.end(), o.finish();
+}
+const Ut = {
+  wrapEnvelope: V,
+  unwrapEnvelope: X,
+  MessageKind: g,
+  PayloadFormat: O,
+  unwrapFlexToJson: $,
+  inspectFlex: Ot,
+  hasKind: q,
+  redis: {
+    wrapRedisSet: bt,
+    wrapRedisGet: vt,
+    wrapRedisDel: St,
+    wrapRedisXAdd: It,
+    wrapRedisXRead: Lt,
+    parseRedisPayload: Tt
+  }
+};
+function Q(e) {
+  typeof queueMicrotask == "function" ? queueMicrotask(e) : setTimeout(e, 0);
+}
+function Z(e) {
+  const t = document.createElement(e.tag);
+  if (e.class && (t.className = e.class), e.attrs)
+    for (const [i, s] of Object.entries(e.attrs))
+      if (typeof s == "function" && i.startsWith("on"))
+        t.addEventListener(i.slice(2).toLowerCase(), s);
+      else if (i === "style" && typeof s == "object")
+        Object.assign(t.style, s);
+      else if (i === "dataset" && typeof s == "object")
+        for (const [n, o] of Object.entries(s))
+          t.dataset[n] = String(o);
+      else
+        try {
+          t.setAttribute(i, String(s));
+        } catch {
+        }
+  if (e.style && Object.assign(t.style, e.style), e.children)
+    for (const i of e.children) {
+      const s = typeof i == "string" ? document.createTextNode(i) : Z(i);
+      t.appendChild(s);
+    }
+  return t;
+}
+const At = y.enum(["top", "right", "bottom", "left"]), Vt = y.object({
+  width: y.number(),
+  height: y.number(),
+  mode: y.enum(["static", "animated", "dynamic"]).optional()
+});
+y.object({
+  rawHtml: y.string().optional(),
+  needsCanvas: y.boolean().optional(),
+  canvasOptions: Vt.optional()
+});
+const Dt = y.object({
+  name: y.string(),
+  version: y.string().optional()
+}), Rt = y.object({
+  meta: Dt.optional(),
+  timestamp: y.number()
+}), x = y.object({
+  id: At,
+  payload: y.any().optional()
+}), Wt = y.object({
+  timestamp: y.number()
+}), Nt = {
+  "droid-ready": Wt,
+  "droid-mod-ready": Rt,
+  "panel-open": x,
+  "panel-close": x
+};
+class Bt {
+  listeners = /* @__PURE__ */ new Map();
+  on(t, i) {
+    let s = this.listeners.get(t);
+    s || (s = /* @__PURE__ */ new Set(), this.listeners.set(t, s)), s.add(i);
+  }
+  off(t, i) {
+    this.listeners.get(t)?.delete(i);
+  }
+  emit(t, i) {
+    const s = Nt[t];
+    if (s)
+      try {
+        s.parse(i);
+      } catch (n) {
+        console.error(`[DroidEventBus] Invalid payload for ${t}:`, n);
+        return;
+      }
+    window.dispatchEvent(new CustomEvent(t, { detail: i }));
+    for (const n of this.listeners.get(t) ?? [])
+      n(i);
+  }
+  wait(t) {
+    return new Promise((i) => {
+      const s = (n) => {
+        this.off(t, s), i(n);
+      };
+      this.on(t, s);
+    });
+  }
+}
+const Pt = new Bt(), K = "1.0.3";
+function j(e, t) {
+  if (!e) throw new Error("[resolveWorkerURL] Worker name must be defined");
+  if (typeof window < "u") {
+    const i = window.kbveWorkerURLs;
+    if (i?.[e]) return i[e];
+  }
+  return t ?? `/workers/${e}`;
+}
+async function Ct(e) {
+  const t = e ?? j("ws-worker.js"), i = new SharedWorker(t, { type: "module" });
+  return i.port.start(), B(i.port);
+}
+const m = z(
+  "uiux-state",
+  {
+    panelManager: {
+      top: { open: !1 },
+      right: { open: !1 },
+      bottom: { open: !1 },
+      left: { open: !1 }
+    },
+    themeManager: { theme: "auto" },
+    toastManager: {},
+    scrollY: 0
+  },
+  {
+    encode: JSON.stringify,
+    decode: JSON.parse
+  }
+);
+async function Ft(e) {
+  const t = e ?? j("canvas-worker.js"), i = new Worker(t, { type: "module" });
+  return B(i);
+}
+const Y = {
+  state: m,
+  openPanel(e, t) {
+    const i = { ...m.get().panelManager };
+    i[e] = { open: !0, payload: t }, m.setKey("panelManager", i);
+  },
+  closePanel(e) {
+    const t = { ...m.get().panelManager };
+    t[e] = { open: !1, payload: void 0 }, m.setKey("panelManager", t);
+  },
+  togglePanel(e, t) {
+    const i = { ...m.get().panelManager }, s = i[e]?.open ?? !1;
+    i[e] = { open: !s, payload: s ? void 0 : t }, m.setKey("panelManager", i);
+  },
+  setTheme(e) {
+    m.setKey("themeManager", { theme: e });
+  },
+  addToast(e, t) {
+    const i = { ...m.get().toastManager, [e]: t };
+    m.setKey("toastManager", i);
+  },
+  removeToast(e) {
+    const t = { ...m.get().toastManager };
+    delete t[e], m.setKey("toastManager", t);
+  },
+  async dispatchCanvasRequest(e, t, i = "animated") {
+    const s = t.transferControlToOffscreen();
+    await window.kbve?.uiux?.worker?.bindCanvas(e, s, i);
+  },
+  closeAllPanels() {
+    const e = { ...m.get().panelManager };
+    console.log("error panel is closing");
+    for (const t of Object.keys(e))
+      e[t] = { open: !1, payload: void 0 };
+    m.setKey("panelManager", e);
+  },
+  emitFromWorker(e) {
+    e.type === "injectVNode" && e.vnode && Q(() => {
+      const t = document.getElementById("bento-grid-inject");
+      if (!t) {
+        console.warn(
+          "[KBVE] No injection target found: #bento-grid-inject"
+        );
+        return;
+      }
+      const i = Z(e.vnode);
+      if (i.classList.add("animate-fade-in"), e.vnode.id) {
+        const s = document.getElementById(e.vnode.id);
+        s && s.remove();
+      }
+      t.appendChild(i);
+    });
+  }
+}, I = z(
+  "i18n-cache",
+  {},
+  {
+    encode: JSON.stringify,
+    decode: JSON.parse
+  }
+), L = {
+  store: I,
+  api: null,
+  ready: Promise.resolve(),
+  get(e) {
+    return I.get()[e] ?? `[${e}]`;
+  },
+  async getAsync(e) {
+    const t = I.get()[e];
+    if (t !== void 0) return t;
+    if (!this.api) return `[${e}]`;
+    const i = await this.api.getTranslation(e);
+    return i !== null ? (I.setKey(e, i), i) : `[${e}]`;
+  },
+  set(e, t) {
+    I.setKey(e, t);
+  },
+  async hydrate(e, t) {
+    this.api = e;
+    for (const i of t) {
+      const s = await e.getTranslation(i);
+      s !== null && I.setKey(i, s);
+    }
+  },
+  async hydrateLocale(e = "en") {
+    if (!this.api) return;
+    const i = (await this.api.getAllI18nKeys()).filter(
+      (n) => n.startsWith(`${e}:`)
+    ), s = await this.api.getTranslations(i);
+    for (const [n, o] of Object.entries(s))
+      console.log(`[i18n.setKey] ${n} = ${o}`), this.store.setKey(n, o);
+  }
+};
+function G() {
+  if (!navigator.serviceWorker?.controller) return;
+  const e = new MessageChannel();
+  navigator.serviceWorker.controller.postMessage(e.port2, [
+    e.port2
+  ]), e.port1.start();
+}
+async function jt(e) {
+  const t = e ?? j("db-worker.js"), i = new SharedWorker(t, { type: "module" });
+  i.port.start();
+  const s = B(i.port);
+  return await s.getVersion() !== K && await kt(s, {
+    version: K,
+    i18nPath: "https://discord.sh/i18n/db.json",
+    locale: "en",
+    defaults: { welcome: "Welcome!", theme: "dark" }
+  }), s;
+}
+let J = !1;
+function Ht(e, t) {
+  const i = tt(async (s) => {
+    Q(() => {
+      const n = `ws:${Date.now()}`;
+      t.storeWsMessage(n, s);
+    });
+  });
+  e.onMessage(et(i, [0]));
+}
+async function Yt(e) {
+  if (console.log("[DROID]: Main<T>"), J || (J = !0, navigator.serviceWorker?.controller ? G() : navigator.serviceWorker?.addEventListener(
+    "controllerchange",
+    G
+  )), console.log("[DROID] Main<T> => Worker URLs", e?.workerURLs), !window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux)
+    try {
+      const i = await Ft(
+        typeof e?.workerURLs?.canvasWorker == "string" ? e.workerURLs.canvasWorker : void 0
+      ), s = await jt(
+        typeof e?.workerURLs?.dbWorker == "string" ? e.workerURLs.dbWorker : void 0
+      ), n = await Ct(
+        typeof e?.workerURLs?.wsWorker == "string" ? e.workerURLs.wsWorker : void 0
+      ), o = await gt((l) => e?.workerURLs?.[l] ?? l), r = Pt;
+      for (const l of Object.values(o.registry))
+        typeof l.instance.init == "function" && await l.instance.init({
+          emitFromWorker: Y.emitFromWorker
+        }), console.log("[Event] -> Fire Mod Ready"), r.emit("droid-mod-ready", {
+          meta: l.meta,
+          timestamp: Date.now()
+        });
+      Ht(n, s);
+      const h = Ut;
+      L.api = s, L.ready = L.hydrateLocale("en"), window.kbve = {
+        ...window.kbve || {},
+        api: s,
+        i18n: L,
+        uiux: { ...Y, worker: i },
+        ws: n,
+        data: h,
+        mod: o,
+        events: r
+      }, await L.ready, window.kbve.events.emit("droid-ready", {
+        timestamp: Date.now()
+      }), document.addEventListener("astro:page-load", () => {
+        console.debug(
+          "[KBVE] Re-dispatched droid-ready after astro:page-load"
+        ), window.kbve?.events.emit("droid-ready", {
+          timestamp: Date.now()
+        });
+      }), console.log("[KBVE] Global API ready");
+    } catch (i) {
+      throw console.error("[DROID] Initialization error:", i), i;
+    }
+  else
+    console.log("[KBVE] Already initialized");
+}
+export {
+  Ht as bridgeWsToDb,
+  L as i18n,
+  Yt as main,
+  j as resolveWorkerURL,
+  Y as uiux
+};

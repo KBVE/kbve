@@ -331,9 +331,9 @@ export default defineConfig({
                 ignored: ['!**/node_modules/**'],
             },
         },
-        // optimizeDeps: {
-        //     include: ['@kbve/droid'],
-        // },
+            optimizeDeps: {
+        include: ['comlink'],
+        },
         build: {
             // commonjsOptions: {
             //     include: [/node_modules/, /@kbve\/droid/],

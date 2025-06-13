@@ -13,28 +13,30 @@ export default defineConfig(() => ({
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'droid',
       fileName: (format) => `droid.${format}.js`,
-      formats: ['es', 'cjs'],
+      formats: ['es'],
     },
     outDir: '../../../dist/packages/npm/droid',
     target: 'esnext',
     rollupOptions: {
       input: {
-		droid: path.resolve(__dirname, 'src/index.ts'),
-		'workers/main': path.resolve(__dirname, 'src/lib/workers/main.ts'),
-		'workers/canvas-worker': path.resolve(__dirname, 'src/lib/workers/canvas-worker.ts'),
-		'workers/db-worker': path.resolve(__dirname, 'src/lib/workers/db-worker.ts'),
-		'workers/ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
-		},
-      output: {
-		entryFileNames: (chunkInfo) => {
-			if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return 'workers/canvas-worker.js';
-			if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return 'workers/db-worker.js';
-			if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return 'workers/ws-worker.js';
-			if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
-			return '[name].[format].js';
-		},
+        droid: path.resolve(__dirname, 'src/index.ts'),
+        'workers/main': path.resolve(__dirname, 'src/lib/workers/main.ts'),
+        'workers/canvas-worker': path.resolve(__dirname, 'src/lib/workers/canvas-worker.ts'),
+        'workers/db-worker': path.resolve(__dirname, 'src/lib/workers/db-worker.ts'),
+        'workers/ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
       },
-      external: [], // optionally add external deps here
+    output: {
+      entryFileNames: (chunkInfo) => {
+        if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return 'workers/canvas-worker.mjs';
+        if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return 'workers/db-worker.mjs';
+        if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return 'workers/ws-worker.mjs';
+        if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
+        return '[name].[format].js';
+      },
+      // Set format statically or remove if handled by 'formats' in build.lib
+      // format: 'es', // Uncomment if you want to force ES module output
+    },
+		  external: [] as string[], // optionally add external deps here
     },
   },
 

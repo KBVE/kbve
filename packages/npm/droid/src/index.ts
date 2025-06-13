@@ -10,7 +10,7 @@ export const workerURLsDev = {
 	wsWorker: new URL('./lib/workers/ws-worker.js', import.meta.url).toString(),
 };
 export const workerURLs = {
-	canvasWorker: '/workers/canvas-worker.js',
-	dbWorker: '/workers/db-worker.js',
-	wsWorker: '/workers/ws-worker.js',
+	canvasWorker: '/workers/canvas-worker.mjs',
+	dbWorker: '/workers/db-worker.mjs',
+	wsWorker: '/workers/ws-worker.mjs',
 };

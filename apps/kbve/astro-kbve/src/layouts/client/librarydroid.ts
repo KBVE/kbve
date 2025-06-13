@@ -1,5 +1,5 @@
 import { droid, modUrls, workerURLs, workerURLsDev } from '@kbve/droid';
-import { proxy } from 'comlink';
+import * as comlink from 'comlink';
 
 
 function resolveWorkerURL(name: keyof typeof workerURLs): string {
@@ -32,7 +32,7 @@ function resolveWorkerURL(name: keyof typeof workerURLs): string {
 	console.log('[DEBUG] Registry keys:', Object.keys(mod.registry));
 	
 	if (bentoMod?.instance?.init && typeof emitFromWorker === 'function') {
-		await bentoMod.instance.init(proxy({ emitFromWorker }));
+		await bentoMod.instance.init(comlink.proxy({ emitFromWorker }));
 	}
 
 	if (bentoMod?.meta) {
