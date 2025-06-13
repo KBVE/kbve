@@ -19,14 +19,14 @@ export default defineConfig(() => ({
 		outDir: '../../../dist/packages/npm/droid',
 		target: 'esnext',
 		rollupOptions: {
-			input: {
-				main: path.resolve(__dirname, 'src/main.ts'),
-				canvasWorker: path.resolve(
-					__dirname,
-					'src/workers/canvas-worker.ts',
-				),
-				aiWorker: path.resolve(__dirname, 'src/workers/ai-worker.ts'),
-			},
+			// input: {
+			// 	main: path.resolve(__dirname, 'src/main.ts'),
+			// 	canvasWorker: path.resolve(
+			// 		__dirname,
+			// 		'src/workers/canvas-worker.ts',
+			// 	),
+			// 	aiWorker: path.resolve(__dirname, 'src/workers/ai-worker.ts'),
+			// },
 			output: {
 				entryFileNames: (chunkInfo) => {
 					if (chunkInfo.name?.includes('Worker')) {
