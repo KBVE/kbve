@@ -11,7 +11,7 @@ function resolveWorkerURL(name: keyof typeof workerURLs): string {
 	console.log("[DROID] init Library");
 	// await droid({ workerURLs });
 	await droid({
-		workerURLs: {
+		workerURLs: import.meta.env.DEV ? workerURLsDev : {
 			canvasWorker: resolveWorkerURL('canvasWorker'),
 			dbWorker: resolveWorkerURL('dbWorker'),
 			wsWorker: resolveWorkerURL('wsWorker'),

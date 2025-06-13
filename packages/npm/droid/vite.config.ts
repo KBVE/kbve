@@ -13,7 +13,7 @@ export default defineConfig(() => ({
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'droid',
       fileName: (format) => `droid.${format}.js`,
-      formats: ['es'],
+      formats: ['es', 'cjs'],
     },
     outDir: '../../../dist/packages/npm/droid',
     target: 'esnext',
@@ -33,7 +33,6 @@ export default defineConfig(() => ({
 			if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
 			return '[name].[format].js';
 		},
-		manualChunks: undefined
       },
       external: [], // optionally add external deps here
     },
@@ -41,11 +40,6 @@ export default defineConfig(() => ({
 
   worker: {
     plugins: () => [nxViteTsPaths()],
-	rollupOptions: {
-		output: {
-		manualChunks: undefined, // ensure no shared chunks in workers
-		},
-	},
   },
 
   test: {
