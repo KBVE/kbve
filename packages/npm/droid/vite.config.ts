@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 import path from 'path';
+import copy from 'rollup-plugin-copy';
+
 
 export default defineConfig(() => ({
 	root: __dirname,
@@ -18,7 +20,8 @@ export default defineConfig(() => ({
 		outDir: '../../../dist/packages/npm/droid',
 		target: 'esnext',
 		rollupOptions: {
-			external: ['comlink', '@nanostores/persistent'], // externalize dependencies
+			external: [], // externalize dependencies - 'comlink', '@nanostores/persistent'
+			plugins: [],
 		},
 	},
 

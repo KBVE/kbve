@@ -67,10 +67,14 @@ jobs:
 
       - name: Build KBVE ${{ inputs.project }} NPM Package
         shell: bash
-        run: ./kbve.sh -nx ${{ inputs.project }}:build
-
-      - name: Publish NPM Package
-        run: npx nx run ${{ inputs.project }}:nx-release-publish
+        run: ./kbve.sh -nx ${{ inputs.project }}:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+
+
+      # - name: Publish NPM Package
+      #   run: npx nx run ${{ inputs.project }}:nx-release-publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #     NPM_CONFIG_PROVENANCE: true
