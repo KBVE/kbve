@@ -9,7 +9,7 @@ import { getModManager } from '../mod/mod-manager';
 import { scopeData } from './data';
 import { dispatchAsync, renderVNode } from './tools';
 import type { PanelPayload, PanelId } from '../types/panel-types';
-import { DroidEvents } from './events'; 
+import { DroidEvents } from './events';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
@@ -18,7 +18,6 @@ function resolveWorkerURL(name: string, fallback?: string): string {
 	try {
 		return new URL(`./${name}`, import.meta.url).toString(); // Works for local builds with bundlers like Vite
 	} catch {
-		
 		return fallback ?? `/${name}`; // Works when hosted from CDN or outside build context
 	}
 }
@@ -38,15 +37,6 @@ function deepProxy<T>(obj: T): T {
 	return obj;
 }
 
-//  * WebSocket
-// async function initWsComlink(): Promise<Remote<WSInstance>> {
-// 	const worker = new SharedWorker(new URL('./ws-worker', import.meta.url), {
-// 		type: 'module',
-// 	});
-// 	worker.port.start();
-// 	return wrap<WSInstance>(worker.port);
-// }
-
 async function initWsComlink(workerURL?: string): Promise<Remote<WSInstance>> {
 	const url = workerURL ?? resolveWorkerURL('ws-worker.js');
 	const worker = new SharedWorker(url, { type: 'module' });
@@ -54,12 +44,10 @@ async function initWsComlink(workerURL?: string): Promise<Remote<WSInstance>> {
 	return wrap<WSInstance>(worker.port);
 }
 
-//	* Interface -> Moved to the panels.ts
-
 //	* UIUX
-
 const uiuxState = persistentMap<{
-	panelManager: Record<PanelId,
+	panelManager: Record<
+		PanelId,
 		{
 			open: boolean;
 			payload?: PanelPayload;
@@ -87,13 +75,16 @@ const uiuxState = persistentMap<{
 	},
 );
 
-const canvasWorker = wrap<CanvasWorkerAPI>(
-	new Worker(new URL('./canvas-worker', import.meta.url), { type: 'module' }),
-);
+async function initCanvasComlink(
+	workerURL?: string,
+): Promise<Remote<CanvasWorkerAPI>> {
+	const url = workerURL ?? resolveWorkerURL('canvas-worker.js');
+	const worker = new Worker(url, { type: 'module' });
+	return wrap<CanvasWorkerAPI>(worker);
+}
 
 export const uiux = {
 	state: uiuxState,
-	worker: canvasWorker,
 	openPanel(id: PanelId, payload?: PanelPayload) {
 		const panels = { ...uiuxState.get().panelManager };
 		panels[id] = { open: true, payload };
@@ -106,10 +97,7 @@ export const uiux = {
 		uiuxState.setKey('panelManager', panels);
 	},
 
-	togglePanel(
-		id: PanelId,
-		payload?: PanelPayload,
-	) {
+	togglePanel(id: PanelId, payload?: PanelPayload) {
 		const panels = { ...uiuxState.get().panelManager };
 		const isOpen = panels[id]?.open ?? false;
 		panels[id] = { open: !isOpen, payload: !isOpen ? payload : undefined };
@@ -130,23 +118,20 @@ export const uiux = {
 		delete toasts[id];
 		uiuxState.setKey('toastManager', toasts);
 	},
-
 	async dispatchCanvasRequest(
 		panelId: PanelId,
 		canvasEl: HTMLCanvasElement,
 		mode: 'static' | 'animated' | 'dynamic' = 'animated',
 	) {
 		const offscreen = canvasEl.transferControlToOffscreen();
-		await this.worker.bindCanvas(panelId, offscreen, mode);
+		await window.kbve?.uiux?.worker?.bindCanvas(panelId, offscreen, mode);
 	},
 
 	closeAllPanels() {
 		const panels = { ...uiuxState.get().panelManager };
 		console.log('error panel is closing');
 
-		for (const id of Object.keys(panels) as Array<
-			PanelId
-		>) {
+		for (const id of Object.keys(panels) as Array<PanelId>) {
 			panels[id] = { open: false, payload: undefined };
 		}
 
@@ -251,10 +236,12 @@ function initSWComlink() {
 	channel.port1.start();
 }
 
-async function initStorageComlink(): Promise<Remote<LocalStorageAPI>> {
-	const worker = new SharedWorker(new URL('./db-worker', import.meta.url), {
-		type: 'module',
-	});
+async function initStorageComlink(
+	workerURL?: string,
+): Promise<Remote<LocalStorageAPI>> {
+	const url = workerURL ?? resolveWorkerURL('db-worker.js');
+
+	const worker = new SharedWorker(url, { type: 'module' });
 	worker.port.start();
 	const api = wrap<LocalStorageAPI>(worker.port);
 
@@ -308,9 +295,12 @@ export async function main(opts?: { workerURLs?: Record<string, string> }) {
 		!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux;
 
 	if (needsInit) {
-		const api = await initStorageComlink();
+		const canvas = await initCanvasComlink(
+			opts?.workerURLs?.['canvasWorker'],
+		);
+		const api = await initStorageComlink(opts?.workerURLs?.['dbWorker']);
 		const ws = await initWsComlink(opts?.workerURLs?.['wsWorker']);
-		const mod = await getModManager();
+		const mod = await getModManager((url) => opts?.workerURLs?.[url] ?? url);
 		const events = DroidEvents;
 
 		for (const handle of Object.values(mod.registry)) {
@@ -336,7 +326,7 @@ export async function main(opts?: { workerURLs?: Record<string, string> }) {
 			...(window.kbve || {}),
 			api,
 			i18n,
-			uiux,
+			uiux: { ...uiux, worker: canvas },
 			ws,
 			data,
 			mod,
@@ -350,20 +340,22 @@ export async function main(opts?: { workerURLs?: Record<string, string> }) {
 		window.kbve.events.emit('droid-ready', {
 			timestamp: Date.now(),
 		});
-		
+
 		document.addEventListener('astro:page-load', () => {
-			console.debug('[KBVE] Re-dispatched droid-ready after astro:page-load');
+			console.debug(
+				'[KBVE] Re-dispatched droid-ready after astro:page-load',
+			);
 			window.kbve?.events.emit('droid-ready', {
 				timestamp: Date.now(),
 			});
-		});	
+		});
 
 		// document.addEventListener('astro:page-load', () => {
 		// 	console.debug('[KBVE] Re-dispatched droid-ready after DomContentLoaded');
 		// 	window.kbve?.events.emit('droid-ready', {
 		// 		timestamp: Date.now(),
 		// 	});
-		// });	
+		// });
 
 		console.log('[KBVE] Global API ready');
 	} else {
