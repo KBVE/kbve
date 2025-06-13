@@ -13,12 +13,34 @@ import { DroidEvents } from './events';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
-// 	* Resolve Workers
+// Enhanced worker URL resolver for Vite, bundlers, and explicit overrides
 function resolveWorkerURL(name: string, fallback?: string): string {
+	if (!name) {
+		console.error('[resolveWorkerURL] Worker name is undefined!');
+		throw new Error('Worker name must be defined');
+	}
+	// 1. Allow explicit override via global config (e.g., window.kbveWorkerURLs)
+	type WorkerURLMap = { [key: string]: string };
+	if (typeof window !== 'undefined' && (window as unknown as { kbveWorkerURLs?: WorkerURLMap }).kbveWorkerURLs?.[name]) {
+		return (window as unknown as { kbveWorkerURLs: WorkerURLMap }).kbveWorkerURLs[name];
+	}
+
+	// 2. Try Vite's ?worker import pattern if available (for ESM builds)
+	// @ts-expect-error: import.meta.env may not exist in all environments
 	try {
-		return new URL(`./${name}`, import.meta.url).toString(); // Works for local builds with bundlers like Vite
+		if (import.meta.env && import.meta.env.BASE_URL) {
+			return new URL(`./${name}`, import.meta.env.BASE_URL).toString();
+		}
 	} catch {
-		return fallback ?? `/${name}`; // Works when hosted from CDN or outside build context
+		// ignore: not all environments have import.meta.env
+	}
+
+	// 3. Fallback to original logic (local build or CDN)
+	try {
+		return new URL(`./${name}`, import.meta.url).toString();
+	} catch {
+		// ignore: fallback to root-relative path
+		return fallback ?? `/${name}`;
 	}
 }
 
@@ -277,6 +299,8 @@ export function bridgeWsToDb(
 
 //	*	MAIN
 export async function main(opts?: { workerURLs?: Record<string, string> }) {
+
+	console.log('[DROID]: Main<T>');
 	if (!initialized) {
 		initialized = true;
 
@@ -295,69 +319,70 @@ export async function main(opts?: { workerURLs?: Record<string, string> }) {
 		!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux;
 
 	if (needsInit) {
-		const canvas = await initCanvasComlink(
-			opts?.workerURLs?.['canvasWorker'],
-		);
-		const api = await initStorageComlink(opts?.workerURLs?.['dbWorker']);
-		const ws = await initWsComlink(opts?.workerURLs?.['wsWorker']);
-		const mod = await getModManager((url) => opts?.workerURLs?.[url] ?? url);
-		const events = DroidEvents;
+		try {
+			const canvas = await initCanvasComlink(
+				typeof opts?.workerURLs?.['canvasWorker'] === 'string' ? opts.workerURLs['canvasWorker'] : undefined
+			);
+			const api = await initStorageComlink(
+				typeof opts?.workerURLs?.['dbWorker'] === 'string' ? opts.workerURLs['dbWorker'] : undefined
+			);
+			const ws = await initWsComlink(
+				typeof opts?.workerURLs?.['wsWorker'] === 'string' ? opts.workerURLs['wsWorker'] : undefined
+			);
 
-		for (const handle of Object.values(mod.registry)) {
-			if (typeof handle.instance.init === 'function') {
-				await handle.instance.init({
-					emitFromWorker: uiux.emitFromWorker,
+			const mod = await getModManager((url) => opts?.workerURLs?.[url] ?? url);
+			const events = DroidEvents;
+
+			for (const handle of Object.values(mod.registry)) {
+				if (typeof handle.instance.init === 'function') {
+					await handle.instance.init({
+						emitFromWorker: uiux.emitFromWorker,
+					});
+				}
+				console.log('[Event] -> Fire Mod Ready');
+				events.emit('droid-mod-ready', {
+					meta: handle.meta,
+					timestamp: Date.now(),
 				});
 			}
-			console.log('[Event] -> Fire Mod Ready');
-			events.emit('droid-mod-ready', {
-				meta: handle.meta,
+
+			bridgeWsToDb(ws, api);
+
+			const data = scopeData;
+			i18n.api = api;
+			i18n.ready = i18n.hydrateLocale('en');
+
+			window.kbve = {
+				...(window.kbve || {}),
+				api,
+				i18n,
+				uiux: { ...uiux, worker: canvas },
+				ws,
+				data,
+				mod,
+				events,
+			};
+
+			await i18n.ready;
+
+			window.kbve.events.emit('droid-ready', {
 				timestamp: Date.now(),
 			});
+
+			document.addEventListener('astro:page-load', () => {
+				console.debug(
+					'[KBVE] Re-dispatched droid-ready after astro:page-load',
+				);
+				window.kbve?.events.emit('droid-ready', {
+					timestamp: Date.now(),
+				});
+			});
+
+			console.log('[KBVE] Global API ready');
+		} catch (err) {
+			console.error('[DROID] Initialization error:', err);
+			throw err;
 		}
-
-		bridgeWsToDb(ws, api);
-
-		const data = scopeData;
-		i18n.api = api;
-		i18n.ready = i18n.hydrateLocale('en');
-
-		window.kbve = {
-			...(window.kbve || {}),
-			api,
-			i18n,
-			uiux: { ...uiux, worker: canvas },
-			ws,
-			data,
-			mod,
-			events,
-		};
-
-		//window.kbve = deepProxy(window.kbve);
-
-		await i18n.ready;
-
-		window.kbve.events.emit('droid-ready', {
-			timestamp: Date.now(),
-		});
-
-		document.addEventListener('astro:page-load', () => {
-			console.debug(
-				'[KBVE] Re-dispatched droid-ready after astro:page-load',
-			);
-			window.kbve?.events.emit('droid-ready', {
-				timestamp: Date.now(),
-			});
-		});
-
-		// document.addEventListener('astro:page-load', () => {
-		// 	console.debug('[KBVE] Re-dispatched droid-ready after DomContentLoaded');
-		// 	window.kbve?.events.emit('droid-ready', {
-		// 		timestamp: Date.now(),
-		// 	});
-		// });
-
-		console.log('[KBVE] Global API ready');
 	} else {
 		console.log('[KBVE] Already initialized');
 	}
