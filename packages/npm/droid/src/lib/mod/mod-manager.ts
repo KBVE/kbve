@@ -5,13 +5,14 @@ import type { KBVEGlobal } from '../../types';
 
 let _modManager: ModManager | null = null;
 
-export async function getModManager(): Promise<ModManager> {
+export async function getModManager(modWorkerResolver?: (url: string) => string): Promise<ModManager> {
 	if (_modManager) return _modManager;
 
 	const registry: Record<string, ModHandle> = {};
 
 	async function load(url: string): Promise<ModHandle> {
-		const worker = new Worker(url, { type: 'module' });
+		const resolvedURL = modWorkerResolver?.(url) ?? url;
+		const worker = new Worker(resolvedURL, { type: 'module' });
 		const instance = wrap<BaseModAPI>(worker);
 
 		const meta: ModMeta = await instance.getMeta?.() ?? {
