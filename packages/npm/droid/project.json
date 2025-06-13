@@ -30,7 +30,7 @@
 			"options": {
 				"configFile": "packages/npm/droid/vite.config.ts"
 			}
-    },
+    		},
 		    "nx-release-publish": {
 				"options": {
 					"packageRoot": "dist/packages/npm/droid"

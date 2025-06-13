@@ -27,7 +27,11 @@
 		}
 	},
 	"files": [
+		"assets/",
+		"src/",
 		"droid.*.js",
+		"main-*.js",
+		"index-*.js",
 		"index.d.ts",
 		"*.md"
 	],
