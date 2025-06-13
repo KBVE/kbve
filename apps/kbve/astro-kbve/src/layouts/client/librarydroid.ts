@@ -1,4 +1,4 @@
-import { droid, modUrls, workerURLs } from '@kbve/droid';
+import { droid, modUrls, workerURLs, workerURLsDev } from '@kbve/droid';
 import { proxy } from 'comlink';
 
 

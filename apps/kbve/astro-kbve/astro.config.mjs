@@ -331,7 +331,13 @@ export default defineConfig({
                 ignored: ['!**/node_modules/**'],
             },
         },
+        optimizeDeps: {
+            include: ['@kbve/droid'],
+        },
         build: {
+            commonjsOptions: {
+                include: [/node_modules/, /@kbve\/droid/],
+            },
             rollupOptions: {
                 // maxConcurrency: 2,
                 output: {

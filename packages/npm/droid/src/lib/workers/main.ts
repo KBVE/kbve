@@ -13,35 +13,16 @@ import { DroidEvents } from './events';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 
-// Enhanced worker URL resolver for Vite, bundlers, and explicit overrides
-function resolveWorkerURL(name: string, fallback?: string): string {
-	if (!name) {
-		console.error('[resolveWorkerURL] Worker name is undefined!');
-		throw new Error('Worker name must be defined');
-	}
-	// 1. Allow explicit override via global config (e.g., window.kbveWorkerURLs)
-	type WorkerURLMap = { [key: string]: string };
-	if (typeof window !== 'undefined' && (window as unknown as { kbveWorkerURLs?: WorkerURLMap }).kbveWorkerURLs?.[name]) {
-		return (window as unknown as { kbveWorkerURLs: WorkerURLMap }).kbveWorkerURLs[name];
+export function resolveWorkerURL(name: string, fallback?: string): string {
+	if (!name) throw new Error('[resolveWorkerURL] Worker name must be defined');
+
+	if (typeof window !== 'undefined') {
+		const globalMap = (window as any).kbveWorkerURLs;
+		if (globalMap?.[name]) return globalMap[name];
 	}
 
-	// 2. Try Vite's ?worker import pattern if available (for ESM builds)
-	// @ts-expect-error: import.meta.env may not exist in all environments
-	try {
-		if (import.meta.env && import.meta.env.BASE_URL) {
-			return new URL(`./${name}`, import.meta.env.BASE_URL).toString();
-		}
-	} catch {
-		// ignore: not all environments have import.meta.env
-	}
-
-	// 3. Fallback to original logic (local build or CDN)
-	try {
-		return new URL(`./${name}`, import.meta.url).toString();
-	} catch {
-		// ignore: fallback to root-relative path
-		return fallback ?? `/${name}`;
-	}
+	// No bundler-specific resolution: just return fallback or root-relative
+	return fallback ?? `/workers/${name}`;
 }
 
 //	* DeepProxy
