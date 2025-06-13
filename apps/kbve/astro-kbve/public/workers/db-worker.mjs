@@ -1,4 +1,4 @@
-import { expose as oi } from "comlink";
+import { e as oi } from "../comlink-CC72iIUO.js";
 import { j as ai } from "../reference-Dk_1njEH.js";
 var ui = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
 function si(T) {

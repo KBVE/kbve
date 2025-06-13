@@ -1,22 +1,12 @@
-import { droid, modUrls, workerURLs, workerURLsDev } from '@kbve/droid';
+import { droid, modUrls, workerURLs } from '@kbve/droid';
 import * as comlink from 'comlink';
 
-
-function resolveWorkerURL(name: keyof typeof workerURLs): string {
-  return new URL(workerURLs[name], import.meta.url).toString();
-}
 
 (async () => {
 	
 	console.log("[DROID] init Library");
 	// await droid({ workerURLs });
-	await droid({
-		workerURLs: import.meta.env.DEV ? workerURLsDev : {
-			canvasWorker: resolveWorkerURL('canvasWorker'),
-			dbWorker: resolveWorkerURL('dbWorker'),
-			wsWorker: resolveWorkerURL('wsWorker'),
-		},
-	});
+	await droid({workerURLs});
 	
 	const mod = window.kbve?.mod;
 	const emitFromWorker = window.kbve?.uiux?.emitFromWorker;

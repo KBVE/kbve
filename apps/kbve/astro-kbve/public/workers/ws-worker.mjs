@@ -1,4 +1,4 @@
-import { expose as c } from "comlink";
+import { e as c } from "../comlink-CC72iIUO.js";
 let e = null, s = null;
 const a = {
   async connect(o) {

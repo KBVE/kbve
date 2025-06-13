@@ -13,7 +13,7 @@ export default defineConfig(() => ({
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'droid',
       fileName: (format) => `droid.${format}.js`,
-      formats: ['es'],
+      formats: ['es'] as const,
     },
     outDir: '../../../dist/packages/npm/droid',
     target: 'esnext',
@@ -26,11 +26,11 @@ export default defineConfig(() => ({
         'workers/ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
       },
     output: {
-      entryFileNames: (chunkInfo) => {
-        if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return 'workers/canvas-worker.mjs';
-        if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return 'workers/db-worker.mjs';
-        if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return 'workers/ws-worker.mjs';
-        if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
+        entryFileNames: (chunkInfo) => {
+          // if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return '/lib/workers/canvas-worker.js';
+          // if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return '/lib/workers/db-worker.js';
+          // if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return '/lib/workers/ws-worker.js';
+          // if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
         return '[name].[format].js';
       },
       // Set format statically or remove if handled by 'formats' in build.lib

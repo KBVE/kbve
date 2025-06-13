@@ -1,27 +1,27 @@
-import { wrap as B, proxy as tt, transfer as et } from "comlink";
-import { i as P, u as U, V as d, B as E, f as W, p as it, a as M, t as st, b as H, c as nt, d as ot, e as rt, g as at, h as ft, j as C } from "../reference-Dk_1njEH.js";
+import { w as B, p as tt, t as et } from "../comlink-CC72iIUO.js";
+import { i as P, u as U, V as d, B as E, f as W, p as st, a as M, t as it, b as H, c as nt, d as ot, e as rt, g as at, h as ft, j as C } from "../reference-Dk_1njEH.js";
 import { z as y } from "../index-CsrTWP6J.js";
 let F = Symbol("clean"), k = [], ct = (e, t) => {
-  let i = [], s = {
+  let s = [], i = {
     get() {
-      return s.lc || s.listen(() => {
-      })(), s.value;
+      return i.lc || i.listen(() => {
+      })(), i.value;
     },
     l: 0,
     lc: 0,
     listen(n, o) {
-      return s.lc = i.push(n, o || s.l) / 2, () => {
-        let r = i.indexOf(n);
-        ~r && (i.splice(r, 2), --s.lc || s.off());
+      return i.lc = s.push(n, o || i.l) / 2, () => {
+        let r = s.indexOf(n);
+        ~r && (s.splice(r, 2), --i.lc || i.off());
       };
     },
     notify(n) {
       let o = !k.length;
-      for (let r = 0; r < i.length; r += 2)
+      for (let r = 0; r < s.length; r += 2)
         k.push(
-          i[r],
-          i[r + 1],
-          s.value,
+          s[r],
+          s[r + 1],
+          i.value,
           n
         );
       if (o) {
@@ -44,33 +44,33 @@ let F = Symbol("clean"), k = [], ct = (e, t) => {
     /* It will be called on last listener unsubscribing.
        We will redefine it in onMount and onStop. */
     set(n) {
-      s.value !== n && (s.value = n, s.notify());
+      i.value !== n && (i.value = n, i.notify());
     },
     subscribe(n, o) {
-      let r = s.listen(n, o);
-      return n(s.value), r;
+      let r = i.listen(n, o);
+      return n(i.value), r;
     },
     value: e
   };
-  return process.env.NODE_ENV !== "production" && (s[F] = () => {
-    i = [], s.lc = 0, s.off();
-  }), s;
+  return process.env.NODE_ENV !== "production" && (i[F] = () => {
+    s = [], i.lc = 0, i.off();
+  }), i;
 };
 const lt = 5, S = 6, D = 10;
-let ht = (e, t, i, s) => (e.events = e.events || {}, e.events[i + D] || (e.events[i + D] = s((n) => {
-  e.events[i].reduceRight((o, r) => (r(o), o), {
+let ht = (e, t, s, i) => (e.events = e.events || {}, e.events[s + D] || (e.events[s + D] = i((n) => {
+  e.events[s].reduceRight((o, r) => (r(o), o), {
     shared: {},
     ...n
   });
-})), e.events[i] = e.events[i] || [], e.events[i].push(t), () => {
-  let n = e.events[i], o = n.indexOf(t);
-  n.splice(o, 1), n.length || (delete e.events[i], e.events[i + D](), delete e.events[i + D]);
-}), dt = 1e3, ut = (e, t) => ht(e, (s) => {
-  let n = t(s);
+})), e.events[s] = e.events[s] || [], e.events[s].push(t), () => {
+  let n = e.events[s], o = n.indexOf(t);
+  n.splice(o, 1), n.length || (delete e.events[s], e.events[s + D](), delete e.events[s + D]);
+}), dt = 1e3, ut = (e, t) => ht(e, (i) => {
+  let n = t(i);
   n && e.events[S].push(n);
-}, lt, (s) => {
+}, lt, (i) => {
   let n = e.listen;
-  e.listen = (...r) => (!e.lc && !e.active && (e.active = !0, s()), n(...r));
+  e.listen = (...r) => (!e.lc && !e.active && (e.active = !0, i()), n(...r));
   let o = e.off;
   if (e.events[S] = [], e.off = () => {
     o(), setTimeout(() => {
@@ -92,11 +92,11 @@ let ht = (e, t, i, s) => (e.events = e.events || {}, e.events[i + D] || (e.event
   };
 }), pt = (e = {}) => {
   let t = ct(e);
-  return t.setKey = function(i, s) {
-    typeof s > "u" ? i in t.value && (t.value = { ...t.value }, delete t.value[i], t.notify(i)) : t.value[i] !== s && (t.value = {
+  return t.setKey = function(s, i) {
+    typeof i > "u" ? s in t.value && (t.value = { ...t.value }, delete t.value[s], t.notify(s)) : t.value[s] !== i && (t.value = {
       ...t.value,
-      [i]: s
-    }, t.notify(i));
+      [s]: i
+    }, t.notify(s));
   }, t;
 }, _ = (e) => e, A = {}, b = { addEventListener() {
 }, removeEventListener() {
@@ -110,18 +110,18 @@ function wt() {
 }
 wt() && (A = localStorage);
 let yt = {
-  addEventListener(e, t, i) {
-    window.addEventListener("storage", t), window.addEventListener("pageshow", i);
+  addEventListener(e, t, s) {
+    window.addEventListener("storage", t), window.addEventListener("pageshow", s);
   },
-  removeEventListener(e, t, i) {
-    window.removeEventListener("storage", t), window.removeEventListener("pageshow", i);
+  removeEventListener(e, t, s) {
+    window.removeEventListener("storage", t), window.removeEventListener("pageshow", s);
   }
 };
 typeof window < "u" && (b = yt);
-function z(e, t = {}, i = {}) {
-  let s = i.encode || _, n = i.decode || _, o = pt(), r = o.setKey;
+function z(e, t = {}, s = {}) {
+  let i = s.encode || _, n = s.decode || _, o = pt(), r = o.setKey;
   o.setKey = (a, f) => {
-    typeof f > "u" ? (i.listen !== !1 && b.perKey && b.removeEventListener(e + a, l, u), delete A[e + a]) : (i.listen !== !1 && b.perKey && !(a in o.value) && b.addEventListener(e + a, l, u), A[e + a] = s(f)), r(a, f);
+    typeof f > "u" ? (s.listen !== !1 && b.perKey && b.removeEventListener(e + a, l, u), delete A[e + a]) : (s.listen !== !1 && b.perKey && !(a in o.value) && b.addEventListener(e + a, l, u), A[e + a] = i(f)), r(a, f);
   };
   let h = o.set;
   o.set = function(a) {
@@ -140,7 +140,7 @@ function z(e, t = {}, i = {}) {
     o.set(a);
   }
   return ut(o, () => {
-    if (u(), i.listen !== !1)
+    if (u(), s.listen !== !1)
       return b.addEventListener(e, l, u), () => {
         b.removeEventListener(e, l, u);
         for (let a in o.value)
@@ -150,15 +150,15 @@ function z(e, t = {}, i = {}) {
 }
 async function kt(e, {
   version: t,
-  i18nPath: i = "https://discord.sh/i18n/db.json",
-  locale: s = "en",
+  i18nPath: s = "https://discord.sh/i18n/db.json",
+  locale: i = "en",
   defaults: n = {
     welcome: "Welcome to the app!"
   }
 }) {
   console.log("[init-worker] Initializing database...");
   try {
-    await e.loadI18nFromJSON(i), console.log(`[init-worker] i18n loaded from ${i}`), await e.dbSet("locale", s);
+    await e.loadI18nFromJSON(s), console.log(`[init-worker] i18n loaded from ${s}`), await e.dbSet("locale", i);
     for (const [o, r] of Object.entries(n))
       await e.dbSet(o, r);
     await e.setVersion(t), e.loadServersFromJSON(), console.log(`[init-worker] DB initialized to version ${t}`);
@@ -170,7 +170,7 @@ let R = null;
 async function gt(e) {
   if (R) return R;
   const t = {};
-  async function i(r) {
+  async function s(r) {
     const h = e?.(r) ?? r, l = new Worker(h, { type: "module" }), u = B(l), a = await u.getMeta?.() ?? {
       name: "unknown",
       version: "0.0.1"
@@ -179,7 +179,7 @@ async function gt(e) {
     const c = { id: f, worker: l, instance: u, meta: a, url: r };
     return t[f] = c, c;
   }
-  function s(r) {
+  function i(r) {
     t[r] && (t[r].worker.terminate(), delete t[r]);
   }
   function n() {
@@ -188,125 +188,125 @@ async function gt(e) {
   async function o(r) {
     const h = t[r];
     if (!h) throw new Error(`Mod "${r}" not found`);
-    return s(r), i(h.url);
+    return i(r), s(h.url);
   }
   return R = {
     registry: t,
-    load: i,
-    unload: s,
+    load: s,
+    unload: i,
     list: n,
     reload: o
   }, R;
 }
 var O = /* @__PURE__ */ ((e) => (e[e.PAYLOAD_UNKNOWN = 0] = "PAYLOAD_UNKNOWN", e[e.JSON = 1] = "JSON", e[e.FLEX = 2] = "FLEX", e[e.PROTOBUF = 3] = "PROTOBUF", e[e.FLATBUFFER = 4] = "FLATBUFFER", e))(O || {}), g = /* @__PURE__ */ ((e) => (e[e.UNKNOWN = 0] = "UNKNOWN", e[e.ADD = 1] = "ADD", e[e.READ = 2] = "READ", e[e.GET = 4] = "GET", e[e.SET = 8] = "SET", e[e.DEL = 16] = "DEL", e[e.STREAM = 32] = "STREAM", e[e.GROUP = 64] = "GROUP", e[e.LIST = 128] = "LIST", e[e.ACTION = 256] = "ACTION", e[e.MESSAGE = 512] = "MESSAGE", e[e.INFO = 1024] = "INFO", e[e.DEBUG = 2048] = "DEBUG", e[e.ERROR = 4096] = "ERROR", e[e.AUTH = 8192] = "AUTH", e[e.HEARTBEAT = 16384] = "HEARTBEAT", e[e.CONFIG_UPDATE = 32768] = "CONFIG_UPDATE", e[e.REDIS = 65536] = "REDIS", e[e.SUPABASE = 131072] = "SUPABASE", e[e.FILESYSTEM = 262144] = "FILESYSTEM", e[e.WEBSOCKET = 524288] = "WEBSOCKET", e[e.HTTP_API = 1048576] = "HTTP_API", e[e.LOCAL_CACHE = 2097152] = "LOCAL_CACHE", e[e.AI = 4194304] = "AI", e))(g || {});
 class T {
-  constructor(t, i, s, n = null, o = 0) {
-    this.builder = t, this.type = i, this.width = s, this.value = n, this.offset = o;
+  constructor(t, s, i, n = null, o = 0) {
+    this.builder = t, this.type = s, this.width = i, this.value = n, this.offset = o;
   }
-  elementWidth(t, i) {
+  elementWidth(t, s) {
     if (P(this.type)) return this.width;
-    for (let s = 0; s < 4; s++) {
-      const n = 1 << s, r = t + M(t, n) + i * n - this.offset, h = U(r);
+    for (let i = 0; i < 4; i++) {
+      const n = 1 << i, r = t + M(t, n) + s * n - this.offset, h = U(r);
       if (1 << h === n)
         return h;
     }
-    throw `Element is unknown. Size: ${t} at index: ${i}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
+    throw `Element is unknown. Size: ${t} at index: ${s}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
   }
   writeToBuffer(t) {
-    const i = this.builder.computeOffset(t);
+    const s = this.builder.computeOffset(t);
     if (this.type === d.FLOAT)
       this.width === E.WIDTH32 ? this.builder.view.setFloat32(this.builder.offset, this.value, !0) : this.builder.view.setFloat64(this.builder.offset, this.value, !0);
     else if (this.type === d.INT) {
-      const s = W(t);
-      this.builder.pushInt(this.value, s);
+      const i = W(t);
+      this.builder.pushInt(this.value, i);
     } else if (this.type === d.UINT) {
-      const s = W(t);
-      this.builder.pushUInt(this.value, s);
+      const i = W(t);
+      this.builder.pushUInt(this.value, i);
     } else if (this.type === d.NULL)
       this.builder.pushInt(0, this.width);
     else if (this.type === d.BOOL)
       this.builder.pushInt(this.value ? 1 : 0, this.width);
     else
       throw `Unexpected type: ${this.type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
-    this.offset = i;
+    this.offset = s;
   }
   storedWidth(t = E.WIDTH8) {
     return P(this.type) ? Math.max(t, this.width) : this.width;
   }
   storedPackedType(t = E.WIDTH8) {
-    return it(this.type, this.storedWidth(t));
+    return st(this.type, this.storedWidth(t));
   }
   isOffset() {
     return !P(this.type);
   }
 }
 class mt {
-  constructor(t = 2048, i = !0, s = !0, n = !0) {
-    this.dedupStrings = i, this.dedupKeys = s, this.dedupKeyVectors = n, this.stack = [], this.stackPointers = [], this.offset = 0, this.finished = !1, this.stringLookup = {}, this.keyLookup = {}, this.keyVectorLookup = {}, this.indirectIntLookup = {}, this.indirectUIntLookup = {}, this.indirectFloatLookup = {}, this.buffer = new ArrayBuffer(t > 0 ? t : 2048), this.view = new DataView(this.buffer);
+  constructor(t = 2048, s = !0, i = !0, n = !0) {
+    this.dedupStrings = s, this.dedupKeys = i, this.dedupKeyVectors = n, this.stack = [], this.stackPointers = [], this.offset = 0, this.finished = !1, this.stringLookup = {}, this.keyLookup = {}, this.keyVectorLookup = {}, this.indirectIntLookup = {}, this.indirectUIntLookup = {}, this.indirectFloatLookup = {}, this.buffer = new ArrayBuffer(t > 0 ? t : 2048), this.view = new DataView(this.buffer);
   }
   align(t) {
-    const i = st(t);
-    return this.offset += M(this.offset, i), i;
+    const s = it(t);
+    return this.offset += M(this.offset, s), s;
   }
   computeOffset(t) {
-    const i = this.offset + t;
-    let s = this.buffer.byteLength;
-    const n = s;
-    for (; s < i; )
-      s <<= 1;
-    if (n < s) {
+    const s = this.offset + t;
+    let i = this.buffer.byteLength;
+    const n = i;
+    for (; i < s; )
+      i <<= 1;
+    if (n < i) {
       const o = this.buffer;
-      this.buffer = new ArrayBuffer(s), this.view = new DataView(this.buffer), new Uint8Array(this.buffer).set(new Uint8Array(o), 0);
+      this.buffer = new ArrayBuffer(i), this.view = new DataView(this.buffer), new Uint8Array(this.buffer).set(new Uint8Array(o), 0);
     }
-    return i;
+    return s;
   }
-  pushInt(t, i) {
-    if (i === E.WIDTH8)
+  pushInt(t, s) {
+    if (s === E.WIDTH8)
       this.view.setInt8(this.offset, t);
-    else if (i === E.WIDTH16)
+    else if (s === E.WIDTH16)
       this.view.setInt16(this.offset, t, !0);
-    else if (i === E.WIDTH32)
+    else if (s === E.WIDTH32)
       this.view.setInt32(this.offset, t, !0);
-    else if (i === E.WIDTH64)
+    else if (s === E.WIDTH64)
       this.view.setBigInt64(this.offset, BigInt(t), !0);
     else
-      throw `Unexpected width: ${i} for value: ${t}`;
+      throw `Unexpected width: ${s} for value: ${t}`;
   }
-  pushUInt(t, i) {
-    if (i === E.WIDTH8)
+  pushUInt(t, s) {
+    if (s === E.WIDTH8)
       this.view.setUint8(this.offset, t);
-    else if (i === E.WIDTH16)
+    else if (s === E.WIDTH16)
       this.view.setUint16(this.offset, t, !0);
-    else if (i === E.WIDTH32)
+    else if (s === E.WIDTH32)
       this.view.setUint32(this.offset, t, !0);
-    else if (i === E.WIDTH64)
+    else if (s === E.WIDTH64)
       this.view.setBigUint64(this.offset, BigInt(t), !0);
     else
-      throw `Unexpected width: ${i} for value: ${t}`;
+      throw `Unexpected width: ${s} for value: ${t}`;
   }
-  writeInt(t, i) {
-    const s = this.computeOffset(i);
-    this.pushInt(t, W(i)), this.offset = s;
+  writeInt(t, s) {
+    const i = this.computeOffset(s);
+    this.pushInt(t, W(s)), this.offset = i;
   }
-  writeUInt(t, i) {
-    const s = this.computeOffset(i);
-    this.pushUInt(t, W(i)), this.offset = s;
+  writeUInt(t, s) {
+    const i = this.computeOffset(s);
+    this.pushUInt(t, W(s)), this.offset = i;
   }
   writeBlob(t) {
-    const i = t.byteLength, s = U(i), n = this.align(s);
-    this.writeUInt(i, n);
-    const o = this.offset, r = this.computeOffset(i);
-    new Uint8Array(this.buffer).set(new Uint8Array(t), o), this.stack.push(this.offsetStackValue(o, d.BLOB, s)), this.offset = r;
+    const s = t.byteLength, i = U(s), n = this.align(i);
+    this.writeUInt(s, n);
+    const o = this.offset, r = this.computeOffset(s);
+    new Uint8Array(this.buffer).set(new Uint8Array(t), o), this.stack.push(this.offsetStackValue(o, d.BLOB, i)), this.offset = r;
   }
   writeString(t) {
     if (this.dedupStrings && Object.prototype.hasOwnProperty.call(this.stringLookup, t)) {
       this.stack.push(this.stringLookup[t]);
       return;
     }
-    const i = H(t), s = i.length, n = U(s), o = this.align(n);
-    this.writeUInt(s, o);
-    const r = this.offset, h = this.computeOffset(s + 1);
-    new Uint8Array(this.buffer).set(i, r);
+    const s = H(t), i = s.length, n = U(i), o = this.align(n);
+    this.writeUInt(i, o);
+    const r = this.offset, h = this.computeOffset(i + 1);
+    new Uint8Array(this.buffer).set(s, r);
     const l = this.offsetStackValue(r, d.STRING, n);
     this.stack.push(l), this.dedupStrings && (this.stringLookup[t] = l), this.offset = h;
   }
@@ -315,22 +315,22 @@ class mt {
       this.stack.push(this.keyLookup[t]);
       return;
     }
-    const i = H(t), s = i.length, n = this.computeOffset(s + 1);
-    new Uint8Array(this.buffer).set(i, this.offset);
+    const s = H(t), i = s.length, n = this.computeOffset(i + 1);
+    new Uint8Array(this.buffer).set(s, this.offset);
     const o = this.offsetStackValue(this.offset, d.KEY, E.WIDTH8);
     this.stack.push(o), this.dedupKeys && (this.keyLookup[t] = o), this.offset = n;
   }
-  writeStackValue(t, i) {
-    const s = this.computeOffset(i);
+  writeStackValue(t, s) {
+    const i = this.computeOffset(s);
     if (t.isOffset()) {
       const n = this.offset - t.offset;
-      if (i === 8 || BigInt(n) < BigInt(1) << BigInt(i * 8))
-        this.writeUInt(n, i);
+      if (s === 8 || BigInt(n) < BigInt(1) << BigInt(s * 8))
+        this.writeUInt(n, s);
       else
-        throw `Unexpected size ${i}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
+        throw `Unexpected size ${s}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
     } else
-      t.writeToBuffer(i);
-    this.offset = s;
+      t.writeToBuffer(s);
+    this.offset = i;
   }
   integrityCheckOnValueAddition() {
     if (this.finished)
@@ -351,27 +351,27 @@ class mt {
     this.stackPointers.push({ stackPosition: this.stack.length, isVector: !1, presorted: t });
   }
   endVector(t) {
-    const i = this.stack.length - t.stackPosition, s = this.createVector(t.stackPosition, i, 1);
-    this.stack.splice(t.stackPosition, i), this.stack.push(s);
+    const s = this.stack.length - t.stackPosition, i = this.createVector(t.stackPosition, s, 1);
+    this.stack.splice(t.stackPosition, s), this.stack.push(i);
   }
   endMap(t) {
     t.presorted || this.sort(t);
-    let i = "";
+    let s = "";
     for (let r = t.stackPosition; r < this.stack.length; r += 2)
-      i += `,${this.stack[r].offset}`;
-    const s = this.stack.length - t.stackPosition >> 1;
-    this.dedupKeyVectors && !Object.prototype.hasOwnProperty.call(this.keyVectorLookup, i) && (this.keyVectorLookup[i] = this.createVector(t.stackPosition, s, 2));
-    const n = this.dedupKeyVectors ? this.keyVectorLookup[i] : this.createVector(t.stackPosition, s, 2), o = this.createVector(t.stackPosition + 1, s, 2, n);
-    this.stack.splice(t.stackPosition, s << 1), this.stack.push(o);
+      s += `,${this.stack[r].offset}`;
+    const i = this.stack.length - t.stackPosition >> 1;
+    this.dedupKeyVectors && !Object.prototype.hasOwnProperty.call(this.keyVectorLookup, s) && (this.keyVectorLookup[s] = this.createVector(t.stackPosition, i, 2));
+    const n = this.dedupKeyVectors ? this.keyVectorLookup[s] : this.createVector(t.stackPosition, i, 2), o = this.createVector(t.stackPosition + 1, i, 2, n);
+    this.stack.splice(t.stackPosition, i << 1), this.stack.push(o);
   }
   sort(t) {
-    const i = this.view, s = this.stack;
+    const s = this.view, i = this.stack;
     function n(a, f) {
       if (a.type !== d.KEY || f.type !== d.KEY)
         throw `Stack values are not keys ${a} | ${f}. Check if you combined [addKey] with add... method calls properly.`;
       let c, p, w = 0;
       do {
-        if (c = i.getUint8(a.offset + w), p = i.getUint8(f.offset + w), p < c) return !0;
+        if (c = s.getUint8(a.offset + w), p = s.getUint8(f.offset + w), p < c) return !0;
         if (c < p) return !1;
         w += 1;
       } while (c !== 0 && p !== 0);
@@ -383,11 +383,11 @@ class mt {
       a[f] = a[c], a[f + 1] = a[c + 1], a[c] = p, a[c + 1] = w;
     }
     function r() {
-      for (let a = t.stackPosition; a < s.length; a += 2) {
+      for (let a = t.stackPosition; a < i.length; a += 2) {
         let f = a;
-        for (let c = a + 2; c < s.length; c += 2)
-          n(s[f], s[c]) && (f = c);
-        f !== a && o(s, f, a);
+        for (let c = a + 2; c < i.length; c += 2)
+          n(i[f], i[c]) && (f = c);
+        f !== a && o(i, f, a);
       }
     }
     function h(a, f) {
@@ -397,7 +397,7 @@ class mt {
         return !1;
       let c, p, w = 0;
       do {
-        if (c = i.getUint8(a.offset + w), p = i.getUint8(f.offset + w), c < p) return !0;
+        if (c = s.getUint8(a.offset + w), p = s.getUint8(f.offset + w), c < p) return !0;
         if (p < c) return !1;
         w += 1;
       } while (c !== 0 && p !== 0);
@@ -405,14 +405,14 @@ class mt {
     }
     function l(a, f) {
       if (a < f) {
-        const c = a + (f - a >> 2) * 2, p = s[c];
+        const c = a + (f - a >> 2) * 2, p = i[c];
         let w = a, v = f;
         do {
-          for (; h(s[w], p); )
+          for (; h(i[w], p); )
             w += 2;
-          for (; h(p, s[v]); )
+          for (; h(p, i[v]); )
             v -= 2;
-          w <= v && (o(s, w, v), w += 2, v -= 2);
+          w <= v && (o(i, w, v), w += 2, v -= 2);
         } while (w <= v);
         l(a, v), l(w, f);
       }
@@ -430,29 +430,29 @@ class mt {
     const t = this.stackPointers.pop();
     t.isVector ? this.endVector(t) : this.endMap(t);
   }
-  createVector(t, i, s, n = null) {
-    let o = U(i), r = 1;
+  createVector(t, s, i, n = null) {
+    let o = U(s), r = 1;
     if (n !== null) {
       const c = n.elementWidth(this.offset, 0);
       c > o && (o = c), r += 2;
     }
     let h = d.KEY, l = n === null;
-    for (let c = t; c < this.stack.length; c += s) {
+    for (let c = t; c < this.stack.length; c += i) {
       const p = this.stack[c].elementWidth(this.offset, c + r);
       p > o && (o = p), c === t ? (h = this.stack[c].type, l = l && nt(h)) : h !== this.stack[c].type && (l = !1);
     }
-    const u = this.align(o), a = l && ot(h) && i >= 2 && i <= 4;
-    n !== null && (this.writeStackValue(n, u), this.writeUInt(1 << n.width, u)), a || this.writeUInt(i, u);
+    const u = this.align(o), a = l && ot(h) && s >= 2 && s <= 4;
+    n !== null && (this.writeStackValue(n, u), this.writeUInt(1 << n.width, u)), a || this.writeUInt(s, u);
     const f = this.offset;
-    for (let c = t; c < this.stack.length; c += s)
+    for (let c = t; c < this.stack.length; c += i)
       this.writeStackValue(this.stack[c], u);
     if (!l)
-      for (let c = t; c < this.stack.length; c += s)
+      for (let c = t; c < this.stack.length; c += i)
         this.writeUInt(this.stack[c].storedPackedType(), 1);
     if (n !== null)
       return this.offsetStackValue(f, d.MAP, o);
     if (l) {
-      const c = rt(h, a ? i : 0);
+      const c = rt(h, a ? s : 0);
       return this.offsetStackValue(f, c, o);
     }
     return this.offsetStackValue(f, d.VECTOR, o);
@@ -472,14 +472,14 @@ class mt {
   floatStackValue(t) {
     return new T(this, d.FLOAT, ft(t), t);
   }
-  offsetStackValue(t, i, s) {
-    return new T(this, i, s, null, t);
+  offsetStackValue(t, s, i) {
+    return new T(this, s, i, null, t);
   }
   finishBuffer() {
     if (this.stack.length !== 1)
       throw `Stack has to be exactly 1, but it is ${this.stack.length}. You have to end all started vectors and maps before calling [finish]`;
-    const t = this.stack[0], i = this.align(t.elementWidth(this.offset, 0));
-    this.writeStackValue(t, i), this.writeUInt(t.storedPackedType(), 1), this.writeUInt(i, 1), this.finished = !0;
+    const t = this.stack[0], s = this.align(t.elementWidth(this.offset, 0));
+    this.writeStackValue(t, s), this.writeUInt(t.storedPackedType(), 1), this.writeUInt(s, 1), this.finished = !0;
   }
   add(t) {
     if (this.integrityCheckOnValueAddition(), typeof t > "u")
@@ -498,14 +498,14 @@ class mt {
       this.writeString(t);
     else if (Array.isArray(t)) {
       this.startVector();
-      for (let i = 0; i < t.length; i++)
-        this.add(t[i]);
+      for (let s = 0; s < t.length; s++)
+        this.add(t[s]);
       this.end();
     } else if (typeof t == "object") {
-      const i = Object.getOwnPropertyNames(t).sort();
+      const s = Object.getOwnPropertyNames(t).sort();
       this.startMap(!0);
-      for (let s = 0; s < i.length; s++) {
-        const n = i[s];
+      for (let i = 0; i < s.length; i++) {
+        const n = s[i];
         this.addKey(n), this.add(t[n]);
       }
       this.end();
@@ -523,47 +523,47 @@ class mt {
   addKey(t) {
     this.integrityCheckOnKeyAddition(), this.writeKey(t);
   }
-  addInt(t, i = !1, s = !1) {
-    if (this.integrityCheckOnValueAddition(), !i) {
+  addInt(t, s = !1, i = !1) {
+    if (this.integrityCheckOnValueAddition(), !s) {
       this.stack.push(this.intStackValue(t));
       return;
     }
-    if (s && Object.prototype.hasOwnProperty.call(this.indirectIntLookup, t)) {
+    if (i && Object.prototype.hasOwnProperty.call(this.indirectIntLookup, t)) {
       this.stack.push(this.indirectIntLookup[t]);
       return;
     }
     const n = this.intStackValue(t), o = this.align(n.width), r = this.computeOffset(o), h = this.offset;
     n.writeToBuffer(o);
     const l = this.offsetStackValue(h, d.INDIRECT_INT, n.width);
-    this.stack.push(l), this.offset = r, s && (this.indirectIntLookup[t] = l);
+    this.stack.push(l), this.offset = r, i && (this.indirectIntLookup[t] = l);
   }
-  addUInt(t, i = !1, s = !1) {
-    if (this.integrityCheckOnValueAddition(), !i) {
+  addUInt(t, s = !1, i = !1) {
+    if (this.integrityCheckOnValueAddition(), !s) {
       this.stack.push(this.uintStackValue(t));
       return;
     }
-    if (s && Object.prototype.hasOwnProperty.call(this.indirectUIntLookup, t)) {
+    if (i && Object.prototype.hasOwnProperty.call(this.indirectUIntLookup, t)) {
       this.stack.push(this.indirectUIntLookup[t]);
       return;
     }
     const n = this.uintStackValue(t), o = this.align(n.width), r = this.computeOffset(o), h = this.offset;
     n.writeToBuffer(o);
     const l = this.offsetStackValue(h, d.INDIRECT_UINT, n.width);
-    this.stack.push(l), this.offset = r, s && (this.indirectUIntLookup[t] = l);
+    this.stack.push(l), this.offset = r, i && (this.indirectUIntLookup[t] = l);
   }
-  addFloat(t, i = !1, s = !1) {
-    if (this.integrityCheckOnValueAddition(), !i) {
+  addFloat(t, s = !1, i = !1) {
+    if (this.integrityCheckOnValueAddition(), !s) {
       this.stack.push(this.floatStackValue(t));
       return;
     }
-    if (s && Object.prototype.hasOwnProperty.call(this.indirectFloatLookup, t)) {
+    if (i && Object.prototype.hasOwnProperty.call(this.indirectFloatLookup, t)) {
       this.stack.push(this.indirectFloatLookup[t]);
       return;
     }
     const n = this.floatStackValue(t), o = this.align(n.width), r = this.computeOffset(o), h = this.offset;
     n.writeToBuffer(o);
     const l = this.offsetStackValue(h, d.INDIRECT_FLOAT, n.width);
-    this.stack.push(l), this.offset = r, s && (this.indirectFloatLookup[t] = l);
+    this.stack.push(l), this.offset = r, i && (this.indirectFloatLookup[t] = l);
   }
 }
 function N() {
@@ -572,48 +572,48 @@ function N() {
 function Et(e) {
   const t = N();
   t.startMap();
-  for (const [i, s] of Object.entries(e))
-    t.addKey(i), t.add(s);
+  for (const [s, i] of Object.entries(e))
+    t.addKey(s), t.add(i);
   return t.end(), t.finish();
 }
-function V(e, t, i, s, n = 1) {
+function V(e, t, s, i, n = 1) {
   let o;
-  if (i === O.FLEX)
+  if (s === O.FLEX)
     o = Et(e);
-  else if (i === O.JSON)
+  else if (s === O.JSON)
     o = new TextEncoder().encode(JSON.stringify(e));
   else
     throw new Error("Unsupported format for wrapEnvelope");
   const r = N();
-  return r.startMap(), r.addKey("version"), r.add(n), r.addKey("kind"), r.add(t), r.addKey("format"), r.add(i), r.addKey("payload"), r.add(o), r.addKey("metadata"), r.add(s ?? new Uint8Array()), r.end(), r.finish();
+  return r.startMap(), r.addKey("version"), r.add(n), r.addKey("kind"), r.add(t), r.addKey("format"), r.add(s), r.addKey("payload"), r.add(o), r.addKey("metadata"), r.add(i ?? new Uint8Array()), r.end(), r.finish();
 }
 function X(e) {
-  const t = e instanceof Uint8Array ? e : new Uint8Array(e), i = C(t.buffer).toObject();
-  if (typeof i.version != "number" || typeof i.kind != "number" || typeof i.format != "number" || !i.payload)
-    throw console.error("[unwrapEnvelope] Bad root:", i), new Error("[unwrapEnvelope] Invalid envelope structure");
-  const s = {
-    version: i.version,
-    kind: i.kind,
-    format: i.format,
-    payload: new Uint8Array(i.payload),
-    metadata: i.metadata ? new Uint8Array(i.metadata) : void 0
+  const t = e instanceof Uint8Array ? e : new Uint8Array(e), s = C(t.buffer).toObject();
+  if (typeof s.version != "number" || typeof s.kind != "number" || typeof s.format != "number" || !s.payload)
+    throw console.error("[unwrapEnvelope] Bad root:", s), new Error("[unwrapEnvelope] Invalid envelope structure");
+  const i = {
+    version: s.version,
+    kind: s.kind,
+    format: s.format,
+    payload: new Uint8Array(s.payload),
+    metadata: s.metadata ? new Uint8Array(s.metadata) : void 0
   };
   let n;
-  if (s.format === O.FLEX)
-    n = C(s.payload.buffer).toObject();
-  else if (s.format === O.JSON)
-    n = JSON.parse(new TextDecoder().decode(s.payload));
+  if (i.format === O.FLEX)
+    n = C(i.payload.buffer).toObject();
+  else if (i.format === O.JSON)
+    n = JSON.parse(new TextDecoder().decode(i.payload));
   else
-    throw new Error(`[unwrapEnvelope] Unsupported format: ${s.format}`);
-  return { envelope: s, payload: n };
+    throw new Error(`[unwrapEnvelope] Unsupported format: ${i.format}`);
+  return { envelope: i, payload: n };
 }
 function $(e) {
   return C(e.buffer).toObject();
 }
 function Ot(e) {
   try {
-    const t = e instanceof Uint8Array ? e : new Uint8Array(e), i = $(t);
-    console.log("[FlexObject]", JSON.stringify(i, null, 2));
+    const t = e instanceof Uint8Array ? e : new Uint8Array(e), s = $(t);
+    console.log("[FlexObject]", JSON.stringify(s, null, 2));
   } catch (t) {
     console.error("[Flex Decode Error]", t);
   }
@@ -648,20 +648,20 @@ function Tt(e) {
     throw new Error("[Redis] Not a Redis envelope");
   return t;
 }
-function It(e, t, i = "*") {
+function It(e, t, s = "*") {
   return V(
-    { stream: e, id: i, fields: t },
+    { stream: e, id: s, fields: t },
     g.ADD | g.STREAM | g.REDIS,
     O.FLEX
   );
 }
-function Lt(e, t, i) {
-  const s = N();
-  s.startMap(), s.addKey("streams"), s.startVector();
+function Lt(e, t, s) {
+  const i = N();
+  i.startMap(), i.addKey("streams"), i.startVector();
   for (const { stream: r, id: h } of e)
-    s.startMap(), s.addKey("stream"), s.add(r), s.addKey("id"), s.add(h), s.end();
-  s.end(), t !== void 0 && (s.addKey("count"), s.add(t)), i !== void 0 && (s.addKey("block"), s.add(i)), s.end();
-  const n = s.finish(), o = N();
+    i.startMap(), i.addKey("stream"), i.add(r), i.addKey("id"), i.add(h), i.end();
+  i.end(), t !== void 0 && (i.addKey("count"), i.add(t)), s !== void 0 && (i.addKey("block"), i.add(s)), i.end();
+  const n = i.finish(), o = N();
   return o.startMap(), o.addKey("version"), o.add(1), o.addKey("kind"), o.add(g.READ | g.STREAM | g.REDIS), o.addKey("format"), o.add(O.FLEX), o.addKey("payload"), o.add(n), o.addKey("metadata"), o.add(new Uint8Array()), o.end(), o.finish();
 }
 const Ut = {
@@ -687,23 +687,23 @@ function Q(e) {
 function Z(e) {
   const t = document.createElement(e.tag);
   if (e.class && (t.className = e.class), e.attrs)
-    for (const [i, s] of Object.entries(e.attrs))
-      if (typeof s == "function" && i.startsWith("on"))
-        t.addEventListener(i.slice(2).toLowerCase(), s);
-      else if (i === "style" && typeof s == "object")
-        Object.assign(t.style, s);
-      else if (i === "dataset" && typeof s == "object")
-        for (const [n, o] of Object.entries(s))
+    for (const [s, i] of Object.entries(e.attrs))
+      if (typeof i == "function" && s.startsWith("on"))
+        t.addEventListener(s.slice(2).toLowerCase(), i);
+      else if (s === "style" && typeof i == "object")
+        Object.assign(t.style, i);
+      else if (s === "dataset" && typeof i == "object")
+        for (const [n, o] of Object.entries(i))
           t.dataset[n] = String(o);
       else
         try {
-          t.setAttribute(i, String(s));
+          t.setAttribute(s, String(i));
         } catch {
         }
   if (e.style && Object.assign(t.style, e.style), e.children)
-    for (const i of e.children) {
-      const s = typeof i == "string" ? document.createTextNode(i) : Z(i);
-      t.appendChild(s);
+    for (const s of e.children) {
+      const i = typeof s == "string" ? document.createTextNode(s) : Z(s);
+      t.appendChild(i);
     }
   return t;
 }
@@ -736,32 +736,32 @@ const Dt = y.object({
 };
 class Bt {
   listeners = /* @__PURE__ */ new Map();
-  on(t, i) {
-    let s = this.listeners.get(t);
-    s || (s = /* @__PURE__ */ new Set(), this.listeners.set(t, s)), s.add(i);
+  on(t, s) {
+    let i = this.listeners.get(t);
+    i || (i = /* @__PURE__ */ new Set(), this.listeners.set(t, i)), i.add(s);
   }
-  off(t, i) {
-    this.listeners.get(t)?.delete(i);
+  off(t, s) {
+    this.listeners.get(t)?.delete(s);
   }
-  emit(t, i) {
-    const s = Nt[t];
-    if (s)
+  emit(t, s) {
+    const i = Nt[t];
+    if (i)
       try {
-        s.parse(i);
+        i.parse(s);
       } catch (n) {
         console.error(`[DroidEventBus] Invalid payload for ${t}:`, n);
         return;
       }
-    window.dispatchEvent(new CustomEvent(t, { detail: i }));
+    window.dispatchEvent(new CustomEvent(t, { detail: s }));
     for (const n of this.listeners.get(t) ?? [])
-      n(i);
+      n(s);
   }
   wait(t) {
-    return new Promise((i) => {
-      const s = (n) => {
-        this.off(t, s), i(n);
+    return new Promise((s) => {
+      const i = (n) => {
+        this.off(t, i), s(n);
       };
-      this.on(t, s);
+      this.on(t, i);
     });
   }
 }
@@ -769,14 +769,14 @@ const Pt = new Bt(), K = "1.0.3";
 function j(e, t) {
   if (!e) throw new Error("[resolveWorkerURL] Worker name must be defined");
   if (typeof window < "u") {
-    const i = window.kbveWorkerURLs;
-    if (i?.[e]) return i[e];
+    const s = window.kbveWorkerURLs;
+    if (s?.[e]) return s[e];
   }
   return t ?? `/workers/${e}`;
 }
 async function Ct(e) {
-  const t = e ?? j("ws-worker.js"), i = new SharedWorker(t, { type: "module" });
-  return i.port.start(), B(i.port);
+  const t = e ?? j("ws-worker.js"), s = new SharedWorker(t, { type: "module" });
+  return s.port.start(), B(s.port);
 }
 const m = z(
   "uiux-state",
@@ -797,37 +797,37 @@ const m = z(
   }
 );
 async function Ft(e) {
-  const t = e ?? j("canvas-worker.js"), i = new Worker(t, { type: "module" });
-  return B(i);
+  const t = e ?? j("canvas-worker.js"), s = new Worker(t, { type: "module" });
+  return B(s);
 }
 const Y = {
   state: m,
   openPanel(e, t) {
-    const i = { ...m.get().panelManager };
-    i[e] = { open: !0, payload: t }, m.setKey("panelManager", i);
+    const s = { ...m.get().panelManager };
+    s[e] = { open: !0, payload: t }, m.setKey("panelManager", s);
   },
   closePanel(e) {
     const t = { ...m.get().panelManager };
     t[e] = { open: !1, payload: void 0 }, m.setKey("panelManager", t);
   },
   togglePanel(e, t) {
-    const i = { ...m.get().panelManager }, s = i[e]?.open ?? !1;
-    i[e] = { open: !s, payload: s ? void 0 : t }, m.setKey("panelManager", i);
+    const s = { ...m.get().panelManager }, i = s[e]?.open ?? !1;
+    s[e] = { open: !i, payload: i ? void 0 : t }, m.setKey("panelManager", s);
   },
   setTheme(e) {
     m.setKey("themeManager", { theme: e });
   },
   addToast(e, t) {
-    const i = { ...m.get().toastManager, [e]: t };
-    m.setKey("toastManager", i);
+    const s = { ...m.get().toastManager, [e]: t };
+    m.setKey("toastManager", s);
   },
   removeToast(e) {
     const t = { ...m.get().toastManager };
     delete t[e], m.setKey("toastManager", t);
   },
-  async dispatchCanvasRequest(e, t, i = "animated") {
-    const s = t.transferControlToOffscreen();
-    await window.kbve?.uiux?.worker?.bindCanvas(e, s, i);
+  async dispatchCanvasRequest(e, t, s = "animated") {
+    const i = t.transferControlToOffscreen();
+    await window.kbve?.uiux?.worker?.bindCanvas(e, i, s);
   },
   closeAllPanels() {
     const e = { ...m.get().panelManager };
@@ -845,12 +845,12 @@ const Y = {
         );
         return;
       }
-      const i = Z(e.vnode);
-      if (i.classList.add("animate-fade-in"), e.vnode.id) {
-        const s = document.getElementById(e.vnode.id);
-        s && s.remove();
+      const s = Z(e.vnode);
+      if (s.classList.add("animate-fade-in"), e.vnode.id) {
+        const i = document.getElementById(e.vnode.id);
+        i && i.remove();
       }
-      t.appendChild(i);
+      t.appendChild(s);
     });
   }
 }, I = z(
@@ -871,25 +871,25 @@ const Y = {
     const t = I.get()[e];
     if (t !== void 0) return t;
     if (!this.api) return `[${e}]`;
-    const i = await this.api.getTranslation(e);
-    return i !== null ? (I.setKey(e, i), i) : `[${e}]`;
+    const s = await this.api.getTranslation(e);
+    return s !== null ? (I.setKey(e, s), s) : `[${e}]`;
   },
   set(e, t) {
     I.setKey(e, t);
   },
   async hydrate(e, t) {
     this.api = e;
-    for (const i of t) {
-      const s = await e.getTranslation(i);
-      s !== null && I.setKey(i, s);
+    for (const s of t) {
+      const i = await e.getTranslation(s);
+      i !== null && I.setKey(s, i);
     }
   },
   async hydrateLocale(e = "en") {
     if (!this.api) return;
-    const i = (await this.api.getAllI18nKeys()).filter(
+    const s = (await this.api.getAllI18nKeys()).filter(
       (n) => n.startsWith(`${e}:`)
-    ), s = await this.api.getTranslations(i);
-    for (const [n, o] of Object.entries(s))
+    ), i = await this.api.getTranslations(s);
+    for (const [n, o] of Object.entries(i))
       console.log(`[i18n.setKey] ${n} = ${o}`), this.store.setKey(n, o);
   }
 };
@@ -901,25 +901,25 @@ function G() {
   ]), e.port1.start();
 }
 async function jt(e) {
-  const t = e ?? j("db-worker.js"), i = new SharedWorker(t, { type: "module" });
-  i.port.start();
-  const s = B(i.port);
-  return await s.getVersion() !== K && await kt(s, {
+  const t = e ?? j("db-worker.js"), s = new SharedWorker(t, { type: "module" });
+  s.port.start();
+  const i = B(s.port);
+  return await i.getVersion() !== K && await kt(i, {
     version: K,
     i18nPath: "https://discord.sh/i18n/db.json",
     locale: "en",
     defaults: { welcome: "Welcome!", theme: "dark" }
-  }), s;
+  }), i;
 }
 let J = !1;
 function Ht(e, t) {
-  const i = tt(async (s) => {
+  const s = tt(async (i) => {
     Q(() => {
       const n = `ws:${Date.now()}`;
-      t.storeWsMessage(n, s);
+      t.storeWsMessage(n, i);
     });
   });
-  e.onMessage(et(i, [0]));
+  e.onMessage(et(s, [0]));
 }
 async function Yt(e) {
   if (console.log("[DROID]: Main<T>"), J || (J = !0, navigator.serviceWorker?.controller ? G() : navigator.serviceWorker?.addEventListener(
@@ -927,9 +927,9 @@ async function Yt(e) {
     G
   )), console.log("[DROID] Main<T> => Worker URLs", e?.workerURLs), !window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux)
     try {
-      const i = await Ft(
+      const s = await Ft(
         typeof e?.workerURLs?.canvasWorker == "string" ? e.workerURLs.canvasWorker : void 0
-      ), s = await jt(
+      ), i = await jt(
         typeof e?.workerURLs?.dbWorker == "string" ? e.workerURLs.dbWorker : void 0
       ), n = await Ct(
         typeof e?.workerURLs?.wsWorker == "string" ? e.workerURLs.wsWorker : void 0
@@ -941,13 +941,13 @@ async function Yt(e) {
           meta: l.meta,
           timestamp: Date.now()
         });
-      Ht(n, s);
+      Ht(n, i);
       const h = Ut;
-      L.api = s, L.ready = L.hydrateLocale("en"), window.kbve = {
+      L.api = i, L.ready = L.hydrateLocale("en"), window.kbve = {
         ...window.kbve || {},
-        api: s,
+        api: i,
         i18n: L,
-        uiux: { ...Y, worker: i },
+        uiux: { ...Y, worker: s },
         ws: n,
         data: h,
         mod: o,
@@ -961,8 +961,8 @@ async function Yt(e) {
           timestamp: Date.now()
         });
       }), console.log("[KBVE] Global API ready");
-    } catch (i) {
-      throw console.error("[DROID] Initialization error:", i), i;
+    } catch (s) {
+      throw console.error("[DROID] Initialization error:", s), s;
     }
   else
     console.log("[KBVE] Already initialized");

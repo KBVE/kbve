@@ -1,4 +1,4 @@
-import { expose as c } from "comlink";
+import { e as c } from "../comlink-CC72iIUO.js";
 const n = {
   bindings: /* @__PURE__ */ new Map(),
   async bindCanvas(a, t, e = "animated") {
