@@ -27,3 +27,7 @@ These dependencies are automatically installed when you add Droid to your projec
 
 - Optional: TypeScript for type safety and better development experience
 - Optional: Framework-specific packages if integrating with React, Vue, Angular, etc.
+
+### Chores
+
+Preparing to release next batch.
