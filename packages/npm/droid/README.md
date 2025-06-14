@@ -36,7 +36,7 @@ For questions, help, or to connect with the community, support can be reached vi
 ### Examples
 
 [Discord.SH](https://discord.sh/)
-
+[KBVE.com](https://kbve.com/)
 
 ### Chores
 

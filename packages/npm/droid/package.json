@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/droid",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"description": "A manager for web, shared and service workers, aimming to make it as modular and upgradable.",
 	"keywords": [
 		"workers",
@@ -17,24 +17,28 @@
 	"author": "KBVE <hello@kbve.com>",
 	"license": "MIT",
 	"type": "module",
-	"main": "./droid.cjs.js",
-	"module": "./droid.es.js",
+	"main": "./droid.mjs",
+	"module": "./droid.mjs",
 	"types": "./index.d.ts",
 	"exports": {
 		".": {
-			"import": "./droid.es.js",
-			"require": "./droid.cjs.js"
-		}
+			"import": "./droid.mjs",
+			"require": "./droid.mjs"
+		},
+		"./lib/workers/canvas-worker": "./lib/workers/canvas-worker.js",
+		"./lib/workers/db-worker": "./lib/workers/db-worker.js",
+		"./lib/workers/ws-worker": "./lib/workers/ws-worker.js"
 	},
 	"files": [
 		"workers/",
+		"lib/workers/",
 		"assets/",
 		"src/",
 		"comlink*.js",
-		"reference-*.js",
-		"droid.*.js",
+		"reference*.js",
+		"droid.mjs",
 		"main.js",
-		"index.*.js",
+		"index.js",
 		"index.d.ts",
 		"*.md",
 		"LICENSE",
