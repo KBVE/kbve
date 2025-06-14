@@ -17,6 +17,7 @@ export default defineConfig(() => ({
     },
     outDir: '../../../dist/packages/npm/droid',
     target: 'esnext',
+	assetsInlineLimit: 0,
     rollupOptions: {
       input: {
         droid: path.resolve(__dirname, 'src/index.ts'),
@@ -26,13 +27,17 @@ export default defineConfig(() => ({
         'workers/ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
       },
     output: {
+		manualChunks: undefined,
         entryFileNames: (chunkInfo) => {
           if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return 'lib/workers/canvas-worker.js';
           if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return 'lib/workers/db-worker.js';
           if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return 'lib/workers/ws-worker.js';
           if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
-        return '[name].[format].js';
+		  if (chunkInfo.facadeModuleId?.includes('index.ts')) return 'droid.mjs';
+        return '[name].js';
       },
+	chunkFileNames: '[name].js',
+  	assetFileNames: '[name].[ext]',
     },
 		  external: [] as string[], // optionally add external deps here
     },
@@ -40,6 +45,21 @@ export default defineConfig(() => ({
 
   worker: {
     plugins: () => [nxViteTsPaths()],
+	 format: 'es',
+    rollupOptions: {
+      input: {
+        'canvas-worker': path.resolve(__dirname, 'src/lib/workers/canvas-worker.ts'),
+        'db-worker': path.resolve(__dirname, 'src/lib/workers/db-worker.ts'),
+        'ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
+      },
+      output: {
+        entryFileNames: 'lib/workers/[name].js',
+        chunkFileNames: 'lib/workers/[name].js',
+        assetFileNames: 'assets/[name].[ext]',
+        manualChunks: undefined,
+        inlineDynamicImports: false,
+      },
+    },
   },
 
   test: {
