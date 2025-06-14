@@ -30,4 +30,4 @@ These dependencies are automatically installed when you add Droid to your projec
 
 ### Chores
 
-Preparing to release next batch, trying to resolving the CDN issue.
+Preparing to release next batch, trying to resolving the CDN issue, which might still be broken.
