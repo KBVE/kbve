@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/droid",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"description": "A manager for web, shared and service workers, aimming to make it as modular and upgradable.",
 	"keywords": [
 		"workers",
@@ -27,11 +27,14 @@
 		}
 	},
 	"files": [
+		"workers/",
 		"assets/",
 		"src/",
+		"comlink*.js",
+		"reference-*.js",
 		"droid.*.js",
-		"main-*.js",
-		"index-*.js",
+		"main.js",
+		"index.*.js",
 		"index.d.ts",
 		"*.md",
 		"LICENSE",

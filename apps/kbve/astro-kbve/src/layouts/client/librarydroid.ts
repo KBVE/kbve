@@ -1,9 +1,13 @@
-import { droid, modUrls } from '@kbve/droid';
-import { proxy } from 'comlink';
+import { droid, modUrls, workerStrings } from '@kbve/droid';
+import * as comlink from 'comlink';
+
 
 (async () => {
-	await droid();
-
+	
+	console.log("[DROID] init Library");
+	// await droid({ workerURLs });
+	await droid({workerURLs: workerStrings});
+	
 	const mod = window.kbve?.mod;
 	const emitFromWorker = window.kbve?.uiux?.emitFromWorker;
 
@@ -18,7 +22,7 @@ import { proxy } from 'comlink';
 	console.log('[DEBUG] Registry keys:', Object.keys(mod.registry));
 	
 	if (bentoMod?.instance?.init && typeof emitFromWorker === 'function') {
-		await bentoMod.instance.init(proxy({ emitFromWorker }));
+		await bentoMod.instance.init(comlink.proxy({ emitFromWorker }));
 	}
 
 	if (bentoMod?.meta) {
