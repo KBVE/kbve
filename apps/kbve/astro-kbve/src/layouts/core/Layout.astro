@@ -36,7 +36,7 @@ interface Props {
 	<head>
 		<title>{title}</title>
 		<script src="/src/pwa.ts"></script>
-		<script src="/src/layouts/client/droid.ts"></script>
+		<script src="/src/layouts/client/librarydroid.ts"></script>
 		<Meta meta={meta} structuredData={structuredData} />
 		{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 		<!-- <ClientRouter /> -->

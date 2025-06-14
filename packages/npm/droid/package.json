@@ -27,11 +27,14 @@
 		}
 	},
 	"files": [
+		"workers/",
 		"assets/",
 		"src/",
+		"comlink*.js",
+		"reference-*.js",
 		"droid.*.js",
-		"main-*.js",
-		"index-*.js",
+		"main.js",
+		"index.*.js",
 		"index.d.ts",
 		"*.md",
 		"LICENSE",
