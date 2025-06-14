@@ -1,4 +1,4 @@
-import { droid, modUrls, workerURLs } from '@kbve/droid';
+import { droid, modUrls, workerStrings } from '@kbve/droid';
 import * as comlink from 'comlink';
 
 
@@ -6,7 +6,7 @@ import * as comlink from 'comlink';
 	
 	console.log("[DROID] init Library");
 	// await droid({ workerURLs });
-	await droid({workerURLs});
+	await droid({workerURLs: workerStrings});
 	
 	const mod = window.kbve?.mod;
 	const emitFromWorker = window.kbve?.uiux?.emitFromWorker;
