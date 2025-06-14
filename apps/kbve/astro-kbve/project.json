@@ -67,6 +67,17 @@
       "checkx": {
         "executor": "@nxtensions/astro:check"
       },
+      "sync:workers": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "nx build droid --emptyOutDir",
+            "rm -rf apps/kbve/astro-kbve/public/workers",
+            "cp -r dist/packages/npm/droid/workers apps/kbve/astro-kbve/public/workers"
+          ],
+          "parallel": false
+        }
+      },
       "sync": {
         "executor": "nx:run-commands",
         "options": {
