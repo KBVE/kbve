@@ -27,14 +27,12 @@ export default defineConfig(() => ({
       },
     output: {
         entryFileNames: (chunkInfo) => {
-          // if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return '/lib/workers/canvas-worker.js';
-          // if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return '/lib/workers/db-worker.js';
-          // if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return '/lib/workers/ws-worker.js';
-          // if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
+          if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return '/lib/workers/canvas-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return '/lib/workers/db-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return '/lib/workers/ws-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
         return '[name].[format].js';
       },
-      // Set format statically or remove if handled by 'formats' in build.lib
-      // format: 'es', // Uncomment if you want to force ES module output
     },
 		  external: [] as string[], // optionally add external deps here
     },

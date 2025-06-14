@@ -78,12 +78,48 @@ const uiuxState = persistentMap<{
 	},
 );
 
-async function initCanvasComlink(
-	workerURL?: string,
-): Promise<Remote<CanvasWorkerAPI>> {
-	const url = workerURL ?? resolveWorkerURL('canvas-worker.js');
-	const worker = new Worker(url, { type: 'module' });
-	return wrap<CanvasWorkerAPI>(worker);
+async function initCanvasComlink(opts?: {
+  workerRef?: Worker;
+  workerURL?: string;
+}): Promise<Remote<CanvasWorkerAPI>> {
+  // 1. Try Vite-style import resolution
+  try {
+    const worker = new Worker(new URL('./workers/canvas-worker.ts', import.meta.url), { type: 'module' });
+    return wrap<CanvasWorkerAPI>(worker);
+  } catch (err) {
+    console.warn('[DROID] Vite-style canvas-worker import failed:', err);
+  }
+
+  // 2. Try hardcoded path fallback
+  try {
+    const worker = new Worker('/workers/canvas-worker.js', { type: 'module' });
+    return wrap<CanvasWorkerAPI>(worker);
+  } catch (err) {
+    console.warn('[DROID] Fallback /canvas-worker.js failed:', err);
+  }
+
+  // 3. Try direct Worker instance
+  if (opts?.workerRef) {
+    try {
+      return wrap<CanvasWorkerAPI>(opts.workerRef);
+    } catch (err) {
+      console.warn('[DROID] Provided workerRef failed:', err);
+    }
+  }
+
+  // 4. Try provided URL
+  if (opts?.workerURL) {
+    try {
+      const worker = new Worker(opts.workerURL, { type: 'module' });
+      return wrap<CanvasWorkerAPI>(worker);
+    } catch (err) {
+      console.warn('[DROID] Provided workerURL failed:', err);
+    }
+  }
+
+  // 5. Failure
+  console.error('[DROID] No Canvas Comlink Initialized');
+  throw new Error('[DROID] Failed to initialize canvas worker');
 }
 
 export const uiux = {
@@ -279,7 +315,14 @@ export function bridgeWsToDb(
 }
 
 //	*	MAIN
-export async function main(opts?: { workerURLs?: Record<string, string> }) {
+export async function main(opts?: {
+  workerURLs?: Record<string, string>;
+  workerRefs?: {
+    canvasWorker?: Worker;
+    dbWorker?: SharedWorker;
+    wsWorker?: SharedWorker;
+  };
+}) {
 
 	
 	console.log('[DROID]: Main<T>');
@@ -305,16 +348,20 @@ export async function main(opts?: { workerURLs?: Record<string, string> }) {
 
 	if (needsInit) {
 		try {
-			const canvas = await initCanvasComlink(
-				typeof opts?.workerURLs?.['canvasWorker'] === 'string' ? opts.workerURLs['canvasWorker'] : undefined
-			);
+			console.log('[DROID] Main<T> => Worker => CanvasComlink');
+			const canvas = await initCanvasComlink({
+				workerRef: opts?.workerRefs?.canvasWorker,
+				workerURL: opts?.workerURLs?.['canvasWorker'],
+			});
+			console.log('[DROID] Main<T> => Worker => StorageComlink');
 			const api = await initStorageComlink(
 				typeof opts?.workerURLs?.['dbWorker'] === 'string' ? opts.workerURLs['dbWorker'] : undefined
 			);
+			console.log('[DROID] Main<T> => Worker => WsComlink');	
 			const ws = await initWsComlink(
 				typeof opts?.workerURLs?.['wsWorker'] === 'string' ? opts.workerURLs['wsWorker'] : undefined
 			);
-
+			console.log('[DROID] Main<T> => Worker => ModManager');
 			const mod = await getModManager((url) => opts?.workerURLs?.[url] ?? url);
 			const events = DroidEvents;
 
