@@ -27,9 +27,9 @@ export default defineConfig(() => ({
       },
     output: {
         entryFileNames: (chunkInfo) => {
-          if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return '/lib/workers/canvas-worker.js';
-          if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return '/lib/workers/db-worker.js';
-          if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return '/lib/workers/ws-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return 'lib/workers/canvas-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return 'lib/workers/db-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return 'lib/workers/ws-worker.js';
           if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
         return '[name].[format].js';
       },

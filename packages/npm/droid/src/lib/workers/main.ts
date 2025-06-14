@@ -84,7 +84,7 @@ async function initCanvasComlink(opts?: {
 }): Promise<Remote<CanvasWorkerAPI>> {
   // 1. Try Vite-style import resolution
   try {
-    const worker = new Worker(new URL('./workers/canvas-worker.ts', import.meta.url), { type: 'module' });
+    const worker = new Worker(new URL('./canvas-worker.ts', import.meta.url), { type: 'module' });
     return wrap<CanvasWorkerAPI>(worker);
   } catch (err) {
     console.warn('[DROID] Vite-style canvas-worker import failed:', err);
@@ -92,7 +92,7 @@ async function initCanvasComlink(opts?: {
 
   // 2. Try hardcoded path fallback
   try {
-    const worker = new Worker('/workers/canvas-worker.js', { type: 'module' });
+    const worker = new Worker('./canvas-worker.js', { type: 'module' });
     return wrap<CanvasWorkerAPI>(worker);
   } catch (err) {
     console.warn('[DROID] Fallback /canvas-worker.js failed:', err);
