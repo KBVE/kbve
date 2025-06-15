@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/droid",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"description": "A manager for web, shared and service workers, aimming to make it as modular and upgradable.",
 	"keywords": [
 		"workers",

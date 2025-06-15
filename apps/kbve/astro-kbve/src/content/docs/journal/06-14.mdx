@@ -1,7 +1,7 @@
 ---
 title: 'June: 14'
 category: Daily
-date: 2024-06-14 12:00:00
+date: 2025-06-14 12:00:00
 client: Self
 unsplash: 1559510981-10719ce4266a
 img: https://images.unsplash.com/photo-1559510981-10719ce4266a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -12,6 +12,24 @@ tags:
 ---
 
 import { Adsense } from '@kbve/astropad';
+
+## 2025
+
+### Waffle
+
+-   07:39PM
+
+    Waffle can now load the droid library from the CDN but the additional workers are still not getting built.
+    I believe 2 of the 3 init workers are failing and its because of a relative pathing issue.
+
+### Droid Library
+
+-   08:28PM
+
+    The droid library is going through another update, we got it working on the astro side without any major issues but it still fails when doing the ESM/Skypack deployment.
+    I have a couple ways that we could resolve that issue, I just hate having to go through the looping process of having to test each possible fix.
+    We will have about 3-5 more attempts, so I expect us to hit around 0.0.20 before reaching 0.1.0, ugh.
+    So much time will be spent on such a silly issue, oh well, it will be part of the learning process.
 
 ## 2024
 
