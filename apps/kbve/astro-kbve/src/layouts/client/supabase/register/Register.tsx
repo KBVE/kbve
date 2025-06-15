@@ -14,7 +14,8 @@ import {
 	loadingAtom,
 	displayNameAtom,
 } from './registerstate';
-import { registerUser, validatePassword, passwordValidationMessage, signInWithDiscord, signInWithGithub } from './factory-register';
+import { registerUser, validatePassword, passwordValidationMessage } from './factory-register';
+import { signInWithDiscord, signInWithGithub } from '../auth/OAuthSignIn';
 
 const HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
 

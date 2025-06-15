@@ -9,6 +9,7 @@ const LoginDescription: string =
   'Sign in to your KBVE account to access exclusive features, participate in our community, and stay updated with the latest in technology and gaming.';
 
 import { Login as ReactLogin } from 'src/layouts/client/supabase/login/Login';
+import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
 ---
 
 <Layout
@@ -52,6 +53,7 @@ import { Login as ReactLogin } from 'src/layouts/client/supabase/login/Login';
     </div>
   </section>
 
+  <OppsAuth client:only="react" />
   <span class="flex items-center">
     <span
       class="h-px flex-1 bg-gradient-to-r from-transparent to-purple-300 dark:to-purple-600">
