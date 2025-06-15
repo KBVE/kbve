@@ -34,29 +34,29 @@ import { Register } from "src/layouts/client/supabase/register/Register";
 
     <section class="px-6 py-12 sm:px-8 lg:px-12">
 		<div
-			class="mx-auto max-w-7xl relative flex flex-col md:flex-row rounded-3xl bg-white/5 backdrop-blur-md ring-1 ring-white/10
-    shadow-[inset_0_0_0.5px_rgba(255,255,255,0.15),inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_rgba(0,0,0,0.4)]
-    hover:shadow-[inset_0_0_1px_rgba(255,255,255,0.2),inset_0_2px_1px_rgba(255,255,255,0.1),0_30px_60px_rgba(0,0,0,0.5)]
-    transition-all duration-300 overflow-hidden ring-offset-1 ring-offset-white/5 hover:ring-4">
+			class="mx-auto max-w-7xl relative flex flex-col md:flex-row rounded-3xl bg-gradient-to-br from-cyan-900/60 to-purple-900/60 backdrop-blur-md ring-1 ring-cyan-400/30
+    shadow-[inset_0_0_0.5px_rgba(103,232,249,0.15),inset_0_1px_0_rgba(192,132,252,0.08),0_20px_40px_rgba(0,0,0,0.4)]
+    hover:shadow-[0_0_0_3px_rgba(103,232,249,0.6),0_0_35px_12px_rgba(192,132,252,0.35)]
+    transition-all duration-300 overflow-hidden ring-offset-1 ring-offset-cyan-400/10 hover:ring-4">
         <div class="flex-1 p-8">
-          <h1 class="text-3xl font-bold mb-2">{title}</h1>
-          <h2 class="text-xl mb-4">{subTitle}</h2>
-          <p class="mb-6">{RegisterDescription}</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-white mb-2 drop-shadow-lg">{title}</h1>
+          <h2 class="text-xl text-zinc-200 mb-4 font-medium">{subTitle}</h2>
+          <p class="mb-6 text-lg text-zinc-300">{RegisterDescription}</p>
         </div>
     </div>
     </section>
 
     <section class="px-6 py-8 sm:px-8 lg:px-12">
-      <div class="mx-auto max-w-lg rounded-2xl bg-white/70 dark:bg-stone-900/80 backdrop-blur-md ring-1 ring-white/10 shadow-lg p-8">
-        <h3 class="text-2xl font-semibold mb-4 text-center">Sign Up</h3>
+      <div class="mx-auto max-w-lg rounded-2xl bg-gradient-to-br from-cyan-200/80 to-purple-200/80 dark:from-cyan-900/80 dark:to-purple-900/80 backdrop-blur-md ring-1 ring-cyan-400/30 shadow-lg p-8">
+        <h3 class="text-2xl font-semibold mb-4 text-center text-cyan-900 dark:text-cyan-200 drop-shadow">Sign Up</h3>
         <Register client:only="react"/>
       </div>
     </section>
 
     <section class="px-6 py-8 sm:px-8 lg:px-12">
-      <div class="mx-auto max-w-4xl rounded-2xl bg-white/40 dark:bg-stone-900/60 backdrop-blur-md ring-1 ring-white/10 shadow p-8">
-        <h3 class="text-xl text-white font-semibold mb-2">Why join KBVE?</h3>
-        <ul class="list-disc pl-6 space-y-2 text-lg">
+      <div class="mx-auto max-w-4xl rounded-2xl bg-gradient-to-br from-cyan-400/20 to-purple-500/20 dark:from-cyan-900/40 dark:to-purple-900/40 backdrop-blur-md ring-1 ring-cyan-400/30 shadow p-8">
+        <h3 class="text-xl font-semibold mb-2 text-white drop-shadow">Why join KBVE?</h3>
+        <ul class="list-disc pl-6 space-y-2 text-lg text-zinc-200">
           <li>Access exclusive community features and events</li>
           <li>Participate in game jams, beta tests, and giveaways</li>
           <li>Get early access to new products and updates</li>
@@ -66,12 +66,12 @@ import { Register } from "src/layouts/client/supabase/register/Register";
     </section>
 
     <section class="px-6 py-8 sm:px-8 lg:px-12">
-      <div class="mx-auto max-w-4xl rounded-2xl bg-white/30 dark:bg-stone-900/40 backdrop-blur ring-1 ring-white/10 shadow p-8">
-        <h3 class="text-xl font-semibold mb-2">Need Help?</h3>
-        <ul class="list-disc pl-6 space-y-2 text-lg">
-          <li>Forgot your password? <a href="https://kbve.com/reset/" class="text-cyan-600 underline">Reset it here</a>.</li>
-          <li>Questions? Visit our <a href="https://kbve.com/support/" class="text-cyan-600 underline">Support Center</a>.</li>
-          <li>Read our <a href="https://kbve.com/legal/" class="text-cyan-600 underline">legal terms</a> before registering.</li>
+      <div class="mx-auto max-w-4xl rounded-2xl bg-gradient-to-br from-cyan-200/30 to-purple-200/30 dark:from-cyan-900/30 dark:to-purple-900/30 backdrop-blur ring-1 ring-cyan-400/20 shadow p-8">
+        <h3 class="text-xl font-semibold mb-2 text-cyan-900 dark:text-cyan-200 drop-shadow">Need Help?</h3>
+        <ul class="list-disc pl-6 space-y-2 text-lg text-zinc-700 dark:text-zinc-200">
+          <li>Forgot your password? <a href="https://kbve.com/reset/" class="text-cyan-600 dark:text-cyan-400 underline">Reset it here</a>.</li>
+          <li>Questions? Visit our <a href="https://kbve.com/support/" class="text-cyan-600 dark:text-cyan-400 underline">Support Center</a>.</li>
+          <li>Read our <a href="https://kbve.com/legal/" class="text-cyan-600 dark:text-cyan-400 underline">legal terms</a> before registering.</li>
         </ul>
       </div>
     </section>
