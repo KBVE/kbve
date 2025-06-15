@@ -138,7 +138,6 @@ begin
     raise exception 'Invalid transfer type. Please select credit or khash.';
   end if;
 
-  -- Apply fee only for credit transfers: flat 10 + 1%
   if kind = 'credit' then
     fee := round(amount * 0.01 + 10.00, 2);
   else
@@ -147,21 +146,12 @@ begin
 
   total_deduction := amount + fee;
 
-  begin
-    savepoint transfer_savepoint;
+  -- Use implicit transaction behavior; let any failure roll back the whole function
+  insert into private.ledger (user_id, kind, delta, reason, meta)
+  values (from_user, kind, -total_deduction, reason || ' (debit, includes fee)', meta);
 
-    -- Debit from sender (includes fee)
-    insert into private.ledger (user_id, kind, delta, reason, meta)
-    values (from_user, kind, -total_deduction, reason || ' (debit, includes fee)', meta);
-
-    -- Credit to recipient (full amount)
-    insert into private.ledger (user_id, kind, delta, reason, meta)
-    values (to_user, kind, amount, reason || ' (credit)', meta);
-
-  exception when others then
-    rollback to transfer_savepoint;
-    raise;
-  end;
+  insert into private.ledger (user_id, kind, delta, reason, meta)
+  values (to_user, kind, amount, reason || ' (credit)', meta);
 end;
 $$;
 
