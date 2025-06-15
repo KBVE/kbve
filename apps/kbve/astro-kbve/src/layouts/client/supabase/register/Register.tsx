@@ -247,6 +247,11 @@ export const Register = () => {
 				>
 					{loading ? 'Registering...' : 'Register'}
 				</button>
+				<div className="mt-4 text-center">
+					<span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Already have an account?{' '}
+						<a href="/login" className="underline text-cyan-200 hover:text-cyan-400">Login here</a>
+					</span>
+				</div>
 			</form>
 		</>
 	);
