@@ -11,7 +11,11 @@ const astroStrings = {
 (async () => {
 	
 	console.log("[DROID] init Library");
-	await droid({workerRefs: astroStrings, workerURLs: workerStrings});
+	if (import.meta.env.DEV) {
+		await droid({ workerURLs: workerStrings });
+	} else {
+		await droid({ workerRefs: astroStrings, workerURLs: workerStrings });
+	}	
 	const mod = window.kbve?.mod;
 	const emitFromWorker = window.kbve?.uiux?.emitFromWorker;
 

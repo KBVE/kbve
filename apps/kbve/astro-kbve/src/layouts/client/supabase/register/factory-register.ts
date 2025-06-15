@@ -1,8 +1,6 @@
 import { emailAtom, passwordAtom, confirmPasswordAtom, agreedAtom, captchaTokenAtom, errorAtom, successAtom, loadingAtom, displayNameAtom } from './registerstate';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from 'src/layouts/client/supabase/supabaseClient';
 import { task } from 'nanostores';
-
-const supabase = createClient('https://qmpdruitzlownnnnjmpk.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY'); // Set your env vars
 
 export async function checkIfLoggedInAndRedirect() {
   const { data } = await supabase.auth.getSession();
@@ -89,27 +87,4 @@ export function passwordValidationMessage(password: string): string | true {
   if (!v.number) return 'Password must include a number';
   if (!v.special) return 'Password must include a special character';
   return true;
-}
-
-export async function signInWithDiscord() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'discord',
-    options: {
-      redirectTo: 'https://kbve.com/profile/'
-    }
-  });
-  if (error) throw error;
-  // If data.url exists, open it
-  if (data?.url) window.location.href = data.url;
-}
-
-export async function signInWithGithub() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'github',
-    options: {
-      redirectTo: 'https://kbve.com/profile/'
-    }
-  });
-  if (error) throw error;
-  if (data?.url) window.location.href = data.url;
 }
