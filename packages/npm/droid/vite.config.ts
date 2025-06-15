@@ -45,7 +45,7 @@ export default defineConfig(() => ({
 
   worker: {
     plugins: () => [nxViteTsPaths()],
-	 format: 'es',
+	  format: 'es',
     rollupOptions: {
       input: {
         'canvas-worker': path.resolve(__dirname, 'src/lib/workers/canvas-worker.ts'),
@@ -60,6 +60,7 @@ export default defineConfig(() => ({
         inlineDynamicImports: false,
       },
     },
+    inline: false,
   },
 
   test: {
