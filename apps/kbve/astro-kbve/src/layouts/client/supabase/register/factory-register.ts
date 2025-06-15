@@ -90,3 +90,26 @@ export function passwordValidationMessage(password: string): string | true {
   if (!v.special) return 'Password must include a special character';
   return true;
 }
+
+export async function signInWithDiscord() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'discord',
+    options: {
+      redirectTo: 'https://kbve.com/profile/'
+    }
+  });
+  if (error) throw error;
+  // If data.url exists, open it
+  if (data?.url) window.location.href = data.url;
+}
+
+export async function signInWithGithub() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: 'https://kbve.com/profile/'
+    }
+  });
+  if (error) throw error;
+  if (data?.url) window.location.href = data.url;
+}
