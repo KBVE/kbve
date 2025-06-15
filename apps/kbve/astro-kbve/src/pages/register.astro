@@ -9,7 +9,7 @@ const RegisterDescription: string =
 	'Join KBVE to access exclusive features, participate in our community, and stay updated with the latest in technology and gaming. Register now to start your journey with us!';
 
 
-import { Register } from 'src/layouts/client/supabase/register/Register';
+import { Register as ReactRegister } from 'src/layouts/client/supabase/register/Register';
 ---
 
 <Layout
@@ -78,7 +78,7 @@ import { Register } from 'src/layouts/client/supabase/register/Register';
 			</div>
 			<div class="flex items-center justify-center p-6 md:p-10">
 				<div class="w-full max-w-md rounded-2xl bg-gradient-to-br from-cyan-200/80 to-purple-200/80 dark:from-cyan-900/80 dark:to-purple-900/80 backdrop-blur-md ring-1 ring-cyan-400/30 shadow p-6 md:p-8">
-					<Register client:only="react" />
+					<ReactRegister client:only="react" />
 				</div>
 			</div>
 		</div>
