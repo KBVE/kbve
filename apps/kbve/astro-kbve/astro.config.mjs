@@ -223,9 +223,16 @@ export default defineConfig({
                     /^\/workbox-[a-z0-9\-]+\.js$/,
                     /^\/ws$/,
                     /^\/api\/.*/,
+                     /^\/auth(?:\/.*)?$/,
+                     /^\/register(?:\/.*)?$/,
+                     /^\/login(?:\/.*)?$/,
                 ],
 
                 runtimeCaching: [
+                    {
+                            urlPattern: /^\/auth(?:\/.*)?$/,
+                            handler: 'NetworkOnly',
+                    },
                     {
                         urlPattern: ({ request }) => request.mode === 'navigate',
                         handler: 'NetworkFirst',
