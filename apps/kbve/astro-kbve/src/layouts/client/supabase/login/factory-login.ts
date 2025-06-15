@@ -39,11 +39,13 @@ export async function loginUser() {
   }
 }
 
+const auth_url = import.meta.env.DEV ? 'http://localhost:4321/auth' : 'https://kbve.com/auth';
+
 export async function signInWithDiscord() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'discord',
     options: {
-      redirectTo: 'https://kbve.com/profile/'
+      redirectTo: auth_url
     }
   });
   if (error) throw error;
@@ -54,7 +56,7 @@ export async function signInWithGithub() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: 'https://kbve.com/profile/'
+      redirectTo: auth_url
     }
   });
   if (error) throw error;
