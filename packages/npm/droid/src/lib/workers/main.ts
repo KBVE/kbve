@@ -41,7 +41,6 @@ function deepProxy<T>(obj: T): T {
 
 	return obj;
 }
-
 async function initWsComlink(opts?: {
   workerRef?: SharedWorker;
   workerURL?: string;
@@ -59,7 +58,7 @@ async function initWsComlink(opts?: {
     }
   }
 
-  // 2. Try provided URL
+  // 2. Try provided URL (e.g. from CDN or blob)
   if (opts?.workerURL) {
     try {
       const worker = new SharedWorker(opts.workerURL, { type: 'module' });
@@ -84,7 +83,7 @@ async function initWsComlink(opts?: {
     console.warn('[DROID] ws-worker vite-style .ts import failed:', err);
   }
 
-  // 4. Same-dir .js fallback
+  // 4. Same-dir JS fallback (post-build)
   try {
     const worker = new SharedWorker(
       new URL('./ws-worker.js', import.meta.url),
@@ -97,20 +96,7 @@ async function initWsComlink(opts?: {
     console.warn('[DROID] ws-worker ./ws-worker.js fallback failed:', err);
   }
 
-  // 5. Root-relative fallback with import.meta.url context
-  try {
-    const worker = new SharedWorker(
-      new URL('/ws-worker.js', import.meta.url),
-      { type: 'module' },
-    );
-    worker.port.start();
-    api = wrap<WSInstance>(worker.port);
-    return api;
-  } catch (err) {
-    console.warn('[DROID] ws-worker /ws-worker.js meta-relative failed:', err);
-  }
-
-  // 6. Browser-root hardcoded path
+  // 5. Browser-root hardcoded path (static /public/)
   try {
     const worker = new SharedWorker('/ws-worker.js', { type: 'module' });
     worker.port.start();
@@ -120,10 +106,11 @@ async function initWsComlink(opts?: {
     console.warn('[DROID] ws-worker absolute hardcoded fallback failed:', err);
   }
 
-  // 7. Final failure
+  // 6. Final failure
   console.error('[DROID] No WS Worker Comlink Initialized');
   throw new Error('[DROID] Failed to initialize ws-worker');
 }
+
 
 
 //	* UIUX
@@ -156,6 +143,7 @@ const uiuxState = persistentMap<{
 		decode: JSON.parse,
 	},
 );
+
 async function initCanvasComlink(opts?: {
   workerRef?: Worker;
   workerURL?: string;
@@ -195,7 +183,7 @@ async function initCanvasComlink(opts?: {
     console.warn('[DROID] Vite-style canvas-worker.ts import failed:', err);
   }
 
-  // 4. Same-dir .js fallback
+  // 4. Same-dir .js fallback (build output)
   try {
     const worker = new Worker(
       new URL('./canvas-worker.js', import.meta.url),
@@ -207,19 +195,7 @@ async function initCanvasComlink(opts?: {
     console.warn('[DROID] canvas-worker.js (same dir) fallback failed:', err);
   }
 
-  // 5. Root-relative (import.meta-aware) path
-  try {
-    const worker = new Worker(
-      new URL('/canvas-worker.js', import.meta.url),
-      { type: 'module' },
-    );
-    api = wrap<CanvasWorkerAPI>(worker);
-    return api;
-  } catch (err) {
-    console.warn('[DROID] /canvas-worker.js (meta-relative) fallback failed:', err);
-  }
-
-  // 6. Absolute fallback
+  // 5. Runtime hardcoded absolute path (public/)
   try {
     const worker = new Worker('/canvas-worker.js', { type: 'module' });
     api = wrap<CanvasWorkerAPI>(worker);
@@ -228,7 +204,7 @@ async function initCanvasComlink(opts?: {
     console.warn('[DROID] canvas-worker.js (absolute root) fallback failed:', err);
   }
 
-  // 7. Final failure
+  // 6. Final failure
   console.error('[DROID] No Canvas Comlink Initialized');
   throw new Error('[DROID] Failed to initialize canvas worker');
 }
@@ -386,7 +362,6 @@ function initSWComlink() {
 	]);
 	channel.port1.start();
 }
-
 async function initStorageComlink(opts?: {
   workerRef?: SharedWorker;
   workerURL?: string;
@@ -404,7 +379,7 @@ async function initStorageComlink(opts?: {
     }
   }
 
-  // 2. Try provided URL
+  // 2. Try provided worker URL
   if (opts?.workerURL) {
     try {
       const worker = new SharedWorker(opts.workerURL, { type: 'module' });
@@ -429,7 +404,7 @@ async function initStorageComlink(opts?: {
     console.warn('[DROID] db-worker .ts vite-style import failed:', err);
   }
 
-  // 4. Same-dir .js fallback
+  // 4. Same-dir .js fallback (production build output)
   try {
     const worker = new SharedWorker(
       new URL('./db-worker.js', import.meta.url),
@@ -442,20 +417,7 @@ async function initStorageComlink(opts?: {
     console.warn('[DROID] db-worker.js same-dir fallback failed:', err);
   }
 
-  // 5. Root-relative with import.meta.url context
-  try {
-    const worker = new SharedWorker(
-      new URL('/db-worker.js', import.meta.url),
-      { type: 'module' },
-    );
-    worker.port.start();
-    api = wrap<LocalStorageAPI>(worker.port);
-    return await finalize(api);
-  } catch (err) {
-    console.warn('[DROID] db-worker.js root-relative meta fallback failed:', err);
-  }
-
-  // 6. Absolute root fallback
+  // 5. Hardcoded browser-root fallback (e.g. /public)
   try {
     const worker = new SharedWorker('/db-worker.js', { type: 'module' });
     worker.port.start();
@@ -465,10 +427,11 @@ async function initStorageComlink(opts?: {
     console.warn('[DROID] db-worker.js absolute hardcoded fallback failed:', err);
   }
 
-  // 7. Final failure
+  // 6. Final failure
   console.error('[DROID] No DB Worker Comlink Initialized');
   throw new Error('[DROID] Failed to initialize db-worker');
 }
+
 
 // Internal helper to finalize storage worker setup
 async function finalize(api: Remote<LocalStorageAPI>): Promise<Remote<LocalStorageAPI>> {
