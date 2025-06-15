@@ -13,6 +13,7 @@ import {
 	successAtom,
 	loadingAtom,
 } from './registerstate';
+import { registerUser } from './factory-register';
 
 const HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
 
@@ -65,8 +66,7 @@ export const Register = () => {
 		}
 		setLoading(true);
 		try {
-			// TODO: Replace with your Supabase sign-up logic
-			setSuccess('Registration successful! Please check your email to verify your account.');
+			await registerUser();
 		} catch (err: any) {
 			setError(err.message || 'Registration failed.');
 		} finally {
