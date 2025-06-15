@@ -1,6 +1,6 @@
 import React from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
-import { useStore } from "nanostores/react";
+import { useStore } from "@nanostores/react";
 import {
   emailAtom,
   passwordAtom,
@@ -14,10 +14,11 @@ import {
 
 // Import your Supabase client
 // import { supabase } from "../../../supabaseClient"; // Adjust path as needed
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY
+// Anon Key : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY
+    const HCAPTCHA_SITE_KEY = "e19cf4a6-2168-49a2-88fe-716e97569e88";
 
-const HCAPTCHA_SITE_KEY = "your-hcaptcha-site-key"; // TODO: Replace with your real site key
-
-export const Register = () => {
+    export const Register = () => {
   const email = useStore(emailAtom);
   const password = useStore(passwordAtom);
   const confirmPassword = useStore(confirmPasswordAtom);

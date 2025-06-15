@@ -1,6 +1,18 @@
 import { emailAtom, passwordAtom, confirmPasswordAtom, agreedAtom, captchaTokenAtom, errorAtom, successAtom, loadingAtom } from './registerstate';
-// import { createClient } from '@supabase/supabase-js';
-// const supabase = createClient('SUPABASE_URL', 'SUPABASE_ANON_KEY'); // Set your env vars
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient('https://qmpdruitzlownnnnjmpk.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY'); // Set your env vars
+
+export async function checkIfLoggedInAndRedirect() {
+  const { data } = await supabase.auth.getSession();
+  if (data.session) {
+    successAtom.set("You are already logged in. Redirecting to your profile...");
+    setTimeout(() => {
+      window.location.href = "https://kbve.com/profile/";
+    }, 1500);
+    return true;
+  }
+  return false;
+}
 
 export async function registerUser() {
   const email = emailAtom.get();
@@ -30,12 +42,14 @@ export async function registerUser() {
   }
   loadingAtom.set(true);
   try {
-    // const { error: signUpError } = await supabase.auth.signUp({
-    //   email,
-    //   password,
-    //   options: { captchaToken },
-    // });
-    // if (signUpError) throw signUpError;
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        captchaToken,
+      },
+    });
+    if (signUpError) throw signUpError;
     successAtom.set("Registration successful! Please check your email to verify your account.");
   } catch (err: any) {
     errorAtom.set(err.message || "Registration failed.");
