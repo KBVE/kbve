@@ -1,13 +1,28 @@
-import { droid, modUrls, workerStrings } from '@kbve/droid';
+import { droid, modUrls, workerURLs, workerStrings2 as astroStrings } from '@kbve/droid';
 import * as comlink from 'comlink';
+
+// const workerRefs = {
+// 			canvasWorker: new Worker((new URL(RawWorkerURLs.canvasWorker), import.meta.url), { type: 'module' }),
+// 			dbWorker: new SharedWorker((new URL(RawWorkerURLs.dbWorker), import.meta.url),  { type: 'module' }),
+// 			wsWorker: new SharedWorker((new URL(RawWorkerURLs.wsWorker), import.meta.url),  { type: 'module' }),
+// 	};
+
+// console.log(workerRefs);
+
 
 
 (async () => {
 	
 	console.log("[DROID] init Library");
-	// await droid({ workerURLs });
-	await droid({workerURLs: workerStrings});
-	
+	await droid({ workerURLs: astroStrings });
+		
+	// await droid({
+	// 	workerRefs: {
+	// 		canvasWorker: new Worker((new URL(workerURLs.canvasWorker), import.meta.url), { type: 'module' }),
+	// 		dbWorker: new SharedWorker((new URL(workerURLs.dbWorker), import.meta.url),  { type: 'module' }),
+	// 		wsWorker: new SharedWorker((new URL(workerURLs.wsWorker), import.meta.url),  { type: 'module' }),
+	// 	},
+	// });
 	const mod = window.kbve?.mod;
 	const emitFromWorker = window.kbve?.uiux?.emitFromWorker;
 
