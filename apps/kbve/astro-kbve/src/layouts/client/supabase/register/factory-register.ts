@@ -1,4 +1,4 @@
-import { emailAtom, passwordAtom, confirmPasswordAtom, agreedAtom, captchaTokenAtom, errorAtom, successAtom, loadingAtom } from './registerstate';
+import { emailAtom, passwordAtom, confirmPasswordAtom, agreedAtom, captchaTokenAtom, errorAtom, successAtom, loadingAtom, displayNameAtom } from './registerstate';
 import { createClient } from '@supabase/supabase-js';
 import { task } from 'nanostores';
 
@@ -16,12 +16,18 @@ export async function checkIfLoggedInAndRedirect() {
   return false;
 }
 
+export function sanitizeDisplayName(name: string): string {
+  // Allow only letters, numbers, spaces, underscores, and hyphens
+  return name.replace(/[^a-zA-Z0-9 _-]/g, '').trim();
+}
+
 export async function registerUser() {
   const email = emailAtom.get();
   const password = passwordAtom.get();
   const confirmPassword = confirmPasswordAtom.get();
   const agreed = agreedAtom.get();
   const captchaToken = captchaTokenAtom.get();
+  const displayName = sanitizeDisplayName(displayNameAtom.get());
 
   errorAtom.set("");
   successAtom.set("");
@@ -42,6 +48,10 @@ export async function registerUser() {
     errorAtom.set("Please complete the hCaptcha challenge.");
     return;
   }
+  if (!displayName) {
+    errorAtom.set("Display name is required.");
+    return;
+  }
   loadingAtom.set(true);
   try {
     const { data, error: signUpError } = await supabase.auth.signUp({
@@ -49,6 +59,7 @@ export async function registerUser() {
       password,
       options: {
         captchaToken,
+        data: { display_name: displayName },
       },
     });
     if (signUpError) throw signUpError;

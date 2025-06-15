@@ -12,6 +12,7 @@ import {
 	errorAtom,
 	successAtom,
 	loadingAtom,
+	displayNameAtom,
 } from './registerstate';
 import { registerUser, validatePassword, passwordValidationMessage } from './factory-register';
 
@@ -51,6 +52,7 @@ export const Register = () => {
 	const error = useStore(errorAtom);
 	const success = useStore(successAtom);
 	const loading = useStore(loadingAtom);
+	const displayName = useStore(displayNameAtom);
 
 	const setEmail = (v: string) => emailAtom.set(v);
 	const setPassword = (v: string) => passwordAtom.set(v);
@@ -60,12 +62,14 @@ export const Register = () => {
 	const setError = (v: string) => errorAtom.set(v);
 	const setSuccess = (v: string) => successAtom.set(v);
 	const setLoading = (v: boolean) => loadingAtom.set(v);
+	const setDisplayName = (v: string) => displayNameAtom.set(v);
 
 	type FormValues = {
 		email: string;
 		password: string;
 		confirmPassword: string;
 		agreed: boolean;
+		displayName: string;
 	};
 
 	const {
@@ -79,6 +83,7 @@ export const Register = () => {
 			password,
 			confirmPassword,
 			agreed,
+			displayName,
 		},
 	});
 
@@ -129,9 +134,39 @@ export const Register = () => {
 				)}
 				style={{ maxWidth: 400, margin: '0 auto' }}
 			>
-				<h2 className="text-2xl font-bold text-center mb-2 text-white [text-shadow:_0_1px_2px_black] shadow-black">Register</h2>
+				<h2 className="text-2xl font-bold text-center mb-2 text-white [text-shadow:_0_1px_2px_black] shadow-black shadow-lg">Register</h2>
 				{error && <div className="text-red-500 text-center [text-shadow:_0_1px_2px_black] shadow-black shadow-md">{error}</div>}
 				{success && <div className="text-green-500 text-center [text-shadow:_0_1px_2px_black] shadow-black shadow-md">{success}</div>}
+				<div>
+					<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Display Name</span></label>
+					<input
+						type="text"
+						{...register('displayName', {
+							required: 'Display name is required',
+							maxLength: {
+								value: 32,
+								message: 'Display name cannot exceed 32 characters',
+							},
+							pattern: {
+								value: /^[a-zA-Z0-9 _-]+$/,
+								message: 'Display name can only contain letters, numbers, spaces, _ and -',
+							},
+						})}
+						value={displayName}
+						onChange={e => {
+							setDisplayName(e.target.value);
+							setValue('displayName', e.target.value);
+						}}
+						placeholder="Your display name"
+						className={clsx(
+							'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-white [text-shadow:_0_1px_2px_black] shadow-black',
+							errors.displayName && 'border-red-500',
+						)}
+						maxLength={32}
+					/>
+					<span className="text-xs text-neutral-300">Letters, numbers, spaces, _ and - only.</span>
+					{errors.displayName && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.displayName.message}</span>}
+				</div>
 				<div>
 					<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Email</span></label>
 					<input

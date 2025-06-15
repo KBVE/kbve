@@ -8,3 +8,4 @@ export const captchaTokenAtom = atom<string | null>(null);
 export const errorAtom = atom<string>("");
 export const successAtom = atom<string>("");
 export const loadingAtom = atom<boolean>(false);
+export const displayNameAtom = atom<string>("");
