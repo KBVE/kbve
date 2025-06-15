@@ -1,7 +1,5 @@
 import { emailAtom, passwordAtom, errorAtom, successAtom, loadingAtom, captchaTokenAtom } from './loginstatestate';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient('https://qmpdruitzlownnnnjmpk.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY'); // Set your env vars
+import { supabase } from '../supabaseClient';
 
 export async function loginUser() {
   const email = emailAtom.get();
