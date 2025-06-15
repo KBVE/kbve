@@ -11,6 +11,8 @@ import {
 } from './loginstatestate';
 import { loginUser, signInWithDiscord, signInWithGithub } from './factory-login';
 
+const HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
+
 // Modal component for feedback
 const StatusModal = ({ open, loading, error, success, onClose }: { open: boolean, loading: boolean, error: string, success: string, onClose: () => void }) => {
   if (!open) return null;
