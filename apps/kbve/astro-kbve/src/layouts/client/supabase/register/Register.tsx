@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { useStore } from '@nanostores/react';
 import { useForm } from 'react-hook-form';
@@ -84,6 +84,7 @@ export const Register = () => {
 
 	const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
 	const [modalOpen, setModalOpen] = useState(false);
+	const hcaptchaRef = useRef<any>(null);
 
 	const passwordValidation = validatePassword(password);
 
@@ -97,12 +98,19 @@ export const Register = () => {
 			return;
 		}
 		setLoading(true);
+		let submissionError = false;
 		try {
 			await registerUser();
 		} catch (err: any) {
 			setError(err.message || 'Registration failed.');
+			submissionError = true;
 		} finally {
 			setLoading(false);
+			// Always reset hCaptcha after submission attempt, even if error is set in try
+			if (hcaptchaRef.current) {
+				hcaptchaRef.current.reset();
+				setCaptchaToken(null);
+			}
 		}
 	};
 
@@ -223,6 +231,7 @@ export const Register = () => {
 				{errors.agreed && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.agreed.message}</span>}
 				<div className="my-2">
 					<HCaptcha
+						ref={hcaptchaRef}
 						sitekey={HCAPTCHA_SITE_KEY}
 						onVerify={token => setCaptchaToken(token)}
 						onExpire={() => setCaptchaToken(null)}
