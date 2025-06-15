@@ -59,3 +59,23 @@ export async function registerUser() {
     loadingAtom.set(false);
   }
 }
+
+export function validatePassword(password: string) {
+  return {
+    length: password.length >= 8,
+    lower: /[a-z]/.test(password),
+    upper: /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[!@#$%^&*()_+\-=[\]{};':"|<>?,./`~]/.test(password),
+  };
+}
+
+export function passwordValidationMessage(password: string): string | true {
+  const v = validatePassword(password);
+  if (!v.length) return 'Password must be at least 8 characters';
+  if (!v.lower) return 'Password must include a lowercase letter';
+  if (!v.upper) return 'Password must include an uppercase letter';
+  if (!v.number) return 'Password must include a number';
+  if (!v.special) return 'Password must include a special character';
+  return true;
+}
